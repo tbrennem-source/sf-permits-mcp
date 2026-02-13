@@ -39,12 +39,9 @@ async def permit_stats(
         valid = ", ".join(f"'{k}'" for k in GROUP_MAP)
         return f"Invalid group_by value '{group_by}'. Valid options: {valid}"
 
-    select = (
-        f"{group_field} as category, "
-        f"count(*) as total, "
-        f"avg(cast(estimated_cost as number)) as avg_cost, "
-        f"sum(cast(estimated_cost as number)) as total_cost"
-    )
+    # estimated_cost is text in SODA — can't use avg()/sum() server-side.
+    # Get counts from SODA, then compute cost stats client-side.
+    select = f"{group_field} as category, count(*) as total"
 
     conditions = []
     if date_from:
@@ -62,6 +59,7 @@ async def permit_stats(
 
     client = SODAClient()
     try:
+        # Get counts grouped by category
         results = await client.query(
             endpoint_id=ENDPOINT_ID,
             select=select,
@@ -70,6 +68,39 @@ async def permit_stats(
             order="total DESC",
             limit=50,
         )
+
+        # For cost stats, fetch raw records with cost data for top categories
+        # (limited to avoid excessive API calls)
+        if results:
+            cost_conditions = list(conditions) if conditions else []
+            cost_conditions.append("estimated_cost IS NOT NULL")
+            cost_where = " AND ".join(cost_conditions)
+
+            cost_records = await client.query(
+                endpoint_id=ENDPOINT_ID,
+                select=f"{group_field} as category, estimated_cost",
+                where=cost_where,
+                limit=5000,
+            )
+
+            # Compute avg and total cost per category client-side
+            cost_by_category: dict[str, list[float]] = {}
+            for r in cost_records:
+                cat = r.get("category", "")
+                try:
+                    cost = float(r.get("estimated_cost", 0) or 0)
+                    if cost > 0:
+                        cost_by_category.setdefault(cat, []).append(cost)
+                except (ValueError, TypeError):
+                    continue
+
+            for row in results:
+                cat = row.get("category", "")
+                costs = cost_by_category.get(cat, [])
+                if costs:
+                    row["avg_cost"] = str(sum(costs) / len(costs))
+                    row["total_cost"] = str(sum(costs))
+
         return format_stats(results, group_by)
     finally:
         await client.close()

@@ -128,18 +128,24 @@ async def test_schema_extraction():
 
 @pytest.mark.asyncio
 async def test_cost_filtering():
-    """Verify numeric filtering works for estimated_cost."""
+    """Verify client-side cost filtering works (estimated_cost is text in SODA)."""
+    from src.tools.search_permits import _filter_by_cost
+
+    # estimated_cost is text in SODA — we filter client-side after fetching
     client = SODAClient()
     try:
         results = await client.query(
             "i98e-djp9",
-            where="estimated_cost > 1000000",
-            order="estimated_cost DESC",
-            limit=5,
+            where="estimated_cost IS NOT NULL",
+            order="filed_date DESC",
+            limit=100,
         )
-        assert len(results) > 0, "Expected permits over $1M"
-        for r in results:
-            assert float(r.get("estimated_cost", 0)) > 1_000_000
+        assert len(results) > 0, "Expected permits with cost data"
+
+        # Test client-side filtering
+        filtered = _filter_by_cost(results, min_cost=100_000, max_cost=None)
+        for r in filtered:
+            assert float(r.get("estimated_cost", 0)) >= 100_000
     finally:
         await client.close()
 

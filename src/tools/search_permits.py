@@ -46,10 +46,11 @@ async def search_permits(
     if status:
         conditions.append(f"status='{_escape(status)}'")
     if min_cost is not None:
-        # estimated_cost is stored as text in SODA — cast to number for comparison
-        conditions.append(f"cast(estimated_cost as number) >= {float(min_cost)}")
-    if max_cost is not None:
-        conditions.append(f"cast(estimated_cost as number) <= {float(max_cost)}")
+        # estimated_cost is text in SODA — use estimated_cost IS NOT NULL
+        # to pre-filter, then apply numeric filtering client-side
+        conditions.append("estimated_cost IS NOT NULL")
+    if max_cost is not None and min_cost is None:
+        conditions.append("estimated_cost IS NOT NULL")
     if date_from:
         conditions.append(f"filed_date >= '{_escape(date_from)}'")
     if date_to:
@@ -60,6 +61,11 @@ async def search_permits(
     where = " AND ".join(conditions) if conditions else None
     q = description_search  # $q for full-text search
 
+    # If cost filtering, fetch more results to filter client-side
+    fetch_limit = min(limit, 200)
+    if min_cost is not None or max_cost is not None:
+        fetch_limit = min(limit * 5, 1000)  # Over-fetch for client-side filtering
+
     client = SODAClient()
     try:
         results = await client.query(
@@ -67,11 +73,37 @@ async def search_permits(
             where=where,
             q=q,
             order="filed_date DESC",
-            limit=min(limit, 200),
+            limit=fetch_limit,
         )
+
+        # Client-side cost filtering (estimated_cost is text in SODA)
+        if min_cost is not None or max_cost is not None:
+            results = _filter_by_cost(results, min_cost, max_cost)
+            results = results[: min(limit, 200)]
+
         return format_permit_list(results)
     finally:
         await client.close()
+
+
+def _filter_by_cost(
+    results: list[dict],
+    min_cost: float | None,
+    max_cost: float | None,
+) -> list[dict]:
+    """Filter permits by cost client-side (estimated_cost is text in SODA)."""
+    filtered = []
+    for r in results:
+        try:
+            cost = float(r.get("estimated_cost", 0) or 0)
+        except (ValueError, TypeError):
+            continue
+        if min_cost is not None and cost < min_cost:
+            continue
+        if max_cost is not None and cost > max_cost:
+            continue
+        filtered.append(r)
+    return filtered
 
 
 def _escape(value: str) -> str:
