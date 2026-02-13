@@ -95,3 +95,116 @@ Build a custom thin client (`soda_client.py`) using `httpx`:
 **Status:** Decided — Deferred to Phase 4 (Railway deployment)
 
 When we deploy to Railway, we'll use NIXPACKS (automatic Python environment detection) matching our Chief MCP server pattern. No Dockerfile needed. Railway reads `pyproject.toml` and builds automatically.
+
+---
+
+## Decision 4: DuckDB over SQLite for Local Analytics
+
+**Date:** 2026-02-13
+**Status:** Decided — DuckDB
+
+### Context
+
+Phase 2 requires local storage for 1.8M+ contact records, entity resolution, and graph queries. The workload is analytical: aggregations, self-joins across million-row tables, GROUP BY with complex expressions, and graph traversal via SQL set operations.
+
+### Decision
+
+Use DuckDB (`data/sf_permits.duckdb`) instead of SQLite.
+
+### Rationale
+
+- **Columnar storage.** DuckDB is columnar, which is significantly faster for analytical queries (aggregations, GROUP BY, COUNT DISTINCT) over wide tables. SQLite is row-oriented and optimized for OLTP.
+- **Self-join performance.** The co-occurrence graph is built via a self-join on the contacts table (1.8M rows joined to itself on permit_number). DuckDB handles this in seconds; SQLite would struggle without extensive manual optimization.
+- **Rich SQL dialect.** DuckDB supports `LIST()`, `list_sort()`, `list_slice()`, `array_to_string()`, `STRING_AGG()`, `MEDIAN()`, and `DATEDIFF()` natively. These are used extensively in graph construction and anomaly detection. SQLite lacks most of these.
+- **No server dependency.** Like SQLite, DuckDB is embedded — single file, no daemon, no setup. Fits our local-first architecture.
+- **Python bindings.** `duckdb` pip package provides direct Python integration. Connection semantics are similar to SQLite (`duckdb.connect(path)`).
+
+### Trade-offs
+
+- DuckDB is less widely deployed than SQLite. But we only use it server-side, so client compatibility doesn't matter.
+- DuckDB files are not human-readable. Acceptable since the data is regenerable from SODA API.
+
+---
+
+## Decision 5: Entity Resolution — Multi-Key Cascading with Fuzzy Fallback
+
+**Date:** 2026-02-13
+**Status:** Decided — 5-step cascade (pts_agent_id, license, biz license, fuzzy name, singletons)
+
+### Context
+
+1.8M contact records across 3 datasets refer to the same real-world actors using inconsistent identifiers. Building contacts have `pts_agent_id` + `license1` + names. Electrical contacts have `license_number` + `company_name`. Plumbing contacts have `license_number` + `firm_name`. No single key spans all three.
+
+### Decision
+
+Cascade through identifier keys in decreasing confidence order:
+
+1. **`pts_agent_id`** — building contacts only. Unique per actor in the DBI system. High confidence.
+2. **`license_number`** — present in all 3 datasets (mapped from `license1` in building). If a license already belongs to a step-1 entity, merge; otherwise create new entity. Medium confidence.
+3. **`sf_business_license`** — present in all 3 datasets. Same merge logic as step 2. Medium confidence.
+4. **Fuzzy name matching** — for remaining unresolved contacts that have a non-empty name. Low confidence.
+5. **Singletons** — one entity per remaining contact (no name, no keys). Low confidence.
+
+### Blocking Strategy for Fuzzy Matching
+
+Naive pairwise comparison on 1.8M records (3.24 trillion pairs) is infeasible. We block by the first 3 characters of `UPPER(name)`, reducing each block to a manageable size. Within each block, we use greedy clustering with token-set Jaccard similarity >= 0.75.
+
+Token-set Jaccard (`|A intersection B| / |A union B|` on whitespace-split uppercase tokens) was chosen over Levenshtein because it handles word reordering (e.g., "Smith Construction" vs "Construction Smith") and is fast to compute without external dependencies.
+
+### Merge Behavior
+
+Steps 2 and 3 check whether the key already belongs to an entity from a prior step. If so, they assign the new contacts to the existing entity and update its counts/sources. This prevents creating duplicate entities when the same actor appears with both `pts_agent_id` and `license_number`.
+
+### Alternatives Considered
+
+- **Single-key resolution (license only):** Rejected — would miss ~57% of building contacts that have `pts_agent_id` but no license, and all plumbing contacts with only firm_name.
+- **External dedupe libraries (dedupe, recordlinkage):** Rejected — adds heavy dependencies and ML training overhead. The cascading key approach handles the structured identifiers directly. Fuzzy matching handles the long tail.
+- **Phonetic matching (Soundex, Metaphone):** Not used — our name data is mostly business names, not personal names. Token-set similarity handles abbreviations and word order better than phonetic encoding for firm names.
+
+---
+
+## Decision 6: Graph Model — Co-occurrence via Self-Join, SQL-First
+
+**Date:** 2026-02-13
+**Status:** Decided — SQL self-join in DuckDB, no external graph library
+
+### Context
+
+The network model connects entities that co-appear on permits. We need to build edges, store edge metadata (shared permit count, cost, neighborhoods), and support 1-hop and N-hop traversal queries.
+
+### Decision
+
+Build the graph entirely in SQL via a self-join on the `contacts` table, store edges in a `relationships` table, and query via SQL. No external graph library (NetworkX, igraph, neo4j).
+
+### Implementation
+
+The core edge computation is a single INSERT...SELECT:
+
+```sql
+INSERT INTO relationships (entity_id_a, entity_id_b, shared_permits, ...)
+SELECT a.entity_id, b.entity_id, COUNT(DISTINCT a.permit_number), ...
+FROM contacts a
+JOIN contacts b
+    ON a.permit_number = b.permit_number
+    AND a.entity_id < b.entity_id
+LEFT JOIN permits p ON a.permit_number = p.permit_number
+WHERE a.entity_id IS NOT NULL AND b.entity_id IS NOT NULL
+GROUP BY a.entity_id, b.entity_id
+```
+
+The canonical ordering (`a.entity_id < b.entity_id`) avoids duplicate edges and self-loops. The LEFT JOIN to `permits` enriches edges with cost, type, date, and neighborhood data.
+
+N-hop traversal is done in Python by iteratively expanding a frontier set and querying for neighbors at each hop. This is simple BFS, not recursive SQL.
+
+### Rationale
+
+- **DuckDB handles the self-join.** The contacts table has ~1.8M rows, but the join is on `permit_number` (indexed), and DuckDB's columnar engine handles the aggregation efficiently.
+- **SQL-first avoids data movement.** Loading 1.8M rows into a Python graph library would require significant memory and serialization overhead. Keeping computation in SQL means only query results leave DuckDB.
+- **Simple storage.** The `relationships` table is a standard adjacency list. No proprietary graph format to maintain.
+- **Sufficient for our queries.** We need 1-hop neighbors, 2-hop networks, connected components, and anomaly detection. All of these work with simple SQL + Python BFS. We don't need shortest-path, PageRank, or other algorithms that would justify a graph engine.
+
+### Alternatives Considered
+
+- **NetworkX:** Evaluated — good for algorithms but requires loading the full graph into memory. At scale (100K+ edges), memory and startup cost become significant. Also adds a dependency.
+- **Neo4j:** Rejected — server dependency, operational overhead. Overkill for a single-user MCP server querying a static dataset.
+- **DuckDB recursive CTEs:** Considered for N-hop traversal. Decided against because DuckDB's recursive CTE support is functional but the Python frontier-expansion approach is clearer and easier to debug.

@@ -10,6 +10,7 @@ authors = [{name = "Tim Brenneman"}]
 dependencies = [
     "fastmcp>=2.0.0",
     "httpx>=0.27.0",
+    "duckdb>=1.1.0",
 ]
 
 [project.optional-dependencies]

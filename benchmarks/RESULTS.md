@@ -229,3 +229,86 @@ For a typical permit lookup session:
 | Neighborhood | `neighborhoods_analysis_boundaries` | -- | -- | -- | -- | `analysis_neighborhood` | -- |
 
 These inconsistencies mean each dataset requires its own query templates. A unified query layer should map logical field names to physical field names per dataset.
+
+---
+
+## Phase 2: DuckDB Entity Resolution & Graph Benchmarks
+
+**Date:** 2026-02-13
+**Machine:** macOS Apple Silicon (M-series), 32GB RAM
+**Database:** DuckDB 1.2.2, file-based (602MB)
+
+### Data Ingestion (SODA API -> DuckDB)
+
+| Dataset | Records | Time | Rate | Notes |
+|---|---|---|---|---|
+| Building Contacts | 1,004,592 | 158.9s | 6,300 rec/s | 101 pages @ 10K/page |
+| Electrical Contacts | 339,926 | 62.4s | 5,400 rec/s | 34 pages |
+| Plumbing Contacts | 502,534 | 73.1s | 6,900 rec/s | 51 pages |
+| Building Permits | 1,137,723 | 560.0s | 2,300 rec/s | 114 pages, slower pagination near end |
+| Building Inspections | 671,170 | 214.3s | 3,100 rec/s | 68 pages, required retry logic |
+| **Total** | **3,655,945** | **~1,069s** | **~3,400 rec/s** | **DuckDB file: 602MB** |
+
+### Entity Resolution Pipeline
+
+| Step | Entities Created | Contacts Resolved | Time | Method |
+|---|---|---|---|---|
+| 0. Clear existing | -- | -- | ~300s | UPDATE 1.8M rows to NULL |
+| 1. pts_agent_id | 1,004,592 | 1,004,592 / 1,847,052 | 211.9s | DENSE_RANK + SQL join |
+| 2. license_number | 9,873 | 1,846,838 / 1,847,052 | 179.3s | VALUES temp table + merge |
+| 3. sf_business_license | 0 | 1,846,838 / 1,847,052 | 0.0s | All already covered |
+| 4. Fuzzy name matching | 18 | 1,846,865 / 1,847,052 | 0.1s | Blocking + Jaccard similarity |
+| 5. Singletons | 187 | 1,847,052 / 1,847,052 | 0.1s | ROW_NUMBER INSERT...SELECT |
+| **Total** | **1,014,670** | **1,847,052 (100%)** | **785.1s** | **1.82x dedup ratio** |
+
+**Key findings:**
+- 98.9% of entities resolved via pts_agent_id (high confidence)
+- 0.97% via license_number cross-dataset merging (medium confidence)
+- Only 214 contacts remained after key-based resolution (0.01%)
+- Pure SQL approach (DENSE_RANK + temp tables) critical for performance on 1.8M rows
+
+### Co-occurrence Graph
+
+| Metric | Value |
+|---|---|
+| Edges | 576,323 |
+| Build time | 1.2s |
+| Max edge weight | 1 |
+| Avg edge weight | 1.00 |
+| Max entity degree | 74 |
+
+### Anomaly Detection
+
+| Anomaly Type | Flagged |
+|---|---|
+| High permit volume (>3 stddev) | 2,783 entities |
+| Fast approvals | 12,422 permits |
+| Inspector concentration | 0 |
+| Geographic concentration | 0 |
+| Clusters (min_size=3, min_weight=1) | 88,916 |
+
+**Top entities by permit volume:**
+1. Gary Lemasters (contractor, Arb Inc): 12,674 permits
+2. "*" (Homeowner's Permit): 8,239 permits
+3. Peter & Josephine Mchugh (Ayoob & Peery Plumbing): 7,994 permits
+4. Bayardo Chamorro (contractor): 7,309 permits
+5. Leanne Goff (contractor): 7,205 permits
+
+### Ground Truth Validation
+
+| Target | Found | Details |
+|---|---|---|
+| Rodrigo Santos (inspector) | No | Not in current inspections dataset (2014-2026) |
+| Florence Kong (inspector) | No | Not in current inspections dataset |
+| Bernard Curran (inspector) | **Yes** | 7,495 inspections, 5,842 permits, 39 neighborhoods (2014-2021), 20 linked entities |
+
+### Database Schema Summary
+
+| Table | Rows | Description |
+|---|---|---|
+| contacts | 1,847,052 | Raw contact records from 3 SODA datasets |
+| permits | 1,137,723 | Building permit records |
+| inspections | 671,170 | Building inspection records |
+| entities | 1,014,670 | Deduplicated entity records |
+| relationships | 576,323 | Entity co-occurrence edges |
+| ingest_log | 5 | Ingestion metadata |
