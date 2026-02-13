@@ -1,0 +1,513 @@
+{
+  "discovery_date": "2026-02-12",
+  "total_datasets": 22,
+  "contact_data_found": true,
+  "contact_data_location": "3pee-9qhc (Building Permits Contacts, 1M records), fdm7-jqqf (Electrical Permits Contacts, 340K records), k6kv-9kix (Plumbing Permits Contacts, 503K records)",
+  "violation_data_found": true,
+  "violation_data_location": "nbtm-fbw5 (Notices of Violation), gm2e-bten (DBI Complaints)",
+  "datasets": [
+    {
+      "endpoint_id": "i98e-djp9",
+      "name": "Building Permits",
+      "description": "All building permit applications filed with DBI. Includes permit characteristics, addresses, project valuations, unit counts, and key dates.",
+      "category": "Housing and Buildings",
+      "record_count": 1282446,
+      "update_frequency": "nightly",
+      "relevance": "permits",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "permit_number", "permit_type", "permit_type_definition", "permit_creation_date",
+        "block", "lot", "street_number", "street_number_suffix", "street_name", "street_suffix",
+        "unit", "unit_suffix", "description", "status", "status_date", "filed_date", "issued_date",
+        "completed_date", "first_construction_document_date", "approved_date",
+        "structural_notification", "number_of_existing_stories", "number_of_proposed_stories",
+        "voluntary_soft_story_retrofit", "fire_only_permit", "estimated_cost", "revised_cost",
+        "existing_use", "existing_units", "proposed_use", "proposed_units", "plansets",
+        "tidf_compliance", "existing_occupancy", "proposed_occupancy",
+        "existing_construction_type", "existing_construction_type_description",
+        "proposed_construction_type", "proposed_construction_type_description",
+        "site_permit", "last_permit_activity_date", "application_submission_method",
+        "adu", "primary_address_flag", "supervisor_district",
+        "neighborhoods_analysis_boundaries", "zipcode", "location", "point_source",
+        "reroof", "record_id", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/i98e-djp9.json",
+      "notes": "Primary building permits dataset. No contractor names in this dataset — contacts are in separate 3pee-9qhc dataset. Use primary_address_flag='Y' to deduplicate."
+    },
+    {
+      "endpoint_id": "87xy-gk8d",
+      "name": "Building Permit Addenda with Routing",
+      "description": "Each review step on a building permit or site permit addenda routing list. Shows the review timeline and departmental involvement.",
+      "category": "Housing and Buildings",
+      "record_count": 3918600,
+      "update_frequency": "nightly",
+      "relevance": "permits",
+      "has_contact_data": true,
+      "contact_fields": ["plan_checked_by"],
+      "fields": [
+        "primary_key", "application_number", "addenda_number", "step", "station",
+        "arrive", "assign_date", "start_date", "finish_date", "approved_date",
+        "plan_checked_by", "addenda_status", "department", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/87xy-gk8d.json",
+      "notes": "Very large (~3.9M rows). Multiple rows per permit (one per review step). Join to building permits via application_number = permit_number."
+    },
+    {
+      "endpoint_id": "a6aw-rudh",
+      "name": "Plumbing Permits",
+      "description": "All types of plumbing and mechanical permits from DBI.",
+      "category": "Housing and Buildings",
+      "record_count": 512836,
+      "update_frequency": "weekly",
+      "relevance": "permits",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "permit_number", "application_date", "block", "lot", "parcel_number",
+        "street_number", "street_name", "street_suffix", "unit", "description",
+        "status", "filed_date", "issued_date", "completed_date", "zipcode",
+        "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/a6aw-rudh.json",
+      "notes": "Uploaded weekly. Same schema pattern as electrical permits."
+    },
+    {
+      "endpoint_id": "ftty-kx6y",
+      "name": "Electrical Permits",
+      "description": "All types of electrical permits from DBI.",
+      "category": "Housing and Buildings",
+      "record_count": 343780,
+      "update_frequency": "weekly",
+      "relevance": "permits",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "permit_number", "application_creation_date", "block", "lot",
+        "street_number", "street_name", "street_suffix", "description",
+        "status", "filed_date", "issued_date", "completed_date", "zip_code",
+        "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/ftty-kx6y.json",
+      "notes": "Has separate contacts dataset at fdm7-jqqf."
+    },
+    {
+      "endpoint_id": "5dp4-gtxk",
+      "name": "Boiler Permits",
+      "description": "All permits to operate boilers from DBI.",
+      "category": "Housing and Buildings",
+      "record_count": 151708,
+      "update_frequency": "weekly",
+      "relevance": "permits",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "permit_number", "application_date", "block", "lot", "street_number",
+        "street_name", "street_suffix", "description", "status", "expiration_date",
+        "neighborhoods_analysis_boundaries", "boiler_serial_number", "boiler_type",
+        "model", "supervisor_district", "zip_code", "the_geom", "point_source",
+        "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/5dp4-gtxk.json",
+      "notes": "Has geospatial data (the_geom). Includes boiler-specific fields."
+    },
+    {
+      "endpoint_id": "3pee-9qhc",
+      "name": "Building Permits Contacts",
+      "description": "Contact information for contractors, architects, engineers, expediters, and other actors associated with building permits. 11 role types.",
+      "category": "Housing and Buildings",
+      "record_count": 1004592,
+      "update_frequency": "nightly",
+      "relevance": "contacts",
+      "has_contact_data": true,
+      "contact_fields": ["first_name", "last_name", "role", "firm_name", "license1", "sf_business_license_number", "pts_agent_id"],
+      "fields": [
+        "id", "permit_number", "first_name", "last_name", "role",
+        "agent_address", "city", "state", "agent_zipcode",
+        "firm_name", "firm_address", "firm_city", "firm_state", "firm_zipcode",
+        "pts_agent_id", "from_date", "is_applicant",
+        "license1", "sf_business_license_number",
+        "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/3pee-9qhc.json",
+      "notes": "CRITICAL for fraud detection. 1M records. 11 roles: contractor (573K), authorized agent (143K), architect (95K), engineer (69K), lessee (42K), payor (32K), expediter (26K), designer (15K), project contact (10K), attorney (565), subcontractor (133). Has pts_agent_id for entity resolution. Joins to building permits via permit_number."
+    },
+    {
+      "endpoint_id": "fdm7-jqqf",
+      "name": "Electrical Permits Contacts",
+      "description": "Contact information for electrical permit contractors. 99.85% contractor records.",
+      "category": "Housing and Buildings",
+      "record_count": 339926,
+      "update_frequency": "weekly",
+      "relevance": "contacts",
+      "has_contact_data": true,
+      "contact_fields": ["company_name", "contact_type", "license_number", "sf_business_license_number"],
+      "fields": [
+        "permit_number", "contact_type", "company_name",
+        "street_number", "street", "street_suffix", "state", "zipcode",
+        "phone", "phone2", "license_number", "is_applicant",
+        "sf_business_license_number", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/fdm7-jqqf.json",
+      "notes": "Companion to ftty-kx6y (Electrical Permits). Almost all contractor records. No pts_agent_id. Uses company_name (single field) instead of first/last name."
+    },
+    {
+      "endpoint_id": "k6kv-9kix",
+      "name": "Plumbing Permits Contacts",
+      "description": "Contact information for plumbing permit contractors. All records are implicitly contractors.",
+      "category": "Housing and Buildings",
+      "record_count": 502534,
+      "update_frequency": "weekly",
+      "relevance": "contacts",
+      "has_contact_data": true,
+      "contact_fields": ["firm_name", "license_number", "sf_business_license_number"],
+      "fields": [
+        "permit_number", "firm_name", "license_number",
+        "address", "city", "state", "phone", "zipcode",
+        "is_applicant", "sf_business_license_number",
+        "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/k6kv-9kix.json",
+      "notes": "Companion to a6aw-rudh (Plumbing Permits). Simplest schema — no role field (all contractors). No pts_agent_id. Only firm_name (no individual names)."
+    },
+    {
+      "endpoint_id": "qvu5-m3a2",
+      "name": "Planning Department Records - Projects",
+      "description": "PRJ records from the Planning Department's Accela database. Development project information.",
+      "category": "City Planning",
+      "record_count": 53816,
+      "update_frequency": "nightly",
+      "relevance": "planning",
+      "has_contact_data": true,
+      "contact_fields": ["applicant", "applicant_org", "assigned_to_planner"],
+      "fields": [
+        "record_id", "record_type", "project_name", "description", "record_status",
+        "project_address", "block", "lot", "child_id", "open_date", "applicant",
+        "applicant_org", "assigned_to_planner", "environmental_document_type",
+        "number_of_units_net", "number_of_market_rate_units", "number_of_affordable_units",
+        "number_of_units_exist", "number_market_rate_units", "number_affordable_units_exist",
+        "number_of_units_prop", "number_market_rate_units_1", "number_affordable_units_prop",
+        "additions", "residential_exist", "parking_spaces_exist", "residential_prop",
+        "parking_spaces_prop", "residential_3br_exist", "residential_3br_prop", "pim_link"
+      ],
+      "api_url": "https://data.sfgov.org/resource/qvu5-m3a2.json",
+      "notes": "Replaces deprecated kncr-c6jw. Use record_id to cross-reference with Non-Projects via parent_id."
+    },
+    {
+      "endpoint_id": "y673-d69b",
+      "name": "Planning Department Records - Non-Projects",
+      "description": "Non-project records (ENV, CUA, VAR, etc.) from Planning Department's Accela database.",
+      "category": "City Planning",
+      "record_count": 228090,
+      "update_frequency": "nightly",
+      "relevance": "planning",
+      "has_contact_data": true,
+      "contact_fields": ["applicant_org", "assigned_to_planner"],
+      "fields": [
+        "record_id", "record_type", "project_name", "description", "record_status",
+        "project_address", "block", "lot", "parent_id", "open_date",
+        "applicant_org", "assigned_to_planner", "pim_link"
+      ],
+      "api_url": "https://data.sfgov.org/resource/y673-d69b.json",
+      "notes": "Companion to Projects (qvu5-m3a2). Linked via parent_id. Record types include ENV, CUA, VAR."
+    },
+    {
+      "endpoint_id": "b6tj-gt35",
+      "name": "Street-Use Permits",
+      "description": "All street space permits from SF Public Works since 1996.",
+      "category": "Public Works",
+      "record_count": 1202419,
+      "update_frequency": "daily",
+      "relevance": "permits",
+      "has_contact_data": true,
+      "contact_fields": ["agent", "agentphone", "contact", "planchecker"],
+      "fields": [
+        "permit_number", "cnn", "unique_identifier", "streetname",
+        "cross_street_1", "cross_street_2", "permit_type", "agent", "agentphone",
+        "permit_purpose", "approved_date", "status", "permit_zipcode", "contact",
+        "planchecker", "x", "y", "latitude", "longitude", "location", "the_geom",
+        "analysis_neighborhood", "supervisor_district", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/b6tj-gt35.json",
+      "notes": "Very large (~1.2M rows). Has agent/contact fields. Uses CNN (Centerline Network Number)."
+    },
+    {
+      "endpoint_id": "i926-ujnc",
+      "name": "Large Utility Excavation Permits",
+      "description": "Large excavation permits (1000+ sq ft) from DPW Dig Once Program.",
+      "category": "Public Works",
+      "record_count": 3204,
+      "update_frequency": "monthly",
+      "relevance": "permits",
+      "has_contact_data": true,
+      "contact_fields": ["utility_contractor"],
+      "fields": [
+        "permit_number", "street_name", "cross_street_1", "utility_contractor",
+        "permit_purpose", "permit_reason", "permit_status", "permit_start_date",
+        "permit_end_date", "permit_renewed_from_permit_number", "x", "y",
+        "latitude", "longitude", "location"
+      ],
+      "api_url": "https://data.sfgov.org/resource/i926-ujnc.json",
+      "notes": "Subset of street-use permits. Has utility_contractor field."
+    },
+    {
+      "endpoint_id": "smdf-6c45",
+      "name": "Utility Excavation Permits (Active)",
+      "description": "Active or approved excavation permits.",
+      "category": "Public Works",
+      "record_count": 4504,
+      "update_frequency": "daily",
+      "relevance": "permits",
+      "has_contact_data": true,
+      "contact_fields": ["utility_contractor"],
+      "fields": [
+        "permit_number", "streetname", "cross_street_1", "utility_contractor",
+        "permit_reason", "utility_type", "effective_date", "expiration_date",
+        "status", "cnn"
+      ],
+      "api_url": "https://data.sfgov.org/resource/smdf-6c45.json",
+      "notes": "Filtered view of active utility excavation permits."
+    },
+    {
+      "endpoint_id": "6jgi-cpb4",
+      "name": "SF Development Pipeline (Q3 2025)",
+      "description": "Quarterly snapshot combining Planning and DBI data on construction/entitlement activity.",
+      "category": "Housing and Development",
+      "record_count": 2063,
+      "update_frequency": "quarterly",
+      "relevance": "enrichment",
+      "has_contact_data": true,
+      "contact_fields": ["planner", "sponsor", "contact", "contactph"],
+      "fields": [
+        "blklot", "nameaddr", "approved_date_planning", "has_approved_entitlement",
+        "current_status", "current_status_date", "new_pipeline_units", "existing_units",
+        "proposed_units", "demo_units", "net_pipeline_units", "completed_new_units",
+        "pipeline_affordable_units", "bmr_units_ex_low", "bmr_units_very_low",
+        "bmr_units_low", "bmr_units_moderate", "case_no", "bpa_no", "bpa_form_no",
+        "is_site_permit", "description_planning", "description_dbi",
+        "non_residential_total_gsf", "non_residential_net_gsf",
+        "planner", "sponsor", "contact", "contactph", "legalization", "adu",
+        "state_density", "planning_district", "sd22", "nhood37", "nhood41",
+        "zoning_district", "height_district", "longitude", "latitude", "latlong"
+      ],
+      "api_url": "https://data.sfgov.org/resource/6jgi-cpb4.json",
+      "notes": "Current pipeline. Endpoint ID changes each quarter. Has sponsor/planner contact fields."
+    },
+    {
+      "endpoint_id": "aaxw-2cb8",
+      "name": "Affordable Housing Pipeline (MOHCD)",
+      "description": "MOHCD and OCII affordable housing pipeline projects.",
+      "category": "Housing and Development",
+      "record_count": 194,
+      "update_frequency": "quarterly",
+      "relevance": "enrichment",
+      "has_contact_data": true,
+      "contact_fields": ["project_lead_sponsor"],
+      "fields": [
+        "project_id", "project_name", "project_status", "construction_status",
+        "plannning_approval_address", "zip_code", "block", "lot",
+        "supervisor_district", "city_analysis_neighborhood", "planning_neighborhood",
+        "lead_agency", "general_housing_program", "program_area", "project_area",
+        "project_type", "housing_tenure", "issuance_of_building_permit",
+        "project_lead_sponsor", "planning_case_number", "entitlement_approval",
+        "section_415_declaration", "total_project_units", "mohcd_affordable_units",
+        "affordable_percent", "sro_units", "studio_units", "_1bd_units", "_2bd_units",
+        "_3bd_units", "_4bd_units", "_5_bd_units", "mobility_units", "family_units",
+        "senior_units", "tay_units", "homeless_units", "disabled_units", "losp_units",
+        "public_housing_replacement_units", "_20_ami", "_30_ami", "_40_ami", "_50_ami",
+        "_55_ami", "_60_ami", "_80_ami", "_90_ami", "_100_ami", "_105_ami", "_110_ami",
+        "_120_ami", "_130_ami", "_150_ami", "ami_undeclared",
+        "latitude", "longitude", "location"
+      ],
+      "api_url": "https://data.sfgov.org/resource/aaxw-2cb8.json",
+      "notes": "Rich affordability data with AMI-level breakdowns."
+    },
+    {
+      "endpoint_id": "j67f-aayr",
+      "name": "Dwelling Unit Completion Counts",
+      "description": "New residential units certified for occupancy since January 2018.",
+      "category": "Housing and Development",
+      "record_count": 2382,
+      "update_frequency": "monthly",
+      "relevance": "enrichment",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "building_permit_application", "building_address", "date_issued",
+        "document_type", "number_of_units_certified"
+      ],
+      "api_url": "https://data.sfgov.org/resource/j67f-aayr.json",
+      "notes": "Links to building permits via building_permit_application."
+    },
+    {
+      "endpoint_id": "xdht-4php",
+      "name": "Housing Production (2005-present)",
+      "description": "Completed permits resulting in residential unit additions or losses since 2005.",
+      "category": "Housing and Development",
+      "record_count": 5798,
+      "update_frequency": "annually",
+      "relevance": "enrichment",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "bpa", "address", "description", "pts_existing_units", "pts_proposed_units",
+        "proposed_units", "net_units", "net_units_completed", "adu_legalization_units",
+        "first_completion_date", "latest_completion_date", "extremely_low_income",
+        "very_low_income", "low_income", "moderate_income", "affordable_units",
+        "market_rate", "affordable_is_estimate", "supervisor_district",
+        "analysis_neighborhood", "planning_dist", "form_no", "permit_type",
+        "issued_date", "authorization_date", "zoning_district", "bmr_reporting_year",
+        "blocklot"
+      ],
+      "api_url": "https://data.sfgov.org/resource/xdht-4php.json",
+      "notes": "Historical completions with affordability breakdowns."
+    },
+    {
+      "endpoint_id": "g8m3-pdis",
+      "name": "Registered Business Locations",
+      "description": "Locations of businesses paying taxes to SF, from the Treasurer & Tax Collector's Office.",
+      "category": "Economy and Community",
+      "record_count": 354222,
+      "update_frequency": "daily",
+      "relevance": "enrichment",
+      "has_contact_data": true,
+      "contact_fields": ["ownership_name", "dba_name"],
+      "fields": [
+        "uniqueid", "certificate_number", "ttxid", "ownership_name", "dba_name",
+        "full_business_address", "city", "state", "business_zip",
+        "dba_start_date", "dba_end_date", "location_start_date", "location_end_date",
+        "parking_tax", "transient_occupancy_tax", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/g8m3-pdis.json",
+      "notes": "~354K records. Filter on location_end_date IS NULL for active only."
+    },
+    {
+      "endpoint_id": "wv5m-vpq2",
+      "name": "Assessor Historical Secured Property Tax Rolls",
+      "description": "Property tax roll data from 2007 to 2024. Includes property values, characteristics, and zoning.",
+      "category": "Economy and Community",
+      "record_count": 3722920,
+      "update_frequency": "annually",
+      "relevance": "enrichment",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "closed_roll_year", "property_location", "parcel_number", "block", "lot",
+        "volume_number", "use_code", "use_definition", "property_class_code",
+        "property_class_code_definition", "year_property_built", "number_of_bathrooms",
+        "number_of_bedrooms", "number_of_rooms", "number_of_stories", "number_of_units",
+        "zoning_code", "construction_type", "lot_depth", "lot_frontage", "property_area",
+        "basement_area", "lot_area", "lot_code", "tax_rate_area_code",
+        "percent_of_ownership", "exemption_code", "status_code",
+        "misc_exemption_value", "homeowner_exemption_value", "assessed_fixtures_value",
+        "assessed_improvement_value", "assessed_land_value",
+        "assessed_personal_property_value", "assessor_neighborhood_district",
+        "assessor_neighborhood_code", "assessor_neighborhood", "supervisor_district",
+        "supervisor_district_2012", "analysis_neighborhood", "the_geom",
+        "row_id", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/wv5m-vpq2.json",
+      "notes": "Very large (~3.7M rows). Filter by closed_roll_year for single year (~200K parcels/year)."
+    },
+    {
+      "endpoint_id": "vckc-dh2h",
+      "name": "Building Inspections",
+      "description": "Inspections performed by DBI on issued permits, complaints, or addresses.",
+      "category": "Housing and Buildings",
+      "record_count": 670946,
+      "update_frequency": "nightly",
+      "relevance": "violations",
+      "has_contact_data": true,
+      "contact_fields": ["inspector"],
+      "fields": [
+        "reference_number", "reference_number_type", "block", "lot",
+        "street_number", "avs_street_name", "avs_street_sfx", "bid_district",
+        "inspector_district", "inspector", "ampm", "scheduled_date",
+        "appointment_date", "request_date", "request_taken_by", "request_taken_date",
+        "code", "inspection_description", "result", "parcel_number", "eas_baseid",
+        "point_source", "zip_code", "point", "supervisor_district",
+        "analysis_neighborhood", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/vckc-dh2h.json",
+      "notes": "Links to permits via reference_number when reference_number_type='permit'. Has inspector name — relevant for Curran-pattern detection."
+    },
+    {
+      "endpoint_id": "gm2e-bten",
+      "name": "DBI Complaints",
+      "description": "Complaints from all DBI divisions (Housing, Building, Electrical, Plumbing, Code Enforcement).",
+      "category": "Housing and Buildings",
+      "record_count": 325736,
+      "update_frequency": "weekly",
+      "relevance": "violations",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "complaint_number", "date_filed", "date_abated", "block", "lot",
+        "parcel_number", "street_number", "street_name", "street_suffix", "unit",
+        "zip_code", "complaint_description", "status", "nov_type",
+        "receiving_division", "assigned_division", "data_as_of", "data_loaded_at"
+      ],
+      "api_url": "https://data.sfgov.org/resource/gm2e-bten.json",
+      "notes": "Covers all DBI divisions. Related to Notices of Violation (nbtm-fbw5)."
+    },
+    {
+      "endpoint_id": "nbtm-fbw5",
+      "name": "Notices of Violation",
+      "description": "Violation notices issued during DBI inspections. Contains violation category, item descriptions, and address data.",
+      "category": "Housing and Buildings",
+      "record_count": 508675,
+      "update_frequency": "daily",
+      "relevance": "violations",
+      "has_contact_data": false,
+      "contact_fields": [],
+      "fields": [
+        "complaint_number", "item_sequence_number", "primary_key", "date_filed",
+        "block", "lot", "street_number", "street_name", "street_suffix", "unit",
+        "status", "receiving_division", "assigned_division",
+        "nov_category_description", "item", "nov_item_description",
+        "neighborhoods_analysis_boundaries", "supervisor_district", "zipcode", "location"
+      ],
+      "api_url": "https://data.sfgov.org/resource/nbtm-fbw5.json",
+      "notes": "Key 'bad actor signal' dataset. No direct permit_number field — join via block+lot to permits. Links to DBI Complaints via complaint_number."
+    }
+  ],
+  "deprecated_datasets": [
+    {
+      "endpoint_id": "7mc4-5ee8",
+      "name": "SF Development Pipeline (Legacy)",
+      "notes": "Only 1 record remaining. Use 6jgi-cpb4 instead."
+    },
+    {
+      "endpoint_id": "kncr-c6jw",
+      "name": "SF Planning Permitting Data",
+      "notes": "Replaced by qvu5-m3a2 (Projects) and y673-d69b (Non-Projects)."
+    },
+    {
+      "endpoint_id": "i8ew-h6z7",
+      "name": "SF Property Information Map",
+      "notes": "Not a data API. Interactive map at sfplanninggis.org/pim. Returns 403."
+    }
+  ],
+  "related_datasets_not_included": [
+    {
+      "endpoint_id": "x8nh-xzn6",
+      "name": "Active Street-Use Permits",
+      "notes": "Filtered view of b6tj-gt35."
+    },
+    {
+      "endpoint_id": "kvj8-g7jh",
+      "name": "Active Business Locations",
+      "notes": "Filtered view of g8m3-pdis."
+    },
+    {
+      "endpoint_id": "9grn-xjpx",
+      "name": "Parcels with Overlay Attributes",
+      "notes": "Parcel data with districts, neighborhoods. Good for geo lookups."
+    },
+    {
+      "endpoint_id": "acdm-wktn",
+      "name": "Parcels - Active and Retired",
+      "notes": "Recorded parcel geography with zoning since 1995."
+    }
+  ]
+}
