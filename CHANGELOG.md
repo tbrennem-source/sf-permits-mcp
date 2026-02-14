@@ -1,5 +1,48 @@
 # Changelog
 
+## Phase 2.75 — Permit Decision Tools (2026-02-14)
+
+### Knowledge Validation (Phase 2.6)
+- Validated `tier1/fee-tables.json` (54K, 19 tables, 9-step algorithm, eff. 9/1/2025)
+- Validated `tier1/fire-code-key-sections.json` (37K, 13 SFFD triggers)
+- Validated `tier1/planning-code-key-sections.json` (36K, 6 major sections)
+- Created `tier1/epr-requirements.json` — 22 official DBI EPR checks from Exhibit F + Bluebeam Guide, severity-classified (reject/warning/recommendation)
+- Created `tier1/decision-tree-gaps.json` — machine-readable gap analysis for all 7 steps + 6 special project types, used by tools for confidence reporting
+- Created `DECISION_TREE_VALIDATION.md` — human-readable validation summary
+- Confirmed: `estimated_cost` is DOUBLE in DuckDB (no CAST needed), `plansets` field does not exist
+
+### New MCP Tools (5)
+- `predict_permits` — Takes project description → walks 7-step decision tree → returns permits, forms, OTC/in-house review path, agency routing, special requirements, confidence levels. Uses `semantic-index.json` (492 keyword aliases from 61 concepts) for project type extraction.
+- `estimate_timeline` — Queries DuckDB for percentile-based timeline estimates (p25/p50/p75/p90) with progressive query widening, trend analysis (recent 6mo vs prior 12mo), and delay factors. Creates `timeline_stats` materialized view on first call.
+- `estimate_fees` — Applies Table 1A-A fee schedule (10 valuation tiers) to compute plan review + issuance fees, plus CBSC/SMIP surcharges. Statistical comparison against DuckDB actual permits.
+- `required_documents` — Generates document checklist from permit form, review path, agency routing, and project triggers. Includes full EPR requirements (22 checks) and pro tips.
+- `revision_risk` — Estimates revision probability using `revised_cost > estimated_cost` as proxy signal (125K revision events in 1.1M permits). Computes timeline penalty, common triggers by project type, mitigation strategies.
+
+### Module Architecture
+- Created `src/tools/knowledge_base.py` — shared `KnowledgeBase` class loads all 12 tier1 JSON files once via `@lru_cache`. Builds keyword index from semantic-index.json for project type matching.
+- 5 new tool modules in `src/tools/`: `predict_permits.py`, `estimate_timeline.py`, `estimate_fees.py`, `required_documents.py`, `revision_risk.py`
+- Server.py updated: imports + registers all 13 tools (5 SODA + 3 entity/network + 5 decision)
+
+### Tests
+- 48 new tests across 6 files:
+  - `test_predict_permits.py` (14) — keyword extraction, KnowledgeBase loading, semantic matching, full predictions for restaurant/kitchen/ADU scenarios
+  - `test_estimate_fees.py` (8) — fee calculation per tier, surcharges, tool output with project types
+  - `test_required_docs.py` (7) — base docs, agency-specific, trigger-specific, EPR, demolition, historic, commercial TI ADA
+  - `test_timeline.py` (5) — DuckDB queries with neighborhood, cost, review path, triggers
+  - `test_revision_risk.py` (5) — basic, neighborhood, restaurant triggers, mitigation, timeline impact
+  - `test_integration_scenarios.py` (9) — 5 Amy stress test scenarios through predict + fees + docs chain
+- **All 74 tests passing** (16 Phase 2 + 10 Phase 1 + 48 Phase 2.75)
+
+### Integration Test Scenarios
+- `data/knowledge/system_predictions.md` (37K) — full output of all 5 tools across 5 scenarios:
+  - A: Residential kitchen remodel (Noe Valley, $85K)
+  - B: ADU over garage (Sunset, $180K)
+  - C: Commercial TI (Financial District, $350K)
+  - D: Restaurant conversion (Mission, $250K)
+  - E: Historic building renovation (Pacific Heights, $2.5M)
+
+---
+
 ## Phase 2 — Network Model Validation (2026-02-13)
 
 ### DuckDB Ingestion Pipeline (`src/ingest.py`)

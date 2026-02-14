@@ -1,28 +1,23 @@
 {
   "metadata": {
     "title": "SF DBI Electronic Plan Review (EPR) Requirements",
+    "source": "SF DBI EPR Guidelines (Exhibit F) + Bluebeam Usage Guide",
+    "source_urls": [
+      "https://www.sf.gov/information--how-create-pdfs-your-plans-or-addenda",
+      "https://www.sf.gov/information--how-use-bluebeam",
+      "https://www.sf.gov/resource--2021--electronic-plan-review-epr-resources"
+    ],
     "compiled_from": [
+      "SF DBI EPR Guidelines (Exhibit F)",
+      "SF DBI Bluebeam Usage Guide",
       "tier3/AB-004.txt (Priority Permit Processing Guidelines, Dec 15, 2022)",
-      "tier1/inhouse-review-process.json (submission format references)",
       "tier1/completeness-checklist.json (plan format requirements)",
       "decision-tree-draft.json step_5 (plan format requirements)"
     ],
     "effective_date": "2024-01-01",
-    "compilation_date": "2026-02-14",
-    "confidence": "medium",
-    "notes": [
-      "DBI transitioned to 100% electronic plan review (EPR) effective January 1, 2024",
-      "Detailed technical specifications are operational procedures, not fully codified in published regulations",
-      "AB-004 mandates EPR for priority projects; in practice EPR is now required for ALL projects",
-      "Bluebeam Studio is the submission platform per DBI operational procedures",
-      "Specific format requirements below are compiled from info sheet references and DBI practice — verify with DBI for current requirements"
-    ],
-    "gaps": [
-      "No published regulatory document specifies complete PDF format requirements",
-      "Bluebeam Studio specifications are operational, not codified in Administrative Bulletins",
-      "Maximum file size limits are DBI-set, may change without regulatory amendment",
-      "Sheet size requirements referenced in completeness checklist but exact EPR specs may differ"
-    ]
+    "last_verified": "2026-02-14",
+    "confidence": "high",
+    "context": "DBI transitioned to 100% Electronic Plan Review for In-House Review projects. All plans reviewed in Bluebeam. Non-compliant submissions will be delayed or rejected."
   },
 
   "epr_mandate": {
@@ -34,77 +29,237 @@
   "submission_platform": {
     "name": "Bluebeam Studio",
     "access": "Via DBI PermitSF portal",
-    "note": "Platform details are operational — confirm current submission process with DBI"
+    "note": "All in-house review plans are reviewed in Bluebeam Studio sessions"
   },
 
-  "format_requirements": {
-    "confidence": "medium — compiled from multiple sources, not a single authoritative document",
-    "requirements": [
+  "requirements": {
+    "drawing_production": [
       {
-        "requirement": "PDF format required",
-        "details": "All construction plans must be submitted as PDF files",
-        "source": "decision-tree-draft.json step_5, completeness-checklist.json"
+        "id": "EPR-001",
+        "rule": "Vector-based lines required",
+        "detail": "Plan drawings created in CAD programs must use vector-based lines. Must line up when overlaid electronically. Scanned/raster drawings are not acceptable for plan review.",
+        "severity": "reject",
+        "common_violation": "Architects scanning hand-drawn markups instead of CAD output"
       },
       {
-        "requirement": "Vector-based PDF preferred",
-        "details": "PDF should be created from CAD/BIM software, not scanned images. Scanned PDFs may be rejected or cause review delays.",
-        "source": "DBI operational practice"
+        "id": "EPR-002",
+        "rule": "TrueType or OpenType fonts required",
+        "detail": "Use TrueType or OpenType fonts to create searchable text within the document. SHX fonts (AutoCAD default) are allowed only if you run batch OCR on the drawing set with Bluebeam eXtreme afterward.",
+        "severity": "warning",
+        "common_violation": "AutoCAD SHX fonts creating non-searchable text — plan checkers can't search for code references"
       },
       {
-        "requirement": "Unlocked PDF (no password protection)",
-        "details": "PDFs must not have security restrictions that prevent markup, commenting, or printing",
-        "source": "DBI operational practice for Bluebeam compatibility"
+        "id": "EPR-003",
+        "rule": "Submit drawings as single PDF",
+        "detail": "All drawing sheets must be in one consolidated PDF file per document type. Do not submit individual sheet PDFs.",
+        "severity": "reject",
+        "common_violation": "Submitting separate PDFs for each sheet"
       },
       {
-        "requirement": "Fonts embedded",
-        "details": "All fonts must be embedded in the PDF to ensure correct rendering across systems",
-        "source": "DBI operational practice"
+        "id": "EPR-004",
+        "rule": "Full 1:1 scale output",
+        "detail": "Plot or print drawing sheets at full 1:1 scale from authoring software. Also called 100% or 'to scale' output. Do NOT use 'scale to fit' printing.",
+        "severity": "reject",
+        "common_violation": "Printing to letter-size PDF instead of arch-size — makes dimensions unreadable in Bluebeam"
       },
       {
-        "requirement": "Bookmarks for each sheet",
-        "details": "PDF must contain bookmarks corresponding to each sheet for navigation during plan review",
-        "source": "DBI operational practice for Bluebeam Studio"
+        "id": "EPR-005",
+        "rule": "Minimum sheet size 22\" x 34\"",
+        "detail": "Drawing sheets must be at least 22\" x 34\" (ANSI D or Arch D). Larger sheets accepted. Exception: signage permits accept 11\" x 17\". Supplemental forms/documents at 8.5\" x 11\".",
+        "severity": "reject",
+        "exceptions": ["signage_permits_accept_11x17", "supplemental_docs_accept_8.5x11"],
+        "common_violation": "Entire set printed at 11x17 — too small for plan review markup"
       },
       {
-        "requirement": "Minimum sheet size",
-        "details": "Plans must be at minimum 11x17 inches per completeness checklist; full plan sets typically 22x34 inches or 24x36 inches",
-        "source": "completeness-checklist.json section 8"
+        "id": "EPR-006",
+        "rule": "File size under 250MB per upload",
+        "detail": "Each uploaded file must be less than 250MB. For site permit addenda, limit is 350MB.",
+        "severity": "reject",
+        "common_violation": "High-resolution raster images embedded in plan set inflating file size"
+      }
+    ],
+    "pdf_metadata_and_navigation": [
+      {
+        "id": "EPR-007",
+        "rule": "Bookmarks with page number and sheet name",
+        "detail": "Add bookmarks for each sheet with format: 'A0.0 - COVER SHEET'. Calculations do not need bookmarks. DBI says 'We do not require bookmarks' but 'Reviewers can work faster if you add them.'",
+        "severity": "recommendation",
+        "common_violation": "No bookmarks — plan checkers have to scroll through 50+ pages manually"
       },
       {
-        "requirement": "Back Check page required",
-        "details": "All plan sets must include a Back Check page for reviewer corrections tracking",
-        "source": "decision-tree-draft.json step_5"
+        "id": "EPR-008",
+        "rule": "Page labels in Thumbnails tab",
+        "detail": "Drawings shall have page labels in the Thumbnail tab containing sheet number and name. Labels must match bookmark labels.",
+        "severity": "recommendation",
+        "common_violation": "Default numeric page labels instead of sheet numbers"
+      },
+      {
+        "id": "EPR-009",
+        "rule": "PDF must be unlocked and editable",
+        "detail": "Do not submit locked, password-protected, encrypted, or 'restricted' documents. Bluebeam needs to add markup, comments, and stamps.",
+        "severity": "reject",
+        "common_violation": "PDF exported with security restrictions from Adobe Acrobat"
+      },
+      {
+        "id": "EPR-010",
+        "rule": "No certificate-type digital signatures",
+        "detail": "Do not use certificate-type digital signatures. This will lock the file and delay permit approval. Use scanned graphic signatures instead.",
+        "severity": "reject",
+        "common_violation": "Engineer using Adobe Sign or DocuSign certificate signature — locks the PDF for Bluebeam"
+      }
+    ],
+    "cover_sheet": [
+      {
+        "id": "EPR-011",
+        "rule": "Total page count on cover sheet",
+        "detail": "Cover sheets must have a total page count that matches the actual PDF page count.",
+        "severity": "warning",
+        "common_violation": "Cover says '12 sheets' but PDF has 14 pages"
+      },
+      {
+        "id": "EPR-012",
+        "rule": "8.5\" x 11\" blank area on cover sheet",
+        "detail": "Cover sheets must contain a blank area that is 8.5\" wide x 11\" tall for DBI stamping and permit information.",
+        "severity": "warning",
+        "common_violation": "Cover sheet completely filled with project info — no room for DBI permit stamp"
+      }
+    ],
+    "title_block": [
+      {
+        "id": "EPR-013",
+        "rule": "Project address on every sheet",
+        "detail": "Title blocks must have the project address on every sheet in the entire set.",
+        "severity": "reject",
+        "common_violation": "Address on cover but missing from individual drawing sheets"
+      },
+      {
+        "id": "EPR-014",
+        "rule": "Sheet number on every sheet",
+        "detail": "Title blocks must have the sheet number on every sheet.",
+        "severity": "reject",
+        "common_violation": "Unnumbered supplemental pages mixed into drawing set"
+      },
+      {
+        "id": "EPR-015",
+        "rule": "Sheet name on every sheet",
+        "detail": "Title blocks must have the sheet name (description) on every sheet.",
+        "severity": "warning",
+        "common_violation": "Sheet numbers present but no descriptive names"
+      },
+      {
+        "id": "EPR-016",
+        "rule": "2\" x 2\" blank area on every sheet title block",
+        "detail": "A blank area at least 2\" wide x 2\" tall must appear in the same location on every sheet's title block. Used for reviewer stamps and approval marks.",
+        "severity": "warning",
+        "common_violation": "Title block completely filled — reviewer has to stamp over existing content"
+      },
+      {
+        "id": "EPR-017",
+        "rule": "3 consistent items across entire set",
+        "detail": "Title blocks must have 3 consistent items on every sheet in the entire set (typically: project address, firm name/logo, and sheet numbering format).",
+        "severity": "warning",
+        "common_violation": "Mixed title block formats when structural engineer uses different template than architect"
+      }
+    ],
+    "signatures_and_stamps": [
+      {
+        "id": "EPR-018",
+        "rule": "Design professional signature and stamp on every sheet",
+        "detail": "Every sheet must have your signature and stamp. Use a scanned graphic signature with a PDF stamp. Scan a .PNG file with transparent background for best results.",
+        "severity": "reject",
+        "common_violation": "Unsigned sheets — especially supplemental calculation pages"
+      },
+      {
+        "id": "EPR-019",
+        "rule": "Flatten PDF after adding graphic signatures",
+        "detail": "If you add a graphic stamp or signature after creating the PDF, flatten the PDF to embed the images. Unflattened stamps can be moved or deleted in Bluebeam.",
+        "severity": "warning",
+        "common_violation": "Stamp added as Bluebeam annotation instead of flattened into page"
+      }
+    ],
+    "file_naming": [
+      {
+        "id": "EPR-020",
+        "rule": "Document naming convention",
+        "detail": "Format: [Number Prefix]-[Document type]-[Revision Number] [Street address]_[Type/Count of Addenda]. If no application number yet, use street address. 6 accepted document types with number prefixes.",
+        "severity": "warning",
+        "common_violation": "Files named 'plans_final_v3.pdf' instead of following convention"
+      }
+    ],
+    "bluebeam_specific": [
+      {
+        "id": "EPR-021",
+        "rule": "Back Check page required",
+        "detail": "You must add DBI's Back Check page PDF to submit plans in Bluebeam. This is a standardized page for tracking review comments and responses.",
+        "severity": "warning",
+        "common_violation": "Forgetting to append the back check page template"
+      },
+      {
+        "id": "EPR-022",
+        "rule": "Dense hatching may cause rendering issues",
+        "detail": "Not an official DBI rule, but dense cross-hatching patterns cause slow rendering and lag in Bluebeam Studio sessions. Plan checkers may request simplified hatching.",
+        "severity": "recommendation",
+        "common_violation": "Dense material hatching patterns causing Bluebeam to freeze during markup"
       }
     ]
   },
 
+  "severity_levels": {
+    "reject": "DBI will not process the submission. Must fix before filing.",
+    "warning": "DBI may accept but will likely issue a correction letter. Fix to avoid delays.",
+    "recommendation": "Not required but significantly improves review speed and reduces friction."
+  },
+
   "pre_submission_checks": [
-    "All sheets bookmarked in PDF",
-    "No security restrictions on PDF file",
-    "Proper layering (demolition, new work, existing to remain)",
-    "Title block with permit application number on each sheet",
-    "Prepared by licensed architect or engineer (stamp and signature)",
-    "Construction cost estimate included",
-    "Title 24 energy compliance forms attached",
-    "Green Building form (GS1-GS6) attached as applicable",
-    "Back Check page included"
+    "Vector-based lines (no scanned/raster drawings) [EPR-001]",
+    "TrueType/OpenType fonts for searchable text [EPR-002]",
+    "All sheets in single consolidated PDF [EPR-003]",
+    "Full 1:1 scale output (not 'scale to fit') [EPR-004]",
+    "Minimum sheet size 22\" x 34\" for drawings [EPR-005]",
+    "File size under 250MB per upload [EPR-006]",
+    "Bookmarks for each sheet (recommended) [EPR-007]",
+    "PDF unlocked — no encryption or passwords [EPR-009]",
+    "No certificate-type digital signatures [EPR-010]",
+    "8.5\" x 11\" blank area on cover sheet [EPR-012]",
+    "Project address on every sheet [EPR-013]",
+    "Sheet numbers on every sheet [EPR-014]",
+    "Design professional signature/stamp on every sheet [EPR-018]",
+    "Flatten PDF after adding graphic signatures [EPR-019]",
+    "Back Check page appended [EPR-021]"
   ],
 
-  "submission_copies": {
-    "otc_review": "Submit via PermitSF portal — electronic only as of Jan 2024",
-    "in_house_review": "Submit via PermitSF portal for electronic plan review",
-    "note": "Physical paper plans are no longer accepted for initial submission"
+  "format_requirements": {
+    "confidence": "high — sourced from official DBI EPR Guidelines (Exhibit F)",
+    "requirements": [
+      {"requirement": "Vector-based PDF required", "details": "CAD-produced vector lines, not scanned images. Non-compliant = rejection.", "epr_id": "EPR-001"},
+      {"requirement": "TrueType/OpenType fonts", "details": "Searchable text required. SHX fonts need OCR post-processing.", "epr_id": "EPR-002"},
+      {"requirement": "Single consolidated PDF", "details": "One PDF per document type. No individual sheet files.", "epr_id": "EPR-003"},
+      {"requirement": "Full 1:1 scale", "details": "Print at 100% scale from authoring software.", "epr_id": "EPR-004"},
+      {"requirement": "Minimum 22\" x 34\" sheets", "details": "ANSI D or Arch D minimum. Signage permits: 11x17. Supplements: 8.5x11.", "epr_id": "EPR-005"},
+      {"requirement": "File size < 250MB", "details": "Per upload. Site permit addenda: 350MB limit.", "epr_id": "EPR-006"},
+      {"requirement": "PDF unlocked", "details": "No encryption, passwords, or security restrictions.", "epr_id": "EPR-009"},
+      {"requirement": "No digital certificate signatures", "details": "Use scanned graphic signatures. DocuSign/Adobe Sign certificates lock the PDF.", "epr_id": "EPR-010"},
+      {"requirement": "Back Check page", "details": "DBI standardized Back Check page appended to plan set.", "epr_id": "EPR-021"}
+    ]
   },
 
   "plan_content_requirements": {
-    "source": "completeness-checklist.json",
+    "source": "completeness-checklist.json + EPR Guidelines",
     "cover_sheet": [
       "Property address and block/lot",
       "Project scope description matching permit application",
       "Code references (Building Code edition, Fire Code, Accessibility)",
       "Table of contents / sheet index",
-      "Licensed professional stamp and signature",
-      "Applicable codes and standards"
+      "Total page count matching actual PDF pages [EPR-011]",
+      "8.5\" x 11\" blank area for DBI stamping [EPR-012]",
+      "Licensed professional stamp and signature [EPR-018]"
+    ],
+    "title_block_every_sheet": [
+      "Project address [EPR-013]",
+      "Sheet number [EPR-014]",
+      "Sheet name/description [EPR-015]",
+      "2\" x 2\" blank area for reviewer stamps [EPR-016]",
+      "3 consistent items across entire set [EPR-017]"
     ],
     "architectural_plans": [
       "Existing and proposed floor plans",
@@ -126,9 +281,15 @@
     ]
   },
 
+  "submission_copies": {
+    "otc_review": "Submit via PermitSF portal — electronic only as of Jan 2024",
+    "in_house_review": "Submit via PermitSF portal for electronic plan review in Bluebeam",
+    "note": "Physical paper plans are no longer accepted for initial submission"
+  },
+
   "decision_tree_integration": {
     "step_5_connection": "EPR format requirements apply to ALL documents listed in decision tree Step 5",
     "otc_implications": "Some OTC 'no plans' permits (Form 8) do not require plan drawings but still use electronic submission",
-    "in_house_implications": "In-house review plans must be EPR-formatted for multi-agency concurrent review routing"
+    "in_house_implications": "In-house review plans must be EPR-formatted for multi-agency concurrent review in Bluebeam Studio"
   }
 }

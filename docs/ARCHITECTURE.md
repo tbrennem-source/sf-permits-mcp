@@ -7,22 +7,30 @@ Claude (claude.ai / Claude Code)
     |
     | MCP tool calls
     v
-SF Permits MCP Server (FastMCP)
+SF Permits MCP Server (FastMCP) — 13 tools
     |
-    |--- Phase 1 tools -------> data.sfgov.org SODA API (live HTTP)
-    |                                |
-    |                                v
-    |                           JSON response -> formatters.py -> Claude
+    |--- Phase 1 tools (5) -------> data.sfgov.org SODA API (live HTTP)
+    |                                     |
+    |                                     v
+    |                                JSON response -> formatters.py -> Claude
     |
-    |--- Phase 2 tools -------> Local DuckDB (data/sf_permits.duckdb)
-                                     |
-                                     v
-                                SQL query results -> Claude
+    |--- Phase 2 tools (3) -------> Local DuckDB (data/sf_permits.duckdb)
+    |                                     |
+    |                                     v
+    |                                SQL query results -> Claude
+    |
+    |--- Phase 2.75 tools (5) ----> Knowledge Base (data/knowledge/tier1/*.json)
+                                    + Local DuckDB (historical statistics)
+                                         |
+                                         v
+                                    Decision tree walk -> predictions -> Claude
 ```
 
 Phase 1 tools (`search_permits`, `get_permit_details`, `permit_stats`, `search_businesses`, `property_lookup`) query data.sfgov.org live via `SODAClient`.
 
 Phase 2 tools (`search_entity`, `entity_network`, `network_anomalies`) query a local DuckDB database containing 1.8M+ resolved contact records, entity relationships, and anomaly detection results.
+
+Phase 2.75 tools (`predict_permits`, `estimate_timeline`, `estimate_fees`, `required_documents`, `revision_risk`) walk a 7-step permit decision tree backed by structured knowledge files (fee tables, routing matrix, OTC criteria, fire/planning code) plus DuckDB historical statistics.
 
 ---
 
@@ -257,7 +265,7 @@ ingest_log
 
 ```
 src/
-├── server.py        # FastMCP entry point, registers all 8 tools
+├── server.py        # FastMCP entry point, registers all 13 tools
 ├── soda_client.py   # Async SODA API client (httpx), used by Phase 1 tools + ingestion
 ├── formatters.py    # Response formatting for Claude consumption
 ├── db.py            # DuckDB connection + schema (6 tables, 16 indexes)
@@ -273,8 +281,26 @@ src/
     ├── property_lookup.py     # Phase 1: SODA API
     ├── search_entity.py       # Phase 2: DuckDB
     ├── entity_network.py      # Phase 2: DuckDB
-    └── network_anomalies.py   # Phase 2: DuckDB
+    ├── network_anomalies.py   # Phase 2: DuckDB
+    ├── knowledge_base.py      # Phase 2.75: Shared loader for all tier1 JSON
+    ├── predict_permits.py     # Phase 2.75: Decision tree walk + predictions
+    ├── estimate_timeline.py   # Phase 2.75: DuckDB timeline percentiles
+    ├── estimate_fees.py       # Phase 2.75: Fee table calculation + statistics
+    ├── required_documents.py  # Phase 2.75: Document checklist assembly
+    └── revision_risk.py       # Phase 2.75: Revision probability from cost data
 ```
+
+### Knowledge Base Dependencies (Phase 2.75)
+
+| Tool | Knowledge Files | DuckDB |
+|------|----------------|--------|
+| `predict_permits` | decision-tree-draft.json, semantic-index.json, otc-criteria.json, G-20-routing.json | No |
+| `estimate_timeline` | — | Yes (timeline_stats materialized view) |
+| `estimate_fees` | fee-tables.json | Yes (statistical comparison) |
+| `required_documents` | completeness-checklist.json, epr-requirements.json | No |
+| `revision_risk` | — | Yes (revised_cost analysis) |
+
+All knowledge files loaded once via `KnowledgeBase` singleton (`@lru_cache`).
 
 ---
 
