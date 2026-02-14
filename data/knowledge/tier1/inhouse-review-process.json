@@ -1,0 +1,252 @@
+{
+  "source_id": "inhouse-review-process",
+  "source_type": "web_page",
+  "title": "Get a building permit with In-House Review",
+  "url": "https://www.sf.gov/step-by-step--get-building-permit-house-review",
+  "ingested_date": "2026-02-13",
+  "summary": "Complete 11-step process for In-House Review building permits. Covers pre-application requirements, plan preparation, submission, review, and issuance. Lists all reviewing agencies and their triggers.",
+  "reviewing_agencies": [
+    "Department of Building Inspection (DBI)",
+    "Planning Department",
+    "Department of Public Works",
+    "SF Public Utilities Commission (SFPUC)",
+    "SF Fire Department (SFFD)",
+    "Department of Public Health (DPH)",
+    "Office of Community Investment and Infrastructure (OCII)",
+    "Department of Environment"
+  ],
+  "separate_processes": [
+    "Accessory Dwelling Unit (ADU)",
+    "Development Agreement project",
+    "Affordable Housing",
+    "Fire sprinklers/alarms only (separate permit)"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "title": "Get City Planning zoning approval",
+      "description": "Many projects require Planning zoning approval PRIOR to building permit submission",
+      "agency": "Planning Department",
+      "key_rules": [
+        "Planning approval required before building permit submission",
+        "OCII areas: receive letter from OCII instead of Planning",
+        "Include approval letter from Planning or OCII with building permit application"
+      ]
+    },
+    {
+      "step": 2,
+      "title": "Complete other pre-application requirements",
+      "description": "Various agency requirements that must be completed before building permit application",
+      "sub_requirements": [
+        {
+          "name": "Water reuse systems",
+          "agency": "SFPUC",
+          "trigger": "Projects creating 40,000+ sq ft of space",
+          "additional": "Onsite water reuse required for 100,000+ sq ft new development"
+        },
+        {
+          "name": "Stormwater Management",
+          "agency": "SFPUC",
+          "trigger": "Creating/replacing 5,000+ sq ft impervious surfaces (combined sewer) or 2,500+ sq ft (separate sewer)",
+          "action": "Contact stormwaterreview@sfwater.org for Pre-Application Meeting"
+        },
+        {
+          "name": "Fire Flow study",
+          "agency": "SFFD",
+          "trigger": "New construction OR projects adding new floor area to existing buildings",
+          "action": "Fire flow study must be included in building permit plans"
+        },
+        {
+          "name": "Water Flow data",
+          "agency": "SFFD",
+          "trigger": "Most fire sprinkler permit applications",
+          "action": "Request water flow info from SF Fire records"
+        },
+        {
+          "name": "Construction Waste Tracking",
+          "agency": "Environment Department",
+          "triggers": [
+            "New construction",
+            "Commercial additions 1,000+ sq ft",
+            "Commercial remodels/alterations $200,000+",
+            "Full building demolitions",
+            "Residential additions/alterations increasing conditioned area"
+          ]
+        },
+        {
+          "name": "Public Right of Way Permits",
+          "agency": "DPW",
+          "trigger": "Work within public right of way (street/sidewalk, utilities)",
+          "contact": "BSMPermitDivision@sfdpw.org"
+        },
+        {
+          "name": "Site Assessment and Mitigation (Maher Ordinance)",
+          "agency": "DPH",
+          "trigger": "Projects disturbing 50+ cubic yards of soil OR change to sensitive use, in Maher Ordinance area",
+          "maher_areas": "Historical industrial uses, areas near freeways, underground storage tanks"
+        },
+        {
+          "name": "Dust Control",
+          "agency": "DPH",
+          "trigger": "Projects greater than one-half acre"
+        },
+        {
+          "name": "Labor Compliance Bond",
+          "agency": "Controller's Office",
+          "trigger": "Projects creating 10+ units of housing"
+        },
+        {
+          "name": "Asbestos Remediation",
+          "agency": "DBI",
+          "trigger": "Demolition permits",
+          "action": "Asbestos report required BEFORE demolition permit application"
+        },
+        {
+          "name": "Valid Address",
+          "agency": "DBI",
+          "action": "Confirm property has valid address via SF Property Information Map"
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "title": "Decide Full or Site Permit",
+      "description": "Choose between Full Permit (condensed) or Site Permit (iterative) process",
+      "options": {
+        "full_permit": {
+          "description": "Condensed process, preferred by most customers",
+          "initial_submittal": "Architectural, Structural, Mechanical/Electrical plans, Title 24 info",
+          "payments": "Two: initial filing fee + issuance fee"
+        },
+        "site_permit": {
+          "description": "Iterative design/engineering, often for projects > $25M",
+          "initial_submittal": "Architectural plans only",
+          "payments": "Minimum four: filing fee, issuance fee, addendum submittal fee, addendum issuance fee",
+          "process": "Addenda submitted after site permit issuance per schedule approved by plan check supervisor",
+          "reference": "Administrative Bulletin 032"
+        }
+      },
+      "key_rule": "Cannot change from Full to Site or vice versa without resubmitting application"
+    },
+    {
+      "step": 4,
+      "title": "Prepare to apply",
+      "description": "Fill out appropriate forms, prepare applicant documentation, Title 24, Green Building, Health requirements, SFPUC water use form",
+      "forms_needed": [
+        "Form 1/2: New construction",
+        "Form 3/8: Alterations to existing",
+        "Form 4/7: Signs",
+        "Form 5: Grading/excavation",
+        "Form 6: Demolition (BAAQMD Job Number required for issuance, per Info Sheet S-04)"
+      ],
+      "also_required": [
+        "Permit Applicant and Authorized Agent form (must be signed by property owner)",
+        "Title 24 Energy forms (per M-03, M-04, M-08; exceptions in M-06)",
+        "San Francisco Green Building Form",
+        "SFPUC fixture count form (if adding faucets, toilets, plumbing fixtures, or new water service)"
+      ]
+    },
+    {
+      "step": 5,
+      "title": "Format plans",
+      "description": "Licensed architect/engineer produces construction plans as PDF for electronic plan review (EPR)",
+      "key_rules": [
+        "All plans submitted electronically as PDF",
+        "All plan sets must include a Back Check page",
+        "Full Permit: full plan set requirements",
+        "Site Permit: application requirements + addenda requirements",
+        "New residential buildings require acoustical report"
+      ]
+    },
+    {
+      "step": 6,
+      "title": "Complete additional application requirements",
+      "sub_requirements": [
+        {
+          "name": "Geotechnical report",
+          "trigger": "Some projects (hillside properties, safe construction concerns)"
+        },
+        {
+          "name": "Unauthorized Dwelling Unit screening",
+          "trigger": "Legalizing existing unauthorized units (see G-17)"
+        },
+        {
+          "name": "Disabled Access checklist",
+          "trigger": "Projects in existing commercial buildings or publicly-financed/managed residential buildings"
+        },
+        {
+          "name": "Seismic Safety Tax Exclusion",
+          "trigger": "Seismic retrofitting work (submit within 30 days of completing construction)"
+        },
+        {
+          "name": "Residential water sub-metering",
+          "trigger": "New multi-family developments"
+        },
+        {
+          "name": "Water/Power/Sewer checklist",
+          "agency": "SFPUC",
+          "trigger": "New construction or alteration projects (if applicable)"
+        },
+        {
+          "name": "Tree planting and protection",
+          "agency": "DPW",
+          "trigger": "New construction or addition of garage, dwelling unit, curb cut, or 500+ sq ft"
+        },
+        {
+          "name": "School fees",
+          "agency": "SFUSD",
+          "trigger": "Calculated by DBI from building permit application info"
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "title": "Submit your application",
+      "description": "Submit online via building permit application portal",
+      "key_rules": [
+        "Properties with active notice of violation routed to DBI Inspections for review",
+        "Contact SFplanreview@sfgov.org for questions"
+      ]
+    },
+    {
+      "step": 8,
+      "title": "Receive confirmation letters",
+      "description": "Confirmation email + permit application number for tracking"
+    },
+    {
+      "step": 9,
+      "title": "Completeness review",
+      "description": "DBI reviews submission for completeness",
+      "key_rules": [
+        "3 rounds of incomplete evaluations \u2192 escalated to DBI supervisor",
+        "Application not reviewed until filing fee is paid"
+      ]
+    },
+    {
+      "step": 10,
+      "title": "Respond to comments",
+      "description": "City reviews plans for code compliance, applicant responds to comments",
+      "key_rules": [
+        "3 rounds of comments/revisions \u2192 escalated to DBI supervisor",
+        "Cal OSHA Industrial Safety Permit may be required for: buildings > 36ft or 3 stories, trenches/excavations 5+ ft deep"
+      ]
+    },
+    {
+      "step": 11,
+      "title": "Obtain your permit",
+      "description": "After approval, receive documents and pay fees before starting construction",
+      "issuance_documents": [
+        "Contractor statement (if using general contractor)",
+        "Owner's Package (if owner/agent changed)",
+        "Final Declaration form",
+        "Sign posting form (if 5+ units and tenants displaced)",
+        "Green Halo tracking number (if required)"
+      ],
+      "key_rules": [
+        "Full Permit: receive Job Card authorizing construction start",
+        "Site Permit: NOT authorized to start \u2014 must submit addenda schedule to dbi.ppcrequest@sfgov.org",
+        "Separate trade permits (mechanical, electrical, plumbing) may be required"
+      ]
+    }
+  ]
+}

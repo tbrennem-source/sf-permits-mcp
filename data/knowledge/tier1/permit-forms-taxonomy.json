@@ -1,0 +1,125 @@
+{
+  "source_id": "permit-forms-taxonomy",
+  "source_type": "web_page",
+  "title": "Building Permit Application Forms",
+  "url": "https://www.sf.gov/resource--2022--building-permit-application-forms",
+  "ingested_date": "2026-02-13",
+  "summary": "Complete taxonomy of SF building permit application forms. Forms 1-8 cover all construction types from new buildings to demolition. Also includes trade permits, green building forms, disabled access forms, and inspection forms.",
+  "permit_forms": [
+    {
+      "form_id": "Form 1",
+      "name": "Application for Building Permit (new construction - Type I, II, III, IV)",
+      "combined_form": "Form 1/2",
+      "use_when": "Construction of new buildings with Type I, II, III, or IV construction",
+      "construction_types": [
+        "Type I (Fire-Resistive)",
+        "Type II (Non-Combustible)",
+        "Type III (Ordinary)",
+        "Type IV (Heavy Timber)"
+      ],
+      "notes": "Mark Form 1 checkbox on the Form 1/2 combined application"
+    },
+    {
+      "form_id": "Form 2",
+      "name": "Application for Building Permit (new construction - Type V wood frame)",
+      "combined_form": "Form 1/2",
+      "use_when": "Construction of new wood-frame buildings with Type V construction",
+      "construction_types": [
+        "Type V (Wood Frame)"
+      ],
+      "notes": "Mark Form 2 checkbox on the Form 1/2 combined application"
+    },
+    {
+      "form_id": "Form 3",
+      "name": "Application for Building Permit (additions, alterations, or repairs)",
+      "combined_form": "Form 3/8",
+      "use_when": "Additions, alterations, and repairs on existing buildings",
+      "also_known_as": "pink form",
+      "notes": "Most building applications require this form. Projects require other agencies to review plans or may need neighborhood notification.",
+      "review_type": "In-House Review (multi-agency)"
+    },
+    {
+      "form_id": "Form 4/7",
+      "name": "Application for Permit to Erect Sign",
+      "use_when": "Installing or erecting signs"
+    },
+    {
+      "form_id": "Form 5",
+      "name": "Permit application for grading, excavation, fill, or quarry",
+      "use_when": "Grading, excavation, fill, or quarry work"
+    },
+    {
+      "form_id": "Form 6",
+      "name": "Application for Demolition Permit",
+      "use_when": "Demolishing an existing building or structure",
+      "notes": "Often used with Form 1/2 for new construction projects that involve demolishing existing buildings first"
+    },
+    {
+      "form_id": "Form 8",
+      "name": "Application for Building Permit (OTC/no plans)",
+      "combined_form": "Form 3/8",
+      "use_when": "Small projects that can be reviewed over the counter or projects that do not require plans",
+      "review_type": "Over-the-Counter (OTC)",
+      "notes": "Mark Form 8 checkbox on the Form 3/8 combined application"
+    }
+  ],
+  "special_applications": [
+    {
+      "name": "Detached ADU Pre-Approval Application",
+      "use_when": "Submitting plans for pre-approval of detached Accessory Dwelling Units"
+    },
+    {
+      "name": "Demolition Affidavit Form",
+      "use_when": "Required to declare mortgage/deed holders have been notified"
+    }
+  ],
+  "applicant_forms": [
+    "Permit Applicant Disclosure and Certification form",
+    "Licensed Contractor's Statement Form",
+    "Final Declaration for Permit Issuance",
+    "Owner-builder handout package"
+  ],
+  "green_building_forms": [
+    {
+      "form_id": "GS1",
+      "name": "Site Permit Submittal Form"
+    },
+    {
+      "form_id": "GS2",
+      "name": "LEED or GreenPoint Rated Projects"
+    },
+    {
+      "form_id": "GS3",
+      "name": "Non-Residential Alterations, Additions & New Construction"
+    },
+    {
+      "form_id": "GS4",
+      "name": "Non-Residential Interior-Only Alteration Projects (commercial TI)"
+    },
+    {
+      "form_id": "GS5",
+      "name": "Residential Alteration + Addition Projects"
+    },
+    {
+      "form_id": "GS6",
+      "name": "Municipal Projects"
+    }
+  ],
+  "disabled_access_forms": [
+    "Disabled Access Upgrade Compliance Checklist Package",
+    "Disabled Access Compliance Checklist (all commercial TI projects)",
+    "Form C: Disabled Access 20% Rule",
+    "Technical Infeasibility Request",
+    "Unreasonable Hardship Request"
+  ],
+  "form_selection_logic": {
+    "new_construction_non_wood": "Form 1 (via Form 1/2)",
+    "new_construction_wood_frame": "Form 2 (via Form 1/2)",
+    "addition_alteration_repair": "Form 3 (via Form 3/8) - In-House Review",
+    "small_project_otc": "Form 8 (via Form 3/8) - OTC Review",
+    "demolition": "Form 6 (often paired with Form 1/2 for rebuild)",
+    "sign": "Form 4/7",
+    "grading_excavation": "Form 5",
+    "adu_detached": "Detached ADU Pre-Approval Application"
+  }
+}

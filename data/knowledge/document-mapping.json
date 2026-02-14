@@ -1,0 +1,422 @@
+{
+  "description": "Mapping of downloaded text file names to actual DBI Information Sheet document IDs. Many files have an off-by-one or other naming mismatch from the sf.gov index page file IDs vs the actual document numbers inside the PDFs.",
+  "generated": "2026-02-13",
+  "mappings": [
+    {
+      "file_path": "tier2/G-series/G-02.txt",
+      "file_label": "G-02",
+      "actual_doc_id": "G-01",
+      "subject": "Signature on Plans",
+      "chars": 10978,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/G-series/G-04.txt",
+      "file_label": "G-04",
+      "actual_doc_id": "G-02",
+      "subject": "Approval of Various Plan Review Procedures",
+      "chars": 27536,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/G-series/G-05.txt",
+      "file_label": "G-05",
+      "actual_doc_id": "G-04",
+      "subject": "Signs",
+      "chars": 4362,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/G-series/G-09.txt",
+      "file_label": "G-09",
+      "actual_doc_id": null,
+      "subject": null,
+      "chars": 46,
+      "has_text": false,
+      "notes": "Only contains dates (March 4, 2024 / February 15, 2024), no document header - likely scanned/image PDF with minimal OCR"
+    },
+    {
+      "file_path": "tier2/G-series/G-15.txt",
+      "file_label": "G-15",
+      "actual_doc_id": "G-14",
+      "subject": "Various Ordinances and Resolutions",
+      "chars": 25288,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/G-series/G-19.txt",
+      "file_label": "G-19",
+      "actual_doc_id": "G-17",
+      "subject": "Legalization of Dwelling Units Installed Without a Permit",
+      "chars": 30183,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/G-series/G-21.txt",
+      "file_label": "G-21",
+      "actual_doc_id": "G-19",
+      "subject": "Permit Processing Guidelines for Play Areas and Play Components",
+      "chars": 7309,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/G-series/G-24.txt",
+      "file_label": "G-24",
+      "actual_doc_id": "G-23",
+      "subject": "Addition of Dwelling Units per Ordinance Nos. 162-16, 95-17 and 162-17",
+      "chars": 22835,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/G-series/G-26.txt",
+      "file_label": "G-26",
+      "actual_doc_id": "G-25",
+      "subject": "New Restaurant Permitting Process (FAQ section, starts at page 15)",
+      "chars": 6510,
+      "has_text": true,
+      "notes": "Contains FAQ portion of G-25 restaurant permitting document, self-references IS G-25.pdf URL"
+    },
+    {
+      "file_path": "tier2/G-series/G-28.txt",
+      "file_label": "G-28",
+      "actual_doc_id": "G-27",
+      "subject": "Required Permits Listing for Residential Condominium Unit",
+      "chars": 1920,
+      "has_text": true
+    },
+    {
+      "file_path": "tier1/G-20-raw-text.txt",
+      "file_label": "G-20",
+      "actual_doc_id": "G-20",
+      "subject": "Interim Criteria - Building Permit Application Routing to City Agencies",
+      "chars": 46371,
+      "has_text": true,
+      "notes": "File label matches actual doc ID - no mismatch"
+    },
+    {
+      "file_path": "tier1/G-24-raw-text.txt",
+      "file_label": "G-25",
+      "actual_doc_id": "G-24",
+      "subject": "Memorandum of Understanding (MOU) Procedures for Plan Review and/or Inspection",
+      "chars": 10798,
+      "has_text": true,
+      "notes": "Renamed from G-25-raw-text.txt to G-24-raw-text.txt"
+    },
+    {
+      "file_path": "tier1/G-26-raw-text.txt",
+      "file_label": "G-27",
+      "actual_doc_id": "G-26",
+      "subject": "Clarification on Administrative Bulletin AB-035 (Street Number Assignment)",
+      "chars": 5913,
+      "has_text": true,
+      "notes": "Renamed from G-27-raw-text.txt to G-26-raw-text.txt"
+    },
+    {
+      "file_path": "tier1/G-28-raw-text.txt",
+      "file_label": "G-29",
+      "actual_doc_id": "G-28",
+      "subject": "Properties Subject to the Floodplain Management Ordinance",
+      "chars": 69957,
+      "has_text": true,
+      "notes": "Renamed from G-29-raw-text.txt to G-28-raw-text.txt"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-16.txt",
+      "file_label": "DA-16",
+      "actual_doc_id": "DA-16",
+      "subject": "Signage for All-Gender Restrooms (Single-User and Multi-Accommodation)",
+      "chars": 9116,
+      "has_text": true,
+      "notes": "File label matches actual doc ID - no mismatch"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-03.txt",
+      "file_label": "DA-03",
+      "actual_doc_id": "DA-02",
+      "subject": "Disabled access upgrade compliance checklist package (For existing Buildings only)",
+      "chars": 35571,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/DA-series/DA-05.txt",
+      "file_label": "DA-05",
+      "actual_doc_id": "DA-04",
+      "subject": "The Use of Power Door Operators in Lieu of Level Landings at Doors",
+      "chars": 6161,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/DA-series/DA-07.txt",
+      "file_label": "DA-07",
+      "actual_doc_id": "DA-05",
+      "subject": "The Use of Power Door Operators in lieu of Required Push and Pull Side Clearances at Doors and Gates",
+      "chars": 6955,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/DA-series/DA-10.txt",
+      "file_label": "DA-10",
+      "actual_doc_id": "DA-09",
+      "subject": "Multi-Family Dwelling Parking Requirements",
+      "chars": 3581,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/DA-series/DA-11.txt",
+      "file_label": "DA-11",
+      "actual_doc_id": "DA-10",
+      "subject": "Restrooms Within A Reasonable Distance",
+      "chars": 4293,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/DA-series/DA-13.txt",
+      "file_label": "DA-13",
+      "actual_doc_id": "DA-12",
+      "subject": "Path of Travel obligations for Seismic Mitigation Projects in Mixed Use Buildings",
+      "chars": 12200,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/FS-series/FS-01.txt",
+      "file_label": "FS-01",
+      "actual_doc_id": "DA-19",
+      "subject": "Vertically Elevated Doorways in Multifamily Dwellings (Stoops)",
+      "chars": 5132,
+      "has_text": true,
+      "notes": "Misplaced in FS-series directory but actually a DA-series document"
+    },
+    {
+      "file_path": "tier2/FS-series/FS-03.txt",
+      "file_label": "FS-03",
+      "actual_doc_id": "FS-01",
+      "subject": "Combustible Roof Decks - Allowable Materials and Area",
+      "chars": 5051,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/FS-series/FS-06.txt",
+      "file_label": "FS-06",
+      "actual_doc_id": "FS-05",
+      "subject": "Sprinkler Systems Requirements for Addition or Legalization of Dwelling Unit",
+      "chars": 3557,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/S-series/S-03.txt",
+      "file_label": "S-03",
+      "actual_doc_id": "G-29",
+      "subject": "Commercial-to-Residential Adaptive Reuse - Code Provisions",
+      "chars": 34002,
+      "has_text": true,
+      "notes": "Misplaced in S-series directory but actually a G-series document"
+    },
+    {
+      "file_path": "tier2/S-series/S-05.txt",
+      "file_label": "S-05",
+      "actual_doc_id": "S-05",
+      "subject": "Geotechnical Report Requirements and Third-Party Review at Landslide Zones",
+      "chars": 7685,
+      "has_text": true,
+      "notes": "File label matches actual doc ID - no mismatch"
+    },
+    {
+      "file_path": "tier2/S-series/S-07.txt",
+      "file_label": "S-07",
+      "actual_doc_id": "S-04",
+      "subject": "Demolition Permits",
+      "chars": 13056,
+      "has_text": true,
+      "notes": "OCR read doc number as '5-04' but actual doc is S-04"
+    },
+    {
+      "file_path": "tier2/S-series/S-10.txt",
+      "file_label": "S-10",
+      "actual_doc_id": "S-09",
+      "subject": "Permit Process for Earthquake Brace + Bolt (EBB) Program",
+      "chars": 4114,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/S-series/S-11.txt",
+      "file_label": "S-11",
+      "actual_doc_id": "S-10",
+      "subject": "Balconies, Decks, Projections, and other Exterior Elevated Elements",
+      "chars": 3030,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/S-series/S-12.txt",
+      "file_label": "S-12",
+      "actual_doc_id": "S-11",
+      "subject": "Procedure of Processing Private School Earthquake Evaluation Reports",
+      "chars": 3260,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/S-series/S-14.txt",
+      "file_label": "S-14",
+      "actual_doc_id": "S-12",
+      "subject": "Cross-Laminated Timber",
+      "chars": 3420,
+      "has_text": true
+    },
+    {
+      "file_path": "tier2/S-series/S-17.txt",
+      "file_label": "S-17",
+      "actual_doc_id": "S-14",
+      "subject": "Special Inspection qualification guidelines for inspection agencies and Special Inspectors",
+      "chars": 21690,
+      "has_text": true
+    }
+  ],
+  "unmapped": [
+    {
+      "file_path": "tier2/G-series/G-01.txt",
+      "file_label": "G-01",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/G-series/G-07.txt",
+      "file_label": "G-07",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/G-series/G-09.txt",
+      "file_label": "G-09",
+      "chars": 46,
+      "has_text": false,
+      "reason": "Only dates extracted, no document header - scanned/image PDF with minimal OCR"
+    },
+    {
+      "file_path": "tier2/G-series/G-12.txt",
+      "file_label": "G-12",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/G-series/G-14.txt",
+      "file_label": "G-14",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/G-series/G-17.txt",
+      "file_label": "G-17",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/G-series/G-23.txt",
+      "file_label": "G-23",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-04.txt",
+      "file_label": "DA-04",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-09.txt",
+      "file_label": "DA-09",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-12.txt",
+      "file_label": "DA-12",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-14.txt",
+      "file_label": "DA-14",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-15.txt",
+      "file_label": "DA-15",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/DA-series/DA-19.txt",
+      "file_label": "DA-19",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/FS-series/FS-04.txt",
+      "file_label": "FS-04",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/FS-series/FS-05.txt",
+      "file_label": "FS-05",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/FS-series/FS-07.txt",
+      "file_label": "FS-07",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/FS-series/FS-12.txt",
+      "file_label": "FS-12",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/FS-series/FS-13.txt",
+      "file_label": "FS-13",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/S-series/S-04.txt",
+      "file_label": "S-04",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier2/S-series/S-09.txt",
+      "file_label": "S-09",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    },
+    {
+      "file_path": "tier1/G-13-raw-text.txt",
+      "file_label": "G-13",
+      "chars": 0,
+      "has_text": false,
+      "reason": "0-byte file - scanned/image PDF"
+    }
+  ]
+}

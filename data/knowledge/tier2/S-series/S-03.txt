@@ -1,0 +1,583 @@
+=== PAGE 1 ===
+City and County of San Francisco London N. Breed, Mayor
+Department of Building Inspection Patrick O’Riordan, C.B.O., Director
+INFORMATION SHEET
+NO. G-29
+DATE : September 25, 2024
+SUBJECT : General
+TITLE : Commercial-to-Residential Adaptive Reuse – Code Provisions
+PURPOSE : The purpose of this Information Sheet is to highlight pertinent code provisions
+and possible code exceptions to aid commercial-to-multi-family residential
+adaptive reuse projects in the San Francisco downtown area per San
+Francisco Building Code Section 111A and Planning Code Section 210.5.
+REFERENCES : San Francisco Building Code, Current Edition
+San Francisco Existing Building Code, Current Edition
+California Building Code (CBC), Current Edition
+California Existing Building Code (CEBC), Current Edition and Revised 2022
+CEBC Intervening Code Cycle, effective 7/1/2024
+San Francisco Green Building Code, Current Edition
+California Historical Building Code, Current Edition
+California Mechanical Code, Current Edition
+San Francisco Fire Code (SFFC), Current Edition
+California Fire Code (CFC), Current Edition
+San Francisco Planning Code (SFPC), Current Edition
+Seismic Evaluation and Retrofit of Existing Buildings, American Society of
+Civil Engineers / Structural Engineering Institute (ASCE/SEI) 41-16 and
+ASCE/SEI 41-23
+Recommended Post-Earthquake Evaluation and Repair Criteria for Welded
+Steel Moment-Frame Buildings, FEMA-352
+American Institute of Steel Construction (AISC) 342
+Standard for the Installation of Sprinkler Systems, National Fire Protection
+Association (NFPA) 13, and Standard for the Installation of Sprinkler
+Systems in Low-Rise Residential Occupancies, NFPA 13R
+NFPA 72 National Fire Alarm and Signaling Code
+Page 1 of 7
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET G-29
+OVERVIEW:
+Adaptive reuse projects are building alteration projects that involve the change of occupancy
+classification of a building, as a whole or of a portion of a building. The California Existing Building Code
+(CEBC) requires buildings that undergo changes of occupancies to comply with the California Building
+Code (CBC) for the resulting occupancy, per CEBC 506, under the Prescriptive Compliance method.
+The purpose of this information sheet is to identify pertinent code provisions and to highlight possible
+code exceptions to aid commercial-to-multi-family residential adaptive reuse projects under SFBC 111A.
+This information sheet is applicable to buildings in the downtown area, as defined in SFPC Section 210.5.
+Where design complexities and hardships exist that make it difficult or infeasible to comply with code
+requirements, design equivalencies to code requirements may be proposed by the design professional
+for consideration and approval per SFDBI Administrative Bulletin AB-005 Procedures for Approval of
+Local Equivalencies. A pre-application meeting may also be requested to confirm code interpretations.
+Alternatively, CEBC Chapter 10 of the Work Area Compliance method may be used for change of
+occupancy alterations. Note that a change of occupancy from commercial to multi-family residential
+results in a higher hazard category per CEBC Chapter 10 Table 1011.5 Means of Egress Hazard
+Categories and Table 1011.6 Heights and Areas Categories.
+DISCUSSION:
+Building Envelope
+Any building converting from commercial occupancy to multi-family residential occupancy must comply
+with the allowable building height, number of stories, and floor area specified in CBC Chapter 5. The new
+residential occupancy must be fully fire sprinklered and comply with CBC 903.2.8.
+California Energy Code (CEC) Section 180 requirements for insulation and fenestration shall apply for
+projects with building envelope changes. For qualified historic buildings, the California Historical Building
+Code (CHBC) may allow exceptions for existing elements to remain, or for new elements where the
+historic significance of the building or character-defining features are threatened.
+Exterior Walls & Exterior Wall Opening Protection
+Exterior walls are required to have fire-resistance ratings in compliance with CBC 705.5, with the required
+rating dependent on the fire separation distance from property line and on the type of construction of the
+building. The change from commercial occupancy to multi-family residential occupancy would generally
+not trigger the need to increase the fire resistance rating of the exterior walls, as residential occupancies
+have either less restrictive or equal fire rating requirements for exterior walls as commercial occupancies.
+However, the change to residential occupancy may require certain exterior walls to be rated for fire
+exposure from both sides of the wall, whereas in prior occupancies, rating for fire exposure was required
+only from the inside. If not already in compliance, the fire-resistance rated assemblies of exterior walls
+shall be improved to comply with the ratings, as set forth in CBC 705.5.
+Existing non-rated exterior walls may be maintained, provided the exterior wall is protected with a water
+curtain design approved by the Department of Building Inspection (DBI) and San Francisco Fire
+Department (SFFD) as a local equivalency to fire-resistance rating for fire exposure from the exterior
+side. There are limitations to the amount of wall openings allowed in exterior walls per CBC 705.8. The
+exterior walls of a building are additionally protected through CBC 705.8 which specifies the maximum
+area of exterior wall openings based on the building’s distance away from the property line. Wherein the
+existing building is non-conforming to the code requirements, and existing area of openings exceed the
+allowable area of openings, or where the project proposes to provide additional exterior wall openings
+exceeding that allowed by the Code, then design equivalencies for exterior wall opening protection may
+be proposed by the Design Professional for consideration. SFDBI Administrative Bulletin AB-009 Local
+Page 2 of 7
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 3 ===
+INFORMATION SHEET G-29
+Equivalency for Approval of New Opening in New and Existing Building Property Line Walls may provide
+a path for accommodation.
+Means of Egress
+The means of egress components will be evaluated to comply with SFBC and CBC Chapter 10. Some
+major elements to consider are the number of exits required per story, minimum distance required
+between exits, minimum common path-of-travel distances, exit access travel distances, emergency
+escape and rescue access/paths for sleeping rooms, etc.
+There are allowances for existing buildings, such as:
+• Existing stairways are allowed exceptions to current code compliance where the existing space
+and construction does not allow a reduction in pitch or slope. CEBC 506.3
+• There are size tolerances for operable windows serving as emergency escape and rescue
+openings. CEBC 506.4
+• Accessible means of egress are not required unless triggered by CBC 11A or 11B. Where CBC
+11B is applicable, the exceptions in CBC 11B-207 apply.
+• Qualified historic buildings are permitted to use existing fire escapes per CHBC 8-502.5 where
+the fire escapes are inspected and improved to comply with SFDBI Administrative Bulletin AB-
+019.
+Interior Environment - Ventilation
+All new dwelling units shall be provided with natural or mechanical ventilation.
+In addition, other than high-rise residential buildings, public corridors, public hallways and other public
+spaces having openings into adjoining dwelling units, also need to be naturally ventilated by means of
+openable windows. In lieu of the required exterior openings for natural ventilation, mechanical ventilation
+may be provided as detailed in SFBC 1202.5.
+Independent exhaust systems are required for the kitchen hood, bathroom(s), and dryer exhausts.
+Adaptive reuse projects in the Air Pollutant Exposure Zone shall incorporate an enhanced ventilation
+system to comply with San Francisco Health Code Article 38, mandated by the San Francisco
+Department of Public Health.
+Interior Environment – Lighting
+Natural light is required for all habitable rooms per CBC and SFBC 1204.1. Where obtaining direct natural
+light through an exterior opening from the public way or yard is a hardship, light courts with dimensions
+complying with CBC 1205, or skylights may be used. See SFDBI Information Sheet IE-02 for additional
+clarification for sizing yards and courts adjacent to exterior openings that provide the required natural
+light and/or ventilation.
+Where direct natural light is not achievable, natural light may be obtained through exterior glazed
+openings of adjoining spaces per CBC 1204.2.1 and SFDBI Information Sheet IE-01.
+Habitable rooms in qualified historic buildings are permitted to have windows complying with CHBC 8-
+303.6 for light and ventilation.
+Minimum Unit Size
+SFBC 1208.4, Efficiency Dwelling Units, establishes minimum sizing requirements for dwelling units,
+including required kitchen amenities, and bathroom fixtures, with existing buildings requiring larger unit
+Page 3 of 7
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 4 ===
+INFORMATION SHEET G-29
+sizes than those for new construction. SFDBI will take into consideration, when accompanied with SFDBI
+Administrative Bulletin AB-005 Approval of Local Equivalency, to allow commercial-to-multi-family
+residential adaptive reuse projects with minimum dwelling unit size for new construction rather than that
+required in existing buildings. In such a case, SFDBI will evaluate the current or proposed egress systems
+in relationship to the proposed occupant load in accordance with the requirements of CBC 1004 and CBC
+1005.
+Seismic
+Buildings undergoing vertical and/or horizontal additions shall satisfy current code requirements for wind
+and seismic design of new buildings per SFEBC 502.
+Where work involves substantial structural or non-structural alterations as listed below, the building’s
+lateral-force-resisting system shall satisfy the current code requirements as outlined in the CBC.
+Reduced seismic forces are permitted in accordance with SFEBC 503.11.
+1. Structural Alterations: Structural elements that provide support to more than 30 percent of the
+total floor and roof area of the building or structure (as defined by SFEBC 202 Substantial
+Structural Alteration) are modified. The elements counted in this assessment include all structural
+elements accumulated since the original building was built. SFEBC 503.11
+2. Non-Structural Alterations: Non-structural alterations are made to elements such as walls,
+partitions, or ceilings on 2/3 or more of the number of stories of the building. SFEBC 503.11.1
+Reduced seismic forces are defined in the CEBC as seismic forces that are reduced to 75 percent of the
+forces prescribed in SFBC 304.4 for new buildings. These retrofit requirements may also be met by
+employing a performance-based design, which may result in a more efficient and cost-effective project.
+Performance-based design using the ASCE41 standard is permitted by the CEBC. For Risk Category II,
+the following performance objectives are required per CEBC 304.3.2:
+1. Structural life-safety performance objective (S-3) when subjected to the Basic Safety
+Earthquake (BSE) -1E earthquake hazard level, and
+2. Structural collapse-prevention performance objective (S-5) when subjected to the BSE-2E
+earthquake hazard level.
+Alternatively, concrete buildings requiring retrofit, per the aforementioned triggers, may meet the
+forthcoming seismic retrofit standard being developed under the Mayor’s Executive Directive 24-01. The
+standard permits the building to meet the structural collapse-prevention performance objective (S-5)
+when subjected to the BSE-1E earthquake hazard level, as long as the following specific seismic
+deficiencies are addressed: weak story, discontinuous elements, non-ductile moment frames, slab
+punching shear at columns, shear governed columns or wall piers, inadequate bearing supports for
+beams or slabs, and weak connections between walls and flexible floor or roof diaphragms. A
+commentary of these potential deficiencies and of the mitigation requirements may be found in
+Attachment 1 of this information sheet. This alternative engineering design criteria for concrete buildings
+will be made available in the SFEBC once pending legislation is approved.
+Note that this alternative criteria for concrete buildings may be used unless the building is triggered to be
+seismically retrofitted per the California state requirements as defined in CEBC 503.11, where Substantial
+Structural Alterations are defined in CEBC 202.
+Where work does not involve substantial alterations mandating the building to satisfy full or reduced
+seismic forces, the following actions are recommended:
+1. Perform a seismic evaluation of the building to understand the building’s vulnerabilities, and
+perform targeted strengthening as required.
+2. For non-ductile concrete buildings, perform improvements as required to meet one of the
+acceptable retrofit criteria noted above. Concrete buildings undergoing retrofit to the current code
+using full or reduced seismic forces, or to the forthcoming concrete retrofit standard, will not be
+Page 4 of 7
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 5 ===
+INFORMATION SHEET G-29
+mandated to retrofit the building again based on limitations and moratorium detailed in the
+standard being developed under the Mayor’s Executive Directive 24-01.
+3. For welded steel moment frame buildings, inspect existing joint connections for weld fractures,
+and, where needed, perform repairs per FEMA 352. Partial joint penetration column splices are
+another potential vulnerability in steel buildings recommended to be inspected. For the seismic
+evaluation recommended in Item 1 above, it is recommended that ASCE 41-23, which
+incorporates AISC 342 be used as the basis of the evaluation.
+Accessibility and Federal Fair Housing Act:
+The change of occupancy from commercial to residential occupancy will be evaluated for the need to
+comply with the accessibility requirements of CBC Chapter 11A or 11B.
+In general, the change of occupancy to residential use within the existing building envelope does not
+invoke CBC Chapter 11A. However, if the scope of work includes an addition to the existing building,
+where the addition when considered alone meets the definition of ‘covered multifamily dwelling’, then the
+addition, common areas, and path of travel to the new addition will be subjected to Chapter 11A.
+Projects which meet the definition of public housing will be subjected to the requirements of CBC Chapter
+11B for a certain percentage of units to accommodate mobility and communication features, as well as
+other accommodations for accessibility.
+High-rise Buildings
+High-rise buildings have additional special detailed requirements as set forth in CBC 403. In particular,
+the following are notable requirements to keep in mind for commercial-to-residential conversion of high-
+rise buildings:
+A minimum of two fire service access elevators (FSAE) are required for buildings with an occupied floor
+more than 120 feet above the lowest level of fire department vehicle access, CBC 403.6. Where the
+existing building did not have FSAE’s or did not house two elevator banks, and a hardship to install a
+new elevator exists, alternative equivalent facilitations may be proposed as an equivalency to satisfy CBC
+3003 FSAE. The proposed equivalency shall be reviewed and approved by SFDBI and SFFD in
+accordance with SFDBI Administrative Bulletin AB-005.
+All portions of the high-rise building shall have a smoke control system per CBC 909. Where an equivalent
+smoke control/management protection system is approved by SFFD as a local equivalency, the
+mechanical system shall be designed to support the smoke control/management protection system
+accordingly. SFDBI Administrative Bulletin AB-047 Specific Submittal Criteria for Reports, Special
+Inspections, and Final Acceptance Testing of Smoke Control Systems submittal requirements apply.
+Additional emergency systems, where required, such as fire pumps, emergency generators, fire
+command centers, and others shall comply with CBC 403. Equivalencies may be proposed and will be
+evaluated on a case-by-case basis.
+Use of Historical Building Code
+Buildings deemed by SF Planning as a qualified historic building as defined in the California Historical
+Building Code (CHBC) shall be subject to the regulations and standards of the CHBC, provided that the
+continued use of the building does not constitute a distinct hazard to life safety as defined in the CHBC.
+CHBC 8-901.5 exempts qualified historic buildings from compliance with energy conservation standards.
+However when new non-historic lighting and space conditioning system components, devices, appliances
+and equipment are installed, they shall comply with the requirements of Title 24, Part 6 of the CEC, except
+where the historic significance of the building or character-defining features are threatened.
+CHBC 8-502.5 allows for the use of an existing fire escape as one of the required means of egress,
+provided that it extends to the ground, is easily negotiated, and is in good working order. Fire escapes
+shall comply with the standards of SFDBI Administrative Bulletin AB-019.
+Page 5 of 7
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 6 ===
+INFORMATION SHEET G-29
+California Energy Code
+Mechanical and plumbing systems shall be required to comply with the CEC. The energy code
+requirements consist of mechanical and plumbing equipment efficiency/controls and mechanical
+ventilation requirements.
+Lighting and power distribution systems shall comply with CEC for multi-family occupancies. The
+requirements consist of efficiency and control of lighting and power distribution systems.
+San Francisco Green Building Code
+Adaptive reuse projects are exempt from San Francisco Green Building Code requirements as long as
+the alteration to the building does not fall within the definition of Major Alteration. Major Alteration is
+defined as alterations and additions in existing B, M, or R occupancies of 25,000 gross square feet or
+more, where the interior finishes are removed, and there are significant upgrades to the structural and
+mechanical, electrical, and/or plumbing systems.
+Projects that are Major Alterations shall meet San Francisco Green Building Code, SFDBI Administrative
+Bulletin AB-093 Implementation of Green Building Regulations GS-2 submittal and include the
+Leadership in Energy and Environmental Design / GreenPoint Rated (LEED/GPR) score card.
+SAN FRANCISCO FIRE DEPARTMENT REQUIREMENTS:
+Low-Rise Buildings Conversion from B to R-2 Occupancy
+1. The new R-2 occupancy must be fully sprinklered per NFPA 13 (National Fire Protection
+Association), or per NFPA 13R, as indicated in CFC Section 903.3.1.2, and per SFFD
+Administrative Bulletin AB #2.04. If car stackers, Energy Storage Systems (ESS), or Electric
+Vehicles (EV) charging stations are proposed, compliance with applicable SFFD Administrative
+Bulletins AB # 4.25 and AB # 4.29 is required.
+2. Class I Standpipe must be provided for the new R-2 occupancy where required by the CFC
+905.3.1 and the SFFC Section 905.
+3. The new R-2 occupancy shall be required to have a code complaint Fire Alarm (FA) system per
+current CFC and NFPA 72 and SFFD AB # 2.01. All dwelling units and sleeping units are required
+to have UL 268 smoke detectors with low-frequency sounder bases. 120 VAC smoke alarms are
+not permitted by SFFD. Carbon Monoxide detection will be required where required by CFC,
+Section 915. Other signaling systems such as Two-Way Emergency Communications Systems
+(2-Way ECS) may be required by the SFFD on a case-by-case basis.
+4. A radio test for Firefighters Emergency Two-Way Communication shall be performed within the
+new R-2 occupancy per SFFD AB # 2.01 Addendum G after the R-2 construction is completed. If
+the radio test passes, a new Emergency Responders Radio Communications System (ERRCS)
+is not required. However, if the radio test fails, an ERRCS shall be installed per current applicable
+codes.
+5. Existing elevators are not required to be upgraded to meet current code requirements for gurney
+size, hoistway construction, and Firefighters Emergency Operation (FEO), including Phase I and
+Phase II emergency operation. The existing elevators may remain unchanged, or if desired by
+the owner/applicant, may be modernized to meet current California Elevator Safety Orders Group
+4 Regulations. If the existing elevators are modernized, a code compliant FEO interface with the
+new R-2 fire protection systems is required.
+6. The SFFD will only require the heating, ventilation, and air conditioning (HVAC)/Mechanical Air-
+Moving system to shut down upon smoke detection per the current California Mechanical Code
+(CMC) requirements.
+Page 6 of 7
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 7 ===
+INFORMATION SHEET G-29
+High-Rise Building Conversions from Commercial to Multi-Family Residential Occupancy
+In general, all SFFD requirements for low-rise buildings shall also apply to high-rise buildings. There is
+not a distinction in code application for commercial to residential adaptive reuse projects for the two SFFD
+high-rise classifications:
+1. Existing high-rise buildings (buildings having a site permit application before 10/1974)
+2. Life-safety high-rise buildings (buildings having a site permit application after 10/1974)
+Additional requirements for high-rise buildings (both classifications) are listed below:
+1. If the existing high-rise building has an existing wired Fire Department communication system
+(phone-jack system) which can be maintained and operational in the new R-2 occupancy – a radio
+test will not be required and an ERRCS will not be required by the SFFD.
+2. If the existing high-rise building does not have a Fire Command Center (FCC), a new FCC shall
+be required for the new R-2 Occupancy. The FCC room sizes not meeting CFC requirements may
+be evaluated and accepted on a case-by-case basis if specific building limitations prove a
+hardship to meet current CFC room size requirements.
+3. If the existing high-rise building does not have a fire pump, the SFFD may not require a fire pump
+on a case-by-case basis where the sprinkler system demand for the new R-2 occupancy can be
+met without a fire pump.
+4. If the existing high-rise building does not have a water tank, equivalencies may be proposed.
+5. If the existing high-rise building does not have Firefighters Air Replenishment System (FARS),
+the new R-2 occupancy will not be required to have FARS.
+6. The new FA system for the new R-2 occupancy shall be required to have a code complaint
+Emergency Voice Alarm Communications System (EVACS) utilizing speakers and manual live
+paging messages per the SFFD AB # 3.05. The new EVACS shall meet Level-3 survivability
+requirements per the CFC and NFPA 72. All dwelling units and sleeping units will be required to
+have UL 268 smoke detectors with low-frequency sounder bases (120 VAC smoke alarms are
+not permitted by SFFD). Carbon monoxide detection shall be provided where required by CFC
+Section 915.
+7. A Fire Alarm system light-emitting diode (LED) annunciator shall be provided at the FCC and shall
+comply with the SFFD AB # 3.01 specific requirements.
+8. The new R-2 occupancy shall have a partial evacuation scheme that complies with the SFFD AB
+# 3.05.
+_____________________S_e_p_t_em__b_e_r _2_5,_ 2_0_2_4___ ______________________S_e_p_te_m__b_e_r _2_7_, _2_0_2_4__
+Patrick O’Riordan, C.B.O. Date Ken Cofflin Date
+Director Fire Marshal
+Department of Building Inspection San Francisco Fire Department
+Attachment 1: Potential Deficiencies in Concrete Buildings and Mitigation Requirements
+This Information Sheet is subject to modification at any time. For the most current version,
+visit our website at sfdbi.org
+Page 7 of 7
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 8 ===
+INFORMATION SHEET G-29 ATTACHMENT 1
+Last Modified September 2024
+Potential Deficiencies in Concrete Buildings and Mitigation Requirements
+The following are requirements for identifying, evaluating, and retrofitting certain potential
+seismic deficiencies in concrete buildings.
+Potential Deficiency Requirements Commentary
+1 Weak story: The The structure shall not If the structure has a weak story or
+structure includes one have vertical structural extreme weak story, to meet the
+or more stories having irregularity of Type 5a nor alternate engineering criteria for
+lateral strength less than Type 5b in Table 12.3-2 concrete buildings, the weak story
+the story above. of ASCE 7. must be eliminated by retrofitting.
+Otherwise, the structure must meet
+ASCE 41 with a performance
+objective of Structural Collapse
+Prevention (S-5) with the BSE-2E
+earthquake hazard level.
+2 Lateral-force-resisting- The building shall not If the structure has either of the
+element irregularity: have a horizontal specified irregularities in-plane or
+The lateral-force- structural irregularity out-of-plane offset or discontinuity
+resisting system Type 4 of Table 12.3-1 or to meet the alternate engineering
+includes one or more vertical structural criteria for concrete buildings, the
+concrete walls or frames irregularity Type 4 of irregularity must be eliminated by
+that are not continuous Table 12.3-2 of ASCE 7. retrofitting. Otherwise, the structure
+to the foundation. must meet ASCE 41 with a
+performance objective of Structural
+Collapse Prevention (S-5) with the
+BSE-2E earthquake hazard level.
+3 Non-ductile moment Comply with all of the Section 18.7.3 requires strong-
+frame: The main lateral- following: column weak-beam strength
+force-resisting-system proportions. Section18.6.6.1
+1. Moment frame
+includes concrete requires columns to be flexure
+columns shall satisfy
+moment frames that do governed. Section 18.6.5.1 requires
+Section 18.7.3 of ACI 318
+not satisfy strong- beams to be flexure governed.
+and Section 18.7.6.1 of
+column-weak-beam Such requirements are essential for
+ACI 318.
+requirements or that ductile behavior of concrete
+have shear-governed 2. Moment frame beams moment frames.
+columns or beams. shall satisfy Section
+18.6.5.1 of ACI 318.
+Page 1 of 4
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 9 ===
+INFORMATION SHEET G-29 ATTACHMENT 1
+Last Modified September 2024
+Potential Deficiency Requirements Commentary
+For each column or wall
+4 Shear-governed 1. Shear governed columns or wall
+pier, comply with at least
+concrete column or piers can be a serious deficiency
+wall pier: The structure one of the following: that leads to building collapse.
+includes one or more 1. Columns and wall Retrofitting columns or wall piers by
+concrete columns or piers shall have design jacketing, such as with fiber
+wall piers that is shear- shear strength satisfying reinforced polymer (FRP), can be
+governed and is Section 18.7.6.1 of used to make the elements flexure
+susceptible to failure ACI 318 or greater than governed.
+resulting in loss of the maximum shear that
+2. If failure of columns or wall piers
+gravity load support. can be delivered to the
+can be shown not to cause collapse
+column or wall pier. For
+because of an alternate load path
+wall piers, joint faces
+for gravity load, the shear-governed
+shall be taken as the top
+behavior is permitted.
+and bottom of the clear
+An example of an acceptable
+height of the wall pier.
+alternate load path is a beam that
+2. Provide or demon-
+can span over a failed column or
+strate an alternate load
+wall pier to supports not susceptible
+path to support design
+to failure, or an added column
+gravity load assuming a
+adjacent to the susceptible column
+failure of the column or
+or wall pier. The alternate load path
+wall pier such that it
+is to be a complete load path, i.e. to
+cannot support gravity
+the foundation and supporting soil,
+load.
+that does not rely on non-compliant
+3. For wall piers in elements.
+buildings that do not have
+3. If the building meets the quick-
+a torsion irregularity ratio
+check for shear at the specified
+TIR per Section
+level and does not have a TIR
+12.3.2.1.1 of ASCE 7
+greater than 1.4, it is judged that
+exceeding 1.4,
+there is enough wall that the
+demonstrate compliance
+consequences of shear failure of
+with the Tier 1 Quick
+wall piers will be limited. Option 3 is
+Check for shear stress in
+not permitted for structures with
+concrete walls in that
+high plan-torsion irregularity
+story in each plan
+because of a concern that columns
+direction per Section
+or wall pier on one side of the
+4.4.3.3 of ASCE 41.
+building plan could suffer undo
+Pseudo seismic force V
+damage in such a case.
+shall be 2 times the
+pseudo seismic force at
+the BSE-1E earthquake
+level, but need not
+exceed that at BSE=2E.
+System modification
+factor M shall be for
+s
+Collapse Prevention
+performance.
+Page 2 of 4
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 10 ===
+INFORMATION SHEET G-29 ATTACHMENT 1
+Last Modified September 2024
+Potential Deficiency Requirements Commentary
+5 Punching shear in Comply with one or more 1. Section 18.14.5 addresses
+concrete slab: One or of the following: acceptable punching shear stress
+more concrete floor or from gravity load as a function of
+1. Demonstrate
+roof slabs is supported story drift, a key indicator of
+compliance with Section
+by columns without susceptibility to punching shear of
+18.14.5 of ACI 318 with
+beams and is slab-column connections.
+earthquake force E and
+susceptible to loss of
+design story drift ∆ taken 2. Section 8.7.4.2.2 requires two
+gravity load support x
+as two times the earth- slab bottom bars to pass between
+following punching
+quake force and story the column cage longitudinal bars in
+shear failure.
+drift at the BSE-1E each plan direction. Section 8.7.5.6
+earthquake level, but requires two prestressing tendons
+need not exceed that at to pass through the column cage in
+BSE-2E, determined in each plan direction. The slab
+accordance with Section bottom bars or tendons help
+7.4. of ASCE 41. prevent collapse of the slab if
+punching shear initiates.
+2. Demonstrate
+compliance with at least 3. If the existing condition is
+one of the following in susceptible to punching shear, a
+each plan direction at possible retrofit solution is to
+each column: provide a path of support such as a
+collar at the top of a column that
+(a) Section 8.7.4.2.2 of
+supports the bottom of the slab
+ACI 318. The slab bottom
+beyond the expected punching
+bars must be continuous
+shear failure plane.
+through the column or
+spliced using mechanical
+or welded splices.
+(b) Section 8.7.5.6 of ACI
+318.
+3. Provide an alternate
+load path to support
+design gravity load, as-
+suming a failure at the
+slab-column interface
+such that the slab-column
+interface cannot support
+gravity load.
+Page 3 of 4
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 11 ===
+INFORMATION SHEET G-29 ATTACHMENT 1
+Last Modified September 2024
+Potential Deficiency Requirements Commentary
+6 Weak connection of For each flexible floor or The objective of this item is to make
+concrete wall to roof diaphragm, comply it unlikely that a concrete wall will
+flexible diaphragm: with CEBC Chapter A2, separate from a flexible floor or roof
+The structure includes or ASCE 41 with a diaphragm in a way that could lead
+one or more concrete performance objective of to floor or roof collapse.
+walls supporting one or Structural Collapse
+For floor or roof diaphragms that
+more flexible Prevention with the BSE-
+have timber framing in combination
+diaphragms, where the 2E earthquake level.
+with a complete grid of concrete floor
+wall is not adequately
+beams, CEBC Chapter A2 may be
+anchored to the
+used to demonstrate that existing
+diaphragm.
+concrete floor beams are connected
+to the walls in such a way that they
+resist out-of-plane forces on the
+walls at least equal to the forces
+prescribed in CEBC Chapter A2.
+7 Inadequate length of Provide bearing length to In some cases, including at building
+bearing connection: support gravity load, such expansion joints, concrete floor
+One or more beams or that the bearing length structures, either cast-in-place or
+slabs is supported by a satisfies all of the precast, have bearing supports. In
+bearing connection with following: older structures such bearing
+short bearing length. supports may not have adequate
+1. Section 18.14.4.1(d) of
+bearing length compared to
+ACI 318.
+earthquake displacement demands.
+2. Two times the
+1. Section 18.14.4.1(d) requires a
+displacement demand at
+bearing length of 5 inches for
+the BSE-1E earthquake
+beams, or 2 inches + L/180 for slabs.
+level, determined in
+accordance with Section
+7.4 of ASCE 41, but need
+not exceed that at BSE-
+2E.
+Page 4 of 4
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sfdbi.org

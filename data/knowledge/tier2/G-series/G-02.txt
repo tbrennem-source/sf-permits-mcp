@@ -1,0 +1,172 @@
+=== PAGE 1 ===
+City and County of San Francisco London N. Breed, Mayor
+Department of Building Inspection Tom C. Hui, S.E., C.B.O., Director
+INFORMATION SHEET
+NO. G-01
+DATE : October 16, 2018
+CATEGORY : General
+SUBJECT : Signature on Plans
+SECTIONS
+INVOLVED : Section 106A.3.2 San Francisco Building Code (SFBC); ASCE 7-10 Section
+13.1.4 Exemption 6ci; Professional Engineers Act; Architecture Practice Act;
+Rules and Regulations of the Board of Registration for Professional Engineer
+and the Board of Architectural Examiners; California Architects Board
+Building Official’s Information Guide; California Business & Professions Code
+Sections 5537, 5538, 5800 and 6757.1
+INTENT OF CODE : To require the signature of an Architect or Engineer on plans when required
+by State regulations.
+INTERPRETATIONS : All plans, drawings, specifications, and calculations (hereafter referred to as
+drawings) submitted to the Department of Building Inspection (DBI) for permit
+issuance are required to be signed by the preparer and the preparer must be
+a California licensed architect, land surveyor, engineer, contractor or
+unlicensed designer for certain types of work as outlined herein. When such
+plans are not prepared by an architect, land surveyor, or an engineer, the
+Building Official may require the applicant submitting such plans or other data
+to demonstrate that the State law does not require that the plans be prepared
+by a licensed architect, land surveyor, or engineer. The Building Official may
+require plans, computations and specifications to be prepared and designed
+by an engineer, land surveyor, or architect licensed by the State to practice as
+such even if not required by State law (Section 106A.3.2 SFBC).
+DISCUSSION :
+(A) REQUIREMENTS FOR SIGNATURE ON PLANS:
+When considering the requirements for signatures on drawings, the applications for building permits
+can be categorized into four (4) groups. The groups are determined by the type of work described
+on the application and drawings, by the building use or occupancy, by the materials of construction,
+by the span load carrying members, and by the dollar valuation as stated on the application. The
+four (4) groups are as follows:
+Technical Services Division
+1660 Mission Street– San Francisco CA 94103
+Office (415) 558-6205 – FAX (415) 558-6401 – www.sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET G-01
+I. EXEMPT STATUS – The following types of applications are classed as exempt and any Building
+Designer, Interior Designer or unlicensed person may prepare and sign the drawings:
+1. Single family dwellings of wood frame construction (Type V construction) not more than 2
+stories and basement in height and with spans between bearing walls not exceeding 25 feet
+and the height does not exceed 25 feet; including alteration work to such buildings.
+2. Multiple dwellings containing no more than 4 dwelling units of wood construction not more
+than 2 stories and basement in height; including alteration work to such buildings. This shall
+not be construed as allowing an unlicensed person to design multiple clusters of up to 4
+dwelling units. Design per conventional design per Chapter 23 of California Building Code
+(CBC).
+3. Store front installations, including entrance or exit doors, not affecting the structural system of
+the building and the dollar valuation of the installation do not exceed $40,000.00.
+4. Fabric awnings and canopies.
+5. Signs that weigh less than 250 pounds are less than 24 square feet in area and projects less
+than 4 feet.
+6. Tenant space improvements in non-high rise buildings contained on one floor in non-
+residential occupancies where improvements do not exceed $400,000.00 in valuation
+including the following:
+a. Alterations involving the installation of interior wall and ceiling decorative materials.
+b. Installation or relocation of interior non-load bearing partitions within the tenant space
+that are not fire rated.
+c. Installation of new or relocation of existing doors (non-fire rated).
+d. Installation of low partitions (not exceeding 5 feet – 9 inches high) and fixtures (rails,
+counters, cabinets and similar equipment attached or anchored to the building) which
+do not affect the structural system or safety of the building.
+e. Installation of non-fire-rated suspended ceiling systems complying with ASTM
+Standard 635-04 and 636/C, 636M-06, except suspended ceiling systems used to
+provide lateral support for non-bearing walls and partitions.
+f. HVAC systems not part of a smoke control system in an exempt building.
+7. Dwelling unit improvements contained within the space occupied by or serving an individual
+dwelling unit of an R-2 or R-3 occupancies in non-exempt buildings (see Items #1 and #2) as
+long as the estimated cost does not exceed $150,000.00 in value per unit and is for the
+following types of work:
+a. Window replacement
+b. Existing kitchen and/or bathroom remodeling
+c. Termite work that replaces non-structural members
+d. Roof repairs of existing sheathing
+e. Non-required insulation
+f. Non-structural remodeling
+g. Other non-structural remodeling work as long as the provisions for seismic design of
+SFBC Section 3401.10 are not triggered.
+8. Replacement in kind of non-structural building elements for non-exempt R-3 buildings when
+Page 2 of 5
+
+=== PAGE 3 ===
+INFORMATION SHEET G-01
+the replacement is necessary for maintenance of the building or structure such as the
+replacement of the rear stairs from a two flat building.
+9. Consult the San Francisco Fire Department for requirements regarding plan submittal for the
+installation or alteration of new and existing sprinkler systems and fire alarm systems.
+Note: If any portion of any structure exempted by this section deviates from substantial
+compliance with conventional framing requirements for wood frame construction per California
+Building Code Section 2308, the Building Official shall require the preparation of plans, drawings,
+specifications, or calculations for that portion by, or under the responsible control of a licensed
+architect or registered engineer.
+If an alteration to a non-exempt building involves any component that affects the structural system
+or safety of that building, as determined by the Building Official, all plans, documents and
+calculations for that alteration shall be prepared by a person licensed by the State.
+Where it is required that documents be prepared by an architect or engineer, “The architect or
+engineer of record shall be responsible for reviewing and coordinating all submittal documents
+prepared by others, included deferred submittal documents, for compatibility with the design of
+the building.”(SFBC Section 106A.3.4)
+II. LICENSED CONTRACTOR – Any contractor holding a valid license from the State may perform
+the following:
+1. Any action permitted in the Exempt Status section above.
+2. A licensed contractor may provide any service permitted by Chapter 9 of the California
+Business and Professions Code. Those services may include the preparation of shop and
+field drawings for work which he or she has contracted or offered to perform, and designing
+systems and facilities which are necessary to the completion of contracting services which he
+or she has contracted or offered to perform.
+3. Nothing in this section is intended to imply that a licensed contractor may design work which
+is to be installed by another person.
+III. REGISTERED ENGINEER OR LICENSED ARCHITECT STATUS – A Civil Engineer or Architect
+licensed by the State of California shall prepare and sign all drawings for the following
+applications:
+1. Any new building or structure with a structural steel frame or with floors, roof or walls
+constructed of concrete or masonry materials.
+2. Any new building or structure having a clear span exceeding 25 feet.
+3. Any new building or structure not covered by the “Exempt” or “Licensed Contractor” status
+and not limited by the “Special” status below.
+4. Alteration work to existing buildings described in (1), (2) and (3) above, including tenant space
+improvement or dwelling unit improvements not covered by the “Exempt” or “Licensed
+Contractor” status.
+5. Alteration work to existing buildings which includes removal of walls without replacement, such
+as open kitchen.
+6. Suspended ceilings providing lateral support for walls and partitions.
+Page 3 of 5
+
+=== PAGE 4 ===
+INFORMATION SHEET G-01
+7. Any building or structure or alteration thereto, which due to its complexity requires the
+submittal of technical information beyond the capabilities of the “Exempt” or “Licensed
+Contractor” status, as determined by the Building Official.
+Note: Minor alterations to plans that do not alter the structural or safety components of the
+building may be made on plans by a person under the direction of the design professional.
+Permission for such actions should be given in the form of a letter or email addressed to the
+Department.
+.
+IV. SPECIAL STATUS - Specialized designs for portions or components of buildings or structures
+shall be prepared and signed by design professionals as required by the San Francisco Building
+Code and qualified by licensing agency to prepare such drawings, such as, but not limited to:
+1. Engineered grading or foundation treatment
+2. Retaining walls over 4 feet total height from the bottom of footing
+3. Underpinning or Shoring
+4. Rigid frames, trusses and other construction of structural steel or reinforced concrete
+5. Special timber construction, such as trusses, stressed skin panels, glue laminated beans,
+columns and arches, etc.
+6. Automatic fire sprinkler systems *
+7. Smoke detection systems*
+8. Alarm and communications systems *
+9. Central control stations *
+10. Emergency elevator operators
+11. Smoke control systems*
+12. Standby power systems
+13. Emergency Electrical systems
+14. Exit control systems
+15. HVAC equipment (or other mechanical and electrical components) exceeding 400 pounds
+and mounted 4’ or less above adjacent floor level (ASCE 7-10 Sec. 13.1.4 Exemption 6ci.)
+(B) AFFIXING THE SIGNATURE OF AN ARCHITECT OR ENGINEER ON PLANS (OR
+CONTRACTOR, IF APPLICABLE) – Where it is required that documents be prepared by an architect
+or engineer (or contractor, if applicable), plans submitted for review shall be affixed with a signature
+and the professional seal with registration number (or contractor license number, if applicable) in the
+following manner:
+1. All plans shall bear the signature and seal with registration number of the architect, land
+surveyor, or engineer (or contractor license number, if applicable). The plans shall be securely
+bound together and the first sheet shall have affixed an original signature. The remaining
+sheets may have a signature facsimile and professional seal with registration number (or
+contractor license number, if applicable). The first sheet shall have an index of all sheets.
+*Consult with the San Francisco Fire Department for qualification requirements.
+Page 4 of 5

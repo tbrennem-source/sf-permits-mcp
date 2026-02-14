@@ -1,0 +1,62 @@
+=== PAGE 1 ===
+City and County of San Francisco Mark Farrell, Mayor
+Department of Building Inspection Tom C. Hui, S.E., C.B.O., Director
+INFORMATION SHEET
+NO. S-11
+DATE : April 6, 2018
+SUBJECT : Structural
+TITLE : Procedure of Processing Private School Earthquake Evaluation Reports
+PURPOSE : The purpose of this Information Sheet is to clarify the procedure of processing
+private school earthquake evaluation reports.
+REFERENCES : San Francisco Existing Building Code (SFEBC)
+San Francisco Ordinance 202-14: Earthquake Performance Evaluation of
+Private School Structures
+Administrative Bulletin AB-109: Seismic Evaluation of Private School Facilities
+ASCE 41-13, Seismic Evaluation and Retrofit of Existing Buildings
+PROCEDURE :
+1. The owner/school representative will submit the private school evaluation report to the
+Department of Building Inspection for review; either:
+- By e-mail: dbi.privateschool@sfgov.org
+- By mail or in person: Department of Building Inspection, Ground Floor Window #8, 1660
+Mission Street, San Francisco, CA 94103
+2. If submitted by e-mail, a reply confirming receipt of submittal will be given. If submitted in person,
+a received time stamp on the copy will be given.
+3. The evaluation report will be logged in a database and routed to Diane Yin who will distribute to
+other engineers for review.
+4. During the review process, if more information is needed or comments to be addressed, the plan
+checker will contact the engineer who prepared the report or the owner/school representative
+directly by e-mail. The engineer shall review these comments and correct the report if necessary
+and re-submit the report to the designated plan checker. Plan checker shall state the number of
+plan review hours on the review letter.
+5. After the report is reviewed, a sample review letter (see Attachment A) signed by the plan checker
+and the evaluation report will be forwarded to Window #8 for further processing.
+Technical Services Division
+1660 Mission Street – San Francisco CA 94103
+Office (415) 558-6205 – FAX (415) 558-6401 – www.sfdbi.org
+
+=== PAGE 3 ===
+INFORMATION SHEET S-11
+Attachment A
+Sample Review Letter
+Date: ____________________
+Subject: Review Letter for Private School Earthquake Evaluation Report
+School Name: __________________________
+School Address: ________________________
+Block/Lot numbers: ________/________
+Dear Owner/School Administration:
+The Department of Building Inspection (DBI) has concluded its review of the Earthquake Evaluation
+Report of your school as indicated above, submitted to our department as required by San Francisco
+Ordinance 202-14. We are pleased to inform you that the report appears complete as to form and is
+assumed correct based on the statement of the Structural Engineer whose seal and signature appear
+on the report, and is in general conformance with San Francisco Existing Building Code Section 329.
+The following buildings/structures are included in the report and our review:
+_list of buildings/structures__
+________________________
+________________________
+________________________
+Review hours: ________ hrs
+If you have any questions and comments, please do not hesitate to contact the undersigned review
+engineer.
+Sincerely,
+Plan Review Engineer
+Plan Review Services

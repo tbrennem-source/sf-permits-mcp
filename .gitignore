@@ -16,4 +16,5 @@ env/
 *.swp
 *.swo
 .DS_Store
-data/
+data/*
+!data/knowledge/

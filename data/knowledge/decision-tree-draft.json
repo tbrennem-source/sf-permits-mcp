@@ -1,0 +1,745 @@
+{
+  "source_id": "decision-tree-draft",
+  "version": "0.1",
+  "created_date": "2026-02-13",
+  "description": "Draft 7-step decision tree mapping project descriptions to SF building permit requirements. Synthesized from G-20 routing matrix, permit forms taxonomy, in-house review process, and supplementary info sheets.",
+  "data_sources": [
+    "tier1/G-20-routing.json (154 routing entries, 14 discussion rules)",
+    "tier1/permit-forms-taxonomy.json (7 forms, selection logic)",
+    "tier1/inhouse-review-process.json (11-step process, agency triggers)",
+    "tier2/G-series/G-24.txt (G-23 ADU rules)",
+    "tier2/G-series/G-26.txt (G-25 Restaurant FAQ)",
+    "tier3/AB-004.txt (Priority Permit Processing)",
+    "tier3/AB-032.txt (Site Permit Processing)"
+  ],
+  "known_gaps": [
+    "GAP-1: OTC vs In-House criteria (needs AB-093)",
+    "GAP-2: Fee calculation formulas (G-13 scanned, needs OCR)",
+    "GAP-3: Timeline estimates (sparse data, needs Amy input)",
+    "GAP-4: Planning pre-approval rules (needs Planning Code cross-reference)",
+    "GAP-5: Completeness review checklist (needs AB-112)"
+  ],
+
+  "steps": {
+    "step_1_need_permit": {
+      "question": "Does this project need a building permit?",
+      "description": "Determine if the proposed work requires a DBI building permit",
+      "rules": {
+        "permit_required": {
+          "description": "Most construction work in SF requires a building permit",
+          "examples": [
+            "Any structural work (walls, foundations, framing)",
+            "Change of use or occupancy",
+            "Electrical, plumbing, or mechanical work",
+            "New construction of any kind",
+            "Additions to existing buildings",
+            "Demolition",
+            "Signs (exterior)",
+            "Grading, excavation, or fill",
+            "Kitchen or bathroom remodel",
+            "Window or door changes",
+            "Deck construction or replacement",
+            "Fire escape work",
+            "Seismic retrofit",
+            "ADU construction or legalization"
+          ]
+        },
+        "permit_may_not_be_required": {
+          "description": "Very minor work may be exempt, but confirm with DBI",
+          "examples": [
+            "Painting (interior only, no lead abatement)",
+            "Cosmetic finishes (wallpaper, flooring replacement in-kind)",
+            "Minor repairs (less than $500 value, same material)",
+            "Furniture and non-structural fixtures"
+          ],
+          "warning": "Even seemingly minor work may require a permit in SF. When in doubt, call DBI at (415) 558-6088."
+        }
+      },
+      "separate_processes": {
+        "description": "Some project types have their own permit processes outside standard DBI review",
+        "types": [
+          {
+            "type": "ADU (Accessory Dwelling Unit)",
+            "process": "Separate ADU permit process with pre-approval application",
+            "reference": "Detached ADU Pre-Approval Application, Info Sheet G-23"
+          },
+          {
+            "type": "Development Agreement project",
+            "process": "Projects under Development Agreements follow negotiated timelines"
+          },
+          {
+            "type": "Affordable Housing",
+            "process": "May qualify for priority processing per AB-004"
+          },
+          {
+            "type": "Fire sprinklers/alarms only",
+            "process": "Separate fire permit, not standard building permit"
+          }
+        ]
+      }
+    },
+
+    "step_2_which_form": {
+      "question": "Which permit application form is needed?",
+      "description": "Select the correct DBI application form based on project type",
+      "decision_logic": [
+        {
+          "condition": "New construction (Type I, II, III, IV - non-wood)",
+          "form": "Form 1 (via combined Form 1/2)",
+          "notes": "Mark Form 1 checkbox on Form 1/2. Construction types: Fire-Resistive, Non-Combustible, Ordinary, Heavy Timber."
+        },
+        {
+          "condition": "New construction (Type V - wood frame)",
+          "form": "Form 2 (via combined Form 1/2)",
+          "notes": "Mark Form 2 checkbox on Form 1/2."
+        },
+        {
+          "condition": "Additions, alterations, or repairs to existing buildings (large scope)",
+          "form": "Form 3 (via combined Form 3/8)",
+          "notes": "Mark Form 3 checkbox. This is the 'pink form' — most building applications use this. Triggers In-House Review.",
+          "review_type": "In-House Review"
+        },
+        {
+          "condition": "Small projects eligible for over-the-counter review",
+          "form": "Form 8 (via combined Form 3/8)",
+          "notes": "Mark Form 8 checkbox. For projects that can be reviewed over the counter or do not require plans.",
+          "review_type": "OTC",
+          "gap": "GAP-1: Exact OTC eligibility criteria need AB-093"
+        },
+        {
+          "condition": "Sign installation or erection",
+          "form": "Form 4/7",
+          "notes": "For all signs including attached, monument, and post-mounted signs. Per Info Sheet G-04."
+        },
+        {
+          "condition": "Grading, excavation, fill, or quarry",
+          "form": "Form 5",
+          "notes": "For any earth-moving work."
+        },
+        {
+          "condition": "Demolition of existing building or structure",
+          "form": "Form 6",
+          "notes": "Often paired with Form 1/2 for new construction. Requires asbestos report per DBI rules. Requires BAAQMD Job Number for issuance per S-04."
+        },
+        {
+          "condition": "Detached ADU",
+          "form": "Detached ADU Pre-Approval Application",
+          "notes": "Separate application form for pre-approval of detached Accessory Dwelling Units."
+        }
+      ],
+      "additional_forms_that_may_be_required": [
+        "Permit Applicant Disclosure and Certification form",
+        "Licensed Contractor's Statement Form",
+        "Final Declaration for Permit Issuance",
+        "Owner-builder handout package (if no contractor)",
+        "Demolition Affidavit Form (for demolitions — declares mortgage/deed holders notified)",
+        "Disabled Access Upgrade Compliance Checklist (all commercial TI projects)",
+        "San Francisco Green Building Form (GS1-GS6 depending on project type)",
+        "SFPUC fixture count form (if adding plumbing fixtures or new water service)"
+      ]
+    },
+
+    "step_3_otc_or_inhouse": {
+      "question": "Is this project eligible for OTC (over-the-counter) review, or does it require In-House Review?",
+      "description": "Determines whether project can be reviewed at DBI counter (fast) or requires multi-agency in-house review (weeks-months)",
+      "otc_eligible": {
+        "description": "Projects that MAY qualify for OTC review based on G-20 'Work with No Plans' category and general DBI guidance",
+        "known_otc_categories_from_g20": [
+          {
+            "scope": "Remodel of existing kitchen and/or existing bathroom",
+            "conditions": "No structural work or wall removal, no new plumbing fixtures",
+            "routing": ["BLDG"]
+          },
+          {
+            "scope": "Furnace replacement in-kind with duct work",
+            "routing": ["MECH/MECH-E"]
+          },
+          {
+            "scope": "Garage Door Replacement in-kind",
+            "routing": ["BLDG"]
+          },
+          {
+            "scope": "Window Replacement in-kind",
+            "routing": ["BLDG"],
+            "conditions": "Planning review conditional on ground/street level"
+          },
+          {
+            "scope": "Re-roofing",
+            "conditions": "No removal of wood shingle, no re-sheathing, no plywood replacement",
+            "routing": ["BLDG"]
+          },
+          {
+            "scope": "Repair in-kind of less than 50% of existing deck",
+            "routing": ["BLDG"]
+          },
+          {
+            "scope": "Repair in-kind of less than 50% of existing stairs",
+            "routing": ["BLDG"]
+          },
+          {
+            "scope": "Replacement in-kind or repair of existing siding",
+            "routing": ["BLDG"]
+          },
+          {
+            "scope": "Replacement of existing siding to new siding",
+            "routing": ["PLANNING", "BLDG"],
+            "conditions": "Planning conditional on visibility from street"
+          },
+          {
+            "scope": "Removal of General Advertising",
+            "conditions": "Pictures are required",
+            "routing": ["PLANNING"]
+          },
+          {
+            "scope": "Voluntary installation of anchor bolts and plywood sheathing at first story of residential wood-frame buildings",
+            "routing": ["BLDG"]
+          },
+          {
+            "scope": "Emergency Panel/Fire Alarm Replacement",
+            "routing": ["SFFD"]
+          }
+        ],
+        "gap_note": "GAP-1: Full OTC eligibility criteria require AB-093. The above are only the G-20 'Work with No Plans' entries which are a subset of OTC-eligible work."
+      },
+      "inhouse_required": {
+        "description": "Projects requiring multi-agency review through DBI's In-House Review process",
+        "triggers": [
+          "Change of use or occupancy",
+          "New construction",
+          "Structural work (wall removal, new openings, foundations)",
+          "Work requiring Planning Department review",
+          "Work requiring SFFD review (occupancy >49, high-rise >75ft)",
+          "Work in public right-of-way",
+          "Exterior changes visible from street",
+          "Addition of new plumbing fixtures",
+          "Most commercial tenant improvements",
+          "Any work requiring multiple agency review per G-20 matrix"
+        ],
+        "timeline": "4+ weeks for DBI review after Planning approval. Larger scopes take longer.",
+        "review_agencies": [
+          "DBI (Building Inspection)",
+          "Planning Department",
+          "DPW (Public Works)",
+          "SFPUC (Public Utilities)",
+          "SFFD (Fire Department)",
+          "DPH (Public Health)",
+          "OCII (Community Investment)",
+          "Department of Environment"
+        ]
+      },
+      "full_vs_site_permit": {
+        "description": "For In-House Review, choose between Full Permit or Site Permit process",
+        "full_permit": {
+          "description": "Condensed process, preferred by most customers",
+          "initial_submittal": "Architectural, Structural, Mechanical/Electrical plans + Title 24",
+          "payments": "Two: initial filing fee + issuance fee"
+        },
+        "site_permit": {
+          "description": "Iterative design/engineering, often for projects > $25M",
+          "initial_submittal": "Architectural plans only",
+          "payments": "Minimum four: filing fee, issuance fee, addendum submittal fee, addendum issuance fee",
+          "process": "Addenda submitted after site permit issuance per approved schedule",
+          "reference": "Administrative Bulletin AB-032 (Site Permit Processing)"
+        },
+        "key_rule": "Cannot switch between Full and Site Permit without resubmitting application"
+      }
+    },
+
+    "step_4_agency_routing": {
+      "question": "Which City agencies must review this permit application?",
+      "description": "Based on the G-20 routing matrix (154 scope-of-work entries), determines which agencies review the permit. Routing varies by project scope, location, and building characteristics.",
+      "agencies": {
+        "PLANNING": {
+          "full_name": "Planning Department (City Planning - Zoning Counter)",
+          "common_triggers": [
+            "Change of use or occupancy",
+            "New construction",
+            "Exterior changes visible from public way",
+            "Ground floor or street-level commercial work",
+            "ADU creation",
+            "Demolition",
+            "Most work in historic districts"
+          ],
+          "conditional_triggers": [
+            "Interior tenant improvement at ground/street or second floor (#)",
+            "Siding replacement visible from street (#)"
+          ],
+          "pre_approval": "Many projects require Planning zoning approval BEFORE building permit submission. In OCII areas, route to OCII instead."
+        },
+        "BLDG": {
+          "full_name": "DBI Architectural and Structural Plan Review",
+          "common_triggers": "Almost all permitted work requires BLDG review",
+          "conditional_triggers": [
+            "HVAC work over 400 lbs per unit (^)",
+            "Work involving structural elements"
+          ]
+        },
+        "MECH_MECH_E": {
+          "full_name": "DBI Mechanical Plan Review / Electrical Plan Review",
+          "common_triggers": [
+            "New HVAC systems",
+            "Kitchen hoods",
+            "Elevator work",
+            "Electrical system changes",
+            "Commercial tenant improvements"
+          ],
+          "conditional_triggers": [
+            "MECH only for certain work types (#)",
+            "HVAC over 400 lbs triggers MECH (^)"
+          ]
+        },
+        "SFFD": {
+          "full_name": "San Francisco Fire Department",
+          "common_triggers": [
+            "Group A-2 occupancy (>49 occupants)",
+            "High-rise buildings (occupied floors >75ft)",
+            "Kitchen hoods Type 1 (grease)",
+            "Fire alarm/sprinkler work",
+            "New construction (fire flow analysis)"
+          ],
+          "conditional_triggers": [
+            "Any SFFD-regulated occupancy: High-rise, A, E, H, I, L, or R except R-3 (*)",
+            "R2 occupancy with construction cost $99K+ (per G20-M)",
+            "Occupant load greater than 49"
+          ],
+          "exceptions": [
+            "Kitchen/bath no-plan permit: skip SFFD unless cost >$99K in R2 (per G20-J)"
+          ]
+        },
+        "BSM": {
+          "full_name": "DPW Bureau of Street-Use and Mapping",
+          "common_triggers": [
+            "Work in public right-of-way",
+            "Curb cuts",
+            "Awnings/canopies with posts in right-of-way",
+            "Street space during construction",
+            "Sidewalk work",
+            "New openings for food service (pass-thru windows)"
+          ],
+          "conditional_triggers": [
+            "Hood/cooking exhaust in food/beverage facilities (+)",
+            "Improvements at building entry/exit points adjacent to public right-of-way (^)"
+          ],
+          "exemptions_per_g20": [
+            "Element affixed to building ≤4 inches into Public Way",
+            "Minor utility fixtures authorized by previous permit",
+            "Permit exclusively for accessibility compliance"
+          ]
+        },
+        "PUC": {
+          "full_name": "Public Utility Commission (SFPUC)",
+          "common_triggers": [
+            "New water service connections",
+            "Stormwater management (5,000+ sq ft impervious surfaces)",
+            "Water reuse systems (40,000+ sq ft projects)",
+            "Non-potable water systems"
+          ],
+          "conditional_triggers": [
+            "Projects adding plumbing fixtures (Ø)"
+          ]
+        },
+        "DPH": {
+          "full_name": "Department of Public Health",
+          "triggers_per_g20_rule_c": [
+            "New construction/remodel of buildings under DPH programs",
+            "Retail projects involving Food Facility",
+            "Medical Cannabis Dispensing facilities (DPH first, then Planning)",
+            "Soil disturbance of 50+ cubic yards in Maher Area",
+            "Soil disturbance of any volume in Health Code Article 31 Area",
+            "Dust control for projects >0.5 acre"
+          ],
+          "exception": "Do NOT route Article 38 (enhanced ventilation) construction plans to DPH"
+        },
+        "OCII": {
+          "full_name": "Office of Community Investment and Infrastructure",
+          "trigger": "Projects in OCII areas route to OCII INSTEAD of Planning (per G20-E)",
+          "note": "OCII is last station to review. Reviews all permit addenda."
+        },
+        "PW_DAC": {
+          "full_name": "DPW Office of Disability Access Coordinator",
+          "triggers": [
+            "Site permit and architectural addendum for new construction, alteration, addition, or change in occupancy/use",
+            "Any City project or project receiving public funds",
+            "City-owned or leased property projects"
+          ]
+        },
+        "CON_BOND": {
+          "full_name": "Controller's Office (Construction Bond)",
+          "trigger": "Multi-residential building increasing unit count by 10+ (per G20-N)",
+          "exceptions": [
+            "Development Agreement projects",
+            "Publicly-funded projects",
+            "Projects with established Labor Agreement"
+          ]
+        }
+      },
+      "routing_categories": {
+        "exterior_work": {
+          "description": "Work affecting building exterior or visible from outside",
+          "example_scopes": [
+            "ATMs", "Awnings/Marquees/Canopies", "Cellular antennas",
+            "Curb cuts", "Decks", "Demolition", "Doors/Windows",
+            "Fire escapes", "Foundations", "Garages", "New construction",
+            "Penthouses", "Re-roofing", "Seismic retrofit", "Signs",
+            "Solar/PV", "Stairs", "Storefronts"
+          ]
+        },
+        "interior_work": {
+          "description": "Work primarily affecting building interior",
+          "example_scopes": [
+            "Bars/Night clubs", "Cannabis retail", "Change of use",
+            "Commercial kitchens", "Elevator", "HVAC", "Institutions",
+            "Kitchen additions/removals", "Kitchen hoods", "Laundry rooms",
+            "Live/Work", "Massage establishments", "Medical offices",
+            "Mezzanines", "Nail spas", "Tenant improvements"
+          ]
+        },
+        "work_with_no_plans": {
+          "description": "Smaller projects that may not require full plan sets — potential OTC candidates",
+          "example_scopes": [
+            "Emergency panel/fire alarm replacement",
+            "Furnace replacement in-kind",
+            "Garage door replacement in-kind",
+            "Kitchen/bath remodel (no structural, no new fixtures)",
+            "Deck repair in-kind (<50%)",
+            "Stair repair in-kind (<50%)",
+            "Siding replacement in-kind",
+            "Re-roofing (simple)",
+            "Window replacement in-kind",
+            "Voluntary seismic anchor bolts"
+          ]
+        },
+        "others": {
+          "description": "Special categories including health/environmental triggers, city property, and compliance items",
+          "example_scopes": [
+            "Maher Area soil disturbance",
+            "Health Code Article 31 areas",
+            "Physical Inspection Report legalization",
+            "Lot split/merger",
+            "Cannabis cultivation",
+            "City-owned property projects"
+          ]
+        }
+      }
+    },
+
+    "step_5_required_docs": {
+      "question": "What documents and plans are required for submission?",
+      "description": "Documents required vary by form type and project scope",
+      "universal_requirements": [
+        {
+          "document": "Completed permit application form (appropriate Form 1/2, 3/8, 4/7, 5, or 6)",
+          "details": "Must be filled out completely with accurate project description"
+        },
+        {
+          "document": "Construction plans (PDF for electronic plan review)",
+          "details": "Prepared by licensed architect or engineer. All plan sets must include a Back Check page.",
+          "exceptions": "Some 'Work with No Plans' categories per G-20 may not require plans"
+        },
+        {
+          "document": "Permit Applicant and Authorized Agent form",
+          "details": "Must be signed by property owner"
+        },
+        {
+          "document": "Title 24 Energy forms",
+          "details": "Per info sheets M-03, M-04, M-08. Exceptions per M-06."
+        },
+        {
+          "document": "San Francisco Green Building Form",
+          "details": "GS1-GS6 depending on project type"
+        }
+      ],
+      "conditional_requirements": [
+        {
+          "document": "Planning Department approval letter",
+          "trigger": "Projects requiring Planning review (most exterior work, change of use)",
+          "notes": "Must be obtained BEFORE building permit submission"
+        },
+        {
+          "document": "OCII approval letter",
+          "trigger": "Projects in OCII areas (instead of Planning)"
+        },
+        {
+          "document": "Disabled Access Compliance Checklist",
+          "trigger": "All commercial tenant improvement projects, projects in existing commercial buildings"
+        },
+        {
+          "document": "Geotechnical report",
+          "trigger": "Hillside properties, safe construction concerns"
+        },
+        {
+          "document": "Asbestos report",
+          "trigger": "Demolition permits (required BEFORE application)"
+        },
+        {
+          "document": "Fire flow study",
+          "trigger": "New construction or projects adding new floor area",
+          "agency": "SFFD"
+        },
+        {
+          "document": "Stormwater Management Plan",
+          "trigger": "Creating/replacing 5,000+ sq ft impervious surfaces (combined sewer) or 2,500+ (separate sewer)",
+          "agency": "SFPUC"
+        },
+        {
+          "document": "SFPUC fixture count form",
+          "trigger": "Adding faucets, toilets, plumbing fixtures, or new water service"
+        },
+        {
+          "document": "Acoustical report",
+          "trigger": "New residential buildings"
+        },
+        {
+          "document": "Construction Waste Management tracking",
+          "trigger": "New construction, commercial additions 1,000+ sq ft, commercial remodels $200K+, full demolitions"
+        },
+        {
+          "document": "Maher Ordinance site assessment",
+          "trigger": "50+ cubic yards soil disturbance in Maher area or any soil in Article 31 area"
+        },
+        {
+          "document": "Demolition Affidavit Form",
+          "trigger": "Demolition permits — declares mortgage/deed holders notified"
+        },
+        {
+          "document": "Street Space Permit",
+          "trigger": "Using sidewalk during construction",
+          "agency": "BSM"
+        },
+        {
+          "document": "Comprehensive Master Sign Plan (CMSP)",
+          "trigger": "Signs on new buildings (2 copies with Form 3/8)",
+          "reference": "Info Sheet G-04"
+        }
+      ],
+      "plan_format": {
+        "submission": "Electronic PDF via building permit application portal",
+        "minimum_size": "11x17 inches",
+        "copies": "2 sets for most applications",
+        "prepared_by": "Licensed architect or engineer (required for all permit plans)",
+        "include": "Back Check page in all plan sets"
+      }
+    },
+
+    "step_6_timeline": {
+      "question": "How long will the permit process take?",
+      "description": "Timeline estimates based on available data. SIGNIFICANT GAP — most timelines are not published by DBI.",
+      "gap_warning": "GAP-3: DBI does not publish standard processing timelines. These estimates are derived from scattered references in info sheets and should be verified with Amy.",
+      "estimates": {
+        "otc_review": {
+          "description": "Over-the-counter review",
+          "estimate": "Same day to 1-2 weeks",
+          "notes": "Simple projects may be approved while you wait. Some OTC projects may take additional review time."
+        },
+        "inhouse_review_small": {
+          "description": "In-house review for smaller scope of work",
+          "estimate": "4-8 weeks after Planning approval",
+          "notes": "Per G-25 Restaurant FAQ: 'smaller scopes of work may qualify to be reviewed and potentially approved over-the-counter while you wait'"
+        },
+        "inhouse_review_standard": {
+          "description": "Standard in-house review",
+          "estimate": "8-16 weeks",
+          "notes": "Includes multiple agency reviews. May be longer if comments require multiple revision rounds."
+        },
+        "conditional_use_permit": {
+          "description": "Projects requiring Conditional Use permit from Planning",
+          "estimate": "3+ months for Planning review alone (per G-25 Restaurant FAQ)",
+          "notes": "Requires public hearing. Neighborhood notification may also be required."
+        },
+        "site_permit": {
+          "description": "Site Permit process (large projects, typically >$25M)",
+          "estimate": "Months to years depending on project complexity",
+          "notes": "Iterative process with multiple addenda. Per AB-032."
+        },
+        "priority_processing": {
+          "description": "Priority permit types per AB-004",
+          "categories": [
+            "Emergency work for health/safety",
+            "City-owned/leased property work",
+            "Disabled access improvements only",
+            "Clean energy systems only (solar, ESS, EV charging, wind)",
+            "Telecommunications facilities",
+            "Voluntary/mandatory seismic upgrades",
+            "Historic building maintenance/preservation",
+            "Creating new dwelling units",
+            "HOME-SF program projects"
+          ],
+          "notes": "Priority applications may be given priority assignment for plan review and issuance per AB-004."
+        }
+      },
+      "process_notes": {
+        "completeness_review": "3 rounds of incomplete evaluations → escalated to DBI supervisor",
+        "comment_rounds": "3 rounds of comments/revisions → escalated to DBI supervisor",
+        "cal_osha": "Cal OSHA Industrial Safety Permit may be required for buildings >36ft/3 stories or trenches/excavations 5+ ft deep"
+      }
+    },
+
+    "step_7_fees": {
+      "question": "What fees will be required?",
+      "description": "Fee information based on available data. SIGNIFICANT GAP — detailed fee schedules are in G-13 (scanned, needs OCR).",
+      "gap_warning": "GAP-2: Complete fee calculation requires Info Sheet G-13 which is a scanned PDF (0 chars extracted). Fees are percentage-based on construction cost per SFBC Section 110A.",
+      "fee_structure": {
+        "filing_fee": {
+          "description": "Initial filing fee paid when submitting application",
+          "calculation": "Based on estimated construction cost per DBI fee schedule",
+          "reference": "www.sfdbi.org/fees → 'Alteration Building Permit' under 'Permit Fee Tables'"
+        },
+        "issuance_fee": {
+          "description": "Paid when permit is approved and ready for issuance",
+          "calculation": "Based on construction cost, adjusted per DBI Cost Schedule"
+        },
+        "site_permit_fees": {
+          "description": "Site Permit process has minimum 4 payment stages",
+          "payments": [
+            "Filing fee",
+            "Issuance fee",
+            "Addendum submittal fee",
+            "Addendum issuance fee"
+          ]
+        },
+        "school_impact_fee": {
+          "description": "SFUSD-levied fee for projects increasing commercial floor area",
+          "trigger": "Any project that increases floor area for commercial occupancies",
+          "timing": "Must be paid PRIOR to permit issuance",
+          "reference": "Info Sheet G-11"
+        },
+        "other_potential_fees": [
+          "Planning Department review fees",
+          "SFFD plan review fees",
+          "DPW street permit fees",
+          "Green building compliance fees",
+          "Electrical permit fees (separate)",
+          "Plumbing permit fees (separate)",
+          "Mechanical permit fees (separate)"
+        ]
+      },
+      "cost_note": "DBI may adjust proposed construction cost according to latest edition of DBI Cost Schedule. Consult licensed professional for accurate estimates."
+    }
+  },
+
+  "special_project_types": {
+    "restaurant_change_of_use": {
+      "description": "Opening a new restaurant (change of use to restaurant)",
+      "source": "G-25 Restaurant FAQ (tier2/G-series/G-26.txt)",
+      "process": [
+        "Step 1: Visit Planning Department first to confirm zoning allows restaurants at site",
+        "Step 2: Some neighborhoods prohibit additional sit-down restaurants but may allow counter-service",
+        "Step 3: If Conditional Use required: 3+ months, public hearing, neighborhood notification",
+        "Step 4: After Planning approval, apply for building permit",
+        "Step 5: Plans required — prepared by licensed architect/engineer, 2 sets minimum",
+        "Step 6: SFFD review triggered if Group A-2 occupancy (>49 occupants) or building >75ft",
+        "Step 7: Accessibility (Chapter 11B) requirements triggered for alteration/structural repair",
+        "Step 8: Seismic retrofit triggered if >10% increase in building occupant load AND >100 person increase",
+        "Step 9: Separate sign permit (Form 4/7) after building permit issued",
+        "Step 10: Separate electrical and plumbing permits (building permit Form 3/8 should indicate both needed)"
+      ],
+      "costs": "Permit fee is percentage of construction cost per SFBC Section 110A. School Impact Fee may apply per G-11.",
+      "forms_needed": ["Form 3/8", "Form 4/7 (for sign)", "Electrical permit", "Plumbing permit"]
+    },
+    "adu_construction": {
+      "description": "Accessory Dwelling Unit construction or legalization",
+      "source": "Info Sheet G-23 (referenced, partially in tier2)",
+      "key_rules": [
+        "Separate ADU permit process with pre-approval application for detached ADUs",
+        "Planning Department review required",
+        "May qualify for priority processing per AB-004 (creating new dwelling units)"
+      ]
+    },
+    "seismic_retrofit": {
+      "description": "Seismic upgrade or soft-story retrofit",
+      "source": "G-20 routing matrix",
+      "routing": "Routes to PLANNING, BLDG, and conditionally SFFD",
+      "priority": "Qualifies for priority processing per AB-004",
+      "notes": "Voluntary anchor bolt installation at first story of wood-frame may be OTC (no plans)"
+    },
+    "commercial_tenant_improvement": {
+      "description": "Interior tenant improvement for commercial space",
+      "source": "G-20 routing matrix",
+      "routing": {
+        "PLANNING": "Required on ground/street level or second floor (#)",
+        "BLDG": "Required (X)",
+        "MECH_MECH_E": "Required (X)",
+        "SFFD": "Conditional — SFFD-regulated occupancy (*)",
+        "BSM": "Conditional — entry/exit improvements adjacent to right-of-way (^)",
+        "PUC": "Conditional — adding plumbing fixtures (Ø), OCII areas only (//)"
+      },
+      "disabled_access": "Disabled Access Compliance Checklist required for all commercial TI projects"
+    },
+    "adaptive_reuse": {
+      "description": "Commercial-to-Residential Adaptive Reuse",
+      "source": "G-29 (found in tier2/S-series/S-03.txt, 34K chars)",
+      "notes": "Detailed guidelines for converting commercial buildings to residential use. Full content available in knowledge base."
+    },
+    "solar_clean_energy": {
+      "description": "Solar PV, Energy Storage Systems, EV Charging",
+      "source": "G-20 routing matrix + AB-004",
+      "routing": "Varies by system type — rooftop solar typically routes to BLDG and potentially PLANNING",
+      "priority": "Qualifies for priority processing per AB-004 (clean energy supply systems)"
+    }
+  },
+
+  "pre_application_checklist": {
+    "description": "Pre-application requirements that must be completed BEFORE submitting building permit",
+    "items": [
+      {
+        "requirement": "Planning zoning approval",
+        "agency": "Planning Department",
+        "trigger": "Projects requiring Planning review",
+        "action": "Visit Planning at 1660 Mission St, 1st Floor, or call (415) 558-6377"
+      },
+      {
+        "requirement": "OCII approval (if in OCII area)",
+        "agency": "OCII",
+        "trigger": "Projects in OCII areas",
+        "action": "Receive letter from OCII instead of Planning"
+      },
+      {
+        "requirement": "Water reuse system design",
+        "agency": "SFPUC",
+        "trigger": "Projects creating 40,000+ sq ft of space (100,000+ sq ft requires onsite reuse)"
+      },
+      {
+        "requirement": "Stormwater Management pre-application meeting",
+        "agency": "SFPUC",
+        "trigger": "Creating/replacing 5,000+ sq ft impervious surfaces (combined sewer) or 2,500+ (separate)",
+        "contact": "stormwaterreview@sfwater.org"
+      },
+      {
+        "requirement": "Fire flow study",
+        "agency": "SFFD",
+        "trigger": "New construction or adding new floor area"
+      },
+      {
+        "requirement": "Construction Waste tracking setup",
+        "agency": "Department of Environment",
+        "trigger": "New construction, commercial additions 1,000+ sq ft, commercial remodels $200K+, full demolitions"
+      },
+      {
+        "requirement": "Public Right-of-Way permit",
+        "agency": "DPW/BSM",
+        "trigger": "Work within public right-of-way",
+        "contact": "BSMPermitDivision@sfdpw.org"
+      },
+      {
+        "requirement": "Maher Ordinance site assessment",
+        "agency": "DPH",
+        "trigger": "50+ cubic yards soil disturbance in Maher area or any volume in Article 31 area"
+      },
+      {
+        "requirement": "Asbestos report",
+        "agency": "DBI",
+        "trigger": "Demolition permits"
+      },
+      {
+        "requirement": "Valid address confirmation",
+        "agency": "DBI",
+        "action": "Confirm property has valid address via SF Property Information Map"
+      },
+      {
+        "requirement": "Labor Compliance Bond",
+        "agency": "Controller's Office",
+        "trigger": "Projects creating 10+ units of housing"
+      }
+    ]
+  }
+}

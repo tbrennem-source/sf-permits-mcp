@@ -1,0 +1,124 @@
+=== PAGE 1 ===
+City and County of San Francisco Daniel Lurie, Mayor
+Department of Building Inspection Patrick O’Riordan, C.B.O., Director
+INFORMATION SHEET
+NO. DA-16
+DATE : March 24, 2025
+CATEGORY : Disabled Access
+SUBJECT : Signage for All-Gender Restrooms (Single-User and Multi-Accommodation)
+PURPOSE : The purpose of this Information Sheet is to clarify the requirements of San Francisco
+Ordinance 53-16 and California Assembly Bill No. 1723 for signage identifying Single-
+User Restrooms, and California Building Code (CBC) requirements for the identification
+of All-Gender Multi-User Toilet Facilities and toilet and urinal compartment signage
+requirements when urinal compartments are provided in such facilities.
+REFERENCE : Current California Building Code Sections (CBC):
+- 11B-213.2.1 Unisex Toilet and Bathing Rooms
+- 11B-213.2.4 Multi User All-Gender Toilet Facilities
+- 11B-216.2 Designations
+- 11B-216.8 Toilet Rooms and Bathing Rooms
+- 11B-703 Signs
+San Francisco Ordinance 53-16: All-Gender Toilet Facilities
+California Assembly Bill No. 1732: Required all single-user restrooms in places of public
+accommodation to be universally accessible by March 1, 2017.
+DISCUSSION :
+When located within any business establishment, place of public accommodation, or state or local
+government agency, single accommodation restrooms must not be defined as gender specific within San
+Francisco and the State of California. Even though the CBC uses the term “Unisex,” the term “all-gender”
+has become the building code standard when providing signs at both single accommodation and multi-
+user all-gender restrooms both locally and statewide.
+Gender-specific multi-accommodation “women’s” and “men’s” restrooms are still allowed at both the local
+and state level. Unlike single-accommodation restrooms, which require all-gender restroom signs, it is up
+to the project sponsor and their design team to propose installing multi-accommodation all-gender multi-
+user restrooms with the appropriate signs.
+TYPES OF SIGNS:
+CBC Chapter 11B specifies what signage is required to identify toilet facilities and bathing facilities and
+has specific requirements for signage when it is provided.
+1. Geometric Signs: The circle, the triangle, and the triangle on top of the circle.
+CBC Section 11B-216.8 requires that doorways leading to toilets and bathing rooms be identified by
+a geometric symbol. Every toilet facility must have a geometric symbol at the doorway.
+Page 1 of 3
+Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 – sfdbi.org
+
+=== PAGE 2 ===
+Section 11B-703.7.2.6 specifies that the women’s room must have a circle, the men’s room must
+have a triangle, and all-gender toilet and bathing rooms must have a triangle superimposed over a
+circle. These geometric symbols are required to contrast in color with each other and with the surface
+upon which they are mounted. On a light-colored door for a men’s room, a dark-colored triangle
+would be required. A light-colored door leading to an all-gender toilet facility would require a dark
+circle with a light triangle superimposed on top. The circle must have a 12” diameter and the triangle
+must have edges 12” in length, with the point of the triangle facing upward. Both the circle and the
+triangle must each be ¼” thick.
+The signs must be mounted with their horizontal centerline at 58” to 60” above the floor. Where there
+is a door, the signs must also be centered within an inch of the left-to-right vertical centerline of the
+door.
+Geometric symbols shall not be provided with pictograms, text, or braille when the symbol is located
+on the door to the toilet or bathing facility. If the room is to be identified by something other than the
+required geometric symbol, the sign shall be a tactile sing complying with CBC 11B-216.2 See
+Section 2 below. If the geometric symbols are located adjacent to the entrance to a multi-user
+restroom without a door, pictograms, raised characters and Braille may be provided on the symbol
+as long as they comply with all of the specific requirements for pictograms, raised characters, and
+braille in CBC 11B-703. An International Symbol of Accessibility (ISA) is permitted to be located on
+geometric symbols to identify the room as accessible.
+2. Designation Signs: Signs that identify permanent rooms and spaces.
+a. Tactile Signs: Signs that are read by touch, such as raised lettering and braille.
+Tactile lettering must be 1/32” thick, raised above the background, all uppercase, 5/8” minimum
+to 2” maximum in height, and may not be italic, oblique, script, highly decorative or any other
+unusual style. All tactile lettering must be duplicated in braille, left-flush or centered 3/8” to ½”
+below the lettering.
+Tactile signs must be mounted according to the instructions in CBC Sections 11B-703.4.1 and
+11B-703.4.2. These sections require a tactile sign to be mounted adjacent to a doorway with the
+bottom of the braille at 48” minimum above the floor and the bottom of the lowest raised letters
+no higher than 60” above the floor. The sign must be mounted on the latch side of the door or to
+the right-hand side of a doorway without a door. There must be a clear space of 18” by 18” in front
+of the sign, and it must be placed outside the swing of any door.
+Signs stating “women”, “men”, “family”, “staff only restroom”, “all-gender”, “all-gender multi-user”,
+etc., which identify the room, are required to be tactile, with raised characters and braille, and may
+also be accompanied by pictograms if desired.
+b. Pictograms: Pictures accompanied by tactile characters and braille.
+CBC Section 11B-216.2 specifies that when signs are provided to identify permanent rooms or
+spaces, the signs shall have raised characters and Braille complying with CBC 11B-703. In
+addition, when pictograms are provided, they are required to have tactile characters and Braille
+directly below the pictogram.
+CBC Section 11B-216.2 specifies that where pictograms are used to identify specific rooms or
+spaces, such as the male and female symbols, or the often used symbol of just a toilet; they must
+comply with Section 11B-703.6. Along with requirements for non-glare finishes and light-on-dark
+or dark-on-light contrast, pictograms must have a field height of 6” minimum without lettering or
+braille in the field. The pictograms must have descriptors in raised lettering and braille located
+below the 6” pictogram field.
+A pictogram is not required to be raised, but it is required to have raised lettering and braille in a
+descriptor below the symbol. Because of this, it may not be placed upon a restroom door.
+Additionally, the minimum size of the pictogram field will not fit into a 12” triangle, therefore all
+“unisex” geometric signs with pictograms contained within them are noncompliant and should not
+Page 2 of 3
+
+=== PAGE 3 ===
+be used. When used, pictograms should be placed adjacent to the door and should comply with
+the mounting instructions for tactile signage.
+It is important to use standard symbols and verbiage for pictogram signage. Many websites offer
+pictograms for “gender-neutral” restrooms that are not only improperly sized, but also have
+symbols that are often considered offensive by many people. A pictogram sign with the male and
+female figure along with a third figure that is comprised of half-female and half-male, can be found
+on many websites that offer “ADA” restroom signage. A sign such as this can be very confusing
+for those with limited vision. Additionally, many people consider this sign misleading and
+somewhat offensive. No pictogram is required for toilet facilities, but if one is used, it is preferred
+that it be a simple picture, such as the picture of a toilet or the International Symbol of Accessibility
+(ISA). The sign with both male and female figures standing adjacent to each other, that is
+commonly used to designate a “unisex” toilet facility, is also allowed in privately funded buildings.
+3. International Symbol of Accessibility (ISA) and Directions: Signs that are read visually.
+If not all the restrooms in the facility are accessible, the non-accessible restrooms must have
+signs directing patrons to the accessible restrooms. The accessible restrooms must have the ISA
+(wheelchair symbol) on or next to the door. The ISA shall look like Figure 11B-703.7.2.1; active
+ISA figures are not allowed (see below). The ISA symbol does not have to be raised and is
+permitted to be located on the geometric all-gender door symbol.
+Below are a few examples of appropriate signage for “All-Gender Restrooms”:
+Signs such as the ones below would not be allowed because they are either difficult to read or
+are considered by some to be offensive.
+________________________________________0_3_/2_4_/2_0_2_5__
+Patrick O’Riordan, C.B.O. Date
+Director
+Department of Building Inspection
+This Information Sheet is subject to modification at any time. For the most current version, visit
+our website at sfdbi.org.
+Page 3 of 3

@@ -1,0 +1,126 @@
+=== PAGE 1 ===
+City and County of San Francisco Daniel Lurie, Mayor
+Department of Building Inspection Patrick O’Riordan, C.B.O., Director
+INFORMATION SHEET
+NO. S-05
+DATE : 11/4/2025
+CATEGORY : Structural
+SUBJECT : Geotechnical Report Requirements and Third-Party Review at Landslide
+Zones
+PURPOSE : The purpose of this Information Sheet is to clarify when the submittal of a
+geotechnical report is required based on the proposed work and to provide
+guidance for when third-party review may be required for proposed work in the
+vicinity of a landslide zone.
+REFERENCE : San Francisco Building Code (SFBC), Current Edition
+Minimum Design Loads and Associated Criteria for Buildings and Other
+Structures, American Society of Civil Engineers/Structural Engineering
+Institute (ASCE/SEI) 7, Current Edition
+State of California Department of Conservation Division of Mines and Geology
+(CDMG) Seismic Hazard Zones Map for San Francisco, released November
+17, 2000
+Administrative Bulletin AB-082: Guidelines and Procedures for Structural,
+Geotechnical, and Seismic Hazard Engineering Design Review
+Administrative Bulletin AB-083: Requirements and Guidelines for the Seismic
+Design of New Tall Buildings using Non-Prescriptive Seismic-Design
+Procedures
+Administrative Bulletin AB-111: Guidelines for Preparation of Geotechnical and
+Earthquake Ground Motion Reports for Foundation Design and Construction
+of Tall Buildings
+DISCUSSION:
+A. The following proposed work requires the submittal of a geotechnical report:
+1. New structures (with the exception of one-story storage or utility occupancies, including storage
+sheds and garages).
+For projects involving new tall buildings, refer to Administrative Bulletin AB-083 and
+Administrative Bulletin AB-111.
+2. Horizontal additions if the footprint area increases more than 50% of the existing footprint square
+footage.
+Page 1 of 3
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sf.gov/dbi
+
+=== PAGE 2 ===
+INFORMATION SHEET S-05
+3. Any grading, unless exempt per SFBC Section J104.3.
+4. Fill slopes steeper than one unit vertical to two units horizontal (50-percent slope) per SFBC
+Section J107.6, or fills that deviate from the stipulated provisions in SFBC Section J107 Fills.
+5. Any footings on or adjacent to slopes steeper than one unit vertical to three units horizontal
+without clearances as indicated per SFBC Section 1808.7 and Figure 1808.7.1.
+6. The design soil lateral loads are less than the minimum design requirements specified in SFBC
+Section 1610 Soil Lateral Loads.
+7. The design load bearing value used exceeds values stipulated for Class 5 soil materials in SFBC
+Table 1806.2 Presumptive Load-Bearing Values.
+8. For structures assigned to Seismic Design Category D, E, or F, foundation walls and retaining
+walls supporting more than six feet of backfill height to determine the dynamic seismic lateral
+earth pressures due to design earthquake ground motions per SFBC Section 1803.5.12.
+9. Special foundations including, but not limited to, deep foundations as specified in SFBC Section
+1803.5.5 and 1810, base isolation and any design not covered by code. Piers supporting a fence,
+sign or isolated post are exempt from a geotechnical report for special foundations.
+10. As required per SFBC, including but not limited to the following:
+a) Expansive soil per SFBC Section 1803.5.3.
+b) Drainage system as an alternative to the requirements per SFBC Section J109 Drainage
+and Terracing.
+c) Ground-water table per SFBC Section 1803.5.4 to determine whether the existing ground-
+water table is above or within five feet below the elevation of the lowest floor level where
+such floor is located below the finished ground level adjacent to the foundation, unless
+waterproofing is provided in accordance with SFBC Section 1805.
+d) Ground improvement, including soil mix grouting and chemical soil grouting.
+e) Where shallow foundations will bear on controlled low-strength material (CLSM), a
+geotechnical investigation shall be conducted per SFBC Section 1803.5.9 Controlled low-
+strength material.
+f) Where the classification, strength or compressibility of the soil is in doubt, such as soils in
+liquefaction zones for structures assigned to Seismic Design Category C, D, E or F, the
+building official shall require that a geotechnical investigation be conducted per SFBC
+1803.5.2 and 1803.5.11.
+g) Where geological investigation is deemed necessary per SFBC Section 1803
+Geotechnical Investigations.
+11. Permit scope subject to mandatory structural advisory committee review under SFBC Section
+106A.4.1.2 Edgehill Mountain Slope Protection Area and Section 106A.4.1.3 Northwest Mt.
+Sutro Slope Protection Area.
+Page 2 of 3
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sf.gov/dbi
+
+=== PAGE 3 ===
+INFORMATION SHEET S-05
+12. All structures utilizing Modal Response Spectrum Analysis in accordance with ASCE 7 Section
+12.9.1 Modal Response Spectrum Analysis.
+B. The following are submittal requirements for geotechnical reports:
+1. Geotechnical reports shall be prepared in accordance with SFBC Section 1803.2 through
+Section 1803.6 and Section J104.3.
+2. Civil engineers experienced in geotechnical engineering are authorized to practice geotechnical
+engineering. This includes preparing or reviewing geotechnical reports. Engineers shall perform
+services only in the areas of their competence.
+3. Geotechnical reports shall be submitted along with the permit application and drawings for plan
+review. An electronic copy of the final geotechnical report shall be made available to the plan
+reviewer for DBI and state records. Geotechnical reports or additional geotechnical information
+may be requested by the plan reviewer during review of the project.
+4. In addition to the geotechnical report, provide a letter signed and sealed by the geotechnical
+consultant, who is a licensed civil or geotechnical engineer, stating that they have reviewed and
+approved the final structural plans, drawings, and calculations if applicable. Include the letter in
+the permit drawings.
+C. In addition to submittal of a geotechnical report, third-party review may be required in general
+accordance with Administrative Bulletin AB-082:
+1. Where any of the following work is proposed at a property that lies within, or in the immediate
+vicinity of, the “Earthquake-Induced Landslide” area on the state of California Department of
+Conservation, Division of Mines and Geology (CDMG) Seismic Hazard Zones Map for San
+Francisco, released November 17, 2000, or there is a history of landslides at the subject project
+site or in the immediate vicinity. “Immediate vicinity” shall mean any property tangent to the
+subject project site.
+a. New buildings or structures greater than 1,000 square feet.
+b. Additions to existing buildings or structures creating 1,000 square feet of total aggregate
+new floor area, cumulative within the last three years.
+c. Excavation or fill of over 50 cubic yards of earth materials.
+d. Any other construction activity that, in the opinion of the Building Official, may have a
+substantial impact on the slope stability of any property.
+11/4/2025
+Patrick O’Riordan, C.B.O. Date
+Director
+Department of Building Inspection
+This Information Sheet is subject to modification at any time. For the most current version,
+visit our website at sf.gov/dbi.
+Page 3 of 3
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 | sf.gov/dbi

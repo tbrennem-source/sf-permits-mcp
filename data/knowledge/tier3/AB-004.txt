@@ -1,0 +1,274 @@
+NO. AB-001   :
+	
+ 
+
+
+DATE   :
+	
+November 18, 1998 (Updated 01/01/2023 for code references)
+
+
+SUBJECT   :
+	
+General Administrative Procedures
+
+
+TITLE   :
+	
+Preparing Administrative Bulletins
+
+
+PURPOSE   :
+	
+The purpose of this Administrative Bulletin is to describe the procedures to be used in originating, writing, editing and distributing Administrative Bulletins. Administrative Bulletins document the procedures to be followed by the Department of Building Inspection (DBI) staff and other agencies which are involved with the regulatory functions of DBI. Although Administrative Bulletins are intended primarily for DBI use, the information may be of interest to the general public.
+An Administrative Bulletin differs from an Office Policy and Procedure document in that the latter defines DBI’s internal operating procedures and is generally of interest only to DBI staff.
+
+
+REFERENCE   :
+	
+Current edition of the San Francisco Building Code, Section 104A 2.1
+
+
+DISCUSSION   :
+	
+The following steps are to be observed in the publishing of an Administrative Bulletin. Refer to the flowchart in ATTACHMENT A. Each Administrative Bulletin shall be reviewed at least annually for concurrence with the current code and from time-to-time as necessitated by changes in policies or requirements.
+ 
+1.   IDENTIFY THE PROPOSED ADMINISTRATIVE BULLETIN
+   a.   Any individual in the Department may identify the need for an Administrative Bulletin and report this need to the supervisor, who will in turn discuss it with the Manager of Permit Services (the Manager). The Manager then makes a recommendation to the Director who may give the authorization to proceed with the writing of the Administrative Bulletin. Similarly, any City agency may identify the need for an Administrative Bulletin directly to the Director.
+   b.   The Manager will notify Technical Services Division (TSD) of the subject matter and the person assigned to write the Administrative Bulletin (the Preparer). TSD will assign the proposed Administrative Bulletin a number and notify the Preparer to proceed.
+2.   REPORT THE PROPOSED ADMINISTRATIVE BULLETIN TO BUILDING INSPECTION COMMISSION (BIC)
+   Prior to the preparation of the first draft of the Administrative Bulletin, TSD will prepare a brief synopsis of the proposed Administrative Bulletin and shall forward that to the DBI Director for inclusion in the Director’s Report or Communication Item to the Building Inspection Commission (BIC).
+3.   PREPARE THE DRAFT ADMINISTRATIVE BULLETIN
+   Following such report to the BIC, the Preparer shall prepare the first draft. The first draft is to be returned to TSD within 21 days* after BIC review. Extensions of time may be granted by the Director under extenuating circumstances. Such first draft shall be reviewed by the Deputy Director and TSD for form and content, and revised as necessary. See ATTACHMENT B for the document format which is to be followed.
+4.   REVIEW THE DRAFT ADMINISTRATIVE BULLETIN
+   a.   If so requested by the BIC, the first draft shall be provided to the BIC for public hearing prior to general distribution of the draft for review.
+   b.   If no public hearing on the first draft is requested by the BIC, that first draft shall be distributed. The Preparer is to include a list of persons or committees to whom the draft is recommended to be sent for review. The Director and TSD may revise this list. (See ATTACHMENT C for a list of possible reviewers).
+   c.   TSD will distribute the first draft and, after a minimum 30 day* review period, will forward any comments received to the Manager. The Manager will review the first draft and the review comments, and if necessary, discuss them with the Preparer. The Manager may refer the draft Administrative Bulletin to any committee for review as seen advisable.
+5.   PREPARE THE FINAL DRAFT FOR REVIEW BY THE MANAGER
+   Based upon draft review comments a final draft bulletin will be prepared by the Preparer. TSD will prepare the final draft which will then be reviewed for form and content by the Manager.
+6.   FORWARD THE ADMINISTRATIVE BULLETIN TO THE BIC FOR REVIEW AND PUBLIC HEARING
+   Following review and recommendation by the Manager and Director, the draft Administrative Bulletin will be forwarded to the Building Inspection Commission for review, public hearing and approval.
+7.   PREPARE THE APPROVED COPY FOR PRINTING AND DISTRIBUTION
+   a.   Following BIC approval, the Preparer will have 7 days* to return a final draft to TSD who will review the final draft for conformance to format and prepare a final copy for signature by the Director.
+   b.   The signed Administrative Bulletin will be duplicated and distributed as noted on a final distribution list. TSD will file the signed Administrative Bulletin and will keep a record of the completed Administrative Bulletins in separate indexes by:
+      1).   Administrative Bulletin Number
+      2).   Title
+* The time limits given in the procedure above are guidelines, and may vary depending upon the complexity of the subject matter, review and approval process, and schedule requirements. Many Administrative Bulletins result in multiple “draft” stages.
+Original signed by:
+Frank Y. Chiu, Director, Director         
+Approved by the Building Inspection Commission on November 18, 1998
+Attachment A: Administrative Bulletin Preparation, Review and Approval Process
+Attachment B: Example of Format
+Attachment C: Possible Reviewers
+AB-004 Priority Permit Processing Guidelines
+ 
+NO. AB-004   :
+	
+ 
+
+
+DATE   :
+	
+December 15, 2022
+[Supersedes Administrative Bulletin AB-004 originally issued 10/6/06 and revision dated October 15, 2008, April 16, 2014, September 23, 2014 and April 15, 2015]
+
+
+SUBJECT   :
+	
+Permit Processing and Issuance
+
+
+TITLE   :
+	
+Priority Permit Processing Guidelines
+
+
+PURPOSE   :
+	
+This bulletin establishes guidelines to assure that permit applicants receive equal treatment and that permits are reviewed in the order received by the Department of Building Inspection except for certain designated priority applications.
+It is the intent of the Department of Building Inspection that the permit review process proceeds in an orderly, fair and efficient manner with sufficient flexibility to allow the reasonable resolution of problems that may occur on a day-to-day basis. This bulletin is issued in conjunction with similar bulletins from the Department of Public Works and the Planning Department.
+
+
+REFERENCES   :
+	
+Current edition of the San Francisco Building Code, Section 106A, Permits
+San Francisco Campaign and Governmental Conduct Code, Section 3.400 “Permit Application Processing”
+Ethics Commission “Permit Processing Code of Conduct”
+San Francisco Planning Department, Director’s Bulletin No. 2
+Department of Public Works, Director’s Order #175,487
+Ordinance #202-19 Planning Code Section 206.3 Housing Opportunities Mean Equity – San Francisco Program (HOME-SF program)
+
+
+DISCUSSION   :
+	
+This Administrative Bulletin provides guidelines for the implementation of legislation adopted by the Board of Supervisors to assist City permitting departments in assuring that no appearance of, or actual, preferential treatment is given to any permit applicant. Policy is adopted in accordance with the requirements of San Francisco Campaign and Governmental Conduct Code Section 3.400, effective December 15, 2004, and supplements the Permit Processing Code of Conduct adopted by the Ethics Commission on January 10, 2005.
+ 
+These procedures relate to assignment, initial processing, review and issuance of permit applications; as well as to permit revisions, deferred submittals, and corrections submitted to the Department of Building Inspection subsequent to initial permit application.
+General Policy: In accordance with the City’s adopted “Permit Application Processing” regulations, the Department of Building Inspection has determined that there is a compelling public policy basis to provide priority review and issuance for each of the following designated types of permit applications.
+Department of Building Inspection employees are encouraged to exercise reasonable judgment in all permit review and issuance activities in order to fulfill our customer service responsibilities. This exercise of reasonable judgment by employees is considered an important component in meeting the intent of the legislation to avoid preferential treatment. In all cases when questions arise regarding potential issues of preferential treatment, employees are required to consult with their supervisors.
+PROCEDURES
+Subject to the reasonable judgment of employees, permit applications shall be logged-in, separated into various permit types, assigned to staff for review, and reviewed in the order in which they are received, except for certain designated priority permits as detailed below. The Department of Building Inspection may assign as many different permit types as necessary to assure the efficient operation of that department. For example, the Department of Building Inspection may separate permits for one type of work, such as office tenant improvement construction, from other types of work, such as re-roofing or new building construction.
+Case A addresses initial permit submittal, assignment, review and issuance. Following such initial priority action, permit applications may be placed on hold, routed to other divisions or other City agencies, issued, cancelled, or expired pursuant to other code requirements and other adopted policies and procedures.
+Case B addresses issues related to priority processing of permit revisions and of other materials submitted after initial permit acceptance and review, as well as to issues related to final processing and issuance of permits.
+Case A - Applications for Permits
+Permit applications for the following types of work may, upon request of the permit applicant, be given priority assignment for plan review and issuance:
+   1.   Permit applications for necessary emergency work to secure the health or safety of building users or the public, either on private property or on the public right-of-way;
+   2.   Permit applications for work on City owned or City leased properties when such priority permit review is specified in a written agreement between the Department of Building Inspection and such other City agencies;
+   3.   Permit applications for work consisting solely of disabled access improvements, including Accessible Business Entrance program SFBC Chapter 11D;
+   4.   Permit applications for work consisting solely of clean energy supply systems. These include but not limited to solar photovoltaic systems (PV), Solar Thermal (ST), Energy Storage Systems (ESS), Electric Vehicle Charging Stations (EVSE), and wind power generation systems;
+   5.   Permit applications for work consisting solely of telecommunications facilities per California Government Code Section 65964.1;
+   6.   Permit applications for the voluntary or mandatory seismic upgrades of buildings to improve performance in earthquakes such as private schools subject to SFEBC Section 329, soft story, or other buildings;
+   7.   Permit applications principally for maintenance or preservation of designated historic buildings and/or sites;
+   8.   Permit applications for creating new dwelling units;
+      a.   Permit applications for projects that provide new affordable housing (meeting the affordability levels defined in Planning Code Section 415 and in the Procedures Manual adopted by the Mayor's Office of Housing) in 100% of the on-site dwelling units. Conformance with these standards shall be confirmed by Planning Department staff;
+      b.   Permit applications for housing projects (1) which are seeking approval under the HOME-SF program, as provided for in Planning Code Section 206.3 or (2) where at least 30 percent of the total number of on-site dwelling units are affordable for a term of no less than 55-years to households with an income no higher than for middle-income households, as defined in Planning Code Section 401. Conformance with these standards shall be confirmed by Planning Department staff
+      c.   Applications for creation of Accessory Dwelling Units (ADU) or Junior Accessory Dwelling Units (JADU).
+   9.   Permit applications to respond to a delay caused by an earlier procedural error by a City agency in processing the permit or processing another permit for the same project;
+   10.   Permit applications submitted to comply with Notices of Violation, abatement notices, or any other official Department of Public Works, Planning Department or Department of Building Inspection enforcement or abatement notices which require immediate action; or
+   11.   Permit applications for other work for which, in the reasonable judgment of the Director of the Department of Building Inspection, urgent or extraordinary circumstances exist that would lead to a significant public benefit or necessity, when such circumstances are documented in written findings.
+Case B - Revisions and Addenda to Permits
+Subject to the reasonable judgment of staff, revisions and other materials submitted to the Department of Building Inspection during the permit review process must be reviewed in the order in which they are received, except as detailed below. Such submittals may include revisions, corrections, deferred submittals, and other permit materials. Exceptions to the strict chronological review and processing sequence are allowed and permit submittal documents may be given priority review, upon request of the permit applicant, when any of the following conditions is met:
+   1.   Permits meet the priority permit qualifications of Case A, above;
+   2.   Permit revisions are submitted pursuant to a decision of the Building Inspection Commission, Board of Appeals, Board of Supervisors, or other review or appeals body where such body has directed that the permit revisions be given priority review,
+   3.   Revisions, deferred submittals, and other permit submittals for work in which, in the reasonable judgment of the Director of the Department of Building Inspection, urgent or extraordinary circumstances exist that would lead to a significant public benefit or necessity, when such circumstances are documented in written findings.
+Documentation of Priority Processing
+Priority processing for permits meeting the above criteria is to be undertaken at the request of the permit applicant. All cases of priority permit application processing shall be documented using a standard form, Documentation of Findings for Priority Permit Processing (Attachment I), that includes written findings of conformity with one of the priority types described in this bulletin. This document shall be prepared and submitted by the applicant. Department of Building Inspection, Division managers may approve the form where the permit is in clear conformity with the standards for priority processing. All other requests for priority permit processing should be reviewed and approved by a Deputy Director or other senior manager.
+One copy of the form approving priority permit processing shall remain with the application, one copy shall be microfilmed or otherwise retained as part of the approved permit documents. Permit applications that are approved for priority processing should be so noted in the Department of Building Inspection’s permit tracking system.
+The applicant of a priority project shall be required to submit plans for electronic plan review (EPR) to avail of concurrent plan review.
+Quality Assurance Procedures
+The assignment of permit applications for priority review and these procedures shall be reviewed by the Department of Building Inspection on an annual basis to confirm that the intent of this policy is being fulfilled and to make changes as necessary to optimize the efficient and fair operation of the permit process.
+Revision signed by:
+Patrick O’Riordan, C.B.O.
+Director
+Department of Building Inspection
+December 16, 2022
+Approved by Building Inspection Commission October 15, 2008, Revision approved: April 16, 2014; November 19, 2014; April 15, 2015; November 16, 2022
+Attachment I:   Documentation of Priority Permit Processing (Rev. December 2022)
+Attachment II:   Planning Director Bulletin No. 2 (Rev. September 2020)
+Attachment III:   DPW Order No. 182974
+AB-005 Procedures for Approval of Local Equivalencies
+ 
+NO. AB-005   :
+	
+ 
+
+
+DATE   :
+	
+September 18, 2002 (Updated 1/1/2023 for code references)
+
+
+SUBJECT   :
+	
+Plan Review and Permit Process
+
+
+TITLE   :
+	
+Procedures for Approval of Local Equivalencies
+
+
+PURPOSE   :
+	
+The purpose of this Administrative Bulletin is to detail the procedures to be used for the application and case-by-case review of requests for approval of equivalencies, when work is proposed which does not strictly comply with the provisions of the latest edition of the San Francisco Building, Electrical, Mechanical, or Plumbing Codes. Requests for approval of modifications or alternates will be considered by the Department of Building Inspection and, when applicable, the Fire Department on a case-by-case basis when reasonable equivalency is proposed.
+
+
+REFERENCES   :
+	
+Current edition of the San Francisco Building Code - Section 104A, Organization and Enforcement
+- Section 104A .2.7, Modifications
+- Section 104A .2.8, Alternate materials, design and methods of construction
+DBI Administrative Bulletin AB-042, Board of Examiners: Request for Variance, New Materials, or Alternate Methods of Construction
+DBI Administrative Bulletin AB-028, Pre-application and Pre- Addendum Plan Review Procedures
+
+
+DISCUSSION   :
+	
+Project sponsors may request the application of standard local equivalencies, as detailed in various Administrative Bulletins, or approval of other alternates when it can be demonstrated on a case-by-case basis that there are practical difficulties in meeting the specific provisions of the codes, that the modification is in conformance with the intent and purpose of the codes, and that reasonable equivalency is provided in fire-protection and structural integrity.
+ 
+Project sponsors may request the application of standard local equivalencies, as detailed in various Administrative Bulletins, or approval of other alternates when it can be demonstrated on a case-by-case basis that there are practical difficulties in meeting the specific provisions of the codes, that the modification is in conformance with the intent and purpose of the codes, and that reasonable equivalency is provided in fire-protection and structural integrity.
+Proposed modifications may be administratively approved by the Departments if they conform to the standard provisions of Local Equivalency. Other modifications and applications for use of alternate materials, designs and methods of construction may be administratively approved or may be referred to the Board of Examiners or other review body as appropriate.
+Based upon individual building and property conditions, the Department of Building Inspection and other City departments, such as the Fire Department, may impose requirements in addition to those proposed by the project sponsor when approving any request for use of a standard local modification, code modification or alternate material, design or method of construction. Additionally, the Department of Building Inspection or any other City agency may require that additional substantiation be provided supporting any claims made for such proposals.
+Procedure for Application for Local Equivalencies
+Project sponsors wishing to apply for local equivalencies must fill out and submit the Request for Approval of Local Equivalency form (Attachment A). Fees are required to be paid as noted on that form.
+Review Procedures for Application for Local Equivalencies
+The Department of Building Inspection and the Fire Department, when applicable, will conduct review meetings as required to consider requests for the approval of Local Equivalencies, Modifications and Alternates. At such review meetings each request will be either approved, approved with conditions, disapproved, referred to another official body, or placed on “Hold” pending submittal of additional information. Upon approval of the local equivalency, a copy of the signed form approving the equivalency and indicating any conditions of approval will be attached to the submittal documents as part of the permanent record of the project, and a copy will be sent to the project sponsor.
+Please note that the Board of Examiners reviews requests for variances and requests for approval of certain new materials, methods, and types of construction. The Board of Examiners considers requests concerning structural provisions related to unreinforced masonry buildings. The Access Appeals Commission considers requests for equivalencies for issues related to disabled access.
+Appeals
+Determinations of the staff of the Department of Building Inspection regarding local equivalencies may be administratively brought for further review to the Deputy Director and the Director of the Department of Building Inspection. Determinations of the Director may be appealed to the Building Inspection Commission or other designated appeal body.
+Originally signed by:
+Frank Y. Chiu, Director
+October 3, 2002
+Gary Massetani, Fire Marshal
+October 9, 2002
+Approved by the Building Inspection Commission on September 18, 2002
+Attachment A: Request for Approval of Local Equivalency
+AB-009 Local Equivalency for Approval of New Openings in New and Existing Building Property Line Walls
+ 
+NO. AB-009   :
+	
+ 
+
+
+DATE   :
+	
+September 18, 2002 (Updated 1/1/2023 for code references)
+
+
+SUBJECT   :
+	
+Fire and Life Safety
+
+
+TITLE   :
+	
+Local Equivalency for Approval of New Openings in New and Existing Building Property Line Walls
+
+
+PURPOSE   :
+	
+The purpose of this Administrative Bulletin is to provide standards and procedures for the application and case-by-case review of requests for a modification based on local equivalency to allow openings in exterior walls closer to property lines than are permitted by the latest edition of the San Francisco Building Code (SFBC).
+This bulletin permits the continuing application of code provisions of former editions of the SFBC regarding property line openings. In conformance with current State law, requests for approval of openings closer to the property line than permitted under the SFBC will be considered on a case-by-case basis when reasonable equivalency is proposed.
+
+
+REFERENCES   :
+	
+Current edition of the San Francisco Building Code
+- Section 104A .2.7, Modification
+- Section 104A .2.8, Alternate materials, design, and methods of construction
+- Section 705.8, Openings
+DBI Administrative Bulletin AB-005, Procedures for Approval of Local Equivalencies.
+San Francisco Administrative Code Article V, Section 23.47, Requirements for Lot Line Window Agreements
+
+
+DISCUSSION   :
+	
+Project sponsors may request the application of this local equivalency allowing openings in building walls closer to property lines than allowed by SFBC Section 705.8 when it can be demonstrated on a case-by-case basis that there are practical difficulties in meeting the provisions of the code, that the modification is in conformance with the intent and purpose of the code, and that reasonable equivalency is provided in fire protection and structural integrity.
+ 
+Such proposed modification may conform with the below listed standard provisions. The Department of Building Inspection (DBI) and other City departments may impose additional requirements in the approval of any request for a code modification or alternate based upon individual building and property conditions. Other City agencies that may review such requests include the San Francisco Fire Department, the Planning Department and, for buildings adjoining City-owned property, the Department of Real Estate.
+If a project sponsor wishes to propose methods of opening protection different than those listed below, proposals for the use of alternate materials, designs, or methods of construction may be submitted for review in the same manner as for this local equivalency. The Department of Building Inspection may require that additional substantiation be provided supporting any claims made for such proposals.
+Procedure for Application of Local Equivalencies
+Project sponsors wishing to apply local equivalencies must fill out and submit the Request for Approval of Local Equivalency form (Attachment A). Fees to be paid and scheduling of review of requests are as noted on that form. Following DBI review, each request will either be approved, approved with conditions, disapproved, or placed on Hold pending submittal of additional information.
+Further details of procedures for the review of local equivalencies may be found in AB-005, Procedures for Approval of Local Equivalencies.
+Conditions of Local Equivalencies
+Openings in new building walls and new openings in existing building walls in Groups B, M, and R occupancies that are closer to property lines than permitted under SFBC Section 705 .8 and Table 705 .8 may be permitted on a case-by-case basis when the following provisions or approved equivalent provisions are met and the project sponsor provides documentation of the practical difficulties involved in carrying out the provisions of the regular code.
+The standard provisions for this Local Equivalency include all of the following:
+1.   The openings may not be used to provide required light and ventilation, required egress, or for required emergency escape and rescue.
+2.   The openings shall be fixed (non-operable) unless more than 50 feet above the roof of any adjoining building or more than the distance prescribed for protected openings in Table 705.8 in any direction from an adjoining building.
+3.   The openings shall be located entirely above any adjoining roof or at least six feet laterally beyond any wall of an adjoining building.
+4.   The openings shall be protected with fire assemblies, such as fire shutters or rated window assemblies, having a rating of at least 3/4 hour. Openings in walls which have a fire-protection rating of greater than 1-hour shall be protected by a fire assembly having a three-hour fire-protection rating in four-hour fire-resistive walls, a two-hour fire-protection rating in three-hour fire-resistive walls, and one-and one-half hour fire-protection rating in two-hour fire- resistive walls. Fire shutters, if provided, shall be actuated by smoke detectors located inside and by fusible links or other approved devices on the outside of the protected openings.
+5.   The opening shall be protected by a fire sprinkler system having ordinary temperature, quick-response type heads installed within 18" of the openings and spaced at 6 feet on center or at the manufacturer’s recommended minimum spacing, whichever provides the closer spacing.
+   Exception: Openings in Group R Division 3 occupancies.
+6.   If the adjoining building contains R occupancy uses, proposed openings shall not be located closer than six feet measured in any direction to any existing opening on the adjoining building unless the adjoining owner gives written consent. A copy of the statement giving such consent shall be attached to the permit application.
+7.   The owner of a building with such openings shall provide a recorded statement that these openings will be closed or protected with approved fire resistive wall construction in the event that the adjoining property is improved in such a manner that the openings no longer comply with the provisions of this Administrative Bulletin. A copy of a Declaration of Use Limitation (Attachment B) shall be submitted to the plan reviewer prior to completion of Department of Building inspection plan review.
+8.   Property line openings which open onto property owned by the City and County of San Francisco shall meet the requirements of San Francisco Administrative Code, Article VI, Sections 23.27 through 23.30 (Attachment C). An approved and executed “Lot Line Window Agreements” shall be submitted as part of the documents required under Item 9 (below).
+9.   A permit application and related submittal documents shall detail all construction which is approved as a result of this request for local equivalency.
+Originally signed by:
+Frank Y. Chiu, Director
+October 3, 2002
+Gary Massetani, Fire Marshal
+October 9, 2002
+Approved by the Building Inspection Commission on September 18, 2002
+Attachment A: Request for Approval of Local Equivalency
+Attachment B:  Assessor/Recorder’s Office Document - “Declaration of Use Limitation” (Rev. April 2021)
+Attachment C:  San Francisco Administrative Code Article V, Lot Line Window Agreements (https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_admin/0-0-0-14202#JD_Ch.23Art.V)

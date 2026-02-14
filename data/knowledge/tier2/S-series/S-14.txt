@@ -1,0 +1,61 @@
+=== PAGE 1 ===
+City and County of San Francisco London N. Breed, Mayor
+Department of Building Inspection Patrick O’Riordan C.B.O., Director
+INFORMATION SHEET
+NO. S-12
+DATE : May 23, 2024
+CATEGORY : Structural
+SUBJECT : Cross-Laminated Timber
+PURPOSE : The purpose of this Information Sheet is to clarify the reference standard for
+projects involving cross-laminated timber (CLT) and the procedure to establish
+the design standard.
+REFERENCE : San Francisco Building Code (SFBC), 2022 Edition
+California Building Code (CBC), 2022 Edition
+Minimum Design Loads and Associated Criteria for Buildings and Other
+Structures, American Society of Civil Engineers / Structural Engineering
+Institute (ASCE/SEI) 7-16 and ASCE/SEI 7-22
+American National Standards Institute (ANSI) / American Wood Council
+(AWC) Special Design Provisions for Wind and Seismic (SDPWS) 2021
+Administrative Bulletin AB-005 Procedures for Approval of Local
+Equivalencies
+Administrative Bulletin AB-082 Guidelines and Procedures for Structural
+Design Review
+Background:
+Prior to 2016, the CBC did not have provisions allowing the use of cross-laminated timber (CLT). In the
+2022 edition, CBC 602.4 includes provisions for the use of CLT in Type IV construction, and CBC
+2303.1.4 allows for the use of CLT elements for gravity loads.
+The 2022 CBC’s referenced standard, the 2021 SDPWS, provides design requirements for CLT
+diaphragms and shear walls to resist lateral forces. However, the 2022 CBC referenced design standard,
+ASCE 7-16, does not recognize CLT systems and therefore does not provide the seismic performance
+factors required to determine the lateral loading on a CLT structure.
+The newer version of the standard, the ASCE 7-22, provides the necessary seismic performance factors
+for CLT systems to determine the lateral loading on the building. However, this newer version of the
+referenced standard is not yet adopted into the model code.
+Page 1 of 2
+Department of Building Inspection - Technical Services Division
+49 South Van Ness Avenue, Suite 500 - San Francisco CA 94103
+(628) 652-3720 | sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET S-12
+Discussion:
+The Department of Building Inspection recognizes the use of CLT in the lateral force-resisting system
+despite the seismic performance factors not yet incorporated in the ASCE7-16 design standard. Thus,
+projects utilizing CLT as part of the seismic force-resisting system under the 2022 CBC may request to
+employ the updated ASCE 7-22 design standard via Administrative Bulletin AB-005 Procedures for
+Approval of Local Equivalencies. This alternate method of compliance for the project must use the ASCE
+7-22 design standard in its entirety in lieu of ASCE 7-16.
+Conditions deviating from the prescriptive design requirements detailed in 2021 SDPWS and ASCE 7-
+22 may be evaluated on a case-by-case basis by the plan review supervisor or manager and shall be
+subject to approval as an alternative system in accordance with Administrative Bulletin AB-082
+Guidelines and Procedures for Structural Design Review.
+5/23/2024
+Patrick O’Riordan, C.B.O. Date
+Director
+Department of Building Inspection
+This Information Sheet is subject to modification at any time. For the most current version,
+visit our website at sfdbi.org.
+Page 2 of 2
+Department of Building Inspection - Technical Services Division
+49 South Van Ness Avenue, Suite 500 - San Francisco CA 94103
+(628) 652-3720 | sfdbi.org

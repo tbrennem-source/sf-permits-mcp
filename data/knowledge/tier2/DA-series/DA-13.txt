@@ -1,0 +1,184 @@
+=== PAGE 1 ===
+City and County of San Francisco Mark Farrell, Mayor
+Department of Building Inspection Tom C. Hui, S.E., C.B.O., Director
+INFORMATION SHEET
+NO. DA-12
+DATE : May 25, 2018
+CATEGORY : Disabled Access
+SUBJECT : Path of Travel obligations for Seismic Mitigation Projects in Mixed Use
+Buildings.
+SECTIONS
+INVOLVED : California Building Code (CBC) Sections:
+Section 1.8.2.1.2 Housing Accessibility (HCD 1-AC)
+Section 1.9.1.2 Application (DSA AC)
+Section 202 Definitions:
+Common Use, Common Use Areas
+Path of Travel, Public Building or Facility
+Section 1102A.1 Where required (Multi-family Dwelling)
+Section11B-202.4 Path of travel requirements in alterations, additions and
+structural repairs
+Division of the State Architect Advisory Manual Advisory 11B-202.3
+San Francisco Ordinance #66-13 Mandatory Seismic Retrofit Program
+INTENT : To clarify the forms and requirements for upgrading the Path of Travel elements
+for mixed use buildings undergoing seismic mitigation
+DISCUSSION :
+In 2013, the City of San Francisco passed the “Soft Story” Ordinance (Ordinance #66-13) which requires
+that wood frame buildings three (3) or more stories or two (2) stories over a basement or under floor area
+that has any portion extending above grade, with five (5) or more residential dwelling units perform certain
+mandated seismic upgrades. This Ordinance includes mixed use buildings for both residential and
+commercial units.
+Additionally, a number of mixed use buildings are required to perform seismic upgrades under a number of
+sections located in the San Francisco Building Code Chapter 34. Still others have undergone seismic
+upgrades solely on a voluntary basis.
+The California Division of the State Architects Advisory Manual, Advisory Number 11B-202.3 references
+Legal Opinion No. 94-1109 dated May 10, 1995 in which the State Attorney General concluded that seismic
+strengthening work in an existing building constitutes a “building alteration, structural repair or addition” for
+Technical Services Division
+1660 Mission Street – San Francisco CA 94103
+Office (415) 558-6205 – FAX (415) 558-6401 – www.sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET DA-12
+purposes of providing access to the building for persons with disabilities. In existing buildings or facilities, if
+seismic strengthening or upgrade work does not affect the primary use or function of the building or facility
+and/or does not alter the design of specific rooms or spaces, then the requirement for an accessible path of
+travel to the area of specific alteration does not apply. However, an accessible primary entrance, toilet and
+bathing facilities, drinking fountains, signs and public telephones, as well as an accessible route connecting
+these elements must be provided.
+In existing buildings or facilities, when the primary use or function of the building or facility and/or design of
+specific rooms or spaces are altered, the seismic strengthening or upgrade work must comply with all
+applicable accessibility regulations for new construction. In addition, an accessible primary entrance to the
+building or facility and path of travel to the specific area of alteration, including toilet and bathing facilities,
+drinking fountains, signs, and public telephones serving the area must be provided.
+When applying this to the seismic upgrading of a mixed use building, a number of questions arise; including
+how to define the area of alteration, if Section 11B-202.4 applies to the residential occupancy portion of the
+building; and how to determine the “adjusted cost of construction.”
+In answering these questions, there are a number of factors that need to be addressed, not the least of
+which is the fact that the requirement for path of travel upgrades in Chapter 11B can only be attributed to
+that portion of the building that fall under the scoping of Chapter 11B.
+The scoping for Chapter 11B is contained in Section 1.9.1.2 of the CBC and it includes all privately funded
+public accommodations and commercial facilities. It also applies to transient lodging such as hotels and
+motels, but this Chapter does not govern privately funded apartment buildings. Privately funded apartments,
+along with a few similar residential uses built for first occupancy after March 13, 1991 fall under the
+jurisdiction of the Department of Housing and Community Development and Chapter 11A of the CBC.
+Chapter 11A has no path of travel upgrade requirements for alterations to existing buildings. The remainder
+of existing residential buildings not covered by Chapters 11A or 11B are basically exempt from all
+accessibility requirements.
+Thus, the obligation to upgrade the path of travel cannot be applied to the residential portion of a building
+that is not governed by Chapter 11B. It would only apply to privately funded public accommodations,
+commercial occupancies and transient lodgings. Therefore in a mixed use building, only that portion of the
+building that is covered by Chapter 11B, i.e. commercial, would have path of travel upgrade obligations.
+The Department recognizes that a seismic retrofit benefits the entire building, not just the area where the
+actual work is performed. Therefore, any evaluation of cost should be applied to the entire building and not
+only to an isolated section. Based upon this, the “adjusted cost of construction” should be determined by
+calculating the percentage of gross floor area that is “commercial” and using that percentage of the total
+project cost as the “adjusted cost of construction”.
+For example:
+A four (4) story building with the 1st floor completely commercial and the top three floor residential
+apartments has a mitigation project with a total cost of $200,000. The floor area subject to the path of travel
+upgrades would be confined to the 1st floor only, thus 25% of the total floor area. Taking 25% off of $200,000
+you would have $50,000 as your adjusted construction cost. The owner would be liable to make upgrades
+to the path of travel totaling 20% of the adjusted construction cost of $50,000. The owner would have to
+make $10,000 in upgrades.
+Another example would be a five (5) story building with 50% of the 1st floor area commercial; the remainder,
+residential. The mitigation project total cost would be $150,000. The total floor area subject to Chapter 11B
+would be 10%; thus the adjusted construction cost would be $15,000 (10% of $150,000). The owner would
+be liable to perform $3,000 in upgrades (20% of $15,000).
+Page 2 of 4
+
+=== PAGE 4 ===
+INFORMATION SHEET DA-12
+[This Page Intentionally Left Blank]
+Page 4 of 4
+
+=== PAGE 5 ===
+INFORMATION SHEET DA-12 Example 1
+D.A. CHECKLIST (p. 1 of 2): The address of the project is :____1660 Mission Street__________
+For ALL tenant improvement projects in commercial use spaces, both pages of this checklist are required to be
+reproduced on the plan set and signed.
+1. The proposed use of the project is _Office / Residential ______________ (e.g. Retail, Office,
+Restaurant, etc.)
+2. Describe the area of remodel, including which floor: ___Seismic Upgrade Entire Building_________
+3. The construction cost of this project excluding disabled access upgrades to the path of travel is _25%
+of $200,000=$50,000_, which is ; (check one)  more than /  less than the 2015 Accessibility
+Threshold amount of $147,863.00 (updated annually by the California Division of the State
+Architect)).
+4. Is this a City project and/or does it receive any form of public funding? Check one:  Yes /  No
+Note: If Yes, then see Step 3 on the Instructions page of the Disabled Access Upgrade Compliance
+Checklist package for additional forms required.
+Conditions below must be fully documented by accompanying drawings
+5. Read A through D below carefully and check the most applicable boxes. Check one box only:
+ A: All existing conditions serving the area of remodel fully comply with access
+requirements. No further upgrades are required:
+Fill out page 2 of D.A. Checklist
+ B: Project Adjusted cost of construction is greater than the current valuation threshold:
+Fill out and attach page 2 of D.A. Checklist and any other required forms to plans
+ C: Project adjusted cost of construction is less than or equal to the current valuation
+threshold:
+List items that will be upgraded on Form C. All other items shall be checked on page
+2 of the D.A. Checklist in the “Not required by code” column.
+ D: Proposed project consists entirely of Barrier removal:
+Fill out and attach Barrier removal form to Plans
+ E: Proposed project is minor revision to previously approved permit drawings only.
+(Note: This shall NOT be used for new or additional work) Provide previously
+approved permit application here: _______________________________. Description
+of revision:
+_____________________________________________________________________
+_
+CBC chapter 2 section 202 Definitions:
+Technically Infeasible. An alteration of a building or a facility, that has little likelihood of being
+accomplished because the existing structural conditions require the removal or alteration of a load-
+bearing member that is an essential part of the structural frame, or because other existing physical or site
+constraints prohibit modification or addition of elements, spaces or features that are in full and strict
+compliance with the minimum requirements for new construction and which are necessary to provide
+accessibility.
+Unreasonable Hardship. When the enforcing agency finds that compliance with the building standard
+would make the specific work of the project affected by the building standard infeasible, based on an
+overall evaluation of the following factors:
+1. The cost of providing access.
+2. The cost of all construction contemplated.
+3. The impact of proposed improvements on financial feasibility of the project.
+4. The nature of the accessibility which would be gained or lost.
+5. The nature of the use of the facility under construction and its availability to persons with disabilities
+
+=== PAGE 6 ===
+INFORMATION SHEET DA-12 Example 1 Con’t
+1. No additional forms required
+2. Fill out Request for an Unreasonable Hardship form for each item checked and attach to plan. All UHR must
+be ratified by the Access Appeals Commission (see UHR form for details)
+Form C: DISABLED ACCESS 20% RULE
+This form is only required for projects equal to or under the valuation threshold when box “C” is checked
+off on the D.A. Checklist and is for providing an itemized list of the estimated costs for the expenditures
+used for disabled access upgrades for this project. Reproduce this form along with the D.A. Checklist and
+any required form(s) on the plans.
+Based on CBC Section 11B-202.4 Exception 8, only projects with a construction cost less than or equal to
+the valuation threshold are eligible for the 20% rule. In choosing which accessible elements to provide,
+priority should be as listed on p. 2 of the D.A. Checklist.
+In general, projects valued over the threshold are not eligible for the 20% rule (see CBC 11B-202.4
+Exceptions1 through 8 for other exceptions).
+CBC Section11B-202.4, Exception 9 (abbreviated): In alteration projects involving buildings & facilities previously
+approved & built without elevators, areas above & below the ground floor are subject to the 20% disproportionality
+provisions described in Exception 8, even if the value of the project exceeds the valuation threshold in Exception 8.
+Refer to the Code for the types of buildings & facilities that qualifies for this 20% disproportionality provisions when
+project valuation is over the threshold.
+Contractor’s
+Estimated Cost DBI Revised Cost
+A) Cost of Construction:
+(Excluding Alterations to the Path of Travel as $ $50,000 $
+required by 11B-202.4)
+B) 20% of A) : $ 10,000 $
+List the Upgrade Expenditures and their respective construction cost below:
+1. Install Ramp at Front Door $ 7,500 $
+2.Enlarge Toilet Compartment $ 1,500 $
+3.Install Grab Bars $ 500 $
+4.Install signs $ 475 $
+5. $ $
+6. $ $
+7. $ $
+8. $ $
+9. $ $
+Total Upgrade Expenditures
+$9,975* $
+Should be approximately equal to, but not to
+exceed, Line B
+Note: Value may be less than 20% if the next least expensive upgrade will exceed 20%

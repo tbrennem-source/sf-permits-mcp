@@ -1,0 +1,75 @@
+=== PAGE 1 ===
+City and County of San Francisco London N. Breed, Mayor
+Department of Building Inspection Patrick O’Riordan, C.B.O., Director
+INFORMATION SHEET
+No. FS-01
+DATE : July 24, 2024
+CATEGORY : Fire Safety
+SUBJECT : Combustible Roof Decks – Allowable Materials and Area
+PURPOSE : The purpose of this information sheet is to clarify standards for allowable building
+materials used in the construction of roof decks that conform to the minimum
+standards for resistance to intrusion and spread of flames.
+REFERENCES : San Francisco Building Code (SFBC), Current Edition
+Sections 104A.2.8 and 1511.10
+California Building Code (CBC), Current Edition
+Sections 703A.5.1, 703A.5.2, 703A.7, 709A.3, 2303.1.9, 2303.2
+California Referenced Standards Code (CRSC), Current Edition
+Section 12-7A-4 Decking SFM Standard 12-7A-4
+Section 12-7A-4A Decking Alternate Method A SFM Standard 12-7A-4A
+American Society for Testing and Materials (ASTM), E-84 Test for Surface Burning
+Characteristics of Building Materials
+California Department of Forestry and Fire Protection, Office of the State
+Fire Marshal (OSFM) - Wildland Urban Interface (WUI) Products Handbook
+BACKGROUND :
+SFBC 1511.10 provides conditions under which occupiable roof decks are allowed to be constructed of wood.
+SFBC 1511.10 #4 requires that the wood decking be constructed of fire-retardant treated wood material
+approved for exterior use, or 2-inch nominal, All Heart redwood. SFBC 104A.2.8 allows the Building Official
+to approve alternate materials when the material is at least the equivalent of that prescribed in the code. This
+information sheet clarifies the standards for allowable building materials that conform to the minimum
+standards for resistance to intrusion and spread of flames used in the construction of roof decks.
+DISCUSSION :
+All Heart redwood has been shown to conform to the ASTM E-84 Class B flame spread index and exhibit a
+net peak heat release rate in conformance with Decking SFM Standard 12-7A-4 and Decking Alternative
+Method A SFM Standard 12-7A-4A. As these are equivalent to the minimum standards stated in the CBC
+Page 1 of 2
+Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 – sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET FS-01
+709A.3, #4 for decking used in a wildland urban interface location, materials complying with this section and
+these standards may be considered equivalent and thus be allowed for use in roof deck construction.
+Therefore, in order for the decking material to be considered equivalent to the requirements of SFBC
+1511.10, the material must conform to the ASTM E-84 Class B flame spread index and must conform to the
+requirements of SFM Standard 12-7A-4 (Part A) or SFM 12-7A-4A. It must also pass an accelerated
+weathering test and be identified as exterior type in accordance with both ASTM D 2898 and ASTM D 3201.
+Decking material that conforms with SFM 12-7A-4 and SFM12-7-4A, as well as ASTM D 2898 and ASTM D
+3201 are listed in the current version of “California Department of Forestry and Fire Protection, Office of the
+State Fire Marshal - Wildland Urban Interface Products Handbook (WUI Products Handbook)”, published by
+Cal-Fire, Fire Engineering Division, Building Materials Listing Program.
+Only those materials listed in the WUI Product Handbook in the Decking section and conform to the ASTM
+E-84 Class B or Class A flame spread index are deemed equivalent materials that may be used for the
+construction of wood roof decks. Additionally, materials not listed in the WUI Products Handbook that have
+appropriate documentation showing that they conform to the above standards may also be considered
+equivalent on a case-by-case basis. The WUI Products Handbook is available at the Office of the State Fire
+Marshal (OSFM) website:
+https://osfm.fire.ca.gov/what-we-do/fire-engineering-and-investigations/building-materials-listing
+Materials must be installed in conformance with the structural provisions of the code, the manufacturer’s
+installation instructions, and all other relevant code requirements. All such material must be verified by grade
+stamp, supplier receipt or other approved methods prior to final approval by the field building inspector.
+Note that the deck substructure (supporting structure) below the wood decking surface may be constructed
+with non-fire-treated lumber but must be preservative-treated to comply with CBC 2303.1.9.
+Note also that SFBC 1511.10 #1 requires that the roof decks be less than 500 square feet in area. Hence,
+the total area of all roof decks located on the same story shall not exceed 500 square feet.
+07/24/2024
+________________________________________________________
+Patrick O’Riordan, C.B.O., Date
+Director
+Department of Building Inspection
+This Information Sheet is subject to modification at any time. For the most current version,
+visit our website at sfdbi.org
+Page 2 of 2
+Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 – sfdbi.org

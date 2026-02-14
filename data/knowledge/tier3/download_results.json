@@ -1,0 +1,47 @@
+{
+  "success": [
+    {
+      "id": "AB-004",
+      "pages": 0,
+      "chars": 36865,
+      "source": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-93884#JD_AB-004",
+      "path": "data/knowledge/tier3/AB-004.txt"
+    },
+    {
+      "id": "AB-005",
+      "pages": 0,
+      "chars": 39236,
+      "source": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-93942#JD_AB-005",
+      "path": "data/knowledge/tier3/AB-005.txt"
+    },
+    {
+      "id": "AB-032",
+      "pages": 0,
+      "chars": 55727,
+      "source": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-94360#JD_AB-032",
+      "path": "data/knowledge/tier3/AB-032.txt"
+    },
+    {
+      "id": "AB-093",
+      "pages": 0,
+      "chars": 71824,
+      "source": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-95527#JD_AB-093",
+      "path": "data/knowledge/tier3/AB-093.txt"
+    },
+    {
+      "id": "AB-110",
+      "pages": 0,
+      "chars": 98085,
+      "source": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-96476#JD_AB-110",
+      "path": "data/knowledge/tier3/AB-110.txt"
+    },
+    {
+      "id": "AB-112",
+      "pages": 0,
+      "chars": 114438,
+      "source": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-100198#JD_AB-112",
+      "path": "data/knowledge/tier3/AB-112.txt"
+    }
+  ],
+  "failed": []
+}

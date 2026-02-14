@@ -1,0 +1,95 @@
+=== PAGE 1 ===
+City and County of San Francisco London N. Breed, Mayor
+Department of Building Inspection Patrick O’Riordan, C.B.O., Director
+INFORMATION SHEET
+NO. DA-04
+DATE : July 24, 2024
+CATEGORY : Disabled Access
+SUBJECT : The Use of Power Door Operators in Lieu of Level Landings at Doors
+PURPOSE : The purpose of this Information Sheet is to detail an equivalency which satisfies the
+requirement to provide level landings adjoining exterior and interior doors of existing
+buildings which are required to be accessible to persons with disabilities.
+REFERENCE : California Building Code (CBC), Current Edition
+Section 202 Definitions, Technically Infeasible
+Section 202 Definitions, Equivalent Facilitation
+Section 1126A.2, Level Floor or Landing
+Section 1126A.3, Maneuvering Clearances at Doors
+Section 11B-202.3, Exception 2, Technical Infeasibility
+Section 11B-404.3, Automatic and Power-Assisted Doors
+Sections 11B-404.2.4., Maneuvering Clearances at Doors
+Figures 11A-8A through 11A-8H, Level Maneuvering Clearances at Doors
+Division of State Architect (DSA) Advisory 11B-404.3, Automatic and Power-
+Assisted Doors
+American National Standards Institute / Building Hardware Manufacturers
+Association (ANSI/BHMA) A156.19 and ANSI/BHMA A156.10
+Information Sheet DA-02, Disabled Access Upgrade Compliance Checklist Package
+BACKGROUND :
+Many existing San Francisco buildings are not constructed to allow for level landings as required in CBC 1126A.2
+and CBC 11B-404.2.4. Due to a variety of constraints, many buildings are unable to achieve the required maximum
+¼” per foot slope and cross slope at doors as required to achieve the code-prescribed accessible path of travel.
+New or altered entrances must comply with the code requirements to the greatest extent feasible.
+This Information Sheet outlines circumstances under which a power door operator may be installed in lieu of a level
+landing. A technical infeasibility request and an equivalent facilitation request can be approved for such conditions
+if approved power door operator is installed, along with documentation that strict compliance with the code
+requirements cannot be met due to site constraints, as defined in the CBC 202 Technically Infeasible. An Approval
+of Technical Infeasibility Request form and an Approval of Equivalent Facilitation Request form must be submitted
+as part of the permit plans. Refer to Information Sheet DA-02 for these forms and detailed instructions.
+DISCUSSION :
+An entrance which complies with this Information Sheet will be considered accessible to and usable by persons
+with disabilities and in compliance with other code requirements for level landings.
+Page 1 of 2
+Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 – sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET DA-04
+Ministerial approval may be granted for the use of power door operators in lieu of level landings if the following
+conditions, as applicable, are met:
+1. Slopes at landings on either side of doors do not exceed 1:12 (1:13 is recommended for construction
+tolerance) and is the most gradual slope reasonably achievable. Slopes may extend under the door.
+2. Slopes between levels at doors do not exceed 6” in elevation and do not require handrails. Slopes shall be
+roughened or made of slip-resistant material.
+3. The power door operator must be maintained in operating condition.
+4. The power door operator must be operational whenever the door is unlocked.
+5. The power door operator controls (sensing devices, push plates, vertical actuation bars or other similar
+operating devices complying with CBC 11B-205) are to be placed in a conspicuous location on both the
+push and pull sides of the door. The controls must be within sight of the door. Vertical actuation bars are
+preferred.
+6. The door operator push plates must be at least 4 inches in diameter or at least 4” by 4” square and display
+the International Symbol of Accessibility in compliance with CBC 11B-703.7.2.1.
+7. At each location where push plates are provided there shall be two push plates. The centerline of one push
+plate shall be 7” minimum and 8” maximum above the floor or ground surface and the centerline of the
+second push plate shall be 30” minimum and 44” maximum above the floor or ground surface. See CBC
+11B-404.2.9.
+8. At each location where vertical actuation bars are provided, the operable portion must be located such that
+the bottom edge is no more than 5” above the floor or ground surface, and the top edge is at least 35”
+above the floor or ground surface. The operable portion of each vertical actuation bar must be at least 2”
+wide and must display the International Symbol of Accessibility in compliance with CBC 11B-703.7.2.1.
+9. Power door operating devices shall be outside the swing of the door. Provide a level clear floor space for
+forward or parallel approach, compliant with CBC 11B-305, centered on the operating device.
+10. Signage shall be provided in accordance with ANSI/BHMA A156.19 Section 6.3. Additional signage shall
+be provided on or adjacent to the door, preferably on the strike side, indicating the location of the door
+operator controls if the control equipment is not immediately obvious to users.
+11. The minimum time from door being fully open to the start of door closing shall be as indicated in the following
+table:
+DISTANCE (feet) TIME (seconds)
+0 to 6 5
+7 to 8 6
+9 to 10 7
+11 to 12 10
+Distances over 12’ are not allowed.
+The distance shall be established from the center of the door to the center of the farthest operator control.
+12. Equipment installation shall be in accordance with the manufacturer’s product listing and ANSI/BHMA
+A156.19 and ANSI/BHMA A156.10 as applicable.
+07/26/2024
+____________________________________________________
+Patrick O’Riordan, C.B.O., Date
+Director
+Department of Building Inspection
+This Information Sheet is subject to modification at any time. For the most current version,
+visit our website at sfdbi.org
+Page 2 of 2
+Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628) 652-3720 – sfdbi.org

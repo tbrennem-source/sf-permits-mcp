@@ -1,0 +1,945 @@
+=== PAGE 1 ===
+City and County of San Francisco London N. Breed, Mayor
+Department of Building Inspection Patrick O’Riordan, Interim Director
+INFORMATION SHEET
+NO. G-28
+DATE : March 23, 2021
+CATEGORY : General
+SUBJECT : Properties Subject to the Floodplain Management Ordinance
+PURPOSE : The purpose of this Information Sheet is to clarify the permit process for
+projects subject to the Floodplain Management Ordinance (FMO).
+REFERENCE : San Francisco Building Code Section 1612
+ASCE 7, Chapter 5
+ASCE 24
+FEMA Flood Insurance Rate Map (FIRM) for the City and County of San
+Francisco: effective date March 23, 2021
+Ordinance No. 188-08: Floodplain Management and Flood Insurance
+Requirements
+Ordinance No. 226-20: Ordinance Updating Floodplain Management and
+Flood Insurance Requirements
+DISCUSSION :
+A. Projects Subject to the Floodplain Management Ordinance:
+Projects are subject to the requirements of this ordinance if:
+1. Any portion of the property lies within a Special Flood Hazard Area (SFHA) shown on the Flood
+Insurance Rate Map (FIRM) for the City and County of San Francisco, released by the Federal
+Emergency Management Agency (FEMA), effective date March 23, 2021; and
+2. Proposed construction involves the following: (1) construction of a new structure, defined in the FMO
+as “a walled and roofed building that is principally above ground”; (2) “substantial improvement or
+repair” to the existing structure, meaning the cost of the project is 50% or more than the market value
+of the existing structure.
+B. Additional Code Requirements for Projects:
+All new construction of structures and portions of structures, including substantial improvement and
+restoration of substantial damage to structures in the SFHA shall be designed and constructed in
+accordance with the requirements of the 2019 San Francisco Building Code Section 1612, ASCE 24, and
+ASCE 7, Chapter 5.
+Determining Substantial Improvement and Repairs
+A project shall be considered a substantial improvement or repair if the project cost is 50% or more of
+the market value of the existing structure.
+Technical Services Division
+49 South Van Ness Avenue, Suite 500 - San Francisco CA 94103
+Phone (628) 652-3720 – www.sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET G-28
+Value of Existing Structure
+Permit Applicants who are attempting to determine the value of a structure before submittal of their
+permit application may use (1) the value of the building as assessed by the San Francisco Assessor-
+Recorder (https://www.sfassessor.org/property-information/homeowners/property-search-tool) or (2)
+a determination by an appraiser licensed by the State of California. The appraisal must have been
+made within one (1) year of the permit application.
+Cost of the Project
+The applicant shall use the procedure to estimate the cost of the project outlined in Information Sheet
+G-13 (Cost Schedule). The cost of projects completed within the previous 24-month period before
+submittal of a building permit application shall be included in the cost of the current project. In other
+words, project phasing shall not be used as a means to avoid compliance with the FMO. The
+applicant shall list all permits completed within that period on the attached screening form.
+Exemptions and Variances
+A variance from the substantial improvement or repair requirements of the FMO shall be granted in
+the following circumstances:
+1. The project involves the repair, rehabilitation, and/or addition of an exterior addition to an
+historic building (as defined in the FMO).
+2. Any project for improvement of a structure to correct existing violations of state or local health,
+sanitary, or safety code specifications which have been identified by the local code
+enforcement official and which are the minimum necessary to assure safe living conditions.
+3. The new construction, substantial improvement, or other proposed new development is
+necessary for the conduct of a functionally dependent use (as defined in the FMO); such as a
+boat launch, for example.
+A variance from the substantial improvement or repair requirements of the FMO may be granted in
+the following circumstances:
+1. Failure to grant the variance would result in exceptional hardship to the applicant; and
+2. The granting of a variance will not result in increased flood heights, additional threats to public
+safety, extraordinary public expense, a nuisance, fraud and victimization of the public, or a
+conflict with existing local laws or ordinances.
+C. Permit Submittal and FMO Checklist:
+GENERAL REQUIREMENTS:
+The Department requires the Flood Hazard Protection Checklist be completed and submitted with all
+building permit applications for new construction or alteration projects located in the SFHA.
+The following general requirements apply to ALL new construction or substantial improvements or repairs
+of structures in SFHAs:
+a) The Department requires all new construction and substantial improvements/repairs of structures
+in SFHAs to meet the Design Flood Elevation (DFE), hereby defined as the Base Flood Elevation
+(BFE) shown on the FIRM plus minimum freeboard (see tables in supplemental attachments).
+Please note that this elevation is stipulated in ASCE 24 (Flood Resistant Design and
+Construction), which is incorporated into the building code and is more stringent than criteria
+outlined in minimum National Flood Insurance Program standards. Generally, this means that:
+a. The lowest floor of the structure must be elevated to or above the DFE.
+b. Attendant utilities such as water, sewer, gas and electrical systems must be elevated or
+constructed to minimize or eliminate flood damage.
+c. The project should be designed and anchored to prevent flotation, collapse, or lateral
+movement of the building/structure resulting from hydrodynamic and hydrostatic loads,
+and
+Page 2 of 4
+
+=== PAGE 3 ===
+INFORMATION SHEET G-28
+d. The project should incorporate flood-resistant materials below the DFE.
+b) The Department requires an Elevation Certificate to be submitted for all proposed substantial
+improvements/repairs to existing structures in SFHAs. An existing elevation certificate is not
+mandatory for new construction, but site elevations should be shown clearly on the topographic
+survey. A post-construction Elevation Certificate will be required prior to final inspection for new
+construction and substantial improvements to existing structures in SFHAs.
+c) The title sheet of the plans shall show the Flood Zone designation, Base Flood Elevation (BFE),
+and Design Flood Elevation (DFE).
+d) The title sheet of the plans shall contain the following flood notes:
+a. “The project is built in compliance with San Francisco’s Flood Management Ordinance,
+(Sec, 2A.280 -2A.285) of the San Francisco Administrative Code.”
+b. “All materials below DFE shall be resistant to flood damage.”
+c. “The bottom elevation of all appliances and utilities (meters, air conditioning units, etc.)
+serving residential uses shall be at or above DFE”.
+d. “No basements or any habitable enclosure below the DFE are allowed for projects in the
+flood zone.”
+e) The title sheet must include the following statement of compliance to the San Francisco
+Department of Building Inspection: “I certify that I am the engineer (or architect) of record and the
+plans dated ____ comply with the City’s Floodplain Management Ordinance.” Signature and
+Stamp
+f) The following elevations must be shown on the plans:
+a. Finished Floor Elevation (FFE), BFE, DFE
+b. Bottom of PG&E gas meter, AC unit, or other appliances serving the building, if any. No
+utilities (e.g. gas, meters, AC units, electrical conduits) are permitted below the DFE,
+except in circumstances where dry flood-proofing is permitted (see below). Water and
+sewer pipes, sealed to prevent flood water intrusion, are allowed.
+c. Highest and lowest adjacent grade within 2 feet from the structure.
+D. Alternative Methods of Compliance
+Below are descriptions of and requirements for wet and dry flood-proofing, which are methods of
+compliance that can be used instead of –or in conjunction with– building elevation in specific
+circumstances.
+a) Dry Flood-Proofing
+Dry flood-proofing is defined as any combination of measures that results in a structure, including
+the attendant utilities and equipment, being watertight with all elements substantially impermeable
+and able to withstand flood loads.
+i. Applicability:
+1. Dry flood-proofing is ONLY applicable for:
+a. Existing non-residential structures undergoing alteration or repair
+b. Non-residential portions of existing mixed-use structures (as defined by ASCE 24)
+undergoing alteration or repair
+c. Any new OR existing commercial garage structure (per FEMA Technical Bulletin 3)
+2. Dry flood-proofing is NOT ALLOWED for
+a. High Hazard Areas (Zone V) or Coastal A Zones as defined by FEMA
+b. In the City and County of San Francisco, this would include all A Zones, except for
+Page 3 of 4
+
+=== PAGE 4 ===
+INFORMATION SHEET G-28
+Zone AO.
+c. Residential projects (both new construction and substantial improvements)
+ii. Requirements
+1. Dry flood-proofing methods and materials shall meet the requirements of ASCE 24.
+2. All doorways critical to emergency ingress and egress must be elevated to or above the
+DFE to prevent the intrusion of floodwater into the building.
+3. If dry flood-proofing is selected as the compliance option, the following documents will be
+required prior to issuance of the building permit:
+a. A flood-proofing certificate must be completed by a licensed professional. A copy of
+the document may be found on FEMA's website.
+b. All dry flood-proofing measures must be clearly shown on the submitted plans and
+labeled.
+c. Should the applicant elect to implement dry flood-proofing measures requiring human
+intervention (i.e. manual flood gates), a Flood Emergency Operation Plan, as
+described in ASCE 24, must be provided.
+b) Wet flood-proofing
+Wet flood-proofing is defined as permanent or contingent measures applied to a structure and/or
+its contents to prevent or provide resistance to damage from flooding by allowing water to enter
+the structure.
+i. Applicability:
+Wet flood-proofing is ONLY applicable for:
+1. Flood Design Class 1 Structures, as defined by ASCE 24 (see Supplemental Attachment
+A)
+2. Enclosures used solely for parking of vehicles, building access, or storage.
+3. Structures that are functionally dependent on close proximity to water.
+ii. Requirements
+Wet flood-proofing shall conform to the requirements of ASCE 24, Chapter 6.
+date I
+7
+Interim Director
+Department of Building Inspection
+Attachment A: Flood Hazard Zone Protection Checklist
+Attachment B: FEMA Elevation Certificate
+Supplemental Attachment A: Minimum Elevation Table
+Supplemental Attachment B: ASCE Flood Design Class Table
+This Information Sheet is subject to modification at any time. For the most current version, visit our website at
+http://www.sfdbi.org
+Page 4 of 4
+
+=== PAGE 5 ===
+City and County of San Francisco London Breed, Mayor
+Department of Building Inspection Patrick O’Riordan, Interim Director
+Attachment A
+FLOOD HAZARD ZONE PROTECTION CHECKLIST
+A COPY OF THIS DOCUMENT SHALL BE SUBMITTED WITH THE PERMIT APPLICATION
+Job Address______________________Permit Application No. ____________ Addendum No.___
+Owner Name___________________________________ Owner Phone No. ( )___________
+LICENSED DESIGN PROFESSIONAL VERIFICATION AND SIGNATURES
+PROPERTY/PROJECT DESCRIPTION
+Is the Property Located in a FEMA-Designated YES NO IF yes, please
+Special Flood Hazard Area*? note the specific
+☐ ☐ Flood Zone
+*Please Consult the SF Property Information Below.
+(Continue filling (Stop Here)
+map at: https://sfplanninggis.org/pim/ before
+out this checklist)
+answering this question.
+Residential Non-Residential Mixed Use
+Is the existing or proposed structure
+residential, non-residential, or mixed-use?
+☐ ☐ ☐
+Alteration/Repair New Construction
+Is this Permit Application for construction
+of a new structure or alteration/repair of an ☐ ☐
+existing structure? Please fill out Permit is subject to CBC
+section below Sec. 1612
+For Alteration/ Repair Permits Only
+Total Project Cost Valuation $
+Total Valuation for all building permits filed for $
+this structure in the past 2 years (including this
+project).
+Building permits filed before March 23rd, 2021
+do not need to be included.
+Assessed Building Value (Check one)
+From Assessor’s Report $
+☐
+From Professional Appraiser’s Report
+☐
+Is the above total valuation valued at 50% or
+YES NO
+more of the structure’s market value?
+☐
+Checking yes here is an acknowledgment that ☐
+the permit will be subject to CBC Sec. 1612. Permit is subject Permit is NOT Subject
+to CBC Sec. 1612 to CBC Sec. 1612
+Is this an alteration of an existing structure
+valued at less than 50% of existing assessed
+YES NO
+or appraised value?
+If YES, please attach Assessor’s report or ☐
+☐
+appraisal.
+Permit Services Division
+49 South Van Ness Avenue, Suite 500 - San Francisco CA 94103
+Phone (628) 652-3600 – www.sfdbi.org
+
+=== PAGE 6 ===
+Information Sheet G-28 Attachment A
+Project Exemptions/Variances
+Is permit seeking a historic structure exemption, as
+defined by the Flood Management Ordinance?
+YES NO
+If yes, please attach the historic preservation
+information for the property from the PIM to this ☐ ☐
+document.
+Is the proposed improvement to correct and existing
+violation of state or local health and safety codes? YES NO NOV #
+If yes, please provide the Notice of Violation # ___________
+☐ ☐
+where specified and attach a copy of the NOV.
+Is the Proposed construction or improvement
+necessary for the conduct of a functionally
+dependent use, as defined by the Flood YES NO
+Management Ordinance?
+☐ ☐
+If yes, please attach a document specifying the
+function.
+Would failure to grant a variance or exemption from
+the requirements result in an exceptional hardship
+YES NO
+to the applicant?
+If yes, please attach a document explaining the ☐ ☐
+nature of said hardship.
+The Special Flood Hazard Area extends to the
+YES NO
+parcel on which the proposed project is located, but
+not to the footprint of the structure.
+☐ ☐
+Please attach SFPIM map page depicting the Footprint of Footprint of
+border of the Special Flood Hazard Area in the Structure the Structure
+relation to the project location. is OUTSIDE is INSIDE of
+of the SFHA the SFHA
+Under penalty of perjury, I certify that the information provided on this form is based on my personal
+review of the building and its records, or review by others acting under my direct supervision, and is
+correct to the best of my knowledge.
+Prepared by:
+Engineer/Architect of Record
+Telephone Email
+Signature Date
+Page 2 of 3
+
+=== PAGE 7 ===
+Information Sheet G-28 Attachment A
+FLOOD HAZARD ZONE PROTECTION CHECKLIST
+Building Permit History
+Please list the requested information for all Building Permits filed for this building in the past
+two years (Permits filed before 3/23/21 do not need to be included):
+Permit Application Number Permit Status Project Valuation
+Page 3 of 3
+
+=== PAGE 8 ===
+Attachment B
+N F I P
+ATIONAL LOOD NSURANCE ROGRAM
+ELEVATION CERTIFICATE
+AND
+INSTRUCTIONS
+2019 EDITION
+
+=== PAGE 9 ===
+OMB No. 1660-0008
+Expiration Date: November 30, 2022
+U.S. DEPARTMENT OF HOMELAND SECURITY
+Federal Emergency Management Agency
+National Flood Insurance Program
+ELEVATION CERTIFICATE AND INSTRUCTIONS
+Paperwork Reduction Act Notice
+Public reporting burden for this data collection is estimated to average 3.75 hours per response. The burden estimate includes the
+time for reviewing instructions, searching existing data sources, gathering and maintaining the data needed, and completing and
+submitting this form. You are not required to respond to this collection of information unless a valid OMB control number is
+displayed on this form. Send comments regarding the accuracy of the burden estimate and any suggestions for reducing the
+burden to: Information Collections Management, Department of Homeland Security, Federal Emergency Management Agency,
+500 C Street SW, Washington, DC 20742, Paperwork Reduction Project (1660-0008). NOTE: Do not send your completed form
+to this address.
+Privacy Act Statement
+Authority: Title 44 CFR § 61.7 and 61.8.
+Principal Purpose(s): This information is being collected for the primary purpose of estimating the risk premium rates necessary
+to provide flood insurance for new or substantially improved structures in designated Special Flood Hazard Areas.
+Routine Use(s): The information on this form may be disclosed as generally permitted under 5 U.S.C. § 552a(b) of the Privacy Act
+of 1974, as amended. This includes using this information as necessary and authorized by the routine uses published in DHS/
+FEMA-003 – National Flood Insurance Program Files System or Records Notice 73 Fed. Reg. 77747 (December 19, 2008); DHS/
+FEMA/NFIP/LOMA-1 – National Flood Insurance Program (NFIP) Letter of Map Amendment (LOMA) System of Records Notice 71
+Fed. Reg. 7990 (February 15, 2006); and upon written request, written consent, by agreement, or as required by law.
+Disclosure: The disclosure of information on this form is voluntary; however, failure to provide the information requested may
+result in the inability to obtain flood insurance through the National Flood Insurance Program or the applicant may be subject to
+higher premium rates for flood insurance. Information will only be released as permitted by law.
+Purpose of the Elevation Certificate
+The Elevation Certificate is an important administrative tool of the National Flood Insurance Program (NFIP). It is to be used to
+provide elevation information necessary to ensure compliance with community floodplain management ordinances, to determine
+the proper insurance premium rate, and to support a request for a Letter of Map Amendment (LOMA) or Letter of Map Revision
+based on fill (LOMR-F).
+The Elevation Certificate is required in order to properly rate Post-FIRM buildings, which are buildings constructed after publication
+of the Flood Insurance Rate Map (FIRM), located in flood insurance Zones A1–A30, AE, AH, A (with BFE), VE, V1–V30, V (with
+BFE), AR, AR/A, AR/AE, AR/A1–A30, AR/AH, and AR/AO. The Elevation Certificate is not required for Pre-FIRM buildings unless
+the building is being rated under the optional Post-FIRM flood insurance rules.
+As part of the agreement for making flood insurance available in a community, the NFIP requires the community to adopt floodplain
+management regulations that specify minimum requirements for reducing flood losses. One such requirement is for the community
+to obtain the elevation of the lowest floor (including basement) of all new and substantially improved buildings, and maintain a
+record of such information. The Elevation Certificate provides a way for a community to document compliance with the community's
+floodplain management ordinance.
+Use of this certificate does not provide a waiver of the flood insurance purchase requirement. Only a LOMA or LOMR-F from the
+Federal Emergency Management Agency (FEMA) can amend the FIRM and remove the Federal mandate for a lending institution
+to require the purchase of flood insurance. However, the lending institution has the option of requiring flood insurance even if a
+LOMA/LOMR-F has been issued by FEMA. The Elevation Certificate may be used to support a LOMA or LOMR-F request. Lowest
+floor and lowest adjacent grade elevations certified by a surveyor or engineer will be required if the certificate is used to support a
+LOMA or LOMR-F request. A LOMA or LOMR-F request must be submitted with either a completed FEMA MT-EZ or MT-1
+package, whichever is appropriate.
+This certificate is used only to certify building elevations. A separate certificate is required for floodproofing. Under the NFIP, non-
+residential buildings can be floodproofed up to or above the Base Flood Elevation (BFE). A floodproofed building is a building that
+has been designed and constructed to be watertight (substantially impermeable to floodwaters) below the BFE. Floodproofing of
+residential buildings is not permitted under the NFIP unless FEMA has granted the community an exception for residential
+floodproofed basements. The community must adopt standards for design and construction of floodproofed basements before
+FEMA will grant a basement exception. For both floodproofed non-residential buildings and residential floodproofed basements in
+communities that have been granted an exception by FEMA, a floodproofing certificate is required.
+Additional guidance can be found in FEMA Publication 467-1, Floodplain Management Bulletin: Elevation Certificate, available on
+FEMA's website at https://www.fema.gov/media-library/assets/documents/3539?id=1727.
+FEMA Form 086-0-33 (12/19) Replaces all previous editions. F-053
+
+=== PAGE 10 ===
+U.S. DEPARTMENT OF HOMELAND SECURITY
+OMB No. 1660-0008
+Federal Emergency Management Agency Expiration Date: November 30, 2022
+National Flood Insurance Program
+ELEVATION CERTIFICATE
+Important: Follow the instructions on pages 1–9.
+Copy all pages of this Elevation Certificate and all attachments for (1) community official, (2) insurance agent/company, and (3) building owner.
+SECTION A – PROPERTY INFORMATION FOR INSURANCE COMPANY USE
+A1. Building Owner's Name Policy Number:
+A2. Building Street Address (including Apt., Unit, Suite, and/or Bldg. No.) or P.O. Route and
+Company NAIC Number:
+Box No.
+City State ZIP Code
+A3. Property Description (Lot and Block Numbers, Tax Parcel Number, Legal Description, etc.)
+A4. Building Use (e.g., Residential, Non-Residential, Addition, Accessory, etc.)
+A5. Latitude/Longitude: Lat. Long. Horizontal Datum: NAD 1927 NAD 1983
+A6. Attach at least 2 photographs of the building if the Certificate is being used to obtain flood insurance.
+A7. Building Diagram Number
+A8. For a building with a crawlspace or enclosure(s):
+a) Square footage of crawlspace or enclosure(s) sq ft
+b) Number of permanent flood openings in the crawlspace or enclosure(s) within 1.0 foot above adjacent grade
+c) Total net area of flood openings in A8.b sq in
+d) Engineered flood openings? Yes No
+A9. For a building with an attached garage:
+a) Square footage of attached garage sq ft
+b) Number of permanent flood openings in the attached garage within 1.0 foot above adjacent grade
+c) Total net area of flood openings in A9.b sq in
+d) Engineered flood openings? Yes No
+SECTION B – FLOOD INSURANCE RATE MAP (FIRM) INFORMATION
+B1. NFIP Community Name & Community Number B2. County Name B3. State
+B4. Map/Panel B5. Suffix B6. FIRM Index B7. FIRM Panel B8. Flood B9. Base Flood Elevation(s)
+Number Date Effective/ Zone(s) (Zone AO, use Base Flood Depth)
+Revised Date
+B10. Indicate the source of the Base Flood Elevation (BFE) data or base flood depth entered in Item B9:
+FIS Profile FIRM Community Determined Other/Source:
+B11. Indicate elevation datum used for BFE in Item B9: NGVD 1929 NAVD 1988 Other/Source:
+B12. Is the building located in a Coastal Barrier Resources System (CBRS) area or Otherwise Protected Area (OPA)? Yes No
+Designation Date: CBRS OPA
+FEMA Form 086-0-33 (12/19) Replaces all previous editions. Form Page 1 of 6
+
+=== PAGE 11 ===
+OMB No. 1660-0008
+ELEVATION CERTIFICATE
+Expiration Date: November 30, 2022
+IMPORTANT: In these spaces, copy the corresponding information from Section A. FOR INSURANCE COMPANY USE
+Building Street Address (including Apt., Unit, Suite, and/or Bldg. No.) or P.O. Route and Box No. Policy Number:
+City State ZIP Code Company NAIC Number
+SECTION C – BUILDING ELEVATION INFORMATION (SURVEY REQUIRED)
+C1. Building elevations are based on: Construction Drawings* Building Under Construction* Finished Construction
+*A new Elevation Certificate will be required when construction of the building is complete.
+C2. Elevations – Zones A1–A30, AE, AH, A (with BFE), VE, V1–V30, V (with BFE), AR, AR/A, AR/AE, AR/A1–A30, AR/AH, AR/AO.
+Complete Items C2.a–h below according to the building diagram specified in Item A7. In Puerto Rico only, enter meters.
+Benchmark Utilized: Vertical Datum:
+Indicate elevation datum used for the elevations in items a) through h) below.
+NGVD 1929 NAVD 1988 Other/Source:
+Datum used for building elevations must be the same as that used for the BFE.
+Check the measurement used.
+a) Top of bottom floor (including basement, crawlspace, or enclosure floor) feet meters
+b) Top of the next higher floor feet meters
+c) Bottom of the lowest horizontal structural member (V Zones only) feet meters
+d) Attached garage (top of slab) feet meters
+e) Lowest elevation of machinery or equipment servicing the building
+feet meters
+(Describe type of equipment and location in Comments)
+f) Lowest adjacent (finished) grade next to building (LAG) feet meters
+g) Highest adjacent (finished) grade next to building (HAG) feet meters
+h) Lowest adjacent grade at lowest elevation of deck or stairs, including
+structural support feet meters
+SECTION D – SURVEYOR, ENGINEER, OR ARCHITECT CERTIFICATION
+This certification is to be signed and sealed by a land surveyor, engineer, or architect authorized by law to certify elevation information.
+I certify that the information on this Certificate represents my best efforts to interpret the data available. I understand that any false
+statement may be punishable by fine or imprisonment under 18 U.S. Code, Section 1001.
+Were latitude and longitude in Section A provided by a licensed land surveyor? Yes No Check here if attachments.
+Certifier's Name License Number
+Title
+Company Name
+Address
+City State ZIP Code
+Signature Date Telephone Ext.
+Copy all pages of this Elevation Certificate and all attachments for (1) community official, (2) insurance agent/company, and (3) building owner.
+Comments (including type of equipment and location, per C2(e), if applicable)
+FEMA Form 086-0-33 (12/19) Replaces all previous editions. Form Page 2 of 6
+
+=== PAGE 12 ===
+OMB No. 1660-0008
+ELEVATION CERTIFICATE
+Expiration Date: November 30, 2022
+IMPORTANT: In these spaces, copy the corresponding information from Section A. FOR INSURANCE COMPANY USE
+Building Street Address (including Apt., Unit, Suite, and/or Bldg. No.) or P.O. Route and Box No. Policy Number:
+City State ZIP Code Company NAIC Number
+SECTION E – BUILDING ELEVATION INFORMATION (SURVEY NOT REQUIRED)
+FOR ZONE AO AND ZONE A (WITHOUT BFE)
+For Zones AO and A (without BFE), complete Items E1–E5. If the Certificate is intended to support a LOMA or LOMR-F request,
+complete Sections A, B,and C. For Items E1–E4, use natural grade, if available. Check the measurement used. In Puerto Rico only,
+enter meters.
+E1. Provide elevation information for the following and check the appropriate boxes to show whether the elevation is above or below
+the highest adjacent grade (HAG) and the lowest adjacent grade (LAG).
+a) Top of bottom floor (including basement,
+crawlspace, or enclosure) is feet meters above or below the HAG.
+b) Top of bottom floor (including basement,
+crawlspace, or enclosure) is feet meters above or below the LAG.
+E2. For Building Diagrams 6–9 with permanent flood openings provided in Section A Items 8 and/or 9 (see pages 1–2 of Instructions),
+the next higher floor (elevation C2.b in
+the diagrams) of the building is feet meters above or below the HAG.
+E3. Attached garage (top of slab) is feet meters above or below the HAG.
+E4. Top of platform of machinery and/or equipment
+servicing the building is feet meters above or below the HAG.
+E5. Zone AO only: If no flood depth number is available, is the top of the bottom floor elevated in accordance with the community's
+floodplain management ordinance? Yes No Unknown. The local official must certify this information in Section G.
+SECTION F – PROPERTY OWNER (OR OWNER'S REPRESENTATIVE) CERTIFICATION
+The property owner or owner's authorized representative who completes Sections A, B, and E for Zone A (without a FEMA-issued or
+community-issued BFE) or Zone AO must sign here. The statements in Sections A, B, and E are correct to the best of my knowledge.
+Property Owner or Owner's Authorized Representative's Name
+Address City State ZIP Code
+Signature Date Telephone
+Comments
+Check here if attachments.
+FEMA Form 086-0-33 (12/19) Replaces all previous editions. Form Page 3 of 6
+
+=== PAGE 13 ===
+OMB No. 1660-0008
+ELEVATION CERTIFICATE
+Expiration Date: November 30, 2022
+IMPORTANT: In these spaces, copy the corresponding information from Section A. FOR INSURANCE COMPANY USE
+Building Street Address (including Apt., Unit, Suite, and/or Bldg. No.) or P.O. Route and Box No. Policy Number:
+City State ZIP Code Company NAIC Number
+SECTION G – COMMUNITY INFORMATION (OPTIONAL)
+The local official who is authorized by law or ordinance to administer the community's floodplain management ordinance can complete
+Sections A, B, C (or E), and G of this Elevation Certificate. Complete the applicable item(s) and sign below. Check the measurement
+used in Items G8–G10. In Puerto Rico only, enter meters.
+G1. The information in Section C was taken from other documentation that has been signed and sealed by a licensed surveyor,
+engineer, or architect who is authorized by law to certify elevation information. (Indicate the source and date of the elevation
+data in the Comments area below.)
+A community official completed Section E for a building located in Zone A (without a FEMA-issued or community-issued BFE)
+G2.
+or Zone AO.
+G3. The following information (Items G4–G10) is provided for community floodplain management purposes.
+G4. Permit Number G5. Date Permit Issued G6. Date Certificate of
+Compliance/Occupancy Issued
+G7. This permit has been issued for: New Construction Substantial Improvement
+G8. Elevation of as-built lowest floor (including basement)
+of the building: feet meters Datum
+G9. BFE or (in Zone AO) depth of flooding at the building site: feet meters Datum
+G10. Community's design flood elevation: feet meters Datum
+Local Official's Name Title
+Community Name Telephone
+Signature Date
+Comments (including type of equipment and location, per C2(e), if applicable)
+Check here if attachments.
+FEMA Form 086-0-33 (12/19) Replaces all previous editions. Form Page 4 of 6
+
+=== PAGE 14 ===
+BUILDING PHOTOGRAPHS
+OMB No. 1660-0008
+ELEVATION CERTIFICATE See Instructions for Item A6. Expiration Date: November 30, 2022
+IMPORTANT: In these spaces, copy the corresponding information from Section A. FOR INSURANCE COMPANY USE
+Building Street Address (including Apt., Unit, Suite, and/or Bldg. No.) or P.O. Route and Box No. Policy Number:
+City State ZIP Code Company NAIC Number
+If using the Elevation Certificate to obtain NFIP flood insurance, affix at least 2 building photographs below according to the
+instructions for Item A6. Identify all photographs with date taken; "Front View" and "Rear View"; and, if required, "Right Side View" and
+"Left Side View." When applicable, photographs must show the foundation with representative examples of the flood openings or
+vents, as indicated in Section A8. If submitting more photographs than will fit on this page, use the Continuation Page.
+Photo One
+Photo One Caption Clear Photo One
+Photo Two
+Photo Two Caption Clear Photo Two
+FEMA Form 086-0-33 (12/19) Replaces all previous editions. Form Page 5 of 6
+
+=== PAGE 15 ===
+BUILDING PHOTOGRAPHS
+OMB No. 1660-0008
+ELEVATION CERTIFICATE
+Continuation Page Expiration Date: November 30, 2022
+IMPORTANT: In these spaces, copy the corresponding information from Section A. FOR INSURANCE COMPANY USE
+Building Street Address (including Apt., Unit, Suite, and/or Bldg. No.) or P.O. Route and Box No. Policy Number:
+City State ZIP Code Company NAIC Number
+If submitting more photographs than will fit on the preceding page, affix the additional photographs below. Identify all photographs
+with: date taken; "Front View" and "Rear View"; and, if required, "Right Side View" and "Left Side View." When applicable,
+photographs must show the foundation with representative examples of the flood openings or vents, as indicated in Section A8.
+Photo Three
+Photo Three Caption Clear Photo Three
+Photo Four
+Photo Four Caption Clear Photo Four
+FEMA Form 086-0-33 (12/19) Replaces all previous editions. Form Page 6 of 6
+
+=== PAGE 16 ===
+U.S. DEPARTMENT OF HOMELAND SECURITY
+OMB No. 1660-0008
+Federal Emergency Management Agency
+Expiration Date: November 30, 2022
+National Flood Insurance Program
+Instructions for Completing the Elevation Certificate
+The Elevation Certificate is to be completed by a land surveyor, engineer, or architect who is authorized by law to certify
+elevation information when elevation information is required for Zones A1–A30, AE, AH, A (with BFE), VE, V1–V30, V
+(with BFE), AR, AR/A, AR/AE, AR/A1–A30, AR/AH, or AR/AO. Community officials who are authorized by law or
+ordinance to provide floodplain management information may also complete this form. For Zones AO and A (without
+BFE), a community official, a property owner, or an owner's representative may provide information on this certificate,
+unless the elevations are intended for use in supporting a request for a LOMA or LOMR-F. Certified elevations must be
+included if the purpose of completing the Elevation Certificate is to obtain a LOMA or LOMR-F.
+The property owner, the owner's representative, or local official who is authorized by law to administer the community
+floodplain ordinance can complete Section A and Section B. The partially completed form can then be given to the land
+surveyor, engineer, or architect to complete Section C. The land surveyor, engineer, or architect should verify the
+information provided by the property owner or owner's representative to ensure that this certificate is complete.
+In Puerto Rico only, elevations for building information and flood hazard information may be entered in meters.
+SECTION A – PROPERTY INFORMATION
+Items A1–A4. This section identifies the building, its location, and its owner. Enter the name(s) of the building owner(s),
+the building's complete street address, and the lot and block numbers. If the building's address is different from the
+owner's address, enter the address of the building being certified. If the address is a rural route or a Post Office box
+number, enter the lot and block numbers, the tax parcel number, the legal description, or an abbreviated location
+description based on distance and direction from a fixed point of reference. For the purposes of this certificate, "building"
+means both a building and a manufactured (mobile) home.
+A map may be attached to this certificate to show the location of the building on the property. A tax map, FIRM, or
+detailed community map is appropriate. If no map is available, provide a sketch of the property location, and the location
+of the building on the property. Include appropriate landmarks such as nearby roads, intersections, and bodies of water.
+For building use, indicate whether the building is residential, non-residential, an addition to an existing residential or non-
+residential building, an accessory building (e.g., garage), or other type of structure. Use the Comments area of the
+appropriate section if needed, or attach additional comments.
+Item A5. Provide latitude and longitude coordinates for the center of the front of the building. Use either decimal degrees
+(e.g., 39.5043°, −110.7585°) or degrees, minutes, seconds (e.g., 39° 30' 15.5", −110° 45' 30.7") format. If decimal
+degrees are used, provide coordinates to at least 5 decimal places or better. When using degrees, minutes, seconds,
+provide seconds to at least 1 decimal place or better. The latitude and longitude coordinates must be accurate within 66
+feet. When the latitude and longitude are provided by a surveyor, check the "Yes" box in Section D and indicate the
+method used to determine the latitude and longitude in the Comments area of Section D. If the Elevation Certificate is
+being certified by other than a licensed surveyor, engineer, or architect, this information is not required. Provide the type
+of datum used to obtain the latitude and longitude. FEMA prefers the use of NAD 1983.
+Item A6. If the Elevation Certificate is being used to obtain flood insurance through the NFIP, the certifier must provide at
+least 2 photographs showing the front and rear of the building taken within 90 days from the date of certification. The
+photographs must be taken with views confirming the building description and diagram number provided in Section A. To
+the extent possible, these photographs should show the entire building including foundation. If the building has split-level
+or multi-level areas, provide at least 2 additional photographs showing side views of the building. In addition, when
+applicable, provide a photograph of the foundation showing a representative example of the flood openings or vents. All
+photographs must be in color and measure at least 3" × 3". Digital photographs are acceptable.
+Item A7. Select the diagram on pages 7–9 that best represents the building. Then enter the diagram number and use
+the diagram to identify and determine the appropriate elevations requested in Items C2.a–h. If you are unsure of the
+correct diagram, select the diagram that most closely resembles the building being certified.
+Item A8.a. Provide the square footage of the crawlspace or enclosure(s) below the lowest elevated floor of an elevated
+building with or without permanent flood openings. Take the measurement from the outside of the crawlspace or
+enclosure(s). Examples of elevated buildings constructed with crawlspace and enclosure(s) are shown in Diagrams 6–9
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 1 of 9
+
+=== PAGE 17 ===
+Instructions for Completing the Elevation Certificate (continued)
+on pages 8–9. Diagrams 2A, 2B, 4, and 9 should be used for a building constructed with a crawlspace floor that is below
+the exterior grade on all sides.
+Items A8.b–d. Enter in Item A8.b the number of permanent flood openings in the crawlspace or enclosure(s) that are
+no higher than 1.0 foot above the higher of the exterior or interior grade or floor immediately below the opening. (A
+permanent flood opening is a flood vent or other opening that allows the free passage of water automatically in both
+directions without human intervention.) If the interior grade elevation is used, note this in the Comments area of
+Section D. Estimate the total net area of all such permanent flood openings in square inches, excluding any bars,
+louvers, or other covers of the permanent flood openings, and enter the total in Item A8.c. If the net area cannot be
+reasonably estimated, provide the size of the flood openings without consideration of any covers and indicate in the
+Comments area the type of cover that exists in the flood openings. Indicate in Item A8.d whether the flood openings
+are engineered. If applicable, attach a copy of the Individual Engineered Flood Openings Certification or an
+Evaluation Report issued by the International Code Council Evaluation Service (ICC ES), if you have it. If the
+crawlspace or enclosure(s) have no permanent flood openings, or if the openings are not within 1.0 foot above
+adjacent grade, enter "N/A" for not applicable in Items A8.b–c.
+Item A9.a. Provide the square footage of the attached garage with or without permanent flood openings. Take the
+measurement from the outside of the garage.
+Items A9.b–d. Enter in Item A9.b the number of permanent flood openings in the attached garage that are no higher
+than 1.0 foot above the higher of the exterior or interior grade or floor immediately below the opening. (A permanent
+flood opening is a flood vent or other opening that allows the free passage of water automatically in both directions
+without human intervention.) If the interior grade elevation is used, note this in the Comments area of Section D. This
+includes any openings that are in the garage door that are no higher than 1.0 foot above the adjacent grade. Estimate
+the total net area of all such permanent flood openings in square inches and enter the total in Item A9.c. If the net
+area cannot be reasonably estimated, provide the size of the flood openings without consideration of any covers and
+indicate in the Comments area the type of cover that exists in the flood openings. Indicate in Item A9.d whether the
+flood openings are engineered. If applicable, attach a copy of the Individual Engineered Flood Openings Certification
+or an Evaluation Report issued by the International Code Council Evaluation Service (ICC ES), if you have it. If the
+garage has no permanent flood openings, or if the openings are not within 1.0 foot above adjacent grade, enter "N/A"
+for not applicable in Items A9.b–c.
+SECTION B – FLOOD INSURANCE RATE MAP (FIRM) INFORMATION
+Complete the Elevation Certificate on the basis of the FIRM in effect at the time of the certification.
+The information for Section B is obtained by reviewing the FIRM panel that includes the building's location. Information
+about the current FIRM is available from the Federal Emergency Management Agency (FEMA) by calling
+1-800-358-9616. If a Letter of Map Amendment (LOMA) or Letter of Map Revision (LOMR-F) has been issued by FEMA,
+please provide the letter date and case number in the Comments area of Section D or Section G, as appropriate.
+For a building in an area that has been annexed by one community but is shown on another community's FIRM, enter
+the community name and 6-digit number of the annexing community in Item B1, the name of the county or new county, if
+necessary, in Item B2, and the FIRM index date for the annexing community in Item B6. Enter information from the
+actual FIRM panel that shows the building location, even if it is the FIRM for the previous jurisdiction, in Items B4, B5,
+B7, B8, and B9.
+If the map in effect at the time of the building's construction was other than the current FIRM, and you have the past map
+information pertaining to the building, provide the information in the Comments area of Section D.
+Item B1. NFIP Community Name & Community Number. Enter the complete name of the community in which the
+building is located and the associated 6-digit community number. For a newly incorporated community, use the name
+and 6-digit number of the new community. Under the NFIP, a "community" is any State or area or political subdivision
+thereof, or any Indian tribe or authorized native organization, that has authority to adopt and enforce floodplain
+management regulations for the areas within its jurisdiction. To determine the current community number, see the
+NFIP Community Status Book, available on FEMA's web site at https://www.fema.gov/national-flood-insurance-
+program/national-flood-insurance-program-community-status-book, or call 1-800-358-9616.
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 2 of 9
+
+=== PAGE 18 ===
+Instructions for Completing the Elevation Certificate (continued)
+Item B2. County Name. Enter the name of the county or counties in which the community is located. For an
+unincorporated area of a county, enter "unincorporated area." For an independent city, enter "independent city."
+Item B3. State. Enter the 2-letter state abbreviation (for example, VA, TX, CA).
+Items B4–B5. Map/Panel Number and Suffix. Enter the 10-character "Map Number" or "Community Panel Number"
+shown on the FIRM where the building or manufactured (mobile) home is located. For maps in a county-wide format,
+the sixth character of the "Map Number" is the letter "C" followed by a 4-digit map number. For maps not in a county-
+wide format, enter the "Community Panel Number" shown on the FIRM.
+Item B6. FIRM Index Date. Enter the effective date or the map revised date shown on the FIRM Index.
+Item B7. FIRM Panel Effective/Revised Date. Enter the map effective date or the map revised date shown on the
+FIRM panel. This will be the latest of all dates shown on the map. The current FIRM panel effective date can be
+determined by calling 1-800-358-9616.
+Item B8. Flood Zone(s). Enter the flood zone, or flood zones, in which the building is located. All flood zones
+containing the letter "A" or "V" are considered Special Flood Hazard Areas. The flood zones are A, AE, A1–A30, V,
+VE, V1–V30, AH, AO, AR, AR/A, AR/AE, AR/A1–A30, AR/AH, and AR/AO. Each flood zone is defined in the legend of
+the FIRM panel on which it appears.
+Item B9. Base Flood Elevation(s). Using the appropriate Flood Insurance Study (FIS) Profile, Floodway Data Table, or
+FIRM panel, locate the property and enter the BFE (or base flood depth) of the building site. If the building is located
+in more than 1 flood zone in Item B8, list all appropriate BFEs in Item B9. BFEs are shown on a FIRM or FIS Profile
+for Zones A1–A30, AE, AH, V1–V30, VE, AR, AR/A, AR/AE, AR/A1–A30, AR/AH, and AR/AO; flood depth numbers are
+shown for Zone AO. Use the AR BFE if the building is located in any of Zones AR/A, AR/AE, AR/A1–A30, AR/AH, or
+AR/AO. In A or V zones where BFEs are not provided on the FIRM, BFEs may be available from another source. For
+example, the community may have established BFEs or obtained BFE data from other sources for the building site.
+For subdivisions and other developments of more than 50 lots or 5 acres, establishment of BFEs is required by the
+community's floodplain management ordinance. If a BFE is obtained from another source, enter the BFE in Item B9.
+In an A Zone where BFEs are not available, complete Section E and enter N/A for Section B, Item B9. Enter the BFE
+to the nearest tenth of a foot (nearest tenth of a meter, in Puerto Rico).
+Item B10. Indicate the source of the BFE that you entered in Item B9. If the BFE is from a source other than FIS
+Profile, FIRM, or community, describe the source of the BFE.
+Item B11. Indicate the elevation datum to which the elevations on the applicable FIRM are referenced as shown on
+the map legend. The vertical datum is shown in the Map Legend and/or the Notes to Users on the FIRM.
+Item B12. Indicate whether the building is located in a Coastal Barrier Resources System (CBRS) area or Otherwise
+Protected Area (OPA). (OPAs are portions of coastal barriers that are owned by Federal, State, or local governments
+or by certain non-profit organizations and used primarily for natural resources protection.) Federal flood insurance is
+prohibited in designated CBRS areas or OPAs for buildings or manufactured (mobile) homes built or substantially
+improved after the date of the CBRS or OPA designation. For the first CBRS designations, that date is October 1,
+1983. Information about CBRS areas and OPAs may be obtained on the FEMA web site at https://www.fema.gov/
+national-flood-insurance-program/coastal-barrier-resources-system.
+SECTION C – BUILDING ELEVATION INFORMATION (SURVEY REQUIRED)
+Complete Section C if the building is located in any of Zones A1–A30, AE, AH, A (with BFE), VE, V1–V30, V (with
+BFE), AR, AR/A, AR/AE, AR/A1–A30, AR/AH, or AR/AO, or if this certificate is being used to support a request for a
+LOMA or LOMR-F. If the building is located in Zone AO or Zone A (without BFE), complete Section E instead. To
+ensure that all required elevations are obtained, it may be necessary to enter the building (for instance, if the building
+has a basement or sunken living room, split-level construction, or machinery and equipment).
+Surveyors may not be able to gain access to some crawlspaces to shoot the elevation of the crawlspace floor. If
+access to the crawlspace is limited or cannot be gained, follow one of these procedures.
+• Use a yardstick or tape measure to measure the height from the floor of the crawlspace to the "next higher floor,"
+and then subtract the crawlspace height from the elevation of the "next higher floor." If there is no access to the
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 3 of 9
+
+=== PAGE 19 ===
+Instructions for Completing the Elevation Certificate (continued)
+crawlspace, use the exterior grade next to the structure to measure the height of the crawlspace to the "next
+higher floor."
+• Contact the local floodplain administrator of the community in which the building is located. The community may have
+documentation of the elevation of the crawlspace floor as part of the permit issued for the building.
+• If the property owner has documentation or knows the height of the crawlspace floor to the next higher floor, try to
+verify this by looking inside the crawlspace through any openings or vents.
+In all 3 cases, use the Comments area of Section D to provide the elevation and a brief description of how the elevation
+was obtained.
+Item C1. Indicate whether the elevations to be entered in this section are based on construction drawings, a building
+under construction, or finished construction. For either of the first 2 choices, a post-construction Elevation Certificate will
+be required when construction is complete. If the building is under construction, include only those elevations that can be
+surveyed in Items C2.a–h. Use the Comments area of Section D to provide elevations obtained from the construction
+plans or drawings. Select "Finished Construction" only when all machinery and/or equipment such as furnaces, hot water
+heaters, heat pumps, air conditioners, and elevators and their associated equipment have been installed and the grading
+around the building is completed.
+Item C2. A field survey is required for Items C2.a–h. Most control networks will assign a unique identifier for each
+benchmark. For example, the National Geodetic Survey uses the Permanent Identifier (PID). For the benchmark utilized,
+provide the PID or other unique identifier assigned by the maintainer of the benchmark. For GPS survey, indicate the
+benchmark used for the base station, the Continuously Operating Reference Stations (CORS) sites used for an On-line
+Positioning User Service (OPUS) solution (also attach the OPUS report), or the name of the Real Time Network used.
+Also provide the vertical datum for the benchmark elevation. All elevations for the certificate, including the elevations for
+Items C2.a–h, must use the same datum on which the BFE is based. Show the conversion from the field survey datum
+used if it differs from the datum used for the BFE entered in Item B9 and indicate the conversion software used. Show the
+datum conversion, if applicable, in the Comments area of Section D.
+For property experiencing ground subsidence, the most recent reference mark elevations must be used for determining
+building elevations. However, when subsidence is involved, the BFE should not be adjusted. Enter elevations in Items
+C2.a–h to the nearest tenth of a foot (nearest tenth of a meter, in Puerto Rico).
+Items C2.a–d. Enter the building elevations (excluding the attached garage) indicated by the selected building diagram
+(Item A7) in Items C2.a–c. If there is an attached garage, enter the elevation for top of attached garage slab in Item C2.d.
+(Because elevation for top of attached garage slab is self-explanatory, attached garages are not illustrated in the
+diagrams.) If the building is located in a V zone on the FIRM, complete Item C2.c. If the flood zone cannot be determined,
+enter elevations for all of Items C2.a–h. For buildings in A zones, elevations a, b, d, and e should be measured at the top
+of the floor. For buildings in V zones, elevation c must be measured at the bottom of the lowest horizontal structural
+member of the floor (see drawing below). For buildings elevated on a crawlspace, Diagrams 8 and 9, enter the elevation
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 4 of 9
+
+=== PAGE 20 ===
+Instructions for Completing the Elevation Certificate (continued)
+of the top of the crawlspace floor in Item C2.a, whether or not the crawlspace has permanent flood openings (flood
+vents). If any item does not apply to the building, enter "N/A" for not applicable.
+Item C2.e. Enter the lowest platform elevation of at least 1 of the following machinery and equipment items: elevators
+and their associated equipment, furnaces, hot water heaters, heat pumps, and air conditioners in an attached garage
+or enclosure or on an open utility platform that provides utility services for the building. Note that elevations for these
+specific machinery and equipment items are required in order to rate the building for flood insurance. Local floodplain
+management officials are required to ensure that all machinery and equipment servicing the building are protected
+from flooding. Thus, local officials may require that elevation information for all machinery and equipment, including
+ductwork, be documented on the Elevation Certificate. If the machinery and/or equipment is mounted to a wall, pile,
+etc., enter the platform elevation of the machinery and/or equipment. Indicate machinery/equipment type and its
+general location, e.g., on floor inside garage or on platform affixed to exterior wall, in the Comments area of Section D
+or Section G, as appropriate. If this item does not apply to the building, enter "N/A" for not applicable.
+Items C2.f–g. Enter the elevation of the ground, sidewalk, or patio slab immediately next to the building. For Zone AO,
+use the natural grade elevation, if available. This measurement must be to the nearest tenth of a foot (nearest tenth of a
+meter, in Puerto Rico) if this certificate is being used to support a request for a LOMA or LOMR-F.
+Item C2.h. Enter the lowest grade elevation at the deck support or stairs. For Zone AO, use the natural grade
+elevation, if available. This measurement must be to the nearest tenth of a foot (nearest tenth of a meter, in Puerto
+Rico) if this certificate is being used to support a request for a LOMA or LOMR-F.
+SECTION D – SURVEYOR, ENGINEER, OR ARCHITECT CERTIFICATION
+Complete as indicated. This section of the Elevation Certificate may be signed by only a land surveyor, engineer, or
+architect who is authorized by law to certify elevation information. Place your license number, your seal (as allowed by
+the State licensing board), your signature, and the date in the box in Section D. You are certifying that the information on
+this certificate represents your best efforts to interpret the data available and that you understand that any false
+statement may be punishable by fine or imprisonment under 18 U.S. Code, Section 1001. Use the Comments area of
+Section D to provide datum, elevation, openings, or other relevant information not specified elsewhere on the certificate.
+SECTION E – BUILDING ELEVATION INFORMATION (SURVEY NOT REQUIRED)
+FOR ZONE AO AND ZONE A (WITHOUT BFE)
+Complete Section E if the building is located in Zone AO or Zone A (without BFE). Otherwise, complete Section C instead.
+Explain in the Section F Comments area if the measurement provided under Items E1–E4 is based on the "natural grade."
+Items E1.a and b. Enter in Item E1.a the height to the nearest tenth of a foot (tenth of a meter in Puerto Rico) of the top
+of the bottom floor (as indicated in the applicable diagram) above or below the highest adjacent grade (HAG). Enter in
+Item E1.b the height to the nearest tenth of a foot (tenth of a meter in Puerto Rico) of the top of the bottom floor (as
+indicated in the applicable diagram) above or below the lowest adjacent grade (LAG). For buildings in Zone AO, the
+community's floodplain management ordinance requires the lowest floor of the building be elevated above the highest
+adjacent grade at least as high as the depth number on the FIRM. Buildings in Zone A (without BFE) may qualify for a
+lower insurance rate if an engineered BFE is developed at the site.
+Item E2. For Building Diagrams 6–9 with permanent flood openings (see pages 8–9), enter the height to the nearest
+tenth of a foot (tenth of a meter in Puerto Rico) of the next higher floor or elevated floor (as indicated in the applicable
+diagram) above or below the highest adjacent grade (HAG).
+Item E3. Enter the height to the nearest tenth of a foot (tenth of a meter in Puerto Rico), in relation to the highest
+adjacent grade next to the building, for the top of attached garage slab. (Because elevation for top of attached garage
+slab is self-explanatory, attached garages are not illustrated in the diagrams.) If this item does not apply to the building,
+enter "N/A" for not applicable.
+Item E4. Enter the height to the nearest tenth of a foot (tenth of a meter in Puerto Rico), in relation to the highest
+adjacent grade next to the building, of the platform elevation that supports the machinery and/or equipment servicing the
+building. Indicate machinery/equipment type in the Comments area of Section F. If this item does not apply to the
+building, enter "N/A" for not applicable.
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 5 of 9
+
+=== PAGE 21 ===
+Instructions for Completing the Elevation Certificate (continued)
+Item E5. For those communities where this base flood depth is not available, the community will need to determine
+whether the top of the bottom floor is elevated in accordance with the community's floodplain management ordinance.
+SECTION F – PROPERTY OWNER (OR OWNER'S REPRESENTATIVE) CERTIFICATION
+Complete as indicated. This section is provided for certification of measurements taken by a property owner or property
+owner's representative when responding to Sections A, B, and E. The address entered in this section must be the actual
+mailing address of the property owner or property owner's representative who provided the information on the certificate.
+SECTION G – COMMUNITY INFORMATION (OPTIONAL)
+Complete as indicated. The community official who is authorized by law or ordinance to administer the community's
+floodplain management ordinance can complete Sections A, B, C (or E), and G of this Elevation Certificate. Section C
+may be filled in by the local official as provided in the instructions below for Item G1. If the authorized community official
+completes Sections C, E, or G, complete the appropriate item(s) and sign this section.
+Check Item G1 if Section C is completed with elevation data from other documentation that has been signed and sealed
+by a licensed surveyor, engineer, or architect who is authorized by law to certify elevation information. Indicate the
+source of the elevation data and the date obtained in the Comments area of Section G. If you are both a community
+official and a licensed land surveyor, engineer, or architect authorized by law to certify elevation information, and you
+performed the actual survey for a building in Zones A1–A30, AE, AH, A (with BFE), VE, V1–V30, V (with BFE), AR, AR/
+A, AR/A1–A30, AR/AE, AR/AH, or AR/AO, you must also complete Section D.
+Check Item G2 if information is entered in Section E by the community for a building in Zone A (without a FEMA-issued
+or community-issued BFE) or Zone AO.
+Check Item G3 if the information in Items G4–G10 has been completed for community floodplain management purposes
+to document the as-built lowest floor elevation of the building. Section C of the Elevation Certificate records the elevation
+of various building components but does not determine the lowest floor of the building or whether the building, as
+constructed, complies with the community's floodplain management ordinance. This must be done by the community.
+Items G4–G10 provide a way to document these determinations.
+Item G4. Permit Number. Enter the permit number or other identifier to key the Elevation Certificate to the permit issued
+for the building.
+Item G5. Date Permit Issued. Enter the date the permit was issued for the building.
+Item G6. Date Certificate of Compliance/Occupancy Issued. Enter the date that the Certificate of Compliance or
+Occupancy or similar written official documentation of as-built lowest floor elevation was issued by the community as
+evidence that all work authorized by the floodplain development permit has been completed in accordance with the
+community's floodplain management laws or ordinances.
+Item G7. New Construction or Substantial Improvement. Check the applicable box. "Substantial Improvement" means
+any reconstruction, rehabilitation, addition, or other improvement of a building, the cost of which equals or exceeds 50
+percent of the market value of the building before the start of construction of the improvement. The term includes
+buildings that have incurred substantial damage, regardless of the actual repair work performed.
+Item G8. As-built lowest floor elevation. Enter the elevation of the lowest floor (including basement) when the
+construction of the building is completed and a final inspection has been made to confirm that the building is built in
+accordance with the permit, the approved plans, and the community's floodplain management laws or ordinances.
+Indicate the elevation datum used.
+Item G9. BFE. Using the appropriate FIRM panel, FIS Profile, or other data source, locate the property and enter the
+BFE (or base flood depth) of the building site. Indicate the elevation datum used.
+Item G10. Community's design flood elevation. Enter the elevation (including freeboard above the BFE) to which the
+community requires the lowest floor to be elevated. Indicate the elevation datum used.
+Enter your name, title, and telephone number, and the name of the community. Sign and enter the date in the
+appropriate blanks.
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 6 of 9
+
+=== PAGE 22 ===
+Building Diagrams
+The following diagrams illustrate various types of buildings. Compare the features of the building being certified with
+the features shown in the diagrams and select the diagram most applicable. Enter the diagram number in Item A7,
+the square footage of crawlspace or enclosure(s) and the area of flood openings in square inches in Items A8.a–c,
+the square footage of attached garage and the area of flood openings in square inches in Items A9.a–c, and the
+elevations in Items C2.a–h.
+In A zones, the floor elevation is taken at the top finished surface of the floor indicated; in V zones, the floor elevation
+is taken at the bottom of the lowest horizontal structural member (see drawing in instructions for Section C).
+DIAGRAM 1A DIAGRAM 1B
+All slab-on-grade single- and multiple-floor buildings All raised-slab-on-grade or slab-on-stem-wall-with-fill
+(other than split-level) and high-rise buildings, either single- and multiple-floor buildings (other than split-
+detached or row type (e.g., townhouses); with or level), either detached or row type (e.g., townhouses);
+without attached garage. with or without attached garage.
+Distinguishing Feature – The bottom floor is at or above Distinguishing Feature – The bottom floor is at or above
+ground level (grade) on at least 1 side.* ground level (grade) on at least 1 side.*
+DIAGRAM 2A DIAGRAM 2B
+All single- and multiple-floor buildings with basement All single- and multiple-floor buildings with basement
+(other than split-level) and high-rise buildings with (other than split-level) and high-rise buildings with
+basement, either detached or row type basement, either detached or row type
+(e.g., townhouses); with or without attached garage. (e.g., townhouses); with or without attached garage.
+Distinguishing Feature – The bottom floor (basement Distinguishing Feature – The bottom floor (basement or
+or underground garage) is below ground level (grade) on underground garage) is below ground level (grade) on all
+all sides.* sides; most of the height of the walls is below ground level
+on all sides; and the door and area of egress are also
+below ground level on all sides.*
+* A floor that is below ground level (grade) on all sides is considered a basement even if the floor is used for living purposes, or as an office,
+garage, workshop, etc.
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 7 of 9
+
+=== PAGE 23 ===
+Building Diagrams
+DIAGRAM 3 DIAGRAM 4
+All split-level buildings that are slab-on-grade, either All split-level buildings (other than slab-on-grade),
+detached or row type (e.g., townhouses); with or without either detached or row type (e.g., townhouses); with or
+attached garage. without attached garage.
+Distinguishing Feature – The bottom floor (excluding Distinguishing Feature – The bottom floor (basement
+garage) is at or above ground level (grade) on at least or underground garage) is below ground level (grade) on
+1 side.* all sides.*
+DIAGRAM 5 DIAGRAM 6
+All buildings elevated on piers, posts, piles, columns, All buildings elevated on piers, posts, piles, columns,
+or parallel shear walls. No obstructions below the or parallel shear walls with full or partial enclosure
+elevated floor. below the elevated floor.
+Distinguishing Feature – For all zones, the area below the Distinguishing Feature – For all zones, the area below the
+elevated floor is open, with no obstruction to flow of floodwaters elevated floor is enclosed, either partially or fully. In A Zones, the
+(open lattice work and/or insect screening is permissible). partially or fully enclosed area below the elevated floor is with or
+without openings** present in the walls of the enclosure. Indicate
+information about enclosure size and openings in Section A –
+Property Information.
+* A floor that is below ground level (grade) on all sides is considered a basement even if the floor is used for living purposes, or as an office,
+garage, workshop, etc.
+** An "opening" is a permanent opening that allows for the free passage of water automatically in both directions without human intervention.
+Under the NFIP, a minimum of 2 openings is required for enclosures or crawlspaces. The openings shall provide a total net area of not less than
+1 square inch for every square foot of area enclosed, excluding any bars, louvers, or other covers of the opening. Alternatively, an Individual
+Engineered Flood Openings Certification or an Evaluation Report issued by the International Code Council Evaluation Service (ICC ES) must be
+submitted to document that the design of the openings will allow for the automatic equalization of hydrostatic flood forces on exterior walls. A
+window, a door, or a garage door is not considered an opening; openings may be installed in doors. Openings shall be on at least 2 sides of the
+enclosed area. If a building has more than 1 enclosed area, each area must have openings to allow floodwater to directly enter. The bottom of
+the openings must be no higher than 1.0 foot above the higher of the exterior or interior grade or floor immediately below the opening. For more
+guidance on openings, see NFIP Technical Bulletin 1.
+FEMA Form 086-0-33 (12/19) NFIP Elevation Certificate Instructions – Page 8 of 9
+
+=== PAGE 24 ===
+Building Diagrams
+DIAGRAM 7 DIAGRAM 8
+All buildings elevated on full-story foundation walls All buildings elevated on a crawlspace with the floor of
+with a partially or fully enclosed area below the elevated the crawlspace at or above grade on at least 1 side,
+floor. This includes walkout levels, where at least 1 side with or without an attached garage.
+is at or above grade. The principal use of this building is
+located in the elevated floors of the building. Distinguishing Feature – For all zones, the area below the first
+floor is enclosed by solid or partial perimeter walls. In all A zones,
+Distinguishing Feature – For all zones, the area below the the crawlspace is with or without openings** present in the walls
+elevated floor is enclosed, either partially or fully. In A Zones, the of the crawlspace. Indicate information about crawlspace size
+partially or fully enclosed area below the elevated floor is with or and openings in Section A – Property Information.
+without openings** present in the walls of the enclosure. Indicate
+information about enclosure size and openings in Section A –
+Property Information.
+DIAGRAM 9
+All buildings (other than split-level) elevated on a sub-
+grade crawlspace, with or without attached garage.
+Distinguishing Feature – The bottom (crawlspace) floor is below
+ground level (grade) on all sides.* (If the distance from the crawlspace
+floor to the top of the next higher floor is more than 5 feet, or the
+crawlspace floor is more than 2 feet below the grade [LAG] on all
+sides, use Diagram 2A or 2B.)
+* A floor that is below ground level (grade) on all sides is considered a basement even if the floor is used for living purposes, or as an office,
+garage, workshop, etc.
+** An "opening" is a permanent opening that allows for the free passage of water automatically in both directions without human intervention.
+Under the NFIP, a minimum of 2 openings is required for enclosures or crawlspaces. The openings shall provide a total net area of not less than
+1 square inch for every square foot of area enclosed, excluding any bars, louvers, or other covers of the opening. Alternatively, an Individual
+Engineered Flood Openings Certification or an Evaluation Report issued by the International Code Council Evaluation Service (ICC ES) must be
+submitted to document that the design of the openings will allow for the automatic equalization of hydrostatic flood forces on exterior walls. A
+window, a door, or a garage door is not considered an opening; openings may be installed in doors. Openings shall be on at least 2 sides of the
+enclosed area. If a building has more than 1 enclosed area, each area must have openings to allow floodwater to directly enter. The bottom of
+the openings must be no higher than 1.0 foot above the higher of the exterior or interior grade or floor immediately below the opening. For more
+guidance on openings, see NFIP Technical Bulletin 1.
+FEMA Form 086-0-33 (12/19) NFIP E levation Certificate Instructions – Page 9 of 9
+
+=== PAGE 25 ===
+Supplemental Attachment A: Minimum Elevation Table
+
+=== PAGE 26 ===
+Supplemental Attachment B: ASCE Flood Design Class Table

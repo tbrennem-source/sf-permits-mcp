@@ -1,0 +1,116 @@
+=== PAGE 1 ===
+City and County of San Francisco London N. Breed, Mayor
+Department of Building Inspection Patrick O’Riordan, C.B.O., Director
+INFORMATION SHEET
+NO. DA-05
+DATE : April 29, 2024
+CATEGORY : Disabled Access
+SUBJECT : The Use of Power Door Operators in lieu of Required Push and Pull
+Side Clearances at Doors and Gates and when Door and Gate Opening
+Force Exceeds Maximum Force to Operate
+PURPOSE : The purpose of this Information Sheet is to detail requirements for using power
+door operators to overcome existing conditions which present a technical
+infeasibility to comply with door side clearances and door maximum opening
+forces in existing buildings.
+REFERENCE : California Building Code (CBC), Current Edition
+Section 202 Definitions, Technically Infeasible
+Section 202 Definitions, Equivalent Facilitation
+Section 1126A.3, Maneuvering Clearances at Doors; Figures 11A-8A
+Maneuvering Clearances at Swing Doors
+Section 11B-202.3, Exception 2, Technical Infeasibility
+Section 11B-202.4, Exception 8, Path of Travel in Alterations
+Section 11B-404.3, Automatic and Power-Assisted Doors
+Section 11B-404.2.4, Maneuvering Clearances at Doors
+Section 11B-404.2.9, Door and Gate Opening Force
+Division of State Architect (DSA) Advisory 11B-404.3 Automatic and Power-
+Assisted Doors and Gates
+American National Standards Institute / Building Hardware Manufacturers
+Association (ANSI/BHMA) A156.19 and ANSI/BHMA A156.10
+Information Sheet DA-02, Disabled Access Upgrade Compliance Checklist
+Package
+DISCUSSION :
+This Information Sheet outlines circumstances under which a technical infeasibility request may be
+ministerially approved.
+An Approval of Technical Infeasibility Request form and an Approval of Equivalent Facilitation Request
+form must be submitted with the permit plans and accompanied by information documenting that strict
+compliance with code requirements cannot be met because of structural or other existing site constraints,
+as defined under San Francisco Building Code, Section 202 Technically Infeasible. Refer to Information
+Sheet DA-02 for the required forms and for instructions on how to fill out disability compliance forms.
+Page 1 of 3
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+628-652-3720 | sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET DA-05
+Side Clearances:
+For a person with disabilities to operate doors, minimum clearances are needed as prescribed by the
+code. The current minimum required pull-side clearances are 18 inches of clearance on the strike-side
+for interior doors, 24 inches of strike-side clearance for the exterior side of exterior doors, and 12 inches
+of push-side clearance for doors equipped with both latches and closers per CBC 11B-404.
+Many existing buildings were not required to provide the clearances listed above when they were
+originally designed and built. However, when existing buildings are altered, renovated or repaired, they
+then are required to provide the minimum clearances at doors and gates. It is often infeasible to comply
+with the required doors and gate clearances.
+Opening Force in Existing Buildings:
+Per CBC 11B-404.2.9, door and gate opening forces are limited to 5 pounds of pressure to operate. This
+applies to hinged, sliding or folding doors. Additionally, fire doors are permitted to take up to 15 pounds
+to operate. At exterior doors, due to differences in pressures between the inside and outside the building,
+exterior door size, and wind tunnels created by tall buildings, the maximum operating force of 5 pounds
+may be technically infeasible to achieve.
+Technical Infeasibility:
+Where it is technically infeasible to achieve the required door side clearances and maximum door
+operating forces, power door operators may be used and ministerially approved where the following
+conditions, as applicable, are met:
+1. The power door operator must be fully functional.
+2. The power door operator shall be functional whenever the door is unlocked.
+3. The power door operator controls (sensing devices, push plates, vertical actuation bars or other
+similar operating devices complying with Section 11B-205) are to be located in a conspicuous
+location at both the push side and the pull side of the door.
+4. The power door operator push plates shall be a minimum of 4 inches in diameter or a minimum
+of 4-inch by 4-inch square and display the International Symbol of Accessibility (ISA) complying
+with Section 11B-703.7.2.1.
+5. At each location where push plates are provided, there shall be two push plates. The centerline
+of one push plate shall be 7 inches minimum and 8 inches maximum above the floor or ground
+surface and the centerline of the second push plate shall be 30 inches minimum and 44 inches
+maximum above the floor or ground surface. CBC Section 11B-404.2.9.
+6. At each location where vertical actuation bars are provided, the operable portion shall be located
+such that the bottom is 5 inches maximum above the floor or ground surface and the top is 35
+inches minimum above the floor or ground surface. The operable portion of each vertical actuation
+bar shall be a minimum of 2 inches wide and shall display the International Symbol of Accessibility
+(ISA) complying with Section 11B-703.7.2.1.
+7. Power door operating devices shall be outside the swing of the operated door, and a level and
+clear floor or ground space for forward or parallel approach complying with Section 11B-305 shall
+be centered on the operating device. Where there is a pair of doors with only one operated leaf,
+Page 2 of 3
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+628-652-3720 | sfdbi.org
+
+=== PAGE 3 ===
+INFORMATION SHEET DA-05
+the power door operator should be, whenever possible, on the strike side of the operated door
+leaf and as close to the operated door leaf as reasonably possible.
+8. The minimum time from door opening to the start of door closing shall be as indicated in the
+following table (distance is from center of the closed door face to the center of the control device):
+DISTANCE (feet) TIME (seconds)
+0 to 6 5
+7 to 8 6
+9 to 10 7
+11 to 12 10
+Distances over 12 feet are not allowed. The distance shall be established from the center of the
+door to the center of the farthest operator control.
+9. Equipment installation shall be in accordance with the manufacturer’s product listing and
+ANSI/BHMA A156.19 and ANSI/BHMA A156.10, as applicable.
+April 30, 2024
+_________________________________________________________
+Patrick O’ Riordan, C.B.O.
+Date
+Director
+Department of Building Inspection
+This Information Sheet is subject to modification at any time. For the most current version,
+visit our website at sfdbi.org
+Page 3 of 3
+Department of Building Inspection – Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco CA 94103
+628-652-3720 | sfdbi.org

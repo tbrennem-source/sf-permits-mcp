@@ -1,0 +1,1479 @@
+=== PAGE 1 ===
+City and County of San Francisco Daniel Lurie, Mayor
+Department of Building Inspection Patrick O’Riordan, C.B.O., Director
+INFORMATION SHEET
+NO. G-20
+DATE : August 29, 2025
+CATEGORY : General
+SUBJECT : Interim Criteria - Building Permit Application Routing to City Agencies
+PURPOSE : To establish interim criteria for determining when building permit applications and
+permit revisions are to be referred by the Department of Building Inspection to
+other City agencies for their review and approval prior to permit issuance.
+SECTION(S)
+INVOLVED : San Francisco Building Code, Section 106A
+DISCUSSION :
+(A) This Information Sheet supersedes all previously issued documentation on routing.
+Since the routing criteria changes according to the needs of the various City Agencies, it is necessary to
+update the routing criteria from time to time.
+To report any error/omissions in the Information Sheet, please contact Technical Services Division by
+email: techq@sfgov.org.
+(B) Building Permit Application processing:
+Building permit applications, renewals of expired permits, and permit revisions that fall under the
+categories listed in Attachment 1 shall be referred by the Department of Building Inspection to the
+specified agencies for review.
+Building permit applications, renewals of expired permits, and permit revisions that are not within these
+categories need not be referred to other agencies unless DBI staff believes that referral is necessary to
+assure adequate and complete plan review or unless another agency specifically requests the referral of
+a permit application, renewal or revision.
+The intent of this Information Sheet is to provide for the proper referral and review of building permit
+applications and permit renewals and revisions, including related submittal documents, to City agencies
+having jurisdiction over proposed elements of the project. The referral of building permit applications and
+permit renewals and revisions to appropriate City agencies for review is recognized as an important
+component of the plan review process.
+City agencies not responsible for approval of permit applications, such as San Francisco Unified School
+District, will not typically have applications or revisions routed to them for review, although agencies that
+are responsible for collection of fees relating to construction may review applications for fee
+determinations prior to permit issuance.
+Building Permit Applications that fall within the categories listed in Attachment 1 are to be referred to the
+agency under which the category is listed.
+Page 1 of 4
+Technical Services Division
+49 South Van Ness Avenue, Suite 500 – San Francisco, CA 94103
+(628)652-3720 | sfdbi.org
+
+=== PAGE 2 ===
+INFORMATION SHEET G-20
+When a permit that was previously issued has expired with no work started, a permit application to renew
+such previously issued permit should be referred to other agencies as follows in accordance with the
+items noted in Attachment 1:
+1. Planning Department (Planning) which is also known as City Planning – Zoning Counter (CP-
+ZOC)
+2. Department of Building Inspection: Architectural and Structural Plan Review (BLDG)
+3. Department of Building Inspection: Mechanical Plan Review (MECH) / Electrical Plan Review
+(MECH-E)
+4. Fire Department (SFFD)
+5. Department of Public Works, Bureau of Street-Use and Mapping (BSM)
+6. Public Utility Commission (PUC)
+7. Office of Community Investment and Infrastructure (OCII) which is the successor agency to the
+SF Redevelopment Agency (REDEV)
+8. Department of Public Works, Office of Disability Access Coordinator (PW-DAC)
+(C) Routing to Department of Public Health (DPH). See attachment 3.
+Notes:
+1. New construction, seismic retrofit or remodel of buildings under DPH programs (see
+attachment
+2. Retail projects involving Food Facility needs to be routed to DPH.
+3. For onsite consumption in Medical Cannabis Dispensing (MCD) facilities, the permit will be
+routed to DPH first before Planning.
+4. Do not route Article 38 (enhanced ventilation system) construction plans to DPH.
+(D) Routing to Planning and Others (for site permit and addendum)
+Planning shall be the first station for site permit.
+For new buildings, architectural addendum needs to be routed to Planning, BSM and PUC even if no
+changes from the site permit. Planning shall be the last station for architectural addendum.
+For existing buildings, unless specially requested by Planning, architectural addendum need not be
+routed to Planning if no changes from the site permit.
+(E) In OCII areas, permits will be routed to OCII instead of to Planning. OCII is the last station to
+review. Note that OCII reviews all permit addenda.
+(F) Major changes on issued Site Permit
+1. File new permit application form 3/8 as altered site permit.
+2. Route to Planning for review/approval (with reference drawings of the original site permit).
+3. Set of altered site permit plus reference drawings will be assigned to the original plan
+reviewer.
+4. Original site permit shall remain active paired with altered site permit.
+5. If any addendum of the original site permit has been issued, no altered site permit will be
+allowed.
+6. All addenda shall be under the altered site permit.
+7. Fees due by the issuance of all addenda shall be based on both the altered site permit and
+the original site permit.
+8. The Certificate of Final Completion (CFC) of both the altered site permit and the original site
+permit shall be issued together at the same time.
+Page 2 of 4
+
+=== PAGE 3 ===
+INFORMATION SHEET G-20
+(G) Routing to Fire for buildings of R3 occupancy
+1. All site permit plans of new buildings need to be routed to SFFD for Fire Department access
+and Fire-flow analysis.
+2. Sprinkler addendum need to be routed to SFFD. Other addendum, such as architectural,
+mechanical, etc., does not need to be routed to SFFD.
+3. For additions or alterations, applicant needs to mark on the plans and application form one of
+the following:
+a. “Fire sprinklers not required.” Routing to SFFD not required.
+b. “Fire sprinklers required.” Routing to SFFD not required.
+c. “Fire sprinklers under separate permit.” Routing to SFFD not required.
+4. Vertical additions need to be routed to SFFD for Fire Department access.
+Note: Once sprinkler plans are submitted, submit a copy of the approved architectural plans with
+the sprinkler plans only as a reference (not for further review)
+(H) For coordination with the Department of Environment on demolition, see Information Sheet
+S-04.
+(I) Routing to PW-DAC: Site permit and architectural addendum, (for new construction,
+alteration, addition, change in occupancy/use) on any City Project or project receiving public
+funds, needs to be routed to PW-DAC.
+Applicable PW-DAC sign-off form needs to be scanned on to submittal set. For additional
+information on City Projects, see Information Sheet DA-02, pages 2 and 3.
+Routing to PW-BSM is no longer required when any of the following criteria are met:
+1. An element affixed to any building is no more than four inches into the Public Way.
+2. A minor element affixed to a building was authorized by a previous building permit, including:
+a. Utility fixtures.
+b. Water spouts.
+c. Standpipes.
+d. Outward-swinging doors.
+e. Security gates.
+3. The building permit is exclusively for compliance with an applicable accessibility standard,
+including:
+a. Door actuators.
+b. Wheelchair lifts.
+Routing to PW-BSM is still required when the permit is for an awning with fixed vertical posts located
+in the public right-of-way, such as canopies.
+(J) Kitchen/Bathroom Permit with No Plan: “No plan” permit application for remodeling of
+kitchen and/or bathroom need not be routed to SFFD. Building Plan Reviewer shall “N/A”
+the approval block for SFFD. Exception: see Attachment 2 and where cost of construction
+exceeds $99,000 in Group R2 occupancy.
+(K) All permits/plans with alternate water systems (greywater, reclaimed water and storm
+water detention) need to be routed to PID (Plumbing Inspection Division) for review at site
+permit.
+(L) The marks “X”, “#”, “ * ”, “^”, “//”, “+” or “Ø” in Attachment 1 indicate that routing to the
+respective agency is required or as noted in the “COMMENTS” column.
+Page 3 of 4
+
+=== PAGE 4 ===
+INFORMATION SHEET G-20
+(M) Building permits involving Group R2 with cost of construction of $99,000 or more need to
+be routed to SFFD. (See Attachment 2)
+(N) CON-BOND shall be added to routing if permit includes new construction, horizontal
+and/or vertical addition, and/or alteration for a proposed multi-residential building or
+proposed multi-residential mixed-use building that increases the existing unit count by ten
+(10) or more. (Exception: Projects that are part of a Development Agreement, or that receive
+public funding in whole or in part, or that have an established Labor Agreement), shall have
+Issuance of only the main Building Permit application and of the first construction document held
+until the clearance is received from the Controller’s office. “First Construction Document” means
+the first addendum that authorizes the construction of the project, and shall not include permits or
+addenda for demolition, grading, shoring, or site preparation work.
+Attachments:
+• Attachment 1: Interim Routing Procedures
+• Attachment 2: San Francisco Fire Department AB 3.08
+• Attachment 3: Department of Public Health Routing Checklist
+Page 4 of 4
+
+=== PAGE 5 ===
+INFORMATION SHEET G-20
+ATTACHMENT 1
+INTERIM ROUTING PROCEDURES
+The Matrix below shows the scope of works which require review by the applicable stations and
+departments. However, other departments or stations such as Building Inspection Division, Housing
+Inspection Division, Plumbing Inspection Division, Electrical Inspection Division, Disabled Access
+Division, and the Port Department may still require review for work listed below.
+Exterior Work
+SCOPE OF WORK
+Page 1 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+ATM’s X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Accessible Entrance X X * * Required if entrance serves any
+Elements SFFD regulated occupancy (High-
+rise, A, E, H, I, L or R except for R-3)
+Awnings, Marquees and X X X X // // Required for projects within the
+Canopies OCII areas, route to OCII instead of
+Planning
+Cellular antennas and X X ^ X X // ^ MECH-E only.
+transmitters
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Concrete paving in rear yard X
+Concrete paving or X X ^ // ^ Required if landscaping or concrete
+landscape in front yard paving is in the public area
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Cooling Tower X X # X // # MECH only
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Creation of outdoor X X * // * Required for any SFFD regulated
+activities in commercial and occupancy (High - rise, A, E, H, I, L
+industrial areas or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 6 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 2 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Curb Cuts (New or X X X // // Required for projects within the
+modified) OCII areas, route to OCII instead of
+Planning
+Decks - New Decks; Roof X X * // * Required for any SFFD regulated
+Decks; Replacement of occupancy (High - rise, A, E, H, I, L
+Rear or Front Decks or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Decks - Repair in-kind of X X * // * Required for any SFFD regulated
+Front or Rear Deck occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Demolition of building X X * X // * Required for any SFFD regulated
+(complete removal or all occupancy (High – rise, A, E, H, I, L
+portions above grade) or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Doors - Change of existing # X * // # Required if they are visible from
+door size street(s), are historic buildings
+(Category A* or A)
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Drive-up facilities X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+# MECH-E only
+Energy Storage Systems X # X
+(ESS) over 20 kWh total
+capacity
+
+=== PAGE 7 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 3 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Evaporative Vapor X X X X X // // Required for projects within the
+Recovery (EVR) equipment OCII areas, route to OCII instead of
+for Gas Station Planning
+Fill in a light well X X # * X // # MECH only
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Fill in an area on the ground X X # X // # MECH only
+floor underneath a legal
+// Required for projects within the
+room
+OCII areas, route to OCII instead of
+Planning
+Fire escapes X X X ^ // ^ Required if extend over the public
+right-of-way
+// Required for projects within OCII
+areas
+Foundation X X ^ ^ Required if affects public right-of-
+way
+Garage (New) X X ^ * X Ø // ^ MECH only. Required if heating /
+cooling system or mechanical
+equipment is provided
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Gas/Service Station – new X X X X Ø X // Ø Required for projects that include
+or remodel the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 8 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 4 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Generator # X X X ^ + // # Required if located outdoors.
+^ Required if piping and fuel port
+located or encroaching into the
+public right of way.
++ Petroleum powered generators
+only
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Landmark Buildings and X X // // Required for projects within the
+Buildings within Historic OCII areas, route to OCII instead of
+Districts – Landscaping Planning
+(Category A*)
+Landmark Buildings and X X # // # MECH-E only
+Buildings within Historic
+// Required for projects within the
+Districts - Lighting Fixtures
+OCII areas, route to OCII instead of
+(Category A*)
+Planning
+Landmark Buildings and # // # Building permit not required
+Buildings within Historic however must consult Planning
+Districts - Painting (including department
+re-painting and murals)
+(Category A*)
+New construction X X X X X X // + // Required for projects within the
+OCII areas, route to OCII instead of
+Planning. Areas such as Hunters
+Point View and South of Market
+required a joint review by Planning
+and OCII.
++ Required for projects that are
+publicly funded or owned by, or
+operated on behalf of the City and
+County of San Francisco
+New openings for food X X # * X // # MECH only
+service e.g. pass-thru
+* Required for any SFFD regulated
+windows
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 9 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 5 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Outdoor seating or eating X X X ^ // ^ Required if located in the public
+areas right-of-way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Penthouses - Stair, Elevator X X * // * Required for any SFFD regulated
+or Mechanical occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Restaurant, take-out food, X X X * X X // * Required for occupant load greater
+delicatessen, bakery, ice than 49 or High-rises
+cream parlor, bar/liquor,
+// Required for projects within the
+juice bar, cafeterias
+OCII areas, route to OCII instead of
+Planning
+Retaining walls X X ^ // ^ Required if affects public right-of-
+way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Roof Chiller(s) X X # X // # MECH only
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Roof - Commercial Roof # X * ^ // # Required for historic buildings
+and roof for high-rise (Category A*) where there is a
+residential (Cool Roof) change in roof structure or sheathing
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3) Roofing
+involving Hot Work (torch down or
+acetylene)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+^ If requested no street space, then
+route to Public Works
+
+=== PAGE 10 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 6 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Roof - Residential Roof for # X * ^ // # Required for historic buildings
+low-rise residential (Cool (Category A*) where there is a
+Roof) change in roof structure or sheathing
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+^ Street space required. If requested
+no street space, then route to Public
+Works
+* Roofing involving Hot Work (torch
+down or acetylene) route to SFFD
+Security Gate X X * // * Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Shoring or Tiebacks X ^ ^ Required if affects public right-of-
+way
+Siding - Repair in-kind of # X * // # Required if publicly visible from
+Rear, Front or Side Siding street or on any historic building
+(Category A*)
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Signs – Exterior X X ^ + + // ^ MECH-E only. Required for
+illuminated signs
+Note: For Interior Sign see
++ Required if extend over the public
+Scope of Work for Interior
+right-of-way greater than 4 inches
+Work section.
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 11 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 7 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Signs - General Advertising X X ^ * // ^ MECH-E only. Required for
+illuminated signs
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Signs - On Awning X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Signs - Painted or non- X
+structural
+// // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Skylights # X ^ * // # Required on publicly visible
+portions or slope roofs of historic
+buildings (Category A*)
+^ MECH only
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Solar panels / Solar roofs ^ + * // ^ Required if they need structural
+and/or extensive permit review to
+assure the public health and safety.
+Otherwise, electrical permits only are
+required
++ MECH-E only
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 12 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 8 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Stairs X X * ^ // * Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+^ Required if extend over the right-of-
+way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Stairs - Repair in-kind of # X * ^ // # Required ONLY for front stairs
+Rear or Front Stairs
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+^ Required if extend over the right-of-
+way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Stairs - Replacement of X X * ^ // * Required for any SFFD regulated
+Rear or Front Stairs occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+^ Required if extend over the right-of-
+way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Storefront (including Entry X X ^ * % // ^ MECH only. Required if there are
+Doors) proposed fenestration changes
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+% Required for works which will
+encroach into the right-of-way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Sub sidewalk basement X X
+installation or repair
+
+=== PAGE 13 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 9 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Swimming pools and/or hot X X # X X // # MECH only
+tubs
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Temporary Trailer (Mobile X X X // // Required for projects within the
+Module Trailer) OCII areas, route to OCII instead of
+Planning
+Temporary use of existing X X X + // + Required if cooking facilities are
+outdoor open space e.g. Ice provided. However, food catering
+Skating, Black and White does not need the DPH review
+Ball
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Temporary use of vacant X X // // Required for projects within the
+site e.g. Christmas tree lots, OCII areas, route to OCII instead of
+pumpkin lots Planning
+Tower Cranes X X
+Underground storage tank X X X X // // Required for projects within the
+installations, removals, or OCII areas, route to OCII instead of
+modification such as tank Planning
+lining, piping, monitoring
+equipment Installation
+Underpinning X ^ ^ Required if it may affect the public
+right-of-way
+Un-reinforced Masonry X X * X // * Required for any SFFD regulated
+Building (UMB) Retrofit occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 14 ===
+INFORMATION SHEET G-20 Attachment 1
+Exterior Work
+SCOPE OF WORK
+Page 10 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Vertical and/or Horizontal X X X * ^ X // + * Required for any SFFD regulated
+addition occupancy (High – rise, A, E, H, I, L
+or R except for R-3). For R3
+occupancy see (G) 4 requirements.
+^ Required for works which will
+encroach into the right-of-way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
++ Required for City projects and/or
+projects receiving public funds
+Wheelchair lift (See Interior X X // // Required for projects within the
+Work for a wheelchair OCII areas, route to OCII instead of
+installed inside the building) Planning
+Wind Screens X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Wind Turbine X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Windows - Bay Windows; X X # * ^ + // # MECH only
+dormer windows; new and
+* Required for any SFFD regulated
+or/or replacement windows;
+occupancy (High - rise, A, E, H, I, L
+property line windows
+or R except for R-3)
+^ Required for Bay Windows
+extended over the public right-of-way
++ Required for retail food and/or
+beverage facility
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 15 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 11 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Acupuncture X X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Addition of bathrooms X X X X // // Required for projects within the
+and/or plumbing to OCII areas, route to OCII instead of
+detached secondary Planning
+buildings/accessory
+structures.
+Auto Repair X X X X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Beauty Salon X X X X + // + Required if the establishment
+includes massage, permanent
+cosmetic, piercing, or tattoo services
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Candy shop, coffee shop, X X X * X X // * Required for occupant load greater
+herb stores than 49 or High-rises
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Cannabis Cultivation and X X X X X * // Note: Documentation from Office of
+Extraction Facilities Cannabis (OOC) prior to permit
+application process
+* Required for only cultivation and
+NOT extraction facilities
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Cannabis Dispensing X X X * X + // * Required for any SFFD regulated
+Facilities occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+
+=== PAGE 16 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 12 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Note:
+• Documentation from Office of
+Cannabis (OOC) prior to permit
+application process
+• See (C) 4, if onsite consumption
++ Route to Health before Planning if
+there is onsite consumption
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Car lift (stacked car lift) X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Change of a room or space ^ X # * X // ^ Required for Single-Family
+to or from a bedroom Oceanview Large Residence Special
+Use District 11 changing to or from 5
+bedrooms
+# MECH only
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Change of occupancy or X X X X X ^ // + ^ Required when going from a
+use nonfood and/or beverage use to food
+and/or beverage use.
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
++ Required for City projects and/or
+projects receiving public funds
+Commercial spaces X X X * X // * Required for any SFFD regulated
+merger occupancy (High - rise, A, E, H, I, L
+or R except for R-3
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 17 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 13 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Conversion of X X # X X // # MECH only
+unconditioned space to
+// Required for projects within the
+conditioned space (e.g.
+OCII areas, route to OCII instead of
+garage conversion to
+Planning
+habitable space)
+Corrections of Planning X X // // Required for projects within the
+Code Violations OCII areas, route to OCII instead of
+Planning
+Creation of 5 or more X X # * # MECH only
+bedrooms in a Single-
+* Required for any SFFD regulated
+Family dwelling in the
+occupancy (High - rise, A, E, H, I, L
+Oceanview Large
+or R except for R-3)
+Residence Special Use
+District (D11)
+Dental office (or Medical X X X X X // // Required for projects within the
+Office) OCII areas, route to OCII instead of
+Planning
+Dry Cleaner X X X X X + // + Required if dry cleaning services is
+provided on premise
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Dwelling Unit(s) - X X * // * Required for any SFFD regulated
+Unauthorized Dwelling occupancy (High-rise, A, E, H, I, L or
+Unit(s) removal R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Dwelling Unit(s) - Increase X X X * X // * Required for any SFFD regulated
+number of dwelling units occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 18 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 14 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Dwelling Unit(s) - Legal X X * // * Required for any SFFD regulated
+dwelling unit(s) removal occupancy (High-rise, A, E, H, I, L or
+R except for R-3
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Dwelling Unit(s) - Merger X X X * X // * Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Dwelling Unit(s) - X X X * X // Permit to be routed to Planning
+reconfiguration, relocation regardless of legality of unit(s) in
+and/or reduction in size of question.
+any dwelling unit(s)
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Electric Vehicle Chargers
+# X ^ X # Required in parking lots and
+parking garages
+^MECH-E only
+Energy Storage Systems X X X
+over 20 kWh
+Evacuation Sign at X
+elevator lobbies
+
+=== PAGE 19 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 15 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Expansion of use and/or X X X * X // * Required for any SFFD regulated
+additional floor area occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Fire Alarm/ Life Safety ^ X ^ Required if the smoke control
+report is included
+Fire Sprinkler X ^ ^ Required if dry standpipes or fire
+suppression water supply inlets
+(FDC) are protruding in the public
+right-of-way and BSM sidewalk
+excavation for fire lateral installation
+Fire Suppression System/ X
+ANSUL System
+Food processing or X X X * X + // * Required if storing quantities ≥875
+manufacturing facility, cubic feet of CO2 or ≥6,000 cubic
+private organization food feet of Nitrogen
+service
++ Required if storing CO2 or Nitrogen
+gas in quantities ≥1,000 cubic feet
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Food services, new work X X X * X X // * Required if storing quantities ≥875
+(i.e. grocery store, retail cubic feet of CO2 or ≥6,000 cubic
+coffee), food commissary feet of Nitrogen
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Fringe Financial Service X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Fuel cell units X X X X
+Gas/Service Station – new X X X X X X // // Required for projects within the
+or remodel OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 20 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 16 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Generator # X X X ^ + // # Required if it is located outdoor
+^ Required if piping and fuel port
+located or encroaching into the public
+right of way
++ Required for commercial property
+and residential property of more than
+three units if powered by a petroleum
+based product
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Grocery store X X X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Heat pump (s) X # * # MECH only
+* Required for any SFFD regulated
+occupancy (High-rise, A,E,H,I,L or R
+except for R-3)
+HVAC ^ # * + # MECH only
+^ Required if the HVAC is more than
+400 lbs per unit
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
++ Required only for hood/cooking
+exhaust system installation or
+alteration in food and/or beverage
+facilities
+Institutions (Hospitals, X X X X X + // + Required only for installation or
+Jails, Youth Guidance alteration in food and/or beverage
+Centers) areas.
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 21 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 17 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Intermediate Length X X * // * Required for any SFFD regulated
+Occupancy (ILO) occupancy (High-rise, A, E, H, I, L or
+designation R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Kitchen – Addition of a new X X # * X // # MECH only
+kitchen in a residential
+* Required for any SFFD regulated
+building or two-burner
+occupancy (High - rise, A, E, H, I, L
+stove
+or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Kitchen - Removal / X X * // * Required for any SFFD regulated
+Elimination of a kitchen occupancy (High - rise, A, E, H, I, L
+within residential uses or R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Kitchen Hood (s) Type 1 # X X + # MECH only
+(grease)
++ Required only in food and/or
+beverage facilities
+Kitchen Hood (s) Type 2 # X + # MECH only
+(heat, steam)
++ Required only in food and/or
+beverage facilities
+Laundry Rooms X X X * X * Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
++ Required for commercial laundry
+facilities that are available to the
+general public.
+
+=== PAGE 22 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 18 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Live Work X X X * Ø // DBI requires a formal letter from the
+director of City Planning prior to
+sending any documents,
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Massage Establishment X X X Ø X // Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Medical Office (or Dental X X X X X // // Required for projects within the
+Office) OCII areas, route to OCII instead of
+Planning
+Mezzanine - new or X X X * X // * Required for any SFFD regulated
+expansion to existing occupancy (High- rise, A, E, H, I, L or
+R except for R-3)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Mezzanine – reduction in X * * Required for any SFFD regulated
+size or sq ft occupancy (High-rise, A,E,H,I,L or R
+except for R-3)
+Nail Spa X X X Ø // Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Non-Potable Water X X Potable & Non-potable plumbing
+Systems schematics
+(Need to be routed to PID
+for review also)
+
+=== PAGE 23 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 19 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Interior Tenant # X X * ^ Ø // # Required on ground or street level
+Improvement or second floor.
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+^ Required if improvements are at
+the building entry/exit points adjacent
+to the public right-of-way, and
+improvements will trigger new or
+upgrade of utility services in the
+public right-of-way
+Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Interior Tenant X * Ø * Required for occupant load greater
+Improvement – than 49 or High-rises
+Accessibility upgrades /
+Ø Required for projects that include
+barrier removals
+the addition of plumbing fixtures
+Interior Tenant X * * Required for any SFFD regulated
+Improvement - Requesting occupancy (High - rise, A, E, H, I, L
+for exception to or R except for R-3)
+requirements for Disabled
+Access to vacant spaces
+per AB – 0173
+Interior Tenant X X X * ^ Ø + // * Required for occupant load greater
+Improvement – Retail store than 49 or High-rises
+interior tenant
+^ Required if improvements are at
+improvement at ground
+the building entry/exit points adjacent
+floor in downtown
+to the public right of way, and
+improvements will trigger new or
+upgrade of utility services in the
+public right- of- way
+Ø Required for projects that include
+the addition of plumbing fixtures
++ if food or beverage is sold
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 24 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 20 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Paint Spray Booths X X X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Pet Hospital X X X Ø // Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Pet Store X X X + // + Required if the premise has a
+facility for animal overnight boarding
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Relocate furnace / water # X * // # Required ONLY when relocation
+heater may impact existing off-street parking
+* MECH only
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Repair in-kind of damage X * * Required for any SFFD regulated
+due to Water occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+Repair in-kind of damage X * Notes: Applicants shall call for
+due to Fire inspection with the building inspector
+prior to construction
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+Self-Contained Fryer X # * X # MECH only
+* Required for any SFFD regulated
+occupancy (High - rise, A,E,H,I,L or
+R except for R-3)
+
+=== PAGE 25 ===
+INFORMATION SHEET G-20 Attachment 1
+Interior Work
+SCOPE OF WORK
+Page 21 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Seismic Retrofit, including # X * X # Only required for historic buildings
+Soft-Story (Category A*)
+* Required for any SFFD regulated
+occupancy (High- rise, A, E, H, I, L or
+R except for R-3)
+Signs – Interior wayfinding X ^ * ^ MECH-E only. Required for
+illuminated signs
+(ex. Westfield Mall, Stone
+town Galleria) * Required for any SFFD regulated
+occupancy (High- rise, A, E, H, I, L or
+R except for R-3)
+Sump pump X
+Swimming pools and/or hot X # X X # MECH only
+tubs
+Tattoo Parlor, body arts, X X X X // // Required for projects within the
+and permanent cosmetics OCII areas, route to OCII instead of
+Planning
+Transformer vaults # X X X // # Required ONLY when proposed for
+ground/street level façade
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Wheelchair lift (installed to X ^ ^ Required if extend over the right-of-
+stairs) way
+
+=== PAGE 26 ===
+INFORMATION SHEET G-20 Attachment 1
+Work with No Plans
+SCOPE OF WORK
+Page 22 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Emergency Panel/Fire X
+Alarm Replacement
+Furnace replacement in- X # # MECH only
+kind with duct work
+Garage Door Replacement X X // // Required for projects within the
+in-kind OCII areas, route to OCII instead of
+Planning
+Remodel of existing X * + * See Attachment 2
+kitchen and/or existing
++ Required if retail food and/or
+bathroom (no structural
+beverage facility
+work or wall removal, no
+new plumbing fixtures)
+Removal of General X X // Removal of General Advertising
+Advertising (pictures are Signs to comply with Notice of
+required) Violations shall include a copy of
+violation
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Repair in-kind of less than # X // # Required only for front decks of
+50% of existing deck historic buildings (Category A*)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Repair in-kind of less than # X ^ // # Required only for front stairs of
+50% of existing stairs historic buildings (Category A*)
+^ Required if extend over the right-of-
+way
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Replacement in-kind or # X // # Required for historic buildings
+repair of existing siding (Category A*)
+that is visible or not visible
+// Required for projects within the
+from the street
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 27 ===
+INFORMATION SHEET G-20 Attachment 1
+Work with No Plans
+SCOPE OF WORK
+Page 23 of 26
+GNINNALP
+GDLB
+E-HCEM/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Replacement of existing X X // // Required for projects within the
+siding to new siding for OCII areas, route to OCII instead of
+example from stucco to Planning
+wood siding or vice versa
+Re-roofing (No removal of # X * ^ // # Required if they are historic
+wood shingle, No re- buildings (Category A).
+sheathing, No plywood
+// Required for projects within the
+replacement)
+OCII areas, route to OCII instead of
+Planning
+* Roofing involving Hot Work (torch
+down or acetylene) SFFD required
+^If requested no street space, then
+route to Public Works
+Voluntary installation of X
+anchor bolts and plywood
+sheathing at the first story
+of residential wood-frame
+buildings
+Window Replacement in- # X ^ * + // # Required if the window is visible
+kind from street
+^ MECH only. Required for
+residential buildings with 4 or more
+habitable stories and non-residential
+buildings
+* Required for any SFFD regulated
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
++ Required for non-fixed windows in
+retail food and/or beverage facility
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 28 ===
+INFORMATION SHEET G-20 Attachment 1
+Others
+SCOPE OF WORK
+Page 24 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Academy of Art University X X X X X Route to Planning for any scope of
+work on AAU properties which have
+active Planning code violation noted
+in Planning Information Map (PIM)
+Soil disturbance of at least X X X X // Refer applicant to complete
+50 cubic yards of soil Attachment 3
+within the Maher Area.
+Examples of soil disturbance include
+grading, excavating, trenching,
+cut/fill, landscaping, planting, digging,
+burying, removing topsoil, etc. Refer
+to Information Sheet G-14
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Soil disturbance of any X X X X // Refer applicant to complete
+volume within the Health Attachment 3
+Code Article 31 Area.
+Sites within the Health Code Article
+31 Area will note “Health Code
+Article 31 Restrictions Apply” under
+zoning information in a PIM property
+search.
+(Examples of soil disturbance include
+grading, excavating, trenching,
+cut/fill, landscaping, planting, digging,
+burying, removing topsoil,
+etc.https://sfdbi.org/sites/default/files/
+IS G-14.pdf)
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 29 ===
+INFORMATION SHEET G-20 Attachment 1
+Others
+SCOPE OF WORK
+Page 25 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Legalization of items listed X X ^ * Ø // ^ MECH only. Required for new
+on the Physical Inspection habitable space
+Report which generally
+* Required for any SFFD regulated
+requires plans
+occupancy (High - rise, A, E, H, I, L
+or R except for R-3)
+Ø Required if includes addition of
+plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Lot split or Lot merger X X X // // Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Cannabis X X X Ø // Ø Required for review of heavy water
+Cultivation/Nurseries use and possible contaminated
+discharge.
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Project NOT on City- X X X * Ø // * Required for any SFFD regulated
+owned or leased property, occupancy (High - rise, A, E, H, I, L
+and it does NOT receive or R except for R-3)
+public funding
+Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Project NOT on City- X X X * Ø // * Required for any SFFD regulated
+owned or leased property, occupancy (High - rise, A, E, H, I, L
+but it receives public or R except for R-3)
+funding
+Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+
+=== PAGE 30 ===
+INFORMATION SHEET G-20 Attachment 1
+Others
+SCOPE OF WORK
+Page 26 of 26
+GNINNALP
+GDLB
+E-HCEM
+/HCEM
+DFFS MSB CUP
+HTLAEH
+IICO
+CAD-WP
+COMMENTS
+Project ON City-owned or X X X * Ø // + * Required for any SFFD regulated
+leased property, and it is occupancy (High - rise, A, E, H, I, L
+being managed, designed or R except for R-3)
+or built by DPW
+Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
++ PW-DAC requires review for
+Disabled Access code compliance
+Project ON city owned or X X X * Ø // * Required for any SFFD regulated
+leased property, and it is occupancy (High - rise, A, E, H, I, L
+NOT being managed, or R except for R-3)
+designed or built by DPW
+Ø Required for projects that include
+the addition of plumbing fixtures
+// Required for projects within the
+OCII areas, route to OCII instead of
+Planning
+Request of full compliance X * * Required for any SFFD regulated
+with Physical Inspection occupancy (High - rise, A, E, H, I, L
+Report which generally or R except for R-3)
+does not require plans.
+
+=== PAGE 31 ===
+INFORMATION SHEET G-20 Attachment 2
+Page 1 of 3
+
+=== PAGE 32 ===
+INFORMATION SHEET G-20 Attachment 2
+Page 2 of 3
+
+=== PAGE 33 ===
+INFORMATION SHEET G-20 Attachment 2
+Page 3 of 3
+
+=== PAGE 34 ===
+INFORMATION SHEET G-20 Attachment 3
+Page 1 of 1

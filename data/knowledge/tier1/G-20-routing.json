@@ -1,0 +1,4485 @@
+{
+  "source_id": "IS-G-20",
+  "source_type": "information_sheet",
+  "title": "Interim Criteria - Building Permit Application Routing to City Agencies",
+  "url": "https://media.api.sf.gov/documents/INFORMATION_SHEET_G-20_8-29-2025.pdf",
+  "last_updated": "2025-08-29",
+  "ingested_date": "2026-02-13",
+  "summary": "THE routing table for SF building permits. Maps scope of work categories to reviewing agencies (Planning, BLDG, MECH, SFFD, BSM, PUC, Health, OCII, PW-DAC). Contains 26-page Attachment 1 matrix plus discussion rules A-N covering special routing conditions.",
+  "agencies": {
+    "PLANNING": "Planning Department (City Planning - Zoning Counter, CP-ZOC)",
+    "BLDG": "DBI Architectural and Structural Plan Review",
+    "MECH/MECH-E": "DBI Mechanical Plan Review / Electrical Plan Review",
+    "SFFD": "San Francisco Fire Department",
+    "BSM": "DPW Bureau of Street-Use and Mapping",
+    "PUC": "Public Utility Commission",
+    "HEALTH": "Department of Public Health",
+    "OCII": "Office of Community Investment and Infrastructure (successor to SF Redevelopment Agency)",
+    "PW-DAC": "DPW Office of Disability Access Coordinator",
+    "DPH": "Department of Public Health (see Attachment 3)",
+    "PID": "Plumbing Inspection Division",
+    "CON-BOND": "Controller's Office (construction bond)"
+  },
+  "symbol_legend": {
+    "X": "required",
+    "#": "conditional_see_comments",
+    "*": "conditional_see_comments",
+    "^": "conditional_see_comments",
+    "//": "OCII_areas_only",
+    "+": "conditional_see_comments",
+    "\u00d8": "conditional_see_comments"
+  },
+  "discussion_rules": [
+    {
+      "rule_id": "G20-A",
+      "section": "A",
+      "text": "This Information Sheet supersedes all previously issued documentation on routing.",
+      "action": "Use this document as the authoritative routing reference"
+    },
+    {
+      "rule_id": "G20-B",
+      "section": "B",
+      "text": "Building permit applications, renewals of expired permits, and permit revisions that fall under the categories listed in Attachment 1 shall be referred by DBI to the specified agencies for review.",
+      "action": "Route per Attachment 1 matrix",
+      "agencies_referenced": [
+        "PLANNING",
+        "BLDG",
+        "MECH/MECH-E",
+        "SFFD",
+        "BSM",
+        "PUC",
+        "OCII",
+        "PW-DAC"
+      ]
+    },
+    {
+      "rule_id": "G20-C",
+      "section": "C",
+      "text": "Routing to Department of Public Health (DPH)",
+      "action": "Route to DPH per attachment 3",
+      "conditions": [
+        "New construction, seismic retrofit or remodel of buildings under DPH programs",
+        "Retail projects involving Food Facility",
+        "Onsite consumption in Medical Cannabis Dispensing facilities (route DPH first before Planning)"
+      ],
+      "exceptions": [
+        "Do not route Article 38 (enhanced ventilation) construction plans to DPH"
+      ]
+    },
+    {
+      "rule_id": "G20-D",
+      "section": "D",
+      "text": "Routing to Planning and Others (for site permit and addendum)",
+      "action": "Planning is first station for site permit",
+      "conditions": [
+        "New buildings: architectural addendum routes to Planning, BSM, PUC (even if no changes from site permit). Planning is LAST station for architectural addendum.",
+        "Existing buildings: architectural addendum need not route to Planning if no changes from site permit (unless specifically requested)"
+      ]
+    },
+    {
+      "rule_id": "G20-E",
+      "section": "E",
+      "text": "In OCII areas, permits route to OCII instead of Planning. OCII is last station to review.",
+      "action": "Route to OCII instead of Planning",
+      "condition": "Project is in OCII area",
+      "note": "OCII reviews all permit addenda"
+    },
+    {
+      "rule_id": "G20-F",
+      "section": "F",
+      "text": "Major changes on issued Site Permit",
+      "action": "File new permit application form 3/8 as altered site permit",
+      "steps": [
+        "Route to Planning for review/approval (with reference drawings)",
+        "Assign to original plan reviewer",
+        "Original site permit remains active, paired with altered site permit",
+        "No altered site permit if addendum already issued",
+        "All addenda under altered site permit",
+        "Fees based on both altered and original site permit",
+        "CFC for both issued together"
+      ]
+    },
+    {
+      "rule_id": "G20-G",
+      "section": "G",
+      "text": "Routing to Fire for buildings of R3 occupancy",
+      "conditions": [
+        "All site permit plans of new buildings \u2192 SFFD for access and Fire-flow analysis",
+        "Sprinkler addendum \u2192 SFFD (other addendum not required)",
+        "Additions/alterations: applicant marks sprinkler status on plans",
+        "Vertical additions \u2192 SFFD for Fire Department access"
+      ]
+    },
+    {
+      "rule_id": "G20-H",
+      "section": "H",
+      "text": "Coordination with Department of Environment on demolition",
+      "action": "See Information Sheet S-04"
+    },
+    {
+      "rule_id": "G20-I",
+      "section": "I",
+      "text": "Routing to PW-DAC",
+      "conditions": [
+        "Site permit and architectural addendum for new construction, alteration, addition, change in occupancy/use",
+        "On any City Project or project receiving public funds"
+      ],
+      "action": "Route to PW-DAC",
+      "note": "See Information Sheet DA-02 pages 2-3 for City Projects"
+    },
+    {
+      "rule_id": "G20-BSM-EXEMPTIONS",
+      "section": "I (continued)",
+      "text": "BSM routing exemptions",
+      "not_required_when": [
+        "Element affixed to building is no more than 4 inches into Public Way",
+        "Minor element authorized by previous permit (utility fixtures, water spouts, standpipes, outward-swinging doors, security gates)",
+        "Permit exclusively for accessibility compliance (door actuators, wheelchair lifts)"
+      ],
+      "still_required_when": [
+        "Awning with fixed vertical posts in public right-of-way (canopies)"
+      ]
+    },
+    {
+      "rule_id": "G20-J",
+      "section": "J",
+      "text": "Kitchen/Bathroom Permit with No Plan",
+      "action": "No plan permit for kitchen/bathroom remodel need not route to SFFD. Plan Reviewer N/As SFFD block.",
+      "exception": "Route to SFFD when cost exceeds $99,000 in Group R2 occupancy (see Attachment 2)"
+    },
+    {
+      "rule_id": "G20-K",
+      "section": "K",
+      "text": "Alternate water systems (greywater, reclaimed water, storm water detention)",
+      "action": "Route to PID (Plumbing Inspection Division) for review at site permit"
+    },
+    {
+      "rule_id": "G20-M",
+      "section": "M",
+      "text": "R2 occupancy with $99K+ construction cost",
+      "action": "Route to SFFD",
+      "condition": "Building permits involving Group R2 with cost of construction of $99,000 or more"
+    },
+    {
+      "rule_id": "G20-N",
+      "section": "N",
+      "text": "CON-BOND routing for multi-residential",
+      "condition": "New construction, horizontal/vertical addition, or alteration for multi-residential building increasing unit count by 10+",
+      "action": "Add CON-BOND to routing. Issuance held until Controller's office clearance.",
+      "exceptions": [
+        "Projects part of Development Agreement",
+        "Projects receiving public funding",
+        "Projects with established Labor Agreement"
+      ],
+      "note": "First Construction Document means first addendum authorizing construction (not demo, grading, shoring, site prep)"
+    }
+  ],
+  "routing_matrix": [
+    {
+      "scope_of_work": "ATM\u2019s",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Accessible Entrance Elements",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required if entrance serves any SFFD regulated occupancy (High- rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Awnings, Marquees and Canopies",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Cellular antennas and transmitters",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ MECH-E only. // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Concrete paving in rear yard",
+      "category": "Exterior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Concrete paving or landscape in front yard",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ Required if landscaping or concrete paving is in the public area // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Cooling Tower",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Creation of outdoor activities in commercial and industrial areas",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 5
+    },
+    {
+      "scope_of_work": "Curb Cuts (New or modified)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 6
+    },
+    {
+      "scope_of_work": "Decks - New Decks; Roof Decks; Replacement of Rear or Front Decks",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 6
+    },
+    {
+      "scope_of_work": "Decks - Repair in-kind of Front or Rear Deck",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 6
+    },
+    {
+      "scope_of_work": "Demolition of building (complete removal or all portions above grade)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High \u2013 rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 6
+    },
+    {
+      "scope_of_work": "Doors - Change of existing door size",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required if they are visible from street(s), are historic buildings (Category A* or A) * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 6
+    },
+    {
+      "scope_of_work": "Drive-up facilities",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 6
+    },
+    {
+      "scope_of_work": "Energy Storage Systems (ESS) over 20 kWh total capacity",
+      "category": "Exterior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "# MECH-E only",
+      "source_page": 6
+    },
+    {
+      "scope_of_work": "Evaporative Vapor Recovery (EVR) equipment for Gas Station",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 7
+    },
+    {
+      "scope_of_work": "Fill in a light well",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 7
+    },
+    {
+      "scope_of_work": "Fill in an area on the ground floor underneath a legal room",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 7
+    },
+    {
+      "scope_of_work": "Fire escapes",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ Required if extend over the public right-of-way // Required for projects within OCII areas",
+      "source_page": 7
+    },
+    {
+      "scope_of_work": "Foundation",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "^ Required if affects public right-of- way",
+      "source_page": 7
+    },
+    {
+      "scope_of_work": "Garage (New)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ MECH only. Required if heating / cooling system or mechanical equipment is provided * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) \u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 7
+    },
+    {
+      "scope_of_work": "Gas/Service Station \u2013 new or remodel",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "\u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 7
+    },
+    {
+      "scope_of_work": "Generator",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required if located outdoors. ^ Required if piping and fuel port located or encroaching into the public right of way. + Petroleum powered generators only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 8
+    },
+    {
+      "scope_of_work": "Landmark Buildings and Buildings within Historic Districts \u2013 Landscaping (Category A*)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 8
+    },
+    {
+      "scope_of_work": "Landmark Buildings and Buildings within Historic Districts - Lighting Fixtures (Category A*)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH-E only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 8
+    },
+    {
+      "scope_of_work": "Landmark Buildings and Buildings within Historic Districts - Painting (including re-painting and murals) (Category A*)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Building permit not required however must consult Planning department",
+      "source_page": 8
+    },
+    {
+      "scope_of_work": "New construction",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning. Areas such as Hunters Point View and South of Market required a joint review by Planning and OCII. + Required for projects that are publicly funded or owned by, or operated on behalf of the City and County of San Francisco",
+      "source_page": 8
+    },
+    {
+      "scope_of_work": "New openings for food service e.g. pass-thru windows",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 8
+    },
+    {
+      "scope_of_work": "Outdoor seating or eating areas",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ Required if located in the public right-of-way // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 9
+    },
+    {
+      "scope_of_work": "Penthouses - Stair, Elevator or Mechanical",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 9
+    },
+    {
+      "scope_of_work": "Restaurant, take-out food, delicatessen, bakery, ice cream parlor, bar/liquor, juice bar, cafeterias",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for occupant load greater than 49 or High-rises // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 9
+    },
+    {
+      "scope_of_work": "Retaining walls",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ Required if affects public right-of- way // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 9
+    },
+    {
+      "scope_of_work": "Roof Chiller(s)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 9
+    },
+    {
+      "scope_of_work": "Roof - Commercial Roof and roof for high-rise residential (Cool Roof)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required for historic buildings (Category A*) where there is a change in roof structure or sheathing * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) Roofing involving Hot Work (torch down or acetylene) // Required for projects within the OCII areas, route to OCII instead of Planning ^ If requested no street space, then route to Public Works",
+      "source_page": 9
+    },
+    {
+      "scope_of_work": "Roof - Residential Roof for low-rise residential (Cool Roof)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required for historic buildings (Category A*) where there is a change in roof structure or sheathing // Required for projects within the OCII areas, route to OCII instead of Planning ^ Street space required. If requested no street space, then route to Public Works * Roofing involving Hot Work (torch down or acetylene) route to SFFD",
+      "source_page": 10
+    },
+    {
+      "scope_of_work": "Security Gate",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 10
+    },
+    {
+      "scope_of_work": "Shoring or Tiebacks",
+      "category": "Exterior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "^ Required if affects public right-of- way",
+      "source_page": 10
+    },
+    {
+      "scope_of_work": "Siding - Repair in-kind of Rear, Front or Side Siding",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required if publicly visible from street or on any historic building (Category A*) * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 10
+    },
+    {
+      "scope_of_work": "Signs \u2013 Exterior Note: For Interior Sign see Scope of Work for Interior Work section.",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ MECH-E only. Required for illuminated signs + Required if extend over the public right-of-way greater than 4 inches // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 10
+    },
+    {
+      "scope_of_work": "Signs - General Advertising",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ MECH-E only. Required for illuminated signs * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 11
+    },
+    {
+      "scope_of_work": "Signs - On Awning",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 11
+    },
+    {
+      "scope_of_work": "Signs - Painted or non- structural",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 11
+    },
+    {
+      "scope_of_work": "Skylights",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required on publicly visible portions or slope roofs of historic buildings (Category A*) ^ MECH only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 11
+    },
+    {
+      "scope_of_work": "Solar panels / Solar roofs",
+      "category": "Exterior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ Required if they need structural and/or extensive permit review to assure the public health and safety. Otherwise, electrical permits only are required + MECH-E only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 11
+    },
+    {
+      "scope_of_work": "Stairs",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) ^ Required if extend over the right-of- way // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 12
+    },
+    {
+      "scope_of_work": "Stairs - Repair in-kind of Rear or Front Stairs",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required ONLY for front stairs * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) ^ Required if extend over the right-of- way // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 12
+    },
+    {
+      "scope_of_work": "Stairs - Replacement of Rear or Front Stairs",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) ^ Required if extend over the right-of- way // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 12
+    },
+    {
+      "scope_of_work": "Storefront (including Entry Doors)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ MECH only. Required if there are proposed fenestration changes * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) % Required for works which will encroach into the right-of-way // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 12
+    },
+    {
+      "scope_of_work": "Sub sidewalk basement installation or repair",
+      "category": "Exterior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 12
+    },
+    {
+      "scope_of_work": "Swimming pools and/or hot tubs",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Temporary Trailer (Mobile Module Trailer)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Temporary use of existing outdoor open space e.g. Ice Skating, Black and White Ball",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "+ Required if cooking facilities are provided. However, food catering does not need the DPH review // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Temporary use of vacant site e.g. Christmas tree lots, pumpkin lots",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Tower Cranes",
+      "category": "Exterior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Underground storage tank installations, removals, or modification such as tank lining, piping, monitoring equipment Installation",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Underpinning",
+      "category": "Exterior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "^ Required if it may affect the public right-of-way",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Un-reinforced Masonry Building (UMB) Retrofit",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 13
+    },
+    {
+      "scope_of_work": "Vertical and/or Horizontal addition",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High \u2013 rise, A, E, H, I, L or R except for R-3). For R3 occupancy see (G) 4 requirements. ^ Required for works which will encroach into the right-of-way // Required for projects within the OCII areas, route to OCII instead of Planning + Required for City projects and/or projects receiving public funds",
+      "source_page": 14
+    },
+    {
+      "scope_of_work": "Wheelchair lift (See Interior Work for a wheelchair installed inside the building)",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 14
+    },
+    {
+      "scope_of_work": "Wind Screens",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 14
+    },
+    {
+      "scope_of_work": "Wind Turbine",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 14
+    },
+    {
+      "scope_of_work": "Windows - Bay Windows; dormer windows; new and or/or replacement windows; property line windows",
+      "category": "Exterior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) ^ Required for Bay Windows extended over the public right-of-way + Required for retail food and/or beverage facility // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 14
+    },
+    {
+      "scope_of_work": "Acupuncture",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 15
+    },
+    {
+      "scope_of_work": "Addition of bathrooms and/or plumbing to detached secondary buildings/accessory structures.",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 15
+    },
+    {
+      "scope_of_work": "Auto Repair",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 15
+    },
+    {
+      "scope_of_work": "Beauty Salon",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "+ Required if the establishment includes massage, permanent cosmetic, piercing, or tattoo services // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 15
+    },
+    {
+      "scope_of_work": "Candy shop, coffee shop, herb stores",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for occupant load greater than 49 or High-rises // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 15
+    },
+    {
+      "scope_of_work": "Cannabis Cultivation and Extraction Facilities",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "Note: Documentation from Office of Cannabis (OOC) prior to permit application process * Required for only cultivation and NOT extraction facilities // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 15
+    },
+    {
+      "scope_of_work": "Cannabis Dispensing Facilities",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 15
+    },
+    {
+      "scope_of_work": "Car lift (stacked car lift)",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 16
+    },
+    {
+      "scope_of_work": "Change of a room or space to or from a bedroom",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ Required for Single-Family Oceanview Large Residence Special Use District 11 changing to or from 5 bedrooms # MECH only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 16
+    },
+    {
+      "scope_of_work": "Change of occupancy or use",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "^ Required when going from a nonfood and/or beverage use to food and/or beverage use. // Required for projects within the OCII areas, route to OCII instead of Planning + Required for City projects and/or projects receiving public funds",
+      "source_page": 16
+    },
+    {
+      "scope_of_work": "Commercial spaces merger",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3 // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 16
+    },
+    {
+      "scope_of_work": "Conversion of unconditioned space to conditioned space (e.g. garage conversion to habitable space)",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 17
+    },
+    {
+      "scope_of_work": "Corrections of Planning Code Violations",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 17
+    },
+    {
+      "scope_of_work": "Creation of 5 or more bedrooms in a Single- Family dwelling in the Oceanview Large Residence Special Use District (D11)",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "# MECH only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 17
+    },
+    {
+      "scope_of_work": "Dental office (or Medical Office)",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 17
+    },
+    {
+      "scope_of_work": "Dry Cleaner",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "+ Required if dry cleaning services is provided on premise // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 17
+    },
+    {
+      "scope_of_work": "Dwelling Unit(s) - Unauthorized Dwelling Unit(s) removal",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High-rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 17
+    },
+    {
+      "scope_of_work": "Dwelling Unit(s) - Increase number of dwelling units",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 17
+    },
+    {
+      "scope_of_work": "Dwelling Unit(s) - Legal dwelling unit(s) removal",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High-rise, A, E, H, I, L or R except for R-3 // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 18
+    },
+    {
+      "scope_of_work": "Dwelling Unit(s) - Merger",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 18
+    },
+    {
+      "scope_of_work": "Dwelling Unit(s) - reconfiguration, relocation and/or reduction in size of any dwelling unit(s)",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "Permit to be routed to Planning regardless of legality of unit(s) in question. * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 18
+    },
+    {
+      "scope_of_work": "Electric Vehicle Chargers",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "# Required in parking lots and parking garages ^MECH-E only",
+      "source_page": 18
+    },
+    {
+      "scope_of_work": "Energy Storage Systems over 20 kWh",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 18
+    },
+    {
+      "scope_of_work": "Evacuation Sign at elevator lobbies",
+      "category": "Interior Work",
+      "routing": {
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 18
+    },
+    {
+      "scope_of_work": "Expansion of use and/or additional floor area",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Fire Alarm/ Life Safety",
+      "category": "Interior Work",
+      "routing": {
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "^ Required if the smoke control report is included",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Fire Sprinkler",
+      "category": "Interior Work",
+      "routing": {
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "^ Required if dry standpipes or fire suppression water supply inlets (FDC) are protruding in the public right-of-way and BSM sidewalk excavation for fire lateral installation",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Fire Suppression System/ ANSUL System",
+      "category": "Interior Work",
+      "routing": {
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Food processing or manufacturing facility, private organization food service",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required if storing quantities \u2265875 cubic feet of CO2 or \u22656,000 cubic feet of Nitrogen + Required if storing CO2 or Nitrogen gas in quantities \u22651,000 cubic feet // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Food services, new work (i.e. grocery store, retail coffee), food commissary",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required if storing quantities \u2265875 cubic feet of CO2 or \u22656,000 cubic feet of Nitrogen // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Fringe Financial Service",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Fuel cell units",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Gas/Service Station \u2013 new or remodel",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 19
+    },
+    {
+      "scope_of_work": "Generator",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required if it is located outdoor ^ Required if piping and fuel port located or encroaching into the public right of way + Required for commercial property and residential property of more than three units if powered by a petroleum based product // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 20
+    },
+    {
+      "scope_of_work": "Grocery store",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 20
+    },
+    {
+      "scope_of_work": "Heat pump (s)",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "# MECH only * Required for any SFFD regulated occupancy (High-rise, A,E,H,I,L or R except for R-3)",
+      "source_page": 20
+    },
+    {
+      "scope_of_work": "HVAC",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "# MECH only ^ Required if the HVAC is more than 400 lbs per unit * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) + Required only for hood/cooking exhaust system installation or alteration in food and/or beverage facilities",
+      "source_page": 20
+    },
+    {
+      "scope_of_work": "Institutions (Hospitals, Jails, Youth Guidance Centers)",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "+ Required only for installation or alteration in food and/or beverage areas. // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 20
+    },
+    {
+      "scope_of_work": "Intermediate Length Occupancy (ILO) designation",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High-rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 21
+    },
+    {
+      "scope_of_work": "Kitchen \u2013 Addition of a new kitchen in a residential building or two-burner stove",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# MECH only * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 21
+    },
+    {
+      "scope_of_work": "Kitchen - Removal / Elimination of a kitchen within residential uses",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 21
+    },
+    {
+      "scope_of_work": "Kitchen Hood (s) Type 1 (grease)",
+      "category": "Interior Work",
+      "routing": {
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "# MECH only + Required only in food and/or beverage facilities",
+      "source_page": 21
+    },
+    {
+      "scope_of_work": "Kitchen Hood (s) Type 2 (heat, steam)",
+      "category": "Interior Work",
+      "routing": {
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "# MECH only + Required only in food and/or beverage facilities",
+      "source_page": 21
+    },
+    {
+      "scope_of_work": "Laundry Rooms",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) + Required for commercial laundry facilities that are available to the general public.",
+      "source_page": 21
+    },
+    {
+      "scope_of_work": "Live Work",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "DBI requires a formal letter from the director of City Planning prior to sending any documents, * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) \u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 22
+    },
+    {
+      "scope_of_work": "Massage Establishment",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "\u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 22
+    },
+    {
+      "scope_of_work": "Medical Office (or Dental Office)",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 22
+    },
+    {
+      "scope_of_work": "Mezzanine - new or expansion to existing",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High- rise, A, E, H, I, L or R except for R-3) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 22
+    },
+    {
+      "scope_of_work": "Mezzanine \u2013 reduction in size or sq ft",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High-rise, A,E,H,I,L or R except for R-3)",
+      "source_page": 22
+    },
+    {
+      "scope_of_work": "Nail Spa",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "\u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 22
+    },
+    {
+      "scope_of_work": "Non-Potable Water Systems (Need to be routed to PID for review also)",
+      "category": "Interior Work",
+      "routing": {
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "Potable & Non-potable plumbing schematics",
+      "source_page": 22
+    },
+    {
+      "scope_of_work": "Interior Tenant Improvement",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required on ground or street level or second floor. * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) ^ Required if improvements are at the building entry/exit points adjacent to the public right-of-way, and improvements will trigger new or upgrade of utility services in the public right-of-way \u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 23
+    },
+    {
+      "scope_of_work": "Interior Tenant Improvement \u2013 Accessibility upgrades / barrier removals",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for occupant load greater than 49 or High-rises \u00d8 Required for projects that include the addition of plumbing fixtures",
+      "source_page": 23
+    },
+    {
+      "scope_of_work": "Interior Tenant Improvement - Requesting for exception to requirements for Disabled Access to vacant spaces per AB \u2013 0173",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 23
+    },
+    {
+      "scope_of_work": "Interior Tenant Improvement \u2013 Retail store interior tenant improvement at ground floor in downtown",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for occupant load greater than 49 or High-rises ^ Required if improvements are at the building entry/exit points adjacent to the public right of way, and improvements will trigger new or upgrade of utility services in the public right- of- way \u00d8 Required for projects that include the addition of plumbing fixtures + if food or beverage is sold // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 23
+    },
+    {
+      "scope_of_work": "Paint Spray Booths",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 24
+    },
+    {
+      "scope_of_work": "Pet Hospital",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "\u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 24
+    },
+    {
+      "scope_of_work": "Pet Store",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "+ Required if the premise has a facility for animal overnight boarding // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 24
+    },
+    {
+      "scope_of_work": "Relocate furnace / water heater",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required ONLY when relocation may impact existing off-street parking * MECH only // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 24
+    },
+    {
+      "scope_of_work": "Repair in-kind of damage due to Water",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 24
+    },
+    {
+      "scope_of_work": "Repair in-kind of damage due to Fire",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "Notes: Applicants shall call for inspection with the building inspector prior to construction * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 24
+    },
+    {
+      "scope_of_work": "Self-Contained Fryer",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "# MECH only * Required for any SFFD regulated occupancy (High - rise, A,E,H,I,L or R except for R-3)",
+      "source_page": 24
+    },
+    {
+      "scope_of_work": "Seismic Retrofit, including Soft-Story",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "# Only required for historic buildings (Category A*) * Required for any SFFD regulated occupancy (High- rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 25
+    },
+    {
+      "scope_of_work": "Signs \u2013 Interior wayfinding (ex. Westfield Mall, Stone town Galleria)",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "^ MECH-E only. Required for illuminated signs * Required for any SFFD regulated occupancy (High- rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 25
+    },
+    {
+      "scope_of_work": "Sump pump",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 25
+    },
+    {
+      "scope_of_work": "Swimming pools and/or hot tubs",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "# MECH only",
+      "source_page": 25
+    },
+    {
+      "scope_of_work": "Tattoo Parlor, body arts, and permanent cosmetics",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 25
+    },
+    {
+      "scope_of_work": "Transformer vaults",
+      "category": "Interior Work",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "HEALTH": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required ONLY when proposed for ground/street level fa\u00e7ade // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 25
+    },
+    {
+      "scope_of_work": "Wheelchair lift (installed to stairs)",
+      "category": "Interior Work",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "^ Required if extend over the right-of- way",
+      "source_page": 25
+    },
+    {
+      "scope_of_work": "Emergency Panel/Fire Alarm Replacement",
+      "category": "Work with No Plans",
+      "routing": {
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Furnace replacement in- kind with duct work",
+      "category": "Work with No Plans",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "# MECH only",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Garage Door Replacement in-kind",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Remodel of existing kitchen and/or existing bathroom (no structural work or wall removal, no new plumbing fixtures)",
+      "category": "Work with No Plans",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* See Attachment 2 + Required if retail food and/or beverage facility",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Removal of General Advertising (pictures are required)",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "Removal of General Advertising Signs to comply with Notice of Violations shall include a copy of violation // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Repair in-kind of less than 50% of existing deck",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required only for front decks of historic buildings (Category A*) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Repair in-kind of less than 50% of existing stairs",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required only for front stairs of historic buildings (Category A*) ^ Required if extend over the right-of- way // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Replacement in-kind or repair of existing siding that is visible or not visible from the street",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required for historic buildings (Category A*) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 26
+    },
+    {
+      "scope_of_work": "Replacement of existing siding to new siding for example from stucco to wood siding or vice versa",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 27
+    },
+    {
+      "scope_of_work": "Re-roofing (No removal of wood shingle, No re- sheathing, No plywood replacement)",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required if they are historic buildings (Category A). // Required for projects within the OCII areas, route to OCII instead of Planning * Roofing involving Hot Work (torch down or acetylene) SFFD required ^If requested no street space, then route to Public Works",
+      "source_page": 27
+    },
+    {
+      "scope_of_work": "Voluntary installation of anchor bolts and plywood sheathing at the first story of residential wood-frame buildings",
+      "category": "Work with No Plans",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "",
+      "source_page": 27
+    },
+    {
+      "scope_of_work": "Window Replacement in- kind",
+      "category": "Work with No Plans",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "#",
+          "meaning": "conditional_see_comments"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "# Required if the window is visible from street ^ MECH only. Required for residential buildings with 4 or more habitable stories and non-residential buildings * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) + Required for non-fixed windows in retail food and/or beverage facility // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 27
+    },
+    {
+      "scope_of_work": "Academy of Art University",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "PUC": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        }
+      },
+      "comments": "Route to Planning for any scope of work on AAU properties which have active Planning code violation noted in Planning Information Map (PIM)",
+      "source_page": 28
+    },
+    {
+      "scope_of_work": "Soil disturbance of at least 50 cubic yards of soil within the Maher Area.",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "Refer applicant to complete Attachment 3 Examples of soil disturbance include grading, excavating, trenching, cut/fill, landscaping, planting, digging, burying, removing topsoil, etc. Refer to Information Sheet G-14 // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 28
+    },
+    {
+      "scope_of_work": "Soil disturbance of any volume within the Health Code Article 31 Area.",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BSM": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "Refer applicant to complete Attachment 3 Sites within the Health Code Article 31 Area will note \u201cHealth Code Article 31 Restrictions Apply\u201d under zoning information in a PIM property search. (Examples of soil disturbance include grading, excavating, trenching, cut/fill, landscaping, planting, digging, burying, removing topsoil, etc.https://sfdbi.org/sites/default/files/ IS G-14.pdf) // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 28
+    },
+    {
+      "scope_of_work": "Legalization of items listed on the Physical Inspection Report which generally requires plans",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "^",
+          "meaning": "conditional_see_comments"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "^ MECH only. Required for new habitable space * Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) \u00d8 Required if includes addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 29
+    },
+    {
+      "scope_of_work": "Lot split or Lot merger",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "// Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 29
+    },
+    {
+      "scope_of_work": "Cannabis Cultivation/Nurseries",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "\u00d8 Required for review of heavy water use and possible contaminated discharge. // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 29
+    },
+    {
+      "scope_of_work": "Project NOT on City- owned or leased property, and it does NOT receive public funding",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) \u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 29
+    },
+    {
+      "scope_of_work": "Project NOT on City- owned or leased property, but it receives public funding",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) \u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 29
+    },
+    {
+      "scope_of_work": "Project ON City-owned or leased property, and it is being managed, designed or built by DPW",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        },
+        "PW-DAC": {
+          "required": true,
+          "mark": "+",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) \u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning + PW-DAC requires review for Disabled Access code compliance",
+      "source_page": 30
+    },
+    {
+      "scope_of_work": "Project ON city owned or leased property, and it is NOT being managed, designed or built by DPW",
+      "category": "Others",
+      "routing": {
+        "PLANNING": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "MECH/MECH-E": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        },
+        "OCII": {
+          "required": true,
+          "mark": "//",
+          "meaning": "OCII_areas_only"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3) \u00d8 Required for projects that include the addition of plumbing fixtures // Required for projects within the OCII areas, route to OCII instead of Planning",
+      "source_page": 30
+    },
+    {
+      "scope_of_work": "Request of full compliance with Physical Inspection Report which generally does not require plans.",
+      "category": "Others",
+      "routing": {
+        "BLDG": {
+          "required": true,
+          "mark": "X",
+          "meaning": "required"
+        },
+        "SFFD": {
+          "required": true,
+          "mark": "*",
+          "meaning": "conditional_see_comments"
+        }
+      },
+      "comments": "* Required for any SFFD regulated occupancy (High - rise, A, E, H, I, L or R except for R-3)",
+      "source_page": 30
+    }
+  ],
+  "routing_matrix_count": 154,
+  "attachments": [
+    {
+      "name": "Attachment 1",
+      "title": "Interim Routing Procedures",
+      "pages": "26 pages",
+      "note": "Main routing matrix"
+    },
+    {
+      "name": "Attachment 2",
+      "title": "San Francisco Fire Department AB 3.08",
+      "note": "R2 occupancy fire routing"
+    },
+    {
+      "name": "Attachment 3",
+      "title": "Department of Public Health Routing Checklist",
+      "note": "DPH routing criteria"
+    }
+  ]
+}

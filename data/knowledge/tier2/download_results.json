@@ -1,0 +1,316 @@
+{
+  "success": [
+    {
+      "id": "DA-16",
+      "pages": 3,
+      "chars": 9002,
+      "path": "data/knowledge/tier2/DA-series/DA-16.txt"
+    },
+    {
+      "id": "S-05",
+      "pages": 3,
+      "chars": 7661,
+      "path": "data/knowledge/tier2/S-series/S-05.txt"
+    },
+    {
+      "id": "DA-03",
+      "pages": 15,
+      "chars": 35283,
+      "path": "data/knowledge/tier2/DA-series/DA-03.txt"
+    },
+    {
+      "id": "DA-04",
+      "pages": 10,
+      "chars": 0,
+      "path": "data/knowledge/tier2/DA-series/DA-04.txt"
+    },
+    {
+      "id": "DA-05",
+      "pages": 2,
+      "chars": 6122,
+      "path": "data/knowledge/tier2/DA-series/DA-05.txt"
+    },
+    {
+      "id": "DA-07",
+      "pages": 3,
+      "chars": 6937,
+      "path": "data/knowledge/tier2/DA-series/DA-07.txt"
+    },
+    {
+      "id": "DA-09",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/DA-series/DA-09.txt"
+    },
+    {
+      "id": "DA-10",
+      "pages": 2,
+      "chars": 3581,
+      "path": "data/knowledge/tier2/DA-series/DA-10.txt"
+    },
+    {
+      "id": "DA-11",
+      "pages": 2,
+      "chars": 4293,
+      "path": "data/knowledge/tier2/DA-series/DA-11.txt"
+    },
+    {
+      "id": "DA-12",
+      "pages": 7,
+      "chars": 0,
+      "path": "data/knowledge/tier2/DA-series/DA-12.txt"
+    },
+    {
+      "id": "DA-13",
+      "pages": 6,
+      "chars": 12136,
+      "path": "data/knowledge/tier2/DA-series/DA-13.txt"
+    },
+    {
+      "id": "DA-14",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/DA-series/DA-14.txt"
+    },
+    {
+      "id": "DA-15",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/DA-series/DA-15.txt"
+    },
+    {
+      "id": "DA-19",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/DA-series/DA-19.txt"
+    },
+    {
+      "id": "FS-01",
+      "pages": 3,
+      "chars": 5058,
+      "path": "data/knowledge/tier2/FS-series/FS-01.txt"
+    },
+    {
+      "id": "FS-03",
+      "pages": 2,
+      "chars": 5031,
+      "path": "data/knowledge/tier2/FS-series/FS-03.txt"
+    },
+    {
+      "id": "FS-04",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/FS-series/FS-04.txt"
+    },
+    {
+      "id": "FS-05",
+      "pages": 20,
+      "chars": 0,
+      "path": "data/knowledge/tier2/FS-series/FS-05.txt"
+    },
+    {
+      "id": "FS-06",
+      "pages": 2,
+      "chars": 3557,
+      "path": "data/knowledge/tier2/FS-series/FS-06.txt"
+    },
+    {
+      "id": "FS-07",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/FS-series/FS-07.txt"
+    },
+    {
+      "id": "FS-12",
+      "pages": 1,
+      "chars": 0,
+      "path": "data/knowledge/tier2/FS-series/FS-12.txt"
+    },
+    {
+      "id": "FS-13",
+      "pages": 1,
+      "chars": 0,
+      "path": "data/knowledge/tier2/FS-series/FS-13.txt"
+    },
+    {
+      "id": "G-01",
+      "pages": 3,
+      "chars": 0,
+      "path": "data/knowledge/tier2/G-series/G-01.txt"
+    },
+    {
+      "id": "G-02",
+      "pages": 5,
+      "chars": 10926,
+      "path": "data/knowledge/tier2/G-series/G-02.txt"
+    },
+    {
+      "id": "G-04",
+      "pages": 18,
+      "chars": 27278,
+      "path": "data/knowledge/tier2/G-series/G-04.txt"
+    },
+    {
+      "id": "G-05",
+      "pages": 3,
+      "chars": 4348,
+      "path": "data/knowledge/tier2/G-series/G-05.txt"
+    },
+    {
+      "id": "G-07",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/G-series/G-07.txt"
+    },
+    {
+      "id": "G-09",
+      "pages": 3,
+      "chars": 46,
+      "path": "data/knowledge/tier2/G-series/G-09.txt"
+    },
+    {
+      "id": "G-12",
+      "pages": 12,
+      "chars": 0,
+      "path": "data/knowledge/tier2/G-series/G-12.txt"
+    },
+    {
+      "id": "G-13",
+      "pages": 4,
+      "chars": 0,
+      "path": "data/knowledge/tier1/G-13-raw-text.txt"
+    },
+    {
+      "id": "G-14",
+      "pages": 3,
+      "chars": 0,
+      "path": "data/knowledge/tier2/G-series/G-14.txt"
+    },
+    {
+      "id": "G-15",
+      "pages": 15,
+      "chars": 25039,
+      "path": "data/knowledge/tier2/G-series/G-15.txt"
+    },
+    {
+      "id": "G-17",
+      "pages": 3,
+      "chars": 0,
+      "path": "data/knowledge/tier2/G-series/G-17.txt"
+    },
+    {
+      "id": "G-19",
+      "pages": 22,
+      "chars": 30052,
+      "path": "data/knowledge/tier2/G-series/G-19.txt"
+    },
+    {
+      "id": "G-21",
+      "pages": 4,
+      "chars": 7295,
+      "path": "data/knowledge/tier2/G-series/G-21.txt"
+    },
+    {
+      "id": "G-23",
+      "pages": 1,
+      "chars": 0,
+      "path": "data/knowledge/tier2/G-series/G-23.txt"
+    },
+    {
+      "id": "G-24",
+      "pages": 9,
+      "chars": 22728,
+      "path": "data/knowledge/tier2/G-series/G-24.txt"
+    },
+    {
+      "id": "G-25",
+      "pages": 8,
+      "chars": 10744,
+      "path": "data/knowledge/tier1/G-25-raw-text.txt"
+    },
+    {
+      "id": "G-26",
+      "pages": 17,
+      "chars": 6481,
+      "path": "data/knowledge/tier2/G-series/G-26.txt"
+    },
+    {
+      "id": "G-27",
+      "pages": 4,
+      "chars": 5910,
+      "path": "data/knowledge/tier1/G-27-raw-text.txt"
+    },
+    {
+      "id": "G-28",
+      "pages": 2,
+      "chars": 1908,
+      "path": "data/knowledge/tier2/G-series/G-28.txt"
+    },
+    {
+      "id": "G-29",
+      "pages": 26,
+      "chars": 69650,
+      "path": "data/knowledge/tier1/G-29-raw-text.txt"
+    },
+    {
+      "id": "S-03",
+      "pages": 11,
+      "chars": 33922,
+      "path": "data/knowledge/tier2/S-series/S-03.txt"
+    },
+    {
+      "id": "S-04",
+      "pages": 2,
+      "chars": 0,
+      "path": "data/knowledge/tier2/S-series/S-04.txt"
+    },
+    {
+      "id": "S-07",
+      "pages": 7,
+      "chars": 13045,
+      "path": "data/knowledge/tier2/S-series/S-07.txt"
+    },
+    {
+      "id": "S-09",
+      "pages": 4,
+      "chars": 0,
+      "path": "data/knowledge/tier2/S-series/S-09.txt"
+    },
+    {
+      "id": "S-10",
+      "pages": 2,
+      "chars": 4114,
+      "path": "data/knowledge/tier2/S-series/S-10.txt"
+    },
+    {
+      "id": "S-11",
+      "pages": 2,
+      "chars": 3014,
+      "path": "data/knowledge/tier2/S-series/S-11.txt"
+    },
+    {
+      "id": "S-12",
+      "pages": 3,
+      "chars": 3254,
+      "path": "data/knowledge/tier2/S-series/S-12.txt"
+    },
+    {
+      "id": "S-14",
+      "pages": 2,
+      "chars": 3414,
+      "path": "data/knowledge/tier2/S-series/S-14.txt"
+    },
+    {
+      "id": "S-17",
+      "pages": 10,
+      "chars": 21686,
+      "path": "data/knowledge/tier2/S-series/S-17.txt"
+    }
+  ],
+  "failed": [
+    {
+      "id": "DA-02",
+      "error": "Downloaded file too small (0 bytes), likely not a real PDF"
+    }
+  ]
+}
