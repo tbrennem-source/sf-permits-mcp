@@ -161,6 +161,13 @@ def _compliance_documents(all_triggers: list[str], project_type: str | None, kb)
         if "new_construction" not in all_triggers:
             docs.append("Existing conditions documentation for Title-24 baseline (T24-C02 — #1 alteration correction)")
 
+        # M-06 Final Compliance Affidavit — required for ALL projects with Title-24
+        affidavit = t24.get("sf_specific_rules", {}).get("final_compliance_affidavit", {})
+        if affidavit:
+            docs.append("Title-24 CEC Final Compliance Affidavit (M-06) — email to dbi.energyinspections@sfgov.org prior to final inspection")
+            if "new_construction" in all_triggers:
+                docs.append("AB-093 Attachment E — SFGBC Green Building compliance form (submit with final compliance affidavit)")
+
     # ADA/DA-02 — add form section guidance for commercial
     ada = kb.ada_accessibility
     if ada:
@@ -276,7 +283,8 @@ async def required_documents(
     if review_path == "in_house":
         pro_tips.append("Obtain Planning approval BEFORE submitting building permit application")
         pro_tips.append("Expect 3 rounds of completeness review — 3rd round escalates to supervisor")
-        pro_tips.append("Include a Back Check page in all plan sets")
+        pro_tips.append("Add DBI Back Check page as LAST page of plan set PDF (Bluebeam-formatted template)")
+        pro_tips.append("Bluebeam Studio folders: A.PERMIT SUBMITTAL → 1.Permit Forms, 2.Routing Forms, 3.Documents for Review")
     if review_path == "otc":
         pro_tips.append("All plans reviewed at counter in ~1 hour per station")
         pro_tips.append("Have licensed professional available by phone during OTC review")

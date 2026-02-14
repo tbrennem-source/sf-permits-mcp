@@ -286,6 +286,14 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
                 "details": "CF1R or NRCC likely required depending on scope. #1 correction trigger — submit with initial application.",
             })
 
+        # M-06 Final Compliance Affidavit — applies to ALL projects with Title-24
+        affidavit = t24.get("sf_specific_rules", {}).get("final_compliance_affidavit", {})
+        if affidavit:
+            reqs.append({
+                "requirement": "Title-24 Final Compliance Affidavit (M-06)",
+                "details": "Prior to final inspection, email affidavit to dbi.energyinspections@sfgov.org. Must list all certificate form codes. Allow 10 business days for review. HERS items require certified HERS Rater; NRCA items require certified ATT.",
+            })
+
     return reqs
 
 

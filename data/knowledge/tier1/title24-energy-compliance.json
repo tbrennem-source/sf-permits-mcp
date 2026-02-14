@@ -349,6 +349,65 @@
         "M-06": "Title-24 Energy Submittal Instructions",
         "M-08": "Title-24 Low-Rise Multifamily Energy Checklists (Building/Mechanical/Electrical)"
       }
+    },
+    "final_compliance_affidavit": {
+      "source": "DBI Information Sheet M-06 (October 27, 2025)",
+      "purpose": "Clarifies the process for preparing and submitting required documentation to comply with Title-24 CEC and San Francisco Green Building Code (SFGBC).",
+      "inspection_checklists_by_project_type": {
+        "single_family": "M-03 — single-family residential buildings",
+        "nonresidential": "M-04 — non-residential, high-rise residential, and hotel/motel buildings",
+        "low_rise_multifamily": "M-08 — low-rise multi-family residential buildings"
+      },
+      "checklist_exemption": "Installation documentation (M-03/M-04/M-08 checklists) NOT required for alterations to existing residential buildings where HERS field verification is not required — e.g., water heater replacement, window replacement, or additions <300 sq ft.",
+      "form_code_tracking": "Each inspection item has a corresponding form code entered into DBI Permit Tracking System. Items tracked for clearance prior to final inspection and Certificate of Final Completion.",
+      "title24_cec_compliance": {
+        "certificates_required": "Certificates of Installation, Acceptance, and Verification forms — specific forms indicated on M-03/M-04/M-08 checklists",
+        "certificate_forms_url": "https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficiency-standards/2022-building-energy-efficiency",
+        "cec_hotline": "(800) 772-3300",
+        "cec_email": "title24@energy.ca.gov",
+        "retention": "Completed and signed certificates maintained by building owner, available for DBI review upon request"
+      },
+      "energy_consultant_types": [
+        {"type": "CEPE", "full_name": "Certified Energy Plans Examiner", "issuer": "CABEC", "url": "http://www.cabec.org/"},
+        {"type": "CEA", "full_name": "Certified Energy Analyst", "issuer": "CABEC", "url": "http://www.cabec.org/"},
+        {"type": "HERS Rater", "full_name": "Home Energy Rating System Rater", "issuer": "CalCERTS", "url": "https://www.calcerts.com/"},
+        {"type": "ATT", "full_name": "Acceptance Test Technician", "issuer": "CEC-approved ATTCHP", "url": null}
+      ],
+      "affidavit_process": {
+        "who_prepares": "Responsible designer or energy consultant. For R3 occupancies, Owner/Builder may submit if they obtained the building permit.",
+        "alternative_submitters": "DBI may accept from mechanical, electrical, or plumbing contractor on their respective work scope.",
+        "required_contents": [
+          "Company letterhead with address and contact info",
+          "Project data — address, scope, building permit application number, MEP permit numbers if applicable",
+          "List of required certificates per Title-24 CEC inspection checklists with form codes (e.g., NRCI-LTI-01-E (IE6), NRCA-LTI-02 (AE1))",
+          "Statement that all required certificates have been completed and signed",
+          "Name, signature, contact info, credential type (Engineer, Architect, Contractor, Owner/Builder for R3 only, Energy Consultant, ATT)",
+          "State license number (Engineer/Architect/Contractor) or certificate number (Testers/Consultants/HERS)"
+        ],
+        "submittal": {
+          "email": "dbi.energyinspections@sfgov.org",
+          "instruction": "Email affidavit ONLY — do NOT attach Title-24 Certificates or Checklists",
+          "review_time": "10 business days — do NOT resubmit before 10 days",
+          "follow_up": "If not cleared after 10 business days, call (628) 652-3407 with permit application number and affidavit date. Representative returns call within 72 hours.",
+          "status_check": "sfgov.org/dbi — 'Completed Date' column indicates reviewed and approved affidavit"
+        },
+        "hers_affidavit_rule": "For HERS items, affidavit MUST be submitted by a certified HERS Rater",
+        "att_affidavit_rule": "For NRCA-MCH and NRCA-LTI/LTO acceptance tests, affidavit MUST be submitted by a certified ATT for mechanical systems/lighting controls"
+      },
+      "sfgbc_compliance": {
+        "admin_bulletin": "AB-093",
+        "form": "AB-093 Attachment E",
+        "who_completes": "Design Professional of Record (Option 1) or Green Building Compliance Professional of Record (Option 2)",
+        "when": "Prior to final inspection of building permit",
+        "submittal": "Submit by email along with Title-24 CEC Final Compliance Affidavit",
+        "applicability": "New construction and major alterations only",
+        "ab093_url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-95527#JD_AB-093"
+      },
+      "effective_dates": {
+        "2022_checklists": "Effective for building permit applications submitted on/after January 1, 2023",
+        "ab093_attachment_e": "Required for new construction and major alteration permits with final certificate after January 1, 2023",
+        "retroactive_note": "2022 SFGBC and 2022 CEC inspection checklists may be used for compliance with AB-093 for all previous code cycles"
+      }
     }
   }
 }

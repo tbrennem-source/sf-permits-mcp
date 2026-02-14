@@ -282,6 +282,71 @@
         "Save and verify text is searchable by using Ctrl+F"
       ],
       "alternative": "Use TrueType or OpenType fonts in AutoCAD (set TEXTFONT system variable) to avoid needing OCR entirely"
+    },
+    "back_check_page": {
+      "source": "DBI EPR Back Check Page PDF (Updated 01/19/2021)",
+      "id": "EPR-021-DETAIL",
+      "description": "A standardized Bluebeam-formatted page that must be appended as the LAST page of every plan set PDF. Contains the backcheck menu that DBI plan reviewers need to complete plan review.",
+      "instructions": [
+        "Complete your plans",
+        "Export a PDF file of your plans",
+        "Add the Back Check Page as the last page of the PDF file",
+        "Save the PDF"
+      ],
+      "format": "Bluebeam-formatted PDF — contains embedded Bluebeam form fields for reviewer use",
+      "common_mistake": "Forgetting to add this page, or adding it in the middle of the plan set instead of at the end"
+    },
+    "exhibit_c_project_folder_structure": {
+      "source": "CCSF EPR Exhibit C — Bluebeam Studio Project Layout & Folder Structure (2/10/2020)",
+      "description": "Defines the standard folder structure within Bluebeam Studio Projects used for DBI electronic plan review. Understanding this structure helps applicants know where their documents will be organized.",
+      "project_naming": "Format: [Year]-[Application Number] [Street Address] (e.g., '2019-1126-1234 49 S. Van Ness')",
+      "folder_structure": {
+        "root": "CCSF EPR",
+        "folders": [
+          {
+            "folder": "A. PRE-SCREENING & PERMIT SUBMITTAL",
+            "subfolders": [
+              {"name": "1. PERMIT FORMS", "contents": "Building permit application forms (Form 1/2, 3/8, etc.)"},
+              {"name": "2. ROUTING FORMS", "contents": "Agency routing forms for Planning, DPH, SFFD, etc."},
+              {"name": "3. DOCUMENTS FOR REVIEW", "contents": "Plan sets, calculations, reports — the actual construction documents for review"}
+            ]
+          },
+          {
+            "folder": "B. APPROVED DOCUMENTS",
+            "subfolders": [
+              {"name": "1. BUILDING PERMIT DOCUMENTS", "contents": "Final approved and stamped plan sets after all agencies approve"}
+            ]
+          }
+        ]
+      },
+      "applicant_note": "Applicants upload to folder A. DBI moves approved documents to folder B after permit issuance."
+    },
+    "exhibit_e_studio_session_layout": {
+      "source": "CCSF EPR Exhibit E — Bluebeam Studio Session Layout (2/10/2020)",
+      "description": "Visual reference for how Bluebeam Studio Sessions are configured for DBI plan review. Sessions are where real-time multi-agency review and markup happens.",
+      "session_naming": "Format: [Application Number] [Street Address] REVIEW - [Session Number] (e.g., '2019-1126-1234 49 S. Van Ness REVIEW - 95')",
+      "session_components": {
+        "studio_menu": "Studio tab must be selected (not Projects) to access the active review session",
+        "studio_connection": "Green cloud icon indicates connected to Studio — required for real-time collaboration",
+        "attendees_panel": "Shows all reviewers currently in the session (DBI BLDG, DBI MECH, FIRE, etc.) with online/offline status",
+        "documents_panel": "Shows the plan set PDF(s) uploaded to the session",
+        "bookmarks_panel": "Pull up from bottom — shows sheet navigation bookmarks (why EPR-007 bookmark format matters)",
+        "tool_chest": "DBI-specific markup tools: Callout, Text Box, Cloud+, Dimensional Note, Highlighter, Length Measurement, Area Measurement",
+        "markups_list": "Bottom panel showing all review comments with Date, Page Label, Author, Color, Comments, and Status columns"
+      },
+      "markup_status_workflow": {
+        "description": "When a reviewer adds a correction comment, applicant must respond using the status menu (double-click to respond)",
+        "applicant_response_statuses": [
+          {"status": "INCORPORATED (per reply as needed)", "meaning": "Applicant has addressed the comment and made the correction in revised plans"},
+          {"status": "NOT INCORPORATED (per reply)", "meaning": "Applicant has not made the change — must include explanation in reply"}
+        ],
+        "reviewer_back_check_statuses": [
+          {"status": "CLOSED", "meaning": "Reviewer has verified the correction was properly made — comment is resolved"},
+          {"status": "OPEN", "meaning": "Reviewer has NOT accepted the response — correction still needed or response inadequate"}
+        ],
+        "workflow_sequence": "Reviewer comments → Applicant responds (INCORPORATED/NOT INCORPORATED) → Reviewer back-checks (CLOSED/OPEN) → Repeat until all CLOSED"
+      },
+      "color_coding_note": "Different agencies use different markup colors to distinguish their comments. DBI BLDG, DBI MECH, FIRE, and other reviewers each have assigned colors visible in the Markups List."
     }
   },
 

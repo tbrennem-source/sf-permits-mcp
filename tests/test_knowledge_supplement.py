@@ -897,3 +897,207 @@ def test_revision_risk_restaurant_has_equipment_schedule():
     corrections = _get_correction_frequencies("restaurant", kb)
     categories = [c["category"] for c in corrections]
     assert "DPH Equipment Schedule (Appendix C)" in categories
+
+
+# =============================================================================
+# Phase 2.75c — Third PDF batch enhancements (M-06, Back Check Page, Exhibit C, Exhibit E)
+# =============================================================================
+
+# --- M-06 Final Compliance Affidavit ---
+
+def test_title24_final_compliance_affidavit_exists():
+    """M-06 final compliance affidavit process should be loaded."""
+    kb = get_knowledge_base()
+    affidavit = kb.title24["sf_specific_rules"].get("final_compliance_affidavit", {})
+    assert affidavit, "final_compliance_affidavit not found"
+    assert "M-06" in affidavit.get("source", "")
+
+
+def test_title24_affidavit_checklist_routing():
+    """M-06 should map project types to correct checklist info sheets."""
+    kb = get_knowledge_base()
+    affidavit = kb.title24["sf_specific_rules"]["final_compliance_affidavit"]
+    routing = affidavit.get("inspection_checklists_by_project_type", {})
+    assert routing.get("single_family") == "M-03 — single-family residential buildings"
+    assert routing.get("nonresidential") == "M-04 — non-residential, high-rise residential, and hotel/motel buildings"
+    assert routing.get("low_rise_multifamily") == "M-08 — low-rise multi-family residential buildings"
+
+
+def test_title24_affidavit_process():
+    """M-06 affidavit process should have submittal details."""
+    kb = get_knowledge_base()
+    process = kb.title24["sf_specific_rules"]["final_compliance_affidavit"]["affidavit_process"]
+    submittal = process.get("submittal", {})
+    assert submittal.get("email") == "dbi.energyinspections@sfgov.org"
+    assert "10 business days" in submittal.get("review_time", "")
+    assert len(process.get("required_contents", [])) >= 5
+
+
+def test_title24_energy_consultant_types():
+    """M-06 should list energy consultant types with certifying bodies."""
+    kb = get_knowledge_base()
+    affidavit = kb.title24["sf_specific_rules"]["final_compliance_affidavit"]
+    consultants = affidavit.get("energy_consultant_types", [])
+    assert len(consultants) >= 4
+    types = [c["type"] for c in consultants]
+    assert "CEPE" in types
+    assert "CEA" in types
+    assert "HERS Rater" in types
+    assert "ATT" in types
+
+
+def test_title24_affidavit_hers_att_rules():
+    """M-06 should enforce HERS/ATT affidavit submission rules."""
+    kb = get_knowledge_base()
+    process = kb.title24["sf_specific_rules"]["final_compliance_affidavit"]["affidavit_process"]
+    assert "HERS Rater" in process.get("hers_affidavit_rule", "")
+    assert "ATT" in process.get("att_affidavit_rule", "")
+
+
+def test_title24_sfgbc_compliance():
+    """M-06 should document SFGBC AB-093 compliance process."""
+    kb = get_knowledge_base()
+    sfgbc = kb.title24["sf_specific_rules"]["final_compliance_affidavit"].get("sfgbc_compliance", {})
+    assert sfgbc
+    assert sfgbc.get("admin_bulletin") == "AB-093"
+    assert sfgbc.get("form") == "AB-093 Attachment E"
+    assert "new construction" in sfgbc.get("applicability", "").lower()
+
+
+def test_title24_checklist_exemption():
+    """M-06 should document exemption for minor residential alterations."""
+    kb = get_knowledge_base()
+    affidavit = kb.title24["sf_specific_rules"]["final_compliance_affidavit"]
+    exemption = affidavit.get("checklist_exemption", "")
+    assert "300 sq ft" in exemption or "300" in exemption
+    assert "water heater" in exemption.lower()
+
+
+# --- EPR Back Check Page ---
+
+def test_epr_back_check_page_detail():
+    """Back check page detail should be loaded from Exhibit F supplementary."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements.get("exhibit_f_supplementary", {})
+    bcp = exhibit_f.get("back_check_page", {})
+    assert bcp, "back_check_page not found"
+    assert len(bcp.get("instructions", [])) >= 4
+    assert "last page" in bcp.get("description", "").lower() or "LAST" in bcp.get("description", "")
+
+
+# --- EPR Exhibit C (Project Folder Structure) ---
+
+def test_epr_exhibit_c_folder_structure():
+    """Exhibit C project folder structure should be loaded."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements.get("exhibit_f_supplementary", {})
+    exhibit_c = exhibit_f.get("exhibit_c_project_folder_structure", {})
+    assert exhibit_c, "exhibit_c_project_folder_structure not found"
+    folders = exhibit_c.get("folder_structure", {}).get("folders", [])
+    assert len(folders) >= 2
+    # Should have A (SUBMITTAL) and B (APPROVED)
+    folder_names = [f["folder"] for f in folders]
+    assert any("SUBMITTAL" in n for n in folder_names)
+    assert any("APPROVED" in n for n in folder_names)
+
+
+def test_epr_exhibit_c_submittal_subfolders():
+    """Exhibit C submittal folder should have 3 subfolders."""
+    kb = get_knowledge_base()
+    exhibit_c = kb.epr_requirements["exhibit_f_supplementary"]["exhibit_c_project_folder_structure"]
+    folders = exhibit_c["folder_structure"]["folders"]
+    submittal = [f for f in folders if "SUBMITTAL" in f["folder"]][0]
+    subfolders = submittal.get("subfolders", [])
+    assert len(subfolders) >= 3
+    subfolder_names = [s["name"] for s in subfolders]
+    assert any("PERMIT FORMS" in n for n in subfolder_names)
+    assert any("ROUTING" in n for n in subfolder_names)
+    assert any("REVIEW" in n for n in subfolder_names)
+
+
+# --- EPR Exhibit E (Studio Session Layout) ---
+
+def test_epr_exhibit_e_studio_session():
+    """Exhibit E studio session layout should be loaded."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements.get("exhibit_f_supplementary", {})
+    exhibit_e = exhibit_f.get("exhibit_e_studio_session_layout", {})
+    assert exhibit_e, "exhibit_e_studio_session_layout not found"
+    components = exhibit_e.get("session_components", {})
+    assert "tool_chest" in components
+    assert "markups_list" in components
+    assert "attendees_panel" in components
+
+
+def test_epr_exhibit_e_markup_status_workflow():
+    """Exhibit E should document the markup status workflow."""
+    kb = get_knowledge_base()
+    exhibit_e = kb.epr_requirements["exhibit_f_supplementary"]["exhibit_e_studio_session_layout"]
+    workflow = exhibit_e.get("markup_status_workflow", {})
+    assert workflow
+    applicant_statuses = workflow.get("applicant_response_statuses", [])
+    assert len(applicant_statuses) >= 2
+    reviewer_statuses = workflow.get("reviewer_back_check_statuses", [])
+    assert len(reviewer_statuses) >= 2
+    # Should have INCORPORATED and CLOSED
+    assert any("INCORPORATED" in s["status"] for s in applicant_statuses)
+    assert any("CLOSED" in s["status"] for s in reviewer_statuses)
+
+
+# --- Tool integration tests for M-06 and EPR ---
+
+@pytest.mark.asyncio
+async def test_required_docs_has_final_compliance_affidavit():
+    """Required docs for any Title-24 project should include M-06 affidavit."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "M-06" in result or "final compliance affidavit" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_new_construction_has_ab093():
+    """New construction should include AB-093 Attachment E for SFGBC."""
+    result = await required_documents(
+        permit_forms=["Form 1/2"],
+        review_path="in_house",
+        project_type="restaurant",
+        triggers=["new_construction"],
+    )
+    assert "AB-093" in result
+    assert "Attachment E" in result or "Green Building" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_in_house_has_back_check_tip():
+    """In-house review should include back check page pro tip."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "Back Check" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_in_house_has_bluebeam_folder_tip():
+    """In-house review should include Bluebeam folder structure tip."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "Bluebeam" in result or "SUBMITTAL" in result
+
+
+@pytest.mark.asyncio
+async def test_predict_has_final_compliance_affidavit():
+    """predict_permits should mention M-06 final compliance affidavit."""
+    result = await predict_permits(
+        project_description="Commercial tenant improvement in existing office building",
+        estimated_cost=200000,
+        scope_keywords=["commercial_ti"],
+    )
+    assert "M-06" in result or "final compliance affidavit" in result.lower() or "dbi.energyinspections" in result
