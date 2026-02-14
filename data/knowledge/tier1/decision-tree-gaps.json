@@ -1,0 +1,179 @@
+{
+  "metadata": {
+    "title": "Decision Tree Backing Data Validation",
+    "validated_date": "2026-02-14",
+    "decision_tree_file": "decision-tree-draft.json",
+    "purpose": "Machine-readable gap analysis — tools use this to report confidence levels"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "name": "need_permit",
+      "question": "Does this project need a building permit?",
+      "status": "complete",
+      "backing_files": [
+        "tier1/otc-criteria.json",
+        "decision-tree-draft.json step_1_need_permit"
+      ],
+      "confidence": "high",
+      "gaps": [],
+      "notes": "Permit-required work list is comprehensive. Exemptions list is minimal (painting, cosmetic, minor repairs). Building Code Section 105.2 exemptions not individually enumerated but covered by general rule."
+    },
+    {
+      "step": 2,
+      "name": "which_form",
+      "question": "Which permit application form is needed?",
+      "status": "complete",
+      "backing_files": [
+        "tier1/permit-forms-taxonomy.json",
+        "decision-tree-draft.json step_2_which_form"
+      ],
+      "confidence": "high",
+      "gaps": [],
+      "notes": "All 7 forms mapped (Forms 1, 2, 3, 8, 4/7, 5, 6 + ADU pre-approval). Selection logic is clear."
+    },
+    {
+      "step": 3,
+      "name": "otc_or_inhouse",
+      "question": "OTC or In-House Review?",
+      "status": "complete",
+      "backing_files": [
+        "tier1/otc-criteria.json",
+        "tier1/inhouse-review-process.json",
+        "decision-tree-draft.json step_3_otc_or_inhouse"
+      ],
+      "confidence": "high",
+      "gaps": [
+        "Cost thresholds for OTC eligibility are not explicitly stated in regulations — the one-hour rule is operational, not codified",
+        "OTC lists are 'non-exhaustive' per DBI — edge cases exist"
+      ],
+      "notes": "12 no-plan + 24 with-plan + 19 not-OTC project types fully enumerated. One-hour rule documented as implicit criterion."
+    },
+    {
+      "step": 4,
+      "name": "agency_routing",
+      "question": "Which agencies must review?",
+      "status": "complete",
+      "backing_files": [
+        "tier1/G-20-routing.json",
+        "tier1/fire-code-key-sections.json",
+        "tier1/planning-code-key-sections.json",
+        "decision-tree-draft.json step_4_agency_routing"
+      ],
+      "confidence": "high",
+      "gaps": [
+        "G-20 routing matrix uses symbols (X, #, *, ^, +, Ø, //) — all decoded in G-20-routing.json but some edge cases may exist for combined scopes"
+      ],
+      "notes": "154 routing entries covering 9 agencies. Fire code triggers (13) and planning code sections (311, 303, 317, 305, 309, 329) fully mapped. SFFD routing includes occupancy-based thresholds."
+    },
+    {
+      "step": 5,
+      "name": "required_documents",
+      "question": "What documents are required?",
+      "status": "complete",
+      "backing_files": [
+        "tier1/completeness-checklist.json",
+        "tier1/epr-requirements.json",
+        "decision-tree-draft.json step_5_required_docs"
+      ],
+      "confidence": "high",
+      "gaps": [
+        "Completeness checklist is residential-focused (13 sections) — commercial checklist not separately documented",
+        "EPR technical requirements are operational, not fully codified (medium confidence)"
+      ],
+      "notes": "Universal requirements + 14 conditional document types mapped. EPR requirements compiled from multiple sources."
+    },
+    {
+      "step": 6,
+      "name": "timeline",
+      "question": "How long will the process take?",
+      "status": "partial",
+      "backing_files": [
+        "decision-tree-draft.json step_6_timeline",
+        "DuckDB permits table (filed_date, issued_date, completed_date)"
+      ],
+      "confidence": "medium",
+      "gaps": [
+        "DBI does not publish standard processing timelines",
+        "Timeline estimates in decision tree are from scattered info sheet references",
+        "Priority processing categories documented (AB-004) but actual time savings not quantified",
+        "NEEDS: DuckDB statistical analysis to compute actual percentile-based timelines by permit type, neighborhood, and review path"
+      ],
+      "notes": "This is the primary gap that Phase 2.75 estimate_timeline tool will address using DuckDB historical data."
+    },
+    {
+      "step": 7,
+      "name": "fees",
+      "question": "What fees are required?",
+      "status": "complete",
+      "backing_files": [
+        "tier1/fee-tables.json",
+        "tier1/fire-code-key-sections.json (SFFD plan review fees)"
+      ],
+      "confidence": "high",
+      "gaps": [
+        "Fee-tables.json covers DBI fees (Tables 1A-A through 1A-S) but Planning Department fees, DPH fees, and other agency fees are not in the fee tables",
+        "SFFD plan review and inspection fees are in fire-code-key-sections.json but not integrated into fee-tables.json",
+        "School Impact Fee (SFUSD) referenced but calculation formula not included"
+      ],
+      "notes": "DBI fee schedule is comprehensive — 19 tables, 10 valuation tiers, 9-step algorithm. Effective 9/1/2025 (Ord. 126-25). SFFD fees documented in fire code JSON."
+    }
+  ],
+  "special_project_types": [
+    {
+      "type": "restaurant_change_of_use",
+      "status": "complete",
+      "backing_data": true,
+      "source": "decision-tree-draft.json + G-25 Restaurant FAQ",
+      "confidence": "high"
+    },
+    {
+      "type": "adu",
+      "status": "partial",
+      "backing_data": true,
+      "source": "decision-tree-draft.json + G-23",
+      "confidence": "medium",
+      "gap": "ADU pre-approval process details are referenced but full workflow not structured"
+    },
+    {
+      "type": "seismic_retrofit",
+      "status": "complete",
+      "backing_data": true,
+      "source": "decision-tree-draft.json + G-20 routing + AB-004 priority",
+      "confidence": "high"
+    },
+    {
+      "type": "commercial_ti",
+      "status": "complete",
+      "backing_data": true,
+      "source": "decision-tree-draft.json + G-20 routing",
+      "confidence": "high"
+    },
+    {
+      "type": "adaptive_reuse",
+      "status": "partial",
+      "backing_data": true,
+      "source": "decision-tree-draft.json + S-03",
+      "confidence": "medium",
+      "gap": "Detailed adaptive reuse guidelines mentioned but not fully structured"
+    },
+    {
+      "type": "solar_clean_energy",
+      "status": "complete",
+      "backing_data": true,
+      "source": "decision-tree-draft.json + G-20 routing + AB-004 priority",
+      "confidence": "high"
+    }
+  ],
+  "overall_assessment": {
+    "complete_steps": [1, 2, 3, 4, 5, 7],
+    "partial_steps": [6],
+    "critical_gaps": [
+      "Timeline data (Step 6) — will be resolved by estimate_timeline tool using DuckDB statistics",
+      "Other-agency fees (Planning, DPH, DPW) — not in current fee tables"
+    ],
+    "overall_confidence": "high",
+    "ready_for_tools": true,
+    "notes": "Knowledge base is sufficient to build all 5 Phase 2.75 tools. Step 6 gap is addressed by DuckDB statistical analysis. Remaining fee gaps are advisory — tools can note 'additional agency fees may apply'."
+  }
+}

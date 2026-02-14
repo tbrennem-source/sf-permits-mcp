@@ -1,0 +1,134 @@
+{
+  "metadata": {
+    "title": "SF DBI Electronic Plan Review (EPR) Requirements",
+    "compiled_from": [
+      "tier3/AB-004.txt (Priority Permit Processing Guidelines, Dec 15, 2022)",
+      "tier1/inhouse-review-process.json (submission format references)",
+      "tier1/completeness-checklist.json (plan format requirements)",
+      "decision-tree-draft.json step_5 (plan format requirements)"
+    ],
+    "effective_date": "2024-01-01",
+    "compilation_date": "2026-02-14",
+    "confidence": "medium",
+    "notes": [
+      "DBI transitioned to 100% electronic plan review (EPR) effective January 1, 2024",
+      "Detailed technical specifications are operational procedures, not fully codified in published regulations",
+      "AB-004 mandates EPR for priority projects; in practice EPR is now required for ALL projects",
+      "Bluebeam Studio is the submission platform per DBI operational procedures",
+      "Specific format requirements below are compiled from info sheet references and DBI practice — verify with DBI for current requirements"
+    ],
+    "gaps": [
+      "No published regulatory document specifies complete PDF format requirements",
+      "Bluebeam Studio specifications are operational, not codified in Administrative Bulletins",
+      "Maximum file size limits are DBI-set, may change without regulatory amendment",
+      "Sheet size requirements referenced in completeness checklist but exact EPR specs may differ"
+    ]
+  },
+
+  "epr_mandate": {
+    "regulatory_basis": "Administrative Bulletin AB-004, Section on Concurrent Review",
+    "quote": "The applicant of a priority project shall be required to submit plans for electronic plan review (EPR) to avail of concurrent plan review.",
+    "current_status": "As of January 1, 2024, ALL plan submissions to DBI must be electronic — EPR is no longer limited to priority projects"
+  },
+
+  "submission_platform": {
+    "name": "Bluebeam Studio",
+    "access": "Via DBI PermitSF portal",
+    "note": "Platform details are operational — confirm current submission process with DBI"
+  },
+
+  "format_requirements": {
+    "confidence": "medium — compiled from multiple sources, not a single authoritative document",
+    "requirements": [
+      {
+        "requirement": "PDF format required",
+        "details": "All construction plans must be submitted as PDF files",
+        "source": "decision-tree-draft.json step_5, completeness-checklist.json"
+      },
+      {
+        "requirement": "Vector-based PDF preferred",
+        "details": "PDF should be created from CAD/BIM software, not scanned images. Scanned PDFs may be rejected or cause review delays.",
+        "source": "DBI operational practice"
+      },
+      {
+        "requirement": "Unlocked PDF (no password protection)",
+        "details": "PDFs must not have security restrictions that prevent markup, commenting, or printing",
+        "source": "DBI operational practice for Bluebeam compatibility"
+      },
+      {
+        "requirement": "Fonts embedded",
+        "details": "All fonts must be embedded in the PDF to ensure correct rendering across systems",
+        "source": "DBI operational practice"
+      },
+      {
+        "requirement": "Bookmarks for each sheet",
+        "details": "PDF must contain bookmarks corresponding to each sheet for navigation during plan review",
+        "source": "DBI operational practice for Bluebeam Studio"
+      },
+      {
+        "requirement": "Minimum sheet size",
+        "details": "Plans must be at minimum 11x17 inches per completeness checklist; full plan sets typically 22x34 inches or 24x36 inches",
+        "source": "completeness-checklist.json section 8"
+      },
+      {
+        "requirement": "Back Check page required",
+        "details": "All plan sets must include a Back Check page for reviewer corrections tracking",
+        "source": "decision-tree-draft.json step_5"
+      }
+    ]
+  },
+
+  "pre_submission_checks": [
+    "All sheets bookmarked in PDF",
+    "No security restrictions on PDF file",
+    "Proper layering (demolition, new work, existing to remain)",
+    "Title block with permit application number on each sheet",
+    "Prepared by licensed architect or engineer (stamp and signature)",
+    "Construction cost estimate included",
+    "Title 24 energy compliance forms attached",
+    "Green Building form (GS1-GS6) attached as applicable",
+    "Back Check page included"
+  ],
+
+  "submission_copies": {
+    "otc_review": "Submit via PermitSF portal — electronic only as of Jan 2024",
+    "in_house_review": "Submit via PermitSF portal for electronic plan review",
+    "note": "Physical paper plans are no longer accepted for initial submission"
+  },
+
+  "plan_content_requirements": {
+    "source": "completeness-checklist.json",
+    "cover_sheet": [
+      "Property address and block/lot",
+      "Project scope description matching permit application",
+      "Code references (Building Code edition, Fire Code, Accessibility)",
+      "Table of contents / sheet index",
+      "Licensed professional stamp and signature",
+      "Applicable codes and standards"
+    ],
+    "architectural_plans": [
+      "Existing and proposed floor plans",
+      "Existing and proposed elevations",
+      "Sections showing existing and proposed conditions",
+      "Site plan / plot plan",
+      "Demolition plan (if applicable)"
+    ],
+    "structural_plans": [
+      "Structural calculations (if structural work)",
+      "Foundation plans",
+      "Framing plans",
+      "Seismic analysis (if applicable)"
+    ],
+    "mep_plans": [
+      "Mechanical plans and schedules",
+      "Electrical plans and panel schedules",
+      "Plumbing plans and fixture schedules"
+    ]
+  },
+
+  "decision_tree_integration": {
+    "step_5_connection": "EPR format requirements apply to ALL documents listed in decision tree Step 5",
+    "otc_implications": "Some OTC 'no plans' permits (Form 8) do not require plan drawings but still use electronic submission",
+    "in_house_implications": "In-house review plans must be EPR-formatted for multi-agency concurrent review routing"
+  }
+}
