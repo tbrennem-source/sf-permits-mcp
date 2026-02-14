@@ -72,7 +72,7 @@ def _determine_review_path(project_types: list[str], estimated_cost: float | Non
     # Projects that are always in-house
     always_inhouse = [
         "new_construction", "demolition", "change_of_use", "adu",
-        "adaptive_reuse", "historic",
+        "adaptive_reuse", "historic", "restaurant",
     ]
     for pt in project_types:
         if pt in always_inhouse:
@@ -169,12 +169,19 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
     """Determine special requirements based on project type and compliance knowledge."""
     reqs = []
 
-    # --- Restaurant / food facility ---
+    # --- Restaurant / food facility (enriched with G-25) ---
     if "restaurant" in project_types:
+        # G-25 occupancy classification
+        reqs.append({
+            "requirement": "Occupancy classification (G-25)",
+            "details": "Occupant load ≤50 = Group B (business). Occupant load >50 = Group A-2 (assembly) — triggers sprinklers, SFFD operational permit ($387), stricter egress and accessibility. Bars/lounges are always Group A-2.",
+        })
         reqs.extend([
-            {"requirement": "Planning zoning verification", "details": "Confirm restaurant use is permitted at site"},
+            {"requirement": "Planning zoning verification (G-25 Step 1)", "details": "Visit Planning FIRST — confirm restaurant use is permitted at site. CU hearing may be required depending on zoning district."},
+            {"requirement": "DPH pre-application consultation (G-25 Step 2)", "details": "Contact DPH Environmental Health BEFORE design. Bring menu, floor plan concept, equipment list. DPH requirements heavily influence construction design."},
+            {"requirement": "Separate permits required (G-25)", "details": "Building permit + SEPARATE plumbing permit (Cat 6PA $543 or 6PB $1,525) + SEPARATE electrical permit (Table 1A-E) + DPH health permit (separate application). SFFD operational permit if >50 occupants."},
             {"requirement": "DPH health permit application", "details": "Food preparation workflow diagram + equipment schedule"},
-            {"requirement": "Type I hood fire suppression", "details": "Automatic suppression system for grease-producing equipment. Include hood data sheet with make, model, CFM, and duct sizing."},
+            {"requirement": "Type I hood fire suppression", "details": "Automatic suppression system for grease-producing equipment. Include hood data sheet with make, model, CFM, and duct sizing. UL 300 listed."},
             {"requirement": "Grease interceptor sizing", "details": "Grease trap calculations per CA Plumbing Code Table 7-3. Check SFPUC capacity charge — may require larger than code minimum."},
             {"requirement": "DPH menu submission", "details": "Full menu required — determines facility category and equipment requirements (DPH-007)"},
             {"requirement": "DPH equipment schedule", "details": "Numbered equipment schedule cross-referenced to layout — columns: Item#, Name, Manufacturer, Model, Dimensions, NSF cert, Gas/Elec, BTU/kW (Appendix C template)"},
@@ -252,6 +259,36 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
             "requirement": "DA-02 Checklist required",
             "details": "Disabled Access Upgrade Compliance Checklist Package required for all commercial alterations",
         })
+
+    # --- G-01 Plan Signature Requirements ---
+    sigs = kb.plan_signatures
+    if sigs:
+        if "new_construction" in project_types:
+            reqs.append({
+                "requirement": "CA-licensed architect or engineer required (G-01 Status III)",
+                "details": "New construction requires plans signed and sealed by CA-licensed civil engineer or architect. First sheet: original signature + seal + registration number + sheet index.",
+            })
+        elif "restaurant" in project_types:
+            reqs.append({
+                "requirement": "CA-licensed architect or engineer likely required (G-01)",
+                "details": "Restaurant construction involves structural, mechanical, and fire suppression systems — typically requires licensed professional (G-01 Status III/IV). Sprinkler and hood suppression designs require SFFD-qualified professionals.",
+            })
+        elif any(pt in project_types for pt in ["seismic", "adaptive_reuse"]):
+            reqs.append({
+                "requirement": "CA-licensed structural engineer required (G-01 Status III)",
+                "details": "Structural work requires licensed SE or CE. Seismic retrofit, wall removal, and structural alterations must be designed by State-licensed professional.",
+            })
+        elif "commercial_ti" in project_types:
+            reqs.append({
+                "requirement": "Plan signature — verify G-01 Status I exempt or Status III required",
+                "details": "Non-highrise single-floor TI ≤$400,000 with non-structural scope may qualify for exempt status (G-01). Otherwise CA-licensed architect or engineer required.",
+            })
+        elif "general_alteration" in project_types:
+            if estimated_cost and estimated_cost <= 150000:
+                reqs.append({
+                    "requirement": "Plans may qualify for G-01 exempt status",
+                    "details": "Dwelling unit improvements ≤$150,000 for non-structural work (window replacement, kitchen/bath remodel, non-structural remodeling) may be prepared by unlicensed designer.",
+                })
 
     # --- Title-24 Energy Compliance ---
     # Almost all projects trigger some form of Title-24

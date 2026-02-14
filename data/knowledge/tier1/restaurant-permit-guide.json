@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "source": "DBI Information Sheet G-25: Restaurant Building Permit Requirements",
+    "category": "General",
+    "extraction_date": "2026-02-14",
+    "page_count": 17,
+    "purpose": "Comprehensive guide for restaurant building permits — covers DBI, Planning, DPH, and SFFD coordination, step-by-step process, occupancy classification, fees, and common issues"
+  },
+
+  "overview": {
+    "description": "Comprehensive guide for restaurant building permits in San Francisco",
+    "key_agencies": ["DBI (Building)", "Planning (CPC)", "DPH (Environmental Health)", "SFFD (Fire)"],
+    "key_principle": "DBI building permit covers BUILDING construction (structural, fire-life-safety, accessibility, energy). DPH health permit covers FOOD SERVICE operations. Both are required — they are separate tracks.",
+    "critical_sequence": "Planning FIRST → DPH pre-consultation → Design → DBI filing → Parallel review → All agency approvals → Permit issuance → Construction → Inspections"
+  },
+
+  "step_by_step_process": {
+    "step_1_planning": {
+      "action": "Visit Planning Department FIRST",
+      "purpose": "Confirm restaurant use is permitted at the address",
+      "checks": [
+        "Zoning district allows restaurant use",
+        "Conditional Use (CU) permit needed? (many neighborhoods require CU for restaurants)",
+        "Any Planning conditions from prior approvals?",
+        "Outdoor seating or signage changes need separate Planning review"
+      ],
+      "note": "Planning approval or Letter of Determination required BEFORE building permit application",
+      "section_311": "Change of use may trigger 30-day neighborhood notification period"
+    },
+    "step_2_dph_preapproval": {
+      "action": "Contact DPH Environmental Health for pre-application consultation",
+      "purpose": "DPH requirements heavily influence construction design — consult BEFORE design",
+      "what_to_bring": ["Proposed menu", "Preliminary floor plan concept", "Proposed equipment list"],
+      "why_first": "DPH will identify requirements that affect plumbing layout, ventilation design, equipment spacing, and finish materials. Designing without DPH input leads to costly redesigns.",
+      "contact": "DPH Environmental Health — Food Safety Program"
+    },
+    "step_3_design": {
+      "action": "Prepare construction plans incorporating all agency requirements",
+      "required_on_plans": [
+        "Complete floor plan drawn to scale showing entire facility",
+        "Equipment layout with numbered schedule cross-referenced to plan",
+        "Plumbing plan with grease interceptor location, sizing, and fixture count",
+        "Ventilation plan with Type I hood specifications (make, model, CFM, duct sizing)",
+        "Finish schedule — floor, cove base, walls, ceiling by room",
+        "Electrical and lighting layout with foot-candle calculations",
+        "Restroom details showing ADA/CBC 11B compliance",
+        "Title-24 energy compliance documentation"
+      ],
+      "signature_requirement": "Restaurant construction typically requires CA-licensed architect or engineer (G-01 Status III) due to commercial kitchen structural/mechanical systems"
+    },
+    "step_4_dbi_filing": {
+      "action": "File building permit application at DBI Central Permit Bureau",
+      "forms": {
+        "alterations": "Form 3/8 (most restaurant tenant improvements)",
+        "new_construction": "Form 1/2"
+      },
+      "routing": "DBI routes application to all required reviewing agencies simultaneously",
+      "parallel_review": true,
+      "fees_collected_at_filing": "DBI building permit fees per Table 1A-A based on construction valuation"
+    },
+    "step_5_plan_review": {
+      "agencies_reviewing": {
+        "DBI_building": "Structural integrity, fire-life-safety, accessibility (CBC 11B), Title-24 energy",
+        "DBI_plumbing": "Grease interceptor, plumbing fixtures, water heater, drainage",
+        "DBI_electrical": "Electrical service, circuits, equipment connections, lighting",
+        "Planning": "Use confirmation, signage review, exterior changes, CU conditions",
+        "DPH": "Food safety layout, equipment adequacy, finishes, ventilation, handwashing",
+        "SFFD": "Hood suppression system, occupancy load, means of egress, sprinkler requirements"
+      },
+      "timeline": "8-16 weeks typical for restaurant tenant improvement (all agencies combined)"
+    },
+    "step_6_corrections": {
+      "expect": "Multiple rounds of corrections from different agencies — 2-3 rounds typical",
+      "tip": "Address ALL agency corrections before resubmitting — partial responses delay review",
+      "additional_time": "Add 2-4 weeks per correction round"
+    },
+    "step_7_permit_issuance": {
+      "prerequisite": "ALL reviewing agencies must approve before building permit is issued",
+      "dph_note": "DPH health permit is a SEPARATE track from building permit — health permit issued only after DPH final food facility inspection post-construction",
+      "separate_permits_needed": [
+        "Plumbing permit (separate application — Category 6PA or 6PB)",
+        "Electrical permit (separate application — per Table 1A-E)",
+        "DPH health permit (separate application to DPH)"
+      ]
+    },
+    "step_8_construction_inspection": {
+      "dbi_inspections": [
+        "Foundation/slab (if applicable)",
+        "Framing",
+        "Mechanical rough-in",
+        "Plumbing rough-in (grease interceptor verification)",
+        "Electrical rough-in",
+        "Insulation / energy compliance verification",
+        "DBI final inspection"
+      ],
+      "title24_final": "M-06 Final Compliance Affidavit must be emailed to dbi.energyinspections@sfgov.org and approved BEFORE DBI final inspection",
+      "dph_final": "DPH conducts separate final food facility inspection — health permit issued upon passing",
+      "sffd_final": "SFFD final inspection for hood suppression, sprinklers, occupancy if >50"
+    }
+  },
+
+  "dbi_specific_requirements": {
+    "occupancy_classification": {
+      "restaurant_50_or_fewer": {
+        "classification": "Group B (Business)",
+        "implications": "Standard commercial requirements apply",
+        "sprinkler_trigger": "Per Table 903.2 thresholds (area and story based)"
+      },
+      "restaurant_over_50": {
+        "classification": "Group A-2 (Assembly — food/drink consumption)",
+        "implications": "Assembly requirements triggered — more stringent fire, accessibility, and egress requirements",
+        "sprinkler_trigger": "Fire area >5,000 sqft OR occupant load >100 OR not on level of exit discharge (CA Fire Code 903.2.1)",
+        "sffd_operational_permit": "$387 Place of Assembly permit required",
+        "additional_requirements": [
+          "Occupant load calculation and posting required",
+          "Exit doors must swing in direction of egress",
+          "SFFD operational permit for Place of Assembly",
+          "More stringent accessibility path requirements"
+        ]
+      },
+      "bar_lounge": {
+        "classification": "Group A-2",
+        "note": "Bars and lounges are always Group A-2 regardless of occupant count"
+      },
+      "threshold_note": "Occupant load >50 triggers the Group B to Group A-2 reclassification with significant implications for fire protection, accessibility, and SFFD review"
+    },
+
+    "common_code_issues": [
+      "Accessible route from street entrance to dining area and restrooms (CBC 11B)",
+      "Accessible restroom with required clearances (CBC 11B)",
+      "Minimum aisle width: 44in general (36in if serving ≤50 occupants)",
+      "Exit doors swing in direction of egress travel when serving >50 occupants",
+      "Grease duct enclosure — fire rating required per mechanical code",
+      "Type I hood fire suppression system — UL 300 listed, automatic",
+      "Makeup air system for kitchen exhaust (must be balanced with exhaust CFM)",
+      "Floor drains required in food preparation and dishwashing areas",
+      "Three-compartment sink minimum dimensions",
+      "Handwashing stations — one per food preparation area minimum",
+      "Grease interceptor sizing per CA Plumbing Code Table 7-3",
+      "Slip-resistant flooring in cooking and food preparation areas",
+      "Cove base minimum 4in height with 3/8in radius at floor-wall junction",
+      "Lighting: 50fc food prep, 20fc handwash, 10fc storage"
+    ],
+
+    "permits_needed": {
+      "building_permit": {
+        "form": "Form 3/8 (alterations) or Form 1/2 (new construction)",
+        "covers": "Structural, fire-life-safety, accessibility, energy compliance",
+        "fee_basis": "Table 1A-A based on construction valuation"
+      },
+      "plumbing_permit": {
+        "type": "Separate application",
+        "covers": "Grease interceptor, fixtures, water heater, drainage",
+        "fee_category": "6PA ($543 — 5 or fewer drainage/gas outlets) or 6PB ($1,525 — 6+ outlets)"
+      },
+      "electrical_permit": {
+        "type": "Separate application",
+        "covers": "Service, circuits, equipment connections, lighting",
+        "fee_basis": "Table 1A-E categories based on outlet count and square footage"
+      },
+      "mechanical_permit": {
+        "type": "May be included on building permit or separate",
+        "covers": "HVAC, kitchen exhaust hood, makeup air system"
+      },
+      "dph_health_permit": {
+        "type": "Separate application to DPH Environmental Health",
+        "required_before": "Opening for food service",
+        "fee": "Varies by facility type and size — contact DPH"
+      },
+      "sffd_operational_permit": {
+        "type": "Place of Assembly operational permit",
+        "trigger": "Occupant load >50",
+        "fee": "$387"
+      },
+      "planning_approval": {
+        "type": "Use permit or Letter of Determination",
+        "timing": "Must be obtained BEFORE building permit application",
+        "cu_hearing": "May require Conditional Use hearing depending on zoning district"
+      }
+    }
+  },
+
+  "dph_coordination": {
+    "parallel_review": true,
+    "review_timeline": "4-8 weeks (runs parallel with DBI plan review)",
+    "dph_triggers_construction_changes": [
+      "Equipment layout affects plumbing runs and fixture locations",
+      "Hood sizing affects ductwork routing and makeup air design",
+      "Finish materials must meet DPH approved materials list",
+      "Three-compartment sink dimensions affect space planning",
+      "Grease interceptor size affects underground plumbing layout",
+      "Handwashing station locations affect plumbing and electrical",
+      "Walk-in cooler/freezer placement affects structural and electrical"
+    ],
+    "common_dph_rejections": [
+      "Missing or incomplete equipment schedule (must be numbered, cross-referenced to plan)",
+      "Inadequate handwashing stations (need minimum one per food prep area)",
+      "No grease interceptor or undersized grease trap",
+      "Finish materials not approved (porous materials in food prep/dishwashing areas)",
+      "Insufficient lighting levels at food preparation stations (need 50fc)",
+      "Missing floor drains in food prep and dishwashing areas",
+      "Inadequate ventilation calculations for hood exhaust",
+      "Menu not submitted or incomplete"
+    ],
+    "pro_tip": "DPH pre-application consultation can save months by identifying issues before design is finalized"
+  },
+
+  "fee_estimates": {
+    "building_permit": "Per Table 1A-A based on construction valuation (plan review + permit issuance)",
+    "plumbing_permit": {
+      "category_6PA": {"fee": 543, "description": "5 or fewer drainage and gas outlets"},
+      "category_6PB": {"fee": 1525, "description": "6 or more drainage and gas outlets"}
+    },
+    "electrical_permit": "Per Table 1A-E — varies by outlet count and square footage",
+    "sffd_plan_review": "Per Table 107-B based on construction valuation",
+    "sffd_field_inspection": "Per Table 107-C based on construction valuation",
+    "sffd_operational": {"fee": 387, "trigger": "Place of Assembly — occupant load >50"},
+    "dph_health_permit": "Varies by facility type and size — contact DPH for schedule",
+    "surcharges": "CBSC ($4 per $100K valuation) + SMIP (varies by building type)"
+  },
+
+  "timeline_expectations": {
+    "planning_review": {
+      "without_cu": "2-4 weeks for Letter of Determination",
+      "with_cu": "4-8 weeks including CU hearing scheduling"
+    },
+    "dbi_plan_review": "8-16 weeks typical for restaurant TI (all agencies combined)",
+    "dph_review": "4-8 weeks (parallel with DBI)",
+    "corrections": "2-4 weeks per round — expect 2-3 rounds",
+    "permit_issuance": "1-2 weeks after all approvals",
+    "total_estimate": "4-8 months from planning consultation to permit issuance",
+    "construction": "Varies by scope — add construction + inspection time",
+    "tips": [
+      "DPH pre-consultation can save months by avoiding design rework",
+      "File plumbing and electrical permits as soon as building permit is approved",
+      "Address ALL agency corrections in each round — partial responses add rounds"
+    ]
+  }
+}

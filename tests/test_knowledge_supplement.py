@@ -1101,3 +1101,331 @@ async def test_predict_has_final_compliance_affidavit():
         scope_keywords=["commercial_ti"],
     )
     assert "M-06" in result or "final compliance affidavit" in result.lower() or "dbi.energyinspections" in result
+
+
+# =============================================================================
+# Phase 2.75d — G-01 Signature Requirements + G-25 Restaurant Guide + SFFD Fees
+# =============================================================================
+
+# --- G-01 Knowledge File Tests ---
+
+def test_g01_signature_file_exists():
+    """G-01 plan signature requirements file should load with signature_categories."""
+    kb = get_knowledge_base()
+    sigs = kb.plan_signatures
+    assert sigs, "plan_signatures should be loaded"
+    assert "signature_categories" in sigs
+    cats = sigs["signature_categories"]
+    assert "exempt" in cats
+    assert "licensed_contractor" in cats
+    assert "registered_engineer_or_architect" in cats
+    assert "special_status" in cats
+
+
+def test_g01_exempt_conditions():
+    """G-01 should have 9 exempt conditions."""
+    kb = get_knowledge_base()
+    exempt = kb.plan_signatures["signature_categories"]["exempt"]
+    conditions = exempt.get("conditions", [])
+    assert len(conditions) == 9, f"Expected 9 exempt conditions, got {len(conditions)}"
+    ids = [c["id"] for c in conditions]
+    assert "G01-EX-01" in ids  # SFD wood frame
+    assert "G01-EX-06" in ids  # Tenant space improvements
+    assert "G01-EX-09" in ids  # Sprinkler/fire alarm
+
+
+def test_g01_exempt_tenant_threshold():
+    """G-01 exempt tenant space improvement threshold should be $400,000."""
+    kb = get_knowledge_base()
+    conditions = kb.plan_signatures["signature_categories"]["exempt"]["conditions"]
+    ex06 = next(c for c in conditions if c["id"] == "G01-EX-06")
+    assert ex06["valuation_threshold"] == 400000
+
+
+def test_g01_exempt_dwelling_threshold():
+    """G-01 exempt dwelling unit improvement threshold should be $150,000."""
+    kb = get_knowledge_base()
+    conditions = kb.plan_signatures["signature_categories"]["exempt"]["conditions"]
+    ex07 = next(c for c in conditions if c["id"] == "G01-EX-07")
+    assert ex07["valuation_threshold"] == 150000
+
+
+def test_g01_engineer_triggers():
+    """G-01 Status III should list 7 triggers requiring CA-licensed architect/engineer."""
+    kb = get_knowledge_base()
+    eng = kb.plan_signatures["signature_categories"]["registered_engineer_or_architect"]
+    triggers = eng.get("triggers", [])
+    assert len(triggers) == 7
+    # Check key triggers exist
+    trigger_texts = " ".join(t["trigger"] for t in triggers).lower()
+    assert "structural steel" in trigger_texts
+    assert "clear span" in trigger_texts
+    assert "wall removal" in trigger_texts
+
+
+def test_g01_special_status_items():
+    """G-01 Status IV should have 15 special status items."""
+    kb = get_knowledge_base()
+    special = kb.plan_signatures["signature_categories"]["special_status"]
+    items = special.get("items", [])
+    assert len(items) == 15
+    # Check for fire protection items with SFFD consult flag
+    sffd_items = [i for i in items if i.get("sffd_consult")]
+    assert len(sffd_items) >= 5  # sprinkler, smoke detection, alarm, central control, smoke control
+
+
+def test_g01_seal_requirements():
+    """G-01 seal requirements should specify first sheet original + electronic OK."""
+    kb = get_knowledge_base()
+    seal = kb.plan_signatures.get("seal_requirements", {})
+    assert "first_sheet" in seal
+    assert "original" in seal["first_sheet"].get("requirement", "").lower()
+    assert seal.get("electronic_signatures", {}).get("allowed") is True
+    prohibited = seal.get("prohibited", [])
+    assert len(prohibited) == 3
+
+
+def test_g01_shop_drawings():
+    """G-01 should have 3 shop drawing acceptance methods."""
+    kb = get_knowledge_base()
+    shop = kb.plan_signatures.get("shop_drawings", {})
+    methods = shop.get("acceptance_methods", [])
+    assert len(methods) == 3
+
+
+# --- G-25 Knowledge File Tests ---
+
+def test_g25_restaurant_file_exists():
+    """G-25 restaurant permit guide should load with step_by_step_process."""
+    kb = get_knowledge_base()
+    guide = kb.restaurant_guide
+    assert guide, "restaurant_guide should be loaded"
+    assert "step_by_step_process" in guide
+    assert "dbi_specific_requirements" in guide
+
+
+def test_g25_occupancy_classification():
+    """G-25 should define occupancy: ≤50 = Group B, >50 = Group A-2."""
+    kb = get_knowledge_base()
+    occ = kb.restaurant_guide["dbi_specific_requirements"]["occupancy_classification"]
+    assert "Group B" in occ["restaurant_50_or_fewer"]["classification"]
+    assert "Group A-2" in occ["restaurant_over_50"]["classification"]
+    assert "Group A-2" in occ["bar_lounge"]["classification"]
+
+
+def test_g25_permits_needed():
+    """G-25 should list all required permits for restaurant."""
+    kb = get_knowledge_base()
+    permits = kb.restaurant_guide["dbi_specific_requirements"]["permits_needed"]
+    assert "building_permit" in permits
+    assert "plumbing_permit" in permits
+    assert "electrical_permit" in permits
+    assert "dph_health_permit" in permits
+    assert "sffd_operational_permit" in permits
+    assert "planning_approval" in permits
+
+
+def test_g25_dph_coordination():
+    """G-25 should note DPH parallel review and common rejections."""
+    kb = get_knowledge_base()
+    dph = kb.restaurant_guide["dph_coordination"]
+    assert dph["parallel_review"] is True
+    rejections = dph.get("common_dph_rejections", [])
+    assert len(rejections) >= 5
+    # Check for key rejection reasons
+    rej_text = " ".join(rejections).lower()
+    assert "equipment schedule" in rej_text
+    assert "grease" in rej_text
+
+
+def test_g25_fee_estimates():
+    """G-25 should include plumbing categories and SFFD operational fee."""
+    kb = get_knowledge_base()
+    fees = kb.restaurant_guide["fee_estimates"]
+    assert fees["plumbing_permit"]["category_6PA"]["fee"] == 543
+    assert fees["plumbing_permit"]["category_6PB"]["fee"] == 1525
+    assert fees["sffd_operational"]["fee"] == 387
+
+
+def test_g25_timeline_expectations():
+    """G-25 should have total estimate of 4-8 months."""
+    kb = get_knowledge_base()
+    timeline = kb.restaurant_guide["timeline_expectations"]
+    assert "4-8 months" in timeline["total_estimate"]
+
+
+def test_g25_step_by_step_has_8_steps():
+    """G-25 should define 8 steps from planning to inspection."""
+    kb = get_knowledge_base()
+    steps = kb.restaurant_guide["step_by_step_process"]
+    step_keys = [k for k in steps if k.startswith("step_")]
+    assert len(step_keys) == 8
+
+
+# --- SFFD Fee Calculation Tests ---
+
+def test_sffd_plan_review_fee_small():
+    """SFFD plan review for $5K valuation should be reasonable."""
+    from src.tools.estimate_fees import _calculate_sffd_fees
+    kb = get_knowledge_base()
+    result = _calculate_sffd_fees(5000, "restaurant", kb.fire_code)
+    assert result["plan_review"] > 0, "Should have a plan review fee"
+    assert result["plan_review"] < 500, "Small project fee should be modest"
+
+
+def test_sffd_plan_review_fee_medium():
+    """SFFD plan review for $100K valuation should be in $800-$1200 range."""
+    from src.tools.estimate_fees import _calculate_sffd_fees
+    kb = get_knowledge_base()
+    result = _calculate_sffd_fees(100000, "restaurant", kb.fire_code)
+    assert result["plan_review"] >= 800, f"Expected ≥$800, got ${result['plan_review']}"
+    assert result["plan_review"] <= 1500, f"Expected ≤$1500, got ${result['plan_review']}"
+
+
+def test_sffd_field_inspection_fee():
+    """SFFD field inspection for $100K valuation should be $408 (3 hours)."""
+    from src.tools.estimate_fees import _calculate_sffd_fees
+    kb = get_knowledge_base()
+    result = _calculate_sffd_fees(100000, "restaurant", kb.fire_code)
+    assert result["field_inspection"] == 408
+
+
+def test_sffd_restaurant_has_system_or_operational_fees():
+    """Restaurant SFFD fees should include sprinkler system fee or operational permit."""
+    from src.tools.estimate_fees import _calculate_sffd_fees
+    kb = get_knowledge_base()
+    result = _calculate_sffd_fees(300000, "restaurant", kb.fire_code)
+    has_extras = len(result["system_fees"]) > 0 or len(result["operational_permits"]) > 0
+    assert has_extras, "Restaurant should have system fees or operational permits"
+    # Should have Place of Assembly note
+    op_texts = [p["permit"] for p in result["operational_permits"]]
+    assert any("Assembly" in t for t in op_texts), "Should include Place of Assembly permit"
+
+
+def test_sffd_total_includes_all_components():
+    """SFFD total should be sum of plan review + inspection + system + operational."""
+    from src.tools.estimate_fees import _calculate_sffd_fees
+    kb = get_knowledge_base()
+    result = _calculate_sffd_fees(200000, "restaurant", kb.fire_code)
+    expected_total = (
+        result["plan_review"] + result["field_inspection"] +
+        sum(s["fee"] for s in result["system_fees"]) +
+        sum(p["fee"] for p in result["operational_permits"])
+    )
+    assert result["total_sffd"] == round(expected_total, 2)
+
+
+# --- Tool Integration Tests ---
+
+@pytest.mark.asyncio
+async def test_required_docs_has_signature_requirement():
+    """Engineer-required projects should get G-01 signature note."""
+    result = await required_documents(
+        permit_forms=["Form 1/2"],
+        review_path="in_house",
+        project_type="new_construction",
+        triggers=["new_construction"],
+    )
+    assert "G-01" in result or "architect or" in result.lower() or "engineer" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_exempt_status_tip():
+    """General alteration should mention G-01 exempt possibility."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="otc",
+    )
+    assert "exempt" in result.lower() or "G-01" in result
+
+
+@pytest.mark.asyncio
+async def test_predict_restaurant_always_inhouse():
+    """Restaurant projects should always be in-house review."""
+    result = await predict_permits(
+        project_description="Restaurant tenant improvement",
+        scope_keywords=["restaurant"],
+    )
+    # Should say in_house, not depends or likely_otc
+    assert "in_house" in result
+
+
+@pytest.mark.asyncio
+async def test_predict_restaurant_occupancy_note():
+    """Restaurant prediction should mention Group A-2 / Group B classification."""
+    result = await predict_permits(
+        project_description="New restaurant in existing building",
+        estimated_cost=300000,
+        scope_keywords=["restaurant"],
+    )
+    assert "Group A-2" in result or "Group B" in result or "occupancy" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_predict_restaurant_separate_permits():
+    """Restaurant prediction should mention separate plumbing + electrical permits."""
+    result = await predict_permits(
+        project_description="Restaurant buildout",
+        estimated_cost=250000,
+        scope_keywords=["restaurant"],
+    )
+    assert "separate" in result.lower() or "plumbing permit" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_predict_restaurant_g01_signature():
+    """Restaurant prediction should mention G-01 signature requirement."""
+    result = await predict_permits(
+        project_description="Restaurant construction",
+        estimated_cost=300000,
+        scope_keywords=["restaurant"],
+    )
+    assert "G-01" in result or "architect or engineer" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_estimate_fees_has_sffd_section():
+    """Restaurant fee estimate should include SFFD fee section."""
+    result = await estimate_fees(
+        permit_type="alterations",
+        estimated_construction_cost=300000,
+        project_type="restaurant",
+    )
+    assert "SFFD" in result
+    assert "107-B" in result or "Plan Review" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_restaurant_has_g25_tips():
+    """Restaurant required docs should include G-25 process tips."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        agency_routing=["Planning", "SFFD (Fire)", "DPH (Public Health)"],
+        project_type="restaurant",
+    )
+    assert "Planning FIRST" in result or "G-25" in result
+    assert "DPH" in result
+    assert "separate" in result.lower() or "plumbing" in result.lower()
+
+
+# --- Semantic Index Tests ---
+
+def test_semantic_index_has_g01_concept():
+    """Semantic index should include plan_signature_requirements concept."""
+    kb = get_knowledge_base()
+    concepts = kb.semantic_index.get("concepts", {})
+    assert "plan_signature_requirements" in concepts
+    aliases = concepts["plan_signature_requirements"]["aliases"]
+    assert "G-01" in aliases
+    assert "architect required" in aliases
+
+
+def test_semantic_index_has_g25_concept():
+    """Semantic index should include restaurant_permit_guide concept."""
+    kb = get_knowledge_base()
+    concepts = kb.semantic_index.get("concepts", {})
+    assert "restaurant_permit_guide" in concepts
+    aliases = concepts["restaurant_permit_guide"]["aliases"]
+    assert "G-25" in aliases
+    assert "restaurant permit" in aliases

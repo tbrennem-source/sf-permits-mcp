@@ -70,6 +70,10 @@ class KnowledgeBase:
         self.dph_food = _load_json(tier1 / "dph-food-facility-requirements.json")
         self.ada_accessibility = _load_json(tier1 / "ada-accessibility-requirements.json")
 
+        # Phase 2.75d — G-01 signature requirements + G-25 restaurant guide
+        self.plan_signatures = _load_json(tier1 / "plan-signature-requirements.json")
+        self.restaurant_guide = _load_json(tier1 / "restaurant-permit-guide.json")
+
         # Build keyword index from semantic index
         self._keyword_index = self._build_keyword_index()
 

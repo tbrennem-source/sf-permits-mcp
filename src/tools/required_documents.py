@@ -206,6 +206,40 @@ def _compliance_documents(all_triggers: list[str], project_type: str | None, kb)
             if hpwh and "new_construction" in all_triggers:
                 docs.append("DPH: HPWH sizing calculation — first-hour rating, recovery rate, booster heater spec if high-temp sanitizing")
 
+    # G-01 Signature requirements — who must sign the plans
+    sigs = kb.plan_signatures
+    if sigs:
+        sig_cats = sigs.get("signature_categories", {})
+        exempt = sig_cats.get("exempt", {})
+        eng_arch = sig_cats.get("registered_engineer_or_architect", {})
+
+        # Determine if project likely requires licensed professional
+        needs_engineer = False
+        is_exempt = False
+
+        if "new_construction" in all_triggers:
+            needs_engineer = True
+        elif project_type == "restaurant":
+            needs_engineer = True  # Commercial kitchen = structural/mechanical systems
+        elif project_type in ("seismic", "historic", "adaptive_reuse"):
+            needs_engineer = True
+        elif project_type == "commercial_ti":
+            # Check valuation threshold for exempt TI work
+            # G01-EX-06: non-highrise, 1 floor, nonresidential, ≤$400K
+            # We don't have valuation here, so note both possibilities
+            docs.append("Plans signed by CA-licensed architect or engineer — OR exempt if single-floor non-highrise TI ≤$400,000 (G-01 Status I/III)")
+        elif project_type in (None, "general_alteration"):
+            # Could be exempt depending on specifics
+            is_exempt = True
+
+        if needs_engineer:
+            docs.append("Plans must be signed and sealed by CA-licensed architect or civil engineer (G-01 Status III)")
+            seal = sigs.get("seal_requirements", {})
+            if seal:
+                docs.append("First plan sheet: original signature + professional seal + registration number + sheet index (G-01)")
+        elif is_exempt and project_type not in ("commercial_ti",):
+            docs.append("Plans may qualify for exempt status — unlicensed designer may sign if scope meets G-01 Status I conditions")
+
     return docs
 
 
@@ -289,8 +323,11 @@ async def required_documents(
         pro_tips.append("All plans reviewed at counter in ~1 hour per station")
         pro_tips.append("Have licensed professional available by phone during OTC review")
     if project_type == "restaurant":
-        pro_tips.append("Visit Planning FIRST to confirm restaurant use is permitted at your site")
-        pro_tips.append("Separate electrical and plumbing permits needed after building permit")
+        pro_tips.append("Visit Planning FIRST to confirm restaurant use is permitted (G-25 Step 1)")
+        pro_tips.append("Contact DPH for pre-application consultation BEFORE design — saves months of rework (G-25 Step 2)")
+        pro_tips.append("Separate plumbing permit (Cat 6PA/6PB) + electrical permit required after building permit (G-25)")
+        pro_tips.append("Expect parallel review by DBI, DPH, SFFD, Planning — ALL must approve before permit issuance")
+        pro_tips.append("Occupant load >50 triggers Group A-2 assembly classification — sprinklers, SFFD operational permit ($387)")
     if "historic" in all_triggers:
         pro_tips.append("HPC review happens BEFORE any other Planning approval — start early")
 

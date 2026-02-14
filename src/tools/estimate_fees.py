@@ -1,6 +1,7 @@
 """Tool: estimate_fees — Estimate permit fees using fee tables + DuckDB statistics."""
 
 import math
+import re
 from src.tools.knowledge_base import get_knowledge_base
 from src.db import get_connection
 
@@ -104,6 +105,138 @@ def _calculate_surcharges(valuation: float, fee_tables: dict) -> dict:
     }
 
 
+def _calculate_sffd_fees(valuation: float, project_type: str | None, fire_code: dict) -> dict:
+    """Calculate SFFD plan review + field inspection fees from Table 107-B/107-C.
+
+    Uses fee data from fire-code-key-sections.json.
+    """
+    ch1 = fire_code.get("chapter_1_administration", {}).get("key_provisions", {})
+    result = {"plan_review": 0.0, "field_inspection": 0.0, "system_fees": [],
+              "operational_permits": [], "details": []}
+
+    # Table 107-B plan review fees
+    plan_fees = ch1.get("construction_permit_fees", {}).get("fee_examples", [])
+    for tier in plan_fees:
+        val_range = tier.get("valuation", "")
+        fee_str = tier.get("fee", "")
+        # Parse the base fee from the fee string (e.g., "$892.04 base + ...")
+        base_fee = 0.0
+        if "$" in fee_str:
+            import re
+            match = re.search(r'\$([\d,]+\.?\d*)', fee_str)
+            if match:
+                base_fee = float(match.group(1).replace(",", ""))
+
+        # Match valuation to tier
+        if "Over" in val_range or "over" in val_range:
+            # Extract threshold from range like "Over $5,000,000"
+            threshold_match = re.search(r'\$([\d,]+)', val_range)
+            if threshold_match and valuation >= float(threshold_match.group(1).replace(",", "")):
+                result["plan_review"] = base_fee
+                # Calculate additional from "per additional $1,000" if present
+                per_match = re.search(r'\$([\d.]+)\s+per\s+additional\s+\$1,000', fee_str)
+                if per_match:
+                    per_1k = float(per_match.group(1))
+                    threshold = float(threshold_match.group(1).replace(",", ""))
+                    excess = valuation - threshold
+                    result["plan_review"] = base_fee + (math.ceil(excess / 1000) * per_1k)
+                break
+        else:
+            # Parse range like "$50,001-$200,000"
+            range_match = re.findall(r'\$([\d,]+)', val_range)
+            if len(range_match) >= 2:
+                low = float(range_match[0].replace(",", ""))
+                high = float(range_match[1].replace(",", ""))
+                if low <= valuation <= high:
+                    result["plan_review"] = base_fee
+                    per_match = re.search(r'\$([\d.]+)\s+per\s+additional\s+\$1,000', fee_str)
+                    if per_match:
+                        per_1k = float(per_match.group(1))
+                        excess = valuation - low
+                        result["plan_review"] = base_fee + (math.ceil(excess / 1000) * per_1k)
+                    break
+
+    # Table 107-C field inspection fees
+    insp_fees = ch1.get("field_inspection_fees", {}).get("fees", [])
+    for tier in insp_fees:
+        val_range = tier.get("valuation_range", "")
+        fee_str = tier.get("fee", "$0")
+        fee_val = float(fee_str.replace("$", "").replace(",", ""))
+
+        if "Over" in val_range or "over" in val_range:
+            import re
+            threshold_match = re.search(r'\$([\d,]+)', val_range)
+            if threshold_match and valuation >= float(threshold_match.group(1).replace(",", "")):
+                result["field_inspection"] = fee_val
+                break
+        else:
+            range_match = re.findall(r'[\d,]+', val_range.replace("$", ""))
+            if len(range_match) >= 2:
+                low = float(range_match[0].replace(",", ""))
+                high = float(range_match[1].replace(",", ""))
+                if low <= valuation <= high:
+                    result["field_inspection"] = fee_val
+                    break
+
+    # System-specific fees
+    system_fees = ch1.get("field_inspection_fees", {}).get("system_specific_fees", [])
+    if project_type == "restaurant":
+        # Restaurants typically need hood suppression — similar to gaseous suppression
+        for sf in system_fees:
+            if "sprinkler" in sf.get("system", "").lower():
+                result["system_fees"].append({"system": sf["system"], "fee": float(sf["fee"].replace("$", "").replace(",", ""))})
+
+    # Operational permits
+    if project_type == "restaurant":
+        result["operational_permits"].append({"permit": "Place of Assembly (if >50 occupants)", "fee": 387})
+
+    result["plan_review"] = round(result["plan_review"], 2)
+    result["field_inspection"] = round(result["field_inspection"], 2)
+    result["total_sffd"] = round(
+        result["plan_review"] + result["field_inspection"] +
+        sum(s["fee"] for s in result["system_fees"]) +
+        sum(p["fee"] for p in result["operational_permits"]),
+        2
+    )
+    return result
+
+
+def _calculate_plumbing_fee(project_type: str | None, fee_tables: dict) -> dict | None:
+    """Look up plumbing fee from Table 1A-C based on project type."""
+    table_1ac = fee_tables.get("table_1A_C", {})
+    categories = table_1ac.get("categories", [])
+    if not categories:
+        return None
+
+    # Map project type to fee category
+    category_map = {
+        "restaurant": ["6PA", "6PB"],
+        "adu": ["2PA", "2PB"],
+        "new_construction": ["1P"],
+    }
+
+    target_cats = category_map.get(project_type, [])
+    if not target_cats:
+        return None
+
+    fees = []
+    for cat in categories:
+        code = cat.get("code", "")
+        if code in target_cats:
+            fee = cat.get("fee")
+            if fee is not None:
+                fees.append({"category": code, "description": cat.get("description", ""), "fee": fee})
+
+    if fees:
+        if len(fees) == 1:
+            return {"estimate": f"${fees[0]['fee']:,}", "details": fees}
+        else:
+            low = min(f["fee"] for f in fees)
+            high = max(f["fee"] for f in fees)
+            return {"estimate": f"${low:,}-${high:,}", "details": fees}
+    return None
+
+
 def _query_fee_stats(conn, permit_type: str, neighborhood: str | None,
                      cost_min: float, cost_max: float) -> dict | None:
     """Query DuckDB for statistical fee data from actual permits."""
@@ -182,15 +315,23 @@ async def estimate_fees(
     building_fee = _calculate_building_fee(estimated_construction_cost, category, fee_tables)
     surcharges = _calculate_surcharges(estimated_construction_cost, fee_tables)
 
+    # SFFD fees (from fire-code-key-sections.json Table 107-B/107-C)
+    sffd_fees = None
+    fire_triggers = ["restaurant", "new_construction", "commercial_ti", "change_of_use"]
+    if project_type in fire_triggers:
+        sffd_fees = _calculate_sffd_fees(estimated_construction_cost, project_type, kb.fire_code)
+
+    # Plumbing fees (from fee-tables.json Table 1A-C)
+    plumbing_fees = _calculate_plumbing_fee(project_type, fee_tables)
+
     # Additional fees based on project type
     additional_fees = []
+    if plumbing_fees:
+        additional_fees.append({"fee": f"Plumbing permit", "estimate": plumbing_fees["estimate"]})
     if project_type == "restaurant":
-        additional_fees.append({"fee": "Plumbing permit (Category 6PA/6PB)", "estimate": "$543-$1,525"})
-        additional_fees.append({"fee": "DPH health permit", "estimate": "varies"})
-        additional_fees.append({"fee": "SFFD plan review", "estimate": "per Table 107-B"})
+        additional_fees.append({"fee": "DPH health permit", "estimate": "varies by facility type"})
     if project_type == "adu":
-        additional_fees.append({"fee": "Plumbing permit (Category 2PA/2PB)", "estimate": "$483-$701"})
-        additional_fees.append({"fee": "Electrical permit", "estimate": "per Category 1 tiers"})
+        additional_fees.append({"fee": "Electrical permit", "estimate": "per Table 1A-E Category 1 tiers"})
     if project_type in ("new_construction", "commercial_ti"):
         additional_fees.append({"fee": "School Impact Fee (SFUSD)", "estimate": "varies by floor area increase"})
 
@@ -252,6 +393,18 @@ async def estimate_fees(
         lines.append(f"\n*Fee tier: {building_fee['tier']}*")
     else:
         lines.append(f"Error: {building_fee['error']}")
+
+    if sffd_fees and sffd_fees["total_sffd"] > 0:
+        lines.append(f"\n## SFFD Fees (Table 107-B / 107-C)\n")
+        lines.append(f"| Fee Component | Amount |")
+        lines.append(f"|--------------|--------|")
+        lines.append(f"| SFFD Plan Review (Table 107-B) | ${sffd_fees['plan_review']:,.2f} |")
+        lines.append(f"| SFFD Field Inspection (Table 107-C) | ${sffd_fees['field_inspection']:,.2f} |")
+        for sf in sffd_fees.get("system_fees", []):
+            lines.append(f"| {sf['system']} | ${sf['fee']:,.2f} |")
+        for op in sffd_fees.get("operational_permits", []):
+            lines.append(f"| {op['permit']} | ${op['fee']:,.2f} |")
+        lines.append(f"| **Total SFFD Fees** | **${sffd_fees['total_sffd']:,.2f}** |")
 
     if additional_fees:
         lines.append(f"\n## Additional Fees (estimated)\n")

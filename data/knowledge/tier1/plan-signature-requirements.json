@@ -1,0 +1,210 @@
+{
+  "metadata": {
+    "source": "DBI Information Sheet G-01: Signature on Plans",
+    "date": "2018-10-16",
+    "category": "General",
+    "code_sections": ["SFBC 106A.3.2", "ASCE 7-10 Section 13.1.4 Exemption 6ci", "CA Business & Professions Code 5537, 5538, 5800, 6757.1"],
+    "signed_by": "Tom C. Hui, S.E., C.B.O., Director",
+    "extraction_date": "2026-02-14",
+    "purpose": "Defines who must sign plans submitted to DBI — 4 signature status categories based on project scope, occupancy, construction type, span, and valuation"
+  },
+
+  "signature_categories": {
+    "exempt": {
+      "status": "I",
+      "description": "Any Building Designer, Interior Designer, or unlicensed person may prepare and sign drawings",
+      "conditions": [
+        {
+          "id": "G01-EX-01",
+          "type": "Single family dwelling — wood frame",
+          "limits": "Type V construction, ≤2 stories + basement, bearing wall spans ≤25ft, height ≤25ft",
+          "includes_alterations": true
+        },
+        {
+          "id": "G01-EX-02",
+          "type": "Multiple dwelling — wood frame",
+          "limits": "≤4 dwelling units, ≤2 stories + basement",
+          "includes_alterations": true,
+          "note": "Cannot design multiple clusters of 4-unit buildings. Design per conventional design per CBC Chapter 23."
+        },
+        {
+          "id": "G01-EX-03",
+          "type": "Storefront installation",
+          "limits": "No structural impact, valuation ≤$40,000",
+          "valuation_threshold": 40000,
+          "scope": "Including entrance or exit doors"
+        },
+        {
+          "id": "G01-EX-04",
+          "type": "Fabric awnings and canopies"
+        },
+        {
+          "id": "G01-EX-05",
+          "type": "Signs",
+          "limits": "Weight <250 lbs, area <24 sqft, projection <4ft"
+        },
+        {
+          "id": "G01-EX-06",
+          "type": "Tenant space improvements — nonresidential",
+          "limits": "Non-high-rise, contained on one floor, nonresidential occupancy, valuation ≤$400,000",
+          "valuation_threshold": 400000,
+          "scope": [
+            "Interior wall and ceiling decorative materials",
+            "Non-load-bearing partition installation/relocation (not fire rated)",
+            "Non-fire-rated door installation/relocation",
+            "Low partitions ≤5ft 9in and fixtures (rails, counters, cabinets)",
+            "Non-fire-rated suspended ceiling systems (ASTM 635-04 / 636M-06) — except those providing lateral support",
+            "HVAC systems not part of smoke control in exempt building"
+          ]
+        },
+        {
+          "id": "G01-EX-07",
+          "type": "Dwelling unit improvements in R-2/R-3 (non-exempt buildings)",
+          "limits": "Within single dwelling unit, estimated cost ≤$150,000 per unit",
+          "valuation_threshold": 150000,
+          "scope": [
+            "Window replacement",
+            "Kitchen and/or bathroom remodeling",
+            "Termite work replacing non-structural members",
+            "Roof repairs of existing sheathing",
+            "Non-required insulation",
+            "Non-structural remodeling",
+            "Other non-structural work (if SFBC 3401.10 seismic design not triggered)"
+          ]
+        },
+        {
+          "id": "G01-EX-08",
+          "type": "Replacement in kind — non-structural elements in R-3",
+          "scope": "Maintenance replacement (e.g., rear stairs of two-flat building)"
+        },
+        {
+          "id": "G01-EX-09",
+          "type": "Sprinkler and fire alarm systems",
+          "note": "Consult SFFD for plan submittal requirements"
+        }
+      ],
+      "override_note": "If any portion deviates from substantial compliance with CBC 2308 conventional framing, licensed architect or registered engineer required for that portion",
+      "structural_safety_note": "If alteration to non-exempt building affects structural system or safety (Building Official determination), all plans must be prepared by State-licensed person"
+    },
+
+    "licensed_contractor": {
+      "status": "II",
+      "description": "Any contractor holding valid CA license may perform",
+      "scope": [
+        "All work permitted under Exempt Status",
+        "Shop and field drawings for work contractor has contracted or offered to perform",
+        "Design of systems and facilities necessary to completion of contracted work"
+      ],
+      "authority": "CA Business and Professions Code Chapter 9",
+      "limitation": "Cannot design work to be installed by another person"
+    },
+
+    "registered_engineer_or_architect": {
+      "status": "III",
+      "description": "CA-licensed Civil Engineer or Architect must prepare and sign all drawings",
+      "triggers": [
+        {
+          "id": "G01-EA-01",
+          "trigger": "New building with structural steel frame or concrete/masonry floors, roof, or walls"
+        },
+        {
+          "id": "G01-EA-02",
+          "trigger": "New building with clear span exceeding 25 feet"
+        },
+        {
+          "id": "G01-EA-03",
+          "trigger": "Any new building not covered by Exempt or Licensed Contractor status"
+        },
+        {
+          "id": "G01-EA-04",
+          "trigger": "Alterations to buildings in G01-EA-01/02/03 — including tenant improvements and dwelling unit work not covered by Exempt/Contractor"
+        },
+        {
+          "id": "G01-EA-05",
+          "trigger": "Wall removal without replacement (e.g., open kitchen)"
+        },
+        {
+          "id": "G01-EA-06",
+          "trigger": "Suspended ceilings providing lateral support for walls and partitions"
+        },
+        {
+          "id": "G01-EA-07",
+          "trigger": "Complex work beyond Exempt/Contractor capabilities — Building Official determination"
+        }
+      ],
+      "coordination_rule": "Architect or engineer of record responsible for reviewing and coordinating ALL submittal documents including deferred submittals (SFBC 106A.3.4)",
+      "minor_alteration_exception": "Minor alterations not affecting structural or safety components may be made by person under direction of design professional — with letter/email to DBI"
+    },
+
+    "special_status": {
+      "status": "IV",
+      "description": "Specialized designs for portions or components require design professionals qualified by licensing agency",
+      "items": [
+        {"item": "Engineered grading or foundation treatment"},
+        {"item": "Retaining walls over 4ft total height from bottom of footing"},
+        {"item": "Underpinning or shoring"},
+        {"item": "Rigid frames, trusses — structural steel or reinforced concrete"},
+        {"item": "Special timber construction (trusses, stressed skin panels, glulam beams, columns, arches)"},
+        {"item": "Automatic fire sprinkler systems", "sffd_consult": true},
+        {"item": "Smoke detection systems", "sffd_consult": true},
+        {"item": "Alarm and communications systems", "sffd_consult": true},
+        {"item": "Central control stations", "sffd_consult": true},
+        {"item": "Emergency elevator operators"},
+        {"item": "Smoke control systems", "sffd_consult": true},
+        {"item": "Standby power systems"},
+        {"item": "Emergency electrical systems"},
+        {"item": "Exit control systems"},
+        {"item": "HVAC equipment (mechanical/electrical) >400 lbs mounted ≤4ft above floor", "code_reference": "ASCE 7-10 Section 13.1.4 Exemption 6ci"}
+      ],
+      "sffd_note": "Items marked sffd_consult — consult San Francisco Fire Department for qualification requirements"
+    }
+  },
+
+  "seal_requirements": {
+    "section": "G-01 Part B",
+    "first_sheet": {
+      "requirement": "Original signature + professional seal with registration number",
+      "additional": "Sheet index of all sheets required on first sheet"
+    },
+    "remaining_sheets": {
+      "requirement": "Signature facsimile + professional seal with registration number acceptable"
+    },
+    "stamp_contents": [
+      "Legend: State of California",
+      "License type: licensed architect, registered professional engineer, or licensed land surveyor",
+      "Name as licensed with the Board",
+      "Licensed number",
+      "For architects only: expiration or renewal date of license"
+    ],
+    "electronic_signatures": {
+      "allowed": true,
+      "rule": "Opaque and permanent impression, or electronically-generated representation on documents. Signature may be applied electronically."
+    },
+    "prohibited": [
+      "Decals of seal or signature",
+      "Rubber stamp of signature",
+      "Preprinted blank forms with seal"
+    ]
+  },
+
+  "shop_drawings": {
+    "section": "G-01 Part C",
+    "description": "Shop drawings increasingly incorporated into building design packages for construction submittals (glass fiber reinforced concrete, stone, precast wall panels, fire sprinklers, metal stairs, glazed curtain walls)",
+    "dbi_acceptance_condition": "Principal Design Professional of Record accepts primary responsibility for work indicated on shop drawings",
+    "acceptance_methods": [
+      {
+        "method": "a",
+        "description": "Signed by Design Professional of Record per SFBC 106A.3.4.1"
+      },
+      {
+        "method": "b",
+        "description": "Review stamp + signature by Design Professional of Record + Professional signature of sub-contracting DP who prepared shop drawings"
+      },
+      {
+        "method": "c",
+        "description": "Review stamp + initials of DPoR (or designated employee) + letter from DPoR stating intent, purpose, and extent of review. Sub-contracting DP signature also required. Shop drawings for plan check review must be design drawings, documented as such."
+      }
+    ],
+    "note": "Approval of shop drawings occurs within permit or addendum containing the work"
+  }
+}

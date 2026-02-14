@@ -5,7 +5,7 @@
     "created_date": "2026-02-14",
     "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
     "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
-    "total_concepts": 61
+    "total_concepts": 63
   },
 
   "concepts": {
@@ -814,6 +814,36 @@
       ],
       "decision_tree_step": 4,
       "related_concepts": ["agency_routing"]
+    },
+
+    "plan_signature_requirements": {
+      "canonical_name": "Plan Signature / Professional Requirements (G-01)",
+      "aliases": ["signature", "who can sign plans", "architect required", "engineer required", "exempt plans", "licensed contractor", "professional seal", "G-01", "design professional", "stamp on plans", "wet signature", "unlicensed designer", "building designer"],
+      "description": "Defines 4 categories of who must sign plans: Exempt (unlicensed OK), Licensed Contractor, Registered Engineer/Architect, Special Status. Based on project scope, occupancy, construction type, span, and valuation.",
+      "authoritative_sources": [
+        {"file": "tier1/plan-signature-requirements.json", "path": "signature_categories.exempt", "role": "9 exempt conditions — unlicensed persons may sign"},
+        {"file": "tier1/plan-signature-requirements.json", "path": "signature_categories.registered_engineer_or_architect", "role": "7 triggers requiring CA-licensed architect or engineer"},
+        {"file": "tier1/plan-signature-requirements.json", "path": "signature_categories.special_status", "role": "15 specialized components requiring licensed professionals"},
+        {"file": "tier1/plan-signature-requirements.json", "path": "seal_requirements", "role": "How to affix signature, seal, and stamp on plans"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["required_documents", "permit_forms"]
+    },
+
+    "restaurant_permit_guide": {
+      "canonical_name": "Restaurant Building Permit Guide (G-25)",
+      "aliases": ["restaurant permit", "G-25", "restaurant building permit", "food facility permit", "restaurant construction", "restaurant TI", "restaurant tenant improvement", "open a restaurant", "new restaurant", "restaurant buildout"],
+      "description": "Comprehensive guide for restaurant building permits — covers DBI, Planning, DPH, SFFD coordination, 8-step process, occupancy classification (Group B vs A-2), fees, and common issues.",
+      "authoritative_sources": [
+        {"file": "tier1/restaurant-permit-guide.json", "path": "step_by_step_process", "role": "8-step process from planning to inspection"},
+        {"file": "tier1/restaurant-permit-guide.json", "path": "dbi_specific_requirements.occupancy_classification", "role": "Group B (≤50) vs Group A-2 (>50) classification"},
+        {"file": "tier1/restaurant-permit-guide.json", "path": "dbi_specific_requirements.permits_needed", "role": "All permits needed — building, plumbing, electrical, DPH, SFFD"},
+        {"file": "tier1/restaurant-permit-guide.json", "path": "dph_coordination", "role": "DPH parallel review, common rejections"},
+        {"file": "tier1/restaurant-permit-guide.json", "path": "timeline_expectations", "role": "4-8 month timeline estimate"},
+        {"file": "tier1/dph-food-facility-requirements.json", "path": "construction_standards", "role": "DPH construction standards for food facilities"}
+      ],
+      "decision_tree_step": "1,2,4,5",
+      "related_concepts": ["food_facility", "fire_department", "fee_calculation", "agency_routing"]
     }
   }
 }
