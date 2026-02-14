@@ -134,8 +134,35 @@
 - Former Acting Director of SF DBI (~2005)
 - New potential data source for djarvis user base
 
+### Session 5: OCR + Planning Code Parsing + Consultant Registry (2026-02-14, overnight)
+
+#### ~05:00 - OCR All 20 Scanned PDFs (Task A) ✅
+- Installed tesseract + pytesseract + pdf2image + poppler
+- Built scripts/ocr_pdfs.py
+- All 20 PDFs OCR'd successfully: 183,696 chars from 85 pages
+- Key results: G-12 (31K, 12p), FS-05 (38K, 20p), DA-04 (28K, 10p), DA-12 (18K, 7p), S-09 (9.3K, 4p)
+- G-13 fee schedule OCR'd: 5,703 chars — needs structuring
+- Committed as 44dee7f
+- **GAP-6 RESOLVED**
+
+#### ~05:24 - Permit Consultant Registry Ingested (Task E) ✅
+- Fetched 167 records from SF Ethics Commission (SODA API: umwe-sn9p)
+- 115 unique consultant names; top firms: Reuben Junius & Rose (29), Lighthouse Public Affairs (23)
+- Amy Lee profile: Eun Young (Amy) Lee, 3S LLC, rank #42 with 117 DBI permits
+- 3S LLC team: Jerry Sanguinetti, Mark Luellen, Michie Wong, Simon Tam
+- Top expediter: Danielle Romero (1,702 permits)
+- Created: tier1/permit-consultants-registry.json (115K)
+
+#### ~05:27 - Planning Code Key Sections Parsed (Task B) ✅
+- Extracted 6 major sections from 222K-line Planning Code into structured JSON
+- Section 311/312 (neighborhood notification), Section 303 (conditional use), Sections 305/309/329 (variances/review)
+- Zoning exemptions, historic preservation (Articles 10/11), CEQA environmental review
+- Review pathway summary: 6 pathways with conditions for each
+- Created: tier1/planning-code-key-sections.json (36K)
+- **GAP-4 RESOLVED** (was partially resolved, now fully structured)
+
 ### Known Issues (Updated)
-1. **20 scanned image PDFs**: Need OCR (pytesseract or cloud) to extract text
+1. **20 scanned image PDFs**: ✅ RESOLVED — All OCR'd successfully (183K chars, 85 pages)
 2. **File naming offset**: ✅ RESOLVED — document-mapping.json created, tier1 files renamed
 3. **DA-02 download failed**: AWS WAF blocked the PDF download
 4. **FS-01 mislabeled**: Contains DA-19 content (wrong series entirely)
@@ -143,5 +170,5 @@
 6. **OTC criteria**: ✅ RESOLVED — sf.gov web page, not an AB
 7. **Completeness checklist**: ✅ RESOLVED — sf.gov PDF, not an AB
 8. **AB files contain multiple ABs**: amlegal.com pages show sequential ABs. Each file may contain 2-4 ABs.
-9. **AB-093, AB-110, AB-112 lost**: Emptied by cleanup agent, Cloudflare WAF blocks re-download.
-10. **SF Planning Code needs parsing**: 12.6MB raw text, needs indexing for relevant sections.
+9. **AB-093, AB-110, AB-112**: ✅ RESOLVED — All 3 recovered (AB-093 manual download, AB-110/112 from Planning Code)
+10. **SF Planning Code parsing**: ✅ RESOLVED — Key sections extracted to tier1/planning-code-key-sections.json

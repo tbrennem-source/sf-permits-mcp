@@ -1,7 +1,7 @@
 # Knowledge Gaps Analysis
 ## SF Permitting Knowledge Base - Phase 2.5
 
-Last updated: 2026-02-13
+Last updated: 2026-02-14
 
 ## Critical Gaps (Block Decision Tree Accuracy)
 
@@ -16,11 +16,11 @@ Last updated: 2026-02-13
 - Decision tree step 3 updated with complete criteria
 **Note**: AB-093 was NOT the source — it's a web page, not an Administrative Bulletin. OTC criteria do not have an AB number.
 
-### GAP-2: Fee Calculation Schedule (G-13)
+### GAP-2: Fee Calculation Schedule (G-13) — ⚠️ PARTIALLY RESOLVED
 **Impact**: Step 7 of decision tree (fees) has no concrete data
-**What we know**: G-13 is the DBI Cost Schedule. It was downloaded but is a scanned image PDF (0 chars extracted).
-**What we need**: Fee table data - base fees, multipliers, fee categories by project type
-**Source needed**: G-13 PDF (needs OCR), or fee tables from sf.gov/sfdbi.org
+**What we know**: G-13 is the DBI Cost Schedule. OCR'd successfully (5,703 chars, 4 pages) → tier1/G-13-raw-text.txt
+**What we have**: Raw OCR text of fee schedule. Needs structuring into fee lookup table.
+**What we still need**: Structured fee table data - base fees, multipliers, fee categories by project type. OCR quality may need validation.
 **Ask Amy**: "How do you currently calculate fees for clients? What's the typical fee range for common project types?"
 
 ### GAP-3: Timeline Estimates by Project Type
@@ -30,12 +30,17 @@ Last updated: 2026-02-13
 **Source needed**: AB-004 (Priority Permit Processing), DBI's published processing time metrics
 **Ask Amy**: "What are realistic timeline expectations you set for clients by project type? What causes delays?"
 
-### GAP-4: Planning Department Pre-Approval Rules — ⚠️ PARTIALLY RESOLVED
+### GAP-4: Planning Department Pre-Approval Rules — ✅ RESOLVED
 **Impact**: Step 1 of decision tree (need_permit) and Step 4 (agency_routing)
-**What we know**: G-20 routes many project types to Planning. Zoning approval needed before building permit. Planning approval now required BEFORE filing for building permit (2024 change).
-**What we have**: Complete SF Planning Code ingested (222K lines, 12.6MB) at tier4/sf-planning-code-full.txt
-**What we still need**: Index/extract the specific sections covering: which projects need Planning review, exemptions, conditional use permit criteria, neighborhood notification thresholds
-**Source available**: tier4/sf-planning-code-full.txt (needs parsing and structuring)
+**Resolution**: Planning Code parsed into 6 major structured sections (36K JSON):
+- **Section 311/312 Neighborhood Notification**: 30-day notice thresholds, DR request process, exempt projects (ADUs, change-of-use to principally permitted in W.SoMa/C.SoMa/E.SoMa, vertical additions adding units)
+- **Conditional Use Authorization**: Section 303 criteria, residential demolition (Section 317), formula retail triggers
+- **Building Permit Review**: Section 305 variances, Section 309 C-3 district review, Section 329 large project authorization
+- **Zoning District Exemptions**: Principally permitted uses, parking/loading exemptions, historic exemptions
+- **Historic Preservation**: Article 10 (landmarks/districts) and Article 11 (downtown) review processes, Certificate of Appropriateness, demolition standards
+- **CEQA Environmental Review**: When required (CU, variance, Section 309/329), categorical exemptions, timeline implications
+- **Review Pathway Summary**: 6 pathways (OTC → Section 311 → CU → Section 309/329 → HPC → Variance) with conditions for each
+- Saved as: tier1/planning-code-key-sections.json
 **Ask Amy**: "What percentage of your projects need Planning review? What types typically skip it?"
 
 ### GAP-5: Completeness Review Checklist Details — ✅ RESOLVED
@@ -51,11 +56,14 @@ Last updated: 2026-02-13
 
 ## Significant Gaps (Reduce Decision Tree Quality)
 
-### GAP-6: Scanned/Image PDFs (20 documents)
+### GAP-6: Scanned/Image PDFs (20 documents) — ✅ RESOLVED
 **Impact**: 20 out of 51 info sheet PDFs extracted 0 characters (scanned images)
-**Affected documents**: G-01, G-07, G-12, G-13, G-14, G-17, G-23, DA-04, DA-09, DA-12, DA-14, DA-15, DA-19, FS-04, FS-05, FS-07, FS-12, FS-13, S-04, S-09
-**Resolution**: OCR processing (pytesseract or cloud OCR), or find text versions on sf.gov
-**Priority**: G-13 (fees) is critical, G-12 (unknown topic), FS-05 (20 pages, likely substantial)
+**Resolution**: All 20 PDFs OCR'd successfully using pytesseract + pdf2image + poppler
+- Total: 183,696 characters from 85 pages, 20/20 success
+- Key results: G-12 (31K, 12 pages), FS-05 (38K, 20 pages), DA-04 (28K, 10 pages), DA-12 (18K, 7 pages)
+- G-13 OCR'd: 5,703 chars (fee schedule — needs structuring, see GAP-2)
+- Script: scripts/ocr_pdfs.py
+- OCR'd files committed to tier2/ directories
 
 ### GAP-7: File ID Mismatch — RESOLVED
 **Impact**: Downloaded PDFs have off-by-one naming errors from sf.gov index page

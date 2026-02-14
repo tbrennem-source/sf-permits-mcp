@@ -1,7 +1,7 @@
 # Knowledge Source Index
 ## SF Permitting Knowledge Base - Phase 2.5
 
-Last updated: 2026-02-13
+Last updated: 2026-02-14
 
 ## Tier 1: Core Reference Documents (Structured JSON)
 
@@ -15,9 +15,11 @@ Last updated: 2026-02-13
 | G-27 | Condo Unit Required Permits | tier2/G-series/G-28.txt* | 1.9K | Raw text (file naming offset) |
 | G-28 | Floodplain Management Ordinance | tier1/G-29-raw-text.txt* | 70K | Raw text (file naming offset) |
 | G-23 | ADU Dwelling Units per Ordinances | tier2/G-series/G-24.txt* | 22.7K | Raw text - rich ADU rules |
-| G-13 | Fee Calculation / Cost Schedule | tier1/G-13-raw-text.txt | 0 | **SCANNED IMAGE - needs OCR** |
+| G-13 | Fee Calculation / Cost Schedule | tier1/G-13-raw-text.txt | 5.7K | OCR'd — needs structuring into fee lookup table |
 | otc-criteria | Projects Eligible for OTC Permit | tier1/otc-criteria.json | 10.5K | Structured - 12 no-plan + 24 with-plan + 19 not-OTC project types |
 | completeness | Residential Pre-Plan Check Checklist | tier1/completeness-checklist.json | 8.2K | Structured - 13 sections, 11 review departments |
+| planning-code | Planning Code Key Sections | tier1/planning-code-key-sections.json | 36K | Structured - 6 major sections (Section 311, CU, variances, historic, CEQA, exemptions) |
+| consultants | SF Permit Consultant Registry | tier1/permit-consultants-registry.json | 115K | Structured - 167 filings, 115 consultants, Amy Lee profile, DBI expediter rankings |
 
 *Note: File naming has systematic offset from sf.gov index page. See document-mapping.json for correct mapping.
 
@@ -93,9 +95,9 @@ Last updated: 2026-02-13
 | AB-004 | Priority Permit Processing Guidelines | tier3/AB-004.txt | 29K | ✅ Cleaned (also contains AB-001) |
 | AB-005 | Procedures for Approval of Local Equivalencies | tier3/AB-005.txt | 31K | ✅ Cleaned (contains AB-004+AB-005) |
 | AB-032 | Site Permit Processing | tier3/AB-032.txt | 48K | ✅ Cleaned (contains AB-028+AB-032) |
-| AB-093 | Implementation of Green Building Regulations | tier3/AB-093.txt | - | ⚠️ Downloaded but lost during cleanup (Cloudflare blocking re-download). NOT OTC criteria. |
-| AB-110 | Building Facade Inspection and Maintenance | tier3/AB-110.txt | - | ⚠️ Downloaded but lost during cleanup (Cloudflare blocking re-download) |
-| AB-112 | All-Electric New Construction Regulations | tier3/AB-112.txt | - | ⚠️ Downloaded but lost during cleanup (Cloudflare blocking re-download). NOT completeness review. |
+| AB-093 | Implementation of Green Building Regulations | tier3/AB-093.txt | 30K | ✅ Recovered — manually downloaded by Tim from amlegal.com |
+| AB-110 | Building Facade Inspection and Maintenance | tier3/AB-110.txt | 28K | ✅ Recovered — extracted from SF Planning Code (lines 209124-209537) |
+| AB-112 | All-Electric New Construction Regulations | tier3/AB-112.txt | 35K | ✅ Recovered — extracted from SF Planning Code (lines 210348-210867) |
 
 ## Web Pages Scraped (via Playwright / WebFetch)
 
@@ -126,10 +128,12 @@ Last updated: 2026-02-13
 ## Statistics
 
 - **Total PDFs downloaded**: 51 of 52 info sheets (DA-02 failed - WAF challenge)
-- **PDFs with extracted text**: 31 (403,515 characters total)
-- **PDFs needing OCR**: 20 (scanned image PDFs)
-- **Administrative Bulletins downloaded**: 3 committed (AB-004, AB-005, AB-032 = 109K chars). 3 need re-download (AB-093, AB-110, AB-112 — lost to Cloudflare WAF)
-- **Structured JSON files**: 6 (G-20 routing, permit forms, in-house process, decision tree, OTC criteria, completeness checklist)
+- **PDFs with extracted text**: 51 (31 via pdfplumber + 20 via OCR)
+- **OCR'd PDFs**: 20 (183,696 chars from 85 pages via pytesseract)
+- **Administrative Bulletins**: 6 committed (AB-004, AB-005, AB-032, AB-093, AB-110, AB-112 = ~201K chars)
+- **Structured JSON files**: 10 (G-20 routing, permit forms, in-house process, decision tree, OTC criteria, completeness checklist, planning code key sections, permit consultant registry, document mapping, G-20 tables)
 - **Web pages scraped**: 5 (3 via Playwright + 2 via WebFetch)
 - **Planning Code**: 12.6MB (222K lines) from amlegal.com
-- **Total knowledge base size**: ~510K characters raw text + ~210K structured JSON + 12.6MB Planning Code
+- **Permit Consultant Registry**: 167 filings from SF Ethics Commission (SODA API umwe-sn9p)
+- **DBI Expediter Rankings**: Top 50 by permit volume (SODA API 3pee-9qhc)
+- **Total knowledge base size**: ~700K characters raw text + ~360K structured JSON + 12.6MB Planning Code

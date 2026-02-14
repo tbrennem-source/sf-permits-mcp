@@ -1,0 +1,524 @@
+{
+  "_metadata": {
+    "source": "SF Planning Code (sf-planning-code-full.txt)",
+    "purpose": "Key sections for djarvis permit decision tree — determines whether a project needs Planning Department review and what kind",
+    "last_updated": "2026-02-13",
+    "note": "Section 311 was amended by Ord. 3-26 (effective 2/8/2026); Section 317 also amended by same ordinance. Exact text of amendments not yet incorporated."
+  },
+
+  "neighborhood_notification": {
+    "section": "311",
+    "title": "Permit Review Procedures (Neighborhood Notification)",
+    "summary": "Establishes when a development application requires 30-day neighborhood notification and review. This is the key gatekeeper between OTC (over-the-counter) approval and in-house review with notification. Projects subject to Section 311 cannot be approved OTC during the notification period.",
+    "applicability": {
+      "priority_equity_geographies_sud": {
+        "description": "Within the Priority Equity Geographies SUD, ALL development applications in Residential, NC, NCT, RTO, Chinatown Mixed Use, and Eastern Neighborhoods Mixed Use Districts for demolition, new construction, or alteration of buildings are subject to Section 311 notification.",
+        "exemptions": [
+          "ADUs pursuant to Section 207.2 are exempt from Section 311",
+          "Change of use to a principally permitted use in Western SoMa, Central SoMa, or East SoMa plan areas is exempt"
+        ]
+      },
+      "family_housing_opportunity_sud": {
+        "description": "In RH zoning districts within the Family Housing Opportunity SUD, projects not meeting eligibility criteria of Section 249.94(c) are subject to the general notification rules in subsection (b)(3)."
+      },
+      "all_other_projects": {
+        "description": "In Residential, NC, NCT, and Eastern Neighborhoods Mixed Use Districts, development applications are subject to Section 311 if they propose any of the following:",
+        "triggers": [
+          {
+            "type": "vertical_alteration",
+            "rule": "Any vertical alteration, UNLESS at least one new dwelling unit is being added"
+          },
+          {
+            "type": "single_unit_alteration",
+            "rule": "Any alteration to a building containing only one Dwelling Unit that BOTH increases the GFA by at least 25% AND results in the building having GFA greater than 3,000 square feet"
+          },
+          {
+            "type": "demolition_or_new_construction",
+            "rule": "Any demolition or new construction that does NOT result in the addition of at least one new unit"
+          }
+        ]
+      },
+      "definition_of_alteration": "For Section 311 purposes, an alteration is defined as an increase to the exterior dimensions of a building, except features listed in Section 136(c)(1) through 136(c)(26), regardless of whether the feature is in a required setback."
+    },
+    "notification_requirements": {
+      "notification_area": "All properties within 150 feet of the subject lot in the same Assessor's Block and on the block face across the street. Corner lots include both block faces across and the corner property diagonally across the street.",
+      "notification_period": "30 calendar days from date of mailed notice",
+      "notification_package": [
+        "Written notice comparing proposed project to existing conditions",
+        "11x17 scaled drawings showing existing and proposed conditions relative to adjacent properties",
+        "Site plan, floor plans, and elevations documenting dimensional changes",
+        "Project description, DA number, start and expiration dates of notice period",
+        "Description of recipient's rights to request DR or appeal"
+      ],
+      "language_access": "Must comply with Language Access Ordinance (Admin Code Chapter 91)",
+      "online_notice": "Digital copies must be posted on Planning Department website for entire notification period"
+    },
+    "waiver_of_notice": "The Zoning Administrator may waive Section 311 notice for projects that have been or will be the subject of a duly noticed public hearing before the Planning Commission or ZA, provided the work is substantially included in the hearing notice.",
+    "discretionary_review": {
+      "description": "Any member of the public may request the Planning Commission exercise discretionary review over a Section 311 project",
+      "deadline": "Request must be received by Planning Department no later than 5:00 PM on the last day of the notification period",
+      "project_sponsor_dr": "The project sponsor may also request DR to resolve conflicts with the Director of Planning concerning modifications for design guideline compliance"
+    },
+    "design_review": {
+      "code_compliant_projects": "Applications in compliance with Objective Standards of Articles 1.2, 1.5, 2, and 2.5 are considered code-compliant and subject to fewer additional controls",
+      "non_code_compliant": "Other projects may be subject to Residential Design Guidelines, area-specific design guidelines, or conditions of previous approvals",
+      "director_authority": "The Planning Director may require modifications to exterior of proposed new or altered buildings to bring them into conformity with applicable design guidelines"
+    },
+    "removal_of_residential_units": {
+      "notice": "30x30 inch sign in conspicuous common area, posted no later than start of notification period, remains until conclusion of hearings",
+      "replacement_structure": "Unless a serious and imminent hazard, demolition of a dwelling is conditioned upon City granting final approval of a building permit for a replacement building"
+    },
+    "decision_tree_key": "If a project is subject to Section 311, it CANNOT go OTC — it requires in-house review with a 30-day notification period. If no DR request is filed during the notification period, the project can be approved administratively."
+  },
+
+  "public_notification_general": {
+    "section": "333",
+    "title": "Public Notification Procedures",
+    "summary": "Establishes notification procedures for all hearings required by the Planning Code EXCEPT those covered by Section 311. This applies to CU hearings, variance hearings, HPC hearings, etc.",
+    "notification_period": "No fewer than 20 calendar days prior to hearing date, or 20 days prior to Planning Department approval for building permit applications",
+    "required_notices": {
+      "posted_notice": "11x17 inch poster(s) at subject property for entire notification period. One poster per 25 feet of street frontage.",
+      "mailed_notice": "5.5x8.5 inch written notice mailed to registered neighborhood organizations, individuals who requested notification, and all owners/occupants within 150 feet of subject property",
+      "online_notice": "Digital copies on Planning Department website for entire notification period"
+    }
+  },
+
+  "conditional_use_authorization": {
+    "section": "303",
+    "title": "Conditional Uses",
+    "summary": "Certain uses and features in various zoning districts require Planning Commission approval through a Conditional Use hearing. CU authorization is a discretionary action that requires a public hearing, neighborhood notification, and specific findings.",
+    "hearing_body": "Planning Commission (appealable to Board of Supervisors)",
+    "required_findings": [
+      "The proposed use is necessary or desirable for, and compatible with, the neighborhood or community",
+      "The proposed use will not be detrimental to health, safety, convenience, or general welfare",
+      "The proposed use will comply with the Planning Code and will not adversely affect the General Plan",
+      "The proposed use will provide development in conformity with the stated purpose of the applicable Use District",
+      "The use satisfies any criteria specific to the use in subsections (g) et seq."
+    ],
+    "common_cu_triggers": [
+      {
+        "trigger": "Use not principally permitted",
+        "description": "When a proposed use is listed as requiring CU in the applicable zoning district use table (Articles 2, 7, 8)"
+      },
+      {
+        "trigger": "Formula Retail (Section 303.1)",
+        "description": "Formula retail uses (11+ locations worldwide with 2+ standardized features) require CU in NC, NCT, and certain other districts",
+        "definition": "Business with 11+ retail establishments worldwide plus 2+ of: standardized merchandise array, standardized facade, standardized decor/color scheme, uniform apparel, standardized signage, trademark, or servicemark"
+      },
+      {
+        "trigger": "Non-Residential Use Size exceeds district limit",
+        "description": "Uses exceeding the non-residential use size limit for the district"
+      },
+      {
+        "trigger": "Residential unit removal (Section 317)",
+        "description": "Demolition, merger, or conversion of residential units generally requires CU authorization, with certain exemptions"
+      },
+      {
+        "trigger": "Hotels and Motels",
+        "description": "Additional findings required regarding employee housing impact, local employment, and market demand"
+      },
+      {
+        "trigger": "Large-Scale Retail (Section 121.6)",
+        "description": "Additional findings regarding parking, mixed-use, traffic patterns, employment impact, and economic impact study"
+      },
+      {
+        "trigger": "Eating and Drinking Uses",
+        "description": "CU required in certain districts; concentration should not exceed 25% of total commercial frontage within 300 feet (35% in Polk Street NCD)"
+      },
+      {
+        "trigger": "Movie Theater demolition or change of use (Section 202.4)",
+        "description": "Additional findings that preservation is no longer economically viable"
+      },
+      {
+        "trigger": "General Grocery change of use or demolition (Section 202.3)",
+        "description": "Applies when use exceeds 5,000 gross square feet; must show preservation no longer economically viable"
+      },
+      {
+        "trigger": "Massage Establishments",
+        "description": "CU required unless accessory to a principal use (Hotel, Personal Service, Health Service, Institutional) or if only chair/foot massage with fully clothed customers"
+      },
+      {
+        "trigger": "Adult Business, Adult Sex Venue, Nighttime Entertainment, General Entertainment",
+        "description": "Specific CU criteria including Good Neighbor Policy compliance"
+      }
+    ],
+    "conditions": "Planning Commission may prescribe additional conditions beyond those specified in the Code. Violation of any condition constitutes a Code violation and may be grounds for revocation.",
+    "abatement": "Planning Commission may consider revocation of a CU if false information was submitted, conditions are violated, or hazardous/noxious conditions exist.",
+    "decision_tree_key": "If a CU is required, the project MUST have a Planning Commission hearing. This cannot be handled OTC or through staff-level review alone."
+  },
+
+  "residential_unit_loss": {
+    "section": "317",
+    "title": "Loss of Residential and Unauthorized Units Through Demolition, Merger, and Conversion",
+    "summary": "Requires Conditional Use authorization for removal of residential units, with specific exemptions. This is a major trigger for Planning Commission hearings on residential projects.",
+    "definitions": {
+      "residential_demolition": [
+        "Any work requiring a demolition permit from DBI",
+        "Major alteration removing more than 50% of Front + Rear Facade AND more than 65% of all exterior walls (measured in lineal feet at foundation)",
+        "Major alteration removing more than 50% of Vertical Envelope Elements AND more than 50% of Horizontal Elements (measured in square feet)"
+      ],
+      "residential_merger": "Combining 2+ residential/unauthorized units reducing unit count, OR enlarging one unit while reducing others by more than 25% of original floor area",
+      "residential_conversion": "Removal of cooking facilities, change of occupancy, or change of use from residential to non-residential or student housing"
+    },
+    "cu_required": {
+      "priority_equity_geographies_sud": "CU required for ANY removal of residential or unauthorized units, no exceptions",
+      "outside_priority_equity_geographies": {
+        "description": "CU required UNLESS all of the following criteria are met:",
+        "exemption_criteria": [
+          "Units are not tenant-occupied and no history of evictions under Admin Code 37.9(a)(8)-(16) in last 5 years, and no buyout agreements in last 5 years",
+          "No units subject to rent restriction covenants, rent stabilization, or rented by lower/very low income households in past 5 years",
+          "Building is not an Historic Building (if pre-1923, Planning must determine it doesn't meet historic criteria)",
+          "Project adds at least one more residential unit than would be demolished",
+          "Project complies with Government Code Section 66300(d) including replacement/relocation requirements",
+          "Project sponsor certifies under penalty of perjury regarding eviction/vacancy history",
+          "Project sponsor has conducted at least one community meeting prior to or within 20 days of filing"
+        ]
+      }
+    },
+    "exemptions_unauthorized_units": [
+      "ZA determines in writing that the unit cannot be legalized under any provision of the Code",
+      "Unit requires open space or exposure waivers and is ineligible for any waiver/exemption program",
+      "Unit has no contiguous area meeting both minimum floor area and minimum ceiling height requirements"
+    ],
+    "exemptions_single_family": "Demolition of a single-family residential building meeting requirements of the relevant subsection",
+    "decision_tree_key": "For any project involving demolition, merger, or conversion of residential units, first check: (1) Is it in Priority Equity Geographies? If yes, CU required. (2) If no, does it meet ALL exemption criteria? If not, CU required."
+  },
+
+  "building_permit_review": {
+    "section_305_variances": {
+      "section": "305",
+      "title": "Variances",
+      "summary": "The Zoning Administrator may grant variances from strict application of quantitative standards in the Code when specific findings of hardship can be made.",
+      "hearing_body": "Zoning Administrator (appealable to Board of Appeals)",
+      "required_findings": [
+        "Exceptional or extraordinary circumstances apply to the property that do not apply generally to other properties in the same district",
+        "Literal enforcement would result in practical difficulty or unnecessary hardship not created by the applicant",
+        "Variance is necessary for preservation of a substantial property right",
+        "Granting the variance will not be materially detrimental to public welfare",
+        "Granting the variance will be in harmony with the general purpose of the Code"
+      ],
+      "limitations": [
+        "Cannot grant a variance equivalent to reclassification of property",
+        "Cannot permit any use, height, bulk, or sign not expressly permitted for the district",
+        "Cannot grant a privilege for which a CU procedure exists",
+        "Cannot change a Code definition",
+        "Cannot waive/reduce inclusionary housing requirements (Section 415)",
+        "Cannot waive/reduce bicycle parking where auto parking exists",
+        "Cannot waive/reduce TDM Program requirements"
+      ],
+      "small_deviations": "For variances requesting less than 10% deviation from Code requirement, the ZA may optionally hold or not hold a hearing"
+    },
+    "section_306_hearings": {
+      "section": "306",
+      "title": "Applications and Hearings",
+      "summary": "Establishes procedures for applications, filing fees, scheduling, notice, and conduct of hearings for CU, variance, and other Planning Code actions."
+    },
+    "section_307_za_powers": {
+      "section": "307",
+      "title": "Other Powers and Duties of the Zoning Administrator",
+      "summary": "Defines ZA administrative authority including code interpretation, compliance enforcement, and administrative exceptions.",
+      "administrative_exceptions": {
+        "eastern_neighborhoods": "For projects not subject to Section 329, ZA may grant relief from: rear yard, non-residential open space, off-street loading, off-street parking limits",
+        "dwelling_unit_exposure_historic": "Relief from dwelling unit exposure for landmark/contributory/Category I-IV buildings when literal enforcement would materially impair the historic resource",
+        "residential_open_space_historic": "Off-site publicly accessible open space may be credited toward residential usable open space for Article 10/11 buildings",
+        "nonconforming_use_conversion": "ZA may modify exposure, rear yard, open space requirements for conversion of nonconforming uses to residential",
+        "bay_windows": "Bay windows maintaining same massing as Section 136 permitted obstructions but not meeting all Section 136 requirements",
+        "lot_merger_restrictions": "Exceptions from Section 121.7 lot merger restrictions"
+      },
+      "parking_reduction_criteria": [
+        "Reduction justified by reasonably anticipated automobile usage",
+        "Will not be detrimental to health, safety, convenience, or general welfare",
+        "Minimizes conflict of vehicular and pedestrian movements",
+        "Availability of alternative transportation modes",
+        "Pattern of land use and character of development in vicinity"
+      ]
+    },
+    "section_309_c3_review": {
+      "section": "309",
+      "title": "Permit Review in C-3 Districts",
+      "summary": "Governs review of project authorization and building/site permit applications for construction or substantial alteration in C-3 Districts. The Planning Commission may grant exceptions and impose design modifications.",
+      "hearing_required_when": [
+        "New building greater than 120 feet in height (excluding Section 260(b) exceptions)",
+        "Vertical addition to an existing building 120 feet or less resulting in total height greater than 120 feet",
+        "Project requires an exception listed in Section 309(a)"
+      ],
+      "exceptions_available": [
+        "Setback, streetwall, tower separation, rear yard requirements",
+        "Ground-level wind current requirements",
+        "Sunlight to public sidewalk requirement",
+        "Curb cut limitations for parking access",
+        "Above-grade residential accessory parking limitations",
+        "Freight loading and service vehicle space requirements",
+        "Tour bus loading space requirements",
+        "Height limits for certain architectural elements",
+        "Roof enclosure volumetric limitations",
+        "Height limits for vertical extensions",
+        "Bulk requirements",
+        "Exposure requirements",
+        "Usable open space requirements"
+      ]
+    },
+    "section_329_large_project": {
+      "section": "329",
+      "title": "Large Project Authorization in Eastern Neighborhoods Mixed Use Districts",
+      "summary": "Requires Planning Commission review for large projects in Eastern Neighborhoods Mixed Use Districts.",
+      "applicability": {
+        "outside_central_soma": [
+          "New building greater than 75 feet in height",
+          "Vertical addition resulting in total height greater than 75 feet",
+          "Net addition or new construction of more than 25,000 gross square feet"
+        ],
+        "within_central_soma": [
+          "New building greater than 85 feet in height",
+          "Vertical addition resulting in total height greater than 85 feet",
+          "Net addition or new construction of more than 50,000 gross square feet"
+        ]
+      }
+    },
+    "decision_tree_key": "For C-3 Districts, Section 309 applies. For Eastern Neighborhoods, Section 329 applies to large projects. Both require Planning Commission hearings. Variances (Section 305) require ZA hearing unless deviation is less than 10%."
+  },
+
+  "zoning_district_exemptions": {
+    "summary": "Projects that do NOT need certain types of Planning review, or can proceed administratively.",
+    "section_311_exemptions": {
+      "description": "Projects NOT subject to Section 311 neighborhood notification (may still need other review):",
+      "exempt_projects": [
+        "ADUs pursuant to Section 207.2",
+        "Change of use to a principally permitted use in Western SoMa, Central SoMa, or East SoMa plan areas",
+        "Vertical alterations that add at least one new dwelling unit (outside Priority Equity Geographies SUD)",
+        "Demolition or new construction that adds at least one new unit (outside Priority Equity Geographies SUD)",
+        "Alterations to single-unit buildings that do NOT both increase GFA by 25%+ AND result in GFA over 3,000 sq ft (outside Priority Equity Geographies SUD)",
+        "Projects already subject to a duly noticed public hearing (duplicate notice waiver by ZA)"
+      ]
+    },
+    "principally_permitted_uses": {
+      "description": "Uses that are principally permitted (listed as 'P' in the zoning district use table) do not require Conditional Use authorization. They may still need Section 311 notification depending on the scope of work.",
+      "key_concept": "A principally permitted use in a project that doesn't trigger any Section 311 thresholds and has no historic resource issues can potentially be approved OTC."
+    },
+    "parking_loading_exemptions": {
+      "section": "161",
+      "title": "Exemptions and Exceptions from Off-Street Parking, Freight Loading, and Service Vehicle Requirements",
+      "description": "Certain initial quantities of square footage are exempt from parking and loading requirements. These exemptions are narrowly construed."
+    },
+    "historic_exemptions_article_10": {
+      "description": "Cases where Article 10 historic review is NOT required (Section 1005(e)):",
+      "exempt_work": [
+        "Construction on a landmark site where the landmark has been lawfully demolished and site is not in a historic district",
+        "Interior alterations only on a privately-owned structure (unless designating ordinance requires review or interior work would impact the exterior)",
+        "Ordinary maintenance and repairs (correcting deterioration, decay, or damage of existing materials)",
+        "Maintenance, repair, rehabilitation of streets and sidewalks (unless called out in designating ordinance)",
+        "Accessible entrance alterations conforming to Section 1006.6",
+        "Business signs or awnings conforming to Section 1006.6",
+        "Non-visible rooftop appurtenances conforming to Section 1006.6",
+        "Non-visible low-profile skylights conforming to Section 1006.6",
+        "City-sponsored Landmark plaques conforming to Section 1006.6",
+        "ADUs or JADUs conforming to Section 207.2"
+      ]
+    },
+    "historic_exemptions_article_11": {
+      "description": "Cases where Article 11 historic review is NOT required (Section 1110(g)):",
+      "exempt_work": [
+        "Ordinary maintenance and repairs only",
+        "Construction on a site where a Significant or Contributory Building was lawfully demolished and site is not in a Conservation District",
+        "Interior alterations only that do not constitute demolition and do not impact the exterior (unless designating ordinance requires interior review)",
+        "ADUs or JADUs conforming to Section 207.2",
+        "Business signs or awnings conforming to Section 1111.6",
+        "Low-profile skylights not visible from public right-of-way conforming to Section 1111.6"
+      ]
+    },
+    "minor_alterations_article_11": {
+      "description": "Minor alterations to Article 11 buildings may be reviewed administratively by staff (Section 1111.1) rather than requiring an HPC hearing. Minor Alterations include UMB seismic retrofit work and other work delegated by HPC.",
+      "administrative_bypass": [
+        "Accessible entrance improvements conforming to Section 1111.6",
+        "Business signs conforming to Section 1111.6",
+        "Non-visible rooftop appurtenances conforming to Section 1111.6",
+        "Awnings conforming to Section 1111.6",
+        "Non-visible low-profile skylights conforming to Section 1111.6"
+      ]
+    },
+    "decision_tree_key": "The fastest path through Planning is: (1) principally permitted use, (2) no Section 311 trigger, (3) not a historic resource or only doing exempt work on a historic resource, (4) no residential unit loss, (5) not in C-3 or Eastern Neighborhoods requiring Section 309/329 review. Such projects can potentially be approved OTC."
+  },
+
+  "historic_preservation": {
+    "article_10": {
+      "title": "Preservation of Historical, Architectural and Aesthetic Landmarks",
+      "summary": "Governs designated landmarks and historic districts. Work on these properties generally requires a Certificate of Appropriateness from the Historic Preservation Commission.",
+      "applicability": {
+        "landmark_sites": "Individual structures or features designated by Board of Supervisors ordinance as having special historical, architectural, or aesthetic interest",
+        "historic_districts": "Areas containing multiple structures designated by Board of Supervisors as having special character or historical/architectural/aesthetic interest"
+      },
+      "certificate_of_appropriateness_required": {
+        "section": "1006",
+        "triggers": [
+          "Any construction, alteration, removal, or demolition requiring a City permit on a landmark site or in a historic district",
+          "Exterior changes in a historic district visible from a public street or public place (where designating ordinance requires)",
+          "Addition of a mural to any landmark or contributory structure in a historic district (non-City-owned)",
+          "Alterations to City-owned parks, squares, plazas or gardens on a landmark site (where designating ordinance identifies)"
+        ],
+        "process": {
+          "minor_alterations": "May be handled as Administrative Certificate of Appropriateness by Department staff, appealable to HPC within 15 days",
+          "major_work": "Requires HPC public hearing",
+          "decision_timeline": "HPC must render decision within 30 days of conclusion of hearing; failure to act constitutes disapproval"
+        }
+      },
+      "demolition_on_landmark": {
+        "description": "HPC may disapprove, approve, or suspend action for up to 180 days (extendable by Board of Supervisors for another 180 days)"
+      },
+      "demolition_in_historic_district": {
+        "description": "HPC may disapprove, approve, or suspend action for up to 90 days (unless designating ordinance specifies alternate period)"
+      },
+      "demolition_definition": [
+        "Removal of more than 25% of external wall surface facing a public street",
+        "Removal of more than 50% of all external walls from their function as external walls",
+        "Removal of more than 25% of external walls from function as either external or internal walls",
+        "Removal of more than 75% of existing internal structural framework or floor plates (unless only feasible means for seismic compliance)"
+      ],
+      "review_standards": {
+        "section": "1006.6",
+        "key_standards": [
+          "Proposed work must be appropriate for and consistent with the purposes of Article 10",
+          "Must comply with Secretary of the Interior's Standards for Treatment of Historic Properties",
+          "Architectural style, design, arrangement, texture, materials, color must be considered"
+        ]
+      },
+      "relationship_to_zoning": {
+        "section": "310",
+        "description": "Article 3 zoning procedures (Sections 301-309) do NOT apply to Article 10 — Article 10 has its own procedures"
+      }
+    },
+    "article_11": {
+      "title": "Preservation of Buildings and Districts of Architectural, Historical, and Aesthetic Importance (Downtown)",
+      "summary": "Governs Significant Buildings (Categories I-II), Contributory Buildings (Categories III-IV), and Category V (Unrated) buildings in Conservation Districts, primarily in the downtown/C-3 areas.",
+      "building_categories": {
+        "category_I": "Significant Building - Buildings of individual importance",
+        "category_II": "Significant Building - Buildings of importance where only the principal facade is significant",
+        "category_III": "Contributory Building - Buildings that contribute to the district character",
+        "category_IV": "Contributory Building - Buildings that contribute but with modifications",
+        "category_V": "Unrated - Buildings not individually significant"
+      },
+      "permit_required": {
+        "section": "1110",
+        "permit_to_alter": "Required for any construction, alteration, or work involving signs/awnings/etc. on Significant or Contributory buildings or buildings in Conservation Districts (excepting ordinary maintenance)",
+        "permit_to_demolish": "Required for any demolition of Significant or Contributory buildings or buildings in Conservation Districts"
+      },
+      "alteration_standards": {
+        "section": "1111.6",
+        "key_rules": [
+          "Must comply with Secretary of the Interior's Standards for Treatment of Historic Properties",
+          "Distinguishing original qualities may not be damaged or destroyed",
+          "Distinctive features must be repaired rather than replaced when possible",
+          "Contemporary design allowed if compatible with building size, scale, color, material, character",
+          "Category I: height additions limited to one story above existing roof, max 75% of roof area",
+          "Category II: new structures/additions may be built on unrestricted portion of lot even if visible from principal facades, if compatible"
+        ]
+      },
+      "demolition_standards": {
+        "section": "1111.7",
+        "significant_buildings": "Demolition only if property retains no substantial remaining market value or reasonable use, OR imminent safety hazard exists and demolition is only feasible means to secure public safety",
+        "contributory_buildings_no_tdr": "Same as significant, OR the decision-maker finds: rehabilitation won't meet goals of replacement project, replacement is compatible with Conservation District, and specific benefits significantly outweigh preservation benefit",
+        "category_v_buildings": "Decision-maker must find building hasn't gained additional significance AND proposed replacement is compatible with Conservation District"
+      },
+      "hpc_review_process": {
+        "minor_alterations": "May be delegated to Department staff; decision appealable to HPC within 15 days",
+        "major_alterations": "Require HPC public hearing with Section 333 notice",
+        "relationship_to_other_approvals": "HPC reviews and acts on permits PRIOR to any other Planning approval action"
+      }
+    },
+    "decision_tree_key": "For any project: (1) Check if the property is a designated landmark, in a historic district (Article 10), or a Significant/Contributory building or in a Conservation District (Article 11). (2) If yes, determine if the work is exempt (ordinary maintenance, interior-only, ADU, etc.). (3) If not exempt, determine if it's a Minor or Major alteration. Minor may be staff-approved; Major requires HPC hearing. (4) Demolition of historic resources requires the most stringent review and findings."
+  },
+
+  "ceqa_environmental_review": {
+    "summary": "CEQA (California Environmental Quality Act) review is integrated into the Planning Department's permit review process. The Environmental Review Officer determines whether a project is exempt, requires a negative declaration, or requires an environmental impact report.",
+    "key_references": {
+      "statute": "California Public Resources Code Sections 21000 et seq.",
+      "local_implementation": "San Francisco Administrative Code Chapter 31"
+    },
+    "when_required": {
+      "general_rule": "Environmental review is part of any discretionary action by the City. For building permits, the Planning Department determines CEQA applicability as part of its review.",
+      "triggers": [
+        "Any project requiring a Conditional Use authorization",
+        "Any project requiring a Section 309 permit review in C-3 districts",
+        "Any project requiring a Section 329 Large Project Authorization",
+        "Any project involving a variance hearing",
+        "Interim zoning controls (Section 306.7)",
+        "Any project involving demolition of a historic resource"
+      ],
+      "ceqa_as_historic_resource": "A property that is an 'historical resource' under CEQA may trigger additional environmental review even if not formally designated under Articles 10 or 11. Section 311 notification materials must address whether the property is a historical resource under CEQA and whether the project would cause an adverse impact under CEQA."
+    },
+    "exemptions": {
+      "categorical_exemptions": "Many building permit projects are categorically exempt from CEQA (e.g., minor alterations to existing structures, small infill projects). The Environmental Review Officer makes this determination.",
+      "ministerial_actions": "Purely ministerial permits (no discretionary review) are not subject to CEQA. However, most Planning Code actions involve some discretion."
+    },
+    "timeline_implications": {
+      "negative_declaration": "Requires public review period; if appealed, Planning Commission has 40 days to act on appeal",
+      "environmental_impact_report": "Can add significant time to project review — months to years depending on complexity",
+      "interim_controls": "For interim zoning controls, Director of Planning must make CEQA determination within 30 days"
+    },
+    "decision_tree_key": "CEQA review is not a standalone trigger but accompanies discretionary actions. If a project requires any discretionary approval (CU, variance, Section 309/329, etc.), CEQA applies. Many small projects are categorically exempt. Projects affecting historic resources are more likely to require substantial CEQA analysis."
+  },
+
+  "review_pathway_summary": {
+    "description": "Quick reference for determining the Planning review pathway for a building permit application",
+    "pathways": [
+      {
+        "pathway": "OTC (Over-the-Counter)",
+        "conditions": [
+          "Use is principally permitted in the zoning district",
+          "Project does not trigger Section 311 notification thresholds",
+          "No residential unit loss or meets all Section 317 exemption criteria",
+          "Property is not a historic resource, OR work is exempt from Article 10/11 review",
+          "No CU is required for any aspect of the project",
+          "Project is code-compliant (meets all objective standards)",
+          "Not in C-3 district requiring Section 309 review for the scope of work",
+          "Not a large project in Eastern Neighborhoods requiring Section 329"
+        ]
+      },
+      {
+        "pathway": "Section 311 Notification (In-House Review)",
+        "conditions": [
+          "Project triggers Section 311 thresholds (vertical alteration without new unit, single-unit expansion, demolition without new unit)",
+          "Use is principally permitted",
+          "No CU required",
+          "30-day notification period; if no DR request, can be approved administratively"
+        ]
+      },
+      {
+        "pathway": "Conditional Use Hearing (Planning Commission)",
+        "conditions": [
+          "Use requires CU authorization in the zoning district",
+          "OR residential unit removal requires CU under Section 317",
+          "OR formula retail in applicable districts",
+          "OR other CU triggers in Section 303",
+          "Requires public hearing, Section 333 notification, and specific findings"
+        ]
+      },
+      {
+        "pathway": "Section 309 / 329 Review (Planning Commission)",
+        "conditions": [
+          "C-3 district projects requiring exceptions or over 120 feet",
+          "Eastern Neighborhoods projects over 75/85 feet or over 25,000/50,000 sq ft",
+          "Requires public hearing and design review"
+        ]
+      },
+      {
+        "pathway": "Historic Preservation Review (HPC)",
+        "conditions": [
+          "Property is a designated landmark or in a historic/conservation district",
+          "Work is not exempt under Section 1005(e) or 1110(g)",
+          "Minor alterations may be handled by staff; major alterations require HPC hearing",
+          "Demolition requires most stringent findings",
+          "HPC acts BEFORE any other Planning approval"
+        ]
+      },
+      {
+        "pathway": "Variance (Zoning Administrator)",
+        "conditions": [
+          "Project cannot comply with quantitative Code standards",
+          "Applicant demonstrates hardship, extraordinary circumstances, necessity",
+          "ZA hearing required (optional for deviations under 10%)",
+          "Appeal to Board of Appeals"
+        ]
+      }
+    ]
+  }
+}
