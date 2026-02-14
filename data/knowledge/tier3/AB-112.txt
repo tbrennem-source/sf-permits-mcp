@@ -1,0 +1,520 @@
+AB-112 Implementation of All Electric New Construction Regulations
+ 
+NO. AB-112  � 
+DATE   :    Effective June 1, 2021 (Updated 01/01/2023 for code references)
+SUBJECT   : Administration and General Design
+TITLE   :   Implementation of All Electric New Construction Regulations
+               The purpose of this Administrative Bulletin is to detail
+PURPOSE   : standards and procedures for the implementation of the all-
+               electric new construction requirements of the San Francisco
+               Building Code effective June 1, 2021.
+               Current edition of the San Francisco Building Code;
+               Current edition of the San Francisco Green Building Code;
+REFERENCE   San Francisco Administrative Bulletin 005: Procedures for
+               Approval of Local Equivalencies;
+               Current edition of the California Building Standards Code;
+               San Francisco Environment Code, Chapter 7.
+ 
+CONTENTS
+1)   Discussion
+2)   Criteria for Exception Allowing a Mixed-Fuel Building System or Area
+3)   Review for Determination of Infeasibility
+   a)   Reviewer Qualifications
+   b)   Reviewer Submittals
+4)   Submittals Requesting Exception Allowing a Mixed-Fuel Building System or
+Area
+Attachment 1:   Design Guideline for Electric Ready Buildings
+Attachment 2:   Final Compliance Verification
+Attachment 3:   Application for Exception for Commercial Food Service
+Attachment 4:   Application for Review of Pre-Existing Agreement
+Attachment 5:   Summary of Investor-Owned Utility Options for Proposed Electric
+Load Exceeding Capacity of Utility Infrastructure
+1)   DISCUSSION
+Approved construction documents and completed projects must conform to
+requirements established in the San Francisco Building Code. San Francisco
+Building Code
+106A.1.17 requires applications for permits submitted after June 1, 2021 to
+construct new buildings to be designed and constructed such that all space
+conditioning, water heating, cooking, and clothes drying systems are all-
+electric, as defined, and prohibits installation of infrastructure, piping
+systems, or piping for distribution of natural gas or propane to such uses.
+APPLICABILITY
+San Francisco Building Code Section
+106A.1.17 applies to all permit applications submitted on or after June 1, 2021
+proposing to construct one or more new buildings in San Francisco.
+In the case of Site Permits, the effective date is the date the Site Permit
+application (not an addendum) is filed with the Department of Building
+Inspection. Addenda to site permits and revisions to permit applications
+received before June 1, 2021 are not required to meet the requirements of San
+Francisco Building Code Section
+106A.1.17, unless the addenda or revisions change the scope of the project such
+that current codes are generally applicable, or such that an exception granted
+on the basis of infeasibility is no longer warranted.
+Areas Specifically Designated for Commercial Food Service
+For projects which submit an initial application for permit:
+   •   On or after June 1, 2021 and before January 1, 2022: Areas specifically
+designated for commercial food service may provide gas piping systems,
+fixtures, and infrastructure exclusively for cooking equipment within the area
+designated for commercial food service.
+   •   January 1, 2022 or thereafter: Permission may be granted to install gas
+piping systems, fixtures, and infrastructure exclusively to serve cooking
+equipment within an area designated for a specific commercial food service
+establishment, such as a specific restaurant. To provide sufficient evidence
+that gas infrastructure and piping are necessary, the following must be
+provided by completing Attachment 3: Application for Exception for Commercial
+Food Service:
+      °   Name of the food service establishment and food service establishment
+owner contact information
+      °   Specification of the gas cooking appliances proposed, and fuel
+consumption rating for each device
+      °   For each proposed gas cooking appliance, state the reason gas is
+necessary, such as technological availability or specialized food preparation
+process.
+Projects that contain gas piping systems, fixtures, or infrastructure serving
+cooking appliances are by definition “mixed-fuel” and subject to applicable
+requirements (see Administrative Bulletin
+93).
+DEMONSTRATION OF COMPLIANCE
+San Francisco Building Code Section
+106A.1.17 is a provision enacted for protection of health and safety. For
+administrative efficiency, no special documentation is necessary for projects
+that comply with San Francisco Building Code Section
+106A.1.17. Projects that do not seek an exception are to document compliance
+via normal documentation requirements and procedures, such as:
+Piping Systems and Mechanical Systems
+Project submittals providing any construction detail related to piping systems
+or mechanical system design must be all-electric and consistent with the
+requirements of San Francisco Building Code Section
+106A.1.17. Documentation of compliance with California Title 24 Part 6 Energy
+Standards shall not include any indication of gas consumption for space
+conditioning, water heating, cooking, or clothes drying.
+San Francisco Green Building Standards
+Administrative Bulletin 93 (Implementation of Green Building Regulations)
+provides guidance for understanding which provisions of relevant local
+ordinances and state building codes apply to a project, describes
+implementation procedures, and provides forms to document compliance.
+Compliance with San Francisco Building Code Section
+106A.1.17 (or Environment Code Section 706(d)(7) in the case of municipal
+buildings), shall be documented as required by Administrative Bulletin
+93:
+   •   Permit applications for new construction are not accepted without Green
+Building Site Permit Submittal GS-1.
+   •   The submittal package for each addendum that includes architectural
+details must include a Green Building Submittal checklist incorporated into the
+project plans indicating the required measures and referencing location of such
+features in the construction documents and providing compliance details for
+each requirement. For newly constructed buildings, either GS-2, GS-3, or GS-
+6 is required with each addendum.
+USES NOT SPECIFICALLY REGULATED
+An All-Electric Building or Project as defined by San Francisco Building Code
+Section 202 relies on electricity as the source of energy for all space
+heating, space cooling, water heating, cooking, and clothes drying. In
+addition, building permits are prohibited for projects proposing gas piping
+systems, fixtures, or infrastructure for decorative uses and lighting or onsite
+generation of electricity (except where primarily fueled by onsite digestion of
+organic material). Gas piping systems, fixtures, or infrastructure may be
+installed strictly to serve areas and systems outside the scope of the
+definitions of an All-Electric Building or Project, and a Mixed-Fuel Building,
+such as industrial processes.
+In projects that include uses not specifically addressed by San Francisco
+Building Code Section
+106A.1.17.1, all space heating, space cooling, water heating, cooking, and
+clothes drying systems must be designed and constructed as all-electric, and
+such a project is defined as “all-electric” for the purpose of compliance with
+San Francisco Green Building Code
+4.201.3 and
+5.201.1.1.
+EXCEPTIONS
+Compliance with San Francisco Building Code Section
+106A.1.17 and all other requirements for new construction have been determined
+to be practical and feasible. An exception may be made only when either:
+   •   An all-electric project is demonstrated to be physically or technically
+infeasible, OR
+   •   Where application of San Francisco Building Code Section
+106A.1.17 would violate the terms of an existing development agreement or other
+contract with the City.
+This bulletin describes the process for determination of infeasibility and
+grant of an exception allowing installation of natural gas piping systems,
+fixtures, or infrastructure. An exception shall only apply to the extent
+necessary to resolve the demonstrated infeasibility, or to the extent required
+under the development agreement or other contract.
+Some development agreement projects or other multiphase projects may entail
+separate applications for permits to construct infrastructure serving an area
+versus buildings constructed after infrastructure is developed. San Francisco
+Building Code Section
+106A .1.17 applies to any application to construct a building submitted to the
+Department of Building Inspection on or after June 1, 2021. If a project
+sponsor believes that application of San Francisco Building Code Section
+106A .1.17 to a phase of development or to an individual building would violate
+the terms of a development or other agreement with the City, the project
+sponsor may seek a determination using Attachment 4: Application for Review of
+an Existing Agreement. Department of Building Inspection staff will refer the
+matter to the City Attorney’s Office to analyze the request for exception and
+the extent to which all or part of San Francisco Building Code Section
+106A .1.17 will apply.
+2)   CRITERIA FOR EXCEPTION ALLOWING A MIXED-FUEL SYSTEM OR AREA
+San Francisco Building Code Section
+106A.1.17 allows for approval of exception allowing gas infrastructure and
+piping systems to be installed on a case-by-case basis where All-Electric
+construction is demonstrated to be physically or technically infeasible.
+Physical or technical infeasibility is understood to refer to an exceptional
+situation where:
+   •   A project proposal cannot be accomplished due to physical or technical
+constraints specific to site and occupancy that prohibit elements, spaces or
+features necessary for full and strict compliance with all requirements for new
+construction;
+   AND
+   •   If a specific system or area is served by gas piping systems, fixtures,
+and infrastructure, then the physical or technical infeasibility is resolved,
+and the project is able to attain full and strict compliance with all
+requirements for new construction.
+To qualify for such an exception, the project must:
+   1.   Undergo a Review of All-Electric Feasibility, resulting in a
+determination by the reviewers that there is no means by which a proposed
+function or service may be provided by an all-electric design compliant with
+all applicable codes; and that the proposed function or service can feasibly be
+provided if gas piping systems, fixtures, and infrastructure are installed.
+   2.   Limit installation of natural gas piping systems, fixtures, and
+infrastructure to the system or area for which All-Electric design is
+infeasible;
+   3.   Ensure the area and system served by natural gas piping systems
+provides for future conversion to All-Electric, by complying with the
+applicable provisions of Electric Ready Design Guidelines (Attachment 1) to the
+maximum extent feasible.
+   4.   Demonstrate that the project’s modified design provides equivalent
+fire-protection and health and safety to All-Electric design.
+Financial considerations are not a basis for determination of physical or
+technical infeasibility.
+Criteria for determination of infeasibility:
+ 
+Category       Criteria
+               Compliance with Title 24 Part 6 Energy Standards for all-electric design may be
+               infeasible only if there is no prescriptive option for compliance with the Energy
+A) Energy      Standards, nor an option for compliance under the performance method for any system
+Standards      or technology serving the specific use.
+               Proposal to install a technology, system, or design not allowed under the Energy
+               Standards does not demonstrate infeasibility where all-electric technologies,
+               systems, or designs are available for compliance with the Energy Standards.
+               All-electric design may be infeasible if:
+               •   Electric load calculations are prepared for both mixed-fuel design for a
+               specific system or area, and all-electric design, with equivalent occupancies,
+               functions, and floor area; and
+               •   The project submits an application for service to the electric utility serving
+               the project; and
+               •   The utility determines that (a) the peak electric demand required for the all-
+               electric design option cannot be served, and (b) the peak electric demand requested
+               for the mixed-fuel design option can be served under substantially similar
+               conditions. Substantially similar conditions shall include equivalent occupancies,
+               functions, and floor area, as well as the same consideration of the time required
+               for the utility to complete modifications to utility infrastructure, where
+               necessary.
+               •   Where electric service is being provided to a customer by the San Francisco
+               Public Utilities Commission (“SFPUC”), and SFPUC confirms the peak electric demand
+               requested for the all-electric design option would directly or indirectly require
+               SFPUC to do any of the following:
+                  (i)   Revise a previously submitted application for service to Pacific Gas and
+B) Electric    Electric Company (“PG&E”) that is still being reviewed by PG&E;
+Utility           (ii)   Submit a new application for service to PG&E for a load for which there is
+Infrastructure an existing service agreement with PG&E;
+                  (iii)   Alter plans for electric infrastructure that have been approved or alter
+               infrastructure that are under construction; or
+                  (iv)   Make changes to existing infrastructure that would impair or limit a
+               contract right that exists as of the effective date of this ordinance.
+                  Situations (i) to (iv) above do not represent a basis for a finding of
+               infeasibility if the same issue applies to a mixed-fuel design constructed at the
+               same site with equivalent occupancies, functions, and floor area. Situations (i) to
+               (iv) will only apply to developments where an application for wholesale electric
+               service relating to the parcel has been submitted to and deemed complete by PG&E as
+               of the effective date of the ordinance, and the project sponsor demonstrates it is
+               physically or technically infeasible to build all-electric within the electrical
+               capacity constraints documented in existing applications for service to PG&E for the
+               purpose of serving buildings that were planned but not yet permitted as of the
+               effective date of the ordinance. An over-estimation of ampacity requirements for
+               all-electric design compared to mixed fuel is not a basis for exception.
+               Under California Public Utilities Commission Rule 2.C, utilities are obligated to
+               provide service. Request by the utility for the customer’s proposal to comply with
+               applicable tariff, easement, safety, and reliability requirements, or for reasonable
+               time to construct improvements, is not a basis for infeasibility.
+               All-electric design may be infeasible if:
+               •   Electric load calculations are prepared for both a design including a specific
+               mixed-fuel system and area, and all-electric design, with equivalent occupancies,
+               functions, and floor area; and
+               •   Based on the rules published by the electric utility serving the site:
+                  °   Peak electric demand for the mixed-fuel design does not require the
+C) Physical    installation of an electric service transformer; and
+Constraint in     °   Peak electric demand for all-electric design with the same features requires
+Small Infill   the installation of an electric transformer; and
+Sites          •   The site has a linear footage of street frontage of 75 feet or less;1 and
+               •   Joint review by the Planning Department and Public Works Department determines
+               there is no feasible option to locate an electrical transformer in the building or
+               elsewhere on the property, and:
+                  °   The only feasible option is to locate the transformer in a sub-surface vault
+               in the public Right of Way; or
+                  °   The sidewalk at the site is less than 10 feet in width, such that a sub-
+               surface vault in the public Right of Way infeasible.
+               All-electric design may be infeasible if
+               •   It is demonstrated physical or technical constraints specific to site and
+               occupancy prohibit elements, spaces or features necessary for full and strict
+               compliance with all requirements for new construction; and
+D) Exceptional •   If gas piping systems and fixtures are substituted for electrical equipment
+Circumstance   serving a specific system or area, the project is able to attain full and strict
+               compliance with all requirements for new construction.
+               Proposal to install a technology, system, or design that is inconsistent with, or
+               not allowed by the discretionary determination by a City agency shall not be a basis
+               for demonstration of infeasibility.
+ 
+3)   REVIEW FOR DETERMINATION OF INFEASIBILITY
+Compliance with San Francisco Building Code Section
+106A.1.17 and all other requirements for new construction have been determined
+to be practical and feasible in general. San Francisco Building Code Section
+106A.1.17 allows for approval of exception allowing gas infrastructure and
+piping systems to be installed on a case-by-case basis where All-Electric
+construction is demonstrated to be infeasible.
+The conditions of infeasibility depend substantially on design details, and
+design development provides substantial opportunity to address physical and
+technical conditions. An application for design review for exception due to
+infeasibility will not be approved in the absence of substantial architectural
+detail, including the architectural addendum and Title 24 compliance
+documentation.
+Prior to DBI review of an application for exception due to infeasibility, a
+Review of All-Electric Feasibility must be completed by engineers with
+specialized understanding of electrical engineering, mechanical design, energy
+efficiency including compliance with Title 24 Energy Standards, and experience
+with the design of all-electric systems for space conditioning and water
+heating. In all cases, it is the responsibility of the Design Professional of
+Record, with the support of the entire project team, to apply all available
+energy efficiency and electric load minimization practices.
+Review of All-Electric Feasibility
+Review of All-Electric Feasibility is a document that addresses three
+questions:
+   °   What specific constraint causes all-electric design to be physically or
+technically infeasible, but does not apply to mixed-fuel?
+   °   Can the constraint be resolved?
+   °   Is the area and system proposed served by gas piping systems ready for
+conversion to all-electric in the future, and constructed to provide equivalent
+health, safety and fire protection?
+To address these questions, a Review of All-Electric Feasibility must include:
+   •   Identify the physical or technical constraint: Document the specific
+physical or technical issue that results in the infeasibility of All-Electric
+design of the project.
+   •   Identify alternatives: Based on review of plans, calculations, and
+supporting documentation, identify methods, equipment, and design features
+available to resolve the physical or technical issue to mitigate infeasibility.
+      °   Efficiency: Where the issue relates to peak electrical load, energy
+efficiency construction practices, design options, and compliance credits can
+commonly contribute to resolving the issue. For the all-electric design,
+confirm all available compliance credits have been applied. Confirm all
+available energy efficiency design and construction practices have been applied
+to all building features contributing to loads regulated by Title 24 Energy
+Standards. Confirm equipment specified is no less efficient than prescriptive
+baseline specified by Title 24 Energy Standards.
+      °   Mechanical: Review envelope and architectural features and mechanical
+design are consistent with minimization of load on mechanical equipment.
+Determine whether space conditioning and water heating electric peak load can
+be reduced via piping or plumbing design, equipment sizing, equipment layout,
+or substitution of equipment type. Mechanical equipment must be no less
+efficient than electric prescriptive baseline, where such a baseline is
+provided by Title 24 Energy Standards. 2
+      °   Electrical: Review electrical panel schedule and load calculations
+for the all-electric design. Confirm connected electrical load and demand
+electric load for the all-electric design are calculated in accord with
+California Electrical Code, and are consistent with the design for compliance
+with Title 24 Energy Standards.
+      °   Provide documentation of examples of all-electric design and
+construction of similar systems and circumstances.
+   •   Document Available Solutions: Review the mixed-fuel design, and document
+the specific area and system proposed as mixed-fuel. Confirm that the physical
+or technical constraint will specifically be resolved by granting an exception
+allowing mixed-fuel construction of the area and system. Confirm proposed gas
+piping systems, fixtures, and infrastructure are limited to the system or area
+of the building for which All-Electric design is infeasible.
+   •   Apply Electric Ready Design Guidelines: Areas served by gas piping
+systems, fixtures, and infrastructure must prepare for future retrofit to all-
+electric by installing sufficient electrical conductors and raceways, bus bar
+capacity, and overcurrent protection, and providing sufficient space and
+drainage for future replacement of gas systems with electric. Reviewers shall
+affirm that the project design conforms to the relevant provisions of Electric
+Ready Design Guidelines to the extent feasible.
+   •   Recommendation Regarding Health, Safety, and Fire Protection: Review
+construction methods, safety equipment, and design features proposed. Recommend
+specific design features, equipment, and construction practices sufficient to
+ensure the project’s modified design provides equivalent fire protection and
+health and safety to all-electric design.
+   •   Documentation of the above via a report addressing each item above in
+detail.
+Review documentation must be incorporated into plans, with signature by a
+reviewer for each discipline (electrical, mechanical, and architectural/Title
+24), and stamp by the Design Professional of Record.
+QUALIFICATIONS FOR ALL-ELECTRIC FEASIBILITY REVIEWERS
+All-Electric Feasibility Reviewers must apply specialized knowledge and
+experience in the application of energy efficiency design and construction;
+compliance of all-electric systems with Title 24 Energy Standards, and
+experience with the design of all-electric systems for space conditioning and
+water heating. The review team must include each of the following:
+ 
+Item Qualification                                                              Minimum Experience
+1    Licensed Professional Engineer with Mechanical Specialty                   Design and demonstration of compliance for at least one all-electric project which
+                                                                                is:
+                                                                                •   Either multifamily (3 or more housing units), or commercial (minimum of 10,000
+                                                                                square feet floor area);
+                                                                                   AND
+2    Licensed Professional Engineer with Electrical Specialty                   •   Either
+                                                                                   -   Construction of a new building, OR
+                                                                                   -   Alteration where scope included replacement of space conditioning and water
+                                                                                heating systems.
+
+3    California Association of Building Energy Consultants – Certified Energy Title 24 documentation accepted for compliance for at least one all-electric new
+     Analyst                                                                    construction project of the same or similar occupancy to the project under review.
+ 
+Each of the above disciplines must be represented by a third-party, i.e.
+individuals not employed by a company responsible for the design or
+construction of the project.
+Due to the qualifications required, review is expected to be performed by a
+team, but individuals holding multiple qualifications may serve more than one
+role.
+Process for Physical Constraint in Small Infill Sites: Projects seeking
+exception on the basis of Physical Constraint in a Small Infill Site (Category
+C above):
+   •   Persons responsible for the design of the project may be responsible for
+preparation of the review.
+   •   Reviewer(s) must include a minimum of two disciplines:
+      °   Licensed Professional Engineer with Electrical Specialty, AND
+      °   Either Licensed Professional Engineer with Mechanical Specialty, or
+CABEC Certified Energy Analyst.
+   •   The Review for All-Electric Feasibility must address each of the
+considerations in the Review for All-Electric Feasibility section above.
+4)   SUBMITTALS REQUESTING EXCEPTION ALLOWING A MIXED-FUEL BUILDING SYSTEM OR
+AREA
+If an exception to San Francisco Building Code Section
+106A.1.17 is granted due to infeasibility, supplemental documentation is
+required:
+   •   Project Submittals: Installation of gas infrastructure and piping
+systems is strictly limited to the system and area of the building for which
+all-electric design is infeasible, or systems not specifically regulated by San
+Francisco Building Code
+106A .1.17. Project submittals providing any construction detail related to
+piping systems or mechanical system design must be consistent with all-electric
+design and construction for all systems and areas excepting the area and system
+determined to be infeasible.
+   •   Energy Standards: Newly constructed buildings are subject to local
+energy design requirements stricter than California Title 24 Building Energy
+Efficiency Standards, including provisions specific to Mixed Fuel buildings.
+See Administrative Bulletin 93 for details.
+PERMISSION TO CONSTRUCT A MIXED-FUEL BUILDING DUE TO INFEASIBILITY
+San Francisco Building Code Section
+106A.1.17 allows the approval of an exception allowing issuance of a permit to
+construct a new mixed-fuel building only on a case-by-case basis. In order to
+obtain an exception to San Francisco Building Code Section
+106A.1.17, the applicant must:
+   1.   Complete a Review of All Electric Feasibility. This review must be
+completed by a third party; individuals employed by a company responsible for
+the design or construction of the project may only prepare the review in the
+case of Physical Constraint in Small Sites (Category C). Review of All Electric
+Feasibility documents the specific area and system proposed to be constructed
+as mixed-fuel and the basis for a determination all-electric design is
+infeasible.
+   2.   Submit a Request for Approval of Local Equivalency for Modification or
+Alternate Materials, Design, or Methods of Construction (Administrative
+Bulletin 005), including two copies of the following documentation of the
+proposed modification to materials and methods of construction:
+      a.   Project plans specifying the area and system proposed for mixed-fuel
+construction
+      b.   Review of All Electric Feasibility
+      c.   Acknowledgement of energy performance requirements that apply to
+mixed-fuel design (see Administrative Bulletin 93)
+      d.   Affirmation of the specific provisions of Electric Ready Design
+Guidelines (Attachment 1) that pertain to the area and system of mixed fuel
+construction. If it is not feasible for the mixed-fuel area or system to fully
+comply with the guidelines, the project sponsor shall specify the extent to
+which the guidelines are feasible.
+   3.   Review meetings will be conducted by the Department of Building
+Inspection, with the Department of Environment and the Fire Department where
+applicable, to consider the request for approval of Request for Approval of
+Local Equivalency for Modification or Alternate Materials, Design, or Methods
+of Construction (Administrative Bulletin 005). Attendance at such review
+meetings will include, at a minimum, the Design Professional of Record, the
+project mechanical engineer, and the All Electric Feasibility Reviewers.
+   At such meetings, it is the responsibility of the project applicant to
+demonstrate infeasibility. Staff will
+      •   Review plans, calculations, and supporting documentation for all-
+electric options demonstrate all available energy efficiency features,
+practices, and credits for third-party reviews specified by the California
+Energy Commission contributing to compliance with Title 24 Energy Standards
+were applied to the all-electric option.
+      •   Review alternative technologies and approaches considered prior to
+the All Electric Feasibility Reviewers making a determination.
+      •   Review the mixed-fuel design, including the specific area and system
+served by gas piping systems, fixtures, and infrastructure
+      •   Review conditions proposed to ensure the project’s modified design
+provides equivalent fire protection and health and safety to all-electric
+design.
+   The request will either be:
+      •   Approved with conditions by DBI with concurrence by Department of
+Environment,
+      •   Placed on “hold” pending submittal of additional information, or
+      •   Disapproved.
+   Determinations as to infeasibility may be appealed to the Board of
+Examiners, as established under Section 105.1 of the San Francisco Building
+Code. See https://sfdbi.org/board-examiners for details.
+   The project sponsor is responsible for the hiring of Third Party Reviewers
+from the list of approved All-Electric Third Party Reviewers maintained by the
+Department of Building Inspection. The project sponsor is responsible for all
+costs related to All Electric Third Party Review.
+   Plan review fees are required to be paid as noted in Administrative Bulletin
+005.
+   4.   Upon approval to construct a mixed-fuel building, a copy of the signed
+form approving the equivalency and indicating all conditions of approval will
+be part of the permanent record of the project, and a copy will be sent to the
+project sponsor. The project sponsor shall include all specified conditions in
+plans.
+PERMISSION TO CONSTRUCT A MIXED-FUEL BUILDING THAT INCLUDES COMMERCIAL
+FOODSERVICE
+Applications for permit for new construction proposing to install gas piping
+systems, fixtures, and infrastructure exclusively for cooking equipment within
+the area designated for commercial food service must include the Application
+for Exception for Commercial Food Service (Attachment 3), and any foodservice
+areas where such systems, infrastructure, and fixtures are approved installed
+must be indicated on all addenda and the Final Compliance Verification form
+(Attachment 2).
+PROJECT COMPLETION
+Final compliance verification documentation (Attachment 2) is required prior to
+final inspection. No final Certificate of Completion may be issued until All-
+Electric Ordinance: Final Compliance Verification has been received, reviewed,
+and accepted by the Department of Building Inspection.
+Failure to ensure the project is designed and constructed in a manner
+consistent with an exception and conditions approved will subject the project
+to all of the enforcement and abatement remedies detailed in the San Francisco
+Building Code.
+LIST OF ALL-ELECTRIC FEASIBILITY REVIEWERS
+The Department of Building Inspection with the assistance of Department of
+Environment shall conduct an Open Call for Interest and Qualification to Review
+All Electric Feasibility to identify professionals with specialized knowledge
+and experience in the application of energy efficiency design and construction;
+compliance of all-electric systems with Title 24 Energy Standards, and
+experience with the design of all-electric systems for space conditioning and
+water heating. Department of Building Inspection shall provide upon request a
+list of individuals who have provided evidence of holding such qualifications.
+Review of All-Electric Feasibility will only be considered when prepared by an
+individual holding the appropriate qualifications; selection of reviewers not
+specifically listed shall require submission of information to the Department
+of Building Inspection establishing the qualifications of each reviewer.
+Submittal of substantially inadequate or incorrect analysis will be grounds for
+removal from the list of qualified reviewers.
+Originally signed by:
+Patrick O’Riordan      March 5, 2021
+Interim Director
+Department of Building Inspection
+Approved by the Building Inspection Commission on January 20, 2021
+_________________________
+1 The linear footage of street frontage is calculated by adding the lengths of
+all property lines directly adjacent to the right of way.
+2 Mechanical equipment is not required to be more efficient than US DOE
+Appliance and Equipment Standards applicable to the specified device, provided
+all options are exhausted regarding piping or plumbing design, equipment sizing
+and layout, and substitution of alternative equipment types.
+Attachment_1:   Design Guideline for Electric Ready Buildings
+Attachment_2:   Final Compliance Verification
+Attachment_3:   Application for Exception for Commercial Food Service
+Attachment_4:   Application for Review of Pre-Existing Agreement
+Attachment_5:   Summary of Investor-Owned Utility Options for Proposed Electric
+Load Exceeding Capacity of Utility Infrastructure

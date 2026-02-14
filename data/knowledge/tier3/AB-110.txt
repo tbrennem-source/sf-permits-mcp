@@ -1,0 +1,414 @@
+AB-110 Building Façade Inspection and Maintenance
+NO. AB-110:     
+DATE:          August 21, 2024
+SUBJECT:       Permit Review and Operations
+TITLE:         Building Façade Inspection and Maintenance
+               The purpose of this bulletin is to establish policies for implementing San
+PURPOSE:       Francisco Existing Building Code
+               Chapter 5F regarding building façade inspection and maintenance.
+               San Francisco Building Code (SFBC), Current Edition
+               San Francisco Existing Building Code (SFEBC),
+               Chapter 5F, Building Façade Inspection and Maintenance – Retroactive Provisions
+               California Historical Building Code, Current Edition
+               San Francisco Planning Code, Articles 10 and 11, as well as properties defined
+REFERENCE:     as Category A – Historic Resource Present.
+               American Society for Testing and Materials (ASTM) E2270-14 Standard Practice
+               for Periodic Inspection of Building Facades for Unsafe Conditions
+               ASTM E2841-19 Standard Guide for Conducting Inspections of Building Façades for
+               Unsafe Conditions
+               Code of Federal Regulations, Part 61, Secretary of the Interior’s Standards for
+               the Treatment of Historic Properties
+               The Building Façade Inspection & Maintenance Program was established by
+               Ordinance 67-16 which amended the 2016 San Francisco Existing Building Code to
+               require certain San Francisco building facades be regularly inspected by a
+               California licensed architect or engineer and maintained. The program was
+               subsequently updated by Ordinances 97-23 and 16-24 which amended the 2022 San
+               Francisco Existing Building Code. The inspections are meant to ensure public
+BACKGROUND:    safety and reduce the risk of death or injury resulting from deteriorated
+               building façade elements falling onto streets and sidewalks below. The
+               inspection and maintenance work are to be documented in a report submitted to
+               the San Francisco Department of Building Inspection. After the initial
+               inspection, buildings must be inspected, and reports submitted every five
+               years, alternating between a detailed comprehensive inspection and a general
+               supplemental inspection.
+               San Francisco Existing Building Code
+               Chapter 5F requires that building façades undergo initial and subsequent
+               inspections according to a schedule based on the original construction date of
+               a building. These inspections, as well as reporting and maintenance, are to be
+               done as detailed in this Administrative Bulletin and in accordance with the San
+               Francisco Existing Building Code (SFEBC). SFEBC Section
+               504F.1 specifies that the basis for inspection and reporting is ASTM E2270
+               Standard Practice for Periodic Inspection of Building Facades for Unsafe
+DISCUSSION:    Conditions, as modified and interpreted by this Administrative Bulletin. The
+               report due dates are as specified in SFEBC Section
+               503F. Facade inspections are primarily intended to identify unsafe conditions
+               that could jeopardize public safety and to identify other conditions that could
+               deteriorate into unsafe conditions before the next scheduled inspection. The
+               intent of
+               Chapter 5F is to verify that façade elements and systems are maintained to
+               perform in accordance with the code under which they were installed or
+               improved.
+               All buildings that are five or more stories and of construction Type I, II,
+               III, or IV are required to have comprehensive facade inspection and maintenance
+               undertaken in accordance with San Francisco Existing Building Code
+APPLICABILITY: Chapters 5F and this Administrative Bulletin. Among the buildings requiring
+               comprehensive façade inspections, those of 15 or more stories are additionally
+               required to have supplemental façade inspections undertaken in accordance with
+               San Francisco Existing Building Code
+               Chapter 5F and this Administrative Bulletin.
+ 
+I.   INSPECTORS
+   A.   Required façade inspection and maintenance shall be performed under the
+direct supervision of a qualified professional. The qualified professional
+shall be a California licensed architect or engineer, retained by the property
+owner. The qualified professional shall oversee all work of qualified
+inspectors and all reporting.
+   B.   For inspection of buildings considered historic resources, the
+qualified professional shall have expertise in inspection and maintenance of
+historic resources. Such expertise must include a documented history of
+successful projects, detailed investigations of historic structures, and the
+preparation of recommendations or repair documents. All work must be in
+accordance with the Secretary of the Interior’s Standards for the Treatment of
+Historic Properties: Standards for Rehabilitation.
+II.   INSPECTION STANDARDS AND PROCEDURES
+   A.   To meet the requirements of SFEBC
+Chapter 5F, the provisions of ASTM E2270-14 Standard Practice for Periodic
+Inspection of Building Facades for Unsafe Conditions, shall apply as modified
+by this Administrative Bulletin. Subsequent revisions of ASTM E2270 may apply
+if specifically referenced in an updated version of this Administrative
+Bulletin or through a directive issued by the Department of Building
+Inspection.
+   B.   Prior to inspection, the owner should check with SF Planning to
+determine whether the building qualifies as a historic resource. Such
+information is available on the SF Planning Property Information Map website at
+sfplanninggis.org/pim/ or by contacting the SF Planning Preservation Program
+staff at the Planning Information Center at 49 South Van Ness Ave, 2nd Floor,
+San Francisco, 628-652-7300, or pic@sfgov.org. Special requirements outlined
+here apply to buildings defined by SF Planning as Category A – Historic
+Resource Present:
+      1.   Assessment and recommendations related to facades of historic
+resources shall be performed in conformance with the Secretary of the
+Interior’s Standards for the Treatment of Historic Properties: Standards for
+Rehabilitation.
+      2.   Inspection methods for historic resources shall use the least
+intrusive or invasive means feasible to effectively assess hidden conditions.
+      3.   When practical, building materials removed to allow for detailed
+inspection shall be salvaged and reinstalled, or stored by the property owner
+for future reinstallation.
+      4.   Qualified historic resources may be evaluated using the provisions
+in the California Historical Building Code regarding strength, performance,
+utilization, and other properties of archaic materials, provided that such
+provisions result in acceptable performance as detailed in the SFEBC and in
+this Administrative Bulletin.
+   C.   Comprehensive façade inspection per SFEBC
+Chapter 5F shall be in accordance with ASTM E2270 and clarifications made in
+this Administrative Bulletin.
+      1.   Comprehensive façade inspections shall be per ASTM E2270 Item 10.3
+General Inspection and Item 10.4 Detailed Inspection and shall encompass 100
+percent visual inspection and 25 percent tactile inspection of the exterior
+façades per ASTM E2270 Table A1.1.
+      2.   The qualified professional shall assess the watertight integrity of
+the façade by performing a cursory interior leak survey of the exterior facades
+per ASTM E2270 Section 9 as well as consulting with the property owner and/or
+building manager regarding any locations of known water leakage or
+infiltration. This information may be useful in selecting locations for
+detailed inspection.
+      3.   As part of a detailed inspection, probes, per ASTM E2270, Item
+10.4.8, are not mandatory and need not be undertaken unless considered
+necessary by the qualified professional. Inspection should include careful
+visual inspection of external indicators of façade deterioration before probing
+or removing elements to observe concealed façade components.
+   D.   Supplemental façade inspection per SFEBC
+Chapter 5F shall be in accordance with ASTM E2270, Item 10.3 General
+Inspection.
+      1.   As part of a supplemental façade inspection, general inspections
+under Item 10.3 of ASTM E2270 shall comprise 100 percent visual inspection of
+the exterior glazing. The general inspection shall be a visual observation of
+exterior glazing system from an appropriate distance with or without
+magnification or remote optical devices. The qualified professional shall
+methodically scan façade areas and check for out-of-plane displacement,
+deterioration and defects of glazing elements, and for glass breakages.
+      2.   As part of the supplemental façade inspection, detailed inspections,
+per ASTM E2270, Item 10.4, and interior leak survey per ASTM E2270, Item 9, are
+not mandatory and need not be undertaken unless considered necessary by the
+qualified professional conducting the inspection and reporting.
+   E.   Remote sensing techniques, including 3-D survey, remote aerial
+vehicles, and other non-traditional inspection methods are considered a “means
+and methods” and may be deployed by the qualified professional for achieving
+General Inspections under Item 10.3 of ASTM E2270 and this Administrative
+Bulletin. All applicable laws and regulations associated with the “means and
+methods” for performing the inspections are the responsibility of the qualified
+professional. All applicable laws and regulations relating to the operation of
+remote vehicles and equipment must be followed.
+   F.   Persons conducting building façade inspections are encouraged to review
+ASTM E2841 Standard Guide for Conducting Inspections of Building Façades for
+Unsafe Conditions. The document provides recommended procedures and
+methodologies for conducting inspections of building façades.
+III.   INSPECTION WAIVERS OR EXEMPTIONS
+   A.   Procedures for obtaining a waiver of the initial comprehensive
+inspection based on previous inspection, maintenance work, and report are as
+follows:
+      1.   To request a waiver of the initial inspection under
+Chapter 5F , Section
+503F.1, Exception 2, the owner must submit all materials required in a
+comprehensive inspection report, as specified in this Administrative Bulletin.
+The request must also include documentation of the completed repairs, such as
+reports, plans, specifications, and building permits
+      2.   A waiver of the initial comprehensive façade inspection may be
+requested and granted if the following criteria are met:
+         a.   A comprehensive façade inspection and necessary maintenance,
+restoration, or replacement was performed and completed within ten years prior
+to the initial inspection report due date listed in Table 503F of the SFEBC for
+the building’s specific compliance tier.
+Where only partial inspection, maintenance, restoration, or replacement was
+performed and completed within ten years prior to the inspection due date, the
+remaining facades/areas/elements are required to undergo comprehensive façade
+inspection to provide for a complete report that thoroughly addresses all
+requirements outlined in SFEBC Section
+504F and ASTM E2270, and this Administrative Bulletin.
+         b.   A complete inspection report meeting the requirements this
+Administrative Bulletin must be submitted, reviewed, and accepted.
+         c.   Documentation of the scope of completed repairs, such as reports,
+plans and specifications, and building permits, is submitted with the
+inspection report.
+      3.   Special approval of waivers of initial inspection may be approved by
+the Department of Building Inspection on a case-by-case basis for other
+reasons, such as for previously submitted reports or studies, or for work
+undertaken in previous phases.
+   B.   A supplemental inspection report shall be submitted in accordance with
+the due dates presented in SFEBC
+Chapter 5F unless all of the following is confirmed and documented by the
+qualified professional in the report compliance affidavit provided in AB-110
+Attachment B, each time a supplemental inspection report is due:
+      1.   The building contains no spandrel glass.
+      2.   The building has maintained a maintenance log documenting all glass
+and glazing replacement or repairs. The log shall be available for review by
+the qualified professional.
+      3.   The building has no history of glass breakage within the last five
+years.
+IV.   INSPECTION REPORTS, AFFIDAVITS, AND REPORT CONCLUSIONS
+   A.   Comprehensive inspection reports must meet the following requirements:
+      1.   All comprehensive inspection reports shall include the Comprehensive
+Building Facade Inspection Report Compliance Affidavit, as provided in AB-110
+Attachment A, completed and signed by both the owner and the qualified
+professional.
+      2.   A comprehensive façade inspection report shall document the
+qualified professional’s inspection findings, observations, discussions,
+conclusions and recommendations as required by SFEBC
+Chapter 5F , ASTM E2270, and this Administrative Bulletin. The report shall be
+written and presented in a clear, well-organized and detailed manner. It shall
+have obvious references to photos and sources and be structured in a formal
+technical report format. A complete list of requirements is provided in AB-110
+Attachment C Comprehensive Façade Inspection Report Submittal Preparation
+Checklist, along with a suggested report structure.
+      3.   Detailed floor plans, construction details, and other detailed
+documentation per ASTM E2270, Item 7 are required only as necessary to
+undertake inspection or communicate inspection findings to the property owner
+or the Department of Building Inspection. Sufficient building plan information
+should be assembled to identify areas of inspection, locations or elements
+requiring maintenance work, locations of unsafe conditions and other inspection
+findings.
+   B.   Supplemental inspection reports must meet the following requirements:
+      1.   A supplemental inspection report shall consist of the Supplemental
+Building Façade Inspection Report and Compliance Affidavit, as provided in AB-
+110 Attachment B, completed and signed by both the property owner and the
+qualified professional, with other attachments as necessary. The supplemental
+inspection report shall briefly document information, observations,
+conclusions, and recommendations as applicable based on SFEBC
+Chapter 5F, ASTM E2270, and this Administrative Bulletin and attachments.
+      2.   Where the supplemental inspection finds that the condition of the
+exterior glass and glazing system is classified as either Conclusion Category 1
+Repair/Stabilization following Temporary Mitigation of Unsafe Conditions or
+Conclusion Category 2 Requires Repair, Stabilization and Maintenance, or where
+broken glass is identified, the report shall describe the nature and extent of
+repairs, maintenance, or corrective actions recommended to be performed
+immediately or before the next reporting period deadline. The report shall
+include descriptions of the conditions observed, possible cause, and
+recommended mitigation measures. The report shall include photographs locating
+and identifying the conditions. A complete list of requirements is provided in
+AB-110 Attachment D Supplemental Façade Inspection Report Submittal Preparation
+Checklist.
+   C.   Each Comprehensive and Supplemental inspection report shall assign the
+overall building to one of the three report conclusion categories described
+below. Note that the report conclusion categories described below are
+distinguished from façade condition categories defined in ASTM E2270 in that,
+the façade conclusion categories are for categorizing the overall building,
+whereas the façade condition categories are for categorizing the conditions of
+the façade elements. An unsafe condition is not a façade inspection report
+conclusion category, but rather a condition that requires immediate
+notification and mitigation action as discussed in a subsequent section of this
+document.
+      1.   Conclusion Category 1 – Repair/Stabilization following Temporary
+Mitigation of Unsafe Conditions:
+         A building in the category Repair/Stabilization following Temporary
+Mitigation of Unsafe Conditions has exhibited deterioration that constituted
+one or more unsafe conditions and has undergone actions to mitigate or repair
+the unsafe conditions.
+         The report shall identify all unsafe conditions addressed in previous
+mitigation as well as all other conditions that require repair, stabilization
+or maintenance to prevent existing deterioration from progressing to an unsafe
+condition before the next required inspection. The report shall recommend
+repair/stabilization actions to restore the building to its approved condition
+and a timeline for implementation of such repairs. The report shall also
+contain general repair and maintenance recommendations.
+      2.   Conclusion Category 2 – Requires Repair, Stabilization and
+Maintenance:
+         A building in the category Requires Repair, Stabilization and
+Maintenance exhibits deterioration that, if not repaired, stabilized or
+maintained, could progress to an unsafe condition before the next required
+inspection.
+         The report shall identify building elements that require repair,
+stabilization and maintenance before the next required inspection, and shall
+include repair recommendations and a timeline for implementation so that the
+building performance meets a condition that ensures the building’s safety and
+compliance with applicable codes. The report should also contain general repair
+and maintenance recommendations.
+         The property owner shall follow the recommendations in the report for
+stabilization and repair necessary to maintain the façade.
+      3.   Conclusion Category 3 – Ordinary Maintenance:
+         A building in the category Ordinary Maintenance requires on-going
+general repair and maintenance.
+The report should make general maintenance and repair recommendations.
+V.   ACTIONS BY CITY FOLLOWING SUBMITTAL OF REPORTS
+   A.   Within 60 days of receipt of a façade inspection report, the Department
+of Building Inspection shall review reports and notify both the owner and the
+qualified professional that the report is acceptable as submitted, or provide
+comments identifying any revisions or additional information that may be
+required.
+   B.   All reports shall become part of the permanent records of the
+Department of Building Inspection. The Department of Building Inspection will
+maintain a publicly accessible database containing façade inspection reporting
+data and related information.
+VI.   PROCEDURE FOR PROCESSING BUILDING FACADE INSPECTION REPORTS
+   A.   The owner/owner’s representative shall submit the Building Façade
+Inspection Report to the Department of Building Inspection for review, either:
+      1.   By e-mail: dbi.facade@sfgov.org
+      2.   By mail: Department of Building Inspection, Technical Service
+Division, 49 South Van Ness Ave, Suite 500, San Francisco, CA 94103
+      3.   In person: Technical Services Division Key Programs Counter on the
+2nd Floor of the Department of Building Inspection at 49 South Van Ness Ave,
+San Francisco, CA 94103.
+   B.   Once the Department of Building Inspection has completed its review of
+the report, the department will issue an invoice to the owner or owner’s
+representative with instructions on how to make the payment. The number of plan
+review and administrative hours will be indicated on the invoice.
+   C.   After all fees are paid, the property will be deemed compliant with the
+program compliance deadline for which the report was submitted. An acceptance
+letter may be requested by the owner or owner’s representative to confirm
+compliance with the program.
+VII.   NOTIFICATION AND ACTION REGARDING SIGNIFCANT DAMAGE AND UNSAFE
+CONDITIONS
+   A.   Either during the normal passage of time or following an earthquake,
+windstorm or other cause, building facades that appear to exhibit significant
+damage must be inspected within 60 days of the discovery of such damage per
+SFEBC 503F.3. Immediate action is also required to address any unsafe
+conditions. Significant damage includes items that have fallen from a building
+or items that have cracked or dislodged to become potential falling hazards.
+Determination of such significant damage shall be by a qualified professional.
+   B.   If an unsafe condition is identified at any time during the façade
+inspection and reporting process, the qualified professional shall immediately
+notify both the property owner and the Department of Building Inspection of
+such condition.
+   C.   If what appears to be an unsafe condition is observed by an inspector
+or a qualified professional during a post-earthquake evaluation or under any
+other circumstance, such person shall immediately notify the Director of the
+Department of Building Inspection of such apparent condition. The director
+shall immediately arrange to have a qualified professional or other appropriate
+investigator evaluate the conditions. If such condition is determined to be
+unsafe, the owner shall be immediately contacted.
+   D.   Immediate contact with the Department’s Building Inspection Division
+shall be by telephone at 628-652-3400. Notice shall also be sent to the Façade
+Unit by email to dbi.facade@sfgov.org. In case of emergencies such as
+earthquakes, other notification contact methods may be established.
+   E.   Upon receipt of notification from the inspector of an unsafe condition,
+the property owner shall, as soon as reasonably possible, take action to
+protect the public and property. Such actions may require the owner to
+coordinate with various City agencies in the installation of barriers or
+closure of sidewalks or streets. For such coordination in an emergency to
+mitigate unsafe conditions, contact:
+      1.   San Francisco Police Department – 911
+      2.   Department of Public Works – Radio Room 415-695-2134
+      3.   Department of Building Inspection – Building Inspections Division
+628-652-3400
+   F.   The owner shall, within 72 hours of notification of an unsafe
+condition, provide a mitigation plan and schedule of implementation to the
+Department of Building Inspection at dbi.facade@sfgov.org. The plan and
+schedule shall be prepared by a qualified professional engineer or architect,
+for the installation of protective barriers, stabilization, repair or other
+actions to provide temporary or long-term mitigation of all imminent hazard
+conditions. The mitigation plan, which shall include photographs, shall be
+reviewed and approved by the Director of the Department of Building Inspection.
+Work shall be completed within a time frame acceptable to the director but
+shall not exceed five days. Requests for extensions may be requested and
+approved on a case-by-case basis.
+   G.   A Notice of Violation may be issued where (1) a mitigation plan is not
+submitted within 72-hours of reporting, and/or (2) stabilization does not occur
+within the agreed upon time frame in the mitigation plan. For buildings
+classified by SF Planning as Category A – Historic Resource Present (including
+Article 10 and 11 buildings), any elements removed as part of stabilizing the
+façade for safety shall be preserved.
+   H.   Issuance of Emergency Orders, permits, or other City approval and
+actions to mitigate unsafe conditions shall be done in accordance with the San
+Francisco Building Code, Section
+102A – Unsafe Buildings, Structures or Property, and other applicable
+regulations.
+   I.   If the subject property is a historic resource, SF Planning
+Preservation staff shall be contacted for review and advice before the issuance
+of an Emergency Order or approval of any other emergency action that might
+impact the historic fabric.
+   J.   The qualified professional shall notify the Department of Building
+Inspection at dbi.facade@sfgov.org when unsafe conditions have been mitigated.
+   K.   Notwithstanding timely reporting and mitigation of the unsafe
+condition, a completed inspection report is required to be subsequently
+submitted within the time frame required by SFEBC Section
+503F.
+VIII.   UNDERTAKING STABILIZATION, REPAIR AND MAINTENANCE WORK
+   A.   Building permits and other City permits are required to undertake work
+as required under the San Francisco Building Code and other applicable codes
+and regulations. A standard building permit review and issuance process shall
+be followed except when expedited permit processing is requested and authorized
+under Administrative Bulletin AB-004, Priority Permit Processing Guidelines.
+Repair work shall be performed in accordance with the applicable provisions of
+the San Francisco Building Code.
+   B.   SF Planning Preservation staff shall review and approve permit
+applications for the stabilization and repair of historic resources. For
+buildings that are listed as historic properties defined by SF Planning as
+Category A – Historic Resource Present (including Article 10 and 11 buildings),
+facade repair, stabilization and maintenance shall be performed in conformance
+with the Secretary of the Interior’s Standards for the Treatment of Historic
+Buildings: Standards for Rehabilitation. Methods of repair, stabilization and
+maintenance for historic resources shall use the least intrusive or least
+invasive means feasible and shall preserve existing materials and features to
+the maximum extent feasible.
+Qualified historic buildings may be maintained and/or repaired using the
+provisions in the California Historical Building Code regarding strength,
+performance, utilization, and other properties of archaic materials, provided
+that such provisions result in acceptable performance.
+   C.   Contractors and workers engaged in façade maintenance shall be
+experienced and skilled in façade maintenance operations. Workers shall have
+training and/or on-the-job experience at least equivalent to requirements for
+graduation from an apprenticeship program for this occupation as approved by
+the Chief of the Division of Apprenticeship Standards of the California
+Department of Industrial Relations. Alternatively, workers may be registered
+apprentices working under the supervision of such trained and/or experienced
+workers. Compliance with this training and experience standard shall be
+verified by the owner, owner’s agent, or qualified professional representing
+the owner.
+IX.   ENFORCEMENT AND ABATEMENT
+The Director of the Department of Building Inspection shall implement the
+procedures detailed in San Francisco Building Code Section
+102A, Unsafe Buildings, Structures or Property, and related abatement actions
+when any of the requirements for façade inspection, reporting, mitigation,
+repair or maintenance are not met in a timely manner.
+Signed by:
+Patrick O’Riordan, C.B.O.,      8/26/2024
+Director
+Department of Building Inspection
+Approved by the Building Inspection Commission on 6/21/2017 and 8/21/2024
+Attachment_A:_Comprehensive_Building_Façade_Inspection_Report_Compliance
+Affidavit
+Attachment_B:_Supplemental_Façade_Inspection_Report_and_Compliance_Affidavit
+Attachment_C:_Comprehensive_Façade_Inspection_Report_Submittal_Preparation
+Checklist
+Attachment_D:_Supplemental_Façade_Inspection_Report_Submittal_Preparation
+Checklist
