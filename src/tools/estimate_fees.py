@@ -194,6 +194,29 @@ async def estimate_fees(
     if project_type in ("new_construction", "commercial_ti"):
         additional_fees.append({"fee": "School Impact Fee (SFUSD)", "estimate": "varies by floor area increase"})
 
+    # ADA / accessibility cost analysis for commercial projects
+    ada_analysis = None
+    is_commercial = project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse")
+    if is_commercial:
+        ada = kb.ada_accessibility
+        threshold = ada.get("valuation_threshold", {}).get("current_amount", 195358)
+        if estimated_construction_cost > threshold:
+            ada_analysis = {
+                "threshold": threshold,
+                "above_threshold": True,
+                "rule": "FULL path-of-travel compliance required (CBC 11B)",
+                "note": f"Construction cost ${estimated_construction_cost:,.0f} exceeds ${threshold:,.0f} threshold",
+            }
+        else:
+            pct20 = estimated_construction_cost * 0.20
+            ada_analysis = {
+                "threshold": threshold,
+                "above_threshold": False,
+                "rule": "Path-of-travel compliance limited to 20% of construction cost",
+                "max_accessibility_spend": round(pct20, 2),
+                "note": f"Budget up to ${pct20:,.0f} for accessibility upgrades (20% of ${estimated_construction_cost:,.0f})",
+            }
+
     # Statistical comparison from DuckDB
     stat_data = None
     try:
@@ -243,6 +266,17 @@ async def estimate_fees(
         lines.append(f"- 75th percentile cost: ${stat_data['p75_cost']:,.0f}")
         if neighborhood:
             lines.append(f"- Filtered to: {neighborhood}")
+
+    if ada_analysis:
+        lines.append(f"\n## ADA/Accessibility Cost Impact\n")
+        lines.append(f"**Valuation Threshold:** ${ada_analysis['threshold']:,.0f}")
+        if ada_analysis["above_threshold"]:
+            lines.append(f"**Status:** ABOVE threshold — {ada_analysis['rule']}")
+        else:
+            lines.append(f"**Status:** Below threshold — {ada_analysis['rule']}")
+            lines.append(f"**Maximum Accessibility Spend:** ${ada_analysis['max_accessibility_spend']:,.2f}")
+        lines.append(f"*{ada_analysis['note']}*")
+        lines.append("- Submit DA-02 Disabled Access Compliance Checklist with permit application")
 
     lines.append(f"\n## Notes\n")
     lines.append("- Fee schedule effective 9/1/2025 (Ord. 126-25)")

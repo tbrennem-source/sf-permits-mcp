@@ -142,7 +142,7 @@ def _determine_agency_routing(project_types: list[str], kb) -> list[dict]:
     # DPH triggers (food service)
     if "restaurant" in project_types:
         agencies.append({"agency": "DPH (Public Health)", "required": True,
-                         "reason": "Health permit for food service establishment"})
+                         "reason": "Health permit for food service — parallel review with DBI. DPH must approve before permit issuance."})
 
     # MECH/MECH-E for commercial work
     if any(pt in project_types for pt in ["commercial_ti", "restaurant", "new_construction"]):
@@ -162,19 +162,22 @@ def _determine_agency_routing(project_types: list[str], kb) -> list[dict]:
     return agencies
 
 
-def _determine_special_requirements(project_types: list[str], kb) -> list[dict]:
-    """Determine special requirements based on project type."""
+def _determine_special_requirements(project_types: list[str], estimated_cost: float | None, kb) -> list[dict]:
+    """Determine special requirements based on project type and compliance knowledge."""
     reqs = []
 
+    # --- Restaurant / food facility ---
     if "restaurant" in project_types:
         reqs.extend([
             {"requirement": "Planning zoning verification", "details": "Confirm restaurant use is permitted at site"},
             {"requirement": "DPH health permit application", "details": "Food preparation workflow diagram + equipment schedule"},
             {"requirement": "Type I hood fire suppression", "details": "Automatic suppression system for grease-producing equipment"},
-            {"requirement": "Grease interceptor sizing", "details": "Grease trap calculations per plumbing code"},
-            {"requirement": "ADA compliance", "details": "Path of travel and restroom upgrades per CBC Chapter 11B"},
+            {"requirement": "Grease interceptor sizing", "details": "Grease trap calculations per plumbing code; check SFPUC sizing requirements"},
+            {"requirement": "DPH menu submission", "details": "Full menu required — determines facility category and equipment requirements (DPH-007)"},
+            {"requirement": "DPH equipment schedule", "details": "Numbered equipment schedule cross-referenced to layout drawing (DPH-002)"},
         ])
 
+    # --- ADU ---
     if "adu" in project_types:
         reqs.extend([
             {"requirement": "ADU pre-approval application", "details": "Separate ADU application process for detached ADUs"},
@@ -182,29 +185,83 @@ def _determine_special_requirements(project_types: list[str], kb) -> list[dict]:
             {"requirement": "Separate utility connections", "details": "May need separate water/electric meters"},
         ])
 
+    # --- Seismic ---
     if "seismic" in project_types:
         reqs.extend([
             {"requirement": "Structural engineering report", "details": "Licensed structural engineer evaluation"},
             {"requirement": "Priority processing eligibility", "details": "Voluntary/mandatory seismic upgrades per AB-004"},
         ])
 
+    # --- Historic ---
     if "historic" in project_types:
         reqs.extend([
             {"requirement": "Historic preservation review", "details": "Certificate of Appropriateness from HPC (Article 10) or Permit to Alter (Article 11)"},
             {"requirement": "Secretary of Interior Standards", "details": "All work must comply with SOI Standards for Treatment of Historic Properties"},
         ])
 
+    # --- Change of use ---
     if "change_of_use" in project_types:
         reqs.extend([
             {"requirement": "Section 311 notification", "details": "30-day neighborhood notification period (cannot go OTC during notification)"},
         ])
 
+    # --- New construction ---
     if "new_construction" in project_types:
         reqs.extend([
             {"requirement": "Fire flow study", "details": "SFFD fire flow analysis for new construction"},
             {"requirement": "Stormwater management plan", "details": "Required if 5,000+ sq ft impervious surfaces"},
             {"requirement": "Geotechnical report", "details": "May be required depending on site conditions"},
+            {"requirement": "SF All-Electric Requirement (AB-112)", "details": "New construction must be all-electric — no gas infrastructure. Title-24 docs cannot show gas consumption."},
         ])
+
+    # --- ADA / Accessibility (commercial projects) ---
+    is_commercial = any(pt in project_types for pt in [
+        "restaurant", "commercial_ti", "change_of_use", "adaptive_reuse",
+    ])
+    if is_commercial:
+        ada = kb.ada_accessibility
+        threshold = ada.get("valuation_threshold", {}).get("current_amount", 195358)
+        if estimated_cost and estimated_cost > threshold:
+            reqs.append({
+                "requirement": "ADA full path-of-travel compliance",
+                "details": f"Construction cost ${estimated_cost:,.0f} exceeds threshold ${threshold:,.0f} — FULL CBC 11B compliance required",
+            })
+        elif estimated_cost:
+            pct20 = estimated_cost * 0.20
+            reqs.append({
+                "requirement": "ADA path-of-travel (20% rule)",
+                "details": f"Construction cost ${estimated_cost:,.0f} below threshold ${threshold:,.0f} — accessibility upgrades limited to 20% (${pct20:,.0f})",
+            })
+        else:
+            reqs.append({
+                "requirement": "ADA path-of-travel compliance",
+                "details": f"Commercial alteration triggers CBC 11B. Threshold for full compliance: ${threshold:,.0f}. Provide cost estimate to determine scope.",
+            })
+        reqs.append({
+            "requirement": "DA-02 Checklist required",
+            "details": "Disabled Access Upgrade Compliance Checklist Package required for all commercial alterations",
+        })
+
+    # --- Title-24 Energy Compliance ---
+    # Almost all projects trigger some form of Title-24
+    non_t24_types = {"demolition"}
+    if not non_t24_types.intersection(project_types):
+        t24 = kb.title24
+        if "new_construction" in project_types:
+            reqs.append({
+                "requirement": "Title-24 energy compliance (new construction)",
+                "details": "CF1R/NRCC required at filing. CF2R/NRCI at inspection. Solar PV required for residential.",
+            })
+        elif any(pt in project_types for pt in ["restaurant", "commercial_ti", "adaptive_reuse", "change_of_use"]):
+            reqs.append({
+                "requirement": "Title-24 energy compliance (nonresidential alteration)",
+                "details": "NRCC required if altering HVAC or lighting. NRCA acceptance testing for systems >54,000 BTU/hr.",
+            })
+        else:
+            reqs.append({
+                "requirement": "Title-24 energy compliance",
+                "details": "CF1R or NRCC likely required depending on scope. #1 correction trigger — submit with initial application.",
+            })
 
     return reqs
 
@@ -247,7 +304,7 @@ async def predict_permits(
     form = _determine_form(project_types, kb)
     review_path = _determine_review_path(project_types, estimated_cost, kb)
     agency_routing = _determine_agency_routing(project_types, kb)
-    special_requirements = _determine_special_requirements(project_types, kb)
+    special_requirements = _determine_special_requirements(project_types, estimated_cost, kb)
 
     # Build result
     result = {

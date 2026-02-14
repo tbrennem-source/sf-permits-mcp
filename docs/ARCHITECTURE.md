@@ -294,13 +294,13 @@ src/
 
 | Tool | Knowledge Files | DuckDB |
 |------|----------------|--------|
-| `predict_permits` | decision-tree-draft.json, semantic-index.json, otc-criteria.json, G-20-routing.json | No |
+| `predict_permits` | decision-tree-draft.json, semantic-index.json, otc-criteria.json, G-20-routing.json, ada-accessibility-requirements.json, title24-energy-compliance.json, dph-food-facility-requirements.json | No |
 | `estimate_timeline` | — | Yes (timeline_stats materialized view) |
-| `estimate_fees` | fee-tables.json | Yes (statistical comparison) |
-| `required_documents` | completeness-checklist.json, epr-requirements.json | No |
-| `revision_risk` | — | Yes (revised_cost analysis) |
+| `estimate_fees` | fee-tables.json, ada-accessibility-requirements.json | Yes (statistical comparison) |
+| `required_documents` | completeness-checklist.json, epr-requirements.json, title24-energy-compliance.json, dph-food-facility-requirements.json | No |
+| `revision_risk` | title24-energy-compliance.json, ada-accessibility-requirements.json, dph-food-facility-requirements.json | Yes (revised_cost analysis) |
 
-All knowledge files loaded once via `KnowledgeBase` singleton (`@lru_cache`).
+All 15 knowledge files loaded once via `KnowledgeBase` singleton (`@lru_cache`).
 
 ---
 

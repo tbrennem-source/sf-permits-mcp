@@ -1,0 +1,163 @@
+{
+  "metadata": {
+    "title": "California Title 24 Part 6 Energy Compliance Requirements",
+    "source": "California Title 24 Part 6 (Energy Code) + SF DBI Info Sheets M-04, M-06 + AB-112",
+    "source_urls": [
+      "https://energycodeace.com/ResidentialForms/2022",
+      "https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficiency-standards/2022-building-energy-efficiency-2",
+      "https://sf.gov/resource/2022/information-sheets-dbi"
+    ],
+    "last_verified": "2026-02-14",
+    "confidence": "high"
+  },
+  "code_cycle_note": "2022 Title-24 applies to permits filed before Jan 1, 2026. 2025 Title-24 applies to permits filed on/after Jan 1, 2026. Filing near the changeover requires careful code edition selection.",
+  "sf_climate_zone": 3,
+  "form_system": {
+    "residential": {
+      "description": "Single-family, townhome, duplex. Low-rise (3 stories or less) multifamily uses LMCC/LMCI/LMCV forms starting with 2022 code.",
+      "forms": {
+        "CF1R": {
+          "full_name": "Certificate of Compliance",
+          "when_submitted": "With permit application (design phase)",
+          "who_prepares": "Energy consultant, architect, or engineer",
+          "purpose": "Demonstrates project design and equipment comply with Energy Code",
+          "variants": {
+            "CF1R-PRF-01": "Performance approach (energy modeling tradeoffs)",
+            "CF1R-ADD-01": "Prescriptive additions",
+            "CF1R-ALT-02": "Prescriptive alterations requiring HERS verification",
+            "CF1R-ALT-05": "Prescriptive alterations NOT requiring HERS verification (simplified)"
+          }
+        },
+        "CF2R": {
+          "full_name": "Certificate of Installation",
+          "when_submitted": "At inspection (construction phase)",
+          "who_prepares": "Installing contractor",
+          "purpose": "Documents installed equipment meets CF1R specifications",
+          "variants": {
+            "CF2R-ADD-02": "Additions not requiring HERS",
+            "CF2R-ALT-05": "Alterations not requiring HERS",
+            "CF2R-ENV-01": "Fenestration installation",
+            "CF2R-ENV-03": "Insulation installation",
+            "CF2R-MCH-01b": "Space conditioning ducts/fans (alterations)",
+            "CF2R-MCH-01c": "Space conditioning ducts/fans (new construction)",
+            "CF2R-PVB-01": "Photovoltaic systems",
+            "CF2R-PVB-02": "Battery storage systems",
+            "CF2R-ELC-01": "Electric ready requirements"
+          }
+        },
+        "CF3R": {
+          "full_name": "Certificate of Verification",
+          "when_submitted": "At inspection (field verification by HERS rater)",
+          "who_prepares": "HERS rater",
+          "purpose": "Third-party field verification and diagnostic testing",
+          "note": "Only required when project triggers HERS measures. Must be registered with HERS Provider Data Registry.",
+          "variants": {
+            "CF3R-ENV-20a": "Building air leakage diagnostic test",
+            "CF3R-ENV-21": "QII air infiltration sealing",
+            "CF3R-EXC-20": "Existing conditions verification (for alterations)",
+            "CF3R-MCH-28": "Return duct design and air filter sizing"
+          }
+        }
+      }
+    },
+    "nonresidential": {
+      "description": "Commercial, retail, office, restaurant, hotel/motel, high-rise residential",
+      "forms": {
+        "NRCC": {
+          "full_name": "Nonresidential Certificate of Compliance",
+          "when_submitted": "With permit application",
+          "who_prepares": "Energy consultant or mechanical engineer",
+          "purpose": "Demonstrates nonresidential building design meets Energy Code"
+        },
+        "NRCI": {
+          "full_name": "Nonresidential Certificate of Installation",
+          "when_submitted": "At inspection",
+          "who_prepares": "Installing contractor"
+        },
+        "NRCA": {
+          "full_name": "Nonresidential Certificate of Acceptance",
+          "when_submitted": "At inspection (functional testing)",
+          "who_prepares": "Acceptance test technician",
+          "purpose": "Verifies systems perform as designed (lighting controls, HVAC, etc.)"
+        }
+      }
+    }
+  },
+  "triggers_by_project_type": {
+    "new_construction": {
+      "residential": ["CF1R required (PRF-01 or prescriptive)", "CF2R at inspection", "CF3R if HERS triggered", "Solar PV required (CF2R-PVB-01)", "Battery storage may be required (CF2R-PVB-02)"],
+      "nonresidential": ["NRCC required", "NRCI at inspection", "NRCA functional testing required"]
+    },
+    "additions": {
+      "residential": ["CF1R-ADD-01 required", "CF2R-ADD-02 at inspection", "HERS if conditioned space added > thresholds"],
+      "nonresidential": ["NRCC required for added area", "NRCI + NRCA at inspection"]
+    },
+    "alterations": {
+      "residential": {
+        "hvac_replacement": "CF1R-ALT-05 (prescriptive, no HERS) OR CF1R-ALT-02 (requires HERS if >25ft duct replaced)",
+        "water_heater_replacement": "CF1R-ALT-05 sufficient for prescriptive approach. Note: changing fuel source has restrictions.",
+        "window_replacement": "CF1R required. U-factor and SHGC must meet climate zone 3 requirements.",
+        "insulation": "CF1R required. R-value must meet current code for climate zone 3.",
+        "reroof": "Cool roof requirements may apply (CF1R-ENV section)"
+      },
+      "nonresidential": {
+        "hvac_replacement": "NRCC required. Acceptance testing (NRCA) required for systems >54,000 BTU/hr.",
+        "lighting_replacement": "NRCC for lighting power density. NRCA acceptance test for lighting controls.",
+        "envelope_changes": "NRCC required for any changes to building envelope (windows, walls, roof).",
+        "tenant_improvement": "NRCC required if altering lighting or HVAC. Common correction: TI permits filed without energy forms."
+      }
+    }
+  },
+  "common_corrections": [
+    {
+      "id": "T24-C01",
+      "description": "No energy compliance forms submitted with permit application",
+      "frequency": "Very high — most common Title-24 correction",
+      "fix": "Submit CF1R/NRCC with initial application. Many applicants don't realize alterations trigger Title-24."
+    },
+    {
+      "id": "T24-C02",
+      "description": "Existing conditions not documented for alterations",
+      "frequency": "High — #1 correction for alteration projects specifically",
+      "fix": "CF3R-EXC-20 (Existing Conditions Verification) must be completed for alterations. Cannot prove compliance without baseline."
+    },
+    {
+      "id": "T24-C03",
+      "description": "Wrong code cycle forms used",
+      "frequency": "Medium — spikes near code changeover dates",
+      "fix": "2022 forms for permits filed before Jan 1, 2026. 2025 forms for permits filed on/after Jan 1, 2026."
+    },
+    {
+      "id": "T24-C04",
+      "description": "Gas equipment specified in all-electric required project (SF-specific)",
+      "frequency": "Medium — new since SF AB-112",
+      "fix": "New construction in SF must be all-electric. Title-24 docs cannot show gas consumption. Exception requires formal infeasibility review."
+    },
+    {
+      "id": "T24-C05",
+      "description": "HERS verification required but not registered with provider",
+      "frequency": "Medium",
+      "fix": "If project triggers HERS measures, CF1R must be registered with HERS Provider Data Registry before permit issuance."
+    },
+    {
+      "id": "T24-C06",
+      "description": "Prescriptive approach used when performance approach required",
+      "frequency": "Low-medium",
+      "fix": "If any element doesn't meet prescriptive minimums, must use performance approach (CF1R-PRF-01) which allows tradeoffs."
+    }
+  ],
+  "sf_specific_rules": {
+    "all_electric_new_construction": {
+      "code_section": "SF Building Code 106A.1.17",
+      "admin_bulletin": "AB-112",
+      "rule": "All new construction must be all-electric. No gas infrastructure or piping.",
+      "exception_process": "Formal infeasibility review by qualified engineers. Must demonstrate all available energy efficiency features were applied to all-electric option.",
+      "documentation": "Title-24 compliance docs must not include gas consumption. AB-093 Attachment E required."
+    },
+    "green_building_requirements": {
+      "admin_bulletin": "AB-093",
+      "rule": "Green Building Site Permit Submittal required for new construction permits. Documents compliance with SF Green Building Ordinance.",
+      "forms": "AB-093 Attachment E"
+    }
+  }
+}

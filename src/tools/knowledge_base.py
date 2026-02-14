@@ -65,6 +65,11 @@ class KnowledgeBase:
         self.epr_requirements = _load_json(tier1 / "epr-requirements.json")
         self.decision_tree_gaps = _load_json(tier1 / "decision-tree-gaps.json")
 
+        # Compliance knowledge (Phase 2.6 supplement)
+        self.title24 = _load_json(tier1 / "title24-energy-compliance.json")
+        self.dph_food = _load_json(tier1 / "dph-food-facility-requirements.json")
+        self.ada_accessibility = _load_json(tier1 / "ada-accessibility-requirements.json")
+
         # Build keyword index from semantic index
         self._keyword_index = self._build_keyword_index()
 

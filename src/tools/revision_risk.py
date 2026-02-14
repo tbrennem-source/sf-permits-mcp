@@ -1,6 +1,7 @@
 """Tool: revision_risk — Estimate revision probability and impact from permit data patterns."""
 
 from src.db import get_connection
+from src.tools.knowledge_base import get_knowledge_base
 
 # Common revision triggers by project type
 REVISION_TRIGGERS = {
@@ -44,6 +45,42 @@ REVISION_TRIGGERS = {
         "Plans not matching permit application description",
     ],
 }
+
+
+def _get_correction_frequencies(project_type: str | None, kb) -> list[dict]:
+    """Get top correction category frequencies from compliance knowledge."""
+    corrections = []
+
+    # Title-24 — #1 correction category (~45% of commercial alterations)
+    t24 = kb.title24
+    if t24:
+        is_commercial = project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse")
+        rate = "~45% of commercial alterations" if is_commercial else "common across all project types"
+        corrections.append({
+            "category": "Title-24 Energy Compliance",
+            "rate": rate,
+            "detail": "Missing or incorrect energy forms. Submit CF1R/NRCC with initial application. (T24-C01)",
+        })
+
+    # ADA — #2 correction category (~38% of commercial alterations)
+    ada = kb.ada_accessibility
+    if ada and project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse", None):
+        corrections.append({
+            "category": "ADA/Accessibility (CBC 11B)",
+            "rate": "~38% of commercial alterations",
+            "detail": "Missing DA-02 checklist or path-of-travel documentation. (ADA-C01)",
+        })
+
+    # DPH — restaurant-specific
+    dph = kb.dph_food
+    if dph and project_type == "restaurant":
+        corrections.append({
+            "category": "DPH Food Facility",
+            "rate": "high for restaurant conversions",
+            "detail": "Equipment schedule not cross-referenced to layout, or missing exhaust data sheets. (DPH-002, DPH-004)",
+        })
+
+    return corrections
 
 
 def _query_revision_stats(conn, permit_type: str | None, neighborhood: str | None,
@@ -160,10 +197,14 @@ async def revision_risk(
         if project_type == "restaurant":
             mitigations.insert(0, "Have DPH review requirements addressed in initial plan submission")
             mitigations.insert(1, "Include complete grease interceptor calculations with first submittal")
+            mitigations.insert(2, "Submit numbered equipment schedule cross-referenced to layout (DPH #1 correction)")
         if project_type == "adu":
             mitigations.insert(0, "Confirm Planning conditions before finalizing plans")
         if project_type in ("seismic", "new_construction"):
             mitigations.insert(0, "Reference geotechnical report in structural calculations")
+        if project_type in ("restaurant", "commercial_ti", "change_of_use"):
+            mitigations.append("Consider CASp (Certified Access Specialist) inspection — reduces ADA correction rate from ~38% to ~10%")
+            mitigations.append("Submit DA-02 checklist with initial application (most common ADA correction is missing DA-02)")
 
         # Format output
         lines = ["# Revision Risk Assessment\n"]
@@ -211,6 +252,14 @@ async def revision_risk(
         lines.append(f"\n## Common Revision Triggers\n")
         for i, t in enumerate(triggers, 1):
             lines.append(f"{i}. {t}")
+
+        # Correction frequency data from compliance knowledge
+        kb = get_knowledge_base()
+        correction_data = _get_correction_frequencies(project_type, kb)
+        if correction_data:
+            lines.append(f"\n## Top Correction Categories (citywide data)\n")
+            for cd in correction_data:
+                lines.append(f"- **{cd['category']}** ({cd['rate']}): {cd['detail']}")
 
         lines.append(f"\n## Mitigation Strategies\n")
         for m in mitigations:

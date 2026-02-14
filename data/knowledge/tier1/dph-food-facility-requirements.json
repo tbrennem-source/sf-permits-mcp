@@ -1,0 +1,172 @@
+{
+  "metadata": {
+    "title": "SF DPH Food Facility Construction Requirements",
+    "source": "SF DPH Environmental Health Branch + California Retail Food Code",
+    "source_urls": [
+      "https://www.sf.gov/reports--november-2021--food-facility-construction-plans-what-include-review",
+      "https://www.sf.gov/plan-check-guide-building-and-remodeling-food-facility",
+      "https://www.sfdph.org/dph/files/EHSdocs/ehsFood/permitsdocs/ConstructGuide.pdf",
+      "https://www.sf.gov/guide-opening-restaurant"
+    ],
+    "last_verified": "2026-02-14",
+    "confidence": "high"
+  },
+  "context": "DPH reviews food facility construction plans as a routing station parallel to DBI plan review. A building permit application with 'health' as a routing station triggers DPH review. DPH must approve before permit issuance. DPH also issues a separate health permit to operate.",
+  "routing_trigger": "Any project involving food preparation, food storage, food service, or change to food facility layout. DBI G-25 info sheet covers restaurant-specific building permit requirements; DPH covers health/sanitation requirements.",
+  "plan_submittal_requirements": {
+    "general": [
+      {
+        "id": "DPH-001",
+        "requirement": "Floor plan drawn to scale showing entire facility",
+        "detail": "Professional quality. Must include total square footage. Show all areas including storage, prep, cooking, service, restrooms, office, mechanical.",
+        "common_violation": "Plans only show kitchen area, not full facility including restrooms and storage"
+      },
+      {
+        "id": "DPH-002",
+        "requirement": "Equipment layout with numbered equipment schedule",
+        "detail": "Equipment on layout drawing must be numbered to match the equipment schedule. Schedule must show make, model, dimensions. Cross-reference between layout and schedule is mandatory.",
+        "common_violation": "Equipment shown on plans but no schedule, or schedule doesn't match layout numbers"
+      },
+      {
+        "id": "DPH-003",
+        "requirement": "Complete plumbing layout",
+        "detail": "Show water lines (hot and cold), water heater, sewer lines, floor drains, floor sinks, vents, cleanouts, grease interceptor/trap location and sizing. Show direction of flow to sanitary sewer.",
+        "common_violation": "Plumbing layout missing grease interceptor or floor sink locations"
+      },
+      {
+        "id": "DPH-004",
+        "requirement": "Exhaust ventilation layout",
+        "detail": "Show hood location, make-up air returns and ducts, exhaust fans. Include Commercial Hood/Mechanical Exhaust Data Sheet for EACH exhaust hood with calculations and duct sizes.",
+        "common_violation": "Hood shown on plans but no exhaust data sheet with calculations"
+      },
+      {
+        "id": "DPH-005",
+        "requirement": "Complete finish schedule",
+        "detail": "Floors, cove base, walls, ceilings — indicate material type, color, and surface finish for EACH area. Physical samples may be required for review and approval before purchase.",
+        "common_violation": "Generic 'tile floor' without specifying material in each area. Cove base often missing."
+      },
+      {
+        "id": "DPH-006",
+        "requirement": "Electrical layout including lighting",
+        "detail": "Location of electrical panel(s). Lighting must meet minimum foot-candle requirements per area type per California Retail Food Code.",
+        "common_violation": "No lighting plan or foot-candle calculations"
+      },
+      {
+        "id": "DPH-007",
+        "requirement": "Complete menu information",
+        "detail": "Full menu including whether alcoholic beverages will be served. Menu determines food facility category which determines equipment and ventilation requirements.",
+        "common_violation": "No menu submitted. DPH can't determine facility category without it."
+      }
+    ],
+    "specific_systems": {
+      "handwashing": {
+        "id": "DPH-010",
+        "requirement": "Adequate handwashing stations in accessible locations",
+        "rules": [
+          "Minimum one handwash sink per food prep area",
+          "Must be in or adjacent to every toilet room",
+          "Must be accessible and conveniently located — not blocked by equipment",
+          "Hot and cold running water under pressure",
+          "Soap and single-use towels or air dryer"
+        ],
+        "common_violation": "Insufficient handwash sinks, or sinks blocked by equipment placement"
+      },
+      "warewashing": {
+        "id": "DPH-011",
+        "requirement": "Three-compartment sink or commercial dishwasher",
+        "rules": [
+          "Sink must be big enough for largest equipment/utensils to be fully submerged",
+          "If mechanical dishwasher: must meet NSF standards, proper temperature",
+          "Separate from food prep sinks and handwash sinks"
+        ],
+        "common_violation": "Three-compartment sink too small for largest pots/pans"
+      },
+      "grease_interceptor": {
+        "id": "DPH-012",
+        "requirement": "Grease capture equipment (traps or interceptors)",
+        "rules": [
+          "Required for any food facility with cooking equipment",
+          "Sizing based on Drainage Fixture Values per California Plumbing Code Table 7-3",
+          "Preferred location: outside facility, underground",
+          "If inside: not in food or utensil handling areas, must minimize pump-out frequency",
+          "Must be readily accessible for servicing",
+          "SF-specific: check SFPUC requirements for sizing — may differ from state minimums"
+        ],
+        "common_violation": "Undersized interceptor, or located in food prep area. SFPUC capacity charge often surprises tenants."
+      },
+      "ventilation": {
+        "id": "DPH-013",
+        "requirement": "Mechanical exhaust over all cooking equipment",
+        "rules": [
+          "Must effectively remove cooking odors, smoke, steam, grease, heat, vapors",
+          "Installed per California Mechanical Code",
+          "Make-up air required at proper rate",
+          "Exhaust hood calculations must be submitted",
+          "Type I hood for grease-laden vapors (cooking), Type II for steam/heat only"
+        ],
+        "common_violation": "Missing make-up air calculations. Wrong hood type for cooking method."
+      },
+      "food_storage": {
+        "id": "DPH-014",
+        "requirement": "Proper food storage facilities",
+        "rules": [
+          "Dry storage: at least 6 inches above floor (unless sealed to floor)",
+          "Cold storage: sufficient refrigeration for menu. Walk-in coolers for larger operations.",
+          "Hot holding: equipment must be pre-heated before food placement",
+          "All equipment must be NSF-certified or ANSI-accredited equivalent"
+        ],
+        "common_violation": "Insufficient refrigeration for menu scope. Storage shelving not 6 inches off floor."
+      },
+      "surfaces_and_finishes": {
+        "id": "DPH-015",
+        "requirement": "Durable, smooth, nonabsorbent, easily cleanable surfaces",
+        "rules": [
+          "Floors: durable, nonabsorbent, slip-resistant in cooking areas",
+          "Cove base: 3/8-inch radius, continuous with finished floor, minimum 4 inches up wall",
+          "Walls: smooth, nonabsorbent, easily cleanable to at least splash height",
+          "Ceilings: smooth, nonabsorbent, light-colored",
+          "Physical samples may be required for approval before installation"
+        ],
+        "common_violation": "Missing cove base specification. Cove base not extending minimum 4 inches. Wrong materials in wet areas."
+      },
+      "restrooms": {
+        "id": "DPH-016",
+        "requirement": "Adequate restroom facilities",
+        "rules": [
+          "Employee and patron restrooms per occupancy/seating",
+          "Must not pass through food prep, food storage, or utensil washing areas to reach restrooms",
+          "Handwash sink in or adjacent to each restroom",
+          "Vented to outside air (openable screened window, airshaft, or exhaust fan)"
+        ],
+        "common_violation": "Access path to restrooms passes through kitchen. Common in small spaces."
+      },
+      "food_protection": {
+        "id": "DPH-017",
+        "requirement": "Protection of unpackaged food from customer contamination",
+        "rules": [
+          "Sneeze guards, display cases, lids, or mechanical dispensers for self-service areas",
+          "Food preparation areas separated from customer areas",
+          "Self-service condiment stations must have protection"
+        ],
+        "common_violation": "Open food display without sneeze guards"
+      }
+    }
+  },
+  "facility_categories": {
+    "note": "DPH determines category from menu. Category determines equipment and space requirements.",
+    "types": [
+      {"category": "Prepackaged food only", "description": "100% commercially prepackaged. No food prep, no coffee service, no unpacking.", "plan_review": "Simplified"},
+      {"category": "Limited food prep", "description": "Bakeries, ice cream shops, yogurt shops. Some food handling but limited cooking.", "plan_review": "Standard"},
+      {"category": "Moderate food prep", "description": "Bars/taverns serving unpackaged beverages. Delis with limited hot food.", "plan_review": "Standard"},
+      {"category": "Full food service", "description": "Restaurants, cafeterias, catering kitchens. Full cooking and food preparation.", "plan_review": "Full — requires all systems above"}
+    ]
+  },
+  "parallel_permits_needed": [
+    "DBI building permit (concurrent review)",
+    "DPH health permit to operate (after construction, before opening)",
+    "SFPUC grease interceptor approval (if new installation)",
+    "PG&E service connection (if new/additional gas or electric)",
+    "ABC liquor license (if alcohol — Type 47 must be purchased existing in SF)",
+    "Fire Department review (if 3+ residential units in building, or hood suppression)"
+  ]
+}

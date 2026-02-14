@@ -2,6 +2,18 @@
 
 ## Phase 2.75 — Permit Decision Tools (2026-02-14)
 
+### Knowledge Supplement (Phase 2.6+)
+- Created `tier1/title24-energy-compliance.json` — CA Title-24 Part 6 energy forms (CF1R/CF2R/CF3R residential, NRCC/NRCI/NRCA nonresidential), triggers by project type, 6 common corrections (T24-C01 through T24-C06), SF all-electric requirement (AB-112), climate zone 3
+- Created `tier1/dph-food-facility-requirements.json` — SF DPH food facility plan review: 7 general requirements (DPH-001 through DPH-007), 8 specific system requirements (DPH-010 through DPH-017), facility categories, parallel permits needed
+- Created `tier1/ada-accessibility-requirements.json` — ADA/CBC Chapter 11B path-of-travel: valuation threshold ($195,358), cost tiers (20% rule vs full compliance), 8 common corrections (ADA-C01 through ADA-C08), CASp information, special cases (historic, seismic, change of use)
+- Updated `KnowledgeBase` to load all 15 tier1 JSON files (was 12)
+
+### Tool Enhancements (knowledge integration)
+- `predict_permits` — now flags SF all-electric requirement (AB-112) for new construction, ADA threshold analysis with 20% vs full compliance, DPH menu/equipment schedule requirements for restaurants, Title-24 form requirements by project scope
+- `estimate_fees` — added ADA/Accessibility Cost Impact section: computes adjusted construction cost vs $195,358 threshold, reports whether full compliance or 20% limit applies
+- `required_documents` — expanded DPH agency documents (7 items with DPH-001 through DPH-007 references), knowledge-driven Title-24 form requirements (CF1R/NRCC), existing conditions documentation for alterations (T24-C02), DA-02 checklist auto-flagged for all commercial projects
+- `revision_risk` — added Top Correction Categories section with citywide frequencies (Title-24 ~45%, ADA ~38%, DPH for restaurants), CASp mitigation for commercial projects, DA-02 submission reminders
+
 ### Knowledge Validation (Phase 2.6)
 - Validated `tier1/fee-tables.json` (54K, 19 tables, 9-step algorithm, eff. 9/1/2025)
 - Validated `tier1/fire-code-key-sections.json` (37K, 13 SFFD triggers)
@@ -14,24 +26,26 @@
 ### New MCP Tools (5)
 - `predict_permits` — Takes project description → walks 7-step decision tree → returns permits, forms, OTC/in-house review path, agency routing, special requirements, confidence levels. Uses `semantic-index.json` (492 keyword aliases from 61 concepts) for project type extraction.
 - `estimate_timeline` — Queries DuckDB for percentile-based timeline estimates (p25/p50/p75/p90) with progressive query widening, trend analysis (recent 6mo vs prior 12mo), and delay factors. Creates `timeline_stats` materialized view on first call.
-- `estimate_fees` — Applies Table 1A-A fee schedule (10 valuation tiers) to compute plan review + issuance fees, plus CBSC/SMIP surcharges. Statistical comparison against DuckDB actual permits.
-- `required_documents` — Generates document checklist from permit form, review path, agency routing, and project triggers. Includes full EPR requirements (22 checks) and pro tips.
-- `revision_risk` — Estimates revision probability using `revised_cost > estimated_cost` as proxy signal (125K revision events in 1.1M permits). Computes timeline penalty, common triggers by project type, mitigation strategies.
+- `estimate_fees` — Applies Table 1A-A fee schedule (10 valuation tiers) to compute plan review + issuance fees, plus CBSC/SMIP surcharges. Statistical comparison against DuckDB actual permits. ADA threshold analysis for commercial projects.
+- `required_documents` — Generates document checklist from permit form, review path, agency routing, and project triggers. Includes full EPR requirements (22 checks), Title-24 forms, DPH requirements, DA-02 for commercial, and pro tips.
+- `revision_risk` — Estimates revision probability using `revised_cost > estimated_cost` as proxy signal (125K revision events in 1.1M permits). Computes timeline penalty, common triggers by project type, correction frequencies from compliance knowledge, mitigation strategies.
 
 ### Module Architecture
-- Created `src/tools/knowledge_base.py` — shared `KnowledgeBase` class loads all 12 tier1 JSON files once via `@lru_cache`. Builds keyword index from semantic-index.json for project type matching.
+- Created `src/tools/knowledge_base.py` — shared `KnowledgeBase` class loads all 15 tier1 JSON files once via `@lru_cache`. Builds keyword index from semantic-index.json for project type matching.
 - 5 new tool modules in `src/tools/`: `predict_permits.py`, `estimate_timeline.py`, `estimate_fees.py`, `required_documents.py`, `revision_risk.py`
 - Server.py updated: imports + registers all 13 tools (5 SODA + 3 entity/network + 5 decision)
 
 ### Tests
-- 48 new tests across 6 files:
+- 70 new tests across 7 files:
   - `test_predict_permits.py` (14) — keyword extraction, KnowledgeBase loading, semantic matching, full predictions for restaurant/kitchen/ADU scenarios
   - `test_estimate_fees.py` (8) — fee calculation per tier, surcharges, tool output with project types
   - `test_required_docs.py` (7) — base docs, agency-specific, trigger-specific, EPR, demolition, historic, commercial TI ADA
   - `test_timeline.py` (5) — DuckDB queries with neighborhood, cost, review path, triggers
   - `test_revision_risk.py` (5) — basic, neighborhood, restaurant triggers, mitigation, timeline impact
   - `test_integration_scenarios.py` (9) — 5 Amy stress test scenarios through predict + fees + docs chain
-- **All 74 tests passing** (16 Phase 2 + 10 Phase 1 + 48 Phase 2.75)
+  - `test_knowledge_supplement.py` (22) — Title-24/DPH/ADA loading, predict_permits all-electric/ADA threshold, required_docs DPH items/DA-02/NRCC, estimate_fees ADA analysis, revision_risk correction frequencies
+- **All 96 tests passing** (86 pass + 10 DuckDB-dependent skipped)
+- Improved DuckDB skip logic: now checks for actual permits table, not just file existence
 
 ### Integration Test Scenarios
 - `data/knowledge/system_predictions.md` (37K) — full output of all 5 tools across 5 scenarios:

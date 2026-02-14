@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "title": "ADA/Accessibility Path-of-Travel Requirements",
+    "source": "SF DBI DA-series Info Sheets + CBC Chapter 11B (2022) + DSA IR 11B-10",
+    "source_urls": [
+      "https://www.sf.gov/accessibility-requirements-in-san-francisco",
+      "https://up.codes/viewer/san_francisco/ca-building-code-2022/chapter/11B/",
+      "https://www.dgs.ca.gov/-/media/Divisions/DSA/Publications/interpretations_of_regs/IR_11B-10.pdf",
+      "https://sf.gov/resource/2022/information-sheets-dbi"
+    ],
+    "last_verified": "2026-02-14",
+    "confidence": "high"
+  },
+  "context": "California accessibility requirements (CBC Chapter 11B) often EXCEED federal ADA requirements. SF enforces CBC Chapter 11B through DBI plan review. Both state and federal requirements must be met — the more restrictive applies.",
+  "valuation_threshold": {
+    "current_amount": 195358.00,
+    "effective_date": "2023-07-01",
+    "source": "DSA Access Compliance Reference Materials (updated annually based on ENR Construction Cost Index)",
+    "note": "This threshold changes annually. Tools should check current value. The threshold determines whether full path-of-travel compliance is required or limited to 20% of construction cost."
+  },
+  "core_logic": {
+    "trigger": "Any alteration, addition, or structural repair to an existing building or facility used as public building, public accommodation, commercial building, or public housing",
+    "requirement": "Provide accessible path of travel to the specific area of alteration or addition",
+    "path_of_travel_elements": [
+      "1. Primary entrance to the building (highest priority)",
+      "2. Toilet and bathing facilities serving the area",
+      "3. Drinking fountains serving the area",
+      "4. Public telephones serving the area (if any)",
+      "5. Signage",
+      "6. Route from entrance to altered area"
+    ],
+    "cost_tiers": {
+      "below_threshold": {
+        "condition": "Adjusted construction cost <= valuation threshold (currently $195,358)",
+        "rule": "Path-of-travel compliance limited to 20% of adjusted construction cost",
+        "if_20pct_insufficient": "Comply to greatest extent possible without exceeding 20%. Prioritize elements in order listed above.",
+        "documentation": "DA-02 Checklist Form C — itemize accessibility upgrades. Total should be as close to 20% as possible."
+      },
+      "above_threshold": {
+        "condition": "Adjusted construction cost > valuation threshold",
+        "rule": "FULL path-of-travel compliance required to current CBC edition",
+        "exception": "If enforcing agency determines full compliance creates unreasonable hardship, equivalent facilitation or compliance to greatest extent possible. But NEVER less than 20% of construction cost.",
+        "documentation": "DA-02 Checklist with unreasonable hardship request if applicable"
+      }
+    },
+    "adjusted_construction_cost_includes": [
+      "Labor, materials, equipment, services",
+      "Utilities, contractor financing, overhead and profit",
+      "Construction management costs",
+      "All altered elements including entrance, drinking fountains, signs if in area of alteration"
+    ],
+    "adjusted_construction_cost_excludes": [
+      "Project management fees and expenses",
+      "Architectural and engineering fees",
+      "Testing and inspection fees",
+      "Utility connection or service district fees",
+      "Cost of path-of-travel upgrades themselves (don't count accessibility work toward the threshold)"
+    ]
+  },
+  "special_cases": {
+    "buildings_without_elevators": {
+      "code_section": "CBC 11B-202.4 Exception 9",
+      "rule": "Previously approved buildings without elevators: areas above/below ground floor subject to 20% rule EVEN IF project exceeds valuation threshold",
+      "applies_to": ["Office buildings 3+ stories, 3000+ sqft/floor", "Physician offices", "Shopping centers", "Other buildings 3+ stories, 3000+ sqft/floor with public services on accessible level"]
+    },
+    "change_of_use": {
+      "info_sheet": "DA-13",
+      "rule": "Change of use or occupancy triggers path-of-travel requirements for the new use area",
+      "common_scenario": "Office-to-restaurant conversion, warehouse-to-retail, commercial-to-residential"
+    },
+    "seismic_mitigation": {
+      "info_sheet": "DA-12",
+      "rule": "Seismic retrofit projects (soft story, etc.) trigger path-of-travel obligations. Mixed-use buildings have specific requirements.",
+      "common_scenario": "Soft story retrofit in mixed-use building triggers accessibility upgrades for commercial ground floor"
+    },
+    "historic_buildings": {
+      "code_section": "CBC 11B-202.4 Exception (historic)",
+      "rule": "Alterations to qualified historic buildings shall comply with State Historical Building Code (Part 8, Title 24)",
+      "note": "More flexible requirements but still requires accessibility improvements"
+    },
+    "ev_charging": {
+      "code_section": "CBC 11B-202.4",
+      "rule": "EVCS installation at primary vehicle facilities: path-of-travel to max extent feasible without exceeding 20%. At non-primary vehicle facilities: no path-of-travel requirement."
+    }
+  },
+  "common_corrections": [
+    {
+      "id": "ADA-C01",
+      "description": "No DA-02 checklist submitted with permit application",
+      "frequency": "Very high — most common accessibility correction",
+      "fix": "Submit DA-02 Disabled Access Upgrade Compliance Checklist Package with initial application for any commercial alteration."
+    },
+    {
+      "id": "ADA-C02",
+      "description": "Path-of-travel not shown on plans",
+      "frequency": "High",
+      "fix": "Plans must show the accessible route from primary entrance to area of alteration, including all intermediate elements (doors, corridors, ramps, elevators)."
+    },
+    {
+      "id": "ADA-C03",
+      "description": "Existing conditions not surveyed — plans say 'existing accessible' without verification",
+      "frequency": "High — most common professional failing per DSA",
+      "fix": "Design professionals must survey and document ACTUAL existing conditions, not assume compliance. Note specific dimensions of doors, clearances, slopes, restroom layouts."
+    },
+    {
+      "id": "ADA-C04",
+      "description": "Door widths, clearances, or hardware non-compliant",
+      "frequency": "Medium-high",
+      "fix": "Doors: 32-inch clear width minimum. Maneuvering clearance per CBC 11B-404.2.4. Hardware: operable with one hand, no tight grasping/twisting. Maximum 5 lbs opening force (interior)."
+    },
+    {
+      "id": "ADA-C05",
+      "description": "Restroom non-compliant (turning radius, grab bars, fixture heights)",
+      "frequency": "Medium-high",
+      "fix": "60-inch turning radius (or T-turn). Grab bars per CBC 11B-604. Toilet centerline 16-18 inches from side wall. Lavatory knee clearance."
+    },
+    {
+      "id": "ADA-C06",
+      "description": "Ramp slope exceeds maximum",
+      "frequency": "Medium",
+      "fix": "Maximum ramp slope 1:12 (8.33%). Landings at top and bottom, and every 30 inches of rise. Handrails both sides."
+    },
+    {
+      "id": "ADA-C07",
+      "description": "Construction cost not properly calculated for threshold determination",
+      "frequency": "Medium",
+      "fix": "Adjusted construction cost must include ALL construction costs (labor, materials, equipment, profit) but exclude A&E fees, testing, utility fees, and the accessibility work itself."
+    },
+    {
+      "id": "ADA-C08",
+      "description": "CASp inspection not considered",
+      "frequency": "Low-medium but high value",
+      "fix": "Certified Access Specialist (CASp) inspection provides legal benefits and identifies issues early. SF offers reimbursement grants via Office of Small Business."
+    }
+  ],
+  "casp_information": {
+    "what": "Certified Access Specialist inspection — third-party accessibility audit",
+    "benefit": "Legal protection if accessibility claim arises. Early issue identification. May qualify for SF Accessible Barrier Removal Grant.",
+    "find_inspector": "CA Division of State Architect list: https://www.dgs.ca.gov/DSA/Resources",
+    "sf_grants": "Office of Small Business — Accessible Barrier Removal Grant can reimburse CASp inspection and improvements"
+  }
+}

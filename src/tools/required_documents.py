@@ -43,9 +43,14 @@ AGENCY_DOCUMENTS = {
         "Section 311 notification materials (if neighborhood notification required)",
     ],
     "DPH (Public Health)": [
-        "Health permit application",
-        "Food preparation workflow diagram",
-        "Equipment schedule with specifications",
+        "DPH Health permit application",
+        "Floor plan showing entire facility drawn to scale (DPH-001)",
+        "Equipment layout with numbered equipment schedule — cross-referenced (DPH-002)",
+        "Complete plumbing layout with grease interceptor location and sizing (DPH-003)",
+        "Exhaust ventilation layout with hood data sheets and calculations (DPH-004)",
+        "Complete finish schedule — floors, cove base, walls, ceilings by area (DPH-005)",
+        "Electrical/lighting layout with foot-candle calculations (DPH-006)",
+        "Complete menu including alcohol service (DPH-007)",
     ],
     "SFFD (Fire)": [
         "Fire suppression system plans",
@@ -73,7 +78,7 @@ TRIGGER_DOCUMENTS = {
         "Kitchen layout with equipment schedule",
         "Type I hood specifications and fire suppression details",
         "Ventilation calculations for commercial kitchen",
-        "DPH health permit application",
+        "DPH Health permit application",
     ],
     "adu": [
         "ADU pre-approval application (for detached ADUs)",
@@ -104,15 +109,51 @@ TRIGGER_DOCUMENTS = {
         "300-foot notification letters",
     ],
     "ada": [
-        "ADA path of travel documentation",
+        "DA-02 Disabled Access Upgrade Compliance Checklist Package",
+        "ADA path-of-travel documentation showing route from primary entrance to area of alteration",
+        "Existing conditions survey with door widths, clearances, slopes, restroom dimensions",
         "Restroom upgrade plans per CBC Chapter 11B",
-        "Disabled Access Compliance Checklist",
     ],
     "commercial_ti": [
-        "Disabled Access Compliance Checklist (required for ALL commercial TI)",
-        "Disabled Access Upgrade Documentation",
+        "DA-02 Disabled Access Upgrade Compliance Checklist Package (required for ALL commercial alterations)",
+        "ADA path-of-travel documentation",
+        "NRCC energy compliance (if altering HVAC or lighting)",
     ],
 }
+
+
+def _compliance_documents(all_triggers: list[str], project_type: str | None, kb) -> list[str]:
+    """Generate compliance-specific documents from Title-24, DPH, and ADA knowledge."""
+    docs = []
+
+    # Title-24 energy forms — #1 correction category
+    t24 = kb.title24
+    if t24 and "demolition" not in all_triggers:
+        is_nonres = project_type in ("restaurant", "commercial_ti", "adaptive_reuse") or \
+                    "change_of_use" in all_triggers
+        if "new_construction" in all_triggers:
+            if is_nonres:
+                docs.append("NRCC — Nonresidential Certificate of Compliance (at filing)")
+            else:
+                docs.append("CF1R — Residential Certificate of Compliance (at filing)")
+                docs.append("CF2R-PVB-01 — Solar PV certificate (at inspection)")
+        elif is_nonres:
+            docs.append("NRCC — Nonresidential Certificate of Compliance (if altering HVAC, lighting, or envelope)")
+        else:
+            docs.append("CF1R — Residential Certificate of Compliance (for alterations touching energy systems)")
+        # Existing conditions verification for alterations
+        if "new_construction" not in all_triggers:
+            docs.append("Existing conditions documentation for Title-24 baseline (T24-C02 — #1 alteration correction)")
+
+    # DPH documents — only if restaurant is a trigger and DPH not already in agency routing
+    if project_type == "restaurant" or "restaurant" in all_triggers:
+        dph = kb.dph_food
+        if dph:
+            docs.append("DPH: Three-compartment sink or commercial dishwasher specification (DPH-011)")
+            docs.append("DPH: Grease interceptor sizing per CA Plumbing Code Table 7-3 (DPH-012)")
+            docs.append("DPH: Handwashing station locations and specifications (DPH-010)")
+
+    return docs
 
 
 async def required_documents(
@@ -161,14 +202,19 @@ async def required_documents(
     if project_type:
         all_triggers.append(project_type)
 
-    # Commercial TI always needs disabled access
-    if project_type in ("commercial_ti",) or (triggers and "commercial_ti" in triggers):
-        if "ada" not in all_triggers:
-            all_triggers.append("commercial_ti")
+    # Commercial projects always need disabled access (DA-02)
+    commercial_types = {"commercial_ti", "restaurant", "change_of_use", "adaptive_reuse"}
+    is_commercial = project_type in commercial_types or bool(commercial_types.intersection(all_triggers))
+    if is_commercial and "ada" not in all_triggers and "commercial_ti" not in all_triggers:
+        all_triggers.append("ada")
 
     for trigger in all_triggers:
         docs = TRIGGER_DOCUMENTS.get(trigger, [])
         trigger_docs.extend(docs)
+
+    # Knowledge-driven documents from Title-24, DPH, ADA
+    compliance_docs = _compliance_documents(all_triggers, project_type, kb)
+    trigger_docs.extend(compliance_docs)
 
     # Deduplicate
     agency_docs = list(dict.fromkeys(agency_docs))
