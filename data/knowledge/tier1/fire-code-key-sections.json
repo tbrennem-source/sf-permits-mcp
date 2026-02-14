@@ -1,0 +1,729 @@
+{
+  "metadata": {
+    "title": "2022 San Francisco Fire Code - Key Sections for Permit Routing",
+    "source_file": "sf-bicc-fire-codes-full.txt",
+    "code_edition": "2022 San Francisco Fire Code",
+    "base_code": "2022 California Fire Code (Title 24, Part 9) based on 2021 International Fire Code",
+    "last_amended": "Ordinance 237-24 (effective November 11, 2024)",
+    "enacting_ordinance": "Ordinance 248-22 (effective January 15, 2023)",
+    "extraction_date": "2026-02-13",
+    "notes": "SF Fire Code incorporates CA Fire Code by reference with local amendments. Sections marked [For SF] are SF-specific. The prefix indicates SF replaces the corresponding state/IFC section."
+  },
+
+  "decision_tree_key": {
+    "description": "When SFFD (Fire Department) review is triggered for a building permit application",
+    "triggers": [
+      {
+        "trigger": "new_construction",
+        "description": "All new building construction requires SFFD plan review",
+        "code_section": "107.3, 107.4",
+        "details": "Central Permit Bureau collects plan review fees for SFFD review based on project valuation"
+      },
+      {
+        "trigger": "fire_protection_system_work",
+        "description": "Any new, modified, or extended fire sprinkler system, fire alarm system, or gaseous suppression system",
+        "code_section": "105.1.1, 105.6, 107.5",
+        "details": "Construction permits required through DBI; SFFD plan review and field inspection required. Inspection fees: fire alarm $272 (2hr), sprinkler $408 (3hr), gaseous suppression $272 (2hr)"
+      },
+      {
+        "trigger": "high_rise_building",
+        "description": "Any work in buildings with occupied floors >75 feet above lowest fire dept vehicle access",
+        "code_section": "404.2.3.1, 511.1, 914.3, 1103.5.4",
+        "details": "High-rise buildings trigger extensive SFFD requirements: fire safety director, air replenishment (>120ft), dual risers, FDC on each street-facing side, smoke control analysis, fire command center"
+      },
+      {
+        "trigger": "assembly_occupancy",
+        "description": "Any Group A occupancy (restaurants >49 occupants, bars, theaters, churches, arenas)",
+        "code_section": "105.5.38, 105.5.62, 903.2 (CA FC)",
+        "details": "Place of Assembly operational permit required ($387). Outdoor assembly >500 enclosed or >1000 open requires permit. Group A occupancies on piers need sprinklers (914.12)"
+      },
+      {
+        "trigger": "change_of_occupancy",
+        "description": "Any change in occupancy classification, operation, tenancy, or ownership",
+        "code_section": "105.3.1",
+        "details": "Permits are not transferable. New permit required for any change in occupancy, operation, tenancy, or ownership"
+      },
+      {
+        "trigger": "fire_apparatus_access_impact",
+        "description": "Any project impacting street width or fire apparatus access roads",
+        "code_section": "503.2.1, 503.4",
+        "details": "SFFD reviews all projects impacting street width. Min 20ft unobstructed width, 13ft 6in vertical clearance required"
+      },
+      {
+        "trigger": "lot_subdivision_with_new_residential",
+        "description": "New residential buildings on subdivided lots",
+        "code_section": "504.1.1",
+        "details": "5ft clear access pathway from public right-of-way required. Rear buildings behind existing full-width buildings need sprinklered access corridor"
+      },
+      {
+        "trigger": "emergency_radio_coverage",
+        "description": "New or modified Emergency Responder Communication Coverage System (ERRCS)",
+        "code_section": "510.1.1, 510.6.1.1, 105.5.61",
+        "details": "Operational permit required. Must be NRTL-certificated per AB 2.01 Addendum G and AB 3.04"
+      },
+      {
+        "trigger": "smoke_control_system",
+        "description": "Any building requiring smoke control systems",
+        "code_section": "909.4",
+        "details": "Rational analysis required with construction documents submission covering active/passive zones, tenability"
+      },
+      {
+        "trigger": "commercial_kitchen_hood_suppression",
+        "description": "Commercial cooking equipment requiring Type I hood with automatic fire suppression",
+        "code_section": "904.13.5.2, 904 (CA FC)",
+        "details": "Automatic fire-extinguishing systems required for commercial cooking operations. Must be serviced every 6 months. Qualified personnel per 903.5.1 required"
+      },
+      {
+        "trigger": "hazardous_materials",
+        "description": "Storage, use, or handling of hazardous materials above threshold quantities",
+        "code_section": "105.5 (various)",
+        "details": "Operational permits required for compressed gas, cryogenics, explosives, flammable liquids, HPM facilities"
+      },
+      {
+        "trigger": "powered_mobility_device_facility",
+        "description": "Storage/charging facility for 5+ e-bikes, scooters, or powered mobility devices",
+        "code_section": "325.6",
+        "details": "5+ devices charging indoors requires 1-hour fire barrier, sprinkler system (903.3.1.1), fire alarm (907), smoke detectors"
+      },
+      {
+        "trigger": "fuel_oil_storage",
+        "description": "Any fuel oil storage system or fuel-oil generator",
+        "code_section": "605.4, 605.4.2",
+        "details": "Must comply with NFPA 30, NFPA 37, and AB 2.07 regardless of fuel quantity"
+      }
+    ],
+    "routing_logic": {
+      "always_requires_sffd_review": [
+        "New building construction (any occupancy)",
+        "New or modified sprinkler system",
+        "New or modified fire alarm system",
+        "New or modified gaseous/hood suppression system",
+        "High-rise building work (>75ft occupied floor)",
+        "Change of occupancy classification",
+        "Assembly occupancy (Group A)"
+      ],
+      "conditionally_requires_sffd_review": [
+        "Alterations with construction value triggering plan review fees (Table 107-B)",
+        "Projects impacting fire apparatus access roads or street width",
+        "Lot subdivision with new residential construction",
+        "Installation or modification of ERRCS",
+        "Buildings requiring smoke control systems",
+        "E-bike/scooter charging facilities (5+ devices)",
+        "Fuel oil systems or generators"
+      ],
+      "operational_permit_only_no_building_permit": [
+        "Hot work operations",
+        "Open flame in assembly areas",
+        "Outdoor assembly events",
+        "Mobile food vendor carts",
+        "LP-gas storage and use",
+        "Indoor cannabis cultivation",
+        "High-piled storage"
+      ]
+    }
+  },
+
+  "chapter_1_administration": {
+    "code_reference": "Chapter 1, Sections 101-113",
+    "source_lines": "97-1210",
+    "key_provisions": {
+      "permits_required": {
+        "section": "105.1.1",
+        "rule": "Operational permits from SFFD for activities under 105.5. Construction permits (building permits) from DBI for systems/equipment under 105.6.",
+        "important": "Any person installing or modifying fire protection systems must obtain a building permit from DBI before starting work"
+      },
+      "construction_permit_fees": {
+        "section": "107.3-107.5",
+        "plan_review_fee_table": "107-B",
+        "plan_review_basis": "Based on valuation of work as determined by DBI",
+        "fee_examples": [
+          {"valuation": "$1-$2,000", "fee": "$80.26 base + $72.04 per additional $1,000"},
+          {"valuation": "$2,001-$50,000", "fee": "$159.30 base + $15.27 per additional $1,000"},
+          {"valuation": "$50,001-$200,000", "fee": "$892.04 base + $6.12 per additional $1,000"},
+          {"valuation": "$200,001-$500,000", "fee": "$1,810.95 base + $2.86 per additional $1,000"},
+          {"valuation": "$500,001-$1,000,000", "fee": "$2,667.58 base + $1.91 per additional $1,000"},
+          {"valuation": "$1,000,001-$5,000,000", "fee": "$3,620.53 base + $1.45 per additional $1,000"},
+          {"valuation": "Over $5,000,000", "fee": "$9,416.48 base + $0.73 per additional $1,000"}
+        ],
+        "revision_review_fee": "$136 per hour"
+      },
+      "field_inspection_fees": {
+        "section": "107.5",
+        "table": "107-C",
+        "fees": [
+          {"valuation_range": "$0-$10,000", "fee": "$136", "time_credit": "1 hour"},
+          {"valuation_range": "$10,001-$50,000", "fee": "$272", "time_credit": "2 hours"},
+          {"valuation_range": "$50,001-$500,000", "fee": "$408", "time_credit": "3 hours"},
+          {"valuation_range": "$500,001-$5,000,000", "fee": "$680", "time_credit": "5 hours"},
+          {"valuation_range": "$5,000,001-$10,000,000", "fee": "$1,360", "time_credit": "10 hours"},
+          {"valuation_range": "$10,000,001-$25,000,000", "fee": "$2,720", "time_credit": "20 hours"},
+          {"valuation_range": "Over $25,000,000", "fee": "$4,080", "time_credit": "30 hours"}
+        ],
+        "system_specific_fees": [
+          {"system": "New fire alarm systems", "fee": "$272", "time_credit": "2 hours"},
+          {"system": "New sprinkler systems", "fee": "$408", "time_credit": "3 hours"},
+          {"system": "New gaseous suppression systems", "fee": "$272", "time_credit": "2 hours"}
+        ]
+      },
+      "pre_application_review": {
+        "section": "107.6",
+        "fee": "$544 (covers up to 2hr research + 2hr meeting)",
+        "additional": "$136/hr beyond included hours"
+      },
+      "high_rise_inspection_fee": {
+        "section": "107.8",
+        "fee_basis": "$13.93 per 1,000 sq ft gross floor area"
+      },
+      "false_alarm_fees": {
+        "section": "107.13",
+        "first_two_per_year": "No charge",
+        "third_through_fifth": "$250 each",
+        "sixth_and_beyond": "$500 each"
+      },
+      "filing_fees": {
+        "section": "107.18",
+        "water_based_extinguishing_5yr_inspection": "$125",
+        "fire_alarm_annual_inspection": "$75"
+      },
+      "schools_registration": {
+        "section": "102.3.1",
+        "rule": "All schools must register with SFFD Bureau of Fire Prevention prior to occupancy"
+      },
+      "historic_buildings": {
+        "section": "102.6",
+        "rule": "Fire code provisions not mandatory for classified historic buildings unless they constitute a distinct hazard to life or property"
+      },
+      "permit_not_transferable": {
+        "section": "105.3.1",
+        "rule": "Permits not transferable. New permit required for any change in occupancy, operation, tenancy, or ownership"
+      }
+    },
+    "key_operational_permits": [
+      {"type": "Place of Assembly", "fee": "$387", "section": "105.5"},
+      {"type": "Outdoor Assembly Event (>500 enclosed or >1000 open)", "fee": "$387", "section": "105.5.38"},
+      {"type": "Hot Work Operations", "fee": "$387", "section": "105.5.25"},
+      {"type": "LP-Gas", "fee": "$387", "section": "105.5.29"},
+      {"type": "Mobile Food Vendor Carts", "fee": "$95", "section": "105.5.56"},
+      {"type": "Indoor Cannabis Cultivation", "fee": "$387", "section": "105.5.60"},
+      {"type": "ERRCS", "fee": "$387", "section": "105.5.61"},
+      {"type": "Car Stacking Parking (construction permit)", "fee": "per DBI", "section": "105.6.25"}
+    ]
+  },
+
+  "chapter_3_general_precautions": {
+    "code_reference": "Chapter 3, Sections 308-325",
+    "source_lines": "1211-1490",
+    "key_provisions": {
+      "open_flames": {
+        "section": "308",
+        "torches_for_paint_removal": "Prohibited (308.1.3)",
+        "portable_open_flame_devices": "Must be enclosed/installed to prevent flame contact with combustibles (308.1.6.2)"
+      },
+      "hazards_to_firefighters": {
+        "barbed_wire": {
+          "section": "316.7",
+          "rule": "Prohibited on fire escapes, standpipes, parapets, roofs where it could hinder firefighters"
+        },
+        "construction_type_signage": {
+          "section": "316.8",
+          "rule": "Buildings with composite wood joist or truss construction must post signage per AB 5.05"
+        }
+      },
+      "mobile_food_vendor_carts": {
+        "section": "324",
+        "permit_required": true,
+        "max_lp_gas": "20 lb aggregate",
+        "max_butane": "1 lb or 2 canisters",
+        "fire_extinguisher_required": true
+      },
+      "lithium_ion_batteries_powered_mobility": {
+        "section": "325 (added by Ord. 34-24, eff. 3/23/2024)",
+        "scope": "E-bikes, scooters, skateboards, hoverboards, LEVs",
+        "permit_trigger_for_building_work": {
+          "5_plus_devices_charging_indoors": {
+            "requirement": "1-hour fire barrier enclosure, automatic sprinkler system (903.3.1.1), fire alarm (907), smoke detectors, 4-A:20-B:C fire extinguisher",
+            "section": "325.6(f)"
+          },
+          "battery_charging_separation": {
+            "attached_batteries": "3ft between devices during charging",
+            "detached_batteries_under_20kwh": "2ft between packs",
+            "detached_batteries_over_20kwh": "3ft between packs",
+            "max_per_fire_area": "50 kWh aggregate"
+          }
+        },
+        "safety_certification_required": "UL 2849, UL 2272, EN 15194, EN 17128 or SFFD-approved equivalent",
+        "reassembled_batteries_prohibited": true
+      }
+    }
+  },
+
+  "chapter_5_fire_service_features": {
+    "code_reference": "Chapter 5, Sections 503-511",
+    "source_lines": "1625-1824",
+    "key_provisions": {
+      "fire_apparatus_access": {
+        "section": "503.2.1",
+        "minimum_width": "20 feet unobstructed",
+        "minimum_vertical_clearance": "13 feet 6 inches",
+        "sffd_review": "SFFD reviews all projects impacting street width; may require greater minimums case-by-case",
+        "no_obstructions": "No parking or obstruction of fire apparatus access roads (503.4)"
+      },
+      "access_to_buildings": {
+        "divided_lot_structures": {
+          "section": "504.1.1 (added Ord. 31-24, eff. 3/18/2024)",
+          "rule": "New residential buildings on subdivided lots require 5ft clear pathway from public right-of-way",
+          "rear_buildings": "Need 5ft x 80in access corridor with sprinkler protection (903.3) from public ROW"
+        },
+        "roof_access": {
+          "section": "504.3.1",
+          "rule": "Doors to roofs must be openable from inside without key/code. Locked doors allowed only with supervised unlocking, power-failure auto-unlock, 2-way communication, and palm button"
+        }
+      },
+      "key_boxes": {
+        "section": "506.2.1",
+        "standard": "Per AB 5.09"
+      },
+      "water_supply": {
+        "section": "507.4",
+        "flow_information": "SFFD provides on request ($136 fee; $272 if on-site test needed)",
+        "validity": "1 year from date water flow info returned to applicant",
+        "clear_space_hydrants": "5ft around hydrants (507.5.5)",
+        "clear_space_cisterns": "5ft around cistern openings (507.5.3.1)"
+      },
+      "fire_command_center": {
+        "section": "508.1.6.1",
+        "required_features": [
+          "Spare sprinklers per NFPA 13",
+          "Elevator service company signage",
+          "Building contact numbers",
+          "Utility shut-off location map",
+          "PA system instructions",
+          "Smoke control procedures",
+          "Sprinkler valve/standpipe isolation valve locations",
+          "Emergency evacuation/relocation procedures",
+          "Hazmat inventory (when required)",
+          "Fire alarm operational matrix",
+          "Elevator Fire Recall Keys"
+        ],
+        "water_protection": "Watertight construction to prevent water intrusion from sprinkler discharge (508.1.9)"
+      },
+      "emergency_radio_coverage": {
+        "section": "510",
+        "standard": "NFPA 1225-2022 Chapter 18 and AB 2.01 Addendum G",
+        "certification_required": "OSHA NRTL Program per AB 3.04",
+        "existing_high_rise_deadline": "June 1, 2023",
+        "existing_non_high_rise_deadline": "September 1, 2023"
+      },
+      "air_replenishment_system": {
+        "section": "511.1",
+        "trigger": "Buildings with occupied floors >120ft above lowest FD vehicle access (permit applications after March 30, 2004)",
+        "exception": "Buildings with fire service access elevator (FSAE) per CBC 3007",
+        "purpose": "Provides means for firefighters to refill SCBA air bottles",
+        "maintenance": "Per AB 5.07"
+      }
+    }
+  },
+
+  "chapter_6_building_services": {
+    "code_reference": "Chapter 6, Sections 604-605",
+    "source_lines": "1825-1843",
+    "key_provisions": {
+      "elevators": {
+        "section": "604.5.5",
+        "rule": "At least one passenger elevator must be maintained in working order and accessible for immediate Fire Department use at all times"
+      },
+      "fuel_oil_storage": {
+        "section": "605.4",
+        "installation": "Per California Mechanical Code Chapter 13",
+        "inside_buildings": {
+          "section": "605.4.2",
+          "standards": "NFPA 30 and NFPA 37 apply to all fuel-oil systems and generators regardless of quantity",
+          "local_standard": "AB 2.07 applies to all fuel-oil systems regardless of quantity"
+        }
+      }
+    }
+  },
+
+  "chapter_9_fire_protection_systems": {
+    "code_reference": "Chapter 9, Sections 901-914",
+    "source_lines": "1844-2173",
+    "critical_for_permit_routing": true,
+    "key_provisions": {
+      "sprinkler_systems": {
+        "section": "903",
+        "sprinkler_triggers_from_california_fire_code": {
+          "note": "SF incorporates CA Fire Code Section 903.2 by reference. The following are the key triggers from the California Fire Code that SF enforces, plus SF local amendments.",
+          "group_A_assembly": {
+            "section": "903.2.1 (CA FC)",
+            "when_required": "Automatic sprinkler system required in Group A occupancies. Fire area >12,000 sqft, or occupant load >300, or fire area on floor other than level of exit discharge"
+          },
+          "group_A_1": {
+            "description": "Assembly with fixed seating for viewing performing arts or movies",
+            "threshold": "Fire area >12,000 sqft OR occupant load >300 OR not on level of exit discharge"
+          },
+          "group_A_2": {
+            "description": "Assembly for food/drink consumption (restaurants, bars, banquet halls)",
+            "threshold": "Fire area >5,000 sqft OR occupant load >100 OR not on level of exit discharge"
+          },
+          "group_B_business": {
+            "section": "903.2.2 (CA FC)",
+            "when_required": "Fire area >12,000 sqft, or building >3 stories, or combined fire areas >24,000 sqft"
+          },
+          "group_E_education": {
+            "section": "903.2.3 (CA FC)",
+            "when_required": "Fire area >12,000 sqft, or building >1 story (with exceptions)"
+          },
+          "group_F_factory": {
+            "section": "903.2.4 (CA FC)",
+            "F1_moderate_hazard": "Fire area >12,000 sqft, or building >3 stories, or combined >24,000 sqft"
+          },
+          "group_M_mercantile": {
+            "section": "903.2.7 (CA FC)",
+            "when_required": "Fire area >12,000 sqft, or building >3 stories, or combined >24,000 sqft"
+          },
+          "group_R_residential": {
+            "section": "903.2.8 (CA FC)",
+            "when_required": "Automatic sprinkler system required throughout buildings with Group R fire area. R-1 (hotels), R-2 (apartments/condos), R-4 (residential care)"
+          },
+          "group_R_sf_amendment": {
+            "section": "903.2.8 (SF Building Code amendment)",
+            "exception": "Additions/alterations to existing 1-2 family dwellings and townhouses (3 stories max) without existing sprinklers do NOT require sprinkler retrofit"
+          },
+          "group_S_storage": {
+            "section": "903.2.9 (CA FC)",
+            "S1_moderate_hazard": "Fire area >12,000 sqft, or building >3 stories, or combined >24,000 sqft"
+          },
+          "high_piled_storage": {
+            "section": "903.2.7.1 (CA FC)",
+            "when_required": "Per Chapter 32 and Table 3206.2"
+          }
+        },
+        "sf_local_sprinkler_requirements": {
+          "existing_sro_hotels": {
+            "section": "1103.5.1",
+            "trigger": "Existing residential hotels with 20+ guest rooms (existing Oct 16, 2001)",
+            "requirement": "Automatic sprinkler throughout residential occupancy including accessory areas"
+          },
+          "existing_hotels": {
+            "section": "1103.5.2",
+            "trigger": "All hotels per Ordinance 319-86",
+            "requirement": "Sprinklers throughout all common areas"
+          },
+          "existing_high_rise": {
+            "section": "1103.5.4",
+            "trigger_conditions": [
+              "Occupied floor >120ft above lowest FD access",
+              "Occupied floor >75ft but <=120ft AND lacks two 2-hour rated exit stairways",
+              "Occupied floor >75ft but <=120ft AND lacks smoke detection in mechanical rooms, corridors, elevator lobbies, and at stairway enclosure doors"
+            ],
+            "exceptions": [
+              "R-2 apartments/condos: exempt until January 1, 2033",
+              "Mixed-use with R-2: exempt until January 1, 2033"
+            ],
+            "compliance_schedule": "12-year maximum retrofit timeline",
+            "permissible_omissions_for_retrofit": [
+              "Redundant fire pump",
+              "2-hour rated fire pump room",
+              "Secondary on-site water supply",
+              "Water supply from two underground lines",
+              "Connection to two risers per floor"
+            ]
+          },
+          "piers_group_a_and_f": {
+            "section": "914.12",
+            "trigger": "Group A and F occupancies on piers of combustible construction",
+            "requirement": "Approved automatic sprinklers"
+          },
+          "divided_lot_rear_buildings": {
+            "section": "504.1.1(b)",
+            "trigger": "New residential buildings behind existing full-width building on subdivided lot",
+            "requirement": "Access corridor with sprinkler protection per 903.3"
+          },
+          "e_bike_charging_5_plus": {
+            "section": "325.6(f)",
+            "trigger": "5+ powered mobility devices charging indoors",
+            "requirement": "Sprinkler system per 903.3.1.1"
+          }
+        },
+        "installation_requirements": {
+          "personnel": "C-16 fire protection contractor license required (903.3.10)",
+          "fitter_cert": "CA-OSFM Fire Sprinkler Fitter Certificate required for employees",
+          "fdc_thread": "3-inch national standard hose threads (903.3.6.1)",
+          "4_inch_service": "Two or more FDC inlet connections required (912.8)",
+          "high_rise_risers": "Each zone connects to at least two risers per floor (914.3.1.1)",
+          "high_rise_fdc": "FDC on each side of building fronting a street, four inlets each (914.3.1.3)",
+          "nfpa_13": "NFPA 13 (2016) is the referenced standard"
+        }
+      },
+
+      "alternative_suppression_systems": {
+        "section": "904",
+        "commercial_kitchen_hoods": {
+          "section": "904.13.5.2",
+          "requirement": "Automatic fire-extinguishing systems required for commercial cooking. Must be serviced every 6 months and after activation.",
+          "personnel": "Qualified per 903.5.1 (C-16 license)",
+          "inspection_record": "Certificate of inspection maintained on-site for 1 year"
+        }
+      },
+
+      "standpipe_systems": {
+        "section": "905",
+        "hose_thread": "3-inch national standard (905.2.1)",
+        "stages": "Stages >1,000 sqft require Class III wet standpipe with 1.5in and 3in connections each side (905.3.4)",
+        "limited_access_buildings": "Standpipes required in any building where fire code official determines necessary regardless of height (905.3.12)",
+        "roof_outlet": "At least one 2-way outlet above roofline for slopes <4:12 (905.4.3)"
+      },
+
+      "fire_alarm_systems": {
+        "section": "907",
+        "installation_personnel": "C-10 electrical contractor license required (907.1.6)",
+        "employee_cert": "CA-DIR Electrician Certificate required",
+        "manual_alarm_triggers_r2": {
+          "section": "907.2.9.1",
+          "triggers": [
+            "Building contains more than 6 dwelling or sleeping units",
+            "Congregate living facilities 3+ stories OR occupant load of 11+"
+          ]
+        },
+        "automatic_smoke_detection_r2": {
+          "section": "907.2.9.5 (SF Building Code amendment)",
+          "trigger": "Interior corridors serving sleeping units",
+          "exception_1": "No interior corridors AND each sleeping unit has direct exit access",
+          "exception_2": "Building fully sprinklered (903.3.1.1 or 903.3.1.2) with waterflow notification and manual pull station"
+        },
+        "congregate_r3": {
+          "section": "907.2.11.2.7",
+          "trigger": "Group R-3 congregate living with occupant load 6+",
+          "requirement": "Manual fire alarm system"
+        },
+        "annunciation": {
+          "section": "907.6.4.1.1.1",
+          "trigger": "Buildings with more than 4 floors or when required by fire code official",
+          "type": "LED display showing device type by floor/zone"
+        },
+        "high_rise_zoning_panel": {
+          "section": "907.6.4.3",
+          "requirements": "Status of emergency generator, fire pump, secondary water supply per AB 3.01"
+        },
+        "certification_required": {
+          "section": "907.7.4",
+          "rule": "All new fire alarm systems must be NRTL-certificated",
+          "exceptions": [
+            "1-2 family dwellings or 3-unit apartments (household systems)",
+            "Control units whose primary function is sprinkler monitoring"
+          ]
+        },
+        "annual_inspection": {
+          "section": "907.8.4",
+          "filing_schedule_9_plus_units": "Odd-numbered years by January 31",
+          "filing_schedule_under_9_units": "Even-numbered years by January 31",
+          "building_permit_alarm_upgrade": {
+            "section": "1103.7.6.1",
+            "trigger": "Building permit with construction cost >= $99,000 OR July 1, 2023 (whichever first)",
+            "requirement": "Upgrade fire alarm to meet NFPA 72 sleeping area sound levels (18.4.5.1)"
+          }
+        },
+        "high_rise_alarm_reporting": {
+          "section": "907.8.7",
+          "requirement": "Reports must state operational matrix: Full Evacuation, Partial Evacuation, or Relocation system per AB 3.05"
+        }
+      },
+
+      "smoke_control_systems": {
+        "section": "909",
+        "analysis_required": {
+          "section": "909.4",
+          "requirement": "Rational analysis with construction documents covering system types, operations, supporting systems, construction methods"
+        },
+        "active_passive_zones": {
+          "section": "909.4.8",
+          "rule": "Passive zones enclosed by smoke barriers/partitions unless technically justified. Fire code official may require tenability analysis"
+        }
+      },
+
+      "fire_pumps": {
+        "section": "913",
+        "pump_room_integrity": {
+          "section": "913.2.3",
+          "rule": "No non-fire-pump equipment allowed in fire pump room (no domestic water, drains, HVAC, boilers, electrical switchgear)"
+        },
+        "high_rise_drives": {
+          "section": "914.3.1.2.2",
+          "rule": "Each pump drive (power, motors, fuel, controllers) must be independent"
+        }
+      },
+
+      "fire_water_storage": {
+        "section": "914.3.2",
+        "integrity": "No non-fire water piping, electrical, or drains in fire water tank (914.3.2.1)",
+        "overflow_routing": "Must route to remote drain, not in fire pump room (914.3.2.2)",
+        "sump_pumps": "Permitted only when gravity not available; must be redundant, remote, emergency-powered (914.3.2.2.1)"
+      }
+    }
+  },
+
+  "chapter_10_means_of_egress": {
+    "code_reference": "Chapter 10, Sections 1010-1032",
+    "source_lines": "2174-2434",
+    "key_provisions": {
+      "door_swing": {
+        "section": "1010.1.2",
+        "exception_6": "In non-Group A, E, H, I, R, and non-high-rise buildings: special purpose horizontal sliding, accordion, or folding doors allowed per 1010.3.3"
+      },
+      "special_sliding_doors": {
+        "section": "1010.1.4.3",
+        "restriction": "NOT allowed in Group A, E, H, I, R, or high-rise occupancies"
+      },
+      "exit_signs": {
+        "section": "1013.1",
+        "fire_escape_sign": "Doorways to fire escapes require 'FIRE ESCAPE' sign in 6-inch letters, high contrast"
+      },
+      "emergency_escape_rescue": {
+        "section": "1031.2.2",
+        "lot_line_buildings": "Emergency escape may pass through building via exit passageway (per 1024) with AHJ approval"
+      },
+      "fire_escape_maintenance": {
+        "section": "1032.2.1.4",
+        "rule": "Fire escapes must not be obstructed. No storage on fire escapes without fire code official approval. Cannot be behind locked doors",
+        "structural_examination": {
+          "section": "1104.16.5.1",
+          "frequency": "Every 5 years by registered design professional",
+          "report": "Maintained on-site, available for SFFD review"
+        }
+      }
+    }
+  },
+
+  "chapter_11_existing_buildings": {
+    "code_reference": "Chapter 11, Sections 1101-1106",
+    "source_lines": "2222-2434",
+    "key_provisions": {
+      "existing_sprinkler_requirements": {
+        "note": "See chapter_9 sprinkler section for details on 1103.5.1 (SRO), 1103.5.2 (hotels), 1103.5.4 (high-rise)"
+      },
+      "existing_fire_alarm_sleeping_area_upgrade": {
+        "section": "1103.7.6.1",
+        "trigger": "Building permit with cost of construction >= $99,000",
+        "requirement": "Upgrade fire alarm system to comply with NFPA 72 sleeping area sound levels",
+        "exception": "Mandatory seismic strengthening and transient R-1 hotels"
+      },
+      "existing_fire_alarm_certification": {
+        "section": "1103.7.10",
+        "rule": "Fire code official may require owners to obtain certificate per AB 3.03"
+      },
+      "fire_escape_structural_adequacy": {
+        "section": "1104.16.5",
+        "rule": "Non-combustible construction required. Must support dead + live load per original design or professional determination",
+        "inspection_frequency": "Every 5 years per 1104.16.5.1"
+      }
+    }
+  },
+
+  "appendix_m_high_rise_retroactive_sprinkler": {
+    "code_reference": "Appendix M",
+    "source_lines": "2539-2541",
+    "status": "DELETED - International Fire Code Appendix M is deleted by SF",
+    "replacement": "SF addresses high-rise retroactive sprinkler requirements through Section 1103.5.4 of the Fire Code and Administrative Bulletin AB-105",
+    "ab_105_voluntary_sprinkler": {
+      "source_lines": "42960-43039",
+      "purpose": "Procedure for documenting voluntary sprinkler protection in pre-1974 high-rise buildings exempt from Ord. 377-93",
+      "scope": "High-rise buildings built before July 1, 1974, excluded from the high-rise sprinkler retrofit ordinance",
+      "key_steps": [
+        "Pre-application meeting with SFFD",
+        "Sprinkler design per NFPA 13 edition at time of permit application",
+        "Sprinkler special inspection by CA-licensed fire protection engineer",
+        "Administrative Permit through DBI"
+      ]
+    }
+  },
+
+  "assembly_occupancy_thresholds": {
+    "description": "Key occupant load and area thresholds that trigger SFFD requirements for assembly uses",
+    "group_A_general": {
+      "sprinkler_trigger_occupant_load": 300,
+      "sprinkler_trigger_fire_area_sqft": 12000,
+      "sprinkler_trigger_not_on_exit_level": true
+    },
+    "group_A_2_food_drink": {
+      "description": "Restaurants, bars, nightclubs, banquet halls",
+      "sprinkler_trigger_occupant_load": 100,
+      "sprinkler_trigger_fire_area_sqft": 5000,
+      "sprinkler_trigger_not_on_exit_level": true,
+      "note": "Group A-2 has lower thresholds than other A occupancies"
+    },
+    "operational_permit_place_of_assembly": {
+      "section": "105.5 (Table 107-A)",
+      "fee": "$387",
+      "required_for": "All places of assembly"
+    },
+    "outdoor_assembly": {
+      "enclosed_by_fence": "Permit required if >500 persons",
+      "open_area": "Permit required if >1000 persons"
+    },
+    "fire_alarm_manual_pull": {
+      "trigger": "More than 6 dwelling/sleeping units in R-2",
+      "congregate": "3+ stories OR occupant load 11+ in congregate living"
+    }
+  },
+
+  "hood_suppression_commercial_kitchens": {
+    "description": "Requirements for commercial cooking hood and suppression systems",
+    "automatic_suppression": {
+      "section": "904 (CA FC incorporated by reference), 904.13.5.2 (SF)",
+      "requirement": "Automatic fire-extinguishing systems required for commercial cooking equipment producing grease-laden vapors (Type I hoods)",
+      "servicing": "Every 6 months and after each activation",
+      "personnel": "Qualified per 903.5.1 (C-16 license)",
+      "inspection_records": "Certificate maintained on-site for 1 year",
+      "permit_routing": "Construction permit through DBI with SFFD plan review required for new or modified systems"
+    },
+    "referenced_standards": {
+      "nfpa_96": "Standard for Ventilation Control and Fire Protection of Commercial Cooking Operations",
+      "ul_300": "Standard for Fire Testing of Fire Extinguishing Systems for Protection of Commercial Cooking Equipment"
+    }
+  },
+
+  "high_rise_requirements_summary": {
+    "definition": "Building with occupied floor >75ft above lowest level of fire department vehicle access",
+    "height_tiers": {
+      "75_to_120_ft": {
+        "fire_safety_director": "Required (404.2.3.1)",
+        "sprinkler_retrofit_existing": "Required if lacking 2hr exit stairways OR smoke detection in key areas (1103.5.4)",
+        "exception": "R-2 residential exempt until 2033"
+      },
+      "over_120_ft": {
+        "air_replenishment_system": "Required unless FSAE provided (511.1)",
+        "sprinkler_retrofit_existing": "Required for all existing (1103.5.4 condition 1)",
+        "exception": "R-2 residential exempt until 2033"
+      }
+    },
+    "new_high_rise_requirements": {
+      "dual_risers_per_zone_per_floor": "914.3.1.1",
+      "independent_fire_pump_drives": "914.3.1.2.2",
+      "fdc_each_street_side_4_inlets": "914.3.1.3",
+      "fire_command_center": "508.1.6.1",
+      "smoke_control_analysis": "909.4",
+      "fire_alarm_annunciation": "907.6.4.1.1.1 (LED type for >4 floors)",
+      "high_rise_zoning_panel": "907.6.4.3",
+      "errcs": "510.1.1",
+      "fire_alarm_operational_matrix": "907.8.7 (Full/Partial Evacuation or Relocation)"
+    },
+    "voluntary_sprinkler_pre_1974": {
+      "administrative_bulletin": "AB-105",
+      "process": "Pre-application meeting, NFPA 13 design, special inspection, Administrative Permit"
+    }
+  },
+
+  "administrative_bulletins_referenced": [
+    {"id": "AB 2.01 Addendum G", "subject": "Emergency Responder Radio Coverage Systems (ERRCS)"},
+    {"id": "AB 2.07", "subject": "Fuel-oil systems and generators"},
+    {"id": "AB 2.11", "subject": "Emergency procedures information and evacuation signs"},
+    {"id": "AB 3.01", "subject": "High-rise fire alarm zoning annunciator panel"},
+    {"id": "AB 3.03", "subject": "Fire alarm certification program"},
+    {"id": "AB 3.04", "subject": "ERRCS NRTL certification"},
+    {"id": "AB 3.05", "subject": "High-rise evacuation and relocation procedures"},
+    {"id": "AB 5.05", "subject": "Construction type signage (truss/joist)"},
+    {"id": "AB 5.07", "subject": "Air replenishment system testing and maintenance"},
+    {"id": "AB 5.09", "subject": "Key box installation and maintenance"},
+    {"id": "AB-105", "subject": "Voluntary sprinkler protection for existing high-rise buildings (DBI)"}
+  ]
+}

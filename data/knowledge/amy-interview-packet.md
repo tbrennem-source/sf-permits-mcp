@@ -3,241 +3,202 @@
 
 **Prepared for**: Tim Brenneman → Amy Lee (Eun Young Lee)
 **Date**: February 14, 2026
-**Purpose**: Validate our machine-readable SF permitting knowledge base before building the djarvis AI assistant
+**Purpose**: Validate our machine-readable SF permitting knowledge base and surface the knowledge that isn't in any document
 
 ---
 
-## Background for Amy
+## What We've Built
 
-We're building **djarvis**, an AI-powered assistant that helps people navigate SF's building permit process. Think of it as a knowledgeable friend who can answer questions like "Do I need a permit for X?" and "What forms do I need?" — the kind of guidance you provide your clients every day.
+We've machine-ingested essentially the entire published regulatory corpus for SF building permits:
 
-We've ingested a large body of DBI documentation and structured it into a decision tree. Before we build the AI on top of it, we need your expert eye to validate whether we've gotten the rules right, and to fill in the gaps that aren't well-documented.
+- **Complete SF Planning Code** (222,000 lines) — parsed into structured decision logic for all 6 Planning review pathways
+- **Complete Building Inspection Commission Codes** — Building Code, Existing Building Code, Electrical, Mechanical, Plumbing, Green Building, Housing Code
+- **Complete 2022 Fire Code** — all SF amendments to California Fire Code
+- **All 40+ Administrative Bulletins** in full text — from AB-001 through AB-113
+- **All 19 fee tables** (Tables 1A-A through 1A-S) — building permit fees, plan review fees, hourly rates, electrical, plumbing/mechanical, inspections, penalties
+- **51 DBI Information Sheets** (G, DA, FS, S series) — all OCR'd and extracted
+- **G-20 Routing Matrix** — 154 project-type entries across 9 reviewing agencies
+- **OTC eligibility criteria** — 55 project types classified (12 no-plan, 24 with-plan, 19 not-OTC)
+- **SF Ethics Commission Permit Consultant Registry** — 167 filings, 115 registered consultants
 
-**What we have so far:**
-- 51 DBI information sheets (all series: G, DA, FS, S)
-- 6 Administrative Bulletins (AB-004, 005, 032, 093, 110, 112)
-- Complete SF Planning Code (12.6MB)
-- G-20 routing matrix (154 entries across 9 agencies)
-- OTC eligibility criteria (55 project types classified)
-- Residential completeness checklist (13 sections)
-- 7-step decision tree: need_permit → which_form → otc_or_inhouse → agency_routing → required_docs → timeline → fees
+This is structured into a **7-step decision tree**: need_permit → which_form → otc_or_inhouse → agency_routing → required_docs → timeline → fees
 
----
-
-## Part 1: Process & Decision Questions
-
-These help us validate the core decision tree logic.
-
-### Q1. OTC vs In-House Review
-We found that DBI classifies projects into three categories for OTC eligibility:
-- **12 project types**: OTC without plans (re-roofing, in-kind kitchen/bath, water heater, etc.)
-- **24 project types**: OTC with plans (layout-changing remodels, new windows, commercial TI, etc.)
-- **19 project types**: NOT OTC / requires In-House Review (ADU, unit changes, hillside, excavation, etc.)
-
-And the key routing criterion is the **"one-hour rule"** — if plan review can't be done in about 1 hour per station, it goes to in-house.
-
-**Questions:**
-- Does this match your experience? Are there project types that *should* be OTC but routinely get bumped to in-house?
-- How strictly is the one-hour rule applied? Do specific plan reviewers interpret it differently?
-- Are there any OTC-eligible project types that you'd recommend clients always do in-house instead? (e.g., to avoid counter wait times or because of hidden complexity?)
-
-### Q2. Initial Client Intake
-When a new client describes their project:
-- What are the first 3-5 questions you always ask?
-- What's the minimum information you need to tell them which permit path they're on?
-- At what point can you give a confident "this is OTC" vs "this needs in-house review"?
-
-### Q3. Top Rejection Reasons
-- What are the top 5 reasons building permit applications get rejected or sent back during completeness review?
-- Are there common mistakes that even experienced architects make?
-- What percentage of first submissions pass completeness review on the first try?
-
-### Q4. Timeline Estimation
-Our decision tree has limited timeline data. We know:
-- OTC: same day (if wait times allow)
-- In-house: ~4 weeks after filing fee paid (per sf.gov)
-- Priority permits per AB-004 have expedited timelines
-
-**Questions:**
-- What are realistic timeline ranges you tell clients for: residential kitchen remodel, bathroom remodel, ADU, commercial TI, new construction?
-- What's the single biggest cause of delays?
-- How much does Planning review add to timelines?
-- Are there seasonal patterns (slower months, busier months)?
+**What we can't get from documents is what's in your head.** That's why we're here.
 
 ---
 
-## Part 2: Fee & Cost Questions
+## Part 1: We Show You What We Know — You Tell Us Where We're Wrong
 
-### Q5. Fee Calculation
-G-13 (DBI Cost Schedule) is our fee reference. We've OCR'd it but haven't fully structured it.
-- How do you estimate permit fees for a client before they apply?
-- Is there a rule of thumb (e.g., percentage of construction cost)?
-- What's the typical fee range for: kitchen remodel, ADU, commercial TI, new construction?
+These aren't open-ended questions. We're making specific claims based on the code. Correct us.
 
-### Q6. Unexpected Fees
-- What fees catch clients off guard?
-- Are there agency-specific fees that aren't obvious from the application? (Planning, Fire, DPH, etc.)
-- How have fees changed in the past 2-3 years?
+### Claim 1: OTC Routing Logic
+We believe the OTC/in-house split works like this:
 
----
+> A project goes OTC if it's on the published OTC list AND the plan reviewer at the counter estimates they can review it in roughly 1 hour per station. Otherwise it gets routed to in-house review.
 
-## Part 3: Agency Routing Questions
+Specific cases we're uncertain about:
+- **Kitchen remodel that moves the sink but doesn't touch walls**: OTC-with-plans per the published list, but does moving the sink trigger DPW/PUC review for plumbing relocation, which bumps it to in-house?
+- **Window replacement on a building in an Article 10 historic district**: OTC-eligible project type, but Article 10 requires a Certificate of Appropriateness. Does this go OTC at DBI but with a separate Planning/HPC approval? Or does the historic status route the entire permit to in-house?
+- **Commercial TI under 2,000 sq ft in a C-3 zone**: OTC-eligible per the list, but Section 309 requires Planning Commission review for C-3 projects that need exceptions. At what square footage or scope does this practically stop being OTC?
 
-Our G-20 routing matrix maps 154 project types to 9 reviewing agencies. Here's the simplified routing:
+### Claim 2: Fee Calculation
+From Table 1A-A of the Building Code, we've extracted the valuation-based fee tiers. For a project valued at $100,001-$500,000:
 
-| Agency | Code | Triggers (simplified) |
-|--------|------|-----------------------|
-| Planning (CP-ZOC) | X | Almost all projects except minor mechanical/plumbing |
-| DPW-Streets (BSM) | # | Sidewalk, curb cuts, grading, street frontage work |
-| DPW-Forestry (BUF) | * | Tree removal, protected trees, street trees |
-| PUC | ^ | Sewer connections, stormwater, water service |
-| Fire Prevention (SFFD) | // | Assembly occupancy, high-rise, sprinklers, hood systems |
-| Public Health (DPH) | + | Restaurants, food handling, tattoo, body art |
-| MOD (Disability) | O | Commercial, public accommodation, multifamily |
-| OCII | OCII | Redevelopment areas (Mission Bay, Hunters Point, Transbay) |
-| Environment | ENV | Maher Ordinance (hazardous materials sites) |
+> Base fee = $1,809.00 + $8.60 per additional $1,000 over $100,000. Plan review fee = 65% of building permit fee.
 
-### Q7. Agency Delays
-- Which agency reviews cause the most delays?
-- Is Planning consistently the longest? Or does it depend on the project type?
-- Are there agencies that are "rubber stamp" fast?
+- Is this the formula you actually use, or is there a simpler rule of thumb?
+- When your clients get hit with fees significantly higher than the Table 1A-A calculation, what's the source? (Surcharges? Technology fees? Agency-specific fees not in the tables?)
+- The tables list 19 fee categories (1A-A through 1A-S). For a typical residential remodel, which tables actually apply? Just 1A-A and 1A-B, or do others get triggered?
 
-### Q8. Planning Review
-From our Planning Code analysis, we've identified 6 review pathways:
-1. **OTC** — principally permitted use, no Section 311 triggers, no historic, code-compliant
-2. **Section 311 Notification** — 30-day notice period, potential DR request
-3. **Conditional Use Hearing** — Planning Commission (uses requiring CU, formula retail, unit removal under Section 317)
-4. **Section 309/329 Review** — C-3 districts (>120ft) or Eastern Neighborhoods large projects
-5. **Historic Preservation Review** — Article 10/11 landmarks, historic districts, conservation districts
-6. **Variance** — Zoning Administrator hearing for code non-compliance
+### Claim 3: Planning Review Pathways
+From our Planning Code analysis, we've mapped 6 pathways. Our understanding of the fastest path through Planning:
 
-**Questions:**
-- For what percentage of your projects is Planning review the critical path?
-- What types of projects typically skip Planning entirely?
-- How does the new requirement (Planning approval BEFORE filing for building permit) change your workflow?
-- Section 311 has a 30-day notification period. In practice, how often does a DR (Discretionary Review) request get filed? How does that change the timeline?
+> A project gets Planning OTC approval if: (1) the use is principally permitted in the zoning district, (2) it doesn't trigger Section 311 notification thresholds, (3) the property is not a historic resource or the work is exempt under Section 1005(e)/1110(g), (4) no residential units are being removed, (5) it's not in C-3 requiring Section 309 review, (6) it's fully code-compliant.
 
-### Q9. OCII Routing
-- How often do you deal with OCII routing in practice?
-- Is it mainly Mission Bay and Hunters Point, or are there other areas?
-- Any tips for OCII projects?
+- Is this the mental checklist you run? What do you check first?
+- Section 311 notification is 30 days. How often does that 30 days actually turn into a DR request? What percentage — 5%? 20%?
+- When a project needs a Conditional Use hearing, what's the realistic calendar wait for a Planning Commission slot? The code says 90 days from application to hearing — is that real?
 
----
+### Claim 4: Fire Department Triggers
+From Chapter 9 of the 2022 Fire Code, we believe SFFD review is triggered by:
 
-## Part 4: Stress-Test Scenarios
+> Assembly occupancy (A-2 restaurants ≥50 occupants), high-rise (>75 ft), new sprinkler systems, commercial kitchen hood systems (Type I), changes in occupancy classification, nightclubs/bars, any project requiring fire alarm modifications.
 
-For each scenario below, walk us through how you'd handle it — what questions you'd ask, which permit path, what forms, what agencies, and realistic timeline.
+- What are we missing? Are there common project types that unexpectedly trigger SFFD review?
+- The G-20 routing matrix uses "//" for Fire. Is their review typically fast, or does it cause delays?
+- For restaurants: does SFFD review the hood system at plan review, or is it a separate inspection cycle?
 
-### Scenario 1: Kitchen Remodel (Residential)
-A homeowner in the Sunset District wants to:
-- Reconfigure kitchen layout (move sink, add island)
-- Replace all cabinets and countertops
-- Add recessed lighting (6 fixtures)
-- No structural changes, no wall removal
+### Claim 5: Agency Routing for a Restaurant Build-Out
+For a restaurant conversion in an NC-2 district (vacant retail → 80-seat restaurant with Type I hood, per the G-20 routing matrix), we predict these agency reviews:
 
-### Scenario 2: ADU Over Garage
-A homeowner in Noe Valley wants to build a 600 sq ft ADU above their existing detached garage:
-- New second story addition
-- New kitchen and bathroom
-- Separate entrance from alley
-- Existing garage stays as-is below
+| Agency | Reason | Est. Timeline |
+|--------|--------|---------------|
+| Planning (CP-ZOC) | Change of use (retail → restaurant). If restaurant is principally permitted in NC-2, no CU needed. Section 311 notification likely triggered. | 30-60 days |
+| Fire Prevention (SFFD) | Assembly occupancy A-2, Type I hood system, fire suppression | 2-4 weeks |
+| Public Health (DPH) | Food preparation, commercial kitchen | 2-4 weeks |
+| DPW-Streets (BSM) | If parklet seating involves sidewalk use | 2-4 weeks |
+| MOD (Disability) | Commercial/public accommodation ADA compliance | 1-2 weeks |
 
-### Scenario 3: Commercial TI in Downtown
-A tech company leasing 5,000 sq ft in a Class B office building in the Financial District (C-3 zone) wants to:
-- Build out open office with 2 conference rooms
-- New kitchen/break area with commercial sink
-- ADA bathroom renovation
-- New data closet with dedicated HVAC
-
-### Scenario 4: Restaurant Conversion
-A property owner in the Mission (NC-2 zoning) wants to convert a vacant retail space into a restaurant:
-- Full commercial kitchen build-out
-- 80-seat dining area
-- Type I hood system
-- Outdoor parklet seating
-- Liquor license (Type 47 - on-sale general)
-
-### Scenario 5: Historic Building Renovation
-An architect is renovating a 1920s building on a landmark site in Pacific Heights:
-- Seismic retrofit (soft story)
-- Kitchen and bathroom modernization on 3 floors
-- New windows (double-pane replacement)
-- Roof deck addition
-- Solar panel installation
+- How close is this? What are we getting wrong on the agencies or timelines?
+- Does the liquor license (Type 47) affect the building permit process at all, or is that an entirely separate ABC track?
+- NC-2 districts: is a restaurant principally permitted, or does it need CU? (We believe principally permitted if under a certain size threshold.)
 
 ---
 
-## Part 5: Validation Requests
+## Part 2: The Stuff That's Not in Any Document
 
-### V1. Form Selection Logic
-We've built a form selection taxonomy. Quick validation:
-- **Form 1**: New building construction → correct?
-- **Form 2**: Additions / alterations / repairs → correct?
-- **Form 3**: Demolition / removal → correct?
-- **Form 3A**: Address change → correct?
-- **Form 6**: Special application (sign, sprinkler, antenna, sidewalk) → correct?
-- **Form 8**: Over-the-counter permit → correct?
+### Q6. Your First 60 Seconds
+When a new client calls and says "I want to remodel my kitchen" — what's the first question out of your mouth? Walk us through the first 60 seconds of that conversation. We want to build the AI intake flow to mirror exactly what you do.
 
-Are there cases where the form choice is ambiguous?
+### Q7. The Real Rejection List
+The completeness checklist has 13 sections. But what actually gets applications bounced back?
+- What are the top 3 specific items that cause rejections — not categories, specific things like "forgot to include X on the cover sheet" or "valuation doesn't match scope"?
+- When DBI says "completeness review can take up to 3 rounds" — what percentage of first submissions pass on the first try? 10%? 50%?
 
-### V2. In-House Review Process
-SF.gov shows an 11-step process. Is this accurate and complete?
-1. Determine what type of permit you need
-2. Hire design professional
-3. Determine if preliminary project assessment needed
-4. Get pre-application meeting (if needed)
-5. Prepare permit application
-6. Get Planning approval
-7. Submit application
-8. Pay filing fee
-9. Get completeness review
-10. Get plan review
-11. Pick up approved permit
+### Q8. Timeline Reality Check
+SF.gov says in-house review takes ~4 weeks after filing fee paid. AB-004 describes priority processing.
+- What's the real timeline for a typical residential alteration from application to approved permit? 4 weeks? 8 weeks? 12 weeks?
+- What's the single action a client can take to shave the most time off?
+- Do you ever use priority processing (AB-004)? When is it worth the extra fee?
 
-Anything missing? Any steps that have changed recently?
+### Q9. The Gotchas
+Every experienced expediter has a mental list of things that aren't in any AB or info sheet. Things like:
+- "Always do X before Y even though the website says the order doesn't matter"
+- "If you're in [neighborhood], watch out for [thing]"
+- "The form says optional but if you don't include it, they'll bounce you"
+- "This fee exists but it's not on any published schedule"
 
-### V3. Completeness Checklist Spot-Check
-Our residential completeness checklist has 13 sections. Does this match what you see in practice?
-1. Application completeness
-2. Previous apps & characteristics
-3. Scope of work
-4. Valuation
-5. Plan check fees
-6. Development review routing (11 departments)
-7. Supporting documentation (special inspections, geotech, etc.)
-8. Plans - cover sheet
-9. Plans - site plan
-10. Architectural plans
-11. Structural plans
-12. Green building sheets
-13. Title 24 energy reports
+Give us your top 5. These become the most valuable part of our AI.
 
-### V4. Your "Gotchas" List
-- What are the things that aren't well-documented but every experienced expediter knows?
-- Any recent process changes (last 12 months) that the official docs haven't caught up with?
-- If you could give one piece of advice to someone building an AI permit assistant, what would it be?
+### Q10. Process Changes in the Last 12 Months
+The codes we've ingested are current through late 2025. But processes change faster than codes update.
+- Any major changes to how DBI operates day-to-day that aren't reflected in published docs?
+- Has the shift to 100% Electronic Plan Review (Bluebeam) since Jan 2024 changed anything about how you prepare submissions?
+- Any new requirements, unofficial policies, or staffing changes that affect turnaround?
 
 ---
 
-## Amy Lee Profile (from public records)
+## Part 3: Stress-Test Scenarios
 
-For context, here's what we found about your practice from public data:
+For each scenario, we'll show you our system's prediction. Tell us what we got right and wrong.
 
-- **Name**: Eun Young (Amy) Lee
-- **Firm**: 3S LLC
-- **Ethics Commission Registration**: Since October 2019 (5 filings through December 2024)
-- **DBI Expediter Ranking**: #42 by permit volume (117 permits in DBI contacts database)
-- **3S LLC Team**: Jerry Sanguinetti, Mark Luellen, Michie Wong, Simon Tam
-- **Market Context**: Top expediter in SF is Danielle Romero (1,702 permits). Top firms by Ethics Commission filings: Reuben, Junius & Rose (29), Lighthouse Public Affairs (23)
+### Scenario 1: Kitchen Remodel — Sunset District
+**Project**: Reconfigure layout (move sink, add island), replace cabinets/counters, add 6 recessed lights. No structural changes, no wall removal.
+
+**Our prediction**:
+- Form 8 (OTC with plans)
+- Agencies: Planning (X), possibly MOD (O) if multi-unit
+- OTC-eligible, same-day if plans are straightforward
+- Est. fees: ~$1,500-2,500 based on $40-60K construction value (Table 1A-A)
+- Key risk: Moving the sink requires plumbing permit — does this need a separate Form 6?
+
+### Scenario 2: ADU Over Garage — Noe Valley
+**Project**: 600 sq ft ADU above existing detached garage. New second story, kitchen, bathroom, separate entrance.
+
+**Our prediction**:
+- Form 2 (Addition/Alteration)
+- NOT OTC — ADU is explicitly on the "not-OTC" list
+- Agencies: Planning (Section 207.2 ADU provisions — exempt from Section 311), SFFD (new occupancy), DPW/PUC (new sewer/water connections), MOD
+- In-house review: 8-16 weeks
+- Est. fees: $5,000-12,000 based on $150-250K construction value
+- Planning may be fast: ADUs are exempt from Section 311 notification and many historic review requirements per Sections 1005(e) and 1110(g)
+- Key risk: Structural engineering for second-story addition. AB-082 structural design review may apply.
+
+### Scenario 3: Commercial TI — Financial District (C-3)
+**Project**: 5,000 sq ft office build-out: open office, 2 conference rooms, kitchen/break area with commercial sink, ADA bathroom reno, data closet with HVAC.
+
+**Our prediction**:
+- Form 2 (Alteration)
+- OTC-eligible for commercial TI per the list, but C-3 zone may complicate
+- Agencies: Planning (Section 309 applies in C-3 — but for a TI with no exterior changes, may be administrative), SFFD (if fire alarm modifications), MOD (commercial ADA), DPH (if "commercial sink" qualifies as food prep)
+- Key question: Does the commercial sink in the break area trigger DPH review? Where's the line between "office break room" and "food preparation"?
+
+### Scenario 4: Restaurant Conversion — Mission (NC-2)
+**Project**: Vacant retail → 80-seat restaurant. Full commercial kitchen, Type I hood, outdoor parklet, liquor license.
+
+**Our prediction**:
+- Form 2 (Alteration) + possibly Form 6 for sprinkler work
+- NOT OTC — change of use with commercial kitchen
+- Agencies: Planning (change of use, Section 311 notification, possible CU for formula retail or late-night), SFFD (A-2 occupancy, Type I hood, fire suppression, occupant load ≥50), DPH (food prep, commercial kitchen), DPW (parklet/sidewalk), MOD (public accommodation), possibly Environment (Maher Ordinance if contamination history)
+- In-house review: 12-20 weeks
+- Key risk: The 80-seat occupant load triggers Assembly occupancy classification. Does this require a Certificate of Occupancy change? What does that add to the timeline?
+
+### Scenario 5: Historic Building Renovation — Pacific Heights Landmark
+**Project**: 1920s landmark site. Seismic retrofit (soft story per AB-094), kitchen/bath modernization on 3 floors, new double-pane windows, roof deck addition, solar panels.
+
+**Our prediction**:
+- Form 2 (Alteration)
+- NOT OTC — landmark site + major scope
+- Agencies: Planning/HPC (Article 10 Certificate of Appropriateness for exterior work — windows, roof deck, solar. Interior work may be exempt per Section 1005(e) if no exterior impact), SFFD (if sprinkler modifications), MOD (if multi-unit), DPW
+- HPC review required for: window replacement (exterior change), roof deck (new addition), solar panels (visible from street?)
+- HPC may NOT be required for: interior kitchen/bath work, seismic retrofit (structural, not aesthetic)
+- Soft story retrofit per AB-094: voluntary program with specific engineering criteria
+- Key risk: Window replacement on a landmark. Even energy-efficient upgrades must match historic character per Secretary of Interior's Standards. AB-013 (historic building disabled access) may also apply.
+- Est. timeline: 16-24 weeks minimum. HPC hearing alone could take 8-12 weeks.
 
 ---
 
-## Next Steps
+## Part 4: Your Competitive Landscape
 
-After this interview, we plan to:
-1. Update our decision tree with your corrections
-2. Build validation test cases from your stress-test answers
-3. Incorporate your "gotchas" as edge cases in the AI
-4. Schedule a follow-up to demo the prototype for your feedback
+We pulled your public data. No surprises here — just context for the conversation.
 
-Thank you for your time, Amy!
+- **You**: Eun Young (Amy) Lee, 3S LLC. Ethics Commission registered since October 2019. 5 filings (most recent Dec 2024, amendment). DBI contacts database shows 117 permits as "pmt consultant/expediter" — **rank #42 in SF**.
+- **Your team**: Jerry Sanguinetti, Mark Luellen, Michie Wong, Simon Tam (all registered under 3S LLC)
+- **Market**: Top expediter is Danielle Romero (1,702 permits). Top firm by Ethics Commission filings is Reuben, Junius & Rose (29 filings). The top 5 expediters handle more permits than the bottom 30 combined. Median for top 50 is 182 permits.
+- **Our perspective**: You're well-positioned. Solid mid-market practice with a diverse team. The AI tool we're building would be most valuable for someone at your scale — amplifying your capacity without needing Danielle Romero's volume to justify it.
+
+---
+
+## What Happens Next
+
+1. We update the decision tree with your corrections (same day)
+2. We build automated test cases from your scenario answers
+3. Your "gotchas" become the highest-value rules in the AI
+4. We build a prototype you can test on a real case
+5. If it saves you time on even one permit, we've proven the concept
+
+The goal: **an AI that knows what you know, available 24/7, that makes you faster** — not one that replaces you.
+
+---
+
+*This packet was assembled by ingesting and structuring the complete published SF permitting regulatory corpus: Planning Code (222K lines), Building Inspection Commission Codes (58K lines), Fire Code, 40+ Administrative Bulletins, 51 DBI information sheets, 19 fee tables, G-20 routing matrix (154 entries), and the SF Ethics Commission permit consultant registry. Total knowledge base: ~4.3MB raw text + ~500K structured JSON.*

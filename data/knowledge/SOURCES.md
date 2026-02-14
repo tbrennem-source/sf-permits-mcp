@@ -20,6 +20,10 @@ Last updated: 2026-02-14
 | completeness | Residential Pre-Plan Check Checklist | tier1/completeness-checklist.json | 8.2K | Structured - 13 sections, 11 review departments |
 | planning-code | Planning Code Key Sections | tier1/planning-code-key-sections.json | 36K | Structured - 6 major sections (Section 311, CU, variances, historic, CEQA, exemptions) |
 | consultants | SF Permit Consultant Registry | tier1/permit-consultants-registry.json | 115K | Structured - 167 filings, 115 consultants, Amy Lee profile, DBI expediter rankings |
+| fee-tables | Building Permit Fee Tables (1A-A through 1A-S) | tier1/fee-tables.json | 54K | Structured - 19 tables (14 active, 5 reserved), 10 valuation tiers, 9-step fee algorithm |
+| ab-index | Administrative Bulletins Complete Index | tier1/administrative-bulletins-index.json | 35K | Structured - 47 ABs indexed with titles, line ranges, relevance, subject areas |
+| fire-code | Fire Code Key Sections | tier1/fire-code-key-sections.json | 37K | Structured - 13 SFFD triggers, sprinkler/alarm rules, assembly thresholds, high-rise reqs |
+| semantic-index | Semantic Concept-to-Source Mapping | tier1/semantic-index.json | 75K | Structured - 61 concepts, ~500 aliases, cross-cutting search layer, 10/10 stress test |
 
 *Note: File naming has systematic offset from sf.gov index page. See document-mapping.json for correct mapping.
 
@@ -109,11 +113,12 @@ Last updated: 2026-02-14
 | sf.gov/information--projects-eligible-over-counter-otc-permit | OTC eligibility criteria | tier1/otc-criteria.json |
 | sf.gov/.../Residential%20Pre-Plan%20Check%20Checklist.pdf | Completeness review checklist | tier1/completeness-checklist.json |
 
-## Tier 4: Planning Department
+## Tier 4: Building Codes and Planning Code
 
 | Source | File | Size | Status |
 |--------|------|------|--------|
-| SF Planning Code (complete) | tier4/sf-planning-code-full.txt | 12.6MB (222K lines) | ✅ Downloaded from amlegal.com — needs indexing/parsing |
+| SF Planning Code (complete) | tier4/sf-planning-code-full.txt | 12.6MB (222K lines) | ✅ Downloaded from amlegal.com — key sections parsed to tier1 |
+| SF BICC + Fire Code (complete) | tier4/sf-bicc-fire-codes-full.txt | 3.6MB (57,938 lines) | ✅ Downloaded from amlegal.com — fee tables, AB index, fire code extracted to tier1 |
 
 ## Derived Outputs
 
@@ -123,17 +128,22 @@ Last updated: 2026-02-14
 | document-mapping.json | Correct file-to-document-ID mapping (31 mapped, 21 unmapped) | 13K | ✅ Complete |
 | GAPS.md | Knowledge gaps analysis with 15 Amy interview questions | 8K | ✅ Complete (GAP-1 + GAP-5 resolved) |
 | SOURCES.md | This file | - | ✅ Complete |
-| INGESTION_LOG.md | Chronological ingestion log | 3K | ✅ Complete |
+| INGESTION_LOG.md | Chronological ingestion log | 6K | ✅ Complete |
+| stress_test_semantic_index.py | 10-scenario semantic index stress test | 8K | ✅ 10/10 perfect (100% concept + file recall) |
 
 ## Statistics
 
 - **Total PDFs downloaded**: 51 of 52 info sheets (DA-02 failed - WAF challenge)
 - **PDFs with extracted text**: 51 (31 via pdfplumber + 20 via OCR)
 - **OCR'd PDFs**: 20 (183,696 chars from 85 pages via pytesseract)
-- **Administrative Bulletins**: 6 committed (AB-004, AB-005, AB-032, AB-093, AB-110, AB-112 = ~201K chars)
-- **Structured JSON files**: 10 (G-20 routing, permit forms, in-house process, decision tree, OTC criteria, completeness checklist, planning code key sections, permit consultant registry, document mapping, G-20 tables)
+- **Administrative Bulletins**: 47 indexed in BICC (11,344 lines full text) + 6 individual tier3 files (~201K chars)
+- **Fee Tables**: 19 tables (1A-A through 1A-S), 14 active, 5 reserved — 54K structured JSON
+- **Fire Code**: 13 SFFD triggers, sprinkler/alarm rules, assembly thresholds — 37K structured JSON
+- **Structured JSON files**: 15 (G-20 routing, permit forms, in-house process, decision tree, OTC criteria, completeness checklist, planning code key sections, permit consultant registry, document mapping, G-20 tables, fee tables, AB index, fire code, semantic index, Amy portfolio data)
+- **Semantic Index**: 61 concepts, ~500 aliases, cross-cutting search layer — 75K structured JSON
 - **Web pages scraped**: 5 (3 via Playwright + 2 via WebFetch)
 - **Planning Code**: 12.6MB (222K lines) from amlegal.com
+- **BICC + Fire Code**: 3.6MB (57,938 lines) from amlegal.com
 - **Permit Consultant Registry**: 167 filings from SF Ethics Commission (SODA API umwe-sn9p)
 - **DBI Expediter Rankings**: Top 50 by permit volume (SODA API 3pee-9qhc)
-- **Total knowledge base size**: ~700K characters raw text + ~360K structured JSON + 12.6MB Planning Code
+- **Total knowledge base size**: ~1.1MB raw text + ~560K structured JSON + 16.2MB code corpus (Planning + BICC/Fire)

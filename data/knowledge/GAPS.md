@@ -16,12 +16,17 @@ Last updated: 2026-02-14
 - Decision tree step 3 updated with complete criteria
 **Note**: AB-093 was NOT the source — it's a web page, not an Administrative Bulletin. OTC criteria do not have an AB number.
 
-### GAP-2: Fee Calculation Schedule (G-13) — ⚠️ PARTIALLY RESOLVED
-**Impact**: Step 7 of decision tree (fees) has no concrete data
-**What we know**: G-13 is the DBI Cost Schedule. OCR'd successfully (5,703 chars, 4 pages) → tier1/G-13-raw-text.txt
-**What we have**: Raw OCR text of fee schedule. Needs structuring into fee lookup table.
-**What we still need**: Structured fee table data - base fees, multipliers, fee categories by project type. OCR quality may need validation.
-**Ask Amy**: "How do you currently calculate fees for clients? What's the typical fee range for common project types?"
+### GAP-2: Fee Calculation Schedule — ✅ RESOLVED
+**Impact**: Step 7 of decision tree (fees) — was missing concrete data, now fully populated
+**Resolution**: All 19 fee tables (Tables 1A-A through 1A-S) extracted from BICC full text into structured JSON
+- 10 valuation tiers from $1 to $200M+, 3 permit categories (new construction, alterations, no plans)
+- Plumbing/mechanical fees (20 categories), electrical fees (5 categories with sub-tiers)
+- Standard hourly rates: Plan Review $481/hr, Inspection $571/hr, Administration $298/hr
+- Penalties: work without permit = 9x permit issuance fee + original
+- 14 active tables + 5 reserved
+- Saved as: tier1/fee-tables.json (54K)
+- G-13 OCR'd text superseded by more complete/accurate BICC source
+**Ask Amy**: "How do you currently calculate fees for clients? Do you use the published tables or rules of thumb?"
 
 ### GAP-3: Timeline Estimates by Project Type
 **Impact**: Step 6 of decision tree (timeline) relies on sparse data
@@ -71,15 +76,15 @@ Last updated: 2026-02-14
 **Example**: File labeled "G-25" actually contains G-24 (MOU procedures)
 **Resolution**: ✅ Document mapping created (document-mapping.json). Tier 1 files renamed. G-29 (Adaptive Reuse) found in S-03.txt.
 
-### GAP-8: Administrative Bulletins — ✅ RESOLVED
+### GAP-8: Administrative Bulletins — ✅ FULLY RESOLVED
 **Impact**: ABs define key procedures referenced throughout info sheets
-**Status**: All 6 targeted ABs recovered and committed:
-- ✅ AB-004: Priority Permit Processing Guidelines (29K) — from amlegal.com via Playwright
-- ✅ AB-005: Procedures for Approval of Local Equivalencies (31K) — from amlegal.com via Playwright
-- ✅ AB-032: Site Permit Processing (48K) — from amlegal.com via Playwright
-- ✅ AB-093: Implementation of Green Building Regulations (30K) — manually downloaded by Tim
-- ✅ AB-110: Building Facade Inspection and Maintenance (28K) — extracted from SF Planning Code
-- ✅ AB-112: All-Electric New Construction Regulations (35K) — extracted from SF Planning Code
+**Status**: ALL 47 Administrative Bulletins fully indexed from BICC full text (was only 6 before)
+- Complete index with titles, subjects, line ranges, relevance classifications, subject areas
+- 25 HIGH relevance, 18 MEDIUM, 4 LOW — 15 critical for permit routing
+- 11,344 total lines of AB full text in the BICC source file
+- Top subject areas: seismic (11), fire/life safety (8), accessibility (4), permit processing (4)
+- Saved as: tier1/administrative-bulletins-index.json (35K)
+- Tier 3 individual AB text files still available for detailed extraction
 **Note**: OTC criteria and completeness review turned out to be sf.gov web pages, NOT ABs (see GAP-1 and GAP-5)
 
 ### GAP-9: Real G-29 (Adaptive Reuse) — RESOLVED

@@ -1,0 +1,819 @@
+{
+  "metadata": {
+    "description": "Semantic concept-to-source mapping for SF permitting knowledge base. Maps ~60 key concepts to their authoritative sources across all structured JSON files, enabling accurate cross-cutting search.",
+    "version": "0.1",
+    "created_date": "2026-02-14",
+    "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
+    "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
+    "total_concepts": 61
+  },
+
+  "concepts": {
+
+    "otc_review": {
+      "canonical_name": "Over-the-Counter (OTC) Review",
+      "aliases": ["OTC", "over the counter", "same day permit", "counter permit", "walk-in permit", "OTC with plans", "OTC without plans", "no-plan OTC"],
+      "description": "Projects eligible for same-day or rapid review at the DBI counter, without entering the in-house review queue.",
+      "authoritative_sources": [
+        {"file": "tier1/otc-criteria.json", "path": "otc_without_plans", "role": "12 project types eligible for OTC without plans"},
+        {"file": "tier1/otc-criteria.json", "path": "otc_with_plans", "role": "24 project types eligible for OTC with plans"},
+        {"file": "tier1/otc-criteria.json", "path": "not_otc_requires_inhouse", "role": "19 project types that are NOT OTC"},
+        {"file": "tier1/otc-criteria.json", "path": "routing_decision", "role": "The one-hour rule and routing criterion"},
+        {"file": "decision-tree-draft.json", "path": "steps[2]", "role": "Step 3: OTC vs In-House decision logic"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["inhouse_review", "permit_forms", "one_hour_rule"]
+    },
+
+    "inhouse_review": {
+      "canonical_name": "In-House Review",
+      "aliases": ["in-house", "in house review", "plan check", "plan review", "DBI review", "station review", "back check", "review process", "review queue", "permit review", "approval process", "how long does review take", "review timeline"],
+      "description": "Projects that require detailed multi-station review by DBI staff, taking weeks to months rather than same-day OTC.",
+      "authoritative_sources": [
+        {"file": "tier1/inhouse-review-process.json", "path": "steps", "role": "11-step in-house review process"},
+        {"file": "tier1/inhouse-review-process.json", "path": "reviewing_agencies", "role": "8 reviewing agencies"},
+        {"file": "tier1/otc-criteria.json", "path": "not_otc_requires_inhouse", "role": "19 project types requiring in-house"},
+        {"file": "tier1/completeness-checklist.json", "path": "sections", "role": "13-section residential completeness checklist"},
+        {"file": "decision-tree-draft.json", "path": "steps[2].inhouse_review_details", "role": "Timeline, escalation rules"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["otc_review", "completeness_checklist", "agency_routing", "back_check"]
+    },
+
+    "one_hour_rule": {
+      "canonical_name": "One-Hour Rule",
+      "aliases": ["1 hour rule", "one hour", "review time estimate", "counter estimate"],
+      "description": "The informal but critical criterion: if a plan reviewer estimates they can review the project in roughly 1 hour per station, it stays OTC. Otherwise it goes to in-house.",
+      "authoritative_sources": [
+        {"file": "tier1/otc-criteria.json", "path": "routing_decision.criteria", "role": "Formal statement of the one-hour rule"},
+        {"file": "tier1/otc-criteria.json", "path": "otc_to_inhouse_conversion", "role": "What happens when OTC converts to in-house"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["otc_review", "inhouse_review"],
+      "ask_amy": "Is the one-hour rule actually enforced consistently? How do plan reviewers estimate?"
+    },
+
+    "permit_forms": {
+      "canonical_name": "Building Permit Application Forms",
+      "aliases": ["Form 1", "Form 2", "Form 3", "Form 4", "Form 5", "Form 6", "Form 7", "Form 8", "permit application", "which form", "application form"],
+      "description": "The 7 main DBI permit application forms (Forms 1-8, no Form 6) plus special applications, green building forms, and disabled access forms.",
+      "authoritative_sources": [
+        {"file": "tier1/permit-forms-taxonomy.json", "path": "permit_forms", "role": "7 main forms with descriptions"},
+        {"file": "tier1/permit-forms-taxonomy.json", "path": "form_selection_logic", "role": "Decision logic for which form to use"},
+        {"file": "tier1/permit-forms-taxonomy.json", "path": "green_building_forms", "role": "6 green building forms (GS1-GS6)"},
+        {"file": "tier1/permit-forms-taxonomy.json", "path": "disabled_access_forms", "role": "5 disabled access forms"},
+        {"file": "decision-tree-draft.json", "path": "steps[1]", "role": "Step 2: Which Form decision logic"}
+      ],
+      "decision_tree_step": 2,
+      "related_concepts": ["otc_review", "inhouse_review", "green_building"]
+    },
+
+    "agency_routing": {
+      "canonical_name": "Agency Routing",
+      "aliases": ["G-20", "routing", "which agencies", "agency review", "reviewing agencies", "routing matrix", "city agencies", "department review", "which departments", "what agencies", "who reviews", "who needs to approve", "approvals needed", "departments involved", "review required"],
+      "description": "Which of the 9+ city agencies must review a permit application, based on project type, scope, and location.",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "routing_matrix", "role": "154 project-type entries across 9 agencies"},
+        {"file": "tier1/G-20-routing.json", "path": "agencies", "role": "9 agency definitions with review triggers"},
+        {"file": "tier1/G-20-routing.json", "path": "symbol_legend", "role": "Symbol meanings: X, #, *, ^, //, +, O"},
+        {"file": "tier1/G-20-routing.json", "path": "discussion_rules", "role": "14 routing discussion rules (A through N)"},
+        {"file": "decision-tree-draft.json", "path": "steps[3]", "role": "Step 4: Agency Routing decision logic"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["planning_review", "fire_department", "public_health", "disability_access", "sfpuc"]
+    },
+
+    "fee_calculation": {
+      "canonical_name": "Permit Fee Calculation",
+      "aliases": ["fees", "permit fees", "building permit fees", "plan review fee", "filing fee", "issuance fee", "how much does a permit cost", "Table 1A", "fee schedule", "cost schedule", "G-13", "how much", "cost", "price", "what does it cost", "fee estimate", "total cost", "what will I pay"],
+      "description": "How DBI calculates permit fees based on construction valuation, project type, and applicable fee tables.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_A", "role": "Building permit fees by valuation tier (10 tiers, 3 categories)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_B", "role": "Other permit and plan review fees (hourly, back check, premium)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_C", "role": "Plumbing/mechanical fees by category (20 categories)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_D", "role": "Standard hourly rates ($481 plan review, $571 inspection)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_E", "role": "Electrical permit fees (5 categories with sub-tiers)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_J", "role": "Miscellaneous fees (CBSC, SMIP state surcharges)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_K", "role": "Penalties (work without permit = 9x fee)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_R", "role": "Refund policies ($357 minimum processing fee)"},
+        {"file": "tier1/fee-tables.json", "path": "decision_tree_key", "role": "9-step algorithmic path for fee estimation"},
+        {"file": "decision-tree-draft.json", "path": "steps[6]", "role": "Step 7: Fees"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["construction_valuation", "school_impact_fee", "penalty_fees"]
+    },
+
+    "construction_valuation": {
+      "canonical_name": "Construction Valuation / Cost Estimate",
+      "aliases": ["valuation", "construction cost", "project value", "estimated cost", "ICC valuation", "cost estimate"],
+      "description": "The declared construction cost that determines permit fees. DBI uses ICC methodology and may adjust declared values.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_A.valuation_tiers", "role": "10 valuation tiers from $1 to $200M+"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_A.notes", "role": "ICC valuation methodology reference"},
+        {"file": "tier1/completeness-checklist.json", "path": "sections.valuation", "role": "Valuation requirements on application"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["fee_calculation"]
+    },
+
+    "planning_review": {
+      "canonical_name": "Planning Department Review",
+      "aliases": ["Planning", "CP-ZOC", "zoning", "zoning review", "Planning approval", "Planning OTC", "use permit", "principally permitted", "conditionally permitted", "zoning compliance", "land use", "zoning check", "Planning Department"],
+      "description": "San Francisco Planning Department review of building permits for zoning compliance, use authorization, and environmental review.",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "review_pathway_summary", "role": "6 Planning review pathways with conditions"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "building_permit_review", "role": "Sections 305, 309, 329 review triggers"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "zoning_district_exemptions", "role": "Principally permitted uses by district"},
+        {"file": "tier1/G-20-routing.json", "path": "agencies.PLANNING", "role": "G-20 Planning routing triggers"},
+        {"file": "decision-tree-draft.json", "path": "steps[3].agencies.PLANNING", "role": "6 common + 2 conditional triggers"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["section_311", "conditional_use", "section_309", "historic_preservation", "ceqa"]
+    },
+
+    "section_311": {
+      "canonical_name": "Section 311 Neighborhood Notification",
+      "aliases": ["311 notice", "neighborhood notification", "30 day notice", "Section 311", "Section 312", "DR request", "discretionary review", "neighbor notification", "neighbors notified", "public notice", "notice period", "notification requirement"],
+      "description": "The 30-day public notification requirement for projects that exceed certain thresholds (building expansion, new construction, demolition). Neighbors can file DR requests.",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "neighborhood_notification", "role": "Full Section 311/312 rules, thresholds, exempt projects, DR process"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "public_notification_general", "role": "General notification requirements"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["planning_review", "conditional_use"],
+      "ask_amy": "How often does the 30 days actually turn into a DR request? What percentage — 5%? 20%?"
+    },
+
+    "conditional_use": {
+      "canonical_name": "Conditional Use Authorization",
+      "aliases": ["CU", "conditional use", "CU hearing", "Section 303", "Planning Commission hearing", "use authorization", "conditional use permit"],
+      "description": "Projects requiring Planning Commission approval because the use is conditionally (not principally) permitted in the zoning district.",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "conditional_use_authorization", "role": "Section 303 criteria, triggers, process"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "residential_unit_loss", "role": "Section 317 residential demolition/merger requiring CU"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["planning_review", "section_311", "formula_retail"],
+      "ask_amy": "When a project needs a CU hearing, what's the realistic calendar wait? The code says 90 days — is that real?"
+    },
+
+    "section_309": {
+      "canonical_name": "Section 309 C-3 District Review",
+      "aliases": ["309 review", "C-3 review", "downtown review", "Section 309", "C-3 district"],
+      "description": "Planning Commission review required for projects in C-3 (downtown) districts that need exceptions from code standards.",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "building_permit_review.section_309", "role": "C-3 review triggers and process"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "building_permit_review.section_329", "role": "Large project authorization (related)"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["planning_review", "commercial_ti"]
+    },
+
+    "historic_preservation": {
+      "canonical_name": "Historic Preservation Review",
+      "aliases": ["historic", "landmark", "Article 10", "Article 11", "HPC", "Historic Preservation Commission", "Certificate of Appropriateness", "historic district", "historic resource", "Secretary of Interior Standards"],
+      "description": "Review required for projects affecting designated landmarks, historic districts (Article 10), or downtown conservation districts (Article 11).",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "historic_preservation", "role": "Full Article 10/11 review process, COA requirements, demolition standards"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "review_pathway_summary.hpc_review", "role": "HPC pathway conditions"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["planning_review", "ceqa", "window_replacement"]
+    },
+
+    "ceqa": {
+      "canonical_name": "CEQA Environmental Review",
+      "aliases": ["CEQA", "environmental review", "EIR", "environmental impact", "categorical exemption", "negative declaration"],
+      "description": "California Environmental Quality Act review, required for projects needing CU authorization, variances, or Section 309/329 review.",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "ceqa_environmental_review", "role": "When CEQA is required, categorical exemptions, timeline implications"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["planning_review", "conditional_use"]
+    },
+
+    "fire_department": {
+      "canonical_name": "San Francisco Fire Department (SFFD) Review",
+      "aliases": ["SFFD", "fire department", "fire review", "fire prevention", "SFFD plan review", "fire marshal", "fire code", "fire safety", "fire review", "fire requirements", "fire code requirements", "fire prevention bureau"],
+      "description": "Fire Department plan review for projects involving assembly occupancy, high-rise buildings, sprinkler/alarm systems, commercial kitchens, and changes in occupancy classification.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-code-key-sections.json", "path": "decision_tree_key.triggers", "role": "13 triggers for SFFD review (always/conditional/operational)"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_1_administration.plan_review_fees", "role": "SFFD plan review fee tables"},
+        {"file": "tier1/G-20-routing.json", "path": "agencies.SFFD", "role": "G-20 SFFD routing triggers (// symbol)"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["sprinkler_required", "fire_alarm", "assembly_occupancy", "high_rise", "commercial_kitchen_hood"]
+    },
+
+    "sprinkler_required": {
+      "canonical_name": "Automatic Sprinkler System Required",
+      "aliases": ["sprinkler", "fire sprinkler", "NFPA 13", "903.3", "automatic sprinkler", "sprinkler retrofit", "fire suppression"],
+      "description": "When automatic fire sprinkler systems are required — by occupancy type, building height, occupant load, or existing building retrofit mandates.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems", "role": "Complete sprinkler trigger rules by occupancy/height/use"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems.existing_building_retrofits", "role": "Retrofit requirements for SRO, hotels, high-rise"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "assembly_occupancy_thresholds", "role": "Assembly occupancy thresholds (A-2: 100 occupants / 5000 sqft)"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-105]", "role": "Voluntary sprinkler for pre-1974 high-rises"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["fire_department", "assembly_occupancy", "high_rise", "restaurant"]
+    },
+
+    "fire_alarm": {
+      "canonical_name": "Fire Alarm System Requirements",
+      "aliases": ["fire alarm", "smoke detection", "manual pull station", "907", "fire alarm certification", "NFPA 72", "alarm upgrade", "alarm", "smoke detector", "detector", "alarm system", "notification system"],
+      "description": "When fire alarm systems are required, including the $99K construction cost threshold that triggers sleeping area alarm upgrades in existing buildings.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.fire_alarm_systems", "role": "Complete fire alarm trigger rules, R-2 thresholds, certification"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.fire_alarm_systems.annual_inspection", "role": "Inspection schedule and $99K upgrade trigger"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["fire_department", "sprinkler_required"]
+    },
+
+    "assembly_occupancy": {
+      "canonical_name": "Assembly Occupancy (Group A)",
+      "aliases": ["assembly", "A-2", "A-1", "A-3", "Group A", "occupant load", "assembly occupancy", "50 seats", "100 seats", "300 occupants", "restaurant seating", "gym", "health studio", "fitness", "dance hall", "theater", "auditorium", "nightclub capacity", "seating capacity", "how many people", "crowd", "gathering place"],
+      "description": "Assembly occupancy classification and the occupant load thresholds that trigger sprinkler, fire alarm, and SFFD review requirements.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-code-key-sections.json", "path": "assembly_occupancy_thresholds", "role": "Sprinkler thresholds: A-2 at 100 occupants / 5000 sqft, general A at 300 / 12000"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems.new_building_triggers.group_a2", "role": "A-2 specific triggers"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "decision_tree_key.triggers", "role": "Assembly as SFFD trigger"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["fire_department", "sprinkler_required", "restaurant", "change_of_use"]
+    },
+
+    "high_rise": {
+      "canonical_name": "High-Rise Building Requirements",
+      "aliases": ["high-rise", "high rise", "tall building", ">75 ft", "over 75 feet", ">120 ft", "240 ft", "fire command center", "ERRCS", "23 story", "23-story", "tower", "multi-story tower", "20+ stories", "10+ stories", "stories tall", "floors tall"],
+      "description": "Requirements for buildings with occupied floors >75ft above lowest fire department access. Tiered at 75ft, 120ft, and 240ft.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-code-key-sections.json", "path": "high_rise_requirements_summary", "role": "Tiered requirements at 75ft/120ft, new vs existing"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems.existing_building_retrofits.high_rise_over_120ft", "role": "High-rise sprinkler retrofit"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_5_fire_service_features", "role": "Fire command center, ERRCS, air replenishment"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-083]", "role": "Tall building (240+ ft) seismic design"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-105]", "role": "Voluntary sprinkler for pre-1974 high-rises"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["fire_department", "sprinkler_required", "seismic"]
+    },
+
+    "commercial_kitchen_hood": {
+      "canonical_name": "Commercial Kitchen Hood / Type I Hood",
+      "aliases": ["Type I hood", "kitchen hood", "hood suppression", "commercial cooking", "grease-laden vapors", "hood system", "NFPA 96", "UL 300", "commercial kitchen", "cooking equipment", "food preparation", "grease", "cooking hood", "restaurant kitchen", "ventilation hood"],
+      "description": "Automatic fire-extinguishing systems required for commercial cooking equipment producing grease-laden vapors. Service required every 6 months.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-code-key-sections.json", "path": "hood_suppression_commercial_kitchens", "role": "Complete hood system requirements, servicing, personnel"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.alternative_suppression_systems", "role": "Section 904 requirements"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["restaurant", "fire_department", "public_health"]
+    },
+
+    "restaurant": {
+      "canonical_name": "Restaurant Conversion / Build-Out",
+      "aliases": ["restaurant", "restaurant conversion", "food service", "commercial kitchen", "change of use to restaurant", "NC-2 restaurant", "restaurant permit", "food and beverage", "food handling", "dining", "cafe", "bar", "nightclub", "eat", "eatery"],
+      "description": "Converting a space to restaurant use — involves change-of-use, commercial kitchen, Type I hood, assembly occupancy, DPH, SFFD, and potentially Planning review.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "special_project_types.restaurant_change_of_use", "role": "10-step restaurant permitting process"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "assembly_occupancy_thresholds.group_A_2_food_drink", "role": "A-2 occupancy thresholds for restaurants"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "hood_suppression_commercial_kitchens", "role": "Hood/suppression requirements"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_C", "role": "Restaurant plumbing fees (6PA: ≤5 drains $543, 6PB: 6+ drains $1,525)"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "conditional_use_authorization", "role": "CU triggers for formula retail, late-night"},
+        {"file": "tier2/G-series/G-26.txt", "path": null, "role": "G-25 Restaurant Permitting FAQ (raw text, 6.5K)"}
+      ],
+      "decision_tree_step": "special",
+      "related_concepts": ["change_of_use", "commercial_kitchen_hood", "assembly_occupancy", "public_health", "fire_department", "section_311"]
+    },
+
+    "adu": {
+      "canonical_name": "Accessory Dwelling Unit (ADU)",
+      "aliases": ["ADU", "accessory dwelling unit", "in-law unit", "granny flat", "secondary unit", "junior ADU", "JADU"],
+      "description": "ADU construction or legalization — NOT OTC, but exempt from Section 311 notification and many historic review requirements.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "special_project_types.adu_construction", "role": "ADU permitting overview"},
+        {"file": "tier1/otc-criteria.json", "path": "not_otc_requires_inhouse", "role": "ADU explicitly listed as NOT OTC"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "neighborhood_notification", "role": "ADUs exempt from Section 311 notification"},
+        {"file": "tier2/G-series/G-24.txt", "path": null, "role": "G-23 ADU rules (raw text, 22.7K chars)"}
+      ],
+      "decision_tree_step": "special",
+      "related_concepts": ["inhouse_review", "planning_review", "priority_processing", "section_311"]
+    },
+
+    "change_of_use": {
+      "canonical_name": "Change of Use / Occupancy Classification Change",
+      "aliases": ["change of use", "change of occupancy", "occupancy change", "use change", "reclassification", "conversion", "convert", "converting", "converted to", "switch from", "repurpose", "new use", "different use", "retail to restaurant", "office to restaurant", "office to residential"],
+      "description": "Changing the occupancy classification of a building or space (e.g., retail→restaurant, office→residential). Triggers Planning review, potentially CU, and SFFD if assembly.",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "conditional_use_authorization", "role": "When change of use requires CU"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "zoning_district_exemptions", "role": "Principally permitted uses by district"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "decision_tree_key.triggers", "role": "Change of occupancy classification triggers SFFD"},
+        {"file": "tier1/G-20-routing.json", "path": "routing_matrix", "role": "G-20 routing for change-of-use project types"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["restaurant", "assembly_occupancy", "planning_review", "conditional_use"]
+    },
+
+    "commercial_ti": {
+      "canonical_name": "Commercial Tenant Improvement",
+      "aliases": ["tenant improvement", "TI", "commercial TI", "office buildout", "office renovation", "commercial build-out", "tenant buildout"],
+      "description": "Interior build-out of commercial/office space — often OTC-eligible but can be bumped to in-house by C-3 zoning or scope.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "special_project_types.commercial_tenant_improvement", "role": "TI routing and requirements"},
+        {"file": "tier1/otc-criteria.json", "path": "otc_with_plans", "role": "Commercial TI listed as OTC-eligible"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "building_permit_review.section_309", "role": "Section 309 C-3 complications"}
+      ],
+      "decision_tree_step": "special",
+      "related_concepts": ["otc_review", "section_309", "disability_access"]
+    },
+
+    "seismic": {
+      "canonical_name": "Seismic Retrofit / Soft Story",
+      "aliases": ["seismic", "earthquake", "soft story", "seismic retrofit", "URM", "unreinforced masonry", "AB-094", "AB-106", "mandatory retrofit", "earthquake safety"],
+      "description": "Seismic retrofit requirements including mandatory soft-story retrofit (AB-094/106), URM retrofit (Table 1A-S), and voluntary programs.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-094]", "role": "Mandatory Soft-Story Retrofit Program"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-106]", "role": "Chapter 5E Soft-Story compliance"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-107]", "role": "Engineering criteria for soft-story (1,425 lines)"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-113]", "role": "Mandatory concrete building seismic program (newest, July 2025)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_S", "role": "URM Building Retrofit fees"},
+        {"file": "decision-tree-draft.json", "path": "special_project_types.seismic_retrofit", "role": "Seismic retrofit permitting overview"}
+      ],
+      "decision_tree_step": "special",
+      "related_concepts": ["priority_processing", "structural_review"]
+    },
+
+    "priority_processing": {
+      "canonical_name": "Priority Permit Processing (AB-004)",
+      "aliases": ["priority processing", "AB-004", "expedited review", "priority permit", "fast track", "priority review"],
+      "description": "Expedited permit processing for eligible project types: emergency, ADA, clean energy, seismic, housing, ADU.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-004]", "role": "AB-004 index entry with line range"},
+        {"file": "tier3/AB-004.txt", "path": null, "role": "Full text of AB-004 (29K chars)"},
+        {"file": "decision-tree-draft.json", "path": "steps[5].estimates", "role": "Timeline estimates for priority processing"}
+      ],
+      "decision_tree_step": 6,
+      "related_concepts": ["timeline", "seismic", "adu", "solar"]
+    },
+
+    "site_permit": {
+      "canonical_name": "Site Permit (AB-032)",
+      "aliases": ["site permit", "AB-032", "phased permit", "addenda", "site permit addendum"],
+      "description": "An iterative permitting pathway for large/complex projects, allowing phased construction with 4+ payment stages.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-032]", "role": "AB-032 index entry with line range"},
+        {"file": "tier3/AB-032.txt", "path": null, "role": "Full text of AB-032 (48K chars)"},
+        {"file": "decision-tree-draft.json", "path": "steps[2].full_vs_site_permit", "role": "Full vs Site permit comparison"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["inhouse_review", "timeline"]
+    },
+
+    "completeness_checklist": {
+      "canonical_name": "Completeness / Pre-Plan Check Checklist",
+      "aliases": ["completeness", "completeness check", "pre-plan check", "plan check checklist", "application checklist", "what documents do I need"],
+      "description": "The 13-section checklist that DBI uses to determine if a permit application is complete enough to enter review.",
+      "authoritative_sources": [
+        {"file": "tier1/completeness-checklist.json", "path": "sections", "role": "13 checklist sections with all required items"},
+        {"file": "tier1/completeness-checklist.json", "path": "completeness_process", "role": "Process details (up to 3 rounds)"},
+        {"file": "decision-tree-draft.json", "path": "steps[4]", "role": "Step 5: Required Documents"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["inhouse_review", "required_documents"],
+      "ask_amy": "What are the top 3 specific items that cause rejections?"
+    },
+
+    "required_documents": {
+      "canonical_name": "Required Documents for Submission",
+      "aliases": ["required documents", "what to submit", "plan submission", "supporting documents", "construction documents", "Title 24", "green building form"],
+      "description": "Universal and conditional document requirements for permit applications.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "steps[4].universal_requirements", "role": "4 always-required documents"},
+        {"file": "decision-tree-draft.json", "path": "steps[4].conditional_requirements", "role": "13 conditional documents with triggers"},
+        {"file": "tier1/completeness-checklist.json", "path": "sections", "role": "Detailed checklist by section"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["completeness_checklist", "permit_forms"]
+    },
+
+    "timeline": {
+      "canonical_name": "Permit Timeline Estimates",
+      "aliases": ["how long", "timeline", "turnaround", "processing time", "how many weeks", "when will I get my permit"],
+      "description": "Estimated timeframes for different permit pathways. OTC: same day. In-house: 4-16+ weeks. CU: 3+ months.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "steps[5]", "role": "Step 6: Timeline estimates for 6 scenarios"},
+        {"file": "tier1/inhouse-review-process.json", "path": "steps", "role": "In-house review process steps with approximate timeframes"}
+      ],
+      "decision_tree_step": 6,
+      "related_concepts": ["priority_processing", "site_permit"],
+      "ask_amy": "What's the real timeline for a typical residential alteration from application to approved permit?"
+    },
+
+    "public_health": {
+      "canonical_name": "Department of Public Health (DPH) Review",
+      "aliases": ["DPH", "public health", "health department", "food facility", "Maher Ordinance", "Article 31", "contaminated soil", "cannabis"],
+      "description": "DPH review triggered by food preparation facilities, cannabis operations, and Maher Ordinance environmental contamination sites.",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "agencies.DPH", "role": "G-20 DPH routing triggers"},
+        {"file": "decision-tree-draft.json", "path": "steps[3].agencies.DPH", "role": "DPH triggers: food facilities, cannabis, Maher/Article 31"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["restaurant", "agency_routing"]
+    },
+
+    "disability_access": {
+      "canonical_name": "Disability Access / ADA Compliance",
+      "aliases": ["ADA", "disabled access", "accessibility", "MOD", "disability access", "CASp", "AB-013", "accessible path of travel", "accessible", "wheelchair", "handicap", "access compliance"],
+      "description": "ADA and California accessibility requirements for commercial and public accommodations, including path-of-travel triggers.",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "agencies.PW_DAC", "role": "G-20 Disability Access Coordinator routing"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-013]", "role": "AB-013: Historic building disabled access"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-015]", "role": "AB-015: Disabled access compliance"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-017]", "role": "AB-017: Accessible path of travel"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-056]", "role": "AB-056: Accessibility requirements"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["agency_routing", "commercial_ti"]
+    },
+
+    "sfpuc": {
+      "canonical_name": "SFPUC (Water/Sewer/Stormwater) Review",
+      "aliases": ["SFPUC", "PUC", "water service", "sewer", "stormwater", "stormwater management", "5000 sq ft", "water reuse"],
+      "description": "San Francisco Public Utilities Commission review for water service connections, sewer capacity, and stormwater management (triggered at 5,000+ sq ft impervious surface).",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "agencies.PUC", "role": "G-20 SFPUC routing triggers"},
+        {"file": "decision-tree-draft.json", "path": "steps[3].agencies.PUC", "role": "PUC triggers: water service, stormwater 5000+ sqft"},
+        {"file": "decision-tree-draft.json", "path": "pre_application_checklist", "role": "Stormwater pre-application requirement and 40,000 sqft water reuse trigger"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["agency_routing"]
+    },
+
+    "green_building": {
+      "canonical_name": "Green Building Requirements",
+      "aliases": ["green building", "GS1", "GS2", "GS3", "GS4", "GS5", "GS6", "Title 24", "energy compliance", "AB-093", "AB-112", "all-electric"],
+      "description": "San Francisco green building requirements, Title 24 energy compliance, and the all-electric new construction mandate (AB-112).",
+      "authoritative_sources": [
+        {"file": "tier1/permit-forms-taxonomy.json", "path": "green_building_forms", "role": "6 green building forms (GS1-GS6)"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-093]", "role": "AB-093: Green building regulations implementation"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-088]", "role": "AB-088: Green building requirements"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-112]", "role": "AB-112: All-electric new construction"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_N", "role": "Energy conservation fees"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["required_documents", "solar"]
+    },
+
+    "solar": {
+      "canonical_name": "Solar / Clean Energy Permits",
+      "aliases": ["solar", "solar panels", "PV", "photovoltaic", "clean energy", "battery storage", "EV charging"],
+      "description": "Solar PV, battery storage, and EV charging permits — often eligible for AB-004 priority processing.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "special_project_types.solar_clean_energy", "role": "Solar/clean energy permitting overview"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_E", "role": "Electrical fees for solar PV installations"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_3_general_precautions", "role": "E-bike/scooter charging threshold (5+ devices)"}
+      ],
+      "decision_tree_step": "special",
+      "related_concepts": ["priority_processing", "green_building"]
+    },
+
+    "demolition": {
+      "canonical_name": "Demolition Permit",
+      "aliases": ["demolition", "demo", "tear down", "demolish", "Form 6", "BAAQMD"],
+      "description": "Demolition of existing structures — requires Form 6, asbestos survey, BAAQMD notification, and potentially Section 317 CU review for residential.",
+      "authoritative_sources": [
+        {"file": "tier1/permit-forms-taxonomy.json", "path": "permit_forms", "role": "Form 6 for demolition"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "residential_unit_loss", "role": "Section 317 residential demolition requiring CU"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_G", "role": "Demolition inspection fee ($646)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_L", "role": "Demolition notification fees"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-036]", "role": "AB-036: Special inspection for demolition"}
+      ],
+      "decision_tree_step": 2,
+      "related_concepts": ["permit_forms", "planning_review", "conditional_use"]
+    },
+
+    "penalty_fees": {
+      "canonical_name": "Penalty Fees / Work Without Permit",
+      "aliases": ["penalty", "work without permit", "violation", "code enforcement", "unpermitted work", "legalization"],
+      "description": "Penalties for work done without permits: 9x the permit issuance fee plus the original fee. Legalization processes.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_K", "role": "Penalty fees: 9x permit issuance + original, vacant building registration"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-027]", "role": "AB-027: Code enforcement procedures"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["fee_calculation"]
+    },
+
+    "school_impact_fee": {
+      "canonical_name": "School Impact Fee",
+      "aliases": ["school fee", "SFUSD fee", "school impact", "school impaction"],
+      "description": "SFUSD fees calculated by DBI based on new commercial floor area. Must be paid PRIOR to permit issuance.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "steps[6].fee_structure", "role": "School Impact Fee: commercial floor area increase, references G-11"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["fee_calculation"]
+    },
+
+    "structural_review": {
+      "canonical_name": "Structural Design / Peer Review",
+      "aliases": ["structural", "structural review", "peer review", "AB-082", "geotechnical", "AB-111", "structural engineer"],
+      "description": "Structural design review and peer review requirements, especially for tall buildings and complex seismic designs.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-082]", "role": "AB-082: Structural/geotechnical design review (530 lines)"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-084]", "role": "AB-084: Structural design requirements"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-111]", "role": "AB-111: Geotechnical reports (810 lines)"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["seismic", "high_rise"]
+    },
+
+    "special_inspections": {
+      "canonical_name": "Special Inspections",
+      "aliases": ["special inspection", "AB-046", "AB-047", "inspection requirements"],
+      "description": "When special inspections are required during construction — structural work, smoke control, sprinkler systems.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-046]", "role": "AB-046: Special inspection requirements"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-047]", "role": "AB-047: Smoke control submittal criteria (866 lines)"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-036]", "role": "AB-036: Demolition special inspection"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["structural_review", "fire_department"]
+    },
+
+    "adaptive_reuse": {
+      "canonical_name": "Commercial-to-Residential Adaptive Reuse",
+      "aliases": ["adaptive reuse", "conversion to residential", "office to residential", "commercial to residential", "G-29"],
+      "description": "Converting commercial/office buildings to residential use — detailed guidelines in G-29.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "special_project_types.adaptive_reuse", "role": "Adaptive reuse overview, references G-29"},
+        {"file": "tier2/S-series/S-03.txt", "path": null, "role": "G-29 full text (34K chars) — misplaced in S-series due to naming offset"}
+      ],
+      "decision_tree_step": "special",
+      "related_concepts": ["change_of_use", "planning_review"]
+    },
+
+    "facade_inspection": {
+      "canonical_name": "Building Facade Inspection (AB-110)",
+      "aliases": ["facade inspection", "AB-110", "building exterior", "facade maintenance", "6 story"],
+      "description": "Mandatory facade inspection program for buildings 6+ stories — periodic inspection and maintenance requirements.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-110]", "role": "AB-110: Facade inspection and maintenance"},
+        {"file": "tier3/AB-110.txt", "path": null, "role": "Full text of AB-110 (28K chars)"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["high_rise"]
+    },
+
+    "local_equivalency": {
+      "canonical_name": "Local Equivalency (AB-005)",
+      "aliases": ["local equivalency", "AB-005", "alternate means", "code alternative", "Board of Examiners"],
+      "description": "Procedure for approving local equivalencies — alternative methods or materials that meet code intent without literal compliance.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-005]", "role": "AB-005: Master local equivalency procedure"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-042]", "role": "AB-042: Board of Examiners escalation"},
+        {"file": "tier3/AB-005.txt", "path": null, "role": "Full text of AB-005 (31K chars)"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["structural_review"]
+    },
+
+    "permit_consultant": {
+      "canonical_name": "Permit Consultant / Expediter",
+      "aliases": ["permit consultant", "expediter", "permit expediter", "3S LLC", "Amy Lee", "permit agent", "authorized agent"],
+      "description": "Registered permit consultants/expediters who navigate the DBI process on behalf of clients.",
+      "authoritative_sources": [
+        {"file": "tier1/permit-consultants-registry.json", "path": "consultants", "role": "167 registered consultant filings"},
+        {"file": "tier1/permit-consultants-registry.json", "path": "amy_lee_profile", "role": "Amy Lee profile: 3S LLC, rank #42, 117 DBI permits"},
+        {"file": "tier1/permit-consultants-registry.json", "path": "dbi_expediter_rankings", "role": "Top 50 expediters by permit volume"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": []
+    },
+
+    "ocii": {
+      "canonical_name": "OCII (Office of Community Investment and Infrastructure)",
+      "aliases": ["OCII", "community investment", "redevelopment", "Hunters Point", "Mission Bay", "Treasure Island"],
+      "description": "OCII routes INSTEAD of Planning in designated redevelopment areas (Mission Bay, Hunters Point, Treasure Island, etc.).",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "agencies.OCII", "role": "G-20 OCII routing (replaces Planning in OCII areas)"},
+        {"file": "decision-tree-draft.json", "path": "steps[3].agencies.OCII", "role": "OCII triggers and process"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["agency_routing", "planning_review"]
+    },
+
+    "dpw_streets": {
+      "canonical_name": "DPW / Bureau of Street-Use and Mapping",
+      "aliases": ["DPW", "BSM", "street use", "sidewalk", "curb cut", "right of way", "parklet", "street space"],
+      "description": "DPW review for projects affecting the public right-of-way — curb cuts, sidewalk work, parklets, street-space permits.",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "agencies.BSM", "role": "G-20 BSM routing triggers"},
+        {"file": "decision-tree-draft.json", "path": "steps[3].agencies.BSM", "role": "BSM triggers: right-of-way entry/exit, curb cuts"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["agency_routing", "restaurant"]
+    },
+
+    "back_check": {
+      "canonical_name": "Back Check / Plan Revision",
+      "aliases": ["back check", "plan revision", "revision", "addenda", "resubmittal", "correction sheet"],
+      "description": "The re-review process after DBI issues comments on submitted plans. Up to 3 rounds before escalation.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_B", "role": "Back check fees (first back check included, subsequent hourly)"},
+        {"file": "tier1/inhouse-review-process.json", "path": "steps", "role": "Back check process within in-house review"},
+        {"file": "decision-tree-draft.json", "path": "steps[2].inhouse_review_details", "role": "3-round escalation rule"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["inhouse_review", "fee_calculation"]
+    },
+
+    "premium_review": {
+      "canonical_name": "Premium Plan Review",
+      "aliases": ["premium review", "accelerated review", "premium plan check"],
+      "description": "Paid expedited plan review service — 50% surcharge plus $1,000 flat fee on top of standard plan review fees.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_B", "role": "Premium review fee: 50% + $1,000 flat"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["fee_calculation", "priority_processing"]
+    },
+
+    "pre_application": {
+      "canonical_name": "Pre-Application Review",
+      "aliases": ["pre-application", "pre-app", "pre-application meeting", "pre-application review", "AB-028"],
+      "description": "Optional or required pre-application meeting with DBI/agencies before formal submission. $368/hr, minimum 4 hours for complex projects.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_B", "role": "Pre-application review fees ($368/hr, 4hr min)"},
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-028]", "role": "AB-028: Pre-application review routing"},
+        {"file": "decision-tree-draft.json", "path": "pre_application_checklist", "role": "11 pre-application requirements"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_1_administration", "role": "SFFD pre-application review fee ($544)"}
+      ],
+      "decision_tree_step": 0,
+      "related_concepts": ["agency_routing", "completeness_checklist"]
+    },
+
+    "refund": {
+      "canonical_name": "Permit Fee Refund",
+      "aliases": ["refund", "fee refund", "cancel permit", "withdraw application"],
+      "description": "Refund policies for permit fees — $357 minimum processing fee deducted, no refund after work starts.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_R", "role": "Refund policies: amount paid less $357, no refund after work starts"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["fee_calculation"]
+    },
+
+    "formula_retail": {
+      "canonical_name": "Formula Retail / Chain Store Review",
+      "aliases": ["formula retail", "chain store", "Section 303.1", "formula restaurant"],
+      "description": "Special Planning review required for retail/restaurant businesses that are part of chains with 11+ locations worldwide.",
+      "authoritative_sources": [
+        {"file": "tier1/planning-code-key-sections.json", "path": "conditional_use_authorization", "role": "Formula retail CU triggers"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["conditional_use", "restaurant", "planning_review"]
+    },
+
+    "window_replacement": {
+      "canonical_name": "Window Replacement",
+      "aliases": ["window replacement", "new windows", "double pane", "window upgrade", "energy efficient windows"],
+      "description": "Window replacement permits — OTC-eligible for standard replacement, but complicated by historic district requirements.",
+      "authoritative_sources": [
+        {"file": "tier1/otc-criteria.json", "path": "otc_with_plans", "role": "Window replacement listed as OTC-eligible"},
+        {"file": "tier1/planning-code-key-sections.json", "path": "historic_preservation", "role": "Historic districts require COA for exterior changes including windows"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["otc_review", "historic_preservation"]
+    },
+
+    "kitchen_remodel": {
+      "canonical_name": "Kitchen Remodel",
+      "aliases": ["kitchen remodel", "kitchen renovation", "kitchen upgrade", "move sink", "kitchen layout", "remodel my kitchen", "kitchen cabinets", "kitchen counters", "kitchen island", "recessed lights", "kitchen lighting"],
+      "description": "Kitchen remodel permits — OTC if layout-changing (with plans), may trigger plumbing/electrical sub-permits for moved fixtures.",
+      "authoritative_sources": [
+        {"file": "tier1/otc-criteria.json", "path": "otc_with_plans", "role": "Layout-changing remodels are OTC with plans"},
+        {"file": "tier1/otc-criteria.json", "path": "otc_without_plans", "role": "In-kind kitchen/bath replacement is OTC without plans"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_A", "role": "Building permit fees by valuation"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_C", "role": "Plumbing fees for single residential (1P: $276)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_E", "role": "Electrical fees for residential wiring"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["otc_review", "fee_calculation", "permit_forms"]
+    },
+
+    "residential_remodel": {
+      "canonical_name": "Residential Alteration / Remodel",
+      "aliases": ["residential remodel", "home renovation", "house remodel", "residential alteration", "bathroom remodel", "basement conversion"],
+      "description": "Broad category of residential renovation work — routing depends on scope (OTC for simple, in-house for structural/unit changes).",
+      "authoritative_sources": [
+        {"file": "tier1/otc-criteria.json", "path": "otc_with_plans", "role": "OTC-eligible residential project types"},
+        {"file": "tier1/otc-criteria.json", "path": "not_otc_requires_inhouse", "role": "Residential projects requiring in-house (ADU, unit changes, etc.)"},
+        {"file": "tier1/completeness-checklist.json", "path": "sections", "role": "Residential pre-plan check checklist"},
+        {"file": "decision-tree-draft.json", "path": "steps", "role": "Full 7-step decision tree"}
+      ],
+      "decision_tree_step": "all",
+      "related_concepts": ["otc_review", "inhouse_review", "kitchen_remodel", "adu", "completeness_checklist"]
+    },
+
+    "electronic_plan_review": {
+      "canonical_name": "Electronic Plan Review (EPR) / Bluebeam",
+      "aliases": ["EPR", "electronic plan review", "Bluebeam", "digital plans", "PDF submission", "electronic submission"],
+      "description": "Since January 1, 2024, DBI requires 100% electronic plan review through Bluebeam Studio. All plans must be submitted as PDF.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "steps[4].plan_format", "role": "Plan format requirements (PDF, 11x17\", 2 sets)"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["required_documents", "completeness_checklist"],
+      "ask_amy": "Has the shift to 100% EPR changed anything about how you prepare submissions?"
+    },
+
+    "permit_expiration": {
+      "canonical_name": "Permit Expiration and Renewal",
+      "aliases": ["permit expiration", "expired permit", "permit renewal", "permit extension"],
+      "description": "Rules for permit expiration timelines and renewal processes.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_J", "role": "Permit extension fees"},
+        {"file": "decision-tree-draft.json", "path": "steps[5].process_notes", "role": "Timeline-related notes"}
+      ],
+      "decision_tree_step": 6,
+      "related_concepts": ["timeline"],
+      "gap": "GAP-14: Expiration timelines and renewal process not fully documented"
+    },
+
+    "noise_insulation": {
+      "canonical_name": "Noise Insulation / Acoustical Requirements",
+      "aliases": ["noise", "acoustical", "sound insulation", "AB-026", "STC rating"],
+      "description": "Acoustical insulation requirements for residential construction, particularly near transit corridors.",
+      "authoritative_sources": [
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-026]", "role": "AB-026: Noise insulation requirements"},
+        {"file": "decision-tree-draft.json", "path": "steps[4].conditional_requirements", "role": "Acoustical report requirement for new residential"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["required_documents"]
+    },
+
+    "hotel_conversion": {
+      "canonical_name": "Hotel Conversion / SRO Regulations",
+      "aliases": ["hotel conversion", "SRO", "residential hotel", "hotel ordinance", "tourist hotel"],
+      "description": "San Francisco hotel conversion ordinance — annual reporting, conversion permits, and fee schedules.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_Q", "role": "Hotel Conversion Ordinance Fees (8 items)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_P", "role": "Residential code enforcement and license fees for apartment/hotel"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems.existing_building_retrofits.sro_hotels", "role": "SRO hotel sprinkler requirements (20+ rooms)"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["fee_calculation", "sprinkler_required"]
+    },
+
+    "construction_waste": {
+      "canonical_name": "Construction Waste Management",
+      "aliases": ["construction waste", "C&D waste", "demolition waste", "waste management plan", "recycling"],
+      "description": "Construction waste management requirements — triggered by new construction, commercial additions 1000+ sqft, or remodels $200K+.",
+      "authoritative_sources": [
+        {"file": "decision-tree-draft.json", "path": "steps[4].conditional_requirements", "role": "Construction Waste Management triggers"},
+        {"file": "decision-tree-draft.json", "path": "pre_application_checklist", "role": "Dept of Environment tracking requirement"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["required_documents", "green_building"]
+    },
+
+    "condo_conversion": {
+      "canonical_name": "Condominium Conversion",
+      "aliases": ["condo conversion", "condominium", "condo", "TIC to condo", "condo survey"],
+      "description": "Converting rental units or TICs to condominiums — requires survey, plumbing/mechanical inspection, and specific fees.",
+      "authoritative_sources": [
+        {"file": "tier1/fee-tables.json", "path": "table_1A_G", "role": "Condo survey/inspection fees ($3,700-$5,159+)"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_C", "role": "Condo conversion plumbing/mechanical fee (10P/M: $617)"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["fee_calculation"]
+    },
+
+    "e_bike_charging": {
+      "canonical_name": "E-Bike / Powered Mobility Device Charging",
+      "aliases": ["e-bike", "electric scooter", "powered mobility device", "lithium battery", "battery charging"],
+      "description": "New 2024 requirement: 5+ powered mobility devices charging indoors triggers sprinkler and fire alarm requirements.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_3_general_precautions", "role": "E-bike/scooter storage and charging requirements"},
+        {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems.new_building_triggers.e_bike_charging_5_plus", "role": "5+ device sprinkler trigger"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["fire_department", "sprinkler_required"]
+    },
+
+    "controller_bond": {
+      "canonical_name": "Controller / Labor Compliance Bond",
+      "aliases": ["controller", "labor compliance", "bond", "10 units", "housing bond", "multi-residential", "10+ units", "large residential", "multi-unit residential", "housing project", "apartment project", "residential tower"],
+      "description": "Controller review and labor compliance bond required for multi-residential projects with 10+ housing units.",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "agencies.CON_BOND", "role": "G-20 Controller routing triggers"},
+        {"file": "decision-tree-draft.json", "path": "steps[3].agencies.CON_BOND", "role": "10+ housing unit trigger with exceptions"},
+        {"file": "decision-tree-draft.json", "path": "pre_application_checklist", "role": "Labor compliance bond pre-application requirement"}
+      ],
+      "decision_tree_step": 4,
+      "related_concepts": ["agency_routing"]
+    }
+  }
+}

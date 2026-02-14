@@ -1,0 +1,729 @@
+{
+  "metadata": {
+    "source_file": "data/knowledge/tier4/sf-bicc-fire-codes-full.txt",
+    "source_description": "2022 San Francisco Building Inspection Commission Codes (Building, Fire, etc.)",
+    "index_section_lines": [35712, 35780],
+    "full_text_section_lines": [35781, 47124],
+    "total_ab_count": 47,
+    "date_indexed": "2026-02-13",
+    "notes": "All 47 Administrative Bulletins printed in the 2022 SF Building Code. Line numbers are 1-indexed."
+  },
+  "administrative_bulletins": [
+    {
+      "number": "AB-001",
+      "title": "Preparing Administrative Bulletins",
+      "subject": "General Administrative Procedures",
+      "date": "November 18, 1998 (Updated 01/01/2023)",
+      "line_range": [35781, 35870],
+      "line_count": 90,
+      "subject_area": "administrative",
+      "relevance_to_decision_tree": {
+        "level": "low",
+        "explanation": "Internal DBI procedure for creating ABs. Not relevant to permit routing or requirements."
+      }
+    },
+    {
+      "number": "AB-004",
+      "title": "Priority Permit Processing Guidelines",
+      "subject": "Permit Processing and Issuance",
+      "date": "December 15, 2022",
+      "line_range": [35871, 36045],
+      "line_count": 175,
+      "subject_area": "permit_processing",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Defines which permits qualify for priority processing (emergency, disabled access, clean energy, seismic, affordable housing, ADU/JADU, historic, NOV compliance). Critical for routing and timeline estimates."
+      }
+    },
+    {
+      "number": "AB-005",
+      "title": "Procedures for Approval of Local Equivalencies",
+      "subject": "Plan Review and Permit Process",
+      "date": "September 18, 2002 (Updated 1/1/2023)",
+      "line_range": [36046, 36137],
+      "line_count": 92,
+      "subject_area": "local_equivalency",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Master procedure for all local equivalency requests. When code compliance is impractical, this AB governs the alternate approval path. Referenced by AB-009, AB-010, AB-018, AB-019, AB-020, AB-057."
+      }
+    },
+    {
+      "number": "AB-009",
+      "title": "Local Equivalency for Approval of New Openings in New and Existing Building Property Line Walls",
+      "subject": "Fire and Life Safety",
+      "date": "September 18, 2002 (Updated 1/1/2023)",
+      "line_range": [36138, 36261],
+      "line_count": 124,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Applies when projects propose property-line wall openings. Triggers local equivalency review, fire sprinkler requirements, and Declaration of Use Limitation recording."
+      }
+    },
+    {
+      "number": "AB-010",
+      "title": "Local Equivalency for Approval of Communicating Openings Between Buildings on Separate Properties",
+      "subject": "Fire and Life Safety",
+      "date": "September 18, 2002 (Updated 1/1/2023)",
+      "line_range": [36262, 36395],
+      "line_count": 134,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Applies when projects connect buildings across property lines. Triggers fire assembly, sprinkler, and structural review requirements plus Declaration of Use Limitation."
+      }
+    },
+    {
+      "number": "AB-013",
+      "title": "Application of Disabled Access Provisions to Historic Buildings",
+      "subject": "Disabled Access",
+      "date": "September 18, 2002 (Updated 1/1/2023)",
+      "line_range": [36396, 36492],
+      "line_count": 97,
+      "subject_area": "accessibility",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Governs when historic buildings can use State Historical Building Code alternatives for disabled access. Key routing decision: is building historic AND does work affect access? Routes to Access Appeals Commission if needed."
+      }
+    },
+    {
+      "number": "AB-015",
+      "title": "Allowable Temporary Interruptions to Disabled Access",
+      "subject": "Disabled Access",
+      "date": "September 16, 1998 (Updated 1/1/2023)",
+      "line_range": [36493, 36545],
+      "line_count": 53,
+      "subject_area": "accessibility",
+      "relevance_to_decision_tree": {
+        "level": "low",
+        "explanation": "Narrow scope: addresses temporary interruptions like fire door hold-opens during testing. Not a major permit routing factor."
+      }
+    },
+    {
+      "number": "AB-017",
+      "title": "Exception to Requirements for Disabled Access to Vacant Spaces",
+      "subject": "Disabled Access",
+      "date": "September 16, 1998 (Updated 1/1/2023)",
+      "line_range": [36546, 36601],
+      "line_count": 56,
+      "subject_area": "accessibility",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Relevant for vacant building reoccupancy: access features not required until space is reoccupied, but permit required before reoccupancy to correct violations. Affects enforcement routing."
+      }
+    },
+    {
+      "number": "AB-018",
+      "title": "Local Equivalency for Approval of Emergency Escape or Rescue Windows at Courts and Light Wells",
+      "subject": "Fire and Life Safety",
+      "date": "September 18, 2002 (Updated 1/1/2023)",
+      "line_range": [36602, 36699],
+      "line_count": 98,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Applies to residential projects with emergency escape windows opening into courts/lightwells. Requires sprinklers, fire-rated roof, and alternate egress path. Common in dense SF building stock."
+      }
+    },
+    {
+      "number": "AB-019",
+      "title": "Local Equivalency for Approval of Fire Escapes as a Required Means of Egress",
+      "subject": "Fire and Life Safety",
+      "date": "September 18, 2002 (Updated 1/1/2023)",
+      "line_range": [36700, 37026],
+      "line_count": 327,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Critical for existing building renovations. Fire escapes are extremely common in older SF buildings. This AB defines when they can serve as required egress, with detailed construction/rating requirements. Frequently triggered in alteration permits."
+      }
+    },
+    {
+      "number": "AB-020",
+      "title": "Local Equivalency for Exiting Through a Garage Area for Type V, Group R Buildings",
+      "subject": "Fire and Life Safety",
+      "date": "September 18, 2002 (Updated 1/1/2023)",
+      "line_range": [37027, 37130],
+      "line_count": 104,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Common in SF residential: exiting through garage in wood-frame buildings. Triggers fire separation, sprinkler, and CO detection requirements."
+      }
+    },
+    {
+      "number": "AB-023",
+      "title": "Crane Site Safety Plan and Building Permits",
+      "subject": "Plan Review; Permit Process",
+      "date": "March 18, 2009 (Updated 1/1/2023)",
+      "line_range": [37131, 37283],
+      "line_count": 153,
+      "subject_area": "construction_safety",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Required for any project using tower cranes. Triggers separate crane permit and safety plan review. Relevant for large new construction and major alteration projects."
+      }
+    },
+    {
+      "number": "AB-025",
+      "title": "Preapplication Requirement for State Industrial Safety Permit for Certain Trenching, Demolition, and Construction Activities",
+      "subject": "Permit Process; Inspection",
+      "date": "October 30, 1984 (Updated 01/01/2023)",
+      "line_range": [37284, 37338],
+      "line_count": 55,
+      "subject_area": "permit_processing",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Requires Cal/OSHA Industrial Safety Permit BEFORE DBI permit issuance for trenching, demolition, and certain construction. Key pre-application routing requirement."
+      }
+    },
+    {
+      "number": "AB-026",
+      "title": "Noise Insulation Enforcement Procedures",
+      "subject": "Plan Check; Inspection",
+      "date": "December 21, 1984 (Updated 01/01/2023)",
+      "line_range": [37339, 37481],
+      "line_count": 143,
+      "subject_area": "noise_insulation",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Applies to new residential construction near freeways, airports, and high-noise areas. Triggers acoustic testing requirements and special inspection."
+      }
+    },
+    {
+      "number": "AB-027",
+      "title": "Illegal Unit Reoccupancy Enforcement Procedure",
+      "subject": "Code Enforcement",
+      "date": "February 5, 1985 (Updated 01/01/2023)",
+      "line_range": [37482, 37514],
+      "line_count": 33,
+      "subject_area": "code_enforcement",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Relevant for repeat violations of illegal unit reoccupancy. Affects enforcement escalation routing and penalty procedures."
+      }
+    },
+    {
+      "number": "AB-028",
+      "title": "Pre-application and Pre-addendum Plan Review Procedures",
+      "subject": "General Administrative Procedures",
+      "date": "April 3, 2013 (Updated 01/01/2023)",
+      "line_range": [37515, 37674],
+      "line_count": 160,
+      "subject_area": "permit_processing",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Establishes pre-application meeting procedures. Critical routing decision: complex projects should be routed through pre-app review before formal submittal. Referenced by many other ABs."
+      }
+    },
+    {
+      "number": "AB-031",
+      "title": "Identification of Revisions on Pages of Drawings",
+      "subject": "Plan Review",
+      "date": "June 21, 1984 (Updated 01/01/2023)",
+      "line_range": [37675, 37703],
+      "line_count": 29,
+      "subject_area": "plan_review",
+      "relevance_to_decision_tree": {
+        "level": "low",
+        "explanation": "Submittal formatting requirement for revised drawings. Not a routing decision but affects plan review completeness checks."
+      }
+    },
+    {
+      "number": "AB-032",
+      "title": "Site Permit Processing",
+      "subject": "Permit Process",
+      "date": "November 16, 2016 (Updated 1/01/2023)",
+      "line_range": [37704, 38060],
+      "line_count": 357,
+      "subject_area": "permit_processing",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Defines site permit process allowing construction to begin before all plans are complete. Critical for large projects. Establishes phased permit issuance (site permit + addenda). Major routing pathway for new construction."
+      }
+    },
+    {
+      "number": "AB-035",
+      "title": "Procedure for Assigning Street Numbers (Addresses)",
+      "subject": "General Administrative Procedures",
+      "date": "January 19, 2011 (Updated 01/01/2023)",
+      "line_range": [38061, 38217],
+      "line_count": 157,
+      "subject_area": "administrative",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Required for new buildings, subdivisions, and projects creating new tenant spaces. Triggers address assignment process which affects permit issuance sequencing."
+      }
+    },
+    {
+      "number": "AB-036",
+      "title": "Special Inspection for Demolition Work",
+      "subject": "Inspection",
+      "date": "October 20, 1993 (Updated 01/01/2023)",
+      "line_range": [38218, 38304],
+      "line_count": 87,
+      "subject_area": "inspection",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Requires special inspector for demolition of Type I-IV buildings over 2 stories/25 feet. Key routing trigger for demolition permits: determines if special inspection is required."
+      }
+    },
+    {
+      "number": "AB-040",
+      "title": "Referral of Design Professionals and Contractors to Regulatory Agencies",
+      "subject": "General Administrative Procedures",
+      "date": "March 23, 2002 (Updated 01/01/2023)",
+      "line_range": [38305, 38400],
+      "line_count": 96,
+      "subject_area": "administrative",
+      "relevance_to_decision_tree": {
+        "level": "low",
+        "explanation": "Internal DBI procedure for referring professionals to State License Boards. Not directly relevant to permit routing."
+      }
+    },
+    {
+      "number": "AB-042",
+      "title": "Board of Examiners: Request for Variance, New Materials, or Alternate Methods of Construction",
+      "subject": "Plan Review; Permit Process",
+      "date": "September 18, 2002 (Updated 01/01/2023)",
+      "line_range": [38401, 38537],
+      "line_count": 137,
+      "subject_area": "variance",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Defines when and how to route projects to the Board of Examiners for variances, new materials, or alternate construction methods. Key escalation path when standard code compliance is not feasible."
+      }
+    },
+    {
+      "number": "AB-043",
+      "title": "Ventilation of Public Spaces in Group R Occupancies",
+      "subject": "Plan Review; Permit Process",
+      "date": "September 18, 2002 (Updated 01/01/2023)",
+      "line_range": [38538, 38617],
+      "line_count": 80,
+      "subject_area": "mechanical",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Provides ventilation guidelines for residential building common areas (lobbies, corridors, laundry rooms). Affects mechanical plan review requirements for Group R occupancy permits."
+      }
+    },
+    {
+      "number": "AB-046",
+      "title": "Special Inspection and Structural Observation Documentation Procedures",
+      "subject": "Permit Process; Inspection",
+      "date": "September 18, 2002 (Updated 01/01/2023)",
+      "line_range": [38618, 38889],
+      "line_count": 272,
+      "subject_area": "structural_inspection",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Comprehensive procedures for special inspection and structural observation. Defines when special inspections are required, documentation requirements, and inspector qualifications. Affects nearly all structural permits."
+      }
+    },
+    {
+      "number": "AB-047",
+      "title": "Specific Submittal Criteria for Reports, Special Inspections and Final Acceptance Testing of Smoke Control Systems",
+      "subject": "Smoke Control Systems",
+      "date": "December 12, 2016 (Updated 01/01/2023)",
+      "line_range": [38890, 39755],
+      "line_count": 866,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Longest AB. Detailed requirements for smoke control system design, submittal, testing, and acceptance. Required for high-rises, atriums, underground structures, and smoke-proof enclosures. Major routing trigger for fire/life safety review."
+      }
+    },
+    {
+      "number": "AB-056",
+      "title": "Disabled Access Compliance Status Documentation",
+      "subject": "Disabled Access",
+      "date": "March 8, 2005 (Updated 01/01/2023)",
+      "line_range": [39756, 39911],
+      "line_count": 156,
+      "subject_area": "accessibility",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Establishes procedure for documenting building accessibility compliance status. Creates CASp-like documentation pathway. Affects all commercial and public building permits regarding access compliance verification."
+      }
+    },
+    {
+      "number": "AB-057",
+      "title": "Local Equivalency for Approval of Roof Hatches in Lieu of Stairway Penthouses in Designated Buildings",
+      "subject": "Plan Review and Permit Process",
+      "date": "July 19, 2004 (Updated 01/01/2023)",
+      "line_range": [39912, 40036],
+      "line_count": 125,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Allows roof hatches instead of stairway penthouses in certain buildings. Relevant for rooftop access in existing buildings where penthouse construction is impractical."
+      }
+    },
+    {
+      "number": "AB-058",
+      "title": "Procedures for Seismic Instrumentation of New Buildings",
+      "subject": "Building Seismic Instrumentation",
+      "date": "March 25, 2008 (Updated 01/01/2023)",
+      "line_range": [40037, 40159],
+      "line_count": 123,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Required for new buildings meeting size/height thresholds. Triggers seismic instrumentation installation and monitoring requirements."
+      }
+    },
+    {
+      "number": "AB-078",
+      "title": "Criteria for Waiving Special Inspection Requirements for Signs, Awnings and Canopies",
+      "subject": "Permit Review and Operation",
+      "date": "June 5, 2012 (Updated 01/01/2023)",
+      "line_range": [40160, 40217],
+      "line_count": 58,
+      "subject_area": "inspection",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Defines when special inspection can be waived for sign/awning/canopy permits. Key for OTC vs. plan-review routing of sign permits."
+      }
+    },
+    {
+      "number": "AB-082",
+      "title": "Guidelines and Procedures for Structural, Geotechnical, and Seismic Hazard Engineering Design Review",
+      "subject": "Permit Processing and Issuance",
+      "date": "November 21, 2018 (Updated 01/01/2023)",
+      "line_range": [40218, 40747],
+      "line_count": 530,
+      "subject_area": "structural",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Comprehensive structural design review requirements. Defines when independent structural peer review is required, geotechnical report requirements, and seismic hazard review criteria. Major routing trigger for large/complex structural projects."
+      }
+    },
+    {
+      "number": "AB-083",
+      "title": "Requirements and Guidelines for the Seismic Design of New Tall Buildings using Non-Prescriptive Seismic-Design Procedures",
+      "subject": "Permit Processing and Issuance",
+      "date": "March 25, 2008 (Updated 01/01/2023)",
+      "line_range": [40748, 41188],
+      "line_count": 441,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Governs performance-based seismic design for tall buildings (240+ feet). Requires seismic peer review panel, detailed analysis procedures, and special reporting. Critical routing trigger for any tall building project."
+      }
+    },
+    {
+      "number": "AB-084",
+      "title": "Guidelines for the Structural Review of Continuous Tiedown Systems Used to Resist Overturning of Light-Framed Wood Shear Walls",
+      "subject": "Plan Check; Inspection",
+      "date": "November 20, 2013 (Updated 01/01/2023)",
+      "line_range": [41189, 41290],
+      "line_count": 102,
+      "subject_area": "structural",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Technical structural review criteria for wood-frame buildings with continuous tiedown systems. Affects structural plan review for multi-story wood-frame construction."
+      }
+    },
+    {
+      "number": "AB-088",
+      "title": "Collection and Storage of Recyclable, Compostable and Trash Materials",
+      "subject": "Resource Conservation",
+      "date": "March 25, 2008 (Updated 01/01/2023)",
+      "line_range": [41291, 41465],
+      "line_count": 175,
+      "subject_area": "green_building",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Implements California recycling access requirements. Affects building design for trash/recycling/composting areas. Required for all new construction and major renovations."
+      }
+    },
+    {
+      "number": "AB-093",
+      "title": "Implementation of Green Building Regulations",
+      "subject": "Administration and General Design",
+      "date": "Effective January 1, 2023, Revised December 13, 2023",
+      "line_range": [41466, 41932],
+      "line_count": 467,
+      "subject_area": "green_building",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Master green building implementation AB. Defines SF Green Building Code requirements for new construction, additions, and alterations by project size/type. Determines green building documentation, commissioning, and certification requirements. Major routing factor."
+      }
+    },
+    {
+      "number": "AB-094",
+      "title": "Definition and Design Criteria for Voluntary Seismic Upgrade of Soft-Story, Type V (Wood-Frame) Buildings",
+      "subject": "Permit Review and Operation",
+      "date": "April 13, 2010 (Updated 01/01/2023)",
+      "line_range": [41933, 42047],
+      "line_count": 115,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Defines criteria for voluntary soft-story seismic upgrades (precursor to mandatory program). Establishes what qualifies as soft-story and acceptable retrofit designs. Routes to priority processing per AB-004."
+      }
+    },
+    {
+      "number": "AB-098",
+      "title": "Post-Earthquake Repair and Retrofit Requirements for Wood-Frame Residential Buildings with Three or More Dwelling Units",
+      "subject": "Permit Review and Operations",
+      "date": "July 2, 2012 (Updated 01/01/2023)",
+      "line_range": [42048, 42324],
+      "line_count": 277,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Post-earthquake retrofit triggers for wood-frame residential (3+ units). Defines damage thresholds that trigger mandatory seismic retrofit. Critical for post-disaster permit routing."
+      }
+    },
+    {
+      "number": "AB-099",
+      "title": "Post-Earthquake Repair and Retrofit Requirements for Concrete Buildings",
+      "subject": "Permit Review and Operations",
+      "date": "July 2, 2012 (Updated 01/01/2023)",
+      "line_range": [42325, 42763],
+      "line_count": 439,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Post-earthquake retrofit triggers for pre-1973 concrete buildings. Defines damage assessment, retrofit scope, and engineering criteria. Critical for post-disaster permit routing of concrete structures."
+      }
+    },
+    {
+      "number": "AB-100",
+      "title": "Post-Earthquake Repair and Retrofit Requirements for One- and Two-Family Units",
+      "subject": "Permit Review and Operation",
+      "date": "July 12, 2012 (Updated 01/01/2023)",
+      "line_range": [42764, 42961],
+      "line_count": 198,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Post-earthquake retrofit triggers for 1-2 family wood-frame dwellings. Companion to AB-098 for smaller residential. Critical for post-disaster permit routing."
+      }
+    },
+    {
+      "number": "AB-105",
+      "title": "Voluntary Sprinkler Protection for Existing High-Rise Buildings",
+      "subject": "Administrative Permit, Fire and Life Safety",
+      "date": "November 21, 2012 (Updated 01/01/2023)",
+      "line_range": [42962, 43083],
+      "line_count": 122,
+      "subject_area": "fire_life_safety",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Procedure for documenting voluntary sprinkler installation in pre-requirement high-rises. Affects permit tracking and fire safety documentation for existing high-rise alterations."
+      }
+    },
+    {
+      "number": "AB-106",
+      "title": "Procedures for Implementation of SFEBC Chapter 5E",
+      "subject": "Seismic Strengthening of Soft Story Wood Frame Buildings",
+      "date": "September 19, 2013 (Updated 01/01/2023)",
+      "line_range": [43084, 43293],
+      "line_count": 210,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Implements the MANDATORY soft-story retrofit program (Chapter 5E). Defines compliance tiers, timelines, screening criteria, and permit procedures. Critical routing trigger: any soft-story building on the city's list MUST comply."
+      }
+    },
+    {
+      "number": "AB-107",
+      "title": "Application of Engineering Criteria in SFEBC Chapter 5E",
+      "subject": "Seismic Strengthening of Soft Story Wood Frame Buildings",
+      "date": "June 27, 2017 (Updated 01/01/2023)",
+      "line_range": [43294, 44718],
+      "line_count": 1425,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Companion to AB-106. Provides detailed engineering criteria for mandatory soft-story retrofits. The longest technical AB. Defines structural analysis methods, design standards, and plan check requirements for Chapter 5E compliance."
+      }
+    },
+    {
+      "number": "AB-108",
+      "title": "Application of California Existing Building Code, Appendix Chapter A3",
+      "subject": "Permit Processing and Issuance",
+      "date": "April 16, 2014 (Updated 01/01/2023)",
+      "line_range": [44719, 44866],
+      "line_count": 148,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Implements CEBC Appendix A3 for prescriptive seismic strengthening of cripple walls and sill plates in light wood-frame residential. Common retrofit scope for older single-family homes."
+      }
+    },
+    {
+      "number": "AB-109",
+      "title": "Application of Engineering Criteria in SFEBC Section 329",
+      "subject": "Seismic Evaluation of Private School Facilities",
+      "date": "August 21, 2014 (Updated 01/01/2023)",
+      "line_range": [44867, 45041],
+      "line_count": 175,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "medium",
+        "explanation": "Mandatory seismic evaluation program for private schools (Section 329). Defines evaluation criteria and reporting standards. Routes to priority processing per AB-004."
+      }
+    },
+    {
+      "number": "AB-110",
+      "title": "Building Facade Inspection and Maintenance",
+      "subject": "Permit Review and Operations",
+      "date": "August 21, 2024",
+      "line_range": [45042, 45455],
+      "line_count": 414,
+      "subject_area": "building_maintenance",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Implements SFEBC Chapter 5F facade inspection requirements. Defines inspection cycles, reporting, and repair permit requirements for buildings 6+ stories. Creates ongoing permit obligations for building owners."
+      }
+    },
+    {
+      "number": "AB-111",
+      "title": "Guidelines for Preparation of Geotechnical and Earthquake Ground Motion Reports for Foundation Design and Construction of Tall Buildings",
+      "subject": "Permit Processing and Issuance",
+      "date": "June 15, 2020 (Updated 01/01/2023)",
+      "line_range": [45456, 46265],
+      "line_count": 810,
+      "subject_area": "geotechnical",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Detailed geotechnical and ground motion report requirements for tall buildings. Companion to AB-082 and AB-083. Defines required geotechnical investigations, seismic hazard analysis, and foundation design criteria. Critical for tall building permit routing."
+      }
+    },
+    {
+      "number": "AB-112",
+      "title": "Implementation of All Electric New Construction Regulations",
+      "subject": "Administration and General Design",
+      "date": "Effective June 1, 2021 (Updated 01/01/2023)",
+      "line_range": [46266, 46785],
+      "line_count": 520,
+      "subject_area": "green_building",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Implements SF's all-electric new construction mandate. Defines which projects must be all-electric, exemptions, and compliance pathways. Major routing factor for all new construction permits since June 2021."
+      }
+    },
+    {
+      "number": "AB-113",
+      "title": "Application of Engineering Criteria in SFEBC Appendix A, Chapter A6",
+      "subject": "Seismic Retrofit Provisions for Concrete Buildings",
+      "date": "July 11, 2025",
+      "line_range": [46786, 47124],
+      "line_count": 339,
+      "subject_area": "seismic",
+      "relevance_to_decision_tree": {
+        "level": "high",
+        "explanation": "Newest AB (2025). Provides engineering criteria for SFEBC Chapter A6 concrete building seismic retrofits. Companion to Chapter 5G mandatory concrete building program. Defines deficiency evaluation, retrofit triggers, and engineering options."
+      }
+    }
+  ],
+  "summary": {
+    "total_bulletins": 47,
+    "by_subject_area": {
+      "seismic": ["AB-058", "AB-083", "AB-094", "AB-098", "AB-099", "AB-100", "AB-106", "AB-107", "AB-108", "AB-109", "AB-113"],
+      "fire_life_safety": ["AB-009", "AB-010", "AB-018", "AB-019", "AB-020", "AB-047", "AB-057", "AB-105"],
+      "accessibility": ["AB-013", "AB-015", "AB-017", "AB-056"],
+      "permit_processing": ["AB-004", "AB-025", "AB-028", "AB-032"],
+      "structural": ["AB-082", "AB-084"],
+      "green_building": ["AB-088", "AB-093", "AB-112"],
+      "administrative": ["AB-001", "AB-035", "AB-040"],
+      "local_equivalency": ["AB-005"],
+      "variance": ["AB-042"],
+      "code_enforcement": ["AB-027"],
+      "inspection": ["AB-036", "AB-046", "AB-078"],
+      "plan_review": ["AB-031"],
+      "mechanical": ["AB-043"],
+      "noise_insulation": ["AB-026"],
+      "construction_safety": ["AB-023"],
+      "building_maintenance": ["AB-110"],
+      "geotechnical": ["AB-111"]
+    },
+    "by_relevance": {
+      "high": [
+        "AB-004 - Priority Permit Processing Guidelines",
+        "AB-005 - Procedures for Approval of Local Equivalencies",
+        "AB-013 - Disabled Access for Historic Buildings",
+        "AB-019 - Fire Escapes as Required Egress",
+        "AB-025 - Cal/OSHA Pre-application Requirement",
+        "AB-028 - Pre-application Plan Review",
+        "AB-032 - Site Permit Processing",
+        "AB-036 - Special Inspection for Demolition",
+        "AB-042 - Board of Examiners Variances",
+        "AB-046 - Special Inspection Procedures",
+        "AB-047 - Smoke Control Systems",
+        "AB-056 - Disabled Access Compliance Documentation",
+        "AB-082 - Structural/Geotechnical Design Review",
+        "AB-083 - Tall Building Seismic Design",
+        "AB-093 - Green Building Regulations",
+        "AB-094 - Voluntary Soft-Story Seismic Upgrade",
+        "AB-098 - Post-Earthquake Wood-Frame Retrofit",
+        "AB-099 - Post-Earthquake Concrete Retrofit",
+        "AB-100 - Post-Earthquake 1-2 Family Retrofit",
+        "AB-106 - Mandatory Soft-Story Retrofit (Chapter 5E)",
+        "AB-107 - Engineering Criteria for Chapter 5E",
+        "AB-110 - Building Facade Inspection",
+        "AB-111 - Geotechnical Reports for Tall Buildings",
+        "AB-112 - All-Electric New Construction",
+        "AB-113 - Concrete Building Seismic Retrofit (Chapter A6)"
+      ],
+      "medium": [
+        "AB-009 - Property Line Wall Openings",
+        "AB-010 - Communicating Openings Between Buildings",
+        "AB-017 - Disabled Access for Vacant Spaces",
+        "AB-018 - Emergency Escape at Courts/Lightwells",
+        "AB-020 - Exiting Through Garage (Type V)",
+        "AB-023 - Crane Site Safety",
+        "AB-026 - Noise Insulation",
+        "AB-027 - Illegal Unit Reoccupancy",
+        "AB-035 - Street Number Assignment",
+        "AB-043 - Ventilation in Group R",
+        "AB-057 - Roof Hatches vs Stairway Penthouses",
+        "AB-058 - Seismic Instrumentation",
+        "AB-078 - Waiving Special Inspection for Signs",
+        "AB-084 - Continuous Tiedown Systems",
+        "AB-088 - Recycling/Composting Storage",
+        "AB-105 - Voluntary High-Rise Sprinklers",
+        "AB-108 - Cripple Wall/Sill Plate Strengthening",
+        "AB-109 - Private School Seismic Evaluation"
+      ],
+      "low": [
+        "AB-001 - Preparing Administrative Bulletins",
+        "AB-015 - Temporary Interruptions to Disabled Access",
+        "AB-031 - Revision Identification on Drawings",
+        "AB-040 - Referral to Regulatory Agencies"
+      ]
+    },
+    "critical_for_permit_routing": [
+      "AB-004 - Determines priority processing eligibility (emergency, ADA, clean energy, seismic, housing, ADU, historic, NOV)",
+      "AB-005 - Master local equivalency procedure; gateway to all equivalency ABs",
+      "AB-028 - Pre-application review routing for complex projects",
+      "AB-032 - Site permit pathway for phased large projects",
+      "AB-036 - Special inspection trigger for demolition permits",
+      "AB-042 - Board of Examiners escalation path for variances",
+      "AB-046 - Special inspection requirements affecting all structural permits",
+      "AB-047 - Smoke control requirements for high-rises, atriums, underground",
+      "AB-082 - Structural peer review triggers for complex projects",
+      "AB-083 - Tall building (240+ ft) performance-based seismic design pathway",
+      "AB-093 - Green building compliance pathway by project type/size",
+      "AB-106 - Mandatory soft-story retrofit compliance and timelines",
+      "AB-110 - Facade inspection obligations for 6+ story buildings",
+      "AB-112 - All-electric mandate for new construction since June 2021",
+      "AB-113 - Mandatory concrete building seismic program (Chapter 5G/A6)"
+    ],
+    "largest_bulletins_by_line_count": [
+      {"number": "AB-107", "lines": 1425, "topic": "Soft-story engineering criteria"},
+      {"number": "AB-047", "lines": 866, "topic": "Smoke control systems"},
+      {"number": "AB-111", "lines": 810, "topic": "Geotechnical reports for tall buildings"},
+      {"number": "AB-082", "lines": 530, "topic": "Structural design review"},
+      {"number": "AB-112", "lines": 520, "topic": "All-electric new construction"},
+      {"number": "AB-093", "lines": 467, "topic": "Green building regulations"},
+      {"number": "AB-083", "lines": 441, "topic": "Tall building seismic design"},
+      {"number": "AB-099", "lines": 439, "topic": "Post-earthquake concrete retrofit"},
+      {"number": "AB-110", "lines": 414, "topic": "Building facade inspection"}
+    ]
+  }
+}

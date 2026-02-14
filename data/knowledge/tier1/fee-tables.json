@@ -1,0 +1,1442 @@
+{
+  "metadata": {
+    "source": "San Francisco Building Inspection Commission Codes (sf-bicc-fire-codes-full.txt)",
+    "title": "Tables 1A-A through 1A-S: Building Permit Fee Schedules",
+    "last_amended": "Ord. 126-25, File No. 250592, App. 8/1/2025, Eff. 9/1/2025",
+    "effective_date": "2025-09-01",
+    "notes": [
+      "Fees do not include fees required by other departments (Public Works, Planning, Fire, Public Health, etc.)",
+      "Fees do not include plumbing, electrical, or mechanical permit fees unless stated in other fee tables",
+      "A $5.00 surcharge applies to alteration permits for R3 and E3 buildings constructed prior to 1979 (lead safe work practices)",
+      "Small Business Month (May) fee waivers apply for awning replacement structural review permits submitted OTC and pedestrian-level lighting electrical permits",
+      "Plan Review Fee waived for legalizing existing dwelling units constructed without permits (Ord. 92-20, between 1/1/2020 and 12/31/2024)"
+    ]
+  },
+  "decision_tree_key": "To estimate total permit fees: (1) Determine project valuation using ICC methodology, (2) Determine if New Construction, Alteration, or No Plans using Table 1A-A, (3) Look up Plan Review Fee + Permit Issuance Fee from 1A-A based on valuation tier, (4) Add plumbing/mechanical fees from 1A-C if applicable, (5) Add electrical fees from 1A-E if applicable, (6) Add inspection/survey fees from 1A-G if applicable, (7) Add miscellaneous fees from 1A-J (CBSC fee = $4 per $100k valuation, SMIP fee), (8) Add energy conservation fees from 1A-N if residential, (9) Check 1A-B for any hourly plan review or premium review surcharges. Use 1A-D Standard Hourly Rates for any time-based fee calculations.",
+  "table_1A_A": {
+    "title": "Building Permit Fees",
+    "description": "Valuation-based fee schedule for building permits. Fees are tiered by total project valuation with separate columns for New Construction, Alterations, and No Plans permit types.",
+    "fee_types": ["plan_review", "permit_issuance"],
+    "permit_categories": ["new_construction", "alterations", "no_plans"],
+    "valuation_tiers": [
+      {
+        "range": "$1 to $2,000",
+        "min_valuation": 1,
+        "max_valuation": 2000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 182,
+            "base_description": "$182 for the first $500 plus $10 for each additional $100 or fraction thereof, to and including $2,000"
+          },
+          "permit_issuance": {
+            "base_fee": 161,
+            "base_description": "$161 for the first $500 plus $5.13 for each additional $100 or fraction thereof, to and including $2,000"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 182,
+            "base_description": "$182 for the first $500 plus $9.47 for each additional $100 or fraction thereof, to and including $2,000"
+          },
+          "permit_issuance": {
+            "base_fee": 169,
+            "base_description": "$169 for the first $500 plus $3.67 for each additional $100 or fraction thereof, to and including $2,000"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 195,
+            "base_description": "$195 for the first $500 plus $6.47 for each additional $100 or fraction thereof, to and including $2,000"
+          }
+        },
+        "minimum_fee": 100
+      },
+      {
+        "range": "$2,001 to $50,000",
+        "min_valuation": 2001,
+        "max_valuation": 50000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 332,
+            "per_increment": 20.46,
+            "increment_size": 1000,
+            "base_description": "$332 for the first $2,000 plus $20.46 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 238,
+            "per_increment": 6.54,
+            "increment_size": 1000,
+            "base_description": "$238 for the first $2,000 plus $6.54 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 324,
+            "per_increment": 27.83,
+            "increment_size": 1000,
+            "base_description": "$324 for the first $2,000 plus $27.83 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 224,
+            "per_increment": 6.83,
+            "increment_size": 1000,
+            "base_description": "$224 for the first $2,000 plus $6.83 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 292,
+            "per_increment": 9.40,
+            "increment_size": 1000,
+            "base_description": "$292 for the first $2,000 plus $9.40 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$50,001 to $200,000",
+        "min_valuation": 50001,
+        "max_valuation": 200000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 1314,
+            "per_increment": 13.15,
+            "increment_size": 1000,
+            "base_description": "$1,314 for the first $50,000 plus $13.15 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 552,
+            "per_increment": 5.88,
+            "increment_size": 1000,
+            "base_description": "$552 for the first $50,000 plus $5.88 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 1660,
+            "per_increment": 16.31,
+            "increment_size": 1000,
+            "base_description": "$1,660 for the first $50,000 plus $16.31 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 552,
+            "per_increment": 5.88,
+            "increment_size": 1000,
+            "base_description": "$552 for the first $50,000 plus $5.88 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 743,
+            "per_increment": 4.61,
+            "increment_size": 1000,
+            "base_description": "$743 for the first $50,000 plus $4.61 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$200,001 to $500,000",
+        "min_valuation": 200001,
+        "max_valuation": 500000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 3286,
+            "per_increment": 8.12,
+            "increment_size": 1000,
+            "base_description": "$3,286 for the first $200,000 plus $8.12 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 1434,
+            "per_increment": 4.55,
+            "increment_size": 1000,
+            "base_description": "$1,434 for the first $200,000 plus $4.55 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 4106,
+            "per_increment": 13.53,
+            "increment_size": 1000,
+            "base_description": "$4,106 for the first $200,000 plus $13.53 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 1434,
+            "per_increment": 4.55,
+            "increment_size": 1000,
+            "base_description": "$1,434 for the first $200,000 plus $4.55 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 1434,
+            "per_increment": 4.55,
+            "increment_size": 1000,
+            "base_description": "$1,434 for the first $200,000 plus $4.55 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$500,001 to $1,000,000",
+        "min_valuation": 500001,
+        "max_valuation": 1000000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 5721,
+            "per_increment": 8.51,
+            "increment_size": 1000,
+            "base_description": "$5,721 for the first $500,000 plus $8.51 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 2798,
+            "per_increment": 3.46,
+            "increment_size": 1000,
+            "base_description": "$2,798 for the first $500,000 plus $3.46 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 8165,
+            "per_increment": 9.67,
+            "increment_size": 1000,
+            "base_description": "$8,165 for the first $500,000 plus $9.67 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 2798,
+            "per_increment": 3.46,
+            "increment_size": 1000,
+            "base_description": "$2,798 for the first $500,000 plus $3.46 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 2798,
+            "per_increment": 3.46,
+            "increment_size": 1000,
+            "base_description": "$2,798 for the first $500,000 plus $3.46 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$1,000,001 to $5,000,000",
+        "min_valuation": 1000001,
+        "max_valuation": 5000000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 9976,
+            "per_increment": 6.29,
+            "increment_size": 1000,
+            "base_description": "$9,976 for the first $1,000,000 plus $6.29 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 4527,
+            "per_increment": 2.87,
+            "increment_size": 1000,
+            "base_description": "$4,527 for the first $1,000,000 plus $2.87 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 12998,
+            "per_increment": 8.38,
+            "increment_size": 1000,
+            "base_description": "$12,998 for the first $1,000,000 plus $8.38 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 4527,
+            "per_increment": 2.87,
+            "increment_size": 1000,
+            "base_description": "$4,527 for the first $1,000,000 plus $2.87 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 4527,
+            "per_increment": 2.87,
+            "increment_size": 1000,
+            "base_description": "$4,527 for the first $1,000,000 plus $2.87 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$5,000,001 to $50,000,000",
+        "min_valuation": 5000001,
+        "max_valuation": 50000000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 35117,
+            "per_increment": 2.66,
+            "increment_size": 1000,
+            "base_description": "$35,117 for the first $5,000,000 plus $2.66 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 16000,
+            "per_increment": 1.49,
+            "increment_size": 1000,
+            "base_description": "$16,000 for the first $5,000,000 plus $1.49 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 46532,
+            "per_increment": 2.57,
+            "increment_size": 1000,
+            "base_description": "$46,532 for the first $5,000,000 plus $2.57 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 16000,
+            "per_increment": 1.49,
+            "increment_size": 1000,
+            "base_description": "$16,000 for the first $5,000,000 plus $1.49 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 16000,
+            "per_increment": 1.49,
+            "increment_size": 1000,
+            "base_description": "$16,000 for the first $5,000,000 plus $1.49 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$50,000,001 to $100,000,000",
+        "min_valuation": 50000001,
+        "max_valuation": 100000000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 154996,
+            "per_increment": 2.17,
+            "increment_size": 1000,
+            "base_description": "$154,996 for the first $50,000,000 plus $2.17 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 83121,
+            "per_increment": 1.71,
+            "increment_size": 1000,
+            "base_description": "$83,121 for the first $50,000,000 plus $1.71 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 162132,
+            "per_increment": 2.84,
+            "increment_size": 1000,
+            "base_description": "$162,132 for the first $50,000,000 plus $2.84 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 83121,
+            "per_increment": 1.71,
+            "increment_size": 1000,
+            "base_description": "$83,121 for the first $50,000,000 plus $1.71 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 83121,
+            "per_increment": 1.71,
+            "increment_size": 1000,
+            "base_description": "$83,121 for the first $50,000,000 plus $1.71 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$100,000,001 to $200,000,000",
+        "min_valuation": 100000001,
+        "max_valuation": 200000000,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 263263,
+            "per_increment": 2.68,
+            "increment_size": 1000,
+            "base_description": "$263,263 for the first $100,000,000 plus $2.68 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 168553,
+            "per_increment": 2.69,
+            "increment_size": 1000,
+            "base_description": "$168,553 for the first $100,000,000 plus $2.69 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 304022,
+            "per_increment": 2.87,
+            "increment_size": 1000,
+            "base_description": "$304,022 for the first $100,000,000 plus $2.87 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 168553,
+            "per_increment": 2.69,
+            "increment_size": 1000,
+            "base_description": "$168,553 for the first $100,000,000 plus $2.69 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 168553,
+            "per_increment": 2.69,
+            "increment_size": 1000,
+            "base_description": "$168,553 for the first $100,000,000 plus $2.69 for each additional $1,000 or fraction thereof"
+          }
+        }
+      },
+      {
+        "range": "$200,000,001 and up",
+        "min_valuation": 200000001,
+        "max_valuation": null,
+        "new_construction": {
+          "plan_review": {
+            "base_fee": 531050,
+            "per_increment": 2.68,
+            "increment_size": 1000,
+            "base_description": "$531,050 for the first $200,000,000 plus $2.68 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 437894,
+            "per_increment": 2.69,
+            "increment_size": 1000,
+            "base_description": "$437,894 for the first $200,000,000 plus $2.69 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "alterations": {
+          "plan_review": {
+            "base_fee": 90988,
+            "per_increment": 2.87,
+            "increment_size": 1000,
+            "base_description": "$90,988 for the first $200,000,000 plus $2.87 for each additional $1,000 or fraction thereof"
+          },
+          "permit_issuance": {
+            "base_fee": 437894,
+            "per_increment": 2.69,
+            "increment_size": 1000,
+            "base_description": "$437,894 for the first $200,000,000 plus $2.69 for each additional $1,000 or fraction thereof"
+          }
+        },
+        "no_plans": {
+          "permit_issuance": {
+            "base_fee": 437894,
+            "per_increment": 2.69,
+            "increment_size": 1000,
+            "base_description": "$437,894 for the first $200,000,000 plus $2.69 for each additional $1,000 or fraction thereof"
+          }
+        }
+      }
+    ],
+    "calculation_notes": [
+      "For each tier: fee = base_fee + (per_increment * ceil((valuation - tier_threshold) / increment_size))",
+      "Minimum fee for any permit is $100",
+      "For the first tier ($1-$2,000), the per-increment unit is $100 (not $1,000)",
+      "All higher tiers use $1,000 as the increment unit",
+      "No Plans permits do not have a separate plan review fee"
+    ]
+  },
+  "table_1A_B": {
+    "title": "Other Building Permit and Plan Review Fees",
+    "fees": [
+      {
+        "item": 1,
+        "description": "Plan Review Fees Not Covered in Table 1A-A",
+        "fee": 399,
+        "unit": "per hour",
+        "minimum": "1 hour"
+      },
+      {
+        "item": 2,
+        "description": "Back Check Fee",
+        "fee": 399,
+        "unit": "per hour",
+        "minimum": "1 hour",
+        "note": "Back check is: (1) time reviewing applicant-initiated revisions not affecting valuation/scope/size; or (2) additional plan review on corrections beyond standard review process"
+      },
+      {
+        "item": 3,
+        "description": "Pre-application Plan Review Fee",
+        "fee": 368,
+        "unit": "per hour",
+        "minimum": "4 hours per project"
+      },
+      {
+        "item": 4,
+        "description": "Reduced Plan Review Fee",
+        "fee_formula": "50% of the Plan Review Fee"
+      },
+      {
+        "item": 5,
+        "description": "Sign Plan Review Fee",
+        "fee_reference": "See Table 1A-A Building Permit Fees"
+      },
+      {
+        "item": 6,
+        "description": "Site Permit Fee",
+        "fee_formula": "25% of Plan Review Fee based on Table 1A-A",
+        "minimum_fee": 500
+      },
+      {
+        "item": 7,
+        "description": "Premium Plan Review Fee (Submitted application)",
+        "fee_formula": "50% of Plan Review Fee plus $1,000"
+      },
+      {
+        "item": 8,
+        "description": "Third-Party Experts and Other Permit Related Actions Fee",
+        "fee_formula": "Actual costs the Department incurs in administering and processing the action or procedure on a time and materials basis"
+      }
+    ]
+  },
+  "table_1A_C": {
+    "title": "Plumbing/Mechanical Permit Issuance and Inspection Fees",
+    "general_rules": [
+      "Permit applicants shall show a complete itemization of the proposed scope of work and select the appropriate fee category",
+      "A separate permit is required for each structure, condominium unit, existing apartment unit, high-rise office floor, suite, or tenant space",
+      "Hourly issuance/inspection rates: $405/hr regular, $477/hr off-hour (minimum 2 hours)",
+      "Fees shall be paid in full prior to approval for occupancy, job card signature, gas tags, or final signoff",
+      "A permit may include more than one category, and each category will be charged separately"
+    ],
+    "categories": [
+      {
+        "code": "1P",
+        "description": "Single Residential Unit - water service, sewer replacement, single plumbing fixture installation, shower pan installation, or kitchen or bathroom remodels",
+        "fee": 276
+      },
+      {
+        "code": "1M",
+        "description": "Single Residential Unit - mechanical gas appliance (furnace, hydronic heat, heat pump)",
+        "fee": 267
+      },
+      {
+        "code": "2PA",
+        "description": "Plumbing installation for residential construction with 6 or less dwelling units or guest rooms; without underground plumbing installation (includes water, gas, waste, and vent)",
+        "fee": 483
+      },
+      {
+        "code": "2PB",
+        "description": "Plumbing installation for residential construction with 6 dwelling units or guest rooms or less; with underground plumbing installation (includes water, gas, waste, and vent)",
+        "fee": 701
+      },
+      {
+        "code": "2M",
+        "description": "Mechanical gas appliances for residential construction with 6 dwelling units or guest rooms or less",
+        "fee": 400
+      },
+      {
+        "code": "3PA",
+        "description": "7-12 Dwelling Units (plumbing)",
+        "fee": 991
+      },
+      {
+        "code": "3PB",
+        "description": "13-36 Dwelling Units (plumbing)",
+        "fee": 1982
+      },
+      {
+        "code": "3PC",
+        "description": "Over 36 Dwelling Units (plumbing)",
+        "fee": 7989
+      },
+      {
+        "code": "3MA",
+        "description": "7-12 Dwelling Units (mechanical)",
+        "fee": 996
+      },
+      {
+        "code": "3MB",
+        "description": "13-36 Dwelling Units (mechanical)",
+        "fee": 1980
+      },
+      {
+        "code": "3MC",
+        "description": "Over 36 Dwelling Units (mechanical)",
+        "fee": 8403
+      },
+      {
+        "code": "4PA",
+        "description": "Fire sprinklers - one and two family dwelling units",
+        "fee": 267
+      },
+      {
+        "code": "4PB",
+        "description": "Fire sprinklers - 3 or more dwelling units or guest rooms, commercial and office - per floor",
+        "fee": 348
+      },
+      {
+        "code": "5P/5M",
+        "description": "Office, mercantile & retail buildings: New or Tenant Improvements; heating/cooling equipment to piping connected thereto - per tenant or per floor, whichever is less",
+        "fee": 582
+      },
+      {
+        "code": "6PA",
+        "description": "Restaurants (new and remodel) fee includes 5 or less drainage and/or gas outlets - no fees required for public or private restroom",
+        "fee": 543
+      },
+      {
+        "code": "6PB",
+        "description": "Restaurants (new and remodel) fee includes 6 or more drainage and/or gas outlets - no fees required for public or private restroom",
+        "fee": 1525
+      },
+      {
+        "code": "8",
+        "description": "New boiler installations over 200 kbtu",
+        "fee": 484
+      },
+      {
+        "code": "9P/M",
+        "description": "Surveys",
+        "fee": 507
+      },
+      {
+        "code": "10P/M",
+        "description": "Condominium conversions",
+        "fee": 617
+      },
+      {
+        "code": "11P/M",
+        "description": "Miscellaneous",
+        "fee": 310
+      }
+    ],
+    "boiler_maintenance_program": [
+      {
+        "description": "Permit to operate or renew (certificate issued) - Online",
+        "fee": 122
+      },
+      {
+        "description": "Permit to operate or renew (certificate issued) - In-House",
+        "fee": 208
+      },
+      {
+        "description": "Connection to utility company-provided steam (includes permit to operate)",
+        "fee": 208,
+        "unit": "per hour",
+        "minimum": "0.5 hours"
+      }
+    ],
+    "boiler_renewal_notes": [
+      "Low-pressure boilers every 12 months",
+      "Water heaters when alteration or replacement permits are issued"
+    ]
+  },
+  "table_1A_D": {
+    "title": "Standard Hourly Rates",
+    "rates": [
+      {
+        "item": 1,
+        "description": "Plan Review",
+        "rate": 481,
+        "unit": "per hour"
+      },
+      {
+        "item": 2,
+        "description": "Inspection",
+        "rate": 571,
+        "unit": "per hour",
+        "off_hour_rate": 742,
+        "off_hour_note": "per hour for off-hour inspection"
+      },
+      {
+        "item": 3,
+        "description": "Administration",
+        "rate": 298,
+        "unit": "per hour"
+      },
+      {
+        "item": 4,
+        "description": "Housing Inspection",
+        "rate": 596,
+        "unit": "per hour"
+      }
+    ]
+  },
+  "table_1A_E": {
+    "title": "Electrical Permit Issuance and Inspection Fee Schedule",
+    "general_rules": [
+      "Permit applicants are required to itemize the proposed scope of work and select the appropriate category and fee amount",
+      "Separate permits are required for each structure, condominium unit, existing dwelling unit (except R3), common area, commercial office floor or individual tenant space",
+      "Hourly permit issuance/inspection rates: $405/hr regular, $477/hr off-hour (minimum 2 hours) for installations not covered by this schedule",
+      "Fees shall be paid in full prior to obtaining: occupancy approval, job card signature, permission to energize, or final signoff",
+      "Appliances and utilization equipment each count as one outlet or device in addition to receptacles, switches, and light outlets",
+      "Small Business Month (May) fee waiver applies for pedestrian-level lighting permits"
+    ],
+    "category_1": {
+      "title": "General Wiring: Residential Buildings up to 10,000 sq. ft.",
+      "tiers": [
+        {"description": "Up to 10 outlets and/or devices", "fee": 273},
+        {"description": "11 to 20 outlets and/or devices", "fee": 426},
+        {"description": "Up to 40 outlets and/or devices, includes up to 200 Amp service upgrade", "fee": 534},
+        {"description": "More than 40 outlets and/or devices", "fee": 734, "includes_cat_3_4": true},
+        {"description": "Buildings of 5,000 to 10,000 sq. ft.", "fee": 1066, "includes_cat_3_4": true}
+      ]
+    },
+    "category_2": {
+      "title": "General Wiring: Nonresidential Buildings & Residential Buildings over 10,000 sq. ft.",
+      "tiers": [
+        {"description": "Up to 5 outlets and/or devices", "fee": 410},
+        {"description": "6 to 20 outlets and/or devices", "fee": 630},
+        {"description": "Areas up to 2,500 sq. ft.", "fee": 855, "includes_cat_3_4": true},
+        {"description": "2,501 to 5,000 sq. ft.", "fee": 1251, "includes_cat_3_4": true},
+        {"description": "5,001 to 10,000 sq. ft.", "fee": 2119, "includes_cat_3_4": true},
+        {"description": "10,001 to 30,000 sq. ft.", "fee": 4177, "includes_cat_3_4": true},
+        {"description": "30,001 to 50,000 sq. ft.", "fee": 8528, "includes_cat_3_4": true},
+        {"description": "50,001 to 100,000 sq. ft.", "fee": 12669, "includes_cat_3_4": true},
+        {"description": "100,001 to 500,000 sq. ft.", "fee": 25683, "includes_cat_3_4": true},
+        {"description": "500,001 to 1,000,000 sq. ft.", "fee": 57026, "includes_cat_3_4": true},
+        {"description": "More than 1,000,000 sq. ft.", "fee": 113993, "includes_cat_3_4": true}
+      ],
+      "note": "Asterisked tiers include Category 3 & 4 installations in new buildings or major remodel work"
+    },
+    "category_3": {
+      "title": "Service Distribution and Utilization Equipment (Generators, UPS, Transformers, Fire Pumps)",
+      "note": "Use Category 3 for installations separate from the scope of work in Categories 1 or 2",
+      "by_amperage": [
+        {"description": "225 amps rating or less", "fee": 397},
+        {"description": "250 to 500 amps", "fee": 609},
+        {"description": "600 to 1000 amps", "fee": 822},
+        {"description": "1,200 to 2,000 amps", "fee": 1248},
+        {"description": "More than 2,000 amps", "fee": 1619},
+        {"description": "600 volts or more", "fee": 1672}
+      ],
+      "by_kva": [
+        {"description": "150 kva or less", "fee": 398},
+        {"description": "151 kva or more", "fee": 609}
+      ],
+      "fire_pump": {"description": "Fire Pump installations", "fee": 824}
+    },
+    "category_4": {
+      "title": "Installations of Fire Warning and Controlled Devices",
+      "note": "Use Category 4 for installations separate from the scope of work in Categories 1 or 2",
+      "by_area": [
+        {"description": "Up to 2,500 sq. ft.", "fee": 461},
+        {"description": "2,501 to 5,000 sq. ft.", "fee": 680},
+        {"description": "5,001 to 10,000 sq. ft.", "fee": 1251},
+        {"description": "10,001 to 30,000 sq. ft.", "fee": 2067},
+        {"description": "30,001 to 50,000 sq. ft.", "fee": 4212},
+        {"description": "50,001 to 100,000 sq. ft.", "fee": 8319},
+        {"description": "100,001 to 500,000 sq. ft.", "fee": 12211},
+        {"description": "500,001 to 1,000,000 sq. ft.", "fee": 27749},
+        {"description": "More than 1,000,000 sq. ft.", "fee": 55697}
+      ],
+      "retrofit_systems": [
+        {"description": "Buildings of not more than 6 dwelling units", "fee": 624},
+        {"description": "Buildings of not more than 12 dwelling units", "fee": 842},
+        {"description": "Buildings with more than 12 dwelling units and non-residential occupancy - up to 3 floors", "fee": 1226},
+        {"description": "4-9 floors", "fee": 2497},
+        {"description": "10-20 floors", "fee": 4203},
+        {"description": "21-30 floors", "fee": 8319},
+        {"description": "More than 30 floors", "fee": 12211}
+      ]
+    },
+    "category_5": {
+      "title": "Miscellaneous Installations",
+      "items": [
+        {
+          "description": "Installation of EV Charging Station",
+          "fee_reference": "Same fee as is applicable for Category 3 - Service Distribution and Utilization Equipment"
+        },
+        {
+          "description": "Remodel/Upgrade of Existing Hotel Guest/SRO Rooms - Up to 6 rooms",
+          "fee": 525
+        },
+        {
+          "description": "Remodel/Upgrade of Existing Hotel Guest/SRO Rooms - Each additional group of 3 rooms",
+          "fee": 264
+        },
+        {
+          "description": "Data, Communications, and Wireless System - 10 cables or less",
+          "fee": 0,
+          "note": "Exempt"
+        },
+        {
+          "description": "Data, Communications, and Wireless System - 11 to 500 cables",
+          "fee": 283
+        },
+        {
+          "description": "Data, Communications, and Wireless System - Each additional group of 100 cables",
+          "fee": 68
+        },
+        {
+          "description": "Security Systems, 10 components or less",
+          "fee": 283,
+          "note": "Includes installations and devices that interface with life safety systems; excludes installations in R3 Occupancies"
+        },
+        {
+          "description": "Security Systems - Each additional group of 10 components",
+          "fee": 43
+        },
+        {
+          "description": "Office Workstations, 5 or less",
+          "fee": 283
+        },
+        {
+          "description": "Office Workstations - Each additional group of 10 workstations",
+          "fee": 97
+        },
+        {
+          "description": "Temporary Exhibition Wiring, 1 to 100 booths (1 inspection)",
+          "fee": 411
+        },
+        {
+          "description": "Temporary Exhibition Wiring - Each additional group of 10 booths",
+          "fee": 68
+        },
+        {
+          "description": "Exterior Electrical Sign",
+          "fee": 283
+        },
+        {
+          "description": "Interior Electrical Sign",
+          "fee": 283
+        },
+        {
+          "description": "Each Additional Sign, at the same address",
+          "fee": 86
+        },
+        {
+          "description": "Garage Door Operator (Requiring receptacle installation)",
+          "fee": 284
+        },
+        {
+          "description": "Quarterly Permits (Maximum five outlets in any one location)",
+          "fee": 650
+        },
+        {
+          "description": "Survey, per hour or fraction thereof",
+          "fee": 284,
+          "unit": "per hour"
+        },
+        {
+          "description": "Survey, Research, and Report preparation, per hour or fraction thereof",
+          "fee": 536,
+          "unit": "per hour"
+        }
+      ],
+      "witness_testing": {
+        "description": "Witness Testing: life safety, fire warning, emergency, and energy management systems",
+        "hourly_rate": 430,
+        "off_hour_rate": 477,
+        "off_hour_minimum": "2 hours"
+      },
+      "energy_management": {
+        "description": "Energy Management, HVAC Controls, and Low-Voltage Wiring Systems",
+        "base_fee": 860,
+        "base_floors": "1-10 floors (3 inspections)",
+        "per_additional_floor": 97
+      },
+      "solar_photovoltaic": {
+        "description": "Solar Photovoltaic Systems",
+        "base_fee": 283,
+        "base_rating": "10 KW rating or less",
+        "per_additional_10kw": 238
+      }
+    }
+  },
+  "table_1A_F": {
+    "title": "Reserved",
+    "status": "reserved",
+    "note": "Removed by Ord. 126-25, File No. 250592, App. 8/1/2025, Eff. 9/1/2025"
+  },
+  "table_1A_G": {
+    "title": "Inspections, Surveys and Reports",
+    "fees": [
+      {
+        "item": 1,
+        "description": "Hourly Rate",
+        "fee": 405,
+        "unit": "per hour"
+      },
+      {
+        "item": 2,
+        "description": "Off-hours inspection",
+        "fee": 477,
+        "unit": "per hour",
+        "minimum": "2 hours",
+        "note": "plus permit fee"
+      },
+      {
+        "item": 3,
+        "description": "Survey inspection",
+        "fee": 405,
+        "unit": "per hour",
+        "minimum": "2 hours"
+      },
+      {
+        "item": 4,
+        "description": "Re-inspection fee",
+        "fee": 405,
+        "unit": "per hour"
+      },
+      {
+        "item": 5,
+        "description": "Survey of nonresidential buildings",
+        "fee": 405,
+        "unit": "per hour",
+        "minimum": "2 hours"
+      },
+      {
+        "item": 6,
+        "description": "Survey of residential buildings for any purpose or Condo Conversions",
+        "sub_items": [
+          {"description": "Single unit", "fee": 3700},
+          {"description": "Two to four units", "fee": 4738},
+          {"description": "Five+ units", "fee": 5159, "note": "plus Standard Hourly Inspection Rate"},
+          {"description": "Hotels - includes 10 guestrooms", "fee": 3541},
+          {"description": "Hotels - 11+ guestrooms", "fee": 4068, "per_additional_room_over_10": 114}
+        ]
+      },
+      {
+        "item": 7,
+        "description": "Temporary Certificate of Occupancy",
+        "fee": 670
+      },
+      {
+        "item": 8,
+        "description": "Demolition Permit Fee",
+        "fee": 646
+      },
+      {
+        "item": 9,
+        "description": "House Moving Permit Fee",
+        "fee": 405,
+        "unit": "per hour",
+        "minimum": "3 hours"
+      },
+      {
+        "item": 10,
+        "description": "Grading Permit Fee",
+        "fee_reference": "See Table 1A-A for New Construction fees"
+      },
+      {
+        "item": 11,
+        "description": "Re-roofing Permit Fee",
+        "sub_items": [
+          {"description": "Single-Family Homes and Duplexes", "fee": 309},
+          {"description": "For all others", "fee": 509}
+        ]
+      },
+      {
+        "item": 12,
+        "description": "Construction of impervious surface in the required front and setback area",
+        "fee": 229
+      },
+      {
+        "item": 13,
+        "description": "Night Noise Permit",
+        "fee": 670
+      }
+    ]
+  },
+  "table_1A_H": {
+    "title": "Reserved",
+    "status": "reserved",
+    "note": "Removed by Ord. 115-24, File No. 240457, App. 6/18/2024, Eff. 7/19/2024"
+  },
+  "table_1A_I": {
+    "title": "Reserved",
+    "status": "reserved"
+  },
+  "table_1A_J": {
+    "title": "Miscellaneous Fees",
+    "fees": [
+      {
+        "item": 1,
+        "description": "General Administrative Fees Not Covered in Section 110A",
+        "fee": 226,
+        "unit": "per hour",
+        "minimum": "0.5 hours"
+      },
+      {
+        "item": 2,
+        "description": "Building numbers (each entrance)",
+        "sub_items": [
+          {"description": "New addresses", "fee": 317},
+          {"description": "Change of existing addresses or lot numbers", "fee": 506}
+        ]
+      },
+      {
+        "item": 3,
+        "description": "Extension of time for application cancellation and permit expiration",
+        "sub_items": [
+          {
+            "description": "Each application extension (in plan review)",
+            "fee": 526,
+            "note": "plus 20% of Plan Review Fees"
+          },
+          {
+            "description": "Each permit extension",
+            "fee": 452,
+            "note": "plus 10% of Building Permit Inspection Fees"
+          }
+        ]
+      },
+      {
+        "item": 4,
+        "description": "California Building Standards Commission Fee",
+        "fee_formula": "$4 per $100,000 in valuation (with appropriate fractions thereof)",
+        "minimum_fee": 1
+      },
+      {
+        "item": 5,
+        "description": "Strong Motion Instrumentation Program (SMIP) Fee",
+        "sub_items": [
+          {
+            "description": "Group R Occupancies of 3 stories or less, except hotels and motels",
+            "fee_formula": "0.00013 times the valuation"
+          },
+          {
+            "description": "Hotels and motels, all buildings greater than 3 stories, all occupancies other than Group R",
+            "fee_formula": "0.00024 times the valuation"
+          },
+          {
+            "description": "Minimum fee",
+            "fee": 1.60
+          }
+        ]
+      },
+      {
+        "item": 6,
+        "description": "Subdivision",
+        "fee": 692
+      },
+      {
+        "item": 7,
+        "description": "Slope and Seismic Hazard Zone Protection Act",
+        "fee": 2888
+      },
+      {
+        "item": 8,
+        "description": "Local Equivalency Fee",
+        "fee": 481,
+        "unit": "per hour",
+        "minimum": "0.25 hours"
+      }
+    ]
+  },
+  "table_1A_K": {
+    "title": "Penalties, Hearings, Code Enforcement Assessments",
+    "fees": [
+      {
+        "item": 1,
+        "description": "Abatement Appeals Board hearing, filing fee",
+        "fee": 534,
+        "unit": "per case"
+      },
+      {
+        "item": 2,
+        "description": "Board of Examiners filing fees",
+        "sub_items": [
+          {
+            "description": "Each appeal for variance from interpretation of code requirements",
+            "fee": 372,
+            "unit": "per hour",
+            "minimum": "4 hours"
+          },
+          {
+            "description": "Each appeal for approval of substitute materials or methods of construction",
+            "fee": 372,
+            "unit": "per hour",
+            "minimum": "4 hours"
+          }
+        ]
+      },
+      {
+        "item": 3,
+        "description": "Building Official's abatement order hearing",
+        "fee": 372,
+        "unit": "per hour",
+        "minimum": "4 hours"
+      },
+      {
+        "item": 4,
+        "description": "Emergency order",
+        "fee": 497,
+        "unit": "per hour",
+        "minimum": "2 hours"
+      },
+      {
+        "item": 5,
+        "description": "Exceeding the scope of the approved permit",
+        "fee_formula": "2 times the Permit Issuance Fee"
+      },
+      {
+        "item": 6,
+        "description": "Access Appeals Commission",
+        "sub_items": [
+          {
+            "description": "Filing fee",
+            "fee": 471,
+            "unit": "per hour",
+            "minimum": "2 hours per appeal"
+          },
+          {
+            "description": "Request for a rehearing",
+            "fee": 471,
+            "unit": "per hour",
+            "minimum": "2 hours"
+          }
+        ]
+      },
+      {
+        "item": 7,
+        "description": "Lien recordation charges",
+        "fee_formula": "$372 or 10% of the amount of the unpaid balance including interest, whichever is greater"
+      },
+      {
+        "item": 8,
+        "description": "Work without permit: investigation fee",
+        "sub_items": [
+          {
+            "description": "Building, Electrical, Plumbing or Mechanical Code violations",
+            "fee_formula": "9 times the Permit Issuance Fee plus the original permit fee"
+          }
+        ]
+      },
+      {
+        "item": 9,
+        "description": "Building Inspection Commission hearing fees",
+        "sub_items": [
+          {
+            "description": "Notice of appeal",
+            "fee": 471,
+            "unit": "per hour",
+            "minimum": "4 hours"
+          },
+          {
+            "description": "Request for jurisdiction",
+            "fee": 471,
+            "unit": "per hour",
+            "minimum": "4 hours"
+          },
+          {
+            "description": "Request for rehearing",
+            "fee": 471,
+            "unit": "per hour",
+            "minimum": "2 hours"
+          }
+        ]
+      },
+      {
+        "item": 10,
+        "description": "Additional hearings required by Code",
+        "fee": 471,
+        "unit": "per hour",
+        "minimum": "2 hours"
+      },
+      {
+        "item": 11,
+        "description": "Violation monitoring fee (in-house)",
+        "fee": 149,
+        "unit": "each per month"
+      },
+      {
+        "item": 12,
+        "description": "Failure to register vacant commercial storefront",
+        "fee_formula": "4 times the registration fee"
+      },
+      {
+        "item": 13,
+        "description": "Subordination",
+        "fee": 894
+      },
+      {
+        "item": 14,
+        "description": "Vacant building - initial and annual registration fee",
+        "fee": 1850
+      }
+    ]
+  },
+  "table_1A_L": {
+    "title": "Public Information",
+    "fees": [
+      {
+        "item": 1,
+        "description": "Public notification and record keeping fees",
+        "sub_items": [
+          {
+            "description": "Structural addition notice",
+            "fee": 257,
+            "unit": "per hour",
+            "minimum": "0.75 hours"
+          },
+          {
+            "description": "Posting of notices (change of use)",
+            "fee": 257,
+            "unit": "per hour",
+            "minimum": "0.75 hours"
+          },
+          {
+            "description": "Requesting notice of permit issuance (each address) per year",
+            "fee": 257,
+            "unit": "per hour",
+            "minimum": "0.75 hours"
+          },
+          {
+            "description": "30-inch by 30-inch (762 mm by 762 mm) sign",
+            "fee": 64
+          }
+        ]
+      },
+      {
+        "item": 2,
+        "description": "Demolition - Notice of application and permit issuance by area/interested parties",
+        "sub_items": [
+          {
+            "description": "1 area (1 area = 2 blocks)",
+            "fee": 205,
+            "unit": "yearly fee for each area"
+          }
+        ]
+      },
+      {
+        "item": 3,
+        "description": "Demolition Notices",
+        "sub_items": [
+          {
+            "description": "300-foot (91.44 m) notification letters",
+            "fee": 184,
+            "unit": "per hour",
+            "minimum": "3 hours"
+          },
+          {
+            "description": "Residential tenant notification",
+            "fee": 184,
+            "unit": "per hour",
+            "minimum": "0.5 hours"
+          }
+        ]
+      },
+      {
+        "item": 4,
+        "description": "Reproduction and dissemination of public information",
+        "sub_items": [
+          {
+            "description": "Certification of copies - Each 10 pages or fraction thereof",
+            "fee": 33
+          },
+          {
+            "description": "Hard copy prints",
+            "fee": 0.10
+          }
+        ]
+      },
+      {
+        "item": 5,
+        "description": "Records Retention Fee - Each 20 pages or fraction thereof of plans or supporting documentation",
+        "fee": 74
+      },
+      {
+        "item": 6,
+        "description": "Report of residential records (3R)",
+        "fee": 286
+      },
+      {
+        "item": 7,
+        "description": "Duplication of Plans Administration Fee",
+        "fee": 113
+      }
+    ]
+  },
+  "table_1A_M": {
+    "title": "Reserved",
+    "status": "reserved",
+    "note": "Removed by Ord. 126-25, File No. 250592, App. 8/1/2025, Eff. 9/1/2025"
+  },
+  "table_1A_N": {
+    "title": "Energy Conservation",
+    "fees": [
+      {
+        "description": "Single-family dwellings and two-family dwellings",
+        "initial_inspection": 448,
+        "compliance_inspection": 200
+      },
+      {
+        "description": "Apartment houses and residential hotels - Up to 20 rooms",
+        "initial_inspection": 603,
+        "compliance_inspection": 299
+      },
+      {
+        "description": "Apartment houses and residential hotels - Each additional 10 rooms or portion thereof",
+        "initial_inspection": 200,
+        "compliance_inspection": 155
+      },
+      {
+        "description": "Energy reports and certificates - Filing fee",
+        "fee": 113
+      },
+      {
+        "description": "Filing fee for appeals",
+        "fee": 226
+      },
+      {
+        "description": "Certification of qualified energy inspector",
+        "fee": 450
+      }
+    ]
+  },
+  "table_1A_O": {
+    "title": "Reserved",
+    "status": "reserved"
+  },
+  "table_1A_P": {
+    "title": "Residential Code Enforcement and License Fees",
+    "fees": [
+      {
+        "item": 1,
+        "description": "One- and Two-family dwelling unit fees",
+        "fee": 140,
+        "unit": "per rental unit"
+      },
+      {
+        "item": 2,
+        "description": "Apartment house license fees",
+        "sub_items": [
+          {"description": "Apartment houses of 3 to 12 units", "fee": 542, "unit": "per year"},
+          {"description": "Apartment houses of 13 to 30 units", "fee": 863, "unit": "per year"},
+          {
+            "description": "Apartment houses of more than 30 units",
+            "fee": 1066,
+            "unit": "per year",
+            "additional": "$156 for each additional 10 units or portion thereof"
+          }
+        ]
+      },
+      {
+        "item": 3,
+        "description": "Hotel license fees",
+        "sub_items": [
+          {"description": "Hotels of 6 to 29 rooms", "fee": 639, "unit": "per year"},
+          {"description": "Hotels of 30 to 59 rooms", "fee": 956, "unit": "per year"},
+          {"description": "Hotels of 60 to 149 rooms", "fee": 1154, "unit": "per year"},
+          {"description": "Hotels of 150 to 200 rooms", "fee": 1454, "unit": "per year"},
+          {
+            "description": "Hotels of more than 200 rooms",
+            "fee": 1849,
+            "unit": "per year",
+            "additional": "$156 for each additional 25 rooms or portion thereof"
+          }
+        ]
+      }
+    ]
+  },
+  "table_1A_Q": {
+    "title": "Hotel Conversion Ordinance Fees",
+    "fees": [
+      {
+        "item": 1,
+        "description": "Annual unit usage report",
+        "fee": 228
+      },
+      {
+        "item": 2,
+        "description": "Appeal of initial or annual status determination",
+        "fee": 405,
+        "unit": "per hour",
+        "note": "pursuant to Section 110A, plus fees for Hearing Officer"
+      },
+      {
+        "item": 3,
+        "description": "Challenge to claims of exemption",
+        "sub_items": [
+          {"description": "Usage report", "fee": 113},
+          {"description": "Claim of exemption based on low-income housing", "fee": 799},
+          {"description": "Claim of exemption based on partially completed conversion", "fee": 1199}
+        ]
+      },
+      {
+        "item": 4,
+        "description": "Complaint of unlawful conversion",
+        "fee": 113,
+        "note": "Determination by Department of Real Estate and cost of independent appraisals at actual costs"
+      },
+      {
+        "item": 5,
+        "description": "Initial unit usage report",
+        "fee": 799
+      },
+      {
+        "item": 6,
+        "description": "Permit to convert",
+        "fee": 1317
+      },
+      {
+        "item": 7,
+        "description": "Request for hearing to exceed 25% tourist season rental limit",
+        "sub_items": [
+          {"description": "Inspection staff review", "fee": 405, "unit": "per hour"},
+          {"description": "Statement of exemption - Hearing Officer fee", "fee": 797}
+        ]
+      },
+      {
+        "item": 8,
+        "description": "Unsuccessful challenge",
+        "sub_items": [
+          {"description": "Usage report - Inspection staff review", "fee": 405, "unit": "per hour"},
+          {"description": "Usage report - Statement of exemption - Hearing Officer fee", "fee": 799},
+          {"description": "Request for winter rental - Standard hourly inspection fee", "fee": 405, "unit": "per hour"}
+        ]
+      }
+    ]
+  },
+  "table_1A_R": {
+    "title": "Refunds",
+    "policies": [
+      {
+        "item": 1,
+        "description": "Application or Permit Issuance Fee",
+        "sub_items": [
+          {
+            "description": "Building, plumbing, electrical or mechanical permit issuance fee",
+            "refund_formula": "Amount paid less $357 or actual costs, whichever is greater",
+            "restriction": "No refunds given after work started"
+          },
+          {
+            "description": "Plan Review Fees (each)",
+            "refund_formula": "Amount determined by the Building Official less $357",
+            "restriction": "No refund due after application deemed acceptable for Department of Building Inspection Plan Review"
+          }
+        ]
+      },
+      {
+        "item": 2,
+        "description": "Miscellaneous Fees",
+        "refund_formula": "Amount paid less $357",
+        "restriction": "No refunds less than $357. No refunds given after work started."
+      }
+    ],
+    "general_notes": [
+      "No existing permittee who paid a fee under fee schedules in effect at the time the fee was paid shall be eligible for a refund or subject to a fee reassessment as a result of an amendment to the fee schedules",
+      "If the Building Official determines that an error has been made in the assessment of fees, a refund for the portion determined to be in error may be made upon written request by the applicant"
+    ],
+    "minimum_processing_fee": 357
+  },
+  "table_1A_S": {
+    "title": "Unreinforced Masonry Bearing Wall Building Retrofit",
+    "fees": [
+      {
+        "description": "Review of Inventory Form (Section 1604B.2.1)",
+        "fee": 372,
+        "unit": "per hour",
+        "minimum": "2 hours"
+      },
+      {
+        "description": "Review of the summary of the engineering report (Section 1604B.2.3)",
+        "fee": 372,
+        "unit": "per hour",
+        "minimum": "2 hours"
+      },
+      {
+        "description": "Board of Examiners filing fees (Section 105A7.4)",
+        "sub_items": [
+          {
+            "description": "Each appeal for a variance from or interpretation of code requirements",
+            "fee": 372,
+            "unit": "per hour",
+            "minimum": "2 hours"
+          },
+          {
+            "description": "Each appeal for the approval of substitute materials or methods of design construction (Section 105A.7.3)",
+            "fee": 372,
+            "unit": "per hour",
+            "minimum": "4 hours"
+          }
+        ]
+      }
+    ]
+  }
+}

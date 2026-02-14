@@ -20,3 +20,4 @@ data/*
 !data/knowledge/
 # Large files in knowledge base (>1MB)
 data/knowledge/tier4/sf-planning-code-full.txt
+data/knowledge/tier4/sf-bicc-fire-codes-full.txt

@@ -161,6 +161,60 @@
 - Created: tier1/planning-code-key-sections.json (36K)
 - **GAP-4 RESOLVED** (was partially resolved, now fully structured)
 
+### Session 6: BICC Ingestion + Semantic Layer (2026-02-14, ~06:00)
+
+#### ~06:00 - BICC + Fire Code Received
+- Tim downloaded complete BICC + Fire Code from amlegal.com (3.6MB, 57,938 lines)
+- Contains: 2022 Fire Code (lines 1-27006), Building Code (27007+), all 19 fee tables (32388+), all 47 Administrative Bulletins (35712-47124), Electrical/Existing Building/Green Building/Housing/Mechanical/Plumbing Codes
+- Saved to: tier4/sf-bicc-fire-codes-full.txt (gitignored due to size)
+
+#### ~06:00 - Fee Tables Extracted (Background Agent) ✅
+- Extracted all 19 fee tables (Tables 1A-A through 1A-S) from BICC lines 32388-33196
+- 14 active tables, 5 reserved — 54K structured JSON
+- Table 1A-A: 10 valuation tiers, 3 categories (new construction, alterations, no plans)
+- Table 1A-D: Plan Review $481/hr, Inspection $571/hr ($742 off-hour)
+- Table 1A-K: Work without permit penalty = 9x issuance fee + original
+- Created: tier1/fee-tables.json
+- **GAP-2 FULLY RESOLVED**
+
+#### ~06:00 - Administrative Bulletins Index Extracted (Background Agent) ✅
+- Indexed all 47 ABs from BICC lines 35712-47124 (was only 6 before)
+- 25 HIGH relevance, 18 MEDIUM, 4 LOW — 15 critical for permit routing
+- 17 subject area categories, 11,344 total lines of AB text
+- Top areas: seismic (11 ABs), fire/life safety (8), accessibility (4), permit processing (4)
+- Created: tier1/administrative-bulletins-index.json (35K)
+- **GAP-8 FULLY RESOLVED** (was partially resolved with 6 individual files)
+
+#### ~06:00 - Fire Code Key Sections Extracted (Background Agent) ✅
+- Extracted from 2022 Fire Code (lines 1-27006)
+- 13 SFFD review triggers (always/conditional/operational)
+- Complete sprinkler trigger rules: A-2 at 100 occupants/5000 sqft, high-rise >75ft, SRO 20+ rooms
+- Fire alarm triggers: >6 dwelling units, $99K construction cost upgrade
+- Hood suppression: commercial kitchens, 6-month service cycle
+- High-rise tiers at 75ft, 120ft, 240ft with detailed requirements
+- Created: tier1/fire-code-key-sections.json (37K)
+
+#### ~06:15 - Amy Lee Portfolio Analysis ✅
+- Cross-referenced DBI contacts (3pee-9qhc) with building permits (i98e-djp9) via SODA API
+- Found 171 detailed permits for Amy Lee / 3S LLC
+- Key projects: 505 Mission Rock ($67.25M, 23-story), 4200 Geary ($44.8M affordable), 199 Fremont (office→food/beverage $2M), 600 Battery ($14.25M TI with AB-004 priority), 1240 Fillmore ($15M seismic)
+- Portfolio spans: new construction, change-of-use, office TI, residential remodel, seismic, ADU
+
+#### ~06:15 - Amy Interview Packet Rewritten ✅
+- Credibility-first format: "We Show You What We Know — You Tell Us Where We're Wrong"
+- 5 specific claims with code section references for Amy to correct
+- 5 stress-test scenarios with specific predictions
+- Competitive landscape with public data (rank #42, 3S LLC team)
+
+#### ~06:30 - Semantic Concept-to-Source Index Built ✅
+- 61 concepts mapped with ~500 aliases to authoritative source files/paths
+- Cross-cuts all 15 structured JSON files
+- Includes inference layer: 1-hop related_concepts expansion
+- Stress-tested with 10 scenarios (6 based on Amy's actual projects)
+- **Results: 100% concept recall, 100% file recall, 10/10 perfect scores**
+- Iteration path: v0.1 was 41% concept recall → added natural language aliases → 67% → added related_concepts inference → 100%
+- Created: tier1/semantic-index.json (75K), scripts/stress_test_semantic_index.py
+
 ### Known Issues (Updated)
 1. **20 scanned image PDFs**: ✅ RESOLVED — All OCR'd successfully (183K chars, 85 pages)
 2. **File naming offset**: ✅ RESOLVED — document-mapping.json created, tier1 files renamed
