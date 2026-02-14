@@ -63,17 +63,16 @@ Last updated: 2026-02-13
 **Example**: File labeled "G-25" actually contains G-24 (MOU procedures)
 **Resolution**: ✅ Document mapping created (document-mapping.json). Tier 1 files renamed. G-29 (Adaptive Reuse) found in S-03.txt.
 
-### GAP-8: Administrative Bulletins — MOSTLY RESOLVED
+### GAP-8: Administrative Bulletins — ✅ RESOLVED
 **Impact**: ABs define key procedures referenced throughout info sheets
-**Status**: 3 ABs cleaned and committed, 3 lost to Cloudflare WAF:
-- ✅ AB-004: Priority Permit Processing Guidelines (29K)
-- ✅ AB-005: Procedures for Approval of Local Equivalencies (31K) — contains AB-004+AB-005
-- ✅ AB-032: Site Permit Processing (48K) — contains AB-028+AB-032
-- ❌ AB-093: Implementation of Green Building Regulations (73K) — lost to Cloudflare WAF
-- ❌ AB-110: Building Facade Inspection and Maintenance (99K) — lost to Cloudflare WAF
-- ❌ AB-112: Implementation of All-Electric New Construction Regulations (116K) — lost to Cloudflare WAF
-**Note**: OTC criteria and completeness review turned out to be sf.gov web pages, NOT ABs (see GAP-1 and GAP-5 — both RESOLVED)
-**Recovery**: Manual browser download from amlegal.com or wait for WAF cooldown
+**Status**: All 6 targeted ABs recovered and committed:
+- ✅ AB-004: Priority Permit Processing Guidelines (29K) — from amlegal.com via Playwright
+- ✅ AB-005: Procedures for Approval of Local Equivalencies (31K) — from amlegal.com via Playwright
+- ✅ AB-032: Site Permit Processing (48K) — from amlegal.com via Playwright
+- ✅ AB-093: Implementation of Green Building Regulations (30K) — manually downloaded by Tim
+- ✅ AB-110: Building Facade Inspection and Maintenance (28K) — extracted from SF Planning Code
+- ✅ AB-112: All-Electric New Construction Regulations (35K) — extracted from SF Planning Code
+**Note**: OTC criteria and completeness review turned out to be sf.gov web pages, NOT ABs (see GAP-1 and GAP-5)
 
 ### GAP-9: Real G-29 (Adaptive Reuse) — RESOLVED
 **Impact**: The spec listed G-29 as a priority Tier 1 source for adaptive reuse rules
