@@ -1,0 +1,232 @@
+AB-093 Implementation of Green Building Regulations
+
+Source: https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-89498
+
+NO. AB-093   :
+ 
+ 
+
+
+DATE   :
+ 
+Effective January 1, 2023,
+Revised December 13, 2023
+
+
+SUBJECT   :
+ 
+Administration and General Design
+
+
+TITLE   :
+ 
+Implementation of Green Building Regulations
+
+
+PURPOSE   :
+ 
+The purpose of this Administrative Bulletin is to detail standards and procedures for the implementation of the Green Building requirements of the San Francisco Green Building Code effective January 1, 2023.
+
+
+REFERENCES   :
+ 
+2022 San Francisco Green Building Code
+San Francisco Administrative Bulletin 005: Procedures for Approval of Local Equivalencies
+2022 California Green Building Standards Code
+San Francisco Environment Code, Chapter 7
+2022 San Francisco Building Code
+
+
+DISCUSSION   :
+ 
+Approved construction documents and completed projects must conform to the Green Building requirements established in the San Francisco Green Building Code, which combines all mandatory elements of the 2022 California Green Building Standards Code (“CALGreen”) and stricter local requirements.
+Herein, “locally required measures” refers to the combination of prescriptive measures required by the California Green Building Standards Code, local amendments, and other relevant local requirements.
+At various project milestones, particularly at the conclusion of construction, the Department of Building Inspection must verify that Green Building requirements have been met. Under these implementation procedures, the majority of verification is required to be provided to the Department of Building Inspection via a formal third-party certification under green building rating systems referenced in the San Francisco Green Building Code, or by a third-party licensed design professional.
+Note: Future local, state or other regulations may change the scope and implementation of Green Building requirements. Projects that submit a complete application for a building permit must meet the requirements in effect at that time. Project sponsors should verify that they are meeting all applicable code requirements, which may modify the standards and procedures addressed in this Administrative Bulletin.
+ 
+IMPLEMENTATION:
+Green Building Requirements to be Applied
+The San Francisco Green Building Code applies to all new construction in San Francisco, as well as most alterations and additions. To identify the green building requirements that apply to a project:
+   •   Use Attachment A, Table 1 of this bulletin to find the overall green building standard [Leadership in Energy and Environmental Design (LEED), GreenPoint Rated, or ‘Locally Required Measures Only’] that applies, based on occupancy, project size, and whether the project is new construction or alteration. Attachment A, Table 1 also identifies the submittal required in order to confirm compliance with local requirements.
+   •   Attachment B consists of four tables that summarize specific required measures:1
+      °   Table 1: Requirements for projects meeting a LEED standard
+      °   Table 2: Requirements for projects meeting a GreenPoint Rated standard
+      °   Table 3: Requirements for all non-residential projects that are not required to meet a LEED standard (includes certain new construction as well as certain additions and alterations)
+      °   Table 4: Requirements for residential additions and alterations
+Mixed Occupancy Buildings
+For mixed occupancy buildings where local standards reference a green building rating system (Attachment A, Table 1), the project sponsor may apply a single green building rating system to the entire building. Each portion of the building must meet the Local Requirements applicable to that occupancy.
+Applicability of Green Building Regulations Based on Date of Building Permit Application
+Application of Green Building requirements is based on the date of submittal of a building permit application. The applicable date of the San Francisco Green Building Code 2022 is January 1, 2023. In the case of Site Permits, the effective date shall be the date that the Site Permit application (not an addendum) is filed with the Department of Building Inspection.
+Table 1 summarizes the green building requirements that apply based on the date a complete application is submitted. Addenda to site permits and revisions to permit applications received before January 1, 2023 are required to meet the green building requirements that applied on the date a complete application for site permit was submitted. If a site permit addendum or revision changes the scope of the project such that current codes are generally applicable, then current green building requirements are also applicable.
+For details, see the appropriate version of Administrative Bulletin 93: “Implementation of Green Building Regulations,” as summarized in the following table:
+Table 1: Applicability of green building requirements based on date of application for building permit in San Francisco
+Green Building Requirements
+ 
+Effective Dates
+ 
+Administrative Bulletin 93 Version
+Green Building Requirements
+ 
+Effective Dates
+ 
+Administrative Bulletin 93 Version
+
+
+San Francisco Green Building Code (2022)
+ 
+January 1, 2023 through December 31, 2025
+ 
+This bulletin
+
+
+San Francisco Green Building Code (2019)
+ 
+January 1, 2020 through December 31, 2022
+ 
+April 2021 Revision
+
+
+San Francisco Green Building Code (2016)
+ 
+January 1, 2017 through December 31, 2019
+ 
+January 2018 Revision
+
+
+San Francisco Green Building Code (2013)
+ 
+January 1, 2014 through December 31, 2016
+ 
+January 1, 2014
+
+
+San Francisco Building Code 13C (2010)
+ 
+July 18, 2012 through December 31, 2013
+ 
+July 18, 2012
+
+
+San Francisco Building Code 13C (2010)
+ 
+January 1, 2011 through July 17, 2012
+ 
+January 1, 2011
+
+
+San Francisco Building Code 13C (2007)
+ 
+November 3, 2008 through December 31, 2010
+ 
+September 24, 2008
+
+ 
+ 
+PROJECT SUBMITTAL REQUIREMENTS
+Applicability
+Attachment A, Table 1 should be used to determine which green building requirements may apply to the project. Department of Building Inspection staff will screen all building permit applications to confirm which Green Building regulations apply, as summarized in Attachment A, Table 1. Every application for a Site Permit subject to these regulations must include a completed Green Building Site Permit Submittal (GS-1). Permit applications for new construction projects will not be accepted for processing without Green Building Site Permit Submittal GS-1, and permit applications for an addition or alteration will not be accepted without submittal GS-2, GS-3, GS-4, GS-5, or GS-6 as applicable.
+At the time of the first architectural or superstructure addendum, whichever comes first, the submittal package for all applicable projects must include a checklist incorporated into the project plans indicating the required green building measures.2 This checklist must reference, as appropriate, location of green building features in the submittal documents. The Green Building Submittal (GS-1, GS-2, GS-3, GS-4, GS-5, or GS-6) shall include this checklist, shall detail the green building requirements to be met, and shall indicate which addendum or other document will provide compliance details for each required performance measure or credit.
+The Green Building Submittal may be reformatted as needed to conform to plan submittal size if all the required information is provided.
+Compliance with the Green Building Requirements may be documented in any of the following methods:
+   1)   Registration and submittal for certification under LEED. For buildings that propose this option, the permit applicant must provide submittal documentation showing that the project will meet the appropriate LEED certification requirements. See the “Energy Compliance Guidelines for LEED projects” section below for details.
+   2)   Registration and achievement of GreenPoint Rated status. For buildings that propose this option, the permit applicant must submit documentation showing that the project meets all requirements necessary to GreenPoint Rated certification.
+   3)   Documentation of compliance with either LEED or GreenPoint Rated standards without registration and certification from those systems. The Green Building Compliance Professional of Record must provide submittal documentation showing that the project will meet the appropriate standards.
+   4)   Registration and submittal for another rating system or documentation of equivalency as approved by the Director. For buildings that propose to meet such alternate standards, the Green Building Compliance Professional of Record must provide submittal documentation detailing compliance with the proposed standards.
+   5)   Where neither LEED nor GreenPoint Rated is required, submit documentation of compliance with Locally Required Measures in effect at the time of permit submittal, as indicated.
+Municipal projects3 of 10,000 square feet or larger are required to obtain LEED Gold certification by San Francisco Environment Code, Chapter 7. For such projects, only method 1) above may be used.
+Green Building Compliance Professional of Record
+For methods 3), 4), and 5) above, the owner or owner’s agent must employ a Green Building Compliance Professional of Record who personally reviews and verifies compliance with San Francisco Green Building Code requirements, or who directly supervises persons providing on-site review or verification thereof.
+For methods 3), 4), and 5) above, the qualifications for Green Building Compliance Professional of Record include a license or registration as an Architect or Engineer, and specialized understanding of Green Building standards and technologies:
+   •   for LEED projects, such specialized understanding shall include LEED accreditation and successful completion of at least one LEED certified project.
+   •   for GreenPoint Rated projects, such specialized understanding shall include the GreenPoint Rater designation, or the project team shall include a person who is a GreenPoint Rater.
+   •   For projects solely required to meet Locally Required Measures, such specialized understanding, shall include either: International Code Council (ICC) Certified CalGreen Inspector certification, the GreenPoint Rater designation, LEED accreditation, or equivalent training and certification as approved by the Director.
+For residential alteration and addition projects where the area of the project is less than 25,000 square feet and which increase total conditioned floor area of the building by no more than 1,000 square feet, a Green Building Compliance Professional of Record is not required.4 In such cases, the applicant may complete the green building submittal. In all cases, applicable green building requirements apply to the entire project, and are not limited to the area of addition.
+The Department of Building Inspection may request verification of such training or experience and may make an administrative determination as to the qualification of a person to act as such a Green Building Compliance Professional of Record.
+A Green Building Compliance Professional of Record is responsible for providing verification to the Department of Building Inspection that all Green Building design and construction requirements are met. Where a Green Building Compliance Professional of Record is responsible for verifying compliance with the requirements of the San Francisco Green Building Code, and no third party green building certification is to be achieved, project documents may be reviewed in detail in plan review and inspection, at standard hourly rates for staff time.
+Compliance Guidelines: Energy
+The 2022 San Francisco Green Building Code requires building permit submittals to show that they meet the compliance margin required by the applicable rating system or local code, and comply with the California Building Energy Efficiency Standards in effect at the time of permit submittal. In each case below, standard California Energy Standards documentation must be prepared using software approved by the California Energy Commission for demonstrating compliance with the applicable provisions and version of the California Energy Code. The following guidelines explain when additional calculations and documentation are required.
+   •   Buildings meeting a LEED for Building Design and Construction (BD+C), or LEED Core and Shell standard for compliance with the San Francisco Green Building Code must prepare and submit all standard documentation required by the California Energy Commission to demonstrate compliance with the California Energy Standards (Title 24, Part 6) in effect on the date of permit application.6
+   •   Where calculations based on Title 24 Part 6 California Energy Standards are used to document that ‘points’ are earned for energy efficient design and construction, the compliance margin cited in the applicable certificate of compliance (CF1R-PRF-01E for single family and NRCC-PRF-01 for commercial and multifamily) submitted for compliance may be utilized without modification. Residential all-electric buildings which demonstrate prescriptive compliance and apply GreenPoint Rated J5.1 Option Two: All Electric Compliance may submit the applicable CF1R or NRCC report.
+   •   Where the ASRHAE 90.1 option in LEED v4 (or subsequent) rules is used to document ‘points’ being voluntarily earned for energy-efficient design and construction, the supporting analysis must be submitted, and must include a detailed accounting of all on-site building energy use, including all: exterior and security lighting; elevators; process loads; and receptacle loads. Documentation to be retained in the records of the project must include all information required for LEED certification by the Green Building Certification Institute.
+Buildings meeting a LEED for Homes or GreenPoint Rated standard must use California Energy Commission-approved compliance software and submit documentation to demonstrate that the proposed building both:
+   •   Complies with the California Energy Efficiency Standards in effect on the date of application for building permit, AND
+   •   Meets the minimum energy performance requirements of the applicable green building rating system.
+Where California Energy Commission-approved compliance software is used to document the minimum energy efficiency requirements of the green building rating, all submittals related to compliance and the green rating system must be generated in a manner consistent with the guidance of the applicable green building rating system, and must faithfully represent the design as proposed. The most straightforward way to demonstrate compliance calculations are consistent with the calculations of the green building rating system is to use a single simulation run, so that the compliance run number is consistent throughout the compliance documentation.
+Compliance Guidelines: All-Electric New Construction
+San Francisco Building Code 106A.1.17.1 requires all-electric design and construction for all projects that submit an initial application for permit to construct new buildings on or after June 1, 2021. All space-conditioning, water heating, cooking, and clothes drying systems must be all-electric, and installation of infrastructure, piping systems, or piping for distribution of natural gas or propane to such uses indoors or outdoors is prohibited. The ordinance allows limited installation of gas piping systems for commercial food preparation, and if, after exhausting all options, all-electric construction is determined to be physically or technically infeasible. See Administrative Bulletin 112 for details.
+Compliance Guidelines: Construction Site Runoff Pollution Prevention
+Construction site runoff pollution prevention requirements depend upon project size, occupancy, and location in areas served by combined or separate sewer systems. Projects required to meet a LEED standard (see Attachment A, Table 1) must, at a minimum, prepare an erosion and sedimentation control plan per LEED Sustainable Sites prerequisite 1. However, more stringent local requirements may apply to any project, whether or not LEED is to be applied, such as a stormwater soil loss prevention plan or a Stormwater Pollution Prevention Plan (SWPPP). To confirm the construction site runoff pollution prevention requirements applicable to your project, please contact the SFPUC: sfpuc.org/programs/pretreatment-program/construction-site-runoff.
+Compliance Guidelines: Design for Post-Construction Stormwater Management
+Projects that disturb 5,000 square feet or more of ground surface in the separate and combined sewer areas, or that create or replace 2,500 square feet or more of impervious surface in separate sewer areas, must meet Stormwater Management Requirements as determined by the San Francisco Public Utilities Commission (SFPUC), and must submit a Stormwater Control Plan to the SFPUC for approval. The SFPUC has developed San Francisco Stormwater Management Requirements and Design Guidelines to aid project teams in meeting local requirements for stormwater controls, which are available online at: sfpuc.org/construction-contracts/design-guidelines-standards/water-efficient-landscape.
+Compliance Guidelines: Water Efficient Irrigation
+Projects that include at least 500 square feet of new or modified landscape are subject to the San Francisco Water Efficient Irrigation Ordinance.7 Details are available online at: sfpuc.org/smr.
+New Large Commercial Interiors and Major Alterations to Existing Buildings
+The application of San Francisco Green Building Code Sections 5.103.3 or 4.103.3 to Major Alterations to Existing Buildings is based on a determination as to whether a “significant upgrade” is proposed to both the structural system and to one or more of the mechanical, electrical and/or plumbing systems in an area of more than 25,000 gross square feet in a Group B, M or R occupancy. For the purpose of enforcement of the San Francisco Green Building Code, a significant structural upgrade shall be determined to take place when a structural alteration takes place in 30% or more of the area of proposed construction. Areas to be counted toward such a determination include areas tributary to the vertical load carrying components (joists, beams, columns, walls and other structural components) that have been or will be removed, added or altered.
+The application of Section 5.103.4 to New Large Commercial Interiors requires that the first time tenant improvement work in an area of at least 25,000 square feet must meet the green building standards detailed in the ordinance. This requirement applies regardless of the date of construction of the building, including the first time a space undergoes a tenant improvement after or concurrent with a major alteration as defined in San Francisco Green Building Code Section 202. Note that all first-time commercial tenant interior improvement work of less than 25,000 square feet must comply with all applicable CALGreen requirements; see Attachment B, Table 3 or Green Submittal Form GS-3 for details.
+Accessory Dwelling Units
+The construction of an accessory dwelling unit within an existing structure or attached to an existing structure is an alteration or addition. For the purpose of compliance with local amendments to California Green Building Standards, construction of a single freestanding dwelling unit accessory to an existing structure is considered an addition. See Green Submittal Form GS-5 for details.
+Historic Building Requirements for “Historic Resources” Based on Planning Department Determination
+For purposes of applying the specific provisions of the San Francisco Green Building Code related to historic buildings, the Planning Department shall determine whether a building is an historical resource. This Planning Department review applies a standard based on the California Environmental Quality Act (CEQA) as to whether a structure is or might be considered an “historic resource”. Based on such information, the Green Building Compliance Professional of Record shall confirm that submittal documents properly reflect the requirements of the Code.
+Projects which retain, rehabilitate or repair significant historical architectural features may receive credit toward Green Building requirements, per Attachment A, Table 3.
+Alternate Building Code Applicability Under the California Historical Building Code Based on Department of Building Inspection Qualification
+For buildings that are qualified to use the California Historical Building Code, project sponsors may apply the alternate provisions of that code. Buildings are determined to be qualified to use the California Historical Building Code upon specific request to the Department of Building Inspection. Buildings that qualify to use the California Historical Building Code include buildings that are on federal, state or local adopted lists or surveys, buildings that are determined by the City to be eligible for such a list or survey, or buildings that have otherwise been determined by the City to be potential historic resources. The applicant must confirm with the Department of Building Inspection whether code provisions for historic buildings will be applied to the entire building, specific items, or specific areas.
+Eligibility to use the California Historical Building Code is a separate process from the determination by the Planning Department that a building is an “historic resource,” but the Department of Building Inspection coordinates with the Planning Department on the review of requests for qualification to use the California Historical Building Code.
+Demolition
+For a replacement building which is to be constructed on a site on which one or more buildings were demolished after the effective date of this ordinance, the Planning Department, during the course of permit review, shall confirm applicable Green Building requirements, as found in Attachment A, Table 2.
+Requests for Approval of Equivalencies
+Project sponsors wishing to propose alternates or equivalencies for the specific requirements referenced in the San Francisco Green Building Code or its referenced standards may do so as described in Administrative Bulletin 5, “Procedures for Approval of Local Equivalencies.” Note that related state and local requirements continue to apply, including, but not limited to: California Green Building Standards Code (Title 24 Part 11); SFPUC Stormwater Management Ordinance; and SFPUC Water Efficient Irrigation Ordinance.
+A proposal for an alternate or equivalent method of compliance may be submitted with initial permit application or at a later date. Proposals for alternate or equivalency to San Francisco Green Building Code must include:
+   1.   Proposed approach. If more than one equivalency is proposed, each alternate must be presented separately.
+   2.   Requests must be accompanied by a complete analysis of Green Building Code and other code-related issues, and must be recommended by and signed by the Green Building Compliance Professional of Record for the project. The analysis must include calculations or other documentation for each specific element, confirming that the proposal meets or exceeds the applicable requirements.
+   3.   The Department of Building Inspection staff will review the proposal and may, at its discretion, request review by other City staff or other professionals expert in the subject matter under review. The project sponsor will be responsible for all additional costs incurred for such review, including review time by City staff, charged at the hourly rate as set forth in the San Francisco Building Code, or direct costs for other consultant review.
+   4.   The Department of Building Inspection staff may request additional information as part of the review.
+   5.   The Department of Building Inspection will issue a decision to approve, deny or require modifications to any submitted alternate or equivalency.
+   6.   Project sponsors may appeal any decision to the Deputy Director, Director, and appeal bodies as detailed in the San Francisco Building Code.
+Note that the 2022 San Francisco Green Building Code recognized GreenPoint Rated v.9 and all LEED v4 rating systems (see SFGBC 101.10), and allows the application of more recent versions of these rating systems. New residential projects of any size may therefore utilize LEED for Homes Midrise, LEED BD+C, or GreenPoint Rated without triggering the above process for confirming equivalency. Similarly, major alterations to residential buildings may use LEED for Building Design and Construction, GreenPoint Rated Multifamily New Home, or GreenPoint Rated Multifamily Existing Home to comply, provided applicable local requirements are met.
+Project Completion: Verification that Green Building Requirements are Met in New Construction and Major Alterations
+Verification that green building requirements for new construction and major alterations have been met requires submittal of Attachment E, Green Building: Final Compliance Verification prior to final inspection. Attachment E may be completed using any of the following methods:
+   1)   If the project has been submitted for certification under LEED, once certification is awarded the project sponsor shall provide documentation to the Department of Building Inspection that the Green Building Certification Institute has certified the project.
+   2)   If the project has been submitted to be GreenPoint Rated, project shall provide to the Department of Building Inspection documentation that Build It Green has provided a GreenPoint Rated certificate to the project.
+   3)   If the project is built to meet LEED or GreenPoint Rated standards but will not be certified, the Green Building Compliance Professional of Record must sign Attachment E.
+   4)   If the Director has approved a proposal to modify local green building requirements on a case-by-case basis per Administrative Bulletin 005 (Procedures for Approval of Local Equivalencies), the Green Building Compliance Professional of Record must sign Attachment E and provide documentation the approved approach has been applied.
+Temporary Certificate of Occupancy
+A Temporary Certificate of Occupancy may be issued pending final compliance certification. However, no final Certificate of Completion may be issued until Green Building Final Compliance Verification (Attachment E of this bulletin) has been received, reviewed, and accepted by the Department of Building Inspection.
+Quality Assurance and Compliance Review
+All projects are subject to comprehensive review by the Department of Building Inspection or its agents. Project sponsors must maintain comprehensive records to allow verification that all requirements have been met. Buildings that receive certification through LEED or GreenPoint Rated will generally be accepted as being fully compliant. The Department of Building Inspection may review any aspect of green building projects.
+Failure to Comply with Green Building Requirements
+Failure to meet all required Green Building requirements will subject a project sponsor to all enforcement and abatement remedies detailed in the San Francisco Building Code.
+Signed by:
+Patrick O’Riordan, C.B.O.      4/16/2024
+Director
+Department of Building Inspection
+Original version approved by the Building Inspection Commission on September 24, 2008, revision approved: 12/13/2023.
+__________________________
+1 Attachments are provided for reference only. For complete details on any specific requirement, refer to the San Francisco Green Building Code.
+2 Such a checklist is required for each applicable project, including where Form 3 or Form 8 is used to apply for a permit.
+3 Municipal projects, including leasehold improvements, are projects authorized by any department of the City and County of San Francisco. A municipal “leasehold” means a building or space where the City is a tenant.
+4 Projects which are “major alterations” to residential occupancy (with project area of 25,000 square feet or greater; and significant structural upgrade; and significant mechanical, electrical, or plumbing) continue to require either registration and certification, or verification by a Green Building Compliance Professional of Record.
+5 Procedures for verification of compliance for small residential alterations are subject to revision.
+6 LEED BD&C (v4) and LEED CS (v4) minimum energy efficiency requirements are less strict than California 2013, 2016, 2019, and 2022 Title 24 Part 6 Energy Standards.
+7 The San Francisco Water Efficient Irrigation Ordinance is stricter than both the landscape irrigation efficiency measures in California’s Green Building Standards (Title 24 Part 11) as well as California’s Model Water Efficient Landscape requirements (AB 1881.)
+Attachments:
+Attachment A, Table 1: Summary of Requirements
+Attachment A, Table 2: Additional Requirements in Case of Demolition
+Attachment A, Table 3: Reduced Requirements for Retention of Significant Historical Architectural Features
+Attachment B, Table 1: Requirements for Projects Meeting a LEED Standard
+Attachment B, Table 2: Requirements for Projects Meeting the GreenPoint Rated Standard
+Attachment B, Table 3: Requirements for All Non-residential Projects Not Required to Meet a LEED Standard
+Attachment B, Table 4: Requirements for Residential Additions and Alterations
+Attachment C: Instructions for Green Building Submittals
+   Forms for Submittal:
+   GS-1: Green Building Site Permit Submittal Form
+   GS-2: Green Building Submittal Form for LEED or GreenPoint Rated Projects
+   GS-3: Green Building Submittal Form for Other Non-Residential Alterations, Additions & New Construction
+   GS-4: Green Building Submittal Form for Non-residential Interior-only Alteration Projects
+   GS-5: Green Building Submittal Form for Residential Alteration + Addition Projects
+   GS-6: Green Building Submittal Form for Municipal Projects
+Attachment D: Supplementary Energy Compliance Documentation
+Attachment E: Final Compliance Verification
+Attachment F: Recommended Project Implementation Procedures
+Attachment G: Selected Green Building Resources
+Attachment H: Review of Energy Performance Requirements
+AB-094 Definition and Design Criteria for Voluntary Seismic Upgrade of Soft- Story, Type V (Wood-Frame) Buildings
