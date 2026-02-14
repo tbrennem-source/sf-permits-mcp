@@ -5,7 +5,7 @@
     "created_date": "2026-02-14",
     "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
     "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
-    "total_concepts": 63
+    "total_concepts": 66
   },
 
   "concepts": {
@@ -844,6 +844,44 @@
       ],
       "decision_tree_step": "1,2,4,5",
       "related_concepts": ["food_facility", "fire_department", "fee_calculation", "agency_routing"]
+    },
+
+    "seismic_accessibility": {
+      "canonical_name": "Seismic Path of Travel / Mixed-Use Accessibility (DA-12)",
+      "aliases": ["DA-12", "seismic path of travel", "seismic accessibility", "mixed-use accessibility", "adjusted cost formula", "commercial floor area percentage", "seismic ADA", "seismic retrofit accessibility"],
+      "description": "When a seismic retrofit triggers accessibility obligations in mixed-use buildings. Only the commercial portion triggers Chapter 11B. Adjusted cost = (% commercial floor area) × total construction cost, then apply 20% rule.",
+      "authoritative_sources": [
+        {"file": "tier1/ada-accessibility-requirements.json", "path": "special_cases.seismic_mitigation", "role": "Full DA-12 encoding with adjusted cost formula, scope determination, and worked example"},
+        {"file": "tier1/ada-accessibility-requirements.json", "path": "core_logic.cost_tiers", "role": "20% / full compliance threshold rules"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["disability_access", "seismic", "change_of_use"]
+    },
+
+    "change_of_use_accessibility": {
+      "canonical_name": "Change of Use Path of Travel (DA-13)",
+      "aliases": ["DA-13", "change of use accessibility", "COU path of travel", "change of use ADA", "occupancy change accessibility", "change of use 20% rule"],
+      "description": "Change of use = alteration for accessibility. Entire changed-use area must comply with CBC 11B. Paperwork-only COU with $1 permit → 20% of $1 = negligible. Exception #2 lists 5 priority path-of-travel elements.",
+      "authoritative_sources": [
+        {"file": "tier1/ada-accessibility-requirements.json", "path": "special_cases.change_of_use", "role": "Full DA-13 encoding with cost determination, Exception #2, and COU-without-construction rule"},
+        {"file": "tier1/ada-accessibility-requirements.json", "path": "core_logic", "role": "General path-of-travel trigger rules"}
+      ],
+      "decision_tree_step": 5,
+      "related_concepts": ["disability_access", "change_of_use", "restaurant"]
+    },
+
+    "earthquake_brace_bolt": {
+      "canonical_name": "Earthquake Brace+Bolt (EBB) Retrofit (S-09)",
+      "aliases": ["S-09", "earthquake brace bolt", "EBB", "brace and bolt", "cripple wall", "foundation bolting", "cripple wall bracing", "CEBC A3", "prescriptive seismic", "residential seismic retrofit", "house bolting"],
+      "description": "EBB incentive program for pre-1979 wood-frame homes with cripple walls ≤4ft. Up to $3K reimbursement. OTC-eligible if prescriptive per CEBC Appendix A3. No licensed professional required for prescriptive design (G-01 Status I).",
+      "authoritative_sources": [
+        {"file": "tier1/earthquake-brace-bolt.json", "path": "program_overview", "role": "Program details, eligibility, reimbursement"},
+        {"file": "tier1/earthquake-brace-bolt.json", "path": "permit_pathway", "role": "OTC review path, Form 8, no licensed professional for prescriptive"},
+        {"file": "tier1/earthquake-brace-bolt.json", "path": "plan_requirements", "role": "Required plan elements and CEBC A3 references"},
+        {"file": "tier1/earthquake-brace-bolt.json", "path": "scope_of_work", "role": "Standard retrofit scope and out-of-scope items"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["seismic", "otc_review", "plan_signature_requirements"]
     }
   }
 }

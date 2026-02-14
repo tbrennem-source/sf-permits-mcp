@@ -1429,3 +1429,331 @@ def test_semantic_index_has_g25_concept():
     aliases = concepts["restaurant_permit_guide"]["aliases"]
     assert "G-25" in aliases
     assert "restaurant permit" in aliases
+
+
+# =============================================================================
+# Phase 2.75e — DA-12, DA-13, S-09 Encoding
+# =============================================================================
+
+# --- DA-12 Seismic Path of Travel Tests ---
+
+def test_da12_seismic_mitigation_has_adjusted_cost_formula():
+    """DA-12 seismic mitigation should have adjusted cost formula."""
+    kb = get_knowledge_base()
+    seismic = kb.ada_accessibility["special_cases"]["seismic_mitigation"]
+    formula = seismic.get("adjusted_cost_formula", {})
+    assert formula, "adjusted_cost_formula should be present"
+    assert "step_1" in formula
+    assert "step_2" in formula
+    assert "step_3" in formula
+    assert "formula" in formula
+    assert "%" in formula["formula"]
+
+
+def test_da12_seismic_scope_determination():
+    """DA-12 should clarify Chapter 11B scope for mixed-use."""
+    kb = get_knowledge_base()
+    seismic = kb.ada_accessibility["special_cases"]["seismic_mitigation"]
+    scope = seismic.get("scope_determination", {})
+    assert scope, "scope_determination should be present"
+    assert "commercial" in scope["chapter_11B_applies_to"].lower()
+    assert "residential" in scope["chapter_11B_does_NOT_apply_to"].lower()
+    assert "mixed_use_rule" in scope
+
+
+def test_da12_seismic_worked_example():
+    """DA-12 should have a worked example with percentages."""
+    kb = get_knowledge_base()
+    example = kb.ada_accessibility["special_cases"]["seismic_mitigation"]["adjusted_cost_formula"]["example"]
+    assert "25%" in example["commercial_percentage"]
+    assert "$25,000" in example["adjusted_construction_cost"]
+    assert "$5,000" in example["accessibility_budget"]
+
+
+def test_da12_seismic_path_of_travel_priority():
+    """DA-12 should list path-of-travel elements in priority order."""
+    kb = get_knowledge_base()
+    elements = kb.ada_accessibility["special_cases"]["seismic_mitigation"].get("path_of_travel_elements_priority", [])
+    assert len(elements) == 5
+    assert "entrance" in elements[0].lower()
+    assert "restroom" in elements[2].lower()
+
+
+def test_da12_key_distinctions():
+    """DA-12 should distinguish purely residential, commercial, and mixed-use."""
+    kb = get_knowledge_base()
+    distinctions = kb.ada_accessibility["special_cases"]["seismic_mitigation"]["key_distinctions"]
+    assert "purely_residential_seismic" in distinctions
+    assert "purely_commercial_seismic" in distinctions
+    assert "mixed_use_seismic" in distinctions
+    # Residential should NOT have Chapter 11B
+    assert "11A" in distinctions["purely_residential_seismic"] or "No Chapter 11B" in distinctions["purely_residential_seismic"]
+
+
+# --- DA-13 Change of Use Path of Travel Tests ---
+
+def test_da13_cou_legal_basis():
+    """DA-13 should establish COU = alteration for accessibility."""
+    kb = get_knowledge_base()
+    cou = kb.ada_accessibility["special_cases"]["change_of_use"]
+    legal = cou.get("legal_basis", {})
+    assert legal, "legal_basis should be present"
+    assert "11B-202.4" in legal["cbc_section"]
+    assert "alteration" in legal["principle"].lower()
+
+
+def test_da13_cou_paperwork_only_rule():
+    """DA-13 should explain $1 permit → negligible accessibility for paperwork-only COU."""
+    kb = get_knowledge_base()
+    cou = kb.ada_accessibility["special_cases"]["change_of_use"]
+    cost = cou.get("cost_determination", {})
+    paperwork = cost.get("when_cou_is_paperwork_only", {})
+    assert paperwork, "when_cou_is_paperwork_only should be present"
+    assert "$1" in paperwork["rule"] or "$0.20" in paperwork["rule"]
+
+
+def test_da13_exception_2_elements():
+    """DA-13 should list Exception #2 path-of-travel elements."""
+    kb = get_knowledge_base()
+    cou = kb.ada_accessibility["special_cases"]["change_of_use"]
+    exception = cou.get("exception_2_path_of_travel_elements", {})
+    assert exception, "exception_2_path_of_travel_elements should be present"
+    elements = exception.get("elements", [])
+    assert len(elements) == 5
+    assert "entrance" in elements[0].lower()
+    assert "restroom" in elements[2].lower()
+
+
+def test_da13_specific_standards():
+    """DA-13 should include specific standards like 28-inch lavatory clearance."""
+    kb = get_knowledge_base()
+    cou = kb.ada_accessibility["special_cases"]["change_of_use"]
+    standards = cou["exception_2_path_of_travel_elements"]["specific_standards"]
+    assert "28" in standards["lavatory"]
+    assert "1-in-8" in standards["van_accessible_parking"] or "1-in-6" in standards["van_accessible_parking"]
+
+
+# --- S-09 Earthquake Brace+Bolt Tests ---
+
+def test_s09_ebb_file_exists():
+    """S-09 earthquake brace+bolt file should load with program_overview."""
+    kb = get_knowledge_base()
+    ebb = kb.earthquake_brace_bolt
+    assert ebb, "earthquake_brace_bolt should be loaded"
+    assert "program_overview" in ebb
+    assert "permit_pathway" in ebb
+    assert "plan_requirements" in ebb
+
+
+def test_s09_target_buildings():
+    """S-09 should target pre-1979 wood-frame with cripple wall ≤4ft."""
+    kb = get_knowledge_base()
+    target = kb.earthquake_brace_bolt["program_overview"]["target_buildings"]
+    assert "1979" in target["era"]
+    assert "cripple wall" in target["foundation_type"].lower()
+    assert "4 feet" in target["cripple_wall_height"]
+
+
+def test_s09_reimbursement():
+    """S-09 should offer up to $3,000 reimbursement."""
+    kb = get_knowledge_base()
+    reimburse = kb.earthquake_brace_bolt["program_overview"]["reimbursement"]
+    assert "3,000" in reimburse["amount"] or "3000" in reimburse["amount"]
+    assert len(reimburse["conditions"]) >= 4
+
+
+def test_s09_otc_eligible():
+    """S-09 prescriptive EBB should be OTC with plans."""
+    kb = get_knowledge_base()
+    pathway = kb.earthquake_brace_bolt["permit_pathway"]
+    assert "OTC" in pathway["review_type"]
+    assert pathway["licensed_professional_required"] is False
+
+
+def test_s09_plan_requirements():
+    """S-09 should require 8 plan elements."""
+    kb = get_knowledge_base()
+    elements = kb.earthquake_brace_bolt["plan_requirements"]["required_elements"]
+    assert len(elements) >= 7
+    element_names = [e["element"].lower() for e in elements]
+    assert any("anchor bolt" in n for n in element_names)
+    assert any("plywood" in n for n in element_names)
+    assert any("wall percentage" in n for n in element_names)
+
+
+def test_s09_cebc_a3_tables():
+    """S-09 should reference CEBC A3 tables."""
+    kb = get_knowledge_base()
+    cebc = kb.earthquake_brace_bolt["plan_requirements"]["cebc_a3_reference"]
+    assert "table_a3_1" in cebc
+    assert "table_a3_2" in cebc
+    assert "table_a3_3" in cebc
+
+
+def test_s09_scope_of_work():
+    """S-09 standard retrofit should include anchor bolts, connectors, plywood."""
+    kb = get_knowledge_base()
+    scope = kb.earthquake_brace_bolt["scope_of_work"]["standard_ebb_retrofit_includes"]
+    assert len(scope) >= 5
+    scope_text = " ".join(scope).lower()
+    assert "anchor bolt" in scope_text
+    assert "plywood" in scope_text
+    assert "connector" in scope_text
+
+
+def test_s09_out_of_scope():
+    """S-09 should list items out of EBB scope."""
+    kb = get_knowledge_base()
+    out = kb.earthquake_brace_bolt["scope_of_work"]["out_of_scope"]
+    assert len(out) >= 3
+    out_text = " ".join(out).lower()
+    assert "foundation replacement" in out_text or "underpinning" in out_text
+
+
+def test_s09_common_issues():
+    """S-09 should have common plan check issues."""
+    kb = get_knowledge_base()
+    issues = kb.earthquake_brace_bolt["common_issues"]
+    assert len(issues) >= 5
+    ids = [i["id"] for i in issues]
+    assert "EBB-01" in ids
+    assert "EBB-05" in ids
+
+
+def test_s09_relationship_to_soft_story():
+    """S-09 should distinguish from soft-story program."""
+    kb = get_knowledge_base()
+    rel = kb.earthquake_brace_bolt["relationship_to_other_programs"]
+    assert "soft_story_program" in rel
+    assert "AB-094" in rel["soft_story_program"]["program"] or "AB-094" in str(rel["soft_story_program"])
+
+
+# --- Tool Integration Tests for DA-12, DA-13, S-09 ---
+
+@pytest.mark.asyncio
+async def test_predict_seismic_mentions_ebb():
+    """Seismic prediction should mention EBB/S-09 program."""
+    result = await predict_permits(
+        project_description="Foundation bolting and cripple wall bracing for earthquake retrofit",
+        estimated_cost=8000,
+        scope_keywords=["seismic"],
+    )
+    assert "EBB" in result or "S-09" in result or "Brace" in result
+
+
+@pytest.mark.asyncio
+async def test_predict_seismic_otc_path():
+    """Seismic prediction should note OTC eligibility for prescriptive EBB."""
+    result = await predict_permits(
+        project_description="Earthquake brace and bolt retrofit",
+        scope_keywords=["seismic"],
+    )
+    assert "OTC" in result or "Form 8" in result or "prescriptive" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_predict_seismic_mixed_use_da12():
+    """Seismic prediction should mention DA-12 adjusted cost for mixed-use."""
+    result = await predict_permits(
+        project_description="Seismic retrofit of mixed-use building with ground floor retail",
+        estimated_cost=150000,
+        scope_keywords=["seismic"],
+    )
+    assert "DA-12" in result or "adjusted cost" in result.lower() or "commercial portion" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_predict_cou_mentions_da13():
+    """Change-of-use prediction should mention DA-13 accessibility rule."""
+    result = await predict_permits(
+        project_description="Convert office space to retail store",
+        estimated_cost=100000,
+        scope_keywords=["change_of_use"],
+    )
+    assert "DA-13" in result or "alteration for accessibility" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_seismic_has_ebb_items():
+    """Seismic required docs should include EBB/S-09 plan requirements."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="otc",
+        project_type="seismic",
+        triggers=["seismic"],
+    )
+    assert "CEBC A3" in result or "wall percentage" in result.lower() or "EBB" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_seismic_has_da12_note():
+    """Seismic required docs should reference DA-12 adjusted cost for mixed-use."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="seismic",
+        triggers=["seismic"],
+    )
+    assert "DA-12" in result or "adjusted cost" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_cou_has_da13_note():
+    """Change-of-use required docs should reference DA-13."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="change_of_use",
+        triggers=["change_of_use"],
+    )
+    assert "DA-13" in result or "COU" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_seismic_has_pro_tips():
+    """Seismic pro tips should mention EBB OTC and DA-12 mixed-use."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="seismic",
+        triggers=["seismic"],
+    )
+    assert "EBB" in result or "S-09" in result or "prescriptive" in result.lower()
+
+
+# --- Semantic Index Tests for New Concepts ---
+
+def test_semantic_index_has_da12_concept():
+    """Semantic index should include seismic_accessibility concept."""
+    kb = get_knowledge_base()
+    concepts = kb.semantic_index.get("concepts", {})
+    assert "seismic_accessibility" in concepts
+    aliases = concepts["seismic_accessibility"]["aliases"]
+    assert "DA-12" in aliases
+
+
+def test_semantic_index_has_da13_concept():
+    """Semantic index should include change_of_use_accessibility concept."""
+    kb = get_knowledge_base()
+    concepts = kb.semantic_index.get("concepts", {})
+    assert "change_of_use_accessibility" in concepts
+    aliases = concepts["change_of_use_accessibility"]["aliases"]
+    assert "DA-13" in aliases
+
+
+def test_semantic_index_has_s09_concept():
+    """Semantic index should include earthquake_brace_bolt concept."""
+    kb = get_knowledge_base()
+    concepts = kb.semantic_index.get("concepts", {})
+    assert "earthquake_brace_bolt" in concepts
+    aliases = concepts["earthquake_brace_bolt"]["aliases"]
+    assert "S-09" in aliases
+    assert "EBB" in aliases
+    assert "cripple wall" in aliases
+
+
+def test_semantic_index_total_concepts_updated():
+    """Semantic index should have 66 total concepts."""
+    kb = get_knowledge_base()
+    total = kb.semantic_index["metadata"]["total_concepts"]
+    assert total == 66

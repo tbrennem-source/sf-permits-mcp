@@ -13,7 +13,8 @@ PROJECT_TYPE_KEYWORDS = {
             "in-law unit", "secondary unit"],
     "seismic": ["seismic", "earthquake", "retrofit", "soft story", "foundation bolting",
                 "brace and bolt", "anchor bolt", "seismic upgrade", "seismic retrofit",
-                "seismic strengthening"],
+                "seismic strengthening", "cripple wall", "ebb", "earthquake brace",
+                "house bolting"],
     "commercial_ti": ["tenant improvement", "office buildout", "commercial alteration",
                       "ti", "buildout", "commercial interior", "office remodel",
                       "commercial renovation"],
@@ -105,10 +106,10 @@ def _determine_review_path(project_types: list[str], estimated_cost: float | Non
         }
 
     if "seismic" in project_types:
-        # Voluntary brace-and-bolt can be OTC
+        # Voluntary brace-and-bolt can be OTC per S-09
         return {
             "path": "depends",
-            "reason": "Voluntary brace/bolt (S-09) is OTC; mandatory/extensive seismic retrofit is in-house",
+            "reason": "Voluntary brace/bolt (S-09) is OTC with Form 8 if prescriptive per CEBC A3 — no licensed professional required. Mandatory soft-story (AB-094/106) or engineered seismic retrofit is in-house.",
             "confidence": "medium",
         }
 
@@ -203,12 +204,27 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
             {"requirement": "Separate utility connections", "details": "May need separate water/electric meters"},
         ])
 
-    # --- Seismic ---
+    # --- Seismic (enriched with S-09 EBB) ---
     if "seismic" in project_types:
         reqs.extend([
-            {"requirement": "Structural engineering report", "details": "Licensed structural engineer evaluation"},
+            {"requirement": "Structural engineering report", "details": "Licensed structural engineer evaluation required for engineered designs. Exception: prescriptive CEBC A3 cripple wall bracing (EBB/S-09) does NOT require licensed professional (G-01 Status I exempt)."},
             {"requirement": "Priority processing eligibility", "details": "Voluntary/mandatory seismic upgrades per AB-004"},
         ])
+        # S-09 EBB-specific guidance
+        ebb = kb.earthquake_brace_bolt
+        if ebb:
+            reqs.append({
+                "requirement": "Earthquake Brace+Bolt eligibility (S-09)",
+                "details": "Pre-1979 wood-frame, cripple wall ≤4ft: qualifies for EBB program (up to $3K reimbursement). OTC-eligible with Form 8 if prescriptive per CEBC Appendix A3. Plans must show wall percentage calculations, anchor bolt schedule, and plywood nailing pattern.",
+            })
+        # DA-12 seismic accessibility for mixed-use
+        ada = kb.ada_accessibility
+        seismic_ada = ada.get("special_cases", {}).get("seismic_mitigation", {}) if ada else {}
+        if seismic_ada.get("adjusted_cost_formula"):
+            reqs.append({
+                "requirement": "Seismic accessibility — mixed-use adjusted cost (DA-12)",
+                "details": "Mixed-use buildings: path-of-travel obligation applies ONLY to commercial portion. Adjusted cost = (% commercial floor area) × total construction cost. 20% of adjusted cost = max accessibility spend. Residential portions exempt from Chapter 11B.",
+            })
 
     # --- Historic ---
     if "historic" in project_types:
@@ -217,10 +233,11 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
             {"requirement": "Secretary of Interior Standards", "details": "All work must comply with SOI Standards for Treatment of Historic Properties"},
         ])
 
-    # --- Change of use ---
+    # --- Change of use (enriched with DA-13) ---
     if "change_of_use" in project_types:
         reqs.extend([
             {"requirement": "Section 311 notification", "details": "30-day neighborhood notification period (cannot go OTC during notification)"},
+            {"requirement": "Change of use = alteration for accessibility (DA-13)", "details": "Entire changed-use area must comply with current CBC 11B. If COU involves construction: 20%/threshold rules apply to actual construction cost. If COU is paperwork only ($1 permit): 20% of $1 = negligible accessibility spend."},
         ])
 
     # --- New construction ---

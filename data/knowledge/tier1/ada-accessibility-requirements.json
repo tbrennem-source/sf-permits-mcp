@@ -73,13 +73,83 @@
     },
     "change_of_use": {
       "info_sheet": "DA-13",
-      "rule": "Change of use or occupancy triggers path-of-travel requirements for the new use area",
-      "common_scenario": "Office-to-restaurant conversion, warehouse-to-retail, commercial-to-residential"
+      "source": "DBI-IS-DA13 Change of Use Path of Travel (Revised 01/07/2019)",
+      "rule": "A change of use or occupancy classification constitutes an ALTERATION for accessibility purposes. The entire area changing use must comply with current CBC 11B accessibility requirements.",
+      "common_scenario": "Office-to-restaurant conversion, warehouse-to-retail, commercial-to-residential",
+      "legal_basis": {
+        "cbc_section": "CBC 11B-202.4",
+        "principle": "A change of use in an existing building is an ALTERATION — the ENTIRE area of the changed-use portion must be made accessible to current code",
+        "scope": "The path-of-travel obligation extends from the public way through the primary entrance to the changed-use area, plus restrooms, drinking fountains, phones, and signage serving that area"
+      },
+      "cost_determination": {
+        "when_construction_accompanies_cou": {
+          "rule": "Use the actual construction cost for the 20% path-of-travel calculation",
+          "example": "Office-to-restaurant TI costing $200,000 → 20% = $40,000 max accessibility spend (if below valuation threshold)"
+        },
+        "when_cou_is_paperwork_only": {
+          "rule": "If the change of use involves NO construction (just a permit to change occupancy classification), the permit fee is $1. Apply 20% to $1 = $0.20 — essentially zero accessibility spend required.",
+          "important": "This exception applies ONLY when there is absolutely no physical construction associated with the change of use",
+          "practical_note": "Rare in practice — most COU projects involve at least some construction"
+        }
+      },
+      "exception_2_path_of_travel_elements": {
+        "description": "Exception #2 to CBC 11B-202.4 lists specific path-of-travel requirements that must be addressed in priority order when the 20% disproportionate cost cap applies",
+        "elements": [
+          "1. An accessible entrance to the building from the site arrival point",
+          "2. An accessible route from the entrance to the changed-use area",
+          "3. At least one accessible restroom for each sex (or unisex)",
+          "4. Accessible telephones (if provided)",
+          "5. Accessible drinking fountains (if provided)"
+        ],
+        "specific_standards": {
+          "lavatory": "28-inch minimum knee clearance under lavatory per CBC 11B-606",
+          "van_accessible_parking": "Ratio of van-accessible spaces changes from 1-in-6 to 1-in-8 under current code",
+          "signage": "Tactile + braille room signs at 48-60 inches AFF"
+        }
+      },
+      "key_distinctions": {
+        "cou_with_construction": "Path-of-travel obligation based on actual construction cost — use standard 20% / threshold rules",
+        "cou_without_construction": "Path-of-travel obligation technically applies but 20% of $1 = negligible",
+        "partial_cou": "If only part of a building changes use, only that portion triggers path-of-travel (but path from entrance to that area must be accessible)"
+      }
     },
     "seismic_mitigation": {
       "info_sheet": "DA-12",
-      "rule": "Seismic retrofit projects (soft story, etc.) trigger path-of-travel obligations. Mixed-use buildings have specific requirements.",
-      "common_scenario": "Soft story retrofit in mixed-use building triggers accessibility upgrades for commercial ground floor"
+      "source": "DBI-IS-DA12 Seismic Path of Travel (Revised 01/07/2019)",
+      "rule": "Seismic retrofit projects trigger path-of-travel obligations for the COMMERCIAL portions of mixed-use buildings. Residential portions are NOT subject to Chapter 11B accessibility.",
+      "common_scenario": "Soft story retrofit in mixed-use building triggers accessibility upgrades for commercial ground floor",
+      "scope_determination": {
+        "chapter_11B_applies_to": "Public buildings, public accommodations, commercial buildings, and public housing",
+        "chapter_11B_does_NOT_apply_to": "Privately funded residential dwelling units (apartments, condos) and their common areas when purely residential",
+        "mixed_use_rule": "In mixed-use buildings (ground-floor commercial + upper residential), only the commercial portion triggers Chapter 11B path-of-travel"
+      },
+      "adjusted_cost_formula": {
+        "step_1": "Determine percentage of total building floor area used for commercial purposes",
+        "step_2": "Multiply total construction cost by that percentage to get adjusted construction cost",
+        "step_3": "Apply 20% of adjusted cost as maximum accessibility spend (or full compliance if adjusted cost exceeds valuation threshold)",
+        "formula": "Adjusted Cost = (% Commercial Floor Area / Total Floor Area) × Total Construction Cost",
+        "example": {
+          "building": "4-story mixed-use: ground floor 2,000 sqft commercial + 3 upper floors 6,000 sqft residential = 8,000 sqft total",
+          "commercial_percentage": "2,000 / 8,000 = 25%",
+          "total_construction_cost": "$100,000 (seismic retrofit)",
+          "adjusted_construction_cost": "$100,000 × 25% = $25,000",
+          "accessibility_budget": "$25,000 × 20% = $5,000 maximum for path-of-travel upgrades",
+          "applies_to": "Path of travel from public way to commercial tenant space only"
+        }
+      },
+      "path_of_travel_elements_priority": [
+        "1. An accessible entrance from the public way to the commercial space",
+        "2. An accessible route from the entrance to the commercial area",
+        "3. Accessible restrooms serving the commercial area (if any)",
+        "4. Accessible telephones serving the commercial area (if any)",
+        "5. Accessible drinking fountains serving the commercial area (if any)"
+      ],
+      "da_checklist_requirement": "DA-02 Checklist Form C must be completed showing itemized accessibility upgrades for the commercial portion. Total should approach 20% of adjusted construction cost.",
+      "key_distinctions": {
+        "purely_residential_seismic": "No Chapter 11B path-of-travel obligation — accessibility per CBC Chapter 11A (limited residential requirements)",
+        "purely_commercial_seismic": "Full Chapter 11B path-of-travel obligation based on total construction cost",
+        "mixed_use_seismic": "Chapter 11B obligation ONLY for commercial portion, using adjusted cost formula"
+      }
     },
     "historic_buildings": {
       "code_section": "CBC 11B-202.4 Exception (historic)",

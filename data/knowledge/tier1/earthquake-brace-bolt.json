@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "title": "Earthquake Brace+Bolt (EBB) Retrofit Program",
+    "source": "DBI-IS-S09 Earthquake Brace+Bolt (Revised 08/23/2019)",
+    "source_url": "https://sf.gov/resource/2022/information-sheets-dbi",
+    "related_sources": [
+      "CEBC Appendix Chapter A3 (Prescriptive Cripple Wall Bracing)",
+      "AB-108 Administrative Bulletin (referenced in S-09)",
+      "FEMA P-1100 Vulnerability-Based Seismic Assessment (ASCE 41-17)",
+      "G-01 Signature on Plans (licensing requirements)"
+    ],
+    "last_verified": "2026-02-14",
+    "confidence": "high"
+  },
+
+  "program_overview": {
+    "name": "Earthquake Brace+Bolt (EBB)",
+    "description": "Incentive-based seismic retrofit program for older wood-frame houses with cripple wall foundations. Provides up to $3,000 reimbursement for qualifying retrofits.",
+    "administering_body": "California Residential Mitigation Program (CRMP)",
+    "website": "https://www.earthquakebracebolt.com",
+    "target_buildings": {
+      "construction_type": "Wood-frame residential (single-family, 1-4 units)",
+      "era": "Built before 1979",
+      "foundation_type": "Cripple wall (short stud wall between foundation and first floor)",
+      "cripple_wall_height": "4 feet or less",
+      "stories": "1-2 stories"
+    },
+    "reimbursement": {
+      "amount": "Up to $3,000",
+      "conditions": [
+        "Must be in an eligible ZIP code (published annually by CRMP)",
+        "Must complete work within program timeline",
+        "Must use a registered EBB contractor or be registered as owner-builder",
+        "Must follow CEBC Appendix A3 prescriptive design OR engineered design"
+      ]
+    }
+  },
+
+  "permit_pathway": {
+    "review_type": "OTC (Over-the-Counter) with plans",
+    "review_type_note": "Prescriptive CEBC A3 retrofits are eligible for OTC review at DBI counter. Engineered designs may require in-house review.",
+    "form": "Form 8 (OTC Alterations)",
+    "permit_fee": "Per Table 1A-A based on construction valuation (typically $5,000-$15,000 range)",
+    "licensed_professional_required": false,
+    "licensing_note": "Per G-01 Status I, prescriptive EBB retrofits do NOT require a licensed architect or engineer — plans may be prepared by the homeowner, contractor, or unlicensed designer. However, engineered designs require a CA-licensed civil or structural engineer."
+  },
+
+  "plan_requirements": {
+    "sheet_size": "11×17 minimum",
+    "required_elements": [
+      {
+        "element": "Site plan",
+        "details": "Show property lines, building footprint, setbacks, and north arrow"
+      },
+      {
+        "element": "Foundation plan",
+        "details": "Show all foundation walls with dimensions. Identify existing cripple walls to be braced. Show location and extent of new plywood sheathing, anchor bolts, and foundation plate connectors."
+      },
+      {
+        "element": "Cripple wall elevations",
+        "details": "Show each cripple wall with dimensions — height, length, openings. Show plywood sheathing extent, nailing pattern, framing connectors, and ventilation openings to remain."
+      },
+      {
+        "element": "Anchor bolt schedule",
+        "details": "Show type (expansion or adhesive), size (typically 1/2\" or 5/8\"), spacing, edge distance, and embedment depth per CEBC A3"
+      },
+      {
+        "element": "Foundation plate connector details",
+        "details": "Show connector type (UFP10, A35, or equivalent), spacing, and fastener schedule per CEBC A3 Table A3-2"
+      },
+      {
+        "element": "Plywood sheathing details",
+        "details": "Show panel thickness (minimum 15/32\" Structural I), nailing pattern (4\" edges / 12\" field minimum per CEBC A3), and blocking at panel edges"
+      },
+      {
+        "element": "Wall percentage calculations",
+        "details": "Show braced wall percentage per CEBC A3 Table A3-1 — typically 80% of each cripple wall line must be sheathed"
+      },
+      {
+        "element": "Existing conditions photos",
+        "details": "Recommended: photos of existing cripple walls, foundation, and mudsill condition"
+      }
+    ],
+    "cebc_a3_reference": {
+      "table_a3_1": "Minimum bracing requirements — percent of cripple wall to be sheathed based on building weight and wall height",
+      "table_a3_2": "Foundation sill plate connector schedule — type, spacing, and fasteners",
+      "table_a3_3": "Anchor bolt requirements — size, spacing, edge distance by wall height"
+    }
+  },
+
+  "scope_of_work": {
+    "standard_ebb_retrofit_includes": [
+      "Install anchor bolts connecting mudsill to concrete foundation (expansion or adhesive)",
+      "Install foundation plate connectors (UFP10, A35, or equivalent) connecting cripple wall studs to mudsill",
+      "Install structural plywood sheathing on cripple walls (Structural I, 15/32\" minimum)",
+      "Install blocking between cripple wall studs at plywood panel edges",
+      "Nailing per CEBC A3 schedule (typically 8d nails at 4\" o.c. edges, 12\" o.c. field)",
+      "Maintain or replace ventilation openings per IRC requirements"
+    ],
+    "common_additions": [
+      "Water heater strapping (required by code, often done simultaneously)",
+      "Cripple wall stud replacement (if existing studs are damaged or inadequate)",
+      "Mudsill replacement (if existing mudsill is deteriorated)",
+      "Garage opening strengthening (if cripple wall contains garage door opening)"
+    ],
+    "out_of_scope": [
+      "Foundation replacement or underpinning (requires engineered design + in-house review)",
+      "Structural work above first floor (requires licensed engineer)",
+      "Chimney bracing (separate scope, may be combined)",
+      "Soft-story retrofit per AB-094/106 (different program, multi-unit buildings)"
+    ]
+  },
+
+  "inspection_requirements": {
+    "inspections": [
+      {
+        "type": "Foundation / anchor bolt inspection",
+        "timing": "After anchor bolts installed, before covering",
+        "what_inspector_checks": ["Bolt type and size per plan", "Spacing per CEBC A3", "Edge distance", "Embedment depth", "Mudsill condition"]
+      },
+      {
+        "type": "Framing / sheathing inspection",
+        "timing": "After plywood and connectors installed, before covering",
+        "what_inspector_checks": ["Plywood grade and thickness", "Nailing pattern", "Blocking at panel edges", "Foundation plate connectors", "Ventilation maintained"]
+      },
+      {
+        "type": "Final inspection",
+        "timing": "After all work complete",
+        "what_inspector_checks": ["Completion per approved plans", "No outstanding corrections"]
+      }
+    ]
+  },
+
+  "relationship_to_other_programs": {
+    "soft_story_program": {
+      "program": "Mandatory Soft-Story Retrofit (AB-094/106)",
+      "distinction": "Soft-story program targets multi-unit buildings (5+ units typically) with weak ground floors. EBB targets 1-4 unit wood-frame with cripple walls. Different scope, different requirements.",
+      "overlap": "Some single-family homes may be in soft-story program zones but qualify for EBB instead if they have cripple walls ≤4ft"
+    },
+    "urm_retrofit": {
+      "program": "Unreinforced Masonry (URM) Retrofit",
+      "distinction": "URM program targets brick/stone buildings. EBB is wood-frame only."
+    },
+    "ab_108": {
+      "bulletin": "AB-108",
+      "purpose": "Referenced in S-09 — administrative bulletin providing additional DBI guidance for EBB retrofits in San Francisco"
+    }
+  },
+
+  "cost_estimates": {
+    "typical_range": "$3,000-$10,000",
+    "factors_affecting_cost": [
+      "Linear feet of cripple wall to brace",
+      "Access difficulty (crawl space height, obstructions)",
+      "Condition of existing mudsill and foundation",
+      "Number of anchor bolts needed",
+      "Whether additional work is needed (stud replacement, mudsill repair)"
+    ],
+    "ebb_reimbursement": "Up to $3,000 — homeowner pays remainder",
+    "permit_fee_estimate": "$200-$500 typically (based on construction valuation via Table 1A-A)"
+  },
+
+  "common_issues": [
+    {
+      "id": "EBB-01",
+      "issue": "Plans don't show wall percentage calculations per CEBC A3 Table A3-1",
+      "fix": "Add calculation showing total cripple wall length, braced length, and percentage for each wall line"
+    },
+    {
+      "id": "EBB-02",
+      "issue": "Anchor bolt spacing or edge distance doesn't meet CEBC A3",
+      "fix": "Verify anchor bolt schedule against CEBC A3 Table A3-3. Minimum edge distance is typically 1-3/4\" for 1/2\" bolts"
+    },
+    {
+      "id": "EBB-03",
+      "issue": "Nailing pattern not specified or inadequate",
+      "fix": "Specify 8d nails at 4\" o.c. at panel edges and 12\" o.c. at intermediate supports per CEBC A3"
+    },
+    {
+      "id": "EBB-04",
+      "issue": "Ventilation openings blocked by new plywood",
+      "fix": "Show ventilation openings on plan — IRC requires 1 sqft per 150 sqft of crawl space. Cut plywood around vents or provide alternate ventilation."
+    },
+    {
+      "id": "EBB-05",
+      "issue": "Existing mudsill deteriorated — plans don't address",
+      "fix": "If mudsill is damaged, plan must show replacement method. Pressure-treated lumber required for replacement mudsill."
+    }
+  ],
+
+  "tool_integration": {
+    "predict_permits_keywords": ["brace and bolt", "cripple wall", "foundation bolting", "ebb", "earthquake brace", "seismic retrofit residential"],
+    "review_path": "OTC with plans (prescriptive CEBC A3) or in-house (engineered design)",
+    "signature_requirement": "G-01 Status I exempt (prescriptive) or Status III (engineered)",
+    "fee_calculation": "Table 1A-A alterations category based on construction valuation"
+  }
+}

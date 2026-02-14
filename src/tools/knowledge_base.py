@@ -74,6 +74,9 @@ class KnowledgeBase:
         self.plan_signatures = _load_json(tier1 / "plan-signature-requirements.json")
         self.restaurant_guide = _load_json(tier1 / "restaurant-permit-guide.json")
 
+        # Phase 2.75e — DA-12/DA-13 accessibility + S-09 Earthquake Brace+Bolt
+        self.earthquake_brace_bolt = _load_json(tier1 / "earthquake-brace-bolt.json")
+
         # Build keyword index from semantic index
         self._keyword_index = self._build_keyword_index()
 

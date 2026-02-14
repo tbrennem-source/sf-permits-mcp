@@ -86,9 +86,10 @@ TRIGGER_DOCUMENTS = {
         "Utility connection plans (separate meter requirements)",
     ],
     "seismic": [
-        "Structural engineering report by licensed SE",
+        "Structural engineering report by licensed SE (or prescriptive CEBC A3 design for EBB — no SE required per G-01 Status I)",
         "Geotechnical investigation (if required by site conditions)",
         "Seismic retrofit design drawings",
+        "EBB/S-09: Wall percentage calculations per CEBC A3 Table A3-1, anchor bolt schedule per Table A3-3, plywood nailing pattern",
     ],
     "historic": [
         "Secretary of Interior Standards compliance documentation",
@@ -179,6 +180,18 @@ def _compliance_documents(all_triggers: list[str], project_type: str | None, kb)
                 docs.append("DA-02 Form A: Building description (use, occupancy, total SF, alteration SF, year built)")
                 docs.append("DA-02 Form B: Compliance path selection (full compliance vs 20% disproportionate cost)")
                 docs.append("DA-02 Form C: CBC 11B checklist — entrance, restrooms, signage, counters, path of travel")
+
+        # DA-12 seismic mixed-use accessibility
+        if "seismic" in all_triggers:
+            seismic_ada = ada.get("special_cases", {}).get("seismic_mitigation", {})
+            if seismic_ada.get("adjusted_cost_formula"):
+                docs.append("DA-12: Adjusted cost calculation — (% commercial floor area) × total construction cost. DA-02 checklist for commercial portion only.")
+
+        # DA-13 change-of-use accessibility
+        if "change_of_use" in all_triggers:
+            cou_ada = ada.get("special_cases", {}).get("change_of_use", {})
+            if cou_ada.get("legal_basis"):
+                docs.append("DA-13: COU = alteration for accessibility — entire changed-use area must comply with CBC 11B. DA-02 required.")
 
     # DPH documents — only if restaurant is a trigger
     if project_type == "restaurant" or "restaurant" in all_triggers:
@@ -328,6 +341,11 @@ async def required_documents(
         pro_tips.append("Separate plumbing permit (Cat 6PA/6PB) + electrical permit required after building permit (G-25)")
         pro_tips.append("Expect parallel review by DBI, DPH, SFFD, Planning — ALL must approve before permit issuance")
         pro_tips.append("Occupant load >50 triggers Group A-2 assembly classification — sprinklers, SFFD operational permit ($387)")
+    if "seismic" in all_triggers:
+        pro_tips.append("EBB prescriptive retrofits (CEBC A3) are OTC with Form 8 — no licensed professional required (G-01 Status I, S-09)")
+        pro_tips.append("Mixed-use seismic retrofit: accessibility obligation applies ONLY to commercial portion — use DA-12 adjusted cost formula")
+    if "change_of_use" in all_triggers:
+        pro_tips.append("COU = alteration for accessibility (DA-13). Paperwork-only COU ($1 permit): accessibility spend = 20% of $1 ≈ $0")
     if "historic" in all_triggers:
         pro_tips.append("HPC review happens BEFORE any other Planning approval — start early")
 
