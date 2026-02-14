@@ -131,27 +131,73 @@ def _compliance_documents(all_triggers: list[str], project_type: str | None, kb)
     if t24 and "demolition" not in all_triggers:
         is_nonres = project_type in ("restaurant", "commercial_ti", "adaptive_reuse") or \
                     "change_of_use" in all_triggers
+        is_multifamily = project_type == "low_rise_multifamily" or "low_rise_multifamily" in all_triggers
         if "new_construction" in all_triggers:
             if is_nonres:
                 docs.append("NRCC — Nonresidential Certificate of Compliance (at filing)")
+                docs.append("NRCI sub-forms at inspection: ENV-E (envelope), MCH-E (mechanical), LTI-E (lighting), PLB-E (plumbing)")
+                docs.append("NRCA acceptance tests at inspection: MCH-04-A (economizer), LTI-02-A (daylighting controls), etc.")
+                docs.append("AB-112 All-Electric compliance form (AEC1) — required for SF new construction")
+                docs.append("AB-093 Green Building form (GBC1) — Attachment E")
+            elif is_multifamily:
+                docs.append("LMCC — Low-Rise Multifamily Certificate of Compliance (at filing, per M-08 checklist)")
+                docs.append("LMCI at inspection per dwelling unit type (LMCI-PVB-01 solar PV required)")
+                docs.append("LMCV HERS verification per individual dwelling unit (not sampled)")
+                docs.append("AB-112 All-Electric compliance form (AEC1) — required for SF new construction")
+                docs.append("AB-093 Green Building form (GBC1) — Attachment E")
             else:
-                docs.append("CF1R — Residential Certificate of Compliance (at filing)")
+                docs.append("CF1R — Residential Certificate of Compliance (at filing, per M-03 checklist)")
                 docs.append("CF2R-PVB-01 — Solar PV certificate (at inspection)")
+                docs.append("CF2R-ELC-01 — Electric ready requirements (heat pump readiness)")
         elif is_nonres:
             docs.append("NRCC — Nonresidential Certificate of Compliance (if altering HVAC, lighting, or envelope)")
+            docs.append("NRCI/NRCA sub-forms at inspection — specific forms depend on scope (see M-04 checklist)")
+        elif is_multifamily:
+            docs.append("LMCC — Low-Rise Multifamily Certificate of Compliance (if altering energy systems, per M-08)")
+            docs.append("LMCI at inspection for altered unit types")
         else:
-            docs.append("CF1R — Residential Certificate of Compliance (for alterations touching energy systems)")
+            docs.append("CF1R — Residential Certificate of Compliance (for alterations touching energy systems, per M-03)")
         # Existing conditions verification for alterations
         if "new_construction" not in all_triggers:
             docs.append("Existing conditions documentation for Title-24 baseline (T24-C02 — #1 alteration correction)")
 
-    # DPH documents — only if restaurant is a trigger and DPH not already in agency routing
+    # ADA/DA-02 — add form section guidance for commercial
+    ada = kb.ada_accessibility
+    if ada:
+        is_commercial = project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse") or \
+                        bool({"restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"}.intersection(all_triggers))
+        if is_commercial:
+            da02 = ada.get("da02_form_structure", {})
+            if da02:
+                docs.append("DA-02 Form A: Building description (use, occupancy, total SF, alteration SF, year built)")
+                docs.append("DA-02 Form B: Compliance path selection (full compliance vs 20% disproportionate cost)")
+                docs.append("DA-02 Form C: CBC 11B checklist — entrance, restrooms, signage, counters, path of travel")
+
+    # DPH documents — only if restaurant is a trigger
     if project_type == "restaurant" or "restaurant" in all_triggers:
         dph = kb.dph_food
         if dph:
             docs.append("DPH: Three-compartment sink or commercial dishwasher specification (DPH-011)")
             docs.append("DPH: Grease interceptor sizing per CA Plumbing Code Table 7-3 (DPH-012)")
             docs.append("DPH: Handwashing station locations and specifications (DPH-010)")
+            # Construction standards from PDF guide
+            construction = dph.get("construction_standards", {})
+            if construction:
+                docs.append("DPH: Finish schedule with approved materials — cove base min 4\" height, 3/8\" radius (DPH-005)")
+                docs.append("DPH: Lighting plan with foot-candle calcs — 50fc food prep, 20fc handwash, 10fc storage (DPH-006)")
+            # Equipment schedule template (Appendix C) — #1 DPH correction
+            equip_tmpl = dph.get("equipment_schedule_template", {})
+            if equip_tmpl:
+                cols = [c["column"] for c in equip_tmpl.get("required_columns", [])[:4]]
+                docs.append(f"DPH: Equipment schedule with columns: {', '.join(cols)} + NSF cert, Gas/Elec, BTU/kW (Appendix C)")
+            # Room finish schedule template (Appendix D)
+            finish_tmpl = dph.get("room_finish_schedule_template", {})
+            if finish_tmpl:
+                docs.append("DPH: Room finish schedule — room-by-room: floor, cove base, walls (lower/upper), ceiling (Appendix D)")
+            # HPWH requirements for new construction restaurants
+            hpwh = dph.get("hpwh_food_facility_requirements", {})
+            if hpwh and "new_construction" in all_triggers:
+                docs.append("DPH: HPWH sizing calculation — first-hour rating, recovery rate, booster heater spec if high-temp sanitizing")
 
     return docs
 
@@ -270,6 +316,43 @@ async def required_documents(
         lines.append(f"\n## Pre-Submission Checklist\n")
         for check in epr_checks:
             lines.append(f"- [ ] {check}")
+
+    # EPR correction/resubmittal workflow — critical for in-house review
+    if review_path == "in_house":
+        correction_workflow = epr.get("correction_response_workflow", {})
+        if correction_workflow:
+            lines.append(f"\n## Plan Check Correction Response Workflow\n")
+            lines.append("*When corrections are required, follow this sequence:*\n")
+            for step in correction_workflow.get("steps", []):
+                lines.append(f"- **{step.get('id', '')}:** {step.get('step', '')} — {step.get('detail', '')}")
+            addenda = correction_workflow.get("addenda_vs_corrections", {})
+            if addenda:
+                lines.append(f"\n**Corrections vs Addenda:**")
+                lines.append(f"- *Correction:* {addenda.get('correction', '')}")
+                lines.append(f"- *Addendum:* {addenda.get('addendum', '')}")
+
+        # Review statuses
+        statuses = epr.get("review_statuses", {}).get("statuses", [])
+        if statuses:
+            lines.append(f"\n## Review Status Guide\n")
+            for s in statuses:
+                lines.append(f"- **{s.get('status', '')}:** {s.get('meaning', '')} → {s.get('action', '')}")
+
+    # Document type numbering
+    doc_numbering = epr.get("document_type_numbering", {})
+    if doc_numbering:
+        lines.append(f"\n## File Naming Convention\n")
+        lines.append(f"Format: `{doc_numbering.get('naming_format', '')}`\n")
+        for prefix in doc_numbering.get("prefixes", []):
+            lines.append(f"- `{prefix.get('prefix', '')}` {prefix.get('type', '')} (e.g., `{prefix.get('example', '')}`)")
+
+    # Sheet numbering convention from Exhibit F
+    exhibit_f = epr.get("exhibit_f_supplementary", {})
+    sheet_numbering = exhibit_f.get("sheet_numbering_convention", {})
+    if sheet_numbering:
+        lines.append(f"\n## Sheet Numbering Convention\n")
+        for sp in sheet_numbering.get("prefixes", []):
+            lines.append(f"- `{sp.get('prefix', '')}` — {sp.get('discipline', '')}")
 
     if pro_tips:
         lines.append(f"\n## Pro Tips\n")

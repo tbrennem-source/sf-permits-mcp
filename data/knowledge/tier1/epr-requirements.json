@@ -204,6 +204,87 @@
     ]
   },
 
+  "exhibit_f_supplementary": {
+    "source": "EPR Exhibit F — PDF Creation Guidelines (original source document for EPR-001 through EPR-022)",
+    "bookmark_hierarchy": {
+      "id": "EPR-007-DETAIL",
+      "description": "Recommended bookmark structure for plan sets. Not strictly required but significantly speeds review.",
+      "format": "Sheet Number - Sheet Name (e.g., 'A1.0 - FLOOR PLAN')",
+      "hierarchy_example": [
+        "G0.0 - COVER SHEET",
+        "G0.1 - SHEET INDEX / GENERAL NOTES",
+        "A1.0 - FLOOR PLAN - EXISTING",
+        "A1.1 - FLOOR PLAN - PROPOSED",
+        "A2.0 - ELEVATIONS",
+        "A3.0 - BUILDING SECTIONS",
+        "A4.0 - DETAILS",
+        "S1.0 - STRUCTURAL FOUNDATION PLAN",
+        "S2.0 - STRUCTURAL FRAMING",
+        "M1.0 - MECHANICAL PLAN",
+        "E1.0 - ELECTRICAL PLAN",
+        "P1.0 - PLUMBING PLAN"
+      ],
+      "note": "Bookmarks help plan checkers navigate directly to specific sheets. DBI reviews 500+ plan sets per month — fast navigation = faster review."
+    },
+    "sheet_numbering_convention": {
+      "description": "Standard discipline-based sheet numbering used by DBI reviewers. Consistent numbering across all projects helps reviewers find information quickly.",
+      "prefixes": [
+        {"prefix": "G", "discipline": "General", "examples": ["G0.0 Cover Sheet", "G0.1 Sheet Index", "G0.2 General Notes"]},
+        {"prefix": "A", "discipline": "Architectural", "examples": ["A1.0 Floor Plans", "A2.0 Elevations", "A3.0 Sections", "A4.0 Details"]},
+        {"prefix": "S", "discipline": "Structural", "examples": ["S1.0 Foundation Plan", "S2.0 Framing Plans", "S3.0 Structural Details"]},
+        {"prefix": "M", "discipline": "Mechanical", "examples": ["M1.0 HVAC Plan", "M2.0 Mechanical Details", "M3.0 Mechanical Schedules"]},
+        {"prefix": "E", "discipline": "Electrical", "examples": ["E1.0 Electrical Plan", "E2.0 Panel Schedules", "E3.0 Lighting Plan"]},
+        {"prefix": "P", "discipline": "Plumbing", "examples": ["P1.0 Plumbing Plan", "P2.0 Plumbing Details", "P3.0 Fixture Schedules"]},
+        {"prefix": "T", "discipline": "Title-24 Energy", "examples": ["T1.0 Energy Compliance Forms", "T2.0 Energy Calculations"]},
+        {"prefix": "L", "discipline": "Landscape (if applicable)", "examples": ["L1.0 Landscape Plan"]}
+      ]
+    },
+    "file_size_guidance": {
+      "maximum_per_upload": "250MB (standard), 350MB (site permit addenda)",
+      "recommended_split": "Split plan sets at 50MB for faster upload and download",
+      "common_causes_of_large_files": [
+        "High-resolution raster images embedded in drawings",
+        "Unoptimized photos of existing conditions",
+        "Embedded 3D model data from Revit exports",
+        "Dense hatching patterns rendered as raster"
+      ],
+      "reduction_tips": [
+        "Downsample images to 150-200 DPI (sufficient for plan review)",
+        "Remove embedded 3D model data before PDF export",
+        "Use vector hatching instead of raster patterns",
+        "Run PDF optimizer in Bluebeam or Acrobat before upload"
+      ]
+    },
+    "pdf_security_requirements": {
+      "id": "EPR-009-DETAIL",
+      "must_not_have": [
+        "Password protection (open password or permissions password)",
+        "Print restrictions",
+        "Copy/edit restrictions",
+        "Certificate-based encryption",
+        "DocuSign or Adobe Sign certificate signatures (locks PDF)"
+      ],
+      "must_allow": [
+        "Bluebeam markup and annotation",
+        "Text search (searchable fonts required — EPR-002)",
+        "Page extraction and reordering by reviewers",
+        "Stamp placement by DBI for approval"
+      ],
+      "note": "Plan checkers cannot review locked PDFs in Bluebeam. A locked submission will be returned without review."
+    },
+    "batch_ocr_instructions": {
+      "id": "EPR-002-DETAIL",
+      "context": "AutoCAD SHX fonts create non-searchable text in PDF. Plan checkers need to search for code references (e.g., 'CBC 11B', 'NFPA 13').",
+      "steps": [
+        "Open plan set in Bluebeam Revu",
+        "Go to Document > OCR > Run OCR on entire document",
+        "Select 'Searchable (Exact)' option for best accuracy",
+        "Save and verify text is searchable by using Ctrl+F"
+      ],
+      "alternative": "Use TrueType or OpenType fonts in AutoCAD (set TEXTFONT system variable) to avoid needing OCR entirely"
+    }
+  },
+
   "severity_levels": {
     "reject": "DBI will not process the submission. Must fix before filing.",
     "warning": "DBI may accept but will likely issue a correction letter. Fix to avoid delays.",
@@ -285,6 +366,125 @@
     "otc_review": "Submit via PermitSF portal — electronic only as of Jan 2024",
     "in_house_review": "Submit via PermitSF portal for electronic plan review in Bluebeam",
     "note": "Physical paper plans are no longer accepted for initial submission"
+  },
+
+  "correction_response_workflow": {
+    "source": "CCSF EPR Applicant Procedure Guide (2024), pages 21-49",
+    "overview": "When plan checkers identify issues during review, they add Bluebeam markup comments directly on the plans. The applicant must respond to ALL comments before resubmittal.",
+    "steps": [
+      {
+        "id": "EPR-023",
+        "step": "Download marked-up plans from Bluebeam Studio session",
+        "detail": "Plan checker comments appear as Bluebeam markup annotations on specific sheets. Download the full annotated set to review all comments across all reviewers.",
+        "common_mistake": "Only reviewing comments from one reviewer — multiple agencies comment simultaneously"
+      },
+      {
+        "id": "EPR-024",
+        "step": "Address ALL plan check comments",
+        "detail": "Every comment from every reviewing agency must be addressed. Use Bluebeam's markup reply feature to respond to each comment, or create a correction response letter referencing each comment by reviewer and sheet number.",
+        "common_mistake": "Missing comments from agencies that review later in the cycle (e.g., DPH, SFFD)"
+      },
+      {
+        "id": "EPR-025",
+        "step": "Add revision clouds on ALL changed items",
+        "detail": "Every change between submission rounds must be enclosed in a revision cloud. Include revision delta markers (triangle with revision number). Revision clouds must be on the drawing layer, not as Bluebeam annotations.",
+        "common_mistake": "Submitting corrected sheets without revision clouds — reviewer cannot find what changed"
+      },
+      {
+        "id": "EPR-026",
+        "step": "Upload only changed sheets for corrections",
+        "detail": "For plan check corrections, upload only the sheets that were modified — not the entire plan set. Use the same file naming convention with incremented revision number. Full set re-upload is only for addenda (new scope).",
+        "common_mistake": "Uploading the full plan set for a correction response — slows review and confuses version tracking"
+      },
+      {
+        "id": "EPR-027",
+        "step": "Update sheet index and page count",
+        "detail": "If sheets were added or removed, update the cover sheet's table of contents and total page count to match the revised set.",
+        "common_mistake": "Cover sheet still shows original page count after adding sheets"
+      },
+      {
+        "id": "EPR-028",
+        "step": "Notify reviewer of resubmittal",
+        "detail": "After uploading corrected sheets, notify the reviewer through the Bluebeam Studio session or PermitSF portal. Do not assume reviewers are automatically notified of uploads.",
+        "common_mistake": "Uploading corrections but not notifying reviewer — plans sit in queue unreviewed"
+      }
+    ],
+    "addenda_vs_corrections": {
+      "correction": "Response to plan check comments. Upload only changed sheets with revision clouds. Uses same application number and review session.",
+      "addendum": "Additional scope added to an approved or in-review permit. Requires new document upload with full addenda set. Format: [Number Prefix]-[Document type]-[Revision Number] [Street address]_[Type/Count of Addenda]. File size limit for site permit addenda is 350MB (vs 250MB standard)."
+    }
+  },
+
+  "document_type_numbering": {
+    "source": "CCSF EPR Applicant Procedure Guide",
+    "prefixes": [
+      {"prefix": "1-", "type": "Plans/Drawings", "example": "1-Plans-R0 123 Main St"},
+      {"prefix": "2-", "type": "Calculations", "example": "2-Calculations-R0 123 Main St"},
+      {"prefix": "3-", "type": "Reports/Studies", "example": "3-Reports-R0 123 Main St"},
+      {"prefix": "4-", "type": "Specifications", "example": "4-Specifications-R0 123 Main St"},
+      {"prefix": "5-", "type": "Other Documents", "example": "5-Other-R0 123 Main St"},
+      {"prefix": "6-", "type": "Addenda", "example": "6-Addenda-R1 123 Main St_Addendum1"}
+    ],
+    "naming_format": "[Number Prefix]-[Document type]-[Revision Number] [Street address]_[Type/Count of Addenda]",
+    "note": "If no application number yet, use street address. Revision numbers increment: R0, R1, R2, etc."
+  },
+
+  "review_statuses": {
+    "source": "CCSF EPR Applicant Procedure Guide",
+    "statuses": [
+      {
+        "status": "Approved",
+        "meaning": "Plans meet all code requirements. No changes needed.",
+        "action": "Proceed to fee payment and permit issuance."
+      },
+      {
+        "status": "Approved as Noted",
+        "meaning": "Plans are approved with minor notations. Changes may be required to be shown on job-site set but do not require resubmittal.",
+        "action": "Review all notations. Incorporate notes into construction documents. Proceed to fee payment."
+      },
+      {
+        "status": "Corrections Required",
+        "meaning": "Plans have deficiencies that must be corrected and resubmitted for another review round.",
+        "action": "Follow correction response workflow (EPR-023 through EPR-028). Upload corrected sheets with revision clouds."
+      },
+      {
+        "status": "Not Approved",
+        "meaning": "Plans have fundamental deficiencies. May require significant redesign.",
+        "action": "Schedule pre-submittal meeting with plan checker. Address all comments. May need to restart review cycle."
+      }
+    ]
+  },
+
+  "multi_agency_review": {
+    "source": "CCSF EPR Applicant Procedure Guide",
+    "overview": "In-house review projects are reviewed by multiple agencies simultaneously in the same Bluebeam Studio session. Each agency adds their own color-coded markups.",
+    "typical_reviewers": [
+      "DBI Building (structural, architectural)",
+      "DBI Mechanical/Electrical",
+      "Planning Department",
+      "SFFD (Fire Department)",
+      "DPH (Public Health — food facilities)",
+      "SFPUC (water/sewer)",
+      "DPW/BSM (public right-of-way)"
+    ],
+    "coordination_tips": [
+      "Review ALL agency comments — not just DBI Building",
+      "Agency comments may conflict — flag conflicting requirements to plan checker",
+      "Agencies review on different schedules — some comments may arrive later than others",
+      "Request a consolidated review meeting if comments from multiple agencies are contradictory"
+    ]
+  },
+
+  "permit_issuance_process": {
+    "source": "CCSF EPR Applicant Procedure Guide",
+    "steps_after_approval": [
+      "All reviewing agencies must show 'Approved' or 'Approved as Noted' status",
+      "Pay all permit fees via PermitSF portal",
+      "Verify contractor insurance and license (if applicable)",
+      "DBI issues permit electronically through PermitSF",
+      "Download approved stamped plans for job site"
+    ],
+    "note": "Permit is not issued until ALL agencies approve and ALL fees are paid. One 'Corrections Required' from any agency holds up the entire permit."
   },
 
   "decision_tree_integration": {

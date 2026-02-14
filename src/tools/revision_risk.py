@@ -79,6 +79,14 @@ def _get_correction_frequencies(project_type: str | None, kb) -> list[dict]:
             "rate": "high for restaurant conversions",
             "detail": "Equipment schedule not cross-referenced to layout, or missing exhaust data sheets. (DPH-002, DPH-004)",
         })
+        # Equipment schedule is the #1 DPH correction
+        equip_tmpl = dph.get("equipment_schedule_template", {})
+        if equip_tmpl:
+            corrections.append({
+                "category": "DPH Equipment Schedule (Appendix C)",
+                "rate": "#1 DPH correction item",
+                "detail": "Must include: Item#, Name, Manufacturer, Model, Dimensions, NSF cert, Gas/Elec, BTU/kW. Numbers must match floor plan.",
+            })
 
     return corrections
 
@@ -260,6 +268,31 @@ async def revision_risk(
             lines.append(f"\n## Top Correction Categories (citywide data)\n")
             for cd in correction_data:
                 lines.append(f"- **{cd['category']}** ({cd['rate']}): {cd['detail']}")
+
+        # EPR resubmittal guidance from correction workflow
+        epr = kb.epr_requirements
+        correction_workflow = epr.get("correction_response_workflow", {})
+        if correction_workflow:
+            lines.append(f"\n## EPR Resubmittal Process\n")
+            lines.append("*When corrections are required during plan review:*\n")
+            for step in correction_workflow.get("steps", [])[:4]:  # Top 4 steps
+                lines.append(f"- **{step.get('id', '')}:** {step.get('step', '')}")
+                mistake = step.get("common_mistake", "")
+                if mistake:
+                    lines.append(f"  ⚠️ Common mistake: {mistake}")
+
+        # DA-02 checklist deficiencies for commercial
+        ada = kb.ada_accessibility
+        if ada and project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"):
+            da02 = ada.get("da02_form_structure", {})
+            form_c = da02.get("form_c", {})
+            categories = form_c.get("checklist_categories", [])
+            if categories:
+                lines.append(f"\n## DA-02 Common Deficiency Areas\n")
+                for cat in categories:
+                    deficiency = cat.get("common_deficiency", "")
+                    if deficiency:
+                        lines.append(f"- **{cat['category']}:** {deficiency}")
 
         lines.append(f"\n## Mitigation Strategies\n")
         for m in mitigations:

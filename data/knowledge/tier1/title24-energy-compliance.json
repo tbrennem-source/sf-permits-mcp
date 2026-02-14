@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "California Title 24 Part 6 Energy Compliance Requirements",
-    "source": "California Title 24 Part 6 (Energy Code) + SF DBI Info Sheets M-04, M-06 + AB-112",
+    "source": "California Title 24 Part 6 (Energy Code) + SF DBI Info Sheets M-03, M-04, M-06, M-08 + AB-112",
     "source_urls": [
       "https://energycodeace.com/ResidentialForms/2022",
       "https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficiency-standards/2022-building-energy-efficiency-2",
@@ -15,6 +15,42 @@
   "form_system": {
     "residential": {
       "description": "Single-family, townhome, duplex. Low-rise (3 stories or less) multifamily uses LMCC/LMCI/LMCV forms starting with 2022 code.",
+      "dbi_info_sheet": "M-03 (Single-Family Residential Title-24 Energy Checklist)",
+      "dbi_checklist_attachments": {
+        "attachment_1_building": {
+          "title": "Building Checklist",
+          "items": ["Envelope — insulation R-values, U-factors, SHGC for Climate Zone 3", "Fenestration — window area, U-factor, SHGC compliance", "Cool roof — aged solar reflectance and thermal emittance", "Quality Insulation Installation (QII) — if used for compliance credit", "Air sealing — building air leakage (CF3R-ENV-20a if HERS triggered)"]
+        },
+        "attachment_2_mechanical": {
+          "title": "Mechanical Checklist",
+          "items": ["HVAC system efficiency — SEER/HSPF ratings", "Duct insulation — R-value per climate zone", "Duct leakage testing — if >25 ft new/replacement duct triggers HERS (CF3R)", "Refrigerant charge verification", "Ventilation — whole-house and local exhaust per ASHRAE 62.2", "Water heating — fuel type, efficiency, pipe insulation"]
+        },
+        "attachment_3_electrical": {
+          "title": "Electrical Checklist",
+          "items": ["Solar PV system — CF2R-PVB-01 required for new construction", "Battery storage — CF2R-PVB-02 if triggered by performance approach", "Electric-ready requirements — CF2R-ELC-01 for heat pump readiness", "Lighting — high-efficacy light sources, JA8 compliance"]
+        }
+      },
+      "hers_triggers": {
+        "note": "HERS rater verification (CF3R) is required when ANY of these conditions apply. Must register with HERS Provider Data Registry.",
+        "triggers": [
+          "New duct system or >25 ft of replacement duct in existing home",
+          "Performance approach (CF1R-PRF-01) used for compliance — always requires HERS",
+          "QII (Quality Insulation Installation) credit claimed",
+          "Building air leakage credit claimed (CF3R-ENV-20a)",
+          "Refrigerant charge verification required",
+          "Cool roof with specific reflectance credit"
+        ]
+      },
+      "climate_zone_3_prescriptive": {
+        "note": "Key prescriptive values for SF (Climate Zone 3) — used when not doing performance approach",
+        "ceiling_insulation": "R-38",
+        "wall_insulation": "R-13 (wood frame), R-15+4ci (mass wall)",
+        "floor_insulation": "R-19",
+        "fenestration_u_factor": 0.30,
+        "fenestration_shgc": 0.23,
+        "cool_roof_aged_reflectance": 0.20,
+        "cool_roof_thermal_emittance": 0.75
+      },
       "forms": {
         "CF1R": {
           "full_name": "Certificate of Compliance",
@@ -60,6 +96,79 @@
         }
       }
     },
+    "low_rise_multifamily": {
+      "description": "Low-rise multifamily (3 stories or less, 4+ units). Uses separate LMCC/LMCI/LMCV form system starting with 2022 Energy Code. High-rise multifamily (4+ stories) uses nonresidential NRCC/NRCI/NRCA forms.",
+      "dbi_info_sheet": "M-08 (Low-Rise Multifamily Title-24 Energy Checklist)",
+      "building_type_boundary": {
+        "low_rise_multifamily": "3 stories or fewer above grade, 4+ dwelling units — uses LMCC/LMCI/LMCV",
+        "single_family": "1-2 dwelling units (includes duplex, townhome) — uses CF1R/CF2R/CF3R",
+        "high_rise_residential": "4+ stories above grade — uses NRCC/NRCI/NRCA (nonresidential forms)",
+        "mixed_use_note": "Ground floor commercial in a low-rise multifamily building requires NRCC for the commercial portion AND LMCC for residential portion. Two separate compliance documents."
+      },
+      "forms": {
+        "LMCC": {
+          "full_name": "Low-Rise Multifamily Certificate of Compliance",
+          "when_submitted": "With permit application (design phase)",
+          "who_prepares": "Energy consultant, architect, or engineer",
+          "purpose": "Demonstrates multifamily residential design complies with Energy Code. Covers dwelling units AND common areas.",
+          "variants": {
+            "LMCC-PRF-01": "Performance approach (energy modeling — most common for multifamily)",
+            "LMCC-ADD-01": "Prescriptive additions to existing multifamily",
+            "LMCC-ALT-02": "Prescriptive alterations requiring HERS",
+            "LMCC-ALT-05": "Prescriptive alterations NOT requiring HERS"
+          },
+          "common_areas_note": "Common area corridors, lobbies, laundry rooms, and mechanical spaces are covered by LMCC — NOT by separate NRCC (unlike high-rise multifamily)"
+        },
+        "LMCI": {
+          "full_name": "Low-Rise Multifamily Certificate of Installation",
+          "when_submitted": "At inspection (construction phase)",
+          "who_prepares": "Installing contractor",
+          "purpose": "Documents installed equipment meets LMCC specifications for each dwelling unit and common area",
+          "variants": {
+            "LMCI-ENV-01": "Fenestration installation (windows/doors)",
+            "LMCI-ENV-03": "Insulation installation",
+            "LMCI-MCH-01b": "Space conditioning ducts/fans (alterations)",
+            "LMCI-MCH-01c": "Space conditioning ducts/fans (new construction)",
+            "LMCI-PVB-01": "Photovoltaic systems (solar PV required for new construction)",
+            "LMCI-PVB-02": "Battery storage systems",
+            "LMCI-ELC-01": "Electric ready requirements"
+          }
+        },
+        "LMCV": {
+          "full_name": "Low-Rise Multifamily Certificate of Verification",
+          "when_submitted": "At inspection (field verification by HERS rater)",
+          "who_prepares": "HERS rater",
+          "purpose": "Third-party field verification — applies to each dwelling unit. Must be registered with HERS Provider Data Registry.",
+          "note": "Required when project triggers HERS measures. For multifamily: HERS testing typically required for EVERY unit (not just a sample).",
+          "variants": {
+            "LMCV-ENV-20a": "Building air leakage test (per dwelling unit)",
+            "LMCV-ENV-21": "QII — quality insulation installation",
+            "LMCV-MCH-28": "Return duct design and filter sizing"
+          }
+        }
+      },
+      "dbi_checklist_attachments": {
+        "attachment_1_building": {
+          "title": "Building Checklist (per dwelling unit type)",
+          "items": ["Envelope — insulation R-values per unit type (varies by orientation)", "Fenestration — U-factor and SHGC for each unit type", "Cool roof — required for all units", "Air sealing — LMCV-ENV-20a for each unit", "Common area envelope compliance"]
+        },
+        "attachment_2_mechanical": {
+          "title": "Mechanical Checklist",
+          "items": ["Individual unit HVAC — efficiency, duct sizing, duct leakage per unit", "Central systems — if central HVAC, document system sizing for building", "Water heating — individual vs central; solar thermal or heat pump options", "Ventilation — dwelling unit and common area per ASHRAE 62.2"]
+        },
+        "attachment_3_electrical": {
+          "title": "Electrical Checklist",
+          "items": ["Solar PV — LMCI-PVB-01 (sized per number of units)", "Battery storage — LMCI-PVB-02 if required", "Electric-ready — LMCI-ELC-01 for heat pump readiness", "Common area lighting — high-efficacy required"]
+        }
+      },
+      "multifamily_specific_requirements": [
+        "Solar PV system sized based on number of dwelling units (not building footprint alone)",
+        "Each dwelling unit type needs separate compliance showing on LMCC",
+        "HERS testing required per individual dwelling unit (not a building-wide sample)",
+        "Common areas (corridors, lobbies, laundry) included in LMCC — separate from dwelling unit calculations",
+        "Mixed-use buildings need LMCC for residential + NRCC for commercial — two separate compliance documents"
+      ]
+    },
     "nonresidential": {
       "description": "Commercial, retail, office, restaurant, hotel/motel, high-rise residential",
       "forms": {
@@ -72,13 +181,77 @@
         "NRCI": {
           "full_name": "Nonresidential Certificate of Installation",
           "when_submitted": "At inspection",
-          "who_prepares": "Installing contractor"
+          "who_prepares": "Installing contractor",
+          "sub_forms": {
+            "building": [
+              {"form": "NRCI-ENV-E", "code": "IB71", "description": "Envelope installation"},
+              {"form": "NRCI-MCH-E", "code": "IB72", "description": "Mechanical installation"},
+              {"form": "NRCI-MCH-20-F", "code": "IB91", "description": "Mechanical — duct leakage"},
+              {"form": "NRCI-MCH-22-F", "code": "IB92", "description": "Mechanical — duct R-value"},
+              {"form": "NRCI-MCH-23-F", "code": "IB93", "description": "Mechanical — system airflow"},
+              {"form": "NRCI-MCH-25-F", "code": "IB94", "description": "Mechanical — refrigerant charge"},
+              {"form": "NRCI-PRC-E", "code": "IB73", "description": "Process installation"}
+            ],
+            "electrical": [
+              {"form": "NRCI-LTI-E", "code": "IE21", "description": "Indoor lighting installation"},
+              {"form": "NRCI-LTO-E", "code": "IE22", "description": "Outdoor lighting installation"},
+              {"form": "NRCI-LTS-E", "code": "IE23", "description": "Sign lighting installation"},
+              {"form": "NRCI-ELC-E", "code": "IE24", "description": "Electrical power distribution"},
+              {"form": "NRCI-SAB-E", "code": "IE25", "description": "Solar-ready / battery storage"}
+            ],
+            "plumbing": [
+              {"form": "NRCI-PLB-E", "code": "IP16", "description": "Plumbing installation"}
+            ]
+          }
         },
         "NRCA": {
           "full_name": "Nonresidential Certificate of Acceptance",
           "when_submitted": "At inspection (functional testing)",
           "who_prepares": "Acceptance test technician",
-          "purpose": "Verifies systems perform as designed (lighting controls, HVAC, etc.)"
+          "purpose": "Verifies systems perform as designed (lighting controls, HVAC, etc.)",
+          "sub_forms": {
+            "building_mechanical": [
+              {"form": "NRCA-MCH-04-A", "description": "Outdoor air acceptance — economizer"},
+              {"form": "NRCA-MCH-05-A", "description": "Outdoor air acceptance — DCV"},
+              {"form": "NRCA-MCH-06-A", "description": "Automatic demand shed controls"},
+              {"form": "NRCA-MCH-07-A", "description": "Supply water temperature reset"},
+              {"form": "NRCA-MCH-08-A", "description": "Valve leakage test"},
+              {"form": "NRCA-MCH-09-A", "description": "Supply water temperature reset (hydronic)"},
+              {"form": "NRCA-MCH-10-A", "description": "Boiler combustion efficiency"},
+              {"form": "NRCA-MCH-11-A", "description": "Chiller water temperature reset"},
+              {"form": "NRCA-MCH-12-A", "description": "Condenser water supply temperature reset"},
+              {"form": "NRCA-MCH-13-A", "description": "Variable flow hydronic systems"},
+              {"form": "NRCA-MCH-14-A", "description": "Variable speed drive controls"},
+              {"form": "NRCA-MCH-15-A", "description": "Fan speed controls — DDC"},
+              {"form": "NRCA-MCH-17-A", "description": "Hydronic system flow rate"},
+              {"form": "NRCA-MCH-28-A", "description": "Return duct design and filter sizing"}
+            ],
+            "electrical_lighting": [
+              {"form": "NRCA-LTI-02-A", "description": "Indoor lighting — automatic daylighting controls"},
+              {"form": "NRCA-LTI-03-A", "description": "Indoor lighting — automatic time-switch controls"},
+              {"form": "NRCA-LTI-04-A", "description": "Indoor lighting — occupancy/vacancy sensor controls"},
+              {"form": "NRCA-LTI-05-A", "description": "Indoor lighting — demand responsive controls"},
+              {"form": "NRCA-LTO-02-A", "description": "Outdoor lighting — automatic controls"}
+            ],
+            "plumbing": [
+              {"form": "NRCA-MCH-08-A", "description": "Valve leakage test (plumbing)"},
+              {"form": "NRCA-MCH-09-A", "description": "Water temperature reset"},
+              {"form": "NRCA-MCH-13-A", "description": "Hydronic system flow rate"},
+              {"form": "NRCA-MCH-17-A", "description": "Condenser water flow"}
+            ]
+          }
+        },
+        "NRCV": {
+          "full_name": "Nonresidential Certificate of Verification",
+          "when_submitted": "At inspection (field verification)",
+          "who_prepares": "Independent verification agent",
+          "purpose": "Third-party verification of installed systems — similar to residential HERS verification",
+          "sub_forms": [
+            {"form": "NRCV-MCH-01-H", "description": "Mechanical system verification"},
+            {"form": "NRCV-MCH-02-H", "description": "Mechanical controls verification"},
+            {"form": "NRCV-PLB-21-H", "code": "VP1", "description": "Hot water distribution verification"},
+            {"form": "NRCV-PLB-22-H", "code": "VP4", "description": "Plumbing system verification"}
+          ]
         }
       }
     }
@@ -86,10 +259,12 @@
   "triggers_by_project_type": {
     "new_construction": {
       "residential": ["CF1R required (PRF-01 or prescriptive)", "CF2R at inspection", "CF3R if HERS triggered", "Solar PV required (CF2R-PVB-01)", "Battery storage may be required (CF2R-PVB-02)"],
+      "low_rise_multifamily": ["LMCC required (PRF-01 typical for multifamily)", "LMCI at inspection per unit type", "LMCV HERS testing per individual unit", "Solar PV sized by number of units (LMCI-PVB-01)"],
       "nonresidential": ["NRCC required", "NRCI at inspection", "NRCA functional testing required"]
     },
     "additions": {
       "residential": ["CF1R-ADD-01 required", "CF2R-ADD-02 at inspection", "HERS if conditioned space added > thresholds"],
+      "low_rise_multifamily": ["LMCC-ADD-01 required for added units", "LMCI at inspection per added unit", "HERS if conditioned space triggers"],
       "nonresidential": ["NRCC required for added area", "NRCI + NRCA at inspection"]
     },
     "alterations": {
@@ -152,12 +327,28 @@
       "admin_bulletin": "AB-112",
       "rule": "All new construction must be all-electric. No gas infrastructure or piping.",
       "exception_process": "Formal infeasibility review by qualified engineers. Must demonstrate all available energy efficiency features were applied to all-electric option.",
-      "documentation": "Title-24 compliance docs must not include gas consumption. AB-093 Attachment E required."
+      "documentation": "Title-24 compliance docs must not include gas consumption. AB-093 Attachment E required.",
+      "form_code": "AEC1",
+      "dbi_checklist_item": "AB-112 Attachment 2 — All-Electric compliance form"
     },
     "green_building_requirements": {
       "admin_bulletin": "AB-093",
       "rule": "Green Building Site Permit Submittal required for new construction permits. Documents compliance with SF Green Building Ordinance.",
-      "forms": "AB-093 Attachment E"
+      "forms": "AB-093 Attachment E",
+      "form_code": "GBC1",
+      "dbi_checklist_item": "AB-093 Attachment E — Green Building compliance"
+    },
+    "energy_inspection_services": {
+      "source": "DBI Information Sheet M-04 (August 28, 2024)",
+      "effective_date": "Permits submitted on/after January 1, 2023",
+      "contact_phone": "(628) 652-3407",
+      "contact_email": "dbi.energyinspections@sfgov.org",
+      "related_info_sheets": {
+        "M-03": "Title-24 Single-Family Residential Energy Checklists (Building/Mechanical/Electrical)",
+        "M-04": "Title-24 Non-Residential Mechanical/Electrical/Plumbing Checklists",
+        "M-06": "Title-24 Energy Submittal Instructions",
+        "M-08": "Title-24 Low-Rise Multifamily Energy Checklists (Building/Mechanical/Electrical)"
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-"""Tests for Phase 2.6 knowledge supplement integration (Title-24, DPH, ADA)."""
+"""Tests for Phase 2.6/2.75 knowledge supplement integration (Title-24, DPH, ADA, EPR)."""
 
 import pytest
 from src.tools.knowledge_base import get_knowledge_base
@@ -31,7 +31,7 @@ def test_knowledge_base_loads_ada():
     kb = get_knowledge_base()
     assert kb.ada_accessibility
     threshold = kb.ada_accessibility.get("valuation_threshold", {})
-    assert threshold.get("current_amount") == 195358.0
+    assert threshold.get("current_amount") == 203611.0
     assert "core_logic" in kb.ada_accessibility
     assert "cost_tiers" in kb.ada_accessibility["core_logic"]
 
@@ -88,7 +88,7 @@ async def test_predict_restaurant_dph_details():
 async def test_predict_commercial_ti_ada_above_threshold():
     result = await predict_permits(
         project_description="Office tenant improvement, new HVAC and lighting",
-        estimated_cost=250000,  # Above $195,358 threshold
+        estimated_cost=250000,  # Above $203,611 threshold
     )
     assert "FULL" in result or "full" in result
     assert "DA-02" in result
@@ -98,7 +98,7 @@ async def test_predict_commercial_ti_ada_above_threshold():
 async def test_predict_commercial_ti_ada_below_threshold():
     result = await predict_permits(
         project_description="Office tenant improvement, minor alterations",
-        estimated_cost=100000,  # Below $195,358 threshold
+        estimated_cost=100000,  # Below $203,611 threshold
     )
     assert "20%" in result
     assert "DA-02" in result
@@ -234,3 +234,666 @@ def test_correction_frequencies_residential():
     # ADU is not commercial — no ADA entry expected
     assert "ADA/Accessibility (CBC 11B)" not in categories
     assert "DPH Food Facility" not in categories
+
+
+# =============================================================================
+# Phase 2.75 PDF-sourced enhancements
+# =============================================================================
+
+# --- EPR correction/resubmittal workflow (from CCSF EPR Applicant Procedure) ---
+
+def test_epr_correction_workflow_loaded():
+    kb = get_knowledge_base()
+    epr = kb.epr_requirements
+    workflow = epr.get("correction_response_workflow", {})
+    assert workflow, "correction_response_workflow not found in EPR knowledge"
+    steps = workflow.get("steps", [])
+    assert len(steps) == 6  # EPR-023 through EPR-028
+    step_ids = [s["id"] for s in steps]
+    assert "EPR-023" in step_ids
+    assert "EPR-028" in step_ids
+
+
+def test_epr_review_statuses():
+    kb = get_knowledge_base()
+    epr = kb.epr_requirements
+    statuses = epr.get("review_statuses", {}).get("statuses", [])
+    assert len(statuses) == 4
+    status_names = [s["status"] for s in statuses]
+    assert "Approved" in status_names
+    assert "Corrections Required" in status_names
+    assert "Not Approved" in status_names
+
+
+def test_epr_document_type_numbering():
+    kb = get_knowledge_base()
+    epr = kb.epr_requirements
+    numbering = epr.get("document_type_numbering", {})
+    prefixes = numbering.get("prefixes", [])
+    assert len(prefixes) == 6
+    prefix_vals = [p["prefix"] for p in prefixes]
+    assert "1-" in prefix_vals  # Plans
+    assert "6-" in prefix_vals  # Addenda
+
+
+def test_epr_multi_agency_review():
+    kb = get_knowledge_base()
+    epr = kb.epr_requirements
+    multi = epr.get("multi_agency_review", {})
+    assert multi
+    reviewers = multi.get("typical_reviewers", [])
+    assert len(reviewers) >= 5
+    tips = multi.get("coordination_tips", [])
+    assert len(tips) >= 3
+
+
+def test_epr_addenda_vs_corrections():
+    kb = get_knowledge_base()
+    epr = kb.epr_requirements
+    workflow = epr.get("correction_response_workflow", {})
+    addenda = workflow.get("addenda_vs_corrections", {})
+    assert "correction" in addenda
+    assert "addendum" in addenda
+
+
+# --- Title-24 NRCI/NRCA/NRCV sub-form matrix (from M-04) ---
+
+def test_title24_nrci_sub_forms():
+    kb = get_knowledge_base()
+    nrci = kb.title24["form_system"]["nonresidential"]["forms"]["NRCI"]
+    sub_forms = nrci.get("sub_forms", {})
+    assert "building" in sub_forms
+    assert "electrical" in sub_forms
+    assert "plumbing" in sub_forms
+    # Check specific form codes from M-04
+    building_forms = [f["form"] for f in sub_forms["building"]]
+    assert "NRCI-ENV-E" in building_forms
+    assert "NRCI-MCH-E" in building_forms
+    electrical_forms = [f["form"] for f in sub_forms["electrical"]]
+    assert "NRCI-LTI-E" in electrical_forms
+
+
+def test_title24_nrca_sub_forms():
+    kb = get_knowledge_base()
+    nrca = kb.title24["form_system"]["nonresidential"]["forms"]["NRCA"]
+    sub_forms = nrca.get("sub_forms", {})
+    assert "building_mechanical" in sub_forms
+    assert "electrical_lighting" in sub_forms
+    # Check specific acceptance test forms
+    mech_forms = [f["form"] for f in sub_forms["building_mechanical"]]
+    assert "NRCA-MCH-04-A" in mech_forms  # Economizer
+    lighting_forms = [f["form"] for f in sub_forms["electrical_lighting"]]
+    assert "NRCA-LTI-02-A" in lighting_forms  # Daylighting controls
+
+
+def test_title24_nrcv_exists():
+    kb = get_knowledge_base()
+    nonres = kb.title24["form_system"]["nonresidential"]["forms"]
+    assert "NRCV" in nonres
+    nrcv = nonres["NRCV"]
+    sub_forms = nrcv.get("sub_forms", [])
+    assert len(sub_forms) >= 4
+    form_names = [f["form"] for f in sub_forms]
+    assert "NRCV-PLB-21-H" in form_names
+
+
+def test_title24_ab112_form_code():
+    kb = get_knowledge_base()
+    ae = kb.title24["sf_specific_rules"]["all_electric_new_construction"]
+    assert ae.get("form_code") == "AEC1"
+
+
+def test_title24_ab093_form_code():
+    kb = get_knowledge_base()
+    gb = kb.title24["sf_specific_rules"]["green_building_requirements"]
+    assert gb.get("form_code") == "GBC1"
+
+
+def test_title24_energy_inspection_services():
+    kb = get_knowledge_base()
+    eis = kb.title24["sf_specific_rules"].get("energy_inspection_services", {})
+    assert eis
+    assert "M-04" in eis.get("related_info_sheets", {})
+    assert "M-06" in eis.get("related_info_sheets", {})
+
+
+# --- ADA DA-02 form structure (from DA-02 PDF) ---
+
+def test_ada_da02_form_structure():
+    kb = get_knowledge_base()
+    da02 = kb.ada_accessibility.get("da02_form_structure", {})
+    assert da02, "da02_form_structure not found in ADA knowledge"
+    assert "form_a" in da02
+    assert "form_b" in da02
+    assert "form_c" in da02
+
+
+def test_ada_da02_compliance_paths():
+    kb = get_knowledge_base()
+    form_b = kb.ada_accessibility["da02_form_structure"]["form_b"]
+    paths = form_b.get("compliance_paths", [])
+    assert len(paths) == 4
+    path_names = [p["path"] for p in paths]
+    assert "Full compliance" in path_names
+    assert "20% disproportionate cost" in path_names
+    assert "Historic building exception" in path_names
+
+
+def test_ada_da02_checklist_categories():
+    kb = get_knowledge_base()
+    form_c = kb.ada_accessibility["da02_form_structure"]["form_c"]
+    categories = form_c.get("checklist_categories", [])
+    assert len(categories) == 8
+    cat_names = [c["category"] for c in categories]
+    assert "Site Arrival" in cat_names
+    assert "Entrance/Exit" in cat_names
+    assert "Restrooms" in cat_names
+    assert "Signage" in cat_names
+    # Each category should have items and a common deficiency
+    for cat in categories:
+        assert "items" in cat
+        assert "common_deficiency" in cat
+
+
+# --- DPH construction standards (from DPH Food Facility Guide) ---
+
+def test_dph_construction_standards_loaded():
+    kb = get_knowledge_base()
+    cs = kb.dph_food.get("construction_standards", {})
+    assert cs, "construction_standards not found in DPH knowledge"
+    assert "floors" in cs
+    assert "cove_base" in cs
+    assert "walls" in cs
+    assert "ceilings" in cs
+    assert "lighting" in cs
+
+
+def test_dph_cove_base_specs():
+    kb = get_knowledge_base()
+    cove = kb.dph_food["construction_standards"]["cove_base"]
+    assert cove["radius"] == "3/8 inch minimum"
+    assert cove["height"] == "4 inches minimum up wall"
+
+
+def test_dph_lighting_foot_candles():
+    kb = get_knowledge_base()
+    lighting = kb.dph_food["construction_standards"]["lighting"]
+    fc = lighting.get("foot_candle_requirements", [])
+    assert len(fc) >= 5
+    # Food prep should be 50fc
+    food_prep = [f for f in fc if "Food preparation" in f["area"]]
+    assert food_prep
+    assert food_prep[0]["minimum_fc"] == 50
+
+
+def test_dph_ventilation_formulas():
+    kb = get_knowledge_base()
+    vent = kb.dph_food["construction_standards"].get("ventilation_formulas", {})
+    assert "type_i_hood" in vent
+    assert "type_ii_hood" in vent
+    assert "make_up_air" in vent
+
+
+def test_dph_grease_interceptor_sizing():
+    kb = get_knowledge_base()
+    gi = kb.dph_food["construction_standards"].get("grease_interceptor_sizing", {})
+    assert gi
+    sizes = gi.get("typical_sizes", [])
+    assert len(sizes) >= 4
+
+
+# --- Tool integration tests ---
+
+@pytest.mark.asyncio
+async def test_required_docs_inhouse_has_correction_workflow():
+    """In-house review should include EPR correction workflow."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "Correction Response Workflow" in result or "EPR-023" in result
+    assert "revision cloud" in result.lower() or "EPR-025" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_has_file_naming():
+    """Document output should include file naming convention."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "File Naming Convention" in result or "1-" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_inhouse_has_review_statuses():
+    """In-house review should include review status guide."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "Approved" in result
+    assert "Corrections Required" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_commercial_has_da02_forms():
+    """Commercial project should include DA-02 Form A/B/C guidance."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "DA-02 Form A" in result or "Form A" in result
+    assert "DA-02 Form B" in result or "compliance path" in result.lower()
+    assert "DA-02 Form C" in result or "checklist" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_new_construction_nonres_has_nrci():
+    """Nonresidential new construction should reference NRCI sub-forms."""
+    result = await required_documents(
+        permit_forms=["Form 1/2"],
+        review_path="in_house",
+        project_type="restaurant",
+        triggers=["new_construction"],
+    )
+    assert "NRCI" in result
+    assert "AEC1" in result or "AB-112" in result or "All-Electric" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_restaurant_has_dph_construction():
+    """Restaurant should include DPH construction standard details."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        agency_routing=["DPH (Public Health)"],
+        project_type="restaurant",
+    )
+    assert "cove base" in result.lower() or "DPH-005" in result
+    assert "foot-candle" in result.lower() or "50fc" in result
+
+
+@pytest.mark.asyncio
+async def test_predict_restaurant_has_construction_standards():
+    """predict_permits for restaurant should mention DPH construction standards."""
+    result = await predict_permits(
+        project_description="Convert retail to full-service restaurant with commercial kitchen",
+        estimated_cost=300000,
+    )
+    assert "construction standards" in result.lower() or "cove base" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_predict_nonres_new_construction_has_nrci_detail():
+    """Nonresidential new construction should reference M-04 sub-forms."""
+    result = await predict_permits(
+        project_description="New construction 3-story office building, ground floor retail",
+        estimated_cost=5000000,
+        scope_keywords=["new_construction", "commercial_ti"],
+    )
+    assert "NRCI" in result
+    assert "AEC1" in result or "all-electric" in result.lower()
+    assert "GBC1" in result or "green building" in result.lower()
+
+
+# =============================================================================
+# Phase 2.75b — Second PDF batch enhancements (M-03, M-08, DPH Appendices, Exhibit F, HPWH)
+# =============================================================================
+
+# --- M-03 Residential Title-24 DBI Checklist ---
+
+def test_title24_residential_dbi_checklist():
+    """M-03 single-family checklist should be loaded."""
+    kb = get_knowledge_base()
+    res = kb.title24["form_system"]["residential"]
+    assert res.get("dbi_info_sheet") == "M-03 (Single-Family Residential Title-24 Energy Checklist)"
+    attachments = res.get("dbi_checklist_attachments", {})
+    assert "attachment_1_building" in attachments
+    assert "attachment_2_mechanical" in attachments
+    assert "attachment_3_electrical" in attachments
+
+
+def test_title24_hers_triggers():
+    """HERS trigger conditions should be documented."""
+    kb = get_knowledge_base()
+    hers = kb.title24["form_system"]["residential"].get("hers_triggers", {})
+    assert hers
+    triggers = hers.get("triggers", [])
+    assert len(triggers) >= 4
+    # Key trigger: duct replacement >25 ft
+    assert any("duct" in t.lower() and "25" in t for t in triggers)
+
+
+def test_title24_climate_zone_3_prescriptive():
+    """Climate Zone 3 prescriptive values should be present."""
+    kb = get_knowledge_base()
+    cz3 = kb.title24["form_system"]["residential"].get("climate_zone_3_prescriptive", {})
+    assert cz3
+    assert cz3.get("ceiling_insulation") == "R-38"
+    assert cz3.get("fenestration_u_factor") == 0.30
+    assert cz3.get("fenestration_shgc") == 0.23
+
+
+# --- M-08 Low-Rise Multifamily LMCC/LMCI/LMCV ---
+
+def test_title24_low_rise_multifamily_exists():
+    """Low-rise multifamily form system should exist."""
+    kb = get_knowledge_base()
+    lrm = kb.title24["form_system"].get("low_rise_multifamily", {})
+    assert lrm, "low_rise_multifamily not found in form_system"
+    assert "LMCC" in lrm.get("forms", {})
+    assert "LMCI" in lrm.get("forms", {})
+    assert "LMCV" in lrm.get("forms", {})
+
+
+def test_title24_lmcc_variants():
+    """LMCC should have form variants like CF1R."""
+    kb = get_knowledge_base()
+    lmcc = kb.title24["form_system"]["low_rise_multifamily"]["forms"]["LMCC"]
+    variants = lmcc.get("variants", {})
+    assert "LMCC-PRF-01" in variants
+    assert "LMCC-ALT-05" in variants
+
+
+def test_title24_lmci_variants():
+    """LMCI should have installation certificate variants."""
+    kb = get_knowledge_base()
+    lmci = kb.title24["form_system"]["low_rise_multifamily"]["forms"]["LMCI"]
+    variants = lmci.get("variants", {})
+    assert "LMCI-PVB-01" in variants  # Solar PV
+    assert "LMCI-ELC-01" in variants  # Electric ready
+
+
+def test_title24_building_type_boundary():
+    """Building type boundary rules should be documented."""
+    kb = get_knowledge_base()
+    boundary = kb.title24["form_system"]["low_rise_multifamily"].get("building_type_boundary", {})
+    assert boundary
+    assert "low_rise_multifamily" in boundary
+    assert "high_rise_residential" in boundary
+    assert "mixed_use_note" in boundary
+
+
+def test_title24_multifamily_triggers():
+    """Triggers should include low-rise multifamily path."""
+    kb = get_knowledge_base()
+    triggers = kb.title24["triggers_by_project_type"]
+    assert "low_rise_multifamily" in triggers["new_construction"]
+    assert "low_rise_multifamily" in triggers["additions"]
+
+
+def test_title24_info_sheets_include_m03_m08():
+    """Related info sheets should include M-03 and M-08."""
+    kb = get_knowledge_base()
+    sheets = kb.title24["sf_specific_rules"]["energy_inspection_services"]["related_info_sheets"]
+    assert "M-03" in sheets
+    assert "M-08" in sheets
+
+
+# --- DPH Equipment Schedule Template (Appendix C) ---
+
+def test_dph_equipment_schedule_template():
+    """Equipment schedule template should be loaded with required columns."""
+    kb = get_knowledge_base()
+    tmpl = kb.dph_food.get("equipment_schedule_template", {})
+    assert tmpl, "equipment_schedule_template not found"
+    cols = tmpl.get("required_columns", [])
+    assert len(cols) >= 8
+    col_names = [c["column"] for c in cols]
+    assert "Item #" in col_names
+    assert "NSF/ANSI Certified" in col_names
+    assert "BTU/kW Rating" in col_names
+
+
+def test_dph_equipment_schedule_special_notes():
+    """Equipment template should have special notes for specific equipment types."""
+    kb = get_knowledge_base()
+    tmpl = kb.dph_food["equipment_schedule_template"]
+    notes = tmpl.get("special_equipment_notes", {})
+    assert "refrigeration" in notes
+    assert "exhaust_hoods" in notes
+    assert "dishwashers" in notes
+
+
+# --- DPH Room Finish Schedule Template (Appendix D) ---
+
+def test_dph_room_finish_schedule_template():
+    """Room finish schedule template should be loaded."""
+    kb = get_knowledge_base()
+    tmpl = kb.dph_food.get("room_finish_schedule_template", {})
+    assert tmpl, "room_finish_schedule_template not found"
+    cols = tmpl.get("required_columns", [])
+    assert len(cols) >= 6
+    col_names = [c["column"] for c in cols]
+    assert "Cove Base" in col_names
+    assert "Ceiling Finish" in col_names
+    rooms = tmpl.get("standard_rooms_to_include", [])
+    assert len(rooms) >= 10
+
+
+# --- DPH Flooring Installation Details (Appendix E) ---
+
+def test_dph_flooring_installation_details():
+    """Flooring installation details should supplement existing floors section."""
+    kb = get_knowledge_base()
+    floors = kb.dph_food["construction_standards"]["floors"]
+    install = floors.get("installation_details", {})
+    assert install, "installation_details not found in floors"
+    assert "slope_to_drain" in install
+    assert "quarry_tile" in install
+    assert "equipment_base" in install
+
+
+# --- DPH Floor Plan Required Callouts ---
+
+def test_dph_floor_plan_callouts():
+    """Floor plan required callouts should be documented."""
+    kb = get_knowledge_base()
+    callouts = kb.dph_food.get("floor_plan_required_callouts", {})
+    assert callouts, "floor_plan_required_callouts not found"
+    required = callouts.get("required_callouts", [])
+    assert len(required) >= 10
+    # Should mention equipment numbers, handwash, grease interceptor
+    combined = " ".join(required).lower()
+    assert "equipment" in combined
+    assert "handwash" in combined or "hw" in combined
+    assert "grease" in combined
+
+
+# --- HPWH Food Facility Requirements ---
+
+def test_dph_hpwh_requirements():
+    """HPWH food facility requirements should be loaded."""
+    kb = get_knowledge_base()
+    hpwh = kb.dph_food.get("hpwh_food_facility_requirements", {})
+    assert hpwh, "hpwh_food_facility_requirements not found"
+    temps = hpwh.get("hot_water_temperature_requirements", {})
+    assert temps.get("general_use") == "120°F minimum at fixtures"
+    assert "180" in temps.get("dishwasher_high_temp_sanitizing", "")
+
+
+def test_dph_hpwh_sizing_and_installation():
+    """HPWH should have sizing and installation guidance."""
+    kb = get_knowledge_base()
+    hpwh = kb.dph_food["hpwh_food_facility_requirements"]
+    assert len(hpwh.get("sizing_considerations", [])) >= 4
+    assert len(hpwh.get("installation_requirements", [])) >= 4
+    assert len(hpwh.get("dph_plan_review_requirements", [])) >= 4
+
+
+def test_dph_hpwh_gas_exemptions():
+    """HPWH should document when gas is still allowed."""
+    kb = get_knowledge_base()
+    hpwh = kb.dph_food["hpwh_food_facility_requirements"]
+    exemptions = hpwh.get("exemptions_for_gas", {})
+    assert exemptions
+    conditions = exemptions.get("conditions", [])
+    assert len(conditions) >= 2
+
+
+# --- EPR Exhibit F Supplementary Details ---
+
+def test_epr_exhibit_f_bookmark_hierarchy():
+    """Exhibit F should add bookmark hierarchy detail."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements.get("exhibit_f_supplementary", {})
+    assert exhibit_f, "exhibit_f_supplementary not found"
+    bookmarks = exhibit_f.get("bookmark_hierarchy", {})
+    assert bookmarks
+    hierarchy = bookmarks.get("hierarchy_example", [])
+    assert len(hierarchy) >= 8
+
+
+def test_epr_exhibit_f_sheet_numbering():
+    """Exhibit F should define sheet numbering convention."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements["exhibit_f_supplementary"]
+    numbering = exhibit_f.get("sheet_numbering_convention", {})
+    assert numbering
+    prefixes = numbering.get("prefixes", [])
+    assert len(prefixes) >= 6
+    prefix_letters = [p["prefix"] for p in prefixes]
+    assert "A" in prefix_letters  # Architectural
+    assert "S" in prefix_letters  # Structural
+    assert "M" in prefix_letters  # Mechanical
+    assert "E" in prefix_letters  # Electrical
+    assert "P" in prefix_letters  # Plumbing
+
+
+def test_epr_exhibit_f_file_size_guidance():
+    """Exhibit F should have file size guidance."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements["exhibit_f_supplementary"]
+    size = exhibit_f.get("file_size_guidance", {})
+    assert size
+    assert "250MB" in size.get("maximum_per_upload", "")
+
+
+def test_epr_exhibit_f_security_requirements():
+    """Exhibit F should detail PDF security requirements."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements["exhibit_f_supplementary"]
+    security = exhibit_f.get("pdf_security_requirements", {})
+    assert security
+    must_not = security.get("must_not_have", [])
+    assert len(must_not) >= 4
+
+
+def test_epr_exhibit_f_batch_ocr():
+    """Exhibit F should have batch OCR instructions for SHX fonts."""
+    kb = get_knowledge_base()
+    exhibit_f = kb.epr_requirements["exhibit_f_supplementary"]
+    ocr = exhibit_f.get("batch_ocr_instructions", {})
+    assert ocr
+    steps = ocr.get("steps", [])
+    assert len(steps) >= 3
+
+
+# --- Tool integration tests for new knowledge ---
+
+@pytest.mark.asyncio
+async def test_required_docs_multifamily_new_construction_has_lmcc():
+    """Low-rise multifamily new construction should reference LMCC forms."""
+    result = await required_documents(
+        permit_forms=["Form 1/2"],
+        review_path="in_house",
+        project_type="low_rise_multifamily",
+        triggers=["new_construction"],
+    )
+    assert "LMCC" in result
+    assert "M-08" in result or "multifamily" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_restaurant_has_equipment_template():
+    """Restaurant docs should reference equipment schedule template columns."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        agency_routing=["DPH (Public Health)"],
+        project_type="restaurant",
+    )
+    assert "Appendix C" in result or "NSF" in result
+    assert "BTU" in result or "equipment schedule" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_restaurant_has_finish_schedule_template():
+    """Restaurant docs should reference room finish schedule template."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        agency_routing=["DPH (Public Health)"],
+        project_type="restaurant",
+    )
+    assert "Appendix D" in result or "room finish schedule" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_new_restaurant_has_hpwh():
+    """New construction restaurant should include HPWH sizing document."""
+    result = await required_documents(
+        permit_forms=["Form 1/2"],
+        review_path="in_house",
+        agency_routing=["DPH (Public Health)"],
+        project_type="restaurant",
+        triggers=["new_construction"],
+    )
+    assert "HPWH" in result or "heat pump" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_required_docs_has_sheet_numbering():
+    """Document output should include sheet numbering convention from Exhibit F."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="in_house",
+        project_type="commercial_ti",
+    )
+    assert "Sheet Numbering" in result or "Architectural" in result
+
+
+@pytest.mark.asyncio
+async def test_required_docs_residential_has_m03_reference():
+    """Residential alteration should reference M-03 checklist."""
+    result = await required_documents(
+        permit_forms=["Form 3/8"],
+        review_path="otc",
+        project_type="general",
+        triggers=[],
+    )
+    assert "CF1R" in result or "M-03" in result
+
+
+@pytest.mark.asyncio
+async def test_predict_multifamily_detects_type():
+    """predict_permits should detect low-rise multifamily from description."""
+    result = await predict_permits(
+        project_description="New construction 3-story apartment building, 12 units",
+        estimated_cost=3000000,
+    )
+    assert "multifamily" in result.lower() or "LMCC" in result
+
+
+@pytest.mark.asyncio
+async def test_predict_new_restaurant_has_hpwh():
+    """New construction restaurant should mention HPWH."""
+    result = await predict_permits(
+        project_description="New construction restaurant with full commercial kitchen",
+        estimated_cost=2000000,
+        scope_keywords=["new_construction", "restaurant"],
+    )
+    assert "HPWH" in result or "heat pump" in result.lower()
+
+
+def test_revision_risk_restaurant_has_equipment_schedule():
+    """Revision risk for restaurant should include equipment schedule correction."""
+    kb = get_knowledge_base()
+    corrections = _get_correction_frequencies("restaurant", kb)
+    categories = [c["category"] for c in corrections]
+    assert "DPH Equipment Schedule (Appendix C)" in categories

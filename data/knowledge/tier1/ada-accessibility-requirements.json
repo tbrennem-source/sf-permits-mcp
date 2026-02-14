@@ -13,10 +13,18 @@
   },
   "context": "California accessibility requirements (CBC Chapter 11B) often EXCEED federal ADA requirements. SF enforces CBC Chapter 11B through DBI plan review. Both state and federal requirements must be met — the more restrictive applies.",
   "valuation_threshold": {
-    "current_amount": 195358.00,
-    "effective_date": "2023-07-01",
-    "source": "DSA Access Compliance Reference Materials (updated annually based on ENR Construction Cost Index)",
-    "note": "This threshold changes annually. Tools should check current value. The threshold determines whether full path-of-travel compliance is required or limited to 20% of construction cost."
+    "current_amount": 203611.00,
+    "effective_date": "2025-01-28",
+    "source": "DSA Access Compliance Reference Materials (updated annually based on ENR 20 Cities Construction Cost Index)",
+    "note": "This threshold changes annually. Tools should check current value. The threshold determines whether full path-of-travel compliance is required or limited to 20% of construction cost.",
+    "history": [
+      {"year": 2025, "amount": 203611, "effective": "2025-01-28"},
+      {"year": 2024, "amount": 200399, "effective": "2024-01-01"},
+      {"year": 2023, "amount": 195358, "effective": "2023-07-01"},
+      {"year": 2022, "amount": 186172, "effective": "2022-01-01"},
+      {"year": 2021, "amount": 172418, "effective": "2021-01-01"}
+    ],
+    "base_year_note": "Based on January 1981 threshold of $50,000, adjusted annually per ENR Construction Cost Index"
   },
   "core_logic": {
     "trigger": "Any alteration, addition, or structural repair to an existing building or facility used as public building, public accommodation, commercial building, or public housing",
@@ -133,6 +141,93 @@
       "fix": "Certified Access Specialist (CASp) inspection provides legal benefits and identifies issues early. SF offers reimbursement grants via Office of Small Business."
     }
   ],
+  "da02_form_structure": {
+    "source": "DBI-IS-DA02 Disabled Access Upgrade Compliance Checklist Package",
+    "overview": "The DA-02 package is required for ALL commercial/public building alterations. It has 3 sections that must be completed by the design professional.",
+    "form_a": {
+      "title": "Building Description",
+      "fields": [
+        "Building use/occupancy type",
+        "Total building square footage",
+        "Area of alteration square footage",
+        "Number of stories",
+        "Year built",
+        "Previous accessibility upgrades (if any)"
+      ]
+    },
+    "form_b": {
+      "title": "Scope of Work and Compliance Path",
+      "compliance_paths": [
+        {
+          "path": "Full compliance",
+          "condition": "Construction cost exceeds valuation threshold OR voluntary full compliance",
+          "documentation": "Show full CBC 11B compliance for path of travel to area of alteration"
+        },
+        {
+          "path": "20% disproportionate cost",
+          "condition": "Construction cost at or below valuation threshold",
+          "documentation": "Itemize accessibility upgrades on Form C. Total should approach 20% of construction cost. Prioritize elements in order: entrance, restrooms, fountains, phones, signage, route."
+        },
+        {
+          "path": "Unreasonable hardship",
+          "condition": "Full compliance creates unreasonable hardship (rare — requires enforcing agency determination)",
+          "documentation": "Written request with justification. Never less than 20% of construction cost."
+        },
+        {
+          "path": "Historic building exception",
+          "condition": "Qualified historic building under State Historical Building Code (Part 8, Title 24)",
+          "documentation": "Comply with State Historical Building Code accessibility provisions."
+        }
+      ]
+    },
+    "form_c": {
+      "title": "Accessibility Compliance Checklist",
+      "description": "Detailed CBC 11B checklist organized by building element. Design professional checks applicable items and notes existing conditions vs proposed upgrades.",
+      "checklist_categories": [
+        {
+          "category": "Site Arrival",
+          "items": ["Accessible parking spaces", "Passenger loading zones", "Curb ramps at street crossings"],
+          "common_deficiency": "Insufficient accessible parking (1 per 25 spaces first 100, then 1 per 50)"
+        },
+        {
+          "category": "Exterior Route",
+          "items": ["Walks and sidewalks (min 48\" wide)", "Curb ramps", "Ramps (max 1:12 slope)", "Handrails"],
+          "common_deficiency": "Excessive cross-slope on exterior walkways (max 1:48)"
+        },
+        {
+          "category": "Entrance/Exit",
+          "items": ["Door width (min 32\" clear)", "Door hardware (lever, no twist/grasp)", "Thresholds (max 1/2\")", "Maneuvering clearance per CBC 11B-404.2.4", "Door opening force (max 5 lbs interior)"],
+          "common_deficiency": "Door hardware requiring tight grasping or twisting — must be lever or push/pull type"
+        },
+        {
+          "category": "Interior Route",
+          "items": ["Corridors (min 44\" wide)", "Protruding objects (max 4\" into path above 27\")", "Floor surfaces (firm, stable, slip-resistant)", "Changes in level"],
+          "common_deficiency": "Protruding wall-mounted objects (fire extinguishers, signage) not detected"
+        },
+        {
+          "category": "Vertical Access",
+          "items": ["Elevators", "Platform lifts", "Stairways (handrails, nosings, tactile warnings)"],
+          "common_deficiency": "Elevator does not meet CBC 11B-407 requirements for call buttons and cab size"
+        },
+        {
+          "category": "Restrooms",
+          "items": ["60\" turning radius (or T-turn)", "Grab bars per CBC 11B-604", "Toilet centerline 16-18\" from side wall", "Lavatory knee clearance", "Mirror max 40\" above floor", "Accessible hardware on all doors/dispensers"],
+          "common_deficiency": "Toilet centerline not 16-18 inches from side wall — most common restroom correction"
+        },
+        {
+          "category": "Special Occupancy Features",
+          "items": ["Service counters (max 36\" high, min 36\" wide)", "Sales and service areas", "Assembly seating (wheelchair spaces, companion seats, lines of sight)", "Dressing rooms"],
+          "common_deficiency": "Service counter too high — must provide 36\" max height section at least 36\" wide"
+        },
+        {
+          "category": "Signage",
+          "items": ["Room identification signs (tactile + braille, 48-60\" AFF)", "Directional signs", "International Symbol of Accessibility", "Emergency exit signs"],
+          "common_deficiency": "Tactile room signs not at correct height (48-60 inches above floor) or missing braille"
+        }
+      ]
+    }
+  },
+
   "casp_information": {
     "what": "Certified Access Specialist inspection — third-party accessibility audit",
     "benefit": "Legal protection if accessibility claim arises. Early issue identification. May qualify for SF Accessible Barrier Removal Grant.",

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "SF DPH Food Facility Construction Requirements",
-    "source": "SF DPH Environmental Health Branch + California Retail Food Code",
+    "source": "SF DPH Environmental Health Branch + California Retail Food Code + DPH Construction Guide Appendices C/D/E + HPWH Technical Bulletin",
     "source_urls": [
       "https://www.sf.gov/reports--november-2021--food-facility-construction-plans-what-include-review",
       "https://www.sf.gov/plan-check-guide-building-and-remodeling-food-facility",
@@ -152,6 +152,225 @@
       }
     }
   },
+  "construction_standards": {
+    "source": "SFDPH Food Facility Construction Guide (2024)",
+    "floors": {
+      "material": "Durable, nonabsorbent, slip-resistant in cooking and warewashing areas",
+      "approved_types": ["Quarry tile", "Sealed concrete", "Commercial-grade vinyl sheet", "Epoxy coating"],
+      "not_approved": ["Carpet (except in dining areas with no food prep)", "Unsealed wood", "Unsealed concrete"],
+      "note": "Physical samples may be required for DPH approval before purchase",
+      "installation_details": {
+        "source": "SFDPH Construction Guide Appendix E — Flooring Installation",
+        "slope_to_drain": "1/8 inch to 1/4 inch per foot slope toward floor drains in wet areas (cooking, warewashing, walk-in coolers)",
+        "quarry_tile": "Grout must be epoxy-based (not cementitious) in all food prep and warewashing areas. Tile joints must be flush and smooth.",
+        "sealed_concrete": "Concrete must be sealed with food-grade epoxy or polyurethane. Resealing required per manufacturer schedule.",
+        "epoxy_coating": "Surface prep critical — concrete must be profiled (shot-blasted or diamond-ground). Minimum 10 mil thickness.",
+        "transitions": "Transition strips between different flooring types must be smooth, flush, and sealed. No gaps or raised edges.",
+        "equipment_base": "Cove base treatment required around all floor-mounted equipment. Equipment on legs must have cove base between legs. Equipment on solid base must be sealed to floor.",
+        "common_deficiency": "Slope insufficient for drainage — standing water in cooking areas. Grout type not specified (cementitious grout absorbs grease)."
+      }
+    },
+    "cove_base": {
+      "radius": "3/8 inch minimum",
+      "height": "4 inches minimum up wall",
+      "material": "Continuous with finished floor — same or compatible material",
+      "common_correction": "Cove base not specified or less than 4 inches. Must be continuous — no gaps at equipment locations."
+    },
+    "walls": {
+      "food_prep_areas": "Smooth, nonabsorbent, easily cleanable to splash height (minimum 6 feet recommended)",
+      "restrooms": "Smooth, nonabsorbent, easily cleanable",
+      "approved_types": ["FRP (fiberglass reinforced panels)", "Glazed tile", "Stainless steel", "Epoxy-painted drywall"],
+      "not_approved": ["Unfinished drywall", "Exposed brick (unless sealed)", "Porous stone"]
+    },
+    "ceilings": {
+      "requirement": "Smooth, nonabsorbent, light-colored, easily cleanable",
+      "food_prep_areas": "No exposed pipes, ducts, or structural members above food prep (may use smooth, cleanable ceiling system)",
+      "approved_types": ["Smooth suspended ceiling tiles (washable)", "Painted drywall (sealed)", "FRP panels"]
+    },
+    "lighting": {
+      "foot_candle_requirements": [
+        {"area": "Food preparation surfaces", "minimum_fc": 50, "note": "At working height (36 inches)"},
+        {"area": "Handwashing areas, warewashing", "minimum_fc": 20, "note": "At working height"},
+        {"area": "Walk-in coolers/freezers, dry storage", "minimum_fc": 10, "note": "At floor level"},
+        {"area": "Dining areas, restrooms", "minimum_fc": 10, "note": "At floor level"},
+        {"area": "Equipment and utensil storage", "minimum_fc": 20, "note": "Inside reach of storage area"}
+      ],
+      "shielding": "Light fixtures in food prep and warewashing areas must be shielded or shatter-resistant"
+    },
+    "ventilation_formulas": {
+      "type_i_hood": {
+        "required_for": "Grease-laden vapors — all cooking equipment that produces grease (fryers, grills, ovens, woks)",
+        "airflow": "Varies by hood type and equipment — minimum per California Mechanical Code Table 507.2.1",
+        "fire_suppression": "Automatic fire suppression required under all Type I hoods",
+        "note": "Must include hood data sheet with make, model, CFM rating, and exhaust duct sizing"
+      },
+      "type_ii_hood": {
+        "required_for": "Steam, heat, and moisture only — dishwashers, steam tables, ovens that don't produce grease",
+        "airflow": "Lower CFM than Type I — per CMC Table 507.2.2"
+      },
+      "make_up_air": {
+        "requirement": "Make-up air must be provided at 80-90% of exhaust volume to maintain slight negative pressure",
+        "common_correction": "No make-up air calculations submitted — DPH cannot verify adequate ventilation balance"
+      }
+    },
+    "grease_interceptor_sizing": {
+      "method": "Based on Drainage Fixture Values (DFV) per California Plumbing Code Table 7-3",
+      "formula_note": "Total DFV of all fixtures connected to interceptor determines minimum interceptor size in gallons",
+      "sfpuc_note": "SFPUC may require larger interceptor than minimum code — check SFPUC capacity charge requirements separately",
+      "typical_sizes": [
+        {"dfu_range": "Up to 21", "interceptor_gpm": 20, "note": "Small café, limited cooking"},
+        {"dfu_range": "22-36", "interceptor_gpm": 25, "note": "Small restaurant"},
+        {"dfu_range": "37-60", "interceptor_gpm": 35, "note": "Medium restaurant"},
+        {"dfu_range": "61-125", "interceptor_gpm": 50, "note": "Large restaurant / commercial kitchen"}
+      ]
+    },
+    "restroom_fixtures": {
+      "patron_requirements": "Per California Plumbing Code Table 422.1 based on occupancy type and seating capacity",
+      "employee_requirements": "Minimum 1 unisex restroom for employees if fewer than 20 employees",
+      "accessibility_note": "All restrooms must meet CBC 11B accessibility requirements — coordinate with DA-02 checklist"
+    }
+  },
+
+  "equipment_schedule_template": {
+    "source": "SFDPH Construction Guide Appendix C — Equipment Schedule",
+    "dph_requirement_id": "DPH-002",
+    "description": "The equipment schedule is a table that must accompany all food facility plans. Numbers in the schedule must match numbers on the floor plan layout. This is the #1 DPH correction item — missing or mismatched equipment schedules.",
+    "required_columns": [
+      {"column": "Item #", "description": "Sequential number matching the floor plan callout"},
+      {"column": "Equipment Name", "description": "Common name (e.g., 'Reach-in Refrigerator', '6-Burner Range')"},
+      {"column": "Manufacturer", "description": "Equipment manufacturer name"},
+      {"column": "Model Number", "description": "Specific model number for verification"},
+      {"column": "Dimensions (W x D x H)", "description": "Width, depth, height in inches"},
+      {"column": "NSF/ANSI Certified", "description": "Yes/No — all food contact equipment must be NSF-certified or ANSI-accredited equivalent"},
+      {"column": "Gas/Electric", "description": "Fuel source — critical for ventilation calculations and AB-112 compliance"},
+      {"column": "BTU/kW Rating", "description": "Energy input rating — required for hood sizing and ventilation calculations"}
+    ],
+    "special_equipment_notes": {
+      "refrigeration": "Must include operating temperature range (e.g., '33-40°F' for cooler, '-10 to 0°F' for freezer)",
+      "exhaust_hoods": "Must include CFM rating, duct size, hood dimensions, and Type (I or II)",
+      "dishwashers": "Must include water temperature (wash/rinse), chemical or high-temp sanitizing method",
+      "ice_machines": "Must include daily ice production capacity in lbs/24hr"
+    },
+    "common_deficiencies": [
+      "Equipment shown on floor plan but missing from schedule (or vice versa)",
+      "Item numbers on plan don't match schedule numbers",
+      "NSF certification column missing — DPH requires confirmation for all food-contact equipment",
+      "BTU/kW rating missing — prevents DPH from verifying ventilation adequacy",
+      "Dimensions missing — DPH cannot verify clearances and aisle widths"
+    ]
+  },
+
+  "room_finish_schedule_template": {
+    "source": "SFDPH Construction Guide Appendix D — Room Finish Schedule",
+    "dph_requirement_id": "DPH-005",
+    "description": "A room-by-room table showing finish materials for all surfaces. Must be submitted with every food facility plan. DPH reviews materials for compliance with California Retail Food Code requirements.",
+    "required_columns": [
+      {"column": "Room/Area Name", "description": "e.g., 'Kitchen', 'Walk-in Cooler', 'Prep Area', 'Dining', 'Restroom', 'Storage'"},
+      {"column": "Floor Material", "description": "Specific material type and product name (e.g., 'Quarry tile with epoxy grout')"},
+      {"column": "Cove Base", "description": "Material, radius (min 3/8\"), height (min 4\"). Must note 'continuous with floor'."},
+      {"column": "Wall Finish (Lower)", "description": "Material from floor to splash height (min 6 ft in food prep areas)"},
+      {"column": "Wall Finish (Upper)", "description": "Material above splash height (can be different from lower)"},
+      {"column": "Ceiling Finish", "description": "Material type — must be smooth, nonabsorbent, light-colored in food areas"}
+    ],
+    "standard_rooms_to_include": [
+      "Kitchen / Cooking area",
+      "Food prep area",
+      "Warewashing area",
+      "Walk-in cooler",
+      "Walk-in freezer",
+      "Dry storage",
+      "Service / counter area",
+      "Dining area",
+      "Bar area (if applicable)",
+      "Employee restroom",
+      "Patron restroom",
+      "Office / break room",
+      "Mechanical / utility room"
+    ],
+    "common_deficiencies": [
+      "Generic descriptions ('tile floor') without specifying exact material and product",
+      "Cove base omitted from schedule entirely",
+      "Not all rooms listed — especially storage, restrooms, and mechanical rooms",
+      "Physical samples not submitted when non-standard materials proposed"
+    ]
+  },
+
+  "floor_plan_required_callouts": {
+    "source": "SFDPH Floor Plan Example (annotated reference plan)",
+    "description": "DPH floor plans must include specific callouts and annotations beyond what DBI requires. These callouts help DPH reviewers verify compliance without requesting additional information.",
+    "required_callouts": [
+      "Equipment numbers matching equipment schedule (circled or in callout bubbles)",
+      "Handwash sink locations marked 'HW' with hot/cold supply indication",
+      "Three-compartment sink or dishwasher location clearly labeled",
+      "Grease interceptor/trap location with connection routing to sanitary sewer",
+      "Floor drain locations with slope direction arrows",
+      "Exhaust hood outline with dimensions and Type (I or II)",
+      "Walk-in cooler/freezer outline with door swing direction",
+      "Finish boundary lines showing where different floor/wall materials change",
+      "Dry storage areas with shelving layout (6\" above floor)",
+      "Sneeze guard locations at self-service or counter areas",
+      "Employee and patron restroom locations with handwash sink callout",
+      "Direction of airflow arrows near hoods and make-up air returns"
+    ],
+    "dimensions_to_show": [
+      "Aisle widths between equipment (minimum 36\" for passage, 44\" for ADA)",
+      "Hood overhang dimensions past equipment edges",
+      "Counter heights at service areas (36\" max for ADA portion)",
+      "Door widths (32\" clear minimum for ADA compliance)"
+    ],
+    "common_deficiency": "Floor plan missing equipment numbers, handwash callouts, or grease interceptor routing. DPH requires all items to be clearly labeled — not just drawn."
+  },
+
+  "hpwh_food_facility_requirements": {
+    "source": "SFDPH Heat Pump Water Heater (HPWH) Technical Bulletin for Food Facilities",
+    "context": "SF's all-electric mandate (AB-112) means new food facilities must use heat pump water heaters instead of gas. This creates unique sizing and installation challenges for commercial kitchens.",
+    "applicability": "All new construction food facilities in SF, and existing facilities replacing gas water heaters when triggered by AB-112 or voluntary all-electric conversion.",
+    "hot_water_temperature_requirements": {
+      "general_use": "120°F minimum at fixtures",
+      "handwashing": "100°F minimum (cannot exceed 108°F at handwash sinks per CA Health & Safety Code)",
+      "dishwasher_chemical_sanitizing": "120°F minimum at machine",
+      "dishwasher_high_temp_sanitizing": "180°F final rinse (may require booster heater with HPWH)",
+      "three_compartment_sink": "171°F if using hot water sanitizing method (third compartment)"
+    },
+    "sizing_considerations": [
+      "HPWH recovery rate is slower than gas — must size for peak demand periods, not just average use",
+      "Storage tank capacity must compensate for slower recovery — typically 1.5x to 2x the equivalent gas tank size",
+      "Multiple HPWH units may be needed for large restaurant operations",
+      "Booster heaters (electric) required if high-temp dishwasher sanitizing is used",
+      "First-hour rating more important than BTU input for HPWH sizing"
+    ],
+    "installation_requirements": [
+      "HPWH must NOT be located in food preparation or food storage areas (cold air discharge affects food safety)",
+      "Separate mechanical room or dedicated alcove required",
+      "Adequate clearance for air circulation around HPWH unit",
+      "Condensate drain required — route to approved drain, not to food areas",
+      "Electrical circuit capacity must support HPWH and any booster heaters",
+      "Noise considerations — HPWH compressors generate noise that may affect dining areas"
+    ],
+    "dph_plan_review_requirements": [
+      "Hot water demand calculation showing peak demand by fixture type",
+      "HPWH unit specification with first-hour rating and recovery rate",
+      "Equipment schedule must show HPWH as electric (for AB-112 verification)",
+      "Booster heater specification if high-temp sanitizing dishwasher is used",
+      "Installation location shown on floor plan — NOT in food areas",
+      "Pipe insulation specification to minimize heat loss from HPWH to fixtures"
+    ],
+    "exemptions_for_gas": {
+      "note": "Gas water heaters may still be allowed in food facilities under specific exemption conditions",
+      "conditions": [
+        "Existing building without adequate electrical capacity for HPWH (requires formal infeasibility documentation)",
+        "AB-112 infeasibility review determines all-electric is not feasible for the specific building",
+        "Replacement of existing gas water heater in an existing facility (when not triggered by new construction or change of use)"
+      ]
+    },
+    "common_issues": [
+      "HPWH undersized — peak demand not accounted for (busy lunch/dinner service)",
+      "HPWH installed in food prep area — violates both DPH and manufacturer requirements",
+      "No booster heater specified for high-temp dishwasher — dishes won't sanitize properly",
+      "Condensate drain not routed properly — water damage in food facility"
+    ]
+  },
+
   "facility_categories": {
     "note": "DPH determines category from menu. Category determines equipment and space requirements.",
     "types": [

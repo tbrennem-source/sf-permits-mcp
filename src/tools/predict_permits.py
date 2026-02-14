@@ -28,6 +28,9 @@ PROJECT_TYPE_KEYWORDS = {
                  "article 10", "article 11", "conservation district"],
     "new_construction": ["new construction", "new building", "ground up",
                          "build new", "new structure"],
+    "low_rise_multifamily": ["multifamily", "multi-family", "apartment", "condo",
+                              "condominium", "townhouse", "triplex", "fourplex",
+                              "4-plex", "low-rise residential"],
 }
 
 
@@ -171,11 +174,19 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
         reqs.extend([
             {"requirement": "Planning zoning verification", "details": "Confirm restaurant use is permitted at site"},
             {"requirement": "DPH health permit application", "details": "Food preparation workflow diagram + equipment schedule"},
-            {"requirement": "Type I hood fire suppression", "details": "Automatic suppression system for grease-producing equipment"},
-            {"requirement": "Grease interceptor sizing", "details": "Grease trap calculations per plumbing code; check SFPUC sizing requirements"},
+            {"requirement": "Type I hood fire suppression", "details": "Automatic suppression system for grease-producing equipment. Include hood data sheet with make, model, CFM, and duct sizing."},
+            {"requirement": "Grease interceptor sizing", "details": "Grease trap calculations per CA Plumbing Code Table 7-3. Check SFPUC capacity charge — may require larger than code minimum."},
             {"requirement": "DPH menu submission", "details": "Full menu required — determines facility category and equipment requirements (DPH-007)"},
-            {"requirement": "DPH equipment schedule", "details": "Numbered equipment schedule cross-referenced to layout drawing (DPH-002)"},
+            {"requirement": "DPH equipment schedule", "details": "Numbered equipment schedule cross-referenced to layout — columns: Item#, Name, Manufacturer, Model, Dimensions, NSF cert, Gas/Elec, BTU/kW (Appendix C template)"},
+            {"requirement": "DPH room finish schedule", "details": "Room-by-room finish schedule — floor, cove base, walls (lower/upper), ceiling per Appendix D template"},
+            {"requirement": "DPH construction standards", "details": "Cove base 3/8\" radius, min 4\" height. Floors slip-resistant in cooking areas. 50fc lighting at food prep, 20fc at handwash. Physical samples may be required."},
         ])
+        # HPWH for new construction restaurants (AB-112 all-electric)
+        if "new_construction" in project_types:
+            reqs.append({
+                "requirement": "Heat Pump Water Heater (HPWH) sizing",
+                "details": "SF all-electric mandate — HPWH required for new construction. Size for peak demand (1.5-2x gas equivalent). Booster heater needed for high-temp sanitizing dishwashers. HPWH must NOT be in food prep areas.",
+            })
 
     # --- ADU ---
     if "adu" in project_types:
@@ -220,7 +231,7 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
     ])
     if is_commercial:
         ada = kb.ada_accessibility
-        threshold = ada.get("valuation_threshold", {}).get("current_amount", 195358)
+        threshold = ada.get("valuation_threshold", {}).get("current_amount", 203611)
         if estimated_cost and estimated_cost > threshold:
             reqs.append({
                 "requirement": "ADA full path-of-travel compliance",
@@ -247,15 +258,27 @@ def _determine_special_requirements(project_types: list[str], estimated_cost: fl
     non_t24_types = {"demolition"}
     if not non_t24_types.intersection(project_types):
         t24 = kb.title24
+        is_multifamily = "low_rise_multifamily" in project_types
         if "new_construction" in project_types:
-            reqs.append({
-                "requirement": "Title-24 energy compliance (new construction)",
-                "details": "CF1R/NRCC required at filing. CF2R/NRCI at inspection. Solar PV required for residential.",
-            })
+            if is_commercial:
+                reqs.append({
+                    "requirement": "Title-24 energy compliance (nonresidential new construction)",
+                    "details": "NRCC at filing. NRCI sub-forms at inspection (ENV-E, MCH-E, LTI-E, PLB-E per M-04 checklist). NRCA acceptance tests required. AB-112 all-electric form (AEC1). AB-093 green building form (GBC1).",
+                })
+            elif is_multifamily:
+                reqs.append({
+                    "requirement": "Title-24 energy compliance (low-rise multifamily new construction)",
+                    "details": "LMCC at filing (per M-08 checklist). LMCI per dwelling unit type at inspection. LMCV HERS verification per individual unit (not sampled). Solar PV sized by number of units (LMCI-PVB-01). Mixed-use: LMCC for residential + NRCC for commercial portions.",
+                })
+            else:
+                reqs.append({
+                    "requirement": "Title-24 energy compliance (residential new construction)",
+                    "details": "CF1R at filing (per M-03 checklist). CF2R at inspection. Solar PV required (CF2R-PVB-01). Battery storage may apply (CF2R-PVB-02). HERS verification if performance approach or duct work >25ft.",
+                })
         elif any(pt in project_types for pt in ["restaurant", "commercial_ti", "adaptive_reuse", "change_of_use"]):
             reqs.append({
                 "requirement": "Title-24 energy compliance (nonresidential alteration)",
-                "details": "NRCC required if altering HVAC or lighting. NRCA acceptance testing for systems >54,000 BTU/hr.",
+                "details": "NRCC required if altering HVAC, lighting, or envelope. NRCI sub-forms at inspection per DBI M-04 checklist. NRCA acceptance testing for systems >54,000 BTU/hr (MCH-04-A economizer, LTI-02-A daylighting, etc.).",
             })
         else:
             reqs.append({

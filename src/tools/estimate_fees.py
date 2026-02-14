@@ -199,7 +199,7 @@ async def estimate_fees(
     is_commercial = project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse")
     if is_commercial:
         ada = kb.ada_accessibility
-        threshold = ada.get("valuation_threshold", {}).get("current_amount", 195358)
+        threshold = ada.get("valuation_threshold", {}).get("current_amount", 203611)
         if estimated_construction_cost > threshold:
             ada_analysis = {
                 "threshold": threshold,
