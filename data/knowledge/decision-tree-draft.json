@@ -7,17 +7,20 @@
     "tier1/G-20-routing.json (154 routing entries, 14 discussion rules)",
     "tier1/permit-forms-taxonomy.json (7 forms, selection logic)",
     "tier1/inhouse-review-process.json (11-step process, agency triggers)",
+    "tier1/otc-criteria.json (12 no-plan + 24 with-plan + 19 not-OTC project types)",
+    "tier1/completeness-checklist.json (13-section residential pre-plan check checklist)",
     "tier2/G-series/G-24.txt (G-23 ADU rules)",
     "tier2/G-series/G-26.txt (G-25 Restaurant FAQ)",
     "tier3/AB-004.txt (Priority Permit Processing)",
-    "tier3/AB-032.txt (Site Permit Processing)"
+    "tier3/AB-032.txt (Site Permit Processing)",
+    "tier4/sf-planning-code-full.txt (complete SF Planning Code, 222K lines)"
   ],
   "known_gaps": [
-    "GAP-1: OTC vs In-House criteria (needs AB-093)",
+    "GAP-1: RESOLVED — OTC criteria found at sf.gov/information--projects-eligible-over-counter-otc-permit (saved as otc-criteria.json)",
     "GAP-2: Fee calculation formulas (G-13 scanned, needs OCR)",
     "GAP-3: Timeline estimates (sparse data, needs Amy input)",
-    "GAP-4: Planning pre-approval rules (needs Planning Code cross-reference)",
-    "GAP-5: Completeness review checklist (needs AB-112)"
+    "GAP-4: PARTIALLY RESOLVED — SF Planning Code ingested (222K lines, 12.6MB), needs indexing",
+    "GAP-5: RESOLVED — Completeness checklist found at sf.gov PDF (saved as completeness-checklist.json)"
   ],
 
   "steps": {
@@ -104,7 +107,7 @@
           "form": "Form 8 (via combined Form 3/8)",
           "notes": "Mark Form 8 checkbox. For projects that can be reviewed over the counter or do not require plans.",
           "review_type": "OTC",
-          "gap": "GAP-1: Exact OTC eligibility criteria need AB-093"
+          "note": "See step_3_otc_or_inhouse for complete OTC eligibility lists (12 no-plan + 24 with-plan project types)"
         },
         {
           "condition": "Sign installation or erection",
@@ -141,80 +144,99 @@
 
     "step_3_otc_or_inhouse": {
       "question": "Is this project eligible for OTC (over-the-counter) review, or does it require In-House Review?",
-      "description": "Determines whether project can be reviewed at DBI counter (fast) or requires multi-agency in-house review (weeks-months)",
-      "otc_eligible": {
-        "description": "Projects that MAY qualify for OTC review based on G-20 'Work with No Plans' category and general DBI guidance",
-        "known_otc_categories_from_g20": [
-          {
-            "scope": "Remodel of existing kitchen and/or existing bathroom",
-            "conditions": "No structural work or wall removal, no new plumbing fixtures",
-            "routing": ["BLDG"]
-          },
-          {
-            "scope": "Furnace replacement in-kind with duct work",
-            "routing": ["MECH/MECH-E"]
-          },
-          {
-            "scope": "Garage Door Replacement in-kind",
-            "routing": ["BLDG"]
-          },
-          {
-            "scope": "Window Replacement in-kind",
-            "routing": ["BLDG"],
-            "conditions": "Planning review conditional on ground/street level"
-          },
-          {
-            "scope": "Re-roofing",
-            "conditions": "No removal of wood shingle, no re-sheathing, no plywood replacement",
-            "routing": ["BLDG"]
-          },
-          {
-            "scope": "Repair in-kind of less than 50% of existing deck",
-            "routing": ["BLDG"]
-          },
-          {
-            "scope": "Repair in-kind of less than 50% of existing stairs",
-            "routing": ["BLDG"]
-          },
-          {
-            "scope": "Replacement in-kind or repair of existing siding",
-            "routing": ["BLDG"]
-          },
-          {
-            "scope": "Replacement of existing siding to new siding",
-            "routing": ["PLANNING", "BLDG"],
-            "conditions": "Planning conditional on visibility from street"
-          },
-          {
-            "scope": "Removal of General Advertising",
-            "conditions": "Pictures are required",
-            "routing": ["PLANNING"]
-          },
-          {
-            "scope": "Voluntary installation of anchor bolts and plywood sheathing at first story of residential wood-frame buildings",
-            "routing": ["BLDG"]
-          },
-          {
-            "scope": "Emergency Panel/Fire Alarm Replacement",
-            "routing": ["SFFD"]
-          }
-        ],
-        "gap_note": "GAP-1: Full OTC eligibility criteria require AB-093. The above are only the G-20 'Work with No Plans' entries which are a subset of OTC-eligible work."
+      "description": "Determines whether project can be reviewed at DBI counter (fast, same-day) or requires multi-agency in-house review (weeks-months). Source: sf.gov/information--projects-eligible-over-counter-otc-permit",
+      "routing_criterion": {
+        "rule": "Can plan review at each station be completed within approximately one hour?",
+        "yes": "OTC eligible",
+        "no": "In-House Review required",
+        "caveat": "The one-hour rule is an implicit operational criterion, not formally codified. DBI can reassign any OTC application to in-house review if it lacks required details or contains conflicting/incorrect information.",
+        "lists_are_non_exhaustive": true
       },
-      "inhouse_required": {
-        "description": "Projects requiring multi-agency review through DBI's In-House Review process",
-        "triggers": [
-          "Change of use or occupancy",
-          "New construction",
-          "Structural work (wall removal, new openings, foundations)",
-          "Work requiring Planning Department review",
-          "Work requiring SFFD review (occupancy >49, high-rise >75ft)",
-          "Work in public right-of-way",
-          "Exterior changes visible from street",
-          "Addition of new plumbing fixtures",
-          "Most commercial tenant improvements",
-          "Any work requiring multiple agency review per G-20 matrix"
+      "otc_without_plans": {
+        "description": "Simplest permits — no drawings required, issued same day. Use Form 8 (via Form 3/8).",
+        "projects": [
+          "Re-roofing",
+          "In-kind skylight replacement (same size and location) — must apply online through PermitSF",
+          "In-kind repair decks and/or stairs (less than 50%)",
+          "In-kind window replacement (same size and same location) — must apply online through PermitSF",
+          "In-kind exterior siding repair and/or replacement — must apply online through PermitSF",
+          "In-kind minor dry rot repair",
+          "In-kind kitchen remodel (no changes to the floor plan or walls)",
+          "In-kind bathroom remodel (no change to the floor plan or walls)",
+          "In-kind replacement of garage doors (same size and same location)",
+          "Exploratory work to determine depth of footing, stud size/spacing, floor/roof joist size and direction (holes filled with slurry, finishes replaced with same fire resistance rating)",
+          "Replacement of wall finishes in R-3 occupancies complying with SFEBC Section 503.11.1",
+          "Bolting down existing foundation and/or adding plywood panels to crawl space/1st floor garage area (NOT complying with DBI Info Sheet S-09)"
+        ]
+      },
+      "otc_with_plans": {
+        "description": "Plans required, reviewed at counter stations in approximately one hour per station. Use Form 3 or Form 8 (via Form 3/8).",
+        "projects": [
+          "Kitchen remodel (changing layout, floor plan or removing walls)",
+          "Bathroom remodel (changing layout, floor plan or removing walls)",
+          "Residential interior remodel (changing floor plans or removing walls)",
+          "Repairing decks and/or stairs (more than 50%)",
+          "New windows and/or exterior doors in new locations",
+          "New skylights in new locations",
+          "Decks less than 20 feet above grade that meet Planning Department setbacks",
+          "Sign permits",
+          "Single story non-structural commercial tenant improvement projects",
+          "Permits to comply with accessibility requirements",
+          "Installation of power door operators",
+          "Voluntary structural strengthening",
+          "Disability access barrier removal projects",
+          "Small to medium projects that do not require Planning Department neighborhood notification",
+          "Fences taller than 6 feet in side or rear yard and/or fences taller than 3 feet in front yard",
+          "Exterior facade work, visible from street, that involves changes in finishes (e.g., stucco to siding, wood to vinyl)",
+          "New mechanical equipment installed inside or outside the building",
+          "Storefront security gates (excluding some preservation districts)",
+          "Residential security gates at entry doors and/or window security bars, grills, and/or grates",
+          "Replacement of wall finishes in occupancies other than R-3",
+          "New washer, dryer, and/or laundry sink hookups in new/existing areas within existing building",
+          "In-kind replacement of garage slab (no ceiling height changes) — saw-cutting SOG to repair/replace sewer lines does not require plans",
+          "Brace and bolt per DBI Information Sheet S-09",
+          "Removal of Underground Storage Tanks"
+        ]
+      },
+      "not_otc_requires_inhouse": {
+        "description": "These projects MUST go through In-House Review — cannot be processed over the counter. Source: official sf.gov OTC page.",
+        "projects": [
+          "Change of use tenant improvements involving Family Day Care, 'E' occupancies, and Laboratory uses",
+          "Serial permitting that continues to increase the scope of the initial remodel",
+          "Foundation replacements and/or seismic upgrades when there is a prior permit for further expansion under review",
+          "Projects in hillside or landslide areas requiring geotechnical report, third-party engineering review, or SAC review (incl. earthquake-induced landslide zones, NW Mount Sutro, Edgehill Mountain)",
+          "Excavation projects that expand the below-grade footprint",
+          "Extensive residential remodels that change gravity load-carrying members",
+          "Extensive residential remodels that require mandatory seismic upgrade on all levels",
+          "Special (non-conventional) foundation systems including tie backs, deep foundations, and/or complex shoring systems",
+          "Extensive commercial tenant improvements that change gravity load-carrying members",
+          "Tower Crane installation permits",
+          "Adding and/or removal of units",
+          "ADU or unit legalization",
+          "Advertising Billboard removal",
+          "Change of use from partial restaurant to full restaurant",
+          "Housing projects",
+          "MOU projects",
+          "Revision permit to remove sprinkler from Issued Building Permit",
+          "Revision to Site permit",
+          "Creation and/or legalization of one or more housing units"
         ],
+        "additional_from_practice": [
+          "New construction",
+          "Additions and expansions",
+          "Exterior work on Historic Resource Buildings",
+          "Roof deck construction",
+          "Windscreens over 42 inches",
+          "New stairs, decks, and firewalls exceeding 10 feet in height",
+          "Change of occupancy",
+          "Interior remodels involving demolition of more than 75% of interior walls"
+        ]
+      },
+      "otc_to_inhouse_conversion": {
+        "url": "https://www.sf.gov/step-by-step--convert-your-over-counter-building-permit-application-house-review",
+        "rule": "An OTC application can be required to convert to In-House Review at any time if it lacks required details or contains conflicting or incorrect information"
+      },
+      "inhouse_review_details": {
         "timeline": "4+ weeks for DBI review after Planning approval. Larger scopes take longer.",
         "review_agencies": [
           "DBI (Building Inspection)",
@@ -225,7 +247,9 @@
           "DPH (Public Health)",
           "OCII (Community Investment)",
           "Department of Environment"
-        ]
+        ],
+        "completeness_checklist": "See tier1/completeness-checklist.json for 13-section residential pre-plan check checklist",
+        "escalation": "Completeness reviews requiring 3 rounds get escalated to DBI supervisor"
       },
       "full_vs_site_permit": {
         "description": "For In-House Review, choose between Full Permit or Site Permit process",

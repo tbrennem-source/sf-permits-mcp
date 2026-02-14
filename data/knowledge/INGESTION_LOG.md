@@ -95,13 +95,53 @@
 - SOURCES.md: Updated with all AB downloads, decision tree, final statistics
 - INGESTION_LOG.md: Updated with Session 3 activities
 
+---
+
+## Session 4: OTC Criteria + Completeness + Planning Code (2026-02-13, ~21:00)
+
+#### ~21:00 - OTC Criteria Found and Structured
+- Definitive OTC eligibility list found at sf.gov/information--projects-eligible-over-counter-otc-permit
+- 12 project types: OTC without plans
+- 24 project types: OTC with plans
+- 19 project types: NOT OTC (requires In-House Review)
+- Key routing criterion: "one-hour rule" (if plan review can't be done in ~1hr per station, goes to in-house)
+- Created: tier1/otc-criteria.json
+- **GAP-1 RESOLVED** — OTC criteria are a web page, NOT an Administrative Bulletin
+
+#### ~21:00 - Completeness Review Checklist Found and Structured
+- 4-page residential pre-plan check checklist PDF found at sf.gov
+- 13 sections covering application, scope, routing (11 departments), supporting docs, plans
+- Created: tier1/completeness-checklist.json
+- **GAP-5 RESOLVED** — Completeness checklist is a PDF, NOT an Administrative Bulletin
+
+#### ~21:00 - Decision Tree Updated
+- Step 3 (otc_or_inhouse) replaced with complete OTC criteria (was weakest link)
+- 55 project type classifications now in decision tree
+- Known gaps list updated (GAP-1 and GAP-5 resolved, GAP-4 partially resolved)
+- decision-tree-draft.json updated and validated
+
+#### ~21:00 - SF Planning Code Ingested
+- Complete SF Planning Code downloaded from amlegal.com (12.6MB, 222K lines)
+- Saved to: tier4/sf-planning-code-full.txt
+- Contains 17 OTC references, 73 completeness/plan-check references, 180 facilitator/expediter references
+- Needs indexing/parsing for structured extraction
+- **GAP-4 PARTIALLY RESOLVED** — raw text available, needs structuring
+
+#### ~21:00 - SF Permit Consultant Registry Discovered
+- SF Ethics Commission dataset: umwe-sn9p (~200 registered permit consultants)
+- Amy Lee found: "Eun Young (Amy) Lee", firm "3S LLC", registered Oct 2019
+- 40 permits as "pmt consultant/expediter" in DBI contacts dataset (3pee-9qhc)
+- Former Acting Director of SF DBI (~2005)
+- New potential data source for djarvis user base
+
 ### Known Issues (Updated)
 1. **20 scanned image PDFs**: Need OCR (pytesseract or cloud) to extract text
 2. **File naming offset**: ✅ RESOLVED — document-mapping.json created, tier1 files renamed
 3. **DA-02 download failed**: AWS WAF blocked the PDF download
 4. **FS-01 mislabeled**: Contains DA-19 content (wrong series entirely)
 5. **G-29 found**: ✅ RESOLVED — Located in tier2/S-series/S-03.txt (34K chars)
-6. **AB-093 is NOT OTC criteria**: It's "Green Building Regulations". OTC criteria AB number unknown.
-7. **AB-112 is NOT completeness review**: It's "All-Electric New Construction". Completeness review AB unknown.
+6. **OTC criteria**: ✅ RESOLVED — sf.gov web page, not an AB
+7. **Completeness checklist**: ✅ RESOLVED — sf.gov PDF, not an AB
 8. **AB files contain multiple ABs**: amlegal.com pages show sequential ABs. Each file may contain 2-4 ABs.
-9. **AB-093, AB-110, AB-112 still have nav boilerplate**: Need cleanup pass (73K-116K files).
+9. **AB-093, AB-110, AB-112 lost**: Emptied by cleanup agent, Cloudflare WAF blocks re-download.
+10. **SF Planning Code needs parsing**: 12.6MB raw text, needs indexing for relevant sections.

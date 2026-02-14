@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "title": "Residential Pre-Plan Check Processing Checklist",
+    "source_url": "https://www.sf.gov/sites/default/files/2022-07/Residential%20Pre-Plan%20Check%20Checklist.pdf",
+    "source_type": "DBI PDF (4 pages)",
+    "date_scraped": "2026-02-13",
+    "authority": "SF Department of Building Inspection",
+    "linked_from": "In-House Review step-by-step (Step 7: Submit your application)",
+    "dbi_caveat": "This is just DBI's checklist and other City departments may have additional requirements. Also, this checklist is only a guide as the required information and documentation may vary depending on the scope of the project.",
+    "scope": "Residential projects only — no equivalent commercial checklist found"
+  },
+  "header_fields": [
+    "Date",
+    "Reviewed by (PT)",
+    "Reviewed by (PR)",
+    "Project Address",
+    "Applicant Name",
+    "Applicant email",
+    "Application Scope",
+    "Plan Check Tier",
+    "Permit Application #"
+  ],
+  "sections": {
+    "1_application_completeness": {
+      "title": "Application Completeness",
+      "instruction": "Please complete the following portions of the permit application",
+      "checks": [
+        "Incorrect address",
+        "Incorrect Form"
+      ]
+    },
+    "2_previous_apps_characteristics": {
+      "title": "Previous Apps & Characteristics",
+      "instruction": "Checked against existing records",
+      "checks": []
+    },
+    "3_scope_of_work": {
+      "title": "Scope of Work",
+      "instruction": "The scope of work has been revised to the following",
+      "checks": [
+        "Identify any special programs (ADU, UDU, Affordable Housing...)",
+        "Identify floor, unit number where work takes place",
+        "Identify 'To comply with NOV #xxxx'",
+        "Identify 'Covered Multifamily Dwelling' when applicable, bathroom option chosen"
+      ]
+    },
+    "4_valuation": {
+      "title": "Valuation",
+      "instruction": "The construction valuation of this project has been changed to $___"
+    },
+    "5_plan_check_fees": {
+      "title": "Plan Check Fees Due",
+      "instruction": "Please see the attached invoice"
+    },
+    "6_dev_review_routing": {
+      "title": "Development Review Routing",
+      "departments": [
+        {"code": "CP-ZOC", "name": "Planning"},
+        {"code": "BLDG", "name": "Architectural"},
+        {"code": "PAD-STR", "name": "Structural"},
+        {"code": "MECH", "name": "DBI Specialty (MEP) Plan Check"},
+        {"code": "DPW-BSM", "name": "Public Works Bureau of Streets & Mapping"},
+        {"code": "PUC", "name": "Public Utilities Commission"},
+        {"code": "DPW-BUF", "name": "Public Works Bureau of Urban Forestry"},
+        {"code": "SFFD", "name": "Fire Prevention"},
+        {"code": "DPH", "name": "Public Health"},
+        {"code": "MOD", "name": "Mayor's Office of Disability"},
+        {"code": "OCII", "name": "Office of Community Investment & Infrastructure"}
+      ]
+    },
+    "7_supporting_documentation": {
+      "title": "Supporting Documentation",
+      "required_items": [
+        "Special Inspection form",
+        "Ground floor development affidavit",
+        "Structural calculations",
+        "Title 24 energy calculations",
+        "Soils/Geotechnical report & CD ROM or flash drive",
+        "Geotechnical review letter",
+        "Hydrology study",
+        "Sound transmission report",
+        "Previously approved drawings (if current permit is a revision to an issued permit)",
+        "Other report",
+        "Environmental information (Maher Ordinance Requirements)",
+        "Slope Protection Areas & checklist",
+        "Site survey required by a licensed land surveyor"
+      ]
+    },
+    "8_plans_cover_sheet": {
+      "title": "Plans - Cover Sheet",
+      "requirements": [
+        "All text size shall be 3/32 inch high minimum",
+        "Property information (address, lot/block, planning zone, overlay zones — flood, high fire, historical...)",
+        "Stamped and signed by a licensed architect or licensed engineer; wet signature on cover sheet",
+        "Concise, complete and accurate scope of work",
+        "List of codes the project will comply with",
+        "Drawing index with all sheets listed",
+        "Existing/changed/proposed building characteristics",
+        "Existing/changed/proposed number of stories",
+        "Existing/changed/proposed number of basements",
+        "Existing/changed/proposed type of construction",
+        "Existing/changed/proposed use and/or occupancy",
+        "Existing/changed/proposed number of dwelling units",
+        "Existing/changed/proposed floor area",
+        "Existing/changed/proposed fire sprinkler status; provide sprinkler standard (NFPA-XX, if any)",
+        "Existing/changed/proposed Type of fire alarm (if any)",
+        "List of deferred submittals",
+        "Addenda Schedule (if applicable)"
+      ]
+    },
+    "9_plans_site_plan": {
+      "title": "Plans - Site Plan",
+      "requirements": [
+        "North arrow",
+        "Property lines",
+        "All other buildings on lot and adjacent lot and use(s)",
+        "Location of Street",
+        "Applicable setbacks from property line",
+        "Location of new retaining walls and fences",
+        "NOTE: If scope of work is outside the building, provide separate existing and proposed Site Plans showing existing and proposed location of retaining wall(s), fence(s), deck(s), etc."
+      ]
+    },
+    "10_plans_architectural": {
+      "title": "Architectural Plans",
+      "floor_and_roof_plans": [
+        "Separate existing and proposed floor & roof plans (as applicable)",
+        "Floor plans to be drawn to scale",
+        "Dimensions and opening sizes",
+        "Provide and label gridlines",
+        "Provide relevant dimensions, existing and proposed use for each room and/or space",
+        "Label each level as either a story or a basement; don't use vague terms (ground floor, lowest level, sub-basement, upper level, etc.)",
+        "Provide existing grade (if grade varies, provide enough data points to convey slope)",
+        "Wall/Shading legend clarifying: which walls/retaining walls are existing and to remain, which are to be removed",
+        "Hatching that clarifies the area of work/excavation; provide dimensions of the areas",
+        "Symbols, words, and notes that accurately describe the scope of the demolition",
+        "Show existing and proposed ceiling height"
+      ],
+      "exterior_elevations": [
+        "Separate existing and proposed",
+        "Gridlines",
+        "Symbols, words and notes that describe the scope of the remodel",
+        "Label each level as either a story or a basement (don't use vague terms)"
+      ],
+      "building_cross_sections": [
+        "Separate existing and proposed",
+        "Gridlines",
+        "Symbols, words and notes that describe the scope of the remodel",
+        "Label each level as either a story or a basement (don't use vague terms)"
+      ]
+    },
+    "11_plans_structural": {
+      "title": "Structural Plans",
+      "title_sheet": [
+        "Structural design parameters",
+        "Material specifications",
+        "Referenced standards"
+      ],
+      "framing_plans": [
+        "Structural design parameters",
+        "Material specifications",
+        "Referenced standards",
+        "Abbreviations"
+      ],
+      "sections_details": [
+        "Gridlines",
+        "Detail callouts",
+        "Cross section callouts (as applicable)",
+        "Label each level as either a story or a basement (don't use vague terms)"
+      ]
+    },
+    "12_green_building": {
+      "title": "Green Building Sheets",
+      "requirements": [
+        "Use the City's Green Building Standards form (referenced in AB 093) on the plans instead of a generic residential or commercial mandatory measures checklist",
+        "Clearly indicate which measures are not applicable to this project",
+        "Clearly reference plan notes, details, or the checklist itself for each measure to facilitate the plan reviewer's and inspector's review"
+      ]
+    },
+    "13_title24_energy": {
+      "title": "Title 24 Energy Reports",
+      "requirements": [
+        "Ensure all text is legible in the drawings",
+        "Ensure special features are detailed in the plan sheets",
+        "Ensure details and specifications in the plan sheets match the recommendations of the energy compliance report and vice versa"
+      ]
+    }
+  },
+  "completeness_process": {
+    "source_url": "https://www.sf.gov/step-by-step--get-building-permit-house-review",
+    "step_number": 9,
+    "step_name": "Get completeness review",
+    "escalation_rule": "Completeness reviews requiring 3 rounds get escalated to DBI supervisor",
+    "plan_review_escalation": "Plan reviews requiring 3 rounds also get escalated to DBI supervisor",
+    "sample_completeness_letter": "https://www.sf.gov/information--sample-house-review-permit-application-completeness-letter",
+    "sample_incomplete_letter": "https://www.sf.gov/information--sample-house-review-permit-incomplete-application-letter"
+  }
+}

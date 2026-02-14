@@ -16,6 +16,8 @@ Last updated: 2026-02-13
 | G-28 | Floodplain Management Ordinance | tier1/G-29-raw-text.txt* | 70K | Raw text (file naming offset) |
 | G-23 | ADU Dwelling Units per Ordinances | tier2/G-series/G-24.txt* | 22.7K | Raw text - rich ADU rules |
 | G-13 | Fee Calculation / Cost Schedule | tier1/G-13-raw-text.txt | 0 | **SCANNED IMAGE - needs OCR** |
+| otc-criteria | Projects Eligible for OTC Permit | tier1/otc-criteria.json | 10.5K | Structured - 12 no-plan + 24 with-plan + 19 not-OTC project types |
+| completeness | Residential Pre-Plan Check Checklist | tier1/completeness-checklist.json | 8.2K | Structured - 13 sections, 11 review departments |
 
 *Note: File naming has systematic offset from sf.gov index page. See document-mapping.json for correct mapping.
 
@@ -95,21 +97,29 @@ Last updated: 2026-02-13
 | AB-110 | Building Facade Inspection and Maintenance | tier3/AB-110.txt | - | ⚠️ Downloaded but lost during cleanup (Cloudflare blocking re-download) |
 | AB-112 | All-Electric New Construction Regulations | tier3/AB-112.txt | - | ⚠️ Downloaded but lost during cleanup (Cloudflare blocking re-download). NOT completeness review. |
 
-## Web Pages Scraped (via Playwright)
+## Web Pages Scraped (via Playwright / WebFetch)
 
 | URL | Content | File |
 |-----|---------|------|
 | sf.gov/step-by-step--get-building-permit-house-review | In-House Review process | /tmp/sf-gov-inhouse-review.txt |
 | sf.gov/resource--2022--building-permit-application-forms | Permit forms | /tmp/sf-gov-permit-forms.txt |
 | sf.gov/resource/2022/information-sheets-dbi | Info sheets index | /tmp/sf-gov-info-sheets-index.txt |
+| sf.gov/information--projects-eligible-over-counter-otc-permit | OTC eligibility criteria | tier1/otc-criteria.json |
+| sf.gov/.../Residential%20Pre-Plan%20Check%20Checklist.pdf | Completeness review checklist | tier1/completeness-checklist.json |
+
+## Tier 4: Planning Department
+
+| Source | File | Size | Status |
+|--------|------|------|--------|
+| SF Planning Code (complete) | tier4/sf-planning-code-full.txt | 12.6MB (222K lines) | ✅ Downloaded from amlegal.com — needs indexing/parsing |
 
 ## Derived Outputs
 
 | File | Description | Size | Status |
 |------|-------------|------|--------|
-| decision-tree-draft.json | 7-step decision tree mapping projects to permit requirements | 33K | ✅ Complete |
+| decision-tree-draft.json | 7-step decision tree mapping projects to permit requirements | 38K | ✅ Complete (updated with OTC criteria) |
 | document-mapping.json | Correct file-to-document-ID mapping (31 mapped, 21 unmapped) | 13K | ✅ Complete |
-| GAPS.md | Knowledge gaps analysis with 15 Amy interview questions | 7K | ✅ Complete (updated) |
+| GAPS.md | Knowledge gaps analysis with 15 Amy interview questions | 8K | ✅ Complete (GAP-1 + GAP-5 resolved) |
 | SOURCES.md | This file | - | ✅ Complete |
 | INGESTION_LOG.md | Chronological ingestion log | 3K | ✅ Complete |
 
@@ -119,6 +129,7 @@ Last updated: 2026-02-13
 - **PDFs with extracted text**: 31 (403,515 characters total)
 - **PDFs needing OCR**: 20 (scanned image PDFs)
 - **Administrative Bulletins downloaded**: 3 committed (AB-004, AB-005, AB-032 = 109K chars). 3 need re-download (AB-093, AB-110, AB-112 — lost to Cloudflare WAF)
-- **Structured JSON files**: 4 (G-20 routing, permit forms, in-house process, decision tree)
-- **Web pages scraped**: 3 (via Playwright headless browser)
-- **Total knowledge base size**: ~510K characters of raw text + ~190K of structured JSON
+- **Structured JSON files**: 6 (G-20 routing, permit forms, in-house process, decision tree, OTC criteria, completeness checklist)
+- **Web pages scraped**: 5 (3 via Playwright + 2 via WebFetch)
+- **Planning Code**: 12.6MB (222K lines) from amlegal.com
+- **Total knowledge base size**: ~510K characters raw text + ~210K structured JSON + 12.6MB Planning Code

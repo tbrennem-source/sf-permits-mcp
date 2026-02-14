@@ -1,0 +1,308 @@
+{
+  "metadata": {
+    "title": "Projects Eligible for Over-the-Counter (OTC) Permit",
+    "source_url": "https://www.sf.gov/information--projects-eligible-over-counter-otc-permit",
+    "source_type": "sf.gov official page",
+    "date_scraped": "2026-02-13",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "Lists are described as 'include, but are not limited to' — edge cases exist",
+      "The implicit operational criterion is the 'one-hour rule': if plan review at each station cannot be completed within approximately one hour, the project goes to in-house review",
+      "Any OTC application can be reassigned to in-house review if it lacks required details or contains conflicting or incorrect information",
+      "Some no-plan items (skylights, windows, siding) must now be filed online through PermitSF rather than in person"
+    ]
+  },
+  "routing_decision": {
+    "question": "Can plan review at each station be completed within approximately one hour?",
+    "yes": "OTC eligible",
+    "no": "In-House Review required",
+    "caveat": "This is an implicit operational criterion, not formally codified as a hard threshold in public documents"
+  },
+  "otc_without_plans": {
+    "description": "Simplest permits — no drawings required, issued same day",
+    "form": "Form 3 or Form 8",
+    "projects": [
+      {
+        "id": "OTC-NP-01",
+        "description": "Re-roofing",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-02",
+        "description": "In-kind skylight replacement (same size and location)",
+        "online_only": true,
+        "online_note": "Must apply online through PermitSF"
+      },
+      {
+        "id": "OTC-NP-03",
+        "description": "In-kind repair decks and/or stairs (less than 50%)",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-04",
+        "description": "In-kind window replacement (same size and same location)",
+        "online_only": true,
+        "online_note": "Must apply online through PermitSF"
+      },
+      {
+        "id": "OTC-NP-05",
+        "description": "In-kind exterior siding repair and/or replacement",
+        "online_only": true,
+        "online_note": "Must apply online through PermitSF"
+      },
+      {
+        "id": "OTC-NP-06",
+        "description": "In-kind minor dry rot repair",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-07",
+        "description": "In-kind kitchen remodel (no changes to the floor plan or walls)",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-08",
+        "description": "In-kind bathroom remodel (no change to the floor plan or walls)",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-09",
+        "description": "In-kind replacement of garage doors (same size and same location)",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-10",
+        "description": "Exploratory work to determine depth of footing, stud size/spacing, floor/roof joist size and direction",
+        "notes": "Holes to be filled with slurry, finishes replaced with same fire resistance rating",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-11",
+        "description": "Replacement of wall finishes in R-3 occupancies complying with SFEBC Section 503.11.1",
+        "online_only": false
+      },
+      {
+        "id": "OTC-NP-12",
+        "description": "Bolting down existing foundation and/or adding plywood panels to crawl space/1st floor garage area",
+        "notes": "NOT complying with DBI Information Sheet IS-09 (S-09)",
+        "online_only": false
+      }
+    ]
+  },
+  "otc_with_plans": {
+    "description": "Plans required, reviewed at counter stations in approximately one hour per station",
+    "form": "Form 3 or Form 8",
+    "projects": [
+      {
+        "id": "OTC-WP-01",
+        "description": "Kitchen remodel (changing layout, floor plan or removing walls)"
+      },
+      {
+        "id": "OTC-WP-02",
+        "description": "Bathroom remodel (changing layout, floor plan or removing walls)"
+      },
+      {
+        "id": "OTC-WP-03",
+        "description": "Residential interior remodel (changing floor plans or removing walls)"
+      },
+      {
+        "id": "OTC-WP-04",
+        "description": "Repairing decks and/or stairs (more than 50%)"
+      },
+      {
+        "id": "OTC-WP-05",
+        "description": "New windows and/or exterior doors in new locations"
+      },
+      {
+        "id": "OTC-WP-06",
+        "description": "New skylights in new locations"
+      },
+      {
+        "id": "OTC-WP-07",
+        "description": "Decks less than 20 feet above grade that meet Planning Department setbacks"
+      },
+      {
+        "id": "OTC-WP-08",
+        "description": "Sign permits"
+      },
+      {
+        "id": "OTC-WP-09",
+        "description": "Single story non-structural commercial tenant improvement projects"
+      },
+      {
+        "id": "OTC-WP-10",
+        "description": "Permits to comply with accessibility requirements"
+      },
+      {
+        "id": "OTC-WP-11",
+        "description": "Installation of power door operators"
+      },
+      {
+        "id": "OTC-WP-12",
+        "description": "Voluntary structural strengthening"
+      },
+      {
+        "id": "OTC-WP-13",
+        "description": "Disability access barrier removal projects"
+      },
+      {
+        "id": "OTC-WP-14",
+        "description": "Small to medium projects that do not require Planning Department neighborhood notification"
+      },
+      {
+        "id": "OTC-WP-15",
+        "description": "Fences taller than 6 feet in side or rear yard and/or fences taller than 3 feet in front yard"
+      },
+      {
+        "id": "OTC-WP-16",
+        "description": "Exterior facade work, visible from street, that involves changes in finishes",
+        "examples": "stucco to siding, wood to vinyl"
+      },
+      {
+        "id": "OTC-WP-17",
+        "description": "New mechanical equipment installed inside or outside the building"
+      },
+      {
+        "id": "OTC-WP-18",
+        "description": "Storefront security gates",
+        "notes": "Excluding some preservation districts"
+      },
+      {
+        "id": "OTC-WP-19",
+        "description": "Residential security gates at entry doors and/or window security bars, grills, and/or grates"
+      },
+      {
+        "id": "OTC-WP-20",
+        "description": "Replacement of wall finishes in occupancies other than R-3"
+      },
+      {
+        "id": "OTC-WP-21",
+        "description": "New washer, dryer, and/or laundry sink hookups in new/existing areas within existing building"
+      },
+      {
+        "id": "OTC-WP-22",
+        "description": "In-kind replacement of garage slab (no ceiling height changes)",
+        "notes": "Saw-cutting SOG to repair/replace sewer lines does not require plans"
+      },
+      {
+        "id": "OTC-WP-23",
+        "description": "Brace and bolt per DBI Information Sheet S-09"
+      },
+      {
+        "id": "OTC-WP-24",
+        "description": "Removal of Underground Storage Tanks"
+      }
+    ]
+  },
+  "not_otc_requires_inhouse": {
+    "description": "These projects require In-House Review — cannot be processed over the counter",
+    "form": "Form 1, Form 2, or as appropriate",
+    "projects": [
+      {
+        "id": "IH-01",
+        "description": "Change of use tenant improvements involving Family Day Care, 'E' occupancies, and Laboratory uses"
+      },
+      {
+        "id": "IH-02",
+        "description": "Serial permitting that continues to increase the scope of the initial remodel"
+      },
+      {
+        "id": "IH-03",
+        "description": "Foundation replacements and/or seismic upgrades when there is a prior permit for further expansion under review"
+      },
+      {
+        "id": "IH-04",
+        "description": "Projects in hillside or landslide areas requiring geotechnical report, third-party engineering review, or Structural Advisory Committee review",
+        "includes": "earthquake-induced landslide zones, Northwest Mount Sutro, or Edgehill Mountain Slope Protection Areas"
+      },
+      {
+        "id": "IH-05",
+        "description": "Excavation projects that expand the below-grade footprint"
+      },
+      {
+        "id": "IH-06",
+        "description": "Extensive residential remodels that change gravity load-carrying members"
+      },
+      {
+        "id": "IH-07",
+        "description": "Extensive residential remodels that require mandatory seismic upgrade on all levels"
+      },
+      {
+        "id": "IH-08",
+        "description": "Special (non-conventional) foundation systems including tie backs, deep foundations, and/or complex shoring systems"
+      },
+      {
+        "id": "IH-09",
+        "description": "Extensive commercial tenant improvements that change gravity load-carrying members"
+      },
+      {
+        "id": "IH-10",
+        "description": "Tower Crane installation permits"
+      },
+      {
+        "id": "IH-11",
+        "description": "Adding and/or removal of units"
+      },
+      {
+        "id": "IH-12",
+        "description": "ADU or unit legalization"
+      },
+      {
+        "id": "IH-13",
+        "description": "Advertising Billboard removal"
+      },
+      {
+        "id": "IH-14",
+        "description": "Change of use from partial restaurant to full restaurant"
+      },
+      {
+        "id": "IH-15",
+        "description": "Housing projects"
+      },
+      {
+        "id": "IH-16",
+        "description": "MOU projects"
+      },
+      {
+        "id": "IH-17",
+        "description": "Revision permit to remove sprinkler from Issued Building Permit"
+      },
+      {
+        "id": "IH-18",
+        "description": "Revision to Site permit"
+      },
+      {
+        "id": "IH-19",
+        "description": "Creation and/or legalization of one or more housing units"
+      }
+    ]
+  },
+  "additional_inhouse_criteria": {
+    "source": "PermitFlow and cross-references",
+    "note": "These are commonly cited but not on the official sf.gov page — may be derived from practice rather than policy",
+    "projects": [
+      "New construction",
+      "Additions and expansions",
+      "Exterior work on Historic Resource Buildings",
+      "Roof deck construction",
+      "Windscreens over 42 inches",
+      "New stairs, decks, and firewalls exceeding 10 feet in height",
+      "Change of occupancy",
+      "Interior remodels involving demolition of more than 75% of interior walls"
+    ]
+  },
+  "otc_to_inhouse_conversion": {
+    "url": "https://www.sf.gov/step-by-step--convert-your-over-counter-building-permit-application-house-review",
+    "trigger": "If an application lacks required details or contains conflicting or incorrect information, it will be reassigned for in-house review",
+    "note": "An OTC application can be required to convert to In-House Review at any time"
+  },
+  "related_urls": {
+    "otc_eligible_projects": "https://www.sf.gov/information--projects-eligible-over-counter-otc-permit",
+    "otc_topic_hub": "https://www.sf.gov/topics--over-counter-otc-permits",
+    "interior_residential_otc": "https://www.sf.gov/step-by-step--get-otc-permit-your-interior-residential-remodel",
+    "exterior_residential_otc": "https://www.sf.gov/step-by-step--get-otc-permit-your-exterior-residential-project",
+    "commercial_otc": "https://www.sf.gov/step-by-step--get-otc-permit-your-commercial-project",
+    "otc_application_form": "https://www.sf.gov/fill-out-your-over-counter-building-permit-application-form",
+    "otc_to_inhouse_conversion": "https://www.sf.gov/step-by-step--convert-your-over-counter-building-permit-application-house-review"
+  }
+}

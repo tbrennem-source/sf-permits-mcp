@@ -5,12 +5,16 @@ Last updated: 2026-02-13
 
 ## Critical Gaps (Block Decision Tree Accuracy)
 
-### GAP-1: OTC vs In-House Review Criteria
-**Impact**: Step 3 of decision tree (otc_or_inhouse) has weak rules
-**What we know**: Form 8 = OTC, Form 3 = In-House. G-20 "Work with No Plans" category lists 12 OTC-eligible scope-of-work types. G-02 mentions OTC conversion procedures.
-**What we need**: Complete list of project types eligible for OTC review. **AB-093 turned out to be "Green Building Regulations" — NOT OTC criteria.** The OTC criteria AB number is unknown or may not exist as a standalone AB.
-**Source needed**: G-02 Section P (Form 8 conversion), possible DBI internal OTC criteria document
-**Ask Amy**: "What are the most common project types that qualify for OTC review? What disqualifies a project? Is there an official OTC criteria document?"
+### GAP-1: OTC vs In-House Review Criteria — ✅ RESOLVED
+**Impact**: Step 3 of decision tree (otc_or_inhouse) — was weakest link, now fully populated
+**Resolution**: Found definitive source at sf.gov/information--projects-eligible-over-counter-otc-permit
+- 12 project types: OTC without plans (re-roofing, in-kind kitchen/bath, etc.)
+- 24 project types: OTC with plans (layout-changing remodels, new windows, commercial TI, etc.)
+- 19 project types: NOT OTC / requires In-House Review (ADU, unit changes, hillside, excavation, etc.)
+- Key routing criterion: the "one-hour rule" — if plan review can't be done in ~1hr, goes to in-house
+- Saved as: tier1/otc-criteria.json
+- Decision tree step 3 updated with complete criteria
+**Note**: AB-093 was NOT the source — it's a web page, not an Administrative Bulletin. OTC criteria do not have an AB number.
 
 ### GAP-2: Fee Calculation Schedule (G-13)
 **Impact**: Step 7 of decision tree (fees) has no concrete data
@@ -26,19 +30,24 @@ Last updated: 2026-02-13
 **Source needed**: AB-004 (Priority Permit Processing), DBI's published processing time metrics
 **Ask Amy**: "What are realistic timeline expectations you set for clients by project type? What causes delays?"
 
-### GAP-4: Planning Department Pre-Approval Rules
+### GAP-4: Planning Department Pre-Approval Rules — ⚠️ PARTIALLY RESOLVED
 **Impact**: Step 1 of decision tree (need_permit) and Step 4 (agency_routing)
-**What we know**: G-20 routes many project types to Planning. Zoning approval needed before building permit.
-**What we need**: Which projects DON'T need Planning review (exemptions), conditional use permit criteria
-**Source needed**: Planning Department's own approval criteria, sf.gov Planning approval page
+**What we know**: G-20 routes many project types to Planning. Zoning approval needed before building permit. Planning approval now required BEFORE filing for building permit (2024 change).
+**What we have**: Complete SF Planning Code ingested (222K lines, 12.6MB) at tier4/sf-planning-code-full.txt
+**What we still need**: Index/extract the specific sections covering: which projects need Planning review, exemptions, conditional use permit criteria, neighborhood notification thresholds
+**Source available**: tier4/sf-planning-code-full.txt (needs parsing and structuring)
 **Ask Amy**: "What percentage of your projects need Planning review? What types typically skip it?"
 
-### GAP-5: Completeness Review Checklist Details
-**Impact**: Step 5 (required_docs) - we know the categories but not the specific checklist items
-**What we know**: DBI does completeness review in Step 9. Three rounds = escalation to supervisor.
-**What we need**: The actual checklist DBI staff use. **AB-112 turned out to be "All-Electric New Construction Regulations" — NOT completeness review.** The completeness review AB number is unknown.
-**Source needed**: DBI's internal completeness checklist, possible AB or other internal document
-**Ask Amy**: "What are the most common reasons applications get rejected for incompleteness? Is there an official completeness review checklist?"
+### GAP-5: Completeness Review Checklist Details — ✅ RESOLVED
+**Impact**: Step 5 (required_docs) — was missing specific checklist items, now fully populated
+**Resolution**: Found definitive 4-page PDF: "Residential Pre-Plan Check Processing Checklist"
+- URL: sf.gov/sites/default/files/2022-07/Residential%20Pre-Plan%20Check%20Checklist.pdf
+- Linked from In-House Review step-by-step page (Step 7: Submit your application)
+- 13 sections: application completeness, scope of work, valuation, dev review routing (11 depts), supporting docs, cover sheet, site plan, architectural plans, structural plans, green building, Title 24
+- DBI caveat: "only a guide as required information may vary depending on scope of project"
+- Saved as: tier1/completeness-checklist.json
+**Note**: AB-112 was NOT the source — it's a PDF on sf.gov, not an Administrative Bulletin. Checklist does not have an AB number.
+**Remaining gap**: This is residential only — no equivalent commercial checklist found yet.
 
 ## Significant Gaps (Reduce Decision Tree Quality)
 
@@ -56,14 +65,15 @@ Last updated: 2026-02-13
 
 ### GAP-8: Administrative Bulletins — MOSTLY RESOLVED
 **Impact**: ABs define key procedures referenced throughout info sheets
-**Status**: ✅ 6 ABs downloaded from amlegal.com and cleaned:
-- AB-004: Priority Permit Processing Guidelines (29K)
-- AB-005: Procedures for Approval of Local Equivalencies (31K) — contains AB-004+AB-005
-- AB-032: Site Permit Processing (48K) — contains AB-028+AB-032
-- AB-093: Implementation of Green Building Regulations (73K) — NOT OTC criteria as hoped
-- AB-110: Building Facade Inspection and Maintenance (99K)
-- AB-112: Implementation of All-Electric New Construction Regulations (116K) — NOT completeness review as hoped
-**Remaining gap**: OTC criteria AB and completeness review AB not identified
+**Status**: 3 ABs cleaned and committed, 3 lost to Cloudflare WAF:
+- ✅ AB-004: Priority Permit Processing Guidelines (29K)
+- ✅ AB-005: Procedures for Approval of Local Equivalencies (31K) — contains AB-004+AB-005
+- ✅ AB-032: Site Permit Processing (48K) — contains AB-028+AB-032
+- ❌ AB-093: Implementation of Green Building Regulations (73K) — lost to Cloudflare WAF
+- ❌ AB-110: Building Facade Inspection and Maintenance (99K) — lost to Cloudflare WAF
+- ❌ AB-112: Implementation of All-Electric New Construction Regulations (116K) — lost to Cloudflare WAF
+**Note**: OTC criteria and completeness review turned out to be sf.gov web pages, NOT ABs (see GAP-1 and GAP-5 — both RESOLVED)
+**Recovery**: Manual browser download from amlegal.com or wait for WAF cooldown
 
 ### GAP-9: Real G-29 (Adaptive Reuse) — RESOLVED
 **Impact**: The spec listed G-29 as a priority Tier 1 source for adaptive reuse rules
