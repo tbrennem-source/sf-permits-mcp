@@ -1,0 +1,100 @@
+--- Page 1 ---
+City and County of San Francisco
+‘Department of Building Inspection
+
+Edwin M. Lee, Mayor
+Tom C. Hui, S.E., C.B.0., Director
+
+INFORMATION SHEET
+SS a a SR
+
+NO. DA-13
+DATE : January 29, 2016
+CATEGORY : Disabled Access -
+SUBJECT : Change of use and occupancy, and path of travel upgrades
+Se a aT ES SC
+SECTIONS
+INVOLVED : 2013 San Francisco Building Code Sections
+- = 11B-202.4 Path of Travel Requirements in Alterations, Additions and
+Structural Repairs
+- 2013 California Access Compliance Advisory Reference Manual, Advisory
+11B-202.3 Alterations (change in occupancy)
+INTENT : Item 1. To clarify the SFBC requirements for path of travel upgrades when a
+building undergoes a change of occupancy.
+Item 2. To clarify 11B-202.4 exception #2.
+
+DISCUSSION
+
+Item 1. Change of Occupancy: There has been much confusion as to the extent of path of travel
+upgrades required when a permit is submitted for a change of occupancy. The DSA has published an
+Advisory (11B-202.3) in which it is stated that “the entire building (or portion thereof) is considered the area
+of alteration. The entire building (or portion thereof) must be upgraded to comply with current accessibility
+requirements for new construction.”
+
+Although this may sound a bit confusing and somewhat overwhelming at first reading, upon careful
+consideration it is actually no different than most other alterations. The main purpose of the Advisory is to
+establish that a change of occupancy is considered an alteration. Note that this is for a change of
+“occupancy” and does not apply to a change of “use” unless the change of use would alter the occupancy
+classification.
+
+As it is an alteration, the same requirements for any other alteration apply. If the project is under the
+threshold amount, then 11B-202.4 exception 8 would limit the cost of upgrades to a maximum of twenty
+percent (20%) of the adjusted construction cost.
+
+If the permit is solely to document a change of occupancy and no actual work is being done, the project is
+under the threshold and the applicant would be responsible for twenty percent (20%) of the one dollar permit
+valuation (twenty cents). This would require the checklist to be filled out along with Form C. For example, a
+new ISA placed on a door would fulfill this obligation.
+
+Page 1 of 2
+
+Technical Services Division
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 ~ www.sfdbi.org
+
+
+--- Page 2 ---
+INFORMATION SHEET DA-13
+
+If the project includes work and is over the threshold, then the entire area that is changing occupancy would
+be subject to upgrade. If this is the entire building, then all areas would have to be addressed; but if it is only
+part of a building, then only that part would have to be upgraded. For example, a bookstore in a building
+with four total commercial spaces changes to a health club; the health club tenant space (“or portion of the
+building”) would have to be upgraded, but the remainder of the building would be exempt.
+
+The exceptions for technical infeasibility would apply and the applicant could also apply for an unreasonable
+hardship if the cost would prove disproportional and would jeopardize the project. The Department could
+grant such a hardship, but it would have to be ratified by the AAC.
+
+Item 2. 11B-202.4 Exception #2: This exception has proven to be a bit confusing for some applicants. To
+clarify, it is important to understand a few simple points.
+
+Exception #2 only applies to the five (5) listed elements of the path of travel and does not apply to other
+elements such as the accessible route to the area of alteration; i.e., elevators and parking spaces. It would
+apply to the clear space around a water closet in toilet rooms, and would allow a lavatory that is 28 inches
+from the water closet to remain. Existing van parking spaces would have to be upgraded to one in six from
+one in eight and the height of elevator cab buttons must be brought into compliance barring other
+exceptions.
+
+In this exception, the language “constructed or altered in compliance with the immediately preceding edition
+of the California Building Code” does not mean that the existing condition had to be permitted under the
+preceding code; but rather, that it complies with those code requirements found in the preceding edition.
+This exception could apply to a space that was constructed under a permit issued in 1964 if the elements
+happened to comply with the preceding code.
+
+The term “immediately preceding edition” means any version of the preceding code, including all errata,
+
+supplements and the intermediate code change. “Edition” means the three year cycle; i.e., 2013 CBC, 2016
+CBC, 2019 CBC, etc.
+
+Cu ‘ [/ 4 i
+
+Tom C. Hui, S.E., C.B.O. ov Date
+Director
+Department of Building Inspection
+
+This Information Sheet is subject to modification at any time. For the most current version, visit our
+
+website at http://www.sfdbi.org
+
+Page 2 of 2

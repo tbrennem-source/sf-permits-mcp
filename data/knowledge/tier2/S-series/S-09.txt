@@ -1,0 +1,187 @@
+--- Page 1 ---
+City and County of San Francisco
+Department of Building Inspection
+
+Edwin M. Lee, Mayor
+Tom C. Hui, S.E., C.B.0., Director
+
+INFORMATION SHEET
+NO. S-07
+DATE : February 13, 2014
+CATEGORY _! Structural
+SUBJECT : Interpretation of SFBC Section 3402B, Exception 1
+a a
+PURPOSE : The purpose of this Information Sheet is to clarify the interpretation of
+SFBC Section 3402B, Exception 1
+REFERENCE : 2013 San Francisco Building Code
+DISCUSSION
+
+The interpretations also involve the application of Section 1604.11, which Exception 1 uses to
+check eligibility. Incidentally, since Section 1604.11 is also cited by AB-094, the interpretations
+proposed here could have a useful impact on voluntary seismic work as well. —
+
+SFBC Section 3402B Exception 1 reads as follows:
+
+A building that has been seismically strengthened to meet or exceed the standards of
+Section 1604.11 of this Code or its predecessor provisions within 15 years prior to the
+operative date of this Chapter is exempt from this Chapter upon the submittal of
+documentation showing that such work was properly permitted, completed, and
+maintained as required by this Code, and that the Department has approved such
+documentation.
+
+1. What is the general intent of Section 3402B Exception 1?
+
+The exception exempts certain buildings based on recent permit and construction records,
+following the 15-year rule from Ordinance 54-10 (which created AB-094). The intent is to relieve
+owners of the expense of hiring an engineer to produce new calculations or over-stamp old ones.
+
+In general, a building should be exempi under Section 3402B Exception 1 if its target stories were
+structurally retrofitted within the past 15 years using criteria that matched or exceeded conventional
+practices and code-based procedures in place at the time of the retrofit.
+
+Page 1 of 4
+
+Technical Services Division
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 — www.sfdbi.org
+
+
+
+--- Page 2 ---
+INFORMATION SHEET S-07
+
+2. Section 1604.11 is for triggered retrofits. Does Section 3402B Exception 1 also apply to
+past voluntary retrofits?
+
+Yes. The context of Section 3402B and the text of Section 1604.11.1 make clear that Exception 1
+applies to voluntary retrofits as well as triggered retrofits.
+
+Section 1604.11 is the City’s traditional standard for triggered retrofit (that is, retrofit triggered by an
+addition, alteration, etc.). Any triggered retrofit completed within the past 15 years will be eligible for
+Exception 1 by definition. In addition, Section 1604.11.1 reads, “This section may be used as a
+standard for voluntary upgrades.” However, Section 1604.11 does not specify which of its
+referenced provisions are to apply to past voluntary work. That is the subject of this Information
+Sheet.
+
+3. Section 1604.11 references Section 1613, which references ASCE 7. Which provisions
+cited by Sections 1604.11, 1613, etc. apply in the context of Section 3402B Exception 1?
+When applied to triggered retrofit, Section 1604.11 can involve wind design, nonstructural bracing,
+and retrofit of whole buildings. When applied to past voluntary retrofits through Exception 1,
+however, it is not the intent that those past retrofits need to have been of the same full scope.
+Retrofit scope otherwise outside the intent of Chapter 34B is not required to qualify for Exception 1.
+Exception 1 requires only seismic retrofit of the lateral structural system in the building’s target
+stories.
+
+Specifically, when used to comply with Section 3402B Exception 1:
+e Section 1604.11.2, regarding wind forces, is waived.
+e Section 1613 requirements for nonstructural bracing and anchorage are waived.
+e Section 1613 requirements are waived for stories above the highest target story.
+
+4. Section 1604.11.3 allows reduced seismic loads for retrofits triggered by Section 3401.10.
+Does this allowance also apply when Section 1604.11 is applied in the context of Exception
+1?
+
+In general, yes. The “75 percent” reduction factor may be applied to the earthquake loads that
+would otherwise have applied to the design of a similar new building at the time of the retrofit. This
+allowance is appropriate because the intent of Exception 1 is to acknowledge relatively recent work
+that was done to standards current at the time.
+
+Similarly, when checking the design base shear of the past retrofit, submitted documentation
+should use earthquake loads and earthquake design parameters (R-values, for example) from a
+single code edition, generally either the current code or the code in effect at the time of the retrofit
+design. Following 2012 IEBC Appendix Chapter A4 Section A403.3, as modified by AB-107, the
+R-value of the retrofit system may be used if applicable irregularities are eliminated.
+
+5. Section 1604.11.3 waives the building separation limit for retrofits triggered by Section
+3401.10. Does this waiver also apply when Section 1604.11 is applied in the context of
+Exception 1?
+Yes. Since the purpose of the waiver is to acknowledge constraints typical to the San Francisco
+building stock, this waiver applies to past voluntary retrofits as well, as long as the voluntary retrofit
+in question did not involve an intentional softening of any story.
+
+Page 2 of 4
+
+Technical Services Division
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 — www.sfdbi.org
+
+
+--- Page 3 ---
+INFORMATION SHEET S-07
+
+6. What is meant by “predecessor provisions” in the wording of Exception 1? How does
+this relate to the 15-year limit or to the May 21, 1973 date given in Section 1604.11?
+“Predecessor provisions” refers only to the fact that Section 1604.11 covers topics previously
+covered in Section 104(f). It is unrelated to the 15-year limit.
+
+Section 1604.11.1 reads in part, “An existing building or structure which has been brought into
+compliance with the lateral force resistance requirements of the San Francisco Building Code in
+effect on or after May 21, 1973, shall be deemed to comply with this section ... .” This allowance
+applies only to triggered retrofits. It does not apply to retrofits seeking to qualify for Exception 1.
+
+For voluntary retrofits, the intent of Exception 1 is to acknowledge work done to contemporary
+standards only. That is, to qualify for Exception 1, a retrofit should have been designed to the
+criteria given in Section 1604.11 at the time of the retrofit, without the 1973 allowance. Exception 1
+considers retrofits back to 1998, but the criteria for such retrofits should have been the criteria that
+were current at the time (or equivalent, subject to approval by the Department).
+
+7. What is required to document that a past retrofit “was properly permitted, completed,
+and maintained as required by this Code, and that the Department has approved such
+documentation”?
+
+For purposes of applying Exception 1, “properly permitted” means only that the retrofit work in
+question was done with permits and was subject to the review processes normally performed by
+the Department at the time of the retrofit. It is not necessary that the retrofit permit application or
+désign or construction documents cited Section 1604.11.
+
+For purposes of applying Exception 1, “completed” means only that the work as built must match or
+exceed in scope the work shown on plans and calculations submitted to qualify for Exception 1. In
+most cases, a certificate of final completion, or other documentation showing that the Department
+completed its normal construction reviews, will be sufficient.
+
+For purposes of applying Exception 1, “maintained” means only that the permitted and completed
+retrofit work has not been altered since its completion, either with or without a permit. This provision
+is not intended to require a new condition assessment or compliance review relative to other
+building code provisions.
+
+8. What are the submittal requirements to qualify for Section 3402B Exception 1? —
+
+As shown in Sections 2, 3, and 4 of the Optional Evaluation Form (OEF), a previous retrofit can
+qualify for Exception 1 either with documentation of the previous work or with new evaluation
+calculations. In either case, the intent of Exception 1 is to allow reliance on records from the
+previous retrofit work.
+
+Where documentation of the previous work is submitted (OEF Section 3), it should be
+supplemented with an explanation showing that the requirements of Exception 1 have been met.
+
+Where new calculations are submitted (OEF Section 4), submittal requirements should generally
+match those required to document a new retrofit design. Construction records (such as
+
+Page 3 of 4
+
+Technical Services Division
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 — www.sfdbi.org
+
+
+--- Page 4 ---
+INFORMATION SHEET S-07
+
+photographs or as-built plans) may be substituted for certain investigation or condition assessment
+requirements. .
+
+Approved by the Structural Subcommittee on February 11, 2014.
+
+Tom C. Hui, S.E., C.B.O. Date
+Director
+Department of Building Inspection
+
+This Information Sheet is subject to modification at any time. For the most current version, visit our
+
+website at http:/Avww.sfdbi.org
+
+Page 4 of 4
+
+Technical Services Division
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 — www.sfdbi.org

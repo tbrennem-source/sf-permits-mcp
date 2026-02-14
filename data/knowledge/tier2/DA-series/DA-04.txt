@@ -1,0 +1,622 @@
+--- Page 1 ---
+City and County of San Francisco
+
+Edwin M. Lee, Mayor
+Department of Building Inspection
+
+Tom C. Hui, S.E., C.B.0., Director
+
+INFORMATION SHEET
+
+NO. DA-03
+DATE : August 1, 2016
+CATEGORY : Disabled Access
+
+SUBJECT : Chapter 11A Multi-Family Dwelling Unit Kitchen Cabinets
+
+i
+
+REFERENCE : 2013 California Building Code (CBC) Chapters 11A, Section 1133A
+
+U.S. Department of Housing and Urban Development Fair Housing
+Design Manual
+
+ANSI A117.1-1986 Standard
+
+Approved HCD Final Express Terms for proposed building standards for
+CBC Chapter 11A, 2013 intervening code adoption cycle dated June, 2014
+
+HCD Initial Statement of Reasons for proposed building standards for CBC
+Chapter 11A, 2013 intervening code adoption cycle dated
+December 12, 2013
+
+2010 ADA Guidelines for Accessible Design
+
+NOTE : The effective date of this Information Sheet shall be the date of signature
+by the Director.
+
+This Information Sheet is not retroactive and does not apply to permits
+issued prior to the effective date.
+
+DISCUSSION
+
+The purpose of this Information Sheet is to clarify the regulations contained in the CBC Chapter 11A,
+Section 1133A pertaining to kitchens within individual covered dwelling units in a multi-family dwelling.
+There seems to be some confusion as to the requirements regarding distance between cabinets, when
+cabinets are required to be removable and when knee and toe space is required. There has also been
+disagreement over what depth of sink is allowed, what kind of “bread board” is allowed, if pipes under the
+sink are to be insulated, and whether garbage disposals are allowed.
+
+Page 1 of 4
+
+Technical Services Division
+1660 Mission Street —- San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 — www.sfdbi.org
+
+
+--- Page 2 ---
+INFORMATION SHEET DA-03
+
+The Initial Statement of Reasons published by the Department of Housing & Community Development
+(HCD) in December of 2013 states that Chapter 11A is primarily based upon the ANSI A117.1-1986
+Standard. The statement further clarifies that HCD has also developed more stringent requirements in
+some areas, such as the requirement for removable bases under sinks in other than U-shaped kitchens.
+Chapter 11A contains a number of requirements that are more stringent than the Federal Fair Housing Act
+Design Manual, which is also based upon the 1986 ANSI standard.
+
+The statement of reasons expresses HCD’s intent to clarify these provisions in the proposed intervening
+code cycle language and reinforce “that the requirements for parallel and forward approach, knee and toe
+space, removable base cabinets and repositionable countertops apply to kitchen sinks and work
+surfaces.”
+
+In discussion with HCD, it has been determined that they take no position on the definition of “bread
+board” as referenced in Section 1133A.4 exception and they rely upon the local jurisdiction to make such
+a determination. This department's interpretation is derived from the language and implied intent of the
+1986 ANSI Standard, the input of a number of other jurisdictions and members of the Certified Access
+Specialist Institute.
+
+The following are the HCD’s interpretation of these regulations:
+
+Clear Floor Space: 1133A.2
+
+The code requires that all fixtures and appliances have a clear floor space centered on the fixture allowing
+either a parallel or forward approach except for a range or cook-top. For a cook top or range, a front
+approach is optional, however a parallel approach must be provided as this approach provides greater
+safety for the user per the Fair Housing Act Design Manual.
+
+Clear Width: 1133A.2.1
+The California Building Code differs from the Federal Fair Housing Act Design Manual and from the 2010
+ADA Guidelines regarding minimum width of kitchens. The California minimum width is more restrictive
+and thus must be applied.
+e Where there is a U-shaped kitchen providing only a parallel approach to a cook top or range at the
+base (i.e. no removable base cabinet), the minimum width between counters and appliances is
+60”.
+e Where there is a U-shaped kitchen with removable cabinets that will provide compliant knee and
+toe space when removed underneath a cook top or sink at the base, the minimum width shall be
+48” between appliances and counters.
+e All other conditions, including distance to islands, shall be 48” minimum in clear width.
+The clear width is measured from the face of the cabinet or edge of counter top to the opposite wall,
+counter or appliance. It is the duty of the design professional, as well as the plan checker and the field
+inspector to verify the dimensions of the appliances, particularly stove and refrigerators, to assure that
+they do not violate the minimum clear width requirement when installed.
+
+Removable Base Cabinet: 1133A.3
+The California Building Code requirements for removable base cabinets also differ from the Federal
+regulations and are more restrictive. California requires:
+¢ One 30” sink cabinet having a removable base that will provide for a clear 30” wide knee and toe
+space when removed. In addition, there shall also be one 30” counter top work surface cabinet that
+will provide for a clear 30” wide knee and toe space when removed. In lieu of two separate 30”
+cabinets, a single 60” removable cabinet may be used.
+
+Page 2 of 4
+
+
+--- Page 3 ---
+INFORMATION SHEET DA-03
+
+e For smali kitchens where there is limited wall and cabinet space, two 15” bread boards may be
+used in lieu of the 30” counter top workspace cabinet. As there is no provision for this in the
+Federal codes, and neither California or the Federal codes has any exception for knee space
+under work areas, these bread boards must be installed in a manner that will provide for knee and
+toe clearance when in use. The most common type of bread board would be the pull-out or swing-
+out style that was common at the time the code was first written.
+
+e The finished floor must extend to the back wall under all removable base cabinets.
+
+Knee and Toe Space: 1133A.7
+Knee and toe space is required under kitchen sink and workspace. Knee and toe space shall comply
+with 1133A.7 and 1138A.2.
+« The knee and toe space shall be 30” wide clear. This space shall be centered on the fixture.
+e The knee clearance shall be 27” minimum in height and extend back a minimum of 8” from the
+front edge. The knee space may then decrease by 6” vertical for each 1” horizontal for a total of
+18” (3 x 6”) to 9”, (27” — 18”).
+e The toe clearance shall be a minimum of 9” in height, begin at a minimum of 11” deep.
+e Combined knee and toe clearance shall extend at least 19” minimum under both the sink and the
+workspace (1138A.2.1.3).
+e Clear floor space shall extend a maximum of 19” into the knee and toe space.
+
+Plumbing Protection: 1133A.7.1
+Water supply and drain under kitchen sink shall be insulated and free of sharp edges.
+Notes:
+* Although it is not required, it is recommended to insulate the bottom of a cook top when removable
+cabinets are provided to prevent users from undetected burns.
+e Garbage disposals are not prohibited by code and may be allowed.
+e California does not prescribe a 6.5” maximum depth for a sink, as does the Federal code, but the
+. depth is restricted by the required knee space. For a standard 36” high cabinet* a self rimming sink
+would be allowed to be 9” deep if the space below the sink was 27” clear in height. For larger
+double sinks, the deeper portion may extend below 27” provided there is one sink that has a 30”
+wide clear space at 27” high beneath it.
+
+Reach Ranges: 1138A.3
+
+Reach ranges apply to kitchen cabinets and all switches and receptacle must comply. The maximum
+height of the switches and receptacles for front approach shall be 44” for cabinets between 20” and 25” in
+depth, measured from the edge of the counter top. The maximum height of the switches and receptacles
+for parallel approach shail be 46” for cabinets between 10” and 24” in depth, measured from the edge of
+the counter top. Cabinets over 25” in depth for front approach or 24” in depth for parallel approach must
+have switches and receptacles placed in an area other than the back wall such as the counter top or
+cabinet face that complies with the allowable reach ranges.
+
+Cabinet Height: 1138A.3.2, #2 exception
+In the July 1, 2015 supplement to Chapter 11A, the following exception was added to Chapter 11A,
+Section 1138A.3.2, #2:
+“Exception: Kitchen countertops in dwelling units, and the top of washing machines and clothes
+dryers shall be permitted to be 36 inches (914 mm) maximum above the floor.”
+
+Prior to this supplement, the California code was silent on counter height inside dwelling units, but the
+
+Federal Fair Housing Design Manual has always allowed a 36” counter height as specified on the diagram
+on page 7.2 (Attachment C). The change in the California code was introduced as a clarification and not a
+
+Page 3 of 4
+
+
+--- Page 4 ---
+INFORMATION SHEET DA-03
+
+regulatory change. The 36” counter height has always been allowed within the dwelling unit, although not
+specified. It should be noted that this exception applies only to kitchens within adaptable units and does
+not apply to kitchens in accessible units, public spaces or in common use areas.
+
+Core. % tes E[1[lé
+
+Tom C. Hui, S.E., C.B.O. oy Date
+Director
+
+Department of Building Inspection
+
+Attachments - Please see following reference attachments:
+
+A &A.1) Initial Statement of Reasons, HCD; March 12, 2014
+
+B&B.1) Expressed Terms that were adopted by the Building Standards Commission at the July 22,
+2014 meeting and will become California Law on July 1, 2015; and, Sections 1133A.2.1 for
+knee and toe space requirements and 1138A.3.2, #2 exception for reach ranges over
+kitchen counters
+
+C) HCD letter dated 7/01/2014, subject re base cabinets
+
+D) Fair Housing Act Design Manual, Guideline Specifications for Kitchens, page 7.2
+
+This Information Sheet is subject to modification at any time. For the most current version, visit our
+
+website at http://www.sfdbi.org
+
+Page 4 of 4
+
+
+--- Page 5 ---
+Attachment A: |
+. i
+21. SECTION 11324
+DOORS
+
+Section: 1132A.3 Width and height of Interior doors and secondary exterior doors.
+
+Rationale: HCD proposes to amend Item 2 of Section 1132A.3. The proposed amendment allows the installation
+of any width if the requirement for 32 inches clear door opening is met. This clarification is a result of comments
+received from stakeholders expressing concerns that the allowance of a 34-inch wide door creates the illusion
+that the 32-inch clear opening is not required. ‘
+
+HCD believes that the language, as written, is sufficiently clear and describes the intent. However, HCD agrees
+to provide clarification and avoid the confusion among some code users. There is no intended change in
+regulatory effect. ,
+
+. Section: — 1132A.5 Maneuvering clearance at doors.
+1132A.5.1 General.
+
+Rationale: HCD proposes to amend Section 1132A.5.1. HCD proposes to repeal Exception 2, and relocate the -
+same language as the first paragraph of this section. HCD also proposes to modify Exception 1, clarifying its
+application (applicable to interior doors). :
+
+HCD believes that the existing Exception 2 is not an exception, but the general requirement for maneuvering
+clearances at doors. The proposed amendment provides clarity to the code user. There is no intended change in
+regulatory effect.
+
+Section: 1132A.9 Smooth surface,
+
+Rationale: HCD proposes to amend the above referenced section. HCD proposes to repeal existing language,
+addressing the smooth surfaces required for the bottom 10 inches of a door, and replace it with new language
+consistent with Section 11B-404.2,10. HCD also proposes to amend the existing exception and add two new
+exceptions consistent with Section 11B-404.2.10.
+
+Section 1132A.9, as written, requires smooth uninterrupted surface on the bottom 10”, both sides. In comparison,
+Section 11B-404.2. 10 clarifies that 10” are measured from finish floor, not from the bottom of the door, and are
+required on push side only. Section 1132A.9 also requires all doors and/or gates to have a smooth, uninterrupted
+surface; however, this section does not specify how big this surface should be. In comparison, Section 11B-
+404.2.10 clarifies the area — the full width of the door. .
+
+_ HCD took all concerns into consideration and proposes to modify this section for consistency with
+Section 1426A and Section 11B-404.2.10.
+
+22, SECTION 1133A
+KITCHENS
+
+Section:1133A.2 Clear floor space.
+Section: 11334.3 Removable base cabinets.
+
+Rationale: HCD proposes to amend the above referenced sections, HCD proposes to repiace existing language
+with new language that more accurately describes the intent. The proposed modification clarifies that the
+requirements for parallel and forward approach, knee and toe space, removable base cabinets, and :
+
+“Tepositionable countertops (see Section 1133A.4.1) apply to kitchen sinks and work surfaces, Stakeholders anc
+other code users expressed a concern that currently the language, as written, is not as clear because it seems
+that the removable base cabinets are required under work surfaces only when repositionable countertops are
+required.
+
+The Development of Chapter 11A and many of its current provisions date back to the 1986 ANSI A117.1: this
+was the primary document that HCD utilized. In some areas, HCD has promulgated more stringent requirements.
+The requirement for removable base cabinets under work surfaces is from ANSI A117.1 1986, Section 4.32.5.4.
+This is where and why HCD has consistently determined the provisions were also intended as a Chapter 11A
+requirement. However, some stakeholders successfully pointed out that HCD’s language is not as clear.
+
+Initial Statement of Reasons «49 oF 24 March 77, 2014
+2013 CBC (Title 24, Part 2, Ch. 11A “Housing Accessibility”) - 2013 intervening Code Adoption Cycle
+_ Housing and Community Development (HCD)
+
+
+
+--- Page 6 ---
+Attachment A.1:
+
+i
+;
+
+HCD regulations went further than ANS] 1986 by also requiring removable base cabinets under the kitchen sink
+(1986 ANSI A117.1 only requires removable base cabinets at sinks in a U-shaped kitchen configuration).
+Therefore, HCD believes the intent has been (and continues to be) to require removable base cabinets under
+work areas, no different from that of the 1986 ANSI A117.1.
+
+The proposed amendments in Sections 1133A.2 and 1133A.3 provide clarity and consistency to the code user,
+There is no intended change in regulatory effect.
+
+Section: 1133A.4 Countertops.
+
+-Rationale: HCD proposes to amend the above referenced section by deleting the reference to
+
+Section 1133A.4.1. HCD believes that this sentence is not necessary since Section 1133A.4.1 is a subsection of
+Section 1134A.4, and follows the exception. It would be necessary if it were in a different chapter or division.
+Additiopal editorial corrections are also proposed for clarity. There is no intended change in regulatory effect.
+
+Section: 1133A.4.1 Repositionable countertops.
+
+‘Rationale: HCD proposes to amend the above referenced section. HCD proposes to replace the terms "kitchen
+sink and work surface space” and “kitchen sink counter area and work surface” with “sinks and work surfaces.”
+This modification is a result of comments received from stakeholders expressing a concern that the use of
+different terms in the same section creates confusion. HCD proposes “Sinks and work surfaces” as a better
+combination of terms to be used in Section 1133A. HCD also proposes fo amend Exception 2, clarifying that the
+repositioning is not required for breadboards used in lieu of countertop work surfaces.
+
+The ptoposed modification of Section 1133A.4 provides clarity to the code user. There is no intended change in
+regulatory effect. ,
+
+Section: 1133A.7. Knee and toe space.
+
+Rationale: HCD proposes to amend the above referenced section. HCD proposes to repeal existing language
+addressing size of knee and toe spaces, and instead refer to Section 1138A.2. Section 1138A.2 was adopted
+during the 2012 Triennial Code Adoption Cycle; it contains the technical requirements for knee and toe spaces.
+The proposed amendment is consistent with Section 1127A.3, which also was amended during the
+
+2012 Triennial Code Adoption Cycle. , ;
+
+Currently, five sections in Chapter 11A provide different language addressing knee and toe space. HCD intends
+to make all sections consistent by referring to Section 1138A.2 for the technical requirements and leaving only
+specific details in these five sections. The proposed amendment provides clarity. There is no intended change in
+regulatory effect. . .
+
+Section: 1133A.7.1 Plumbing protection.
+
+Rationale: HCD proposes fo amend the above referenced section, providing consistency with
+Section 1127A.3. There is no intended change in regulatory effect.
+
+re rer
+nn Le
+
+23. SECTION 41134A
+BATHING AND TOILET FACILITIES
+
+Section:1134A.5 Bathtubs.
+
+Rationale: HCD proposes to amend Item 1 of the above referenced section. The proposed amendment
+‘incorporates language from the FHADM, and clarifies the location of bathtub controls and the required clear floor
+space. There is no intended change in regulatory effect. ,
+
+Section:1134A.7 Water closets.
+
+Rationale: HCD proposes to amend the above referenced section. HCD proposes to modify Item 1, clarifying
+that the location of water closets shall permit a grab bar installation on at least one side of the fixture. The
+proposed amendment provides clarity and is based on comments received from stakeholders. There is no
+intended change in regulatory effect. ,
+
+Initial Statement of Reasons 20 of 24 March 17, 2014
+2013 CBC (Title 24, Part 2, Ch. 11A “Housing Accessibility”) - 2013.Intervening Code Adoption Cycle
+Housing and Community Development (HCD) :
+
+
+--- Page 7 ---
+Attachment B:
+
+Reference: Health and Safety Code Sections 17000 through 17062.5, 17910 through 17995.5, 18200 through
+18700, 18860 through 18874, and 19960 through 19897; and Government Code Sections 12955.1 and 12955.1.1.
+
+er
+
+22.HCD proposes to amend Section 1133A “Kitchens”, as follows:
+
+SECTION 1133A
+KITCHENS
+
+| 1133A.1 General. Kitchens shall be on an accessible route and shall comply with this section. (See Figure 11A-10A).
+1133A.2 Clear floor space. Clear floor space at kitchens shall comply with the following:
+
+7. A clear floor space at least 30 inches (762 mm) by 48 inches (1219 mm) that allows a parallel approach by a
+person in a wheelchair shall be provided at the range or cooktop.
+
+2. A clear floor space at feast 30 inches (762 mm) by 48 inches (1219 mm) that allows either a parallel or a
+forward approach shall be provided at the kitchen sink and all other fixtures or appliances including the
+oven, dishwasher, refrigerator/freezer and trash compactor.
+
+3.__A clear floor space at least 30 inches (762 mm) by 48 inches (1219 mm) that allows either a parallel or a
+forward approach shall be provided at the work surface required by Section 1133A.4.
+
+34, The centerline of the 30-inch (762 mm) by 48-inch (1219 mm) clear floor space provided for parallel or
+forward approach shail be aligned with the centerline of the work Space, appliance or fixture. (See-Figure
+HA+TOA)-
+
+1133A.3 Removable base cabinets.
+
+Sinks and work surfaces required by Section 1133A,4 (see Item 7 and item 2) shall be provided with knee and foe
+Space complying with Section 1133A.7. Base cabinets (including toeboard and shelving) directly under Kitchen sinks
+
+and work surfaces shaif be removable without the use of specialized tools or specialized knowledge in order to
+
+provide knee and toe space. The finish floor beneath kitchen sinks and work surfaces shall be extended to the wail.
+1133A.4 Countertops. Kitchen countertops sh
+
+all comply with this section and shall be provided with the following
+
+A minimum linear length of 30 inches (762 mm) of countertop shall be provided for the kitchen sink
+installation.
+A minimum linear length of 30 inches (762 mm) of countertop shall be provided for a work surface.
+
+3. the-sink Sinks and work surfaces may be a single integral unit a minimum of 60 inches (1524 mm) in length,
+or be separate components.
+
+Exception: Two 15-inch (381 mm) wide minimum width breadboards may be provided in lieu of the required
+30 inches (762 mm) of countertop work surface.
+
+1133A.4.1 Repositionable countertops. Reposilionable countertops shall be provided in a minimum of & percent of
+
+the covered muttifamily dwelling units. Repositionable countertops shall comply with the following:
+
+1. Fhekiteber-sink Sinks and work surfaces space required by Section 1133A.4 shall be designed to enable
+repositioning fo a minimum height of 28 inches (711 mm).
+
+2. Base cabinets directly under the-kiteher sinks eounter-area and work surfaces shail be removable as —
+required in Section 1133A:3.
+
+The sides of adjacent cabinets and the back wall, which may become exposed to moisture or food handling
+
+when a countertop is lowered, shall be constructed of durable, nonabsorbent materials appropriate for such
+uses.
+
+4. Finished flooring shall be extended to the wall beneath the sink and work surface.
+
+Exceptions: .
+1. Stone, cultured stone and tiled countertops may be used without meeting the repositioning requirements.
+
+Final Express Terms 30 of 52 June 2014
+2013 CBC (Title 24, Part 2, Ch. 11A “Housing Accessibility”) — 2013 Intervening Code Adoption Cycle
+Housing and Community Development (HCD) .
+
+
+--- Page 8 ---
+Attachment B.1:
+
+24.HCD proposes to amend Section 1138A “Space Allowances and Reach
+
+Ranges”, as follows:
+
+SECTION 1138A .
+SPACE ALLOWANCES AND REACH RANGES
+
+1138A.3.1 Forward reach.
+
+4. Unobstructed. When the Clear floor space allows only forward approach to an object, the maximum high forward
+reach allowed shall be 48 inches (1219 mm) and the minimum low forward reach Shall be no jess than 15 inches
+(381, min) above the finish floor (See Figure 11A-11(a)).
+
+2. Obstructed High Reach. When the high forward reach is over an obstruction, the clear floor space shail extend
+beneath the element for a distance not less than the reach depth over the obstruction.
+
+The high forward reach shall be 48 inches (1219 mm) maximum when the reach depth is 20 inches (808 mm)
+maximum. When the reach depth exceeds 20 inches (508 mm), but is not more than 25 inches (635 mm), the high
+forward reach shall be 44 inches (1118 mm) maximum. (See Figure 11A-11(b)).
+
+1138A.3.2 Side reach.
+
+1. Unobstructed. When a clear floor space allows a parallel approach to an element, and the side reach is
+unobstructed, the high side reach shall be 48 inches (1219 mm) maximum, and the low side reach shall be
+15 inches (381 mm) minimum above the finish floor. (See Figure 1 1A-1J(a) and 11A-1J(b)).
+
+Exceptions:
+1. An obstruction shall be permitted between the clear floor space and the element when the depth of the
+obstruction is 10 inches (254 mm) maximum.
+
+2. Bookshelves shail be permitted to be 54 inches (1372 mm) maximum above the finish floor. Bookshelves
+may be greater than 54 inches (1372 mm) above the finish floor when an attendant is available to assist
+persons with disabilities.
+
+2. Obstructed high reach. When a clear floor space allows a paraifel approach to an element and the high side
+reach Is over an obstruction, the height of the obstruction shall be 34 inches (864 mm) maximum and the depth
+of the obstruction shall be 24 inches (610 mm) maximum. ;
+
+The high side reach shall be 48 inches (1219 mm) maximum for a reach depth of 10 inches (254 mm) maximum.
+When the reach depth exceeds 10 inches (254 mm), but no more than 24 inches (610 mm), the high side reach
+Shall be 46 inches (1168 mm) maximum. (See Figure 11A-14(e)).
+
+=> Exception: Kitchen countertops in dwelling units, and +the top of washing machines and clothes dryers shall be
+permitted to be 36 inches (914 mm) maximum above the finish floor.
+
+NOTE:
+
+Authority Cited: Health and Safety Code Sections 17040, 17050, 17920.9, 17921, 17921.3, 17921.6, 17921.10,
+
+17922, 17922.6, 17922.12, 17927, 17928, 17959.6, 18300, 18552, 18554, 18620, 18630, 18640, 18670, 18690,
+
+18691, 18865, 18871.3, 18871.4, 18873, 18873.1, 18873.2, 18873.3, 18873.4, 18873.5, 18938.3, 18944.11 and
+
+19990; and Government Code Section 12955.1. ; :
+
+Reference: Health and Safety Code Sections 17000 through 17062.5, 17910 through 17995.5, 18200 through
+18700, 18860 through 18874, and 19960 through 19997; and Government Code Sections 12955.1 and 12955.1.1.
+
+a
+
+Final Express Terms 34 of 52 ~ June 204
+2013 CBC (Title 24, Part 2, Ch. 11A “Housing Accessibility”) - 2013 intervening Code Adoption Cycle
+Housing and Community Development (HCD)
+
+
+--- Page 9 ---
+Attachment C: |
+
+t
+
+Halloran, Richard (DBI)
+
+From: Bumbalov, Stoyan@HCD [Stoyan. Bumbalov@hed,ca.gov]
+Sent: Tuesday, July 01, 2014 3:37 PM
+
+To: Halloran, Richard. (DBD
+
+Subject: : RE: Base cabinets
+
+Rick, ©
+
+' As we discussed on the phone, during this rulemaking (2013 intervening Code Adoption Cycle), HCD
+proposes to amend Section 1133A (Kitchens). The proposed modification clarifies that the
+requiremenis for parallel and forward approach, knee and toe space, and removable base cabinets
+apply to kitchen sinks and work surfaces. HCD's proposal is a result of comments received from
+stakeholders, expressing a concern that currently (in 2013 CBC) the language, as written, is not
+sufficiently clear, and could be interpreted incorrectly. HCD’s Final Express Terms (FET) were sent to
+the Building Standards Commission; the Building Standards Commission meeting is scheduled for
+July 22, 2014. If approved, the amended section will become effective on July 1, 2015. You can use
+the Jinks below to access HCD’s Express Terms and the Initial Statement of Reasons.
+
+http:/www.documents.dgs.ca.gov/bsc/prpsd chngs/2013/1st-45Day/HCD-04-13-ET-P12-4 1A-
+_45day.pdf , ‘
+
+hitp:/Awww.documents.dgs.ca.gowbsc/or sd_chn 8/2013/ist-45Da fHCD-04-13-ISOR-Pt2.-11A-
+45day. pdf
+
+Historically, HCD has maintained a consistent response in regards to the removable base cabinets in
+kitchens, similar to my verbal response onthe phone. The development of Chapter 17A and many of
+its current provisions date back to the 1986 ANSI A117.1. This was one of the primary documents
+that HCD utilized in the development of Chapter 11A; although, HCD has promulgated more stringent
+requirements in several areas. The requirement for removable base cabinets for work surfaces
+originates from 1986 ANSI A117.1, Section 4.32.5.4. HCD has consistently maintained this.as a
+Chapter 11A requirement; although, there are some who feel that HCD’s language in Section 1133A
+is not as clear. HCD intends to continue adopting requirements for removable base cabinets at work
+surfaces, no different than in the 1986 ANSI A117.1.
+
+| hope you find this information helpful. Please cail if you have any additional questions.
+
+Stoyan Bumbalov
+
+District Representative 1 .
+
+CA Department of Housing and Community Development
+Division of Codes and Standards :
+State Housing Law Program
+
+916-263-4715 ,
+
+é
+
+
+
+--- Page 10 ---
+Attachment D:
+
+PART TWO: CHAPTER 7
+FAIR HOUSING ACT DESIGN MANUAL
+
+Idichens In covered units
+
+must be on an accessible
+
+route and have door open-
+
+ings at least 32” clear to
+
+allow passage; sea Chapter 4
+
+“Usable Doors” and Chapter
+- 5 “Accessible Route”
+
+outlet located beyond reach
+
+of Seated person permitted
+
+if other outlets in accessible
+
+locations ars provided,
+
+see Chapter 6 “Switches,
+Quilets, and Controls”.
+
+lever hardware, although
+
+preferred and more usable
+
+by everyone, is not required
+‘
+
+ranges and
+cooktops may have:
+front-, rear-, or
+side-mounted
+controls; far safeiy
+reasons and ease of
+use, froné- or side-
+mounted controls
+are preferred
+
+adequate space within the
+kitchen to proyide 30" X
+48" clear floor space at
+each fixture and appliance
+
+in U-shaped kitchens, if
+
+Notes in italic tybe are less than 60" between
+recommendations only the two legs of the U,
+and are net required by then sink base must be
+ANS! or Guidelines. removable, see page 7.12
+
+Guideline Specifications for Kitchens
+
+. 7.2
+
+|

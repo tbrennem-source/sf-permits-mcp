@@ -1,0 +1,80 @@
+--- Page 1 ---
+City and County of San Francisco
+Department of Building Inspection
+
+Edwin M. Lee, Mayor
+Tom C. Hui, S.E., C.B.O., Director
+
+INFORMATION SHEET
+
+NO. DA-07
+DATE : September 2, 2014
+CATEGORY : Disabled Access
+SUBJECT : Rails or Barriers for Protruding Objects
+nnn eel
+SECTIONS
+INVOLVED : 2013 California Building Code (CBC) Sections 11B-307.4 Vertical
+Clearances
+U.S. Access Board Commonly Asked Questions; Protruding Objects
+INTENT : To clarify the CBC requirements regarding the minimum dimensions of a
+detectable barrier or guardrail required at protruding objects.
+DISCUSSION
+
+CBC Section 11B-307.4 Vertical Clearances states that where objects protrude into a circulation path by
+more than 4 inches above 27” or below 80”, a barrier or guardrail shall be provided. The code section
+stipulates that the leading edge of such barriers or guardrails shall be a maximum of 27” above the finished
+floor or ground. The code is silent on what the minimum height of the guardrail or barrier shall be.
+
+The purpose of the barrier or guardrail is so that a person with a sight disability may detect the barrier and
+not inadvertently injure themselves by walking into the protruding object. Taking into account that there are
+multiple types and degrees of sight disabilities, it is imperative that any barrier that is provided be functional
+for as many people as possible.
+
+This Information Sheet was requested in light of a recent architectural trend towards extremely low profile
+cane detection rails. Field inspectors have encountered cane detection rails as low as 1” or less.
+
+One party has used the 2009 ICC ANSI A117 commentary regarding this section as a justification for this
+low height. The commentary stated “Note that whatever barrier is chosen, it must be detectable by a long
+cane.” This could be a full height wall, a low rail, a planter, etc (see commentary Figure C307.4). At the
+same time, a platform or curb under a stair would be detectable, but if it could be perceived by a person with
+low vision as a step up, rather than a barrier, it would not meet the intent of this provision.
+
+Page 1 of 2
+
+Technical Services Division
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 — www.sfdbi.org
+
+
+--- Page 2 ---
+INFORMATION SHEET DA-07
+
+The U.S. Access Board in their Commonly Asked Questions; Protruding Objects brochure raises the same
+concern about confusing a barrier for a step or change in elevation, the Board, however, recommends
+raising the height of the barrier rather than lowering it.
+
+The Access Board states:” The standards specify a maximum height (27”) for the leading edge of barriers so
+they are within cane sweep, but a minimum height is not specified. Curbs may be mistaken for a step or
+change in level, instead of a barrier. For this reason, barriers significantly higher than a curb or riser, such as
+a guardrail, planter box, bench, parapet wall, or similar elements are recommended.”
+
+As the code language is developed by the U.S. Access Board, it is reasonable to accept their interpretation.
+Webster’s New College Dictionary defines barrier as “a structure, as a fence or wall, built to bar passage.”
+
+It is therefore advised that low lying rails less than 6” in height do not meet the intent of the code and should
+be disallowed in plan review and inspection. Additionally, in order to address the visual concerns, it is
+
+strongly recommended that these barriers and rails be constructed of contrasting colors, as is required by
+the San Francisco Mayor's Office on Disabilities (MOD) for City projects.
+
+Zin C «fee Fr 1 ¢
+
+Tom C. Hui, S.E., C.B.O. Date
+Director
+Department of Building Inspection
+
+This Information Sheet is subject to modification at any time. For the most current version, visit our
+
+website at htto:/Awww.sfdbi.org
+
+Page 2 of 2

@@ -1,0 +1,445 @@
+--- Page 1 ---
+City and County of San Francisco
+Department of Building Inspection
+
+Edwin M. Lee, Mayor
+Tom C. Hui, S.E., C.B.0O., Director
+
+INFORMATION SHEET
+
+NO. DA-11
+DATE
+CATEGORY
+
+SUBJECT
+
+January 29, 2016
+Disabled Access
+
+Multi-family dwelling requirements for common area kitchens, dwelling unit
+kitchen, bathroom showers, entry doors, and mailboxes
+
+SS I BR a SUR SG TE
+
+SECTIONS
+INVOLVED
+
+INTENT
+
+DISCUSSION
+
+San Francisco Building Code (SFBC) Sections
+- 202 Definitions: Common Use Area, Public Use
+- 1101A.1 Scope
+- 1102A.2 Existing buildings
+- 1127A Common use facilities
+- 1127A.12.4 Height of work surfaces
+- 1133A Kitchens
+- 1133A.1 Removable base cabinets
+- 1134A Bathing and toilet facilities
+- 1134A.6 Showers
+- 1138A.3 Reach ranges
+- 1138A.4 Controls and operating mechanisms
+- {1B-212 Kitchens, kitchenettes, wet bars and sinks
+- 11B-228.2 Mail boxes
+- 11B-309 Operable parts
+- 11B-606 __Lavatories and sinks
+- 11B-804 _ Kitchens, kitchenettes, and wet bars
+11B-809.5.5.2 Identification
+A New Horizon Accessible / Adaptable Apartments for the Physically Disabled
+ANSI A117.1 ~— 1986
+Fair Housing Act Design Manual
+
+t
+
+To clarify the requirements for covered multi-family dwellings common area
+kitchens, the requirements for the installation of garbage disposals in covered
+dwelling unit kitchen sinks, the requirements for accessible showers within covered
+dwelling units, and the requirements for door bell and door viewer port locations at
+
+. main entry doors of covered dwelling units.
+
+This Information Sheet is not retroactive and shall be effective from the date of
+adoption forward.
+
+Please note that this Information Sheet applies exclusively to privately-funded multi-
+
+family dwellings. For publically funded dwellings, please consult Chapter 11B with the Mayor's Officé on
+
+Disabilities.
+
+Page 1 of 5
+
+Technical Services Division
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401 — www.sfdbi.org
+
+
+--- Page 2 ---
+INFORMATION SHEET . DA-11
+
+Because California had accessibility standards in place at the time of the adoption of the Federal Fair
+Housing Amendments Act, California Building Code Chapter 11A contains a number of regulations that
+differ from and are often considered more restrictive than the Federal statutes. This has often become the
+source of misunderstanding and confusion for many users when designing multi-family dwellings in
+California. Additionally, much of the language used in Chapter 11A is vague and unclear. This has led to
+some disagreements of the code’s intent between designers and plan reviewers, contractors and inspectors
+and among building department personnel.
+
+In an effort to determine consistencies and clarifications, we have investigated the three main source
+documents for this chapter; the Fair Housing Act Design Manual (FHADM), the 1986 ANSI A117.1
+Standard, and A New Horizon, published by the Department of Housing and Community Development
+(HCD) effective September 15, 1984. We have also spent considerable time with the staff of HCD reviewing
+that the department's files for the history and intent of the code language,
+
+In an effort to clarify some of these issues, HCD has revised much of the language in Chapter 11A in
+sizable rewording of the codé sections in the 2010 Edition of the CBC and again in the 2013 Intervening
+Code Cycle Supplement effective July 1, 2015.
+
+Based upon these sources, the Department offers the following interpretations that will be considered
+consistent with the intent of the code and will be effective as of the date of this Information Sheet:
+
+e Common Use Kitchens: It is important to clarify that by definition, common use areas and kitchens
+are facilities whose use is limited to the owners, residence and their guests. If the areas are
+available for rent, use or lease by the general public at any time, it then becomes a public use facility
+and would be governed by Chapter 11B Sections 11B-212 and 11B-804.
+
+It is also important to note that the FHADM, Chapter 11A and the HCD webpage state that
+compliance with both the Fair Housing Act and California State regulations (Chapter 11A) is required
+and that when there is a conflict, the more stringent requirements must be followed.
+
+if the.kitchen is truly a common use, then it is governed by Section 1127A of Chapter 11A and the
+Fair Housing Design-Manual. Both of these document are silent on “kitchens” but both offer some
+guidance on design. The Fair Housing Act Design Manual diagram on page 2.14 shows a common
+area kitchen with two notes. The first note states that sinks in common use spaces must comply with
+ANSI A117.1 Section 4.19 (attached). The second note stipulates that the knee space below the sink
+must be enlarged to 36” to provide a toe turning space if the kitchen is U-shaped and less than 60”
+wide.
+
+It should also be noted that the diagram shows full height (36”) cabinets where the dishwasher and
+stove are placed, but has a lowered (34”) height sink and 30” work space. It also shows a lowered
+food serving / dining area with knee space that appears to be about 60” in length. This is consistent
+with Section 1127A.12.4 exception that states that where food or drink is served, a portion of the
+main counter 60” in length shail be provided at 34” in height. Section 1127A.12.3 would require knee
+and toe space be provided for this 60” section. The requirements for kitchens contained in A New
+Horizons stipulated that the minimum width of a kitchen in a covered dwelling must be a minimum of
+48". This was carried forward into 11A and must be followed.
+
+To summarize, a common use area kitchen must contain the following elements to be considered
+compliant with California Chapter 11A:
+
+- Counters may be at the standard 36” height, except;
+o Sink and 30” work space at 34” in height
+o A 60” portion of the main counter where food is served at 34”
+
+Page 2 of 5
+
+
+--- Page 3 ---
+INFORMATION SHEET DA-11
+
+~ The kitchen sink and work area must provide knee and toe space, the hot water line and
+drain must be insulated, The knee space at the sink must be 36” in width if the kitchen is U-
+shaped and less than 60” wide (48”) to provide a tee turning space;
+
+~ The kitchen must be a minimum of 48” between the face of the cabinets and the opposing
+wall or face of appliances (not including handles);
+
+~ All switches, receptacles and controls must be within reach ranges. Controls must be located
+on the front of a cooktop or oven and may not require reaching over the burners to operate:
+
+- All switches and controls must be operable with one hand, and be a maximum of 5 Ibs. of
+pressure to operate;
+
+- All floors and changes in level must comply with Division lil of 117A and Chapter 2 of the
+FHADM.
+
+The Department may also approve kitchens compliant with Chapter 11B or any of the six “Safe
+Harbors” listed in the FHADM preface on a case-by-case basis.
+
+Garbage Disposals in Dwelling Unit Kitchens: In Information Sheet DA-03, the Department
+responded to clients who had stated that they did not believe garbage disposal were allowed under |
+sinks in adaptable kitchens. After discussion with both Fair Housing First and HCD, it was
+determined that neither the Fair Housing Act nor Chapter 11A prohibits the use of garbage
+disposals. What was not made clear is that although garbage disposals are not prohibited, their use
+is modified by other sections of the code. At the time of initial installation, a garbage disposal must
+not infringe upon the required knee space under the sink. HCD, in the July 1, 2015 supplement, has
+clarified the language regarding knee and toe space requirements to insure that they are better
+understood. Section 1133A.3 has been rewritten to say “Sinks and work surfaces...” “...shall be
+provided with knee and toe space complying with Section 1133A.”
+
+The FHADM on page 7.15 shows a diagram titled “Knee Space at Sink with Garbage Disposal and
+Pipe Protection Panel.” In this diagram, it shows the required 27” high knee space going back 8”
+unencumbered by the disposal. The caption at the side of the diagram states a 9” deep sink is
+allowed and a rear drain preferred.”
+
+The average kitchen cabinet measures approximately 24” maximum. Centered exactly on a 24”
+cabinet, an 8” disposal would extend 4” in front of center leaving exactly 8” that is the required
+amount for the knee space. The average disposal i is between 12” and 14” in depth. At an average of
+13”, the disposal would have to taper to a maximum width of 2” to 4” at its base in order to maintain
+compliance. This is an unrealistic dimension; therefore it would appear mandatory that a rear drain
+sink be installed if a garbage disposal is to be included. Unless the designer can provide proof that
+the required knee and toe space will be maintained at time of installation, the Department will
+require rear drain sinks on all kitchens equipped with garbage disposals.
+
+Bathroom Showers / Shower Enclosures: In the 2010 edition of the California Building Code,
+HCD rewrote Section 1134A.2 Number of complying bathrooms in order to clarify a number of
+points, One of these clarifications was the requirement that if a covered dwelling contains a shower
+stall, at least one shower stall must comply with Section 1134A.6. This is specified in Option #2,
+Item #6 of Section 1134A.6 which states that if a bathtub is selected to comply with Option #2, Item
+#6 (and there is a shower stall in the dwelling unit) “...at least one shower stall within the dwelling
+unit shall meet all the applicable accessibility requirements...”. This is again restated in Section
+1134A.6 “When one or more shower stalls are provided within the same dwelling unit, at least one of
+
+Page 3 of 5
+
+
+--- Page 4 ---
+INFORMATION SHEET DA-11
+
+the shower stalls shall comply with one of the following requirements” (followed by the three options
+for accessible shower stalls). In conversations with HCD, it was made clear that this requirement
+would also apply, even if there is only one bathroom and it contains a shower stall and a tub. You
+would not be required to make both the shower and the tub accessible if there is only one bathroom,
+but the shower stall must comply; the tub is optional if you choose Option #2. It should be noted that
+there is no requirement to provide a shower stall within a dwelling unit, but if they are provided, at
+least one shall comply.
+
+The question of shower doors is often raised. Shower doors are allowed with some restrictions.
+Section 1134A.6 #7 specifies that the enclosure must be constructed of “approved shatter proof-
+resistant material,” glazing shall be tempered or laminated safety glass complying with Chapter 24, :
+or approved plastic. Hinged doors shall swing outward. A shower door that is surface mounted and
+attached with screws to the walls may be installed on any of the three shower options as it is easily
+removed and thus readily adaptable without special tools or knowledge.
+
+A shower door that is recessed into the tile work or which would require a trained craftsman to
+remove may be installed only on Option #1.1 and Option #1.3 type showers if the following
+conditions are met:
+
+- The door must provide a clear 36” opening when open 90 degrees, the door must comply
+with Section 1132A.5 with a 39” clear space at right angles to the door in its closed position
+and provide for an 18” strike side maneuvering space.
+
+- The door must have an opening force of 5lbs maximum and be operable with one hand and
+not require pinching grasping or turning of the wrist.
+
+- Additionally, any shower door that is permanent in nature must not interfere with the use of
+the required clear floor space for the shower.
+
+Entry Doors: The question was raised as to the required height of a viewing port in a front entry
+door. Although it would be courteous to provide a lower viewing port at a height that is usable by
+persons in mobility devices, there is no requirement in Chapter 11A for this. Section 1003A.2.2 of
+the San Francisco Building Code, however, does restrict door viewers to a maximum height of 58
+inches.
+
+Although Chapter 11A has no specific regulations for door viewers, guidance for installation of door
+viewers may be taken from Chapter 11B. In Section 11B-809.5.5.2, the code requires a door be
+equipped with a means of identifying a visitor without opening the door and allow for a 180 degree
+view. The associated advisory recommends the use of a prism type peep hole as these can be used
+by all persons, standing and in wheelchairs. This also would eliminate the problem noted by HUD of
+criminals identifying units occupied by person with disabilities due to the height of the door viewer.
+
+Page 4 of 5
+
+
+--- Page 5 ---
+INFORMATION SHEET DA-11
+
+NOTE: If the viewer has a flip open door on it, or it is an adjustable viewer; this is an operable
+part and must be mounted within reach ranges and meet the conditions of operable parts. The
+reach range requirement would also apply to the required exterior doorbell at each unit entry.
+
+Tom C. Hui, S.E., C.B.O. Oy’ Date
+Director
+
+Department of Building Inspection
+
+Attachment: a/s
+
+This Information Sheet is subject to modification at any time. For the most current version, visit
+
+our website at http://www.sfdbi.org
+
+Page 5 of 5
+
+
+--- Page 6 ---
+Attachments
+
+t
+
+PART TWO: CHAPTER 2
+FAGR HOUSING ACT DESIGN MANDAL
+
+‘
+
+Hf windows are
+
+storage, ste accessible reseetes
+
+operable uid ANS} 4.23 around pool: tife or
+Tnteendiesd fer ether means of
+tetidont use, aceens inno weber
+
+they dnust meet not. required
+
+sinks, a5 gart of &
+. public and commen
+use spice, muse be
+accessible, see
+ARS 45F
+recammended :
+
+that vénding init 30"
+machine be wide kege space
+aithia reach eatlseged to F6" to
+trig, 2ee
+
+allow x resident |
+using a wireelehsir
+to make 2 Peers it
+the Kitchen, see
+
+ANSE £25
+
+page: BF
+pool table an
+secessibls route,
+see ARN 43 : Public and commos use kitchens, enust
+. ; be ussble and at feast stece the
+Accessible Elements and Features of a requirements iv the Guidilicas for -
+: i - Hf prefered, he méquiree
+Public and Common Use Clubhouse kitchens. if p » the requ
+m u : ments for kitchens nA 4.52 coufd
+‘ be follawed, .
+
+Notes In ftolic type are eeeormmendations only
+
+ard are not requived by ANSI or the Guidelines,
+Alf recommended featurés are helpful to people
+with aed without disabilities. :
+
+Z.E4
+
+
+--- Page 7 ---
+ANSE AUTUIIBG
+
+AAT Toilet Stalls
+
+4.17.1 General, Accessible toilet stalls shall be on
+an accessible route and shall comply with the
+requirements of 4.17,
+
+4.17.2 Water Closets. Water closets in accessible
+Stalls shall comply swith 4, (6,
+
+4.17.3 Size and Arrangement, The size and
+atrangement of toilet stalls shall camply with either
+Fig, 30(4) sr (b), Toilet stalls with a minimum
+depth of $6 in (1420 mat) (see Fig, 30(4)) or 66 in
+(1675 mat) (see Fig, 30(b)) shall have wall-mounted
+water closets. If the depth of toilet stalls is
+increased at least 3in (75 mm}, then a Noor-
+Mounted Water closet may bs_used. Arrangements
+shown for stalls may be reversed to allow cither 4
+left-hand or a right-hand approach.
+
+4.47.4 Toe Clearances. tn standard stalls, the
+front partition and at least ane side partition shall
+provide a toc clearance of at least 9 1m (230 mm)
+ubave the flaor, tf the depth of the stall is greater
+than 60 in (1525 mm), then the tor clearance is not
+required,
+
+4.17,5* Doors, Toilet stall doors shall comply
+with 4,13, except that if the approach is to the latch
+side of the stall door, the clearance between the
+door side of the stall and any obstruction may be
+reduced to. a minimum of 42 in (1065 min) {see Fig.
+30).
+
+4.17,6 Grab Bars. Grab bars complying with the
+fength and positioning shown in Fig. 30{a), (by, (¢),
+and (d) shall be provided. Grab bars may be
+mounted hy any desired methad as tong as they
+have * gripping surface at the locations shawn and
+do not obstruct the required clear floor area. Grab
+bars shall comply yuth 4.24.
+
+4,18 Urinals
+
+4.18.1 General. Accessible urinals shall comply
+with 4,18, °
+
+4.18.2 Height. Urinals shall be statl type or wall
+hung with an clongated rim at a maximum of 17 in
+{430 mm) above the floor (see Fig. 29{c)).
+
+4.18.3 Clear Floor Space. A clear floor space 30
+in by 48 in (760 mm by 1220 mm} shall be provided
+
+tes
+
+4Set Appendia fur additional informaren,
+
+_— 419 LAYATORIES, SINKS, AND MIRRORS
+
+in front of urinals to allow forward approach. This
+clear space shall aujoin or overlap an accessible
+route and shail comply with 4.2.4. Privacy shields
+allowing less than 30 in (760 mm) clear width shalt
+
+“not extend beyond the front edge of the urinal rim.
+
+4.18.4 Flush Controls. Flush controls shall be
+hand operated or automatic, shall comply with
+$.25.4, and shall be mounted no more than 44 in
+(1120 mm} above the floor,
+
+4.19 Lavafories, Sinks, and Mirrors
+
+4.19.1 General. Accessible lavatory fixtures,
+sinks, vanities, and built-ta lavatories shall comply
+with 4,19,
+
+4,.19,2 Hsight dnd Clearancea
+
+4.19.21 Lavatories. Lavatorivs shall be
+mounted with clearance of at least 29 tn (735 mm)
+from the floor to the bottom of the apran. Knee
+and toe clearances shall comply with Fig. 31.
+
+4.19,2.2 Sinks, Sinks shall ba mounted sith
+the counter or rim ao Bigher than 34 jt (865 mm)
+from the floor. Each sink shall be a maximum of
+$4 in (163 mm) deep. {Sinks in kitchens of accessi-
+ble dwelling units shall comply with 4,32.5,5,)
+
+4.19.3 Clear Fioor Space. A clear floor space 0 -
+in by 48 in (740 mm by 1220 mm) complying with
+4,2.4 shall be provided in front of a lavatory or sink
+to allow a forward approach, Such clear floor
+space shall adjoin or overlap an accessible route
+and shall extend 4 maximuen of 19 jn (485 mm)
+underngath the lavatory ar sink (see Pig. 32).
+
+4.19.4 Exposed Pipes and Surfacos. Hot water
+and drain pipes under lavatorics or sinks shall be
+insulated or otherwise protected if they abut the
+clearance areas indicated in. Fig. 31. There shail be
+nis sharp or abrasive surfaces under tavatories ar
+sinks,
+
+4.19.3 Faucets. Fauects shall comply with 4.25.4,
+Conventional one-quarter-turn, lever-operated,
+pushetype, and automatically controlled mecha-
+nisms are examples of acceptable designs. Self-
+closing valves are allowed if the faucet remains
+open for at least (0 seconds.
+
+4.19.6* Mirrors. Mirrors shal! be monnted with
+the bottom edge of the reflecting surface no hygher
+than 40 in (1015 mm) from the floor (see Fig, 31),
+
+47

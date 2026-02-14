@@ -1,0 +1,990 @@
+--- Page 1 ---
+Edwin M. Lee, Mayor
+Tom C. Hui, S.E., C.B.O., Director
+
+City and County of San Francisco
+Department of Building Inspection
+
+INFORMATION SHEET
+
+NO. FS-04
+
+DATE : April 21, 2014
+
+CATEGORY : Fire Safety
+
+SUBJECT : Fire Safety Requirements for Wood-frame Buildings during Construction
+
+SS SS Se er ee SS SSS eS ee eae
+
+PURPOSE : The purpose of this Information Sheet is to establish fire safety requirements,
+provide guidelines to minimize the potential for the occurrence and spread of
+fires, and to facilitate firefighting efforts during construction of wood frame
+buildings
+
+REFERENCE : California Fire Code Chapters 33 and 35
+San Francisco Building Code - Sections 3309, 3311
+
+SCOPE : This Information Sheet applies to activities occurring during the construction of
+certain wood frame buildings as specified herein. Nothing contained in this
+Information Sheet shall be construed to alter such building occupancy
+standards or fire protection measures for wood frame or other construction
+methods as may otherwise be deemed appropriate.
+
+GENERAL
+REQUIREMENTS:
+
+A. The provisions of this Information Sheet shall apply only to activities occurring during the
+construction of certain wood frame buildings as specified herein. Nothing contained in this
+Information Sheet shall be construed to alter such building occupancy standards or fire protection
+measures for wood frame or other construction methods as may otherwise be set forth in the
+California Building or Fire Codes.
+
+B. No person shall engage in any aspect of construction on a Wood Frame Building Project, or
+permit or authorize any such construction to occur, except in full compliance with this Information
+Sheet.
+
+C. The property owner, as identified on the application for a building permit for a Wood Frame
+Building Project, shall be liable for full compliance with this Information Sheet.
+
+TECHNICAL SERVICES DIVISION
+1660 Mission Street — San Francisco CA 94103
+Office (415) 558-6205 — FAX (415) 558-6401
+Website: www.sfdbi.org
+
+
+
+--- Page 2 ---
+INFORMATION SHEET FS-04
+
+DEFINITIONS:
+
+The definitions contained in this part shall govern the interpretation of this Information Sheet. Where
+terms are not specifically defined in this Information Sheet, the definitions contained in Chapter 2 of
+the California Building and Fire Codes shall apply.
+
+Pre-Fire Plan (PFP). A document, which specifies measures and practices to be incorporated into
+the construction process to minimize the potential for the occurrence and spread of fires, and
+to facilitate firefighting efforts, during building construction.
+
+Exposed Wood Framing. The area of a Wood Frame Building Project that has wood stud framing
+and/or decking of the floor or roof
+
+Fire Prevention Program Superintendent. An individual employed on a construction job site whose
+job function is to minimize the potential for the occurrence and spread of fires in accordance with the
+requirements of this Information Sheet and the approved PFP. The duties of a Fire Prevention
+Program Superintendent shall be in addition to, and do not supersede, the duties of any contractor or
+individual engaging in activities which have the potential to cause the occurrence or spread of fire,
+including but not limited to the duties specified in Chapters 33 (3308 and 35 of the 2013 California
+Fire Code, or such other fire safety code as may be adopted by the City from time to time. (see
+section: Duties and Responsibilities in the attached Fire Prevention Program Superintendent form.)
+
+Hot Work. Operations including cutting, welding, Thermit welding , brazing, soldering, grinding,
+thermal spraying, thawing pipe, installation of torch-applied roof systems or any other similar activity.
+
+Maximum Allowable Exposed Wood Framing Limit:
+Three hundred fifty thousand (350,000) gross square feet.
+
+Temporary Mitigating Fire Protection Barriers. At least one layer of 5/8 inch type X gypsum board
+with metal studs, two sides of one layer of 5/8 inch type X gypsum board with wood studs, or other
+fire resistive construction/blocking located at the end of a fire resistive area, separation wall, or party
+wall, and installed such that the Temporary Mitigating Fire Protection Barrier(s) and fire resistive
+wall(s) enclose area(s) of not more than fifty thousand (50,000) square feet. Penetrations and
+openings shall also be protected with one-hour fire-resistive assembly(s)/firestop system(s).
+
+Total Square Footage. Measurement of wood framing and any adjacent on-going wood frame
+construction when adjacent structures are separated by less than sixty (60) feet of open air shall be
+considered to be within the project.
+
+Large Wood-Frame Building Project. A building project utilizing Exposed Wood Framing in the
+construction of fifty (50) or more attached dwelling units, or construction exceeding a total of three
+hundred fifty thousand (350,000) gross square feet
+
+SPECIFIC REQUIREMENTS:
+
+Pre-Fire Plan Requirements
+A. No building permit shall be issued which allows the commencement of wood frame construction
+
+on a Wood Frame Building Project, unless the Fire Department has provided written approval of a
+PFP for the project.
+
+Page 2 of 20
+
+
+--- Page 3 ---
+INFORMATION SHEET FS-04
+
+No person shall engage in, permit, authorize or allow any aspect of construction on any project for
+which a PFP has been required unless the Chief of the Fire Department or their designee has
+provided written approval of a Pre-Fire Plan for the project.
+
+The approved PFP shall be a condition of the building permit and a copy of the Plan shall be
+maintained on site at all times during construction of the project.
+
+The PFP shall state how the requirements of this Information Sheet and all other fire safety
+requirements shall be met during construction of the project.
+
+The PFP shall state how off hours security will be addressed, and how construction sequencing,
+including the installation of Temporary Mitigating Fire Protection Barriers, will be utilized to
+minimize the potential for the occurrence and spread of fire (e.g. cameras, guard, monitoring
+company, etc.)
+
+Fire Prevention Program Superintendent Requirements
+
+A.
+
+Fire Prevention Program Superintendent shall be trained and/or certified by an organization which
+will provide the core competencies of occupational safety and health for the construction site to
+carry out the duties as detailed in the PFP in addition to any other job site duties.
+
+No person shall perform, permit, authorize or allow any Hot Work on any Wood Frame Building
+Project, after wood framing has commenced, unless a Fire Prevention Program Superintendent is
+present on the project site at all times while Hot Work is being performed.
+
+A Fire Prevention Program Superintendent shall monitor, confirm and document the following:
+
+That a fire watch has been provided during all Hot Work operations as required by Chapters 33
+and 35 of the California Fire Code (CFC), as adopted in the San Francisco Fire Code, or provision
+as may be adopted by the City at any time;
+
+That storage, use and handling of flammable liquids conforms to the CFC Chapters 50 and 57 in
+addition to all federal, state, local, legal and administrative requirements;
+
+That construction debris and waste disposal is promptly removed from the project site as required
+by CFC Chapter 33;
+
+That fire protection equipment, including fire extinguishers, fire hydrants; standpipes, and other
+fire service connections, are in place and operational, as required by law or specified in the
+approved PFP;
+
+That Temporary Mitigating Fire Protection Barriers are in place on any Wood Frame Building
+Project, in accordance with this Information Sheet and the construction sequencing requirements
+of the approved PFP;
+
+That such other requirements relating to fire safety have been met, as may be specified in the
+San Francisco Fire Code, in the regulations adopted pursuant to this Information Sheet, or in the
+approved PFP.
+
+Basic Fire Protection Requirements
+
+No person shall commence, permit, authorize or allow wood framing or engage in any construction
+activity after the commencement of wood frame construction, on a Wood Frame Building project
+unless:
+
+Page 3 of 20
+
+
+
+--- Page 4 ---
+INFORMATION SHEET FS-04
+
+A. An all-weather access road is in place meeting the requirements of this Information Sheet, or such
+other fire apparatus access requirements as may be specified in the PFP for the project, or in any
+development or building permit for the project, are in place and functional.
+
+B. Allfire protection equipment, including fire extinguishers, low pressure fire hydrants, standpipes,
+and other fire service connections, are in place and operational, as required by the building or fire
+codes, or as specified in the approved PFP.
+
+C. An Auxiliary Water Supply System (AWSS) is in place or equivalent as agreed upon by the SFFD
+(e.g. temporary water storage tanks equivalent to the required fire sprinkler demand with hose
+allowance, high pressure (AWSS) hydrants, fully equipped hose tender on-site).
+
+D. Signage for Fire Department Connections (FDC), temporary FDCs, and Truss Joist I-beam (TJl)
+
+construction has been installed and approved by the Fire Inspector and as specified in the
+approved PFP.
+
+Temporary Mitigating Fire Protection Barriers
+
+No person shall continue, permit, authorize or allow any construction activity on any Wood Frame
+Building Project, unless Temporary Mitigating Fire Protection Barriers are in place and operational, in
+accordance with the approved PFP, to maintain the project at or below the applicable Maximum
+Allowable Exposed Wood Framing Limit.
+
+PROCEDURES FOR PRE-FIRE PLAN IMPLEMENTATION:
+
+Plan Check Process
+
+A. INTAKE. Two (2) copies of the Pre-Fire Plan (PFP) are required at intake of permit application for
+building utilizing exposed wood framing in the construction of 50 or more dwelling units or
+
+construction exceeding a total of 350,000 square feet.
+
+B. FIRE PLAN CHECK. The Fire Department plan checker will review the PFP for compliance with
+the CFC and other codes, regulations and standards for the following:
+
+1. Fire flow and fire hydrants;
+2. Fire Department access roads;
+
+3. Fire protection equipment such as portable fire extinguishers, standpipes and associated fire
+department connections (when required);
+
+4. AWSS —temporary, permanent, or existing installation(s);
+5. Procedures during hot work activities;
+6. Storage, use and handling of flammable liquids;
+
+7. Removal of construction debris from project site;
+
+Page 4 of 20
+
+
+--- Page 5 ---
+INFORMATION SHEET FS-04
+
+8. Construction sequencing and temporary mitigating fire protection barriers;
+
+9. Off-hours security solution;
+
+10. Other requirements relating to fire safety.
+When all issues are resolved, the fire plan checker will approve the PFP.
+NOTE: The plans will include a statement to inform the contractor/developer that the wood frame
+construction shall not commence without the written approval of the PFP by the Fire Department.
+INSPECTION PROCESS
+
+A. Wood frame construction shall not commence without a written approval of the San Francisco Fire
+Department (SFFD). To acquire a written approval, the contractor shall be advised to:
+
+1. Call the district fire inspector (415) 558-3300 to schedule a Fire Department inspection of the
+following before the start of wood framing construction.
+
+All weather access roads;
+
+Water flow and fire hydrants;
+
+Portable fire extinguishers;
+
+Horizontal standpipes and associated fire department connections (when required);
+Signage — exit, FDC, Tul, etc.
+
+Verify proper training of all fire watch personnel is consistent with PFP.
+
+mO2Q2009
+
+NOTE: When adequate compliance is verified, the SFFD inspector will indicate on the
+inspection report that wood framing may commence.
+
+2. During regular inspections of the project, both building and fire inspectors shall check that fire
+safety measures are in place.
+
+3. Fire Safety Measure inspections shall include the following:
+
+a. Verification wood framing activity has been approved and authorized by the SFFD.
+
+b. During hot work activities, the Fire Prevention Program Superintendent is present on the
+project site to monitor, confirm and document the fire watch and that a fire extinguisher is
+readily available.
+
+NOTE: The fire watch shall continue for a minimum of 30 minutes after the conclusion of
+the hot work activity. Duties shall be required but not limited to 2013 CFC Chapters 33
+and 35.
+
+c. Fire department apparatus access roads are maintained and clear of any debris,
+construction material and/or construction equipment.
+
+d. Storage, use, and handling of flammable liquids shall conform to all required codes and
+standards.
+
+e. Combustible debris, rubbish and waste material shall be removed from buildings at the
+end of each shift of work.
+
+Page 5 of 20
+
+
+
+--- Page 6 ---
+INFORMATION SHEET FS-04
+
+f. Verify that all required fire protection equipment, such as fire extinguishers, fire hydrants,
+
+standpipes, etc. are in place and operational.
+_g. Verify the approved construction sequencing is followed and the temporary mitigating fire
+
+protection barriers are in place to ensure that the "maximum allowable exposed wood-
+framing limit" is maintained.
+
+Page 6 of 20
+
+
+
+--- Page 7 ---
+INFORMATION SHEET FS-04
+
+Attachment A
+
+PRE-FIRE PLAN
+WOOD FRAME BUILDING PROJECTS
+
+This plan is required for any building utilizing exposed wood framing in the construction of 50 or more
+dwelling units or construction exceeding a total of 350,000 gross square feet. Attach diagrams or plans
+to supplement this document. For the purpose of measuring total square footage of wood framing, any
+adjacent on-going wood frame construction is considered to be within the project when less than sixty
+(60) feet of open air separates adjacent structures.
+PROJECT CONTACT INFORMATION
+
+Project Name:
+
+Project Address:
+
+General Contractor:
+
+Address:
+
+Primary Contact Name & Title:
+
+24hr/7days Cell Number: Email:
+
+Secondary Contact Name & Title:
+
+24hr/7days Cell Number: Email:
+
+Developer:
+
+Address:
+
+Contact Name:
+
+Phone Number: Cell Number:
+
+Email:
+
+Fire Prevention Program Superintendent:
+
+Contact Name:
+
+Phone Number: 24hr/7days Cell Number:
+
+Email:
+
+Page 7 of 20
+
+
+
+--- Page 8 ---
+INFORMATION SHEET
+
+BUILDING INFORMATION
+
+Permit Application Number:
+
+Construction Type(s):
+
+Number of Buildings:
+
+Height(s) of Buildings:
+
+Mezzanine(s): YES NO
+
+FS-04
+
+TJl Construction: YES NO Floors’ Roof
+circle circle circle — circle
+
+Project Gross Square Footage:
+
+Number of Floors:
+
+Number of Mezzanines:
+
+circle circle
+
+Number of Units: Estimated Date of Completion:
+
+PROJECT INFORMATION
+(Check applicable items below)
+
+Site Emergency Notification: (check as many as appl
+
+O Air horn cabinets at all means of egress: YES NO
+circle circle
+O Temporary initiation devices: YES NO
+circle circle
+
+o -wireless, hardwired, pull stations, waterflow, other:
+circle circle circle circle
+1) Temporary notification devices: YES NO
+circle circle
+o wireless, hardwired, horn, strobe, other:
+circle circle circle circle
+[1 Temporary monitoring of initiation devices: YES NO - cellular, hardwired
+circle circle circle circle
+
+O Other
+Fire Suppression: (check as many as appl
+
+O Sprinkler system active (water supply locked open) during non-work hours.
+
+O Sprinkler system active (water supply locked open and zone valves locked in appropriate
+positions) on completed floors with no work/workers.
+
+O Sprinkler system pressurized (water supply locked closed and zone valves locked in
+appropriate positions) on completed zones.
+
+O Sprinkler system valve per zones on approved drawings.
+
+Page 8 of 20
+
+
+
+--- Page 9 ---
+INFORMATION SHEET FS-04
+
+CO Other
+
+Water supply for fire suppression: (check as many as apply)
+
+[C1 Contact information for person responsible for all valving:
+Name: cell number:
+
+O All valving shall be checked at the end of each work period to ascertain that sprinkler protection
+is in service.
+
+O Other
+Separation of Buildings: (check as many as apply)
+
+[1 Multiple Buildings (see attached plans showing distances between buildings) and Area
+Separation Walls (see attached plans)
+
+[1 One Building (see attached plans if applicable for mixed construction types, area separation
+walls for over area allowances, etc.)
+
+Automobile Parking: (check as many as apply)
+Detached Garage
+
+Carport
+Part of Building
+
+Adjacent to Building (on-grade)
+
+Oo O OF O Q
+
+Enclosed parking areas being used during construction. (See attached fire-life safety plan for
+garage use.)
+
+Access Roads: (check as many as apply)
+(1 Fire Apparatus Access is provided by public roads and streets (no on-site roads).
+1 See attached plans showing permanent access roads.
+
+[1 See attached plan showing temporary access roads during construction.
+
+C1 See attached narrative on phasing of access roads.
+
+[1 Access Roads comply with San Francisco Fire Department Information Sheet FS-04 and 5.12.
+
+Page 9 of 20
+
+
+--- Page 10 ---
+INFORMATION SHEET FS-04
+
+Fire Flow and Hydrants: (check as many as appl
+Water flow information from the fire department is attached.
+Hydraulic calculations to verify the required water and fire flow is attached.
+
+Fire flow is provided by existing fire hydrants (no additional fire hydrant(s) is/are required).
+
+Oo OF 0 0
+
+New public fire hydrant(s) on public street will be installed for this project (see attached plan
+and schedule for installation).
+
+O
+
+New on-site/private fire hydrant(s) will be installed for this project (see attached plan and
+schedule for installation).
+
+All required fire hydrants will be operable before wood framing is started.
+See attached plans showing locations of existing and proposed fire hydrants.
+See attached narrative indicating phasing and schedule of fire hydrants.
+Inoperative fire hydrants will be bagged.
+
+PUC will install all new fire hydrants.
+
+Oo O O88 Oo OO QO
+
+Contractor will install all new fire hydrants and shall purchase all equipment from PUC.
+Standpipes: (check as many as appl
+
+O Building(s) is/are less than three (3) stories (30 feet) and temporary/permanent standpipes are
+not required ,
+
+[1 Temporary standpipes will be provided and made active when construction reaches not more
+than 40 feet (buildings that have three or more stories).
+
+O Horizontal standpipes will be installed and made active before wood framing is started.
+
+Monitoring Hot Work: (check as many as apply)
+
+O All contractors conducting hot work operations shall be required to comply with the CFC,
+Chapters 33, 35, and 57.
+
+O All contractors conducting hot work operations will be required to notify the Fire Department
+and obtain a hot work operational use permit.
+
+O Safety Officer shall be responsible for confirming that a fire watch is being conducted in
+accordance with the approved PFP, and CFC Chapters 33, 35, and 57.
+
+Fire Extinguisher: (check as many as apply)
+
+O Fire extinguishers shall be located at all welding and other hot work locations.
+
+Page 10 of 20
+
+
+
+--- Page 11 ---
+INFORMATION SHEET FS-04
+
+1 Minimum 2-A: |O-B:C Rating will be provided throughout the building under construction with a
+maximum travel distance of 75 feet to an extinguisher.
+
+MO Minimum 2-A:20-B:C rating shall be readily accessible within 30 feet of the location where hot
+work is performed.
+
+Egress Signage: (check as many as appl
+
+[1 Egress paths to have signage visible for entire length of travel
+1 Type of signage (wall, stanchion, low level, etc.) -
+
+O Egress path and/or signage will be powered: YES NO
+
+circle circle (battery, photoluminescent, etc.)
+[1 Fire Prevention Program Superintendent to verify signage locations whenever paths change.
+
+Ingress Signage: (check as many as apply)
+
+1 All stair openings on the exterior shall have signage (comparable to FDC size) stating floor
+levels (e.g. 1-4, roof access, etc.) and building orientation (Stair 2, northeast stair, etc.)
+
+1 Fire Prevention Program Superintendent shall verify signage whenever stair level/ingress
+changes
+
+Truss Joint |-Beam Construction: (check as many as appl
+
+[1 Comparable signage at FDC signage locations with triangle FR per San Francisco Fire Code
+Information Sheet FS-04 5.05.
+
+Site Information Box: (check as many as apply)
+1 Locked box for fire department use located
+Fire Prevention Program Superintendent to keep information current.
+
+C1 Fire Prevention Program Superintendent 24hour/7days contact phone
+
+number:
+
+[1 Project overview — Finished levels, stud only portions, sprinkler system policy, temporary
+construction site emergency notification/monitoring.
+
+O Special hazards (LPG, diesel, high voltage, etc.)
+
+O Site map
+
+O Ingress/egress points and levels of access
+
+1 FDC locations
+
+Page 11 of 20
+
+
+
+--- Page 12 ---
+INFORMATION SHEET FS-04
+
+O Hydrant locations
+
+O Ingress/egress paths per level
+
+O Open shaft/floor locations
+
+OO Finished walls/stud only areas
+
+O Special hazards locations
+
+Fuel Storage: (check as many as appl
+
+O1 There will be no on-site fuel storage in this project
+
+O There will be no temporary fuel source in this project that exceeds 60 gallons
+O There will be no propane in this project that exceeds 125 gallons
+
+O On-site fuel storage will be in accordance with the CFC Chapter 50.
+[1 Required operational use permits will be obtained from the SFFD.
+
+Construction Debris: (check as many as apply)
+
+1 Personnel will be hired as necessary to maintain a clean construction site and building per CFC
+Chapter 33.
+
+O Subcontractors will be required to maintain a clean work area
+
+1 Combustible debris shall not be accumulated within buildings. Combustible debris, rubbish and
+waste material shall be removed from buildings at the end of each shift of work.
+
+O Other:
+
+Emergency Plan: (check as many as apply)
+
+O An emergency plan shall be developed and posted in the construction site.
+
+O All construction personnel will be briefed (e.g. weekly) on the emergency
+plan by the Fire Prevention Program Superintendent.
+
+O All briefings will be documented with sign-in sheet, date and material covered.
+
+O See attached duties and responsibilities of the Fire Prevention Program Superintendent.
+
+Page 12 of 20
+
+
+
+--- Page 13 ---
+INFORMATION SHEET FS-04
+
+O Other Information and/or Safety Measures
+
+Page 13 of 20
+
+
+
+--- Page 14 ---
+INFORMATION SHEET FS-04
+
+FIRE PREVENTION PROGRAM SUPERINTENDENT FOR THIS PROJECT
+
+Name:
+Company:
+Address:
+
+24hour/7days Cell Number: Email:
+
+Qualifications:
+
+On behalf of , this Pre-Fire Plan
+(Developer)
+
+is submitted to the City of San Francisco in accordance with San Francisco Fire Department
+Information Sheet FS-04.
+
+Authorized Agent Date
+(print name and sign)
+
+Fire Prevention Program Superintendent
+Date
+
+(print name and sign)
+Reviewed by:
+
+San Francisco Fire Department
+
+Fire Inspector. Date
+(print name and sign)
+
+NOTE: This Pre-Fire Plan including all attachments shall be posted in a conspicuous place at the job
+site.
+
+Page 14 of 20
+
+
+
+--- Page 15 ---
+INFORMATION SHEET FS-04
+
+FIRE PREVENTION PROGRAM SUPERINTENDENT
+DUTIES AND RESPONSIBILITIES
+
+Including but not limited to:
+
+1.
+
+10.
+
+11.
+
+1
+
+Maintain the Pre-Fire Plan ("PFP") that addresses fire prevention and fire exposure. The plan
+shall identify both general safety guidelines and specific objectives tailored to the project and shall
+be kept as an active part of the job site management. A specific individual shall be designated
+responsible for on-site safety coordination. This person shall be called the Fire Prevention
+Program Superintendent (PFPS).
+
+Inform on-site personnel of the "No Smoking" policy per CFC Chapter 33. Enforcement shall be
+for the duration of the project. Violations of the policy shall be reported to senior on-site
+management.
+
+Perform on-site inspections on a regular basis to ensure that fire lanes are clear, material storage
+is located in accordance with the Fire Safety Plan and not blocking fire access. Verify flammable
+and combustible liquids are not stored in the buildings.
+
+Maintain a clean site and building per CFC Chapter 33. Ensure that construction debris will be
+properly disposed in a timely and end of each shift.
+
+Confirm each contractor provides a "Fire Watch" during all "hot work" operations in accordance
+with CFC Chapters 33 and 35.
+
+Confirm that portable heating equipment complies with CFC Chapter 33. Confirm the equipment
+is placed on non-combustible flooring or platforms, with adequate clearance and maintenance in
+accordance with manufacturer's specifications and/or recognized standards. Fueling shall be
+conducted out of the buildings accordance with manufacturer's specifications and CFC Chapters
+33, 50, 53, 57, and 61.
+
+Confirm that portable, properly rated (2A, 1OBC minimum for egress points and 2-A:20-B:C for
+hot work) and California State Fire Marshal approved fire extinguishers are in their required
+positions per CFC Chapters 9, 33, and 35. Conduct and/or monitor monthly tag sign off
+inspections of each fire extinguisher.
+
+Review proper identification and labeling requirements on flammable liquid and gas containers
+and cylinders. Confirm safe storage areas are designated and identified by clearly demarcated
+signs and surrounded by stable barriers or fencing.
+
+Confirm the fire access roads, fire hydrants, and horizontal standpipes are in place and in service
+prior to combustible construction.
+
+Confirm approved vertical temporary standpipes are installed when the construction reaches the
+third floor and not more than 40feet in height in accordance with the Pre-Fire Plan.
+
+Be available along with the Site Superintendent during Fire Department Inspections.
+
+Observe final testing along with the Site Superintendent (operational flow) of the hydrants and
+standpipes to confirm required systems are in service for the appropriate construction phase.
+
+Page 15 of 20
+
+
+
+--- Page 16 ---
+INFORMATION SHEET FS-04
+
+Confirm contractor is properly marking ("bagged") any inoperative equipment in accordance with
+San Francisco Fire Department Standards. Report impairments of required hydrants to the Fire
+Department Communication Center unless repair is immediately initiated.
+
+13. Observe and confirm final tests along with the Site Superintendent of the fire protection equipment
+(automatic sprinklers, fire alarm, and other equipment noted in the Fire Safety Plan).
+
+14. Conduct (e.g. weekly) safety briefings with construction personnel. All
+briefings will be documented with sign-in sheet, date and material covered
+
+Qualifications of a Fire Prevention Program Superintendent
+
+The PFPS shall be generally familiar with construction methods, sprinkler systems, fire alarm systems,
+fire vehicle access requirements and hot work fire safety.
+
+The name of the PFPS and additional qualification documentation shall be submitted with the Pre-Fire
+Plan.
+
+| have read and accept the duties and responsibilities of the Fire Prevention Program
+Superintendent as delineated in this document:
+
+Fire Prevention Program Superintendent
+Date
+
+(Signature)
+Name: ,
+Company:
+Address:
+
+24hour/7days Cell Number: Email:
+
+Page 16 of 20
+
+
+
+--- Page 17 ---
+INFORMATION SHEET FS-04
+
+FIRE WATCH
+
+This is a guide and may not include all requirements. Please review The 2013 California Fire Code,
+Chapters 2, 3, 9, 33, and 35 for additional information and requirements.
+
+Definition - FIRE WATCH. A temporary measure intended to ensure continuous and systematic
+surveillance of a building or portion thereof by one or more qualified individuals for the purposes of
+identifying and controlling fire hazards, detecting early signs of unwanted fire, raising an alarm of fire and
+notifying the Fire Department.
+
+A fire watch, sometimes referred to as standby personnel, provides temporary fire safety where there are
+potential hazards, such as during hot work operations or when fire protection systems are out of service.
+A fire watch is not simply to watch for a fire but also to prevent fire by identifying and controlling fire
+hazards, such as the separation of combustibles from areas where welding is to occur. A fire watch also
+provides a method of notifying the fire department if a fire should occur.
+
+Chapter 33: Fire Safety during Construction and Demolition
+SECTION 3304 PRECAUTIONS AGAINST FIRE
+
+3304.5 Fire watch. When required by the fire code official for building demolition, or building
+construction during working hours that is hazardous in nature, qualified personnel shall be provided to
+serve as an on-site fire watch. Fire watch personnel shall be provided with at least one approved means
+for notification of the fire department and their sole duty shall be to perform constant patrols and watch
+for the occurrence of fire.
+
+SECTION 3308 OWNER’S RESPONSIBILITY FOR FIRE PROTECTION
+
+3308.1 Program superintendent. The owner shall designate a person to be the Fire Prevention
+Program Superintendent who shall be responsible for the fire prevention program and ensure that it is
+carried out through completion of the project. The Fire Prevention Program Superintendent shall have
+the authority to enforce the provisions of this chapter and other provisions as necessary to secure the
+intent of this chapter. Where guard service is provided, the superintendent shall be responsible for the
+guard service.
+
+3308.2 Pre-fire plans. The Fire Prevention Program Superintendent shall develop and maintain an
+approved prefire plan in cooperation with the fire chief. The fire chief and the fire code official shall be
+notified of changes affecting the utilization of information contained in such prefire plans.
+
+3308.3 Training. Training of responsible personnel in the use of fire protection equipment shall be the
+responsibility of the Fire Prevention Program Superintendent.
+
+3308.5 Hot work operations. The Fire Prevention Program Superintendent shall be responsible for
+supervising the permit system for hot work operations in accordance with Chapter 35.
+
+Chapter 35: Welding and Other Hot Work
+SECTION 3504 FIRE SAFETY REQUIREMENTS
+
+3504.1.2 Openings. Openings or cracks in walls, floors, ducts or shafts within the hot work area shall be
+
+tightly covered to prevent the passage of sparks to adjacent combustible areas, or shielded by metal fire-
+resistant guards, or curtains shall be provided to prevent passage of sparks or slag.
+
+Page 17 of 20
+
+
+
+--- Page 18 ---
+INFORMATION SHEET . FS-04
+
+3504.1.8 Sprinkler protection. Automatic sprinkler protection shall not be shut off while hot work is
+performed. Where hot work is performed close to automatic sprinklers, noncombustible barriers or damp
+cloth guards shall s shield the individual sprinkler heads and shall be removed when the work is
+completed. If the work extends over several days, the shields shall be removed at the end of each
+workday. The fire code official shall approve hot work where sprinkler protection is impaired.
+
+One of the major sources of losses related to hot work occurs either at buildings under construction or
+under renovation where an installed sprinkler system has been shut off. In many cases, there is a
+concern that the sprinkler system will be damaged or will accidentally activate during construction so the
+system is shut off. Unfortunately, this is the most likely time for an ignition to occur. Frequently, large
+manufacturing, storage and institutional occupancies intentionally perform much of their heavy
+maintenance work during slow periods to reduce service disruptions. Under such circumstances, care
+must be exercised so that sprinkler outages do not coincide with welding or cutting operations. To
+reduce the likelihood of accidental operation of sprinklers if welding or cutting operations must be
+performed in close proximity to sprinklers or sprinkler piping, this section includes some methods of
+protecting the sprinkler without shutting the system down. It is important to note that any protection
+placed onto or near the sprinklers is to be removed at the end of each workday. Field welding or cutting
+operations performed on sprinkler piping is prohibited by NFPA 13.
+
+3504.2 Fire watch. Fire watches shall be established and conducted in accordance with Sections
+3504.2.1 through 3504.2.6.
+
+This section is critical to avoiding ignition as a result of hot work operations. The six subsections list
+criteria for setting a fire watch and how it should be undertaken.
+
+3504.2.1 When required. A fire watch shall be provided during hot work activities and shall continue for a
+minimum of 30 minutes after the conclusion of the work. The fire code official, or the responsible
+manager under a hot work program, is authorized to extend the fire watch based on the hazards or work
+being performed.
+
+Exception: Where the hot work area has no fire hazards or combustible exposures.
+
+Fire watches are required any time hot work is undertaken and are to extend a minimum of 30 minutes
+beyond completion of the work. The time may need to be extended, depending on the specific hazards
+' present, such as a large amount of combustibles or the facility being open to the public. There is an
+exception for those situations when combustibles are simply not present. The combustibility of the floor
+should also be considered.
+
+3504.2.2 Location. The fire watch shall include the entire hot work area. Hot work conducted in areas
+with vertical or horizontal fire exposures that are not observable by a single individual shall have
+additional personnel assigned to fire watches to ensure that exposed areas are monitored.
+
+This section states that a fire watch is required in all hot work areas. The term “hot work area” is defined
+but is necessarily a general definition because many things will affect the extent of the area. These
+factors include the type and application of hot work, the configuration and layout of the space and the
+types of materials in the area. Also, in some situations the fire watch may need to consist of more than
+one person because the layout of the area may prevent one person from watching an entire area, such
+as when many pieces of equipment act as obstructions or the shape of the room or placement of
+partitions blocks a line of sight.
+
+Page 18 of 20
+
+
+
+--- Page 19 ---
+INFORMATION SHEET FS-04
+
+3504.2.3 Duties. Individuals designated to fire watch duty shall have fire-extinguishing equipment readily
+available and shall be trained in the use of such equipment. Individuals assigned to fire watch duty shall
+be responsible for extinguishing spot fires and communicating an alarm.
+
+The individuals who undertake a fire watch have specific duties. They not only need to watch for and
+notify of an ignition of combustibles, they also need to be prepared to extinguish spot fires with portable
+extinguishers. Intervention when fires are small is the best line of defense in extinguishing and
+controlling fires. Waiting until the fire department or fire brigade arrives will allow a fire to increase
+dramatically in size and intensity.
+
+3504.2.4 Fire training. The individuals responsible for performing the hot work and individuals
+responsible for providing the fire watch shall be trained in the use of portable fire extinguishers.
+
+A person conducting a fire watch must be trained to operate fire extinguishers located in the watch area.
+As noted previously, intervention in the incipient stages of a fire is extremely effective.
+
+3504.2.5 Fire hoses. Where hose lines are required, they shall be connected, charged and ready for
+operation.
+
+This section states that when a hose line is required, it should be properly charged and ready for use
+during a fire watch. Otherwise, the effectiveness is much lower. As noted already, fires are more likely to
+be extinguished or controlled when intervention occurs early. An uncharged hose line will defeat the
+purpose of the equipment.
+
+3504.2.6 Fire extinguisher. A minimum of one portable fire extinguisher complying with Section 906 and
+with a minimum 2-A:20-B:C rating shall be readily accessible within 30 feet (9144 mm) of the location
+where hot work is performed.
+
+This section specifies that the fire extinguishers required for a fire watch must be an all-purpose
+extinguisher for all fire types; the potential fire type will vary with the type of hot work and the surrounding
+combustibles. The 30-foot (9144 mm) travel distance specified here is more restrictive than what is
+required for similar ratings of extinguishers in Section 906. Table 906.3(2) would allow a maximum travel
+distance of 50 feet (15 240 mm) for other applications with the same rating of extinguisher.
+
+3504.3.1 Pre-hot-work check. A pre-hot-work check shall be conducted prior to work to ensure that all
+equipment is safe and hazards are recognized and protected. A report of the check shall be kept at the
+
+work site during the work and available upon request. The pre-hot-work check shall determine all of the
+following:
+
+1. Hot work equipment to be used shall be in satisfactory operating condition and in good repair.
+2. Hot work site is clear of combustibles or combustibles are protected.
+
+3. Exposed construction is of noncombustible materials or, if combustible, then protected.
+
+4. Openings are protected.
+
+5. Floors are kept clean.
+
+Page 19 of 20
+
+
+
+--- Page 20 ---
+INFORMATION SHEET FS-04
+
+6. No exposed combustibles are located on the opposite side of partitions, walls, ceilings or
+floors.
+
+7. Fire watches, where required, are assigned.
+
+8. Approved actions have been taken to prevent accidental activation of suppression and
+detection equipment in accordance with Sections 3504.1.8 and 3504.1.9.
+
+9. Fire extinguishers and fire hoses (where provided) are operable and available.
+
+Tom C. Hui, S.E., C.B.O.
+Director
+Department of Building Inspection
+
+Michie Wong
+Fire Marshal
+
+This Information Sheet is subject to modification at any time. For the most current version, visit our
+
+website at http://www.sfdbi.org
+
+Page 20 of 20
+
