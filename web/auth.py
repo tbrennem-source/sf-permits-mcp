@@ -258,18 +258,58 @@ def send_magic_link(email: str, token: str) -> bool:
 
     try:
         msg = EmailMessage()
-        msg["Subject"] = "Sign in to sfpermits.ai"
-        msg["From"] = SMTP_FROM
+        msg["Subject"] = "Your sfpermits.ai sign-in link"
+        msg["From"] = f"SF Permits AI <{SMTP_FROM}>"
         msg["To"] = email
+        msg["List-Unsubscribe"] = f"<mailto:{SMTP_FROM}?subject=unsubscribe>"
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+
+        # Plain text version
         msg.set_content(
-            f"Click to sign in to sfpermits.ai:\n\n{link}\n\n"
-            f"This link expires in {TOKEN_EXPIRY_MINUTES} minutes."
+            f"Sign in to sfpermits.ai\n\n"
+            f"Click the link below to sign in:\n\n"
+            f"{link}\n\n"
+            f"This link expires in {TOKEN_EXPIRY_MINUTES} minutes.\n\n"
+            f"If you didn't request this, you can safely ignore this email.\n\n"
+            f"--\n"
+            f"sfpermits.ai - San Francisco Building Permit Intelligence"
         )
+
+        # HTML version — improves deliverability significantly
+        msg.add_alternative(
+            f"""\
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+  <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #2563eb;">
+    <h1 style="color: #2563eb; margin: 0; font-size: 24px;">sfpermits.ai</h1>
+    <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;">San Francisco Building Permit Intelligence</p>
+  </div>
+  <div style="padding: 30px 0;">
+    <h2 style="font-size: 20px; margin: 0 0 15px 0;">Sign in to your account</h2>
+    <p style="line-height: 1.6;">Click the button below to securely sign in. No password needed.</p>
+    <div style="text-align: center; padding: 25px 0;">
+      <a href="{link}" style="background-color: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block;">Sign In</a>
+    </div>
+    <p style="font-size: 13px; color: #888; line-height: 1.5;">This link expires in {TOKEN_EXPIRY_MINUTES} minutes. If you didn't request this, you can safely ignore this email.</p>
+    <p style="font-size: 12px; color: #aaa; margin-top: 10px;">If the button doesn't work, copy and paste this URL into your browser:<br>
+    <a href="{link}" style="color: #2563eb; word-break: break-all;">{link}</a></p>
+  </div>
+  <div style="border-top: 1px solid #eee; padding-top: 15px; font-size: 12px; color: #999; text-align: center;">
+    <p>sfpermits.ai &mdash; Permit tracking for San Francisco homeowners</p>
+  </div>
+</body>
+</html>""",
+            subtype="html",
+        )
+
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.starttls()
             if SMTP_USER:
                 server.login(SMTP_USER, SMTP_PASS or "")
             server.send_message(msg)
+        logger.info("Magic link sent to %s", email)
         return True
     except Exception:
         logger.exception("Failed to send magic link to %s", email)
