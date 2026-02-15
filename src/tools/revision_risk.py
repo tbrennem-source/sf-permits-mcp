@@ -1,7 +1,11 @@
 """Tool: revision_risk — Estimate revision probability and impact from permit data patterns."""
 
+import logging
+
 from src.db import get_connection, BACKEND
 from src.tools.knowledge_base import get_knowledge_base, format_sources
+
+logger = logging.getLogger(__name__)
 
 # Common revision triggers by project type
 REVISION_TRIGGERS = {
@@ -209,8 +213,8 @@ async def revision_risk(
                 widened = True
         finally:
             conn.close()
-    except Exception:
-        pass  # DuckDB not available — knowledge-only assessment
+    except Exception as e:
+        logger.warning("DB connection failed in revision_risk: %s", e)
 
     # Get triggers for project type
     triggers = REVISION_TRIGGERS.get(project_type, REVISION_TRIGGERS["general"])

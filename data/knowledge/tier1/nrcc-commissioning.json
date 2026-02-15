@@ -1,0 +1,296 @@
+{
+  "meta": {
+    "source": "2022-NRCC-CXR-E-NonresidentialBuildingCommissioning.pdf",
+    "title": "Nonresidential Building Commissioning (CXR-E)",
+    "authority": "California Energy Commission — 2022 Energy Code (Title 24, Part 6)",
+    "form_id": "NRCC-CXR-E",
+    "effective": "2023-01-01",
+    "last_reviewed": "2026-02-15",
+    "knowledge_tier": 1,
+    "relevance": "Required for all nonresidential new construction and major alterations; common correction trigger when missing or incomplete"
+  },
+
+  "overview": {
+    "description": "The NRCC-CXR-E is the Certificate of Compliance for nonresidential building commissioning (Cx) under the 2022 California Energy Code. It documents that building systems have been designed to enable proper commissioning and that a commissioning plan is in place.",
+    "when_required": [
+      "All new nonresidential buildings",
+      "Major alterations to nonresidential buildings where HVAC or lighting systems are substantially modified",
+      "Mixed-use buildings (nonresidential portions)",
+      "High-rise residential buildings (>3 stories above grade)"
+    ],
+    "who_completes": "Design professional of record (architect or engineer) responsible for the systems being commissioned",
+    "submission_timing": "Submitted with building permit application as part of the NRCC package; updated versions may be required at plan check corrections",
+    "related_forms": [
+      {"form": "NRCC-PRF-01-E", "description": "Performance compliance approach — overall building energy model"},
+      {"form": "NRCA-LTI-04-E", "description": "Acceptance test for lighting controls"},
+      {"form": "NRCA-MCH-04-E", "description": "Acceptance test for HVAC systems"},
+      {"form": "NRCI-CXR-E", "description": "Installation certificate for commissioning (field verification)"}
+    ]
+  },
+
+  "commissioning_requirements": {
+    "design_phase": {
+      "description": "Requirements that must be documented during design/permit application phase",
+      "items": [
+        {
+          "id": "CX-D01",
+          "requirement": "Commissioning plan",
+          "detail": "Written plan identifying systems to be commissioned, testing procedures, schedule, and responsible parties",
+          "common_correction": "Missing or incomplete commissioning plan is one of the top 5 nonresidential plan check corrections"
+        },
+        {
+          "id": "CX-D02",
+          "requirement": "Owner's Project Requirements (OPR)",
+          "detail": "Document stating the owner's functional requirements for building systems, including energy efficiency goals"
+        },
+        {
+          "id": "CX-D03",
+          "requirement": "Basis of Design (BOD)",
+          "detail": "Document describing the design approach for meeting the OPR, including system descriptions and design criteria"
+        },
+        {
+          "id": "CX-D04",
+          "requirement": "Commissioning specifications",
+          "detail": "Technical specifications included in the construction documents describing commissioning procedures for each system"
+        },
+        {
+          "id": "CX-D05",
+          "requirement": "Design review documentation",
+          "detail": "Narrative describing how the design achieves the commissioning requirements of the energy code"
+        }
+      ]
+    },
+
+    "construction_phase": {
+      "description": "Requirements during construction and pre-occupancy",
+      "items": [
+        {
+          "id": "CX-C01",
+          "requirement": "Functional performance testing",
+          "detail": "Systematic testing of each commissioned system under various operating conditions (full load, part load, failure modes)"
+        },
+        {
+          "id": "CX-C02",
+          "requirement": "Commissioning report",
+          "detail": "Final report documenting all test results, deficiencies found, corrections made, and system performance verification"
+        },
+        {
+          "id": "CX-C03",
+          "requirement": "Training documentation",
+          "detail": "Evidence that building operations staff received training on commissioned systems"
+        }
+      ]
+    }
+  },
+
+  "systems_requiring_commissioning": {
+    "hvac": {
+      "description": "Heating, ventilation, and air conditioning systems",
+      "applicable_when": "All new HVAC systems in nonresidential buildings",
+      "commissioning_items": [
+        {
+          "system": "Air handling units (AHU)",
+          "tests": ["Airflow verification", "Outside air damper operation", "Economizer control sequence", "Supply air temperature reset", "Fan power/VFD verification"]
+        },
+        {
+          "system": "Variable air volume (VAV) terminals",
+          "tests": ["Minimum/maximum airflow setpoints", "Zone temperature control", "Reheat valve operation", "Damper stroke verification"]
+        },
+        {
+          "system": "Packaged/split systems",
+          "tests": ["Thermostat operation", "Economizer functionality", "Fault detection diagnostics", "Refrigerant charge verification"]
+        },
+        {
+          "system": "Boilers and chillers",
+          "tests": ["Equipment staging", "Temperature reset schedules", "Safety controls", "Efficiency verification at part load"]
+        },
+        {
+          "system": "Exhaust systems",
+          "tests": ["Airflow measurement", "Demand control ventilation (DCV)", "Kitchen hood controls", "Garage CO sensor integration"]
+        },
+        {
+          "system": "Controls and DDC/BAS",
+          "tests": ["Schedule verification", "Setpoint optimization", "Alarm functionality", "Network communication", "Trend logging setup"]
+        }
+      ]
+    },
+
+    "lighting_controls": {
+      "description": "Lighting control systems",
+      "applicable_when": "All new lighting systems in nonresidential buildings",
+      "commissioning_items": [
+        {
+          "system": "Occupancy/vacancy sensors",
+          "tests": ["Sensor coverage verification", "Time delay settings", "Override functionality", "Integration with HVAC"]
+        },
+        {
+          "system": "Daylight harvesting",
+          "tests": ["Photosensor calibration", "Dimming response curves", "Setpoint verification", "Window management integration"]
+        },
+        {
+          "system": "Demand response",
+          "tests": ["Signal reception", "Load shed levels", "Recovery timing", "Override procedures"]
+        },
+        {
+          "system": "Scheduling controls",
+          "tests": ["Time clock programming", "Holiday/weekend schedules", "Sweep-off timing", "Manual override duration"]
+        },
+        {
+          "system": "Automatic daylighting controls",
+          "tests": ["Primary sidelit zone dimming", "Secondary sidelit zone dimming", "Toplighting zone dimming", "Calibration under varying sky conditions"]
+        }
+      ]
+    },
+
+    "domestic_hot_water": {
+      "description": "Service water heating systems",
+      "applicable_when": "Systems serving nonresidential occupancies",
+      "commissioning_items": [
+        {
+          "system": "Water heaters and boilers",
+          "tests": ["Temperature setpoint verification", "Recirculation pump controls", "Timer/sensor operation"]
+        },
+        {
+          "system": "Solar thermal systems",
+          "tests": ["Collector orientation/tilt", "Pump controls", "Freeze protection", "Integration with backup heating"]
+        }
+      ]
+    },
+
+    "building_envelope": {
+      "description": "Envelope-related commissioning (advanced commissioning only)",
+      "applicable_when": "Projects pursuing advanced commissioning or where envelope performance is critical",
+      "commissioning_items": [
+        {
+          "system": "Air barrier systems",
+          "tests": ["Blower door testing", "Pressure differential verification", "Joint/seal inspection"]
+        }
+      ]
+    }
+  },
+
+  "advanced_commissioning": {
+    "description": "Enhanced commissioning requirements that go beyond basic code compliance",
+    "when_triggered": [
+      "Buildings over 10,000 sq ft conditioned area",
+      "Buildings with complex HVAC systems (multiple zones, central plant)",
+      "Projects claiming energy credits for advanced commissioning"
+    ],
+    "additional_requirements": [
+      {
+        "id": "ACX-01",
+        "requirement": "Monitoring-based commissioning (MBCx)",
+        "detail": "Post-occupancy energy monitoring system capable of measuring whole-building energy use and major end uses, with fault detection and diagnostics"
+      },
+      {
+        "id": "ACX-02",
+        "requirement": "Independent commissioning agent",
+        "detail": "Commissioning conducted by an independent agent not on the design or construction team"
+      },
+      {
+        "id": "ACX-03",
+        "requirement": "Seasonal testing",
+        "detail": "Functional testing under both heating and cooling conditions (may require return visit)"
+      },
+      {
+        "id": "ACX-04",
+        "requirement": "Systems manual",
+        "detail": "Comprehensive operating manual for all commissioned systems including sequences of operation, maintenance schedules, and troubleshooting guides"
+      }
+    ]
+  },
+
+  "common_corrections": [
+    {
+      "id": "CXR-C01",
+      "category": "Missing documentation",
+      "description": "Commissioning plan not included with permit application",
+      "frequency": "Very common — top 3 nonresidential correction",
+      "resolution": "Submit complete commissioning plan per Section 120.8 requirements",
+      "timeline_impact_days": 14
+    },
+    {
+      "id": "CXR-C02",
+      "category": "Incomplete scope",
+      "description": "Commissioning plan does not cover all required systems (often missing lighting controls or DHW)",
+      "frequency": "Common",
+      "resolution": "Expand commissioning plan to include all systems per Tables 120.8-A and 120.8-B",
+      "timeline_impact_days": 7
+    },
+    {
+      "id": "CXR-C03",
+      "category": "Missing design review",
+      "description": "Design review narrative not provided or does not address energy code compliance",
+      "frequency": "Common",
+      "resolution": "Provide design review narrative addressing OPR, BOD, and code requirements",
+      "timeline_impact_days": 7
+    },
+    {
+      "id": "CXR-C04",
+      "category": "No commissioning agent identified",
+      "description": "Commissioning plan does not identify the responsible commissioning professional",
+      "frequency": "Moderate",
+      "resolution": "Identify commissioning agent with qualifications per Section 120.8(a)",
+      "timeline_impact_days": 3
+    },
+    {
+      "id": "CXR-C05",
+      "category": "Acceptance test forms missing",
+      "description": "Required NRCA acceptance test forms not referenced or included in commissioning plan",
+      "frequency": "Common",
+      "resolution": "Include applicable NRCA forms (LTI-04, MCH-04, etc.) and identify when each will be completed",
+      "timeline_impact_days": 5
+    },
+    {
+      "id": "CXR-C06",
+      "category": "CXR-E form not submitted",
+      "description": "NRCC-CXR-E compliance certificate not included in the Title 24 documentation package",
+      "frequency": "Very common",
+      "resolution": "Complete and submit NRCC-CXR-E signed by design professional of record",
+      "timeline_impact_days": 3
+    }
+  ],
+
+  "sf_specific_notes": [
+    {
+      "topic": "DBI plan check",
+      "detail": "San Francisco DBI reviews commissioning documentation during M-06 (Mechanical) and M-08 (Energy) plan check stages. Missing CXR-E is flagged as a correction that holds permit issuance."
+    },
+    {
+      "topic": "AB-093 green building overlay",
+      "detail": "SF's green building ordinance (AB-093) may require commissioning beyond Title 24 minimums for new construction and major alterations, including enhanced commissioning per LEED or GreenPoint Rated requirements."
+    },
+    {
+      "topic": "Inspection coordination",
+      "detail": "Functional performance tests for HVAC and lighting controls must be witnessed by a DBI inspector or approved third-party. Schedule through the DBI online inspection request system."
+    },
+    {
+      "topic": "Certificate of Final Completion",
+      "detail": "Commissioning report and acceptance test results must be provided before DBI issues Certificate of Final Completion. Green Building Final Compliance form (AB-093 Attachment E) is also required for applicable projects."
+    }
+  ],
+
+  "tool_integration": {
+    "required_documents": {
+      "triggers": ["nonresidential_new_construction", "major_alteration_nonresidential", "title24", "commercial_ti", "green_building"],
+      "documents_to_add": [
+        "NRCC-CXR-E (Commissioning Certificate of Compliance)",
+        "Commissioning plan per Section 120.8",
+        "Owner's Project Requirements (OPR)",
+        "Basis of Design (BOD)",
+        "Design review narrative"
+      ]
+    },
+    "revision_risk": {
+      "triggers": ["nonresidential_new_construction", "major_alteration_nonresidential", "title24"],
+      "risk_factors": [
+        "Missing commissioning plan (CXR-C01): +14 days",
+        "Incomplete system coverage (CXR-C02): +7 days",
+        "Missing CXR-E form (CXR-C06): +3 days"
+      ]
+    },
+    "estimate_timeline": {
+      "note": "Projects requiring commissioning typically add 1-3 weeks to the overall permit timeline due to plan check review of Cx documentation and potential corrections"
+    }
+  }
+}

@@ -8,8 +8,11 @@ The tools don't care which backend they're talking to — the SQL is
 standard enough to work on both (with minor syntax helpers below).
 """
 
+import logging
 import os
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # ── Backend detection ─────────────────────────────────────────────
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -36,8 +39,12 @@ def get_connection(db_path: str | None = None):
     """
     if BACKEND == "postgres" and not db_path:
         import psycopg2
-        conn = psycopg2.connect(DATABASE_URL)
-        return conn
+        try:
+            conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
+            return conn
+        except Exception as e:
+            logger.error("Postgres connection failed: %s", e)
+            raise
     else:
         import duckdb
         path = db_path or _DUCKDB_PATH

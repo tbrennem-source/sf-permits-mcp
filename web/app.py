@@ -11,12 +11,16 @@ Plus the plan set validator (EPR compliance checker).
 """
 
 import asyncio
+import logging
 import os
 import sys
 import time
 from collections import defaultdict
 from flask import Flask, render_template, request, abort, Response
 import markdown
+
+# Configure logging so gunicorn captures warnings from tools
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
 # Ensure project root is importable
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -162,6 +166,34 @@ NEIGHBORHOODS = [
     "Tenderloin", "Treasure Island", "Twin Peaks",
     "Visitacion Valley", "West of Twin Peaks", "Western Addition",
 ]
+
+
+@app.route("/health")
+def health():
+    """Health check endpoint — tests database connectivity."""
+    from src.db import get_connection, BACKEND, DATABASE_URL
+    info = {"status": "ok", "backend": BACKEND, "has_db_url": bool(DATABASE_URL)}
+    try:
+        conn = get_connection()
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute("SELECT COUNT(*) FROM permits")
+                    info["permits"] = cur.fetchone()[0]
+                    cur.execute("SELECT COUNT(*) FROM timeline_stats")
+                    info["timeline_stats"] = cur.fetchone()[0]
+            else:
+                info["permits"] = conn.execute("SELECT COUNT(*) FROM permits").fetchone()[0]
+            info["db_connected"] = True
+        finally:
+            conn.close()
+    except Exception as e:
+        info["db_connected"] = False
+        info["db_error"] = str(e)
+        info["status"] = "degraded"
+
+    import json
+    return Response(json.dumps(info, indent=2), mimetype="application/json")
 
 
 @app.route("/")

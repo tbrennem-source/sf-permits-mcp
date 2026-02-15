@@ -1,7 +1,11 @@
 """Tool: estimate_timeline — Estimate permit processing timelines from historical data."""
 
+import logging
+
 from src.db import get_connection, BACKEND
 from src.tools.knowledge_base import format_sources
+
+logger = logging.getLogger(__name__)
 
 DELAY_FACTORS = {
     "change_of_use": "+30 days minimum: Section 311 neighborhood notification",
@@ -262,8 +266,8 @@ async def estimate_timeline(
             trend = _query_trend(conn, neighborhood, review_path)
         finally:
             conn.close()
-    except Exception:
-        pass  # DuckDB not available — knowledge-only estimate
+    except Exception as e:
+        logger.warning("DB connection failed in estimate_timeline: %s", e)
 
     # Applicable delay factors
     delay_factors = []

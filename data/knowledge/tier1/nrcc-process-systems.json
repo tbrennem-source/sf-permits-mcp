@@ -1,0 +1,647 @@
+{
+  "meta": {
+    "source": "2022-NRCC-PRC-E-ProcessSystems.pdf",
+    "title": "Nonresidential Process Systems Compliance (PRC-E)",
+    "authority": "California Energy Commission — 2022 Energy Code (Title 24, Part 6)",
+    "form_id": "NRCC-PRC-E",
+    "effective": "2023-01-01",
+    "last_reviewed": "2026-02-15",
+    "knowledge_tier": 1,
+    "relevance": "Required for nonresidential buildings with process loads (kitchens, refrigeration, labs, parking garages, elevators, etc.); common correction when process systems are not addressed in energy compliance documents"
+  },
+
+  "overview": {
+    "description": "The NRCC-PRC-E is the Certificate of Compliance for nonresidential process systems under the 2022 California Energy Code. It documents energy efficiency requirements for building systems that are not covered by standard HVAC, lighting, or envelope forms — primarily process loads like commercial kitchens, refrigeration, compressed air, labs, elevators, and industrial heat.",
+    "when_required": [
+      "Nonresidential buildings containing any of the 19 listed process system categories",
+      "Restaurants and food service facilities (commercial kitchen ventilation, walk-in coolers/freezers, refrigerated warehouses)",
+      "Laboratories with exhaust systems",
+      "Parking garages with ventilation or EV charging",
+      "Buildings with elevators or escalators",
+      "Industrial/manufacturing with process heating or compressed air",
+      "Buildings with computer rooms or data centers"
+    ],
+    "who_completes": "Design professional of record (engineer) responsible for the process systems",
+    "submission_timing": "Submitted with building permit application as part of the NRCC package",
+    "related_forms": [
+      {"form": "NRCC-CXR-E", "description": "Commissioning requirements — process systems must be included in Cx plan"},
+      {"form": "NRCC-MCH-E", "description": "Mechanical systems compliance (HVAC)"},
+      {"form": "NRCC-LTE-E", "description": "Lighting systems compliance"},
+      {"form": "NRCC-PRF-01-E", "description": "Performance approach — process loads in whole-building energy model"},
+      {"form": "NRCA-PRC-E", "description": "Acceptance test form for process systems (field verification)"}
+    ]
+  },
+
+  "process_system_categories": {
+    "A_commercial_kitchen_ventilation": {
+      "section": "Section 140.9(a)",
+      "category_code": "A",
+      "description": "Commercial kitchen exhaust and makeup air systems",
+      "applicable_to": ["Restaurants", "Commercial kitchens", "Food service facilities", "Bakeries", "Commissaries"],
+      "requirements": [
+        {
+          "id": "PRC-A01",
+          "requirement": "Exhaust hood types",
+          "detail": "Type I hoods for grease-laden vapor (cooking), Type II hoods for steam/heat/odor. Hood type determines required exhaust rate and makeup air configuration."
+        },
+        {
+          "id": "PRC-A02",
+          "requirement": "Maximum exhaust rate",
+          "detail": "Exhaust rate shall not exceed values in Table 140.9-A based on hood type (wall-canopy, single island, double island, eyebrow, backshelf) and duty rating (light, medium, heavy, extra-heavy)"
+        },
+        {
+          "id": "PRC-A03",
+          "requirement": "Makeup air",
+          "detail": "Transfer air shall be used before introducing outside air. Makeup air shall not exceed 90% of exhaust for Type I hoods. Replacement air must be conditioned or directly from outdoors."
+        },
+        {
+          "id": "PRC-A04",
+          "requirement": "Demand control ventilation for kitchens",
+          "detail": "Required for systems with total exhaust ≥5,000 CFM. Must reduce exhaust and makeup air by ≥50% during idle conditions based on optical, temperature, or smoke density sensors."
+        },
+        {
+          "id": "PRC-A05",
+          "requirement": "Listed energy-efficient hoods",
+          "detail": "Hoods listed as 'efficient' by ASTM F3230 may use reduced exhaust rates per Table 140.9-B"
+        }
+      ],
+      "sf_note": "DBI and DPH both review kitchen ventilation. DPH requires health permit clearance for food service. Grease interceptor also required per DPW."
+    },
+
+    "B_commercial_kitchen_refrigeration": {
+      "section": "Section 140.9(b)",
+      "category_code": "B",
+      "description": "Walk-in coolers and freezers for commercial kitchen use",
+      "applicable_to": ["Restaurants", "Grocery stores", "Food service", "Commercial kitchens"],
+      "requirements": [
+        {
+          "id": "PRC-B01",
+          "requirement": "Insulation R-values",
+          "detail": "Walk-in cooler walls/ceilings: R-28 minimum. Walk-in freezer walls/ceilings: R-36 minimum. Floors: R-28 (coolers), R-36 (freezers) if conditioned space below."
+        },
+        {
+          "id": "PRC-B02",
+          "requirement": "Automatic door closers",
+          "detail": "All walk-in cooler and freezer doors shall have automatic door closers. Strip curtains or air curtains required on doorways ≥6 ft wide or frequently opened."
+        },
+        {
+          "id": "PRC-B03",
+          "requirement": "Electronically commutated motors (ECM)",
+          "detail": "Evaporator fan motors shall be ECM or equivalent high-efficiency type"
+        },
+        {
+          "id": "PRC-B04",
+          "requirement": "Anti-sweat heater controls",
+          "detail": "Anti-sweat heaters on cooler/freezer doors shall have automatic controls that reduce heater energy when not needed"
+        },
+        {
+          "id": "PRC-B05",
+          "requirement": "Floating head pressure controls",
+          "detail": "Condensing units serving walk-in coolers/freezers shall use floating head pressure controls to reduce compressor energy at low ambient temperatures"
+        }
+      ]
+    },
+
+    "C_refrigerated_warehouse": {
+      "section": "Section 140.9(c)",
+      "category_code": "C",
+      "description": "Refrigerated warehouse and distribution center systems",
+      "applicable_to": ["Cold storage facilities", "Refrigerated warehouses", "Distribution centers"],
+      "requirements": [
+        {
+          "id": "PRC-C01",
+          "requirement": "Envelope insulation",
+          "detail": "Minimum insulation for cooler spaces: R-36 walls, R-36 ceiling. Freezer spaces: R-36 walls, R-46 ceiling. Higher insulation may be required by performance approach."
+        },
+        {
+          "id": "PRC-C02",
+          "requirement": "Air infiltration mitigation",
+          "detail": "All openings shall have automatic closers, strip curtains, or air curtains. Loading docks shall have sealed loading dock shelters."
+        },
+        {
+          "id": "PRC-C03",
+          "requirement": "Evaporative condensers",
+          "detail": "Ammonia systems ≥100 tons shall use evaporative condensers or equivalent with wet-bulb approach ≤15°F"
+        },
+        {
+          "id": "PRC-C04",
+          "requirement": "Variable-speed compressors",
+          "detail": "Refrigeration systems ≥50 HP total compressor capacity shall have variable-speed or multiple staging capability"
+        },
+        {
+          "id": "PRC-C05",
+          "requirement": "Condenser fan controls",
+          "detail": "Variable-speed fan motors required on condenser fans for systems ≥3 HP total fan motor power"
+        }
+      ]
+    },
+
+    "D_computer_rooms": {
+      "section": "Section 140.9(d)",
+      "category_code": "D",
+      "description": "Computer rooms and data center HVAC requirements",
+      "applicable_to": ["Data centers", "Server rooms", "Telecom facilities", "Computer rooms >500 sq ft"],
+      "requirements": [
+        {
+          "id": "PRC-D01",
+          "requirement": "Economizer required",
+          "detail": "Computer rooms with cooling capacity ≥3 tons must have air-side or water-side economizers capable of 100% cooling at outdoor conditions per Table 140.9-D"
+        },
+        {
+          "id": "PRC-D02",
+          "requirement": "Fan power limitation",
+          "detail": "Supply fan system power shall not exceed the fan power allowances in Table 140.9-D based on system type and design airflow"
+        },
+        {
+          "id": "PRC-D03",
+          "requirement": "Temperature and humidity setpoints",
+          "detail": "Computer room cooling systems shall be capable of maintaining recommended ASHRAE TC 9.9 temperature ranges (64.4°F–80.6°F) without reheat"
+        },
+        {
+          "id": "PRC-D04",
+          "requirement": "Variable air volume",
+          "detail": "Supply airflow shall be variable to match load. Constant-volume systems are not permitted for computer rooms ≥10 tons cooling."
+        }
+      ]
+    },
+
+    "E_parking_garage_ventilation": {
+      "section": "Section 140.9(e)",
+      "category_code": "E",
+      "description": "Enclosed parking garage ventilation systems",
+      "applicable_to": ["Underground parking", "Enclosed parking structures", "Residential garage ventilation"],
+      "requirements": [
+        {
+          "id": "PRC-E01",
+          "requirement": "CO sensor-based demand control ventilation",
+          "detail": "Enclosed parking garages shall have CO sensors to modulate ventilation. Sensors per Table 140.9-E: minimum 1 per 5,000 sq ft. Fan system must be capable of reducing airflow to 50% or less of design."
+        },
+        {
+          "id": "PRC-E02",
+          "requirement": "NO2 sensors for diesel",
+          "detail": "Garages with diesel vehicle traffic require NO2 sensors in addition to CO sensors"
+        },
+        {
+          "id": "PRC-E03",
+          "requirement": "Fan motor efficiency",
+          "detail": "Garage exhaust fan motors ≥1 HP shall have VFD or ECM controls for variable speed operation"
+        }
+      ],
+      "sf_note": "SF DBI mechanical plan check (M-06) specifically checks garage ventilation. SFFD also reviews for fire/smoke exhaust in enclosed garages."
+    },
+
+    "F_compressed_air": {
+      "section": "Section 140.9(f)",
+      "category_code": "F",
+      "description": "Compressed air systems for manufacturing and industrial use",
+      "applicable_to": ["Manufacturing", "Industrial facilities", "Auto body shops", "Dental offices with air compressors"],
+      "requirements": [
+        {
+          "id": "PRC-F01",
+          "requirement": "Compressor trim controls",
+          "detail": "Compressed air systems ≥25 HP total compressor capacity shall have load/unload, VSD, or inlet modulation controls"
+        },
+        {
+          "id": "PRC-F02",
+          "requirement": "Storage receiver",
+          "detail": "Systems ≥25 HP shall have a storage receiver sized to limit compressor cycling to manufacturer recommendations (typically 1 gallon per CFM)"
+        },
+        {
+          "id": "PRC-F03",
+          "requirement": "Pressure minimization",
+          "detail": "System shall be designed for the lowest header pressure that meets process requirements. Pressure/flow controllers required for multi-compressor systems ≥50 HP."
+        },
+        {
+          "id": "PRC-F04",
+          "requirement": "Air leak prevention",
+          "detail": "Ultrasonic leak detection survey required within 1 year of occupancy for systems ≥100 HP"
+        }
+      ]
+    },
+
+    "G_laboratory_exhaust": {
+      "section": "Section 140.9(g)",
+      "category_code": "G",
+      "description": "Laboratory fume hood and exhaust systems",
+      "applicable_to": ["Research laboratories", "Medical labs", "University labs", "Pharmaceutical facilities"],
+      "requirements": [
+        {
+          "id": "PRC-G01",
+          "requirement": "Variable air volume fume hoods",
+          "detail": "Laboratory fume hoods shall be VAV type with sash position sensors. Constant-volume hoods only permitted where required for safety by the chemical hygiene officer."
+        },
+        {
+          "id": "PRC-G02",
+          "requirement": "Exhaust energy recovery",
+          "detail": "Lab exhaust systems with total exhaust ≥5,000 CFM shall have energy recovery with ≥50% enthalpy recovery effectiveness. Exceptions: corrosive or toxic exhaust where energy recovery is not feasible."
+        },
+        {
+          "id": "PRC-G03",
+          "requirement": "Manifolded exhaust",
+          "detail": "Where permitted by safety requirements, fume hoods shall be connected to a manifolded exhaust system with variable-speed fans rather than individual constant-volume fans."
+        },
+        {
+          "id": "PRC-G04",
+          "requirement": "Minimum ventilation setback",
+          "detail": "Lab spaces shall reduce ventilation during unoccupied periods to minimum required for safety (typically 4 ACH occupied, 2 ACH unoccupied)"
+        }
+      ]
+    },
+
+    "H_commercial_refrigeration": {
+      "section": "Section 140.9(h)",
+      "category_code": "H",
+      "description": "Commercial refrigeration display cases and systems (grocery/retail)",
+      "applicable_to": ["Grocery stores", "Convenience stores", "Retail food", "Supermarkets"],
+      "requirements": [
+        {
+          "id": "PRC-H01",
+          "requirement": "Display case doors",
+          "detail": "Medium-temperature vertical display cases shall have doors. Open merchandisers only permitted for produce, deli, and floral displays."
+        },
+        {
+          "id": "PRC-H02",
+          "requirement": "Anti-sweat heater controls",
+          "detail": "Glass door display cases shall have anti-sweat heater controls that reduce heater power based on humidity conditions"
+        },
+        {
+          "id": "PRC-H03",
+          "requirement": "Floating suction pressure",
+          "detail": "Compressor suction pressure shall float up when cooling load decreases. Minimum floating range: 50% of design pressure differential."
+        },
+        {
+          "id": "PRC-H04",
+          "requirement": "Floating head pressure",
+          "detail": "Condenser pressure shall float down with ambient temperature. Required for systems ≥50 HP total compressor motor power."
+        },
+        {
+          "id": "PRC-H05",
+          "requirement": "Subcooling",
+          "detail": "Mechanical subcooling or liquid-suction heat exchange required for systems ≥100,000 Btu/h total capacity"
+        }
+      ]
+    },
+
+    "J_elevators_escalators": {
+      "section": "Section 140.9(j)",
+      "category_code": "J",
+      "description": "Elevators, escalators, and moving walkways",
+      "applicable_to": ["All buildings with elevators", "Transit stations", "Shopping centers with escalators", "Airport moving walkways"],
+      "requirements": [
+        {
+          "id": "PRC-J01",
+          "requirement": "Elevator cab lighting",
+          "detail": "Cab lighting shall be LED or equivalent high-efficacy source. When cab is unoccupied for >15 minutes, lighting and ventilation shall be reduced to ≤50%."
+        },
+        {
+          "id": "PRC-J02",
+          "requirement": "Elevator standby mode",
+          "detail": "Elevators shall have standby mode that reduces energy consumption when the car is idle. Motor drives shall be capable of regenerative braking."
+        },
+        {
+          "id": "PRC-J03",
+          "requirement": "Escalator/walkway auto-slowdown",
+          "detail": "Escalators and moving walkways shall automatically reduce speed to ≤50% of design speed when no passengers are detected for ≥5 minutes. Complete shutdown permitted if code and ADA requirements are met."
+        },
+        {
+          "id": "PRC-J04",
+          "requirement": "Destination dispatch",
+          "detail": "Buildings with ≥4 elevators in a bank shall use destination dispatch or equivalent intelligent scheduling to minimize energy use"
+        }
+      ],
+      "sf_note": "DBI reviews elevator energy compliance during mechanical plan check. Elevator permits are separate from building permits in SF — coordinate with DBI Elevator Division."
+    },
+
+    "K_process_boilers": {
+      "section": "Section 140.9(k)",
+      "category_code": "K",
+      "description": "Process boiler and steam systems (not space heating)",
+      "applicable_to": ["Laundries", "Hospitals", "Manufacturing", "Food processing"],
+      "requirements": [
+        {
+          "id": "PRC-K01",
+          "requirement": "Boiler efficiency",
+          "detail": "Process boilers shall meet minimum efficiency per Table 140.9-K based on size and fuel type. Condensing boilers required where return water temperature permits."
+        },
+        {
+          "id": "PRC-K02",
+          "requirement": "Combustion air preheat",
+          "detail": "Stack economizers or combustion air preheaters required for boilers ≥10 MMBtu/h input"
+        },
+        {
+          "id": "PRC-K03",
+          "requirement": "Steam trap maintenance",
+          "detail": "Steam systems shall include steam trap monitoring capability. Annual steam trap survey required for systems with ≥20 traps."
+        },
+        {
+          "id": "PRC-K04",
+          "requirement": "Condensate return",
+          "detail": "Condensate return systems required for steam systems ≥15 psi where distance to boiler is ≤600 ft"
+        }
+      ]
+    },
+
+    "L_industrial_process_heat": {
+      "section": "Section 140.9(l)",
+      "category_code": "L",
+      "description": "Industrial process heating (ovens, furnaces, kilns)",
+      "applicable_to": ["Manufacturing", "Ceramics", "Metal fabrication", "Food processing", "Bakeries"],
+      "requirements": [
+        {
+          "id": "PRC-L01",
+          "requirement": "Oven/furnace insulation",
+          "detail": "Process ovens and furnaces shall be insulated to limit case temperature to ≤140°F above ambient during steady-state operation"
+        },
+        {
+          "id": "PRC-L02",
+          "requirement": "Flue gas heat recovery",
+          "detail": "Process heating equipment ≥2 MMBtu/h with exhaust temperature ≥350°F shall have heat recovery capable of preheating combustion air or process loads"
+        },
+        {
+          "id": "PRC-L03",
+          "requirement": "Electric process heating",
+          "detail": "Electric resistance process heating shall use highest practical voltage to minimize I²R distribution losses"
+        }
+      ]
+    },
+
+    "M_EV_charging": {
+      "section": "Section 140.10",
+      "category_code": "M",
+      "description": "Electric vehicle charging infrastructure",
+      "applicable_to": ["All new nonresidential buildings with parking", "Major alterations adding parking"],
+      "requirements": [
+        {
+          "id": "PRC-M01",
+          "requirement": "EV-capable spaces",
+          "detail": "New nonresidential buildings shall provide EV charging infrastructure per Table 140.10-A. Percentage of spaces varies by building type and total parking count."
+        },
+        {
+          "id": "PRC-M02",
+          "requirement": "Panel capacity",
+          "detail": "Electrical panel capacity and conduit routing shall be installed to serve future EV charging equipment even for 'EV-capable' (not 'EV-ready') spaces."
+        },
+        {
+          "id": "PRC-M03",
+          "requirement": "Load management",
+          "detail": "Buildings with ≥20 EV charging spaces shall have EV load management system (EVLMS) capable of distributing available power across charging stations."
+        }
+      ],
+      "sf_note": "SF's local EV ordinance (Environment Code Chapter 4) may require MORE EV spaces than Title 24 minimums. Coordinate with SF Planning for local requirements."
+    },
+
+    "N_pool_spa": {
+      "section": "Section 140.9(n)",
+      "category_code": "N",
+      "description": "Swimming pools, spas, and heated water features",
+      "applicable_to": ["Hotels", "Fitness centers", "Residential complexes with pools", "Spas"],
+      "requirements": [
+        {
+          "id": "PRC-N01",
+          "requirement": "Pool covers",
+          "detail": "Heated pools and spas shall have covers with R-12 minimum insulation value. Automatic cover systems required for pools ≥1,000 sq ft surface area."
+        },
+        {
+          "id": "PRC-N02",
+          "requirement": "Pump motor efficiency",
+          "detail": "Pool pumps shall comply with DOE efficiency standards. Multi-speed or variable-speed pump motors required for pumps ≥1 HP."
+        },
+        {
+          "id": "PRC-N03",
+          "requirement": "Solar or heat pump heating",
+          "detail": "Outdoor pools ≥1,000 sq ft shall be heated by solar thermal, heat pump, or waste heat recovery. Gas-fired heaters only as supplemental/backup."
+        },
+        {
+          "id": "PRC-N04",
+          "requirement": "Time clock controls",
+          "detail": "Pool heating and filtration systems shall have time clock controls to limit operation during unoccupied periods"
+        }
+      ]
+    },
+
+    "P_commercial_laundry": {
+      "section": "Section 140.9(p)",
+      "category_code": "P",
+      "description": "Commercial laundry and dry cleaning systems",
+      "applicable_to": ["Hotels", "Hospitals", "Commercial laundries", "Laundromats"],
+      "requirements": [
+        {
+          "id": "PRC-P01",
+          "requirement": "Washer water heating",
+          "detail": "Commercial laundry water heating systems shall use ozone injection, heat pump water heating, or waste heat recovery where feasible"
+        },
+        {
+          "id": "PRC-P02",
+          "requirement": "Dryer exhaust heat recovery",
+          "detail": "Commercial dryers with total capacity ≥100 lbs shall have dryer exhaust heat recovery systems"
+        },
+        {
+          "id": "PRC-P03",
+          "requirement": "Moisture sensing controls",
+          "detail": "Commercial dryers shall have moisture sensing automatic shutoff controls"
+        }
+      ]
+    },
+
+    "Q_water_treatment": {
+      "section": "Section 140.9(q)",
+      "category_code": "Q",
+      "description": "Water treatment and process water systems",
+      "applicable_to": ["Semiconductor manufacturing", "Pharmaceutical", "Water treatment plants", "Industrial cooling"],
+      "requirements": [
+        {
+          "id": "PRC-Q01",
+          "requirement": "Pump efficiency",
+          "detail": "Process water pumps ≥5 HP shall have variable-speed drives or multiple staging to match flow to load"
+        },
+        {
+          "id": "PRC-Q02",
+          "requirement": "Heat recovery from process water",
+          "detail": "Process water systems rejecting ≥500,000 Btu/h shall evaluate heat recovery for space heating or service water preheating"
+        }
+      ]
+    },
+
+    "R_kitchen_appliances": {
+      "section": "Section 140.9(r)",
+      "category_code": "R",
+      "description": "Commercial kitchen appliance energy efficiency",
+      "applicable_to": ["Restaurants", "Commercial kitchens", "Institutional kitchens"],
+      "requirements": [
+        {
+          "id": "PRC-R01",
+          "requirement": "ENERGY STAR appliances",
+          "detail": "Commercial dishwashers, fryers, griddles, hot food holding cabinets, ice machines, ovens, and steam cookers shall be ENERGY STAR certified where an applicable ENERGY STAR specification exists"
+        },
+        {
+          "id": "PRC-R02",
+          "requirement": "Pre-rinse spray valves",
+          "detail": "Pre-rinse spray valves shall have flow rate ≤1.28 GPM"
+        }
+      ]
+    },
+
+    "S_greenhouse": {
+      "section": "Section 140.9(s)",
+      "category_code": "S",
+      "description": "Greenhouse and indoor agriculture systems",
+      "applicable_to": ["Commercial greenhouses", "Indoor agriculture", "Cannabis cultivation"],
+      "requirements": [
+        {
+          "id": "PRC-S01",
+          "requirement": "Horticultural lighting",
+          "detail": "Horticultural lighting systems shall have minimum efficacy of 1.9 µmol/J (PPF efficacy). LED required for new installations."
+        },
+        {
+          "id": "PRC-S02",
+          "requirement": "Lighting controls",
+          "detail": "Supplemental lighting shall have photoperiod controls and daylight integration where natural light is available"
+        },
+        {
+          "id": "PRC-S03",
+          "requirement": "HVAC dehumidification",
+          "detail": "Greenhouse HVAC systems shall use heat recovery for dehumidification rather than reheat where feasible"
+        }
+      ],
+      "sf_note": "Cannabis cultivation facilities in SF require additional permits from SF Office of Cannabis. Energy efficiency for cannabis operations may also be subject to local energy audit requirements."
+    },
+
+    "T_misc_process": {
+      "section": "Section 140.9(t)",
+      "category_code": "T",
+      "description": "Miscellaneous process systems (catch-all for other process loads)",
+      "applicable_to": ["Any nonresidential building with process loads not covered by categories A through S"],
+      "requirements": [
+        {
+          "id": "PRC-T01",
+          "requirement": "Motor efficiency",
+          "detail": "All process motors ≥1 HP shall meet NEMA Premium efficiency or IE3 equivalent"
+        },
+        {
+          "id": "PRC-T02",
+          "requirement": "VFD on pumps/fans",
+          "detail": "Process pumps and fans ≥5 HP serving variable loads shall have variable frequency drives"
+        },
+        {
+          "id": "PRC-T03",
+          "requirement": "Metering",
+          "detail": "Process loads ≥100 kW shall have dedicated energy metering for monitoring and benchmarking"
+        }
+      ]
+    }
+  },
+
+  "compliance_approaches": {
+    "prescriptive": {
+      "description": "Meet individual component requirements in Section 140.9 for each applicable process system. Most projects use this approach.",
+      "form": "NRCC-PRC-E (prescriptive columns)",
+      "advantage": "Straightforward, no energy modeling required for process systems",
+      "limitation": "Cannot trade off between process systems — each must independently comply"
+    },
+    "performance": {
+      "description": "Include process loads in whole-building energy model (NRCC-PRF-01-E). Process energy can be traded against other building systems.",
+      "form": "NRCC-PRF-01-E with process load inputs",
+      "advantage": "Allows trade-offs (e.g., more efficient kitchen ventilation can offset less efficient lighting)",
+      "limitation": "Requires energy modeling expertise; process load inputs must be documented with manufacturer data"
+    }
+  },
+
+  "common_corrections": [
+    {
+      "id": "PRC-C01",
+      "category": "Missing PRC-E form",
+      "description": "NRCC-PRC-E not included when project has process loads (especially restaurants and buildings with elevators)",
+      "frequency": "Very common for restaurant and grocery projects",
+      "resolution": "Complete NRCC-PRC-E for all applicable process systems. List each system category (A–T) that applies.",
+      "timeline_impact_days": 7
+    },
+    {
+      "id": "PRC-C02",
+      "category": "Kitchen ventilation incomplete",
+      "description": "Commercial kitchen ventilation (Category A) not documented with hood types, exhaust rates, and makeup air calculations",
+      "frequency": "Very common for restaurant projects",
+      "resolution": "Provide kitchen ventilation schedule showing hood type, duty rating, exhaust CFM, makeup air CFM, and DCV compliance for systems ≥5,000 CFM",
+      "timeline_impact_days": 10
+    },
+    {
+      "id": "PRC-C03",
+      "category": "Walk-in cooler/freezer not addressed",
+      "description": "Walk-in cooler/freezer insulation and motor requirements not documented (Category B)",
+      "frequency": "Common for restaurant and grocery projects",
+      "resolution": "Document wall/ceiling R-values, door closers, ECM motors, and anti-sweat heater controls for all walk-ins",
+      "timeline_impact_days": 5
+    },
+    {
+      "id": "PRC-C04",
+      "category": "Garage ventilation missing DCV",
+      "description": "Enclosed parking garage ventilation does not show CO sensor layout or demand control capability",
+      "frequency": "Common for mixed-use buildings with underground parking",
+      "resolution": "Provide CO sensor layout (1 per 5,000 sq ft min), fan VFD documentation, and DCV control sequence",
+      "timeline_impact_days": 7
+    },
+    {
+      "id": "PRC-C05",
+      "category": "Elevator energy not addressed",
+      "description": "Elevator cab lighting, ventilation, and standby mode requirements not documented",
+      "frequency": "Moderate — often overlooked on smaller projects",
+      "resolution": "Document elevator cab LED lighting, standby mode capability, and regenerative drive (if applicable)",
+      "timeline_impact_days": 3
+    },
+    {
+      "id": "PRC-C06",
+      "category": "EV charging infrastructure missing",
+      "description": "EV-capable/EV-ready parking spaces not shown on plans or electrical documents",
+      "frequency": "Common for new construction and major alterations with parking",
+      "resolution": "Show EV space count per Table 140.10-A, conduit routing, and panel capacity on electrical plans",
+      "timeline_impact_days": 7
+    }
+  ],
+
+  "sf_specific_notes": [
+    {
+      "topic": "DBI plan check stages",
+      "detail": "Process systems are reviewed during M-06 (Mechanical), M-07 (Plumbing), and M-08 (Energy) plan check stages depending on the system type. Missing PRC-E documentation triggers corrections that hold permit issuance."
+    },
+    {
+      "topic": "Restaurant projects",
+      "detail": "Restaurant projects in SF require PRC-E documentation for Categories A (kitchen ventilation), B (walk-in coolers), and R (commercial appliances) at minimum. DPH food facility permit also requires ventilation review."
+    },
+    {
+      "topic": "Green building overlay",
+      "detail": "SF's AB-093 green building ordinance may require energy performance beyond Title 24 minimums for process systems in large buildings (≥25,000 sq ft)."
+    },
+    {
+      "topic": "EV charging local requirements",
+      "detail": "SF's local EV ordinance (Environment Code Chapter 4) requires more EV-ready spaces than state minimums. SF Planning reviews EV compliance during site permit review."
+    },
+    {
+      "topic": "Cannabis facilities",
+      "detail": "Cannabis cultivation and manufacturing facilities have additional energy audit and efficiency requirements under SF Office of Cannabis regulations. Category S (greenhouse) requirements apply."
+    }
+  ],
+
+  "tool_integration": {
+    "required_documents": {
+      "triggers": ["restaurant", "commercial_kitchen", "grocery", "laboratory", "data_center", "parking_garage", "elevator", "industrial", "ev_charging", "pool", "cannabis"],
+      "documents_to_add": [
+        "NRCC-PRC-E (Process Systems Certificate of Compliance)",
+        "Kitchen ventilation schedule (Category A — if restaurant/food service)",
+        "Walk-in cooler/freezer specifications (Category B — if food service)",
+        "CO sensor layout for garage ventilation (Category E — if enclosed parking)",
+        "EV charging infrastructure plan (Category M — if parking provided)"
+      ]
+    },
+    "revision_risk": {
+      "triggers": ["restaurant", "commercial_kitchen", "grocery", "laboratory", "data_center", "parking_garage"],
+      "risk_factors": [
+        "Missing PRC-E form (PRC-C01): +7 days",
+        "Kitchen ventilation incomplete (PRC-C02): +10 days",
+        "Garage DCV missing (PRC-C04): +7 days",
+        "EV infrastructure missing (PRC-C06): +7 days"
+      ]
+    },
+    "estimate_timeline": {
+      "note": "Projects with complex process systems (restaurants, labs, data centers) typically add 1-2 weeks to plan check timeline due to PRC-E review and potential corrections"
+    }
+  }
+}
