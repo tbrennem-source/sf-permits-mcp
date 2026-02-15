@@ -40,6 +40,7 @@
             text-decoration: none; cursor: pointer; font-family: inherit;
         }
         .badge:hover { color: var(--text); border-color: var(--text-muted); }
+        .badge-active { background: var(--accent); color: #fff; border-color: var(--accent); }
         main { padding: 40px 0 80px; }
         h1 { font-size: 1.5rem; margin-bottom: 4px; }
         .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
@@ -65,7 +66,7 @@
             border-radius: 12px; padding: 24px; margin-bottom: 24px;
         }
         .section h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--accent); }
-        .section-empty { color: var(--text-muted); font-style: italic; }
+        .section-empty { color: var(--text-muted); font-style: italic; font-size: 0.9rem; }
 
         /* Lookback toggle */
         .lookback-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
@@ -84,6 +85,8 @@
         .change-card:last-child { border-bottom: none; }
         .change-meta { display: flex; flex-direction: column; }
         .change-permit { font-weight: 500; font-size: 0.95rem; }
+        .change-permit a { color: var(--text); text-decoration: none; }
+        .change-permit a:hover { color: var(--accent); text-decoration: underline; }
         .change-detail { font-size: 0.8rem; color: var(--text-muted); }
         .status-badge {
             display: inline-block; padding: 2px 8px; border-radius: 4px;
@@ -103,6 +106,8 @@
         .health-item:last-child { border-bottom: none; }
         .health-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .health-label { font-weight: 500; font-size: 0.9rem; }
+        .health-label a { color: var(--text); text-decoration: none; }
+        .health-label a:hover { color: var(--accent); text-decoration: underline; }
         .health-status {
             font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
             padding: 2px 8px; border-radius: 4px;
@@ -132,6 +137,33 @@
         /* Expiring */
         .expire-urgent { color: var(--error); font-weight: 600; }
         .expire-warning { color: var(--warning); }
+
+        /* Onboarding empty state */
+        .onboarding {
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .onboarding h2 { color: var(--text); font-size: 1.2rem; margin-bottom: 12px; }
+        .onboarding p { color: var(--text-muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .onboarding .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .onboarding .btn:hover { background: var(--accent-hover); }
+
+        /* Reviewed (dismiss) */
+        .btn-dismiss {
+            background: none; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 3px 10px; border-radius: 5px; cursor: pointer;
+            font-size: 0.75rem; font-family: inherit; margin-left: 8px;
+        }
+        .btn-dismiss:hover { border-color: var(--success); color: var(--success); }
     </style>
 </head>
 <body>
@@ -139,7 +171,8 @@
         <div class="container">
             <a href="/" class="logo">sfpermits<span>.ai</span></a>
             <div class="header-right">
-                <a href="/brief" class="badge" style="background:var(--accent);color:#fff;border-color:var(--accent);">Morning Brief</a>
+                <a href="/expediters" class="badge">Find Expediter</a>
+                <a href="/brief" class="badge badge-active">Morning Brief</a>
                 <a href="/account" class="badge">{{ user.display_name or user.email }}</a>
                 <form method="POST" action="/auth/logout" style="display:inline;">
                     <button class="badge" type="submit">Logout</button>
@@ -154,6 +187,18 @@
             <p class="subtitle">
                 {{ brief.lookback_days }} day{{ 's' if brief.lookback_days > 1 else '' }} lookback
             </p>
+
+            {% if brief.summary.total_watches == 0 %}
+            <!-- Onboarding: no watches yet -->
+            <div class="section onboarding">
+                <h2>Your morning brief is ready to go</h2>
+                <p>
+                    Start watching permits, addresses, or neighborhoods and you'll see
+                    status changes, inspection results, and health alerts right here every morning.
+                </p>
+                <a href="/" class="btn">Search permits to start watching</a>
+            </div>
+            {% else %}
 
             <!-- Lookback toggle -->
             <div class="lookback-toggle">
@@ -191,26 +236,33 @@
                 <h2>What Changed</h2>
                 {% if brief.changes %}
                 {% for c in brief.changes %}
-                <div class="change-card">
+                <div class="change-card" id="change-{{ loop.index }}">
                     <div class="change-meta">
-                        <span class="change-permit">{{ c.label or c.permit_number }}</span>
+                        <span class="change-permit">
+                            <a href="/?q={{ c.permit_number }}" title="Look up permit details">{{ c.label or c.permit_number }}</a>
+                        </span>
                         <span class="change-detail">
-                            {{ c.street_number }} {{ c.street_name }}
+                            {{ c.permit_number }}
+                            {% if c.street_number %} &middot; {{ c.street_number }} {{ c.street_name }}{% endif %}
                             {% if c.neighborhood %} &middot; {{ c.neighborhood }}{% endif %}
                             {% if c.permit_type %} &middot; {{ c.permit_type }}{% endif %}
                         </span>
                     </div>
-                    <div>
+                    <div style="display:flex;align-items:center;">
                         {% if c.old_status %}
                         <span class="status-badge status-{{ c.old_status|lower }}">{{ c.old_status }}</span>
                         <span class="status-arrow">&rarr;</span>
                         {% endif %}
                         <span class="status-badge status-{{ c.new_status|lower }}">{{ c.new_status }}</span>
+                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
                     </div>
                 </div>
                 {% endfor %}
                 {% else %}
-                <p class="section-empty">No status changes on your watched items in this period.</p>
+                <p class="section-empty">
+                    No status changes on your watched items in this period.
+                    {% if brief.lookback_days == 1 %}Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> for a wider view.{% endif %}
+                </p>
                 {% endif %}
             </div>
 
@@ -221,7 +273,9 @@
                 {% for h in brief.health %}
                 <div class="health-item">
                     <div class="health-header">
-                        <span class="health-label">{{ h.label or h.permit_number }}</span>
+                        <span class="health-label">
+                            <a href="/?q={{ h.permit_number }}" title="Look up permit details">{{ h.label or h.permit_number }}</a>
+                        </span>
                         <span class="health-status health-{{ h.status }}">{{ h.status|replace('_', ' ') }}</span>
                     </div>
                     <div class="progress-track">
@@ -237,7 +291,9 @@
                 </div>
                 {% endfor %}
                 {% else %}
-                <p class="section-empty">No active watched permits to track.</p>
+                <p class="section-empty">
+                    No active watched permits to track. Watch a specific permit number to see health tracking here.
+                </p>
                 {% endif %}
             </div>
 
@@ -246,35 +302,43 @@
                 <h2>Inspection Results</h2>
                 {% if brief.inspections %}
                 {% for insp in brief.inspections %}
-                <div class="change-card">
+                <div class="change-card" id="insp-{{ loop.index }}">
                     <div class="change-meta">
-                        <span class="change-permit">{{ insp.label or insp.permit_number }}</span>
+                        <span class="change-permit">
+                            <a href="/?q={{ insp.permit_number }}" title="Look up permit details">{{ insp.label or insp.permit_number }}</a>
+                        </span>
                         <span class="change-detail">
                             {{ insp.description or 'Inspection' }}
                             {% if insp.inspector %} &middot; {{ insp.inspector }}{% endif %}
                             &middot; {{ insp.date }}
                         </span>
                     </div>
-                    <div>
+                    <div style="display:flex;align-items:center;">
                         <span class="status-badge {% if insp.is_pass %}status-approved{% elif insp.is_fail %}status-expired{% else %}{% endif %}">
                             {{ insp.result or 'Pending' }}
                         </span>
+                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
                     </div>
                 </div>
                 {% endfor %}
                 {% else %}
-                <p class="section-empty">No recent inspections on your watched permits.</p>
+                <p class="section-empty">
+                    No recent inspections on your watched permits.
+                    {% if brief.lookback_days == 1 %}Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a>.{% endif %}
+                </p>
                 {% endif %}
             </div>
 
             <!-- Section 4: New Filings -->
-            {% if brief.new_filings %}
             <div class="section">
                 <h2>New Filings at Watched Locations</h2>
+                {% if brief.new_filings %}
                 {% for f in brief.new_filings %}
                 <div class="change-card">
                     <div class="change-meta">
-                        <span class="change-permit">{{ f.permit_number }}</span>
+                        <span class="change-permit">
+                            <a href="/?q={{ f.permit_number }}" title="Look up permit details">{{ f.permit_number }}</a>
+                        </span>
                         <span class="change-detail">
                             {{ f.street_number }} {{ f.street_name }}
                             {% if f.neighborhood %} &middot; {{ f.neighborhood }}{% endif %}
@@ -286,19 +350,21 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% else %}
+                <p class="section-empty">No new permits filed at your watched addresses or parcels.</p>
+                {% endif %}
             </div>
-            {% endif %}
 
             <!-- Section 5: Team Activity -->
-            {% if brief.team_activity %}
             <div class="section">
                 <h2>Team Activity</h2>
+                {% if brief.team_activity %}
                 {% for t in brief.team_activity %}
                 <div class="change-card">
                     <div class="change-meta">
                         <span class="change-permit">{{ t.entity_name }} ({{ t.role }})</span>
                         <span class="change-detail">
-                            {{ t.permit_number }} &middot;
+                            <a href="/?q={{ t.permit_number }}" style="color:var(--text-muted);text-decoration:none;">{{ t.permit_number }}</a> &middot;
                             {{ t.street_number }} {{ t.street_name }}
                             {% if t.neighborhood %} &middot; {{ t.neighborhood }}{% endif %}
                             {% if t.permit_type %} &middot; {{ t.permit_type }}{% endif %}
@@ -309,17 +375,21 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% else %}
+                <p class="section-empty">No new activity from your watched contractors, architects, or expediters.</p>
+                {% endif %}
             </div>
-            {% endif %}
 
             <!-- Section 6: Expiring Permits -->
-            {% if brief.expiring %}
             <div class="section">
                 <h2>Expiring Permits</h2>
+                {% if brief.expiring %}
                 {% for e in brief.expiring %}
                 <div class="change-card">
                     <div class="change-meta">
-                        <span class="change-permit">{{ e.label or e.permit_number }}</span>
+                        <span class="change-permit">
+                            <a href="/?q={{ e.permit_number }}" title="Look up permit details">{{ e.label or e.permit_number }}</a>
+                        </span>
                         <span class="change-detail">
                             {{ e.street_number }} {{ e.street_name }}
                             {% if e.neighborhood %} &middot; {{ e.neighborhood }}{% endif %}
@@ -335,9 +405,19 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% else %}
+                <p class="section-empty">No permits approaching the 180-day expiration window.</p>
+                {% endif %}
             </div>
-            {% endif %}
 
+            <!-- Email preferences hint -->
+            <div style="text-align:center;margin-top:16px;">
+                <a href="/account" style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;">
+                    Manage email preferences &middot; Get this brief in your inbox
+                </a>
+            </div>
+
+            {% endif %}{# end of total_watches > 0 #}
         </div>
     </main>
 </body>

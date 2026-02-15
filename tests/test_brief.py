@@ -261,8 +261,9 @@ def test_brief_empty_watch_list(client):
     _login_user(client)
     rv = client.get("/brief")
     html = rv.data.decode()
-    assert "0" in html  # Watching: 0
-    assert "No status changes" in html
+    # With 0 watches, shows onboarding message instead of sections
+    assert "ready to go" in html
+    assert "Search permits to start watching" in html
 
 
 def test_brief_lookback_toggle(client):
