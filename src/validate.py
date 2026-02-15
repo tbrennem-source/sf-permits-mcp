@@ -16,7 +16,20 @@ import sys
 from collections import defaultdict, deque
 from statistics import median
 
-from src.db import get_connection
+from src.db import get_connection, BACKEND
+
+
+def _exec(conn, sql: str, params: list):
+    """Execute a query on either Postgres or DuckDB and return all rows."""
+    if BACKEND == "postgres":
+        # Postgres uses %s placeholders and cursor-based API
+        sql = sql.replace("?", "%s")
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+            return cur.fetchall()
+    else:
+        # DuckDB uses ? placeholders and direct conn.execute()
+        return conn.execute(sql, params).fetchall()
 
 
 # ---------------------------------------------------------------------------
@@ -32,72 +45,76 @@ def search_entity(name: str, db_path=None) -> list[dict]:
     conn = get_connection(db_path)
     pattern = f"%{name}%"
 
-    entities = conn.execute(
-        """
-        SELECT
-            entity_id,
-            canonical_name,
-            canonical_firm,
-            entity_type,
-            pts_agent_id,
-            license_number,
-            sf_business_license,
-            resolution_method,
-            resolution_confidence,
-            contact_count,
-            permit_count,
-            source_datasets
-        FROM entities
-        WHERE lower(canonical_name) LIKE lower(?)
-           OR lower(canonical_firm) LIKE lower(?)
-        ORDER BY permit_count DESC
-        """,
-        [pattern, pattern],
-    ).fetchall()
-
-    columns = [
-        "entity_id", "canonical_name", "canonical_firm", "entity_type",
-        "pts_agent_id", "license_number", "sf_business_license",
-        "resolution_method", "resolution_confidence", "contact_count",
-        "permit_count", "source_datasets",
-    ]
-
-    results = []
-    for row in entities:
-        entity = dict(zip(columns, row))
-        eid = entity["entity_id"]
-
-        co_occurring = conn.execute(
+    try:
+        entities = _exec(
+            conn,
             """
             SELECT
-                CASE WHEN r.entity_id_a = ? THEN r.entity_id_b
-                     ELSE r.entity_id_a END AS other_id,
-                e.canonical_name,
-                e.canonical_firm,
-                e.entity_type,
-                r.shared_permits,
-                r.permit_numbers,
-                r.neighborhoods
-            FROM relationships r
-            JOIN entities e
-              ON e.entity_id = CASE WHEN r.entity_id_a = ? THEN r.entity_id_b
-                                    ELSE r.entity_id_a END
-            WHERE r.entity_id_a = ? OR r.entity_id_b = ?
-            ORDER BY r.shared_permits DESC
-            LIMIT 5
+                entity_id,
+                canonical_name,
+                canonical_firm,
+                entity_type,
+                pts_agent_id,
+                license_number,
+                sf_business_license,
+                resolution_method,
+                resolution_confidence,
+                contact_count,
+                permit_count,
+                source_datasets
+            FROM entities
+            WHERE lower(canonical_name) LIKE lower(?)
+               OR lower(canonical_firm) LIKE lower(?)
+            ORDER BY permit_count DESC
             """,
-            [eid, eid, eid, eid],
-        ).fetchall()
+            [pattern, pattern],
+        )
 
-        co_cols = [
-            "entity_id", "canonical_name", "canonical_firm",
-            "entity_type", "shared_permits", "permit_numbers",
-            "neighborhoods",
+        columns = [
+            "entity_id", "canonical_name", "canonical_firm", "entity_type",
+            "pts_agent_id", "license_number", "sf_business_license",
+            "resolution_method", "resolution_confidence", "contact_count",
+            "permit_count", "source_datasets",
         ]
-        entity["top_co_occurring"] = [dict(zip(co_cols, r)) for r in co_occurring]
-        results.append(entity)
 
-    conn.close()
+        results = []
+        for row in entities:
+            entity = dict(zip(columns, row))
+            eid = entity["entity_id"]
+
+            co_occurring = _exec(
+                conn,
+                """
+                SELECT
+                    CASE WHEN r.entity_id_a = ? THEN r.entity_id_b
+                         ELSE r.entity_id_a END AS other_id,
+                    e.canonical_name,
+                    e.canonical_firm,
+                    e.entity_type,
+                    r.shared_permits,
+                    r.permit_numbers,
+                    r.neighborhoods
+                FROM relationships r
+                JOIN entities e
+                  ON e.entity_id = CASE WHEN r.entity_id_a = ? THEN r.entity_id_b
+                                        ELSE r.entity_id_a END
+                WHERE r.entity_id_a = ? OR r.entity_id_b = ?
+                ORDER BY r.shared_permits DESC
+                LIMIT 5
+                """,
+                [eid, eid, eid, eid],
+            )
+
+            co_cols = [
+                "entity_id", "canonical_name", "canonical_firm",
+                "entity_type", "shared_permits", "permit_numbers",
+                "neighborhoods",
+            ]
+            entity["top_co_occurring"] = [dict(zip(co_cols, r)) for r in co_occurring]
+            results.append(entity)
+    finally:
+        conn.close()
+
     return results
 
 
