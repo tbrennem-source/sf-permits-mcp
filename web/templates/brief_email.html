@@ -227,6 +227,13 @@
                     <!-- Footer -->
                     <tr>
                         <td style="padding:20px 28px;background:#f8f9fb;border-top:1px solid #e5e7eb;">
+                            {% if last_refresh %}
+                            <p style="margin:0 0 8px;font-size:0.7rem;color:#b0b4c0;text-align:center;">
+                                Data as of {{ last_refresh.last_success_date }}
+                                {% if last_refresh.is_stale %} &mdash; &#9888; data may be incomplete{% endif %}
+                                {% if last_refresh.was_catchup %} &mdash; some changes recovered via backfill{% endif %}
+                            </p>
+                            {% endif %}
                             <p style="margin:0;font-size:0.75rem;color:#9ca3af;text-align:center;">
                                 You're receiving this because you have an active watch list on
                                 <a href="{{ base_url }}" style="color:#4f8ff7;text-decoration:none;">sfpermits.ai</a>.

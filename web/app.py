@@ -103,6 +103,23 @@ def _run_startup_migrations():
         # Primary address columns (added for homeowner personalization)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_number TEXT")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_name TEXT")
+        # cron_log table (nightly refresh + brief send tracking)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS cron_log (
+                log_id      SERIAL PRIMARY KEY,
+                job_type    TEXT NOT NULL,
+                started_at  TIMESTAMPTZ NOT NULL,
+                completed_at TIMESTAMPTZ,
+                status      TEXT NOT NULL DEFAULT 'running',
+                lookback_days INTEGER,
+                soda_records INTEGER,
+                changes_inserted INTEGER,
+                inspections_updated INTEGER,
+                error_message TEXT,
+                was_catchup BOOLEAN DEFAULT FALSE
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_cron_log_job_status ON cron_log (job_type, status)")
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -1641,8 +1658,10 @@ def cron_nightly():
     except ValueError:
         lookback_days = 1
 
+    dry_run = request.args.get("dry_run", "").lower() in ("1", "true", "yes")
+
     try:
-        result = run_async(run_nightly(lookback_days=lookback_days))
+        result = run_async(run_nightly(lookback_days=lookback_days, dry_run=dry_run))
         return Response(
             json.dumps({"status": "ok", **result}, indent=2),
             mimetype="application/json",
