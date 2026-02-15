@@ -1,0 +1,10 @@
+<span class="watch-active">
+    &#9733; Watching
+    <button class="btn-unwatch"
+        hx-post="/watch/remove"
+        hx-target="closest .watch-container"
+        hx-swap="innerHTML"
+        hx-vals='{"watch_id": "{{ watch_id }}"}'>
+        &#10005;
+    </button>
+</span>

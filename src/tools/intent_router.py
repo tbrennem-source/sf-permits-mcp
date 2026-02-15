@@ -87,6 +87,29 @@ ADDRESS_SIGNALS = [
     "what's at", "show me", "anything at",
 ]
 
+# Pattern to strip city/state/zip/country tail from pasted mailing addresses
+# e.g., "146 Lake St 1425 San Francisco, CA 94118 US"  →  "146 Lake St 1425"
+_MAILING_TAIL_RE = re.compile(
+    r',?\s*(?:San\s+Francisco|SF)\s*'       # city
+    r'(?:,?\s*CA(?:lifornia)?)?\s*'          # state
+    r'(?:\d{5}(?:-\d{4})?)?\s*'              # zip
+    r'(?:US|USA|United\s+States)?\s*$',      # country
+    re.IGNORECASE,
+)
+
+# Unit / apt / suite / # numbers that can appear after the street suffix
+_UNIT_RE = re.compile(
+    r'\s+(?:#|apt\.?|suite|ste\.?|unit|fl(?:oor)?\.?)\s*\w+',
+    re.IGNORECASE,
+)
+# Bare trailing 3-5 digit numbers after a street suffix (e.g., "146 Lake St 1425")
+_TRAILING_UNIT_RE = re.compile(
+    r'((?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Rd|Road|Dr(?:ive)?'
+    r'|Way|Ct|Court|Ln|Lane|Pl(?:ace)?|Ter(?:race)?)\.?)'
+    r'\s+(\d{1,5})\s*$',
+    re.IGNORECASE,
+)
+
 # Priority 5: Person search patterns
 PERSON_PATTERNS = [
     # "projects by John Smith" / "permits for Amy Lee"
@@ -101,6 +124,23 @@ PERSON_PATTERNS = [
 
 # Roles that can appear in person search queries
 PERSON_ROLES = ["contractor", "architect", "engineer", "expediter", "owner", "designer"]
+
+# Common misspellings of roles — map to canonical form
+_ROLE_TYPOS = {
+    "expiditer": "expediter", "expeditor": "expediter", "expiditor": "expediter",
+    "architech": "architect", "architecht": "architect",
+    "enginnier": "engineer", "enginner": "engineer",
+    "contractr": "contractor", "contracter": "contractor",
+    "desinger": "designer", "desginer": "designer",
+}
+
+# Words to strip from the start/end of extracted person names
+_NAME_NOISE_LEADING = re.compile(
+    r'^(?:me|the|a|an|all|my|about|info\s+on|details?\s+on)\s+', re.IGNORECASE,
+)
+_NAME_NOISE_TRAILING = re.compile(
+    r"\s+(?:projects?|permits?|work|portfolio|jobs?|details?|info)$", re.IGNORECASE,
+)
 
 # Priority 6: Analyze project signals
 ANALYZE_SIGNALS = [
@@ -170,17 +210,30 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
     has_address_signal = any(sig in text_lower for sig in ADDRESS_SIGNALS)
     is_short = len(text.split()) <= 8
 
-    # Try with suffix first (e.g., "123 Main St"), then bare (e.g., "456 Market")
-    m = ADDRESS_WITH_SUFFIX_RE.search(text) or (
-        ADDRESS_BARE_RE.search(text) if (has_address_signal or is_short) else None
+    # Pre-clean: strip mailing address tails and unit numbers so
+    # "146 Lake St 1425 San Francisco, CA 94118 US" → "146 Lake St"
+    addr_text = _MAILING_TAIL_RE.sub('', text).strip()
+    addr_text = _UNIT_RE.sub('', addr_text).strip()
+    m_trailing = _TRAILING_UNIT_RE.search(addr_text)
+    if m_trailing:
+        # Remove bare trailing unit number after suffix: "Lake St 1425" → "Lake St"
+        addr_text = addr_text[:m_trailing.start(2)].strip()
+
+    # Try with suffix first (e.g., "123 Main St").
+    # A street suffix IS a signal — no need for word-count or signal-phrase gates.
+    has_suffix = ADDRESS_WITH_SUFFIX_RE.search(addr_text)
+
+    # Bare address (e.g., "456 Market") still needs a gate.
+    m = has_suffix or (
+        ADDRESS_BARE_RE.search(addr_text) if (has_address_signal or is_short) else None
     )
-    if m and (has_address_signal or is_short):
+    if m and (has_suffix or has_address_signal or is_short):
         street_number = m.group(1)
         street_name = m.group(2).strip()
         # Reject measurement words that look like street names
         if street_name.lower() in _NOT_STREET_NAMES:
             m = None
-    if m and (has_address_signal or is_short):
+    if m and (has_suffix or has_address_signal or is_short):
         street_number = m.group(1)
         street_name = m.group(2).strip()
         # Clean trailing prepositions/articles
@@ -201,15 +254,25 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
         m = pattern.search(text)
         if m:
             name = m.group(1).strip()
-            # Extract optional role
+            # Extract optional role (check canonical + misspellings)
             role = None
             for r in PERSON_ROLES:
                 if r in text_lower:
                     role = r
                     name = re.sub(r'\b' + r + r'\b', '', name, flags=re.IGNORECASE).strip()
                     break
-            # Clean trailing punctuation
+            if role is None:
+                for typo, canonical in _ROLE_TYPOS.items():
+                    if typo in text_lower:
+                        role = canonical
+                        name = re.sub(r'\b' + typo + r'\b', '', name, flags=re.IGNORECASE).strip()
+                        break
+            # Strip leading/trailing noise words
+            name = _NAME_NOISE_LEADING.sub('', name)
+            name = _NAME_NOISE_TRAILING.sub('', name)
+            # Clean trailing punctuation and possessives
             name = name.rstrip(".,;:!?")
+            name = re.sub(r"'s$", '', name).strip()
             if name and len(name) >= 2:
                 return IntentResult(
                     intent="search_person",

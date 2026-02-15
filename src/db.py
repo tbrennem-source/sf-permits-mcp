@@ -86,6 +86,132 @@ def query_one(sql: str, params=None):
     return rows[0] if rows else None
 
 
+# ── Write helpers ──────────────────────────────────────────────────
+
+def execute_write(sql: str, params=None, return_id: bool = False):
+    """Execute an INSERT/UPDATE/DELETE and optionally return a generated id.
+
+    Uses RETURNING for both Postgres and DuckDB (DuckDB >=0.9 supports it).
+    Callers should use %s placeholders — auto-converted for DuckDB.
+    """
+    conn = get_connection()
+    try:
+        if BACKEND == "duckdb" and params:
+            sql = sql.replace("%s", "?")
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                result = cur.fetchone() if return_id else None
+                conn.commit()
+                return result[0] if result else None
+        else:
+            if params:
+                result = conn.execute(sql, params)
+            else:
+                result = conn.execute(sql)
+            if return_id:
+                row = result.fetchone()
+                return row[0] if row else None
+            return None
+    finally:
+        conn.close()
+
+
+# ── User schema (DuckDB dev mode) ────────────────────────────────
+
+def init_user_schema(conn=None) -> None:
+    """Create user/auth/watch tables in DuckDB (dev mode).
+
+    Called lazily on first auth/watch operation. Idempotent.
+    If no conn provided, creates one internally.
+    """
+    close = False
+    if conn is None:
+        conn = get_connection()
+        close = True
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                email TEXT NOT NULL UNIQUE,
+                display_name TEXT,
+                role TEXT,
+                firm_name TEXT,
+                entity_id INTEGER,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                last_login_at TIMESTAMP,
+                email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+                is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+                is_active BOOLEAN NOT NULL DEFAULT TRUE
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS auth_tokens (
+                token_id INTEGER PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                token TEXT NOT NULL UNIQUE,
+                purpose TEXT NOT NULL DEFAULT 'login',
+                expires_at TIMESTAMP NOT NULL,
+                used_at TIMESTAMP,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS watch_items (
+                watch_id INTEGER PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                watch_type TEXT NOT NULL,
+                permit_number TEXT,
+                street_number TEXT,
+                street_name TEXT,
+                block TEXT,
+                lot TEXT,
+                entity_id INTEGER,
+                neighborhood TEXT,
+                label TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                is_active BOOLEAN NOT NULL DEFAULT TRUE
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS permit_changes (
+                change_id INTEGER PRIMARY KEY,
+                permit_number TEXT NOT NULL,
+                change_date DATE NOT NULL,
+                detected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                old_status TEXT,
+                new_status TEXT NOT NULL,
+                old_status_date TEXT,
+                new_status_date TEXT,
+                change_type TEXT NOT NULL,
+                is_new_permit BOOLEAN NOT NULL DEFAULT FALSE,
+                source TEXT NOT NULL DEFAULT 'nightly',
+                permit_type TEXT,
+                street_number TEXT,
+                street_name TEXT,
+                neighborhood TEXT,
+                block TEXT,
+                lot TEXT
+            )
+        """)
+        # Indexes (no partial indexes in DuckDB)
+        for stmt in [
+            "CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)",
+            "CREATE INDEX IF NOT EXISTS idx_watch_user ON watch_items (user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_watch_permit ON watch_items (permit_number)",
+            "CREATE INDEX IF NOT EXISTS idx_auth_token ON auth_tokens (token)",
+            "CREATE INDEX IF NOT EXISTS idx_pc_date ON permit_changes (change_date)",
+            "CREATE INDEX IF NOT EXISTS idx_pc_permit ON permit_changes (permit_number)",
+        ]:
+            try:
+                conn.execute(stmt)
+            except Exception:
+                pass
+    finally:
+        if close:
+            conn.close()
+
+
 # ── Legacy DuckDB-only functions (for ingestion scripts) ──────────
 
 def init_schema(conn) -> None:

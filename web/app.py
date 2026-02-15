@@ -16,7 +16,9 @@ import os
 import sys
 import time
 from collections import defaultdict
-from flask import Flask, render_template, request, abort, Response
+from datetime import timedelta
+from functools import wraps
+from flask import Flask, render_template, request, abort, Response, redirect, url_for, session, g
 import markdown
 
 # Configure logging so gunicorn captures warnings from tools
@@ -40,6 +42,7 @@ from src.tools.intent_router import classify as classify_intent
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
+app.permanent_session_lifetime = timedelta(days=30)
 
 # 400 MB max upload for plan set PDFs (site permit addenda can be up to 350 MB)
 app.config["MAX_CONTENT_LENGTH"] = 400 * 1024 * 1024
@@ -56,6 +59,7 @@ RATE_LIMIT_MAX_ANALYZE = 10   # /analyze requests per window
 RATE_LIMIT_MAX_VALIDATE = 5   # /validate requests per window (heavier)
 RATE_LIMIT_MAX_LOOKUP = 15    # /lookup requests per window (lightweight)
 RATE_LIMIT_MAX_ASK = 20       # /ask requests per window (conversational search)
+RATE_LIMIT_MAX_AUTH = 5       # /auth/send-link requests per window
 
 
 def _is_rate_limited(ip: str, max_requests: int) -> bool:
@@ -117,6 +121,48 @@ def _security_filters():
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
         if path == "/ask" and _is_rate_limited(ip, RATE_LIMIT_MAX_ASK):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
+        if path == "/auth/send-link" and _is_rate_limited(ip, RATE_LIMIT_MAX_AUTH):
+            return render_template(
+                "auth_login.html",
+                message="Too many requests. Please wait a minute.",
+                message_type="error",
+            ), 429
+
+
+@app.before_request
+def _load_user():
+    """Load current user from session into g for templates and routes."""
+    g.user = None
+    g.is_impersonating = False
+    user_id = session.get("user_id")
+    if user_id:
+        from web.auth import get_user_by_id
+        g.user = get_user_by_id(user_id)
+        g.is_impersonating = bool(session.get("impersonating"))
+
+
+# ---------------------------------------------------------------------------
+# Auth decorators
+# ---------------------------------------------------------------------------
+
+def login_required(f):
+    """Redirect to login if not authenticated."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not g.user:
+            return redirect(url_for("auth_login"))
+        return f(*args, **kwargs)
+    return decorated
+
+
+def admin_required(f):
+    """Abort 403 if not admin."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not g.user or not g.user.get("is_admin"):
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
 
 
 def run_async(coro):
@@ -538,14 +584,31 @@ def ask():
         )
 
 
+def _watch_context(watch_data: dict) -> dict:
+    """Build template context for watch button (check existing watch status)."""
+    ctx = {"watch_data": watch_data}
+    if g.user:
+        from web.auth import check_watch
+        existing = check_watch(g.user["user_id"], watch_data["watch_type"], **watch_data)
+        if existing:
+            ctx["existing_watch_id"] = existing["watch_id"]
+    return ctx
+
+
 def _ask_permit_lookup(query: str, entities: dict) -> str:
     """Handle permit number lookup."""
     permit_num = entities.get("permit_number")
     result_md = run_async(permit_lookup(permit_number=permit_num))
+    watch_data = {
+        "watch_type": "permit",
+        "permit_number": permit_num,
+        "label": f"Permit #{permit_num}",
+    }
     return render_template(
         "search_results.html",
         query_echo=f"Permit #{permit_num}",
         result_html=md_to_html(result_md),
+        **_watch_context(watch_data),
     )
 
 
@@ -557,10 +620,17 @@ def _ask_address_search(query: str, entities: dict) -> str:
         street_number=street_number,
         street_name=street_name,
     ))
+    watch_data = {
+        "watch_type": "address",
+        "street_number": street_number,
+        "street_name": street_name,
+        "label": f"{street_number} {street_name}",
+    }
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
         result_html=md_to_html(result_md),
+        **_watch_context(watch_data),
     )
 
 
@@ -569,10 +639,17 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
     block = entities.get("block")
     lot = entities.get("lot")
     result_md = run_async(permit_lookup(block=block, lot=lot))
+    watch_data = {
+        "watch_type": "parcel",
+        "block": block,
+        "lot": lot,
+        "label": f"Block {block}, Lot {lot}",
+    }
     return render_template(
         "search_results.html",
         query_echo=f"Block {block}, Lot {lot}",
         result_html=md_to_html(result_md),
+        **_watch_context(watch_data),
     )
 
 
@@ -581,10 +658,18 @@ def _ask_person_search(query: str, entities: dict) -> str:
     name = entities.get("person_name", "")
     role = entities.get("role")
     result_md = run_async(search_entity(name=name, entity_type=role))
+    # For person searches, we can't easily get entity_id without a DB lookup,
+    # so we watch by name (general_question fallback — entity watching is best
+    # done from the detailed entity page in a future iteration)
+    watch_data = {
+        "watch_type": "entity",
+        "label": f"{name}" + (f" ({role})" if role else ""),
+    }
     return render_template(
         "search_results.html",
         query_echo=f"Search: {name}" + (f" ({role})" if role else ""),
         result_html=md_to_html(result_md),
+        **_watch_context(watch_data),
     )
 
 
@@ -642,6 +727,204 @@ def _ask_general_question(query: str, entities: dict) -> str:
         query_echo=query,
         result_html=result_html,
     )
+
+
+# ---------------------------------------------------------------------------
+# Auth routes
+# ---------------------------------------------------------------------------
+
+@app.route("/auth/login")
+def auth_login():
+    """Show the login/register page."""
+    return render_template("auth_login.html")
+
+
+@app.route("/auth/send-link", methods=["POST"])
+def auth_send_link():
+    """Create user if needed, generate magic link, send/display it."""
+    from web.auth import get_or_create_user, create_magic_token, send_magic_link, BASE_URL
+
+    email = request.form.get("email", "").strip().lower()
+    if not email or "@" not in email:
+        return render_template(
+            "auth_login.html",
+            message="Please enter a valid email address.",
+            message_type="error",
+        ), 400
+
+    user = get_or_create_user(email)
+    token = create_magic_token(user["user_id"])
+    sent = send_magic_link(email, token)
+
+    link = f"{BASE_URL}/auth/verify/{token}"
+
+    if sent and os.environ.get("SMTP_HOST"):
+        # Prod: email sent
+        return render_template(
+            "auth_login.html",
+            message=f"Magic link sent to <strong>{email}</strong>. Check your inbox.",
+        )
+    else:
+        # Dev: show link directly
+        return render_template(
+            "auth_login.html",
+            message=f'Magic link (dev mode): <a href="{link}">{link}</a>',
+        )
+
+
+@app.route("/auth/verify/<token>")
+def auth_verify(token):
+    """Verify a magic link token and create a session."""
+    from web.auth import verify_magic_token
+
+    user = verify_magic_token(token)
+    if not user:
+        return render_template(
+            "auth_login.html",
+            message="Invalid or expired link. Please request a new one.",
+            message_type="error",
+        ), 400
+
+    session.permanent = True
+    session["user_id"] = user["user_id"]
+    session["email"] = user["email"]
+    session["is_admin"] = user["is_admin"]
+    session.pop("impersonating", None)
+    session.pop("admin_user_id", None)
+
+    return redirect(url_for("index"))
+
+
+@app.route("/auth/logout", methods=["POST"])
+def auth_logout():
+    """Clear the session."""
+    session.clear()
+    return redirect(url_for("index"))
+
+
+@app.route("/auth/impersonate", methods=["POST"])
+@admin_required
+def auth_impersonate():
+    """Admin: switch to viewing as another user."""
+    from web.auth import get_user_by_email, get_or_create_user
+
+    target_email = request.form.get("target_email", "").strip().lower()
+    if not target_email:
+        return redirect(url_for("account"))
+
+    target_user = get_or_create_user(target_email)
+
+    logging.warning(
+        "Admin %s (id=%s) impersonating %s (id=%s)",
+        session.get("email"), session.get("user_id"),
+        target_email, target_user["user_id"],
+    )
+
+    session["admin_user_id"] = session["user_id"]
+    session["admin_email"] = session["email"]
+    session["user_id"] = target_user["user_id"]
+    session["email"] = target_user["email"]
+    session["impersonating"] = target_email
+
+    return redirect(url_for("account"))
+
+
+@app.route("/auth/stop-impersonate", methods=["POST"])
+def auth_stop_impersonate():
+    """Restore admin's own identity."""
+    admin_id = session.pop("admin_user_id", None)
+    admin_email = session.pop("admin_email", None)
+    session.pop("impersonating", None)
+
+    if admin_id:
+        session["user_id"] = admin_id
+        session["email"] = admin_email
+
+    return redirect(url_for("account"))
+
+
+# ---------------------------------------------------------------------------
+# Watch routes
+# ---------------------------------------------------------------------------
+
+@app.route("/watch/add", methods=["POST"])
+def watch_add():
+    """Add item to watch list. Returns HTMX fragment."""
+    if not g.user:
+        return render_template("fragments/login_prompt.html")
+
+    from web.auth import add_watch
+
+    watch_type = request.form.get("watch_type", "")
+    kwargs = {
+        "permit_number": request.form.get("permit_number") or None,
+        "street_number": request.form.get("street_number") or None,
+        "street_name": request.form.get("street_name") or None,
+        "block": request.form.get("block") or None,
+        "lot": request.form.get("lot") or None,
+        "entity_id": int(request.form["entity_id"]) if request.form.get("entity_id") else None,
+        "neighborhood": request.form.get("neighborhood") or None,
+        "label": request.form.get("label") or None,
+    }
+
+    watch = add_watch(g.user["user_id"], watch_type, **kwargs)
+    return render_template("fragments/watch_confirmation.html", watch_id=watch["watch_id"])
+
+
+@app.route("/watch/remove", methods=["POST"])
+def watch_remove():
+    """Remove item from watch list. Returns HTMX fragment or empty for account page."""
+    if not g.user:
+        return "", 403
+
+    from web.auth import remove_watch
+
+    watch_id = request.form.get("watch_id")
+    if watch_id:
+        remove_watch(int(watch_id), g.user["user_id"])
+
+    # If called from account page (hx-swap="outerHTML"), return empty to remove the item
+    return ""
+
+
+@app.route("/watch/list")
+@login_required
+def watch_list():
+    """Return user's watch list as HTML fragment."""
+    from web.auth import get_watches
+    watches = get_watches(g.user["user_id"])
+    return render_template("account.html", user=g.user, watches=watches)
+
+
+# ---------------------------------------------------------------------------
+# Account page
+# ---------------------------------------------------------------------------
+
+@app.route("/account")
+@login_required
+def account():
+    """User account page with watch list."""
+    from web.auth import get_watches
+    watches = get_watches(g.user["user_id"])
+    return render_template("account.html", user=g.user, watches=watches)
+
+
+# ---------------------------------------------------------------------------
+# Morning Brief
+# ---------------------------------------------------------------------------
+
+@app.route("/brief")
+@login_required
+def brief():
+    """Morning brief dashboard — what changed, permit health, inspections."""
+    from web.brief import get_morning_brief
+    lookback = request.args.get("lookback", "1")
+    try:
+        lookback_days = max(1, min(int(lookback), 30))
+    except ValueError:
+        lookback_days = 1
+    brief_data = get_morning_brief(g.user["user_id"], lookback_days)
+    return render_template("brief.html", user=g.user, brief=brief_data)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,17 @@
 <div class="result-card search-result-card">
-    <div class="search-echo">{{ query_echo }}</div>
+    <div class="search-echo" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>{{ query_echo }}</span>
+        {% if watch_data %}
+        <span class="watch-container">
+            {% if existing_watch_id %}
+            {% include 'fragments/watch_confirmation.html' %}
+            {% elif g.user %}
+            {% include 'fragments/watch_button.html' %}
+            {% else %}
+            {% include 'fragments/login_prompt.html' %}
+            {% endif %}
+        </span>
+        {% endif %}
+    </div>
     {{ result_html | safe }}
 </div>

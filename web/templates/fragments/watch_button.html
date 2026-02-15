@@ -1,0 +1,7 @@
+<button class="btn-watch"
+    hx-post="/watch/add"
+    hx-target="closest .watch-container"
+    hx-swap="innerHTML"
+    hx-vals='{"watch_type": "{{ watch_data.watch_type }}", "permit_number": "{{ watch_data.permit_number or '' }}", "street_number": "{{ watch_data.street_number or '' }}", "street_name": "{{ watch_data.street_name or '' }}", "block": "{{ watch_data.block or '' }}", "lot": "{{ watch_data.lot or '' }}", "entity_id": "{{ watch_data.entity_id or '' }}", "neighborhood": "{{ watch_data.neighborhood or '' }}", "label": "{{ watch_data.label or '' }}"}'>
+    &#9734; Watch
+</button>

@@ -1,0 +1,482 @@
+"""Morning brief — data logic for the /brief dashboard.
+
+Provides six sections:
+  1. What Changed — status changes on watched permits
+  2. Permit Health — are watched permits on track vs statistical norms?
+  3. Inspection Results — recent pass/fail on watched permits
+  4. New Filings — new permits at watched addresses/parcels
+  5. Team Activity — watched contractors/architects appearing on new permits
+  6. Expiring Permits — permits approaching 180-day expiration window
+"""
+
+from __future__ import annotations
+
+import logging
+from datetime import date, timedelta
+
+from src.db import BACKEND, query, get_connection
+
+logger = logging.getLogger(__name__)
+
+# SF DBI standard: building permits expire 180 days after issuance
+# if construction hasn't started.  We warn at 30 days before expiration.
+DEFAULT_VALIDITY_DAYS = 180
+EXPIRATION_WARNING_DAYS = 30
+
+
+def _ph() -> str:
+    """Placeholder for parameterized queries (%s for Postgres, ? for DuckDB)."""
+    return "%s" if BACKEND == "postgres" else "?"
+
+
+def _parse_date(text: str | None) -> date | None:
+    """Parse a TEXT date field to a Python date."""
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text[:10])
+    except (ValueError, TypeError):
+        return None
+
+
+# ── Main entry point ──────────────────────────────────────────────
+
+def get_morning_brief(user_id: int, lookback_days: int = 1) -> dict:
+    """Build the complete morning brief data structure.
+
+    Args:
+        user_id: Current user's ID.
+        lookback_days: How many days back to look for changes (1=today, 7=week).
+
+    Returns:
+        Dict with keys: changes, health, inspections, new_filings,
+        team_activity, expiring, summary, lookback_days.
+    """
+    since = date.today() - timedelta(days=lookback_days)
+
+    changes = _get_watched_changes(user_id, since)
+    health = _get_predictability(user_id)
+    inspections = _get_inspection_results(user_id, since)
+    new_filings = _get_new_filings(user_id, since)
+    team_activity = _get_team_activity(user_id, since)
+    expiring = _get_expiring_permits(user_id)
+
+    # Count watches
+    watch_count_row = query(
+        f"SELECT COUNT(*) FROM watch_items WHERE user_id = {_ph()} AND is_active = TRUE",
+        (user_id,),
+    )
+    total_watches = watch_count_row[0][0] if watch_count_row else 0
+
+    at_risk = sum(1 for h in health if h.get("status") in ("behind", "at_risk"))
+
+    return {
+        "changes": changes,
+        "health": health,
+        "inspections": inspections,
+        "new_filings": new_filings,
+        "team_activity": team_activity,
+        "expiring": expiring,
+        "summary": {
+            "total_watches": total_watches,
+            "changes_count": len(changes),
+            "at_risk_count": at_risk,
+            "inspections_count": len(inspections),
+            "new_filings_count": len(new_filings),
+            "team_count": len(team_activity),
+            "expiring_count": len(expiring),
+        },
+        "lookback_days": lookback_days,
+    }
+
+
+# ── Section 1: What Changed ──────────────────────────────────────
+
+def _get_watched_changes(user_id: int, since: date) -> list[dict]:
+    """Get permit status changes matching any of the user's watches."""
+    ph = _ph()
+    results: list[dict] = []
+
+    # Permit watches — direct match on permit_number
+    rows = query(
+        f"SELECT pc.permit_number, pc.change_date, pc.old_status, pc.new_status, "
+        f"pc.change_type, pc.permit_type, pc.street_number, pc.street_name, "
+        f"pc.neighborhood, wi.label "
+        f"FROM permit_changes pc "
+        f"JOIN watch_items wi ON wi.permit_number = pc.permit_number "
+        f"  AND wi.watch_type = 'permit' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND pc.change_date >= {ph} "
+        f"  AND pc.is_new_permit = FALSE "
+        f"ORDER BY pc.change_date DESC",
+        (user_id, since),
+    )
+    results.extend(_rows_to_changes(rows, "permit"))
+
+    # Address watches
+    rows = query(
+        f"SELECT pc.permit_number, pc.change_date, pc.old_status, pc.new_status, "
+        f"pc.change_type, pc.permit_type, pc.street_number, pc.street_name, "
+        f"pc.neighborhood, wi.label "
+        f"FROM permit_changes pc "
+        f"JOIN watch_items wi ON wi.street_number = pc.street_number "
+        f"  AND UPPER(wi.street_name) = UPPER(pc.street_name) "
+        f"  AND wi.watch_type = 'address' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND pc.change_date >= {ph} "
+        f"  AND pc.is_new_permit = FALSE "
+        f"ORDER BY pc.change_date DESC",
+        (user_id, since),
+    )
+    results.extend(_rows_to_changes(rows, "address"))
+
+    # Parcel watches
+    rows = query(
+        f"SELECT pc.permit_number, pc.change_date, pc.old_status, pc.new_status, "
+        f"pc.change_type, pc.permit_type, pc.street_number, pc.street_name, "
+        f"pc.neighborhood, wi.label "
+        f"FROM permit_changes pc "
+        f"JOIN watch_items wi ON wi.block = pc.block AND wi.lot = pc.lot "
+        f"  AND wi.watch_type = 'parcel' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND pc.change_date >= {ph} "
+        f"  AND pc.is_new_permit = FALSE "
+        f"ORDER BY pc.change_date DESC",
+        (user_id, since),
+    )
+    results.extend(_rows_to_changes(rows, "parcel"))
+
+    # Neighborhood watches (capped)
+    rows = query(
+        f"SELECT pc.permit_number, pc.change_date, pc.old_status, pc.new_status, "
+        f"pc.change_type, pc.permit_type, pc.street_number, pc.street_name, "
+        f"pc.neighborhood, wi.label "
+        f"FROM permit_changes pc "
+        f"JOIN watch_items wi ON wi.neighborhood = pc.neighborhood "
+        f"  AND wi.watch_type = 'neighborhood' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND pc.change_date >= {ph} "
+        f"  AND pc.is_new_permit = FALSE "
+        f"ORDER BY pc.change_date DESC "
+        f"LIMIT 20",
+        (user_id, since),
+    )
+    results.extend(_rows_to_changes(rows, "neighborhood"))
+
+    # Deduplicate (a permit could match multiple watches)
+    seen = set()
+    unique = []
+    for r in results:
+        key = (r["permit_number"], str(r["change_date"]), r["new_status"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(r)
+    return unique
+
+
+def _rows_to_changes(rows: list[tuple], watch_type: str) -> list[dict]:
+    return [
+        {
+            "permit_number": r[0],
+            "change_date": r[1],
+            "old_status": r[2],
+            "new_status": r[3],
+            "change_type": r[4],
+            "permit_type": r[5],
+            "street_number": r[6],
+            "street_name": r[7],
+            "neighborhood": r[8],
+            "label": r[9],
+            "watch_type": watch_type,
+        }
+        for r in rows
+    ]
+
+
+# ── Section 2: Permit Health / Predictability ─────────────────────
+
+def _get_predictability(user_id: int) -> list[dict]:
+    """Compare watched permits' elapsed time against statistical benchmarks."""
+    ph = _ph()
+
+    # Get watched permits in active status
+    rows = query(
+        f"SELECT p.permit_number, p.status, p.filed_date, p.issued_date, "
+        f"p.permit_type_definition, p.neighborhood, p.estimated_cost, "
+        f"p.street_number, p.street_name, wi.label "
+        f"FROM watch_items wi "
+        f"JOIN permits p ON wi.permit_number = p.permit_number "
+        f"WHERE wi.user_id = {ph} AND wi.watch_type = 'permit' "
+        f"  AND wi.is_active = TRUE "
+        f"  AND p.status IN ('filed', 'approved', 'issued', 'reinstated')",
+        (user_id,),
+    )
+
+    results = []
+    conn = get_connection()
+    try:
+        for row in rows:
+            (permit_number, status, filed_date, issued_date,
+             permit_type, neighborhood, estimated_cost,
+             street_number, street_name, label) = row
+
+            filed = _parse_date(filed_date)
+            if not filed:
+                continue
+
+            elapsed_days = (date.today() - filed).days
+            if elapsed_days <= 0:
+                continue
+
+            # Get benchmarks using the same logic as estimate_timeline.py
+            try:
+                from src.tools.estimate_timeline import _query_timeline, _cost_bracket
+                review_path = "otc" if permit_type and "otc" in permit_type.lower() else "in_house"
+                bracket = _cost_bracket(estimated_cost)
+                benchmarks = _query_timeline(conn, review_path, neighborhood, bracket, permit_type)
+
+                if not benchmarks and neighborhood:
+                    benchmarks = _query_timeline(conn, review_path, None, bracket, permit_type)
+                if not benchmarks and bracket:
+                    benchmarks = _query_timeline(conn, review_path, None, None, permit_type)
+                if not benchmarks:
+                    benchmarks = _query_timeline(conn, review_path, None, None, None)
+            except Exception:
+                # timeline_stats table may not exist in all environments
+                benchmarks = None
+
+            if not benchmarks:
+                continue
+
+            p50 = benchmarks["p50_days"] or 1
+            p75 = benchmarks["p75_days"] or p50
+            p90 = benchmarks["p90_days"] or p75
+
+            if elapsed_days <= p50:
+                health_status = "on_track"
+            elif elapsed_days <= p75:
+                health_status = "slower"
+            elif elapsed_days <= p90:
+                health_status = "behind"
+            else:
+                health_status = "at_risk"
+
+            pct_of_typical = round(elapsed_days / p50 * 100) if p50 else 0
+
+            results.append({
+                "permit_number": permit_number,
+                "status": health_status,
+                "permit_status": status,
+                "elapsed_days": elapsed_days,
+                "p50": p50,
+                "p75": p75,
+                "p90": p90,
+                "pct_of_typical": pct_of_typical,
+                "permit_type": permit_type,
+                "street_number": street_number,
+                "street_name": street_name,
+                "label": label,
+                "sample_size": benchmarks["sample_size"],
+            })
+    finally:
+        conn.close()
+
+    # Sort: at_risk first, then behind, then slower, then on_track
+    status_order = {"at_risk": 0, "behind": 1, "slower": 2, "on_track": 3}
+    results.sort(key=lambda x: status_order.get(x["status"], 4))
+    return results
+
+
+# ── Section 3: Inspection Results ─────────────────────────────────
+
+def _get_inspection_results(user_id: int, since: date) -> list[dict]:
+    """Get recent inspection results for watched permits."""
+    ph = _ph()
+
+    rows = query(
+        f"SELECT i.reference_number, i.scheduled_date, i.result, "
+        f"i.inspection_description, i.inspector, wi.label "
+        f"FROM inspections i "
+        f"JOIN watch_items wi ON wi.permit_number = i.reference_number "
+        f"  AND wi.watch_type = 'permit' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND i.scheduled_date >= {ph} "
+        f"ORDER BY i.scheduled_date DESC "
+        f"LIMIT 50",
+        (user_id, str(since)),
+    )
+
+    return [
+        {
+            "permit_number": r[0],
+            "date": r[1],
+            "result": r[2],
+            "description": r[3],
+            "inspector": r[4],
+            "label": r[5],
+            "is_pass": r[2] and r[2].lower() in ("approved", "ok", "pass", "passed"),
+            "is_fail": r[2] and r[2].lower() in ("disapproved", "fail", "failed", "not approved"),
+        }
+        for r in rows
+    ]
+
+
+# ── Section 4: New Filings ────────────────────────────────────────
+
+def _get_new_filings(user_id: int, since: date) -> list[dict]:
+    """Get new permits filed at watched addresses/parcels/neighborhoods."""
+    ph = _ph()
+    results: list[dict] = []
+
+    # Address watches
+    rows = query(
+        f"SELECT pc.permit_number, pc.change_date, pc.new_status, "
+        f"pc.permit_type, pc.street_number, pc.street_name, "
+        f"pc.neighborhood, wi.label "
+        f"FROM permit_changes pc "
+        f"JOIN watch_items wi ON wi.street_number = pc.street_number "
+        f"  AND UPPER(wi.street_name) = UPPER(pc.street_name) "
+        f"  AND wi.watch_type = 'address' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND pc.change_date >= {ph} "
+        f"  AND pc.is_new_permit = TRUE "
+        f"ORDER BY pc.change_date DESC",
+        (user_id, since),
+    )
+    results.extend(_rows_to_filings(rows))
+
+    # Parcel watches
+    rows = query(
+        f"SELECT pc.permit_number, pc.change_date, pc.new_status, "
+        f"pc.permit_type, pc.street_number, pc.street_name, "
+        f"pc.neighborhood, wi.label "
+        f"FROM permit_changes pc "
+        f"JOIN watch_items wi ON wi.block = pc.block AND wi.lot = pc.lot "
+        f"  AND wi.watch_type = 'parcel' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND pc.change_date >= {ph} "
+        f"  AND pc.is_new_permit = TRUE "
+        f"ORDER BY pc.change_date DESC",
+        (user_id, since),
+    )
+    results.extend(_rows_to_filings(rows))
+
+    # Neighborhood watches (capped)
+    rows = query(
+        f"SELECT pc.permit_number, pc.change_date, pc.new_status, "
+        f"pc.permit_type, pc.street_number, pc.street_name, "
+        f"pc.neighborhood, wi.label "
+        f"FROM permit_changes pc "
+        f"JOIN watch_items wi ON wi.neighborhood = pc.neighborhood "
+        f"  AND wi.watch_type = 'neighborhood' AND wi.is_active = TRUE "
+        f"WHERE wi.user_id = {ph} AND pc.change_date >= {ph} "
+        f"  AND pc.is_new_permit = TRUE "
+        f"ORDER BY pc.change_date DESC "
+        f"LIMIT 20",
+        (user_id, since),
+    )
+    results.extend(_rows_to_filings(rows))
+
+    return results
+
+
+def _rows_to_filings(rows: list[tuple]) -> list[dict]:
+    return [
+        {
+            "permit_number": r[0],
+            "change_date": r[1],
+            "status": r[2],
+            "permit_type": r[3],
+            "street_number": r[4],
+            "street_name": r[5],
+            "neighborhood": r[6],
+            "label": r[7],
+        }
+        for r in rows
+    ]
+
+
+# ── Section 5: Team Activity ─────────────────────────────────────
+
+def _get_team_activity(user_id: int, since: date) -> list[dict]:
+    """Get new permits involving watched entities (contractors/architects)."""
+    ph = _ph()
+
+    rows = query(
+        f"SELECT p.permit_number, p.permit_type_definition, p.status, "
+        f"p.filed_date, p.street_number, p.street_name, p.neighborhood, "
+        f"c.role, e.canonical_name, wi.label "
+        f"FROM watch_items wi "
+        f"JOIN entities e ON wi.entity_id = e.entity_id "
+        f"JOIN contacts c ON e.entity_id = c.entity_id "
+        f"JOIN permits p ON c.permit_number = p.permit_number "
+        f"WHERE wi.user_id = {ph} AND wi.watch_type = 'entity' "
+        f"  AND wi.is_active = TRUE AND p.filed_date >= {ph} "
+        f"ORDER BY p.filed_date DESC "
+        f"LIMIT 30",
+        (user_id, str(since)),
+    )
+
+    return [
+        {
+            "permit_number": r[0],
+            "permit_type": r[1],
+            "status": r[2],
+            "filed_date": r[3],
+            "street_number": r[4],
+            "street_name": r[5],
+            "neighborhood": r[6],
+            "role": r[7],
+            "entity_name": r[8],
+            "label": r[9],
+        }
+        for r in rows
+    ]
+
+
+# ── Section 6: Expiring Permits ──────────────────────────────────
+
+def _get_expiring_permits(user_id: int) -> list[dict]:
+    """Flag watched permits approaching 180-day expiration window."""
+    ph = _ph()
+
+    rows = query(
+        f"SELECT p.permit_number, p.issued_date, p.status, "
+        f"p.permit_type_definition, p.street_number, p.street_name, "
+        f"p.neighborhood, wi.label "
+        f"FROM watch_items wi "
+        f"JOIN permits p ON wi.permit_number = p.permit_number "
+        f"WHERE wi.user_id = {ph} AND wi.watch_type = 'permit' "
+        f"  AND wi.is_active = TRUE "
+        f"  AND p.issued_date IS NOT NULL "
+        f"  AND p.completed_date IS NULL "
+        f"  AND p.status NOT IN ('completed', 'expired', 'cancelled', 'withdrawn')",
+        (user_id,),
+    )
+
+    results = []
+    for row in rows:
+        (permit_number, issued_date, status, permit_type,
+         street_number, street_name, neighborhood, label) = row
+
+        issued = _parse_date(issued_date)
+        if not issued:
+            continue
+
+        days_since_issued = (date.today() - issued).days
+        expires_in = DEFAULT_VALIDITY_DAYS - days_since_issued
+
+        # Only flag if within warning window or already past
+        if expires_in > EXPIRATION_WARNING_DAYS:
+            continue
+
+        results.append({
+            "permit_number": permit_number,
+            "issued_date": issued_date,
+            "status": status,
+            "permit_type": permit_type,
+            "street_number": street_number,
+            "street_name": street_name,
+            "neighborhood": neighborhood,
+            "label": label,
+            "days_since_issued": days_since_issued,
+            "expires_in": expires_in,
+            "is_expired": expires_in <= 0,
+        })
+
+    # Sort: expired first, then soonest to expire
+    results.sort(key=lambda x: x["expires_in"])
+    return results

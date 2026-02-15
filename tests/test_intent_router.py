@@ -143,6 +143,50 @@ def test_address_with_suffix():
     assert r.entities["street_number"] == "555"
 
 
+def test_full_mailing_address():
+    """Regression: pasted mailing address with city/state/zip should still match."""
+    r = classify("146 Lake St 1425 San Francisco, CA 94118 US")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "146"
+    assert "lake" in r.entities["street_name"].lower()
+
+
+def test_address_with_city_state():
+    r = classify("200 Valencia St San Francisco CA")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "200"
+    assert "valencia" in r.entities["street_name"].lower()
+
+
+def test_address_with_unit_number():
+    """Bare trailing number after street suffix should be treated as unit, not block query."""
+    r = classify("350 Bush St #400")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "350"
+    assert "bush" in r.entities["street_name"].lower()
+
+
+def test_address_with_apt():
+    r = classify("500 Folsom Ave Apt 12B")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "500"
+    assert "folsom" in r.entities["street_name"].lower()
+
+
+def test_long_address_with_suffix():
+    """A long query with a street suffix should still match as address."""
+    r = classify("I need permits at 1200 Pacific Ave San Francisco CA 94109")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "1200"
+    assert "pacific" in r.entities["street_name"].lower()
+
+
+def test_address_no_suffix_still_needs_gate():
+    """Bare address without suffix in a long query should NOT match (prevents false positives)."""
+    r = classify("tell me about 500 Market in a very long query sentence with many words here")
+    assert r.intent != "search_address"
+
+
 # ---------------------------------------------------------------------------
 # Person search intent
 # ---------------------------------------------------------------------------
@@ -182,6 +226,42 @@ def test_person_portfolio():
     r = classify("Smith Construction's portfolio")
     assert r.intent == "search_person"
     assert "smith construction" in r.entities["person_name"].lower()
+
+
+def test_person_misspelled_role():
+    """Regression: 'show me expiditer amy lee's projects' should extract 'amy lee'."""
+    r = classify("show me expiditer amy lee's projects")
+    assert r.intent == "search_person"
+    assert r.entities["person_name"].lower() == "amy lee"
+    assert r.entities.get("role") == "expediter"
+
+
+def test_person_misspelled_architect():
+    r = classify("show architech john doe's work")
+    assert r.intent == "search_person"
+    assert r.entities["person_name"].lower() == "john doe"
+    assert r.entities.get("role") == "architect"
+
+
+def test_person_show_me_with_role():
+    """'show me expediter X' should not include 'me' in name."""
+    r = classify("show me expediter Amy Lee")
+    assert r.intent == "search_person"
+    assert r.entities["person_name"].lower() == "amy lee"
+    assert r.entities.get("role") == "expediter"
+
+
+def test_person_trailing_projects_stripped():
+    r = classify("find Amy Lee's projects")
+    assert r.intent == "search_person"
+    assert r.entities["person_name"].lower() == "amy lee"
+
+
+def test_person_role_expiditor():
+    r = classify("look up expiditor jane smith")
+    assert r.intent == "search_person"
+    assert r.entities["person_name"].lower() == "jane smith"
+    assert r.entities.get("role") == "expediter"
 
 
 # ---------------------------------------------------------------------------
