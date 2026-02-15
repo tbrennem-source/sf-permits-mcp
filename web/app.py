@@ -69,18 +69,6 @@ def _run_startup_migrations():
             ON users (invite_code)
             WHERE invite_code IS NOT NULL
         """)
-        # One-off: delete protonmail test account so owner can re-test invite flow
-        cur.execute("""
-            DELETE FROM watch_items WHERE user_id IN (
-                SELECT user_id FROM users WHERE email = 'tim.brenneman.sf@protonmail.com'
-            )
-        """)
-        cur.execute("""
-            DELETE FROM auth_tokens WHERE user_id IN (
-                SELECT user_id FROM users WHERE email = 'tim.brenneman.sf@protonmail.com'
-            )
-        """)
-        cur.execute("DELETE FROM users WHERE email = 'tim.brenneman.sf@protonmail.com'")
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
