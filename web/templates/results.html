@@ -1,37 +1,31 @@
+{% set TAB_META = {
+    "predict": {"label": "Permits", "panel": "panel-predict"},
+    "fees": {"label": "Fees", "panel": "panel-fees"},
+    "timeline": {"label": "Timeline", "panel": "panel-timeline"},
+    "docs": {"label": "Documents", "panel": "panel-docs"},
+    "risk": {"label": "Revision Risk", "panel": "panel-risk"},
+    "team": {"label": "Your Team", "panel": "panel-team"},
+} %}
+
+{% set order = section_order or ["predict", "timeline", "fees", "docs", "risk"] %}
+{% if has_team %}
+    {% set order = order + ["team"] %}
+{% endif %}
+
 <div class="results-tabs">
-    <button class="tab active" data-panel="panel-predict">Permits</button>
-    <button class="tab" data-panel="panel-fees">Fees</button>
-    <button class="tab" data-panel="panel-timeline">Timeline</button>
-    <button class="tab" data-panel="panel-docs">Documents</button>
-    <button class="tab" data-panel="panel-risk">Revision Risk</button>
+{% for key in order %}
+    {% if results.get(key) %}
+    <button class="tab{% if loop.first %} active{% endif %}" data-panel="{{ TAB_META[key].panel }}">{{ TAB_META[key].label }}</button>
+    {% endif %}
+{% endfor %}
 </div>
 
-<div id="panel-predict" class="tab-panel active">
+{% for key in order %}
+{% if results.get(key) %}
+<div id="{{ TAB_META[key].panel }}" class="tab-panel{% if loop.first %} active{% endif %}">
     <div class="result-card">
-        {{ results.predict | safe }}
+        {{ results[key] | safe }}
     </div>
 </div>
-
-<div id="panel-fees" class="tab-panel">
-    <div class="result-card">
-        {{ results.fees | safe }}
-    </div>
-</div>
-
-<div id="panel-timeline" class="tab-panel">
-    <div class="result-card">
-        {{ results.timeline | safe }}
-    </div>
-</div>
-
-<div id="panel-docs" class="tab-panel">
-    <div class="result-card">
-        {{ results.docs | safe }}
-    </div>
-</div>
-
-<div id="panel-risk" class="tab-panel">
-    <div class="result-card">
-        {{ results.risk | safe }}
-    </div>
-</div>
+{% endif %}
+{% endfor %}

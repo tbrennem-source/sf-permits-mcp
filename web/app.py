@@ -27,6 +27,8 @@ from src.tools.estimate_timeline import estimate_timeline
 from src.tools.required_documents import required_documents
 from src.tools.revision_risk import revision_risk
 from src.tools.validate_plans import validate_plans
+from src.tools.context_parser import extract_triggers, enhance_description, reorder_sections
+from src.tools.team_lookup import generate_team_profile
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
@@ -170,6 +172,7 @@ def index():
 @app.route("/analyze", methods=["POST"])
 def analyze():
     """Run all 5 tools on the submitted project and return HTML fragments."""
+    # --- Section A: existing fields ---
     description = request.form.get("description", "").strip()
     address = request.form.get("address", "").strip() or None
     neighborhood = request.form.get("neighborhood", "").strip() or None
@@ -182,12 +185,36 @@ def analyze():
     estimated_cost = float(cost_str) if cost_str else None
     square_footage = float(sqft_str) if sqft_str else None
 
+    # --- Section B: personalization fields ---
+    priorities_raw = request.form.get("priorities", "").strip()
+    priorities = [p for p in priorities_raw.split(",") if p]
+    target_date = request.form.get("target_date", "").strip() or None
+    contractor_name = request.form.get("contractor_name", "").strip() or None
+    architect_name = request.form.get("architect_name", "").strip() or None
+    expediter_name = request.form.get("expediter_name", "").strip() or None
+    experience_level = request.form.get("experience_level", "unspecified").strip()
+    additional_context = request.form.get("additional_context", "").strip() or None
+
+    # Extract keyword triggers from description + additional context
+    combined_text = description
+    if additional_context:
+        combined_text += " " + additional_context
+    context_triggers = extract_triggers(combined_text)
+
+    # Enhance description with additional context
+    enriched_description = enhance_description(
+        description, additional_context, context_triggers
+    )
+
+    # Determine section ordering from priorities
+    section_order = reorder_sections(priorities) if priorities else None
+
     results = {}
 
     # 1. Predict Permits (primary — drives inputs for other tools)
     try:
         pred_result = run_async(predict_permits(
-            project_description=description,
+            project_description=enriched_description,
             address=address,
             estimated_cost=estimated_cost,
             square_footage=square_footage,
@@ -228,18 +255,22 @@ def analyze():
 
     project_type = project_types[0] if project_types else "general_alteration"
 
-    # Derive triggers from project types
+    # Derive triggers from project types + context triggers
     triggers = []
-    if "restaurant" in project_types:
+    if "restaurant" in project_types or "restaurant" in context_triggers:
         triggers.extend(["dph_food_facility", "fire_suppression", "grease_interceptor"])
-    if "historic" in project_types:
+    if "historic" in project_types or "historic" in context_triggers:
         triggers.append("historic_preservation")
-    if "seismic" in project_types:
+    if "seismic" in project_types or "seismic" in context_triggers:
         triggers.append("seismic_retrofit")
     if estimated_cost and estimated_cost > 195358:
         triggers.append("ada_path_of_travel")
-    if "commercial_ti" in project_types:
+    if "commercial_ti" in project_types or "green_building" in context_triggers:
         triggers.append("title24")
+    if "adu" in context_triggers:
+        triggers.append("adu_specific")
+    if "fire" in context_triggers:
+        triggers.append("fire_suppression")
 
     # 2. Estimate Fees
     if estimated_cost:
@@ -266,6 +297,9 @@ def analyze():
             estimated_cost=estimated_cost,
             triggers=triggers or None,
         ))
+        # Add target date buffer calculation if provided
+        if target_date:
+            timeline_result = _add_target_date_context(timeline_result, target_date)
         results["timeline"] = md_to_html(timeline_result)
     except Exception as e:
         results["timeline"] = f'<div class="error">Timeline error: {e}</div>'
@@ -295,7 +329,80 @@ def analyze():
     except Exception as e:
         results["risk"] = f'<div class="error">Risk assessment error: {e}</div>'
 
-    return render_template("results.html", results=results)
+    # 6. Team Lookup (if any names provided)
+    team_md = ""
+    if contractor_name or architect_name or expediter_name:
+        try:
+            team_md = generate_team_profile(
+                contractor=contractor_name,
+                architect=architect_name,
+                expediter=expediter_name,
+            )
+            if team_md:
+                results["team"] = md_to_html(team_md)
+        except Exception as e:
+            results["team"] = f'<div class="error">Team lookup error: {e}</div>'
+
+    return render_template(
+        "results.html",
+        results=results,
+        section_order=section_order,
+        experience_level=experience_level,
+        has_team=bool(team_md),
+    )
+
+
+def _add_target_date_context(timeline_md: str, target_date: str) -> str:
+    """Add target date buffer/deficit info to timeline output."""
+    import re
+    from datetime import date, timedelta
+
+    try:
+        target = date.fromisoformat(target_date)
+    except ValueError:
+        return timeline_md
+
+    today = date.today()
+
+    # Extract the p50 (typical) days from the timeline output
+    match = re.search(r"(?:typical|p50)[^0-9]*(\d+)\s*days", timeline_md, re.IGNORECASE)
+    if not match:
+        # Try "estimated.*weeks" pattern
+        match = re.search(r"(\d+)\s*weeks?", timeline_md, re.IGNORECASE)
+        if match:
+            est_days = int(match.group(1)) * 7
+        else:
+            return timeline_md
+    else:
+        est_days = int(match.group(1))
+
+    est_permit_date = today + timedelta(days=est_days)
+    buffer_days = (target - est_permit_date).days
+
+    if buffer_days >= 14:
+        note = (
+            f"\n\n**Target Date Analysis:** Your target of {target_date} "
+            f"gives you approximately **{buffer_days} days of buffer** "
+            f"after the estimated permit issuance ({est_permit_date.isoformat()}). "
+            f"You're in good shape."
+        )
+    elif buffer_days >= 0:
+        note = (
+            f"\n\n**Target Date Analysis:** Your target of {target_date} "
+            f"is **tight** — only {buffer_days} days after the estimated "
+            f"permit issuance ({est_permit_date.isoformat()}). "
+            f"Consider filing as soon as possible to build buffer."
+        )
+    else:
+        note = (
+            f"\n\n**&#9888; Target Date At Risk:** Your target of {target_date} "
+            f"is **{abs(buffer_days)} days before** the typical permit issuance "
+            f"date ({est_permit_date.isoformat()}). Consider: "
+            f"filing immediately, using OTC pathway if eligible, "
+            f"or hiring an experienced expediter to compress the timeline."
+        )
+
+    return timeline_md + note
 
 
 @app.route("/validate", methods=["POST"])

@@ -241,3 +241,80 @@ def test_noindex_meta_tag(client):
     html = rv.data.decode()
     assert 'name="robots"' in html
     assert "noindex" in html
+
+
+# --- Enhanced Input Form tests ---
+
+def test_index_has_personalization(client):
+    """Homepage includes the collapsible personalization section."""
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "personalize-section" in html
+    assert "priority-chip" in html
+    assert "contractor_name" in html
+    assert "architect_name" in html
+    assert "expediter_name" in html
+    assert "experience_level" in html
+    assert "additional_context" in html
+    assert "target_date" in html
+
+
+def test_analyze_with_priorities(client):
+    """POST with priority chips reorders result tabs."""
+    rv = client.post("/analyze", data={
+        "description": "Kitchen remodel with budget concerns",
+        "cost": "85000",
+        "priorities": "cost,timeline",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    # Fees tab should appear (cost priority)
+    assert "panel-fees" in html
+    assert "panel-timeline" in html
+
+
+def test_analyze_with_additional_context(client):
+    """Additional context triggers are picked up."""
+    rv = client.post("/analyze", data={
+        "description": "Office renovation",
+        "cost": "200000",
+        "additional_context": "This is a historic landmark building with seismic concerns",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    # The enriched description should trigger historic and seismic pathways
+    assert "panel-predict" in html
+
+
+def test_analyze_with_experience_level(client):
+    """Experience level parameter is accepted."""
+    rv = client.post("/analyze", data={
+        "description": "Simple bathroom refresh",
+        "experience_level": "first_time",
+    })
+    assert rv.status_code == 200
+
+
+def test_analyze_with_team_names_no_match(client):
+    """Team names that don't match still return 200 with results."""
+    rv = client.post("/analyze", data={
+        "description": "Kitchen remodel in Noe Valley",
+        "cost": "85000",
+        "contractor_name": "Nonexistent Contractor XYZ12345",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    # Should have team tab since a name was provided
+    assert "panel-predict" in html
+
+
+def test_analyze_with_target_date(client):
+    """Target date parameter is accepted."""
+    rv = client.post("/analyze", data={
+        "description": "Kitchen remodel",
+        "cost": "85000",
+        "target_date": "2027-01-15",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "panel-timeline" in html

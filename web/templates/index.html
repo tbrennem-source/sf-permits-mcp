@@ -440,6 +440,155 @@
         .result-card .pass { color: var(--success); }
         .result-card .fail { color: var(--error); }
         .result-card .warn { color: var(--warning); }
+
+        /* Collapsible personalization section */
+        .personalize-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 10px 0;
+            margin: 4px 0 0;
+            transition: color 0.2s;
+        }
+
+        .personalize-toggle:hover { color: var(--accent-hover); }
+
+        .personalize-toggle .toggle-icon {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+
+        .personalize-toggle.open .toggle-icon {
+            transform: rotate(90deg);
+        }
+
+        .personalize-section {
+            display: none;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .personalize-section.open { display: block; }
+
+        .personalize-section .section-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .personalize-section .section-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+
+        /* Priority chips (multi-select) */
+        .priority-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .priority-chip {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .priority-chip:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .priority-chip.selected {
+            background: rgba(79, 143, 247, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Experience toggle */
+        .experience-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+        }
+
+        .experience-option {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            text-align: center;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .experience-option:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .experience-option:last-child {
+            border-radius: 0 8px 8px 0;
+            border-left: none;
+        }
+
+        .experience-option:hover {
+            color: var(--text);
+        }
+
+        .experience-option.selected {
+            background: rgba(79, 143, 247, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Team fields */
+        .team-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        @media (min-width: 640px) {
+            .team-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        .team-grid label {
+            margin-bottom: 4px;
+        }
+
+        .team-grid input {
+            font-size: 0.9rem;
+        }
+
+        .field-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -506,6 +655,74 @@
                         <label for="sqft">Square Footage (optional)</label>
                         <input type="number" id="sqft" name="sqft"
                             placeholder="e.g., 1200" min="0">
+                    </div>
+
+                    <!-- Personalization toggle -->
+                    <div class="full-width">
+                        <button type="button" class="personalize-toggle" onclick="togglePersonalize()">
+                            <span class="toggle-icon">&#9654;</span>
+                            <span>Help us give you a better analysis</span>
+                        </button>
+                    </div>
+
+                    <!-- Collapsible personalization section -->
+                    <div class="full-width personalize-section" id="personalize-section">
+
+                        <!-- B1: Priorities -->
+                        <div class="section-label">What matters most to you?</div>
+                        <div class="priority-chips">
+                            <button type="button" class="priority-chip" data-value="timeline" onclick="toggleChip(this)">&#9202; Timeline</button>
+                            <button type="button" class="priority-chip" data-value="cost" onclick="toggleChip(this)">&#128176; Cost</button>
+                            <button type="button" class="priority-chip" data-value="corrections" onclick="toggleChip(this)">&#9989; Avoiding corrections</button>
+                            <button type="button" class="priority-chip" data-value="requirements" onclick="toggleChip(this)">&#128203; Understanding requirements</button>
+                            <button type="button" class="priority-chip" data-value="exploring" onclick="toggleChip(this)">&#128269; Just exploring</button>
+                        </div>
+                        <!-- Hidden input to carry selected priorities -->
+                        <input type="hidden" name="priorities" id="priorities-input" value="">
+
+                        <!-- B2: Target date -->
+                        <div style="margin-bottom: 24px;">
+                            <label for="target_date">When do you want to start construction?</label>
+                            <input type="date" id="target_date" name="target_date"
+                                style="max-width: 250px;">
+                        </div>
+
+                        <!-- B3: Team -->
+                        <div class="section-label">Your project team</div>
+                        <div class="section-hint">We'll check their SF permit track record across 1M+ entities.</div>
+                        <div class="team-grid">
+                            <div>
+                                <label for="contractor_name">General Contractor</label>
+                                <input type="text" id="contractor_name" name="contractor_name"
+                                    placeholder="Contractor or company name">
+                            </div>
+                            <div>
+                                <label for="architect_name">Architect / Engineer</label>
+                                <input type="text" id="architect_name" name="architect_name"
+                                    placeholder="Architect or engineer name">
+                            </div>
+                            <div>
+                                <label for="expediter_name">Permit Expediter</label>
+                                <input type="text" id="expediter_name" name="expediter_name"
+                                    placeholder="Permit expediter name">
+                            </div>
+                        </div>
+
+                        <!-- B4: Experience level -->
+                        <div class="section-label">Experience level</div>
+                        <div class="experience-toggle">
+                            <button type="button" class="experience-option" data-value="first_time" onclick="selectExperience(this)">&#127381; First time filing in SF</button>
+                            <button type="button" class="experience-option" data-value="experienced" onclick="selectExperience(this)">&#128260; Done this before</button>
+                        </div>
+                        <input type="hidden" name="experience_level" id="experience-input" value="unspecified">
+
+                        <!-- B5: Additional context -->
+                        <div>
+                            <label for="additional_context">Anything else we should know?</label>
+                            <textarea id="additional_context" name="additional_context" rows="3"
+                                placeholder="Historic building, existing violations, unusual site conditions, specific worries, questions you want answered..."></textarea>
+                        </div>
+
                     </div>
 
                     <div class="full-width">
@@ -666,6 +883,33 @@
                     + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
                 label.classList.remove("has-file");
             }
+        }
+
+        // Personalization section toggle
+        function togglePersonalize() {
+            const btn = document.querySelector(".personalize-toggle");
+            const section = document.getElementById("personalize-section");
+            btn.classList.toggle("open");
+            section.classList.toggle("open");
+        }
+
+        // Priority chip multi-select
+        function toggleChip(el) {
+            el.classList.toggle("selected");
+            updatePriorities();
+        }
+
+        function updatePriorities() {
+            const selected = document.querySelectorAll(".priority-chip.selected");
+            const values = Array.from(selected).map(el => el.dataset.value);
+            document.getElementById("priorities-input").value = values.join(",");
+        }
+
+        // Experience level toggle
+        function selectExperience(el) {
+            document.querySelectorAll(".experience-option").forEach(btn => btn.classList.remove("selected"));
+            el.classList.add("selected");
+            document.getElementById("experience-input").value = el.dataset.value;
         }
 
         // Drag-and-drop visual feedback
