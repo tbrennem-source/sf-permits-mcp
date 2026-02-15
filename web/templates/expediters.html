@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Find an Expediter — sfpermits.ai</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --accent-hover: #3a7ae0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+        header .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .badge {
+            font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted);
+            padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
+            text-decoration: none; cursor: pointer; font-family: inherit;
+        }
+        .badge:hover { color: var(--text); border-color: var(--text-muted); }
+
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 28px; }
+
+        .form-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .checkbox-row {
+            display: flex; gap: 24px; margin-bottom: 16px;
+        }
+        .checkbox-group {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.9rem; color: var(--text-muted);
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 16px; height: 16px; accent-color: var(--accent);
+        }
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn:hover { background: var(--accent-hover); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Results */
+        .results-area { margin-top: 28px; }
+
+        .expediter-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        .expediter-card:hover { border-color: var(--accent); }
+
+        .exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .exp-rank {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-right: 12px;
+        }
+        .exp-name { font-size: 1.1rem; font-weight: 600; }
+        .exp-firm { color: var(--text-muted); font-size: 0.85rem; }
+        .exp-score {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+        .exp-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        .exp-detail { color: var(--text-muted); }
+        .exp-detail strong { color: var(--text); font-weight: 500; }
+        .exp-registered {
+            display: inline-flex; align-items: center; gap: 4px;
+            color: var(--success); font-size: 0.8rem; font-weight: 500;
+        }
+        .exp-contact {
+            font-size: 0.85rem; color: var(--text-muted);
+            margin-top: 8px; padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        .exp-contact a { color: var(--accent); text-decoration: none; }
+        .exp-contact a:hover { text-decoration: underline; }
+        .exp-breakdown {
+            font-size: 0.75rem; color: var(--text-muted);
+            margin-top: 8px;
+            font-style: italic;
+        }
+        .exp-neighborhoods {
+            display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+        }
+        .exp-hood-tag {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .error { background: rgba(248,113,113,0.1); border: 1px solid var(--error);
+                  color: var(--error); padding: 12px 16px; border-radius: 8px; }
+        .info { background: rgba(79,143,247,0.1); border: 1px solid var(--accent);
+                 color: var(--accent); padding: 12px 16px; border-radius: 8px; }
+        .loading { text-align: center; color: var(--text-muted); padding: 40px; }
+
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: block; }
+        .htmx-request .btn { opacity: 0.5; }
+
+        @media (max-width: 640px) {
+            .form-row, .form-row.three-col { grid-template-columns: 1fr; }
+            .exp-details { grid-template-columns: 1fr; }
+            .checkbox-row { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <div class="header-right">
+                {% if g.user %}
+                <a href="/brief" class="badge">Morning Brief</a>
+                <a href="/account" class="badge">{{ g.user.display_name or g.user.email }}</a>
+                <form method="POST" action="/auth/logout" style="display:inline;">
+                    <button class="badge" type="submit">Logout</button>
+                </form>
+                {% else %}
+                <a href="/auth/login" class="badge">Sign in</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Find an Expediter</h1>
+            <p class="subtitle">
+                Get ranked recommendations based on permit volume, neighborhood expertise,
+                professional network, and SF Ethics registration.
+            </p>
+
+            <div class="form-card">
+                <form hx-post="/expediters/search"
+                      hx-target="#results"
+                      hx-indicator="#loading">
+                    <div class="form-row three-col">
+                        <div class="form-group">
+                            <label for="address">Street Name</label>
+                            <input type="text" id="address" name="address"
+                                   placeholder="e.g., ROBIN HOOD">
+                        </div>
+                        <div class="form-group">
+                            <label for="block">Block</label>
+                            <input type="text" id="block" name="block"
+                                   placeholder="e.g., 2920">
+                        </div>
+                        <div class="form-group">
+                            <label for="lot">Lot</label>
+                            <input type="text" id="lot" name="lot"
+                                   placeholder="e.g., 020">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="neighborhood">Neighborhood</label>
+                            <select id="neighborhood" name="neighborhood">
+                                <option value="">Any neighborhood</option>
+                                {% for n in neighborhoods %}
+                                {% if n %}
+                                <option value="{{ n }}">{{ n }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="permit_type">Permit Type</label>
+                            <select id="permit_type" name="permit_type">
+                                <option value="">Any type</option>
+                                <option value="additions alterations or repairs">Additions / Alterations / Repairs</option>
+                                <option value="otc alterations">OTC Alterations</option>
+                                <option value="new construction">New Construction</option>
+                                <option value="demolitions">Demolitions</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="checkbox-row">
+                        <label class="checkbox-group">
+                            <input type="checkbox" name="has_active_complaint" value="on">
+                            Active complaint on property
+                        </label>
+                        <label class="checkbox-group">
+                            <input type="checkbox" name="needs_planning" value="on">
+                            Needs Planning Dept coordination
+                        </label>
+                    </div>
+                    <button class="btn" type="submit">Find Expediters</button>
+                </form>
+            </div>
+
+            <div id="loading" class="htmx-indicator loading">
+                Analyzing 1M+ permit records...
+            </div>
+            <div id="results" class="results-area">
+                {% if results %}
+                {% for exp in results %}
+                <div class="expediter-card">
+                    <div class="exp-header">
+                        <div>
+                            <span class="exp-rank">#{{ loop.index }}</span>
+                            <span class="exp-name">{{ exp.name }}</span>
+                            {% if exp.is_registered %}
+                            <span class="exp-registered">&#10003; Ethics Registered</span>
+                            {% endif %}
+                            {% if exp.firm %}
+                            <div class="exp-firm">{{ exp.firm }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="exp-score">{{ exp.score|int }}</div>
+                    </div>
+                    <div class="exp-details">
+                        <div class="exp-detail"><strong>Permits:</strong> {{ exp.permit_count }}</div>
+                        <div class="exp-detail"><strong>Network:</strong> {{ exp.network_size }} collaborators</div>
+                        <div class="exp-detail"><strong>Last Active:</strong> {{ exp.date_range_end[:10] if exp.date_range_end else 'N/A' }}</div>
+                        <div class="exp-detail"><strong>Entity ID:</strong> {{ exp.entity_id }}</div>
+                    </div>
+                    {% if exp.neighborhoods %}
+                    <div class="exp-neighborhoods">
+                        {% for hood in exp.neighborhoods[:6] %}
+                        <span class="exp-hood-tag">{{ hood }}</span>
+                        {% endfor %}
+                        {% if exp.neighborhoods|length > 6 %}
+                        <span class="exp-hood-tag">+{{ exp.neighborhoods|length - 6 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if exp.contact_info and (exp.contact_info.email or exp.contact_info.phone) %}
+                    <div class="exp-contact">
+                        {% if exp.contact_info.email %}
+                        <a href="mailto:{{ exp.contact_info.email }}">{{ exp.contact_info.email }}</a>
+                        {% endif %}
+                        {% if exp.contact_info.phone %}
+                        &middot; {{ exp.contact_info.phone }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="exp-breakdown">
+                        {% for key, val in exp.breakdown.items() %}
+                        {{ key|replace('_', ' ')|title }}: {{ val }}{% if not loop.last %} | {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% elif error %}
+                <div class="error">{{ error }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</body>
+</html>

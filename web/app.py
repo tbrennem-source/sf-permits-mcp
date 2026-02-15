@@ -1001,6 +1001,190 @@ def brief():
 
 
 # ---------------------------------------------------------------------------
+# Expediter Dashboard
+# ---------------------------------------------------------------------------
+
+@app.route("/expediters")
+def expediters():
+    """Expediter recommendation dashboard."""
+    return render_template("expediters.html", neighborhoods=NEIGHBORHOODS)
+
+
+@app.route("/expediters/search", methods=["POST"])
+def expediters_search():
+    """Search for expediters and return HTMX fragment with results."""
+    from src.tools.recommend_expediters import recommend_expediters, ScoredExpediter
+
+    address = request.form.get("address", "").strip() or None
+    block = request.form.get("block", "").strip() or None
+    lot = request.form.get("lot", "").strip() or None
+    neighborhood = request.form.get("neighborhood", "").strip() or None
+    permit_type = request.form.get("permit_type", "").strip() or None
+    has_complaint = request.form.get("has_active_complaint") == "on"
+    needs_planning = request.form.get("needs_planning") == "on"
+
+    try:
+        # recommend_expediters is async, returns markdown string
+        # But for the dashboard we want structured data — call the internal
+        # scoring logic directly
+        from src.tools.recommend_expediters import (
+            _query_expediters, _query_relationships,
+            _load_registry, _get_registered_names,
+        )
+        from src.db import get_connection, BACKEND
+        from datetime import date
+
+        conn = get_connection()
+        try:
+            expediters_raw = _query_expediters(conn, min_permits=20)
+            if not expediters_raw:
+                return render_template(
+                    "expediters.html",
+                    neighborhoods=NEIGHBORHOODS,
+                    error="No expediters found with sufficient activity.",
+                )
+
+            max_permits = max(e["permit_count"] for e in expediters_raw)
+            registered_names = _get_registered_names()
+            registry = _load_registry()
+            scored = []
+
+            for exp in expediters_raw:
+                s = ScoredExpediter(
+                    entity_id=exp["entity_id"],
+                    name=exp["canonical_name"],
+                    firm=exp["canonical_firm"] or "",
+                    permit_count=exp["permit_count"],
+                )
+
+                # Volume score (0-25)
+                volume_score = (exp["permit_count"] / max_permits) * 25 if max_permits > 0 else 0
+                s.breakdown["volume"] = round(volume_score, 1)
+                s.score += volume_score
+
+                # Get relationships
+                rels = _query_relationships(conn, exp["entity_id"])
+
+                total_rel_permits = 0
+                residential_permits = 0
+                all_neighborhoods = set()
+                latest_date = ""
+                network_partners = 0
+
+                for r in rels:
+                    shared = r["shared_permits"]
+                    total_rel_permits += shared
+                    ptypes = (r["permit_types"] or "").lower()
+                    if "a" in ptypes.split(",") or "additions" in ptypes:
+                        residential_permits += shared
+                    if r["neighborhoods"]:
+                        for n in r["neighborhoods"].split(","):
+                            n = n.strip()
+                            if n:
+                                all_neighborhoods.add(n)
+                    if r["date_range_end"] and r["date_range_end"] > latest_date:
+                        latest_date = r["date_range_end"]
+                    if shared >= 3:
+                        network_partners += 1
+
+                s.neighborhoods = sorted(all_neighborhoods)
+                s.date_range_end = latest_date
+                s.network_size = network_partners
+
+                # Specialization (0-25)
+                if total_rel_permits > 0:
+                    spec_score = (residential_permits / total_rel_permits) * 25
+                else:
+                    spec_score = 12.5
+                s.breakdown["specialization"] = round(spec_score, 1)
+                s.score += spec_score
+
+                # Neighborhood (0-20)
+                if neighborhood:
+                    target_lower = neighborhood.lower()
+                    hood_match = any(
+                        target_lower in n.lower() or n.lower() in target_lower
+                        for n in all_neighborhoods
+                    )
+                    hood_score = 20 if hood_match else 0
+                else:
+                    hood_score = 10
+                s.breakdown["neighborhood"] = round(hood_score, 1)
+                s.score += hood_score
+
+                # Recency (0-15)
+                recency_score = 0
+                if latest_date:
+                    try:
+                        end_date = date.fromisoformat(latest_date[:10])
+                        months_ago = (date.today() - end_date).days / 30
+                        if months_ago <= 6:
+                            recency_score = 15
+                        elif months_ago <= 12:
+                            recency_score = 10
+                        elif months_ago <= 24:
+                            recency_score = 5
+                    except (ValueError, TypeError):
+                        pass
+                s.breakdown["recency"] = round(recency_score, 1)
+                s.score += recency_score
+
+                # Network (0-15)
+                if network_partners >= 10:
+                    network_score = 15
+                elif network_partners >= 5:
+                    network_score = 10
+                elif network_partners >= 2:
+                    network_score = 5
+                else:
+                    network_score = 0
+                s.breakdown["network"] = round(network_score, 1)
+                s.score += network_score
+
+                # Bonuses
+                if has_complaint and exp["permit_count"] >= 50 and len(all_neighborhoods) >= 3:
+                    s.breakdown["complaint_bonus"] = 10
+                    s.score += 10
+                if needs_planning and network_partners >= 5:
+                    s.breakdown["planning_bonus"] = 10
+                    s.score += 10
+
+                name_lower = exp["canonical_name"].lower()
+                if name_lower in registered_names:
+                    s.is_registered = True
+                    s.breakdown["ethics_bonus"] = 5
+                    s.score += 5
+                    for c in registry.get("consultants", []):
+                        if c.get("name", "").strip().lower() == name_lower:
+                            s.contact_info = {
+                                "email": c.get("email", ""),
+                                "phone": c.get("phone", ""),
+                            }
+                            break
+
+                scored.append(s)
+        finally:
+            conn.close()
+
+        scored.sort(key=lambda x: x.score, reverse=True)
+        top = scored[:10]
+
+        return render_template(
+            "expediters.html",
+            neighborhoods=NEIGHBORHOODS,
+            results=top,
+        )
+
+    except Exception as e:
+        logging.error("Expediter search failed: %s", e)
+        return render_template(
+            "expediters.html",
+            neighborhoods=NEIGHBORHOODS,
+            error=f"Search failed: {e}",
+        )
+
+
+# ---------------------------------------------------------------------------
 # Cron endpoints — protected by bearer token
 # ---------------------------------------------------------------------------
 
