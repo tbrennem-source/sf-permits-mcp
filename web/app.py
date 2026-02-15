@@ -103,6 +103,25 @@ def _run_startup_migrations():
         # Primary address columns (added for homeowner personalization)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_number TEXT")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_name TEXT")
+        # Fix inspections.id for auto-increment (needed for nightly upserts)
+        # Original migration used INTEGER, but we need SERIAL for auto-increment
+        try:
+            cur.execute("""
+                DO $$
+                BEGIN
+                    -- Create a sequence if it doesn't exist
+                    IF NOT EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'inspections_id_seq') THEN
+                        CREATE SEQUENCE inspections_id_seq;
+                        -- Set the sequence to start after the max existing id
+                        PERFORM setval('inspections_id_seq', COALESCE((SELECT MAX(id) FROM inspections), 0) + 1);
+                        -- Set the column default
+                        ALTER TABLE inspections ALTER COLUMN id SET DEFAULT nextval('inspections_id_seq');
+                    END IF;
+                END
+                $$
+            """)
+        except Exception:
+            pass  # Non-fatal if already set up
         # cron_log table (nightly refresh + brief send tracking)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cron_log (
