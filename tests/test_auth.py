@@ -467,3 +467,95 @@ def test_validate_invite_code_open_signup(monkeypatch):
     monkeypatch.setattr(auth_mod, "INVITE_CODES", set())
     assert auth_mod.validate_invite_code("anything") is True
     assert auth_mod.validate_invite_code("") is True
+
+
+# ---------------------------------------------------------------------------
+# Admin: send invite
+# ---------------------------------------------------------------------------
+
+def test_send_invite_as_admin(client, monkeypatch):
+    """Admin can send an invite email (dev mode logs it)."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-invite@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"team-test-code-1234"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.post("/admin/send-invite", data={
+        "to_email": "friend@example.com",
+        "invite_code": "team-test-code-1234",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "friend@example.com" in html
+    assert "team-test-code-1234" in html
+
+
+def test_send_invite_non_admin_forbidden(client, monkeypatch):
+    """Non-admin users cannot send invites."""
+    import web.auth as auth_mod
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"some-code-5678"})
+
+    _login_user(client, "regular@test.com")
+    rv = client.post("/admin/send-invite", data={
+        "to_email": "someone@example.com",
+        "invite_code": "some-code-5678",
+    })
+    assert rv.status_code == 403
+
+
+def test_send_invite_bad_code_rejected(client, monkeypatch):
+    """Admin cannot send an invalid invite code."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-bad@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"real-code-abcd"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.post("/admin/send-invite", data={
+        "to_email": "friend@example.com",
+        "invite_code": "fake-code-0000",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "invalid" in html.lower() or "error" in html.lower()
+
+
+def test_send_invite_bad_email_rejected(client, monkeypatch):
+    """Admin cannot send to an invalid email."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-email@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"real-code-efgh"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.post("/admin/send-invite", data={
+        "to_email": "notanemail",
+        "invite_code": "real-code-efgh",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "invalid" in html.lower() or "error" in html.lower()
+
+
+def test_account_shows_invite_codes_for_admin(client, monkeypatch):
+    """Admin account page shows invite code dropdown."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-codes@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"team-abc-1234", "friends-xyz-5678"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.get("/account")
+    html = rv.data.decode()
+    assert "Send Invite" in html
+    assert "team-abc-1234" in html
+    assert "friends-xyz-5678" in html

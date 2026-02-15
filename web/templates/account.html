@@ -259,6 +259,29 @@
 
             {% if user.is_admin %}
             <div class="card admin-section">
+                <h2>Admin: Send Invite</h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+                    Email an invite code to someone. They'll get a link + their code.
+                </p>
+                <form method="POST" action="/admin/send-invite"
+                      hx-post="/admin/send-invite"
+                      hx-target="#invite-status"
+                      hx-swap="innerHTML"
+                      style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="email" name="to_email" placeholder="recipient@example.com" required
+                           style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;width:220px;">
+                    <select name="invite_code" required
+                            style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
+                        {% for code in invite_codes %}
+                        <option value="{{ code }}">{{ code }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-sm">Send Invite</button>
+                </form>
+                <span id="invite-status" style="font-size:0.85rem;display:block;margin-top:8px;"></span>
+            </div>
+
+            <div class="card admin-section">
                 <h2>Admin: Impersonate User</h2>
                 <form method="POST" action="/auth/impersonate" style="display: flex; gap: 10px; align-items: center;">
                     <input type="email" name="target_email" placeholder="user@example.com" required>

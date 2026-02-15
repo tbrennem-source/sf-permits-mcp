@@ -123,9 +123,12 @@ def robots():
 # Block common vulnerability scanner paths early (before 404 processing)
 _BLOCKED_PATHS = {
     "/wp-admin", "/wp-login.php", "/wp-content", "/.env", "/.git",
-    "/admin", "/phpmyadmin", "/xmlrpc.php", "/config.php",
+    "/phpmyadmin", "/xmlrpc.php", "/config.php",
     "/actuator", "/.well-known/security.txt",
 }
+# Exact-match blocked paths (scanners probe these without subpaths)
+_BLOCKED_EXACT = {"/admin"}
+
 
 
 @app.before_request
@@ -134,6 +137,8 @@ def _security_filters():
     path = request.path.lower()
 
     # Block known scanner probes with 404 (don't waste cycles)
+    if path in _BLOCKED_EXACT:
+        abort(404)
     for blocked in _BLOCKED_PATHS:
         if path.startswith(blocked):
             abort(404)
@@ -1028,9 +1033,12 @@ def watch_list():
 @login_required
 def account():
     """User account page with watch list."""
-    from web.auth import get_watches
+    from web.auth import get_watches, INVITE_CODES
     watches = get_watches(g.user["user_id"])
-    return render_template("account.html", user=g.user, watches=watches)
+    # Sort codes so the dropdown is consistent
+    invite_codes = sorted(INVITE_CODES) if g.user.get("is_admin") else []
+    return render_template("account.html", user=g.user, watches=watches,
+                           invite_codes=invite_codes)
 
 
 # ---------------------------------------------------------------------------
@@ -1072,6 +1080,82 @@ def account_brief_frequency():
 
     label = {"none": "Off", "daily": "Daily", "weekly": "Weekly"}[freq]
     return f'<span style="color:var(--success);">Saved: {label}</span>'
+
+
+# ---------------------------------------------------------------------------
+# Admin: send invite
+# ---------------------------------------------------------------------------
+
+@app.route("/admin/send-invite", methods=["POST"])
+@login_required
+def admin_send_invite():
+    """Send an invite email with a code to a recipient. Admin only."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    from web.auth import INVITE_CODES, validate_invite_code, BASE_URL
+
+    to_email = request.form.get("to_email", "").strip().lower()
+    invite_code = request.form.get("invite_code", "").strip()
+    message = request.form.get("message", "").strip()
+
+    if not to_email or "@" not in to_email:
+        return '<span style="color:var(--error);">Invalid email address.</span>'
+
+    if not validate_invite_code(invite_code):
+        return '<span style="color:var(--error);">Invalid invite code.</span>'
+
+    # Render invite email
+    sender_name = g.user.get("display_name") or g.user["email"]
+    html_body = render_template(
+        "invite_email.html",
+        base_url=BASE_URL,
+        invite_code=invite_code,
+        sender_name=sender_name,
+        message=message,
+    )
+
+    # Send via SMTP (or log in dev mode)
+    smtp_host = os.environ.get("SMTP_HOST")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_from = os.environ.get("SMTP_FROM", "noreply@sfpermits.ai")
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASS")
+
+    if not smtp_host:
+        logging.getLogger(__name__).info(
+            "Invite (dev mode): would send to %s with code %s", to_email, invite_code
+        )
+        return (
+            f'<span style="color:var(--success);">Dev mode: invite logged for '
+            f'{to_email} with code {invite_code}</span>'
+        )
+
+    try:
+        import smtplib
+        from email.message import EmailMessage
+
+        msg = EmailMessage()
+        msg["Subject"] = "You're invited to sfpermits.ai"
+        msg["From"] = smtp_from
+        msg["To"] = to_email
+        msg.set_content(
+            f"You've been invited to sfpermits.ai!\n\n"
+            f"Your invite code: {invite_code}\n\n"
+            f"Sign up at: {BASE_URL}/auth/login\n"
+        )
+        msg.add_alternative(html_body, subtype="html")
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            if smtp_user:
+                server.login(smtp_user, smtp_pass or "")
+            server.send_message(msg)
+
+        return f'<span style="color:var(--success);">Invite sent to {to_email}</span>'
+    except Exception as e:
+        logging.getLogger(__name__).exception("Failed to send invite to %s", to_email)
+        return f'<span style="color:var(--error);">Failed to send: {e}</span>'
 
 
 # ---------------------------------------------------------------------------
