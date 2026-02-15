@@ -33,6 +33,7 @@ from src.tools.revision_risk import revision_risk
 from src.tools.validate_plans import validate_plans
 from src.tools.context_parser import extract_triggers, enhance_description, reorder_sections
 from src.tools.team_lookup import generate_team_profile
+from src.tools.permit_lookup import permit_lookup
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
@@ -50,6 +51,7 @@ _rate_buckets: dict[str, list[float]] = defaultdict(list)
 RATE_LIMIT_WINDOW = 60        # seconds
 RATE_LIMIT_MAX_ANALYZE = 10   # /analyze requests per window
 RATE_LIMIT_MAX_VALIDATE = 5   # /validate requests per window (heavier)
+RATE_LIMIT_MAX_LOOKUP = 15    # /lookup requests per window (lightweight)
 
 
 def _is_rate_limited(ip: str, max_requests: int) -> bool:
@@ -127,6 +129,8 @@ def _security_filters():
         if path == "/analyze" and _is_rate_limited(ip, RATE_LIMIT_MAX_ANALYZE):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
         if path == "/validate" and _is_rate_limited(ip, RATE_LIMIT_MAX_VALIDATE):
+            return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
+        if path == "/lookup" and _is_rate_limited(ip, RATE_LIMIT_MAX_LOOKUP):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
 
 
@@ -474,6 +478,39 @@ def validate():
         filename=filename,
         filesize_mb=round(len(pdf_bytes) / (1024 * 1024), 1),
     )
+
+
+@app.route("/lookup", methods=["POST"])
+def lookup():
+    """Look up permits by number, address, or block/lot."""
+    lookup_mode = request.form.get("lookup_mode", "number")
+    permit_number = request.form.get("permit_number", "").strip() or None
+    street_number = request.form.get("street_number", "").strip() or None
+    street_name = request.form.get("street_name", "").strip() or None
+    block = request.form.get("block", "").strip() or None
+    lot = request.form.get("lot", "").strip() or None
+
+    # Validate based on selected mode
+    if lookup_mode == "number" and not permit_number:
+        return '<div class="error">Please enter a permit number.</div>', 400
+    if lookup_mode == "address" and (not street_number or not street_name):
+        return '<div class="error">Please enter both street number and street name.</div>', 400
+    if lookup_mode == "parcel" and (not block or not lot):
+        return '<div class="error">Please enter both block and lot numbers.</div>', 400
+
+    try:
+        result_md = run_async(permit_lookup(
+            permit_number=permit_number if lookup_mode == "number" else None,
+            street_number=street_number if lookup_mode == "address" else None,
+            street_name=street_name if lookup_mode == "address" else None,
+            block=block if lookup_mode == "parcel" else None,
+            lot=lot if lookup_mode == "parcel" else None,
+        ))
+        result_html = md_to_html(result_md)
+    except Exception as e:
+        result_html = f'<div class="error">Lookup error: {e}</div>'
+
+    return render_template("lookup_results.html", result=result_html)
 
 
 if __name__ == "__main__":

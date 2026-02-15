@@ -29,6 +29,9 @@ from src.tools.revision_risk import revision_risk
 # Phase 3 tools (document analysis)
 from src.tools.validate_plans import validate_plans
 
+# Phase 4 tools (lookup / status)
+from src.tools.permit_lookup import permit_lookup
+
 # Create MCP server
 mcp = FastMCP(
     "SF Permits",
@@ -42,7 +45,9 @@ mcp = FastMCP(
         "required_documents, revision_risk) walk a 7-step SF permit decision tree "
         "backed by structured knowledge (fee tables, routing matrix, OTC criteria, "
         "fire/planning code) plus DuckDB historical statistics from 1.1M+ permits. "
-        "Phase 3 tool (validate_plans) checks PDF plan sets against DBI EPR requirements."
+        "Phase 3 tool (validate_plans) checks PDF plan sets against DBI EPR requirements. "
+        "Phase 4 tool (permit_lookup) searches local DB by permit number, address, or parcel "
+        "and returns full details, project team, inspections, and related permits."
     ),
 )
 
@@ -67,6 +72,9 @@ mcp.tool()(revision_risk)
 
 # Phase 3 tools (document analysis)
 mcp.tool()(validate_plans)
+
+# Phase 4 tools (lookup / status)
+mcp.tool()(permit_lookup)
 
 
 if __name__ == "__main__":

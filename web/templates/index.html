@@ -793,6 +793,77 @@
             </div>
 
             <div id="validate-results"></div>
+
+            <!-- Permit Lookup -->
+            <div class="section-divider"></div>
+
+            <h2 class="section-title">Permit Lookup</h2>
+            <p class="subtitle">Search by permit number, address, or parcel to see status, team, inspections, and related permits.</p>
+
+            <div class="form-card">
+                <form hx-post="/lookup"
+                      hx-target="#lookup-results"
+                      hx-indicator="#lookup-loading"
+                      class="form-grid">
+
+                    <!-- Mode toggle -->
+                    <div class="full-width">
+                        <div class="experience-toggle lookup-mode-toggle">
+                            <button type="button" class="experience-option selected" data-mode="number" onclick="selectLookupMode(this)">&#128290; Permit Number</button>
+                            <button type="button" class="experience-option" data-mode="address" onclick="selectLookupMode(this)">&#128205; Address</button>
+                            <button type="button" class="experience-option" data-mode="parcel" onclick="selectLookupMode(this)">&#128506; Block / Lot</button>
+                        </div>
+                        <input type="hidden" name="lookup_mode" id="lookup-mode-input" value="number">
+                    </div>
+
+                    <!-- Permit Number input -->
+                    <div class="full-width lookup-fields" id="lookup-number-fields">
+                        <label for="permit_number">Permit Number</label>
+                        <input type="text" id="permit_number" name="permit_number"
+                            placeholder="e.g., 202301015555 or M012345">
+                    </div>
+
+                    <!-- Address inputs -->
+                    <div class="lookup-fields" id="lookup-address-fields" style="display:none;">
+                        <label for="street_number">Street Number</label>
+                        <input type="text" id="street_number" name="street_number"
+                            placeholder="e.g., 123">
+                    </div>
+                    <div class="lookup-fields" id="lookup-address-fields-2" style="display:none;">
+                        <label for="street_name">Street Name</label>
+                        <input type="text" id="street_name" name="street_name"
+                            placeholder="e.g., Main">
+                    </div>
+
+                    <!-- Block/Lot inputs -->
+                    <div class="lookup-fields" id="lookup-parcel-fields" style="display:none;">
+                        <label for="block">Block</label>
+                        <input type="text" id="block" name="block"
+                            placeholder="e.g., 3512">
+                    </div>
+                    <div class="lookup-fields" id="lookup-parcel-fields-2" style="display:none;">
+                        <label for="lot">Lot</label>
+                        <input type="text" id="lot" name="lot"
+                            placeholder="e.g., 001">
+                    </div>
+
+                    <div class="full-width">
+                        <button type="submit" class="btn btn-secondary">
+                            <span class="label">Look Up Permit</span>
+                            <span class="spinner">Searching...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="lookup-loading" class="htmx-indicator">
+                <div class="loading-bar">
+                    <div class="dots">...</div>
+                    <p>Searching 1.1M permits...</p>
+                </div>
+            </div>
+
+            <div id="lookup-results"></div>
         </div>
     </main>
 
@@ -910,6 +981,28 @@
             document.querySelectorAll(".experience-option").forEach(btn => btn.classList.remove("selected"));
             el.classList.add("selected");
             document.getElementById("experience-input").value = el.dataset.value;
+        }
+
+        // Lookup mode switching
+        function selectLookupMode(el) {
+            // Update toggle buttons
+            document.querySelectorAll(".lookup-mode-toggle .experience-option").forEach(btn => btn.classList.remove("selected"));
+            el.classList.add("selected");
+            const mode = el.dataset.mode;
+            document.getElementById("lookup-mode-input").value = mode;
+
+            // Show/hide field groups
+            const numberFields = document.getElementById("lookup-number-fields");
+            const addressFields = document.getElementById("lookup-address-fields");
+            const addressFields2 = document.getElementById("lookup-address-fields-2");
+            const parcelFields = document.getElementById("lookup-parcel-fields");
+            const parcelFields2 = document.getElementById("lookup-parcel-fields-2");
+
+            numberFields.style.display = mode === "number" ? "" : "none";
+            addressFields.style.display = mode === "address" ? "" : "none";
+            addressFields2.style.display = mode === "address" ? "" : "none";
+            parcelFields.style.display = mode === "parcel" ? "" : "none";
+            parcelFields2.style.display = mode === "parcel" ? "" : "none";
         }
 
         // Drag-and-drop visual feedback

@@ -228,6 +228,7 @@ def _create_indexes(conn) -> None:
         ("idx_inspections_block_lot", "inspections", "block, lot"),
         ("idx_permits_neighborhood", "permits", "neighborhood"),
         ("idx_permits_block_lot", "permits", "block, lot"),
+        ("idx_permits_street", "permits", "street_number, street_name"),
         ("idx_relationships_a", "relationships", "entity_id_a"),
         ("idx_relationships_b", "relationships", "entity_id_b"),
         ("idx_entities_name", "entities", "canonical_name"),

@@ -45,6 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_permits_status ON permits(status);
 CREATE INDEX IF NOT EXISTS idx_permits_filed ON permits(filed_date);
 CREATE INDEX IF NOT EXISTS idx_permits_cost ON permits(estimated_cost);
 CREATE INDEX IF NOT EXISTS idx_permits_block_lot ON permits(block, lot);
+CREATE INDEX IF NOT EXISTS idx_permits_street ON permits(street_number, street_name);
 
 -- Contacts (1.8M records)
 CREATE TABLE IF NOT EXISTS contacts (
