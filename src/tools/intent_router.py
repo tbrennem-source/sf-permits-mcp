@@ -76,7 +76,7 @@ VALIDATE_KEYWORDS = [
 ADDRESS_WITH_SUFFIX_RE = re.compile(
     r'(\d{1,5})\s+'
     r'(\d{0,3}(?:st|nd|rd|th)\s+|[A-Za-z][A-Za-z\s]{1,30}?)\s*'
-    r'(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Rd|Road|Dr(?:ive)?'
+    r'(St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Rd|Road|Dr(?:ive)?'
     r'|Way|Ct|Court|Ln|Lane|Pl(?:ace)?|Ter(?:race)?)\.?\b',
     re.IGNORECASE,
 )
@@ -213,12 +213,18 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
         if complaint_num_match:
             complaint_entities["complaint_number"] = complaint_num_match.group(1)
         # Try to extract address for complaint search
-        addr_m = ADDRESS_WITH_SUFFIX_RE.search(text) or ADDRESS_BARE_RE.search(text)
+        addr_suffix_m = ADDRESS_WITH_SUFFIX_RE.search(text)
+        addr_m = addr_suffix_m or ADDRESS_BARE_RE.search(text)
         if addr_m:
             sn = addr_m.group(1)
             if sn:
                 complaint_entities["street_number"] = sn
             street = addr_m.group(2).strip()
+            # Include suffix (Dr, Ave, St, etc.) when available
+            if addr_suffix_m and addr_m is addr_suffix_m:
+                suffix = addr_m.group(3)
+                if suffix:
+                    street = f"{street} {suffix}"
             if street and street.lower() not in _NOT_STREET_NAMES:
                 complaint_entities["street_name"] = street
         # Try block/lot
@@ -279,6 +285,13 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
     if m and (has_suffix or has_address_signal or is_short):
         street_number = m.group(1)
         street_name = m.group(2).strip()
+        # Append the street suffix (Dr, Ave, St, etc.) when matched by
+        # ADDRESS_WITH_SUFFIX_RE so primary address saves the full name.
+        # group(3) only exists on the suffix regex, not ADDRESS_BARE_RE.
+        if has_suffix and m is has_suffix:
+            suffix = m.group(3)
+            if suffix:
+                street_name = f"{street_name} {suffix}"
         # Clean trailing prepositions/articles
         street_name = re.sub(
             r'\s+(?:in|at|for|near|of|the|and|or|with)$', '',

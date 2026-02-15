@@ -61,16 +61,24 @@ def _lookup_by_number(conn, permit_number: str) -> list[dict]:
 
 
 def _lookup_by_address(conn, street_number: str, street_name: str) -> list[dict]:
-    """Match on street_number + street_name (indexed)."""
+    """Match on street_number + street_name (indexed).
+
+    Matches against both ``street_name`` alone and the concatenation
+    ``street_name || ' ' || street_suffix`` so that queries like
+    "Robin Hood Dr" find rows where name="ROBIN HOOD", suffix="DR".
+    """
     sql = f"""
         SELECT * FROM permits
         WHERE street_number = {_PH}
-          AND UPPER(street_name) LIKE UPPER({_PH})
+          AND (
+            UPPER(street_name) LIKE UPPER({_PH})
+            OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({_PH})
+          )
         ORDER BY filed_date DESC
         LIMIT 50
     """
-    # Wrap street_name with wildcards for partial match (e.g., "Main" matches "Main St")
-    rows = _exec(conn, sql, [street_number, f"%{street_name}%"])
+    pattern = f"%{street_name}%"
+    rows = _exec(conn, sql, [street_number, pattern, pattern])
     return [_row_to_dict(r) for r in rows]
 
 

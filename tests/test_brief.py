@@ -1199,3 +1199,107 @@ def test_account_shows_email_preferences(client):
     html = rv.data.decode()
     assert "Email Preferences" in html
     assert "brief_frequency" in html
+
+
+# ---------------------------------------------------------------------------
+# Section 7: Property Synopsis
+# ---------------------------------------------------------------------------
+
+def test_property_synopsis_with_permits(client):
+    """Property synopsis shows permit summary for primary address."""
+    from src.db import get_connection
+    user = _login_user(client)
+
+    conn = get_connection()
+    try:
+        _seed_permit(conn, "PROP001", street_number="75", street_name="ROBIN HOOD",
+                     street_suffix="DR", status="complete", neighborhood="West of Twin Peaks",
+                     block="2800", lot="010", filed_date="2020-03-15",
+                     permit_type_definition="otc alterations permit")
+        _seed_permit(conn, "PROP002", street_number="75", street_name="ROBIN HOOD",
+                     street_suffix="DR", status="issued", neighborhood="West of Twin Peaks",
+                     block="2800", lot="010", filed_date="2024-06-01",
+                     permit_type_definition="additions alterations or repairs")
+    finally:
+        conn.close()
+
+    from web.brief import get_morning_brief
+    brief = get_morning_brief(user["user_id"], primary_address={
+        "street_number": "75", "street_name": "Robin Hood Dr",
+    })
+
+    ps = brief["property_synopsis"]
+    assert ps is not None
+    assert ps["total_permits"] == 2
+    assert ps["active_count"] == 1  # issued is active
+    assert ps["neighborhood"] == "West of Twin Peaks"
+    assert ps["block"] == "2800"
+    assert ps["lot"] == "010"
+    assert len(ps["top_types"]) >= 1
+    assert ps["latest_permit"]["permit_number"] == "PROP002"
+
+
+def test_property_synopsis_none_when_no_permits(client):
+    """Property synopsis is None when no permits exist at address."""
+    user = _login_user(client)
+
+    from web.brief import get_morning_brief
+    brief = get_morning_brief(user["user_id"], primary_address={
+        "street_number": "999", "street_name": "Nonexistent Blvd",
+    })
+    assert brief["property_synopsis"] is None
+
+
+def test_property_synopsis_none_when_no_primary_address(client):
+    """No primary address means no property synopsis."""
+    user = _login_user(client)
+
+    from web.brief import get_morning_brief
+    brief = get_morning_brief(user["user_id"], primary_address=None)
+    assert brief["property_synopsis"] is None
+
+
+def test_brief_route_shows_property_synopsis(client):
+    """Brief page shows property synopsis section when primary address is set."""
+    from src.db import get_connection
+    from web.auth import set_primary_address
+    user = _login_user(client)
+
+    set_primary_address(user["user_id"], "75", "Robin Hood Dr")
+
+    conn = get_connection()
+    try:
+        _seed_permit(conn, "BRIEFPROP001", street_number="75",
+                     street_name="ROBIN HOOD", street_suffix="DR",
+                     status="complete", neighborhood="West of Twin Peaks")
+    finally:
+        conn.close()
+
+    rv = client.get("/brief")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Your Property" in html
+    assert "Robin Hood" in html
+    assert "Total Permits" in html
+
+
+def test_brief_route_shows_address_in_subtitle(client):
+    """Brief subtitle shows the monitored address."""
+    from web.auth import set_primary_address
+    from src.db import get_connection
+    user = _login_user(client)
+
+    set_primary_address(user["user_id"], "614", "6th Ave")
+
+    conn = get_connection()
+    try:
+        _seed_permit(conn, "SUBTITLE001", street_number="614",
+                     street_name="6TH", street_suffix="AVE",
+                     status="filed")
+    finally:
+        conn.close()
+
+    rv = client.get("/brief")
+    html = rv.data.decode()
+    assert "Monitoring" in html
+    assert "614" in html

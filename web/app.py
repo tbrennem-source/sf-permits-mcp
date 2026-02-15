@@ -1193,12 +1193,15 @@ def account_clear_primary_address():
 def brief():
     """Morning brief dashboard — what changed, permit health, inspections."""
     from web.brief import get_morning_brief
+    from web.auth import get_primary_address
     lookback = request.args.get("lookback", "1")
     try:
         lookback_days = max(1, min(int(lookback), 30))
     except ValueError:
         lookback_days = 1
-    brief_data = get_morning_brief(g.user["user_id"], lookback_days)
+    primary_addr = get_primary_address(g.user["user_id"])
+    brief_data = get_morning_brief(g.user["user_id"], lookback_days,
+                                   primary_address=primary_addr)
     return render_template("brief.html", user=g.user, brief=brief_data)
 
 

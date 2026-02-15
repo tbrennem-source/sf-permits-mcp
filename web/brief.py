@@ -41,16 +41,20 @@ def _parse_date(text: str | None) -> date | None:
 
 # ── Main entry point ──────────────────────────────────────────────
 
-def get_morning_brief(user_id: int, lookback_days: int = 1) -> dict:
+def get_morning_brief(user_id: int, lookback_days: int = 1,
+                      primary_address: dict | None = None) -> dict:
     """Build the complete morning brief data structure.
 
     Args:
         user_id: Current user's ID.
         lookback_days: How many days back to look for changes (1=today, 7=week).
+        primary_address: Optional dict with ``street_number`` and ``street_name``
+            for the user's primary (home) address.  When provided, a property
+            synopsis section is included in the brief.
 
     Returns:
         Dict with keys: changes, health, inspections, new_filings,
-        team_activity, expiring, summary, lookback_days.
+        team_activity, expiring, property_synopsis, summary, lookback_days.
     """
     since = date.today() - timedelta(days=lookback_days)
 
@@ -60,6 +64,14 @@ def get_morning_brief(user_id: int, lookback_days: int = 1) -> dict:
     new_filings = _get_new_filings(user_id, since)
     team_activity = _get_team_activity(user_id, since)
     expiring = _get_expiring_permits(user_id)
+
+    # Property synopsis for primary address
+    property_synopsis = None
+    if primary_address:
+        property_synopsis = _get_property_synopsis(
+            primary_address["street_number"],
+            primary_address["street_name"],
+        )
 
     # Count watches
     watch_count_row = query(
@@ -77,6 +89,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1) -> dict:
         "new_filings": new_filings,
         "team_activity": team_activity,
         "expiring": expiring,
+        "property_synopsis": property_synopsis,
         "summary": {
             "total_watches": total_watches,
             "changes_count": len(changes),
@@ -480,3 +493,93 @@ def _get_expiring_permits(user_id: int) -> list[dict]:
     # Sort: expired first, then soonest to expire
     results.sort(key=lambda x: x["expires_in"])
     return results
+
+
+# ── Section 7: Property Synopsis ─────────────────────────────────
+
+def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
+    """Build a property overview from permits at the user's primary address.
+
+    Returns a dict with total counts, status breakdown, latest permit info,
+    neighborhood, and parcel identifier — or None if no permits found.
+    """
+    ph = _ph()
+
+    # Match the same way permit_lookup does — name or name+suffix
+    pattern = f"%{street_name}%"
+    rows = query(
+        f"SELECT permit_number, permit_type_definition, status, "
+        f"filed_date, issued_date, completed_date, estimated_cost, "
+        f"description, neighborhood, block, lot, street_suffix "
+        f"FROM permits "
+        f"WHERE street_number = {ph} "
+        f"  AND ("
+        f"    UPPER(street_name) LIKE UPPER({ph})"
+        f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
+        f"  ) "
+        f"ORDER BY filed_date DESC",
+        (street_number, pattern, pattern),
+    )
+
+    if not rows:
+        return None
+
+    total = len(rows)
+
+    # Status breakdown
+    status_counts: dict[str, int] = {}
+    for r in rows:
+        st = (r[2] or "unknown").lower()
+        status_counts[st] = status_counts.get(st, 0) + 1
+
+    active_statuses = {"filed", "approved", "issued", "reinstated"}
+    active_count = sum(v for k, v in status_counts.items() if k in active_statuses)
+    completed_count = status_counts.get("complete", 0) + status_counts.get("completed", 0)
+
+    # Most recent permit
+    latest = rows[0]
+    latest_info = {
+        "permit_number": latest[0],
+        "type": latest[1] or "Unknown",
+        "status": latest[2] or "Unknown",
+        "filed_date": latest[3],
+        "description": (latest[7] or "")[:120],
+    }
+
+    # Collect unique permit types
+    type_counts: dict[str, int] = {}
+    for r in rows:
+        pt = r[1] or "Other"
+        type_counts[pt] = type_counts.get(pt, 0) + 1
+    top_types = sorted(type_counts.items(), key=lambda x: -x[1])[:5]
+
+    # Neighborhood + parcel from first row
+    neighborhood = latest[8]
+    block = latest[9]
+    lot = latest[10]
+    street_suffix = latest[11] or ""
+
+    # Full display address
+    display_address = f"{street_number} {street_name}"
+    if street_suffix and street_suffix.lower() not in street_name.lower():
+        display_address = f"{street_number} {street_name} {street_suffix}"
+
+    # Date range
+    dates = [r[3] for r in rows if r[3]]
+    earliest_date = min(dates) if dates else None
+    latest_date = max(dates) if dates else None
+
+    return {
+        "address": display_address,
+        "neighborhood": neighborhood,
+        "block": block,
+        "lot": lot,
+        "total_permits": total,
+        "active_count": active_count,
+        "completed_count": completed_count,
+        "status_counts": status_counts,
+        "latest_permit": latest_info,
+        "top_types": top_types,
+        "earliest_date": earliest_date,
+        "latest_date": latest_date,
+    }

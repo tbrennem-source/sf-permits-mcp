@@ -1243,6 +1243,22 @@
             revealSection("analyze");
         }
 
+        // Auto-submit if ?q= parameter is present (e.g. from admin quick search)
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var q = params.get("q");
+            if (q) {
+                var input = document.getElementById("search-q");
+                if (input) {
+                    input.value = q;
+                    // Trigger HTMX submit after a brief delay for HTMX init
+                    setTimeout(function() {
+                        htmx.trigger(document.querySelector(".search-form"), "submit");
+                    }, 100);
+                }
+            }
+        })();
+
         // Drag-and-drop visual feedback
         const dropZone = document.getElementById("drop-zone");
         if (dropZone) {

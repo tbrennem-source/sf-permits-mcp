@@ -717,3 +717,28 @@ def test_user_dict_includes_primary_address(client):
     refreshed = get_user_by_id(user["user_id"])
     assert refreshed["primary_street_number"] == "75"
     assert refreshed["primary_street_name"] == "Robin Hood Dr"
+
+
+# ---------------------------------------------------------------------------
+# Admin: Quick Search
+# ---------------------------------------------------------------------------
+
+def test_admin_account_shows_quick_search(client, monkeypatch):
+    """Admin account page includes the Quick Search card."""
+    admin = _make_admin("admin-search@test.com", monkeypatch)
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.get("/account")
+    html = rv.data.decode()
+    assert "Quick Search" in html
+    assert 'name="q"' in html
+
+
+def test_non_admin_no_quick_search(client):
+    """Non-admin users should not see the Quick Search card."""
+    _login_user(client, "regular@test.com")
+    rv = client.get("/account")
+    html = rv.data.decode()
+    assert "Quick Search" not in html

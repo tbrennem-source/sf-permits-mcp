@@ -267,6 +267,46 @@ def test_address_numbered_street_bare():
     assert "16th" in r.entities["street_name"]
 
 
+def test_address_suffix_preserved_robin_hood_dr():
+    """Regression: street suffix (Dr) must be included in street_name for primary address."""
+    r = classify("75 Robin Hood Dr")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "75"
+    assert r.entities["street_name"] == "Robin Hood Dr"
+
+
+def test_address_suffix_preserved_6th_ave():
+    """Regression: numbered street + suffix must include suffix."""
+    r = classify("614 6th Ave")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "614"
+    assert r.entities["street_name"] == "6th Ave"
+
+
+def test_address_suffix_preserved_main_st():
+    """Street suffix included for common addresses."""
+    r = classify("123 Main St")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "123"
+    assert r.entities["street_name"] == "Main St"
+
+
+def test_address_bare_no_suffix():
+    """Bare address (no suffix) should not have trailing suffix appended."""
+    r = classify("456 Market")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "456"
+    assert r.entities["street_name"] == "Market"
+
+
+def test_complaint_address_suffix_preserved():
+    """Complaint intent should also include street suffix in street_name."""
+    r = classify("complaints at 75 Robin Hood Dr")
+    assert r.intent == "search_complaint"
+    assert r.entities.get("street_number") == "75"
+    assert r.entities.get("street_name") == "Robin Hood Dr"
+
+
 # ---------------------------------------------------------------------------
 # Person search intent
 # ---------------------------------------------------------------------------

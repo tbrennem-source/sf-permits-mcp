@@ -185,10 +185,76 @@
         <div class="container">
             <h1>Good Morning{% if user.display_name %}, {{ user.display_name }}{% endif %}</h1>
             <p class="subtitle">
+                {% if brief.property_synopsis %}
+                    Monitoring <strong>{{ brief.property_synopsis.address }}</strong>
+                    {% if brief.property_synopsis.neighborhood %} &middot; {{ brief.property_synopsis.neighborhood }}{% endif %}
+                    &middot;
+                {% endif %}
                 {{ brief.lookback_days }} day{{ 's' if brief.lookback_days > 1 else '' }} lookback
             </p>
 
-            {% if brief.summary.total_watches == 0 %}
+            {% if brief.property_synopsis %}
+            <!-- Property Synopsis -->
+            <div class="section" style="margin-bottom:28px;">
+                <h2>Your Property</h2>
+                <div class="summary-row" style="margin-bottom:16px;">
+                    <div class="summary-card">
+                        <div class="summary-number">{{ brief.property_synopsis.total_permits }}</div>
+                        <div class="summary-label">Total Permits</div>
+                    </div>
+                    <div class="summary-card {{ 'ok' if brief.property_synopsis.active_count > 0 else '' }}">
+                        <div class="summary-number">{{ brief.property_synopsis.active_count }}</div>
+                        <div class="summary-label">Active</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-number">{{ brief.property_synopsis.completed_count }}</div>
+                        <div class="summary-label">Completed</div>
+                    </div>
+                </div>
+                {% if brief.property_synopsis.latest_permit %}
+                <div style="margin-bottom:12px;">
+                    <span style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;">Most Recent</span>
+                    <div style="margin-top:4px;">
+                        <a href="/?q={{ brief.property_synopsis.latest_permit.permit_number }}"
+                           style="color:var(--accent);text-decoration:none;font-weight:500;">
+                            {{ brief.property_synopsis.latest_permit.permit_number }}
+                        </a>
+                        &middot;
+                        <span class="status-badge status-{{ brief.property_synopsis.latest_permit.status|lower }}">
+                            {{ brief.property_synopsis.latest_permit.status }}
+                        </span>
+                        &middot; {{ brief.property_synopsis.latest_permit.type }}
+                        {% if brief.property_synopsis.latest_permit.filed_date %}
+                        &middot; Filed {{ brief.property_synopsis.latest_permit.filed_date }}
+                        {% endif %}
+                    </div>
+                    {% if brief.property_synopsis.latest_permit.description %}
+                    <div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px;">
+                        {{ brief.property_synopsis.latest_permit.description }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if brief.property_synopsis.top_types %}
+                <div style="font-size:0.8rem;color:var(--text-muted);">
+                    <span style="text-transform:uppercase;">Permit Types:</span>
+                    {% for ptype, count in brief.property_synopsis.top_types %}
+                        {{ ptype }} ({{ count }}){% if not loop.last %},{% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if brief.property_synopsis.block and brief.property_synopsis.lot %}
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">
+                    Block {{ brief.property_synopsis.block }}, Lot {{ brief.property_synopsis.lot }}
+                    {% if brief.property_synopsis.earliest_date and brief.property_synopsis.latest_date %}
+                    &middot; Permit history: {{ brief.property_synopsis.earliest_date }} &ndash; {{ brief.property_synopsis.latest_date }}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if brief.summary.total_watches == 0 and not brief.property_synopsis %}
             <!-- Onboarding: no watches yet -->
             <div class="section onboarding">
                 <h2>Your morning brief is ready to go</h2>
@@ -198,7 +264,7 @@
                 </p>
                 <a href="/" class="btn">Search permits to start watching</a>
             </div>
-            {% else %}
+            {% elif brief.summary.total_watches > 0 or brief.property_synopsis %}
 
             <!-- Lookback toggle -->
             <div class="lookback-toggle">
@@ -417,7 +483,7 @@
                 </a>
             </div>
 
-            {% endif %}{# end of total_watches > 0 #}
+            {% endif %}{# end of total_watches > 0 or property_synopsis #}
         </div>
     </main>
     {% include 'fragments/feedback_widget.html' %}
