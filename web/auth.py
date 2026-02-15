@@ -29,6 +29,26 @@ SMTP_PASS = os.environ.get("SMTP_PASS")
 
 TOKEN_EXPIRY_MINUTES = 30
 
+# ── Invite Codes ─────────────────────────────────────────────────
+# Comma-separated list of valid invite codes. If empty/unset, signup is open.
+# Example: INVITE_CODES=sfp-team-5b032f5b,sfp-amy-22204097
+_INVITE_CODES_RAW = os.environ.get("INVITE_CODES", "")
+INVITE_CODES: set[str] = {
+    c.strip() for c in _INVITE_CODES_RAW.split(",") if c.strip()
+}
+
+
+def invite_required() -> bool:
+    """Whether an invite code is required to create a new account."""
+    return len(INVITE_CODES) > 0
+
+
+def validate_invite_code(code: str) -> bool:
+    """Check if an invite code is valid. Case-sensitive."""
+    if not invite_required():
+        return True  # No codes configured → open signup
+    return code.strip() in INVITE_CODES
+
 _schema_initialized = False
 
 
@@ -44,25 +64,30 @@ def _ensure_schema():
 
 # ── User CRUD ─────────────────────────────────────────────────────
 
-def create_user(email: str) -> dict:
-    """Create a new user. Returns user dict. Sets is_admin if email matches ADMIN_EMAIL."""
+def create_user(email: str, invite_code: str | None = None) -> dict:
+    """Create a new user. Returns user dict.
+
+    Sets is_admin if email matches ADMIN_EMAIL.
+    Stores invite_code for cohort tracking.
+    """
     _ensure_schema()
     is_admin = bool(ADMIN_EMAIL and email.lower() == ADMIN_EMAIL.lower())
+    code = invite_code.strip() if invite_code else None
     if BACKEND == "postgres":
         sql = """
-            INSERT INTO users (email, is_admin)
-            VALUES (%s, %s)
+            INSERT INTO users (email, is_admin, invite_code)
+            VALUES (%s, %s, %s)
             RETURNING user_id
         """
-        user_id = execute_write(sql, (email, is_admin), return_id=True)
+        user_id = execute_write(sql, (email, is_admin, code), return_id=True)
     else:
         # DuckDB: manual ID assignment
         row = query_one("SELECT COALESCE(MAX(user_id), 0) + 1 FROM users")
         user_id = row[0]
         conn = get_connection()
         try:
-            sql = "INSERT INTO users (user_id, email, is_admin) VALUES (?, ?, ?)"
-            conn.execute(sql, (user_id, email, is_admin))
+            sql = "INSERT INTO users (user_id, email, is_admin, invite_code) VALUES (?, ?, ?, ?)"
+            conn.execute(sql, (user_id, email, is_admin, code))
         finally:
             conn.close()
     return get_user_by_id(user_id)
@@ -74,7 +99,7 @@ def get_user_by_email(email: str) -> dict | None:
     row = query_one(
         "SELECT user_id, email, display_name, role, firm_name, entity_id, "
         "email_verified, is_admin, is_active, "
-        "COALESCE(brief_frequency, 'none') "
+        "COALESCE(brief_frequency, 'none'), invite_code "
         "FROM users WHERE email = %s",
         (email,),
     )
@@ -87,7 +112,7 @@ def get_user_by_id(user_id: int) -> dict | None:
     row = query_one(
         "SELECT user_id, email, display_name, role, firm_name, entity_id, "
         "email_verified, is_admin, is_active, "
-        "COALESCE(brief_frequency, 'none') "
+        "COALESCE(brief_frequency, 'none'), invite_code "
         "FROM users WHERE user_id = %s",
         (user_id,),
     )
@@ -107,6 +132,7 @@ def _row_to_user(row) -> dict:
         "is_admin": row[7],
         "is_active": row[8],
         "brief_frequency": row[9] if len(row) > 9 else "none",
+        "invite_code": row[10] if len(row) > 10 else None,
     }
 
 

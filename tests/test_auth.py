@@ -362,3 +362,108 @@ def test_header_shows_sign_in_when_anonymous(client):
     html = rv.data.decode()
     assert "Sign in" in html
     assert "Logout" not in html
+
+
+# ---------------------------------------------------------------------------
+# Invite codes
+# ---------------------------------------------------------------------------
+
+def test_invite_code_not_required_by_default(client):
+    """When INVITE_CODES is empty, signup is open."""
+    import web.auth as auth_mod
+    assert not auth_mod.invite_required()
+    rv = client.post("/auth/send-link", data={"email": "open@example.com"})
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "/auth/verify/" in html
+
+
+def test_invite_code_required_blocks_new_user(client, monkeypatch):
+    """When invite codes are set, new users must provide one."""
+    import web.auth as auth_mod
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"disco-penguin-7f3a", "turbo-walrus-a1b2"})
+    rv = client.post("/auth/send-link", data={"email": "blocked@example.com"})
+    assert rv.status_code == 403
+    html = rv.data.decode()
+    assert "invite code" in html.lower()
+
+
+def test_invite_code_required_bad_code(client, monkeypatch):
+    """Wrong invite code is rejected."""
+    import web.auth as auth_mod
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"disco-penguin-7f3a"})
+    rv = client.post("/auth/send-link", data={
+        "email": "wrong@example.com",
+        "invite_code": "bad-code-0000",
+    })
+    assert rv.status_code == 403
+
+
+def test_invite_code_required_valid_code(client, monkeypatch):
+    """Valid invite code allows new user creation."""
+    import web.auth as auth_mod
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"disco-penguin-7f3a"})
+    rv = client.post("/auth/send-link", data={
+        "email": "invited@example.com",
+        "invite_code": "disco-penguin-7f3a",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "/auth/verify/" in html
+    # Check user was created with the invite code stored
+    user = auth_mod.get_user_by_email("invited@example.com")
+    assert user is not None
+    assert user["invite_code"] == "disco-penguin-7f3a"
+
+
+def test_existing_user_skips_invite_code(client, monkeypatch):
+    """Existing users can log in without an invite code even when required."""
+    import web.auth as auth_mod
+    # Create user first (before invite codes are enabled)
+    auth_mod.create_user("existing@example.com")
+    # Now enable invite codes
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"disco-penguin-7f3a"})
+    rv = client.post("/auth/send-link", data={"email": "existing@example.com"})
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "/auth/verify/" in html
+
+
+def test_login_page_shows_invite_field_when_required(client, monkeypatch):
+    """Login page shows invite code field when codes are configured."""
+    import web.auth as auth_mod
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"some-code-1234"})
+    rv = client.get("/auth/login")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert 'name="invite_code"' in html
+    assert "invite code" in html.lower()
+
+
+def test_login_page_hides_invite_field_when_open(client):
+    """Login page hides invite code field when signup is open."""
+    import web.auth as auth_mod
+    assert not auth_mod.invite_required()
+    rv = client.get("/auth/login")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert 'name="invite_code"' not in html
+
+
+def test_validate_invite_code_function(monkeypatch):
+    """Direct test of validate_invite_code helper."""
+    import web.auth as auth_mod
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"turbo-walrus-a1b2", "mega-sloth-c3d4"})
+    assert auth_mod.validate_invite_code("turbo-walrus-a1b2") is True
+    assert auth_mod.validate_invite_code("mega-sloth-c3d4") is True
+    assert auth_mod.validate_invite_code("wrong-code-0000") is False
+    assert auth_mod.validate_invite_code("") is False
+    assert auth_mod.validate_invite_code("  turbo-walrus-a1b2  ") is True  # strips whitespace
+
+
+def test_validate_invite_code_open_signup(monkeypatch):
+    """When no codes configured, any code (or empty) is accepted."""
+    import web.auth as auth_mod
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", set())
+    assert auth_mod.validate_invite_code("anything") is True
+    assert auth_mod.validate_invite_code("") is True

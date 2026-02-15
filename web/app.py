@@ -51,6 +51,35 @@ app.config["MAX_CONTENT_LENGTH"] = 400 * 1024 * 1024
 
 
 # ---------------------------------------------------------------------------
+# Startup migrations (idempotent, run once per deploy)
+# ---------------------------------------------------------------------------
+def _run_startup_migrations():
+    """Run any pending schema migrations on startup. Idempotent."""
+    from src.db import BACKEND, get_connection
+    if BACKEND != "postgres":
+        return  # DuckDB schema is managed by init_user_schema
+    try:
+        conn = get_connection()
+        conn.autocommit = True
+        cur = conn.cursor()
+        # invite_code column (added in invite code feature)
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS invite_code TEXT")
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_users_invite_code
+            ON users (invite_code)
+            WHERE invite_code IS NOT NULL
+        """)
+        cur.close()
+        conn.close()
+        logging.getLogger(__name__).info("Startup migrations complete")
+    except Exception as e:
+        logging.getLogger(__name__).warning("Startup migration failed (non-fatal): %s", e)
+
+
+_run_startup_migrations()
+
+
+# ---------------------------------------------------------------------------
 # Simple in-memory rate limiter (per-IP, resets on deploy — good enough for
 # Phase 1 on a single dyno; swap for Redis-backed in Phase 2)
 # ---------------------------------------------------------------------------
@@ -809,13 +838,17 @@ def _ask_general_question(query: str, entities: dict) -> str:
 @app.route("/auth/login")
 def auth_login():
     """Show the login/register page."""
-    return render_template("auth_login.html")
+    from web.auth import invite_required
+    return render_template("auth_login.html", invite_required=invite_required())
 
 
 @app.route("/auth/send-link", methods=["POST"])
 def auth_send_link():
     """Create user if needed, generate magic link, send/display it."""
-    from web.auth import get_or_create_user, create_magic_token, send_magic_link, BASE_URL
+    from web.auth import (
+        get_user_by_email, create_user, create_magic_token, send_magic_link,
+        BASE_URL, invite_required, validate_invite_code,
+    )
 
     email = request.form.get("email", "").strip().lower()
     if not email or "@" not in email:
@@ -823,9 +856,25 @@ def auth_send_link():
             "auth_login.html",
             message="Please enter a valid email address.",
             message_type="error",
+            invite_required=invite_required(),
         ), 400
 
-    user = get_or_create_user(email)
+    # Check if existing user (existing users don't need an invite code)
+    user = get_user_by_email(email)
+
+    if not user:
+        # New user — check invite code if required
+        invite_code = request.form.get("invite_code", "").strip()
+        if invite_required():
+            if not invite_code or not validate_invite_code(invite_code):
+                return render_template(
+                    "auth_login.html",
+                    message="A valid invite code is required to create an account.",
+                    message_type="error",
+                    invite_required=True,
+                ), 403
+        user = create_user(email, invite_code=invite_code or None)
+
     token = create_magic_token(user["user_id"])
     sent = send_magic_link(email, token)
 
@@ -836,12 +885,14 @@ def auth_send_link():
         return render_template(
             "auth_login.html",
             message=f"Magic link sent to <strong>{email}</strong>. Check your inbox.",
+            invite_required=invite_required(),
         )
     else:
         # Dev: show link directly
         return render_template(
             "auth_login.html",
             message=f'Magic link (dev mode): <a href="{link}">{link}</a>',
+            invite_required=invite_required(),
         )
 
 
