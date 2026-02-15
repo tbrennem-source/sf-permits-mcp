@@ -230,6 +230,43 @@ def test_address_no_suffix_still_needs_gate():
     assert r.intent != "search_address"
 
 
+def test_address_numbered_street_with_ave():
+    """Numbered streets like '723 16th Ave' are very common in SF."""
+    r = classify("723 16th ave")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "723"
+    assert "16th" in r.entities["street_name"]
+
+
+def test_address_numbered_street_3rd():
+    r = classify("100 3rd St")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "100"
+    assert "3rd" in r.entities["street_name"]
+
+
+def test_address_numbered_street_22nd():
+    r = classify("450 22nd Ave")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "450"
+    assert "22nd" in r.entities["street_name"]
+
+
+def test_address_numbered_street_1st():
+    r = classify("200 1st Street")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "200"
+    assert "1st" in r.entities["street_name"]
+
+
+def test_address_numbered_street_bare():
+    """Numbered street without suffix should work for short queries."""
+    r = classify("723 16th")
+    assert r.intent == "search_address"
+    assert r.entities["street_number"] == "723"
+    assert "16th" in r.entities["street_name"]
+
+
 # ---------------------------------------------------------------------------
 # Person search intent
 # ---------------------------------------------------------------------------

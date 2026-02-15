@@ -72,16 +72,18 @@ VALIDATE_KEYWORDS = [
 
 # Priority 4: Address pattern
 # Two-pass approach: try with suffix first (greedy name), then bare number+name
+# NOTE: Street names can start with digits (e.g., "16th Ave", "3rd St", "22nd Blvd")
 ADDRESS_WITH_SUFFIX_RE = re.compile(
     r'(\d{1,5})\s+'
-    r'([A-Za-z][A-Za-z\s]{1,30}?)\s+'
+    r'(\d{0,3}(?:st|nd|rd|th)\s+|[A-Za-z][A-Za-z\s]{1,30}?)\s*'
     r'(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Rd|Road|Dr(?:ive)?'
     r'|Way|Ct|Court|Ln|Lane|Pl(?:ace)?|Ter(?:race)?)\.?\b',
     re.IGNORECASE,
 )
 # Bare address: number + word, excluding measurement words
+# Also support numbered streets (e.g., "723 16th")
 ADDRESS_BARE_RE = re.compile(
-    r'(\d{1,5})\s+([A-Za-z][A-Za-z]{2,20})',
+    r'(\d{1,5})\s+([A-Za-z][A-Za-z]{2,20}|\d{1,3}(?:st|nd|rd|th))',
     re.IGNORECASE,
 )
 # Words that look like addresses but aren't
