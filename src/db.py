@@ -145,7 +145,9 @@ def init_user_schema(conn=None) -> None:
                 is_active BOOLEAN NOT NULL DEFAULT TRUE,
                 brief_frequency TEXT NOT NULL DEFAULT 'none',
                 last_brief_sent_at TIMESTAMP,
-                invite_code TEXT
+                invite_code TEXT,
+                primary_street_number TEXT,
+                primary_street_name TEXT
             )
         """)
         conn.execute("""

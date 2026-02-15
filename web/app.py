@@ -100,6 +100,9 @@ def _run_startup_migrations():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback (status)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback (user_id)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback (created_at)")
+        # Primary address columns (added for homeowner personalization)
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_number TEXT")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_name TEXT")
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -212,7 +215,8 @@ def _load_user():
 _LOG_PATHS = {"/ask", "/analyze", "/validate", "/lookup", "/brief",
               "/account", "/auth/send-link", "/auth/verify",
               "/watch/add", "/watch/remove", "/feedback/submit",
-              "/admin/send-invite"}
+              "/admin/send-invite", "/account/primary-address",
+              "/account/primary-address/clear"}
 
 
 @app.after_request
@@ -241,6 +245,8 @@ def _log_activity(response):
             "/watch/remove": "watch_remove",
             "/feedback/submit": "feedback_submit",
             "/admin/send-invite": "admin_invite",
+            "/account/primary-address": "primary_address_set",
+            "/account/primary-address/clear": "primary_address_clear",
         }
         action = action_map.get(path, "page_view")
         if path.startswith("/auth/verify/"):
@@ -819,10 +825,15 @@ def _ask_address_search(query: str, entities: dict) -> str:
         "street_name": street_name,
         "label": f"{street_number} {street_name}",
     }
+    # Primary address prompt: show if logged in and no primary address set yet
+    show_primary_prompt = bool(g.user and not g.user.get("primary_street_number"))
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
         result_html=md_to_html(result_md),
+        show_primary_prompt=show_primary_prompt,
+        prompt_street_number=street_number,
+        prompt_street_name=street_name,
         **_watch_context(watch_data),
     )
 
@@ -1134,6 +1145,43 @@ def account():
                            invite_codes=invite_codes,
                            activity_stats=activity_stats,
                            feedback_counts=feedback_counts)
+
+
+# ---------------------------------------------------------------------------
+# Primary address
+# ---------------------------------------------------------------------------
+
+@app.route("/account/primary-address", methods=["POST"])
+@login_required
+def account_set_primary_address():
+    """Set or update the user's primary address. Returns HTMX fragment."""
+    from web.auth import set_primary_address
+
+    street_number = request.form.get("street_number", "").strip()
+    street_name = request.form.get("street_name", "").strip()
+
+    if not street_number or not street_name:
+        return '<span style="color:var(--error);">Address is required.</span>'
+
+    set_primary_address(g.user["user_id"], street_number, street_name)
+
+    label = f"{street_number} {street_name}"
+    return (
+        f'<span style="color:var(--success);">'
+        f'Saved — {label} is your primary address.</span>'
+    )
+
+
+@app.route("/account/primary-address/clear", methods=["POST"])
+@login_required
+def account_clear_primary_address():
+    """Clear the user's primary address. Returns HTMX fragment."""
+    from web.auth import clear_primary_address
+    clear_primary_address(g.user["user_id"])
+    return (
+        '<span style="color:var(--text-muted);font-style:italic;">'
+        'Not set &mdash; search for your address to save it</span>'
+    )
 
 
 # ---------------------------------------------------------------------------

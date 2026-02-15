@@ -208,6 +208,23 @@
                     <span class="info-label">Verified</span>
                     <span>{{ 'Yes' if user.email_verified else 'No' }}</span>
                 </div>
+                <div class="info-row">
+                    <span class="info-label">Primary Address</span>
+                    <span id="primary-addr-display">
+                        {% if user.primary_street_number and user.primary_street_name %}
+                        <span style="display:flex;align-items:center;gap:8px;">
+                            {{ user.primary_street_number }} {{ user.primary_street_name }}
+                            <button class="btn-unwatch"
+                                hx-post="/account/primary-address/clear"
+                                hx-target="#primary-addr-display"
+                                hx-swap="innerHTML"
+                                title="Remove primary address">&#10005;</button>
+                        </span>
+                        {% else %}
+                        <span style="color:var(--text-muted);font-style:italic;">Not set &mdash; search for your address to save it</span>
+                        {% endif %}
+                    </span>
+                </div>
             </div>
 
             <div class="card">

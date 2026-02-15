@@ -773,6 +773,12 @@
                     </div>
                 </form>
                 <div class="quick-actions">
+                    {% if g.user and g.user.primary_street_number and g.user.primary_street_name %}
+                    <button class="preset-chip" style="border-color:var(--accent);color:var(--accent);"
+                        onclick="document.getElementById('search-q').value='{{ g.user.primary_street_number }} {{ g.user.primary_street_name }}'; htmx.trigger(document.querySelector('.search-form'), 'submit');">
+                        Check {{ g.user.primary_street_number }} {{ g.user.primary_street_name }}
+                    </button>
+                    {% endif %}
                     <button class="preset-chip" onclick="revealSection('analyze')">Analyze a project</button>
                     <button class="preset-chip" onclick="revealSection('validate')">Validate plans</button>
                     <button class="preset-chip" onclick="revealSection('lookup')">Look up a permit</button>

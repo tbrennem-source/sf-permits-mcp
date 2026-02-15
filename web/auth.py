@@ -99,7 +99,8 @@ def get_user_by_email(email: str) -> dict | None:
     row = query_one(
         "SELECT user_id, email, display_name, role, firm_name, entity_id, "
         "email_verified, is_admin, is_active, "
-        "COALESCE(brief_frequency, 'none'), invite_code "
+        "COALESCE(brief_frequency, 'none'), invite_code, "
+        "primary_street_number, primary_street_name "
         "FROM users WHERE email = %s",
         (email,),
     )
@@ -112,7 +113,8 @@ def get_user_by_id(user_id: int) -> dict | None:
     row = query_one(
         "SELECT user_id, email, display_name, role, firm_name, entity_id, "
         "email_verified, is_admin, is_active, "
-        "COALESCE(brief_frequency, 'none'), invite_code "
+        "COALESCE(brief_frequency, 'none'), invite_code, "
+        "primary_street_number, primary_street_name "
         "FROM users WHERE user_id = %s",
         (user_id,),
     )
@@ -143,6 +145,8 @@ def _row_to_user(row) -> dict:
         "is_active": row[8],
         "brief_frequency": row[9] if len(row) > 9 else "none",
         "invite_code": row[10] if len(row) > 10 else None,
+        "primary_street_number": row[11] if len(row) > 11 else None,
+        "primary_street_name": row[12] if len(row) > 12 else None,
     }
 
 
@@ -409,3 +413,42 @@ def check_watch(user_id: int, watch_type: str, **kwargs) -> dict | None:
         "lot": row[6], "entity_id": row[7], "neighborhood": row[8],
         "label": row[9],
     }
+
+
+# ---------------------------------------------------------------------------
+# Primary address
+# ---------------------------------------------------------------------------
+
+def set_primary_address(user_id: int, street_number: str, street_name: str) -> bool:
+    """Set the user's primary address. Returns True on success."""
+    _ensure_schema()
+    execute_write(
+        "UPDATE users SET primary_street_number = %s, primary_street_name = %s "
+        "WHERE user_id = %s",
+        (street_number, street_name, user_id),
+    )
+    return True
+
+
+def clear_primary_address(user_id: int) -> bool:
+    """Clear the user's primary address. Returns True on success."""
+    _ensure_schema()
+    execute_write(
+        "UPDATE users SET primary_street_number = NULL, primary_street_name = NULL "
+        "WHERE user_id = %s",
+        (user_id,),
+    )
+    return True
+
+
+def get_primary_address(user_id: int) -> dict | None:
+    """Get the user's primary address, or None if not set."""
+    _ensure_schema()
+    row = query_one(
+        "SELECT primary_street_number, primary_street_name "
+        "FROM users WHERE user_id = %s",
+        (user_id,),
+    )
+    if row and row[0] and row[1]:
+        return {"street_number": row[0], "street_name": row[1]}
+    return None

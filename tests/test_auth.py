@@ -598,3 +598,122 @@ def test_account_shows_invite_codes_for_admin(client, monkeypatch):
     assert "Send Invite" in html
     assert "team-abc-1234" in html
     assert "friends-xyz-5678" in html
+
+
+# ---------------------------------------------------------------------------
+# Primary address
+# ---------------------------------------------------------------------------
+
+def test_set_primary_address(client):
+    """User can set a primary address."""
+    user = _login_user(client)
+    from web.auth import set_primary_address, get_primary_address
+    set_primary_address(user["user_id"], "75", "Robin Hood Dr")
+    addr = get_primary_address(user["user_id"])
+    assert addr is not None
+    assert addr["street_number"] == "75"
+    assert addr["street_name"] == "Robin Hood Dr"
+
+
+def test_clear_primary_address(client):
+    """User can clear their primary address."""
+    user = _login_user(client)
+    from web.auth import set_primary_address, clear_primary_address, get_primary_address
+    set_primary_address(user["user_id"], "614", "6th Ave")
+    clear_primary_address(user["user_id"])
+    addr = get_primary_address(user["user_id"])
+    assert addr is None
+
+
+def test_primary_address_no_address_returns_none(client):
+    """get_primary_address returns None when no address is set."""
+    user = _login_user(client)
+    from web.auth import get_primary_address
+    addr = get_primary_address(user["user_id"])
+    assert addr is None
+
+
+def test_set_primary_address_via_route(client):
+    """POST /account/primary-address sets the address (HTMX)."""
+    _login_user(client)
+    rv = client.post("/account/primary-address", data={
+        "street_number": "75",
+        "street_name": "Robin Hood Dr",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "75 Robin Hood Dr" in html
+    assert "Saved" in html
+
+
+def test_clear_primary_address_via_route(client):
+    """POST /account/primary-address/clear clears the address."""
+    user = _login_user(client)
+    from web.auth import set_primary_address
+    set_primary_address(user["user_id"], "614", "6th Ave")
+    rv = client.post("/account/primary-address/clear")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Not set" in html
+
+
+def test_set_primary_address_requires_login(client):
+    """POST /account/primary-address redirects when not logged in."""
+    rv = client.post("/account/primary-address",
+                     data={"street_number": "75", "street_name": "Robin Hood Dr"},
+                     follow_redirects=False)
+    assert rv.status_code == 302
+    assert "/auth/login" in rv.headers["Location"]
+
+
+def test_account_page_shows_primary_address(client):
+    """Account page displays the primary address in the profile card."""
+    user = _login_user(client, "primary-show@test.com")
+    from web.auth import set_primary_address
+    set_primary_address(user["user_id"], "75", "Robin Hood Dr")
+    rv = client.get("/account")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "75 Robin Hood Dr" in html
+    assert "Primary Address" in html
+
+
+def test_account_page_shows_no_primary_address(client):
+    """Account page shows 'Not set' when no primary address."""
+    _login_user(client, "no-primary@test.com")
+    rv = client.get("/account")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Not set" in html
+
+
+def test_index_shows_quick_action_with_primary_address(client):
+    """Index page shows quick-action button when primary address is set."""
+    user = _login_user(client, "quick-action@test.com")
+    from web.auth import set_primary_address
+    set_primary_address(user["user_id"], "614", "6th Ave")
+    rv = client.get("/")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "614 6th Ave" in html
+    assert "Check" in html
+
+
+def test_index_no_quick_action_without_primary_address(client):
+    """Index page does NOT show address-specific quick-action when no primary."""
+    _login_user(client, "no-quick@test.com")
+    rv = client.get("/")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Robin Hood" not in html
+    assert "6th Ave" not in html
+
+
+def test_user_dict_includes_primary_address(client):
+    """User dict from get_user_by_id includes primary address fields."""
+    user = _login_user(client, "dict-test@test.com")
+    from web.auth import set_primary_address, get_user_by_id
+    set_primary_address(user["user_id"], "75", "Robin Hood Dr")
+    refreshed = get_user_by_id(user["user_id"])
+    assert refreshed["primary_street_number"] == "75"
+    assert refreshed["primary_street_name"] == "Robin Hood Dr"

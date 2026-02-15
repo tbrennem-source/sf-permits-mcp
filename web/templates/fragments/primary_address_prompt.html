@@ -1,0 +1,15 @@
+<!-- Primary address save prompt — shown after address search for logged-in users without a primary address -->
+<div style="background:rgba(79,143,247,0.08);border:1px solid var(--accent, #4f8ff7);border-radius:8px;padding:12px 16px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <span style="font-size:0.9rem;color:var(--text, #e4e6eb);">
+        Is this your property? Save <strong>{{ prompt_street_number }} {{ prompt_street_name }}</strong> as your primary address.
+    </span>
+    <span id="primary-addr-status">
+        <button style="background:none;border:1px solid var(--accent, #4f8ff7);color:var(--accent, #4f8ff7);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.85rem;white-space:nowrap;"
+            hx-post="/account/primary-address"
+            hx-target="#primary-addr-status"
+            hx-swap="innerHTML"
+            hx-vals='{"street_number": "{{ prompt_street_number }}", "street_name": "{{ prompt_street_name }}"}'>
+            Save as my address
+        </button>
+    </span>
+</div>

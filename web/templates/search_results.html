@@ -14,4 +14,7 @@
         {% endif %}
     </div>
     {{ result_html | safe }}
+    {% if show_primary_prompt and prompt_street_number %}
+    {% include 'fragments/primary_address_prompt.html' %}
+    {% endif %}
 </div>
