@@ -1,25 +1,88 @@
-"""DuckDB connection and schema management for sf-permits-mcp."""
+"""Database connection for sf-permits-mcp.
 
-import duckdb
+Supports two backends:
+  - PostgreSQL (production on Railway) — when DATABASE_URL is set
+  - DuckDB (local development) — fallback when no DATABASE_URL
+
+The tools don't care which backend they're talking to — the SQL is
+standard enough to work on both (with minor syntax helpers below).
+"""
+
 import os
 from pathlib import Path
 
-DB_PATH = os.environ.get(
+# ── Backend detection ─────────────────────────────────────────────
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+# DuckDB fallback path (local development)
+_DUCKDB_PATH = os.environ.get(
     "SF_PERMITS_DB",
     str(Path(__file__).parent.parent / "data" / "sf_permits.duckdb"),
 )
 
-
-def get_connection(db_path: str | None = None) -> duckdb.DuckDBPyConnection:
-    """Get a DuckDB connection, creating the database if needed."""
-    path = db_path or DB_PATH
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    conn = duckdb.connect(path)
-    return conn
+# Which backend are we using?
+BACKEND = "postgres" if DATABASE_URL else "duckdb"
 
 
-def init_schema(conn: duckdb.DuckDBPyConnection) -> None:
-    """Create all tables if they don't exist."""
+def get_connection(db_path: str | None = None):
+    """Get a database connection (Postgres or DuckDB).
+
+    Args:
+        db_path: Optional DuckDB file path override (for ingestion scripts).
+                 Ignored when BACKEND is 'postgres'.
+
+    Returns a connection object. Caller is responsible for closing it.
+    Both backends support: conn.execute(), conn.close(), cursor context.
+    """
+    if BACKEND == "postgres" and not db_path:
+        import psycopg2
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    else:
+        import duckdb
+        path = db_path or _DUCKDB_PATH
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        conn = duckdb.connect(path)
+        return conn
+
+
+def query(sql: str, params=None) -> list:
+    """Execute a SELECT and return all rows as a list of tuples.
+
+    Handles parameter style differences:
+      - Postgres uses %s placeholders
+      - DuckDB uses ? placeholders
+
+    Callers should use %s style — this function auto-converts for DuckDB.
+    """
+    conn = get_connection()
+    try:
+        if BACKEND == "duckdb" and params:
+            # Convert %s → ? for DuckDB
+            sql = sql.replace("%s", "?")
+        if BACKEND == "postgres":
+            import psycopg2.extras
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                return cur.fetchall()
+        else:
+            if params:
+                return conn.execute(sql, params).fetchall()
+            return conn.execute(sql).fetchall()
+    finally:
+        conn.close()
+
+
+def query_one(sql: str, params=None):
+    """Execute a SELECT and return the first row, or None."""
+    rows = query(sql, params)
+    return rows[0] if rows else None
+
+
+# ── Legacy DuckDB-only functions (for ingestion scripts) ──────────
+
+def init_schema(conn) -> None:
+    """Create all DuckDB tables if they don't exist (ingestion only)."""
     conn.execute("""
         CREATE TABLE IF NOT EXISTS contacts (
             id INTEGER PRIMARY KEY,
@@ -139,12 +202,12 @@ def init_schema(conn: duckdb.DuckDBPyConnection) -> None:
         )
     """)
 
-    # Create indexes
     _create_indexes(conn)
 
 
-def _create_indexes(conn: duckdb.DuckDBPyConnection) -> None:
-    """Create indexes on key join columns."""
+def _create_indexes(conn) -> None:
+    """Create indexes on key join columns (DuckDB)."""
+    import duckdb
     indexes = [
         ("idx_contacts_permit", "contacts", "permit_number"),
         ("idx_contacts_pts_agent", "contacts", "pts_agent_id"),
@@ -168,4 +231,4 @@ def _create_indexes(conn: duckdb.DuckDBPyConnection) -> None:
         try:
             conn.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({columns})")
         except duckdb.CatalogException:
-            pass  # Index already exists
+            pass

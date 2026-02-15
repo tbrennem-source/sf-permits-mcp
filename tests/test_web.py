@@ -6,14 +6,16 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web"))
 
-from app import app, md_to_html
+from app import app, md_to_html, _rate_buckets
 
 
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
+    _rate_buckets.clear()  # Reset rate limits between tests
     with app.test_client() as client:
         yield client
+    _rate_buckets.clear()
 
 
 def test_index_loads(client):
@@ -106,3 +108,136 @@ def test_md_to_html_links():
     """md_to_html preserves links."""
     result = md_to_html("[sf.gov](https://sf.gov)")
     assert 'href="https://sf.gov"' in result
+
+
+# --- Plan Set Validator web tests ---
+
+def _make_simple_pdf():
+    """Create a minimal valid PDF for upload tests."""
+    from pypdf import PdfWriter
+    from pypdf.generic import RectangleObject
+    writer = PdfWriter()
+    writer.add_blank_page(width=22 * 72, height=34 * 72)
+    import io
+    buf = io.BytesIO()
+    writer.write(buf)
+    return buf.getvalue()
+
+
+def test_index_has_validator(client):
+    """Homepage includes the Plan Set Validator section."""
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert "Plan Set Validator" in html
+    assert "planfile" in html  # file input
+
+
+def test_validate_no_file(client):
+    """POST to /validate with no file returns 400."""
+    rv = client.post("/validate", data={})
+    assert rv.status_code == 400
+    assert b"Please select a PDF" in rv.data
+
+
+def test_validate_non_pdf(client):
+    """POST to /validate with non-PDF returns 400."""
+    from io import BytesIO
+    rv = client.post("/validate", data={
+        "planfile": (BytesIO(b"not a pdf"), "readme.txt"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 400
+    assert b"Only PDF files" in rv.data
+
+
+def test_validate_empty_pdf(client):
+    """POST to /validate with empty file returns 400."""
+    from io import BytesIO
+    rv = client.post("/validate", data={
+        "planfile": (BytesIO(b""), "plans.pdf"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 400
+    assert b"empty" in rv.data
+
+
+def test_validate_success(client):
+    """POST to /validate with valid PDF returns EPR report."""
+    from io import BytesIO
+    pdf_data = _make_simple_pdf()
+    rv = client.post("/validate", data={
+        "planfile": (BytesIO(pdf_data), "A-PLAN-R0 123 Main St.pdf"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "EPR Compliance Report" in html
+    assert "A-PLAN-R0 123 Main St.pdf" in html
+
+
+def test_validate_with_addendum(client):
+    """POST with addendum checkbox uses higher file limit."""
+    from io import BytesIO
+    pdf_data = _make_simple_pdf()
+    rv = client.post("/validate", data={
+        "planfile": (BytesIO(pdf_data), "plans.pdf"),
+        "is_addendum": "on",
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "EPR Compliance Report" in html
+
+
+# --- Security & bot protection tests ---
+
+def test_robots_txt(client):
+    """robots.txt blocks AI scrapers."""
+    rv = client.get("/robots.txt")
+    assert rv.status_code == 200
+    body = rv.data.decode()
+    assert "GPTBot" in body
+    assert "Disallow: /" in body
+    assert rv.content_type.startswith("text/plain")
+
+
+def test_blocked_scanner_paths(client):
+    """Vulnerability scanner probe paths return 404."""
+    for path in ["/wp-admin", "/wp-login.php", "/.env", "/.git", "/phpmyadmin"]:
+        rv = client.get(path)
+        assert rv.status_code == 404, f"{path} should return 404"
+
+
+def test_rate_limit_analyze(client):
+    """Rate limit triggers after 10 /analyze POSTs in a window."""
+    _rate_buckets.clear()
+    for i in range(10):
+        rv = client.post("/analyze", data={"description": f"test project {i}"})
+        assert rv.status_code == 200
+    # 11th should be rate limited
+    rv = client.post("/analyze", data={"description": "one more"})
+    assert rv.status_code == 429
+    assert b"Rate limit" in rv.data
+    _rate_buckets.clear()
+
+
+def test_rate_limit_validate(client):
+    """Rate limit triggers after 5 /validate POSTs in a window."""
+    from io import BytesIO
+    _rate_buckets.clear()
+    pdf_data = _make_simple_pdf()
+    for i in range(5):
+        rv = client.post("/validate", data={
+            "planfile": (BytesIO(pdf_data), "plans.pdf"),
+        }, content_type="multipart/form-data")
+        assert rv.status_code == 200
+    # 6th should be rate limited
+    rv = client.post("/validate", data={
+        "planfile": (BytesIO(pdf_data), "plans.pdf"),
+    }, content_type="multipart/form-data")
+    assert rv.status_code == 429
+    _rate_buckets.clear()
+
+
+def test_noindex_meta_tag(client):
+    """Beta page has noindex meta tag."""
+    rv = client.get("/")
+    html = rv.data.decode()
+    assert 'name="robots"' in html
+    assert "noindex" in html

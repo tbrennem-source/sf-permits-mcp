@@ -1,6 +1,6 @@
 """Tool: revision_risk — Estimate revision probability and impact from permit data patterns."""
 
-from src.db import get_connection
+from src.db import get_connection, BACKEND
 from src.tools.knowledge_base import get_knowledge_base, format_sources
 
 # Common revision triggers by project type
@@ -93,7 +93,8 @@ def _get_correction_frequencies(project_type: str | None, kb) -> list[dict]:
 
 def _query_revision_stats(conn, permit_type: str | None, neighborhood: str | None,
                           review_path: str | None) -> dict | None:
-    """Query DuckDB for revision indicators using revised_cost as proxy."""
+    """Query permits for revision indicators using revised_cost as proxy."""
+    ph = "%s" if BACKEND == "postgres" else "?"
     conditions = [
         "filed_date IS NOT NULL",
         "issued_date IS NOT NULL",
@@ -102,10 +103,10 @@ def _query_revision_stats(conn, permit_type: str | None, neighborhood: str | Non
     params = []
 
     if permit_type:
-        conditions.append("permit_type_definition ILIKE ?")
+        conditions.append(f"permit_type_definition ILIKE {ph}")
         params.append(f"%{permit_type}%")
     if neighborhood:
-        conditions.append("neighborhood = ?")
+        conditions.append(f"neighborhood = {ph}")
         params.append(neighborhood)
     if review_path:
         if review_path == "otc":
@@ -115,41 +116,52 @@ def _query_revision_stats(conn, permit_type: str | None, neighborhood: str | Non
 
     where = " AND ".join(conditions)
 
-    result = conn.execute(f"""
+    # DATE_DIFF is DuckDB-specific; Postgres uses (date2::date - date1::date)
+    if BACKEND == "postgres":
+        date_diff_expr = "(issued_date::date - filed_date::date)"
+    else:
+        date_diff_expr = "DATE_DIFF('day', filed_date::DATE, issued_date::DATE)"
+
+    sql = f"""
         SELECT
             COUNT(*) as total_permits,
             COUNT(CASE WHEN revised_cost > estimated_cost THEN 1 END) as permits_with_cost_increase,
             ROUND(
-                COUNT(CASE WHEN revised_cost > estimated_cost THEN 1 END)::FLOAT
+                COUNT(CASE WHEN revised_cost > estimated_cost THEN 1 END)::DECIMAL
                 / NULLIF(COUNT(*), 0), 3
             ) as revision_proxy_rate,
             AVG(CASE WHEN revised_cost > estimated_cost
                 THEN (revised_cost - estimated_cost) / NULLIF(estimated_cost, 0) * 100
             END) as avg_cost_increase_pct,
-            -- Timeline comparison: permits with vs without cost changes
             AVG(CASE WHEN revised_cost IS NULL OR revised_cost = estimated_cost
-                THEN DATE_DIFF('day', filed_date::DATE, issued_date::DATE) END) as avg_days_no_change,
+                THEN {date_diff_expr} END) as avg_days_no_change,
             AVG(CASE WHEN revised_cost > estimated_cost
-                THEN DATE_DIFF('day', filed_date::DATE, issued_date::DATE) END) as avg_days_with_change,
-            -- P90 timeline outlier detection
+                THEN {date_diff_expr} END) as avg_days_with_change,
             PERCENTILE_CONT(0.90) WITHIN GROUP (
-                ORDER BY DATE_DIFF('day', filed_date::DATE, issued_date::DATE)
+                ORDER BY {date_diff_expr}
             ) as p90_days
         FROM permits
         WHERE {where}
             AND filed_date::DATE < issued_date::DATE
-            AND DATE_DIFF('day', filed_date::DATE, issued_date::DATE) BETWEEN 1 AND 1000
-    """, params).fetchone()
+            AND {date_diff_expr} BETWEEN 1 AND 1000
+    """
+
+    if BACKEND == "postgres":
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+            result = cur.fetchone()
+    else:
+        result = conn.execute(sql, params).fetchone()
 
     if result and result[0] >= 20:
         return {
             "total_permits": result[0],
             "permits_with_cost_increase": result[1],
-            "revision_proxy_rate": result[2],
-            "avg_cost_increase_pct": round(result[3], 1) if result[3] else None,
-            "avg_days_no_change": round(result[4]) if result[4] else None,
-            "avg_days_with_change": round(result[5]) if result[5] else None,
-            "p90_days": round(result[6]) if result[6] else None,
+            "revision_proxy_rate": float(result[2]) if result[2] else None,
+            "avg_cost_increase_pct": round(float(result[3]), 1) if result[3] else None,
+            "avg_days_no_change": round(float(result[4])) if result[4] else None,
+            "avg_days_with_change": round(float(result[5])) if result[5] else None,
+            "p90_days": round(float(result[6])) if result[6] else None,
         }
     return None
 

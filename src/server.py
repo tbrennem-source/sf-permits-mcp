@@ -26,6 +26,9 @@ from src.tools.estimate_fees import estimate_fees
 from src.tools.required_documents import required_documents
 from src.tools.revision_risk import revision_risk
 
+# Phase 3 tools (document analysis)
+from src.tools.validate_plans import validate_plans
+
 # Create MCP server
 mcp = FastMCP(
     "SF Permits",
@@ -38,7 +41,8 @@ mcp = FastMCP(
         "Phase 2.75 tools (predict_permits, estimate_timeline, estimate_fees, "
         "required_documents, revision_risk) walk a 7-step SF permit decision tree "
         "backed by structured knowledge (fee tables, routing matrix, OTC criteria, "
-        "fire/planning code) plus DuckDB historical statistics from 1.1M+ permits."
+        "fire/planning code) plus DuckDB historical statistics from 1.1M+ permits. "
+        "Phase 3 tool (validate_plans) checks PDF plan sets against DBI EPR requirements."
     ),
 )
 
@@ -60,6 +64,9 @@ mcp.tool()(estimate_timeline)
 mcp.tool()(estimate_fees)
 mcp.tool()(required_documents)
 mcp.tool()(revision_risk)
+
+# Phase 3 tools (document analysis)
+mcp.tool()(validate_plans)
 
 
 if __name__ == "__main__":

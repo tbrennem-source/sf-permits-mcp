@@ -1,7 +1,6 @@
-"""Tool: estimate_timeline — Estimate permit processing timelines from DuckDB historical data."""
+"""Tool: estimate_timeline — Estimate permit processing timelines from historical data."""
 
-import duckdb
-from src.db import get_connection, DB_PATH
+from src.db import get_connection, BACKEND
 from src.tools.knowledge_base import format_sources
 
 DELAY_FACTORS = {
@@ -16,14 +15,29 @@ DELAY_FACTORS = {
 }
 
 
-def _ensure_timeline_stats(conn: duckdb.DuckDBPyConnection) -> None:
-    """Create timeline_stats materialized view if it doesn't exist."""
+def _ensure_timeline_stats(conn) -> None:
+    """Create timeline_stats table if it doesn't exist.
+
+    On Postgres (production): table is pre-loaded by migration script.
+    On DuckDB (local dev): creates it from the permits table.
+    """
     try:
-        conn.execute("SELECT 1 FROM timeline_stats LIMIT 1")
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1 FROM timeline_stats LIMIT 1")
+        else:
+            conn.execute("SELECT 1 FROM timeline_stats LIMIT 1")
         return  # Already exists
-    except duckdb.CatalogException:
+    except Exception:
         pass
 
+    if BACKEND == "postgres":
+        # On Postgres, timeline_stats should be pre-loaded by migration.
+        # If it's missing, we can't create it from permits (TEXT dates).
+        # Raise so the caller falls back to knowledge-only.
+        raise RuntimeError("timeline_stats table missing in Postgres")
+
+    # DuckDB: create from permits
     conn.execute("""
         CREATE TABLE timeline_stats AS
         SELECT
@@ -59,22 +73,24 @@ def _query_timeline(conn, review_path: str | None, neighborhood: str | None,
     """Query timeline percentiles with progressive widening."""
     conditions = ["1=1"]
     params = []
+    # Use %s for Postgres, ? for DuckDB
+    ph = "%s" if BACKEND == "postgres" else "?"
 
     if review_path:
-        conditions.append("review_path = ?")
+        conditions.append(f"review_path = {ph}")
         params.append(review_path)
     if neighborhood:
-        conditions.append("neighborhood = ?")
+        conditions.append(f"neighborhood = {ph}")
         params.append(neighborhood)
     if cost_bracket:
-        conditions.append("cost_bracket = ?")
+        conditions.append(f"cost_bracket = {ph}")
         params.append(cost_bracket)
     if permit_type:
-        conditions.append("permit_type_definition ILIKE ?")
+        conditions.append(f"permit_type_definition ILIKE {ph}")
         params.append(f"%{permit_type}%")
 
     where = " AND ".join(conditions)
-    result = conn.execute(f"""
+    sql = f"""
         SELECT
             COUNT(*) as sample_size,
             PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY days_to_issuance) as p25,
@@ -83,7 +99,14 @@ def _query_timeline(conn, review_path: str | None, neighborhood: str | None,
             PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY days_to_issuance) as p90
         FROM timeline_stats
         WHERE {where}
-    """, params).fetchone()
+    """
+
+    if BACKEND == "postgres":
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+            result = cur.fetchone()
+    else:
+        result = conn.execute(sql, params).fetchone()
 
     if result and result[0] >= 10:
         return {
@@ -98,6 +121,7 @@ def _query_timeline(conn, review_path: str | None, neighborhood: str | None,
 
 def _query_trend(conn, neighborhood: str | None, review_path: str | None) -> dict | None:
     """Compare recent 6 months vs prior 12 months."""
+    ph = "%s" if BACKEND == "postgres" else "?"
     conditions_recent = ["filed > CURRENT_DATE - INTERVAL '6 months'"]
     conditions_prior = [
         "filed BETWEEN CURRENT_DATE - INTERVAL '18 months' AND CURRENT_DATE - INTERVAL '6 months'"
@@ -106,32 +130,41 @@ def _query_trend(conn, neighborhood: str | None, review_path: str | None) -> dic
     params_prior = []
 
     if neighborhood:
-        conditions_recent.append("neighborhood = ?")
-        conditions_prior.append("neighborhood = ?")
+        conditions_recent.append(f"neighborhood = {ph}")
+        conditions_prior.append(f"neighborhood = {ph}")
         params_recent.append(neighborhood)
         params_prior.append(neighborhood)
     if review_path:
-        conditions_recent.append("review_path = ?")
-        conditions_prior.append("review_path = ?")
+        conditions_recent.append(f"review_path = {ph}")
+        conditions_prior.append(f"review_path = {ph}")
         params_recent.append(review_path)
         params_prior.append(review_path)
 
-    recent = conn.execute(f"""
+    sql_recent = f"""
         SELECT AVG(days_to_issuance), COUNT(*)
         FROM timeline_stats WHERE {' AND '.join(conditions_recent)}
-    """, params_recent).fetchone()
-
-    prior = conn.execute(f"""
+    """
+    sql_prior = f"""
         SELECT AVG(days_to_issuance), COUNT(*)
         FROM timeline_stats WHERE {' AND '.join(conditions_prior)}
-    """, params_prior).fetchone()
+    """
+
+    if BACKEND == "postgres":
+        with conn.cursor() as cur:
+            cur.execute(sql_recent, params_recent)
+            recent = cur.fetchone()
+            cur.execute(sql_prior, params_prior)
+            prior = cur.fetchone()
+    else:
+        recent = conn.execute(sql_recent, params_recent).fetchone()
+        prior = conn.execute(sql_prior, params_prior).fetchone()
 
     if recent and prior and recent[0] and prior[0] and recent[1] >= 10 and prior[1] >= 10:
-        change_pct = ((recent[0] - prior[0]) / prior[0]) * 100
+        change_pct = ((float(recent[0]) - float(prior[0])) / float(prior[0])) * 100
         direction = "faster" if change_pct < -5 else "slower" if change_pct > 5 else "stable"
         return {
-            "recent_avg_days": round(recent[0]),
-            "prior_avg_days": round(prior[0]),
+            "recent_avg_days": round(float(recent[0])),
+            "prior_avg_days": round(float(prior[0])),
             "change_pct": round(change_pct, 1),
             "direction": direction,
             "recent_sample": recent[1],
@@ -206,15 +239,22 @@ async def estimate_timeline(
 
             # Completion timeline
             if result:
-                comp = conn.execute("""
+                ph = "%s" if BACKEND == "postgres" else "?"
+                comp_sql = f"""
                     SELECT
                         COUNT(*) as n,
                         PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY days_to_completion) as p50,
                         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY days_to_completion) as p75
                     FROM timeline_stats
                     WHERE days_to_completion BETWEEN 1 AND 1000
-                        AND review_path = COALESCE(?, review_path)
-                """, [review_path]).fetchone()
+                        AND review_path = COALESCE({ph}, review_path)
+                """
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(comp_sql, [review_path])
+                        comp = cur.fetchone()
+                else:
+                    comp = conn.execute(comp_sql, [review_path]).fetchone()
                 if comp and comp[0] >= 10:
                     completion = {"p50_days": round(comp[1]), "p75_days": round(comp[2]), "sample": comp[0]}
 

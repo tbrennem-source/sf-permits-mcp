@@ -1,9 +1,9 @@
-"""Tool: estimate_fees — Estimate permit fees using fee tables + DuckDB statistics."""
+"""Tool: estimate_fees — Estimate permit fees using fee tables + historical statistics."""
 
 import math
 import re
 from src.tools.knowledge_base import get_knowledge_base, format_sources
-from src.db import get_connection
+from src.db import get_connection, BACKEND
 
 
 def _calculate_building_fee(valuation: float, category: str, fee_tables: dict) -> dict:
@@ -239,23 +239,24 @@ def _calculate_plumbing_fee(project_type: str | None, fee_tables: dict) -> dict 
 
 def _query_fee_stats(conn, permit_type: str, neighborhood: str | None,
                      cost_min: float, cost_max: float) -> dict | None:
-    """Query DuckDB for statistical fee data from actual permits."""
+    """Query historical permits for statistical fee data."""
+    ph = "%s" if BACKEND == "postgres" else "?"
     conditions = [
-        "estimated_cost BETWEEN ? AND ?",
+        f"estimated_cost BETWEEN {ph} AND {ph}",
         "filed_date IS NOT NULL",
     ]
     params: list = [cost_min, cost_max]
 
     if permit_type:
-        conditions.append("permit_type_definition ILIKE ?")
+        conditions.append(f"permit_type_definition ILIKE {ph}")
         params.append(f"%{permit_type}%")
 
     if neighborhood:
-        conditions.append("neighborhood = ?")
+        conditions.append(f"neighborhood = {ph}")
         params.append(neighborhood)
 
     where = " AND ".join(conditions)
-    result = conn.execute(f"""
+    sql = f"""
         SELECT
             COUNT(*) as sample_size,
             PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY estimated_cost) as p25,
@@ -264,15 +265,22 @@ def _query_fee_stats(conn, permit_type: str, neighborhood: str | None,
             AVG(estimated_cost) as avg_cost
         FROM permits
         WHERE {where}
-    """, params).fetchone()
+    """
+
+    if BACKEND == "postgres":
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+            result = cur.fetchone()
+    else:
+        result = conn.execute(sql, params).fetchone()
 
     if result and result[0] >= 5:
         return {
             "sample_size": result[0],
-            "p25_cost": round(result[1], 2) if result[1] else None,
-            "p50_cost": round(result[2], 2) if result[2] else None,
-            "p75_cost": round(result[3], 2) if result[3] else None,
-            "avg_cost": round(result[4], 2) if result[4] else None,
+            "p25_cost": round(float(result[1]), 2) if result[1] else None,
+            "p50_cost": round(float(result[2]), 2) if result[2] else None,
+            "p75_cost": round(float(result[3]), 2) if result[3] else None,
+            "avg_cost": round(float(result[4]), 2) if result[4] else None,
         }
     return None
 

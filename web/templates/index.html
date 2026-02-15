@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow"><!-- Remove after beta -->
     <title>sfpermits.ai — SF Permit Analysis</title>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <style>
@@ -338,6 +339,107 @@
             border-color: var(--accent);
             color: var(--text);
         }
+
+        /* Section divider */
+        .section-divider {
+            border-top: 1px solid var(--border);
+            margin: 48px 0 32px;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        /* File upload */
+        .file-upload-area {
+            position: relative;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .file-upload-area:hover,
+        .file-upload-area.drag-over {
+            border-color: var(--accent);
+            background: rgba(79, 143, 247, 0.05);
+        }
+
+        .file-input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .file-icon {
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+
+        .file-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .file-upload-label.has-file {
+            color: var(--success);
+        }
+
+        /* Checkbox */
+        .checkbox-row {
+            margin-top: -8px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 400;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        /* Secondary button variant */
+        .btn-secondary {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* Validation result status colors */
+        .result-card .pass { color: var(--success); }
+        .result-card .fail { color: var(--error); }
+        .result-card .warn { color: var(--warning); }
     </style>
 </head>
 <body>
@@ -423,6 +525,57 @@
             </div>
 
             <div id="results"></div>
+
+            <!-- Plan Set Validator -->
+            <div class="section-divider"></div>
+
+            <h2 class="section-title">Plan Set Validator</h2>
+            <p class="subtitle">Upload a PDF plan set to check EPR (Electronic Plan Review) compliance before submitting to DBI.</p>
+
+            <div class="form-card">
+                <form hx-post="/validate"
+                      hx-target="#validate-results"
+                      hx-indicator="#validate-loading"
+                      hx-encoding="multipart/form-data"
+                      class="form-grid">
+
+                    <div class="full-width">
+                        <label for="planfile">PDF Plan Set</label>
+                        <div class="file-upload-area" id="drop-zone">
+                            <input type="file" id="planfile" name="planfile" accept=".pdf"
+                                class="file-input" onchange="updateFileLabel(this)">
+                            <div class="file-upload-label" id="file-label">
+                                <span class="file-icon">&#128196;</span>
+                                <span>Drag & drop a PDF here, or <strong>click to browse</strong></span>
+                                <span class="file-hint">Max 400 MB &mdash; .pdf only</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="full-width checkbox-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_addendum" id="is_addendum">
+                            <span>This is a Site Permit Addendum (allows up to 350 MB)</span>
+                        </label>
+                    </div>
+
+                    <div class="full-width">
+                        <button type="submit" class="btn btn-secondary">
+                            <span class="label">Validate Plan Set</span>
+                            <span class="spinner">Validating...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="validate-loading" class="htmx-indicator">
+                <div class="loading-bar">
+                    <div class="dots">...</div>
+                    <p>Checking EPR compliance — analyzing PDF metadata</p>
+                </div>
+            </div>
+
+            <div id="validate-results"></div>
         </div>
     </main>
 
@@ -496,6 +649,40 @@
                 document.getElementById(panel).classList.add("active");
             }
         });
+
+        // File upload label
+        function updateFileLabel(input) {
+            const label = document.getElementById("file-label");
+            if (input.files && input.files[0]) {
+                const f = input.files[0];
+                const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
+                label.innerHTML = '<span class="file-icon">&#9989;</span>'
+                    + '<span><strong>' + f.name + '</strong></span>'
+                    + '<span class="file-hint">' + sizeMB + ' MB</span>';
+                label.classList.add("has-file");
+            } else {
+                label.innerHTML = '<span class="file-icon">&#128196;</span>'
+                    + '<span>Drag & drop a PDF here, or <strong>click to browse</strong></span>'
+                    + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
+                label.classList.remove("has-file");
+            }
+        }
+
+        // Drag-and-drop visual feedback
+        const dropZone = document.getElementById("drop-zone");
+        if (dropZone) {
+            ["dragenter", "dragover"].forEach(evt => {
+                dropZone.addEventListener(evt, e => {
+                    e.preventDefault();
+                    dropZone.classList.add("drag-over");
+                });
+            });
+            ["dragleave", "drop"].forEach(evt => {
+                dropZone.addEventListener(evt, e => {
+                    dropZone.classList.remove("drag-over");
+                });
+            });
+        }
     </script>
 </body>
 </html>

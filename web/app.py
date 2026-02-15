@@ -6,12 +6,16 @@ A simple Flask + HTMX app exposing the 5 djarvis permit decision tools:
   - estimate_timeline
   - required_documents
   - revision_risk
+
+Plus the plan set validator (EPR compliance checker).
 """
 
 import asyncio
 import os
 import sys
-from flask import Flask, render_template, request
+import time
+from collections import defaultdict
+from flask import Flask, render_template, request, abort, Response
 import markdown
 
 # Ensure project root is importable
@@ -22,9 +26,102 @@ from src.tools.estimate_fees import estimate_fees
 from src.tools.estimate_timeline import estimate_timeline
 from src.tools.required_documents import required_documents
 from src.tools.revision_risk import revision_risk
+from src.tools.validate_plans import validate_plans
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
+
+# 400 MB max upload for plan set PDFs (site permit addenda can be up to 350 MB)
+app.config["MAX_CONTENT_LENGTH"] = 400 * 1024 * 1024
+
+
+# ---------------------------------------------------------------------------
+# Simple in-memory rate limiter (per-IP, resets on deploy — good enough for
+# Phase 1 on a single dyno; swap for Redis-backed in Phase 2)
+# ---------------------------------------------------------------------------
+_rate_buckets: dict[str, list[float]] = defaultdict(list)
+
+RATE_LIMIT_WINDOW = 60        # seconds
+RATE_LIMIT_MAX_ANALYZE = 10   # /analyze requests per window
+RATE_LIMIT_MAX_VALIDATE = 5   # /validate requests per window (heavier)
+
+
+def _is_rate_limited(ip: str, max_requests: int) -> bool:
+    """Return True if ip has exceeded max_requests in the current window."""
+    now = time.monotonic()
+    bucket = _rate_buckets[ip]
+    # Prune old entries
+    _rate_buckets[ip] = [t for t in bucket if now - t < RATE_LIMIT_WINDOW]
+    if len(_rate_buckets[ip]) >= max_requests:
+        return True
+    _rate_buckets[ip].append(now)
+    return False
+
+
+# ---------------------------------------------------------------------------
+# robots.txt — allow search engines, block AI scrapers, block common probes
+# ---------------------------------------------------------------------------
+ROBOTS_TXT = """\
+User-agent: *
+Allow: /
+
+# Block AI training scrapers — no value to us, just cost
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+# Block common vulnerability probe paths
+# (these don't exist but bots try them — 404 is fine)
+"""
+
+
+@app.route("/robots.txt")
+def robots():
+    return Response(ROBOTS_TXT, mimetype="text/plain")
+
+
+# Block common vulnerability scanner paths early (before 404 processing)
+_BLOCKED_PATHS = {
+    "/wp-admin", "/wp-login.php", "/wp-content", "/.env", "/.git",
+    "/admin", "/phpmyadmin", "/xmlrpc.php", "/config.php",
+    "/actuator", "/.well-known/security.txt",
+}
+
+
+@app.before_request
+def _security_filters():
+    """Block scanners and apply rate limits."""
+    path = request.path.lower()
+
+    # Block known scanner probes with 404 (don't waste cycles)
+    for blocked in _BLOCKED_PATHS:
+        if path.startswith(blocked):
+            abort(404)
+
+    # Rate limit POST endpoints
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    if ip:
+        ip = ip.split(",")[0].strip()  # First IP in chain
+
+    if request.method == "POST":
+        if path == "/analyze" and _is_rate_limited(ip, RATE_LIMIT_MAX_ANALYZE):
+            return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
+        if path == "/validate" and _is_rate_limited(ip, RATE_LIMIT_MAX_VALIDATE):
+            return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
 
 
 def run_async(coro):
@@ -199,6 +296,45 @@ def analyze():
         results["risk"] = f'<div class="error">Risk assessment error: {e}</div>'
 
     return render_template("results.html", results=results)
+
+
+@app.route("/validate", methods=["POST"])
+def validate():
+    """Upload a PDF plan set and validate against EPR requirements."""
+    uploaded = request.files.get("planfile")
+    if not uploaded or not uploaded.filename:
+        return '<div class="error">Please select a PDF file to upload.</div>', 400
+
+    filename = uploaded.filename
+    if not filename.lower().endswith(".pdf"):
+        return '<div class="error">Only PDF files are supported.</div>', 400
+
+    is_addendum = request.form.get("is_addendum") == "on"
+
+    try:
+        pdf_bytes = uploaded.read()
+    except Exception as e:
+        return f'<div class="error">Error reading file: {e}</div>', 400
+
+    if len(pdf_bytes) == 0:
+        return '<div class="error">The uploaded file is empty.</div>', 400
+
+    try:
+        result_md = run_async(validate_plans(
+            pdf_bytes=pdf_bytes,
+            filename=filename,
+            is_site_permit_addendum=is_addendum,
+        ))
+        result_html = md_to_html(result_md)
+    except Exception as e:
+        result_html = f'<div class="error">Validation error: {e}</div>'
+
+    return render_template(
+        "validate_results.html",
+        result=result_html,
+        filename=filename,
+        filesize_mb=round(len(pdf_bytes) / (1024 * 1024), 1),
+    )
 
 
 if __name__ == "__main__":
