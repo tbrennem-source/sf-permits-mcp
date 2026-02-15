@@ -259,6 +259,32 @@
 
             {% if user.is_admin %}
             <div class="card admin-section">
+                <h2>Admin: Invite Codes</h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+                    {{ invite_codes | length }} codes configured. Click to copy.
+                </p>
+                {% if invite_codes %}
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    {% for code in invite_codes %}
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;">
+                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                            <span style="font-size:0.7rem;color:var(--accent);background:rgba(79,143,247,0.12);padding:2px 8px;border-radius:4px;white-space:nowrap;">{{ code.split('-')[0] }}</span>
+                            <code style="font-size:0.85rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ code }}</code>
+                        </div>
+                        <button onclick="copyCode(this, '{{ code }}')"
+                                style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;white-space:nowrap;margin-left:10px;"
+                                title="Copy to clipboard">
+                            📋 Copy
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="empty">No invite codes configured. Set INVITE_CODES env var.</p>
+                {% endif %}
+            </div>
+
+            <div class="card admin-section">
                 <h2>Admin: Send Invite</h2>
                 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
                     Email an invite code to someone. They'll get a link + their code.
@@ -291,5 +317,21 @@
             {% endif %}
         </div>
     </main>
+
+    <script>
+    function copyCode(btn, code) {
+        navigator.clipboard.writeText(code).then(function() {
+            var orig = btn.innerHTML;
+            btn.innerHTML = '✓ Copied';
+            btn.style.color = 'var(--success)';
+            btn.style.borderColor = 'var(--success)';
+            setTimeout(function() {
+                btn.innerHTML = orig;
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }, 1500);
+        });
+    }
+    </script>
 </body>
 </html>
