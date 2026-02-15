@@ -1,0 +1,37 @@
+<div class="results-tabs">
+    <button class="tab active" data-panel="panel-predict">Permits</button>
+    <button class="tab" data-panel="panel-fees">Fees</button>
+    <button class="tab" data-panel="panel-timeline">Timeline</button>
+    <button class="tab" data-panel="panel-docs">Documents</button>
+    <button class="tab" data-panel="panel-risk">Revision Risk</button>
+</div>
+
+<div id="panel-predict" class="tab-panel active">
+    <div class="result-card">
+        {{ results.predict | safe }}
+    </div>
+</div>
+
+<div id="panel-fees" class="tab-panel">
+    <div class="result-card">
+        {{ results.fees | safe }}
+    </div>
+</div>
+
+<div id="panel-timeline" class="tab-panel">
+    <div class="result-card">
+        {{ results.timeline | safe }}
+    </div>
+</div>
+
+<div id="panel-docs" class="tab-panel">
+    <div class="result-card">
+        {{ results.docs | safe }}
+    </div>
+</div>
+
+<div id="panel-risk" class="tab-panel">
+    <div class="result-card">
+        {{ results.risk | safe }}
+    </div>
+</div>

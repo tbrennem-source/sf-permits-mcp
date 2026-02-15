@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sfpermits.ai — SF Permit Analysis</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --accent-hover: #3a7ae0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+        }
+
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            background: var(--surface-2);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        main {
+            padding: 40px 0 80px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 32px;
+        }
+
+        .form-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 32px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .form-grid .full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover { background: var(--accent-hover); }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn .spinner {
+            display: none;
+        }
+
+        .htmx-request .btn .spinner {
+            display: inline-block;
+        }
+
+        .htmx-request .btn .label {
+            display: none;
+        }
+
+        /* Results area */
+        #results {
+            margin-top: 16px;
+        }
+
+        .results-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 10px 18px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { color: var(--text); }
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+        }
+
+        /* Markdown output styling */
+        .result-card h1 { font-size: 1.3rem; margin: 0 0 16px; color: var(--accent); }
+        .result-card h2 { font-size: 1.1rem; margin: 20px 0 10px; color: var(--text); }
+        .result-card h3 { font-size: 0.95rem; margin: 16px 0 8px; color: var(--text-muted); }
+        .result-card p { margin: 8px 0; }
+        .result-card ul, .result-card ol { margin: 8px 0; padding-left: 24px; }
+        .result-card li { margin: 4px 0; }
+        .result-card strong { color: var(--text); }
+        .result-card a { color: var(--accent); text-decoration: none; }
+        .result-card a:hover { text-decoration: underline; }
+
+        .result-card table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+
+        .result-card th, .result-card td {
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-card th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .error {
+            color: var(--error);
+            background: rgba(248, 113, 113, 0.1);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .info {
+            color: var(--text-muted);
+            background: var(--surface-2);
+            padding: 12px 16px;
+            border-radius: 8px;
+        }
+
+        /* Loading indicator */
+        .htmx-indicator {
+            display: none;
+        }
+
+        .htmx-request .htmx-indicator {
+            display: block;
+        }
+
+        .loading-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .loading-bar .dots {
+            display: inline-block;
+            font-size: 1.5rem;
+            color: var(--accent);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .loading-bar p {
+            color: var(--text-muted);
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 20px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Presets */
+        .presets {
+            margin-bottom: 20px;
+        }
+
+        .presets-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .preset-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .preset-chip {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-chip:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <span class="badge">djarvis beta</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>SF Permit Analysis</h1>
+            <p class="subtitle">Describe your project and get instant permit predictions, fee estimates, timelines, document checklists, and revision risk assessments.</p>
+
+            <div class="form-card">
+                <div class="presets">
+                    <div class="presets-label">Quick start with a sample project:</div>
+                    <div class="preset-chips">
+                        <button class="preset-chip" onclick="loadPreset('kitchen')">Kitchen Remodel</button>
+                        <button class="preset-chip" onclick="loadPreset('adu')">ADU Conversion</button>
+                        <button class="preset-chip" onclick="loadPreset('commercial')">Commercial TI</button>
+                        <button class="preset-chip" onclick="loadPreset('restaurant')">Restaurant</button>
+                        <button class="preset-chip" onclick="loadPreset('historic')">Historic Reno</button>
+                    </div>
+                </div>
+
+                <form hx-post="/analyze"
+                      hx-target="#results"
+                      hx-indicator="#loading"
+                      class="form-grid">
+
+                    <div class="full-width">
+                        <label for="description">Project Description</label>
+                        <textarea id="description" name="description"
+                            placeholder="e.g., Gut renovation of residential kitchen, removing a non-bearing wall, relocating gas line, new electrical panel."></textarea>
+                    </div>
+
+                    <div>
+                        <label for="address">Address (optional)</label>
+                        <input type="text" id="address" name="address"
+                            placeholder="e.g., 123 Main St">
+                    </div>
+
+                    <div>
+                        <label for="neighborhood">Neighborhood</label>
+                        <select id="neighborhood" name="neighborhood">
+                            <option value="">Select neighborhood...</option>
+                            {% for n in neighborhoods %}
+                            {% if n %}
+                            <option value="{{ n }}">{{ n }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="cost">Estimated Cost ($)</label>
+                        <input type="number" id="cost" name="cost"
+                            placeholder="e.g., 85000" min="0" step="1000">
+                    </div>
+
+                    <div>
+                        <label for="sqft">Square Footage (optional)</label>
+                        <input type="number" id="sqft" name="sqft"
+                            placeholder="e.g., 1200" min="0">
+                    </div>
+
+                    <div class="full-width">
+                        <button type="submit" class="btn">
+                            <span class="label">Analyze Project</span>
+                            <span class="spinner">Analyzing...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="loading" class="htmx-indicator">
+                <div class="loading-bar">
+                    <div class="dots">...</div>
+                    <p>Running 5 permit analysis tools — this takes a few seconds</p>
+                </div>
+            </div>
+
+            <div id="results"></div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            sfpermits.ai &mdash; powered by djarvis &mdash; SF permit data from data.sfgov.org
+        </div>
+    </footer>
+
+    <script>
+        const PRESETS = {
+            kitchen: {
+                description: "Gut renovation of residential kitchen in Noe Valley, removing a non-bearing wall, relocating gas line, new electrical panel. Budget $85K.",
+                neighborhood: "Noe Valley",
+                cost: "85000",
+                sqft: "",
+                address: "",
+            },
+            adu: {
+                description: "Convert existing detached garage to ADU with kitchenette and bathroom in the Sunset District. 450 sq ft, new plumbing/electrical, $180K budget.",
+                neighborhood: "Sunset/Parkside",
+                cost: "180000",
+                sqft: "450",
+                address: "",
+            },
+            commercial: {
+                description: "Office tenant improvement in Financial District, 3,500 sq ft. New walls, HVAC modifications, lighting, ADA-compliant restrooms. Budget $350K.",
+                neighborhood: "Financial District/South Beach",
+                cost: "350000",
+                sqft: "3500",
+                address: "",
+            },
+            restaurant: {
+                description: "Convert vacant retail space to restaurant with Type I hood, grease interceptor, 49 seats, full commercial kitchen. Mission District, $250K budget.",
+                neighborhood: "Mission",
+                cost: "250000",
+                sqft: "",
+                address: "",
+            },
+            historic: {
+                description: "Major renovation of Article 10 landmark building in Pacific Heights. Seismic retrofit, new MEP systems, ADA compliance, restore historic facade. 8,000 sq ft, $2.5M budget.",
+                neighborhood: "Pacific Heights",
+                cost: "2500000",
+                sqft: "8000",
+                address: "",
+            },
+        };
+
+        function loadPreset(key) {
+            const p = PRESETS[key];
+            document.getElementById("description").value = p.description;
+            document.getElementById("address").value = p.address;
+            document.getElementById("cost").value = p.cost;
+            document.getElementById("sqft").value = p.sqft;
+            const sel = document.getElementById("neighborhood");
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === p.neighborhood) {
+                    sel.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Tab switching
+        document.addEventListener("click", function(e) {
+            if (e.target.classList.contains("tab")) {
+                const panel = e.target.dataset.panel;
+                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+                e.target.classList.add("active");
+                document.getElementById(panel).classList.add("active");
+            }
+        });
+    </script>
+</body>
+</html>

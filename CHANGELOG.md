@@ -1,5 +1,32 @@
 # Changelog
 
+## Session 9 — Web UI + Predictions Refresh (2026-02-14)
+
+### Amy Web UI (sfpermits.ai)
+- Built Flask + HTMX frontend in `web/` — dark-themed, tabbed results, preset scenarios
+- Form accepts: project description, address, neighborhood, cost, square footage
+- Runs all 5 decision tools and renders markdown output as styled HTML tabs
+- 5 preset "quick start" scenarios matching Amy's stress tests
+- Dockerfile.web for containerized deployment (Railway/Fly.io)
+- Railway deployment files: Procfile, railway.toml, requirements.txt
+
+### System Predictions Refresh
+- Regenerated `data/knowledge/system_predictions.md` with source citations (37K → 69K chars)
+- All 5 tools × 5 scenarios now include `## Sources` sections with clickable sf.gov links
+- Generation script at `scripts/generate_predictions.py` for reproducible runs
+
+### Tests
+- 9 new web UI tests in `tests/test_web.py`:
+  - Homepage rendering, neighborhood dropdown, empty description validation
+  - Full analysis for kitchen/restaurant/ADU scenarios
+  - No-cost fee info message, markdown-to-HTML conversion
+- **254 tests passing** (245 → 254), 0 skipped
+
+### Dependencies
+- Added `flask`, `markdown`, `gunicorn` to `[project.optional-dependencies] web`
+
+---
+
 ## Phase 2.75 — Permit Decision Tools (2026-02-14)
 
 ### Knowledge Supplement (Phase 2.6+)
