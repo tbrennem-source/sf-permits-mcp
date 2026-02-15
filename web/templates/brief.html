@@ -191,7 +191,16 @@
                     &middot;
                 {% endif %}
                 {{ brief.lookback_days }} day{{ 's' if brief.lookback_days > 1 else '' }} lookback
+                {% if brief.last_refresh %}
+                    &middot; Data as of {{ brief.last_refresh.last_success_date }}
+                {% endif %}
             </p>
+            {% if brief.last_refresh and brief.last_refresh.is_stale %}
+            <div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--warning);">
+                &#9888; Data may be incomplete &mdash; last refresh was {{ brief.last_refresh.hours_ago|int }} hours ago.
+                {% if brief.last_refresh.was_catchup %}Some changes were recovered via backfill.{% endif %}
+            </div>
+            {% endif %}
 
             {% if brief.property_synopsis %}
             <!-- Property Synopsis -->

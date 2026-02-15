@@ -82,6 +82,9 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
 
     at_risk = sum(1 for h in health if h.get("status") in ("behind", "at_risk"))
 
+    # Data freshness from cron_log
+    last_refresh = _get_last_refresh()
+
     return {
         "changes": changes,
         "health": health,
@@ -90,6 +93,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "team_activity": team_activity,
         "expiring": expiring,
         "property_synopsis": property_synopsis,
+        "last_refresh": last_refresh,
         "summary": {
             "total_watches": total_watches,
             "changes_count": len(changes),
@@ -582,4 +586,56 @@ def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
         "top_types": top_types,
         "earliest_date": earliest_date,
         "latest_date": latest_date,
+    }
+
+
+# ── Section 8: Data Freshness ────────────────────────────────────
+
+def _get_last_refresh() -> dict | None:
+    """Get data freshness info from cron_log.
+
+    Returns dict with last_success timestamp, hours_ago, and is_stale flag,
+    or None if cron_log table doesn't exist or has no entries.
+    """
+    try:
+        row = query_one(
+            "SELECT started_at, completed_at, was_catchup "
+            "FROM cron_log "
+            "WHERE job_type = 'nightly' AND status = 'success' "
+            "ORDER BY started_at DESC LIMIT 1"
+        )
+    except Exception:
+        # Table doesn't exist yet (first deploy before any cron run)
+        return None
+
+    if not row:
+        return None
+
+    started_at = row[0]
+    was_catchup = row[2] if len(row) > 2 else False
+
+    # Parse timestamp
+    if isinstance(started_at, str):
+        try:
+            from datetime import datetime, timezone
+            ts = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            return None
+    else:
+        ts = started_at
+
+    # Calculate hours ago
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    delta = now - ts
+    hours_ago = delta.total_seconds() / 3600
+
+    return {
+        "last_success": ts.strftime("%b %d, %Y at %I:%M %p UTC"),
+        "last_success_date": ts.strftime("%b %d"),
+        "hours_ago": round(hours_ago, 1),
+        "is_stale": hours_ago > 36,  # Allow some buffer beyond 24h
+        "was_catchup": bool(was_catchup),
     }
