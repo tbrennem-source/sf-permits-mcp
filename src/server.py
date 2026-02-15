@@ -14,6 +14,11 @@ from src.tools.permit_stats import permit_stats
 from src.tools.search_businesses import search_businesses
 from src.tools.property_lookup import property_lookup
 
+# Phase 1.5 tools (DBI enforcement — live SODA API)
+from src.tools.search_complaints import search_complaints
+from src.tools.search_violations import search_violations
+from src.tools.search_inspections import search_inspections
+
 # Phase 2 tools (local DuckDB)
 from src.tools.search_entity import search_entity
 from src.tools.entity_network import entity_network
@@ -28,6 +33,9 @@ from src.tools.revision_risk import revision_risk
 
 # Phase 3 tools (document analysis)
 from src.tools.validate_plans import validate_plans
+
+# Phase 2 tools (expediter recommender)
+from src.tools.recommend_expediters import recommend_expediters
 
 # Phase 4 tools (lookup / status)
 from src.tools.permit_lookup import permit_lookup
@@ -46,6 +54,9 @@ mcp = FastMCP(
         "backed by structured knowledge (fee tables, routing matrix, OTC criteria, "
         "fire/planning code) plus DuckDB historical statistics from 1.1M+ permits. "
         "Phase 3 tool (validate_plans) checks PDF plan sets against DBI EPR requirements. "
+        "Phase 1.5 tools (search_complaints, search_violations, search_inspections) query "
+        "DBI enforcement datasets via SODA API for building complaints, notices of violation, "
+        "and inspection records — useful for due diligence and property analysis. "
         "Phase 4 tool (permit_lookup) searches local DB by permit number, address, or parcel "
         "and returns full details, project team, inspections, and related permits."
     ),
@@ -57,6 +68,11 @@ mcp.tool()(get_permit_details)
 mcp.tool()(permit_stats)
 mcp.tool()(search_businesses)
 mcp.tool()(property_lookup)
+
+# Phase 1.5 tools (DBI enforcement — live SODA API)
+mcp.tool()(search_complaints)
+mcp.tool()(search_violations)
+mcp.tool()(search_inspections)
 
 # Phase 2 tools (local DuckDB network analysis)
 mcp.tool()(search_entity)
@@ -72,6 +88,9 @@ mcp.tool()(revision_risk)
 
 # Phase 3 tools (document analysis)
 mcp.tool()(validate_plans)
+
+# Phase 2 tools (expediter recommender)
+mcp.tool()(recommend_expediters)
 
 # Phase 4 tools (lookup / status)
 mcp.tool()(permit_lookup)

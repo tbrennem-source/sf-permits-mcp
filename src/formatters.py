@@ -180,6 +180,115 @@ def format_business_list(businesses: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def format_complaint_list(complaints: list[dict]) -> str:
+    """Format a list of DBI complaints for display."""
+    if not complaints:
+        return "No complaints found matching your criteria."
+
+    lines = [f"Found {len(complaints)} complaints:\n"]
+    for c in complaints:
+        date_filed = (
+            c.get("date_filed", "N/A")[:10] if c.get("date_filed") else "N/A"
+        )
+        date_abated = (
+            c.get("date_abated", "")[:10] if c.get("date_abated") else ""
+        )
+        abated_str = f" | Abated: {date_abated}" if date_abated else ""
+
+        address_parts = [
+            c.get("street_number", ""),
+            c.get("street_name", ""),
+            c.get("street_suffix", ""),
+        ]
+        address = " ".join(part for part in address_parts if part).strip()
+
+        desc = (c.get("complaint_description") or "N/A")[:200]
+        nov_type = c.get("nov_type", "")
+        nov_str = f" | NOV Type: {nov_type}" if nov_type else ""
+
+        lines.append(
+            f"- **{c.get('complaint_number', 'N/A')}** — "
+            f"{c.get('status', 'N/A')}\n"
+            f"  Address: {address or 'N/A'} "
+            f"(Block {c.get('block', '?')}, Lot {c.get('lot', '?')})\n"
+            f"  Filed: {date_filed}{abated_str}{nov_str}\n"
+            f"  Division: {c.get('receiving_division', 'N/A')} → "
+            f"{c.get('assigned_division', 'N/A')}\n"
+            f"  Description: {desc}\n"
+        )
+    return "\n".join(lines)
+
+
+def format_violation_list(violations: list[dict]) -> str:
+    """Format a list of Notices of Violation for display."""
+    if not violations:
+        return "No violations found matching your criteria."
+
+    lines = [f"Found {len(violations)} violations:\n"]
+    for v in violations:
+        date_filed = (
+            v.get("date_filed", "N/A")[:10] if v.get("date_filed") else "N/A"
+        )
+        address_parts = [
+            v.get("street_number", ""),
+            v.get("street_name", ""),
+            v.get("street_suffix", ""),
+        ]
+        address = " ".join(part for part in address_parts if part).strip()
+
+        category = v.get("nov_category_description", "N/A")
+        desc = (v.get("nov_item_description") or "N/A")[:200]
+
+        lines.append(
+            f"- **{v.get('complaint_number', 'N/A')}** "
+            f"(Item {v.get('item_sequence_number', '?')}) — "
+            f"{v.get('status', 'N/A')}\n"
+            f"  Address: {address or 'N/A'} "
+            f"(Block {v.get('block', '?')}, Lot {v.get('lot', '?')})\n"
+            f"  Filed: {date_filed} | Category: {category}\n"
+            f"  Description: {desc}\n"
+        )
+    return "\n".join(lines)
+
+
+def format_inspection_list(inspections: list[dict]) -> str:
+    """Format a list of building inspections for display."""
+    if not inspections:
+        return "No inspections found matching your criteria."
+
+    lines = [f"Found {len(inspections)} inspections:\n"]
+    for i in inspections:
+        sched = (
+            i.get("scheduled_date", "N/A")[:10]
+            if i.get("scheduled_date")
+            else "N/A"
+        )
+        ref_num = i.get("reference_number", "N/A")
+        ref_type = i.get("reference_number_type", "")
+        ref_str = f"{ref_num} ({ref_type})" if ref_type else ref_num
+
+        # Build address from avs_ fields (inspections use avs_street_name)
+        address_parts = [
+            i.get("avs_street_number") or i.get("street_number", ""),
+            i.get("avs_street_name") or i.get("street_name", ""),
+            i.get("avs_street_sfx") or i.get("street_suffix", ""),
+        ]
+        address = " ".join(part for part in address_parts if part).strip()
+
+        status = i.get("status", "N/A")
+        inspector_name = i.get("inspector", "N/A")
+        desc = (i.get("inspection_type_description") or "N/A")[:150]
+
+        lines.append(
+            f"- **{ref_str}** — {sched}\n"
+            f"  Address: {address or 'N/A'} "
+            f"(Block {i.get('block', '?')}, Lot {i.get('lot', '?')})\n"
+            f"  **Result: {status}** | Inspector: {inspector_name}\n"
+            f"  Type: {desc}\n"
+        )
+    return "\n".join(lines)
+
+
 def format_property(properties: list[dict]) -> str:
     """Format property lookup results."""
     if not properties:

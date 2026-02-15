@@ -50,7 +50,20 @@ BLOCK_LOT_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Priority 3: Validate keywords
+# Priority 2: Complaint/enforcement keywords
+# Use regex for word-boundary matching to avoid false positives
+# (e.g., "nov" matching inside "renovate")
+COMPLAINT_KEYWORDS_RE = re.compile(
+    r'\b(?:complaints?|violations?|enforcement|cited|abated|'
+    r'code\s+violations?|building\s+complaints?|notice\s+of\s+violations?|'
+    r'inspection\s+results?|failed\s+inspections?|nov)\b',
+    re.IGNORECASE,
+)
+
+# Complaint number pattern: 9 digits starting with year (20XXXXXXX)
+COMPLAINT_NUMBER_RE = re.compile(r'\b(20\d{7})\b')
+
+# Priority 3.5: Validate keywords
 VALIDATE_KEYWORDS = [
     "validate", "check my plans", "check plans", "epr compliance",
     "plan set", "upload pdf", "validate pdf", "check pdf",
@@ -189,7 +202,35 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
             entities={"permit_number": permit_num},
         )
 
-    # --- Priority 2: Block/lot ---
+    # --- Priority 2: Complaint / enforcement search ---
+    # Check before block/lot so "violations on block 2920 lot 020" routes to complaints
+    has_complaint_keyword = bool(COMPLAINT_KEYWORDS_RE.search(text_lower))
+    complaint_num_match = COMPLAINT_NUMBER_RE.search(text)
+    if has_complaint_keyword:
+        complaint_entities: dict = {}
+        if complaint_num_match:
+            complaint_entities["complaint_number"] = complaint_num_match.group(1)
+        # Try to extract address for complaint search
+        addr_m = ADDRESS_WITH_SUFFIX_RE.search(text) or ADDRESS_BARE_RE.search(text)
+        if addr_m:
+            sn = addr_m.group(1)
+            if sn:
+                complaint_entities["street_number"] = sn
+            street = addr_m.group(2).strip()
+            if street and street.lower() not in _NOT_STREET_NAMES:
+                complaint_entities["street_name"] = street
+        # Try block/lot
+        bl_m = BLOCK_LOT_RE.search(text)
+        if bl_m:
+            complaint_entities["block"] = bl_m.group(1)
+            complaint_entities["lot"] = bl_m.group(2)
+        return IntentResult(
+            intent="search_complaint",
+            confidence=0.9,
+            entities=complaint_entities,
+        )
+
+    # --- Priority 3: Block/lot ---
     m = BLOCK_LOT_RE.search(text)
     if m:
         return IntentResult(
@@ -198,7 +239,7 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
             entities={"block": m.group(1), "lot": m.group(2)},
         )
 
-    # --- Priority 3: Validate plans ---
+    # --- Priority 3.5: Validate plans ---
     if any(kw in text_lower for kw in VALIDATE_KEYWORDS):
         return IntentResult(
             intent="validate_plans",

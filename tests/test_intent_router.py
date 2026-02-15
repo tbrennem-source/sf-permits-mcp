@@ -84,6 +84,49 @@ def test_block_lot_with_slash():
 
 
 # ---------------------------------------------------------------------------
+# Complaint / enforcement intent
+# ---------------------------------------------------------------------------
+
+def test_complaint_keyword():
+    """'complaint at 75 robin hood' should route to search_complaint."""
+    r = classify("complaint at 75 robin hood dr")
+    assert r.intent == "search_complaint"
+
+
+def test_violation_keyword():
+    """'violations on block 2920 lot 020' should route to search_complaint."""
+    r = classify("violations on block 2920 lot 020")
+    assert r.intent == "search_complaint"
+    assert r.entities.get("block") == "2920"
+    assert r.entities.get("lot") == "020"
+
+
+def test_nov_keyword():
+    """'notice of violation' should trigger complaint intent."""
+    r = classify("notice of violation at 100 Market St")
+    assert r.intent == "search_complaint"
+
+
+def test_enforcement_keyword():
+    """'enforcement action' should trigger complaint intent."""
+    r = classify("any enforcement actions on this property")
+    assert r.intent == "search_complaint"
+
+
+def test_complaint_with_address():
+    """Complaint intent should extract address entities."""
+    r = classify("complaint at 75 Robin Hood Dr")
+    assert r.intent == "search_complaint"
+    assert "street_name" in r.entities or "street_number" in r.entities
+
+
+def test_complaint_beats_validate():
+    """'complaint' keyword should win over general question."""
+    r = classify("is there a complaint filed against my building?")
+    assert r.intent == "search_complaint"
+
+
+# ---------------------------------------------------------------------------
 # Validate intent
 # ---------------------------------------------------------------------------
 

@@ -164,3 +164,107 @@ async def test_date_filtering():
         assert len(results) > 0, "Expected permits filed in 2026"
     finally:
         await client.close()
+
+
+# ---------------------------------------------------------------------------
+# Phase 1.5: DBI Enforcement datasets
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_complaints_dataset_accessible():
+    """Verify DBI complaints dataset is accessible and has expected volume."""
+    client = SODAClient()
+    try:
+        count = await client.count("gm2e-bten")
+        assert count > 100_000, f"Expected 100K+ complaints, got {count}"
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
+async def test_violations_dataset_accessible():
+    """Verify NOV dataset is accessible and has expected volume."""
+    client = SODAClient()
+    try:
+        count = await client.count("nbtm-fbw5")
+        assert count > 100_000, f"Expected 100K+ violations, got {count}"
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
+async def test_inspections_dataset_accessible():
+    """Verify inspections dataset is accessible and has expected volume."""
+    client = SODAClient()
+    try:
+        count = await client.count("vckc-dh2h")
+        assert count > 100_000, f"Expected 100K+ inspections, got {count}"
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
+async def test_search_complaints_by_block_lot():
+    """Verify complaint filtering by block/lot returns expected fields."""
+    client = SODAClient()
+    try:
+        results = await client.query(
+            "gm2e-bten",
+            where="block='0001'",
+            order="date_filed DESC",
+            limit=5,
+        )
+        assert len(results) > 0, "Expected complaints for block 0001"
+        first = results[0]
+        assert "complaint_number" in first
+        assert "status" in first
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
+async def test_search_violations_by_complaint():
+    """Verify violation lookup by complaint_number returns NOV details."""
+    client = SODAClient()
+    try:
+        # Get a complaint number that has violations
+        results = await client.query(
+            "nbtm-fbw5",
+            order="date_filed DESC",
+            limit=1,
+        )
+        assert len(results) > 0, "Expected at least one violation"
+        first = results[0]
+        assert "complaint_number" in first
+        assert "status" in first
+
+        # Look up by that complaint number
+        complaint_num = first["complaint_number"]
+        detail = await client.query(
+            "nbtm-fbw5",
+            where=f"complaint_number='{complaint_num}'",
+            limit=5,
+        )
+        assert len(detail) >= 1
+        assert detail[0]["complaint_number"] == complaint_num
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
+async def test_search_inspections_by_permit():
+    """Verify inspection lookup by permit reference_number returns expected fields."""
+    client = SODAClient()
+    try:
+        results = await client.query(
+            "vckc-dh2h",
+            where="reference_number_type='permit'",
+            order="scheduled_date DESC",
+            limit=5,
+        )
+        assert len(results) > 0, "Expected permit-type inspections"
+        first = results[0]
+        assert "reference_number" in first
+        assert "status" in first or "inspector" in first
+    finally:
+        await client.close()

@@ -39,6 +39,8 @@ from src.tools.permit_lookup import permit_lookup
 from src.tools.search_entity import search_entity
 from src.tools.knowledge_base import get_knowledge_base
 from src.tools.intent_router import classify as classify_intent
+from src.tools.search_complaints import search_complaints
+from src.tools.search_violations import search_violations
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
@@ -563,6 +565,8 @@ def ask():
     try:
         if intent == "lookup_permit":
             return _ask_permit_lookup(query, entities)
+        elif intent == "search_complaint":
+            return _ask_complaint_search(query, entities)
         elif intent == "search_address":
             return _ask_address_search(query, entities)
         elif intent == "search_parcel":
@@ -609,6 +613,75 @@ def _ask_permit_lookup(query: str, entities: dict) -> str:
         query_echo=f"Permit #{permit_num}",
         result_html=md_to_html(result_md),
         **_watch_context(watch_data),
+    )
+
+
+def _ask_complaint_search(query: str, entities: dict) -> str:
+    """Handle complaint/violation/enforcement search."""
+    complaint_number = entities.get("complaint_number")
+    address = entities.get("street_name")
+    block = entities.get("block")
+    lot = entities.get("lot")
+
+    # Run both complaints and violations searches in parallel via the same
+    # run_async helper. Build combined results.
+    parts = []
+
+    # Search complaints
+    complaints_md = run_async(search_complaints(
+        complaint_number=complaint_number,
+        address=address,
+        block=block,
+        lot=lot,
+    ))
+    parts.append("## Complaints\n\n" + complaints_md)
+
+    # Search violations
+    violations_md = run_async(search_violations(
+        complaint_number=complaint_number,
+        address=address,
+        block=block,
+        lot=lot,
+    ))
+    parts.append("## Violations (NOVs)\n\n" + violations_md)
+
+    combined_md = "\n\n---\n\n".join(parts)
+
+    # Build label for display
+    if complaint_number:
+        label = f"Complaint #{complaint_number}"
+    elif address:
+        label = f"Complaints near {address}"
+    elif block and lot:
+        label = f"Complaints at Block {block}, Lot {lot}"
+    else:
+        label = "Complaint search"
+
+    # Build watch data for address or parcel
+    watch_data = {}
+    if block and lot:
+        watch_data = {
+            "watch_type": "parcel",
+            "block": block,
+            "lot": lot,
+            "label": f"Block {block}, Lot {lot}",
+        }
+    elif address:
+        watch_data = {
+            "watch_type": "address",
+            "street_name": address,
+            "label": f"Near {address}",
+        }
+
+    ctx = {}
+    if watch_data:
+        ctx = _watch_context(watch_data)
+
+    return render_template(
+        "search_results.html",
+        query_echo=label,
+        result_html=md_to_html(combined_md),
+        **ctx,
     )
 
 
@@ -925,6 +998,46 @@ def brief():
         lookback_days = 1
     brief_data = get_morning_brief(g.user["user_id"], lookback_days)
     return render_template("brief.html", user=g.user, brief=brief_data)
+
+
+# ---------------------------------------------------------------------------
+# Cron endpoints — protected by bearer token
+# ---------------------------------------------------------------------------
+
+@app.route("/cron/nightly", methods=["POST"])
+def cron_nightly():
+    """Nightly delta fetch — detect permit changes via SODA API.
+
+    Protected by CRON_SECRET bearer token. Designed to be called by
+    Railway cron or external scheduler (e.g., cron-job.org) daily ~3am PT.
+    """
+    token = request.headers.get("Authorization", "")
+    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
+    if not os.environ.get("CRON_SECRET") or token != expected:
+        abort(403)
+
+    from scripts.nightly_changes import run_nightly
+    import json
+
+    lookback = request.args.get("lookback", "1")
+    try:
+        lookback_days = max(1, min(int(lookback), 30))
+    except ValueError:
+        lookback_days = 1
+
+    try:
+        result = run_async(run_nightly(lookback_days=lookback_days))
+        return Response(
+            json.dumps({"status": "ok", **result}, indent=2),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        logging.error("Nightly cron failed: %s", e)
+        return Response(
+            json.dumps({"status": "error", "error": str(e)}, indent=2),
+            status=500,
+            mimetype="application/json",
+        )
 
 
 if __name__ == "__main__":
