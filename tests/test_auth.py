@@ -227,6 +227,20 @@ def test_stop_impersonate(client, monkeypatch):
         assert "impersonating" not in sess
 
 
+def test_admin_email_retroactive(client, monkeypatch):
+    """User created before ADMIN_EMAIL is set still gets admin when env var matches."""
+    import web.auth as auth_mod
+    # Create user with no ADMIN_EMAIL set — should NOT be admin
+    monkeypatch.setattr(auth_mod, "ADMIN_EMAIL", None)
+    user = auth_mod.create_user("retroactive-admin@test.com")
+    assert not user["is_admin"]
+
+    # Now set ADMIN_EMAIL to match — user should dynamically become admin
+    monkeypatch.setattr(auth_mod, "ADMIN_EMAIL", "retroactive-admin@test.com")
+    user2 = auth_mod.get_user_by_email("retroactive-admin@test.com")
+    assert user2["is_admin"]
+
+
 # ---------------------------------------------------------------------------
 # Watch list: add/remove
 # ---------------------------------------------------------------------------

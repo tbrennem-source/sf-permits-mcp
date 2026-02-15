@@ -120,16 +120,26 @@ def get_user_by_id(user_id: int) -> dict | None:
 
 
 def _row_to_user(row) -> dict:
-    """Convert a user row tuple to a dict."""
+    """Convert a user row tuple to a dict.
+
+    Admin status is derived from BOTH the DB flag and the ADMIN_EMAIL env var,
+    so that adding ADMIN_EMAIL after a user already exists still grants admin.
+    """
+    email = row[1]
+    db_admin = row[7]
+    # Dynamic admin check: DB flag OR email matches ADMIN_EMAIL
+    is_admin = bool(db_admin) or bool(
+        ADMIN_EMAIL and email and email.lower() == ADMIN_EMAIL.lower()
+    )
     return {
         "user_id": row[0],
-        "email": row[1],
+        "email": email,
         "display_name": row[2],
         "role": row[3],
         "firm_name": row[4],
         "entity_id": row[5],
         "email_verified": row[6],
-        "is_admin": row[7],
+        "is_admin": is_admin,
         "is_active": row[8],
         "brief_frequency": row[9] if len(row) > 9 else "none",
         "invite_code": row[10] if len(row) > 10 else None,
