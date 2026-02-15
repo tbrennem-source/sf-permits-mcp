@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["python311"]
+
+[phases.install]
+cmds = ["pip install -r web/requirements.txt"]
+
+[start]
+cmd = "cd web && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+
+[variables]
+PYTHONPATH = "/app"
