@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Brief — sfpermits.ai</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;line-height:1.6;">
+    <!-- Outer wrapper for background color -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;">
+        <tr>
+            <td align="center" style="padding:24px 16px;">
+                <!-- Inner container -->
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:#1a1d27;padding:20px 28px;">
+                            <a href="{{ base_url }}" style="color:#4f8ff7;font-size:1.3rem;font-weight:700;text-decoration:none;">sfpermits<span style="color:#8b8fa3;font-weight:400;">.ai</span></a>
+                            <span style="float:right;color:#8b8fa3;font-size:0.85rem;line-height:2;">Morning Brief</span>
+                        </td>
+                    </tr>
+
+                    <!-- Greeting -->
+                    <tr>
+                        <td style="padding:28px 28px 8px;">
+                            <h1 style="margin:0;font-size:1.3rem;color:#1a1a2e;">
+                                Good Morning{% if user_name %}, {{ user_name }}{% endif %}
+                            </h1>
+                            <p style="margin:4px 0 0;color:#6b7280;font-size:0.9rem;">
+                                Here's what changed in the last {{ lookback_days }} day{{ 's' if lookback_days > 1 else '' }}.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Summary row -->
+                    <tr>
+                        <td style="padding:16px 28px 24px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;">{{ summary.total_watches }}</div>
+                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Watching</div>
+                                    </td>
+                                    <td width="4%"></td>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.changes_count > 0 %}#059669{% else %}#1a1a2e{% endif %};">{{ summary.changes_count }}</div>
+                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Changed</div>
+                                    </td>
+                                    <td width="4%"></td>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.at_risk_count > 0 %}#dc2626{% else %}#1a1a2e{% endif %};">{{ summary.at_risk_count }}</div>
+                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">At Risk</div>
+                                    </td>
+                                    <td width="4%"></td>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.expiring_count > 0 %}#d97706{% else %}#1a1a2e{% endif %};">{{ summary.expiring_count }}</div>
+                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Expiring</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    {% if changes %}
+                    <!-- What Changed -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">What Changed</h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for c in changes[:10] %}
+                                <tr>
+                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <div style="font-weight:500;font-size:0.9rem;">{{ c.label or c.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                            {{ c.street_number }} {{ c.street_name }}
+                                            {% if c.neighborhood %} &middot; {{ c.neighborhood }}{% endif %}
+                                        </div>
+                                    </td>
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                        {% if c.old_status %}
+                                        <span style="font-size:0.75rem;color:#6b7280;">{{ c.old_status }}</span>
+                                        <span style="color:#9ca3af;"> &rarr; </span>
+                                        {% endif %}
+                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;
+                                            {% if c.new_status|lower in ('approved', 'issued', 'completed') %}background:#d1fae5;color:#059669;
+                                            {% elif c.new_status|lower in ('expired', 'cancelled', 'withdrawn') %}background:#fee2e2;color:#dc2626;
+                                            {% else %}background:#dbeafe;color:#2563eb;{% endif %}">
+                                            {{ c.new_status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if changes|length > 10 %}
+                                <tr><td colspan="2" style="padding:8px 0;color:#6b7280;font-size:0.8rem;">+ {{ changes|length - 10 }} more changes</td></tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {% if health %}
+                    <!-- Permit Health -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Permit Health</h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for h in health[:8] %}
+                                <tr>
+                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <div style="font-weight:500;font-size:0.9rem;">{{ h.label or h.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                            {{ h.elapsed_days }} days elapsed &middot; typical: {{ h.p50 }} days
+                                        </div>
+                                    </td>
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;
+                                            {% if h.status == 'on_track' %}background:#d1fae5;color:#059669;
+                                            {% elif h.status == 'slower' %}background:#fef3c7;color:#d97706;
+                                            {% elif h.status == 'behind' %}background:#fee2e2;color:#dc2626;
+                                            {% elif h.status == 'at_risk' %}background:#fecaca;color:#b91c1c;
+                                            {% endif %}">
+                                            {{ h.status|replace('_', ' ')|upper }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {% if inspections %}
+                    <!-- Inspections -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Inspection Results</h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for insp in inspections[:8] %}
+                                <tr>
+                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <div style="font-weight:500;font-size:0.9rem;">{{ insp.label or insp.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                            {{ insp.description or 'Inspection' }}
+                                            {% if insp.inspector %} &middot; {{ insp.inspector }}{% endif %}
+                                        </div>
+                                    </td>
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;
+                                            {% if insp.is_pass %}background:#d1fae5;color:#059669;
+                                            {% elif insp.is_fail %}background:#fee2e2;color:#dc2626;
+                                            {% else %}background:#f3f4f6;color:#6b7280;{% endif %}">
+                                            {{ insp.result or 'Pending' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {% if expiring %}
+                    <!-- Expiring -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Expiring Permits</h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for e in expiring %}
+                                <tr>
+                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <div style="font-weight:500;font-size:0.9rem;">{{ e.label or e.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                            {{ e.street_number }} {{ e.street_name }}
+                                            &middot; Issued: {{ e.issued_date }}
+                                        </div>
+                                    </td>
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                        {% if e.is_expired %}
+                                        <span style="color:#dc2626;font-weight:600;font-size:0.85rem;">EXPIRED</span>
+                                        {% else %}
+                                        <span style="color:#d97706;font-size:0.85rem;">{{ e.expires_in }} days left</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {% if new_filings %}
+                    <!-- New Filings -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">New Filings at Watched Locations</h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for f in new_filings[:10] %}
+                                <tr>
+                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <div style="font-weight:500;font-size:0.9rem;">{{ f.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                            {{ f.street_number }} {{ f.street_name }}
+                                            {% if f.neighborhood %} &middot; {{ f.neighborhood }}{% endif %}
+                                            {% if f.permit_type %} &middot; {{ f.permit_type }}{% endif %}
+                                        </div>
+                                    </td>
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#dbeafe;color:#2563eb;">NEW</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- CTA -->
+                    <tr>
+                        <td align="center" style="padding:8px 28px 28px;">
+                            <a href="{{ base_url }}/brief" style="display:inline-block;padding:12px 32px;background:#4f8ff7;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;">
+                                View Full Brief
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding:20px 28px;background:#f8f9fb;border-top:1px solid #e5e7eb;">
+                            <p style="margin:0;font-size:0.75rem;color:#9ca3af;text-align:center;">
+                                You're receiving this because you have an active watch list on
+                                <a href="{{ base_url }}" style="color:#4f8ff7;text-decoration:none;">sfpermits.ai</a>.
+                                <br>
+                                <a href="{{ base_url }}/account" style="color:#4f8ff7;text-decoration:none;">Manage email preferences</a>
+                                &middot;
+                                <a href="{{ unsubscribe_url }}" style="color:#4f8ff7;text-decoration:none;">Unsubscribe</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

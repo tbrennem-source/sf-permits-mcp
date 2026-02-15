@@ -73,7 +73,9 @@ def get_user_by_email(email: str) -> dict | None:
     _ensure_schema()
     row = query_one(
         "SELECT user_id, email, display_name, role, firm_name, entity_id, "
-        "email_verified, is_admin, is_active FROM users WHERE email = %s",
+        "email_verified, is_admin, is_active, "
+        "COALESCE(brief_frequency, 'none') "
+        "FROM users WHERE email = %s",
         (email,),
     )
     return _row_to_user(row) if row else None
@@ -84,7 +86,9 @@ def get_user_by_id(user_id: int) -> dict | None:
     _ensure_schema()
     row = query_one(
         "SELECT user_id, email, display_name, role, firm_name, entity_id, "
-        "email_verified, is_admin, is_active FROM users WHERE user_id = %s",
+        "email_verified, is_admin, is_active, "
+        "COALESCE(brief_frequency, 'none') "
+        "FROM users WHERE user_id = %s",
         (user_id,),
     )
     return _row_to_user(row) if row else None
@@ -102,6 +106,7 @@ def _row_to_user(row) -> dict:
         "email_verified": row[6],
         "is_admin": row[7],
         "is_active": row[8],
+        "brief_frequency": row[9] if len(row) > 9 else "none",
     }
 
 

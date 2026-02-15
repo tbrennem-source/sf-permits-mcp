@@ -210,6 +210,26 @@
                 </div>
             </div>
 
+            <div class="card">
+                <h2>Email Preferences</h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+                    Receive your morning brief by email. Only sent when there's something new.
+                </p>
+                <form method="POST" action="/account/brief-frequency"
+                      hx-post="/account/brief-frequency"
+                      hx-target="#freq-status"
+                      hx-swap="innerHTML"
+                      style="display:flex;align-items:center;gap:12px;">
+                    <select name="brief_frequency" style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
+                        <option value="none" {{ 'selected' if (user.brief_frequency or 'none') == 'none' else '' }}>No emails</option>
+                        <option value="daily" {{ 'selected' if user.brief_frequency == 'daily' else '' }}>Daily brief</option>
+                        <option value="weekly" {{ 'selected' if user.brief_frequency == 'weekly' else '' }}>Weekly brief (Mondays)</option>
+                    </select>
+                    <button type="submit" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;">Save</button>
+                    <span id="freq-status" style="font-size:0.85rem;"></span>
+                </form>
+            </div>
+
             <div class="card" id="watch-list-card">
                 <h2>Watch List ({{ watches | length }})</h2>
                 {% if watches %}

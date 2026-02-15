@@ -989,3 +989,212 @@ def test_nav_hides_brief_link_for_anonymous(client):
     rv = client.get("/")
     html = rv.data.decode()
     assert "Morning Brief" not in html
+
+
+# ---------------------------------------------------------------------------
+# Email delivery
+# ---------------------------------------------------------------------------
+
+def test_email_unsubscribe_token_roundtrip():
+    """Unsubscribe token generation and verification."""
+    from web.email_brief import generate_unsubscribe_token, verify_unsubscribe_token
+    token = generate_unsubscribe_token(1, "test@example.com")
+    assert verify_unsubscribe_token(1, "test@example.com", token) is True
+    # Wrong email
+    assert verify_unsubscribe_token(1, "other@example.com", token) is False
+    # Wrong user_id
+    assert verify_unsubscribe_token(2, "test@example.com", token) is False
+    # Tampered token
+    assert verify_unsubscribe_token(1, "test@example.com", "bad" + token[3:]) is False
+
+
+def test_email_brief_render(client):
+    """Email template renders without errors."""
+    user = _login_user(client)
+    from web.brief import get_morning_brief
+    from web.email_brief import render_brief_email
+    brief_data = get_morning_brief(user["user_id"], lookback_days=1)
+
+    with app.app_context():
+        html = render_brief_email(user, brief_data)
+    assert "sfpermits" in html
+    assert "Good Morning" in html
+    assert "View Full Brief" in html
+    assert "Unsubscribe" in html
+
+
+def test_email_brief_render_with_data(client):
+    """Email template renders correctly with actual brief data."""
+    from src.db import get_connection
+    from web.auth import add_watch
+    from web.brief import get_morning_brief
+    from web.email_brief import render_brief_email
+    user = _login_user(client)
+
+    conn = get_connection()
+    try:
+        _seed_permit(conn, "EMAIL001")
+        _seed_change(conn, "EMAIL001", date.today(), "approved",
+                     old_status="filed")
+    finally:
+        conn.close()
+
+    add_watch(user["user_id"], "permit", permit_number="EMAIL001",
+              label="My email test")
+    brief_data = get_morning_brief(user["user_id"], lookback_days=1)
+
+    with app.app_context():
+        html = render_brief_email(user, brief_data)
+    assert "What Changed" in html
+    assert "EMAIL001" in html or "My email test" in html
+
+
+def test_send_brief_skips_empty(client, monkeypatch):
+    """send_briefs skips users with nothing to report."""
+    from src.db import execute_write
+    user = _login_user(client, email="daily@example.com")
+
+    # Set frequency to daily
+    execute_write(
+        "UPDATE users SET brief_frequency = %s WHERE user_id = %s",
+        ("daily", user["user_id"]),
+    )
+
+    # No watches, so nothing to report — user won't even be fetched
+    # (the query requires EXISTS watch_items)
+    from web.email_brief import send_briefs
+    with app.app_context():
+        result = send_briefs("daily")
+    assert result["total"] == 0
+    assert result["sent"] == 0
+
+
+def test_send_brief_with_watch(client, monkeypatch):
+    """send_briefs sends to a user with an active watch and changes."""
+    from src.db import get_connection, execute_write
+    from web.auth import add_watch
+    user = _login_user(client, email="watchmail@example.com")
+
+    # Set frequency to daily
+    execute_write(
+        "UPDATE users SET brief_frequency = %s WHERE user_id = %s",
+        ("daily", user["user_id"]),
+    )
+
+    conn = get_connection()
+    try:
+        _seed_permit(conn, "EMAILSEND001")
+        _seed_change(conn, "EMAILSEND001", date.today(), "approved",
+                     old_status="filed")
+    finally:
+        conn.close()
+
+    add_watch(user["user_id"], "permit", permit_number="EMAILSEND001",
+              label="Brief test")
+
+    # Mock SMTP — no actual email
+    sent_emails = []
+    monkeypatch.setattr("web.email_brief.SMTP_HOST", None)
+
+    from web.email_brief import send_briefs
+    with app.app_context():
+        result = send_briefs("daily")
+    assert result["total"] == 1
+    assert result["sent"] == 1
+    assert result["skipped"] == 0
+
+
+def test_brief_frequency_update(client):
+    """User can update their brief email frequency."""
+    user = _login_user(client)
+
+    rv = client.post("/account/brief-frequency", data={"brief_frequency": "daily"})
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Daily" in html
+
+    # Verify it persisted
+    from web.auth import get_user_by_id
+    updated = get_user_by_id(user["user_id"])
+    assert updated["brief_frequency"] == "daily"
+
+
+def test_brief_frequency_requires_login(client):
+    """Updating brief frequency requires authentication."""
+    rv = client.post("/account/brief-frequency",
+                     data={"brief_frequency": "daily"},
+                     follow_redirects=False)
+    assert rv.status_code == 302
+
+
+def test_brief_frequency_invalid_value(client):
+    """Invalid frequency values default to 'none'."""
+    user = _login_user(client)
+
+    rv = client.post("/account/brief-frequency",
+                     data={"brief_frequency": "hourly"})
+    assert rv.status_code == 200
+
+    from web.auth import get_user_by_id
+    updated = get_user_by_id(user["user_id"])
+    assert updated["brief_frequency"] == "none"
+
+
+def test_email_unsubscribe_route(client):
+    """Unsubscribe endpoint with valid token."""
+    from web.email_brief import generate_unsubscribe_token
+    from src.db import execute_write
+    user = _login_user(client, email="unsub@example.com")
+
+    # Enable daily
+    execute_write(
+        "UPDATE users SET brief_frequency = %s WHERE user_id = %s",
+        ("daily", user["user_id"]),
+    )
+
+    token = generate_unsubscribe_token(user["user_id"], "unsub@example.com")
+    rv = client.get(f"/email/unsubscribe?uid={user['user_id']}&token={token}")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "unsubscribed" in html.lower()
+
+    # Verify frequency changed to none
+    from web.auth import get_user_by_id
+    updated = get_user_by_id(user["user_id"])
+    assert updated["brief_frequency"] == "none"
+
+
+def test_email_unsubscribe_bad_token(client):
+    """Unsubscribe endpoint rejects bad tokens."""
+    user = _login_user(client, email="badsub@example.com")
+    rv = client.get(f"/email/unsubscribe?uid={user['user_id']}&token=badtoken")
+    assert rv.status_code == 400
+
+
+def test_cron_send_briefs_requires_auth(client):
+    """Cron send-briefs endpoint requires bearer token."""
+    rv = client.post("/cron/send-briefs")
+    assert rv.status_code == 403
+
+
+def test_cron_send_briefs_with_auth(client, monkeypatch):
+    """Cron send-briefs endpoint works with correct bearer token."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret")
+
+    rv = client.post(
+        "/cron/send-briefs",
+        headers={"Authorization": "Bearer test-secret"},
+    )
+    assert rv.status_code == 200
+    import json
+    data = json.loads(rv.data)
+    assert data["status"] == "ok"
+
+
+def test_account_shows_email_preferences(client):
+    """Account page shows email preferences section."""
+    user = _login_user(client)
+    rv = client.get("/account")
+    html = rv.data.decode()
+    assert "Email Preferences" in html
+    assert "brief_frequency" in html

@@ -142,7 +142,9 @@ def init_user_schema(conn=None) -> None:
                 last_login_at TIMESTAMP,
                 email_verified BOOLEAN NOT NULL DEFAULT FALSE,
                 is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-                is_active BOOLEAN NOT NULL DEFAULT TRUE
+                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                brief_frequency TEXT NOT NULL DEFAULT 'none',
+                last_brief_sent_at TIMESTAMP
             )
         """)
         conn.execute("""

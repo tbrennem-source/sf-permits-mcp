@@ -1001,6 +1001,79 @@ def brief():
 
 
 # ---------------------------------------------------------------------------
+# Account: brief frequency
+# ---------------------------------------------------------------------------
+
+@app.route("/account/brief-frequency", methods=["POST"])
+@login_required
+def account_brief_frequency():
+    """Update user's morning brief email frequency."""
+    from src.db import execute_write
+
+    freq = request.form.get("brief_frequency", "none")
+    if freq not in ("none", "daily", "weekly"):
+        freq = "none"
+
+    execute_write(
+        "UPDATE users SET brief_frequency = %s WHERE user_id = %s",
+        (freq, g.user["user_id"]),
+    )
+
+    label = {"none": "Off", "daily": "Daily", "weekly": "Weekly"}[freq]
+    return f'<span style="color:var(--success);">Saved: {label}</span>'
+
+
+# ---------------------------------------------------------------------------
+# Email unsubscribe
+# ---------------------------------------------------------------------------
+
+@app.route("/email/unsubscribe")
+def email_unsubscribe():
+    """One-click unsubscribe from email briefs."""
+    from web.email_brief import verify_unsubscribe_token
+    from src.db import execute_write
+
+    uid = request.args.get("uid", type=int)
+    token = request.args.get("token", "")
+    email = request.args.get("email", "")
+
+    # Token-based unsubscribe (from email links)
+    if uid and token:
+        from web.auth import get_user_by_id
+        user = get_user_by_id(uid)
+        if user and verify_unsubscribe_token(uid, user["email"], token):
+            execute_write(
+                "UPDATE users SET brief_frequency = 'none' WHERE user_id = %s",
+                (uid,),
+            )
+            return render_template(
+                "auth_login.html",
+                message="You've been unsubscribed from email briefs. "
+                        "You can re-enable them from your account page.",
+            )
+
+    # Email-based unsubscribe (List-Unsubscribe header)
+    if email:
+        from web.auth import get_user_by_email
+        user = get_user_by_email(email)
+        if user:
+            execute_write(
+                "UPDATE users SET brief_frequency = 'none' WHERE user_id = %s",
+                (user["user_id"],),
+            )
+            return render_template(
+                "auth_login.html",
+                message="You've been unsubscribed from email briefs.",
+            )
+
+    return render_template(
+        "auth_login.html",
+        message="Invalid unsubscribe link.",
+        message_type="error",
+    ), 400
+
+
+# ---------------------------------------------------------------------------
 # Expediter Dashboard
 # ---------------------------------------------------------------------------
 
@@ -1217,6 +1290,44 @@ def cron_nightly():
         )
     except Exception as e:
         logging.error("Nightly cron failed: %s", e)
+        return Response(
+            json.dumps({"status": "error", "error": str(e)}, indent=2),
+            status=500,
+            mimetype="application/json",
+        )
+
+
+@app.route("/cron/send-briefs", methods=["POST"])
+def cron_send_briefs():
+    """Send morning brief emails to subscribed users.
+
+    Protected by CRON_SECRET bearer token. Designed to be called:
+      - Daily at ~6am PT for daily subscribers
+      - Monday at ~6am PT for weekly subscribers
+
+    Query params:
+      - frequency: 'daily' (default) or 'weekly'
+    """
+    token = request.headers.get("Authorization", "")
+    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
+    if not os.environ.get("CRON_SECRET") or token != expected:
+        abort(403)
+
+    from web.email_brief import send_briefs
+    import json
+
+    frequency = request.args.get("frequency", "daily")
+    if frequency not in ("daily", "weekly"):
+        frequency = "daily"
+
+    try:
+        result = send_briefs(frequency)
+        return Response(
+            json.dumps({"status": "ok", "frequency": frequency, **result}, indent=2),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        logging.error("Brief send cron failed: %s", e)
         return Response(
             json.dumps({"status": "error", "error": str(e)}, indent=2),
             status=500,
