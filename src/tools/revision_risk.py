@@ -177,148 +177,164 @@ async def revision_risk(
     Returns:
         Formatted revision risk assessment with data-backed probabilities.
     """
-    conn = get_connection()
+    # Try DuckDB for statistical data — gracefully degrade if unavailable
+    stats = None
+    widened = False
+    db_available = False
+
     try:
-        stats = _query_revision_stats(conn, permit_type, neighborhood, review_path)
+        conn = get_connection()
+        try:
+            stats = _query_revision_stats(conn, permit_type, neighborhood, review_path)
+            db_available = True
 
-        # Widen if insufficient data
-        widened = False
-        if not stats and neighborhood:
-            stats = _query_revision_stats(conn, permit_type, None, review_path)
-            widened = True
-        if not stats:
-            stats = _query_revision_stats(conn, None, None, review_path)
-            widened = True
+            # Widen if insufficient data
+            if not stats and neighborhood:
+                stats = _query_revision_stats(conn, permit_type, None, review_path)
+                widened = True
+            if not stats:
+                stats = _query_revision_stats(conn, None, None, review_path)
+                widened = True
+        finally:
+            conn.close()
+    except Exception:
+        pass  # DuckDB not available — knowledge-only assessment
 
-        # Get triggers for project type
-        triggers = REVISION_TRIGGERS.get(project_type, REVISION_TRIGGERS["general"])
+    # Get triggers for project type
+    triggers = REVISION_TRIGGERS.get(project_type, REVISION_TRIGGERS["general"])
 
-        # Mitigation strategies
-        mitigations = [
-            "Engage licensed professional experienced with SF DBI requirements",
-            "Use the completeness checklist (tier1/completeness-checklist.json) before submission",
-            "Include a Back Check page in all plan sets",
-            "Ensure Title-24 energy compliance is complete before submission",
-            "Verify plan description matches permit application exactly",
-        ]
+    # Mitigation strategies
+    mitigations = [
+        "Engage licensed professional experienced with SF DBI requirements",
+        "Use the completeness checklist (tier1/completeness-checklist.json) before submission",
+        "Include a Back Check page in all plan sets",
+        "Ensure Title-24 energy compliance is complete before submission",
+        "Verify plan description matches permit application exactly",
+    ]
 
-        if project_type == "restaurant":
-            mitigations.insert(0, "Have DPH review requirements addressed in initial plan submission")
-            mitigations.insert(1, "Include complete grease interceptor calculations with first submittal")
-            mitigations.insert(2, "Submit numbered equipment schedule cross-referenced to layout (DPH #1 correction)")
-        if project_type == "adu":
-            mitigations.insert(0, "Confirm Planning conditions before finalizing plans")
-        if project_type in ("seismic", "new_construction"):
-            mitigations.insert(0, "Reference geotechnical report in structural calculations")
-        if project_type in ("restaurant", "commercial_ti", "change_of_use"):
-            mitigations.append("Consider CASp (Certified Access Specialist) inspection — reduces ADA correction rate from ~38% to ~10%")
-            mitigations.append("Submit DA-02 checklist with initial application (most common ADA correction is missing DA-02)")
+    if project_type == "restaurant":
+        mitigations.insert(0, "Have DPH review requirements addressed in initial plan submission")
+        mitigations.insert(1, "Include complete grease interceptor calculations with first submittal")
+        mitigations.insert(2, "Submit numbered equipment schedule cross-referenced to layout (DPH #1 correction)")
+    if project_type == "adu":
+        mitigations.insert(0, "Confirm Planning conditions before finalizing plans")
+    if project_type in ("seismic", "new_construction"):
+        mitigations.insert(0, "Reference geotechnical report in structural calculations")
+    if project_type in ("restaurant", "commercial_ti", "change_of_use"):
+        mitigations.append("Consider CASp (Certified Access Specialist) inspection — reduces ADA correction rate from ~38% to ~10%")
+        mitigations.append("Submit DA-02 checklist with initial application (most common ADA correction is missing DA-02)")
 
-        # Format output
-        lines = ["# Revision Risk Assessment\n"]
-        lines.append(f"**Permit Type:** {permit_type}")
-        if neighborhood:
-            lines.append(f"**Neighborhood:** {neighborhood}")
-        if project_type:
-            lines.append(f"**Project Type:** {project_type}")
-        if review_path:
-            lines.append(f"**Review Path:** {review_path}")
+    # Format output
+    lines = ["# Revision Risk Assessment\n"]
+    lines.append(f"**Permit Type:** {permit_type}")
+    if neighborhood:
+        lines.append(f"**Neighborhood:** {neighborhood}")
+    if project_type:
+        lines.append(f"**Project Type:** {project_type}")
+    if review_path:
+        lines.append(f"**Review Path:** {review_path}")
 
-        if stats:
-            # Classify risk level
-            rate = stats["revision_proxy_rate"] or 0
-            if rate > 0.20:
-                risk_level = "HIGH"
-            elif rate > 0.10:
-                risk_level = "MODERATE"
-            else:
-                risk_level = "LOW"
-
-            lines.append(f"\n## Revision Probability\n")
-            lines.append(f"**Risk Level:** {risk_level}")
-            lines.append(f"**Revision Rate:** {rate:.1%} of permits had cost increases during review")
-            lines.append(f"**Sample Size:** {stats['total_permits']:,} permits analyzed")
-            if widened:
-                lines.append("*Note: query widened beyond specified filters for sufficient sample size*")
-
-            if stats["avg_cost_increase_pct"]:
-                lines.append(f"\n## Cost Impact\n")
-                lines.append(f"- Average cost increase when revisions occur: **{stats['avg_cost_increase_pct']:.1f}%**")
-                lines.append(f"- Permits with cost increase: {stats['permits_with_cost_increase']:,}")
-
-            lines.append(f"\n## Timeline Impact\n")
-            if stats["avg_days_no_change"] and stats["avg_days_with_change"]:
-                delta = stats["avg_days_with_change"] - stats["avg_days_no_change"]
-                lines.append(f"- Average days to issuance (no revisions): {stats['avg_days_no_change']}")
-                lines.append(f"- Average days to issuance (with revisions): {stats['avg_days_with_change']}")
-                lines.append(f"- **Revision penalty: +{delta} days on average**")
-            if stats["p90_days"]:
-                lines.append(f"- 90th percentile (worst case): {stats['p90_days']} days")
+    if stats:
+        # Classify risk level
+        rate = stats["revision_proxy_rate"] or 0
+        if rate > 0.20:
+            risk_level = "HIGH"
+        elif rate > 0.10:
+            risk_level = "MODERATE"
         else:
-            lines.append("\n**Insufficient data** for statistical revision risk assessment.")
+            risk_level = "LOW"
 
-        lines.append(f"\n## Common Revision Triggers\n")
-        for i, t in enumerate(triggers, 1):
-            lines.append(f"{i}. {t}")
+        lines.append(f"\n## Revision Probability\n")
+        lines.append(f"**Risk Level:** {risk_level}")
+        lines.append(f"**Revision Rate:** {rate:.1%} of permits had cost increases during review")
+        lines.append(f"**Sample Size:** {stats['total_permits']:,} permits analyzed")
+        if widened:
+            lines.append("*Note: query widened beyond specified filters for sufficient sample size*")
 
-        # Correction frequency data from compliance knowledge
-        kb = get_knowledge_base()
-        correction_data = _get_correction_frequencies(project_type, kb)
-        if correction_data:
-            lines.append(f"\n## Top Correction Categories (citywide data)\n")
-            for cd in correction_data:
-                lines.append(f"- **{cd['category']}** ({cd['rate']}): {cd['detail']}")
+        if stats["avg_cost_increase_pct"]:
+            lines.append(f"\n## Cost Impact\n")
+            lines.append(f"- Average cost increase when revisions occur: **{stats['avg_cost_increase_pct']:.1f}%**")
+            lines.append(f"- Permits with cost increase: {stats['permits_with_cost_increase']:,}")
 
-        # EPR resubmittal guidance from correction workflow
-        epr = kb.epr_requirements
-        correction_workflow = epr.get("correction_response_workflow", {})
-        if correction_workflow:
-            lines.append(f"\n## EPR Resubmittal Process\n")
-            lines.append("*When corrections are required during plan review:*\n")
-            for step in correction_workflow.get("steps", [])[:4]:  # Top 4 steps
-                lines.append(f"- **{step.get('id', '')}:** {step.get('step', '')}")
-                mistake = step.get("common_mistake", "")
-                if mistake:
-                    lines.append(f"  ⚠️ Common mistake: {mistake}")
+        lines.append(f"\n## Timeline Impact\n")
+        if stats["avg_days_no_change"] and stats["avg_days_with_change"]:
+            delta = stats["avg_days_with_change"] - stats["avg_days_no_change"]
+            lines.append(f"- Average days to issuance (no revisions): {stats['avg_days_no_change']}")
+            lines.append(f"- Average days to issuance (with revisions): {stats['avg_days_with_change']}")
+            lines.append(f"- **Revision penalty: +{delta} days on average**")
+        if stats["p90_days"]:
+            lines.append(f"- 90th percentile (worst case): {stats['p90_days']} days")
+    else:
+        if not db_available:
+            lines.append("\n*Historical permit database not available — using knowledge-based assessment*")
+        lines.append("\n## Risk Assessment (knowledge-based)\n")
+        lines.append("Based on SF DBI patterns, typical revision risk factors:")
+        lines.append("- **In-house review:** ~15-20% of permits require corrections")
+        lines.append("- **Revision penalty:** +60-120 days typical when corrections occur")
+        lines.append("- **Most common cause:** Incomplete documentation at initial submittal")
 
-        # DA-02 checklist deficiencies for commercial
-        ada = kb.ada_accessibility
-        if ada and project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"):
-            da02 = ada.get("da02_form_structure", {})
-            form_c = da02.get("form_c", {})
-            categories = form_c.get("checklist_categories", [])
-            if categories:
-                lines.append(f"\n## DA-02 Common Deficiency Areas\n")
-                for cat in categories:
-                    deficiency = cat.get("common_deficiency", "")
-                    if deficiency:
-                        lines.append(f"- **{cat['category']}:** {deficiency}")
+    lines.append(f"\n## Common Revision Triggers\n")
+    for i, t in enumerate(triggers, 1):
+        lines.append(f"{i}. {t}")
 
-        lines.append(f"\n## Mitigation Strategies\n")
-        for m in mitigations:
-            lines.append(f"- {m}")
+    # Correction frequency data from compliance knowledge
+    kb = get_knowledge_base()
+    correction_data = _get_correction_frequencies(project_type, kb)
+    if correction_data:
+        lines.append(f"\n## Top Correction Categories (citywide data)\n")
+        for cd in correction_data:
+            lines.append(f"- **{cd['category']}** ({cd['rate']}): {cd['detail']}")
 
-        lines.append(f"\n## Questions for Expert Review\n")
-        lines.append("- What are the most common plan check correction items for this project type?")
-        lines.append("- Are there specific reviewers known for particular requirements?")
-        lines.append("- What pre-submission meetings (if any) could reduce revision rounds?")
+    # EPR resubmittal guidance from correction workflow
+    epr = kb.epr_requirements
+    correction_workflow = epr.get("correction_response_workflow", {})
+    if correction_workflow:
+        lines.append(f"\n## EPR Resubmittal Process\n")
+        lines.append("*When corrections are required during plan review:*\n")
+        for step in correction_workflow.get("steps", [])[:4]:  # Top 4 steps
+            lines.append(f"- **{step.get('id', '')}:** {step.get('step', '')}")
+            mistake = step.get("common_mistake", "")
+            if mistake:
+                lines.append(f"  ⚠️ Common mistake: {mistake}")
 
-        confidence = "high" if stats and stats["total_permits"] >= 100 and not widened else \
-                     "medium" if stats else "low"
-        lines.append(f"\n**Confidence:** {confidence}")
+    # DA-02 checklist deficiencies for commercial
+    ada = kb.ada_accessibility
+    if ada and project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"):
+        da02 = ada.get("da02_form_structure", {})
+        form_c = da02.get("form_c", {})
+        categories = form_c.get("checklist_categories", [])
+        if categories:
+            lines.append(f"\n## DA-02 Common Deficiency Areas\n")
+            for cat in categories:
+                deficiency = cat.get("common_deficiency", "")
+                if deficiency:
+                    lines.append(f"- **{cat['category']}:** {deficiency}")
 
-        # Source citations
-        sources = ["duckdb_permits"]
-        if correction_data:
-            sources.append("title24")
-        if project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"):
-            sources.append("ada_accessibility")
-        if project_type == "restaurant":
-            sources.extend(["dph_food", "restaurant_guide"])
-        if epr and correction_workflow:
-            sources.append("epr_requirements")
-        lines.append(format_sources(sources))
+    lines.append(f"\n## Mitigation Strategies\n")
+    for m in mitigations:
+        lines.append(f"- {m}")
 
-        return "\n".join(lines)
-    finally:
-        conn.close()
+    lines.append(f"\n## Questions for Expert Review\n")
+    lines.append("- What are the most common plan check correction items for this project type?")
+    lines.append("- Are there specific reviewers known for particular requirements?")
+    lines.append("- What pre-submission meetings (if any) could reduce revision rounds?")
+
+    confidence = "high" if stats and stats["total_permits"] >= 100 and not widened else \
+                 "medium" if stats else "low"
+    lines.append(f"\n**Confidence:** {confidence}")
+
+    # Source citations
+    sources = []
+    if db_available:
+        sources.append("duckdb_permits")
+    if correction_data:
+        sources.append("title24")
+    if project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"):
+        sources.append("ada_accessibility")
+    if project_type == "restaurant":
+        sources.extend(["dph_food", "restaurant_guide"])
+    if epr and correction_workflow:
+        sources.append("epr_requirements")
+    lines.append(format_sources(sources))
+
+    return "\n".join(lines)

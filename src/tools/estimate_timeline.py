@@ -174,106 +174,131 @@ async def estimate_timeline(
     Returns:
         Formatted timeline estimate with percentiles, trend, and delay factors.
     """
-    conn = get_connection()
+    bracket = _cost_bracket(estimated_cost)
+
+    # Try DuckDB for historical data — gracefully degrade if unavailable
+    result = None
+    completion = None
+    trend = None
+    widened = False
+    db_available = False
+
     try:
-        _ensure_timeline_stats(conn)
+        conn = get_connection()
+        try:
+            _ensure_timeline_stats(conn)
+            db_available = True
 
-        bracket = _cost_bracket(estimated_cost)
+            # Try specific query first, then widen
+            result = _query_timeline(conn, review_path, neighborhood, bracket, permit_type)
 
-        # Try specific query first, then widen
-        result = _query_timeline(conn, review_path, neighborhood, bracket, permit_type)
-        widened = False
+            if not result and neighborhood:
+                result = _query_timeline(conn, review_path, None, bracket, permit_type)
+                widened = True
 
-        if not result and neighborhood:
-            # Drop neighborhood constraint
-            result = _query_timeline(conn, review_path, None, bracket, permit_type)
-            widened = True
+            if not result and bracket:
+                result = _query_timeline(conn, review_path, None, None, permit_type)
+                widened = True
 
-        if not result and bracket:
-            # Drop cost bracket too
-            result = _query_timeline(conn, review_path, None, None, permit_type)
-            widened = True
+            if not result:
+                result = _query_timeline(conn, review_path, None, None, None)
+                widened = True
 
-        if not result:
-            # Broadest query — just review path
-            result = _query_timeline(conn, review_path, None, None, None)
-            widened = True
+            # Completion timeline
+            if result:
+                comp = conn.execute("""
+                    SELECT
+                        COUNT(*) as n,
+                        PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY days_to_completion) as p50,
+                        PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY days_to_completion) as p75
+                    FROM timeline_stats
+                    WHERE days_to_completion BETWEEN 1 AND 1000
+                        AND review_path = COALESCE(?, review_path)
+                """, [review_path]).fetchone()
+                if comp and comp[0] >= 10:
+                    completion = {"p50_days": round(comp[1]), "p75_days": round(comp[2]), "sample": comp[0]}
 
-        # Completion timeline
-        completion = None
-        if result:
-            comp = conn.execute("""
-                SELECT
-                    COUNT(*) as n,
-                    PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY days_to_completion) as p50,
-                    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY days_to_completion) as p75
-                FROM timeline_stats
-                WHERE days_to_completion BETWEEN 1 AND 1000
-                    AND review_path = COALESCE(?, review_path)
-            """, [review_path]).fetchone()
-            if comp and comp[0] >= 10:
-                completion = {"p50_days": round(comp[1]), "p75_days": round(comp[2]), "sample": comp[0]}
+            # Trend
+            trend = _query_trend(conn, neighborhood, review_path)
+        finally:
+            conn.close()
+    except Exception:
+        pass  # DuckDB not available — knowledge-only estimate
 
-        # Trend
-        trend = _query_trend(conn, neighborhood, review_path)
+    # Applicable delay factors
+    delay_factors = []
+    if triggers:
+        for t in triggers:
+            if t in DELAY_FACTORS:
+                delay_factors.append({"trigger": t, "impact": DELAY_FACTORS[t]})
 
-        # Applicable delay factors
-        delay_factors = []
-        if triggers:
-            for t in triggers:
-                if t in DELAY_FACTORS:
-                    delay_factors.append({"trigger": t, "impact": DELAY_FACTORS[t]})
+    # Format output
+    lines = ["# Timeline Estimate\n"]
+    lines.append(f"**Permit Type:** {permit_type}")
+    if neighborhood:
+        lines.append(f"**Neighborhood:** {neighborhood}")
+    if review_path:
+        lines.append(f"**Review Path:** {review_path}")
+    if estimated_cost:
+        lines.append(f"**Cost Bracket:** {bracket}")
 
-        # Format output
-        lines = ["# Timeline Estimate\n"]
-        lines.append(f"**Permit Type:** {permit_type}")
-        if neighborhood:
-            lines.append(f"**Neighborhood:** {neighborhood}")
-        if review_path:
-            lines.append(f"**Review Path:** {review_path}")
-        if estimated_cost:
-            lines.append(f"**Cost Bracket:** {bracket}")
-
-        if result:
-            lines.append(f"\n## Filing to Issuance\n")
-            lines.append(f"| Percentile | Days |")
-            lines.append(f"|-----------|------|")
-            lines.append(f"| 25th (optimistic) | {result['p25_days']} |")
-            lines.append(f"| 50th (typical) | {result['p50_days']} |")
-            lines.append(f"| 75th (conservative) | {result['p75_days']} |")
-            lines.append(f"| 90th (worst case) | {result['p90_days']} |")
-            lines.append(f"\n*Sample size: {result['sample_size']:,} permits*")
-            if widened:
-                lines.append("*Note: query widened beyond specified filters for sufficient sample size*")
+    if result:
+        lines.append(f"\n## Filing to Issuance\n")
+        lines.append(f"| Percentile | Days |")
+        lines.append(f"|-----------|------|")
+        lines.append(f"| 25th (optimistic) | {result['p25_days']} |")
+        lines.append(f"| 50th (typical) | {result['p50_days']} |")
+        lines.append(f"| 75th (conservative) | {result['p75_days']} |")
+        lines.append(f"| 90th (worst case) | {result['p90_days']} |")
+        lines.append(f"\n*Sample size: {result['sample_size']:,} permits*")
+        if widened:
+            lines.append("*Note: query widened beyond specified filters for sufficient sample size*")
+    else:
+        # Knowledge-based fallback ranges
+        lines.append("\n## Estimated Timeline Ranges\n")
+        if not db_available:
+            lines.append("*Historical permit database not available — using knowledge-based estimates*\n")
+        if review_path == "otc":
+            lines.append("| Phase | Estimate |")
+            lines.append("|-------|----------|")
+            lines.append("| Plan review (OTC) | Same day to 1 week |")
+            lines.append("| Permit issuance | Immediate upon approval |")
         else:
-            lines.append("\n**Insufficient data** for timeline estimate with given filters.")
+            lines.append("| Phase | Estimate |")
+            lines.append("|-------|----------|")
+            lines.append("| Initial plan review | 3-8 weeks |")
+            lines.append("| Corrections (if any) | 2-4 weeks per round |")
+            lines.append("| Total to issuance | 2-6 months typical |")
+            lines.append("| Complex projects | 6-12+ months |")
 
-        if completion:
-            lines.append(f"\n## Issuance to Completion\n")
-            lines.append(f"- Typical (p50): {completion['p50_days']} days")
-            lines.append(f"- Conservative (p75): {completion['p75_days']} days")
+    if completion:
+        lines.append(f"\n## Issuance to Completion\n")
+        lines.append(f"- Typical (p50): {completion['p50_days']} days")
+        lines.append(f"- Conservative (p75): {completion['p75_days']} days")
 
-        if trend:
-            lines.append(f"\n## Recent Trend\n")
-            lines.append(f"- Recent 6 months: {trend['recent_avg_days']} days avg ({trend['recent_sample']:,} permits)")
-            lines.append(f"- Prior 12 months: {trend['prior_avg_days']} days avg ({trend['prior_sample']:,} permits)")
-            lines.append(f"- Trend: **{trend['direction']}** ({trend['change_pct']:+.1f}%)")
+    if trend:
+        lines.append(f"\n## Recent Trend\n")
+        lines.append(f"- Recent 6 months: {trend['recent_avg_days']} days avg ({trend['recent_sample']:,} permits)")
+        lines.append(f"- Prior 12 months: {trend['prior_avg_days']} days avg ({trend['prior_sample']:,} permits)")
+        lines.append(f"- Trend: **{trend['direction']}** ({trend['change_pct']:+.1f}%)")
 
-        if delay_factors:
-            lines.append(f"\n## Additional Delay Factors\n")
-            for d in delay_factors:
-                lines.append(f"- **{d['trigger']}**: {d['impact']}")
+    if delay_factors:
+        lines.append(f"\n## Additional Delay Factors\n")
+        for d in delay_factors:
+            lines.append(f"- **{d['trigger']}**: {d['impact']}")
 
-        confidence = "high" if result and result["sample_size"] >= 100 and not widened else \
-                     "medium" if result and result["sample_size"] >= 10 else "low"
-        lines.append(f"\n**Confidence:** {confidence}")
+    confidence = "high" if result and result["sample_size"] >= 100 and not widened else \
+                 "medium" if result and result["sample_size"] >= 10 else "low"
+    lines.append(f"\n**Confidence:** {confidence}")
 
-        # Source citations
-        sources = ["duckdb_permits"]
-        if delay_factors:
-            sources.append("routing_matrix")
-        lines.append(format_sources(sources))
+    # Source citations
+    sources = []
+    if db_available:
+        sources.append("duckdb_permits")
+    if delay_factors:
+        sources.append("routing_matrix")
+    if not db_available:
+        sources.append("inhouse_review")
+    lines.append(format_sources(sources))
 
-        return "\n".join(lines)
-    finally:
-        conn.close()
+    return "\n".join(lines)
