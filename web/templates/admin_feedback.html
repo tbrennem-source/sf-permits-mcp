@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Feedback Queue — sfpermits.ai</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+        header .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+        .back-link:hover { color: var(--text); }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 24px; }
+        .filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+        .filter-btn {
+            padding: 6px 14px; border-radius: 6px; font-size: 0.8rem;
+            text-decoration: none; border: 1px solid var(--border);
+            color: var(--text-muted); background: transparent;
+        }
+        .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .filter-btn:hover { border-color: var(--text-muted); }
+        .feedback-item {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; margin-bottom: 16px;
+        }
+        .feedback-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .feedback-type {
+            font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; font-weight: 600;
+        }
+        .type-bug { background: rgba(248,113,113,0.15); color: var(--error); }
+        .type-suggestion { background: rgba(79,143,247,0.12); color: var(--accent); }
+        .type-question { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .feedback-meta { font-size: 0.8rem; color: var(--text-muted); }
+        .feedback-message { margin: 12px 0; font-size: 0.95rem; line-height: 1.6; }
+        .feedback-actions { display: flex; gap: 8px; align-items: center; }
+        .action-btn {
+            padding: 4px 12px; border-radius: 6px; font-size: 0.75rem;
+            border: 1px solid var(--border); background: none;
+            color: var(--text-muted); cursor: pointer;
+        }
+        .action-btn:hover { border-color: var(--text-muted); color: var(--text); }
+        .action-btn.resolve { border-color: var(--success); color: var(--success); }
+        .empty { color: var(--text-muted); font-style: italic; padding: 40px 0; text-align: center; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <a href="/account" class="back-link">&larr; Back to account</a>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <h1>Feedback Queue</h1>
+            <p class="subtitle">
+                {{ counts.get('total', 0) }} total &mdash;
+                {{ counts.get('new', 0) }} new,
+                {{ counts.get('reviewed', 0) }} reviewed,
+                {{ counts.get('resolved', 0) }} resolved
+            </p>
+
+            <div class="filters">
+                <a href="/admin/feedback" class="filter-btn {{ 'active' if not current_status else '' }}">All</a>
+                <a href="/admin/feedback?status=new" class="filter-btn {{ 'active' if current_status == 'new' else '' }}">New</a>
+                <a href="/admin/feedback?status=reviewed" class="filter-btn {{ 'active' if current_status == 'reviewed' else '' }}">Reviewed</a>
+                <a href="/admin/feedback?status=resolved" class="filter-btn {{ 'active' if current_status == 'resolved' else '' }}">Resolved</a>
+                <a href="/admin/feedback?status=wontfix" class="filter-btn {{ 'active' if current_status == 'wontfix' else '' }}">Won't Fix</a>
+            </div>
+
+            {% if items %}
+            {% for item in items %}
+            <div class="feedback-item">
+                <div class="feedback-header">
+                    <div>
+                        <span class="feedback-type type-{{ item.feedback_type }}">
+                            {{ '🐛' if item.feedback_type == 'bug' else ('💡' if item.feedback_type == 'suggestion' else '❓') }}
+                            {{ item.feedback_type }}
+                        </span>
+                        <span class="feedback-meta" style="margin-left:8px;">
+                            {{ item.email or 'Anonymous' }} &bull; {{ item.created_at.strftime('%b %d, %H:%M') if item.created_at else '' }}
+                        </span>
+                    </div>
+                    <span id="status-{{ item.feedback_id }}" class="feedback-meta">{{ item.status }}</span>
+                </div>
+                <div class="feedback-message">{{ item.message }}</div>
+                {% if item.page_url %}
+                <div class="feedback-meta" style="margin-bottom:8px;">Page: {{ item.page_url }}</div>
+                {% endif %}
+                {% if item.admin_note %}
+                <div style="background:var(--surface-2);padding:8px 12px;border-radius:6px;font-size:0.85rem;color:var(--text-muted);margin-bottom:8px;">
+                    Admin note: {{ item.admin_note }}
+                </div>
+                {% endif %}
+                <div class="feedback-actions">
+                    <button class="action-btn"
+                            hx-post="/admin/feedback/update"
+                            hx-target="#status-{{ item.feedback_id }}"
+                            hx-vals='{"feedback_id": "{{ item.feedback_id }}", "status": "reviewed"}'>
+                        Mark Reviewed
+                    </button>
+                    <button class="action-btn resolve"
+                            hx-post="/admin/feedback/update"
+                            hx-target="#status-{{ item.feedback_id }}"
+                            hx-vals='{"feedback_id": "{{ item.feedback_id }}", "status": "resolved"}'>
+                        Resolve
+                    </button>
+                    <button class="action-btn"
+                            hx-post="/admin/feedback/update"
+                            hx-target="#status-{{ item.feedback_id }}"
+                            hx-vals='{"feedback_id": "{{ item.feedback_id }}", "status": "wontfix"}'>
+                        Won't Fix
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="empty">No feedback items{{ ' with status "' + current_status + '"' if current_status else '' }}.</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

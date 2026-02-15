@@ -197,6 +197,30 @@ def init_user_schema(conn=None) -> None:
                 lot TEXT
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS activity_log (
+                log_id INTEGER PRIMARY KEY,
+                user_id INTEGER,
+                action TEXT NOT NULL,
+                detail TEXT,
+                path TEXT,
+                ip_hash TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                feedback_id INTEGER PRIMARY KEY,
+                user_id INTEGER,
+                feedback_type TEXT NOT NULL DEFAULT 'suggestion',
+                message TEXT NOT NULL,
+                page_url TEXT,
+                status TEXT NOT NULL DEFAULT 'new',
+                admin_note TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                resolved_at TIMESTAMP
+            )
+        """)
         # Indexes (no partial indexes in DuckDB)
         for stmt in [
             "CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)",
@@ -205,6 +229,9 @@ def init_user_schema(conn=None) -> None:
             "CREATE INDEX IF NOT EXISTS idx_auth_token ON auth_tokens (token)",
             "CREATE INDEX IF NOT EXISTS idx_pc_date ON permit_changes (change_date)",
             "CREATE INDEX IF NOT EXISTS idx_pc_permit ON permit_changes (permit_number)",
+            "CREATE INDEX IF NOT EXISTS idx_activity_user ON activity_log (user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_log (action)",
+            "CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback (status)",
         ]:
             try:
                 conn.execute(stmt)

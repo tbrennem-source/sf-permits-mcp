@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Activity Feed — sfpermits.ai</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+        header .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+        .back-link:hover { color: var(--text); }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 24px; }
+        .stats-row { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 120px;
+        }
+        .stat-number { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .activity-list { display: flex; flex-direction: column; gap: 2px; }
+        .activity-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 16px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .activity-time { color: var(--text-muted); font-size: 0.75rem; min-width: 100px; }
+        .activity-action {
+            font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;
+            background: rgba(79,143,247,0.12); color: var(--accent);
+            min-width: 80px; text-align: center;
+        }
+        .activity-user { color: var(--text-muted); min-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .activity-detail { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .empty { color: var(--text-muted); font-style: italic; padding: 40px 0; text-align: center; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <a href="/account" class="back-link">&larr; Back to account</a>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <h1>Activity Feed</h1>
+            <p class="subtitle">Last 24 hours: {{ stats.total }} actions</p>
+
+            {% if stats.by_action %}
+            <div class="stats-row">
+                {% for action, count in stats.by_action.items() %}
+                <div class="stat-card">
+                    <div class="stat-number">{{ count }}</div>
+                    <div class="stat-label">{{ action }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if activity %}
+            <div class="activity-list">
+                {% for a in activity %}
+                <div class="activity-row">
+                    <span class="activity-time">{{ a.created_at.strftime('%b %d %H:%M') if a.created_at else '' }}</span>
+                    <span class="activity-action">{{ a.action }}</span>
+                    <span class="activity-user">{{ a.email or 'anon' }}</span>
+                    <span class="activity-detail">
+                        {% if a.detail %}
+                            {% if a.detail.query is defined %}{{ a.detail.query }}{% endif %}
+                        {% endif %}
+                        {{ a.path or '' }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty">No activity recorded yet.</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

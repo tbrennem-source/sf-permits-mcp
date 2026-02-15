@@ -259,6 +259,43 @@
 
             {% if user.is_admin %}
             <div class="card admin-section">
+                <h2>Admin: Activity</h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+                    {% if activity_stats %}
+                    Last 24h: {{ activity_stats.total }} actions
+                    {% if activity_stats.by_action %}
+                     —
+                    {% for action, count in activity_stats.by_action.items() %}
+                        {{ count }} {{ action }}{{ ", " if not loop.last else "" }}
+                    {% endfor %}
+                    {% endif %}
+                    {% else %}
+                    No activity data yet.
+                    {% endif %}
+                </p>
+                <a href="/admin/activity" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">View full activity feed &rarr;</a>
+            </div>
+
+            <div class="card admin-section">
+                <h2>Admin: Feedback Queue
+                    {% if feedback_counts and feedback_counts.get('new', 0) > 0 %}
+                    <span style="background:var(--error);color:#fff;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle;">{{ feedback_counts.new }} new</span>
+                    {% endif %}
+                </h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+                    {% if feedback_counts and feedback_counts.total > 0 %}
+                    {{ feedback_counts.total }} total:
+                    {{ feedback_counts.get('new', 0) }} new,
+                    {{ feedback_counts.get('reviewed', 0) }} reviewed,
+                    {{ feedback_counts.get('resolved', 0) }} resolved
+                    {% else %}
+                    No feedback yet.
+                    {% endif %}
+                </p>
+                <a href="/admin/feedback" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">Review feedback &rarr;</a>
+            </div>
+
+            <div class="card admin-section">
                 <h2>Admin: Invite Codes</h2>
                 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
                     {{ invite_codes | length }} codes configured. Click to copy.
@@ -317,6 +354,8 @@
             {% endif %}
         </div>
     </main>
+
+    {% include 'fragments/feedback_widget.html' %}
 
     <script>
     function copyCode(btn, code) {

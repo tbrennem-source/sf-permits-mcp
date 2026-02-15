@@ -69,6 +69,37 @@ def _run_startup_migrations():
             ON users (invite_code)
             WHERE invite_code IS NOT NULL
         """)
+        # Activity log + feedback tables
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS activity_log (
+                log_id      SERIAL PRIMARY KEY,
+                user_id     INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+                action      TEXT NOT NULL,
+                detail      JSONB,
+                path        TEXT,
+                ip_hash     TEXT,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_activity_user ON activity_log (user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_log (action)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log (created_at)")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                feedback_id     SERIAL PRIMARY KEY,
+                user_id         INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+                feedback_type   TEXT NOT NULL DEFAULT 'suggestion',
+                message         TEXT NOT NULL,
+                page_url        TEXT,
+                status          TEXT NOT NULL DEFAULT 'new',
+                admin_note      TEXT,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                resolved_at     TIMESTAMPTZ
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback (status)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback (user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback (created_at)")
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -175,6 +206,59 @@ def _load_user():
         from web.auth import get_user_by_id
         g.user = get_user_by_id(user_id)
         g.is_impersonating = bool(session.get("impersonating"))
+
+
+# Paths worth logging (skip static, favicon, healthcheck, etc.)
+_LOG_PATHS = {"/ask", "/analyze", "/validate", "/lookup", "/brief",
+              "/account", "/auth/send-link", "/auth/verify",
+              "/watch/add", "/watch/remove", "/feedback/submit",
+              "/admin/send-invite"}
+
+
+@app.after_request
+def _log_activity(response):
+    """Log meaningful user actions to activity_log. Fire-and-forget."""
+    path = request.path
+    # Only log interesting paths, not static/assets/health
+    if path not in _LOG_PATHS and not path.startswith("/auth/verify/"):
+        return response
+    # Skip failed requests (4xx client errors, except 403 which is interesting)
+    if response.status_code >= 400 and response.status_code != 403:
+        return response
+    try:
+        from web.activity import log_activity
+        user_id = g.user["user_id"] if g.user else None
+        # Map path to action name
+        action_map = {
+            "/ask": "search",
+            "/analyze": "analyze",
+            "/validate": "validate",
+            "/lookup": "lookup",
+            "/brief": "brief_view",
+            "/account": "account_view",
+            "/auth/send-link": "login_request",
+            "/watch/add": "watch_add",
+            "/watch/remove": "watch_remove",
+            "/feedback/submit": "feedback_submit",
+            "/admin/send-invite": "admin_invite",
+        }
+        action = action_map.get(path, "page_view")
+        if path.startswith("/auth/verify/"):
+            action = "login_verify"
+        # Extract detail based on action
+        detail = None
+        if action == "search":
+            q = request.form.get("q") or request.args.get("q", "")
+            if q:
+                detail = {"query": q[:200]}
+        elif action in ("analyze", "validate", "lookup"):
+            # Capture the endpoint was used, not the full form data
+            detail = {"method": request.method}
+        log_activity(user_id, action, detail=detail, path=path,
+                     ip=request.remote_addr)
+    except Exception:
+        pass  # Never break the response
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -627,7 +711,9 @@ def _watch_context(watch_data: dict) -> dict:
     ctx = {"watch_data": watch_data}
     if g.user:
         from web.auth import check_watch
-        existing = check_watch(g.user["user_id"], watch_data["watch_type"], **watch_data)
+        # Exclude watch_type and label from kwargs — they're positional or not DB fields
+        kw = {k: v for k, v in watch_data.items() if k not in ("watch_type", "label")}
+        existing = check_watch(g.user["user_id"], watch_data["watch_type"], **kw)
         if existing:
             ctx["existing_watch_id"] = existing["watch_id"]
     return ctx
@@ -1037,8 +1123,17 @@ def account():
     watches = get_watches(g.user["user_id"])
     # Sort codes so the dropdown is consistent
     invite_codes = sorted(INVITE_CODES) if g.user.get("is_admin") else []
+    # Admin stats for dashboard cards
+    activity_stats = None
+    feedback_counts = None
+    if g.user.get("is_admin"):
+        from web.activity import get_activity_stats, get_feedback_counts
+        activity_stats = get_activity_stats(hours=24)
+        feedback_counts = get_feedback_counts()
     return render_template("account.html", user=g.user, watches=watches,
-                           invite_codes=invite_codes)
+                           invite_codes=invite_codes,
+                           activity_stats=activity_stats,
+                           feedback_counts=feedback_counts)
 
 
 # ---------------------------------------------------------------------------
@@ -1156,6 +1251,84 @@ def admin_send_invite():
     except Exception as e:
         logging.getLogger(__name__).exception("Failed to send invite to %s", to_email)
         return f'<span style="color:var(--error);">Failed to send: {e}</span>'
+
+
+# ---------------------------------------------------------------------------
+# Feedback submission + admin queue
+# ---------------------------------------------------------------------------
+
+@app.route("/feedback/submit", methods=["POST"])
+def feedback_submit():
+    """Submit feedback (bug/suggestion/question). Works for logged-in and anon users."""
+    from web.activity import submit_feedback
+
+    feedback_type = request.form.get("feedback_type", "suggestion")
+    message = request.form.get("message", "").strip()
+    page_url = request.form.get("page_url", "")
+
+    if not message or len(message) < 3:
+        return '<span style="color:var(--error);">Please enter a message.</span>'
+
+    user_id = g.user["user_id"] if g.user else None
+    submit_feedback(user_id, feedback_type, message, page_url or None)
+
+    return (
+        '<span style="color:var(--success);">Thanks for the feedback! '
+        'We\'ll review it soon.</span>'
+    )
+
+
+@app.route("/admin/feedback")
+@login_required
+def admin_feedback():
+    """Admin feedback queue page."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    from web.activity import get_feedback_queue, get_feedback_counts
+    status_filter = request.args.get("status")
+    items = get_feedback_queue(status=status_filter)
+    counts = get_feedback_counts()
+    return render_template("admin_feedback.html", user=g.user,
+                           items=items, counts=counts,
+                           current_status=status_filter)
+
+
+@app.route("/admin/feedback/update", methods=["POST"])
+@login_required
+def admin_feedback_update():
+    """Update feedback status (HTMX)."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    from web.activity import update_feedback_status
+
+    feedback_id = request.form.get("feedback_id")
+    status = request.form.get("status", "reviewed")
+    admin_note = request.form.get("admin_note", "").strip() or None
+
+    if feedback_id:
+        update_feedback_status(int(feedback_id), status, admin_note)
+
+    status_label = {"new": "New", "reviewed": "Reviewed",
+                    "resolved": "Resolved", "wontfix": "Won't fix"}.get(status, status)
+    color = {"resolved": "var(--success)", "wontfix": "var(--text-muted)",
+             "reviewed": "var(--warning)"}.get(status, "var(--accent)")
+    return f'<span style="color:{color};">{status_label}</span>'
+
+
+@app.route("/admin/activity")
+@login_required
+def admin_activity():
+    """Admin activity feed page."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    from web.activity import get_recent_activity, get_activity_stats
+    activity = get_recent_activity(limit=100)
+    stats = get_activity_stats(hours=24)
+    return render_template("admin_activity.html", user=g.user,
+                           activity=activity, stats=stats)
 
 
 # ---------------------------------------------------------------------------

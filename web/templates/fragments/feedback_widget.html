@@ -1,0 +1,61 @@
+<!-- Feedback FAB + modal -->
+<div id="feedback-fab" onclick="document.getElementById('feedback-modal').style.display='flex'"
+     style="position:fixed;bottom:24px;right:24px;background:var(--accent, #4f8ff7);color:#fff;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.3);font-size:1.2rem;z-index:1000;"
+     title="Send feedback">
+    💬
+</div>
+
+<div id="feedback-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1001;align-items:center;justify-content:center;">
+    <div style="background:var(--surface, #1a1d27);border:1px solid var(--border, #333749);border-radius:12px;padding:24px;max-width:440px;width:90%;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-size:1.1rem;margin:0;color:var(--text, #e4e6eb);">Send Feedback</h3>
+            <button onclick="document.getElementById('feedback-modal').style.display='none'"
+                    style="background:none;border:none;color:var(--text-muted, #8b8fa3);font-size:1.2rem;cursor:pointer;">&times;</button>
+        </div>
+        <form hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
+            <input type="hidden" name="page_url" class="feedback-page-url">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <label class="fb-type-label" style="flex:1;text-align:center;padding:8px;border:1px solid var(--border, #333749);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text, #e4e6eb);">
+                    <input type="radio" name="feedback_type" value="bug" style="display:none;">
+                    🐛 Bug
+                </label>
+                <label class="fb-type-label" style="flex:1;text-align:center;padding:8px;border:1px solid var(--accent, #4f8ff7);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text, #e4e6eb);background:rgba(79,143,247,0.1);">
+                    <input type="radio" name="feedback_type" value="suggestion" checked style="display:none;">
+                    💡 Suggestion
+                </label>
+                <label class="fb-type-label" style="flex:1;text-align:center;padding:8px;border:1px solid var(--border, #333749);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text, #e4e6eb);">
+                    <input type="radio" name="feedback_type" value="question" style="display:none;">
+                    ❓ Question
+                </label>
+            </div>
+            <textarea name="message" rows="4" placeholder="What's on your mind?"
+                      style="width:100%;padding:10px;background:var(--surface-2, #252834);border:1px solid var(--border, #333749);border-radius:6px;color:var(--text, #e4e6eb);font-size:0.9rem;resize:vertical;font-family:inherit;"
+                      required minlength="3"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+                <span id="feedback-result" style="font-size:0.85rem;"></span>
+                <button type="submit" style="padding:8px 20px;background:var(--accent, #4f8ff7);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.9rem;">Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Set page URL
+    var urlInputs = document.querySelectorAll('.feedback-page-url');
+    urlInputs.forEach(function(el) { el.value = window.location.href; });
+    // Radio visual toggle
+    document.querySelectorAll('.fb-type-label input[type=radio]').forEach(function(r) {
+        r.addEventListener('change', function() {
+            document.querySelectorAll('.fb-type-label').forEach(function(l) {
+                l.style.borderColor = 'var(--border, #333749)';
+                l.style.background = 'transparent';
+            });
+            if (r.checked) {
+                r.parentElement.style.borderColor = 'var(--accent, #4f8ff7)';
+                r.parentElement.style.background = 'rgba(79,143,247,0.1)';
+            }
+        });
+    });
+})();
+</script>

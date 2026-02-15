@@ -338,6 +338,31 @@ def test_watch_neighborhood(client):
 
 
 # ---------------------------------------------------------------------------
+# Watch context: regression test for _watch_context unpacking bug
+# ---------------------------------------------------------------------------
+
+def test_watch_context_no_double_watch_type(client):
+    """_watch_context must not pass watch_type twice to check_watch (regression)."""
+    user = _login_user(client)
+    # The /ask endpoint triggers _watch_context internally.
+    # A direct test: import and call it to verify no TypeError.
+    from web.app import _watch_context
+    from flask import g as flask_g
+    with client.application.test_request_context():
+        flask_g.user = user
+        # This would raise TypeError: check_watch() got multiple values
+        # for argument 'watch_type' before the fix.
+        ctx = _watch_context({
+            "watch_type": "address",
+            "street_number": "723",
+            "street_name": "16th",
+            "label": "723 16th",
+        })
+        assert "watch_data" in ctx
+        assert ctx["watch_data"]["watch_type"] == "address"
+
+
+# ---------------------------------------------------------------------------
 # Account page
 # ---------------------------------------------------------------------------
 
