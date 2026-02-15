@@ -114,9 +114,11 @@ def _query_revision_stats(conn, permit_type: str | None, neighborhood: str | Non
         params.append(neighborhood)
     if review_path:
         if review_path == "otc":
-            conditions.append("permit_type_definition ILIKE '%otc%'")
+            conditions.append(f"permit_type_definition ILIKE {ph}")
+            params.append("%otc%")
         else:
-            conditions.append("permit_type_definition NOT ILIKE '%otc%'")
+            conditions.append(f"permit_type_definition NOT ILIKE {ph}")
+            params.append("%otc%")
 
     where = " AND ".join(conditions)
 
