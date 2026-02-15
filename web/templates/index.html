@@ -589,6 +589,76 @@
             opacity: 0.6;
             margin-top: 4px;
         }
+
+        /* Hero search box */
+        .hero-search {
+            text-align: center;
+            padding: 48px 0 32px;
+        }
+
+        .hero-search h1 {
+            font-size: 2rem;
+            margin-bottom: 24px;
+        }
+
+        .search-form {
+            max-width: 700px;
+            margin: 0 auto 20px;
+        }
+
+        .search-box-wrapper {
+            display: flex;
+            gap: 0;
+        }
+
+        .search-box-wrapper input[type="text"] {
+            flex: 1;
+            border-radius: 8px 0 0 8px;
+            padding: 16px 20px;
+            font-size: 1.05rem;
+            border-right: none;
+        }
+
+        .search-box-wrapper input[type="text"]:focus {
+            border-color: var(--accent);
+            z-index: 1;
+        }
+
+        .search-btn {
+            border-radius: 0 8px 8px 0 !important;
+            padding: 16px 28px;
+            width: auto !important;
+            min-width: 70px;
+        }
+
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .search-echo {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-result-card {
+            margin-bottom: 24px;
+        }
+
+        /* Collapsible tool sections */
+        .tool-section {
+            display: none;
+        }
+
+        .tool-section.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -601,7 +671,44 @@
 
     <main>
         <div class="container">
-            <h1>SF Permit Analysis</h1>
+            <!-- Hero search box -->
+            <div class="hero-search">
+                <h1>What do you need to know about SF permits?</h1>
+                <form class="search-form"
+                      hx-post="/ask"
+                      hx-target="#search-results"
+                      hx-indicator="#search-loading">
+                    <div class="search-box-wrapper">
+                        <input type="text" name="q" id="search-q"
+                            placeholder="Permit number, address, project idea, or any question..."
+                            autocomplete="off" autofocus>
+                        <button type="submit" class="btn search-btn">
+                            <span class="label">Go</span>
+                            <span class="spinner">...</span>
+                        </button>
+                    </div>
+                </form>
+                <div class="quick-actions">
+                    <button class="preset-chip" onclick="revealSection('analyze')">Analyze a project</button>
+                    <button class="preset-chip" onclick="revealSection('validate')">Validate plans</button>
+                    <button class="preset-chip" onclick="revealSection('lookup')">Look up a permit</button>
+                </div>
+            </div>
+
+            <div id="search-loading" class="htmx-indicator">
+                <div class="loading-bar">
+                    <div class="dots">...</div>
+                    <p>Searching permits...</p>
+                </div>
+            </div>
+
+            <div id="search-results"></div>
+
+            <!-- === Analyze Project Section (hidden by default) === -->
+            <div class="tool-section" id="section-analyze">
+
+            <div class="section-divider"></div>
+            <h2 class="section-title">Analyze a Project</h2>
             <p class="subtitle">Describe your project and get instant permit predictions, fee estimates, timelines, document checklists, and revision risk assessments.</p>
 
             <div class="form-card">
@@ -743,7 +850,11 @@
 
             <div id="results"></div>
 
-            <!-- Plan Set Validator -->
+            </div><!-- /section-analyze -->
+
+            <!-- === Plan Set Validator Section (hidden by default) === -->
+            <div class="tool-section" id="section-validate">
+
             <div class="section-divider"></div>
 
             <h2 class="section-title">Plan Set Validator</h2>
@@ -794,7 +905,11 @@
 
             <div id="validate-results"></div>
 
-            <!-- Permit Lookup -->
+            </div><!-- /section-validate -->
+
+            <!-- === Permit Lookup Section (hidden by default) === -->
+            <div class="tool-section" id="section-lookup">
+
             <div class="section-divider"></div>
 
             <h2 class="section-title">Permit Lookup</h2>
@@ -864,6 +979,8 @@
             </div>
 
             <div id="lookup-results"></div>
+
+            </div><!-- /section-lookup -->
         </div>
     </main>
 
@@ -976,9 +1093,9 @@
             document.getElementById("priorities-input").value = values.join(",");
         }
 
-        // Experience level toggle
+        // Experience level toggle (scoped to parent)
         function selectExperience(el) {
-            document.querySelectorAll(".experience-option").forEach(btn => btn.classList.remove("selected"));
+            el.parentElement.querySelectorAll(".experience-option").forEach(btn => btn.classList.remove("selected"));
             el.classList.add("selected");
             document.getElementById("experience-input").value = el.dataset.value;
         }
@@ -1003,6 +1120,37 @@
             addressFields2.style.display = mode === "address" ? "" : "none";
             parcelFields.style.display = mode === "parcel" ? "" : "none";
             parcelFields2.style.display = mode === "parcel" ? "" : "none";
+        }
+
+        // --- Conversational search helpers ---
+
+        // Reveal a tool section and scroll to it
+        function revealSection(name) {
+            const section = document.getElementById("section-" + name);
+            if (!section) return;
+            section.classList.add("visible");
+            // Smooth scroll to section after brief delay for CSS transition
+            setTimeout(() => {
+                section.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 50);
+        }
+
+        // Pre-fill the analyze form from search results
+        function prefillAnalyze(data) {
+            if (data.description) document.getElementById("description").value = data.description;
+            if (data.estimated_cost) document.getElementById("cost").value = Math.round(data.estimated_cost);
+            if (data.square_footage) document.getElementById("sqft").value = Math.round(data.square_footage);
+            if (data.neighborhood) {
+                const sel = document.getElementById("neighborhood");
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === data.neighborhood) {
+                        sel.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            // Reveal and scroll to the analyze section
+            revealSection("analyze");
         }
 
         // Drag-and-drop visual feedback

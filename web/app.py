@@ -34,6 +34,9 @@ from src.tools.validate_plans import validate_plans
 from src.tools.context_parser import extract_triggers, enhance_description, reorder_sections
 from src.tools.team_lookup import generate_team_profile
 from src.tools.permit_lookup import permit_lookup
+from src.tools.search_entity import search_entity
+from src.tools.knowledge_base import get_knowledge_base
+from src.tools.intent_router import classify as classify_intent
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
@@ -52,6 +55,7 @@ RATE_LIMIT_WINDOW = 60        # seconds
 RATE_LIMIT_MAX_ANALYZE = 10   # /analyze requests per window
 RATE_LIMIT_MAX_VALIDATE = 5   # /validate requests per window (heavier)
 RATE_LIMIT_MAX_LOOKUP = 15    # /lookup requests per window (lightweight)
+RATE_LIMIT_MAX_ASK = 20       # /ask requests per window (conversational search)
 
 
 def _is_rate_limited(ip: str, max_requests: int) -> bool:
@@ -67,33 +71,12 @@ def _is_rate_limited(ip: str, max_requests: int) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# robots.txt — allow search engines, block AI scrapers, block common probes
+# robots.txt — block ALL crawlers during beta; re-open selectively post-launch
 # ---------------------------------------------------------------------------
 ROBOTS_TXT = """\
+# Beta period — hidden from all crawlers
 User-agent: *
-Allow: /
-
-# Block AI training scrapers — no value to us, just cost
-User-agent: GPTBot
 Disallow: /
-
-User-agent: CCBot
-Disallow: /
-
-User-agent: Google-Extended
-Disallow: /
-
-User-agent: anthropic-ai
-Disallow: /
-
-User-agent: FacebookBot
-Disallow: /
-
-User-agent: Bytespider
-Disallow: /
-
-# Block common vulnerability probe paths
-# (these don't exist but bots try them — 404 is fine)
 """
 
 
@@ -131,6 +114,8 @@ def _security_filters():
         if path == "/validate" and _is_rate_limited(ip, RATE_LIMIT_MAX_VALIDATE):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
         if path == "/lookup" and _is_rate_limited(ip, RATE_LIMIT_MAX_LOOKUP):
+            return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
+        if path == "/ask" and _is_rate_limited(ip, RATE_LIMIT_MAX_ASK):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
 
 
@@ -511,6 +496,152 @@ def lookup():
         result_html = f'<div class="error">Lookup error: {e}</div>'
 
     return render_template("lookup_results.html", result=result_html)
+
+
+# ---------------------------------------------------------------------------
+# Conversational search box — /ask endpoint
+# ---------------------------------------------------------------------------
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    """Classify a free-text query and route to the appropriate handler."""
+    query = request.form.get("q", "").strip()
+    if not query:
+        return '<div class="error">Please type a question or search term.</div>', 400
+
+    # Classify intent
+    result = classify_intent(query, [n for n in NEIGHBORHOODS if n])
+    intent = result.intent
+    entities = result.entities
+
+    try:
+        if intent == "lookup_permit":
+            return _ask_permit_lookup(query, entities)
+        elif intent == "search_address":
+            return _ask_address_search(query, entities)
+        elif intent == "search_parcel":
+            return _ask_parcel_search(query, entities)
+        elif intent == "search_person":
+            return _ask_person_search(query, entities)
+        elif intent == "analyze_project":
+            return _ask_analyze_prefill(query, entities)
+        elif intent == "validate_plans":
+            return _ask_validate_reveal(query)
+        else:
+            return _ask_general_question(query, entities)
+    except Exception as e:
+        logging.error("Error in /ask handler for intent=%s: %s", intent, e)
+        return render_template(
+            "search_results.html",
+            query_echo=query,
+            result_html=f'<div class="error">Something went wrong: {e}</div>',
+        )
+
+
+def _ask_permit_lookup(query: str, entities: dict) -> str:
+    """Handle permit number lookup."""
+    permit_num = entities.get("permit_number")
+    result_md = run_async(permit_lookup(permit_number=permit_num))
+    return render_template(
+        "search_results.html",
+        query_echo=f"Permit #{permit_num}",
+        result_html=md_to_html(result_md),
+    )
+
+
+def _ask_address_search(query: str, entities: dict) -> str:
+    """Handle address-based permit search."""
+    street_number = entities.get("street_number")
+    street_name = entities.get("street_name")
+    result_md = run_async(permit_lookup(
+        street_number=street_number,
+        street_name=street_name,
+    ))
+    return render_template(
+        "search_results.html",
+        query_echo=f"{street_number} {street_name}",
+        result_html=md_to_html(result_md),
+    )
+
+
+def _ask_parcel_search(query: str, entities: dict) -> str:
+    """Handle block/lot parcel search."""
+    block = entities.get("block")
+    lot = entities.get("lot")
+    result_md = run_async(permit_lookup(block=block, lot=lot))
+    return render_template(
+        "search_results.html",
+        query_echo=f"Block {block}, Lot {lot}",
+        result_html=md_to_html(result_md),
+    )
+
+
+def _ask_person_search(query: str, entities: dict) -> str:
+    """Handle person/company name search."""
+    name = entities.get("person_name", "")
+    role = entities.get("role")
+    result_md = run_async(search_entity(name=name, entity_type=role))
+    return render_template(
+        "search_results.html",
+        query_echo=f"Search: {name}" + (f" ({role})" if role else ""),
+        result_html=md_to_html(result_md),
+    )
+
+
+def _ask_analyze_prefill(query: str, entities: dict) -> str:
+    """Pre-fill the analyze form and reveal it."""
+    import json
+    prefill_data = {
+        "description": entities.get("description", query),
+        "estimated_cost": entities.get("estimated_cost"),
+        "square_footage": entities.get("square_footage"),
+        "neighborhood": entities.get("neighborhood"),
+    }
+    # Remove None values for cleaner JSON
+    prefill_data = {k: v for k, v in prefill_data.items() if v is not None}
+    return render_template(
+        "search_prefill.html",
+        prefill_json=json.dumps(prefill_data),
+    )
+
+
+def _ask_validate_reveal(query: str) -> str:
+    """Reveal the validation section."""
+    return render_template("search_reveal.html", section="validate")
+
+
+def _ask_general_question(query: str, entities: dict) -> str:
+    """Answer a general question using the knowledge base."""
+    kb = get_knowledge_base()
+    scored = kb.match_concepts_scored(entities.get("query", query))
+
+    if not scored:
+        return render_template(
+            "search_results.html",
+            query_echo=query,
+            result_html=(
+                '<div class="info">I don\'t have a specific answer for that yet. '
+                'Try searching by permit number, address, or describing your project.</div>'
+            ),
+        )
+
+    # Build an answer from the top matched concepts
+    parts = []
+    concepts = kb.semantic_index.get("concepts", {})
+    for concept_name, score in scored[:3]:
+        concept = concepts.get(concept_name, {})
+        desc = concept.get("description", "")
+        if desc:
+            parts.append(f"**{concept_name.replace('_', ' ').title()}**: {desc}")
+
+    result_html = md_to_html("\n\n".join(parts)) if parts else (
+        '<div class="info">No matching knowledge found for that query.</div>'
+    )
+    return render_template(
+        "search_results.html",
+        query_echo=query,
+        result_html=result_html,
+    )
 
 
 if __name__ == "__main__":

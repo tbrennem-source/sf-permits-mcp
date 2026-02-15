@@ -188,11 +188,11 @@ def test_validate_with_addendum(client):
 # --- Security & bot protection tests ---
 
 def test_robots_txt(client):
-    """robots.txt blocks AI scrapers."""
+    """robots.txt blocks all crawlers during beta."""
     rv = client.get("/robots.txt")
     assert rv.status_code == 200
     body = rv.data.decode()
-    assert "GPTBot" in body
+    assert "User-agent: *" in body
     assert "Disallow: /" in body
     assert rv.content_type.startswith("text/plain")
 
