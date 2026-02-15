@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r web/requirements.txt
 
 # Copy source code
 COPY src/ /app/src/
+COPY scripts/ /app/scripts/
 COPY data/knowledge/ /app/data/knowledge/
 COPY web/ /app/web/
 
