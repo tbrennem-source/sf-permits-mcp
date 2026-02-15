@@ -2,6 +2,7 @@
 
 import duckdb
 from src.db import get_connection, DB_PATH
+from src.tools.knowledge_base import format_sources
 
 DELAY_FACTORS = {
     "change_of_use": "+30 days minimum: Section 311 neighborhood notification",
@@ -266,6 +267,12 @@ async def estimate_timeline(
         confidence = "high" if result and result["sample_size"] >= 100 and not widened else \
                      "medium" if result and result["sample_size"] >= 10 else "low"
         lines.append(f"\n**Confidence:** {confidence}")
+
+        # Source citations
+        sources = ["duckdb_permits"]
+        if delay_factors:
+            sources.append("routing_matrix")
+        lines.append(format_sources(sources))
 
         return "\n".join(lines)
     finally:

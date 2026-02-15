@@ -122,7 +122,20 @@
         "classification": "Group A-2",
         "note": "Bars and lounges are always Group A-2 regardless of occupant count"
       },
-      "threshold_note": "Occupant load >50 triggers the Group B to Group A-2 reclassification with significant implications for fire protection, accessibility, and SFFD review"
+      "threshold_note": "Occupant load >50 triggers the Group B to Group A-2 reclassification with significant implications for fire protection, accessibility, and SFFD review",
+      "occupant_load_calculation": {
+        "method": "CBC Table 1004.5 — occupant load factor by use",
+        "restaurant_factors": {
+          "unconcentrated_dining": "15 sqft per occupant (tables and chairs)",
+          "concentrated_dining": "7 sqft per occupant (standing, bars, counter seating)",
+          "kitchen": "200 sqft per occupant"
+        },
+        "note": "Total occupant load = sum of all areas. A 1,500 sqft restaurant with 1,000 sqft dining (unconcentrated) + 500 sqft kitchen = 67 + 3 = 70 occupants → exceeds 50 → Group A-2"
+      }
+    },
+    "abc_licensing": {
+      "note": "Restaurants serving alcohol require a California Department of Alcoholic Beverage Control (ABC) license, which is separate from DBI building and DPH health permits. ABC licensing can take 2-6 months and should be initiated early in the process.",
+      "impact_on_building_permit": "ABC license type may affect occupancy classification and SFFD review (e.g., Type 48 bar license = always A-2)"
     },
 
     "common_code_issues": [

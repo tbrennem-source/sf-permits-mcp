@@ -42,7 +42,8 @@
     "form": "Form 8 (OTC Alterations)",
     "permit_fee": "Per Table 1A-A based on construction valuation (typically $5,000-$15,000 range)",
     "licensed_professional_required": false,
-    "licensing_note": "Per G-01 Status I, prescriptive EBB retrofits do NOT require a licensed architect or engineer — plans may be prepared by the homeowner, contractor, or unlicensed designer. However, engineered designs require a CA-licensed civil or structural engineer."
+    "licensing_note": "Per G-01 Status I, prescriptive EBB retrofits do NOT require a licensed architect or engineer — plans may be prepared by the homeowner, contractor, or unlicensed designer. However, engineered designs require a CA-licensed civil or structural engineer.",
+    "application_description": "Application must explicitly state: 'Seismic retrofit per CEBC Appendix Chapter A3 prescriptive provisions' to qualify for OTC pathway. Generic descriptions like 'foundation work' may route to in-house review."
   },
 
   "plan_requirements": {

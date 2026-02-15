@@ -2,7 +2,7 @@
 
 import math
 import re
-from src.tools.knowledge_base import get_knowledge_base
+from src.tools.knowledge_base import get_knowledge_base, format_sources
 from src.db import get_connection
 
 
@@ -439,5 +439,15 @@ async def estimate_fees(
 
     confidence = "high" if "error" not in building_fee else "low"
     lines.append(f"\n**Confidence:** {confidence}")
+
+    # Build source citations
+    sources = ["fee_tables"]
+    if sffd_fees:
+        sources.append("fire_code")
+    if ada_analysis:
+        sources.append("ada_accessibility")
+    if stat_data:
+        sources.append("duckdb_permits")
+    lines.append(format_sources(sources))
 
     return "\n".join(lines)

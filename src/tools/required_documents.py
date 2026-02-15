@@ -1,6 +1,6 @@
 """Tool: required_documents — Generate document checklist for permit submission."""
 
-from src.tools.knowledge_base import get_knowledge_base
+from src.tools.knowledge_base import get_knowledge_base, format_sources
 
 # Base documents by form type
 BASE_DOCUMENTS = {
@@ -424,5 +424,23 @@ async def required_documents(
 
     confidence = kb.get_step_confidence(5)
     lines.append(f"\n**Confidence:** {confidence}")
+
+    # Build source citations
+    sources = ["completeness_checklist", "epr_requirements", "forms_taxonomy"]
+    if project_type == "restaurant" or "restaurant" in all_triggers:
+        sources.extend(["restaurant_guide", "dph_food"])
+    if "seismic" in all_triggers:
+        sources.append("earthquake_brace_bolt")
+    if is_commercial:
+        sources.append("ada_accessibility")
+    if "demolition" not in all_triggers:
+        sources.append("title24")
+    if kb.plan_signatures:
+        sources.append("plan_signatures")
+    if any(t in all_triggers for t in ["change_of_use", "new_construction", "demolition", "adu", "historic", "restaurant"]):
+        sources.append("planning_code")
+    if review_path == "in_house":
+        sources.append("inhouse_review")
+    lines.append(format_sources(sources))
 
     return "\n".join(lines)

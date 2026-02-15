@@ -75,6 +75,7 @@
       "info_sheet": "DA-13",
       "source": "DBI-IS-DA13 Change of Use Path of Travel (Revised 01/07/2019)",
       "rule": "A change of use or occupancy classification constitutes an ALTERATION for accessibility purposes. The entire area changing use must comply with current CBC 11B accessibility requirements.",
+      "occupancy_vs_use_distinction": "DA-13 distinguishes between occupancy change (e.g., Group B to Group A-2) and use change (e.g., office to restaurant within same group). BOTH trigger path-of-travel obligations, but an occupancy classification change has additional CBC implications beyond accessibility (fire, egress, structural).",
       "common_scenario": "Office-to-restaurant conversion, warehouse-to-retail, commercial-to-residential",
       "legal_basis": {
         "cbc_section": "CBC 11B-202.4",

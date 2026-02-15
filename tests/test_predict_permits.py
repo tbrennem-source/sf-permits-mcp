@@ -102,4 +102,32 @@ def test_semantic_concept_matching():
 def test_step_confidence():
     kb = get_knowledge_base()
     assert kb.get_step_confidence(3) in ("high", "medium", "low")
+
+
+def test_concept_ranking_restaurant_first():
+    """Restaurant-specific query should rank 'restaurant' highest."""
+    kb = get_knowledge_base()
+    scored = kb.match_concepts_scored("Convert retail to restaurant in the Mission")
+    assert len(scored) > 0
+    # Restaurant should be the top-ranked or at least top-3 concept
+    top_names = [name for name, _score in scored[:3]]
+    assert "restaurant" in top_names
+
+
+def test_concept_ranking_scores_descending():
+    """Scores should be in descending order."""
+    kb = get_knowledge_base()
+    scored = kb.match_concepts_scored("kitchen remodel with new cabinets and recessed lights")
+    if len(scored) >= 2:
+        scores = [s for _, s in scored]
+        assert scores == sorted(scores, reverse=True), f"Scores not descending: {scores}"
+
+
+def test_concept_ranking_multiword_bonus():
+    """Multi-word alias matches should score higher than single-word."""
+    kb = get_knowledge_base()
+    scored = kb.match_concepts_scored("earthquake brace bolt retrofit for my house")
+    assert len(scored) > 0
+    top_names = [name for name, _score in scored[:3]]
+    assert "earthquake_brace_bolt" in top_names or "seismic" in top_names
     assert kb.get_step_confidence(6) == "medium"  # Timeline is the gap

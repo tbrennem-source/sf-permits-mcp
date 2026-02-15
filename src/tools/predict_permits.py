@@ -1,7 +1,7 @@
 """Tool: predict_permits — Predict required permits, forms, routing, and review path."""
 
 import json
-from src.tools.knowledge_base import get_knowledge_base
+from src.tools.knowledge_base import get_knowledge_base, format_sources
 
 # Project type keywords mapped from semantic index concepts
 # These map to special_project_types in the decision tree
@@ -465,5 +465,21 @@ async def predict_permits(
         lines.append(f"\n## Gaps / Caveats\n")
         for g in result["gaps"]:
             lines.append(f"- {g}")
+
+    # Build source citations based on which knowledge was used
+    sources = ["decision_tree", "otc_criteria", "forms_taxonomy", "routing_matrix"]
+    if "restaurant" in project_types:
+        sources.extend(["restaurant_guide", "dph_food", "fire_code"])
+    if "seismic" in project_types:
+        sources.append("earthquake_brace_bolt")
+    if any(pt in project_types for pt in ["restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"]):
+        sources.append("ada_accessibility")
+    if kb.plan_signatures:
+        sources.append("plan_signatures")
+    if not {"demolition"}.intersection(project_types):
+        sources.append("title24")
+    if any(pt in project_types for pt in ["change_of_use", "new_construction", "demolition", "adu", "historic", "restaurant"]):
+        sources.append("planning_code")
+    lines.append(format_sources(sources))
 
     return "\n".join(lines)

@@ -1,7 +1,7 @@
 """Tool: revision_risk — Estimate revision probability and impact from permit data patterns."""
 
 from src.db import get_connection
-from src.tools.knowledge_base import get_knowledge_base
+from src.tools.knowledge_base import get_knowledge_base, format_sources
 
 # Common revision triggers by project type
 REVISION_TRIGGERS = {
@@ -306,6 +306,18 @@ async def revision_risk(
         confidence = "high" if stats and stats["total_permits"] >= 100 and not widened else \
                      "medium" if stats else "low"
         lines.append(f"\n**Confidence:** {confidence}")
+
+        # Source citations
+        sources = ["duckdb_permits"]
+        if correction_data:
+            sources.append("title24")
+        if project_type in ("restaurant", "commercial_ti", "change_of_use", "adaptive_reuse"):
+            sources.append("ada_accessibility")
+        if project_type == "restaurant":
+            sources.extend(["dph_food", "restaurant_guide"])
+        if epr and correction_workflow:
+            sources.append("epr_requirements")
+        lines.append(format_sources(sources))
 
         return "\n".join(lines)
     finally:
