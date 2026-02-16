@@ -33,6 +33,7 @@ from src.tools.estimate_timeline import estimate_timeline
 from src.tools.required_documents import required_documents
 from src.tools.revision_risk import revision_risk
 from src.tools.validate_plans import validate_plans
+from src.tools.analyze_plans import analyze_plans
 from src.tools.context_parser import extract_triggers, enhance_description, reorder_sections
 from src.tools.team_lookup import generate_team_profile
 from src.tools.permit_lookup import permit_lookup
@@ -173,6 +174,7 @@ _rate_buckets: dict[str, list[float]] = defaultdict(list)
 RATE_LIMIT_WINDOW = 60        # seconds
 RATE_LIMIT_MAX_ANALYZE = 10   # /analyze requests per window
 RATE_LIMIT_MAX_VALIDATE = 5   # /validate requests per window (heavier)
+RATE_LIMIT_MAX_ANALYZE_PLANS = 3  # /analyze-plans requests per window (vision, costs $)
 RATE_LIMIT_MAX_LOOKUP = 15    # /lookup requests per window (lightweight)
 RATE_LIMIT_MAX_ASK = 20       # /ask requests per window (conversational search)
 RATE_LIMIT_MAX_AUTH = 5       # /auth/send-link requests per window
@@ -238,6 +240,8 @@ def _security_filters():
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
         if path == "/validate" and _is_rate_limited(ip, RATE_LIMIT_MAX_VALIDATE):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
+        if path == "/analyze-plans" and _is_rate_limited(ip, RATE_LIMIT_MAX_ANALYZE_PLANS):
+            return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
         if path == "/lookup" and _is_rate_limited(ip, RATE_LIMIT_MAX_LOOKUP):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
         if path == "/ask" and _is_rate_limited(ip, RATE_LIMIT_MAX_ASK):
@@ -263,7 +267,7 @@ def _load_user():
 
 
 # Paths worth logging (skip static, favicon, healthcheck, etc.)
-_LOG_PATHS = {"/ask", "/analyze", "/validate", "/lookup", "/brief",
+_LOG_PATHS = {"/ask", "/analyze", "/validate", "/analyze-plans", "/lookup", "/brief",
               "/account", "/auth/send-link", "/auth/verify",
               "/watch/add", "/watch/remove", "/feedback/submit",
               "/admin/send-invite", "/account/primary-address",
@@ -288,6 +292,7 @@ def _log_activity(response):
             "/ask": "search",
             "/analyze": "analyze",
             "/validate": "validate",
+            "/analyze-plans": "analyze_plans",
             "/lookup": "lookup",
             "/brief": "brief_view",
             "/account": "account_view",
@@ -703,6 +708,7 @@ def validate():
         return '<div class="error">Only PDF files are supported.</div>', 400
 
     is_addendum = request.form.get("is_addendum") == "on"
+    enable_vision = request.form.get("enable_vision") == "on"
 
     try:
         pdf_bytes = uploaded.read()
@@ -717,6 +723,7 @@ def validate():
             pdf_bytes=pdf_bytes,
             filename=filename,
             is_site_permit_addendum=is_addendum,
+            enable_vision=enable_vision,
         ))
         result_html = md_to_html(result_md)
     except Exception as e:
@@ -724,6 +731,47 @@ def validate():
 
     return render_template(
         "validate_results.html",
+        result=result_html,
+        filename=filename,
+        filesize_mb=round(len(pdf_bytes) / (1024 * 1024), 1),
+    )
+
+
+@app.route("/analyze-plans", methods=["POST"])
+def analyze_plans_route():
+    """Upload a PDF plan set for full AI-powered analysis."""
+    uploaded = request.files.get("planfile")
+    if not uploaded or not uploaded.filename:
+        return '<div class="error">Please select a PDF file to upload.</div>', 400
+
+    filename = uploaded.filename
+    if not filename.lower().endswith(".pdf"):
+        return '<div class="error">Only PDF files are supported.</div>', 400
+
+    project_description = request.form.get("project_description", "").strip() or None
+    permit_type = request.form.get("permit_type", "").strip() or None
+
+    try:
+        pdf_bytes = uploaded.read()
+    except Exception as e:
+        return f'<div class="error">Error reading file: {e}</div>', 400
+
+    if len(pdf_bytes) == 0:
+        return '<div class="error">The uploaded file is empty.</div>', 400
+
+    try:
+        result_md = run_async(analyze_plans(
+            pdf_bytes=pdf_bytes,
+            filename=filename,
+            project_description=project_description,
+            permit_type=permit_type,
+        ))
+        result_html = md_to_html(result_md)
+    except Exception as e:
+        result_html = f'<div class="error">Analysis error: {e}</div>'
+
+    return render_template(
+        "analyze_plans_results.html",
         result=result_html,
         filename=filename,
         filesize_mb=round(len(pdf_bytes) / (1024 * 1024), 1),

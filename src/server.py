@@ -34,6 +34,9 @@ from src.tools.revision_risk import revision_risk
 # Phase 3 tools (document analysis)
 from src.tools.validate_plans import validate_plans
 
+# Phase 4 tools (AI vision analysis)
+from src.tools.analyze_plans import analyze_plans
+
 # Phase 2 tools (expediter recommender)
 from src.tools.recommend_expediters import recommend_expediters
 
@@ -54,6 +57,8 @@ mcp = FastMCP(
         "backed by structured knowledge (fee tables, routing matrix, OTC criteria, "
         "fire/planning code) plus DuckDB historical statistics from 1.1M+ permits. "
         "Phase 3 tool (validate_plans) checks PDF plan sets against DBI EPR requirements. "
+        "Phase 4 tool (analyze_plans) performs full AI-powered analysis of plan sets "
+        "using Claude Vision for title block extraction, sheet completeness, and EPR compliance. "
         "Phase 1.5 tools (search_complaints, search_violations, search_inspections) query "
         "DBI enforcement datasets via SODA API for building complaints, notices of violation, "
         "and inspection records — useful for due diligence and property analysis. "
@@ -88,6 +93,9 @@ mcp.tool()(revision_risk)
 
 # Phase 3 tools (document analysis)
 mcp.tool()(validate_plans)
+
+# Phase 4 tools (AI vision analysis)
+mcp.tool()(analyze_plans)
 
 # Phase 2 tools (expediter recommender)
 mcp.tool()(recommend_expediters)

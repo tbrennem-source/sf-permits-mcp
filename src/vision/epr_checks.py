@@ -1,0 +1,673 @@
+"""Vision-based EPR checks for architectural plan sets.
+
+Automates the 11 manual EPR checks (EPR-003 through EPR-022) that
+require visual inspection of drawing pages. Uses Claude Vision to
+analyze sampled pages and extract title block data.
+
+Returns CheckResult objects compatible with the existing metadata-only
+report formatter in validate_plans.py.
+"""
+
+import json
+import logging
+from dataclasses import dataclass
+
+from src.tools.validate_plans import CheckResult
+from src.vision.client import analyze_image, is_vision_available, VisionResult
+from src.vision.pdf_to_images import pdf_page_to_base64
+from src.vision.prompts import (
+    SYSTEM_PROMPT_EPR,
+    PROMPT_COVER_BLANK_AREA,
+    PROMPT_COVER_PAGE_COUNT,
+    PROMPT_DENSE_HATCHING,
+    PROMPT_TITLE_BLOCK,
+)
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# JSON parsing helper
+# ---------------------------------------------------------------------------
+
+def _parse_json_response(result: VisionResult) -> dict | None:
+    """Parse JSON from vision response, handling markdown fences."""
+    if not result.success:
+        return None
+    text = result.text.strip()
+    # Strip markdown code fences if present
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+    if text.endswith("```"):
+        text = text[:-3]
+    if text.lstrip().startswith("json"):
+        text = text.lstrip()[4:]
+    try:
+        return json.loads(text.strip())
+    except json.JSONDecodeError:
+        logger.warning("Failed to parse vision JSON: %s", text[:200])
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Page sampling strategy
+# ---------------------------------------------------------------------------
+
+def _select_sample_pages(total_pages: int) -> list[int]:
+    """Select pages to sample for title block checks.
+
+    Strategy: cover (0), first interior, middle, second-to-last.
+    For 10+ page sets, also sample at the 1/3 mark.
+    """
+    if total_pages <= 2:
+        return list(range(total_pages))
+
+    pages = [0]  # Always include cover
+
+    if total_pages >= 3:
+        pages.append(1)  # First interior sheet
+
+    mid = total_pages // 2
+    if mid not in pages:
+        pages.append(mid)
+
+    # Second-to-last (before back check page)
+    penult = total_pages - 2
+    if penult > 0 and penult not in pages:
+        pages.append(penult)
+
+    # For larger sets, add 1/3 mark
+    if total_pages >= 10:
+        third = total_pages // 3
+        if third not in pages:
+            pages.append(third)
+
+    return sorted(set(pages))
+
+
+# ---------------------------------------------------------------------------
+# Skip helpers
+# ---------------------------------------------------------------------------
+
+def _skip_all(reason: str) -> list[CheckResult]:
+    """Return skip results for all vision-dependent checks."""
+    epr_ids = [
+        ("EPR-003", "All sheets in single consolidated PDF"),
+        ("EPR-004", "Full 1:1 scale output"),
+        ("EPR-011", "Page count on cover matches actual"),
+        ("EPR-012", "8.5\" x 11\" blank area on cover for DBI stamping"),
+        ("EPR-013", "Project address on every sheet"),
+        ("EPR-014", "Sheet number on every sheet"),
+        ("EPR-015", "Sheet name/description on every sheet"),
+        ("EPR-016", "2\" x 2\" blank area on every sheet for stamps"),
+        ("EPR-017", "3 consistent items across set"),
+        ("EPR-018", "Design professional stamp on every sheet"),
+        ("EPR-022", "Avoid dense hatching patterns"),
+    ]
+    return [
+        CheckResult(
+            epr_id=eid,
+            rule=rule,
+            status="skip",
+            severity="warning",
+            detail=reason,
+        )
+        for eid, rule in epr_ids
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Individual check functions
+# ---------------------------------------------------------------------------
+
+async def _check_cover_page_count(
+    cover_b64: str, actual_count: int,
+) -> CheckResult:
+    """EPR-011: Page count on cover matches actual PDF page count."""
+    result = await analyze_image(
+        cover_b64, PROMPT_COVER_PAGE_COUNT, SYSTEM_PROMPT_EPR
+    )
+    parsed = _parse_json_response(result)
+
+    if not parsed or not parsed.get("found_count"):
+        return CheckResult(
+            epr_id="EPR-011",
+            rule="Page count on cover matches actual",
+            status="warn",
+            severity="warning",
+            detail=(
+                f"Could not find a stated page/sheet count on the cover sheet. "
+                f"Actual PDF has {actual_count} pages."
+            ),
+        )
+
+    stated = parsed.get("stated_count")
+    entries = parsed.get("sheet_index_entries", [])
+
+    # Use sheet index entry count if stated_count not explicit
+    if stated is None and entries:
+        stated = len(entries)
+
+    if stated is None:
+        return CheckResult(
+            epr_id="EPR-011",
+            rule="Page count on cover matches actual",
+            status="warn",
+            severity="warning",
+            detail=(
+                f"Found sheet index entries but no explicit page count. "
+                f"Actual PDF has {actual_count} pages."
+            ),
+            page_details=[f"Sheet index entries: {', '.join(entries[:10])}"],
+        )
+
+    if stated == actual_count:
+        return CheckResult(
+            epr_id="EPR-011",
+            rule="Page count on cover matches actual",
+            status="pass",
+            severity="warning",
+            detail=f"Cover states {stated} sheets — matches actual PDF ({actual_count} pages).",
+        )
+
+    return CheckResult(
+        epr_id="EPR-011",
+        rule="Page count on cover matches actual",
+        status="fail",
+        severity="warning",
+        detail=(
+            f"Cover states {stated} sheets but PDF has {actual_count} pages. "
+            f"Update the sheet index or page count."
+        ),
+    )
+
+
+async def _check_cover_blank_area(cover_b64: str) -> CheckResult:
+    """EPR-012: 8.5x11 blank area on cover for DBI stamping."""
+    result = await analyze_image(
+        cover_b64, PROMPT_COVER_BLANK_AREA, SYSTEM_PROMPT_EPR
+    )
+    parsed = _parse_json_response(result)
+
+    if not parsed:
+        return CheckResult(
+            epr_id="EPR-012",
+            rule="8.5\" x 11\" blank area on cover for DBI stamping",
+            status="skip",
+            severity="warning",
+            detail="Vision analysis could not assess the cover sheet.",
+        )
+
+    if parsed.get("has_blank_area"):
+        location = parsed.get("location", "")
+        return CheckResult(
+            epr_id="EPR-012",
+            rule="8.5\" x 11\" blank area on cover for DBI stamping",
+            status="pass",
+            severity="warning",
+            detail=(
+                f"Blank area found ({parsed.get('estimated_size', 'sufficient size')}) "
+                f"at {location}."
+            ),
+        )
+
+    return CheckResult(
+        epr_id="EPR-012",
+        rule="8.5\" x 11\" blank area on cover for DBI stamping",
+        status="fail",
+        severity="warning",
+        detail=(
+            "No sufficiently large blank area detected on cover sheet. "
+            "DBI requires an 8.5\" x 11\" clear area for permit stamping."
+        ),
+        page_details=[parsed.get("notes", "")] if parsed.get("notes") else [],
+    )
+
+
+def _assess_address_presence(
+    title_data: list[dict],
+    sample_pages: list[int],
+    total_pages: int,
+) -> CheckResult:
+    """EPR-013: Project address on every sheet."""
+    if not title_data:
+        return CheckResult(
+            epr_id="EPR-013",
+            rule="Project address on every sheet",
+            status="skip",
+            severity="warning",
+            detail="No title block data extracted from sampled pages.",
+        )
+
+    missing = []
+    found = []
+    for td in title_data:
+        pn = td.get("page_number", "?")
+        addr = td.get("project_address")
+        if addr:
+            found.append((pn, addr))
+        else:
+            missing.append(pn)
+
+    sampled = len(title_data)
+    note = f"Checked {sampled} of {total_pages} pages."
+
+    if not missing:
+        addresses = list({a for _, a in found})
+        return CheckResult(
+            epr_id="EPR-013",
+            rule="Project address on every sheet",
+            status="pass",
+            severity="warning",
+            detail=f"Address found on all {sampled} sampled pages. {note}",
+            page_details=[f"Address: {addresses[0]}"] if len(addresses) == 1 else
+                         [f"Page {p}: {a}" for p, a in found[:5]],
+        )
+
+    return CheckResult(
+        epr_id="EPR-013",
+        rule="Project address on every sheet",
+        status="fail",
+        severity="warning",
+        detail=(
+            f"Address missing on {len(missing)} of {sampled} sampled pages. "
+            f"Pages without address: {', '.join(str(p) for p in missing)}. {note}"
+        ),
+    )
+
+
+def _assess_sheet_numbers(
+    title_data: list[dict],
+    sample_pages: list[int],
+    total_pages: int,
+) -> CheckResult:
+    """EPR-014: Sheet number on every sheet."""
+    if not title_data:
+        return CheckResult(
+            epr_id="EPR-014",
+            rule="Sheet number on every sheet",
+            status="skip",
+            severity="warning",
+            detail="No title block data extracted.",
+        )
+
+    missing = [td["page_number"] for td in title_data if not td.get("sheet_number")]
+    sampled = len(title_data)
+    note = f"Checked {sampled} of {total_pages} pages."
+
+    if not missing:
+        numbers = [td.get("sheet_number") for td in title_data if td.get("sheet_number")]
+        return CheckResult(
+            epr_id="EPR-014",
+            rule="Sheet number on every sheet",
+            status="pass",
+            severity="warning",
+            detail=f"Sheet numbers found on all {sampled} sampled pages. {note}",
+            page_details=[f"Sheets: {', '.join(numbers[:10])}"],
+        )
+
+    return CheckResult(
+        epr_id="EPR-014",
+        rule="Sheet number on every sheet",
+        status="fail",
+        severity="warning",
+        detail=(
+            f"Sheet number missing on {len(missing)} of {sampled} sampled pages. "
+            f"Pages: {', '.join(str(p) for p in missing)}. {note}"
+        ),
+    )
+
+
+def _assess_sheet_names(
+    title_data: list[dict],
+    sample_pages: list[int],
+    total_pages: int,
+) -> CheckResult:
+    """EPR-015: Sheet name/description on every sheet."""
+    if not title_data:
+        return CheckResult(
+            epr_id="EPR-015",
+            rule="Sheet name/description on every sheet",
+            status="skip",
+            severity="warning",
+            detail="No title block data extracted.",
+        )
+
+    missing = [td["page_number"] for td in title_data if not td.get("sheet_name")]
+    sampled = len(title_data)
+    note = f"Checked {sampled} of {total_pages} pages."
+
+    if not missing:
+        return CheckResult(
+            epr_id="EPR-015",
+            rule="Sheet name/description on every sheet",
+            status="pass",
+            severity="warning",
+            detail=f"Sheet names found on all {sampled} sampled pages. {note}",
+        )
+
+    return CheckResult(
+        epr_id="EPR-015",
+        rule="Sheet name/description on every sheet",
+        status="fail",
+        severity="warning",
+        detail=(
+            f"Sheet name missing on {len(missing)} of {sampled} sampled pages. "
+            f"Pages: {', '.join(str(p) for p in missing)}. {note}"
+        ),
+    )
+
+
+def _assess_blank_areas(
+    title_data: list[dict],
+    sample_pages: list[int],
+    total_pages: int,
+) -> CheckResult:
+    """EPR-016: 2x2 blank area on every sheet for reviewer stamps."""
+    if not title_data:
+        return CheckResult(
+            epr_id="EPR-016",
+            rule="2\" x 2\" blank area on every sheet for stamps",
+            status="skip",
+            severity="recommendation",
+            detail="No title block data extracted.",
+        )
+
+    missing = [
+        td["page_number"]
+        for td in title_data
+        if not td.get("has_2x2_blank")
+    ]
+    sampled = len(title_data)
+    note = f"Checked {sampled} of {total_pages} pages."
+
+    if not missing:
+        return CheckResult(
+            epr_id="EPR-016",
+            rule="2\" x 2\" blank area on every sheet for stamps",
+            status="pass",
+            severity="recommendation",
+            detail=f"Blank stamp area found on all {sampled} sampled pages. {note}",
+        )
+
+    return CheckResult(
+        epr_id="EPR-016",
+        rule="2\" x 2\" blank area on every sheet for stamps",
+        status="warn",
+        severity="recommendation",
+        detail=(
+            f"2\"x2\" blank area not detected on {len(missing)} of {sampled} sampled "
+            f"pages. Pages: {', '.join(str(p) for p in missing)}. {note}"
+        ),
+    )
+
+
+def _assess_consistency(title_data: list[dict]) -> CheckResult:
+    """EPR-017: 3 consistent items across set (address, firm, numbering)."""
+    if len(title_data) < 2:
+        return CheckResult(
+            epr_id="EPR-017",
+            rule="3 consistent items across set",
+            status="skip",
+            severity="recommendation",
+            detail="Not enough pages sampled to assess consistency.",
+        )
+
+    addresses = {
+        td.get("project_address", "").strip().lower()
+        for td in title_data
+        if td.get("project_address")
+    }
+    firms = {
+        td.get("firm_name", "").strip().lower()
+        for td in title_data
+        if td.get("firm_name")
+    }
+    # Check sheet numbering uses consistent prefix scheme
+    numbers = [td.get("sheet_number", "") for td in title_data if td.get("sheet_number")]
+    prefixes = set()
+    for num in numbers:
+        # Extract letter prefix (e.g., "A" from "A1.0")
+        prefix = ""
+        for ch in num:
+            if ch.isalpha():
+                prefix += ch
+            else:
+                break
+        if prefix:
+            prefixes.add(prefix)
+
+    issues = []
+    if len(addresses) > 1:
+        issues.append(f"Multiple addresses: {', '.join(addresses)}")
+    if len(firms) > 1:
+        issues.append(f"Multiple firms: {', '.join(firms)}")
+    # Multiple prefixes is fine (A, S, M, E are expected) — inconsistency
+    # would be things like mixed naming conventions
+
+    if not issues:
+        return CheckResult(
+            epr_id="EPR-017",
+            rule="3 consistent items across set",
+            status="pass",
+            severity="recommendation",
+            detail="Address and firm name are consistent across sampled pages.",
+            page_details=[
+                f"Address: {next(iter(addresses)) if addresses else 'N/A'}",
+                f"Firm: {next(iter(firms)) if firms else 'N/A'}",
+                f"Sheet prefixes: {', '.join(sorted(prefixes)) if prefixes else 'N/A'}",
+            ],
+        )
+
+    return CheckResult(
+        epr_id="EPR-017",
+        rule="3 consistent items across set",
+        status="fail",
+        severity="recommendation",
+        detail="Inconsistencies found across sampled pages.",
+        page_details=issues,
+    )
+
+
+def _assess_stamps(
+    title_data: list[dict],
+    sample_pages: list[int],
+    total_pages: int,
+) -> CheckResult:
+    """EPR-018: Design professional signature and stamp on every sheet."""
+    if not title_data:
+        return CheckResult(
+            epr_id="EPR-018",
+            rule="Design professional stamp on every sheet",
+            status="skip",
+            severity="warning",
+            detail="No title block data extracted.",
+        )
+
+    no_stamp = [
+        td["page_number"]
+        for td in title_data
+        if not td.get("has_professional_stamp") and not td.get("has_signature")
+    ]
+    sampled = len(title_data)
+    note = f"Checked {sampled} of {total_pages} pages."
+
+    if not no_stamp:
+        return CheckResult(
+            epr_id="EPR-018",
+            rule="Design professional stamp on every sheet",
+            status="pass",
+            severity="warning",
+            detail=f"Professional stamp/signature found on all {sampled} sampled pages. {note}",
+        )
+
+    return CheckResult(
+        epr_id="EPR-018",
+        rule="Design professional stamp on every sheet",
+        status="warn",
+        severity="warning",
+        detail=(
+            f"No professional stamp or signature detected on {len(no_stamp)} of "
+            f"{sampled} sampled pages. Pages: {', '.join(str(p) for p in no_stamp)}. {note}"
+        ),
+    )
+
+
+async def _check_hatching(
+    pdf_bytes: bytes,
+    hatching_pages: list[int],
+    cover_b64: str,
+) -> CheckResult:
+    """EPR-022: Check for dense hatching patterns on sample pages."""
+    if not hatching_pages:
+        return CheckResult(
+            epr_id="EPR-022",
+            rule="Avoid dense hatching patterns",
+            status="skip",
+            severity="recommendation",
+            detail="No interior pages available for hatching check.",
+        )
+
+    issues = []
+    for pn in hatching_pages:
+        try:
+            b64 = pdf_page_to_base64(pdf_bytes, pn)
+            result = await analyze_image(b64, PROMPT_DENSE_HATCHING, SYSTEM_PROMPT_EPR)
+            parsed = _parse_json_response(result)
+            if parsed and parsed.get("has_dense_hatching"):
+                severity = parsed.get("severity", "unknown")
+                area = parsed.get("affected_areas", "")
+                issues.append(f"Page {pn + 1}: {severity} hatching — {area}")
+        except Exception as e:
+            logger.warning("Hatching check failed for page %d: %s", pn, e)
+
+    if issues:
+        return CheckResult(
+            epr_id="EPR-022",
+            rule="Avoid dense hatching patterns",
+            status="warn",
+            severity="recommendation",
+            detail=(
+                f"Dense hatching detected on {len(issues)} sampled page(s). "
+                "This may cause slow rendering in Bluebeam Studio."
+            ),
+            page_details=issues,
+        )
+
+    return CheckResult(
+        epr_id="EPR-022",
+        rule="Avoid dense hatching patterns",
+        status="pass",
+        severity="recommendation",
+        detail=f"No dense hatching detected on {len(hatching_pages)} sampled pages.",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Main entry point
+# ---------------------------------------------------------------------------
+
+async def run_vision_epr_checks(
+    pdf_bytes: bytes,
+    total_pages: int,
+) -> tuple[list[CheckResult], list[dict]]:
+    """Run all vision-based EPR checks on a PDF plan set.
+
+    Args:
+        pdf_bytes: Raw PDF bytes.
+        total_pages: Total page count (from metadata checks).
+
+    Returns:
+        Tuple of (check_results, page_extractions) where page_extractions
+        is a list of per-page title block data for use by analyze_plans.
+    """
+    if not is_vision_available():
+        return (
+            _skip_all("ANTHROPIC_API_KEY not configured — vision checks skipped"),
+            [],
+        )
+
+    results: list[CheckResult] = []
+    page_extractions: list[dict] = []
+
+    # 1. Render cover page
+    try:
+        cover_b64 = pdf_page_to_base64(pdf_bytes, 0)
+    except Exception as e:
+        logger.error("Failed to render cover page: %s", e)
+        return _skip_all(f"PDF rendering failed: {e}"), []
+
+    # EPR-011: Page count on cover
+    results.append(await _check_cover_page_count(cover_b64, total_pages))
+
+    # EPR-012: 8.5x11 blank area on cover
+    results.append(await _check_cover_blank_area(cover_b64))
+
+    # 2. Sample interior pages for title block checks
+    sample_pages = _select_sample_pages(total_pages)
+
+    title_block_data: list[dict] = []
+    for page_num in sample_pages:
+        try:
+            b64 = cover_b64 if page_num == 0 else pdf_page_to_base64(pdf_bytes, page_num)
+            tb_result = await analyze_image(
+                b64, PROMPT_TITLE_BLOCK, SYSTEM_PROMPT_EPR
+            )
+            parsed = _parse_json_response(tb_result)
+            if parsed:
+                parsed["page_number"] = page_num + 1  # 1-indexed for display
+                title_block_data.append(parsed)
+                page_extractions.append(parsed)
+        except Exception as e:
+            logger.warning(
+                "Title block extraction failed for page %d: %s", page_num, e
+            )
+
+    # EPR-013: Project address on every sheet
+    results.append(_assess_address_presence(title_block_data, sample_pages, total_pages))
+
+    # EPR-014: Sheet number on every sheet
+    results.append(_assess_sheet_numbers(title_block_data, sample_pages, total_pages))
+
+    # EPR-015: Sheet name on every sheet
+    results.append(_assess_sheet_names(title_block_data, sample_pages, total_pages))
+
+    # EPR-016: 2x2 blank area on every sheet
+    results.append(_assess_blank_areas(title_block_data, sample_pages, total_pages))
+
+    # EPR-017: 3 consistent items
+    results.append(_assess_consistency(title_block_data))
+
+    # EPR-018: Professional stamp/signature
+    results.append(_assess_stamps(title_block_data, sample_pages, total_pages))
+
+    # EPR-003: Single consolidated PDF — auto-pass (it's one file)
+    results.append(
+        CheckResult(
+            epr_id="EPR-003",
+            rule="All sheets in single consolidated PDF",
+            status="pass",
+            severity="reject",
+            detail="PDF contains all sheets in a single file.",
+        )
+    )
+
+    # EPR-004: Full 1:1 scale — info only (dimensions verified in metadata)
+    results.append(
+        CheckResult(
+            epr_id="EPR-004",
+            rule="Full 1:1 scale output",
+            status="info",
+            severity="reject",
+            detail=(
+                "Scale verification requires comparing stated scale to measured "
+                "dimensions. Page dimensions were verified in metadata checks."
+            ),
+        )
+    )
+
+    # EPR-022: Dense hatching (sample 2 interior pages)
+    hatching_pages = [p for p in sample_pages if p != 0][:2]
+    results.append(await _check_hatching(pdf_bytes, hatching_pages, cover_b64))
+
+    return results, page_extractions

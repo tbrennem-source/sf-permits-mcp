@@ -1,0 +1,10 @@
+<div class="result-card">
+    <div class="validate-header">
+        <h2>Plan Set Analysis Report</h2>
+        <div class="validate-meta">
+            <span>{{ filename }}</span>
+            <span class="file-hint">&mdash; {{ filesize_mb }} MB</span>
+        </div>
+    </div>
+    {{ result | safe }}
+</div>

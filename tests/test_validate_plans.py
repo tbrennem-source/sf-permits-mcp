@@ -257,7 +257,7 @@ async def test_full_validation_report():
     result = await validate_plans(pdf, filename="test.pdf")
     assert "# Plan Set Validation Report" in result
     assert "## Summary" in result
-    assert "## Automated Checks" in result
+    assert "## Metadata Checks" in result
     assert "## Checks Requiring Manual Review" in result
     assert "## Sources" in result
 
