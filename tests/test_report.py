@@ -260,3 +260,112 @@ class TestSignalHelpers:
     def test_signal_to_message_unknown_falls_back(self):
         from web.report import _signal_to_message
         assert _signal_to_message("nonexistent") == _signal_to_message("cold")
+
+
+# ── Deep report risk enhancement tests (§23) ──────────────────────
+
+class TestDeepReportRisks:
+    """Tests for enhanced risk assessment: dormant permits, unit ambiguity, zoning detail."""
+
+    def test_dormant_permit_detected(self):
+        from web.report import _compute_risk_assessment
+        permits = [{
+            "permit_number": "P001", "status": "ISSUED",
+            "filed_date": "2020-01-15", "completed_date": None,
+            "estimated_cost": 5000,
+        }]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        dormant = [r for r in risks if r["risk_type"] == "dormant_permit"]
+        assert len(dormant) == 1
+        assert "dormant" in dormant[0]["title"].lower()
+
+    def test_aging_permit_detected(self):
+        from web.report import _compute_risk_assessment
+        from datetime import datetime, timedelta
+        # ~2.5 years old
+        filed = (datetime.now() - timedelta(days=900)).strftime("%Y-%m-%d")
+        permits = [{
+            "permit_number": "P002", "status": "FILED",
+            "filed_date": filed, "completed_date": None,
+            "estimated_cost": 5000,
+        }]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        aging = [r for r in risks if r["risk_type"] == "aging_permit"]
+        assert len(aging) == 1
+
+    def test_completed_permit_not_flagged_as_dormant(self):
+        from web.report import _compute_risk_assessment
+        permits = [{
+            "permit_number": "P003", "status": "COMPLETE",
+            "filed_date": "2018-01-01", "completed_date": "2019-06-01",
+            "estimated_cost": 5000,
+        }]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        dormant = [r for r in risks if r["risk_type"] in ("dormant_permit", "aging_permit")]
+        assert len(dormant) == 0
+
+    def test_unit_count_ambiguity(self):
+        from web.report import _compute_risk_assessment
+        permits = [
+            {"permit_number": "P004", "status": "COMPLETE", "existing_units": 1, "estimated_cost": 5000},
+            {"permit_number": "P005", "status": "ISSUED", "existing_units": 2, "estimated_cost": 5000},
+        ]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        ambiguity = [r for r in risks if r["risk_type"] == "unit_count_ambiguity"]
+        assert len(ambiguity) == 1
+        assert "1" in ambiguity[0]["description"] and "2" in ambiguity[0]["description"]
+
+    def test_no_unit_ambiguity_when_consistent(self):
+        from web.report import _compute_risk_assessment
+        permits = [
+            {"permit_number": "P006", "status": "COMPLETE", "existing_units": 2, "estimated_cost": 5000},
+            {"permit_number": "P007", "status": "ISSUED", "existing_units": 2, "estimated_cost": 5000},
+        ]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        ambiguity = [r for r in risks if r["risk_type"] == "unit_count_ambiguity"]
+        assert len(ambiguity) == 0
+
+    def test_contractor_turnover_detected(self):
+        from web.report import _compute_risk_assessment
+        permits = [{
+            "permit_number": "P008", "status": "ISSUED", "estimated_cost": 5000,
+            "contacts": [
+                {"name": f"Contractor {i}", "role": "contractor"}
+                for i in range(6)
+            ],
+        }]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        turnover = [r for r in risks if r["risk_type"] == "high_contractor_turnover"]
+        assert len(turnover) == 1
+
+    def test_zoning_interpretation_rh1d(self):
+        from web.report import _compute_risk_assessment
+        risks = _compute_risk_assessment(
+            permits=[], complaints=[], violations=[], property_data=[{"zoning_code": "RH-1(D)"}]
+        )
+        zone_risks = [r for r in risks if r["risk_type"] == "restrictive_zoning"]
+        assert len(zone_risks) == 1
+        assert "Detached" in zone_risks[0]["description"]
+        assert "Section 311" in zone_risks[0]["description"]
+
+    def test_all_deep_risk_items_have_risk_type(self):
+        """Every enhanced risk item has the required fields."""
+        from web.report import _compute_risk_assessment
+        risks = _compute_risk_assessment(
+            permits=[
+                {"permit_number": "P1", "status": "ISSUED", "filed_date": "2020-01-01",
+                 "estimated_cost": 600000, "existing_units": 1, "completed_date": None,
+                 "contacts": [{"name": f"C{i}", "role": "contractor"} for i in range(6)]},
+                {"permit_number": "P2", "status": "FILED", "filed_date": "2021-06-01",
+                 "estimated_cost": 200000, "existing_units": 2, "completed_date": None},
+            ],
+            complaints=[{"status": "OPEN", "complaint_number": "C1", "description": "noise"}],
+            violations=[{"status": "OPEN", "nov_number": "V1", "description": "Building"}],
+            property_data=[{"zoning_code": "RH-1(D)"}],
+        )
+        assert len(risks) > 0
+        for risk in risks:
+            assert "risk_type" in risk, f"Missing risk_type in: {risk}"
+            assert "severity" in risk
+            assert "title" in risk
+            assert "description" in risk

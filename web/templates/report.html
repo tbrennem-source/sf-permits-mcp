@@ -806,7 +806,13 @@
                     time on complex or at-risk properties.
                 </p>
                 {% set sig = report.expediter_signal %}
-                {% set exp_url = '/expediters?block=' ~ report.block ~ '&lot=' ~ report.lot %}
+                {% set exp_url = '/expediters?block=' ~ report.block ~ '&lot=' ~ report.lot ~ '&signal=' ~ sig.signal %}
+                {% if report.property_profile and report.property_profile.neighborhood %}
+                {% set exp_url = exp_url ~ '&neighborhood=' ~ report.property_profile.neighborhood %}
+                {% endif %}
+                {% if report.complaints and report.complaints | length > 0 %}
+                {% set exp_url = exp_url ~ '&has_complaint=1' %}
+                {% endif %}
 
                 {% if sig.signal == 'warm' %}
                 <div class="expeditor-callout expeditor-warm">
