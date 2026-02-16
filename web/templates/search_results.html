@@ -41,10 +41,13 @@
 
             <!-- Analyze Project (prefill with address) -->
             {% if street_address %}
-            <a href="/?experience=expert&address={{ street_address }}"
-               style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
-                🔍 Analyze Project
-            </a>
+            <form method="POST" action="/ask" style="display: inline; margin: 0;">
+                <input type="hidden" name="q" value="I want to analyze a project at {{ street_address }}">
+                <button type="submit"
+                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+                    🔍 Analyze Project
+                </button>
+            </form>
             {% endif %}
 
             <!-- Search Violations at this address -->
