@@ -1,3 +1,12 @@
+<style>
+.search-result-card table td a {
+    color: var(--accent, #4f8ff7);
+    text-decoration: underline;
+}
+.search-result-card table td a:hover {
+    color: #7ab0ff;
+}
+</style>
 <div class="result-card search-result-card">
     <div class="search-echo" style="display: flex; justify-content: space-between; align-items: center;">
         <span>{{ query_echo }}</span>
@@ -26,17 +35,6 @@
                style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent, #4f8ff7);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
                 📊 View Property Report
             </a>
-            {% endif %}
-
-            <!-- Ask AI about this property -->
-            {% if street_address %}
-            <form method="POST" action="/ask" style="display: inline; margin: 0;">
-                <input type="hidden" name="q" value="What permits are needed for work at {{ street_address }}?">
-                <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--accent);border:1px solid var(--accent);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
-                    💬 Ask AI
-                </button>
-            </form>
             {% endif %}
 
             <!-- Analyze Project (prefill with address) -->
@@ -68,6 +66,24 @@
     {{ result_html | safe }}
     {% if no_results and no_results_address %}
     <div style="margin-top: 20px; padding: 20px; background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2); border-radius: 10px;">
+        {# ===== Fuzzy suggestions: "Did you mean...?" ===== #}
+        {% if fuzzy_suggestions %}
+        <div style="font-weight: 600; margin-bottom: 10px;">Did you mean?</div>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">
+            {% for s in fuzzy_suggestions %}
+            <form method="POST" action="/ask" style="display:inline;margin:0;padding:0;">
+                <input type="hidden" name="q" value="{{ s.street_number }} {{ s.full_name }}">
+                <button type="submit"
+                    style="display:inline-flex;align-items:center;gap:8px;color:#4f8ff7;background:none;border:none;cursor:pointer;padding:4px 0;font-family:inherit;font-size:0.95rem;text-align:left;">
+                    <span style="font-size:0.9rem;">&#x27A4;</span>
+                    {{ s.street_number }} {{ s.full_name }}
+                    <span style="color:#8b8fa3;font-size:0.8rem;">({{ s.count }} permits)</span>
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+        <div style="border-top:1px solid rgba(79,143,247,0.15);padding-top:12px;margin-top:4px;">
+        {% endif %}
         <div style="font-weight: 600; margin-bottom: 8px;">What you can do next</div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
             {% if report_url %}
@@ -76,13 +92,6 @@
                 <span style="font-size: 1.1rem;">&#x1F4CA;</span> Run Property Report
             </a>
             {% endif %}
-            <form method="POST" action="/ask" style="display: inline; margin: 0; padding: 0;">
-                <input type="hidden" name="q" value="What permits are needed for work at {{ no_results_address }}?">
-                <button type="submit"
-                    style="display: inline-flex; align-items: center; gap: 8px; color: #4f8ff7; text-decoration: none; font-size: 0.95rem; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;">
-                    <span style="font-size: 1.1rem;">&#x1F4AC;</span> Ask AI about permits for this address
-                </button>
-            </form>
             <a href="/?q={{ no_results_address }}"
                style="display: inline-flex; align-items: center; gap: 8px; color: #8b8fa3; text-decoration: none; font-size: 0.9rem;">
                 <span style="font-size: 1.1rem;">&#x1F50D;</span> Try a different search
@@ -91,7 +100,41 @@
                 No permit history doesn't mean no permits are required &mdash; it may just mean no permits have been filed yet at this address.
             </span>
         </div>
+        {% if fuzzy_suggestions %}
+        </div>
+        {% endif %}
     </div>
+    {% elif not no_results %}
+    {# ===== Neighborhood stats card ===== #}
+    {% if hood_stats %}
+    <div style="margin-top:12px;padding:14px 18px;background:var(--surface, #1a1d27);border:1px solid var(--border, #333749);border-radius:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-weight:600;font-size:0.9rem;color:var(--text, #e4e6eb);">{{ hood_stats.name }}</span>
+            <span style="font-size:0.75rem;color:var(--text-muted, #8b8fa3);">neighborhood</span>
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:1.1rem;font-weight:700;color:var(--accent, #4f8ff7);">{{ "{:,}".format(hood_stats.total_permits) }}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted, #8b8fa3);text-transform:uppercase;">total permits</div>
+            </div>
+            <div>
+                <div style="font-size:1.1rem;font-weight:700;color:var(--success, #34d399);">{{ "{:,}".format(hood_stats.active_permits) }}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted, #8b8fa3);text-transform:uppercase;">active</div>
+            </div>
+            {% if hood_stats.top_types %}
+            <div style="flex:1;min-width:160px;">
+                <div style="font-size:0.7rem;color:var(--text-muted, #8b8fa3);text-transform:uppercase;margin-bottom:4px;">top permit types</div>
+                {% for t in hood_stats.top_types %}
+                <div style="font-size:0.8rem;color:var(--text, #e4e6eb);display:flex;justify-content:space-between;gap:8px;">
+                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.type }}</span>
+                    <span style="color:var(--text-muted, #8b8fa3);flex-shrink:0;">{{ "{:,}".format(t.count) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
     {% endif %}
     {% if show_primary_prompt and prompt_street_number %}
     {% include 'fragments/primary_address_prompt.html' %}
