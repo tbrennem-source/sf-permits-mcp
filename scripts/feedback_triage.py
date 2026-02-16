@@ -66,6 +66,233 @@ def classify_severity(item: dict) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Tier 1: Auto-resolvable detection
+# ---------------------------------------------------------------------------
+
+TEST_PATTERNS = re.compile(
+    r"\b(test|testing|asdf|hello world|lorem ipsum|xxx|aaa|zzz)\b",
+    re.IGNORECASE,
+)
+
+# Populated at runtime from admin user list
+ADMIN_EMAILS: set[str] = set()
+
+
+def is_test_submission(item: dict) -> bool:
+    """Detect test/junk submissions."""
+    msg = item["message"].strip()
+
+    # Very short messages from admin users
+    if len(msg) < 10 and item.get("email", "").lower() in ADMIN_EMAILS:
+        return True
+
+    # Pattern match for test keywords (only for short messages)
+    if TEST_PATTERNS.search(msg) and len(msg) < 50:
+        return True
+
+    # Only whitespace/punctuation (no 3+ letter/digit sequences)
+    if not re.search(r"[a-zA-Z0-9]{3,}", msg):
+        return True
+
+    return False
+
+
+def _message_similarity(a: str, b: str) -> float:
+    """Word-overlap Jaccard similarity ratio."""
+    words_a = set(a.lower().split())
+    words_b = set(b.lower().split())
+    if not words_a or not words_b:
+        return 0.0
+    intersection = words_a & words_b
+    union = words_a | words_b
+    return len(intersection) / len(union)
+
+
+def _within_days(ts1, ts2, days: int) -> bool:
+    """Check if two timestamps are within N days of each other."""
+    if not ts1 or not ts2:
+        return False
+    try:
+        if isinstance(ts1, str):
+            d1 = datetime.fromisoformat(ts1)
+        else:
+            d1 = ts1
+        if isinstance(ts2, str):
+            d2 = datetime.fromisoformat(ts2)
+        else:
+            d2 = ts2
+        if d1.tzinfo is None:
+            d1 = d1.replace(tzinfo=timezone.utc)
+        if d2.tzinfo is None:
+            d2 = d2.replace(tzinfo=timezone.utc)
+        return abs((d2 - d1).total_seconds()) < days * 86400
+    except (ValueError, TypeError):
+        return False
+
+
+def detect_duplicates(items: list[dict]) -> dict[int, int]:
+    """Find duplicate feedback items. Returns {dup_id: original_id}."""
+    duplicates: dict[int, int] = {}
+    seen_messages: dict[str, int] = {}
+
+    sorted_items = sorted(items, key=lambda x: x.get("created_at") or "")
+
+    for item in sorted_items:
+        fid = item["feedback_id"]
+        msg_normalized = item["message"].strip().lower()
+
+        # Exact message match
+        if msg_normalized in seen_messages:
+            duplicates[fid] = seen_messages[msg_normalized]
+            continue
+
+        # Same user + same page + high similarity within 7 days
+        for prev_item in sorted_items:
+            if prev_item["feedback_id"] >= fid:
+                break
+            if prev_item["feedback_id"] in duplicates:
+                continue
+            if (prev_item.get("email") == item.get("email")
+                    and prev_item.get("page_url") == item.get("page_url")
+                    and _message_similarity(prev_item["message"], item["message"]) > 0.8
+                    and _within_days(prev_item.get("created_at"), item.get("created_at"), 7)):
+                duplicates[fid] = prev_item["feedback_id"]
+                break
+
+        if fid not in duplicates:
+            seen_messages[msg_normalized] = fid
+
+    return duplicates
+
+
+def is_already_fixed(item: dict, resolved_items: list[dict]) -> bool:
+    """Check if a similar issue was recently resolved."""
+    if not item.get("page_url"):
+        return False
+    for resolved in resolved_items:
+        if (resolved.get("page_url") == item["page_url"]
+                and resolved.get("feedback_type") == item["feedback_type"]
+                and resolved.get("admin_note")
+                and any(w in resolved["admin_note"].lower()
+                        for w in ("fixed", "deployed", "resolved", "shipped", "patched"))
+                and _message_similarity(item["message"], resolved["message"]) > 0.5):
+            return True
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Actionability classification (Tier 2 vs Tier 3)
+# ---------------------------------------------------------------------------
+
+ACTIONABLE_SIGNALS = re.compile(
+    r"(steps? to reproduce|when i click|after i|error message|"
+    r"expected|actual|screenshot|console|page.*blank|"
+    r"button.*not|link.*broken|shows?.*wrong|displays?.*incorrect|"
+    r"returns?.*error|status.*code|traceback)",
+    re.IGNORECASE,
+)
+
+
+def classify_tier(
+    item: dict,
+    duplicates: dict[int, int],
+    resolved_items: list[dict],
+) -> tuple[int, str]:
+    """Classify a feedback item into tier 1 (auto-resolve), 2 (actionable), or 3 (needs input)."""
+    fid = item["feedback_id"]
+
+    # --- Tier 1: Auto-resolvable ---
+    if fid in duplicates:
+        return (1, f"Duplicate of #{duplicates[fid]}")
+    if is_test_submission(item):
+        return (1, "Test/junk submission")
+    if is_already_fixed(item, resolved_items):
+        return (1, "Issue already fixed in a recent resolution")
+
+    # --- Tier 2: Actionable ---
+    if item["feedback_type"] == "bug":
+        msg = item["message"]
+        has_signals = bool(ACTIONABLE_SIGNALS.search(msg))
+        has_page = bool(item.get("page_url"))
+        has_screenshot = bool(item.get("has_screenshot"))
+        score = sum([has_signals, has_page, has_screenshot])
+        if score >= 2:
+            return (2, "Bug with clear reproduction context")
+        if len(msg) > 100 and has_page:
+            return (2, "Detailed bug report with page context")
+
+    if item["feedback_type"] == "suggestion":
+        if len(item["message"]) > 50 and item.get("page_url"):
+            return (2, "Scoped suggestion with page context")
+
+    # --- Tier 3: Needs human input ---
+    if item["feedback_type"] == "question":
+        return (3, "Question requiring human answer")
+
+    return (3, "Needs human review")
+
+
+def auto_resolve_tier1(
+    host: str, cron_secret: str, tier1_items: list[dict],
+) -> list[dict]:
+    """Auto-resolve Tier 1 items via the PATCH API."""
+    if not tier1_items:
+        return []
+    results = []
+    for item in tier1_items:
+        fid = item["feedback_id"]
+        reason = item.get("tier_reason", "Auto-resolved by nightly triage")
+        note = f"[Auto-triage] {reason}"
+        result = resolve_items(host, cron_secret, [fid], status="resolved", note=note)
+        results.extend(result)
+    return results
+
+
+def run_triage(host: str, cron_secret: str) -> dict:
+    """Run the full feedback triage pipeline.
+
+    1. Fetch unresolved + recently resolved feedback
+    2. Detect duplicates and classify into tiers
+    3. Auto-resolve Tier 1 items
+    4. Return structured results for the report email
+    """
+    unresolved_data = fetch_feedback(host, cron_secret,
+                                     statuses=["new", "reviewed"], limit=500)
+    unresolved = preprocess(unresolved_data["items"])
+
+    resolved_data = fetch_feedback(host, cron_secret,
+                                   statuses=["resolved"], limit=100)
+    resolved_items = resolved_data["items"]
+
+    duplicates = detect_duplicates(unresolved)
+
+    tier1, tier2, tier3 = [], [], []
+    for item in unresolved:
+        tier, reason = classify_tier(item, duplicates, resolved_items)
+        item["tier"] = tier
+        item["tier_reason"] = reason
+        if tier == 1:
+            tier1.append(item)
+        elif tier == 2:
+            tier2.append(item)
+        else:
+            tier3.append(item)
+
+    resolve_results = auto_resolve_tier1(host, cron_secret, tier1)
+    ok_count = sum(1 for r in resolve_results if r.get("ok"))
+
+    return {
+        "tier1": tier1,
+        "tier2": tier2,
+        "tier3": tier3,
+        "counts": unresolved_data["counts"],
+        "auto_resolved": ok_count,
+        "auto_resolve_failed": len(tier1) - ok_count,
+        "total_triaged": len(unresolved),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Page area extraction
 # ---------------------------------------------------------------------------
 
@@ -219,7 +446,8 @@ def format_triage_report(items: list[dict], counts: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def resolve_items(host: str, cron_secret: str, ids: list[int],
-                   status: str = "resolved", note: str | None = None) -> list[dict]:
+                   status: str = "resolved", note: str | None = None,
+                   first_reporter: bool = False) -> list[dict]:
     """Mark feedback items as resolved (or other status) via API."""
     results = []
     for fid in ids:
@@ -227,6 +455,8 @@ def resolve_items(host: str, cron_secret: str, ids: list[int],
         body = {"status": status}
         if note:
             body["admin_note"] = note
+        if first_reporter:
+            body["first_reporter"] = True
         try:
             resp = httpx.patch(
                 url,
@@ -260,6 +490,8 @@ def main():
     parser.add_argument("--status", type=str, default="resolved",
                         choices=["resolved", "reviewed", "wontfix", "new"],
                         help="Status to set when using --resolve (default: resolved)")
+    parser.add_argument("--first-reporter", action="store_true",
+                        help="Grant first reporter bonus when resolving (used with --resolve)")
     args = parser.parse_args()
 
     # Resolve host
@@ -282,7 +514,8 @@ def main():
             print("Error: --resolve must be comma-separated integers (e.g. --resolve 4,5)", file=sys.stderr)
             sys.exit(1)
 
-        results = resolve_items(host, cron_secret, ids, status=args.status, note=args.note)
+        results = resolve_items(host, cron_secret, ids, status=args.status,
+                                note=args.note, first_reporter=args.first_reporter)
         for r in results:
             if r["ok"]:
                 print(f"  ✓ #{r['feedback_id']} → {r['status']}")

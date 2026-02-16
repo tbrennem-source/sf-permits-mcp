@@ -127,18 +127,23 @@
                     Admin note: {{ item.admin_note }}
                 </div>
                 {% endif %}
-                <div class="feedback-actions">
+                <div class="feedback-actions" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                     <button class="action-btn"
                             hx-post="/admin/feedback/update"
                             hx-target="#status-{{ item.feedback_id }}"
                             hx-vals='{"feedback_id": "{{ item.feedback_id }}", "status": "reviewed"}'>
                         Mark Reviewed
                     </button>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--text-muted);cursor:pointer;">
+                        <input type="checkbox" id="first-reporter-{{ item.feedback_id }}" style="accent-color:var(--accent);">
+                        1st reporter
+                    </label>
                     <button class="action-btn resolve"
                             hx-post="/admin/feedback/update"
                             hx-target="#status-{{ item.feedback_id }}"
-                            hx-vals='{"feedback_id": "{{ item.feedback_id }}", "status": "resolved"}'>
-                        Resolve
+                            hx-vals='{"feedback_id": "{{ item.feedback_id }}", "status": "resolved"}'
+                            onclick="var cb=document.getElementById('first-reporter-{{ item.feedback_id }}');if(cb&&cb.checked){var v=JSON.parse(this.getAttribute('hx-vals'));v.first_reporter='on';this.setAttribute('hx-vals',JSON.stringify(v));}">
+                        Resolve (+pts)
                     </button>
                     <button class="action-btn"
                             hx-post="/admin/feedback/update"

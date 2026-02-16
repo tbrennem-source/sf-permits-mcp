@@ -224,6 +224,16 @@ def init_user_schema(conn=None) -> None:
                 resolved_at TIMESTAMP
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS points_ledger (
+                ledger_id INTEGER PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                points INTEGER NOT NULL,
+                reason TEXT NOT NULL,
+                feedback_id INTEGER,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         # Add columns for existing DuckDB databases
         for alter_stmt in [
             "ALTER TABLE feedback ADD COLUMN screenshot_data TEXT",
@@ -243,6 +253,8 @@ def init_user_schema(conn=None) -> None:
             "CREATE INDEX IF NOT EXISTS idx_activity_user ON activity_log (user_id)",
             "CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_log (action)",
             "CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback (status)",
+            "CREATE INDEX IF NOT EXISTS idx_points_user ON points_ledger (user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_points_feedback ON points_ledger (feedback_id)",
         ]:
             try:
                 conn.execute(stmt)

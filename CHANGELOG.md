@@ -1,5 +1,42 @@
 # Changelog
 
+## Session 20 — Bounty Points, Nightly Triage & Quick Fixes (2026-02-16)
+
+### Bounty Points System
+- `points_ledger` table (DuckDB + PostgreSQL) with user, points, reason, feedback_id
+- `award_points()` — idempotent, auto-calculated on resolution: bugs 10pts, suggestions 5pts, screenshot +2, first reporter +5, high severity +3, admin bonus
+- `get_user_points()`, `get_points_history()` — total and history with reason labels
+- Wired into PATCH `/api/feedback/<id>` and admin HTMX resolve route
+- Account page shows Points card with total and recent history
+- Admin feedback queue: "1st reporter" checkbox + "Resolve (+pts)" button
+- `GET /api/points/<user_id>` — CRON_SECRET-protected points API
+
+### Nightly Feedback Triage (piggybacked on existing cron)
+- Three-tier classification: Tier 1 (auto-resolve: dupes, test/junk, already-fixed), Tier 2 (actionable: clear repro context), Tier 3 (needs human input)
+- `is_test_submission()` — pattern matching for test keywords, short admin messages, punctuation-only
+- `detect_duplicates()` — exact match + Jaccard word-overlap >0.8 (same user/page within 7 days)
+- `is_already_fixed()` — matches against recently resolved items by page+type+similarity
+- `classify_tier()` — multi-signal scoring for actionability (repro signals, page URL, screenshot, message length)
+- `auto_resolve_tier1()` — PATCH with `[Auto-triage]` prefix
+- `run_triage()` — full pipeline, appended to `/cron/nightly` (non-fatal)
+
+### Morning Triage Report (piggybacked on existing cron)
+- `web/email_triage.py` — renders + sends triage report to all active admins
+- `web/templates/triage_report_email.html` — table-based email: summary metrics, Tier 1 (green), Tier 2 (blue), Tier 3 (amber), CTA button
+- `get_admin_users()` — queries `users WHERE is_admin = TRUE AND is_active = TRUE`
+- Appended to `/cron/send-briefs` (non-fatal)
+
+### Quick Fixes
+- **#18**: "Expeditor Assessment" → "Expeditor Needs Assessment" with explanatory paragraph
+- **#22**: View Parcel link fixed — `sfassessor.org` (301 redirect) → `sfplanninggis.org/pim/`
+- **#19**: Expediter form pre-fills block/lot/address/neighborhood from query params; report page passes all fields in URL
+
+### Tests
+- 67 new tests: 18 bounty points, 43 triage classification + email, 6 others
+- **748 tests passing** (681 → 748)
+
+---
+
 ## Session 19 — Feedback Triage Round 2: 12 Items (2026-02-16)
 
 ### Address Lookup Fix (#8, #10) — Root Cause

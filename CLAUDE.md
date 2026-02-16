@@ -51,7 +51,7 @@ docs/                   # Architecture, decisions, contact data analysis
 - **DuckDB**: 1.8M contacts -> 1M entities -> 576K relationship edges
 - **PostgreSQL (prod)**: 5.6M rows, 7 tables, 2.05 GB on Railway
 - **Knowledge base**: 21 tier1 JSON files, 1.15 MB, 78 semantic concepts, 692 aliases
-- **Tests**: 686 passing
+- **Tests**: 748 passing
 - **Live**: https://sfpermits-ai-production.up.railway.app
 
 ## Current State

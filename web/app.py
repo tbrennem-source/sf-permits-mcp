@@ -105,6 +105,19 @@ def _run_startup_migrations():
         # Primary address columns (added for homeowner personalization)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_number TEXT")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_name TEXT")
+        # Points ledger table (bounty system)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS points_ledger (
+                ledger_id   SERIAL PRIMARY KEY,
+                user_id     INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                points      INTEGER NOT NULL,
+                reason      TEXT NOT NULL,
+                feedback_id INTEGER REFERENCES feedback(feedback_id) ON DELETE SET NULL,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_points_user ON points_ledger (user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_points_feedback ON points_ledger (feedback_id)")
         # Fix inspections.id for auto-increment (needed for nightly upserts)
         # Original migration used INTEGER, but we need SERIAL for auto-increment
         try:
@@ -1240,9 +1253,13 @@ def watch_list():
 def account():
     """User account page with watch list."""
     from web.auth import get_watches, INVITE_CODES
+    from web.activity import get_user_points, get_points_history
     watches = get_watches(g.user["user_id"])
     # Sort codes so the dropdown is consistent
     invite_codes = sorted(INVITE_CODES) if g.user.get("is_admin") else []
+    # Points data
+    total_points = get_user_points(g.user["user_id"])
+    points_history = get_points_history(g.user["user_id"], limit=10)
     # Admin stats for dashboard cards
     activity_stats = None
     feedback_counts = None
@@ -1253,7 +1270,9 @@ def account():
     return render_template("account.html", user=g.user, watches=watches,
                            invite_codes=invite_codes,
                            activity_stats=activity_stats,
-                           feedback_counts=feedback_counts)
+                           feedback_counts=feedback_counts,
+                           total_points=total_points,
+                           points_history=points_history)
 
 
 # ---------------------------------------------------------------------------
@@ -1478,6 +1497,11 @@ def admin_feedback_update():
 
     if feedback_id:
         update_feedback_status(int(feedback_id), status, admin_note)
+        # Award points on resolution
+        if status == "resolved":
+            from web.activity import award_points
+            first_reporter = request.form.get("first_reporter") == "on"
+            award_points(int(feedback_id), first_reporter=first_reporter)
 
     status_label = {"new": "New", "reviewed": "Reviewed",
                     "resolved": "Resolved", "wontfix": "Won't fix"}.get(status, status)
@@ -1943,8 +1967,24 @@ def cron_nightly():
 
     try:
         result = run_async(run_nightly(lookback_days=lookback_days, dry_run=dry_run))
+
+        # Append feedback triage (non-fatal — failure doesn't fail nightly)
+        triage_result = {}
+        if not dry_run:
+            try:
+                from scripts.feedback_triage import run_triage, ADMIN_EMAILS
+                from web.activity import get_admin_users
+                ADMIN_EMAILS.update(
+                    a["email"].lower() for a in get_admin_users() if a.get("email")
+                )
+                host = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost:5001")
+                triage_result = run_triage(host, os.environ.get("CRON_SECRET", ""))
+            except Exception as te:
+                logging.error("Feedback triage failed (non-fatal): %s", te)
+                triage_result = {"error": str(te)}
+
         return Response(
-            json.dumps({"status": "ok", **result}, indent=2),
+            json.dumps({"status": "ok", **result, "triage": triage_result}, indent=2),
             mimetype="application/json",
         )
     except Exception as e:
@@ -1981,8 +2021,21 @@ def cron_send_briefs():
 
     try:
         result = send_briefs(frequency)
+
+        # Append triage report email to admins (non-fatal)
+        triage_email_result = {}
+        try:
+            from web.email_triage import send_triage_reports
+            triage_email_result = send_triage_reports()
+        except Exception as te:
+            logging.error("Triage report email failed (non-fatal): %s", te)
+            triage_email_result = {"error": str(te)}
+
         return Response(
-            json.dumps({"status": "ok", "frequency": frequency, **result}, indent=2),
+            json.dumps({
+                "status": "ok", "frequency": frequency,
+                **result, "triage_report": triage_email_result,
+            }, indent=2),
             mimetype="application/json",
         )
     except Exception as e:
@@ -2088,8 +2141,44 @@ def api_feedback_update(feedback_id):
             mimetype="application/json",
         )
 
+    # Award points on resolution
+    points_awarded = []
+    if status == "resolved":
+        from web.activity import award_points
+        first_reporter = data.get("first_reporter", False)
+        admin_bonus_val = data.get("admin_bonus", 0)
+        try:
+            admin_bonus_val = int(admin_bonus_val) if admin_bonus_val else 0
+        except (ValueError, TypeError):
+            admin_bonus_val = 0
+        points_awarded = award_points(feedback_id,
+                                       first_reporter=bool(first_reporter),
+                                       admin_bonus=admin_bonus_val)
+
     return Response(
-        json.dumps({"feedback_id": feedback_id, "status": status, "admin_note": admin_note}),
+        json.dumps({
+            "feedback_id": feedback_id, "status": status,
+            "admin_note": admin_note, "points_awarded": points_awarded,
+        }),
+        mimetype="application/json",
+    )
+
+
+@app.route("/api/points/<int:user_id>")
+def api_user_points(user_id):
+    """Get point total and history for a user. CRON_SECRET auth."""
+    _check_api_auth()
+    import json
+    from web.activity import get_user_points, get_points_history
+
+    total = get_user_points(user_id)
+    history = get_points_history(user_id, limit=20)
+    for entry in history:
+        if entry.get("created_at"):
+            entry["created_at"] = entry["created_at"].isoformat()
+
+    return Response(
+        json.dumps({"user_id": user_id, "total": total, "history": history}),
         mimetype="application/json",
     )
 

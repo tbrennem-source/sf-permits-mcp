@@ -713,3 +713,238 @@ def test_triage_format_report():
     assert "Screenshot attached" in report
     assert "LOW" in report
     assert "#2 [suggestion]" in report
+
+
+# ---------------------------------------------------------------------------
+# Bounty points system
+# ---------------------------------------------------------------------------
+
+def test_award_points_basic_bug(client):
+    """Bug report awards 10 base points."""
+    user = _login_user(client, "points-bug@test.com")
+    from web.activity import submit_feedback, update_feedback_status, award_points, get_user_points
+    fb = submit_feedback(user["user_id"], "bug", "Button is broken")
+    update_feedback_status(fb["feedback_id"], "resolved", "Fixed it")
+    entries = award_points(fb["feedback_id"])
+    assert any(e["reason"] == "bug_report" and e["points"] == 10 for e in entries)
+    assert get_user_points(user["user_id"]) >= 10
+
+
+def test_award_points_basic_suggestion(client):
+    """Suggestion awards 5 base points."""
+    user = _login_user(client, "points-sug@test.com")
+    from web.activity import submit_feedback, award_points, get_user_points
+    fb = submit_feedback(user["user_id"], "suggestion", "Add dark mode")
+    entries = award_points(fb["feedback_id"])
+    assert any(e["reason"] == "suggestion" and e["points"] == 5 for e in entries)
+    assert get_user_points(user["user_id"]) >= 5
+
+
+def test_award_points_screenshot_bonus(client):
+    """Screenshot attachment adds +2 points."""
+    user = _login_user(client, "points-ss@test.com")
+    from web.activity import submit_feedback, award_points
+    fb = submit_feedback(user["user_id"], "bug", "See screenshot", screenshot_data=_TINY_JPEG)
+    entries = award_points(fb["feedback_id"])
+    assert any(e["reason"] == "screenshot" and e["points"] == 2 for e in entries)
+
+
+def test_award_points_first_reporter_bonus(client):
+    """First reporter flag adds +5 points."""
+    user = _login_user(client, "points-first@test.com")
+    from web.activity import submit_feedback, award_points
+    fb = submit_feedback(user["user_id"], "bug", "Found a new issue")
+    entries = award_points(fb["feedback_id"], first_reporter=True)
+    assert any(e["reason"] == "first_reporter" and e["points"] == 5 for e in entries)
+
+
+def test_award_points_admin_bonus(client):
+    """Admin bonus adds custom points."""
+    user = _login_user(client, "points-bonus@test.com")
+    from web.activity import submit_feedback, award_points
+    fb = submit_feedback(user["user_id"], "bug", "Critical security bug")
+    entries = award_points(fb["feedback_id"], admin_bonus=10)
+    assert any(e["reason"] == "admin_bonus" and e["points"] == 10 for e in entries)
+
+
+def test_award_points_idempotent(client):
+    """Awarding points twice for same feedback_id is a no-op."""
+    user = _login_user(client, "points-idem@test.com")
+    from web.activity import submit_feedback, award_points, get_user_points
+    fb = submit_feedback(user["user_id"], "bug", "Idempotency test")
+    entries1 = award_points(fb["feedback_id"])
+    assert len(entries1) >= 1
+    points_after_first = get_user_points(user["user_id"])
+    entries2 = award_points(fb["feedback_id"])
+    assert entries2 == []
+    assert get_user_points(user["user_id"]) == points_after_first
+
+
+def test_award_points_anonymous_skipped(client):
+    """Anonymous feedback (no user_id) gets no points."""
+    from web.activity import submit_feedback, award_points
+    fb = submit_feedback(None, "bug", "Anonymous bug report")
+    entries = award_points(fb["feedback_id"])
+    assert entries == []
+
+
+def test_get_user_points_zero_for_new_user(client):
+    """New user with no points returns 0."""
+    user = _login_user(client, "points-zero@test.com")
+    from web.activity import get_user_points
+    assert get_user_points(user["user_id"]) == 0
+
+
+def test_get_points_history(client):
+    """Points history returns recent entries with labels."""
+    user = _login_user(client, "points-hist@test.com")
+    from web.activity import submit_feedback, award_points, get_points_history
+    fb = submit_feedback(user["user_id"], "bug", "History test bug", screenshot_data=_TINY_JPEG)
+    award_points(fb["feedback_id"], first_reporter=True)
+    history = get_points_history(user["user_id"])
+    assert len(history) >= 3  # bug_report + screenshot + first_reporter
+    reasons = {e["reason"] for e in history}
+    assert "bug_report" in reasons
+    assert "screenshot" in reasons
+    assert "first_reporter" in reasons
+    # Check labels are present
+    labels = {e["reason_label"] for e in history}
+    assert "Bug report" in labels
+    assert "Screenshot attached" in labels
+    assert "First reporter bonus" in labels
+
+
+def test_award_points_accumulate(client):
+    """Multiple resolved feedback items accumulate points."""
+    user = _login_user(client, "points-accum@test.com")
+    from web.activity import submit_feedback, award_points, get_user_points
+    fb1 = submit_feedback(user["user_id"], "bug", "First bug")
+    fb2 = submit_feedback(user["user_id"], "suggestion", "First suggestion")
+    award_points(fb1["feedback_id"])  # 10 pts
+    award_points(fb2["feedback_id"])  # 5 pts
+    total = get_user_points(user["user_id"])
+    assert total >= 15
+
+
+def test_get_feedback_item(client):
+    """get_feedback_item returns correct structure."""
+    user = _login_user(client, "points-item@test.com")
+    from web.activity import submit_feedback, get_feedback_item
+    fb = submit_feedback(user["user_id"], "bug", "Item retrieval test", screenshot_data=_TINY_JPEG)
+    item = get_feedback_item(fb["feedback_id"])
+    assert item is not None
+    assert item["feedback_id"] == fb["feedback_id"]
+    assert item["user_id"] == user["user_id"]
+    assert item["feedback_type"] == "bug"
+    assert item["has_screenshot"] is True
+
+
+def test_get_feedback_item_not_found(client):
+    """get_feedback_item returns None for nonexistent ID."""
+    from web.activity import get_feedback_item
+    assert get_feedback_item(99999) is None
+
+
+def test_get_admin_users(client, monkeypatch):
+    """get_admin_users returns active admin users."""
+    _make_admin(client, email="admin1@test.com", monkeypatch=monkeypatch)
+    from web.activity import get_admin_users
+    admins = get_admin_users()
+    assert len(admins) >= 1
+    admin = admins[0]
+    assert "user_id" in admin
+    assert "email" in admin
+    assert admin["email"] == "admin1@test.com"
+
+
+# ---------------------------------------------------------------------------
+# Points wired into resolution endpoints
+# ---------------------------------------------------------------------------
+
+def test_patch_endpoint_awards_points(client, monkeypatch):
+    """PATCH /api/feedback/<id> with resolved status awards points."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    user = _login_user(client, "patch-points@test.com")
+    from web.activity import submit_feedback, get_user_points
+    fb = submit_feedback(user["user_id"], "bug", "Patch points test")
+
+    rv = client.patch(
+        f"/api/feedback/{fb['feedback_id']}",
+        json={"status": "resolved", "admin_note": "Fixed"},
+        headers={"Authorization": "Bearer test-secret-123"},
+    )
+    assert rv.status_code == 200
+    # User should have points
+    assert get_user_points(user["user_id"]) >= 10
+
+
+def test_patch_endpoint_first_reporter_flag(client, monkeypatch):
+    """PATCH endpoint respects first_reporter flag."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    user = _login_user(client, "patch-fr@test.com")
+    from web.activity import submit_feedback, get_user_points
+    fb = submit_feedback(user["user_id"], "bug", "First reporter patch test")
+
+    rv = client.patch(
+        f"/api/feedback/{fb['feedback_id']}",
+        json={"status": "resolved", "first_reporter": True},
+        headers={"Authorization": "Bearer test-secret-123"},
+    )
+    assert rv.status_code == 200
+    # Should have bug (10) + first reporter (5) = 15 minimum
+    assert get_user_points(user["user_id"]) >= 15
+
+
+def test_admin_resolve_awards_points(client, monkeypatch):
+    """Admin HTMX resolve route awards points."""
+    # Create a regular user and submit feedback first (directly, no login needed)
+    from web.auth import create_user
+    user = create_user("admin-resolve-pts@test.com")
+    from web.activity import submit_feedback, get_user_points
+    fb = submit_feedback(user["user_id"], "suggestion", "Admin resolve test")
+
+    # Now log in as admin and resolve
+    _make_admin(client, monkeypatch=monkeypatch)
+    rv = client.post("/admin/feedback/update", data={
+        "feedback_id": str(fb["feedback_id"]),
+        "status": "resolved",
+    })
+    assert rv.status_code == 200
+    # User should have suggestion points
+    assert get_user_points(user["user_id"]) >= 5
+
+
+def test_account_page_shows_points(client):
+    """Account page displays points card."""
+    user = _login_user(client, "points-page@test.com")
+    from web.activity import submit_feedback, award_points
+    fb = submit_feedback(user["user_id"], "bug", "Points display test")
+    award_points(fb["feedback_id"])
+
+    rv = client.get("/account")
+    html = rv.data.decode()
+    assert "Points" in html
+
+
+def test_points_api_endpoint(client, monkeypatch):
+    """GET /api/points/<user_id> returns points data."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    user = _login_user(client, "api-points@test.com")
+    from web.activity import submit_feedback, award_points
+    fb = submit_feedback(user["user_id"], "bug", "API points test")
+    award_points(fb["feedback_id"])
+
+    rv = client.get(
+        f"/api/points/{user['user_id']}",
+        headers={"Authorization": "Bearer test-secret-123"},
+    )
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert data["total"] >= 10
+    assert "history" in data
+
+
+def test_points_api_requires_auth(client):
+    """Points API requires CRON_SECRET authentication."""
+    rv = client.get("/api/points/1")
+    assert rv.status_code == 403
