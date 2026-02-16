@@ -518,31 +518,31 @@
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Assessed Value</span>
-                        <span class="profile-value">{{ report.property_profile.assessed_value or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.assessed_value or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Property Class</span>
-                        <span class="profile-value">{{ report.property_profile.property_class or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.property_class or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Year Built</span>
-                        <span class="profile-value">{{ report.property_profile.year_built or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.year_built or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Building Area</span>
-                        <span class="profile-value">{{ report.property_profile.building_area or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.building_area or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Lot Area</span>
-                        <span class="profile-value">{{ report.property_profile.lot_area or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.lot_area or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Use Code</span>
-                        <span class="profile-value">{{ report.property_profile.use_code or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.use_code or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Tax Year</span>
-                        <span class="profile-value">{{ report.property_profile.tax_year or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.tax_year or '—' }}</span>
                     </div>
                 </div>
             </div>
@@ -571,8 +571,8 @@
                                 <td>
                                     <a href="{{ links.permit(p.permit_number) }}">{{ p.permit_number }}</a>
                                 </td>
-                                <td>{{ p.permit_type_definition or '&mdash;' }}</td>
-                                <td>{{ p.description or '&mdash;' }}</td>
+                                <td>{{ p.permit_type_definition or '—' }}</td>
+                                <td>{{ p.description or '—' }}</td>
                                 <td>
                                     {% if p.estimated_cost %}
                                     ${{ '{:,.0f}'.format(p.estimated_cost) }}
@@ -583,7 +583,7 @@
                                 <td>
                                     <span class="status-badge status-{{ (p.status or '')|lower }}">{{ p.status or 'Unknown' }}</span>
                                 </td>
-                                <td>{{ p.filed_date or '&mdash;' }}</td>
+                                <td>{{ p.filed_date or '—' }}</td>
                                 <td>
                                     {% if p.contacts or p.inspections %}
                                     <button class="permit-expand-btn" onclick="togglePermitDetails('permit-{{ loop.index }}')">Details</button>
@@ -785,7 +785,7 @@
                                 <td>
                                     <a href="{{ links.permit(n.permit_number) }}">{{ n.permit_number }}</a>
                                 </td>
-                                <td>{{ n.description or '&mdash;' }}</td>
+                                <td>{{ n.description or '—' }}</td>
                                 <td>
                                     {% if n.estimated_cost %}
                                     ${{ '{:,.0f}'.format(n.estimated_cost) }}
