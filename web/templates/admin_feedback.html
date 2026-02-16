@@ -108,6 +108,20 @@
                 {% if item.page_url %}
                 <div class="feedback-meta" style="margin-bottom:8px;">Page: {{ item.page_url }}</div>
                 {% endif %}
+                {% if item.has_screenshot %}
+                <div style="margin-bottom:8px;">
+                    <button type="button" class="action-btn"
+                            onclick="var img=this.nextElementSibling;img.style.display=img.style.display==='none'?'block':'none'">
+                        📸 View Screenshot
+                    </button>
+                    <div style="display:none;margin-top:8px;">
+                        <img src="/admin/feedback/{{ item.feedback_id }}/screenshot"
+                             style="max-width:100%;border-radius:6px;border:1px solid var(--border);"
+                             loading="lazy"
+                             alt="Screenshot for feedback #{{ item.feedback_id }}">
+                    </div>
+                </div>
+                {% endif %}
                 {% if item.admin_note %}
                 <div style="background:var(--surface-2);padding:8px 12px;border-radius:6px;font-size:0.85rem;color:var(--text-muted);margin-bottom:8px;">
                     Admin note: {{ item.admin_note }}

@@ -100,6 +100,8 @@ def _run_startup_migrations():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_status ON feedback (status)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback (user_id)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback (created_at)")
+        # Screenshot data column for feedback attachments
+        cur.execute("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS screenshot_data TEXT")
         # Primary address columns (added for homeowner personalization)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_number TEXT")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS primary_street_name TEXT")
@@ -1415,12 +1417,21 @@ def feedback_submit():
     feedback_type = request.form.get("feedback_type", "suggestion")
     message = request.form.get("message", "").strip()
     page_url = request.form.get("page_url", "")
+    screenshot_data = request.form.get("screenshot_data", "").strip() or None
 
     if not message or len(message) < 3:
         return '<span style="color:var(--error);">Please enter a message.</span>'
 
+    # Validate screenshot data if provided
+    if screenshot_data:
+        if not screenshot_data.startswith("data:image/"):
+            screenshot_data = None
+        elif len(screenshot_data) > 2 * 1024 * 1024:
+            screenshot_data = None
+
     user_id = g.user["user_id"] if g.user else None
-    submit_feedback(user_id, feedback_type, message, page_url or None)
+    submit_feedback(user_id, feedback_type, message, page_url or None,
+                    screenshot_data=screenshot_data)
 
     return (
         '<span style="color:var(--success);">Thanks for the feedback! '
@@ -1465,6 +1476,30 @@ def admin_feedback_update():
     color = {"resolved": "var(--success)", "wontfix": "var(--text-muted)",
              "reviewed": "var(--warning)"}.get(status, "var(--accent)")
     return f'<span style="color:{color};">{status_label}</span>'
+
+
+@app.route("/admin/feedback/<int:feedback_id>/screenshot")
+@login_required
+def admin_feedback_screenshot(feedback_id):
+    """Serve feedback screenshot as image (admin only)."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    from web.activity import get_feedback_screenshot
+    import base64
+
+    data_url = get_feedback_screenshot(feedback_id)
+    if not data_url:
+        abort(404)
+
+    try:
+        header, encoded = data_url.split(",", 1)
+        mime_type = header.split(":")[1].split(";")[0]
+        image_bytes = base64.b64decode(encoded)
+    except Exception:
+        abort(400)
+
+    return Response(image_bytes, mimetype=mime_type)
 
 
 @app.route("/admin/activity")
