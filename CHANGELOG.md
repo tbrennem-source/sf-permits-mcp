@@ -1,5 +1,25 @@
 # Changelog
 
+## Session 21.2 — Phase 4.5 Hotfix: Timeout Fix for Large PDFs (2026-02-16)
+
+### Timeout & Progress Indicator Fix
+- **Increased gunicorn timeout** — 120s → 300s to support 40-50 page PDF uploads
+- **Enhanced progress indicator** — Animated hourglass spinner (⏳) with pulsing dots
+- **Clear user messaging** — "Large files may take 2-3 minutes to process"
+- **Time budget** — 50 pages: 30s Vision + 150s rendering + 10s DB = 190s (under 300s limit)
+
+### Problem Solved
+- **Before:** 40+ page PDFs timed out at 120s, no gallery displayed, users saw endless spinner
+- **After:** 40-50 page PDFs complete in ~140-190s with clear progress feedback
+
+### Files Changed
+- `web/railway.toml` — Timeout 120s → 300s
+- `web/templates/index.html` — Hourglass spinner, progress dots, messaging
+
+**Commit:** `7e6359f` — hotfix: Increase timeout and add progress indicator for large PDFs
+
+---
+
 ## Session 21.1 — Phase 4.5 Hotfix: Critical Path & Variable Fixes (2026-02-16)
 
 ### Critical Bug Fixes
