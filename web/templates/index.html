@@ -1191,9 +1191,17 @@
             </div>
 
             <div id="lookup-loading" class="htmx-indicator">
-                <div class="loading-bar">
-                    <div class="dots">...</div>
-                    <p>Searching 1.1M permits...</p>
+                <div style="text-align: center; padding: 40px;">
+                    <div class="hourglass-spinner">⏳</div>
+                    <p style="font-size: 1.1rem; margin-top: 16px; font-weight: 500;">
+                        Searching permits...
+                    </p>
+                    <p style="opacity: 0.7; font-size: 0.9rem; margin-top: 8px;">
+                        Searching 1.1M permits across 22 datasets
+                    </p>
+                    <div class="progress-dots" style="margin-top: 12px;">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    </div>
                 </div>
             </div>
 
