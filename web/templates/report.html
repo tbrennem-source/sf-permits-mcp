@@ -448,7 +448,83 @@
                 {% endif %}
             </div>
 
-            {# ===== Section 1.5: Remediation Roadmap (Owner Mode) ===== #}
+            {# ===== Section 2: Complaints & Violations ===== #}
+            <div class="section" id="section-complaints">
+                <h2>Complaints &amp; Violations</h2>
+
+                <div class="sub-heading">Complaints</div>
+                {% if report.complaints %}
+                {% for c in report.complaints %}
+                <div class="cv-card">
+                    <div class="cv-header">
+                        <span class="cv-number">
+                            <a href="{{ links.complaint(c.complaint_number) }}" target="_blank" rel="noopener">#{{ c.complaint_number }}</a>
+                        </span>
+                        <span class="status-badge status-{{ (c.status or '')|lower }}">{{ c.status or 'Unknown' }}</span>
+                    </div>
+                    <div class="cv-meta">
+                        Filed {{ c.date_filed or 'N/A' }}
+                        {% if c.street_name %} &middot; {{ c.street_name }}{% endif %}
+                    </div>
+                    {% if c.complaint_description %}
+                    <div class="cv-description">{{ c.complaint_description }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="section-empty">No complaints on file.</p>
+                {% endif %}
+
+                <div class="sub-divider"></div>
+
+                <div class="sub-heading">Violations (Notices of Violation)</div>
+                {% if report.violations %}
+                {% for v in report.violations %}
+                <div class="cv-card">
+                    <div class="cv-header">
+                        <span class="cv-number">
+                            {% if v.complaint_number %}
+                            <a href="{{ links.complaint(v.complaint_number) }}" target="_blank" rel="noopener">#{{ v.complaint_number }}</a>
+                            {% else %}
+                            Violation
+                            {% endif %}
+                        </span>
+                        <span class="status-badge status-{{ (v.status or '')|lower }}">{{ v.status or 'Unknown' }}</span>
+                    </div>
+                    <div class="cv-meta">
+                        Filed {{ v.date_filed or 'N/A' }}
+                        {% if v.nov_category_description %} &middot; {{ v.nov_category_description }}{% endif %}
+                    </div>
+                    {% if v.description %}
+                    <div class="cv-description">{{ v.description }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="section-empty">No violations on file.</p>
+                {% endif %}
+            </div>
+
+            {# ===== Section 3: Cross-Reference Analysis ===== #}
+            {% if report.whats_missing %}
+            <div class="section" id="section-cross-ref">
+                <h2>&#x26A0; Cross-Reference Analysis</h2>
+                {% for item in report.whats_missing %}
+                <div class="risk-card risk-{{ item.severity }}">
+                    <div class="risk-header">
+                        <span class="severity-badge severity-{{ item.severity }}">{{ item.severity }}</span>
+                        <span class="risk-title">{{ item.title }}</span>
+                    </div>
+                    <div class="risk-description">{{ item.description }}</div>
+                    {% if item.section_ref %}
+                    <a href="#section-{{ item.section_ref }}" class="risk-xref">See &sect;{{ item.section_ref }}</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {# ===== Section 4: Remediation Roadmap (Owner Mode) ===== #}
             {% if report.remediation_roadmap %}
             <div class="section" id="section-remediation">
                 <h2>Remediation Roadmap</h2>
@@ -487,7 +563,7 @@
             </div>
             {% endif %}
 
-            {# ===== Section 2: Property Profile ===== #}
+            {# ===== Section 5: Property Profile ===== #}
             {% if report.property_profile %}
             <div class="section" id="section-profile">
                 <h2>Property Profile</h2>
@@ -548,7 +624,7 @@
             </div>
             {% endif %}
 
-            {# ===== Section 3: Permit History ===== #}
+            {# ===== Section 6: Permit History ===== #}
             <div class="section" id="section-permits">
                 <h2>Permit History</h2>
                 {% if report.permits %}
@@ -632,83 +708,9 @@
                 <p class="section-empty">No permits found for this property.</p>
                 {% endif %}
 
-                {# What's Missing cross-reference analysis #}
-                {% if report.whats_missing %}
-                <div class="sub-divider"></div>
-                <div class="whats-missing-header">&#x26A0; Cross-Reference Analysis</div>
-                {% for item in report.whats_missing %}
-                <div class="risk-card risk-{{ item.severity }}">
-                    <div class="risk-header">
-                        <span class="severity-badge severity-{{ item.severity }}">{{ item.severity }}</span>
-                        <span class="risk-title">{{ item.title }}</span>
-                    </div>
-                    <div class="risk-description">{{ item.description }}</div>
-                    {% if item.section_ref %}
-                    <a href="#section-{{ item.section_ref }}" class="risk-xref">See &sect;{{ item.section_ref }}</a>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% endif %}
             </div>
 
-            {# ===== Section 4: Complaints & Violations ===== #}
-            <div class="section" id="section-complaints">
-                <h2>Complaints &amp; Violations</h2>
-
-                <div class="sub-heading">Complaints</div>
-                {% if report.complaints %}
-                {% for c in report.complaints %}
-                <div class="cv-card">
-                    <div class="cv-header">
-                        <span class="cv-number">
-                            <a href="{{ links.complaint(c.complaint_number) }}">#{{ c.complaint_number }}</a>
-                        </span>
-                        <span class="status-badge status-{{ (c.status or '')|lower }}">{{ c.status or 'Unknown' }}</span>
-                    </div>
-                    <div class="cv-meta">
-                        Filed {{ c.date_filed or 'N/A' }}
-                        {% if c.street_name %} &middot; {{ c.street_name }}{% endif %}
-                    </div>
-                    {% if c.complaint_description %}
-                    <div class="cv-description">{{ c.complaint_description }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">No complaints on file.</p>
-                {% endif %}
-
-                <div class="sub-divider"></div>
-
-                <div class="sub-heading">Violations (Notices of Violation)</div>
-                {% if report.violations %}
-                {% for v in report.violations %}
-                <div class="cv-card">
-                    <div class="cv-header">
-                        <span class="cv-number">
-                            {% if v.complaint_number %}
-                            <a href="{{ links.complaint(v.complaint_number) }}">#{{ v.complaint_number }}</a>
-                            {% else %}
-                            Violation
-                            {% endif %}
-                        </span>
-                        <span class="status-badge status-{{ (v.status or '')|lower }}">{{ v.status or 'Unknown' }}</span>
-                    </div>
-                    <div class="cv-meta">
-                        Filed {{ v.date_filed or 'N/A' }}
-                        {% if v.nov_category_description %} &middot; {{ v.nov_category_description }}{% endif %}
-                    </div>
-                    {% if v.description %}
-                    <div class="cv-description">{{ v.description }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">No violations on file.</p>
-                {% endif %}
-            </div>
-
-            {# ===== Section 5: Zoning & Regulatory Context ===== #}
+            {# ===== Section 7: Zoning & Regulatory Context ===== #}
             {% if report.property_profile and report.property_profile.zoning %}
             <div class="section" id="section-zoning">
                 <h2>Zoning &amp; Regulatory Context</h2>
@@ -763,7 +765,7 @@
             </div>
             {% endif %}
 
-            {# ===== Section 6: Nearby Activity ===== #}
+            {# ===== Section 8: Nearby Activity ===== #}
             {% if report.nearby_activity %}
             <div class="section" id="section-nearby">
                 <h2>Nearby Permit Activity</h2>
@@ -804,7 +806,7 @@
             </div>
             {% endif %}
 
-            {# ===== Section 7: Expeditor Needs Assessment ===== #}
+            {# ===== Section 9: Expeditor Needs Assessment ===== #}
             {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
             <div class="section" id="section-expeditor">
                 <h2>Expeditor Needs Assessment</h2>
