@@ -1187,11 +1187,31 @@ def _ask_address_search(query: str, entities: dict) -> str:
     # Resolve block/lot for property report link
     report_url = None
     try:
+        from src.db import query as db_query, _ph
+        from src.tools.permit_lookup import _strip_suffix
+        ph = _ph()
         bl = _resolve_block_lot(street_number, street_name)
+        # Fallback: if _resolve_block_lot failed but permits exist, try a
+        # broader query (just street_number + block/lot NOT NULL)
+        if not bl:
+            base_name, _sfx = _strip_suffix(street_name)
+            rows = db_query(
+                f"SELECT block, lot FROM permits "
+                f"WHERE street_number = {ph} "
+                f"  AND UPPER(COALESCE(street_name, '')) LIKE UPPER({ph}) "
+                f"  AND block IS NOT NULL AND lot IS NOT NULL "
+                f"LIMIT 1",
+                (street_number, f"%{base_name[:3]}%"),
+            )
+            if rows:
+                bl = (rows[0][0], rows[0][1])
+                logging.info("_resolve_block_lot fallback matched: %s %s -> %s/%s",
+                             street_number, street_name, bl[0], bl[1])
         if bl:
             report_url = f"/report/{bl[0]}/{bl[1]}"
-    except Exception:
-        pass
+    except Exception as e:
+        logging.warning("Block/lot resolution failed for %s %s: %s",
+                        street_number, street_name, e)
     # Detect no-results to show helpful next-step CTAs
     no_results = result_md.startswith("No permits found")
     street_address = f"{street_number} {street_name}" if street_number and street_name else None
