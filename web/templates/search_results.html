@@ -40,11 +40,50 @@
             </span>
         </div>
     </div>
-    {% elif report_url %}
+    {% elif report_url or street_address %}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border, #333749);">
-        <a href="{{ report_url }}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent, #4f8ff7);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
-            View Property Report &rarr;
-        </a>
+        <div style="font-weight: 600; margin-bottom: 12px; color: var(--text-muted);">Quick Actions</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
+            <!-- Primary: View Property Report -->
+            {% if report_url %}
+            <a href="{{ report_url }}"
+               style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent, #4f8ff7);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
+                📊 View Property Report
+            </a>
+            {% endif %}
+
+            <!-- Ask AI about this property -->
+            {% if street_address %}
+            <form method="POST" action="/ask" style="display: inline; margin: 0;">
+                <input type="hidden" name="q" value="What permits are needed for work at {{ street_address }}?">
+                <button type="submit"
+                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--accent);border:1px solid var(--accent);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+                    💬 Ask AI
+                </button>
+            </form>
+            {% endif %}
+
+            <!-- Analyze Project (prefill with address) -->
+            {% if street_address %}
+            <a href="/?experience=expert&address={{ street_address }}"
+               style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
+                🔍 Analyze Project
+            </a>
+            {% endif %}
+
+            <!-- Search Violations at this address -->
+            {% if street_address %}
+            <form method="POST" action="/ask" style="display: inline; margin: 0;">
+                <input type="hidden" name="q" value="Are there any violations at {{ street_address }}?">
+                <button type="submit"
+                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+                    ⚠️ Check Violations
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
     </div>
     {% endif %}
     {% if show_primary_prompt and prompt_street_number %}
