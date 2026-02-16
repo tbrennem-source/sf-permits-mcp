@@ -260,6 +260,32 @@ def init_user_schema(conn=None) -> None:
                 conn.execute(stmt)
             except Exception:
                 pass
+
+        # Plan analysis session tables (DuckDB version - TEXT instead of JSONB, TIMESTAMP instead of TIMESTAMPTZ)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS plan_analysis_sessions (
+                session_id TEXT PRIMARY KEY,
+                filename TEXT NOT NULL,
+                page_count INTEGER NOT NULL,
+                page_extractions TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS plan_analysis_images (
+                session_id TEXT NOT NULL,
+                page_number INTEGER NOT NULL,
+                image_data TEXT NOT NULL,
+                image_size_kb INTEGER,
+                PRIMARY KEY (session_id, page_number),
+                FOREIGN KEY (session_id) REFERENCES plan_analysis_sessions(session_id) ON DELETE CASCADE
+            )
+        """)
+        try:
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_created ON plan_analysis_sessions (created_at)")
+        except Exception:
+            pass
+
     finally:
         if close:
             conn.close()

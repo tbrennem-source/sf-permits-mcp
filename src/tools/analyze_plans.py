@@ -38,7 +38,8 @@ async def analyze_plans(
     filename: str = "plans.pdf",
     project_description: str | None = None,
     permit_type: str | None = None,
-) -> str:
+    return_structured: bool = False,
+) -> str | tuple[str, list[dict]]:
     """Analyze a PDF plan set with AI vision and EPR compliance checking.
 
     Performs a comprehensive analysis combining:
@@ -53,9 +54,11 @@ async def analyze_plans(
         filename: Original filename for convention check.
         project_description: Optional project description for completeness assessment.
         permit_type: Optional permit type (e.g., 'alterations', 'new_construction').
+        return_structured: If True, returns (markdown, page_extractions) tuple.
 
     Returns:
-        Comprehensive markdown analysis report.
+        Comprehensive markdown analysis report (str).
+        If return_structured=True, returns tuple of (markdown_str, page_extractions_list).
     """
     # Handle base64 input (for MCP transport)
     if isinstance(pdf_bytes, str):
@@ -155,11 +158,15 @@ async def analyze_plans(
         except Exception as e:
             logger.error("Strategic recommendations failed: %s", e)
 
-    return _build_report(
+    report = _build_report(
         metadata_results, vision_results, page_extractions,
         completeness_md, strategic_md,
         page_count, file_size_mb, filename, project_description,
     )
+
+    if return_structured:
+        return report, page_extractions
+    return report
 
 
 async def _assess_completeness(

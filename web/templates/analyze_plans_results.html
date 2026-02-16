@@ -1,3 +1,525 @@
+<style>
+    /* Visual UI Styles for Plan Analysis Results */
+
+    /* Bulk Actions Toolbar */
+    .bulk-actions-toolbar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .action-btn:hover {
+        background: var(--border);
+        border-color: var(--accent);
+        color: var(--text);
+    }
+
+    /* Thumbnail Gallery */
+    .thumbnail-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    @media (max-width: 640px) {
+        .thumbnail-gallery {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .thumbnail-item {
+        position: relative;
+        cursor: pointer;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .thumbnail-item:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .thumbnail-img {
+        width: 100%;
+        aspect-ratio: 34 / 22;
+        object-fit: cover;
+        display: block;
+    }
+
+    .thumbnail-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        padding: 8px;
+        color: var(--text);
+    }
+
+    .page-num {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--accent);
+    }
+
+    .sheet-id {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Detail Card Panel */
+    .detail-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        margin: 24px 0;
+    }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .detail-header h3 {
+        font-size: 1.2rem;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 2rem;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+        color: var(--error);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .detail-image img {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .metadata-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .metadata-table th,
+    .metadata-table td {
+        text-align: left;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .metadata-table th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 600;
+        width: 40%;
+    }
+
+    .metadata-table td {
+        color: var(--text);
+        font-size: 0.9rem;
+    }
+
+    .detail-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Lightbox Viewer */
+    .lightbox {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .lightbox-content img {
+        max-width: 100%;
+        max-height: 80vh;
+        border-radius: 8px;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        background: none;
+        border: none;
+        color: var(--text);
+        font-size: 3rem;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        transition: color 0.2s;
+    }
+
+    .lightbox-close:hover {
+        color: var(--error);
+    }
+
+    .lightbox-prev,
+    .lightbox-next {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 3rem;
+        width: 60px;
+        height: 60px;
+        cursor: pointer;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .lightbox-prev {
+        left: 20px;
+    }
+
+    .lightbox-next {
+        right: 20px;
+    }
+
+    .lightbox-prev:hover,
+    .lightbox-next:hover {
+        background: rgba(79, 143, 247, 0.3);
+        border-color: var(--accent);
+    }
+
+    .lightbox-info {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: var(--text);
+    }
+
+    .lightbox-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .lightbox-actions button {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .lightbox-actions button:hover {
+        background: var(--border);
+        border-color: var(--accent);
+    }
+
+    /* Comparison Panel */
+    .comparison-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        margin: 24px 0;
+    }
+
+    .comparison-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .comparison-header h3 {
+        font-size: 1.2rem;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .comparison-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .comparison-side label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .comparison-side select {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        margin-bottom: 12px;
+    }
+
+    .comparison-side select:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .comparison-side img {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .comparison-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .comparison-actions button {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .comparison-actions button:hover {
+        background: var(--border);
+        border-color: var(--accent);
+    }
+
+    /* Email Modal */
+    .email-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-content {
+        position: relative;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        max-width: 500px;
+        width: 90%;
+        z-index: 1;
+    }
+
+    .modal-content h3 {
+        font-size: 1.3rem;
+        color: var(--text);
+        margin: 0 0 20px;
+    }
+
+    .modal-content label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .modal-content input[type="email"],
+    .modal-content textarea {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        margin-bottom: 16px;
+    }
+
+    .modal-content input[type="email"]:focus,
+    .modal-content textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .modal-content textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .modal-actions .btn {
+        flex: 1;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .modal-actions .btn:hover {
+        background: var(--accent-hover);
+    }
+
+    .modal-actions .btn-secondary {
+        flex: 1;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .modal-actions .btn-secondary:hover {
+        background: var(--border);
+    }
+
+    /* Markdown Report */
+    .markdown-report {
+        margin-top: 32px;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-muted);
+        background: var(--surface-2);
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .validate-header {
+        margin-bottom: 20px;
+    }
+
+    .validate-header h2 {
+        font-size: 1.3rem;
+        margin: 0 0 8px;
+        color: var(--accent);
+    }
+
+    .validate-meta {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .validate-meta .file-hint {
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+</style>
+
 <div class="result-card">
     <div class="validate-header">
         <h2>Plan Set Analysis Report</h2>
@@ -6,5 +528,404 @@
             <span class="file-hint">&mdash; {{ filesize_mb }} MB</span>
         </div>
     </div>
-    {{ result | safe }}
+
+    {% if session_id %}
+    <!-- Bulk Actions Toolbar -->
+    <div class="bulk-actions-toolbar">
+        <button onclick="downloadAllPages()" class="action-btn">
+            📦 Download All Pages (ZIP)
+        </button>
+        <button onclick="downloadReport()" class="action-btn">
+            📄 Download Analysis Report (PDF)
+        </button>
+        <button onclick="emailAnalysis()" class="action-btn">
+            ✉️ Email Full Analysis
+        </button>
+        <button onclick="window.print()" class="action-btn">
+            🖨️ Print Report
+        </button>
+    </div>
+
+    <!-- Thumbnail Gallery -->
+    {% if extractions %}
+    <div class="thumbnail-gallery" id="thumbnail-gallery">
+        {% for extraction in extractions %}
+        <div class="thumbnail-item" onclick="openPageDetail({{ loop.index0 }})">
+            <img src="/plan-analysis/{{ session_id }}/page/{{ loop.index0 }}"
+                 loading="lazy"
+                 alt="Page {{ loop.index }}"
+                 class="thumbnail-img">
+            <div class="thumbnail-overlay">
+                <div class="page-num">Page {{ loop.index }}</div>
+                <div class="sheet-id">{{ extraction.sheet_id or 'No ID' }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        No page extractions available
+    </div>
+    {% endif %}
+
+    <!-- Detail Card Panel (hidden by default) -->
+    <div id="detail-card" class="detail-card" style="display:none;">
+        <div class="detail-header">
+            <h3>Page <span id="detail-page-num"></span> Details</h3>
+            <button onclick="closeDetail()" class="close-btn">&times;</button>
+        </div>
+        <div class="detail-grid">
+            <div class="detail-image">
+                <img id="detail-img" src="" alt="Page detail">
+            </div>
+            <div class="detail-metadata">
+                <table class="metadata-table">
+                    <tr><th>Sheet #</th><td id="meta-sheet"></td></tr>
+                    <tr><th>Address</th><td id="meta-address"></td></tr>
+                    <tr><th>Firm</th><td id="meta-firm"></td></tr>
+                    <tr><th>Professional Stamp</th><td id="meta-stamp"></td></tr>
+                </table>
+                <div class="detail-actions">
+                    <button onclick="downloadPage()" class="action-btn">Download Page</button>
+                    <button onclick="openLightbox(currentPage)" class="action-btn">Full Screen</button>
+                    <button onclick="openComparison()" class="action-btn">Compare</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox Viewer (hidden by default) -->
+    <div id="lightbox" class="lightbox" style="display:none;" onclick="closeLightbox()">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+            <button class="lightbox-prev" onclick="event.stopPropagation(); prevPage()">&lsaquo;</button>
+            <img id="lightbox-img" src="" alt="Full screen view">
+            <button class="lightbox-next" onclick="event.stopPropagation(); nextPage()">&rsaquo;</button>
+            <div class="lightbox-info">
+                <span id="lightbox-page-info"></span>
+                <div class="lightbox-actions">
+                    <button onclick="downloadPage()">Download</button>
+                    <button onclick="printPage()">Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side-by-Side Comparison (hidden by default) -->
+    <div id="comparison-panel" class="comparison-panel" style="display:none;">
+        <div class="comparison-header">
+            <h3>Compare Pages</h3>
+            <button onclick="closeComparison()" class="close-btn">&times;</button>
+        </div>
+        <div class="comparison-grid">
+            <div class="comparison-side">
+                <label>Left Page</label>
+                <select id="compare-left" onchange="updateComparisonPanel('left')">
+                    <!-- Populated by JS -->
+                </select>
+                <img id="compare-left-img" src="" alt="Left comparison">
+            </div>
+            <div class="comparison-side">
+                <label>Right Page</label>
+                <select id="compare-right" onchange="updateComparisonPanel('right')">
+                    <!-- Populated by JS -->
+                </select>
+                <img id="compare-right-img" src="" alt="Right comparison">
+            </div>
+        </div>
+        <div class="comparison-actions">
+            <button onclick="downloadComparison()">Download Both</button>
+            <button onclick="emailComparison()">Email Comparison</button>
+        </div>
+    </div>
+
+    <!-- Email Modal (hidden by default) -->
+    <div id="email-modal" class="email-modal" style="display:none;">
+        <div class="modal-backdrop" onclick="closeEmailModal()"></div>
+        <div class="modal-content">
+            <h3>Email Analysis</h3>
+            <form id="email-form" onsubmit="sendEmail(event)">
+                <label>Recipient Email</label>
+                <input type="email" id="email-recipient" required>
+                <label>Message (optional)</label>
+                <textarea id="email-message" rows="4"></textarea>
+                <input type="hidden" id="email-context">
+                <div class="modal-actions">
+                    <button type="submit" class="btn">Send</button>
+                    <button type="button" onclick="closeEmailModal()" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Markdown Report -->
+    <div class="markdown-report">
+        {{ result | safe }}
+    </div>
 </div>
+
+{% if session_id %}
+<script>
+    // ===========================
+    // State Management
+    // ===========================
+    let currentPage = 0;
+    const sessionId = '{{ session_id }}';
+    const pageCount = {{ page_count or 0 }};
+    const extractions = {{ extractions_json | safe }};
+
+    // ===========================
+    // Core Functions
+    // ===========================
+    function openPageDetail(pageNum) {
+        currentPage = pageNum;
+        const extraction = extractions[pageNum];
+
+        // Update detail card content
+        document.getElementById('detail-page-num').textContent = pageNum + 1;
+        document.getElementById('detail-img').src = `/plan-analysis/${sessionId}/page/${pageNum}`;
+        document.getElementById('meta-sheet').textContent = extraction.sheet_id || 'N/A';
+        document.getElementById('meta-address').textContent = extraction.address || 'N/A';
+        document.getElementById('meta-firm').textContent = extraction.firm || 'N/A';
+        document.getElementById('meta-stamp').textContent = extraction.has_professional_stamp ? 'Yes' : 'No';
+
+        // Show detail card
+        document.getElementById('detail-card').style.display = 'block';
+
+        // Scroll to detail card
+        document.getElementById('detail-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeDetail() {
+        document.getElementById('detail-card').style.display = 'none';
+    }
+
+    function openLightbox(pageNum) {
+        currentPage = pageNum;
+        updateLightbox();
+        document.getElementById('lightbox').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function prevPage() {
+        currentPage = (currentPage - 1 + pageCount) % pageCount;
+        updateLightbox();
+    }
+
+    function nextPage() {
+        currentPage = (currentPage + 1) % pageCount;
+        updateLightbox();
+    }
+
+    function updateLightbox() {
+        const extraction = extractions[currentPage];
+        document.getElementById('lightbox-img').src = `/plan-analysis/${sessionId}/page/${currentPage}`;
+        document.getElementById('lightbox-page-info').textContent =
+            `Page ${currentPage + 1} of ${pageCount} — ${extraction.sheet_id || 'No ID'}`;
+
+        // Hide prev/next buttons if single page
+        if (pageCount <= 1) {
+            document.querySelector('.lightbox-prev').style.display = 'none';
+            document.querySelector('.lightbox-next').style.display = 'none';
+        }
+    }
+
+    // ===========================
+    // Comparison View
+    // ===========================
+    function openComparison() {
+        populateComparisonDropdowns();
+
+        // Set initial selections
+        const leftSelect = document.getElementById('compare-left');
+        const rightSelect = document.getElementById('compare-right');
+
+        if (pageCount >= 2) {
+            leftSelect.value = '0';
+            rightSelect.value = '1';
+        } else if (pageCount === 1) {
+            leftSelect.value = '0';
+            rightSelect.value = '0';
+        }
+
+        updateComparisonPanel('left');
+        updateComparisonPanel('right');
+
+        document.getElementById('comparison-panel').style.display = 'block';
+        document.getElementById('comparison-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function populateComparisonDropdowns() {
+        const leftSelect = document.getElementById('compare-left');
+        const rightSelect = document.getElementById('compare-right');
+
+        leftSelect.innerHTML = '';
+        rightSelect.innerHTML = '';
+
+        for (let i = 0; i < pageCount; i++) {
+            const extraction = extractions[i];
+            const label = `Page ${i + 1} — ${extraction.sheet_id || 'No ID'}`;
+
+            const leftOption = document.createElement('option');
+            leftOption.value = i;
+            leftOption.textContent = label;
+            leftSelect.appendChild(leftOption);
+
+            const rightOption = document.createElement('option');
+            rightOption.value = i;
+            rightOption.textContent = label;
+            rightSelect.appendChild(rightOption);
+        }
+    }
+
+    function updateComparisonPanel(side) {
+        const select = document.getElementById(`compare-${side}`);
+        const img = document.getElementById(`compare-${side}-img`);
+        const pageNum = parseInt(select.value);
+
+        img.src = `/plan-analysis/${sessionId}/page/${pageNum}`;
+    }
+
+    function closeComparison() {
+        document.getElementById('comparison-panel').style.display = 'none';
+    }
+
+    // ===========================
+    // Download Functions
+    // ===========================
+    function downloadPage() {
+        window.location.href = `/plan-analysis/${sessionId}/page/${currentPage}?download=1`;
+    }
+
+    function downloadAllPages() {
+        window.location.href = `/plan-analysis/${sessionId}/download-zip`;
+    }
+
+    function downloadComparison() {
+        const leftPage = parseInt(document.getElementById('compare-left').value);
+        const rightPage = parseInt(document.getElementById('compare-right').value);
+
+        // Download left page
+        window.location.href = `/plan-analysis/${sessionId}/page/${leftPage}?download=1`;
+
+        // Download right page after short delay
+        setTimeout(() => {
+            window.location.href = `/plan-analysis/${sessionId}/page/${rightPage}?download=1`;
+        }, 500);
+    }
+
+    function downloadReport() {
+        window.location.href = `/plan-analysis/${sessionId}/download-pdf`;
+    }
+
+    // ===========================
+    // Print Functions
+    // ===========================
+    function printPage() {
+        const imgSrc = `/plan-analysis/${sessionId}/page/${currentPage}`;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Print Page ${currentPage + 1}</title>
+                <style>
+                    body { margin: 0; padding: 0; }
+                    img { max-width: 100%; height: auto; }
+                </style>
+            </head>
+            <body>
+                <img src="${imgSrc}" onload="window.print(); window.close();">
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    function printReport() {
+        window.print();
+    }
+
+    // ===========================
+    // Email Functions
+    // ===========================
+    function emailAnalysis() {
+        openEmailModal('full');
+    }
+
+    function emailComparison() {
+        const leftPage = parseInt(document.getElementById('compare-left').value);
+        const rightPage = parseInt(document.getElementById('compare-right').value);
+        openEmailModal(`comparison:${leftPage},${rightPage}`);
+    }
+
+    function openEmailModal(context) {
+        document.getElementById('email-context').value = context;
+        document.getElementById('email-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function sendEmail(event) {
+        event.preventDefault();
+
+        const recipient = document.getElementById('email-recipient').value;
+        const message = document.getElementById('email-message').value;
+        const context = document.getElementById('email-context').value;
+
+        fetch('/plan-analysis/email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                session_id: sessionId,
+                recipient: recipient,
+                message: message,
+                context: context
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Email sent successfully!');
+                closeEmailModal();
+            } else {
+                alert('Error sending email: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alert('Error sending email: ' + error.message);
+        });
+    }
+
+    function closeEmailModal() {
+        document.getElementById('email-modal').style.display = 'none';
+        document.body.style.overflow = '';
+        document.getElementById('email-form').reset();
+    }
+
+    // ===========================
+    // Keyboard Navigation
+    // ===========================
+    document.addEventListener('keydown', (e) => {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox && lightbox.style.display !== 'none') {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevPage();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextPage();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeLightbox();
+            }
+        }
+    });
+</script>
+{% endif %}

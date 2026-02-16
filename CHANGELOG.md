@@ -1,5 +1,55 @@
 # Changelog
 
+## Session 20 — Phase 4.5: Visual Plan Analysis UI (2026-02-16)
+
+### Visual Plan Gallery & Viewer
+- **Database-backed image storage** — 24h session expiry with nightly cleanup
+- `plan_analysis_sessions` table — stores filename, page_count, page_extractions (JSONB/TEXT)
+- `plan_analysis_images` table — base64 PNG storage per page, CASCADE delete on session expiry
+- `web/plan_images.py` module — `create_session()`, `get_session()`, `get_page_image()`, `cleanup_expired()`
+- PostgreSQL (prod) + DuckDB (dev) dual-mode support
+
+### Enhanced analyze_plans Tool
+- Added `return_structured: bool = False` parameter to `src/tools/analyze_plans.py`
+- Returns tuple `(markdown_report, page_extractions)` when True
+- Backward compatible — existing MCP callers get markdown string as before
+- Web route now renders all pages (cap at 50) and creates session
+
+### Web UI Components (analyze_plans_results.html)
+- **Thumbnail gallery** — CSS grid with lazy loading, page numbers + sheet IDs
+- **Detail cards** — Extracted metadata (sheet #, address, firm, professional stamp)
+- **Lightbox viewer** — Full-screen with keyboard navigation (arrows, escape)
+- **Side-by-side comparison** — Compare any two pages with dropdown selectors
+- **Email modal** — Share analysis with recipient via Mailgun
+- Dark theme with CSS variables, responsive grid layout
+
+### API Routes
+- `GET /plan-images/<session_id>/<page_number>` — Serve rendered PNG images (24h cache)
+- `GET /plan-session/<session_id>` — Return session metadata as JSON
+- `GET /plan-images/<session_id>/download-all` — ZIP download of all pages
+- `POST /plan-analysis/email` — Email analysis to recipient (full or comparison context)
+- Nightly cron cleanup integrated — deletes sessions older than 24h
+
+### JavaScript Interactivity
+- State management: `currentPage`, `sessionId`, `pageCount`, `extractions`
+- Functions: `openPageDetail()`, `openLightbox()`, `openComparison()`, `downloadPage()`, `downloadAllPages()`, `emailAnalysis()`
+- Keyboard navigation in lightbox (ArrowLeft, ArrowRight, Escape)
+- Dropdown population for comparison view with sheet metadata
+
+### Tests
+- **21 new tests** — `test_plan_images.py` (8 unit), `test_plan_ui.py` (10 integration), `test_analyze_plans.py` (+3)
+- Tests cover: session creation, image retrieval, cleanup, route responses, ZIP download, email delivery
+- **833 tests total** (812 → 833)
+
+### Performance & Security
+- 50-page cap to avoid timeouts (configurable)
+- Graceful degradation — falls back to text report if image rendering fails
+- Session IDs via `secrets.token_urlsafe(16)` act as capability tokens
+- Per-page images: ~50-150 KB base64 PNG (150 DPI, max 1568px)
+- 24h expiry prevents database bloat
+
+---
+
 ## Session 19 — Bounty Points, Nightly Triage & Quick Fixes (2026-02-16)
 
 ### Bounty Points System
