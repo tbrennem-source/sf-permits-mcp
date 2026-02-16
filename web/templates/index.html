@@ -794,6 +794,19 @@
 
             <div id="search-results"></div>
 
+            {% if user_report_url %}
+            <!-- Your Property Report card -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <div style="font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Your Property</div>
+                    <div style="font-size:1rem;font-weight:600;color:var(--text);">{{ user_report_address }}</div>
+                </div>
+                <a href="{{ user_report_url }}" style="display:inline-block;padding:10px 20px;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;white-space:nowrap;">
+                    View Property Report &rarr;
+                </a>
+            </div>
+            {% endif %}
+
             <!-- === Analyze Project Section (hidden by default) === -->
             <div class="tool-section" id="section-analyze">
 

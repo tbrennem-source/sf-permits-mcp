@@ -14,6 +14,13 @@
         {% endif %}
     </div>
     {{ result_html | safe }}
+    {% if report_url %}
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border, #333749);">
+        <a href="{{ report_url }}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent, #4f8ff7);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
+            View Property Report &rarr;
+        </a>
+    </div>
+    {% endif %}
     {% if show_primary_prompt and prompt_street_number %}
     {% include 'fragments/primary_address_prompt.html' %}
     {% endif %}

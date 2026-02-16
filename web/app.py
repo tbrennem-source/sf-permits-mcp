@@ -393,9 +393,47 @@ def health():
     return Response(json.dumps(info, indent=2), mimetype="application/json")
 
 
+def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] | None:
+    """Lightweight lookup: resolve a street address to (block, lot) from permits table."""
+    from src.db import query, _ph
+    ph = _ph()
+    pattern = f"%{street_name}%"
+    rows = query(
+        f"SELECT block, lot FROM permits "
+        f"WHERE street_number = {ph} "
+        f"  AND ("
+        f"    UPPER(street_name) LIKE UPPER({ph})"
+        f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
+        f"  ) "
+        f"  AND block IS NOT NULL AND lot IS NOT NULL "
+        f"LIMIT 1",
+        (street_number, pattern, pattern),
+    )
+    if rows:
+        return (rows[0][0], rows[0][1])
+    return None
+
+
 @app.route("/")
 def index():
-    return render_template("index.html", neighborhoods=NEIGHBORHOODS)
+    # If logged-in user has a primary address, resolve block/lot for report link
+    user_report_url = None
+    user_report_address = None
+    if g.user and g.user.get("primary_street_number") and g.user.get("primary_street_name"):
+        try:
+            bl = _resolve_block_lot(g.user["primary_street_number"], g.user["primary_street_name"])
+            if bl:
+                user_report_url = f"/report/{bl[0]}/{bl[1]}"
+                user_report_address = f"{g.user['primary_street_number']} {g.user['primary_street_name']}"
+        except Exception:
+            pass  # Non-critical — homepage still works
+
+    return render_template(
+        "index.html",
+        neighborhoods=NEIGHBORHOODS,
+        user_report_url=user_report_url,
+        user_report_address=user_report_address,
+    )
 
 
 @app.route("/analyze", methods=["POST"])
@@ -703,7 +741,19 @@ def lookup():
     except Exception as e:
         result_html = f'<div class="error">Lookup error: {e}</div>'
 
-    return render_template("lookup_results.html", result=result_html)
+    # Resolve report URL for property report link
+    report_url = None
+    try:
+        if lookup_mode == "parcel" and block and lot:
+            report_url = f"/report/{block}/{lot}"
+        elif lookup_mode == "address" and street_number and street_name:
+            bl = _resolve_block_lot(street_number, street_name)
+            if bl:
+                report_url = f"/report/{bl[0]}/{bl[1]}"
+    except Exception:
+        pass
+
+    return render_template("lookup_results.html", result=result_html, report_url=report_url)
 
 
 # ---------------------------------------------------------------------------
@@ -839,10 +889,12 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
     if watch_data:
         ctx = _watch_context(watch_data)
 
+    report_url = f"/report/{block}/{lot}" if block and lot else None
     return render_template(
         "search_results.html",
         query_echo=label,
         result_html=md_to_html(combined_md),
+        report_url=report_url,
         **ctx,
     )
 
@@ -863,6 +915,14 @@ def _ask_address_search(query: str, entities: dict) -> str:
     }
     # Primary address prompt: show if logged in and no primary address set yet
     show_primary_prompt = bool(g.user and not g.user.get("primary_street_number"))
+    # Resolve block/lot for property report link
+    report_url = None
+    try:
+        bl = _resolve_block_lot(street_number, street_name)
+        if bl:
+            report_url = f"/report/{bl[0]}/{bl[1]}"
+    except Exception:
+        pass
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
@@ -870,6 +930,7 @@ def _ask_address_search(query: str, entities: dict) -> str:
         show_primary_prompt=show_primary_prompt,
         prompt_street_number=street_number,
         prompt_street_name=street_name,
+        report_url=report_url,
         **_watch_context(watch_data),
     )
 
@@ -885,10 +946,12 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
         "lot": lot,
         "label": f"Block {block}, Lot {lot}",
     }
+    report_url = f"/report/{block}/{lot}" if block and lot else None
     return render_template(
         "search_results.html",
         query_echo=f"Block {block}, Lot {lot}",
         result_html=md_to_html(result_md),
+        report_url=report_url,
         **_watch_context(watch_data),
     )
 

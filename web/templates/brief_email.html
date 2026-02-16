@@ -62,6 +62,28 @@
                         </td>
                     </tr>
 
+                    {% if property_synopsis and property_synopsis.block and property_synopsis.lot %}
+                    <!-- Your Property Report link -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;">
+                                <tr>
+                                    <td style="padding:16px 20px;">
+                                        <div style="font-size:0.75rem;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px;">Your Property</div>
+                                        <div style="font-size:1rem;font-weight:600;color:#1a1a2e;">{{ property_synopsis.address }}</div>
+                                    </td>
+                                    <td align="right" style="padding:16px 20px;">
+                                        <a href="{{ base_url }}/report/{{ property_synopsis.block }}/{{ property_synopsis.lot }}"
+                                           style="display:inline-block;padding:10px 20px;background:#4f8ff7;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;white-space:nowrap;">
+                                            View Report &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
                     {% if changes %}
                     <!-- What Changed -->
                     <tr>

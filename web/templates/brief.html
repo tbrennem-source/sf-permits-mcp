@@ -259,6 +259,12 @@
                     &middot; Permit history: {{ brief.property_synopsis.earliest_date }} &ndash; {{ brief.property_synopsis.latest_date }}
                     {% endif %}
                 </div>
+                <div style="margin-top:12px;">
+                    <a href="/report/{{ brief.property_synopsis.block }}/{{ brief.property_synopsis.lot }}"
+                       style="display:inline-block;padding:8px 18px;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.85rem;">
+                        View Property Report &rarr;
+                    </a>
+                </div>
                 {% endif %}
             </div>
             {% endif %}

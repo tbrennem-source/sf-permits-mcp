@@ -133,6 +133,7 @@ def render_brief_email(user: dict, brief_data: dict) -> str:
         new_filings=brief_data["new_filings"],
         expiring=brief_data["expiring"],
         last_refresh=brief_data.get("last_refresh"),
+        property_synopsis=brief_data.get("property_synopsis"),
         unsubscribe_url=unsubscribe_url,
     )
 
