@@ -1662,8 +1662,14 @@ RATE_LIMIT_MAX_SHARE = 3    # /report share emails per window
 
 @app.route("/report/<block>/<lot>")
 def property_report(block, lot):
-    """Comprehensive property report — public (no login required)."""
+    """Comprehensive property report — public (no login required).
+
+    Owner Mode: If the logged-in user's primary address matches the
+    report address (or ?owner=1 is set), the report includes a
+    Remediation Roadmap and extended expediter scoring.
+    """
     from web.report import get_property_report
+    from web.owner_mode import detect_owner
     from src.report_links import ReportLinks
 
     ip = request.remote_addr or "unknown"
@@ -1675,31 +1681,47 @@ def property_report(block, lot):
     if not block or not lot:
         abort(400)
 
+    user = getattr(g, "user", None)
+    explicit_toggle = request.args.get("owner", "").lower() in ("1", "true", "yes")
+
     try:
+        # First pass without owner mode to get the address
         report = get_property_report(block, lot)
+
+        # Detect owner from address match or explicit toggle
+        is_owner = detect_owner(user, report.get("address", ""), explicit_toggle)
+
+        # If owner detected, regenerate with Owner Mode extensions
+        if is_owner:
+            report = get_property_report(block, lot, is_owner=True)
     except Exception as e:
         logging.exception("Report generation failed for %s/%s", block, lot)
         return render_template(
             "report.html",
             report=None,
             error=f"Could not generate report: {e}",
-            user=getattr(g, "user", None),
+            user=user,
+            is_owner=False,
             links=ReportLinks,
         ), 500
+
+    is_owner = report.get("is_owner", False)
 
     if not report.get("permits") and not report.get("complaints") and not report.get("property_profile"):
         return render_template(
             "report.html",
             report=report,
             error=f"No data found for Block {block}, Lot {lot}.",
-            user=getattr(g, "user", None),
+            user=user,
+            is_owner=is_owner,
             links=ReportLinks,
         ), 404
 
     return render_template(
         "report.html",
         report=report,
-        user=getattr(g, "user", None),
+        user=user,
+        is_owner=is_owner,
         links=ReportLinks,
     )
 
@@ -1733,11 +1755,14 @@ def property_report_share(block, lot):
     base_url = os.environ.get("BASE_URL", "http://localhost:5001")
     report_url = f"{base_url}/report/{block}/{lot}"
 
+    is_owner = report.get("is_owner", False)
+
     try:
         html_body = render_template(
             "report_email.html",
             report=report,
             report_url=report_url,
+            is_owner=is_owner,
             links=ReportLinks,
         )
     except Exception as e:

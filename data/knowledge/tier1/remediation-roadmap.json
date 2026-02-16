@@ -1,0 +1,373 @@
+{
+  "metadata": {
+    "description": "Maps risk assessment categories to remediation options for property owners",
+    "version": "0.1",
+    "created": "2026-02-15"
+  },
+  "remediation_templates": {
+    "active_complaint": {
+      "what_at_stake": "An open DBI complaint signals a known issue at your property. If unresolved, complaints can escalate to a formal Notice of Violation (NOV), which creates a lien-like record on the property and must be cleared before new permits are approved. Active complaints also attract closer inspector scrutiny on any future permit applications.",
+      "options": [
+        {
+          "label": "Resolve directly with DBI",
+          "effort": "least_effort",
+          "description": "Contact DBI to understand the complaint, then correct the issue and request a re-inspection to close it out.",
+          "cost_range": "$0–$500",
+          "timeline": "2–6 weeks",
+          "steps": [
+            "Call the DBI Complaint Hotline at (415) 558-6570 to get details on the open complaint",
+            "Address the specific condition cited in the complaint",
+            "Request a re-inspection through DBI to verify the issue is resolved",
+            "Confirm the complaint status is updated to 'Abated' or 'Closed' in DBI records"
+          ]
+        },
+        {
+          "label": "Full compliance — fix underlying issue",
+          "effort": "full_compliance",
+          "description": "Investigate the root cause behind the complaint (e.g., unpermitted work, building code violation) and bring the property into full compliance with permits and inspections as needed.",
+          "cost_range": "$500–$10,000+",
+          "timeline": "1–4 months",
+          "steps": [
+            "Obtain a copy of the complaint from DBI and review the cited code sections",
+            "Hire a licensed contractor or engineer to assess the scope of corrective work",
+            "File any required permits at 1660 Mission St, 1st Floor (DBI screening counter)",
+            "Complete corrective work and pass all required inspections",
+            "Request final complaint closure from the assigned DBI inspector"
+          ]
+        },
+        {
+          "label": "Status quo — no action",
+          "effort": "status_quo",
+          "description": "Take no action. The complaint remains open and may escalate to a formal Notice of Violation with fines and liens.",
+          "cost_range": "$0",
+          "timeline": "Immediate",
+          "steps": [
+            "Be aware that DBI may issue a Notice of Violation (NOV) if the complaint is not addressed",
+            "An NOV creates a public record that can affect property value and future permit approvals",
+            "Fines for unresolved NOVs can accrue daily"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "dbi_contact", "label": "DBI Complaint Hotline: (415) 558-6570", "url": "https://sf.gov/departments/building-inspection"},
+        {"type": "dbi_contact", "label": "DBI Screening Counter: 1660 Mission St, 1st Floor", "url": "https://sf.gov/departments/building-inspection"}
+      ]
+    },
+    "active_violation": {
+      "what_at_stake": "A Notice of Violation (NOV) is a formal enforcement action recorded against your property. NOVs must be resolved before DBI will approve new permit applications. Outstanding violations accrue daily penalties and can result in liens recorded with the Assessor-Recorder, directly affecting property value and title.",
+      "options": [
+        {
+          "label": "Correct violation and obtain DBI sign-off",
+          "effort": "full_compliance",
+          "description": "Address the cited violation conditions, complete any required permit work, pass inspections, and get the NOV formally abated by the assigned inspector.",
+          "cost_range": "$1,000–$50,000+",
+          "timeline": "1–6 months",
+          "steps": [
+            "Obtain the NOV document from DBI and review all cited code sections and required corrections",
+            "Hire a licensed contractor, architect, or engineer as appropriate for the scope of work",
+            "File corrective permits at the DBI screening counter (1660 Mission St, 1st Floor)",
+            "Complete all corrective work per approved plans",
+            "Schedule and pass all required inspections",
+            "Request NOV abatement from the assigned DBI inspector",
+            "Confirm the NOV status is updated to 'Complied' in DBI records"
+          ]
+        },
+        {
+          "label": "Hire a permit expediter to manage resolution",
+          "effort": "least_effort",
+          "description": "Engage a professional permit expediter or consultant to coordinate the violation resolution process on your behalf, including interfacing with DBI, managing contractors, and tracking inspections.",
+          "cost_range": "$2,000–$10,000 (expediter fees) + corrective work costs",
+          "timeline": "2–6 months",
+          "steps": [
+            "Select a permit expediter from the SF Ethics Commission permit consultant registry",
+            "Provide the expediter with the NOV document and property access",
+            "The expediter will develop a compliance plan, file permits, and coordinate contractors",
+            "Review progress updates and approve any scope changes",
+            "Expediter manages inspections and NOV abatement sign-off"
+          ]
+        },
+        {
+          "label": "Status quo — no action",
+          "effort": "status_quo",
+          "description": "Take no action. Penalties continue to accrue, DBI may record a lien against the property, and no new permits will be approved until the NOV is resolved.",
+          "cost_range": "$0 (but daily penalties accrue)",
+          "timeline": "Immediate",
+          "steps": [
+            "Be aware that DBI penalties for unresolved NOVs can reach $1,000+ per day for serious violations",
+            "A lien may be recorded with the SF Assessor-Recorder, encumbering the property title",
+            "All future permit applications will be blocked until the NOV is cleared",
+            "Unresolved violations are disclosed in property sale transactions"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "dbi_contact", "label": "DBI Code Enforcement: (415) 558-6570", "url": "https://sf.gov/departments/building-inspection"},
+        {"type": "admin_bulletin", "label": "SF Ethics Commission — Permit Consultant Registry", "url": "https://sfethics.org/disclosures/permit-consultant-disclosure"}
+      ]
+    },
+    "high_cost_project": {
+      "what_at_stake": "Permits with construction values exceeding $500,000 receive additional scrutiny from DBI plan review, may trigger enhanced seismic or structural review requirements, and are more likely to require in-house review rather than over-the-counter approval. Higher-value projects also attract longer review timelines and may require separate engineering peer review.",
+      "options": [
+        {
+          "label": "Engage a permit expediter for full-service management",
+          "effort": "least_effort",
+          "description": "Hire a permit expediter to manage the entire permitting process, from application through final inspection, ensuring submissions are complete and reviews move efficiently.",
+          "cost_range": "$5,000–$25,000 (expediter fees)",
+          "timeline": "Saves 1–3 months vs. self-managed",
+          "steps": [
+            "Select a permit expediter experienced with high-value projects from the SF Ethics Commission registry",
+            "Provide complete project plans and engineering documents",
+            "Expediter pre-screens application for completeness using DBI 13-section checklist",
+            "Expediter files application at 1660 Mission St and tracks routing through all review stations",
+            "Expediter coordinates responses to plan check corrections and manages re-submittals"
+          ]
+        },
+        {
+          "label": "Phase the project into smaller permits",
+          "effort": "full_compliance",
+          "description": "Break the project into logical phases (e.g., foundation/structural, mechanical/electrical, finish work) with separate permit applications to reduce per-permit review complexity.",
+          "cost_range": "$500–$2,000 (additional filing fees for multiple permits)",
+          "timeline": "May add 1–2 months for phased filing but reduce individual review times",
+          "steps": [
+            "Work with your architect to identify logical project phases that can be separately permitted",
+            "File the foundation or structural permit first to begin site work while other phases are reviewed",
+            "File subsequent phase permits as prior phases clear plan review",
+            "Coordinate inspection schedules across multiple active permits",
+            "Ensure all phases reference the same master plans for consistency"
+          ]
+        },
+        {
+          "label": "Proceed as-is with single permit application",
+          "effort": "status_quo",
+          "description": "File one comprehensive permit application. Expect longer review timelines and potentially more rounds of plan check corrections.",
+          "cost_range": "$0 (standard filing fees apply)",
+          "timeline": "4–12 months typical for plan review on high-value projects",
+          "steps": [
+            "Ensure the application package is complete per DBI 13-section completeness checklist",
+            "Submit the application at the DBI screening counter (1660 Mission St, 1st Floor)",
+            "Monitor routing status through DBI Permit Tracker",
+            "Respond promptly to plan check corrections from each review station",
+            "Budget for 2–4 rounds of plan check corrections as typical for this project scale"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "dbi_contact", "label": "DBI Permit Services: 1660 Mission St, 1st Floor", "url": "https://sf.gov/departments/building-inspection"},
+        {"type": "admin_bulletin", "label": "SF Ethics Commission — Permit Consultant Registry", "url": "https://sfethics.org/disclosures/permit-consultant-disclosure"}
+      ]
+    },
+    "moderate_cost_project": {
+      "what_at_stake": "Permits with construction values between $100,000 and $500,000 undergo standard in-house plan review, typically routing through 3–5 review stations (Building, Plumbing/Mechanical, Electrical, Fire, Planning). While not at the enhanced scrutiny level of high-cost projects, these still require careful preparation to avoid review delays.",
+      "options": [
+        {
+          "label": "Use an expediter for complex review portions",
+          "effort": "least_effort",
+          "description": "Engage a permit expediter to handle specific complex aspects of the review process (e.g., Planning review, Fire Department coordination) while managing simpler portions yourself.",
+          "cost_range": "$1,500–$5,000 (expediter fees for partial service)",
+          "timeline": "Saves 2–6 weeks on complex review stations",
+          "steps": [
+            "Identify which review stations are likely to be most complex for your project type",
+            "Engage an expediter for those specific stations (Planning and Fire are common choices)",
+            "File the permit application yourself at the DBI screening counter (1660 Mission St, 1st Floor)",
+            "Manage straightforward review stations (Building, Electrical) independently",
+            "Have the expediter handle corrections and re-submittals for complex stations"
+          ]
+        },
+        {
+          "label": "Proceed independently",
+          "effort": "status_quo",
+          "description": "Manage the entire permit process yourself or through your architect/contractor. This is common and workable for experienced applicants.",
+          "cost_range": "$0 (standard filing fees apply)",
+          "timeline": "2–6 months typical for plan review",
+          "steps": [
+            "Prepare a complete application package per the DBI 13-section completeness checklist",
+            "Submit at the DBI screening counter (1660 Mission St, 1st Floor)",
+            "Track routing status through the DBI Permit Tracker online",
+            "Respond to plan check corrections within 30 days to avoid application expiration",
+            "Coordinate with your architect or contractor on any technical corrections"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "dbi_contact", "label": "DBI Permit Services: 1660 Mission St, 1st Floor", "url": "https://sf.gov/departments/building-inspection"}
+      ]
+    },
+    "multiple_active_permits": {
+      "what_at_stake": "Having multiple active permits on the same property creates coordination complexity. Inspectors from different permits may have conflicting requirements, scheduling becomes more difficult, and work under one permit can inadvertently affect approved conditions under another. Without active coordination, you risk inspection failures, stop-work orders, or permit revocations.",
+      "options": [
+        {
+          "label": "Consolidate management under a single expediter",
+          "effort": "least_effort",
+          "description": "Hire one permit expediter to manage all active permits as a coordinated package, ensuring inspection schedules align and work under each permit does not conflict.",
+          "cost_range": "$3,000–$10,000 (expediter fees for multi-permit coordination)",
+          "timeline": "Ongoing for duration of active permits",
+          "steps": [
+            "Select a permit expediter from the SF Ethics Commission permit consultant registry",
+            "Provide the expediter with copies of all active permits and approved plan sets",
+            "Expediter creates a master coordination schedule across all permits",
+            "Expediter manages inspection sequencing to avoid conflicts",
+            "Expediter serves as single point of contact with DBI for all permit-related issues"
+          ]
+        },
+        {
+          "label": "Coordinate independently with a tracking system",
+          "effort": "full_compliance",
+          "description": "Manage coordination yourself using a tracking system to monitor inspection schedules, permit conditions, and contractor activities across all active permits.",
+          "cost_range": "$0",
+          "timeline": "Ongoing for duration of active permits",
+          "steps": [
+            "Create a master schedule listing all active permits, their current status, and required inspections",
+            "Review approved plans for each permit to identify any overlapping or adjacent work areas",
+            "Schedule inspections sequentially — complete inspections for foundation/structural permits before beginning finish work under other permits",
+            "Notify each permit's assigned inspector about the existence of other active permits on the property",
+            "Monitor all permits through the DBI Permit Tracker and address corrections promptly"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "dbi_contact", "label": "DBI Permit Services: 1660 Mission St, 1st Floor", "url": "https://sf.gov/departments/building-inspection"},
+        {"type": "admin_bulletin", "label": "SF Ethics Commission — Permit Consultant Registry", "url": "https://sfethics.org/disclosures/permit-consultant-disclosure"}
+      ]
+    },
+    "restrictive_zoning": {
+      "what_at_stake": "Properties in RH-1 (Residential House, One Family) zoning districts face additional review requirements for most exterior modifications and additions. Section 311 of the Planning Code requires neighborhood notification for projects that alter building height, bulk, or rear yard setbacks. Neighbors can request Discretionary Review (DR), which adds 2–6 months and a hearing before the Planning Commission. ADU projects in RH-1 may be exempt from some notification requirements under state law (SB 9, AB 2221).",
+      "options": [
+        {
+          "label": "Pre-application meeting with SF Planning",
+          "effort": "least_effort",
+          "description": "Schedule a pre-application meeting with the Planning Department to understand what triggers Section 311 notification for your specific project and whether any exemptions apply.",
+          "cost_range": "$0–$400 (pre-application meeting fee)",
+          "timeline": "2–4 weeks to schedule and attend",
+          "steps": [
+            "Visit the SF Planning counter at 49 South Van Ness Ave, Suite 1400, or call (628) 652-7600",
+            "Request a pre-application meeting for your project address and scope",
+            "Bring preliminary plans showing proposed changes to building envelope, height, and setbacks",
+            "Ask specifically about Section 311 notification triggers and any state law exemptions (SB 9, AB 2221)",
+            "If building an ADU, contact the Planning ADU Team at CPC.ADU@sfgov.org for streamlined review guidance"
+          ]
+        },
+        {
+          "label": "Engage a planning consultant",
+          "effort": "full_compliance",
+          "description": "Hire a planning consultant or permit expediter experienced with RH-1 projects to manage the Planning review process, including Section 311 notification and potential DR hearings.",
+          "cost_range": "$3,000–$15,000 (consultant fees depending on DR hearing involvement)",
+          "timeline": "Adds 1–2 months for proactive neighbor outreach; DR hearing adds 2–6 months if triggered",
+          "steps": [
+            "Select a planning consultant experienced with residential projects in RH-1 districts",
+            "Consultant reviews plans for Section 311 triggers and advises on design modifications to reduce DR risk",
+            "Consultant conducts proactive neighbor outreach before notification period begins",
+            "If DR is requested, consultant prepares the Planning Commission hearing presentation",
+            "Consultant coordinates with your architect on any design revisions required by Planning conditions"
+          ]
+        },
+        {
+          "label": "Proceed and respond to notifications as they come",
+          "effort": "status_quo",
+          "description": "File the permit application and let the Section 311 process run its course. Respond to any DR requests reactively.",
+          "cost_range": "$0 (standard filing fees apply; DR hearing fee is $632 if triggered)",
+          "timeline": "Section 311 adds 30-day notification period; DR adds 2–6 months",
+          "steps": [
+            "File the permit application at the DBI screening counter (1660 Mission St, 1st Floor)",
+            "When routed to Planning, the Section 311 notification will be mailed to neighbors within 150 feet",
+            "Monitor for any DR requests during the 30-day notification period",
+            "If no DR is requested, Planning review proceeds normally",
+            "If DR is requested, prepare for a Planning Commission hearing (attend or hire representation)"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "planning_code", "label": "SF Planning Code Section 311 — Neighborhood Notification", "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_planning/0-0-0-21240"},
+        {"type": "dbi_contact", "label": "SF Planning Department: 49 South Van Ness Ave, Suite 1400", "url": "https://sfplanning.org"},
+        {"type": "state_legislation", "label": "SB 9 — California Housing Opportunity and More Efficiency Act", "url": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202120220SB9"}
+      ]
+    },
+    "classification_drift": {
+      "what_at_stake": "When a property's use classification changes across permits without a formal change-of-use or conversion permit, it creates an 'unpermitted use change' on record. This can affect property insurance coverage (insurers may deny claims if the use doesn't match records), complicate resale (title searches reveal inconsistencies), and trigger enforcement action from DBI or Planning if discovered during future inspections. Common examples: residential-to-commercial, single-family-to-multi-unit, office-to-retail.",
+      "options": [
+        {
+          "label": "Legalize the use change with a conversion permit",
+          "effort": "full_compliance",
+          "description": "File a change-of-use or conversion permit to formally establish the current use classification, bringing the property into compliance.",
+          "cost_range": "$5,000–$50,000+ (depending on code compliance upgrades required for new use)",
+          "timeline": "3–12 months",
+          "steps": [
+            "Consult with a licensed architect to assess what code compliance upgrades the new use classification requires (e.g., ADA accessibility, fire separation, parking, mechanical ventilation)",
+            "Visit the SF Planning counter at 49 South Van Ness Ave, Suite 1400, to confirm zoning allows the current use",
+            "File a change-of-use permit application at the DBI screening counter (1660 Mission St, 1st Floor)",
+            "Complete any required code compliance upgrades per approved plans",
+            "Pass all inspections and obtain the Certificate of Final Completion for the new use"
+          ]
+        },
+        {
+          "label": "Revert to the originally permitted use classification",
+          "effort": "least_effort",
+          "description": "If the use has not actually changed in practice, work with DBI to correct the records to reflect the original permitted use classification.",
+          "cost_range": "$0–$2,000",
+          "timeline": "2–8 weeks",
+          "steps": [
+            "Gather documentation of the original use classification (prior permits, assessor records, occupancy certificates)",
+            "Visit the DBI screening counter at 1660 Mission St, 1st Floor, to request a records correction",
+            "Provide evidence that the actual use has not changed and prior permit classification was an error",
+            "DBI will review and update records if the correction is supported by evidence",
+            "Obtain written confirmation of the corrected classification for your records"
+          ]
+        },
+        {
+          "label": "Status quo — no action",
+          "effort": "status_quo",
+          "description": "Take no action. The classification inconsistency remains on record and may surface during future permit applications, insurance reviews, or property sales.",
+          "cost_range": "$0",
+          "timeline": "Immediate",
+          "steps": [
+            "Be aware that title companies flag classification inconsistencies during property sales",
+            "Insurance companies may deny claims if the actual use does not match the permitted use on record",
+            "Future permit applications may be delayed while DBI investigates the classification discrepancy",
+            "Planning Department may require a conditional use authorization if the current use is not principally permitted in the zoning district"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "planning_code", "label": "SF Planning Code — Use Classifications and Change of Use", "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_planning/0-0-0-17837"},
+        {"type": "dbi_contact", "label": "DBI Screening Counter: 1660 Mission St, 1st Floor", "url": "https://sf.gov/departments/building-inspection"}
+      ]
+    },
+    "complaint_to_permit_timing": {
+      "what_at_stake": "When a permit application is filed shortly after a DBI complaint is recorded at the same address, it suggests the permit work may be retroactive — meaning construction was started without a permit and the complaint triggered the owner to seek after-the-fact approval. DBI inspectors are aware of this pattern and may apply closer scrutiny to the permit application, potentially requiring exposure of concealed work for inspection or additional documentation proving the work meets code.",
+      "options": [
+        {
+          "label": "Ensure all work is fully permitted and documented",
+          "effort": "full_compliance",
+          "description": "Proactively address the situation by ensuring the permit application covers all work (including any previously unpermitted work), and prepare documentation showing code compliance.",
+          "cost_range": "$1,000–$15,000 (depending on scope of previously unpermitted work)",
+          "timeline": "1–4 months",
+          "steps": [
+            "Review the complaint details to understand exactly what was reported",
+            "Have your architect or contractor document all existing conditions, including any work done prior to the permit application",
+            "Ensure the permit application scope covers all work — do not attempt to hide pre-existing unpermitted work",
+            "Prepare a written narrative for DBI explaining the timeline and confirming all work will be inspected",
+            "Be prepared for the inspector to require opening walls or ceilings to verify concealed work meets code",
+            "Pass all required inspections and obtain sign-off"
+          ]
+        },
+        {
+          "label": "Proactive DBI consultation before filing",
+          "effort": "least_effort",
+          "description": "Before filing the permit, visit DBI to discuss the complaint and proposed work scope, establishing a transparent relationship with the department.",
+          "cost_range": "$0–$500",
+          "timeline": "1–2 weeks for initial consultation",
+          "steps": [
+            "Visit the DBI screening counter at 1660 Mission St, 1st Floor, during walk-in hours",
+            "Bring the complaint number and a summary of the proposed permit work",
+            "Ask the screener what documentation DBI will expect given the complaint timeline",
+            "Follow DBI's guidance on application requirements and inspection expectations",
+            "File the permit application with any additional documentation DBI recommended"
+          ]
+        }
+      ],
+      "sources": [
+        {"type": "dbi_contact", "label": "DBI Screening Counter: 1660 Mission St, 1st Floor", "url": "https://sf.gov/departments/building-inspection"},
+        {"type": "dbi_contact", "label": "DBI Complaint Hotline: (415) 558-6570", "url": "https://sf.gov/departments/building-inspection"}
+      ]
+    }
+  }
+}

@@ -211,6 +211,7 @@ def _compute_risk_assessment(
             link = ReportLinks.complaint(complaint_num) if complaint_num else None
             risks.append({
                 "severity": "high",
+                "risk_type": "active_complaint",
                 "title": f"Active DBI complaint — {desc}",
                 "description": (
                     f"An open complaint (#{complaint_num}) is on file for this parcel. "
@@ -228,6 +229,7 @@ def _compute_risk_assessment(
             desc = v.get("violation_type") or v.get("description") or "violation on file"
             risks.append({
                 "severity": "high",
+                "risk_type": "active_violation",
                 "title": f"Active violation/NOV — {desc}",
                 "description": (
                     f"An active notice of violation ({violation_id}) is on file. "
@@ -243,6 +245,7 @@ def _compute_risk_assessment(
         if cost and cost > 500_000:
             risks.append({
                 "severity": "moderate",
+                "risk_type": "high_cost_project",
                 "title": f"High-value project — ${cost:,.0f}",
                 "description": (
                     f"Permit {p.get('permit_number', '')} has an estimated cost of ${cost:,.0f}. "
@@ -254,6 +257,7 @@ def _compute_risk_assessment(
         elif cost and cost > 100_000:
             risks.append({
                 "severity": "low",
+                "risk_type": "moderate_cost_project",
                 "title": f"Moderate-value project — ${cost:,.0f}",
                 "description": (
                     f"Permit {p.get('permit_number', '')} has an estimated cost of ${cost:,.0f}."
@@ -271,6 +275,7 @@ def _compute_risk_assessment(
     if len(active_permits) > 1:
         risks.append({
             "severity": "low",
+            "risk_type": "multiple_active_permits",
             "title": f"Multiple active permits ({len(active_permits)})",
             "description": (
                 f"There are {len(active_permits)} active permits on this parcel. "
@@ -286,6 +291,7 @@ def _compute_risk_assessment(
         if zoning in _RESTRICTIVE_ZONES:
             risks.append({
                 "severity": "low",
+                "risk_type": "restrictive_zoning",
                 "title": f"Restrictive zoning — {zoning}",
                 "description": (
                     f"This parcel is zoned {zoning} (single-family residential). "
@@ -296,10 +302,8 @@ def _compute_risk_assessment(
                 "link": None,
             })
 
-    # FUTURE: Owner Mode will add a Section 1.5 "Remediation Roadmap"
-    # which generates recommended next-steps from the risk items here.
-    # Risk items should include enough structured data for remediation
-    # logic to consume (complaint_number, violation_type, etc.).
+    # Owner Mode: risk items now include risk_type field for remediation
+    # roadmap mapping. See web/owner_mode.py for remediation logic.
 
     # Sort by severity: high first, then moderate, then low
     risks.sort(key=lambda r: severity_order.get(r["severity"], 99))
@@ -309,6 +313,44 @@ def _compute_risk_assessment(
 # ---------------------------------------------------------------------------
 # Expediter signal
 # ---------------------------------------------------------------------------
+
+# Signal threshold messages — shared between base scoring and Owner Mode augmentation
+_SIGNAL_MESSAGES = {
+    "cold": "No significant risk factors detected. An expeditor is unlikely to be necessary.",
+    "warm": "Minor complexity factors present. An expeditor could be helpful but is not critical.",
+    "recommended": "Multiple risk factors suggest professional permit expediting would be beneficial.",
+    "strongly_recommended": (
+        "An expeditor is strongly advised given the combination of active complaints, "
+        "violations, high project cost, or zoning restrictions."
+    ),
+    "essential": (
+        "Strong recommendation to engage a permit expeditor. Multiple high-risk factors "
+        "make professional navigation of the permitting process essential."
+    ),
+}
+
+
+def _score_to_signal(score: int) -> str:
+    """Map a numeric expediter score to a signal tier.
+
+    Thresholds: 0=cold, 1-2=warm, 3-4=recommended, 5-7=strongly_recommended, 8+=essential.
+    """
+    if score == 0:
+        return "cold"
+    elif score <= 2:
+        return "warm"
+    elif score <= 4:
+        return "recommended"
+    elif score <= 7:
+        return "strongly_recommended"
+    else:
+        return "essential"
+
+
+def _signal_to_message(signal: str) -> str:
+    """Get the human-readable message for a signal tier."""
+    return _SIGNAL_MESSAGES.get(signal, _SIGNAL_MESSAGES["cold"])
+
 
 def _compute_expediter_signal(
     complaints: list[dict],
@@ -331,6 +373,9 @@ def _compute_expediter_signal(
         3-4     -> recommended
         5-7     -> strongly_recommended
         8+      -> essential
+
+    Note: Owner Mode adds additional factors via compute_extended_expediter_factors()
+    in web/owner_mode.py, which augments the score after this base computation.
     """
     score = 0
     factors: list[str] = []
@@ -377,45 +422,13 @@ def _compute_expediter_signal(
             score += 1
             factors.append("Restrictive zoning (+1)")
 
-    # FUTURE: Owner Mode will add additional signal factors:
-    #   - Active permit with cost revision > 50%  (+2)
-    #   - Project requires Planning review (not OTC) (+1)
-    #   - Section 311 notification required (+1)
-    #   - Historic district or 45+ yr building with exterior work (+1)
-    #   - Unit legality question (zoning vs. recorded use mismatch) (+2)
-
-    # Map score to signal
-    if score == 0:
-        signal = "cold"
-    elif score <= 2:
-        signal = "warm"
-    elif score <= 4:
-        signal = "recommended"
-    elif score <= 7:
-        signal = "strongly_recommended"
-    else:
-        signal = "essential"
-
-    # Human-readable message
-    messages = {
-        "cold": "No significant risk factors detected. An expeditor is unlikely to be necessary.",
-        "warm": "Minor complexity factors present. An expeditor could be helpful but is not critical.",
-        "recommended": "Multiple risk factors suggest professional permit expediting would be beneficial.",
-        "strongly_recommended": (
-            "An expeditor is strongly advised given the combination of active complaints, "
-            "violations, high project cost, or zoning restrictions."
-        ),
-        "essential": (
-            "Strong recommendation to engage a permit expeditor. Multiple high-risk factors "
-            "make professional navigation of the permitting process essential."
-        ),
-    }
+    signal = _score_to_signal(score)
 
     return {
         "score": score,
         "signal": signal,
         "factors": factors,
-        "message": messages[signal],
+        "message": _signal_to_message(signal),
     }
 
 
@@ -423,7 +436,7 @@ def _compute_expediter_signal(
 # Main orchestrator
 # ---------------------------------------------------------------------------
 
-def get_property_report(block: str, lot: str) -> dict:
+def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
     """Build a complete property report for a given parcel.
 
     Synchronous entry point suitable for Flask routes. Handles async SODA
@@ -432,11 +445,13 @@ def get_property_report(block: str, lot: str) -> dict:
     Args:
         block: SF Assessor block number (e.g., "2991")
         lot: SF Assessor lot number (e.g., "012")
+        is_owner: If True, compute Owner Mode sections (remediation roadmap,
+            extended expediter factors, KB citations). Default False.
 
     Returns:
         Dict with keys: block, lot, address, property_profile, permits,
         complaints, violations, risk_assessment, expediter_signal,
-        nearby_activity, links.
+        nearby_activity, links, is_owner, whats_missing, remediation_roadmap.
     """
     block = block.strip()
     lot = lot.strip()
@@ -503,6 +518,48 @@ def get_property_report(block: str, lot: str) -> dict:
     )
     property_profile = _format_property_profile(property_data)
 
+    # ── 3b. Cross-reference analysis (always — uses public data) ──
+    from web.owner_mode import (
+        compute_whats_missing,
+        compute_remediation_roadmap,
+        compute_extended_expediter_factors,
+        attach_kb_citations,
+    )
+    whats_missing = compute_whats_missing(permits, complaints, property_data)
+
+    # ── 3c. Owner Mode extensions ─────────────────────────────────
+    remediation_roadmap: list[dict] = []
+    if is_owner:
+        try:
+            from src.tools.knowledge_base import get_knowledge_base
+            kb = get_knowledge_base()
+            templates = getattr(kb, "remediation_roadmap", {})
+
+            # Remediation cards for Moderate+ risks
+            moderate_plus = [
+                r for r in risk_assessment
+                if r.get("severity") in ("high", "moderate")
+            ]
+            remediation_roadmap = compute_remediation_roadmap(
+                moderate_plus, whats_missing, templates,
+            )
+
+            # Extended expediter signal factors
+            extra_factors = compute_extended_expediter_factors(whats_missing)
+            for ef in extra_factors:
+                expediter_signal["score"] += ef["points"]
+                expediter_signal["factors"].append(
+                    f"{ef['label']} (+{ef['points']})"
+                )
+            # Recompute signal tier after augmentation
+            expediter_signal["signal"] = _score_to_signal(expediter_signal["score"])
+            expediter_signal["message"] = _signal_to_message(expediter_signal["signal"])
+
+            # Knowledge base citations
+            attach_kb_citations(risk_assessment, remediation_roadmap)
+        except Exception as e:
+            logger.warning("Owner Mode extensions failed: %s", e)
+
     # ── 4. Build address from first permit ────────────────────────
     address = ""
     if permits:
@@ -529,4 +586,8 @@ def get_property_report(block: str, lot: str) -> dict:
         "links": {
             "parcel": ReportLinks.parcel(block, lot),
         },
+        # Owner Mode fields
+        "is_owner": is_owner,
+        "whats_missing": whats_missing,
+        "remediation_roadmap": remediation_roadmap,
     }

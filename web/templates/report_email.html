@@ -78,6 +78,54 @@
                     </tr>
                     {% endif %}
 
+                    {# ===== Owner Mode Banner ===== #}
+                    {% if is_owner %}
+                    <tr>
+                        <td style="padding:0 28px 12px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:10px 14px;border-radius:6px;background:#eff6ff;border:1px solid #bfdbfe;font-size:0.85rem;color:#2563eb;">
+                                        &#x1f3e0; You are viewing this report as the property owner. Recommendations are tailored for your situation.
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {# ===== Section 1.5: Remediation Roadmap (Owner Mode) ===== #}
+                    {% if report.remediation_roadmap %}
+                    <tr>
+                        <td style="padding:12px 28px 4px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Remediation Roadmap</h2>
+                        </td>
+                    </tr>
+                    {% for card in report.remediation_roadmap %}
+                    <tr>
+                        <td style="padding:0 28px 12px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:14px 16px;border-radius:6px;border-left:4px solid {% if card.severity == 'high' %}#f87171{% else %}#fbbf24{% endif %};background:{% if card.severity == 'high' %}#fef2f2{% else %}#fffbeb{% endif %};">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if card.severity == 'high' %}background:#fee2e2;color:#dc2626;{% else %}background:#fef3c7;color:#d97706;{% endif %}">{{ card.severity }}</span>
+                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;">{{ card.title }}</span>
+                                        {% if card.what_at_stake %}
+                                        <div style="font-size:0.85rem;color:#374151;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.03);border-radius:4px;border-left:3px solid #fbbf24;">{{ card.what_at_stake }}</div>
+                                        {% endif %}
+                                        {% for opt in card.options %}
+                                        <div style="margin-top:10px;padding:10px 12px;border-radius:6px;border:1px solid {% if opt.effort == 'full_compliance' %}#34d399{% elif opt.effort == 'least_effort' %}#4f8ff7{% else %}#d1d5db{% endif %};background:#fafafa;">
+                                            <strong style="font-size:0.85rem;">{{ opt.label }}</strong>
+                                            {% if opt.cost_range %}<span style="font-size:0.75rem;color:#6b7280;margin-left:6px;">{{ opt.cost_range }}</span>{% endif %}
+                                            <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">{{ opt.description }}</div>
+                                        </div>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+
                     {# ===== Section 2: Property Profile ===== #}
                     {% if report.property_profile %}
                     <tr>
@@ -184,6 +232,30 @@
                             </table>
                         </td>
                     </tr>
+                    {% endif %}
+
+                    {# What's Missing cross-reference analysis #}
+                    {% if report.whats_missing %}
+                    <tr>
+                        <td style="padding:4px 28px 4px;">
+                            <div style="font-size:0.85rem;font-weight:600;color:#d97706;margin-bottom:8px;">&#x26A0; Cross-Reference Analysis</div>
+                        </td>
+                    </tr>
+                    {% for item in report.whats_missing %}
+                    <tr>
+                        <td style="padding:0 28px 8px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:10px 14px;border-radius:6px;border-left:4px solid {% if item.severity == 'moderate' %}#fbbf24{% else %}#4f8ff7{% endif %};background:{% if item.severity == 'moderate' %}#fffbeb{% else %}#eff6ff{% endif %};">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if item.severity == 'moderate' %}background:#fef3c7;color:#d97706;{% else %}background:#dbeafe;color:#2563eb;{% endif %}">{{ item.severity }}</span>
+                                        <span style="font-weight:600;font-size:0.85rem;margin-left:6px;">{{ item.title }}</span>
+                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">{{ item.description }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
                     {% endif %}
 
                     {# ===== Section 4: Complaints & Violations ===== #}

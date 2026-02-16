@@ -49,3 +49,23 @@ class ReportLinks:
     def ethics_registry() -> str:
         """SF Ethics Commission permit consultant disclosure page."""
         return "https://sfethics.org/disclosures/permit-consultant-disclosure"
+
+    @staticmethod
+    def admin_bulletin(ab_number: str) -> str:
+        """DBI Administrative Bulletin URL."""
+        return "https://sf.gov/resource/2022/information-sheets-dbi"
+
+    @staticmethod
+    def state_legislation(bill_id: str) -> str:
+        """California Legislature bill URL."""
+        return f"https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id={bill_id}"
+
+    @staticmethod
+    def dbi_contact() -> str:
+        """DBI general contact and services page."""
+        return "https://sf.gov/departments/building-inspection"
+
+    @staticmethod
+    def planning_adu() -> str:
+        """SF Planning ADU resource page."""
+        return "https://sfplanning.org/accessory-dwelling-units"

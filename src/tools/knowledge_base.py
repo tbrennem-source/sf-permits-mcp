@@ -77,6 +77,9 @@ class KnowledgeBase:
         # Phase 2.75e — DA-12/DA-13 accessibility + S-09 Earthquake Brace+Bolt
         self.earthquake_brace_bolt = _load_json(tier1 / "earthquake-brace-bolt.json")
 
+        # Phase E — Owner Mode remediation roadmap
+        self.remediation_roadmap = _load_json(tier1 / "remediation-roadmap.json")
+
         # Build keyword index from semantic index
         self._keyword_index = self._build_keyword_index()
 
@@ -241,6 +244,10 @@ SOURCE_REGISTRY: dict[str, dict[str, str]] = {
     "earthquake_brace_bolt": {
         "label": "DBI Info Sheet S-09: Earthquake Brace+Bolt (CEBC A3)",
         "url": "https://sf.gov/resource/2022/information-sheets-dbi",
+    },
+    "remediation_roadmap": {
+        "label": "SF Permits Remediation Roadmap (risk-to-action mapping)",
+        "url": "https://sfpermits-ai-production.up.railway.app/report",
     },
     "duckdb_permits": {
         "label": "SF Open Data — Building Permits (1.1M+ records via SODA API)",

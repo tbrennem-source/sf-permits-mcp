@@ -208,6 +208,75 @@
         .expeditor-factors { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
         .expeditor-factors li { margin-bottom: 2px; }
 
+        /* Owner Mode banner */
+        .owner-banner {
+            background: rgba(79, 143, 247, 0.08); border: 1px solid rgba(79, 143, 247, 0.25);
+            border-radius: 8px; padding: 12px 16px; margin-bottom: 24px;
+            font-size: 0.85rem; color: var(--accent); display: flex; align-items: center; gap: 8px;
+        }
+        .owner-banner-icon { font-size: 1.1rem; }
+        .badge-owner {
+            font-size: 0.7rem; background: rgba(79, 143, 247, 0.15); color: var(--accent);
+            padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(79, 143, 247, 0.3);
+            text-decoration: none; cursor: pointer; font-family: inherit;
+        }
+        .badge-owner:hover { background: rgba(79, 143, 247, 0.25); }
+
+        /* Remediation roadmap cards */
+        .remediation-card {
+            padding: 20px; border-radius: 8px; margin-bottom: 16px;
+            border-left: 4px solid transparent; background: var(--surface-2);
+        }
+        .remediation-card:last-child { margin-bottom: 0; }
+        .remediation-card.risk-high { border-left-color: var(--error); }
+        .remediation-card.risk-moderate { border-left-color: var(--warning); }
+        .remediation-stakes {
+            font-size: 0.9rem; color: var(--text); margin-bottom: 16px;
+            padding: 10px 14px; background: var(--bg); border-radius: 6px;
+            border-left: 3px solid var(--warning);
+        }
+        .remediation-options { display: flex; flex-direction: column; gap: 12px; }
+        .remediation-option {
+            padding: 14px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface);
+        }
+        .remediation-option strong { font-size: 0.9rem; color: var(--text); }
+        .remediation-option p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        .remediation-option .cost-timeline {
+            font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;
+        }
+        .remediation-option ol {
+            margin-top: 8px; padding-left: 20px; font-size: 0.8rem; color: var(--text-muted);
+        }
+        .remediation-option ol li { margin-bottom: 3px; }
+        .effort-full_compliance { border-color: var(--success); }
+        .effort-least_effort { border-color: var(--accent); }
+        .effort-status_quo { border-color: var(--border); opacity: 0.8; }
+        .remediation-sources {
+            margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .remediation-sources a {
+            font-size: 0.75rem; color: var(--accent); text-decoration: none;
+            background: rgba(79, 143, 247, 0.08); padding: 3px 8px; border-radius: 4px;
+        }
+        .remediation-sources a:hover { text-decoration: underline; background: rgba(79, 143, 247, 0.15); }
+
+        /* KB citations on risk cards */
+        .risk-citations {
+            margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px;
+        }
+        .citation-link {
+            font-size: 0.7rem; color: var(--accent); text-decoration: none;
+            background: rgba(79, 143, 247, 0.06); padding: 2px 6px; border-radius: 3px;
+        }
+        .citation-link:hover { text-decoration: underline; background: rgba(79, 143, 247, 0.12); }
+
+        /* What's Missing sub-section */
+        .whats-missing-header {
+            font-size: 0.9rem; font-weight: 600; color: var(--warning);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+        }
+
         /* Zoning note */
         .zoning-note { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
 
@@ -286,6 +355,9 @@
             <a href="/" class="logo">sfpermits<span>.ai</span></a>
             <div class="header-right">
                 <span class="share-btn-wrap">
+                    {% if user and not is_owner %}
+                    <a href="?owner=1" class="badge-owner">This is my property</a>
+                    {% endif %}
                     {% if user %}
                     <button class="badge" onclick="openShareModal()">Share Report</button>
                     {% else %}
@@ -320,6 +392,13 @@
                 {% endif %}
             </p>
 
+            {% if is_owner %}
+            <div class="owner-banner">
+                <span class="owner-banner-icon">&#x1f3e0;</span>
+                You are viewing this report as the property owner. Recommendations are tailored for your situation.
+            </div>
+            {% endif %}
+
             {# ===== Section 1: Risk Assessment ===== #}
             <div class="section" id="section-risks">
                 <h2>Risk Assessment</h2>
@@ -340,6 +419,13 @@
                     {% if risk.section_ref %}
                     <a href="#section-{{ risk.section_ref }}" class="risk-xref">See &sect;{{ risk.section_ref }}</a>
                     {% endif %}
+                    {% if risk.kb_citations %}
+                    <div class="risk-citations">
+                        {% for cite in risk.kb_citations %}
+                        <a href="{{ cite.source_url }}" class="citation-link" target="_blank" rel="noopener">{{ cite.source_label }}</a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
                 {% else %}
@@ -353,8 +439,44 @@
                 {% endif %}
             </div>
 
-            {# ===== Section 1.5: Remediation Roadmap — Owner Mode future ===== #}
-            {# Will render recommended next-steps based on risk assessment items #}
+            {# ===== Section 1.5: Remediation Roadmap (Owner Mode) ===== #}
+            {% if report.remediation_roadmap %}
+            <div class="section" id="section-remediation">
+                <h2>Remediation Roadmap</h2>
+                {% for card in report.remediation_roadmap %}
+                <div class="remediation-card risk-{{ card.severity }}">
+                    <div class="risk-header">
+                        <span class="severity-badge severity-{{ card.severity }}">{{ card.severity }}</span>
+                        <span class="risk-title">{{ card.title }}</span>
+                    </div>
+                    {% if card.what_at_stake %}
+                    <div class="remediation-stakes">{{ card.what_at_stake }}</div>
+                    {% endif %}
+                    <div class="remediation-options">
+                        {% for opt in card.options %}
+                        <div class="remediation-option effort-{{ opt.effort }}">
+                            <strong>{{ opt.label }}</strong>
+                            {% if opt.cost_range %}
+                            <span class="cost-timeline">{{ opt.cost_range }}{% if opt.timeline %} &middot; {{ opt.timeline }}{% endif %}</span>
+                            {% endif %}
+                            <p>{{ opt.description }}</p>
+                            {% if opt.steps %}
+                            <ol>{% for step in opt.steps %}<li>{{ step }}</li>{% endfor %}</ol>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if card.sources %}
+                    <div class="remediation-sources">
+                        {% for src in card.sources %}
+                        <a href="{{ src.url }}" target="_blank" rel="noopener">{{ src.label }}</a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             {# ===== Section 2: Property Profile ===== #}
             {% if report.property_profile %}
@@ -499,6 +621,24 @@
                 </div>
                 {% else %}
                 <p class="section-empty">No permits found for this property.</p>
+                {% endif %}
+
+                {# What's Missing cross-reference analysis #}
+                {% if report.whats_missing %}
+                <div class="sub-divider"></div>
+                <div class="whats-missing-header">&#x26A0; Cross-Reference Analysis</div>
+                {% for item in report.whats_missing %}
+                <div class="risk-card risk-{{ item.severity }}">
+                    <div class="risk-header">
+                        <span class="severity-badge severity-{{ item.severity }}">{{ item.severity }}</span>
+                        <span class="risk-title">{{ item.title }}</span>
+                    </div>
+                    <div class="risk-description">{{ item.description }}</div>
+                    {% if item.section_ref %}
+                    <a href="#section-{{ item.section_ref }}" class="risk-xref">See &sect;{{ item.section_ref }}</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
                 {% endif %}
             </div>
 

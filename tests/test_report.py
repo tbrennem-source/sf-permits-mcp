@@ -151,3 +151,112 @@ class TestExpediterSignal:
         # warm: 1-2 points — e.g., high cost permit alone ($100K-$500K = +1)
         result_warm = _compute_expediter_signal(complaints=[], violations=[], permits=[{"estimated_cost": 200000}], property_data=[])
         assert result_warm["signal"] == "warm"
+
+
+# ── Risk type field tests ─────────────────────────────────────────
+
+class TestRiskItemTypes:
+    """Verify that every risk item produced by _compute_risk_assessment includes a risk_type field."""
+
+    def test_active_complaint_has_risk_type(self):
+        from web.report import _compute_risk_assessment
+        complaints = [{"status": "OPEN", "complaint_number": "1234", "description": "noise"}]
+        risks = _compute_risk_assessment(permits=[], complaints=complaints, violations=[], property_data=[])
+        assert len(risks) >= 1
+        assert risks[0]["risk_type"] == "active_complaint"
+
+    def test_active_violation_has_risk_type(self):
+        from web.report import _compute_risk_assessment
+        violations = [{"status": "OPEN", "nov_number": "V001", "description": "Building"}]
+        risks = _compute_risk_assessment(permits=[], complaints=[], violations=violations, property_data=[])
+        assert len(risks) >= 1
+        assert risks[0]["risk_type"] == "active_violation"
+
+    def test_high_cost_project_has_risk_type(self):
+        from web.report import _compute_risk_assessment
+        permits = [{"estimated_cost": 600000, "permit_number": "P001", "status": "ISSUED", "description": "reno"}]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        cost_risks = [r for r in risks if r["risk_type"] == "high_cost_project"]
+        assert len(cost_risks) == 1
+
+    def test_moderate_cost_project_has_risk_type(self):
+        from web.report import _compute_risk_assessment
+        permits = [{"estimated_cost": 200000, "permit_number": "P002", "status": "ISSUED", "description": "small reno"}]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        cost_risks = [r for r in risks if r["risk_type"] == "moderate_cost_project"]
+        assert len(cost_risks) == 1
+
+    def test_multiple_active_permits_has_risk_type(self):
+        from web.report import _compute_risk_assessment
+        permits = [
+            {"estimated_cost": 5000, "permit_number": "P003", "status": "ISSUED"},
+            {"estimated_cost": 8000, "permit_number": "P004", "status": "FILED"},
+        ]
+        risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
+        multi_risks = [r for r in risks if r["risk_type"] == "multiple_active_permits"]
+        assert len(multi_risks) == 1
+
+    def test_restrictive_zoning_has_risk_type(self):
+        from web.report import _compute_risk_assessment
+        risks = _compute_risk_assessment(
+            permits=[], complaints=[], violations=[], property_data=[{"zoning_code": "RH-1(D)"}]
+        )
+        zone_risks = [r for r in risks if r["risk_type"] == "restrictive_zoning"]
+        assert len(zone_risks) == 1
+
+    def test_all_risk_items_have_risk_type_field(self):
+        """Every risk item must have a risk_type key regardless of data mix."""
+        from web.report import _compute_risk_assessment
+        risks = _compute_risk_assessment(
+            permits=[
+                {"estimated_cost": 600000, "permit_number": "P1", "status": "ISSUED", "description": "big"},
+                {"estimated_cost": 200000, "permit_number": "P2", "status": "FILED", "description": "med"},
+            ],
+            complaints=[{"status": "OPEN", "complaint_number": "C1", "description": "noise"}],
+            violations=[{"status": "OPEN", "nov_number": "V1", "description": "Building"}],
+            property_data=[{"zoning_code": "RH-1"}],
+        )
+        assert len(risks) > 0
+        for risk in risks:
+            assert "risk_type" in risk, f"Missing risk_type in: {risk}"
+
+
+# ── Standalone signal helper tests ────────────────────────────────
+
+class TestSignalHelpers:
+    """Tests for standalone _score_to_signal and _signal_to_message functions."""
+
+    def test_score_to_signal_cold(self):
+        from web.report import _score_to_signal
+        assert _score_to_signal(0) == "cold"
+
+    def test_score_to_signal_warm(self):
+        from web.report import _score_to_signal
+        assert _score_to_signal(1) == "warm"
+        assert _score_to_signal(2) == "warm"
+
+    def test_score_to_signal_recommended(self):
+        from web.report import _score_to_signal
+        assert _score_to_signal(3) == "recommended"
+        assert _score_to_signal(4) == "recommended"
+
+    def test_score_to_signal_strongly_recommended(self):
+        from web.report import _score_to_signal
+        assert _score_to_signal(5) == "strongly_recommended"
+        assert _score_to_signal(7) == "strongly_recommended"
+
+    def test_score_to_signal_essential(self):
+        from web.report import _score_to_signal
+        assert _score_to_signal(8) == "essential"
+        assert _score_to_signal(15) == "essential"
+
+    def test_signal_to_message_valid(self):
+        from web.report import _signal_to_message
+        for signal in ("cold", "warm", "recommended", "strongly_recommended", "essential"):
+            msg = _signal_to_message(signal)
+            assert isinstance(msg, str)
+            assert len(msg) > 10
+
+    def test_signal_to_message_unknown_falls_back(self):
+        from web.report import _signal_to_message
+        assert _signal_to_message("nonexistent") == _signal_to_message("cold")
