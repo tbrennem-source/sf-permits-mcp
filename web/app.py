@@ -865,6 +865,8 @@ def _ask_address_search(query: str, entities: dict) -> str:
     }
     # Primary address prompt: show if logged in and no primary address set yet
     show_primary_prompt = bool(g.user and not g.user.get("primary_street_number"))
+    # Detect no-results to show helpful next-step CTAs
+    no_results = result_md.startswith("No permits found")
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
@@ -872,6 +874,8 @@ def _ask_address_search(query: str, entities: dict) -> str:
         show_primary_prompt=show_primary_prompt,
         prompt_street_number=street_number,
         prompt_street_name=street_name,
+        no_results=no_results,
+        no_results_address=f"{street_number} {street_name}" if no_results else None,
         **_watch_context(watch_data),
     )
 
