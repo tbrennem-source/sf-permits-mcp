@@ -19,7 +19,7 @@ import time
 from collections import defaultdict
 from datetime import timedelta
 from functools import wraps
-from flask import Flask, render_template, request, abort, Response, redirect, url_for, session, g
+from flask import Flask, render_template, request, abort, Response, redirect, url_for, session, g, send_file, jsonify
 import markdown
 
 # Configure logging so gunicorn captures warnings from tools
@@ -156,6 +156,28 @@ def _run_startup_migrations():
             )
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_cron_log_job_status ON cron_log (job_type, status)")
+
+        # Plan analysis session tables (image gallery)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS plan_analysis_sessions (
+                session_id      TEXT PRIMARY KEY,
+                filename        TEXT NOT NULL,
+                page_count      INTEGER NOT NULL,
+                page_extractions JSONB,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS plan_analysis_images (
+                session_id      TEXT NOT NULL REFERENCES plan_analysis_sessions(session_id) ON DELETE CASCADE,
+                page_number     INTEGER NOT NULL,
+                image_data      TEXT NOT NULL,
+                image_size_kb   INTEGER,
+                PRIMARY KEY (session_id, page_number)
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_created ON plan_analysis_sessions (created_at)")
+
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -765,23 +787,178 @@ def analyze_plans_route():
     if len(pdf_bytes) == 0:
         return '<div class="error">The uploaded file is empty.</div>', 400
 
+    # Run analysis with structured return to get page extractions
     try:
-        result_md = run_async(analyze_plans(
+        result_md, page_extractions = run_async(analyze_plans(
             pdf_bytes=pdf_bytes,
             filename=filename,
             project_description=project_description,
             permit_type=permit_type,
+            return_structured=True,
         ))
         result_html = md_to_html(result_md)
     except Exception as e:
         result_html = f'<div class="error">Analysis error: {e}</div>'
+        page_extractions = []
+
+    # Render page images and create session
+    session_id = None
+    page_count = 0
+    extractions_json = "[]"
+
+    try:
+        from pypdf import PdfReader
+        from io import BytesIO
+        from src.vision.pdf_to_images import pdf_pages_to_base64
+        from web.plan_images import create_session
+
+        reader = PdfReader(BytesIO(pdf_bytes))
+        page_count = len(reader.pages)
+
+        # Render all pages (cap at 50 to avoid timeouts)
+        page_nums = list(range(min(page_count, 50)))
+        page_images = pdf_pages_to_base64(pdf_bytes, page_nums)
+
+        session_id = create_session(
+            filename=filename,
+            page_count=page_count,
+            page_extractions=page_extractions,
+            page_images=page_images,
+        )
+
+        # Format extractions for JavaScript (dict keyed by page_number)
+        extractions_json = json.dumps({
+            pe.get("page_number", i + 1) - 1: pe
+            for i, pe in enumerate(page_extractions)
+        })
+    except Exception as e:
+        logger.warning("Image rendering failed (non-fatal): %s", e)
 
     return render_template(
         "analyze_plans_results.html",
         result=result_html,
         filename=filename,
         filesize_mb=round(len(pdf_bytes) / (1024 * 1024), 1),
+        session_id=session_id,
+        page_count=page_count,
+        extractions_json=extractions_json,
     )
+
+
+@app.route("/plan-images/<session_id>/<int:page_number>")
+def plan_image(session_id, page_number):
+    """Serve a rendered plan page image as PNG."""
+    import base64
+    from web.plan_images import get_page_image
+
+    b64_data = get_page_image(session_id, page_number)
+    if not b64_data:
+        abort(404)
+
+    image_bytes = base64.b64decode(b64_data)
+    return Response(
+        image_bytes,
+        mimetype="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.route("/plan-session/<session_id>")
+def plan_session(session_id):
+    """Return plan analysis session metadata as JSON."""
+    import json
+    from web.plan_images import get_session
+
+    session = get_session(session_id)
+    if not session:
+        abort(404)
+
+    # Serialize datetime for JSON
+    if session.get("created_at"):
+        session["created_at"] = session["created_at"].isoformat()
+
+    return Response(json.dumps(session), mimetype="application/json")
+
+
+@app.route("/plan-images/<session_id>/download-all")
+def download_all_pages(session_id):
+    """Download all plan pages as a ZIP file."""
+    import base64
+    import io
+    import zipfile
+    from web.plan_images import get_session, get_page_image
+
+    session = get_session(session_id)
+    if not session:
+        abort(404)
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for page_num in range(session['page_count']):
+            b64_data = get_page_image(session_id, page_num)
+            if b64_data:
+                image_bytes = base64.b64decode(b64_data)
+                zip_file.writestr(f"page-{page_num + 1}.png", image_bytes)
+
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f"{session['filename']}-pages.zip"
+    )
+
+
+@app.route("/plan-analysis/<session_id>/email", methods=["POST"])
+def email_analysis():
+    """Email plan analysis to specified recipient."""
+    import json
+    import base64
+    from web.plan_images import get_session, get_page_image
+    from web.email_brief import send_email
+
+    data = request.get_json()
+    session_id = data.get('session_id')
+    recipient = data.get('recipient')
+    message = data.get('message', '')
+    context = data.get('context', 'full')
+
+    session = get_session(session_id)
+    if not session:
+        return jsonify({'success': False, 'error': 'Session not found'})
+
+    # Build email body
+    if context == 'full':
+        subject = f"Plan Analysis: {session['filename']}"
+        body = f"""
+{message}
+
+Analysis for {session['filename']} ({session['page_count']} pages)
+
+View online: {request.url_root}plan-session/{session_id}
+"""
+    elif context.startswith('comparison-'):
+        _, left, right = context.split('-')
+        subject = f"Plan Comparison: Pages {int(left)+1} and {int(right)+1}"
+        body = f"""
+{message}
+
+Comparison of pages {int(left)+1} and {int(right)+1} from {session['filename']}
+"""
+    else:
+        subject = f"Plan Analysis: {session['filename']}"
+        body = message
+
+    try:
+        send_email(
+            to=recipient,
+            subject=subject,
+            body=body,
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Email send failed: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 
 @app.route("/lookup", methods=["POST"])
@@ -2297,8 +2474,19 @@ def cron_nightly():
                 logging.error("Feedback triage failed (non-fatal): %s", te)
                 triage_result = {"error": str(te)}
 
+        # Cleanup expired plan analysis sessions (non-fatal)
+        cleanup_result = {}
+        if not dry_run:
+            try:
+                from web.plan_images import cleanup_expired
+                count = cleanup_expired(hours=24)
+                cleanup_result = {"plan_sessions_deleted": count}
+            except Exception as ce:
+                logging.error("Plan session cleanup failed (non-fatal): %s", ce)
+                cleanup_result = {"error": str(ce)}
+
         return Response(
-            json.dumps({"status": "ok", **result, "triage": triage_result}, indent=2),
+            json.dumps({"status": "ok", **result, "triage": triage_result, "cleanup": cleanup_result}, indent=2),
             mimetype="application/json",
         )
     except Exception as e:

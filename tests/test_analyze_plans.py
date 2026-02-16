@@ -312,3 +312,151 @@ def test_build_report_executive_summary_failures():
         5, 300.0, "test.pdf", None,
     )
     assert "1 critical issue" in report
+
+
+# ── return_structured parameter ──────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_analyze_plans_return_structured_true():
+    """analyze_plans with return_structured=True returns tuple (str, list[dict])."""
+    title_data = {
+        "project_address": "789 Pine St",
+        "sheet_number": "A1.0",
+        "sheet_name": "SITE PLAN",
+        "firm_name": "Structured Architects",
+        "has_professional_stamp": True,
+        "has_signature": True,
+        "has_2x2_blank": True,
+    }
+    cover_count = {"found_count": True, "stated_count": 3}
+    blank_area = {"has_blank_area": True, "estimated_size": "8.5x11", "location": "upper-right"}
+    hatch = {"has_dense_hatching": False, "severity": "none"}
+
+    async def mock_analyze(b64, prompt, system_prompt=None, model=None):
+        if "page count" in prompt.lower() or "sheet count" in prompt.lower():
+            data = cover_count
+        elif "blank" in prompt.lower() and "8.5" in prompt:
+            data = blank_area
+        elif "hatching" in prompt.lower():
+            data = hatch
+        else:
+            data = title_data
+        from src.vision.client import VisionResult
+        import json
+        return VisionResult(True, json.dumps(data), None, 100, 50)
+
+    with patch("src.vision.client.is_vision_available", return_value=True):
+        with patch("src.vision.epr_checks.is_vision_available", return_value=True):
+            with patch("src.vision.epr_checks.pdf_page_to_base64", return_value="fake"):
+                with patch("src.vision.epr_checks.analyze_image", side_effect=mock_analyze):
+                    result = await analyze_plans(
+                        _make_pdf(3), "structured.pdf",
+                        return_structured=True,
+                    )
+
+    # Verify result is a tuple
+    assert isinstance(result, tuple)
+    assert len(result) == 2
+
+    # First element is the markdown report
+    report, extractions = result
+    assert isinstance(report, str)
+    assert "# Plan Set Analysis Report" in report
+    assert "structured.pdf" in report
+
+    # Second element is page_extractions list
+    assert isinstance(extractions, list)
+    assert len(extractions) > 0
+    assert isinstance(extractions[0], dict)
+    # Verify expected fields
+    assert "page_number" in extractions[0]
+    assert "sheet_number" in extractions[0]
+    assert "project_address" in extractions[0]
+
+
+@pytest.mark.asyncio
+async def test_analyze_plans_return_structured_false_default():
+    """analyze_plans defaults to return_structured=False, returns just string."""
+    with patch("src.vision.client.is_vision_available", return_value=False):
+        result = await analyze_plans(_make_pdf(2), "default.pdf")
+
+    # Verify result is a string (not tuple)
+    assert isinstance(result, str)
+    assert not isinstance(result, tuple)
+    assert "# Plan Set Analysis Report" in result
+    assert "default.pdf" in result
+
+
+@pytest.mark.asyncio
+async def test_page_extractions_structure():
+    """page_extractions have expected dict structure with all EPR fields."""
+    title_data = {
+        "project_address": "456 Oak St",
+        "sheet_number": "S2.0",
+        "sheet_name": "FOUNDATION PLAN",
+        "firm_name": "Engineering Corp",
+        "has_professional_stamp": True,
+        "has_signature": False,  # Variation
+        "has_2x2_blank": True,
+        "architect_name": "Jane Smith PE",
+        "date": "2024-02-15",
+    }
+    cover_count = {"found_count": True, "stated_count": 2}
+    blank_area = {"has_blank_area": False, "estimated_size": None, "location": None}
+    hatch = {"has_dense_hatching": True, "severity": "moderate"}
+
+    async def mock_analyze(b64, prompt, system_prompt=None, model=None):
+        if "page count" in prompt.lower() or "sheet count" in prompt.lower():
+            data = cover_count
+        elif "blank" in prompt.lower() and "8.5" in prompt:
+            data = blank_area
+        elif "hatching" in prompt.lower():
+            data = hatch
+        else:
+            data = title_data
+        from src.vision.client import VisionResult
+        import json
+        return VisionResult(True, json.dumps(data), None, 100, 50)
+
+    with patch("src.vision.client.is_vision_available", return_value=True):
+        with patch("src.vision.epr_checks.is_vision_available", return_value=True):
+            with patch("src.vision.epr_checks.pdf_page_to_base64", return_value="fake"):
+                with patch("src.vision.epr_checks.analyze_image", side_effect=mock_analyze):
+                    _, extractions = await analyze_plans(
+                        _make_pdf(2), "structure.pdf",
+                        return_structured=True,
+                    )
+
+    # Verify structure of extracted data
+    assert len(extractions) > 0
+    first = extractions[0]
+
+    # Core fields
+    assert "page_number" in first
+    assert isinstance(first["page_number"], int)
+    assert first["page_number"] >= 1
+
+    assert "sheet_number" in first
+    assert first["sheet_number"] == "S2.0"
+
+    assert "sheet_name" in first
+    assert first["sheet_name"] == "FOUNDATION PLAN"
+
+    assert "project_address" in first
+    assert first["project_address"] == "456 Oak St"
+
+    # Professional stamp/signature fields
+    assert "has_professional_stamp" in first
+    assert first["has_professional_stamp"] is True
+
+    assert "has_signature" in first
+    assert first["has_signature"] is False  # Intentionally varied
+
+    # Optional fields (may be present)
+    if "firm_name" in first:
+        assert first["firm_name"] == "Engineering Corp"
+    if "architect_name" in first:
+        assert first["architect_name"] == "Jane Smith PE"
+    if "date" in first:
+        assert first["date"] == "2024-02-15"
