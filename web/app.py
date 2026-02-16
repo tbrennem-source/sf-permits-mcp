@@ -2183,6 +2183,7 @@ def property_report_share(block, lot):
             "report_email.html",
             report=report,
             report_url=report_url,
+            base_url=base_url,
             is_owner=is_owner,
             links=ReportLinks,
             sender_name=sender_name,

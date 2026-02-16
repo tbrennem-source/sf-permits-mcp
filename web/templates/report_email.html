@@ -213,7 +213,7 @@
                                 {% for p in report.permits[:10] %}
                                 <tr>
                                     <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
-                                        <a href="{{ links.permit(p.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ p.permit_number }}</a>
+                                        <a href="{{ base_url }}{{ links.permit(p.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ p.permit_number }}</a>
                                     </td>
                                     <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.permit_type_definition or '—' }}</td>
                                     <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
@@ -295,7 +295,7 @@
                                 <tr>
                                     <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
                                         <div style="display:inline;">
-                                            <a href="{{ links.complaint(c.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ c.complaint_number }}</a>
+                                            <a href="{{ base_url }}{{ links.complaint(c.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ c.complaint_number }}</a>
                                             <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:600;margin-left:8px;
                                                 {% if (c.status or '')|lower == 'open' %}background:#fef3c7;color:#d97706;
                                                 {% else %}background:#d1fae5;color:#059669;{% endif %}">
@@ -328,7 +328,7 @@
                                     <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
                                         <div style="display:inline;">
                                             {% if v.complaint_number %}
-                                            <a href="{{ links.complaint(v.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ v.complaint_number }}</a>
+                                            <a href="{{ base_url }}{{ links.complaint(v.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ v.complaint_number }}</a>
                                             {% else %}
                                             <span style="font-weight:600;font-size:0.9rem;">Violation</span>
                                             {% endif %}
@@ -413,7 +413,7 @@
                                 <tr>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.street_number }} {{ n.street_name }} {{ n.street_suffix or '' }}</td>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
-                                        <a href="{{ links.permit(n.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ n.permit_number }}</a>
+                                        <a href="{{ base_url }}{{ links.permit(n.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ n.permit_number }}</a>
                                     </td>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.description or '—' }}</td>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">

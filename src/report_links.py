@@ -12,13 +12,13 @@ class ReportLinks:
 
     @staticmethod
     def permit(permit_number: str) -> str:
-        """Internal permit search — links to home page search."""
-        return f"/ask?q={quote_plus(permit_number)}"
+        """Internal permit search — home page with auto-submit."""
+        return f"/?q={quote_plus(permit_number)}"
 
     @staticmethod
     def complaint(complaint_number: str) -> str:
-        """Internal complaint search — links to home page search."""
-        return f"/ask?q={quote_plus(complaint_number)}"
+        """Internal complaint search — home page with auto-submit."""
+        return f"/?q={quote_plus(complaint_number)}"
 
     @staticmethod
     def parcel(block: str, lot: str) -> str:
