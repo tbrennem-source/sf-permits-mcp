@@ -116,6 +116,64 @@
             font-size: 0.8rem;
         }
         .btn-unwatch:hover { color: var(--error); border-color: var(--error); }
+        .btn-edit {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-edit:hover { color: var(--accent); border-color: var(--accent); }
+        .watch-search {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+        .watch-search::placeholder { color: var(--text-muted); }
+        .watch-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+        .watch-edit-input {
+            padding: 4px 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 0.85rem;
+            width: 200px;
+        }
+        .watch-add-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .watch-add-form input, .watch-add-form select {
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+        .watch-add-form button {
+            padding: 8px 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .watch-item.hidden { display: none; }
         .empty { color: var(--text-muted); font-style: italic; }
         .impersonate-banner {
             background: rgba(251, 191, 36, 0.15);
@@ -248,22 +306,33 @@
             </div>
 
             <div class="card" id="watch-list-card">
-                <h2>Watch List ({{ watches | length }})</h2>
+                <h2>Watch List (<span id="watch-count">{{ watches | length }}</span>)</h2>
+
                 {% if watches %}
-                <ul class="watch-list">
+                <input type="text" class="watch-search" id="watch-search"
+                       placeholder="Search watched items..." autocomplete="off"
+                       oninput="filterWatches(this.value)">
+
+                <ul class="watch-list" id="watch-list">
                     {% for w in watches %}
-                    <li class="watch-item">
+                    <li class="watch-item" data-search="{{ (w.label or '') | lower }} {{ (w.street_number or '') | lower }} {{ (w.street_name or '') | lower }} {{ (w.permit_number or '') | lower }} {{ (w.neighborhood or '') | lower }} {{ (w.watch_type or '') | lower }} {{ (w.block or '') }}/{{ (w.lot or '') }}">
                         <div class="watch-meta">
-                            <span class="watch-label">{{ w.label or _watch_label(w) }}</span>
+                            <span class="watch-label" id="watch-label-{{ w.watch_id }}">
+                                {{ w.label or [w.street_number, w.street_name] | select | join(' ') or w.permit_number or ([w.block, w.lot] | select | join('/')) or w.neighborhood or ('Entity ' ~ w.entity_id) }}
+                            </span>
                             <span class="watch-type">{{ w.watch_type }}</span>
                         </div>
-                        <div class="watch-container">
+                        <div class="watch-actions">
+                            <button class="btn-edit" title="Edit label"
+                                    onclick="editWatch({{ w.watch_id }}, this)">
+                                &#9998;
+                            </button>
                             <button class="btn-unwatch"
                                 hx-post="/watch/remove"
                                 hx-target="closest .watch-item"
                                 hx-swap="outerHTML"
                                 hx-vals='{"watch_id": "{{ w.watch_id }}"}'>
-                                Remove
+                                &#10005;
                             </button>
                         </div>
                     </li>
@@ -272,6 +341,20 @@
                 {% else %}
                 <p class="empty">No watched items yet. Search for permits, addresses, or people and click "Watch" to track changes.</p>
                 {% endif %}
+
+                <!-- Add watch form -->
+                <form class="watch-add-form" method="POST" action="/watch/add"
+                      hx-post="/watch/add"
+                      hx-target="#watch-add-status"
+                      hx-swap="innerHTML"
+                      onsubmit="setTimeout(function(){ location.reload(); }, 800);">
+                    <input type="text" name="street_number" placeholder="Street #" style="width:70px;" autocomplete="off">
+                    <input type="text" name="street_name" placeholder="Street name" style="flex:1;min-width:140px;" autocomplete="off">
+                    <input type="hidden" name="watch_type" value="address">
+                    <input type="text" name="label" placeholder="Label (optional)" style="width:140px;" autocomplete="off">
+                    <button type="submit">+ Add Address</button>
+                    <span id="watch-add-status" style="font-size:0.8rem;"></span>
+                </form>
             </div>
 
             <div class="card">
@@ -426,6 +509,64 @@
                 btn.style.borderColor = '';
             }, 1500);
         });
+    }
+
+    /* Watch list search/filter */
+    function filterWatches(query) {
+        var q = query.toLowerCase().trim();
+        var items = document.querySelectorAll('#watch-list .watch-item');
+        var visible = 0;
+        items.forEach(function(item) {
+            var data = item.getAttribute('data-search') || '';
+            if (!q || data.indexOf(q) !== -1) {
+                item.classList.remove('hidden');
+                visible++;
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+        var countEl = document.getElementById('watch-count');
+        if (countEl) countEl.textContent = q ? visible + '/' + items.length : items.length;
+    }
+
+    /* Inline watch label edit */
+    function editWatch(watchId, btn) {
+        var labelEl = document.getElementById('watch-label-' + watchId);
+        if (!labelEl) return;
+        var currentText = labelEl.textContent.trim();
+        var li = btn.closest('.watch-item');
+
+        /* Replace label with input */
+        labelEl.innerHTML = '<input type="text" class="watch-edit-input" value="' +
+            currentText.replace(/"/g, '&quot;') + '" onkeydown="if(event.key===\'Enter\')saveWatch(' +
+            watchId + ',this)" onblur="saveWatch(' + watchId + ',this)">';
+        var input = labelEl.querySelector('input');
+        input.focus();
+        input.select();
+    }
+
+    function saveWatch(watchId, input) {
+        var label = input.value.trim();
+        if (!label) {
+            /* Revert on empty */
+            location.reload();
+            return;
+        }
+        var formData = new FormData();
+        formData.append('watch_id', watchId);
+        formData.append('label', label);
+        fetch('/watch/edit', { method: 'POST', body: formData })
+            .then(function(resp) { return resp.text(); })
+            .then(function(html) {
+                var labelEl = document.getElementById('watch-label-' + watchId);
+                if (labelEl) labelEl.innerHTML = label;
+                /* Update search data */
+                var li = labelEl.closest('.watch-item');
+                if (li) {
+                    var old = li.getAttribute('data-search') || '';
+                    li.setAttribute('data-search', label.toLowerCase() + ' ' + old);
+                }
+            });
     }
     </script>
 </body>

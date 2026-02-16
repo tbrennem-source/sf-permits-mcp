@@ -409,13 +409,17 @@ def health():
 
 
 def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] | None:
-    """Lightweight lookup: resolve a street address to (block, lot) from permits table."""
+    """Lightweight lookup: resolve a street address to (block, lot) from permits table.
+
+    Includes fuzzy space matching: "robin hood" matches "ROBINHOOD" and vice versa.
+    """
     from src.db import query, _ph
     from src.tools.permit_lookup import _strip_suffix
     ph = _ph()
     base_name, _suffix = _strip_suffix(street_name)
     base_pattern = f"%{base_name}%"
     full_pattern = f"%{street_name}%"
+    nospace_pattern = f"%{base_name.replace(' ', '')}%"
     rows = query(
         f"SELECT block, lot FROM permits "
         f"WHERE street_number = {ph} "
@@ -423,10 +427,11 @@ def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] 
         f"    UPPER(street_name) LIKE UPPER({ph})"
         f"    OR UPPER(street_name) LIKE UPPER({ph})"
         f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
+        f"    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') LIKE UPPER({ph})"
         f"  ) "
         f"  AND block IS NOT NULL AND lot IS NOT NULL "
         f"LIMIT 1",
-        (street_number, base_pattern, full_pattern, full_pattern),
+        (street_number, base_pattern, full_pattern, full_pattern, nospace_pattern),
     )
     if rows:
         return (rows[0][0], rows[0][1])
@@ -1235,6 +1240,22 @@ def watch_remove():
     return ""
 
 
+@app.route("/watch/edit", methods=["POST"])
+def watch_edit():
+    """Update a watch item's label. Returns HTMX fragment."""
+    if not g.user:
+        return "", 403
+
+    from web.auth import update_watch_label
+
+    watch_id = request.form.get("watch_id")
+    label = request.form.get("label", "").strip()
+    if watch_id and label:
+        update_watch_label(int(watch_id), g.user["user_id"], label)
+
+    return f'<span class="watch-label">{label}</span>'
+
+
 @app.route("/watch/list")
 @login_required
 def watch_list():
@@ -1537,15 +1558,24 @@ def admin_feedback_screenshot(feedback_id):
 @app.route("/admin/activity")
 @login_required
 def admin_activity():
-    """Admin activity feed page."""
+    """Admin activity feed page with optional filters."""
     if not g.user.get("is_admin"):
         abort(403)
 
-    from web.activity import get_recent_activity, get_activity_stats
-    activity = get_recent_activity(limit=100)
+    from web.activity import get_recent_activity, get_activity_stats, get_active_users
+
+    # Read filter query params
+    action_filter = request.args.get("action") or None
+    user_id_filter = request.args.get("user_id", type=int) or None
+
+    activity = get_recent_activity(
+        limit=200, action_filter=action_filter, user_id_filter=user_id_filter)
     stats = get_activity_stats(hours=24)
+    users = get_active_users()
     return render_template("admin_activity.html", user=g.user,
-                           activity=activity, stats=stats)
+                           activity=activity, stats=stats, users=users,
+                           action_filter=action_filter,
+                           user_id_filter=user_id_filter)
 
 
 # ---------------------------------------------------------------------------

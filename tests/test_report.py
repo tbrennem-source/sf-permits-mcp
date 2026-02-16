@@ -20,8 +20,9 @@ class TestReportLinks:
 
     def test_parcel_url(self):
         url = ReportLinks.parcel("2991", "012")
-        assert "2991/012" in url
-        assert "sfplanninggis.org" in url
+        assert "2991" in url
+        assert "012" in url
+        assert "sfplanninggis.org/pim" in url
 
     def test_planning_code_known_section(self):
         url = ReportLinks.planning_code("311")

@@ -67,17 +67,34 @@ def log_activity(
         logger.debug("Activity log write failed (non-fatal)", exc_info=True)
 
 
-def get_recent_activity(limit: int = 50) -> list[dict]:
-    """Get recent activity log entries (admin view)."""
+def get_recent_activity(limit: int = 50, action_filter: str | None = None,
+                        user_id_filter: int | None = None) -> list[dict]:
+    """Get recent activity log entries (admin view).
+
+    Optional filters:
+      action_filter: only return entries matching this action type
+      user_id_filter: only return entries for this user
+    """
     _ensure_schema()
+    conditions: list[str] = []
+    params: list = []
+    if action_filter:
+        conditions.append("a.action = %s")
+        params.append(action_filter)
+    if user_id_filter:
+        conditions.append("a.user_id = %s")
+        params.append(user_id_filter)
+    where = ("WHERE " + " AND ".join(conditions) + " ") if conditions else ""
+    params.append(limit)
     rows = query(
-        "SELECT a.log_id, a.user_id, a.action, a.detail, a.path, a.created_at, "
-        "u.email "
-        "FROM activity_log a "
-        "LEFT JOIN users u ON a.user_id = u.user_id "
-        "ORDER BY a.created_at DESC "
-        "LIMIT %s",
-        (limit,),
+        f"SELECT a.log_id, a.user_id, a.action, a.detail, a.path, a.created_at, "
+        f"u.email "
+        f"FROM activity_log a "
+        f"LEFT JOIN users u ON a.user_id = u.user_id "
+        f"{where}"
+        f"ORDER BY a.created_at DESC "
+        f"LIMIT %s",
+        tuple(params),
     )
     results = []
     for r in rows:
@@ -118,6 +135,29 @@ def get_activity_stats(hours: int = 24) -> dict:
         "by_action": {r[0]: r[1] for r in rows},
         "hours": hours,
     }
+
+
+def get_active_users() -> list[dict]:
+    """Get all users who have activity, ordered by most recent activity."""
+    _ensure_schema()
+    rows = query(
+        "SELECT DISTINCT u.user_id, u.email, u.display_name, "
+        "MAX(a.created_at) AS last_active, COUNT(a.log_id) AS action_count "
+        "FROM activity_log a "
+        "JOIN users u ON a.user_id = u.user_id "
+        "GROUP BY u.user_id, u.email, u.display_name "
+        "ORDER BY last_active DESC"
+    )
+    return [
+        {
+            "user_id": r[0],
+            "email": r[1],
+            "display_name": r[2],
+            "last_active": r[3],
+            "action_count": r[4],
+        }
+        for r in rows
+    ]
 
 
 # ── Feedback ──────────────────────────────────────────────────────

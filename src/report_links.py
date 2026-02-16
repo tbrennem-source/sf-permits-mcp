@@ -22,8 +22,8 @@ class ReportLinks:
 
     @staticmethod
     def parcel(block: str, lot: str) -> str:
-        """SF Planning GIS property information map URL."""
-        return f"https://sfplanninggis.org/pim/?search={block}/{lot}"
+        """SF Planning Property Information Map URL."""
+        return f"https://sfplanninggis.org/pim/?search={block}%2F{lot}"
 
     @staticmethod
     def planning_code(section: str) -> str:

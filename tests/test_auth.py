@@ -338,6 +338,37 @@ def test_watch_neighborhood(client):
 
 
 # ---------------------------------------------------------------------------
+# Watch edit: label update
+# ---------------------------------------------------------------------------
+
+def test_watch_edit_label(client):
+    """Edit a watch item's label via POST /watch/edit."""
+    user = _login_user(client)
+    from web.auth import add_watch, get_watches
+    watch = add_watch(user["user_id"], "address", street_number="100", street_name="Main St")
+    rv = client.post("/watch/edit", data={"watch_id": str(watch["watch_id"]), "label": "My Office"})
+    assert rv.status_code == 200
+    assert b"My Office" in rv.data
+    watches = get_watches(user["user_id"])
+    assert watches[0]["label"] == "My Office"
+
+
+def test_watch_edit_not_logged_in(client):
+    """Edit without login returns 403."""
+    rv = client.post("/watch/edit", data={"watch_id": "1", "label": "Nope"})
+    assert rv.status_code == 403
+
+
+def test_watch_edit_empty_label(client):
+    """Empty label is a no-op (returns empty)."""
+    user = _login_user(client)
+    from web.auth import add_watch
+    watch = add_watch(user["user_id"], "permit", permit_number="999")
+    rv = client.post("/watch/edit", data={"watch_id": str(watch["watch_id"]), "label": ""})
+    assert rv.status_code == 200
+
+
+# ---------------------------------------------------------------------------
 # Watch context: regression test for _watch_context unpacking bug
 # ---------------------------------------------------------------------------
 

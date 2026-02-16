@@ -268,6 +268,58 @@ def test_admin_activity_page_works(client, monkeypatch):
     assert "Activity Feed" in html
 
 
+def test_admin_activity_filter_by_action(client, monkeypatch):
+    """Activity feed can be filtered by action type via query param."""
+    _make_admin(client, monkeypatch=monkeypatch)
+    from web.activity import log_activity
+    log_activity(1, "search", detail={"query": "test"}, path="/")
+    log_activity(1, "login", path="/auth/login")
+
+    rv = client.get("/admin/activity?action=search")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "Action: search" in html  # filter tag shown
+
+
+def test_admin_activity_filter_by_user(client, monkeypatch):
+    """Activity feed can be filtered by user_id via query param."""
+    _make_admin(client, monkeypatch=monkeypatch)
+    rv = client.get("/admin/activity?user_id=1")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "All users" in html  # user dropdown present
+
+
+def test_admin_activity_user_dropdown(client, monkeypatch):
+    """Activity page includes user dropdown."""
+    _make_admin(client, monkeypatch=monkeypatch)
+    rv = client.get("/admin/activity")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "All users" in html
+    assert "filterByUser" in html
+
+
+def test_get_recent_activity_with_filters():
+    """get_recent_activity accepts action_filter and user_id_filter."""
+    from web.activity import get_recent_activity, log_activity
+    log_activity(1, "search", detail={"query": "foo"}, path="/")
+    log_activity(1, "analyze", path="/analyze")
+    log_activity(2, "search", path="/")
+
+    # No filter: returns all
+    all_items = get_recent_activity(limit=100)
+    assert len(all_items) >= 3
+
+    # Filter by action
+    searches = get_recent_activity(limit=100, action_filter="search")
+    assert all(a["action"] == "search" for a in searches)
+
+    # Filter by user_id
+    user1 = get_recent_activity(limit=100, user_id_filter=1)
+    assert all(a["user_id"] == 1 for a in user1)
+
+
 def test_admin_feedback_update_route(client, monkeypatch):
     """Admin can update feedback via HTMX route."""
     _make_admin(client, monkeypatch=monkeypatch)
@@ -653,6 +705,52 @@ def test_strip_suffix():
     assert _strip_suffix("6th") == ("6th", None)
     assert _strip_suffix("Lake") == ("Lake", None)
     assert _strip_suffix("De Haro St") == ("De Haro", "St")
+
+
+def test_fuzzy_address_space_matching():
+    """Address lookup matches despite space differences (robin hood vs robinhood)."""
+    import duckdb
+    from src.tools.permit_lookup import _lookup_by_address
+
+    conn = duckdb.connect(":memory:")
+    conn.execute("""
+        CREATE TABLE permits (
+            permit_number TEXT, street_number TEXT, street_name TEXT,
+            street_suffix TEXT, block TEXT, lot TEXT, status TEXT,
+            filed_date TEXT, permit_type TEXT, permit_type_definition TEXT,
+            description TEXT, estimated_cost DOUBLE, neighborhood TEXT,
+            issued_date TEXT, completed_date TEXT, revised_cost DOUBLE,
+            existing_use TEXT, proposed_use TEXT, existing_units TEXT,
+            proposed_units TEXT, plansets TEXT, supervisor_district TEXT,
+            zipcode TEXT, location TEXT
+        )
+    """)
+    # DB stores as "ROBINHOOD" (no space)
+    conn.execute("""
+        INSERT INTO permits (permit_number, street_number, street_name, street_suffix,
+                             block, lot, status, filed_date, neighborhood)
+        VALUES ('P001', '75', 'ROBINHOOD', 'DR', '2800', '010', 'issued', '2024-01-01', 'West of Twin Peaks')
+    """)
+    # Also a normal spaced entry
+    conn.execute("""
+        INSERT INTO permits (permit_number, street_number, street_name, street_suffix,
+                             block, lot, status, filed_date, neighborhood)
+        VALUES ('P002', '75', 'ROBIN HOOD', 'DR', '2800', '010', 'complete', '2023-01-01', 'West of Twin Peaks')
+    """)
+
+    # "robin hood dr" should match both (with and without space)
+    results = _lookup_by_address(conn, "75", "Robin Hood Dr")
+    assert len(results) == 2
+
+    # "robinhood dr" should also match both
+    results = _lookup_by_address(conn, "75", "Robinhood Dr")
+    assert len(results) >= 1
+
+    # Even "robin hood" (no suffix) should match
+    results = _lookup_by_address(conn, "75", "Robin Hood")
+    assert len(results) == 2
+
+    conn.close()
 
 
 def test_triage_severity_classification():
