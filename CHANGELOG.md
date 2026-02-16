@@ -4,16 +4,24 @@
 
 ### Bug Fix: No Loading Indicator on PDF Upload (#60)
 - **Problem:** When uploading PDF to "Analyze Plan Set" and clicking submit, NO loading indicator appeared - form appeared frozen with no visual feedback
-- **Root cause:** HTMX's `hx-encoding="multipart/form-data"` for file uploads may not trigger `.htmx-request` CSS class reliably
-- **Solution:** Added explicit JavaScript event listeners for analyze-plans form
+- **Root cause:** HTMX's `hx-encoding="multipart/form-data"` for file uploads may not trigger `.htmx-request` CSS class reliably, plus potential DOMContentLoaded timing issues
+- **Solution (Iteration 1):** Added explicit JavaScript event listeners for analyze-plans form
   - Listens for HTMX events (`htmx:beforeRequest`, `htmx:afterRequest`)
   - Fallback to form submit event if HTMX doesn't fire (100ms delay)
   - Manually controls loading indicator visibility
-  - Disables submit button during upload to prevent double-submission
+  - Disables submit button during upload
+- **Solution (Iteration 2 - MORE ROBUST):** Improved event handling with debugging
+  - Changed to IIFE (immediately invoked function) instead of DOMContentLoaded
+  - Checks `document.readyState` and runs immediately if DOM already loaded
+  - Form `submit` event is PRIMARY handler (most reliable, fires first)
+  - Added `console.log` statements for debugging
+  - Added `htmx:responseError` handler for error cases
+  - Sets button opacity to `0.6` when disabled for visual feedback
+  - Prevents timing issues and browser caching problems
 - **Outcome:** Hourglass spinner (⏳) now appears immediately when "Analyze Plan Set" is clicked, providing clear visual feedback during long PDF uploads (up to 2-3 minutes)
 
-### Files Changed (1 file, +34 lines)
-- `web/templates/index.html` — Added `<script>` with event listeners after analyze-plans-loading div (lines 1125-1157)
+### Files Changed (1 file, +59 lines total)
+- `web/templates/index.html` — Added `<script>` with robust event listeners after analyze-plans-loading div (lines 1125-1171)
 
 ---
 

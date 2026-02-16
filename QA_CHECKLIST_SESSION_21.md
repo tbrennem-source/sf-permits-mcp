@@ -131,28 +131,46 @@
 
 ## Session 21.5: Analyze Plans Loading Indicator
 
-### ✅ Test 15: Loading Indicator Shows Immediately on Upload
+### ✅ Test 15: Loading Indicator Shows Immediately on Upload (WITH DEBUG CONSOLE)
 **Before:** No loading indicator appeared when uploading PDF to "Analyze Plan Set" - form appeared frozen
+**Fix iteration 2:** Added robust IIFE-based event handling with console logging for debugging
 
+- [ ] **IMPORTANT:** Hard refresh page first (`Cmd+Shift+R` Mac / `Ctrl+Shift+F5` Windows) to clear cache
+- [ ] Open Browser DevTools → Console tab
 - [ ] Navigate to homepage, click "Analyze Plan Set" to expand section
+- [ ] **Verify in console:** See `[Analyze Plans] Loading indicator setup complete`
 - [ ] Select any PDF file (small or large)
 - [ ] Click "Analyze Plan Set" button
+- [ ] **Verify in console:** See `[Analyze Plans] Form submit event fired`
 - [ ] **Verify:** Hourglass spinner (⏳) appears IMMEDIATELY
 - [ ] **Verify:** Message shows "Analyzing plan set..."
 - [ ] **Verify:** Message shows "Large files may take 2-3 minutes to process"
 - [ ] **Verify:** Progress dots pulse in sequence
-- [ ] **Verify:** Submit button becomes disabled (no double-submission)
+- [ ] **Verify:** Submit button becomes disabled AND faded (opacity 0.6)
 - [ ] **Verify:** Loading indicator remains visible throughout upload/processing
 - [ ] **Verify:** Results appear after processing completes
+- [ ] **Verify in console:** See `[Analyze Plans] HTMX afterRequest event fired` when done
 - [ ] **Verify:** Loading indicator disappears when results show
+- [ ] **Verify:** Submit button re-enabled and full opacity restored
 
-### ✅ Test 16: Large File Upload with Loading Indicator
+**If indicator doesn't show:**
+- [ ] Check console for JavaScript errors (red text)
+- [ ] Check if setup message appeared
+- [ ] Check if submit event fired
+- [ ] Report console output for debugging
+
+### ✅ Test 16: Large File Upload with Loading Indicator (Timeout Verification)
+- [ ] Hard refresh page to clear cache
+- [ ] Open DevTools console
 - [ ] Select 40-50 page PDF
 - [ ] Click "Analyze Plan Set"
+- [ ] **Verify in console:** Form submit event fires
 - [ ] **Verify:** Loading indicator appears immediately (not delayed)
 - [ ] **Verify:** Indicator remains visible for entire 2-3 minute processing time
-- [ ] **Verify:** No timeout error
+- [ ] **Verify:** Button stays disabled and faded throughout
+- [ ] **Verify:** No timeout error (300s limit from Session 21.2)
 - [ ] **Verify:** Gallery appears with results after processing
+- [ ] **Verify in console:** HTMX afterRequest event fires when complete
 
 ---
 
