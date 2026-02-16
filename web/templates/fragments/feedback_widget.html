@@ -5,6 +5,15 @@
     💬
 </div>
 
+<!-- Capture overlay (shown while html2canvas renders, instead of leaving user staring at bare page) -->
+<div id="feedback-capture-overlay"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1002;align-items:center;justify-content:center;">
+    <div style="text-align:center;color:var(--text, #e4e6eb);">
+        <div style="font-size:2rem;margin-bottom:12px;">📸</div>
+        <div style="font-size:0.95rem;">Capturing page screenshot...</div>
+    </div>
+</div>
+
 <div id="feedback-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1001;align-items:center;justify-content:center;">
     <div style="background:var(--surface, #1a1d27);border:1px solid var(--border, #333749);border-radius:12px;padding:24px;max-width:440px;width:90%;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -12,8 +21,9 @@
             <button onclick="document.getElementById('feedback-modal').style.display='none'"
                     style="background:none;border:none;color:var(--text-muted, #8b8fa3);font-size:1.2rem;cursor:pointer;">&times;</button>
         </div>
-        <form hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
+        <form id="feedback-form" hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
             <input type="hidden" name="page_url" class="feedback-page-url">
+            <input type="hidden" name="screenshot_data" id="feedback-screenshot-data">
             <div style="display:flex;gap:8px;margin-bottom:12px;">
                 <label class="fb-type-label" style="flex:1;text-align:center;padding:8px;border:1px solid var(--border, #333749);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text, #e4e6eb);">
                     <input type="radio" name="feedback_type" value="bug" style="display:none;">
@@ -31,6 +41,26 @@
             <textarea name="message" rows="4" placeholder="What's on your mind?"
                       style="width:100%;padding:10px;background:var(--surface-2, #252834);border:1px solid var(--border, #333749);border-radius:6px;color:var(--text, #e4e6eb);font-size:0.9rem;resize:vertical;font-family:inherit;"
                       required minlength="3"></textarea>
+            <!-- Screenshot capture / upload -->
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" id="capture-screenshot-btn"
+                        onclick="fbCaptureScreenshot()"
+                        style="padding:4px 10px;background:var(--surface-2, #252834);border:1px solid var(--border, #333749);border-radius:6px;color:var(--text-muted, #8b8fa3);cursor:pointer;font-size:0.8rem;">
+                    📸 Capture Page
+                </button>
+                <label style="padding:4px 10px;background:var(--surface-2, #252834);border:1px solid var(--border, #333749);border-radius:6px;color:var(--text-muted, #8b8fa3);cursor:pointer;font-size:0.8rem;">
+                    📎 Upload Image
+                    <input type="file" accept="image/*" onchange="fbHandleFileUpload(this)" style="display:none;">
+                </label>
+                <span id="screenshot-status" style="font-size:0.75rem;color:var(--text-muted, #8b8fa3);"></span>
+            </div>
+            <div id="screenshot-preview" style="display:none;margin-top:8px;position:relative;">
+                <img id="screenshot-thumb" style="max-width:100%;max-height:120px;border-radius:6px;border:1px solid var(--border, #333749);">
+                <button type="button" onclick="fbClearScreenshot()"
+                        style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border:none;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:0.7rem;line-height:20px;text-align:center;">
+                    &times;
+                </button>
+            </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
                 <span id="feedback-result" style="font-size:0.85rem;"></span>
                 <button type="submit" style="padding:8px 20px;background:var(--accent, #4f8ff7);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.9rem;">Send</button>
@@ -57,5 +87,148 @@
             }
         });
     });
+
+    // Reset form after successful HTMX submit
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.detail.pathInfo && evt.detail.pathInfo.requestPath === '/feedback/submit'
+            && evt.detail.successful) {
+            // Delay reset so user sees the "Thanks!" message briefly
+            setTimeout(function() {
+                var form = document.getElementById('feedback-form');
+                if (form) {
+                    form.querySelector('textarea[name="message"]').value = '';
+                    fbClearScreenshot();
+                    // Reset radio to "suggestion"
+                    var sugRadio = form.querySelector('input[value="suggestion"]');
+                    if (sugRadio) {
+                        sugRadio.checked = true;
+                        sugRadio.dispatchEvent(new Event('change'));
+                    }
+                }
+            }, 2000);
+            // Auto-close modal after a short pause
+            setTimeout(function() {
+                document.getElementById('feedback-modal').style.display = 'none';
+                document.getElementById('feedback-result').textContent = '';
+            }, 3000);
+        }
+    });
 })();
+
+var FB_MAX_BYTES = 2 * 1024 * 1024; // 2MB base64 limit
+var _html2canvasLoaded = false;
+
+function _loadHtml2Canvas(callback) {
+    if (_html2canvasLoaded && window.html2canvas) {
+        callback();
+        return;
+    }
+    var script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.crossOrigin = 'anonymous';
+    script.onload = function() {
+        _html2canvasLoaded = true;
+        callback();
+    };
+    script.onerror = function() {
+        var status = document.getElementById('screenshot-status');
+        status.textContent = 'Failed to load capture library. Try uploading instead.';
+        status.style.color = 'var(--error, #f87171)';
+        document.getElementById('capture-screenshot-btn').disabled = false;
+    };
+    document.head.appendChild(script);
+}
+
+function fbCaptureScreenshot() {
+    var btn = document.getElementById('capture-screenshot-btn');
+    var status = document.getElementById('screenshot-status');
+    var modal = document.getElementById('feedback-modal');
+    var overlay = document.getElementById('feedback-capture-overlay');
+
+    btn.disabled = true;
+    status.textContent = '';
+
+    // Hide modal, show overlay so user knows what's happening
+    modal.style.display = 'none';
+    overlay.style.display = 'flex';
+
+    _loadHtml2Canvas(function() {
+        requestAnimationFrame(function() {
+            html2canvas(document.body, {
+                scale: 1,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#0f1117',
+                ignoreElements: function(el) {
+                    // Don't capture the overlay itself
+                    return el.id === 'feedback-capture-overlay';
+                }
+            }).then(function(canvas) {
+                overlay.style.display = 'none';
+                modal.style.display = 'flex';
+                var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                if (dataUrl.length > FB_MAX_BYTES) {
+                    dataUrl = canvas.toDataURL('image/jpeg', 0.4);
+                }
+                if (dataUrl.length > FB_MAX_BYTES) {
+                    status.textContent = 'Image too large. Try uploading a smaller file.';
+                    status.style.color = 'var(--error, #f87171)';
+                    btn.disabled = false;
+                    return;
+                }
+                fbSetScreenshot(dataUrl);
+                status.textContent = 'Page captured!';
+                status.style.color = 'var(--success, #34d399)';
+                btn.disabled = false;
+            }).catch(function(err) {
+                overlay.style.display = 'none';
+                modal.style.display = 'flex';
+                status.textContent = 'Capture failed. Try uploading instead.';
+                status.style.color = 'var(--error, #f87171)';
+                btn.disabled = false;
+            });
+        });
+    });
+}
+
+function fbHandleFileUpload(input) {
+    var status = document.getElementById('screenshot-status');
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+
+    if (!file.type.startsWith('image/')) {
+        status.textContent = 'Please select an image file.';
+        status.style.color = 'var(--error, #f87171)';
+        return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var dataUrl = e.target.result;
+        if (dataUrl.length > FB_MAX_BYTES) {
+            status.textContent = 'Image too large (max ~1.5MB).';
+            status.style.color = 'var(--error, #f87171)';
+            return;
+        }
+        fbSetScreenshot(dataUrl);
+        status.textContent = file.name + ' attached';
+        status.style.color = 'var(--success, #34d399)';
+    };
+    reader.readAsDataURL(file);
+}
+
+function fbSetScreenshot(dataUrl) {
+    document.getElementById('feedback-screenshot-data').value = dataUrl;
+    var preview = document.getElementById('screenshot-preview');
+    var thumb = document.getElementById('screenshot-thumb');
+    thumb.src = dataUrl;
+    preview.style.display = 'block';
+}
+
+function fbClearScreenshot() {
+    document.getElementById('feedback-screenshot-data').value = '';
+    document.getElementById('screenshot-preview').style.display = 'none';
+    document.getElementById('screenshot-thumb').src = '';
+    document.getElementById('screenshot-status').textContent = '';
+}
 </script>

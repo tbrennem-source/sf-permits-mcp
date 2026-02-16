@@ -217,12 +217,21 @@ def init_user_schema(conn=None) -> None:
                 feedback_type TEXT NOT NULL DEFAULT 'suggestion',
                 message TEXT NOT NULL,
                 page_url TEXT,
+                screenshot_data TEXT,
                 status TEXT NOT NULL DEFAULT 'new',
                 admin_note TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 resolved_at TIMESTAMP
             )
         """)
+        # Add columns for existing DuckDB databases
+        for alter_stmt in [
+            "ALTER TABLE feedback ADD COLUMN screenshot_data TEXT",
+        ]:
+            try:
+                conn.execute(alter_stmt)
+            except Exception:
+                pass  # Column already exists
         # Indexes (no partial indexes in DuckDB)
         for stmt in [
             "CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)",

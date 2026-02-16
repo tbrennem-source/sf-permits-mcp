@@ -127,6 +127,7 @@ def submit_feedback(
     feedback_type: str,
     message: str,
     page_url: str | None = None,
+    screenshot_data: str | None = None,
 ) -> dict:
     """Submit user feedback. Returns the feedback dict."""
     if feedback_type not in ("bug", "suggestion", "question"):
@@ -135,9 +136,9 @@ def submit_feedback(
     _ensure_schema()
     if BACKEND == "postgres":
         feedback_id = execute_write(
-            "INSERT INTO feedback (user_id, feedback_type, message, page_url) "
-            "VALUES (%s, %s, %s, %s) RETURNING feedback_id",
-            (user_id, feedback_type, message, page_url),
+            "INSERT INTO feedback (user_id, feedback_type, message, page_url, screenshot_data) "
+            "VALUES (%s, %s, %s, %s, %s) RETURNING feedback_id",
+            (user_id, feedback_type, message, page_url, screenshot_data),
             return_id=True,
         )
     else:
@@ -146,9 +147,9 @@ def submit_feedback(
         conn = get_connection()
         try:
             conn.execute(
-                "INSERT INTO feedback (feedback_id, user_id, feedback_type, message, page_url) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (feedback_id, user_id, feedback_type, message, page_url),
+                "INSERT INTO feedback (feedback_id, user_id, feedback_type, message, page_url, screenshot_data) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (feedback_id, user_id, feedback_type, message, page_url, screenshot_data),
             )
         finally:
             conn.close()
@@ -158,6 +159,7 @@ def submit_feedback(
         "feedback_type": feedback_type,
         "message": message,
         "page_url": page_url,
+        "has_screenshot": screenshot_data is not None,
         "status": "new",
     }
 
@@ -177,7 +179,8 @@ def get_feedback_queue(status: str | None = None, limit: int = 50) -> list[dict]
     rows = query(
         f"SELECT f.feedback_id, f.user_id, f.feedback_type, f.message, "
         f"f.page_url, f.status, f.admin_note, f.created_at, f.resolved_at, "
-        f"u.email "
+        f"u.email, "
+        f"CASE WHEN f.screenshot_data IS NOT NULL THEN 1 ELSE 0 END "
         f"FROM feedback f "
         f"LEFT JOIN users u ON f.user_id = u.user_id "
         f"{where} "
@@ -197,6 +200,7 @@ def get_feedback_queue(status: str | None = None, limit: int = 50) -> list[dict]
             "created_at": r[7],
             "resolved_at": r[8],
             "email": r[9],
+            "has_screenshot": bool(r[10]),
         }
         for r in rows
     ]
@@ -247,3 +251,13 @@ def get_feedback_counts() -> dict:
     counts = {r[0]: r[1] for r in rows}
     counts["total"] = sum(counts.values())
     return counts
+
+
+def get_feedback_screenshot(feedback_id: int) -> str | None:
+    """Get screenshot data URL for a specific feedback item."""
+    _ensure_schema()
+    row = query_one(
+        "SELECT screenshot_data FROM feedback WHERE feedback_id = %s",
+        (feedback_id,),
+    )
+    return row[0] if row else None

@@ -1,5 +1,29 @@
 # Changelog
 
+## Session 16 — Feedback Screenshot Attachment (2026-02-15)
+
+### Feedback Widget Enhancement
+- Screenshot attachment for feedback submissions — users can capture page state for LLM debugging
+- Dual capture: "Capture Page" (html2canvas) + "Upload Image" (file picker)
+- Screenshots stored as base64 JPEG in PostgreSQL `screenshot_data TEXT` column (~300KB typical)
+- html2canvas lazy-loaded on first click (saves ~40KB per page load)
+- Capture overlay ("Capturing page screenshot...") replaces jarring modal hide/show
+- Form auto-resets after successful submit (textarea, screenshot, radio buttons), modal auto-closes after 3s
+- Admin feedback queue shows "View Screenshot" toggle with lazy-loaded image
+- Admin-only `/admin/feedback/<id>/screenshot` route decodes base64 and serves image
+- Server-side validation: must start with `data:image/`, max 2MB, invalid data silently dropped
+- DuckDB + PostgreSQL dual-mode support with idempotent migrations
+
+### Tests
+- 12 new screenshot tests in `tests/test_activity.py`:
+  - Submit with/without screenshot, store + retrieve, has_screenshot flag
+  - Invalid data dropped, oversized data dropped
+  - Admin route auth (403), missing screenshot (404), image serve (200 + mime type)
+  - Admin page shows "View Screenshot" button, widget has capture/upload buttons
+- **609 tests passing** (567 → 609), 0 skipped
+
+---
+
 ## Session 9 — Web UI + Predictions Refresh (2026-02-14)
 
 ### Amy Web UI (sfpermits.ai)
