@@ -60,25 +60,55 @@ def _lookup_by_number(conn, permit_number: str) -> list[dict]:
     return [_row_to_dict(r) for r in rows]
 
 
+def _strip_suffix(name: str) -> tuple[str, str | None]:
+    """Split a street name into (base_name, suffix) if a known suffix is present.
+
+    Examples:
+        "16th Ave" → ("16th", "Ave")
+        "Robin Hood Dr" → ("Robin Hood", "Dr")
+        "Market" → ("Market", None)
+    """
+    import re
+    m = re.match(
+        r'^(.+?)\s+(St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Rd|Road|Dr(?:ive)?'
+        r'|Way|Ct|Court|Ln|Lane|Pl(?:ace)?|Ter(?:race)?)\.?\s*$',
+        name,
+        re.IGNORECASE,
+    )
+    if m:
+        return m.group(1).strip(), m.group(2).strip()
+    return name, None
+
+
 def _lookup_by_address(conn, street_number: str, street_name: str) -> list[dict]:
     """Match on street_number + street_name (indexed).
 
-    Matches against both ``street_name`` alone and the concatenation
-    ``street_name || ' ' || street_suffix`` so that queries like
-    "Robin Hood Dr" find rows where name="ROBIN HOOD", suffix="DR".
+    Handles three DB storage patterns:
+      1. street_name="MARKET", street_suffix="ST"  (suffix in separate column)
+      2. street_name="MARKET ST", street_suffix=NULL  (suffix merged into name)
+      3. street_name="16TH", street_suffix="AVE"  (numbered streets)
+
+    The user may provide "Market St" or just "Market" — we search for the
+    base name AND the full name+suffix against both column layouts.
     """
+    base_name, suffix = _strip_suffix(street_name)
+
+    # Build patterns for all match scenarios
+    base_pattern = f"%{base_name}%"
+    full_pattern = f"%{street_name}%"
+
     sql = f"""
         SELECT * FROM permits
         WHERE street_number = {_PH}
           AND (
             UPPER(street_name) LIKE UPPER({_PH})
+            OR UPPER(street_name) LIKE UPPER({_PH})
             OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({_PH})
           )
         ORDER BY filed_date DESC
         LIMIT 50
     """
-    pattern = f"%{street_name}%"
-    rows = _exec(conn, sql, [street_number, pattern, pattern])
+    rows = _exec(conn, sql, [street_number, base_pattern, full_pattern, full_pattern])
     return [_row_to_dict(r) for r in rows]
 
 

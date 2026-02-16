@@ -588,6 +588,73 @@ def test_api_feedback_screenshot_404(client, monkeypatch):
 # Feedback triage pre-processing
 # ---------------------------------------------------------------------------
 
+def test_api_feedback_patch_requires_auth(client):
+    """PATCH endpoint requires CRON_SECRET."""
+    rv = client.patch("/api/feedback/1", json={"status": "resolved"})
+    assert rv.status_code == 403
+
+
+def test_api_feedback_patch_resolves(client, monkeypatch):
+    """PATCH endpoint marks feedback as resolved."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    from web.activity import submit_feedback
+    fb = submit_feedback(None, "bug", "Patch test bug")
+
+    rv = client.patch(
+        f"/api/feedback/{fb['feedback_id']}",
+        json={"status": "resolved", "admin_note": "Fixed in commit abc"},
+        headers={"Authorization": "Bearer test-secret-123"},
+    )
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert data["status"] == "resolved"
+    assert data["admin_note"] == "Fixed in commit abc"
+
+
+def test_api_feedback_patch_invalid_status(client, monkeypatch):
+    """PATCH endpoint rejects invalid status values."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    from web.activity import submit_feedback
+    fb = submit_feedback(None, "bug", "Invalid status test")
+
+    rv = client.patch(
+        f"/api/feedback/{fb['feedback_id']}",
+        json={"status": "invalid_status"},
+        headers={"Authorization": "Bearer test-secret-123"},
+    )
+    assert rv.status_code == 400
+    assert "Invalid status" in rv.get_json()["error"]
+
+
+def test_api_feedback_patch_missing_status(client, monkeypatch):
+    """PATCH endpoint requires status field."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    rv = client.patch(
+        "/api/feedback/1",
+        json={"admin_note": "no status"},
+        headers={"Authorization": "Bearer test-secret-123"},
+    )
+    assert rv.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Address suffix stripping
+# ---------------------------------------------------------------------------
+
+def test_strip_suffix():
+    """Street suffix stripping for address lookup."""
+    from src.tools.permit_lookup import _strip_suffix
+
+    assert _strip_suffix("16th Ave") == ("16th", "Ave")
+    assert _strip_suffix("Robin Hood Dr") == ("Robin Hood", "Dr")
+    assert _strip_suffix("Market St") == ("Market", "St")
+    assert _strip_suffix("Market Street") == ("Market", "Street")
+    assert _strip_suffix("Broadway") == ("Broadway", None)
+    assert _strip_suffix("6th") == ("6th", None)
+    assert _strip_suffix("Lake") == ("Lake", None)
+    assert _strip_suffix("De Haro St") == ("De Haro", "St")
+
+
 def test_triage_severity_classification():
     """Severity classification based on keywords."""
     from scripts.feedback_triage import classify_severity

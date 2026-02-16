@@ -218,6 +218,29 @@ def format_triage_report(items: list[dict], counts: dict) -> str:
 # Main
 # ---------------------------------------------------------------------------
 
+def resolve_items(host: str, cron_secret: str, ids: list[int],
+                   status: str = "resolved", note: str | None = None) -> list[dict]:
+    """Mark feedback items as resolved (or other status) via API."""
+    results = []
+    for fid in ids:
+        url = f"https://{host}/api/feedback/{fid}"
+        body = {"status": status}
+        if note:
+            body["admin_note"] = note
+        try:
+            resp = httpx.patch(
+                url,
+                json=body,
+                headers={"Authorization": f"Bearer {cron_secret}"},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            results.append({"feedback_id": fid, "ok": True, **resp.json()})
+        except Exception as e:
+            results.append({"feedback_id": fid, "ok": False, "error": str(e)})
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(description="Fetch and triage feedback from production")
     parser.add_argument("--host", default=None,
@@ -230,6 +253,13 @@ def main():
                         help="Output raw JSON instead of formatted report")
     parser.add_argument("--limit", type=int, default=100,
                         help="Max items to fetch (default: 100)")
+    parser.add_argument("--resolve", type=str, default=None,
+                        help="Comma-separated feedback IDs to mark resolved (e.g. --resolve 4,5)")
+    parser.add_argument("--note", type=str, default=None,
+                        help="Admin note when resolving (used with --resolve)")
+    parser.add_argument("--status", type=str, default="resolved",
+                        choices=["resolved", "reviewed", "wontfix", "new"],
+                        help="Status to set when using --resolve (default: resolved)")
     args = parser.parse_args()
 
     # Resolve host
@@ -243,6 +273,24 @@ def main():
     if not cron_secret:
         print("Error: CRON_SECRET not set in environment", file=sys.stderr)
         sys.exit(1)
+
+    # Handle --resolve mode
+    if args.resolve:
+        try:
+            ids = [int(x.strip()) for x in args.resolve.split(",") if x.strip()]
+        except ValueError:
+            print("Error: --resolve must be comma-separated integers (e.g. --resolve 4,5)", file=sys.stderr)
+            sys.exit(1)
+
+        results = resolve_items(host, cron_secret, ids, status=args.status, note=args.note)
+        for r in results:
+            if r["ok"]:
+                print(f"  ✓ #{r['feedback_id']} → {r['status']}")
+            else:
+                print(f"  ✗ #{r['feedback_id']} — {r['error']}")
+        ok_count = sum(1 for r in results if r["ok"])
+        print(f"\n{ok_count}/{len(results)} items updated.")
+        sys.exit(0)
 
     # Determine which statuses to fetch
     if args.all:

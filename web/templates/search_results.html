@@ -24,10 +24,13 @@
                 <span style="font-size: 1.1rem;">&#x1F4CA;</span> Run Property Report
             </a>
             {% endif %}
-            <a href="/ask?q=What permits are needed for work at {{ no_results_address }}?"
-               style="display: inline-flex; align-items: center; gap: 8px; color: #4f8ff7; text-decoration: none; font-size: 0.95rem;">
-                <span style="font-size: 1.1rem;">&#x1F4AC;</span> Ask AI about permits for this address
-            </a>
+            <form method="POST" action="/ask" style="display: inline; margin: 0; padding: 0;">
+                <input type="hidden" name="q" value="What permits are needed for work at {{ no_results_address }}?">
+                <button type="submit"
+                    style="display: inline-flex; align-items: center; gap: 8px; color: #4f8ff7; text-decoration: none; font-size: 0.95rem; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;">
+                    <span style="font-size: 1.1rem;">&#x1F4AC;</span> Ask AI about permits for this address
+                </button>
+            </form>
             <a href="/?q={{ no_results_address }}"
                style="display: inline-flex; align-items: center; gap: 8px; color: #8b8fa3; text-decoration: none; font-size: 0.9rem;">
                 <span style="font-size: 1.1rem;">&#x1F50D;</span> Try a different search

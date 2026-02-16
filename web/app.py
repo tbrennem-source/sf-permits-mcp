@@ -398,18 +398,22 @@ def health():
 def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] | None:
     """Lightweight lookup: resolve a street address to (block, lot) from permits table."""
     from src.db import query, _ph
+    from src.tools.permit_lookup import _strip_suffix
     ph = _ph()
-    pattern = f"%{street_name}%"
+    base_name, _suffix = _strip_suffix(street_name)
+    base_pattern = f"%{base_name}%"
+    full_pattern = f"%{street_name}%"
     rows = query(
         f"SELECT block, lot FROM permits "
         f"WHERE street_number = {ph} "
         f"  AND ("
         f"    UPPER(street_name) LIKE UPPER({ph})"
+        f"    OR UPPER(street_name) LIKE UPPER({ph})"
         f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
         f"  ) "
         f"  AND block IS NOT NULL AND lot IS NOT NULL "
         f"LIMIT 1",
-        (street_number, pattern, pattern),
+        (street_number, base_pattern, full_pattern, full_pattern),
     )
     if rows:
         return (rows[0][0], rows[0][1])
@@ -2043,6 +2047,51 @@ def api_feedback_screenshot(feedback_id):
         abort(400)
 
     return Response(image_bytes, mimetype=mime_type)
+
+
+@app.route("/api/feedback/<int:feedback_id>", methods=["PATCH"])
+def api_feedback_update(feedback_id):
+    """Update feedback status via API. CRON_SECRET auth.
+
+    JSON body:
+      - status: "resolved", "reviewed", "wontfix", "new"
+      - admin_note: optional string
+    """
+    _check_api_auth()
+    import json
+    from web.activity import update_feedback_status
+
+    try:
+        data = request.get_json(force=True)
+    except Exception:
+        return Response(
+            json.dumps({"error": "Invalid JSON body"}),
+            status=400,
+            mimetype="application/json",
+        )
+
+    status = data.get("status")
+    admin_note = data.get("admin_note")
+
+    if not status:
+        return Response(
+            json.dumps({"error": "Missing 'status' field"}),
+            status=400,
+            mimetype="application/json",
+        )
+
+    ok = update_feedback_status(feedback_id, status, admin_note=admin_note)
+    if not ok:
+        return Response(
+            json.dumps({"error": f"Invalid status '{status}'. Use: new, reviewed, resolved, wontfix"}),
+            status=400,
+            mimetype="application/json",
+        )
+
+    return Response(
+        json.dumps({"feedback_id": feedback_id, "status": status, "admin_note": admin_note}),
+        mimetype="application/json",
+    )
 
 
 if __name__ == "__main__":
