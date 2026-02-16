@@ -1,5 +1,37 @@
 # Changelog
 
+## Session 22 — Report Share Fix + Invite Cohort Templates (2026-02-16)
+
+### Bug Fix: Report Share Was Completely Broken (#59)
+- **Fixed field name mismatch** — Share form sent `recipient_email` but route read `email`, so every share attempt silently failed
+- **Added personal message** — Optional textarea in share modal, renders as styled callout in email
+- **Email template** — Personal message block with sender name, hidden when empty
+
+### Invite Email Cohort Templates (#14)
+- **Admin cohort selector** — Dropdown: Friends (casual), Beta Testers, Expediters (professional), Custom
+- **Pre-fill templates** — JavaScript auto-populates suggested message per cohort
+- **Cohort-specific emails** — Different headings, descriptions, and feature highlights per audience
+- **Subject lines** — `"Hey! You're invited..."` (friends) vs `"Invitation: Join sfpermits.ai's Professional Network"` (expediters)
+
+### DuckDB Test Fix
+- **Removed `ON DELETE CASCADE`** from `plan_analysis_images` foreign key — DuckDB doesn't support cascade actions, was blocking all test execution
+
+### Tests: 10 new (822+ total)
+- 4 auth tests: cohort invites, personal message, default cohort, UI selector
+- 6 web tests: share auth, email validation, field name regression, message field, email template rendering
+
+### Files Changed (8 files, +358 / -29)
+- `src/db.py` — Remove CASCADE from DuckDB FK
+- `web/app.py` — Share route fix + cohort invite support
+- `web/templates/report.html` — Fix field name, add message textarea
+- `web/templates/report_email.html` — Personal message block
+- `web/templates/account.html` — Cohort selector + message field
+- `web/templates/invite_email.html` — Cohort-specific email templates
+- `tests/test_auth.py` — 4 new invite tests
+- `tests/test_web.py` — 6 new share tests
+
+---
+
 ## Session 21.3 — Permit Lookup UX Enhancements (2026-02-16)
 
 ### Hourglass Spinner + Action Buttons
