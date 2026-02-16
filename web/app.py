@@ -920,7 +920,7 @@ def download_all_pages(session_id):
     )
 
 
-@app.route("/plan-analysis/<session_id>/email", methods=["POST"])
+@app.route("/plan-images/email", methods=["POST"])
 def email_analysis():
     """Email plan analysis to specified recipient."""
     import json

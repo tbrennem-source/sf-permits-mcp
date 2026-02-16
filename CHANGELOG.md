@@ -1,5 +1,26 @@
 # Changelog
 
+## Session 21.1 — Phase 4.5 Hotfix: Critical Path & Variable Fixes (2026-02-16)
+
+### Critical Bug Fixes
+- **Fixed template variable mismatch** — Route wasn't passing `extractions` list to template, causing entire gallery to be hidden
+- **Fixed URL path mismatch** — All template URLs changed from `/plan-analysis/*` to `/plan-images/*` to match actual routes
+- **Fixed download ZIP path** — Changed `/download-zip` to `/download-all` to match implemented route
+- **Fixed email route path** — Changed `/plan-analysis/<session_id>/email` to `/plan-images/email`
+- **Fixed email comparison context** — Changed format from `comparison:X,Y` to `comparison-X-Y` to match server parsing
+- **Removed PDF download button** — Feature not implemented in Phase 4.5 (planned for 4.6)
+
+### Impact
+Without these fixes, Phase 4.5 visual UI was completely non-functional:
+- ✗ All images returned 404 (path mismatch)
+- ✗ Gallery hidden (missing template variable)
+- ✗ ZIP download failed (wrong path)
+- ✗ Email comparison broken (format mismatch)
+
+**Status:** All visual features now functional after hotfix
+
+---
+
 ## Session 21 — Phase 4.5: Visual Plan Analysis UI (2026-02-16)
 
 ### Visual Plan Gallery & Viewer
