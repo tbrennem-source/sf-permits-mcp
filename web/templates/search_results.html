@@ -1,3 +1,12 @@
+<style>
+.search-result-card table td a {
+    color: var(--accent, #4f8ff7);
+    text-decoration: underline;
+}
+.search-result-card table td a:hover {
+    color: #7ab0ff;
+}
+</style>
 <div class="result-card search-result-card">
     <div class="search-echo" style="display: flex; justify-content: space-between; align-items: center;">
         <span>{{ query_echo }}</span>
@@ -61,13 +70,15 @@
         </div>
         {% endif %}
     </div>
-    {% elif report_url %}
+    {% elif not no_results %}
     {# ===== Post-match actions: report, ask AI, neighborhood ===== #}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border, #333749);">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            {% if report_url %}
             <a href="{{ report_url }}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent, #4f8ff7);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
                 View Property Report &rarr;
             </a>
+            {% endif %}
             <form method="POST" action="/ask" style="display:inline;margin:0;padding:0;">
                 <input type="hidden" name="q" value="What permits are needed for work at {{ query_echo }}?">
                 <button type="submit"
