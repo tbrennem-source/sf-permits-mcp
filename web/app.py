@@ -969,7 +969,7 @@ Comparison of pages {int(left)+1} and {int(right)+1} from {session['filename']}
         )
         return jsonify({'success': True})
     except Exception as e:
-        logger.error(f"Email send failed: {e}")
+        logging.error(f"Email send failed: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 
