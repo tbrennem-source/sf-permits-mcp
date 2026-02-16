@@ -336,5 +336,29 @@
             </div>
         </div>
     </main>
+
+    <script>
+    // Pre-fill form fields from query parameters (e.g., from Property Report links)
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var fields = ['block', 'lot', 'address', 'neighborhood', 'permit_type'];
+        fields.forEach(function(name) {
+            var val = params.get(name);
+            if (val) {
+                var el = document.querySelector('[name=' + name + ']');
+                if (el) el.value = val;
+            }
+        });
+        // Check boolean flags
+        if (params.get('has_active_complaint') === 'on') {
+            var cb = document.querySelector('[name=has_active_complaint]');
+            if (cb) cb.checked = true;
+        }
+        if (params.get('needs_planning') === 'on') {
+            var cb2 = document.querySelector('[name=needs_planning]');
+            if (cb2) cb2.checked = true;
+        }
+    })();
+    </script>
 </body>
 </html>

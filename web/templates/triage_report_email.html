@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Triage Report — sfpermits.ai</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;line-height:1.6;">
+    <!-- Outer wrapper for background color -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;">
+        <tr>
+            <td align="center" style="padding:24px 16px;">
+                <!-- Inner container -->
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:#1a1d27;padding:20px 28px;">
+                            <a href="{{ base_url }}" style="color:#4f8ff7;font-size:1.3rem;font-weight:700;text-decoration:none;">sfpermits<span style="color:#8b8fa3;font-weight:400;">.ai</span></a>
+                            <span style="float:right;color:#8b8fa3;font-size:0.85rem;line-height:2;">Triage Report</span>
+                        </td>
+                    </tr>
+
+                    <!-- Title -->
+                    <tr>
+                        <td style="padding:28px 28px 8px;">
+                            <h1 style="margin:0;font-size:1.3rem;color:#1a1a2e;">Feedback Triage Report</h1>
+                            <p style="margin:4px 0 0;color:#6b7280;font-size:0.9rem;">{{ report_date }}</p>
+                        </td>
+                    </tr>
+
+                    <!-- Summary metrics -->
+                    <tr>
+                        <td style="padding:16px 28px 24px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td width="25%" style="padding:0 4px 0 0;">
+                                        <div style="background:#f8f9fb;border-radius:8px;padding:12px;text-align:center;">
+                                            <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;">{{ total_triaged }}</div>
+                                            <div style="font-size:0.65rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">TOTAL</div>
+                                        </div>
+                                    </td>
+                                    <td width="25%" style="padding:0 4px;">
+                                        <div style="background:#d1fae5;border-radius:8px;padding:12px;text-align:center;">
+                                            <div style="font-size:1.5rem;font-weight:700;color:#059669;">{{ auto_resolved }}</div>
+                                            <div style="font-size:0.65rem;color:#059669;text-transform:uppercase;letter-spacing:0.5px;">AUTO-RESOLVED</div>
+                                        </div>
+                                    </td>
+                                    <td width="25%" style="padding:0 4px;">
+                                        <div style="background:#dbeafe;border-radius:8px;padding:12px;text-align:center;">
+                                            <div style="font-size:1.5rem;font-weight:700;color:#2563eb;">{{ tier2|length }}</div>
+                                            <div style="font-size:0.65rem;color:#2563eb;text-transform:uppercase;letter-spacing:0.5px;">ACTIONABLE</div>
+                                        </div>
+                                    </td>
+                                    <td width="25%" style="padding:0 0 0 4px;">
+                                        <div style="background:#fef3c7;border-radius:8px;padding:12px;text-align:center;">
+                                            <div style="font-size:1.5rem;font-weight:700;color:#d97706;">{{ tier3|length }}</div>
+                                            <div style="font-size:0.65rem;color:#d97706;text-transform:uppercase;letter-spacing:0.5px;">NEEDS INPUT</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    {% if tier1 %}
+                    <!-- Tier 1: Auto-resolved overnight -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:0.95rem;color:#059669;border-bottom:2px solid #d1fae5;padding-bottom:6px;">
+                                &#x2705; Auto-Resolved Overnight ({{ tier1|length }})
+                            </h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for item in tier1[:8] %}
+                                <tr>
+                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <div style="font-size:0.85rem;font-weight:500;color:#1a1a2e;">
+                                            #{{ item.feedback_id }}
+                                            <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;text-transform:uppercase;
+                                                {% if item.feedback_type == 'bug' %}background:#fee2e2;color:#dc2626;{% elif item.feedback_type == 'suggestion' %}background:#dbeafe;color:#2563eb;{% else %}background:#fef3c7;color:#d97706;{% endif %}">
+                                                {{ item.feedback_type }}
+                                            </span>
+                                        </div>
+                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">
+                                            {{ item.message[:80] }}{% if item.message|length > 80 %}&hellip;{% endif %}
+                                        </div>
+                                        <div style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">
+                                            {{ item.admin_note or item.get('tier_reason', '') }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if tier1|length > 8 %}
+                                <tr>
+                                    <td style="padding:8px 0;color:#6b7280;font-size:0.8rem;font-style:italic;">
+                                        + {{ tier1|length - 8 }} more auto-resolved
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {% if tier2 %}
+                    <!-- Tier 2: Actionable items -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:0.95rem;color:#2563eb;border-bottom:2px solid #dbeafe;padding-bottom:6px;">
+                                &#x1F527; Actionable — Likely Fixable ({{ tier2|length }})
+                            </h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for item in tier2[:10] %}
+                                <tr>
+                                    <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <div style="font-size:0.85rem;font-weight:500;color:#1a1a2e;">
+                                                        #{{ item.feedback_id }}
+                                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;text-transform:uppercase;
+                                                            {% if item.feedback_type == 'bug' %}background:#fee2e2;color:#dc2626;{% elif item.feedback_type == 'suggestion' %}background:#dbeafe;color:#2563eb;{% else %}background:#fef3c7;color:#d97706;{% endif %}">
+                                                            {{ item.feedback_type }}
+                                                        </span>
+                                                        {% if item.has_screenshot %}
+                                                        <span style="font-size:0.7rem;color:#6b7280;">&#x1F4F8;</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div style="font-size:0.8rem;color:#374151;margin-top:4px;">
+                                                        {{ item.message[:120] }}{% if item.message|length > 120 %}&hellip;{% endif %}
+                                                    </div>
+                                                    {% if item.page_url %}
+                                                    <div style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">
+                                                        Page: {{ item.page_url[:60] }}{% if item.page_url|length > 60 %}&hellip;{% endif %}
+                                                    </div>
+                                                    {% endif %}
+                                                    <div style="font-size:0.7rem;color:#6b7280;margin-top:2px;">
+                                                        {{ item.email or 'Anonymous' }} &bull; {{ item.tier_reason or '' }}
+                                                    </div>
+                                                </td>
+                                                <td width="80" align="right" valign="top">
+                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;background:#dbeafe;color:#2563eb;">
+                                                        Tier 2
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if tier2|length > 10 %}
+                                <tr>
+                                    <td style="padding:8px 0;color:#6b7280;font-size:0.8rem;font-style:italic;">
+                                        + {{ tier2|length - 10 }} more actionable items
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {% if tier3 %}
+                    <!-- Tier 3: Needs human input -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:0.95rem;color:#d97706;border-bottom:2px solid #fef3c7;padding-bottom:6px;">
+                                &#x1F9D1;&#x200D;&#x1F4BB; Needs Your Input ({{ tier3|length }})
+                            </h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for item in tier3[:10] %}
+                                <tr>
+                                    <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <div style="font-size:0.85rem;font-weight:500;color:#1a1a2e;">
+                                                        #{{ item.feedback_id }}
+                                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;text-transform:uppercase;
+                                                            {% if item.feedback_type == 'bug' %}background:#fee2e2;color:#dc2626;{% elif item.feedback_type == 'suggestion' %}background:#dbeafe;color:#2563eb;{% else %}background:#fef3c7;color:#d97706;{% endif %}">
+                                                            {{ item.feedback_type }}
+                                                        </span>
+                                                        {% if item.has_screenshot %}
+                                                        <span style="font-size:0.7rem;color:#6b7280;">&#x1F4F8;</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div style="font-size:0.8rem;color:#374151;margin-top:4px;">
+                                                        {{ item.message[:120] }}{% if item.message|length > 120 %}&hellip;{% endif %}
+                                                    </div>
+                                                    {% if item.page_url %}
+                                                    <div style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">
+                                                        Page: {{ item.page_url[:60] }}{% if item.page_url|length > 60 %}&hellip;{% endif %}
+                                                    </div>
+                                                    {% endif %}
+                                                    <div style="font-size:0.7rem;color:#d97706;margin-top:2px;">
+                                                        {{ item.tier_reason or 'Needs human review' }}
+                                                    </div>
+                                                </td>
+                                                <td width="80" align="right" valign="top">
+                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:600;background:#fef3c7;color:#d97706;">
+                                                        Tier 3
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if tier3|length > 10 %}
+                                <tr>
+                                    <td style="padding:8px 0;color:#6b7280;font-size:0.8rem;font-style:italic;">
+                                        + {{ tier3|length - 10 }} more items needing input
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- Queue summary -->
+                    {% if counts %}
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <div style="background:#f8f9fb;border-radius:8px;padding:12px 16px;font-size:0.8rem;color:#6b7280;">
+                                <strong style="color:#1a1a2e;">Queue totals:</strong>
+                                {{ counts.get('new', 0) }} new,
+                                {{ counts.get('reviewed', 0) }} reviewed,
+                                {{ counts.get('resolved', 0) }} resolved
+                                &mdash; {{ counts.get('total', 0) }} total
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- CTA Button -->
+                    <tr>
+                        <td style="padding:0 28px 28px;" align="center">
+                            <a href="{{ base_url }}/admin/feedback"
+                               style="display:inline-block;padding:12px 32px;background:#4f8ff7;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
+                                View Feedback Queue
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background:#f8f9fb;padding:16px 28px;border-top:1px solid #e5e7eb;">
+                            <p style="margin:0;font-size:0.75rem;color:#9ca3af;text-align:center;">
+                                Nightly triage report from
+                                <a href="{{ base_url }}" style="color:#4f8ff7;text-decoration:none;">sfpermits.ai</a>
+                                &bull; Sent to all admins
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

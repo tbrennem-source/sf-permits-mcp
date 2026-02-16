@@ -318,3 +318,175 @@ def get_feedback_screenshot(feedback_id: int) -> str | None:
         (feedback_id,),
     )
     return row[0] if row else None
+
+
+# ── Points / bounty system ────────────────────────────────────────
+
+def get_feedback_item(feedback_id: int) -> dict | None:
+    """Get a single feedback item by ID (for points calculation)."""
+    _ensure_schema()
+    ph = "%s" if BACKEND == "postgres" else "?"
+    row = query_one(
+        f"SELECT f.feedback_id, f.user_id, f.feedback_type, f.message, "
+        f"f.page_url, f.status, f.admin_note, f.created_at, f.resolved_at, "
+        f"CASE WHEN f.screenshot_data IS NOT NULL THEN 1 ELSE 0 END "
+        f"FROM feedback f WHERE f.feedback_id = {ph}",
+        (feedback_id,),
+    )
+    if not row:
+        return None
+    return {
+        "feedback_id": row[0],
+        "user_id": row[1],
+        "feedback_type": row[2],
+        "message": row[3],
+        "page_url": row[4],
+        "status": row[5],
+        "admin_note": row[6],
+        "created_at": row[7],
+        "resolved_at": row[8],
+        "has_screenshot": bool(row[9]),
+    }
+
+
+def award_points(
+    feedback_id: int,
+    first_reporter: bool = False,
+    admin_bonus: int = 0,
+) -> list[dict]:
+    """Award points for a resolved feedback item. Idempotent.
+
+    Returns list of ledger entries created (empty if already awarded or anonymous).
+    """
+    _ensure_schema()
+    ph = "%s" if BACKEND == "postgres" else "?"
+
+    # Idempotency: skip if already awarded for this feedback_id
+    existing = query_one(
+        f"SELECT COUNT(*) FROM points_ledger WHERE feedback_id = {ph}",
+        (feedback_id,),
+    )
+    if existing and existing[0] > 0:
+        logger.debug("Points already awarded for feedback_id=%s", feedback_id)
+        return []
+
+    item = get_feedback_item(feedback_id)
+    if not item or not item["user_id"]:
+        return []  # Anonymous feedback gets no points
+
+    user_id = item["user_id"]
+    entries = []
+
+    # Base points by type
+    if item["feedback_type"] == "bug":
+        entries.append({"points": 10, "reason": "bug_report"})
+    elif item["feedback_type"] in ("suggestion", "question"):
+        entries.append({"points": 5, "reason": "suggestion"})
+
+    # Screenshot bonus
+    if item["has_screenshot"]:
+        entries.append({"points": 2, "reason": "screenshot"})
+
+    # First reporter bonus (admin-determined)
+    if first_reporter:
+        entries.append({"points": 5, "reason": "first_reporter"})
+
+    # High severity bonus
+    try:
+        from scripts.feedback_triage import classify_severity
+        severity = classify_severity({
+            "feedback_type": item["feedback_type"],
+            "message": item["message"],
+        })
+        if severity == "HIGH":
+            entries.append({"points": 3, "reason": "high_severity"})
+    except Exception:
+        pass  # Non-fatal: triage module may not be importable in all contexts
+
+    # Admin bonus
+    if admin_bonus and admin_bonus > 0:
+        entries.append({"points": admin_bonus, "reason": "admin_bonus"})
+
+    # Insert all entries
+    for entry in entries:
+        if BACKEND == "postgres":
+            execute_write(
+                "INSERT INTO points_ledger (user_id, points, reason, feedback_id) "
+                "VALUES (%s, %s, %s, %s)",
+                (user_id, entry["points"], entry["reason"], feedback_id),
+            )
+        else:
+            row = query_one("SELECT COALESCE(MAX(ledger_id), 0) + 1 FROM points_ledger")
+            ledger_id = row[0]
+            conn = get_connection()
+            try:
+                conn.execute(
+                    "INSERT INTO points_ledger (ledger_id, user_id, points, reason, feedback_id) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    (ledger_id, user_id, entry["points"], entry["reason"], feedback_id),
+                )
+            finally:
+                conn.close()
+
+    return entries
+
+
+def get_user_points(user_id: int) -> int:
+    """Get total points for a user."""
+    _ensure_schema()
+    ph = "%s" if BACKEND == "postgres" else "?"
+    row = query_one(
+        f"SELECT COALESCE(SUM(points), 0) FROM points_ledger WHERE user_id = {ph}",
+        (user_id,),
+    )
+    return row[0] if row else 0
+
+
+def get_points_history(user_id: int, limit: int = 20) -> list[dict]:
+    """Get recent points history for a user."""
+    _ensure_schema()
+    ph = "%s" if BACKEND == "postgres" else "?"
+    rows = query(
+        f"SELECT p.ledger_id, p.points, p.reason, p.feedback_id, p.created_at "
+        f"FROM points_ledger p "
+        f"WHERE p.user_id = {ph} "
+        f"ORDER BY p.created_at DESC "
+        f"LIMIT {ph}",
+        (user_id, limit),
+    )
+    reason_labels = {
+        "bug_report": "Bug report",
+        "suggestion": "Suggestion",
+        "first_reporter": "First reporter bonus",
+        "screenshot": "Screenshot attached",
+        "high_severity": "High severity bonus",
+        "admin_bonus": "Admin bonus",
+    }
+    return [
+        {
+            "ledger_id": r[0],
+            "points": r[1],
+            "reason": r[2],
+            "reason_label": reason_labels.get(r[2], r[2]),
+            "feedback_id": r[3],
+            "created_at": r[4],
+        }
+        for r in rows
+    ]
+
+
+# ── Admin helpers ─────────────────────────────────────────────────
+
+def get_admin_users() -> list[dict]:
+    """Get all active admin users with their email addresses."""
+    _ensure_schema()
+    rows = query(
+        "SELECT user_id, email, display_name "
+        "FROM users "
+        "WHERE is_admin = TRUE AND is_active = TRUE "
+        "ORDER BY user_id"
+    )
+    return [
+        {"user_id": r[0], "email": r[1], "display_name": r[2]}
+        for r in rows
+    ]

@@ -795,12 +795,16 @@
             </div>
             {% endif %}
 
-            {# ===== Section 7: Expeditor Assessment ===== #}
+            {# ===== Section 7: Expeditor Needs Assessment ===== #}
             {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
             <div class="section" id="section-expeditor">
-                <h2>Expeditor Assessment</h2>
+                <h2>Expeditor Needs Assessment</h2>
+                <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:16px;">
+                    Based on this property's permit history, complaint status, and project complexity,
+                    here's whether professional permit expediting may be beneficial.
+                </p>
                 {% set sig = report.expediter_signal %}
-                {% set exp_url = '/expediters?block=' ~ report.block ~ '&lot=' ~ report.lot %}
+                {% set exp_url = '/expediters?block=' ~ report.block ~ '&lot=' ~ report.lot ~ '&address=' ~ (report.address|default('')|urlencode) ~ '&neighborhood=' ~ (report.neighborhood|default('')|urlencode) %}
 
                 {% if sig.signal == 'warm' %}
                 <div class="expeditor-callout expeditor-warm">
