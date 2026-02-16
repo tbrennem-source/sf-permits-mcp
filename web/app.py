@@ -997,7 +997,25 @@ def lookup():
     except Exception:
         pass
 
-    return render_template("lookup_results.html", result=result_html, report_url=report_url)
+    # Extract street address for action buttons
+    street_address = None
+    permit_type = None
+
+    if lookup_mode == "address" and street_number and street_name:
+        street_address = f"{street_number} {street_name}"
+    elif lookup_mode == "parcel" and block and lot:
+        street_address = f"Block {block}, Lot {lot}"
+
+    # Could extract permit_type from result_md if needed in future
+    # For now, leave as None and buttons will use default
+
+    return render_template(
+        "lookup_results.html",
+        result=result_html,
+        report_url=report_url,
+        street_address=street_address,
+        permit_type=permit_type,
+    )
 
 
 # ---------------------------------------------------------------------------
