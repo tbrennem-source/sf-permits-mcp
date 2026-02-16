@@ -1,5 +1,22 @@
 # Changelog
 
+## Session 21.5 — Analyze Plans Loading Indicator Fix (2026-02-16)
+
+### Bug Fix: No Loading Indicator on PDF Upload (#60)
+- **Problem:** When uploading PDF to "Analyze Plan Set" and clicking submit, NO loading indicator appeared - form appeared frozen with no visual feedback
+- **Root cause:** HTMX's `hx-encoding="multipart/form-data"` for file uploads may not trigger `.htmx-request` CSS class reliably
+- **Solution:** Added explicit JavaScript event listeners for analyze-plans form
+  - Listens for HTMX events (`htmx:beforeRequest`, `htmx:afterRequest`)
+  - Fallback to form submit event if HTMX doesn't fire (100ms delay)
+  - Manually controls loading indicator visibility
+  - Disables submit button during upload to prevent double-submission
+- **Outcome:** Hourglass spinner (⏳) now appears immediately when "Analyze Plan Set" is clicked, providing clear visual feedback during long PDF uploads (up to 2-3 minutes)
+
+### Files Changed (1 file, +34 lines)
+- `web/templates/index.html` — Added `<script>` with event listeners after analyze-plans-loading div (lines 1125-1157)
+
+---
+
 ## Session 22 — Report Share Fix + Invite Cohort Templates (2026-02-16)
 
 ### Bug Fix: Report Share Was Completely Broken (#59)

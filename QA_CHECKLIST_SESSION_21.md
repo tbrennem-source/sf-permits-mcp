@@ -1,8 +1,8 @@
-# QA Checklist - Sessions 21.2, 21.3, 21.4
+# QA Checklist - Sessions 21.2, 21.3, 21.4, 21.5
 
 **Test on:** https://sfpermits-ai-production.up.railway.app
 **Deployed:** 2026-02-16
-**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links)
+**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading)
 
 ---
 
@@ -129,9 +129,36 @@
 
 ---
 
+## Session 21.5: Analyze Plans Loading Indicator
+
+### ✅ Test 15: Loading Indicator Shows Immediately on Upload
+**Before:** No loading indicator appeared when uploading PDF to "Analyze Plan Set" - form appeared frozen
+
+- [ ] Navigate to homepage, click "Analyze Plan Set" to expand section
+- [ ] Select any PDF file (small or large)
+- [ ] Click "Analyze Plan Set" button
+- [ ] **Verify:** Hourglass spinner (⏳) appears IMMEDIATELY
+- [ ] **Verify:** Message shows "Analyzing plan set..."
+- [ ] **Verify:** Message shows "Large files may take 2-3 minutes to process"
+- [ ] **Verify:** Progress dots pulse in sequence
+- [ ] **Verify:** Submit button becomes disabled (no double-submission)
+- [ ] **Verify:** Loading indicator remains visible throughout upload/processing
+- [ ] **Verify:** Results appear after processing completes
+- [ ] **Verify:** Loading indicator disappears when results show
+
+### ✅ Test 16: Large File Upload with Loading Indicator
+- [ ] Select 40-50 page PDF
+- [ ] Click "Analyze Plan Set"
+- [ ] **Verify:** Loading indicator appears immediately (not delayed)
+- [ ] **Verify:** Indicator remains visible for entire 2-3 minute processing time
+- [ ] **Verify:** No timeout error
+- [ ] **Verify:** Gallery appears with results after processing
+
+---
+
 ## Edge Cases & Regression Tests
 
-### ✅ Test 15: No Results Case
+### ✅ Test 17: No Results Case
 - [ ] Search for address with no permits (e.g., "99999 nonexistent st")
 - [ ] **Verify:** "What you can do next" section appears
 - [ ] **Verify:** Contains:
@@ -140,7 +167,7 @@
   - [ ] "Try a different search" link
 - [ ] **Verify:** Quick Actions do NOT appear (only show when results exist)
 
-### ✅ Test 16: Block/Lot Direct Lookup
+### ✅ Test 18: Block/Lot Direct Lookup
 - [ ] Use lookup form with mode "Block/Lot"
 - [ ] Enter Block: "3506", Lot: "001"
 - [ ] Submit
@@ -148,14 +175,14 @@
 - [ ] **Verify:** Property Report button shows
 - [ ] **Verify:** Street address shown as "Block 3506, Lot 001"
 
-### ✅ Test 17: Permit Number Direct Lookup
+### ✅ Test 19: Permit Number Direct Lookup
 - [ ] Use lookup form with mode "Permit Number"
 - [ ] Enter a valid permit number
 - [ ] Submit
 - [ ] **Verify:** Quick Actions appear
 - [ ] **Verify:** Buttons work correctly
 
-### ✅ Test 18: Navigation Between Features
+### ✅ Test 20: Navigation Between Features
 - [ ] Search for "1234 market"
 - [ ] Click "📊 View Property Report"
 - [ ] From property report, click a permit number
@@ -167,7 +194,7 @@
 
 ## Visual & UX Verification
 
-### ✅ Test 19: Quick Actions Styling
+### ✅ Test 21: Quick Actions Styling
 - [ ] **Verify:** Quick Actions box has:
   - [ ] Blue background: `rgba(79, 143, 247, 0.06)`
   - [ ] Blue border: `rgba(79, 143, 247, 0.2)`
@@ -176,7 +203,7 @@
   - [ ] Buttons wrap on mobile/narrow screens
   - [ ] 10px gap between buttons
 
-### ✅ Test 20: Button Hierarchy
+### ✅ Test 22: Button Hierarchy
 - [ ] **Verify:** Primary button (View Property Report):
   - [ ] Blue background (`#4f8ff7`)
   - [ ] White text
@@ -186,7 +213,7 @@
   - [ ] Colored borders
   - [ ] Clear visual hierarchy
 
-### ✅ Test 21: Hourglass Animation
+### ✅ Test 23: Hourglass Animation
 - [ ] Trigger any search/lookup
 - [ ] **Verify:** Hourglass emoji rotates smoothly (2s loop)
 - [ ] **Verify:** Progress dots pulse in sequence (0.2s delay between each)
@@ -196,13 +223,13 @@
 
 ## Performance & Timeout Verification
 
-### ✅ Test 22: Large File Doesn't Timeout
+### ✅ Test 24: Large File Doesn't Timeout
 - [ ] Upload 50-page PDF to `/analyze-plans`
 - [ ] **Verify:** Completes within 300 seconds (5 minutes)
 - [ ] **Verify:** Does NOT show timeout error
 - [ ] **Verify:** Full gallery appears
 
-### ✅ Test 23: Server Response Time
+### ✅ Test 25: Server Response Time
 - [ ] Search for "1234 market"
 - [ ] **Verify:** Results appear in <2 seconds
 - [ ] **Verify:** Quick Actions render immediately with results
@@ -211,7 +238,7 @@
 
 ## Database & Backend Verification
 
-### ✅ Test 24: Block/Lot Fallback Query Works
+### ✅ Test 26: Block/Lot Fallback Query Works
 **Technical verification of the fix for `_ph()` bug**
 
 - [ ] Search for fuzzy address: "1234 market st"
@@ -220,7 +247,7 @@
 - [ ] **Verify:** Response includes `report_url` field
 - [ ] **Verify:** Property Report button appears
 
-### ✅ Test 25: No External Redirects
+### ✅ Test 27: No External Redirects
 - [ ] Open browser DevTools → Network tab
 - [ ] Navigate to property report
 - [ ] Click on permit numbers, complaint numbers
@@ -231,7 +258,7 @@
 
 ## Critical Path Test (End-to-End)
 
-### ✅ Test 26: Full User Journey
+### ✅ Test 28: Full User Journey
 1. [ ] Start at homepage: https://sfpermits-ai-production.up.railway.app
 2. [ ] Search for "75 robinhood dr"
 3. [ ] **Verify:** Quick Actions appear at TOP in blue box
