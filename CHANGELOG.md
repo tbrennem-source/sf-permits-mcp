@@ -1,5 +1,31 @@
 # Changelog
 
+## Session 21.3 — Permit Lookup UX Enhancements (2026-02-16)
+
+### Hourglass Spinner + Action Buttons
+- **Added hourglass spinner to permit lookup** — Visual consistency across all forms (⏳ with pulsing dots)
+- **Enhanced action buttons** — 4 quick actions after lookup results (View Report, Ask AI, Analyze Project, Check Violations)
+- **Contextual actions** — Buttons auto-populate with address/permit data from lookup
+
+### Action Buttons
+1. 📊 **View Property Report** (primary) — Links to full property analysis
+2. 💬 **Ask AI** — "What permits are needed for work at {address}?"
+3. 🔍 **Analyze Project** — Prefills analyze form with address/permit type
+4. ⚠️ **Check Violations** — "Are there any violations at {address}?"
+
+### Before/After
+- **Before:** Basic pulsing dots, only 1 button (View Report)
+- **After:** Hourglass spinner, 4 contextual action buttons
+
+### Files Changed
+- `web/templates/index.html` — Hourglass spinner for lookup (6 → 14 lines)
+- `web/templates/lookup_results.html` — Action button panel (7 → 45 lines)
+- `web/app.py` — Pass `street_address` and `permit_type` context (2 → 15 lines)
+
+**Commit:** `8e3421f` — feat: Add hourglass spinner to permit lookup + action buttons
+
+---
+
 ## Session 21.2 — Phase 4.5 Hotfix: Timeout Fix for Large PDFs (2026-02-16)
 
 ### Timeout & Progress Indicator Fix
