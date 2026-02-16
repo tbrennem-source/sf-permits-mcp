@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Property Report — {{ report.address }} — sfpermits.ai</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --accent-hover: #3a7ae0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+        /* Header */
+        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+        header .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .badge {
+            font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted);
+            padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
+            text-decoration: none; cursor: pointer; font-family: inherit;
+        }
+        .badge:hover { color: var(--text); border-color: var(--text-muted); }
+
+        /* Back link */
+        .back-link {
+            display: inline-block; margin-top: 24px; font-size: 0.85rem;
+            color: var(--text-muted); text-decoration: none;
+        }
+        .back-link:hover { color: var(--accent); }
+
+        /* Page title area */
+        main { padding: 0 0 80px; }
+        .page-title { margin-top: 8px; margin-bottom: 4px; font-size: 1.6rem; font-weight: 700; }
+        .page-subtitle { color: var(--text-muted); margin-bottom: 28px; font-size: 0.95rem; }
+        .page-subtitle a { color: var(--accent); text-decoration: none; }
+        .page-subtitle a:hover { text-decoration: underline; }
+
+        /* Sections */
+        .section {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 24px;
+        }
+        .section h2 {
+            font-size: 1.1rem; margin-bottom: 16px; color: var(--accent);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-empty { color: var(--text-muted); font-style: italic; font-size: 0.9rem; }
+
+        /* Risk assessment */
+        .risk-card {
+            padding: 14px 16px; border-radius: 8px; margin-bottom: 12px;
+            border-left: 4px solid transparent;
+        }
+        .risk-card:last-child { margin-bottom: 0; }
+        .risk-card.risk-high { background: rgba(248, 113, 113, 0.08); border-left-color: var(--error); }
+        .risk-card.risk-moderate { background: rgba(251, 191, 36, 0.08); border-left-color: var(--warning); }
+        .risk-card.risk-low { background: rgba(79, 143, 247, 0.08); border-left-color: var(--accent); }
+        .risk-card.risk-none { background: rgba(52, 211, 153, 0.08); border-left-color: var(--success); }
+        .risk-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .severity-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+        }
+        .severity-high { background: rgba(248, 113, 113, 0.2); color: var(--error); }
+        .severity-moderate { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+        .severity-low { background: rgba(79, 143, 247, 0.2); color: var(--accent); }
+        .risk-title { font-weight: 600; font-size: 0.95rem; }
+        .risk-title a { color: var(--text); text-decoration: none; }
+        .risk-title a:hover { color: var(--accent); text-decoration: underline; }
+        .risk-description { font-size: 0.85rem; color: var(--text-muted); }
+        .risk-xref { font-size: 0.8rem; color: var(--accent); text-decoration: none; margin-top: 4px; display: inline-block; }
+        .risk-xref:hover { text-decoration: underline; }
+
+        /* Property profile grid */
+        .profile-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+        }
+        .profile-item {
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: baseline;
+        }
+        .profile-item:nth-child(odd) { padding-right: 16px; }
+        .profile-item:nth-child(even) { padding-left: 16px; border-left: 1px solid var(--border); }
+        .profile-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .profile-value { font-size: 0.9rem; text-align: right; }
+        .profile-value a { color: var(--accent); text-decoration: none; }
+        .profile-value a:hover { text-decoration: underline; }
+
+        /* Tables */
+        table.data-table {
+            width: 100%; border-collapse: collapse; font-size: 0.85rem;
+        }
+        table.data-table th {
+            text-align: left; padding: 10px 12px; font-size: 0.75rem;
+            text-transform: uppercase; color: var(--text-muted); font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        table.data-table td {
+            padding: 10px 12px; border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        table.data-table tbody tr:nth-child(even) td { background: var(--surface-2); }
+        table.data-table tbody tr:hover td { background: rgba(79, 143, 247, 0.05); }
+        table.data-table a { color: var(--accent); text-decoration: none; }
+        table.data-table a:hover { text-decoration: underline; }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase; white-space: nowrap;
+        }
+        .status-filed { background: rgba(79, 143, 247, 0.15); color: var(--accent); }
+        .status-approved { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .status-issued { background: rgba(52, 211, 153, 0.2); color: var(--success); }
+        .status-complete, .status-completed { background: rgba(52, 211, 153, 0.3); color: var(--success); }
+        .status-expired, .status-cancelled, .status-revoked, .status-disapproved, .status-withdrawn {
+            background: rgba(248, 113, 113, 0.15); color: var(--error);
+        }
+        .status-open { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .status-closed { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .status-suspended { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+
+        /* Expandable permit details */
+        .permit-expand-btn {
+            background: none; border: none; color: var(--text-muted); cursor: pointer;
+            font-size: 0.75rem; font-family: inherit; padding: 2px 6px; border-radius: 4px;
+        }
+        .permit-expand-btn:hover { color: var(--accent); background: var(--surface-2); }
+        .permit-details {
+            display: none; padding: 12px 16px; background: var(--bg);
+            border-radius: 6px; margin-top: 8px;
+        }
+        .permit-details.open { display: block; }
+        .permit-details h4 {
+            font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);
+            margin-bottom: 6px; font-weight: 600;
+        }
+        .permit-details .detail-item {
+            font-size: 0.8rem; padding: 4px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .permit-details .detail-item:last-child { border-bottom: none; }
+
+        /* Complaint / violation cards */
+        .cv-card {
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 10px;
+            background: var(--surface-2); border: 1px solid var(--border);
+        }
+        .cv-card:last-child { margin-bottom: 0; }
+        .cv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .cv-number { font-weight: 600; font-size: 0.9rem; }
+        .cv-number a { color: var(--text); text-decoration: none; }
+        .cv-number a:hover { color: var(--accent); text-decoration: underline; }
+        .cv-meta { font-size: 0.8rem; color: var(--text-muted); }
+        .cv-description { font-size: 0.85rem; margin-top: 4px; color: var(--text); }
+
+        /* Sub-section headers */
+        .sub-heading {
+            font-size: 0.9rem; font-weight: 600; color: var(--text);
+            margin-bottom: 12px; margin-top: 4px;
+        }
+        .sub-divider { border-top: 1px solid var(--border); margin: 20px 0; }
+
+        /* Expeditor callout */
+        .expeditor-callout {
+            padding: 16px 20px; border-radius: 8px; font-size: 0.9rem;
+        }
+        .expeditor-warm {
+            background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2);
+            color: var(--text-muted);
+        }
+        .expeditor-recommended {
+            background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3);
+            color: var(--warning);
+        }
+        .expeditor-strongly_recommended {
+            background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3);
+            color: var(--error);
+        }
+        .expeditor-essential {
+            background: rgba(248, 113, 113, 0.12); border: 2px solid var(--error);
+            color: var(--error); font-weight: 600;
+        }
+        .expeditor-callout a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .expeditor-callout a:hover { text-decoration: underline; }
+        .expeditor-factors { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+        .expeditor-factors li { margin-bottom: 2px; }
+
+        /* Zoning note */
+        .zoning-note { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+
+        /* Share modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.7); z-index: 100;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 28px; max-width: 440px; width: 90%;
+        }
+        .modal-box h3 { font-size: 1.1rem; margin-bottom: 16px; }
+        .modal-box input[type="email"] {
+            width: 100%; background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); padding: 12px 16px;
+            font-size: 0.95rem; font-family: inherit; margin-bottom: 12px;
+        }
+        .modal-box input[type="email"]:focus { outline: none; border-color: var(--accent); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-primary {
+            background: var(--accent); color: #fff; border: none; border-radius: 8px;
+            padding: 10px 24px; font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-cancel {
+            background: none; color: var(--text-muted); border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px 24px; font-size: 0.9rem;
+            cursor: pointer; font-family: inherit;
+        }
+        .btn-cancel:hover { color: var(--text); border-color: var(--text-muted); }
+        #share-result { font-size: 0.85rem; margin-top: 8px; }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border); padding: 20px 0;
+            text-align: center; color: var(--text-muted); font-size: 0.8rem;
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* Print styles */
+        @media print {
+            :root {
+                --bg: #fff; --surface: #fff; --surface-2: #f5f5f5;
+                --border: #ddd; --text: #1a1a2e; --text-muted: #666;
+                --accent: #2563eb;
+            }
+            body { background: #fff; color: #1a1a2e; font-size: 11pt; }
+            header, footer, .back-link, .share-btn-wrap,
+            .permit-expand-btn, .modal-overlay { display: none !important; }
+            .section { break-inside: avoid; border: 1px solid #ddd; }
+            .permit-details { display: block !important; }
+            table.data-table tbody tr:nth-child(even) td { background: #f9f9f9; }
+            a { color: #2563eb; }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .profile-grid { grid-template-columns: 1fr; }
+            .profile-item:nth-child(even) { padding-left: 0; border-left: none; }
+            .profile-item:nth-child(odd) { padding-right: 0; }
+            table.data-table { font-size: 0.8rem; }
+            table.data-table th, table.data-table td { padding: 8px 6px; }
+            .page-title { font-size: 1.3rem; }
+            .modal-box { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <div class="header-right">
+                <span class="share-btn-wrap">
+                    {% if user %}
+                    <button class="badge" onclick="openShareModal()">Share Report</button>
+                    {% else %}
+                    <a href="/auth/login" class="badge">Sign in to share</a>
+                    {% endif %}
+                </span>
+                {% if user %}
+                <a href="/brief" class="badge">Morning Brief</a>
+                <a href="/account" class="badge">{{ user.display_name or user.email }}</a>
+                <form method="POST" action="/auth/logout" style="display:inline;">
+                    <button class="badge" type="submit">Logout</button>
+                </form>
+                {% else %}
+                <a href="/auth/login" class="badge">Sign in</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <a href="/" class="back-link">&larr; Back to search</a>
+
+            <h1 class="page-title">Property Report</h1>
+            <p class="page-subtitle">
+                <strong>{{ report.address }}</strong>
+                &nbsp;&middot;&nbsp;
+                Block {{ report.block }}, Lot {{ report.lot }}
+                {% if report.links and report.links.parcel %}
+                &nbsp;&middot;&nbsp;
+                <a href="{{ report.links.parcel }}" target="_blank" rel="noopener">View parcel</a>
+                {% endif %}
+            </p>
+
+            {# ===== Section 1: Risk Assessment ===== #}
+            <div class="section" id="section-risks">
+                <h2>Risk Assessment</h2>
+                {% if report.risk_assessment %}
+                {% for risk in report.risk_assessment %}
+                <div class="risk-card risk-{{ risk.severity }}">
+                    <div class="risk-header">
+                        <span class="severity-badge severity-{{ risk.severity }}">{{ risk.severity }}</span>
+                        <span class="risk-title">
+                            {% if risk.link %}
+                            <a href="{{ risk.link }}" target="_blank" rel="noopener">{{ risk.title }}</a>
+                            {% else %}
+                            {{ risk.title }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="risk-description">{{ risk.description }}</div>
+                    {% if risk.section_ref %}
+                    <a href="#section-{{ risk.section_ref }}" class="risk-xref">See &sect;{{ risk.section_ref }}</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="risk-card risk-none">
+                    <div class="risk-header">
+                        <span class="severity-badge" style="background:rgba(52,211,153,0.2);color:var(--success);">clear</span>
+                        <span class="risk-title">No known risks</span>
+                    </div>
+                    <div class="risk-description">No active complaints, violations, or anomalies were found for this property.</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ===== Section 1.5: Remediation Roadmap — Owner Mode future ===== #}
+            {# Will render recommended next-steps based on risk assessment items #}
+
+            {# ===== Section 2: Property Profile ===== #}
+            {% if report.property_profile %}
+            <div class="section" id="section-profile">
+                <h2>Property Profile</h2>
+                <div class="profile-grid">
+                    <div class="profile-item">
+                        <span class="profile-label">Address</span>
+                        <span class="profile-value">{{ report.address }}</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Parcel</span>
+                        <span class="profile-value">
+                            {% if report.links and report.links.parcel %}
+                            <a href="{{ report.links.parcel }}" target="_blank" rel="noopener">{{ report.block }}/{{ report.lot }}</a>
+                            {% else %}
+                            {{ report.block }}/{{ report.lot }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Zoning</span>
+                        <span class="profile-value">
+                            {% if report.property_profile.zoning %}
+                            <a href="{{ links.planning_code(report.property_profile.zoning) }}" target="_blank" rel="noopener">{{ report.property_profile.zoning }}</a>
+                            {% else %}
+                            &mdash;
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Assessed Value</span>
+                        <span class="profile-value">{{ report.property_profile.assessed_value or '&mdash;' }}</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Property Class</span>
+                        <span class="profile-value">{{ report.property_profile.property_class or '&mdash;' }}</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Year Built</span>
+                        <span class="profile-value">{{ report.property_profile.year_built or '&mdash;' }}</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Building Area</span>
+                        <span class="profile-value">{{ report.property_profile.building_area or '&mdash;' }}</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Lot Area</span>
+                        <span class="profile-value">{{ report.property_profile.lot_area or '&mdash;' }}</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Use Code</span>
+                        <span class="profile-value">{{ report.property_profile.use_code or '&mdash;' }}</span>
+                    </div>
+                    <div class="profile-item">
+                        <span class="profile-label">Tax Year</span>
+                        <span class="profile-value">{{ report.property_profile.tax_year or '&mdash;' }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ===== Section 3: Permit History ===== #}
+            <div class="section" id="section-permits">
+                <h2>Permit History</h2>
+                {% if report.permits %}
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Permit #</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Cost</th>
+                                <th>Status</th>
+                                <th>Filed</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in report.permits %}
+                            <tr>
+                                <td>
+                                    <a href="{{ links.permit(p.permit_number) }}" target="_blank" rel="noopener">{{ p.permit_number }}</a>
+                                </td>
+                                <td>{{ p.permit_type_definition or '&mdash;' }}</td>
+                                <td>{{ p.description or '&mdash;' }}</td>
+                                <td>
+                                    {% if p.estimated_cost %}
+                                    ${{ '{:,.0f}'.format(p.estimated_cost) }}
+                                    {% else %}
+                                    &mdash;
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ (p.status or '')|lower }}">{{ p.status or 'Unknown' }}</span>
+                                </td>
+                                <td>{{ p.filed_date or '&mdash;' }}</td>
+                                <td>
+                                    {% if p.contacts or p.inspections %}
+                                    <button class="permit-expand-btn" onclick="togglePermitDetails('permit-{{ loop.index }}')">Details</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="7" style="padding:0;border:none;">
+                                    <div class="permit-details" id="permit-{{ loop.index }}">
+                                        {% if p.contacts %}
+                                        <h4>Contacts</h4>
+                                        {% for c in p.contacts %}
+                                        <div class="detail-item">
+                                            <strong>{{ c.role }}</strong>:
+                                            {% if c.canonical_name %}
+                                            <a href="{{ links.entity(c.canonical_name) }}">{{ c.name }}</a>
+                                            {% else %}
+                                            {{ c.name }}
+                                            {% endif %}
+                                            {% if c.firm_name %} &mdash; {{ c.firm_name }}{% endif %}
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                        {% if p.inspections %}
+                                        <h4 {% if p.contacts %}style="margin-top:12px;"{% endif %}>Recent Inspections</h4>
+                                        {% for insp in p.inspections %}
+                                        <div class="detail-item">
+                                            {{ insp.scheduled_date or '' }}
+                                            &middot; {{ insp.description or 'Inspection' }}
+                                            {% if insp.inspector %} &middot; {{ insp.inspector }}{% endif %}
+                                            &middot;
+                                            <span style="font-weight:600;{% if insp.result == 'APPROVED' %}color:var(--success);{% elif insp.result in ('DISAPPROVED', 'NOT APPROVED') %}color:var(--error);{% else %}color:var(--text-muted);{% endif %}">
+                                                {{ insp.result or 'Pending' }}
+                                            </span>
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="section-empty">No permits found for this property.</p>
+                {% endif %}
+            </div>
+
+            {# ===== Section 4: Complaints & Violations ===== #}
+            <div class="section" id="section-complaints">
+                <h2>Complaints &amp; Violations</h2>
+
+                <div class="sub-heading">Complaints</div>
+                {% if report.complaints %}
+                {% for c in report.complaints %}
+                <div class="cv-card">
+                    <div class="cv-header">
+                        <span class="cv-number">
+                            <a href="{{ links.complaint(c.complaint_number) }}" target="_blank" rel="noopener">#{{ c.complaint_number }}</a>
+                        </span>
+                        <span class="status-badge status-{{ (c.status or '')|lower }}">{{ c.status or 'Unknown' }}</span>
+                    </div>
+                    <div class="cv-meta">
+                        Filed {{ c.date_filed or 'N/A' }}
+                        {% if c.street_name %} &middot; {{ c.street_name }}{% endif %}
+                    </div>
+                    {% if c.complaint_description %}
+                    <div class="cv-description">{{ c.complaint_description }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="section-empty">No complaints on file.</p>
+                {% endif %}
+
+                <div class="sub-divider"></div>
+
+                <div class="sub-heading">Violations (Notices of Violation)</div>
+                {% if report.violations %}
+                {% for v in report.violations %}
+                <div class="cv-card">
+                    <div class="cv-header">
+                        <span class="cv-number">
+                            {% if v.complaint_number %}
+                            <a href="{{ links.complaint(v.complaint_number) }}" target="_blank" rel="noopener">#{{ v.complaint_number }}</a>
+                            {% else %}
+                            Violation
+                            {% endif %}
+                        </span>
+                        <span class="status-badge status-{{ (v.status or '')|lower }}">{{ v.status or 'Unknown' }}</span>
+                    </div>
+                    <div class="cv-meta">
+                        Filed {{ v.date_filed or 'N/A' }}
+                        {% if v.nov_category_description %} &middot; {{ v.nov_category_description }}{% endif %}
+                    </div>
+                    {% if v.description %}
+                    <div class="cv-description">{{ v.description }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="section-empty">No violations on file.</p>
+                {% endif %}
+            </div>
+
+            {# ===== Section 5: Zoning & Regulatory Context ===== #}
+            {% if report.property_profile and report.property_profile.zoning %}
+            <div class="section" id="section-zoning">
+                <h2>Zoning &amp; Regulatory Context</h2>
+                <div style="margin-bottom:12px;">
+                    <span class="profile-label" style="margin-right:8px;">Zoning District</span>
+                    <a href="{{ links.planning_code(report.property_profile.zoning) }}" target="_blank" rel="noopener"
+                       style="color:var(--accent);text-decoration:none;font-weight:600;">
+                        {{ report.property_profile.zoning }}
+                    </a>
+                </div>
+                {% if report.property_profile.property_class %}
+                <div style="margin-bottom:12px;">
+                    <span class="profile-label" style="margin-right:8px;">Property Class</span>
+                    <span>{{ report.property_profile.property_class }}</span>
+                </div>
+                {% endif %}
+                <div class="zoning-note">
+                    {% set zoning = report.property_profile.zoning %}
+                    {% if zoning.startswith('RH-1') %}
+                    This property is in an <strong>RH-1</strong> (Residential, House &mdash; One Family) district.
+                    Permits involving additional units, ADUs, or building envelope changes may require neighborhood notification
+                    and Planning Department review under the Residential Design Guidelines.
+                    {% elif zoning.startswith('RH-2') %}
+                    This property is in an <strong>RH-2</strong> (Residential, House &mdash; Two Family) district.
+                    Up to two dwelling units are permitted by right. ADU conversions may have streamlined approval.
+                    {% elif zoning.startswith('RH-3') %}
+                    This property is in an <strong>RH-3</strong> (Residential, House &mdash; Three Family) district.
+                    Up to three dwelling units are permitted. Review Residential Design Guidelines for exterior changes.
+                    {% elif zoning.startswith('RM-') %}
+                    This property is in a <strong>Residential Mixed</strong> ({{ zoning }}) district.
+                    Density limits and height controls apply. Check bulk and setback requirements for additions.
+                    {% elif zoning.startswith('RC-') %}
+                    This property is in a <strong>Residential-Commercial</strong> ({{ zoning }}) district.
+                    Ground-floor commercial uses may be permitted. Mixed-use projects should review use size limits.
+                    {% elif zoning.startswith('NC-') or zoning.startswith('NCD-') %}
+                    This property is in a <strong>Neighborhood Commercial</strong> ({{ zoning }}) district.
+                    Permitted uses vary by sub-district. Formula retail restrictions and use-size limits may apply.
+                    {% elif zoning.startswith('C-') %}
+                    This property is in a <strong>Commercial</strong> ({{ zoning }}) district.
+                    Review permitted uses and conditional use requirements for the specific sub-district.
+                    {% elif zoning.startswith('M-') or zoning.startswith('PDR-') %}
+                    This property is in a <strong>Production/Distribution/Repair</strong> ({{ zoning }}) district.
+                    PDR use protections apply. Conversion to non-PDR uses may require conditional use authorization.
+                    {% elif zoning.startswith('P') %}
+                    This property is in a <strong>Public</strong> ({{ zoning }}) district.
+                    Development is generally limited to institutional and public uses.
+                    {% else %}
+                    This property is zoned <strong>{{ zoning }}</strong>.
+                    Review the SF Planning Code for district-specific development standards and permitted uses.
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {# ===== Section 6: Nearby Activity ===== #}
+            {% if report.nearby_activity %}
+            <div class="section" id="section-nearby">
+                <h2>Nearby Permit Activity</h2>
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Address</th>
+                                <th>Permit #</th>
+                                <th>Description</th>
+                                <th>Cost</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for n in report.nearby_activity %}
+                            <tr>
+                                <td>{{ n.street_number }} {{ n.street_name }} {{ n.street_suffix or '' }}</td>
+                                <td>
+                                    <a href="{{ links.permit(n.permit_number) }}" target="_blank" rel="noopener">{{ n.permit_number }}</a>
+                                </td>
+                                <td>{{ n.description or '&mdash;' }}</td>
+                                <td>
+                                    {% if n.estimated_cost %}
+                                    ${{ '{:,.0f}'.format(n.estimated_cost) }}
+                                    {% else %}
+                                    &mdash;
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ (n.status or '')|lower }}">{{ n.status or 'Unknown' }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ===== Section 7: Expeditor Assessment ===== #}
+            {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
+            <div class="section" id="section-expeditor">
+                <h2>Expeditor Assessment</h2>
+                {% set sig = report.expediter_signal %}
+                {% set exp_url = '/expediters?block=' ~ report.block ~ '&lot=' ~ report.lot %}
+
+                {% if sig.signal == 'warm' %}
+                <div class="expeditor-callout expeditor-warm">
+                    Depending on your project scope, an expeditor could save time.
+                    <a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                </div>
+
+                {% elif sig.signal == 'recommended' %}
+                <div class="expeditor-callout expeditor-recommended">
+                    Based on the risk profile, we recommend using an expeditor for this property.
+                    <a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                </div>
+
+                {% elif sig.signal == 'strongly_recommended' %}
+                <div class="expeditor-callout expeditor-strongly_recommended">
+                    {{ sig.message or 'An expeditor is strongly advised given the circumstances of this property.' }}
+                    <br><a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                </div>
+
+                {% elif sig.signal == 'essential' %}
+                <div class="expeditor-callout expeditor-essential">
+                    {{ sig.message or 'An experienced expeditor is essential for navigating the permitting process on this property.' }}
+                    <br><a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                </div>
+                {% endif %}
+
+                {% if sig.factors %}
+                <ul class="expeditor-factors">
+                    {% for f in sig.factors %}
+                    <li>{{ f }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            Generated by <a href="/">sfpermits.ai</a> &middot;
+            Data from <a href="https://data.sfgov.org" target="_blank" rel="noopener">SF Open Data</a>
+        </div>
+    </footer>
+
+    {# ===== Share Modal ===== #}
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal-box">
+            <h3>Share this report</h3>
+            <form hx-post="/report/{{ report.block }}/{{ report.lot }}/share"
+                  hx-target="#share-result"
+                  hx-swap="innerHTML">
+                <input type="email" name="recipient_email" placeholder="Recipient email address" required>
+                <div id="share-result"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeShareModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Send Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePermitDetails(id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.toggle('open');
+        }
+
+        function openShareModal() {
+            document.getElementById('share-modal').classList.add('open');
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.remove('open');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('share-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeShareModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeShareModal();
+        });
+    </script>
+    {% include 'fragments/feedback_widget.html' %}
+</body>
+</html>

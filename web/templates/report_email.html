@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Report — {{ report.address }} — sfpermits.ai</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;line-height:1.6;">
+    <!-- Outer wrapper -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;">
+        <tr>
+            <td align="center" style="padding:24px 16px;">
+                <!-- Inner container -->
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:#1a1d27;padding:20px 28px;">
+                            <a href="{{ report_url }}" style="color:#4f8ff7;font-size:1.3rem;font-weight:700;text-decoration:none;">sfpermits<span style="color:#8b8fa3;font-weight:400;">.ai</span></a>
+                            <span style="float:right;color:#8b8fa3;font-size:0.85rem;line-height:2;">Property Report</span>
+                        </td>
+                    </tr>
+
+                    <!-- Title -->
+                    <tr>
+                        <td style="padding:28px 28px 8px;">
+                            <h1 style="margin:0;font-size:1.3rem;color:#1a1a2e;">{{ report.address }}</h1>
+                            <p style="margin:4px 0 0;color:#6b7280;font-size:0.9rem;">
+                                Block {{ report.block }}, Lot {{ report.lot }}
+                                {% if report.links and report.links.parcel %}
+                                &middot; <a href="{{ report.links.parcel }}" style="color:#4f8ff7;text-decoration:none;">View parcel</a>
+                                {% endif %}
+                            </p>
+                        </td>
+                    </tr>
+
+                    {# ===== Section 1: Risk Assessment ===== #}
+                    <tr>
+                        <td style="padding:20px 28px 8px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Risk Assessment</h2>
+                        </td>
+                    </tr>
+                    {% if report.risk_assessment %}
+                    {% for risk in report.risk_assessment %}
+                    <tr>
+                        <td style="padding:0 28px 10px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:12px 16px;border-radius:6px;border-left:4px solid {% if risk.severity == 'high' %}#f87171{% elif risk.severity == 'moderate' %}#fbbf24{% else %}#4f8ff7{% endif %};background:{% if risk.severity == 'high' %}#fef2f2{% elif risk.severity == 'moderate' %}#fffbeb{% else %}#eff6ff{% endif %};">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if risk.severity == 'high' %}background:#fee2e2;color:#dc2626;{% elif risk.severity == 'moderate' %}background:#fef3c7;color:#d97706;{% else %}background:#dbeafe;color:#2563eb;{% endif %}">{{ risk.severity }}</span>
+                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;">
+                                            {% if risk.link %}
+                                            <a href="{{ risk.link }}" style="color:#1a1a2e;text-decoration:none;">{{ risk.title }}</a>
+                                            {% else %}
+                                            {{ risk.title }}
+                                            {% endif %}
+                                        </span>
+                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">{{ risk.description }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td style="padding:0 28px 16px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:12px 16px;border-radius:6px;border-left:4px solid #34d399;background:#ecfdf5;">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;background:#d1fae5;color:#059669;">clear</span>
+                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;">No known risks</span>
+                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">No active complaints, violations, or anomalies were found for this property.</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {# ===== Section 2: Property Profile ===== #}
+                    {% if report.property_profile %}
+                    <tr>
+                        <td style="padding:12px 28px 4px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Property Profile</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;width:40%;">Zoning</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">
+                                        {% if report.property_profile.zoning %}
+                                        <a href="{{ links.planning_code(report.property_profile.zoning) }}" style="color:#4f8ff7;text-decoration:none;">{{ report.property_profile.zoning }}</a>
+                                        {% else %}&mdash;{% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Assessed Value</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.assessed_value or '&mdash;' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Property Class</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.property_class or '&mdash;' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Neighborhood</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.neighborhood or '&mdash;' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Year Built</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.year_built or '&mdash;' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Building Area</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.building_area or '&mdash;' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Lot Area</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.lot_area or '&mdash;' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:6px 0;font-size:0.8rem;color:#6b7280;font-weight:600;">Tax Year</td>
+                                    <td style="padding:6px 0;font-size:0.9rem;">{{ report.property_profile.tax_year or '&mdash;' }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {# ===== Section 3: Permit History ===== #}
+                    {% if report.permits %}
+                    <tr>
+                        <td style="padding:12px 28px 4px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Permit History</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:0.85rem;">
+                                <tr style="background:#f8f9fb;">
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Permit #</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Type</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Cost</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Status</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Filed</td>
+                                </tr>
+                                {% for p in report.permits[:10] %}
+                                <tr>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
+                                        <a href="{{ links.permit(p.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ p.permit_number }}</a>
+                                    </td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.permit_type_definition or '&mdash;' }}</td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
+                                        {% if p.estimated_cost %}${{ '{:,.0f}'.format(p.estimated_cost) }}{% else %}&mdash;{% endif %}
+                                    </td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
+                                        <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;
+                                            {% if (p.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#d1fae5;color:#059669;
+                                            {% elif (p.status or '')|lower in ('expired', 'cancelled', 'revoked', 'disapproved', 'withdrawn') %}background:#fee2e2;color:#dc2626;
+                                            {% else %}background:#dbeafe;color:#2563eb;{% endif %}">
+                                            {{ p.status or 'Unknown' }}
+                                        </span>
+                                    </td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.filed_date or '&mdash;' }}</td>
+                                </tr>
+                                {% if p.description %}
+                                <tr>
+                                    <td colspan="5" style="padding:2px 8px 8px;border-bottom:1px solid #e5e7eb;font-size:0.8rem;color:#6b7280;">
+                                        {{ p.description }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                                {% if report.permits|length > 10 %}
+                                <tr>
+                                    <td colspan="5" style="padding:8px;color:#6b7280;font-size:0.8rem;">
+                                        + {{ report.permits|length - 10 }} more permits &mdash;
+                                        <a href="{{ report_url }}" style="color:#4f8ff7;text-decoration:none;">view full report</a>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {# ===== Section 4: Complaints & Violations ===== #}
+                    {% if report.complaints or report.violations %}
+                    <tr>
+                        <td style="padding:12px 28px 4px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Complaints &amp; Violations</h2>
+                        </td>
+                    </tr>
+
+                    {% if report.complaints %}
+                    <tr>
+                        <td style="padding:0 28px 4px;">
+                            <div style="font-size:0.85rem;font-weight:600;color:#1a1a2e;margin-bottom:8px;">Complaints</div>
+                        </td>
+                    </tr>
+                    {% for c in report.complaints %}
+                    <tr>
+                        <td style="padding:0 28px 10px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
+                                        <div style="display:inline;">
+                                            <a href="{{ links.complaint(c.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ c.complaint_number }}</a>
+                                            <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:600;margin-left:8px;
+                                                {% if (c.status or '')|lower == 'open' %}background:#fef3c7;color:#d97706;
+                                                {% else %}background:#d1fae5;color:#059669;{% endif %}">
+                                                {{ c.status or 'Unknown' }}
+                                            </span>
+                                        </div>
+                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">Filed {{ c.date_filed or 'N/A' }}</div>
+                                        {% if c.complaint_description %}
+                                        <div style="font-size:0.85rem;color:#1a1a2e;margin-top:4px;">{{ c.complaint_description }}</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if report.violations %}
+                    <tr>
+                        <td style="padding:4px 28px 4px;">
+                            <div style="font-size:0.85rem;font-weight:600;color:#1a1a2e;margin-bottom:8px;">Violations</div>
+                        </td>
+                    </tr>
+                    {% for v in report.violations %}
+                    <tr>
+                        <td style="padding:0 28px 10px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
+                                        <div style="display:inline;">
+                                            {% if v.complaint_number %}
+                                            <a href="{{ links.complaint(v.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ v.complaint_number }}</a>
+                                            {% else %}
+                                            <span style="font-weight:600;font-size:0.9rem;">Violation</span>
+                                            {% endif %}
+                                            <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:600;margin-left:8px;
+                                                {% if (v.status or '')|lower == 'open' %}background:#fef3c7;color:#d97706;
+                                                {% else %}background:#d1fae5;color:#059669;{% endif %}">
+                                                {{ v.status or 'Unknown' }}
+                                            </span>
+                                        </div>
+                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">
+                                            Filed {{ v.date_filed or 'N/A' }}
+                                            {% if v.nov_category_description %} &middot; {{ v.nov_category_description }}{% endif %}
+                                        </div>
+                                        {% if v.description %}
+                                        <div style="font-size:0.85rem;color:#1a1a2e;margin-top:4px;">{{ v.description }}</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    {% endif %}
+
+                    {# ===== Section 5: Zoning Context ===== #}
+                    {% if report.property_profile and report.property_profile.zoning %}
+                    <tr>
+                        <td style="padding:12px 28px 4px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Zoning &amp; Regulatory Context</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <div style="margin-bottom:8px;">
+                                <span style="font-size:0.8rem;color:#6b7280;font-weight:600;">Zoning District:</span>
+                                <a href="{{ links.planning_code(report.property_profile.zoning) }}" style="color:#4f8ff7;text-decoration:none;font-weight:600;margin-left:4px;">{{ report.property_profile.zoning }}</a>
+                            </div>
+                            <div style="font-size:0.85rem;color:#6b7280;line-height:1.5;">
+                                {% set zoning = report.property_profile.zoning %}
+                                {% if zoning.startswith('RH-1') %}
+                                RH-1 (Residential, House &mdash; One Family) district. Permits involving additional units or building envelope changes may require Planning review.
+                                {% elif zoning.startswith('RH-2') %}
+                                RH-2 (Residential, House &mdash; Two Family) district. Up to two dwelling units permitted by right.
+                                {% elif zoning.startswith('RH-3') %}
+                                RH-3 (Residential, House &mdash; Three Family) district. Up to three dwelling units permitted.
+                                {% elif zoning.startswith('RM-') %}
+                                Residential Mixed ({{ zoning }}) district. Density limits and height controls apply.
+                                {% elif zoning.startswith('RC-') %}
+                                Residential-Commercial ({{ zoning }}) district. Ground-floor commercial uses may be permitted.
+                                {% elif zoning.startswith('NC-') or zoning.startswith('NCD-') %}
+                                Neighborhood Commercial ({{ zoning }}) district. Permitted uses vary by sub-district.
+                                {% elif zoning.startswith('C-') %}
+                                Commercial ({{ zoning }}) district. Review permitted uses for the specific sub-district.
+                                {% elif zoning.startswith('M-') or zoning.startswith('PDR-') %}
+                                Production/Distribution/Repair ({{ zoning }}) district. PDR use protections apply.
+                                {% else %}
+                                Zoned {{ zoning }}. Review the SF Planning Code for district-specific development standards.
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {# ===== Section 6: Nearby Activity ===== #}
+                    {% if report.nearby_activity %}
+                    <tr>
+                        <td style="padding:12px 28px 4px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Nearby Permit Activity</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:0.85rem;">
+                                <tr style="background:#f8f9fb;">
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Address</td>
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Permit #</td>
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Description</td>
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Status</td>
+                                </tr>
+                                {% for n in report.nearby_activity[:6] %}
+                                <tr>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.street_number }} {{ n.street_name }} {{ n.street_suffix or '' }}</td>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
+                                        <a href="{{ links.permit(n.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ n.permit_number }}</a>
+                                    </td>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.description or '&mdash;' }}</td>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;
+                                            {% if (n.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#d1fae5;color:#059669;
+                                            {% elif (n.status or '')|lower in ('expired', 'cancelled') %}background:#fee2e2;color:#dc2626;
+                                            {% else %}background:#dbeafe;color:#2563eb;{% endif %}">
+                                            {{ n.status or 'Unknown' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if report.nearby_activity|length > 6 %}
+                                <tr>
+                                    <td colspan="4" style="padding:6px 8px;color:#6b7280;font-size:0.8rem;">
+                                        + {{ report.nearby_activity|length - 6 }} more &mdash;
+                                        <a href="{{ report_url }}" style="color:#4f8ff7;text-decoration:none;">view full report</a>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {# ===== Section 7: Expeditor Assessment ===== #}
+                    {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
+                    <tr>
+                        <td style="padding:12px 28px 4px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Expeditor Assessment</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            {% set sig = report.expediter_signal %}
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:14px 16px;border-radius:6px;
+                                        {% if sig.signal == 'warm' %}background:#eff6ff;border:1px solid #dbeafe;
+                                        {% elif sig.signal == 'recommended' %}background:#fffbeb;border:1px solid #fef3c7;
+                                        {% elif sig.signal == 'strongly_recommended' %}background:#fef2f2;border:1px solid #fecaca;
+                                        {% elif sig.signal == 'essential' %}background:#fef2f2;border:2px solid #f87171;
+                                        {% endif %}">
+
+                                        {% if sig.signal == 'warm' %}
+                                        <div style="font-size:0.9rem;color:#6b7280;">
+                                            Depending on your project scope, an expeditor could save time.
+                                        </div>
+                                        {% elif sig.signal == 'recommended' %}
+                                        <div style="font-size:0.9rem;color:#d97706;font-weight:500;">
+                                            Based on the risk profile, we recommend using an expeditor for this property.
+                                        </div>
+                                        {% elif sig.signal == 'strongly_recommended' %}
+                                        <div style="font-size:0.9rem;color:#dc2626;font-weight:500;">
+                                            {{ sig.message or 'An expeditor is strongly advised given the circumstances of this property.' }}
+                                        </div>
+                                        {% elif sig.signal == 'essential' %}
+                                        <div style="font-size:0.9rem;color:#dc2626;font-weight:700;">
+                                            {{ sig.message or 'An experienced expeditor is essential for navigating the permitting process on this property.' }}
+                                        </div>
+                                        {% endif %}
+
+                                        {% if sig.factors %}
+                                        <div style="margin-top:8px;font-size:0.8rem;color:#6b7280;">
+                                            {% for f in sig.factors %}
+                                            &bull; {{ f }}<br>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+
+                                        <div style="margin-top:10px;">
+                                            <a href="{{ report_url.rsplit('/', 1)[0] if '/' in report_url else report_url }}/../expediters?block={{ report.block }}&lot={{ report.lot }}" style="color:#4f8ff7;text-decoration:none;font-weight:600;font-size:0.9rem;">Find an expeditor &rarr;</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- CTA -->
+                    <tr>
+                        <td align="center" style="padding:8px 28px 28px;">
+                            <a href="{{ report_url }}" style="display:inline-block;padding:12px 32px;background:#4f8ff7;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;">
+                                View Full Report
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding:20px 28px;background:#f8f9fb;border-top:1px solid #e5e7eb;">
+                            <p style="margin:0 0 8px;font-size:0.75rem;color:#9ca3af;text-align:center;">
+                                Data from <a href="https://data.sfgov.org" style="color:#4f8ff7;text-decoration:none;">SF Open Data</a>.
+                                This report was generated automatically and may not reflect the most recent changes.
+                            </p>
+                            <p style="margin:0;font-size:0.75rem;color:#9ca3af;text-align:center;">
+                                Sent by <a href="{{ report_url.split('/report')[0] if '/report' in report_url else report_url }}" style="color:#4f8ff7;text-decoration:none;">sfpermits.ai</a>
+                                &middot;
+                                <a href="{{ report_url.split('/report')[0] if '/report' in report_url else report_url }}/account" style="color:#4f8ff7;text-decoration:none;">Manage preferences</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

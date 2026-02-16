@@ -1653,6 +1653,137 @@ def expediters_search():
 
 
 # ---------------------------------------------------------------------------
+# Property report — comprehensive parcel report with inline source links
+# ---------------------------------------------------------------------------
+
+RATE_LIMIT_MAX_REPORT = 10  # /report views per window
+RATE_LIMIT_MAX_SHARE = 3    # /report share emails per window
+
+
+@app.route("/report/<block>/<lot>")
+def property_report(block, lot):
+    """Comprehensive property report — public (no login required)."""
+    from web.report import get_property_report
+    from src.report_links import ReportLinks
+
+    ip = request.remote_addr or "unknown"
+    if _is_rate_limited(ip, RATE_LIMIT_MAX_REPORT):
+        abort(429)
+
+    block = block.strip()
+    lot = lot.strip()
+    if not block or not lot:
+        abort(400)
+
+    try:
+        report = get_property_report(block, lot)
+    except Exception as e:
+        logging.exception("Report generation failed for %s/%s", block, lot)
+        return render_template(
+            "report.html",
+            report=None,
+            error=f"Could not generate report: {e}",
+            user=getattr(g, "user", None),
+            links=ReportLinks,
+        ), 500
+
+    if not report.get("permits") and not report.get("complaints") and not report.get("property_profile"):
+        return render_template(
+            "report.html",
+            report=report,
+            error=f"No data found for Block {block}, Lot {lot}.",
+            user=getattr(g, "user", None),
+            links=ReportLinks,
+        ), 404
+
+    return render_template(
+        "report.html",
+        report=report,
+        user=getattr(g, "user", None),
+        links=ReportLinks,
+    )
+
+
+@app.route("/report/<block>/<lot>/share", methods=["POST"])
+@login_required
+def property_report_share(block, lot):
+    """Email a property report to a specified address."""
+    from web.report import get_property_report
+    from src.report_links import ReportLinks
+    import smtplib
+    from email.message import EmailMessage
+
+    ip = request.remote_addr or "unknown"
+    if _is_rate_limited(ip, RATE_LIMIT_MAX_SHARE):
+        return "<div class='flash error'>Rate limited — please try again in a minute.</div>", 429
+
+    to_email = request.form.get("email", "").strip()
+    if not to_email or "@" not in to_email:
+        return "<div class='flash error'>Please enter a valid email address.</div>", 400
+
+    block = block.strip()
+    lot = lot.strip()
+
+    try:
+        report = get_property_report(block, lot)
+    except Exception as e:
+        logging.exception("Report generation failed for share: %s/%s", block, lot)
+        return f"<div class='flash error'>Failed to generate report: {e}</div>", 500
+
+    base_url = os.environ.get("BASE_URL", "http://localhost:5001")
+    report_url = f"{base_url}/report/{block}/{lot}"
+
+    try:
+        html_body = render_template(
+            "report_email.html",
+            report=report,
+            report_url=report_url,
+            links=ReportLinks,
+        )
+    except Exception as e:
+        logging.exception("Report email render failed")
+        return f"<div class='flash error'>Failed to render email: {e}</div>", 500
+
+    # Send via SMTP (reuse brief email SMTP config)
+    smtp_host = os.environ.get("SMTP_HOST")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_from = os.environ.get("SMTP_FROM", "noreply@sfpermits.ai")
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASS")
+
+    address = report.get("address", f"Block {block}, Lot {lot}")
+    subject = f"Property Report — {address} — sfpermits.ai"
+
+    if not smtp_host:
+        logging.info("SMTP not configured — would send report to %s (%d chars)", to_email, len(html_body))
+        return "<div class='flash success'>Report sent (dev mode — no SMTP configured).</div>"
+
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = f"SF Permits AI <{smtp_from}>"
+        msg["To"] = to_email
+        msg.set_content(
+            f"Property Report for {address}\n\n"
+            f"View the full report: {report_url}\n\n"
+            f"--\nsfpermits.ai - San Francisco Building Permit Intelligence"
+        )
+        msg.add_alternative(html_body, subtype="html")
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            if smtp_user:
+                server.login(smtp_user, smtp_pass or "")
+            server.send_message(msg)
+
+        logging.info("Report email sent to %s for %s/%s", to_email, block, lot)
+        return "<div class='flash success'>Report sent! Check your inbox.</div>"
+    except Exception as e:
+        logging.exception("Failed to send report email to %s", to_email)
+        return f"<div class='flash error'>Failed to send email: {e}</div>", 500
+
+
+# ---------------------------------------------------------------------------
 # Cron endpoints — protected by bearer token
 # ---------------------------------------------------------------------------
 
