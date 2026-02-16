@@ -831,6 +831,16 @@ def analyze_plans_route():
             pe.get("page_number", i + 1) - 1: pe
             for i, pe in enumerate(page_extractions)
         })
+
+        # Format extractions for Jinja template (list indexed by page number)
+        extractions_list = []
+        if page_extractions:
+            # Create list with length = page_count, indexed by 0-based page number
+            extractions_list = [None] * page_count
+            for pe in page_extractions:
+                page_num = pe.get("page_number", 1) - 1  # Convert 1-based to 0-based
+                if 0 <= page_num < page_count:
+                    extractions_list[page_num] = pe
     except Exception as e:
         logger.warning("Image rendering failed (non-fatal): %s", e)
 
@@ -842,6 +852,7 @@ def analyze_plans_route():
         session_id=session_id,
         page_count=page_count,
         extractions_json=extractions_json,
+        extractions=extractions_list,  # NEW: Pass list for template iteration
     )
 
 

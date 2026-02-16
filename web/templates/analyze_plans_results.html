@@ -547,7 +547,7 @@
     </div>
 
     <!-- Thumbnail Gallery -->
-    {% if extractions %}
+    {% if session_id and page_count > 0 %}
     <div class="thumbnail-gallery" id="thumbnail-gallery">
         {% for extraction in extractions %}
         <div class="thumbnail-item" onclick="openPageDetail({{ loop.index0 }})">
