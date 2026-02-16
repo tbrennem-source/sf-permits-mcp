@@ -437,22 +437,21 @@ def health():
 
 def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] | None:
     """Lightweight lookup: resolve a street address to (block, lot) from permits table."""
-    from src.db import query, _ph
+    from src.db import query
     from src.tools.permit_lookup import _strip_suffix
-    ph = _ph()
     base_name, _suffix = _strip_suffix(street_name)
     base_pattern = f"%{base_name}%"
     full_pattern = f"%{street_name}%"
     rows = query(
-        f"SELECT block, lot FROM permits "
-        f"WHERE street_number = {ph} "
-        f"  AND ("
-        f"    UPPER(street_name) LIKE UPPER({ph})"
-        f"    OR UPPER(street_name) LIKE UPPER({ph})"
-        f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
-        f"  ) "
-        f"  AND block IS NOT NULL AND lot IS NOT NULL "
-        f"LIMIT 1",
+        "SELECT block, lot FROM permits "
+        "WHERE street_number = %s "
+        "  AND ("
+        "    UPPER(street_name) LIKE UPPER(%s)"
+        "    OR UPPER(street_name) LIKE UPPER(%s)"
+        "    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER(%s)"
+        "  ) "
+        "  AND block IS NOT NULL AND lot IS NOT NULL "
+        "LIMIT 1",
         (street_number, base_pattern, full_pattern, full_pattern),
     )
     if rows:
@@ -1187,20 +1186,19 @@ def _ask_address_search(query: str, entities: dict) -> str:
     # Resolve block/lot for property report link
     report_url = None
     try:
-        from src.db import query as db_query, _ph
+        from src.db import query as db_query
         from src.tools.permit_lookup import _strip_suffix
-        ph = _ph()
         bl = _resolve_block_lot(street_number, street_name)
         # Fallback: if _resolve_block_lot failed but permits exist, try a
         # broader query (just street_number + block/lot NOT NULL)
         if not bl:
             base_name, _sfx = _strip_suffix(street_name)
             rows = db_query(
-                f"SELECT block, lot FROM permits "
-                f"WHERE street_number = {ph} "
-                f"  AND UPPER(COALESCE(street_name, '')) LIKE UPPER({ph}) "
-                f"  AND block IS NOT NULL AND lot IS NOT NULL "
-                f"LIMIT 1",
+                "SELECT block, lot FROM permits "
+                "WHERE street_number = %s "
+                "  AND UPPER(COALESCE(street_name, '')) LIKE UPPER(%s) "
+                "  AND block IS NOT NULL AND lot IS NOT NULL "
+                "LIMIT 1",
                 (street_number, f"%{base_name[:3]}%"),
             )
             if rows:
