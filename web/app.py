@@ -1898,6 +1898,61 @@ def cron_send_briefs():
         )
 
 
+# ---------------------------------------------------------------------------
+# API endpoints — CRON_SECRET-protected JSON access for CLI tools
+# ---------------------------------------------------------------------------
+
+def _check_api_auth():
+    """Verify CRON_SECRET bearer token. Aborts 403 if invalid."""
+    token = request.headers.get("Authorization", "")
+    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
+    if not os.environ.get("CRON_SECRET") or token != expected:
+        abort(403)
+
+
+@app.route("/api/feedback")
+def api_feedback():
+    """Get feedback items as JSON. Supports multi-status filtering.
+
+    Query params:
+      - status: one or more status values (e.g. ?status=new&status=reviewed)
+      - limit: max items (default 100)
+    """
+    _check_api_auth()
+    import json
+    from web.activity import get_feedback_items_json
+
+    statuses = request.args.getlist("status") or None
+    limit = min(int(request.args.get("limit", "100")), 500)
+
+    data = get_feedback_items_json(statuses=statuses, limit=limit)
+    return Response(
+        json.dumps(data, indent=2),
+        mimetype="application/json",
+    )
+
+
+@app.route("/api/feedback/<int:feedback_id>/screenshot")
+def api_feedback_screenshot(feedback_id):
+    """Serve feedback screenshot image. CRON_SECRET auth."""
+    _check_api_auth()
+    import base64
+    from web.activity import get_feedback_screenshot
+
+    data_url = get_feedback_screenshot(feedback_id)
+    if not data_url:
+        abort(404)
+
+    try:
+        header, encoded = data_url.split(",", 1)
+        mime_type = header.split(":")[1].split(";")[0]
+        image_bytes = base64.b64decode(encoded)
+    except Exception:
+        abort(400)
+
+    return Response(image_bytes, mimetype=mime_type)
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(debug=True, host="0.0.0.0", port=port)

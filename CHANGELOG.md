@@ -1,5 +1,21 @@
 # Changelog
 
+## Session 17 — Feedback Triage API (2026-02-16)
+
+### Feedback Triage System
+- New `/api/feedback` JSON endpoint — CRON_SECRET-protected, supports multi-status filtering
+- New `/api/feedback/<id>/screenshot` endpoint — serves screenshot images via API auth
+- New `scripts/feedback_triage.py` CLI — fetches unresolved feedback, classifies severity, extracts page areas, formats triage report
+- Pre-processing: HIGH/NORMAL/LOW severity via keyword matching, page area extraction from URLs, relative age formatting
+- Usage: `railway run -- python -m scripts.feedback_triage` to pull and triage production feedback
+- New `get_feedback_items_json()` in `web/activity.py` — JSON-serializable feedback with ISO timestamps
+
+### Tests
+- 11 new tests: API auth (403), JSON structure, status filtering, multi-status, screenshot API, triage severity classification, page area extraction, age formatting, report formatting
+- **620 tests passing** (609 → 620)
+
+---
+
 ## Session 16 — Feedback Screenshot Attachment (2026-02-15)
 
 ### Feedback Widget Enhancement
