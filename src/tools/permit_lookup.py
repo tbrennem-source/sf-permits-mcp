@@ -90,12 +90,18 @@ def _lookup_by_address(conn, street_number: str, street_name: str) -> list[dict]
 
     The user may provide "Market St" or just "Market" — we search for the
     base name AND the full name+suffix against both column layouts.
+
+    Also handles space-variant matches:
+      "robin hood" matches "ROBINHOOD" and vice versa by comparing
+      space-stripped versions of both the input and the stored name.
     """
     base_name, suffix = _strip_suffix(street_name)
 
     # Build patterns for all match scenarios
     base_pattern = f"%{base_name}%"
     full_pattern = f"%{street_name}%"
+    # Space-stripped pattern for fuzzy space matching (e.g. "robin hood" → "robinhood")
+    nospace_pattern = f"%{base_name.replace(' ', '')}%"
 
     sql = f"""
         SELECT * FROM permits
@@ -104,11 +110,12 @@ def _lookup_by_address(conn, street_number: str, street_name: str) -> list[dict]
             UPPER(street_name) LIKE UPPER({_PH})
             OR UPPER(street_name) LIKE UPPER({_PH})
             OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({_PH})
+            OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') LIKE UPPER({_PH})
           )
         ORDER BY filed_date DESC
         LIMIT 50
     """
-    rows = _exec(conn, sql, [street_number, base_pattern, full_pattern, full_pattern])
+    rows = _exec(conn, sql, [street_number, base_pattern, full_pattern, full_pattern, nospace_pattern])
     return [_row_to_dict(r) for r in rows]
 
 

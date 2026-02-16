@@ -413,6 +413,28 @@ def get_watches(user_id: int) -> list[dict]:
     ]
 
 
+def update_watch_label(watch_id: int, user_id: int, label: str) -> bool:
+    """Update a watch item's label. Returns True if found and updated."""
+    _ensure_schema()
+    if BACKEND == "postgres":
+        execute_write(
+            "UPDATE watch_items SET label = %s "
+            "WHERE watch_id = %s AND user_id = %s AND is_active = TRUE",
+            (label, watch_id, user_id),
+        )
+    else:
+        conn = get_connection()
+        try:
+            conn.execute(
+                "UPDATE watch_items SET label = ? "
+                "WHERE watch_id = ? AND user_id = ? AND is_active = TRUE",
+                (label, watch_id, user_id),
+            )
+        finally:
+            conn.close()
+    return True
+
+
 def check_watch(user_id: int, watch_type: str, **kwargs) -> dict | None:
     """Check if user already watches an item. Returns watch dict or None."""
     _ensure_schema()

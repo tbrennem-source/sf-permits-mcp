@@ -795,10 +795,16 @@
             </div>
             {% endif %}
 
-            {# ===== Section 7: Expeditor Assessment ===== #}
+            {# ===== Section 7: Expeditor Needs Assessment ===== #}
             {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
             <div class="section" id="section-expeditor">
-                <h2>Expeditor Assessment</h2>
+                <h2>Expeditor Needs Assessment</h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+                    Based on this property's permit history, open issues, and complexity profile, here's
+                    our assessment of whether professional expediting help would benefit your project.
+                    Expeditors specialize in navigating SF's permitting process and can save significant
+                    time on complex or at-risk properties.
+                </p>
                 {% set sig = report.expediter_signal %}
                 {% set exp_url = '/expediters?block=' ~ report.block ~ '&lot=' ~ report.lot %}
 

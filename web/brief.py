@@ -510,10 +510,12 @@ def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
     ph = _ph()
 
     # Match the same way permit_lookup does — base name + full name+suffix
+    # Includes fuzzy space matching: "robin hood" matches "ROBINHOOD"
     from src.tools.permit_lookup import _strip_suffix
     base_name, _suffix = _strip_suffix(street_name)
     base_pattern = f"%{base_name}%"
     full_pattern = f"%{street_name}%"
+    nospace_pattern = f"%{base_name.replace(' ', '')}%"
     rows = query(
         f"SELECT permit_number, permit_type_definition, status, "
         f"filed_date, issued_date, completed_date, estimated_cost, "
@@ -524,9 +526,10 @@ def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
         f"    UPPER(street_name) LIKE UPPER({ph})"
         f"    OR UPPER(street_name) LIKE UPPER({ph})"
         f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
+        f"    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') LIKE UPPER({ph})"
         f"  ) "
         f"ORDER BY filed_date DESC",
-        (street_number, base_pattern, full_pattern, full_pattern),
+        (street_number, base_pattern, full_pattern, full_pattern, nospace_pattern),
     )
 
     if not rows:

@@ -30,13 +30,48 @@
         main { padding: 40px 0 80px; }
         h1 { font-size: 1.5rem; margin-bottom: 8px; }
         .subtitle { color: var(--text-muted); margin-bottom: 24px; }
-        .stats-row { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+        .stats-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
         .stat-card {
             background: var(--surface); border: 1px solid var(--border);
-            border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 120px;
+            border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 100px;
+            cursor: pointer; text-decoration: none; color: inherit;
+            transition: border-color 0.15s, background 0.15s;
         }
+        .stat-card:hover { border-color: var(--accent); background: var(--surface-2); }
+        .stat-card.active { border-color: var(--accent); background: rgba(79,143,247,0.08); }
         .stat-number { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .filter-bar {
+            display: flex; gap: 12px; align-items: center; margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-bar select {
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.85rem;
+            min-width: 200px;
+        }
+        .clear-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .clear-btn:hover { color: var(--text); border-color: var(--text-muted); }
+        .filter-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(79,143,247,0.12); color: var(--accent);
+            padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;
+        }
+        .filter-tag a { color: var(--accent); text-decoration: none; font-weight: 700; }
+        .filter-tag a:hover { color: var(--error); }
         .activity-list { display: flex; flex-direction: column; gap: 2px; }
         .activity-row {
             display: flex; align-items: center; gap: 12px;
@@ -53,6 +88,7 @@
         .activity-user { color: var(--text-muted); min-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .activity-detail { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .empty { color: var(--text-muted); font-style: italic; padding: 40px 0; text-align: center; }
+        .result-count { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -67,18 +103,57 @@
             <h1>Activity Feed</h1>
             <p class="subtitle">Last 24 hours: {{ stats.total }} actions</p>
 
+            {# ===== Stat cards: clickable action filters ===== #}
             {% if stats.by_action %}
             <div class="stats-row">
                 {% for action, count in stats.by_action.items() %}
-                <div class="stat-card">
+                <a href="/admin/activity?action={{ action }}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
+                   class="stat-card {{ 'active' if action_filter == action else '' }}">
                     <div class="stat-number">{{ count }}</div>
                     <div class="stat-label">{{ action }}</div>
-                </div>
+                </a>
                 {% endfor %}
+                <a href="/admin/activity{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}"
+                   class="stat-card {{ 'active' if not action_filter else '' }}">
+                    <div class="stat-number">{{ stats.total }}</div>
+                    <div class="stat-label">All</div>
+                </a>
             </div>
             {% endif %}
 
+            {# ===== Filter bar: user dropdown + active filter tags ===== #}
+            <div class="filter-bar">
+                <select onchange="filterByUser(this.value)">
+                    <option value="">All users</option>
+                    {% for u in users %}
+                    <option value="{{ u.user_id }}" {{ 'selected' if user_id_filter == u.user_id else '' }}>
+                        {{ u.display_name or u.email }} ({{ u.action_count }})
+                    </option>
+                    {% endfor %}
+                </select>
+
+                {% if action_filter or user_id_filter %}
+                <div style="display:flex;gap:8px;align-items:center;">
+                    {% if action_filter %}
+                    <span class="filter-tag">
+                        Action: {{ action_filter }}
+                        <a href="/admin/activity{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}" title="Remove filter">&times;</a>
+                    </span>
+                    {% endif %}
+                    {% if user_id_filter %}
+                    <span class="filter-tag">
+                        User: {% for u in users %}{% if u.user_id == user_id_filter %}{{ u.display_name or u.email }}{% endif %}{% endfor %}
+                        <a href="/admin/activity{% if action_filter %}?action={{ action_filter }}{% endif %}" title="Remove filter">&times;</a>
+                    </span>
+                    {% endif %}
+                    <a href="/admin/activity" class="clear-btn">Clear all</a>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ===== Activity list ===== #}
             {% if activity %}
+            <p class="result-count">Showing {{ activity | length }} entries</p>
             <div class="activity-list">
                 {% for a in activity %}
                 <div class="activity-row">
@@ -95,9 +170,24 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="empty">No activity recorded yet.</p>
+            <p class="empty">No activity recorded{% if action_filter or user_id_filter %} matching these filters{% endif %}.</p>
             {% endif %}
         </div>
     </main>
+
+    {% include 'fragments/feedback_widget.html' %}
+
+    <script>
+    function filterByUser(userId) {
+        var url = '/admin/activity';
+        var params = [];
+        {% if action_filter %}
+        params.push('action={{ action_filter }}');
+        {% endif %}
+        if (userId) params.push('user_id=' + userId);
+        if (params.length) url += '?' + params.join('&');
+        window.location.href = url;
+    }
+    </script>
 </body>
 </html>

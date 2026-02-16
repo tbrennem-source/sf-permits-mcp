@@ -202,6 +202,13 @@
             </div>
             {% endif %}
 
+            <!-- Lookback toggle (always visible at top) -->
+            <div class="lookback-toggle">
+                <a href="/brief?lookback=1" class="lookback-btn {{ 'active' if brief.lookback_days == 1 else '' }}">Today</a>
+                <a href="/brief?lookback=7" class="lookback-btn {{ 'active' if brief.lookback_days == 7 else '' }}">Last 7 days</a>
+                <a href="/brief?lookback=30" class="lookback-btn {{ 'active' if brief.lookback_days == 30 else '' }}">Last 30 days</a>
+            </div>
+
             {% if brief.property_synopsis %}
             <!-- Property Synopsis -->
             <div class="section" style="margin-bottom:28px;">
@@ -280,13 +287,6 @@
                 <a href="/" class="btn">Search permits to start watching</a>
             </div>
             {% elif brief.summary.total_watches > 0 or brief.property_synopsis %}
-
-            <!-- Lookback toggle -->
-            <div class="lookback-toggle">
-                <a href="/brief?lookback=1" class="lookback-btn {{ 'active' if brief.lookback_days == 1 else '' }}">Today</a>
-                <a href="/brief?lookback=7" class="lookback-btn {{ 'active' if brief.lookback_days == 7 else '' }}">Last 7 days</a>
-                <a href="/brief?lookback=30" class="lookback-btn {{ 'active' if brief.lookback_days == 30 else '' }}">Last 30 days</a>
-            </div>
 
             <!-- Summary cards -->
             <div class="summary-row">
