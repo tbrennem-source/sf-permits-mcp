@@ -1,5 +1,27 @@
 # Changelog
 
+## Session 18 — Bug Fixes: No-Results UX & Morning Brief (2026-02-16)
+
+### Bug #4: Address Search Dead End
+- Address search returning "No permits found" now shows "What you can do next" CTA box
+- Links to Ask AI (pre-filled with address) and search refinement
+- Integrates with existing `report_url` — shows "Run Property Report" link when block/lot is resolvable
+- Helpful context: "No permit history doesn't mean no permits are required"
+
+### Bug #5: Morning Brief Empty State
+- Fixed missing `query_one` import in `web/brief.py` (would crash data freshness section)
+- Added "All quiet on your watched items" banner when user has watches but no permit activity
+- Banner suggests expanding lookback period (Today → 7 days → 30 days)
+
+### Branch Audit
+- 1 unmerged branch (`claude/focused-chandrasekhar`) — only stale CHANGELOG, code already in main
+- 12 merged branches identified for cleanup
+
+### Tests
+- **681 tests passing** (620 → 681, includes main-branch tests from prior session)
+
+---
+
 ## Session 17 — Feedback Triage API (2026-02-16)
 
 ### Feedback Triage System
