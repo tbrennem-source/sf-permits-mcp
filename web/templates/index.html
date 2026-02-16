@@ -781,6 +781,7 @@
                     {% endif %}
                     <button class="preset-chip" onclick="revealSection('analyze')">Analyze a project</button>
                     <button class="preset-chip" onclick="revealSection('validate')">Validate plans</button>
+                    <button class="preset-chip" onclick="revealSection('analyze-plans')">Analyze plans (AI)</button>
                     <button class="preset-chip" onclick="revealSection('lookup')">Look up a permit</button>
                 </div>
             </div>
@@ -990,6 +991,14 @@
                         </label>
                     </div>
 
+                    <div class="full-width checkbox-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="enable_vision" id="enable_vision"
+                                   onchange="toggleVisionLoading(this)">
+                            <span>Enable AI Vision Analysis (checks title blocks, stamps, addresses)</span>
+                        </label>
+                    </div>
+
                     <div class="full-width">
                         <button type="submit" class="btn btn-secondary">
                             <span class="label">Validate Plan Set</span>
@@ -1002,13 +1011,79 @@
             <div id="validate-loading" class="htmx-indicator">
                 <div class="loading-bar">
                     <div class="dots">...</div>
-                    <p>Checking EPR compliance — analyzing PDF metadata</p>
+                    <p id="validate-loading-text">Checking EPR compliance — analyzing PDF metadata</p>
                 </div>
             </div>
 
             <div id="validate-results"></div>
 
             </div><!-- /section-validate -->
+
+            <!-- === Analyze Plans Section (hidden by default) === -->
+            <div class="tool-section" id="section-analyze-plans">
+
+            <div class="section-divider"></div>
+
+            <h2 class="section-title">Analyze Plans (AI Vision)</h2>
+            <p class="subtitle">Upload a PDF plan set for comprehensive AI-powered analysis: EPR compliance, title block extraction, sheet completeness, and strategic recommendations.</p>
+
+            <div class="form-card">
+                <form hx-post="/analyze-plans"
+                      hx-target="#analyze-plans-results"
+                      hx-indicator="#analyze-plans-loading"
+                      hx-encoding="multipart/form-data"
+                      class="form-grid">
+
+                    <div class="full-width">
+                        <label for="analyze-planfile">PDF Plan Set</label>
+                        <div class="file-upload-area" id="analyze-drop-zone">
+                            <input type="file" id="analyze-planfile" name="planfile" accept=".pdf"
+                                class="file-input" onchange="updateAnalyzeFileLabel(this)">
+                            <div class="file-upload-label" id="analyze-file-label">
+                                <span class="file-icon">&#128196;</span>
+                                <span>Drag & drop a PDF here, or <strong>click to browse</strong></span>
+                                <span class="file-hint">Max 400 MB &mdash; .pdf only</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="full-width">
+                        <label for="project_description">Project Description (optional)</label>
+                        <textarea id="project_description" name="project_description"
+                                  placeholder="e.g., Interior remodel of 2-story residential, adding bathroom and kitchen..."
+                                  rows="3" class="form-input"></textarea>
+                    </div>
+
+                    <div class="full-width">
+                        <label for="permit_type">Permit Type (optional)</label>
+                        <select id="permit_type" name="permit_type" class="form-input">
+                            <option value="">-- Select --</option>
+                            <option value="alterations">Alterations</option>
+                            <option value="new_construction">New Construction</option>
+                            <option value="demolition">Demolition</option>
+                            <option value="additions">Additions</option>
+                        </select>
+                    </div>
+
+                    <div class="full-width">
+                        <button type="submit" class="btn btn-secondary">
+                            <span class="label">Analyze Plan Set</span>
+                            <span class="spinner">Analyzing...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="analyze-plans-loading" class="htmx-indicator">
+                <div class="loading-bar">
+                    <div class="dots">...</div>
+                    <p>Analyzing plan set with AI vision — this may take 30-60 seconds</p>
+                </div>
+            </div>
+
+            <div id="analyze-plans-results"></div>
+
+            </div><!-- /section-analyze-plans -->
 
             <!-- === Permit Lookup Section (hidden by default) === -->
             <div class="tool-section" id="section-lookup">
@@ -1173,6 +1248,36 @@
                     + '<span>Drag & drop a PDF here, or <strong>click to browse</strong></span>'
                     + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
                 label.classList.remove("has-file");
+            }
+        }
+
+        // Analyze plans file upload label
+        function updateAnalyzeFileLabel(input) {
+            const label = document.getElementById("analyze-file-label");
+            if (input.files && input.files[0]) {
+                const f = input.files[0];
+                const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
+                label.innerHTML = '<span class="file-icon">&#9989;</span>'
+                    + '<span><strong>' + f.name + '</strong></span>'
+                    + '<span class="file-hint">' + sizeMB + ' MB</span>';
+                label.classList.add("has-file");
+            } else {
+                label.innerHTML = '<span class="file-icon">&#128196;</span>'
+                    + '<span>Drag & drop a PDF here, or <strong>click to browse</strong></span>'
+                    + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
+                label.classList.remove("has-file");
+            }
+        }
+
+        // Vision loading text toggle
+        function toggleVisionLoading(checkbox) {
+            const text = document.getElementById("validate-loading-text");
+            if (text) {
+                if (checkbox.checked) {
+                    text.textContent = "Analyzing with AI vision — this may take 30-60 seconds";
+                } else {
+                    text.textContent = "Checking EPR compliance — analyzing PDF metadata";
+                }
             }
         }
 

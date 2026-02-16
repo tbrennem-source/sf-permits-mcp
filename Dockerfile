@@ -2,6 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# System deps for PDF-to-image conversion (poppler required by pdf2image)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    poppler-utils && rm -rf /var/lib/apt/lists/*
+
 # Copy dependency spec first for Docker layer caching
 COPY web/requirements.txt /app/web/requirements.txt
 RUN pip install --no-cache-dir -r web/requirements.txt

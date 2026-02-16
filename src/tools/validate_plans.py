@@ -1,18 +1,26 @@
 """Tool: validate_plans — Validate PDF plan sets against SF DBI EPR requirements.
 
-Performs metadata-only analysis (no OCR, no vision) using pypdf to check:
+Performs metadata analysis using pypdf and optional AI vision checks via
+the Claude API. Metadata checks cover:
 - File size, encryption, page dimensions
 - Bookmarks, page labels, fonts
 - Digital signatures, annotations, filename convention
 - Vector vs raster heuristic, back check page detection
 
+When ``enable_vision=True`` and an ``ANTHROPIC_API_KEY`` is configured,
+additional visual checks are run on sampled pages to verify title blocks,
+addresses, stamps, blank areas, and hatching patterns.
+
 Returns a markdown report with PASS/FAIL/WARN/SKIP per check.
 """
 
 import base64
+import logging
 import re
 from dataclasses import dataclass, field
 from io import BytesIO
+
+logger = logging.getLogger(__name__)
 
 from pypdf import PdfReader
 from pypdf.generic import ArrayObject, DictionaryObject, NameObject
@@ -553,29 +561,38 @@ MANUAL_CHECKS = [
 ]
 
 
-def _format_report(results: list[CheckResult], page_count: int,
-                   file_size_mb: float, filename: str) -> str:
+def _format_report(
+    results: list[CheckResult],
+    page_count: int,
+    file_size_mb: float,
+    filename: str,
+    vision_results: list[CheckResult] | None = None,
+) -> str:
     """Format all check results into markdown report."""
+    all_results = results + (vision_results or [])
+
     lines = ["# Plan Set Validation Report\n"]
     lines.append(f"**File:** {filename}")
     lines.append(f"**Size:** {file_size_mb:.1f} MB")
     lines.append(f"**Pages:** {page_count}")
+    if vision_results:
+        lines.append("**AI Vision:** Enabled")
 
     # Summary counts
-    counts = {"pass": 0, "fail": 0, "warn": 0, "skip": 0}
-    for r in results:
+    counts: dict[str, int] = {}
+    for r in all_results:
         counts[r.status] = counts.get(r.status, 0) + 1
 
     lines.append("\n## Summary\n")
     lines.append("| Status | Count |")
     lines.append("|--------|-------|")
-    for status in ["pass", "fail", "warn", "skip"]:
+    for status in ["pass", "fail", "warn", "skip", "info"]:
         if counts.get(status, 0) > 0:
             label = status.upper()
             lines.append(f"| {label} | {counts[status]} |")
 
-    # Automated checks — failures first, then warnings, then passes
-    lines.append("\n## Automated Checks\n")
+    # Automated metadata checks — failures first
+    lines.append("\n## Metadata Checks\n")
 
     for status_group in ["fail", "warn", "pass", "skip"]:
         for r in results:
@@ -590,11 +607,35 @@ def _format_report(results: list[CheckResult], page_count: int,
                     lines.append(f"- {pd}")
             lines.append("")
 
-    # Manual review checklist
-    lines.append("## Checks Requiring Manual Review\n")
-    lines.append("*These EPR checks cannot be automated with metadata analysis:*\n")
-    for epr_id, desc in MANUAL_CHECKS:
-        lines.append(f"- [ ] **{epr_id}:** {desc}")
+    # Vision checks section (if enabled)
+    if vision_results:
+        lines.append("## AI Vision Checks\n")
+        lines.append(
+            "*These checks use Claude Vision to analyze sampled pages "
+            "for title block data, stamps, and formatting:*\n"
+        )
+
+        for status_group in ["fail", "warn", "pass", "info", "skip"]:
+            for r in vision_results:
+                if r.status != status_group:
+                    continue
+                label = r.status.upper()
+                lines.append(f"### {label} — {r.epr_id}: {r.rule}\n")
+                lines.append(r.detail)
+                if r.page_details:
+                    lines.append("")
+                    for pd in r.page_details:
+                        lines.append(f"- {pd}")
+                lines.append("")
+    else:
+        # Manual review checklist (when vision is NOT enabled)
+        lines.append("## Checks Requiring Manual Review\n")
+        lines.append(
+            "*These EPR checks cannot be automated with metadata analysis. "
+            "Enable AI Vision Analysis to automate them:*\n"
+        )
+        for epr_id, desc in MANUAL_CHECKS:
+            lines.append(f"- [ ] **{epr_id}:** {desc}")
 
     # Source citations
     lines.append("")
@@ -607,20 +648,24 @@ async def validate_plans(
     pdf_bytes: bytes | str,
     filename: str = "plans.pdf",
     is_site_permit_addendum: bool = False,
+    enable_vision: bool = False,
 ) -> str:
     """Validate a PDF plan set against SF DBI Electronic Plan Review (EPR) requirements.
 
-    Performs metadata-only analysis — no OCR or vision. Checks file size, page
-    dimensions, encryption, bookmarks, fonts, digital signatures, and annotations.
+    Performs metadata analysis using pypdf. When ``enable_vision=True`` and an
+    ``ANTHROPIC_API_KEY`` is configured, also runs AI vision checks on sampled
+    pages to verify title blocks, addresses, stamps, blank areas, and hatching.
 
     Args:
         pdf_bytes: Raw bytes of the uploaded PDF file (or base64-encoded string).
         filename: Original filename (used for EPR-020 naming convention check).
         is_site_permit_addendum: If True, uses 350MB file size limit instead of 250MB.
+        enable_vision: If True, run Claude Vision checks on sampled pages.
 
     Returns:
         Formatted markdown validation report with PASS/FAIL/WARN/SKIP for each
-        automatable EPR check, plus manual review checklist.
+        EPR check. When vision is enabled, manual checks are replaced with
+        actual PASS/FAIL results from AI analysis.
     """
     # Handle base64 input (for MCP transport)
     if isinstance(pdf_bytes, str):
@@ -685,4 +730,22 @@ async def validate_plans(
     # EPR-021: Back check page
     results.append(_check_back_check_page(reader))
 
-    return _format_report(results, page_count, file_size_mb, filename)
+    # Vision-based EPR checks (optional)
+    vision_results = None
+    if enable_vision and page_count > 0:
+        try:
+            from src.vision.epr_checks import run_vision_epr_checks
+
+            logger.info("Running vision EPR checks on %s (%d pages)", filename, page_count)
+            vision_results, _page_extractions = await run_vision_epr_checks(
+                pdf_bytes, page_count,
+            )
+            logger.info(
+                "Vision checks complete: %d results", len(vision_results)
+            )
+        except Exception as e:
+            logger.error("Vision EPR checks failed: %s", e)
+            # Graceful degradation — continue with metadata-only report
+            vision_results = None
+
+    return _format_report(results, page_count, file_size_mb, filename, vision_results)
