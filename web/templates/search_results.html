@@ -51,13 +51,6 @@
                 <span style="font-size: 1.1rem;">&#x1F4CA;</span> Run Property Report
             </a>
             {% endif %}
-            <form method="POST" action="/ask" style="display: inline; margin: 0; padding: 0;">
-                <input type="hidden" name="q" value="What permits are needed for work at {{ no_results_address }}?">
-                <button type="submit"
-                    style="display: inline-flex; align-items: center; gap: 8px; color: #4f8ff7; text-decoration: none; font-size: 0.95rem; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;">
-                    <span style="font-size: 1.1rem;">&#x1F4AC;</span> Ask AI about permits for this address
-                </button>
-            </form>
             <a href="/?q={{ no_results_address }}"
                style="display: inline-flex; align-items: center; gap: 8px; color: #8b8fa3; text-decoration: none; font-size: 0.9rem;">
                 <span style="font-size: 1.1rem;">&#x1F50D;</span> Try a different search
@@ -71,7 +64,7 @@
         {% endif %}
     </div>
     {% elif not no_results %}
-    {# ===== Post-match actions: report, ask AI, neighborhood ===== #}
+    {# ===== Post-match actions: report, neighborhood ===== #}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border, #333749);">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             {% if report_url %}
@@ -79,13 +72,6 @@
                 View Property Report &rarr;
             </a>
             {% endif %}
-            <form method="POST" action="/ask" style="display:inline;margin:0;padding:0;">
-                <input type="hidden" name="q" value="What permits are needed for work at {{ query_echo }}?">
-                <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface-2, #252834);color:var(--accent, #4f8ff7);border:1px solid var(--border, #333749);border-radius:8px;cursor:pointer;font-weight:600;font-size:0.9rem;font-family:inherit;">
-                    &#x1F4AC; Ask AI
-                </button>
-            </form>
         </div>
     </div>
     {# ===== Neighborhood stats card ===== #}
