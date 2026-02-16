@@ -253,6 +253,63 @@ def get_feedback_counts() -> dict:
     return counts
 
 
+def get_feedback_items_json(
+    statuses: list[str] | None = None, limit: int = 100
+) -> dict:
+    """Get feedback items as JSON-serializable dicts for the API.
+
+    Args:
+        statuses: List of status values to include (e.g. ['new', 'reviewed']).
+                  If None, returns all statuses.
+        limit: Maximum number of items.
+
+    Returns:
+        Dict with 'items' list and 'counts' summary.
+    """
+    _ensure_schema()
+    conditions = []
+    params: list = []
+
+    if statuses:
+        placeholders = ", ".join(["%s"] * len(statuses))
+        conditions.append(f"f.status IN ({placeholders})")
+        params.extend(statuses)
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+
+    rows = query(
+        f"SELECT f.feedback_id, f.user_id, f.feedback_type, f.message, "
+        f"f.page_url, f.status, f.admin_note, f.created_at, f.resolved_at, "
+        f"u.email, "
+        f"CASE WHEN f.screenshot_data IS NOT NULL THEN 1 ELSE 0 END "
+        f"FROM feedback f "
+        f"LEFT JOIN users u ON f.user_id = u.user_id "
+        f"{where} "
+        f"ORDER BY f.created_at DESC "
+        f"LIMIT %s",
+        params + [limit],
+    )
+    items = []
+    for r in rows:
+        created = r[7]
+        resolved = r[8]
+        items.append({
+            "feedback_id": r[0],
+            "feedback_type": r[2],
+            "message": r[3],
+            "page_url": r[4],
+            "status": r[5],
+            "admin_note": r[6],
+            "created_at": created.isoformat() if created else None,
+            "resolved_at": resolved.isoformat() if resolved else None,
+            "email": r[9],
+            "has_screenshot": bool(r[10]),
+        })
+
+    counts = get_feedback_counts()
+    return {"items": items, "counts": counts}
+
+
 def get_feedback_screenshot(feedback_id: int) -> str | None:
     """Get screenshot data URL for a specific feedback item."""
     _ensure_schema()

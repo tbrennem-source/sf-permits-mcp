@@ -484,3 +484,165 @@ def test_feedback_widget_has_capture_button(client):
     html = rv.data.decode()
     assert "Capture Page" in html
     assert "Upload Image" in html
+
+
+# ---------------------------------------------------------------------------
+# Feedback API endpoints
+# ---------------------------------------------------------------------------
+
+def test_api_feedback_requires_cron_secret(client):
+    """API feedback endpoint requires CRON_SECRET auth."""
+    rv = client.get("/api/feedback")
+    assert rv.status_code == 403
+
+
+def test_api_feedback_returns_json(client, monkeypatch):
+    """API feedback endpoint returns JSON with items and counts."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    from web.activity import submit_feedback
+    submit_feedback(None, "bug", "API test bug")
+    submit_feedback(None, "suggestion", "API test suggestion")
+
+    rv = client.get("/api/feedback", headers={
+        "Authorization": "Bearer test-secret-123"
+    })
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert "items" in data
+    assert "counts" in data
+    assert len(data["items"]) >= 2
+    # Check item structure
+    item = data["items"][0]
+    assert "feedback_id" in item
+    assert "feedback_type" in item
+    assert "message" in item
+    assert "has_screenshot" in item
+    assert "created_at" in item
+    # Timestamps are ISO strings, not datetimes
+    assert isinstance(item["created_at"], str)
+
+
+def test_api_feedback_status_filter(client, monkeypatch):
+    """API feedback endpoint filters by status."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    from web.activity import submit_feedback, update_feedback_status
+    fb1 = submit_feedback(None, "bug", "New bug for filter test")
+    fb2 = submit_feedback(None, "bug", "Resolved bug for filter test")
+    update_feedback_status(fb2["feedback_id"], "resolved")
+
+    rv = client.get("/api/feedback?status=new", headers={
+        "Authorization": "Bearer test-secret-123"
+    })
+    data = rv.get_json()
+    statuses = {item["status"] for item in data["items"]}
+    assert "resolved" not in statuses
+
+
+def test_api_feedback_multi_status_filter(client, monkeypatch):
+    """API feedback endpoint supports multiple status values."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    from web.activity import submit_feedback, update_feedback_status
+    fb = submit_feedback(None, "bug", "Reviewed bug multi-filter")
+    update_feedback_status(fb["feedback_id"], "reviewed")
+
+    rv = client.get("/api/feedback?status=new&status=reviewed", headers={
+        "Authorization": "Bearer test-secret-123"
+    })
+    data = rv.get_json()
+    statuses = {item["status"] for item in data["items"]}
+    assert statuses <= {"new", "reviewed"}
+
+
+def test_api_feedback_screenshot_requires_auth(client):
+    """API screenshot endpoint requires CRON_SECRET auth."""
+    rv = client.get("/api/feedback/1/screenshot")
+    assert rv.status_code == 403
+
+
+def test_api_feedback_screenshot_serves_image(client, monkeypatch):
+    """API screenshot endpoint serves image with CRON_SECRET."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    from web.activity import submit_feedback
+    fb = submit_feedback(None, "bug", "Screenshot API test", screenshot_data=_TINY_JPEG)
+
+    rv = client.get(f"/api/feedback/{fb['feedback_id']}/screenshot", headers={
+        "Authorization": "Bearer test-secret-123"
+    })
+    assert rv.status_code == 200
+    assert rv.content_type.startswith("image/jpeg")
+
+
+def test_api_feedback_screenshot_404(client, monkeypatch):
+    """API screenshot endpoint returns 404 when no screenshot."""
+    monkeypatch.setenv("CRON_SECRET", "test-secret-123")
+    from web.activity import submit_feedback
+    fb = submit_feedback(None, "bug", "No screenshot API test")
+
+    rv = client.get(f"/api/feedback/{fb['feedback_id']}/screenshot", headers={
+        "Authorization": "Bearer test-secret-123"
+    })
+    assert rv.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Feedback triage pre-processing
+# ---------------------------------------------------------------------------
+
+def test_triage_severity_classification():
+    """Severity classification based on keywords."""
+    from scripts.feedback_triage import classify_severity
+
+    assert classify_severity({"feedback_type": "bug", "message": "Page is broken"}) == "HIGH"
+    assert classify_severity({"feedback_type": "bug", "message": "Error loading results"}) == "HIGH"
+    assert classify_severity({"feedback_type": "bug", "message": "The button color is off"}) == "NORMAL"
+    assert classify_severity({"feedback_type": "suggestion", "message": "Would be nice to add dark mode"}) == "LOW"
+    assert classify_severity({"feedback_type": "suggestion", "message": "Search crashes every time"}) == "HIGH"
+
+
+def test_triage_page_area_extraction():
+    """Page area extraction from URLs."""
+    from scripts.feedback_triage import extract_page_area
+
+    assert extract_page_area("https://sfpermits.ai/analyze?q=test") == "Search/Analyze"
+    assert extract_page_area("https://sfpermits.ai/report/123") == "Property Report"
+    assert extract_page_area("https://sfpermits.ai/ask") == "Ask AI"
+    assert extract_page_area("https://sfpermits.ai/") == "Home"
+    assert extract_page_area(None) == "Unknown"
+    assert extract_page_area("https://sfpermits.ai/account") == "Account"
+
+
+def test_triage_age_formatting():
+    """Age formatting from ISO timestamps."""
+    from scripts.feedback_triage import format_age
+    from datetime import datetime, timezone, timedelta
+
+    now = datetime.now(timezone.utc)
+    assert "m ago" in format_age((now - timedelta(minutes=5)).isoformat())
+    assert "h ago" in format_age((now - timedelta(hours=3)).isoformat())
+    assert "d ago" in format_age((now - timedelta(days=2)).isoformat())
+    assert format_age(None) == "unknown"
+
+
+def test_triage_format_report():
+    """Format triage report groups items by severity."""
+    from scripts.feedback_triage import format_triage_report
+
+    items = [
+        {"feedback_id": 1, "feedback_type": "bug", "message": "Broken page",
+         "page_url": "/analyze", "status": "new", "email": "a@b.com",
+         "has_screenshot": True, "severity": "HIGH", "page_area": "Search/Analyze",
+         "age": "2h ago", "admin_note": None},
+        {"feedback_id": 2, "feedback_type": "suggestion", "message": "Add feature",
+         "page_url": "/", "status": "new", "email": None,
+         "has_screenshot": False, "severity": "LOW", "page_area": "Home",
+         "age": "3d ago", "admin_note": None},
+    ]
+    counts = {"new": 2, "reviewed": 0, "resolved": 0, "wontfix": 0, "total": 2}
+
+    report = format_triage_report(items, counts)
+    assert "2 unresolved items" in report
+    assert "HIGH PRIORITY" in report
+    assert "#1 [bug]" in report
+    assert "Screenshot attached" in report
+    assert "LOW" in report
+    assert "#2 [suggestion]" in report
