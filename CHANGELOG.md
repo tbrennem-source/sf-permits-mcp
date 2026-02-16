@@ -4,8 +4,8 @@
 
 ### Hourglass Spinner + Action Buttons
 - **Added hourglass spinner to permit lookup** — Visual consistency across all forms (⏳ with pulsing dots)
-- **Enhanced action buttons** — 4 quick actions after lookup results (View Report, Ask AI, Analyze Project, Check Violations)
-- **Contextual actions** — Buttons auto-populate with address/permit data from lookup
+- **Enhanced action buttons** — 4 quick actions after all search results (View Report, Ask AI, Analyze Project, Check Violations)
+- **Contextual actions** — Buttons auto-populate with address/permit data from search/lookup
 
 ### Action Buttons
 1. 📊 **View Property Report** (primary) — Links to full property analysis
@@ -14,15 +14,18 @@
 4. ⚠️ **Check Violations** — "Are there any violations at {address}?"
 
 ### Before/After
-- **Before:** Basic pulsing dots, only 1 button (View Report)
-- **After:** Hourglass spinner, 4 contextual action buttons
+- **Before:** Basic pulsing dots on lookup, only 1 button (View Report) on search results
+- **After:** Hourglass spinner everywhere, 4 contextual action buttons on all search/lookup results
 
 ### Files Changed
 - `web/templates/index.html` — Hourglass spinner for lookup (6 → 14 lines)
 - `web/templates/lookup_results.html` — Action button panel (7 → 45 lines)
-- `web/app.py` — Pass `street_address` and `permit_type` context (2 → 15 lines)
+- `web/templates/search_results.html` — Action button panel (5 → 50 lines)
+- `web/app.py` — Pass `street_address` context to all search routes (3 routes updated)
 
-**Commit:** `8e3421f` — feat: Add hourglass spinner to permit lookup + action buttons
+**Commits:**
+- `8e3421f` — feat: Add hourglass spinner to permit lookup + action buttons
+- `2d458cd` — fix: Add action buttons to search results (not just lookup)
 
 ---
 
