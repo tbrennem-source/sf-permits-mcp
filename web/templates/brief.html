@@ -312,6 +312,22 @@
                 </div>
             </div>
 
+            {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.property_synopsis %}
+            {% if all_empty %}
+            <div style="background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2); border-radius: 10px; padding: 24px; margin-bottom: 24px; text-align: center;">
+                <div style="font-size: 1.5rem; margin-bottom: 8px;">&#x2705;</div>
+                <div style="font-weight: 600; margin-bottom: 6px;">All quiet on your watched items</div>
+                <div style="color: var(--text-muted); font-size: 0.9rem; max-width: 480px; margin: 0 auto;">
+                    You're watching {{ brief.summary.total_watches }} item{{ 's' if brief.summary.total_watches != 1 else '' }},
+                    but there's no permit activity to report
+                    {% if brief.lookback_days == 1 %}today. Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> or <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% elif brief.lookback_days < 30 %}in the last {{ brief.lookback_days }} days. Try <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% else %}in the last 30 days.{% endif %}
+                </div>
+                <div style="margin-top: 16px;">
+                    <a href="/" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Search for permits to watch &rarr;</a>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Section 1: What Changed -->
             <div class="section">
                 <h2>What Changed</h2>

@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from datetime import date, timedelta
 
-from src.db import BACKEND, query, get_connection
+from src.db import BACKEND, query, query_one, get_connection
 
 logger = logging.getLogger(__name__)
 

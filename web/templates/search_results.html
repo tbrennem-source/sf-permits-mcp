@@ -14,7 +14,30 @@
         {% endif %}
     </div>
     {{ result_html | safe }}
-    {% if report_url %}
+    {% if no_results and no_results_address %}
+    <div style="margin-top: 20px; padding: 20px; background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2); border-radius: 10px;">
+        <div style="font-weight: 600; margin-bottom: 8px;">What you can do next</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% if report_url %}
+            <a href="{{ report_url }}"
+               style="display: inline-flex; align-items: center; gap: 8px; color: #4f8ff7; text-decoration: none; font-weight: 600; font-size: 0.95rem;">
+                <span style="font-size: 1.1rem;">&#x1F4CA;</span> Run Property Report
+            </a>
+            {% endif %}
+            <a href="/ask?q=What permits are needed for work at {{ no_results_address }}?"
+               style="display: inline-flex; align-items: center; gap: 8px; color: #4f8ff7; text-decoration: none; font-size: 0.95rem;">
+                <span style="font-size: 1.1rem;">&#x1F4AC;</span> Ask AI about permits for this address
+            </a>
+            <a href="/?q={{ no_results_address }}"
+               style="display: inline-flex; align-items: center; gap: 8px; color: #8b8fa3; text-decoration: none; font-size: 0.9rem;">
+                <span style="font-size: 1.1rem;">&#x1F50D;</span> Try a different search
+            </a>
+            <span style="color: #8b8fa3; font-size: 0.85rem; margin-top: 4px;">
+                No permit history doesn't mean no permits are required &mdash; it may just mean no permits have been filed yet at this address.
+            </span>
+        </div>
+    </div>
+    {% elif report_url %}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border, #333749);">
         <a href="{{ report_url }}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent, #4f8ff7);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
             View Property Report &rarr;
