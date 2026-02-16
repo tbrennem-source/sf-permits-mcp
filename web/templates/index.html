@@ -1122,6 +1122,40 @@
                 </div>
             </div>
 
+            <script>
+            // Force loading indicator for analyze-plans file upload
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.querySelector('form[hx-post="/analyze-plans"]');
+                const loadingIndicator = document.getElementById('analyze-plans-loading');
+                const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+
+                if (form && loadingIndicator && submitButton) {
+                    // Listen for HTMX events
+                    form.addEventListener('htmx:beforeRequest', function() {
+                        loadingIndicator.style.display = 'block';
+                        submitButton.disabled = true;
+                    });
+
+                    form.addEventListener('htmx:afterRequest', function() {
+                        loadingIndicator.style.display = 'none';
+                        submitButton.disabled = false;
+                    });
+
+                    // Fallback: If HTMX doesn't fire (file upload issues), use form submit event
+                    form.addEventListener('submit', function(e) {
+                        // Small delay to let HTMX handle it first
+                        setTimeout(function() {
+                            // If indicator isn't showing after 100ms, force it
+                            if (loadingIndicator.style.display !== 'block') {
+                                loadingIndicator.style.display = 'block';
+                                submitButton.disabled = true;
+                            }
+                        }, 100);
+                    });
+                }
+            });
+            </script>
+
             <div id="analyze-plans-results"></div>
 
             </div><!-- /section-analyze-plans -->
