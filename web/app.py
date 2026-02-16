@@ -806,6 +806,7 @@ def analyze_plans_route():
     session_id = None
     page_count = 0
     extractions_json = "[]"
+    extractions_list = []  # Initialize here so it's always defined
 
     try:
         from pypdf import PdfReader
