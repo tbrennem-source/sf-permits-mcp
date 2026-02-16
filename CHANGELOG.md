@@ -1,5 +1,38 @@
 # Changelog
 
+## Session 19 — Feedback Triage Round 2: 12 Items (2026-02-16)
+
+### Address Lookup Fix (#8, #10) — Root Cause
+- Street suffix mismatch: intent router extracts "16th Ave" but DB stores `street_name="16TH"` + `street_suffix="AVE"` separately
+- Added `_strip_suffix()` helper to separate base name from suffix before SQL search
+- Now searches base name against `street_name` column AND full name against concatenation
+- Applied fix to: `permit_lookup._lookup_by_address()`, `brief._get_property_synopsis()`, `app._resolve_block_lot()`
+- Fixes: home page search, morning brief property synopsis, account page primary address
+
+### Ask AI Link Fix (#7)
+- CTA link was `<a href="/ask?q=...">` (GET) but `/ask` route only accepts POST
+- Changed to `<form method="POST">` with hidden input + styled button
+
+### CLI Resolve Endpoint (Process Improvement)
+- New `PATCH /api/feedback/<id>` — CRON_SECRET-protected, accepts `{"status": "resolved", "admin_note": "..."}`
+- Updated `scripts/feedback_triage.py` with `--resolve 4,5 --note "Fixed"` flag
+- Full triage→fix→resolve loop now possible without browser admin
+
+### Feedback Triage Results
+- 12 unresolved items triaged (HIGH: 2, NORMAL: 4, LOW: 6)
+- Fixed: #4, #5 (session 18), #7, #8, #10 (this session)
+- Deferred: #6, #9, #12, #14 (enhancements), #11/#13 (investigate)
+
+### Tests
+- 5 new tests: PATCH auth, resolve, invalid status, missing status, suffix stripping
+- **686 tests passing** (681 → 686)
+
+### Branch Cleanup
+- Removed 10 stale worktrees and branches (local + remote)
+- Down to: main + claude/clever-snyder (active session)
+
+---
+
 ## Session 18 — Bug Fixes: No-Results UX & Morning Brief (2026-02-16)
 
 ### Bug #4: Address Search Dead End
