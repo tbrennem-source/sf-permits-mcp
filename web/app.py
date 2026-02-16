@@ -1185,11 +1185,18 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
         ctx = _watch_context(watch_data)
 
     report_url = f"/report/{block}/{lot}" if block and lot else None
+    street_address = None
+    if address:
+        street_address = address
+    elif block and lot:
+        street_address = f"Block {block}, Lot {lot}"
+
     return render_template(
         "search_results.html",
         query_echo=label,
         result_html=md_to_html(combined_md),
         report_url=report_url,
+        street_address=street_address,
         **ctx,
     )
 
@@ -1364,6 +1371,7 @@ def _ask_address_search(query: str, entities: dict) -> str:
     fuzzy_suggestions = []
     if no_results:
         fuzzy_suggestions = _get_fuzzy_address_suggestions(street_number, street_name)
+    street_address = f"{street_number} {street_name}" if street_number and street_name else None
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
@@ -1372,6 +1380,7 @@ def _ask_address_search(query: str, entities: dict) -> str:
         prompt_street_number=street_number,
         prompt_street_name=street_name,
         report_url=report_url,
+        street_address=street_address,
         no_results=no_results,
         no_results_address=f"{street_number} {street_name}" if no_results else None,
         fuzzy_suggestions=fuzzy_suggestions,
@@ -1416,11 +1425,13 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
         "label": f"Block {block}, Lot {lot}",
     }
     report_url = f"/report/{block}/{lot}" if block and lot else None
+    street_address = f"Block {block}, Lot {lot}" if block and lot else None
     return render_template(
         "search_results.html",
         query_echo=f"Block {block}, Lot {lot}",
         result_html=md_to_html(result_md),
         report_url=report_url,
+        street_address=street_address,
         **_watch_context(watch_data),
     )
 
