@@ -25,21 +25,29 @@ src/                    # MCP server code
   server.py             # FastMCP entry point, registers 13 tools
   soda_client.py        # Async SODA API client (httpx)
   formatters.py         # Response formatting for Claude
-  db.py                 # DuckDB + PostgreSQL dual-mode connections
+  db.py                 # DuckDB + PostgreSQL dual-mode connections, points_ledger table
   knowledge.py          # KnowledgeBase singleton, semantic index
   ingest.py             # SODA -> DuckDB pipeline
   entities.py           # 5-step entity resolution cascade
   graph.py              # Co-occurrence graph (SQL self-join)
   validate.py           # Anomaly detection queries
+  report_links.py       # External links for property reports
   tools/                # 13 tool implementations (5 SODA, 3 DuckDB, 5 Knowledge)
 web/                    # Flask + HTMX web UI (deployed on Railway)
-  app.py                # Routes, tool orchestration
+  app.py                # Routes, tool orchestration, cron endpoints
+  activity.py           # Feedback, bounty points, admin users
+  email_brief.py        # Morning brief email delivery
+  email_triage.py       # Nightly triage report email delivery
+  auth.py               # Magic-link auth, user management
+  brief.py              # Morning brief data assembly
 data/knowledge/         # 4-tier knowledge base (gitignored tier4)
   tier1/                # 21 structured JSON files, 1.15 MB — loaded at startup
   tier2/                # Raw text info sheets
   tier3/                # Administrative bulletins
   tier4/                # Full code corpus (Planning Code 12.6MB + BICC 3.6MB)
-tests/                  # 289 tests
+scripts/                # CLI tools
+  feedback_triage.py    # 3-tier feedback classification + auto-resolve
+tests/                  # 748 tests
 datasets/               # SODA dataset catalog (22 datasets, 13.3M records)
 docs/                   # Architecture, decisions, contact data analysis
 ```
