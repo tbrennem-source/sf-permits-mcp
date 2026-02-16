@@ -32,22 +32,46 @@
 
 ---
 
-## Session 21.3 — Permit Lookup UX Enhancements (2026-02-16)
+## Session 21.4 — External DBI Link Fix (2026-02-16)
+
+### Replace External Links with Internal Searches
+- **Fixed broken external redirects** — Clicking permit/complaint numbers in property reports redirected to dbiweb02.sfgov.org (broken ASP.NET site showing errors)
+- **Internal search routes** — All permit/complaint links now navigate to `/?q={number}` which triggers internal search
+- **Stays within app** — Users remain in our AI-powered interface with Quick Actions available
+
+### Changes
+- `src/report_links.py` — Replace external URLs with `/?q={number}` routes (2 methods)
+- `web/templates/report.html` — Remove `target="_blank"` from 4 links (lines 563, 655, 681, 777)
+
+**Before:** Click permit → external DBI site → ASP.NET error page
+**After:** Click permit → internal search → our database results + Quick Actions
+
+**Commit:** `c376e80` — fix: Replace external DBI links with internal searches
+
+---
+
+## Session 21.3 — Permit Lookup UX Enhancements + Critical Fixes (2026-02-16)
 
 ### Hourglass Spinner + Action Buttons
 - **Added hourglass spinner to permit lookup** — Visual consistency across all forms (⏳ with pulsing dots)
 - **Enhanced action buttons** — 4 quick actions after all search results (View Report, Ask AI, Analyze Project, Check Violations)
+- **Action buttons at TOP** — Moved from bottom to top in highlighted blue box (user request)
 - **Contextual actions** — Buttons auto-populate with address/permit data from search/lookup
 
 ### Action Buttons
 1. 📊 **View Property Report** (primary) — Links to full property analysis
 2. 💬 **Ask AI** — "What permits are needed for work at {address}?"
-3. 🔍 **Analyze Project** — Prefills analyze form with address/permit type
+3. 🔍 **Analyze Project** — Submits to /ask with address
 4. ⚠️ **Check Violations** — "Are there any violations at {address}?"
 
+### CRITICAL Bug Fixes
+- **Fixed `_ph()` ImportError** — Removed non-existent `_ph()` function calls causing property report button to never appear
+- **Fixed block/lot resolution** — Restored fallback query for addresses like "1234 market" where exact match fails
+- **Fixed Analyze Project button** — Changed from broken link to working form POST
+
 ### Before/After
-- **Before:** Basic pulsing dots on lookup, only 1 button (View Report) on search results
-- **After:** Hourglass spinner everywhere, 4 contextual action buttons on all search/lookup results
+- **Before:** Basic pulsing dots on lookup, only 1 button (View Report) at bottom, property report missing for most searches
+- **After:** Hourglass spinner everywhere, 4 functional action buttons at TOP in blue box, property report works for all addresses
 
 ### Files Changed
 - `web/templates/index.html` — Hourglass spinner for lookup (6 → 14 lines)
