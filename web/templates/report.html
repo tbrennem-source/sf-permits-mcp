@@ -560,7 +560,7 @@
                             {% for p in report.permits %}
                             <tr>
                                 <td>
-                                    <a href="{{ links.permit(p.permit_number) }}" target="_blank" rel="noopener">{{ p.permit_number }}</a>
+                                    <a href="{{ links.permit(p.permit_number) }}">{{ p.permit_number }}</a>
                                 </td>
                                 <td>{{ p.permit_type_definition or '&mdash;' }}</td>
                                 <td>{{ p.description or '&mdash;' }}</td>
@@ -652,7 +652,7 @@
                 <div class="cv-card">
                     <div class="cv-header">
                         <span class="cv-number">
-                            <a href="{{ links.complaint(c.complaint_number) }}" target="_blank" rel="noopener">#{{ c.complaint_number }}</a>
+                            <a href="{{ links.complaint(c.complaint_number) }}">#{{ c.complaint_number }}</a>
                         </span>
                         <span class="status-badge status-{{ (c.status or '')|lower }}">{{ c.status or 'Unknown' }}</span>
                     </div>
@@ -678,7 +678,7 @@
                     <div class="cv-header">
                         <span class="cv-number">
                             {% if v.complaint_number %}
-                            <a href="{{ links.complaint(v.complaint_number) }}" target="_blank" rel="noopener">#{{ v.complaint_number }}</a>
+                            <a href="{{ links.complaint(v.complaint_number) }}">#{{ v.complaint_number }}</a>
                             {% else %}
                             Violation
                             {% endif %}
@@ -774,7 +774,7 @@
                             <tr>
                                 <td>{{ n.street_number }} {{ n.street_name }} {{ n.street_suffix or '' }}</td>
                                 <td>
-                                    <a href="{{ links.permit(n.permit_number) }}" target="_blank" rel="noopener">{{ n.permit_number }}</a>
+                                    <a href="{{ links.permit(n.permit_number) }}">{{ n.permit_number }}</a>
                                 </td>
                                 <td>{{ n.description or '&mdash;' }}</td>
                                 <td>

@@ -12,13 +12,13 @@ class ReportLinks:
 
     @staticmethod
     def permit(permit_number: str) -> str:
-        """DBI Permit Tracker URL."""
-        return f"https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={permit_number}"
+        """Internal permit lookup route."""
+        return f"/?q={permit_number}"
 
     @staticmethod
     def complaint(complaint_number: str) -> str:
-        """DBI Complaint Tracker URL."""
-        return f"https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Complaint&ComplaintNumber={complaint_number}"
+        """Internal complaint search route."""
+        return f"/?q={complaint_number}"
 
     @staticmethod
     def parcel(block: str, lot: str) -> str:
