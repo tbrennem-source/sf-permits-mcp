@@ -285,22 +285,117 @@ def _compute_risk_assessment(
             "link": None,
         })
 
-    # Restrictive zoning
+    # Restrictive zoning — with detailed interpretation
     if property_data:
         zoning = (property_data[0].get("zoning_code") or "").upper().strip()
         if zoning in _RESTRICTIVE_ZONES:
+            zoning_detail = _get_zoning_interpretation(zoning)
             risks.append({
                 "severity": "low",
                 "risk_type": "restrictive_zoning",
                 "title": f"Restrictive zoning — {zoning}",
-                "description": (
-                    f"This parcel is zoned {zoning} (single-family residential). "
-                    "Projects in RH-1 districts may face neighborhood notification requirements "
-                    "and discretionary review."
-                ),
+                "description": zoning_detail,
                 "section_ref": "property_profile",
                 "link": None,
             })
+
+    # Permit expiration / dormancy — permits filed long ago with no completion
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    for p in permits:
+        status_lower = (p.get("status") or "").lower()
+        if status_lower not in ("issued", "filed", "approved", "reinstated"):
+            continue
+        filed = p.get("filed_date") or p.get("issued_date")
+        if not filed:
+            continue
+        try:
+            filed_dt = datetime.fromisoformat(str(filed)[:10])
+            age_days = (now - filed_dt).days
+            completed = p.get("completed_date")
+            pnum = p.get("permit_number", "")
+            if age_days > 1095 and not completed:  # 3+ years
+                risks.append({
+                    "severity": "moderate",
+                    "risk_type": "dormant_permit",
+                    "title": f"Dormant permit — {pnum} ({age_days // 365}+ years)",
+                    "description": (
+                        f"Permit {pnum} was filed {age_days // 365} years ago "
+                        f"(status: {p.get('status', 'unknown')}) with no completion date. "
+                        "DBI permits expire after inactivity. A dormant permit may "
+                        "need to be renewed, amended, or cancelled before new work begins."
+                    ),
+                    "section_ref": "permits",
+                    "link": ReportLinks.permit(pnum) if pnum else None,
+                })
+            elif age_days > 730 and not completed:  # 2+ years
+                risks.append({
+                    "severity": "low",
+                    "risk_type": "aging_permit",
+                    "title": f"Aging permit — {pnum} ({age_days // 365}+ years old)",
+                    "description": (
+                        f"Permit {pnum} has been open for {age_days // 365} years without completion. "
+                        "Consider checking whether this permit is still active and in good standing."
+                    ),
+                    "section_ref": "permits",
+                    "link": ReportLinks.permit(pnum) if pnum else None,
+                })
+        except (ValueError, TypeError):
+            continue
+
+    # Conflicting unit counts across permits
+    unit_counts = set()
+    for p in permits:
+        existing = p.get("existing_units")
+        proposed = p.get("proposed_units")
+        if existing is not None:
+            try:
+                unit_counts.add(("existing", int(float(existing))))
+            except (ValueError, TypeError):
+                pass
+        if proposed is not None:
+            try:
+                unit_counts.add(("proposed", int(float(proposed))))
+            except (ValueError, TypeError):
+                pass
+    existing_counts = {c for label, c in unit_counts if label == "existing" and c > 0}
+    if len(existing_counts) > 1:
+        counts_str = ", ".join(str(c) for c in sorted(existing_counts))
+        risks.append({
+            "severity": "moderate",
+            "risk_type": "unit_count_ambiguity",
+            "title": f"Unit count ambiguity — {counts_str} units reported",
+            "description": (
+                f"Different permits report conflicting existing unit counts ({counts_str}). "
+                "This may indicate unauthorized unit conversions, recording errors, or "
+                "a property that has been modified without proper permits. "
+                "Clarify the correct unit count before filing new permits."
+            ),
+            "section_ref": "permits",
+            "link": None,
+        })
+
+    # Contractor turnover — many different contractors on same property
+    all_contractors = set()
+    for p in permits:
+        for contact in p.get("contacts", []):
+            role = (contact.get("role") or "").lower()
+            name = (contact.get("name") or "").strip()
+            if role in ("contractor", "agent") and name:
+                all_contractors.add(name.upper())
+    if len(all_contractors) >= 5:
+        risks.append({
+            "severity": "low",
+            "risk_type": "high_contractor_turnover",
+            "title": f"High contractor turnover ({len(all_contractors)} different contractors)",
+            "description": (
+                f"This property has {len(all_contractors)} different contractors across its permits. "
+                "Frequent contractor changes can indicate project complications, disputes, "
+                "or abandoned work. Verify the status of previous work with the current contractor."
+            ),
+            "section_ref": "permits",
+            "link": None,
+        })
 
     # Owner Mode: risk items now include risk_type field for remediation
     # roadmap mapping. See web/owner_mode.py for remediation logic.
@@ -308,6 +403,43 @@ def _compute_risk_assessment(
     # Sort by severity: high first, then moderate, then low
     risks.sort(key=lambda r: severity_order.get(r["severity"], 99))
     return risks
+
+
+def _get_zoning_interpretation(zoning: str) -> str:
+    """Return a detailed zoning interpretation for common SF zoning codes."""
+    interpretations = {
+        "RH-1": (
+            f"This parcel is zoned {zoning} (Residential-House, One Family). "
+            "Only one dwelling unit is permitted. Additions, ADUs, and structural changes "
+            "may require neighborhood notification under Section 311. Projects expanding "
+            "the building envelope may face discretionary review."
+        ),
+        "RH-1(D)": (
+            f"This parcel is zoned {zoning} (Residential-House, One Family — Detached). "
+            "The most restrictive residential zone. Only one detached dwelling unit is allowed. "
+            "Any modification to the building footprint or height triggers Section 311 notification. "
+            "ADU applications are possible but subject to strict design standards."
+        ),
+        "RH-1(S)": (
+            f"This parcel is zoned {zoning} (Residential-House, One Family — Small Lot). "
+            "Similar to RH-1 but on smaller lots. Building envelope restrictions are tighter. "
+            "Setback and rear yard requirements may limit what can be built."
+        ),
+        "RH-1D": (
+            f"This parcel is zoned {zoning} (Residential-House, One Family — Detached). "
+            "Only one detached dwelling unit is allowed. "
+            "Section 311 notification applies to envelope changes."
+        ),
+        "RH-1S": (
+            f"This parcel is zoned {zoning} (Residential-House, One Family — Small Lot). "
+            "Similar to RH-1 but designed for smaller lot sizes."
+        ),
+    }
+    return interpretations.get(zoning, (
+        f"This parcel is zoned {zoning} (single-family residential). "
+        "Projects in RH-1 districts may face neighborhood notification requirements "
+        "and discretionary review."
+    ))
 
 
 # ---------------------------------------------------------------------------

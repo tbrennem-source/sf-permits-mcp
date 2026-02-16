@@ -250,7 +250,9 @@ def _get_related_team(conn, permit_number: str) -> list[dict]:
 def _format_permit_detail(p: dict) -> str:
     """Format a single permit as markdown."""
     lines = []
-    lines.append(f"**Permit Number:** {p['permit_number']}")
+    pn = p['permit_number']
+    pn_url = f"https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn}"
+    lines.append(f"**Permit Number:** [{pn}]({pn_url})")
     lines.append(f"**Type:** {p.get('permit_type_definition') or p.get('permit_type') or 'Unknown'}")
     lines.append(f"**Status:** {p.get('status') or 'Unknown'}")
     if p.get("status_date"):
@@ -473,11 +475,13 @@ async def permit_lookup(
             lines.append("|----------|------|--------|-------|------|")
             for p in permits[:20]:
                 pn = p.get("permit_number", "")
+                # Hyperlink permit number to DBI tracker
+                pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})" if pn else "—"
                 pt = (p.get("permit_type_definition") or "")[:35]
                 st = p.get("status") or "—"
                 fd = p.get("filed_date") or "—"
                 c = f"${p['estimated_cost']:,.0f}" if p.get("estimated_cost") else "—"
-                lines.append(f"| {pn} | {pt} | {st} | {fd} | {c} |")
+                lines.append(f"| {pn_link} | {pt} | {st} | {fd} | {c} |")
             if len(permits) > 20:
                 lines.append(f"\n*Showing 20 of {len(permits)}.*")
             lines.append(f"\n---\n\n**Showing details for most recent: {pnum}**\n")

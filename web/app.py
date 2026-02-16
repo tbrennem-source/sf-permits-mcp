@@ -13,6 +13,7 @@ Plus the plan set validator (EPR compliance checker).
 import asyncio
 import logging
 import os
+import re
 import sys
 import time
 from collections import defaultdict
@@ -791,6 +792,20 @@ def ask():
     if not query:
         return '<div class="error">Please type a question or search term.</div>', 400
 
+    # Multi-address detection: if query contains ; or , splitting into 2+ address-like parts
+    if ";" in query or ("," in query and not query.endswith(",")):
+        parts = [p.strip() for p in re.split(r'[;,]', query) if p.strip()]
+        if len(parts) >= 2:
+            # Check if each part classifies as an address
+            hoods = [n for n in NEIGHBORHOODS if n]
+            addr_parts = []
+            for p in parts:
+                r = classify_intent(p, hoods)
+                if r.intent == "search_address":
+                    addr_parts.append((p, r.entities))
+            if len(addr_parts) >= 2:
+                return _ask_multi_address_search(addr_parts)
+
     # Classify intent
     result = classify_intent(query, [n for n in NEIGHBORHOODS if n])
     intent = result.intent
@@ -923,6 +938,114 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
     )
 
 
+def _get_fuzzy_address_suggestions(street_number: str, street_name: str, limit: int = 5) -> list[dict]:
+    """Find close address matches when exact search returns no results.
+
+    Returns list of dicts: [{"street_number": ..., "street_name": ..., "suffix": ..., "count": ...}]
+    """
+    from src.db import query, _ph
+    from src.tools.permit_lookup import _strip_suffix
+    if not street_name:
+        return []
+    ph = _ph()
+    base_name, _suffix = _strip_suffix(street_name)
+    suggestions = []
+    try:
+        # Strategy 1: Same number, fuzzy street name (LIKE with first few chars)
+        prefix = base_name[:3].upper() if len(base_name) >= 3 else base_name.upper()
+        rows = query(
+            f"SELECT DISTINCT street_number, street_name, street_suffix, COUNT(*) AS cnt "
+            f"FROM permits "
+            f"WHERE street_number = {ph} "
+            f"  AND UPPER(street_name) LIKE {ph} "
+            f"  AND street_name IS NOT NULL "
+            f"GROUP BY street_number, street_name, street_suffix "
+            f"ORDER BY cnt DESC LIMIT {limit}",
+            (street_number, f"{prefix}%"),
+        )
+        for r in rows:
+            full = f"{r[1]} {r[2]}".strip() if r[2] else r[1]
+            if full.upper() != street_name.upper():
+                suggestions.append({
+                    "street_number": r[0], "street_name": r[1],
+                    "suffix": r[2] or "", "full_name": full, "count": r[3],
+                })
+
+        # Strategy 2: Nearby street numbers (+-10), same street name
+        if len(suggestions) < limit and street_number.isdigit():
+            num = int(street_number)
+            lo, hi = num - 10, num + 10
+            rows = query(
+                f"SELECT DISTINCT street_number, street_name, street_suffix, COUNT(*) AS cnt "
+                f"FROM permits "
+                f"WHERE CAST(street_number AS INTEGER) BETWEEN {ph} AND {ph} "
+                f"  AND UPPER(street_name) LIKE UPPER({ph}) "
+                f"  AND street_number != {ph} "
+                f"  AND street_name IS NOT NULL "
+                f"GROUP BY street_number, street_name, street_suffix "
+                f"ORDER BY cnt DESC LIMIT {limit}",
+                (lo, hi, f"%{base_name}%", street_number),
+            )
+            existing = {(s["street_number"], s["full_name"].upper()) for s in suggestions}
+            for r in rows:
+                full = f"{r[1]} {r[2]}".strip() if r[2] else r[1]
+                if (r[0], full.upper()) not in existing:
+                    suggestions.append({
+                        "street_number": r[0], "street_name": r[1],
+                        "suffix": r[2] or "", "full_name": full, "count": r[3],
+                    })
+                    if len(suggestions) >= limit:
+                        break
+    except Exception:
+        pass
+    return suggestions[:limit]
+
+
+def _get_neighborhood_stats(neighborhood: str) -> dict | None:
+    """Quick neighborhood permit stats from local DB. Returns dict or None."""
+    from src.db import query, _ph
+    if not neighborhood:
+        return None
+    ph = _ph()
+    try:
+        # Total permits
+        rows = query(
+            f"SELECT COUNT(*) FROM permits WHERE neighborhoods_analysis_boundaries = {ph}",
+            (neighborhood,),
+        )
+        total = rows[0][0] if rows else 0
+        if total == 0:
+            return None
+
+        # Active permits (ISSUED or FILED)
+        rows = query(
+            f"SELECT COUNT(*) FROM permits "
+            f"WHERE neighborhoods_analysis_boundaries = {ph} "
+            f"  AND status IN ('ISSUED', 'FILED')",
+            (neighborhood,),
+        )
+        active = rows[0][0] if rows else 0
+
+        # Top 3 permit types
+        rows = query(
+            f"SELECT permit_type_definition, COUNT(*) AS cnt FROM permits "
+            f"WHERE neighborhoods_analysis_boundaries = {ph} "
+            f"  AND permit_type_definition IS NOT NULL "
+            f"GROUP BY permit_type_definition ORDER BY cnt DESC LIMIT 3",
+            (neighborhood,),
+        )
+        top_types = [{"type": r[0], "count": r[1]} for r in rows] if rows else []
+
+        return {
+            "name": neighborhood,
+            "total_permits": total,
+            "active_permits": active,
+            "top_types": top_types,
+        }
+    except Exception:
+        return None
+
+
 def _ask_address_search(query: str, entities: dict) -> str:
     """Handle address-based permit search."""
     street_number = entities.get("street_number")
@@ -939,16 +1062,34 @@ def _ask_address_search(query: str, entities: dict) -> str:
     }
     # Primary address prompt: show if logged in and no primary address set yet
     show_primary_prompt = bool(g.user and not g.user.get("primary_street_number"))
-    # Resolve block/lot for property report link
+    # Resolve block/lot for property report link + neighborhood
     report_url = None
+    neighborhood = None
+    hood_stats = None
     try:
         bl = _resolve_block_lot(street_number, street_name)
         if bl:
             report_url = f"/report/{bl[0]}/{bl[1]}"
+            # Look up neighborhood from permit data for this block/lot
+            from src.db import query as db_query, _ph
+            ph = _ph()
+            rows = db_query(
+                f"SELECT neighborhoods_analysis_boundaries FROM permits "
+                f"WHERE block = {ph} AND lot = {ph} "
+                f"  AND neighborhoods_analysis_boundaries IS NOT NULL "
+                f"LIMIT 1",
+                (bl[0], bl[1]),
+            )
+            if rows and rows[0][0]:
+                neighborhood = rows[0][0]
+                hood_stats = _get_neighborhood_stats(neighborhood)
     except Exception:
         pass
-    # Detect no-results to show helpful next-step CTAs
+    # Detect no-results to show helpful next-step CTAs + fuzzy suggestions
     no_results = result_md.startswith("No permits found")
+    fuzzy_suggestions = []
+    if no_results:
+        fuzzy_suggestions = _get_fuzzy_address_suggestions(street_number, street_name)
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
@@ -959,7 +1100,33 @@ def _ask_address_search(query: str, entities: dict) -> str:
         report_url=report_url,
         no_results=no_results,
         no_results_address=f"{street_number} {street_name}" if no_results else None,
+        fuzzy_suggestions=fuzzy_suggestions,
+        neighborhood=neighborhood,
+        hood_stats=hood_stats,
         **_watch_context(watch_data),
+    )
+
+
+def _ask_multi_address_search(addr_parts: list[tuple[str, dict]]) -> str:
+    """Handle comma/semicolon-separated multi-address search.
+
+    addr_parts: list of (raw_query, entities_dict) for each address.
+    """
+    combined_parts = []
+    for raw_q, ents in addr_parts:
+        sn = ents.get("street_number", "")
+        sname = ents.get("street_name", "")
+        label = f"{sn} {sname}".strip()
+        result_md = run_async(permit_lookup(street_number=sn, street_name=sname))
+        # Add a heading for each address
+        combined_parts.append(f"### {label}\n\n{result_md}")
+
+    combined_md = "\n\n---\n\n".join(combined_parts)
+    labels = [f"{e.get('street_number', '')} {e.get('street_name', '')}".strip() for _, e in addr_parts]
+    return render_template(
+        "search_results.html",
+        query_echo=" / ".join(labels),
+        result_html=md_to_html(combined_md),
     )
 
 
@@ -1634,8 +1801,37 @@ def email_unsubscribe():
 
 @app.route("/expediters")
 def expediters():
-    """Expediter recommendation dashboard."""
-    return render_template("expediters.html", neighborhoods=NEIGHBORHOODS)
+    """Expediter recommendation dashboard.
+
+    Accepts optional query params for pre-filling form from property report:
+    - block, lot: parcel identifiers
+    - neighborhood: pre-select neighborhood dropdown
+    - has_complaint: set to '1' to pre-check complaint checkbox
+    - signal: expediter signal level from report
+    """
+    prefill = {
+        "block": request.args.get("block", ""),
+        "lot": request.args.get("lot", ""),
+        "neighborhood": request.args.get("neighborhood", ""),
+        "has_complaint": request.args.get("has_complaint") == "1",
+        "signal": request.args.get("signal", ""),
+    }
+    # Resolve street address from block/lot if available
+    if prefill["block"] and prefill["lot"]:
+        from src.db import query as db_query, _ph
+        ph = _ph()
+        try:
+            rows = db_query(
+                f"SELECT DISTINCT street_number, street_name FROM permits "
+                f"WHERE block = {ph} AND lot = {ph} "
+                f"  AND street_name IS NOT NULL LIMIT 1",
+                (prefill["block"], prefill["lot"]),
+            )
+            if rows:
+                prefill["address"] = rows[0][1]  # street_name
+        except Exception:
+            pass
+    return render_template("expediters.html", neighborhoods=NEIGHBORHOODS, prefill=prefill)
 
 
 @app.route("/expediters/search", methods=["POST"])
@@ -1671,6 +1867,23 @@ def expediters_search():
                     neighborhoods=NEIGHBORHOODS,
                     error="No expediters found with sufficient activity.",
                 )
+
+            # Property context: find entity_ids that have worked on this block/lot
+            parcel_entity_ids = set()
+            if block and lot:
+                try:
+                    from src.db import query as db_query, _ph
+                    ph = _ph()
+                    rows = db_query(
+                        f"SELECT DISTINCT c.entity_id "
+                        f"FROM contacts c JOIN permits p ON c.permit_number = p.permit_number "
+                        f"WHERE p.block = {ph} AND p.lot = {ph} "
+                        f"  AND c.entity_id IS NOT NULL",
+                        (block, lot),
+                    )
+                    parcel_entity_ids = {r[0] for r in rows} if rows else set()
+                except Exception:
+                    pass
 
             max_permits = max(e["permit_count"] for e in expediters_raw)
             registered_names = _get_registered_names()
@@ -1789,6 +2002,11 @@ def expediters_search():
                                 "phone": c.get("phone", ""),
                             }
                             break
+
+                # Parcel familiarity bonus: expediter has worked on this exact property
+                if parcel_entity_ids and exp["entity_id"] in parcel_entity_ids:
+                    s.breakdown["parcel_familiarity"] = 15
+                    s.score += 15
 
                 scored.append(s)
         finally:

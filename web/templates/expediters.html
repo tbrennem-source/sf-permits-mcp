@@ -219,25 +219,36 @@
                 professional network, and SF Ethics registration.
             </p>
 
+            {% if prefill and prefill.signal %}
+            <div style="margin-bottom:16px;padding:12px 16px;background:rgba(79,143,247,0.08);border:1px solid rgba(79,143,247,0.2);border-radius:8px;font-size:0.9rem;">
+                Searching for expediters matching your property at
+                <strong>Block {{ prefill.block }}, Lot {{ prefill.lot }}</strong>
+                {% if prefill.neighborhood %} in {{ prefill.neighborhood }}{% endif %}...
+            </div>
+            {% endif %}
+
             <div class="form-card">
-                <form hx-post="/expediters/search"
+                <form id="expediter-form" hx-post="/expediters/search"
                       hx-target="#results"
                       hx-indicator="#loading">
                     <div class="form-row three-col">
                         <div class="form-group">
                             <label for="address">Street Name</label>
                             <input type="text" id="address" name="address"
-                                   placeholder="e.g., ROBIN HOOD">
+                                   placeholder="e.g., ROBIN HOOD"
+                                   value="{{ prefill.address if prefill and prefill.address else '' }}">
                         </div>
                         <div class="form-group">
                             <label for="block">Block</label>
                             <input type="text" id="block" name="block"
-                                   placeholder="e.g., 2920">
+                                   placeholder="e.g., 2920"
+                                   value="{{ prefill.block if prefill and prefill.block else '' }}">
                         </div>
                         <div class="form-group">
                             <label for="lot">Lot</label>
                             <input type="text" id="lot" name="lot"
-                                   placeholder="e.g., 020">
+                                   placeholder="e.g., 020"
+                                   value="{{ prefill.lot if prefill and prefill.lot else '' }}">
                         </div>
                     </div>
                     <div class="form-row">
@@ -247,7 +258,7 @@
                                 <option value="">Any neighborhood</option>
                                 {% for n in neighborhoods %}
                                 {% if n %}
-                                <option value="{{ n }}">{{ n }}</option>
+                                <option value="{{ n }}" {{ 'selected' if prefill and prefill.neighborhood == n else '' }}>{{ n }}</option>
                                 {% endif %}
                                 {% endfor %}
                             </select>
@@ -265,7 +276,8 @@
                     </div>
                     <div class="checkbox-row">
                         <label class="checkbox-group">
-                            <input type="checkbox" name="has_active_complaint" value="on">
+                            <input type="checkbox" name="has_active_complaint" value="on"
+                                   {{ 'checked' if prefill and prefill.has_complaint else '' }}>
                             Active complaint on property
                         </label>
                         <label class="checkbox-group">
@@ -276,6 +288,17 @@
                     <button class="btn" type="submit">Find Expediters</button>
                 </form>
             </div>
+            {% if prefill and prefill.block and prefill.lot %}
+            <script>
+            // Auto-submit when arriving from property report with context
+            document.addEventListener('DOMContentLoaded', function() {
+                var form = document.getElementById('expediter-form');
+                if (form && typeof htmx !== 'undefined') {
+                    setTimeout(function() { htmx.trigger(form, 'submit'); }, 300);
+                }
+            });
+            </script>
+            {% endif %}
 
             <div id="loading" class="htmx-indicator loading">
                 Analyzing 1M+ permit records...
