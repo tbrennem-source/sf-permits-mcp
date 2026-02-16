@@ -162,31 +162,31 @@
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Assessed Value</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.assessed_value or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.assessed_value or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Property Class</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.property_class or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.property_class or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Neighborhood</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.neighborhood or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.neighborhood or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Year Built</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.year_built or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.year_built or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Building Area</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.building_area or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.building_area or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Lot Area</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.lot_area or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.lot_area or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;font-size:0.8rem;color:#6b7280;font-weight:600;">Tax Year</td>
-                                    <td style="padding:6px 0;font-size:0.9rem;">{{ report.property_profile.tax_year or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;font-size:0.9rem;">{{ report.property_profile.tax_year or '—' }}</td>
                                 </tr>
                             </table>
                         </td>
@@ -215,7 +215,7 @@
                                     <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
                                         <a href="{{ links.permit(p.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ p.permit_number }}</a>
                                     </td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.permit_type_definition or '&mdash;' }}</td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.permit_type_definition or '—' }}</td>
                                     <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
                                         {% if p.estimated_cost %}${{ '{:,.0f}'.format(p.estimated_cost) }}{% else %}&mdash;{% endif %}
                                     </td>
@@ -227,7 +227,7 @@
                                             {{ p.status or 'Unknown' }}
                                         </span>
                                     </td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.filed_date or '&mdash;' }}</td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.filed_date or '—' }}</td>
                                 </tr>
                                 {% if p.description %}
                                 <tr>
@@ -415,7 +415,7 @@
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
                                         <a href="{{ links.permit(n.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ n.permit_number }}</a>
                                     </td>
-                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.description or '&mdash;' }}</td>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.description or '—' }}</td>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
                                         <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;
                                             {% if (n.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#d1fae5;color:#059669;
