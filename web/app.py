@@ -1643,13 +1643,23 @@ def admin_send_invite():
 
     to_email = request.form.get("to_email", "").strip().lower()
     invite_code = request.form.get("invite_code", "").strip()
-    message = request.form.get("message", "").strip()
+    message = request.form.get("message", "").strip()[:500]
+    cohort = request.form.get("cohort", "friends").strip()
 
     if not to_email or "@" not in to_email:
         return '<span style="color:var(--error);">Invalid email address.</span>'
 
     if not validate_invite_code(invite_code):
         return '<span style="color:var(--error);">Invalid invite code.</span>'
+
+    # Cohort-specific subject lines
+    COHORT_SUBJECTS = {
+        "friends": "Hey! You're invited to try sfpermits.ai",
+        "testers": "You're invited to beta test sfpermits.ai",
+        "expediters": "Invitation: Join sfpermits.ai's Professional Network",
+        "custom": "You're invited to sfpermits.ai",
+    }
+    subject = COHORT_SUBJECTS.get(cohort, COHORT_SUBJECTS["friends"])
 
     # Render invite email
     sender_name = g.user.get("display_name") or g.user["email"]
@@ -1659,6 +1669,7 @@ def admin_send_invite():
         invite_code=invite_code,
         sender_name=sender_name,
         message=message,
+        cohort=cohort,
     )
 
     # Send via SMTP (or log in dev mode)
@@ -1668,9 +1679,12 @@ def admin_send_invite():
     smtp_user = os.environ.get("SMTP_USER")
     smtp_pass = os.environ.get("SMTP_PASS")
 
+    log = logging.getLogger(__name__)
+
     if not smtp_host:
-        logging.getLogger(__name__).info(
-            "Invite (dev mode): would send to %s with code %s", to_email, invite_code
+        log.info(
+            "Invite (dev mode): would send to %s with code %s cohort=%s",
+            to_email, invite_code, cohort,
         )
         return (
             f'<span style="color:var(--success);">Dev mode: invite logged for '
@@ -1682,14 +1696,15 @@ def admin_send_invite():
         from email.message import EmailMessage
 
         msg = EmailMessage()
-        msg["Subject"] = "You're invited to sfpermits.ai"
-        msg["From"] = smtp_from
+        msg["Subject"] = subject
+        msg["From"] = f"SF Permits AI <{smtp_from}>"
         msg["To"] = to_email
-        msg.set_content(
-            f"You've been invited to sfpermits.ai!\n\n"
-            f"Your invite code: {invite_code}\n\n"
-            f"Sign up at: {BASE_URL}/auth/login\n"
-        )
+        plain_text = f"You've been invited to sfpermits.ai!\n\n"
+        if message:
+            plain_text += f"{sender_name} says: {message}\n\n"
+        plain_text += f"Your invite code: {invite_code}\n\n"
+        plain_text += f"Sign up at: {BASE_URL}/auth/login\n"
+        msg.set_content(plain_text)
         msg.add_alternative(html_body, subtype="html")
 
         with smtplib.SMTP(smtp_host, smtp_port) as server:
@@ -1698,9 +1713,10 @@ def admin_send_invite():
                 server.login(smtp_user, smtp_pass or "")
             server.send_message(msg)
 
+        log.info("Invite sent to %s with code %s cohort=%s", to_email, invite_code, cohort)
         return f'<span style="color:var(--success);">Invite sent to {to_email}</span>'
     except Exception as e:
-        logging.getLogger(__name__).exception("Failed to send invite to %s", to_email)
+        log.exception("Failed to send invite to %s", to_email)
         return f'<span style="color:var(--error);">Failed to send: {e}</span>'
 
 
@@ -2145,6 +2161,8 @@ def property_report_share(block, lot):
     if not to_email or "@" not in to_email:
         return "<div class='flash error'>Please enter a valid email address.</div>", 400
 
+    personal_message = request.form.get("message", "").strip()[:500]
+
     block = block.strip()
     lot = lot.strip()
 
@@ -2158,6 +2176,7 @@ def property_report_share(block, lot):
     report_url = f"{base_url}/report/{block}/{lot}"
 
     is_owner = report.get("is_owner", False)
+    sender_name = g.user.get("display_name") or g.user.get("email", "Someone")
 
     try:
         html_body = render_template(
@@ -2166,6 +2185,8 @@ def property_report_share(block, lot):
             report_url=report_url,
             is_owner=is_owner,
             links=ReportLinks,
+            sender_name=sender_name,
+            personal_message=personal_message,
         )
     except Exception as e:
         logging.exception("Report email render failed")
@@ -2190,11 +2211,12 @@ def property_report_share(block, lot):
         msg["Subject"] = subject
         msg["From"] = f"SF Permits AI <{smtp_from}>"
         msg["To"] = to_email
-        msg.set_content(
-            f"Property Report for {address}\n\n"
-            f"View the full report: {report_url}\n\n"
-            f"--\nsfpermits.ai - San Francisco Building Permit Intelligence"
-        )
+        plain_text = f"Property Report for {address}\n\n"
+        if personal_message:
+            plain_text += f"{sender_name} says: {personal_message}\n\n"
+        plain_text += f"View the full report: {report_url}\n\n"
+        plain_text += "--\nsfpermits.ai - San Francisco Building Permit Intelligence"
+        msg.set_content(plain_text)
         msg.add_alternative(html_body, subtype="html")
 
         with smtplib.SMTP(smtp_host, smtp_port) as server:

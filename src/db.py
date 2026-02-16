@@ -278,7 +278,7 @@ def init_user_schema(conn=None) -> None:
                 image_data TEXT NOT NULL,
                 image_size_kb INTEGER,
                 PRIMARY KEY (session_id, page_number),
-                FOREIGN KEY (session_id) REFERENCES plan_analysis_sessions(session_id) ON DELETE CASCADE
+                FOREIGN KEY (session_id) REFERENCES plan_analysis_sessions(session_id)
             )
         """)
         try:

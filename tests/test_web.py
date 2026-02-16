@@ -318,3 +318,164 @@ def test_analyze_with_target_date(client):
     assert rv.status_code == 200
     html = rv.data.decode()
     assert "panel-timeline" in html
+
+
+# ---------------------------------------------------------------------------
+# Report share: field name fix + personal message
+# ---------------------------------------------------------------------------
+
+def test_report_share_requires_login(client):
+    """Report share endpoint requires authentication."""
+    rv = client.post("/report/0001/001/share", data={
+        "email": "friend@example.com",
+    })
+    # Should redirect to login or return 302/401
+    assert rv.status_code in (302, 401, 403)
+
+
+def test_report_share_rejects_bad_email(client):
+    """Report share rejects invalid email."""
+    # Login first (need auth helper from test_auth pattern)
+    import sys, os
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web"))
+    from web.auth import get_or_create_user, create_magic_token
+    # Force duckdb for this test
+    import src.db as db_mod
+    if db_mod.BACKEND == "duckdb":
+        db_mod.init_user_schema()
+    user = get_or_create_user("sharer@test.com")
+    token = create_magic_token(user["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.post("/report/0001/001/share", data={
+        "email": "notanemail",
+    })
+    assert rv.status_code == 400
+    assert b"valid email" in rv.data
+
+
+def test_report_share_form_uses_correct_field_name():
+    """Report share form sends field name 'email' matching the route."""
+    import os
+    template_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "web", "templates", "report.html"
+    )
+    with open(template_path) as f:
+        content = f.read()
+    # The form should use name="email" to match the route
+    assert 'name="email"' in content
+    # Should NOT use the old mismatched field name
+    assert 'name="recipient_email"' not in content
+
+
+def test_report_share_form_has_message_field():
+    """Report share form includes a personal message textarea."""
+    import os
+    template_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "web", "templates", "report.html"
+    )
+    with open(template_path) as f:
+        content = f.read()
+    assert 'name="message"' in content
+    assert "personal note" in content.lower()
+
+
+def test_report_has_prominent_share_button():
+    """Report page has a prominent share button in the report body (not just header)."""
+    import os
+    template_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "web", "templates", "report.html"
+    )
+    with open(template_path) as f:
+        content = f.read()
+    # Should have a btn-primary share button near the page title
+    assert 'class="btn-primary"' in content
+    assert "openShareModal()" in content
+    # The prominent button should contain the share text
+    assert "Share Report" in content
+
+
+def test_report_email_template_supports_personal_message():
+    """Report email template renders personal message block."""
+    from flask import Flask
+    test_app = Flask(__name__, template_folder=os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "web", "templates"
+    ))
+    test_app.config["TESTING"] = True
+
+    # Mock ReportLinks
+    class MockLinks:
+        @staticmethod
+        def permit(n): return f"http://test/{n}"
+        @staticmethod
+        def complaint(n): return f"http://test/{n}"
+        @staticmethod
+        def parcel(b, l): return f"http://test/{b}/{l}"
+        @staticmethod
+        def planning_code(s): return f"http://test/{s}"
+        @staticmethod
+        def entity(n): return f"http://test/{n}"
+        @staticmethod
+        def ethics_registry(): return "http://test/ethics"
+
+    with test_app.app_context():
+        from flask import render_template
+        html = render_template(
+            "report_email.html",
+            report={
+                "address": "123 Test St",
+                "block": "0001",
+                "lot": "001",
+                "links": {"parcel": "http://test/parcel"},
+            },
+            report_url="http://test/report/0001/001",
+            is_owner=False,
+            links=MockLinks,
+            sender_name="Tim",
+            personal_message="Check out this property!",
+        )
+        assert "Tim" in html
+        assert "Check out this property!" in html
+        assert "shared this with you" in html
+
+
+def test_report_email_template_hides_message_when_empty():
+    """Report email template hides message block when no message."""
+    from flask import Flask
+    test_app = Flask(__name__, template_folder=os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "web", "templates"
+    ))
+    test_app.config["TESTING"] = True
+
+    class MockLinks:
+        @staticmethod
+        def permit(n): return f"http://test/{n}"
+        @staticmethod
+        def complaint(n): return f"http://test/{n}"
+        @staticmethod
+        def parcel(b, l): return f"http://test/{b}/{l}"
+        @staticmethod
+        def planning_code(s): return f"http://test/{s}"
+        @staticmethod
+        def entity(n): return f"http://test/{n}"
+        @staticmethod
+        def ethics_registry(): return "http://test/ethics"
+
+    with test_app.app_context():
+        from flask import render_template
+        html = render_template(
+            "report_email.html",
+            report={
+                "address": "456 Other St",
+                "block": "0002",
+                "lot": "002",
+                "links": {"parcel": "http://test/parcel"},
+            },
+            report_url="http://test/report/0002/002",
+            is_owner=False,
+            links=MockLinks,
+        )
+        assert "shared this with you" not in html
