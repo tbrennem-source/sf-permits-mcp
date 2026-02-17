@@ -88,7 +88,12 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     )
 
     # Mark as processing
-    update_job_status(job_id, "processing", started_at=datetime.now(timezone.utc))
+    update_job_status(
+        job_id, "processing",
+        started_at=datetime.now(timezone.utc),
+        progress_stage="analyzing",
+        progress_detail="Preparing analysis...",
+    )
 
     # Load job metadata and PDF
     job = get_job(job_id)
@@ -105,6 +110,12 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     )
 
     # ── Run analysis ──
+    update_job_status(
+        job_id, "processing",
+        progress_stage="analyzing",
+        progress_detail="Running AI vision analysis...",
+    )
+
     if job["quick_check"]:
         result_md = loop.run_until_complete(
             validate_plans(
@@ -131,13 +142,35 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     page_count = len(reader.pages)
 
     # ── Render gallery images at lower DPI ──
+    total_render = min(page_count, 50)
+    update_job_status(
+        job_id, "processing",
+        progress_stage="rendering",
+        progress_detail=f"Rendering page gallery (0/{total_render})...",
+    )
+
     page_images = []
-    for pn in range(min(page_count, 50)):
+    for pn in range(total_render):
         try:
             b64 = pdf_page_to_base64(pdf_bytes, pn, dpi=GALLERY_DPI)
             page_images.append((pn, b64))
         except Exception as e:
             logger.warning(f"[plan-worker] Skipped page {pn} for {filename}: {e}")
+
+        # Update progress every 5 pages
+        if (pn + 1) % 5 == 0 or pn == total_render - 1:
+            update_job_status(
+                job_id, "processing",
+                progress_stage="rendering",
+                progress_detail=f"Rendering page gallery ({pn + 1}/{total_render})...",
+            )
+
+    # ── Finalize ──
+    update_job_status(
+        job_id, "processing",
+        progress_stage="finalizing",
+        progress_detail="Saving results...",
+    )
 
     # ── Create session ──
     session_id = create_session(

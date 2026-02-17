@@ -128,7 +128,8 @@ def get_job(job_id: str) -> dict | None:
         "status, is_async, project_description, permit_type, "
         "is_addendum, quick_check, report_md, error_message, "
         "property_address, permit_number, address_source, permit_source, "
-        "created_at, started_at, completed_at, email_sent "
+        "created_at, started_at, completed_at, email_sent, "
+        "progress_stage, progress_detail "
         "FROM plan_analysis_jobs WHERE job_id = %s",
         (job_id,),
     )
@@ -157,6 +158,8 @@ def get_job(job_id: str) -> dict | None:
         "started_at": row[18],
         "completed_at": row[19],
         "email_sent": row[20],
+        "progress_stage": row[21],
+        "progress_detail": row[22],
     }
 
 

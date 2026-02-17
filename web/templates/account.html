@@ -157,6 +157,18 @@
             cursor: pointer;
             font-size: 0.9rem;
         }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-completed { background: #1b5e20; color: #a5d6a7; }
+        .status-processing { background: #0d47a1; color: #90caf9; }
+        .status-pending { background: #4a4a00; color: #fff9c4; }
+        .status-failed { background: #b71c1c; color: #ef9a9a; }
+        .status-stale { background: #e65100; color: #ffcc80; }
     </style>
 </head>
 <body>
@@ -295,6 +307,46 @@
                 {% else %}
                 <p class="empty" style="padding:8px 0;">
                     No points yet. Submit feedback to earn points!
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>Plan Analyses
+                    {% if recent_analyses %}
+                    <span style="float:right;font-size:0.85rem;color:var(--text-muted);font-weight:400;">{{ recent_analyses|length }} recent</span>
+                    {% endif %}
+                </h2>
+                {% if recent_analyses %}
+                <div style="margin-top:12px;">
+                    {% for job in recent_analyses %}
+                    <div class="info-row">
+                        <span>
+                            <span style="font-weight:500;">{{ job.filename }}</span>
+                            <br>
+                            <span style="color:var(--text-muted);font-size:0.8rem;">
+                                {{ job.file_size_mb }} MB
+                                {% if job.property_address %} &middot; {{ job.property_address }}{% endif %}
+                            </span>
+                        </span>
+                        <span style="display:flex;align-items:center;gap:8px;">
+                            <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+                            {% if job.status == 'completed' and job.session_id %}
+                            <a href="/plan-jobs/{{ job.job_id }}/results" style="color:var(--accent);text-decoration:none;font-size:0.85rem;">View</a>
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top:16px;">
+                    <a href="/account/analyses" style="color:var(--accent);text-decoration:none;font-size:0.9rem;">
+                        View all analyses &rarr;
+                    </a>
+                </div>
+                {% else %}
+                <p class="empty">
+                    No plan analyses yet.
+                    <a href="/" style="color:var(--accent);">Upload a plan set</a> to get started.
                 </p>
                 {% endif %}
             </div>
