@@ -177,6 +177,42 @@ def _run_startup_migrations():
             )
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_created ON plan_analysis_sessions (created_at)")
+        # user_id column on sessions (link sessions to users for persistent storage)
+        cur.execute("ALTER TABLE plan_analysis_sessions ADD COLUMN IF NOT EXISTS user_id INTEGER")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_user ON plan_analysis_sessions (user_id)")
+
+        # Plan analysis jobs table (async processing + job history)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS plan_analysis_jobs (
+                job_id              TEXT PRIMARY KEY,
+                user_id             INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+                session_id          TEXT REFERENCES plan_analysis_sessions(session_id) ON DELETE SET NULL,
+                filename            TEXT NOT NULL,
+                file_size_mb        REAL NOT NULL,
+                status              TEXT NOT NULL DEFAULT 'pending',
+                is_async            BOOLEAN NOT NULL DEFAULT FALSE,
+                project_description TEXT,
+                permit_type         TEXT,
+                is_addendum         BOOLEAN NOT NULL DEFAULT FALSE,
+                quick_check         BOOLEAN NOT NULL DEFAULT FALSE,
+                report_md           TEXT,
+                error_message       TEXT,
+                pdf_data            BYTEA,
+                property_address    TEXT,
+                permit_number       TEXT,
+                address_source      TEXT,
+                permit_source       TEXT,
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                started_at          TIMESTAMPTZ,
+                completed_at        TIMESTAMPTZ,
+                email_sent          BOOLEAN NOT NULL DEFAULT FALSE
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_jobs_user ON plan_analysis_jobs (user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_jobs_status ON plan_analysis_jobs (status)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_jobs_permit ON plan_analysis_jobs (permit_number)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_jobs_address ON plan_analysis_jobs (property_address)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_jobs_created ON plan_analysis_jobs (created_at)")
 
         cur.close()
         conn.close()
@@ -186,6 +222,13 @@ def _run_startup_migrations():
 
 
 _run_startup_migrations()
+
+# Recover stale background analysis jobs from previous worker restarts
+try:
+    from web.plan_worker import recover_stale_jobs
+    recover_stale_jobs()
+except Exception as e:
+    logging.getLogger(__name__).warning("Stale job recovery failed (non-fatal): %s", e)
 
 
 # ---------------------------------------------------------------------------
@@ -767,7 +810,11 @@ def validate():
 
 @app.route("/analyze-plans", methods=["POST"])
 def analyze_plans_route():
-    """Upload a PDF plan set for full AI-powered analysis."""
+    """Upload a PDF plan set for full AI-powered analysis.
+
+    Small files (≤ threshold) are processed synchronously.
+    Large files (> threshold) are queued for async background processing.
+    """
     uploaded = request.files.get("planfile")
     if not uploaded or not uploaded.filename:
         return '<div class="error">Please select a PDF file to upload.</div>', 400
@@ -780,6 +827,8 @@ def analyze_plans_route():
     permit_type = request.form.get("permit_type", "").strip() or None
     quick_check = request.form.get("quick_check") == "on"
     is_addendum = request.form.get("is_addendum") == "on"
+    property_address = request.form.get("property_address", "").strip() or None
+    permit_number_input = request.form.get("permit_number", "").strip() or None
 
     try:
         pdf_bytes = uploaded.read()
@@ -795,8 +844,41 @@ def analyze_plans_route():
     if size_mb > max_size:
         return f'<div class="error">File too large: {size_mb:.1f} MB<br>Maximum is {max_size} MB.</div>', 413
 
+    user_id = session.get("user_id")
     mode = "quick-check" if quick_check else "full-analysis"
     logging.info(f"[analyze-plans] Processing PDF: {filename} ({size_mb:.2f} MB, mode={mode})")
+
+    # ── Async threshold: large full-analysis files go to background worker ──
+    async_threshold_mb = float(os.environ.get("ASYNC_PLAN_THRESHOLD_MB", "10"))
+    use_async = size_mb > async_threshold_mb and not quick_check
+
+    if use_async:
+        from web.plan_jobs import create_job
+        from web.plan_worker import submit_job
+
+        job_id = create_job(
+            user_id=user_id,
+            filename=filename,
+            file_size_mb=size_mb,
+            pdf_data=pdf_bytes,
+            property_address=property_address,
+            permit_number=permit_number_input,
+            project_description=project_description,
+            permit_type=permit_type,
+            is_addendum=is_addendum,
+            quick_check=False,
+            is_async=True,
+        )
+        submit_job(job_id)
+
+        logging.info(f"[analyze-plans] Async job {job_id} submitted for {filename}")
+        return render_template(
+            "analyze_plans_processing.html",
+            job_id=job_id,
+            filename=filename,
+            filesize_mb=round(size_mb, 1),
+            user_email=_get_user_email(user_id),
+        )
 
     # ── Quick Check mode: metadata-only via validate_plans ──
     if quick_check:
@@ -822,6 +904,18 @@ def analyze_plans_route():
                 </div>
             '''
 
+        # Track job for history (no PDF stored for quick check)
+        try:
+            from web.plan_jobs import create_job, update_job_status
+            job_id = create_job(
+                user_id=user_id, filename=filename, file_size_mb=size_mb,
+                property_address=property_address, permit_number=permit_number_input,
+                quick_check=True, is_async=False,
+            )
+            update_job_status(job_id, "completed", report_md=result_md)
+        except Exception:
+            pass  # Job tracking is non-fatal
+
         return render_template(
             "analyze_plans_results.html",
             result=result_html,
@@ -833,7 +927,7 @@ def analyze_plans_route():
             quick_check=True,
         )
 
-    # ── Full Analysis mode: AI vision + gallery ──
+    # ── Synchronous Full Analysis mode (small files) ──
     try:
         result_md, page_extractions = run_async(analyze_plans(
             pdf_bytes=pdf_bytes,
@@ -871,20 +965,21 @@ def analyze_plans_route():
         from pypdf import PdfReader
         from io import BytesIO
         from src.vision.pdf_to_images import pdf_pages_to_base64
-        from web.plan_images import create_session
+        from web.plan_images import create_session as create_plan_session
 
         reader = PdfReader(BytesIO(pdf_bytes))
         page_count = len(reader.pages)
 
-        # Render all pages (cap at 50 to avoid timeouts)
+        # Render all pages (cap at 50), use 72 DPI for gallery
         page_nums = list(range(min(page_count, 50)))
-        page_images = pdf_pages_to_base64(pdf_bytes, page_nums)
+        page_images = pdf_pages_to_base64(pdf_bytes, page_nums, dpi=72)
 
-        session_id = create_session(
+        session_id = create_plan_session(
             filename=filename,
             page_count=page_count,
             page_extractions=page_extractions,
             page_images=page_images,
+            user_id=user_id,
         )
 
         # Format extractions for JavaScript (dict keyed by page_number)
@@ -894,6 +989,19 @@ def analyze_plans_route():
         })
     except Exception as e:
         logging.warning("Image rendering failed (non-fatal): %s", e)
+
+    # Track job for history
+    try:
+        from web.plan_jobs import create_job, update_job_status
+        job_id = create_job(
+            user_id=user_id, filename=filename, file_size_mb=size_mb,
+            property_address=property_address, permit_number=permit_number_input,
+            project_description=project_description, permit_type=permit_type,
+            is_addendum=is_addendum, quick_check=False, is_async=False,
+        )
+        update_job_status(job_id, "completed", session_id=session_id, report_md=result_md)
+    except Exception:
+        pass  # Job tracking is non-fatal
 
     return render_template(
         "analyze_plans_results.html",
@@ -906,6 +1014,18 @@ def analyze_plans_route():
         extractions_json=extractions_json,
         quick_check=False,
     )
+
+
+def _get_user_email(user_id: int | None) -> str | None:
+    """Get user email for display, returns None if not logged in."""
+    if not user_id:
+        return None
+    try:
+        from web.auth import get_user_by_id
+        user = get_user_by_id(user_id)
+        return user.get("email") if user else None
+    except Exception:
+        return None
 
 
 @app.route("/plan-images/<session_id>/<int:page_number>")
@@ -1019,6 +1139,84 @@ def email_analysis(session_id):
     except Exception as e:
         logging.error(f"Email send failed: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route("/plan-jobs/<job_id>/status")
+def plan_job_status(job_id):
+    """HTMX polling endpoint for async job status."""
+    from web.plan_jobs import get_job
+
+    job = get_job(job_id)
+    if not job:
+        abort(404)
+
+    if job["status"] == "completed":
+        return render_template("analyze_plans_complete.html", job=job)
+    elif job["status"] == "failed":
+        return render_template("analyze_plans_failed.html", job=job)
+    elif job["status"] == "stale":
+        return render_template("analyze_plans_stale.html", job=job)
+    else:
+        # Still processing — return polling HTML
+        return render_template("analyze_plans_polling.html", job=job)
+
+
+@app.route("/plan-jobs/<job_id>/results")
+def plan_job_results(job_id):
+    """View completed async analysis results."""
+    from web.plan_jobs import get_job
+    from web.plan_images import get_session
+
+    job = get_job(job_id)
+    if not job or job["status"] != "completed" or not job["session_id"]:
+        abort(404)
+
+    session_data = get_session(job["session_id"])
+    if not session_data:
+        abort(404)
+
+    result_html = md_to_html(job["report_md"]) if job["report_md"] else ""
+
+    # Format extractions for JavaScript
+    page_extractions = session_data.get("page_extractions", [])
+    extractions_json = json.dumps({
+        pe.get("page_number", i + 1) - 1: pe
+        for i, pe in enumerate(page_extractions)
+    }) if page_extractions else "{}"
+
+    return render_template(
+        "analyze_plans_results.html",
+        result=result_html,
+        filename=session_data["filename"],
+        filesize_mb=round(job["file_size_mb"], 1),
+        session_id=job["session_id"],
+        page_count=session_data["page_count"],
+        extractions=page_extractions,
+        extractions_json=extractions_json,
+        quick_check=job["quick_check"],
+    )
+
+
+@app.route("/account/analyses")
+def analysis_history():
+    """View past plan analyses for logged-in user."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login_page"))
+
+    from web.plan_jobs import get_user_jobs, search_jobs
+
+    search_q = request.args.get("q", "").strip()
+    if search_q:
+        jobs = search_jobs(user_id, search_q, limit=50)
+    else:
+        jobs = get_user_jobs(user_id, limit=50)
+
+    return render_template(
+        "analysis_history.html",
+        jobs=jobs,
+        search_q=search_q,
+    )
 
 
 @app.route("/lookup", methods=["POST"])
@@ -2327,8 +2525,14 @@ def cron_nightly():
         if not dry_run:
             try:
                 from web.plan_images import cleanup_expired
-                count = cleanup_expired(hours=24)
-                cleanup_result = {"plan_sessions_deleted": count}
+                from web.plan_jobs import cleanup_old_jobs
+                sessions_deleted = cleanup_expired(hours=24)
+                jobs_deleted = cleanup_old_jobs(days=30)
+                count = sessions_deleted + jobs_deleted
+                cleanup_result = {
+                    "plan_sessions_deleted": sessions_deleted,
+                    "plan_jobs_deleted": jobs_deleted,
+                }
             except Exception as ce:
                 logging.error("Plan session cleanup failed (non-fatal): %s", ce)
                 cleanup_result = {"error": str(ce)}

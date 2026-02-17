@@ -281,10 +281,59 @@ def init_user_schema(conn=None) -> None:
                 FOREIGN KEY (session_id) REFERENCES plan_analysis_sessions(session_id) ON DELETE CASCADE
             )
         """)
+        # user_id column on sessions
+        for alter_stmt in [
+            "ALTER TABLE plan_analysis_sessions ADD COLUMN user_id INTEGER",
+        ]:
+            try:
+                conn.execute(alter_stmt)
+            except Exception:
+                pass  # Column already exists
+
         try:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_created ON plan_analysis_sessions (created_at)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_user ON plan_analysis_sessions (user_id)")
         except Exception:
             pass
+
+        # Plan analysis jobs table (async processing + job history)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS plan_analysis_jobs (
+                job_id              TEXT PRIMARY KEY,
+                user_id             INTEGER,
+                session_id          TEXT,
+                filename            TEXT NOT NULL,
+                file_size_mb        REAL NOT NULL,
+                status              TEXT NOT NULL DEFAULT 'pending',
+                is_async            BOOLEAN NOT NULL DEFAULT FALSE,
+                project_description TEXT,
+                permit_type         TEXT,
+                is_addendum         BOOLEAN NOT NULL DEFAULT FALSE,
+                quick_check         BOOLEAN NOT NULL DEFAULT FALSE,
+                report_md           TEXT,
+                error_message       TEXT,
+                pdf_data            BLOB,
+                property_address    TEXT,
+                permit_number       TEXT,
+                address_source      TEXT,
+                permit_source       TEXT,
+                created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                started_at          TIMESTAMP,
+                completed_at        TIMESTAMP,
+                email_sent          BOOLEAN NOT NULL DEFAULT FALSE
+            )
+        """)
+        for stmt in [
+            "CREATE INDEX IF NOT EXISTS idx_plan_jobs_user ON plan_analysis_jobs (user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_plan_jobs_status ON plan_analysis_jobs (status)",
+            "CREATE INDEX IF NOT EXISTS idx_plan_jobs_permit ON plan_analysis_jobs (permit_number)",
+            "CREATE INDEX IF NOT EXISTS idx_plan_jobs_address ON plan_analysis_jobs (property_address)",
+            "CREATE INDEX IF NOT EXISTS idx_plan_jobs_created ON plan_analysis_jobs (created_at)",
+        ]:
+            try:
+                conn.execute(stmt)
+            except Exception:
+                pass
 
     finally:
         if close:

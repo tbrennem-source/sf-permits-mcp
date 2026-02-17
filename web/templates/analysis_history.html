@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Plan Analysis History — sfpermits.ai</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --accent-hover: #3a7ae0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .history-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px 16px;
+        }
+
+        .history-nav {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .history-nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .history-nav a:hover {
+            color: var(--accent);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .history-header h1 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: var(--accent);
+        }
+
+        .history-search {
+            display: flex;
+            gap: 8px;
+        }
+
+        .history-search input {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 0.9rem;
+            width: 240px;
+            font-family: inherit;
+        }
+
+        .history-search input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .history-search button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+
+        .history-search button:hover {
+            background: var(--accent-hover);
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--surface-2);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .history-table tr:hover td {
+            background: var(--surface-2);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-completed { background: #1b5e20; color: #a5d6a7; }
+        .status-processing { background: #0d47a1; color: #90caf9; }
+        .status-pending { background: #4a4a00; color: #fff9c4; }
+        .status-failed { background: #b71c1c; color: #ef9a9a; }
+        .status-stale { background: #e65100; color: #ffcc80; }
+
+        .empty-history {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-history p {
+            margin: 8px 0;
+        }
+
+        .filename-cell {
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .meta-cell {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .view-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .view-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .history-table th:nth-child(3),
+            .history-table td:nth-child(3) {
+                display: none;
+            }
+
+            .filename-cell {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="history-container">
+    <nav class="history-nav">
+        <a href="/">&larr; Home</a>
+        <a href="/account">My Account</a>
+    </nav>
+
+    <div class="history-header">
+        <h1>Plan Analysis History</h1>
+        <form class="history-search" method="get" action="/account/analyses">
+            <input type="text" name="q" placeholder="Search by address, permit, file..."
+                   value="{{ search_q or '' }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    {% if jobs %}
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>File</th>
+                <th>Status</th>
+                <th>Property / Permit</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td class="filename-cell" title="{{ job.filename }}">
+                    {{ job.filename }}
+                    <br><span class="meta-cell">{{ job.file_size_mb }} MB{% if job.quick_check %} &middot; Quick Check{% endif %}</span>
+                </td>
+                <td>
+                    <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+                </td>
+                <td class="meta-cell">
+                    {% if job.property_address %}{{ job.property_address }}{% endif %}
+                    {% if job.permit_number %}{% if job.property_address %}<br>{% endif %}{{ job.permit_number }}{% endif %}
+                    {% if not job.property_address and not job.permit_number %}&mdash;{% endif %}
+                </td>
+                <td class="meta-cell">
+                    {{ job.created_at.strftime('%b %d, %Y') if job.created_at else '' }}
+                </td>
+                <td>
+                    {% if job.status == 'completed' and job.session_id %}
+                    <a href="/plan-jobs/{{ job.job_id }}/results" class="view-link">View</a>
+                    {% elif job.status == 'processing' %}
+                    <span class="meta-cell">In progress...</span>
+                    {% elif job.status == 'failed' %}
+                    <span style="color: var(--error); font-size: 0.85rem;"
+                          title="{{ job.error_message or '' }}">Failed</span>
+                    {% else %}
+                    &mdash;
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-history">
+        {% if search_q %}
+        <p>No analyses found matching "{{ search_q }}"</p>
+        <p><a href="/account/analyses" style="color: var(--accent);">Clear search</a></p>
+        {% else %}
+        <p>No plan analyses yet.</p>
+        <p><a href="/" style="color: var(--accent);">Upload a plan set to get started</a></p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>

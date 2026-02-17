@@ -1,0 +1,18 @@
+<!-- HTMX fragment: replaces #job-status-poll when job fails -->
+<div id="job-status-poll" style="text-align: center; padding: 20px;">
+    <div style="font-size: 2.5rem; margin-bottom: 12px;">&#10060;</div>
+    <p style="font-weight: 600; color: #d32f2f; font-size: 1.1rem; margin-bottom: 8px;">
+        Analysis Failed
+    </p>
+    <p style="color: var(--text-muted, #999); font-size: 0.9rem; margin-bottom: 16px;">
+        {{ job.error_message or 'An unexpected error occurred during analysis.' }}
+    </p>
+    <p style="margin-bottom: 8px;">
+        <a href="/" style="color: var(--accent, #2563eb); text-decoration: none; font-weight: 600;">
+            &larr; Try Again
+        </a>
+    </p>
+    <p style="color: var(--text-muted, #999); font-size: 0.85rem;">
+        Tip: Try "Quick Check" mode for faster metadata-only analysis.
+    </p>
+</div>
