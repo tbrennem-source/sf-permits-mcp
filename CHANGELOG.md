@@ -1,5 +1,50 @@
 # Changelog
 
+## Session 24 — Annotation Polish, Legend, Reviewer Notes & Timeout Fix (2026-02-17)
+
+### Critical Fix: Full Analysis Timeout
+- **Root cause**: Gunicorn 300s worker timeout killed vision analysis (8+ min for 12-page PDF with 13+ API calls)
+- **Fix**: Route ALL Full Analysis through async background worker (was only >10MB files)
+- Removed ~95 lines of dead sync Full Analysis code from `web/app.py`
+- Added user-visible error message to HTMX error handler (was silent failure — user saw "nothing appeared")
+
+### Annotation UX Polish
+- Button label: "Full Analysis" → "Full Analysis (AI Markup)"
+- Updated subtitle and added feature hint below buttons promoting AI-powered annotations
+- "AI Annotations" badge on analysis history cards for completed Full Analyses
+- Annotation count in results page header (e.g., "· 24 annotations")
+- **Color collisions fixed**: 10 unique colors — teal for construction type, warm gray for stamps, yellow for structural, violet for general notes (was 3 colors shared among 10 types)
+- Window resize handler: debounced 200ms annotation repositioning
+- localStorage persistence: annotation toggle + filter state survives page reloads
+- Accessibility: ARIA labels on toggle button, filter dropdown, all SVG annotation layers
+
+### Annotation Legend
+- **"Legend" button** in annotation toolbar — opens collapsible dropdown panel
+- Shows all 11 annotation types with color swatches and human-readable labels
+- Click-outside-to-close behavior
+- Auto-builds from ANNOTATION_COLORS map (always in sync)
+
+### Reviewer Notes Capture
+- **New annotation type**: `reviewer_note` (pink #ec4899)
+- Vision prompt now identifies/transcribes existing reviewer comments, redlines, and handwritten notes
+- Added to `VALID_ANNOTATION_TYPES` in `src/vision/epr_checks.py`
+- Fixed filter dropdown: added 3 missing options (title_block, general_note, reviewer_note)
+
+### Bug Fixes (Session 23 follow-up)
+- Fixed DuckDB schema missing `page_annotations` column in `src/db.py`
+- Fixed Full Analysis button visual feedback (`.btn-active` CSS + JS state management)
+- Fixed `login_page` → `auth_login` endpoint crash in analysis_history route
+
+### Files Changed
+- `web/app.py` — async routing, dead code removal, annotation_count, error handler
+- `web/templates/index.html` — button label, subtitle, feature hint, HTMX error feedback
+- `web/templates/analyze_plans_results.html` — legend UI/CSS/JS, colors, resize, localStorage, a11y, filter options
+- `web/templates/analysis_history.html` — AI Annotations badge
+- `src/vision/prompts.py` — reviewer_note type + focus instruction in annotation prompt
+- `src/vision/epr_checks.py` — reviewer_note in VALID_ANNOTATION_TYPES
+- `src/db.py` — DuckDB page_annotations migration
+- `tests/test_vision_annotations.py` — updated expected types set
+
 ## Session 23 — AI-Generated Plan Annotations (2026-02-16)
 
 ### Vision Annotation Extraction
