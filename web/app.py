@@ -858,11 +858,8 @@ def analyze_plans_route():
     mode = "quick-check" if quick_check else "full-analysis"
     logging.info(f"[analyze-plans] Processing PDF: {filename} ({size_mb:.2f} MB, mode={mode})")
 
-    # ── Async threshold: large full-analysis files go to background worker ──
-    async_threshold_mb = float(os.environ.get("ASYNC_PLAN_THRESHOLD_MB", "10"))
-    use_async = size_mb > async_threshold_mb and not quick_check
-
-    if use_async:
+    # ── Full Analysis always uses background worker (vision API calls take minutes) ──
+    if not quick_check:
         from web.plan_jobs import create_job
         from web.plan_worker import submit_job
 
@@ -938,101 +935,9 @@ def analyze_plans_route():
             quick_check=True,
         )
 
-    # ── Synchronous Full Analysis mode (small files) ──
-    page_annotations = []
-    try:
-        result_md, page_extractions, page_annotations = run_async(analyze_plans(
-            pdf_bytes=pdf_bytes,
-            filename=filename,
-            project_description=project_description,
-            permit_type=permit_type,
-            return_structured=True,
-        ))
-        result_html = md_to_html(result_md)
-    except Exception as e:
-        logging.exception(f"[analyze-plans] Error processing PDF '{filename}': {e}")
-        import traceback
-        error_detail = traceback.format_exc()
-        result_html = f'''
-            <div class="error" style="text-align: left; max-width: 900px; margin: 20px auto;">
-                <p style="font-weight: 600; color: #d32f2f;">Analysis Error</p>
-                <p><strong>Error:</strong> {str(e)}</p>
-                <details style="margin-top: 12px;">
-                    <summary style="cursor: pointer; color: #1976d2;">Technical Details</summary>
-                    <pre style="background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin-top: 8px;">{error_detail}</pre>
-                </details>
-                <p style="margin-top: 12px; font-size: 0.9rem; opacity: 0.8;">
-                    This error has been logged. Please try again or contact support if the issue persists.
-                </p>
-            </div>
-        '''
-        page_extractions = []
-
-    # Render page images and create session
-    session_id = None
-    page_count = 0
-    extractions_json = "{}"
-
-    try:
-        from pypdf import PdfReader
-        from io import BytesIO
-        from src.vision.pdf_to_images import pdf_pages_to_base64
-        from web.plan_images import create_session as create_plan_session
-
-        reader = PdfReader(BytesIO(pdf_bytes))
-        page_count = len(reader.pages)
-
-        # Render all pages (cap at 50), use 72 DPI for gallery
-        page_nums = list(range(min(page_count, 50)))
-        page_images = pdf_pages_to_base64(pdf_bytes, page_nums, dpi=72)
-
-        session_id = create_plan_session(
-            filename=filename,
-            page_count=page_count,
-            page_extractions=page_extractions,
-            page_images=page_images,
-            user_id=user_id,
-            page_annotations=page_annotations,
-        )
-
-        # Format extractions for JavaScript (dict keyed by page_number)
-        extractions_json = json.dumps({
-            pe.get("page_number", i + 1) - 1: pe
-            for i, pe in enumerate(page_extractions)
-        })
-    except Exception as e:
-        logging.warning("Image rendering failed (non-fatal): %s", e)
-
-    # Track job for history
-    try:
-        from web.plan_jobs import create_job, update_job_status
-        job_id = create_job(
-            user_id=user_id, filename=filename, file_size_mb=size_mb,
-            property_address=property_address, permit_number=permit_number_input,
-            project_description=project_description, permit_type=permit_type,
-            is_addendum=is_addendum, quick_check=False, is_async=False,
-        )
-        update_job_status(job_id, "completed", session_id=session_id, report_md=result_md)
-    except Exception:
-        pass  # Job tracking is non-fatal
-
-    annotations_json = json.dumps(page_annotations or [])
-    street_number, street_name = _parse_address(property_address)
-    return render_template(
-        "analyze_plans_results.html",
-        result=result_html,
-        filename=filename,
-        filesize_mb=round(size_mb, 1),
-        session_id=session_id,
-        page_count=page_count,
-        extractions=page_extractions,
-        extractions_json=extractions_json,
-        annotations_json=annotations_json,
-        quick_check=False,
-        property_address=property_address,
-        street_number=street_number,
-        street_name=street_name,
-    )
+    # Note: Full Analysis always routes to async worker above, so this point
+    # is only reached if quick_check somehow falls through (shouldn't happen).
+    return '<div class="error">Unexpected routing error. Please try again.</div>', 500
 
 
 def _parse_address(address: str) -> tuple:
@@ -1226,6 +1131,7 @@ def plan_job_results(job_id):
         extractions=page_extractions,
         extractions_json=extractions_json,
         annotations_json=annotations_json,
+        annotation_count=len(page_annotations) if page_annotations else 0,
         quick_check=job["quick_check"],
         property_address=job.get("property_address"),
         street_number=_parse_address(job.get("property_address", ""))[0],

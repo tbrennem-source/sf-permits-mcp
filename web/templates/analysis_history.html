@@ -220,7 +220,7 @@
                     <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
                 </div>
                 <div class="card-meta">
-                    <span>{{ job.file_size_mb }} MB{% if job.quick_check %} &middot; Quick Check{% endif %}</span>
+                    <span>{{ job.file_size_mb }} MB{% if job.quick_check %} &middot; Quick Check{% endif %}{% if not job.quick_check and job.session_id %} &middot; <span style="color:var(--accent);font-size:0.75rem;">AI Annotations</span>{% endif %}</span>
                     <span>{{ job.created_at.strftime('%b %d, %Y') if job.created_at else '' }}</span>
                 </div>
                 {% if job.property_address or job.permit_number %}
