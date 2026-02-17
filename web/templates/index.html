@@ -534,6 +534,13 @@
             background: var(--border);
         }
 
+        .btn-secondary:active,
+        .btn-secondary.btn-active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
         /* Validation result status colors */
         .result-card .pass { color: var(--success); }
         .result-card .fail { color: var(--error); }
@@ -1089,8 +1096,8 @@
                             <span class="label">Quick Check</span>
                             <span class="spinner">Checking...</span>
                         </button>
-                        <button type="button" class="btn btn-secondary" style="flex:1;"
-                                onclick="submitFullAnalysis()">
+                        <button type="button" class="btn btn-secondary" id="full-analysis-btn" style="flex:1;"
+                                onclick="submitFullAnalysis(this)">
                             Full Analysis
                         </button>
                     </div>
@@ -1145,11 +1152,21 @@
                         submitButton.style.opacity = '0.6';
                     });
 
+                    function resetFullAnalysisBtn() {
+                        var faBtn = document.getElementById('full-analysis-btn');
+                        if (faBtn) {
+                            faBtn.classList.remove('btn-active');
+                            faBtn.textContent = 'Full Analysis';
+                            faBtn.disabled = false;
+                        }
+                    }
+
                     form.addEventListener('htmx:afterSwap', function() {
                         console.log('[Analyze Plans] HTMX afterSwap event fired');
                         loadingIndicator.style.display = 'none';
                         submitButton.disabled = false;
                         submitButton.style.opacity = '1';
+                        resetFullAnalysisBtn();
                         // Reset quick_check to default (Quick Check is the default action)
                         var qcField = document.getElementById('quick-check-hidden');
                         if (qcField) qcField.value = 'on';
@@ -1161,6 +1178,7 @@
                         loadingIndicator.style.display = 'none';
                         submitButton.disabled = false;
                         submitButton.style.opacity = '1';
+                        resetFullAnalysisBtn();
                     });
                 }
 
@@ -1387,11 +1405,14 @@
         }
 
         // Submit form in Full Analysis mode (clears quick_check flag)
-        function submitFullAnalysis() {
+        function submitFullAnalysis(btn) {
+            btn.classList.add('btn-active');
+            btn.textContent = 'Analyzing…';
+            btn.disabled = true;
             document.getElementById('quick-check-hidden').value = '';
             const loadingMsg = document.querySelector('#analyze-plans-loading p');
             if (loadingMsg) {
-                loadingMsg.textContent = "Analyzing plan set...";
+                loadingMsg.textContent = "Running AI vision analysis — this takes 30-60 seconds...";
             }
             const form = document.querySelector('form[hx-post="/analyze-plans"]');
             if (form) form.requestSubmit();
