@@ -2,7 +2,10 @@
 
 Stores rendered PDF page images in the database, keyed by session_id.
 Images are base64-encoded PNGs at max 1568px resolution.
-Sessions expire after 24 hours (cleaned by nightly cron).
+
+TTL:
+  - Anonymous sessions (user_id IS NULL): 24 hours
+  - User-linked sessions: 30 days
 """
 
 import json
@@ -20,6 +23,7 @@ def create_session(
     page_count: int,
     page_extractions: list[dict],
     page_images: list[tuple[int, str]],  # (page_number, base64_png)
+    user_id: int | None = None,
 ) -> str:
     """Create a plan analysis session with page images.
 
@@ -28,6 +32,7 @@ def create_session(
         page_count: Total number of pages in PDF
         page_extractions: List of extracted metadata dicts from Vision analysis
         page_images: List of (page_number, base64_data) tuples
+        user_id: Optional user ID for persistent storage (30-day TTL)
 
     Returns:
         session_id (str): Unique session identifier
@@ -39,16 +44,16 @@ def create_session(
     if BACKEND == "postgres":
         execute_write(
             "INSERT INTO plan_analysis_sessions "
-            "(session_id, filename, page_count, page_extractions) "
-            "VALUES (%s, %s, %s, %s)",
-            (session_id, filename, page_count, extractions_json),
+            "(session_id, filename, page_count, page_extractions, user_id) "
+            "VALUES (%s, %s, %s, %s, %s)",
+            (session_id, filename, page_count, extractions_json, user_id),
         )
     else:
         execute_write(
             "INSERT INTO plan_analysis_sessions "
-            "(session_id, filename, page_count, page_extractions) "
-            "VALUES (?, ?, ?, ?)",
-            (session_id, filename, page_count, extractions_json),
+            "(session_id, filename, page_count, page_extractions, user_id) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (session_id, filename, page_count, extractions_json, user_id),
         )
 
     # Insert images
@@ -76,7 +81,8 @@ def create_session(
         conn.close()
 
     logger.info(
-        f"Created plan session {session_id}: {filename} ({page_count} pages, {len(page_images)} images)"
+        f"Created plan session {session_id}: {filename} ({page_count} pages, "
+        f"{len(page_images)} images, user={user_id})"
     )
     return session_id
 
@@ -134,40 +140,80 @@ def get_page_image(session_id: str, page_number: int) -> str | None:
 
 
 def cleanup_expired(hours: int = 24) -> int:
-    """Delete sessions older than N hours. Returns count deleted.
+    """Delete expired sessions. Uses tiered TTL:
+      - Anonymous (user_id IS NULL): 24 hours
+      - User-linked: 30 days (720 hours)
 
     Args:
-        hours: Age threshold in hours (default 24)
+        hours: Age threshold for anonymous sessions (default 24)
 
     Returns:
-        Number of sessions deleted
+        Total number of sessions deleted
     """
+    total = 0
+
     if BACKEND == "postgres":
+        # Anonymous sessions: short TTL
         row = query_one(
             "SELECT COUNT(*) FROM plan_analysis_sessions "
-            "WHERE created_at < NOW() - INTERVAL '%s hours'",
+            "WHERE user_id IS NULL AND created_at < NOW() - INTERVAL '%s hours'",
             (hours,),
         )
-        count = row[0] if row else 0
-        if count > 0:
+        anon_count = row[0] if row else 0
+        if anon_count > 0:
             execute_write(
                 "DELETE FROM plan_analysis_sessions "
-                "WHERE created_at < NOW() - INTERVAL '%s hours'",
+                "WHERE user_id IS NULL AND created_at < NOW() - INTERVAL '%s hours'",
                 (hours,),
             )
-            logger.info(f"Cleaned up {count} expired plan sessions (>{hours}h old)")
-        return count
-    else:
-        # DuckDB: manual timestamp comparison
+            total += anon_count
+
+        # User-linked sessions: 30-day TTL
         row = query_one(
             "SELECT COUNT(*) FROM plan_analysis_sessions "
-            "WHERE created_at < CURRENT_TIMESTAMP - INTERVAL '" + str(hours) + " hours'"
+            "WHERE user_id IS NOT NULL AND created_at < NOW() - INTERVAL '30 days'",
         )
-        count = row[0] if row else 0
-        if count > 0:
+        user_count = row[0] if row else 0
+        if user_count > 0:
             execute_write(
                 "DELETE FROM plan_analysis_sessions "
-                "WHERE created_at < CURRENT_TIMESTAMP - INTERVAL '" + str(hours) + " hours'"
+                "WHERE user_id IS NOT NULL AND created_at < NOW() - INTERVAL '30 days'",
             )
-            logger.info(f"Cleaned up {count} expired plan sessions (>{hours}h old)")
-        return count
+            total += user_count
+    else:
+        # DuckDB: anonymous
+        row = query_one(
+            "SELECT COUNT(*) FROM plan_analysis_sessions "
+            "WHERE user_id IS NULL AND created_at < CURRENT_TIMESTAMP - INTERVAL '"
+            + str(hours)
+            + " hours'"
+        )
+        anon_count = row[0] if row else 0
+        if anon_count > 0:
+            execute_write(
+                "DELETE FROM plan_analysis_sessions "
+                "WHERE user_id IS NULL AND created_at < CURRENT_TIMESTAMP - INTERVAL '"
+                + str(hours)
+                + " hours'"
+            )
+            total += anon_count
+
+        # DuckDB: user-linked
+        row = query_one(
+            "SELECT COUNT(*) FROM plan_analysis_sessions "
+            "WHERE user_id IS NOT NULL AND created_at < CURRENT_TIMESTAMP - INTERVAL '30 days'"
+        )
+        user_count = row[0] if row else 0
+        if user_count > 0:
+            execute_write(
+                "DELETE FROM plan_analysis_sessions "
+                "WHERE user_id IS NOT NULL AND created_at < CURRENT_TIMESTAMP - INTERVAL '30 days'"
+            )
+            total += user_count
+
+    if total > 0:
+        logger.info(
+            f"Cleaned up {total} expired plan sessions "
+            f"({anon_count} anonymous, {user_count} user-linked)"
+        )
+    return total
