@@ -561,6 +561,39 @@
         display: flex;
         gap: 8px;
         align-items: center;
+        position: relative;
+    }
+
+    /* Annotation legend dropdown */
+    .annotation-legend {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 6px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 16px;
+        z-index: 10;
+        min-width: 220px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+        font-size: 0.82rem;
+        color: var(--text);
+    }
+
+    .legend-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.2);
     }
 
     .annotation-controls select {
@@ -714,9 +747,16 @@
                 <option value="occupancy_label">Occupancy</option>
                 <option value="construction_type">Construction Type</option>
                 <option value="scope_indicator">Scope</option>
+                <option value="title_block">Title Block</option>
                 <option value="stamp">Stamps</option>
                 <option value="structural_element">Structural</option>
+                <option value="general_note">General Note</option>
+                <option value="reviewer_note">Reviewer Notes</option>
             </select>
+            <button onclick="toggleLegend()" class="action-btn" id="legend-btn" aria-label="Show annotation legend">
+                Legend
+            </button>
+            <div id="annotation-legend" class="annotation-legend" style="display:none;"></div>
         </div>
     </div>
 
@@ -910,6 +950,21 @@
         stamp:              '#78716c',   // warm gray
         structural_element: '#eab308',   // yellow
         general_note:       '#8b5cf6',   // violet
+        reviewer_note:      '#ec4899',   // pink
+    };
+
+    const ANNOTATION_LABELS = {
+        epr_issue:          'EPR Issue',
+        code_reference:     'Code Reference',
+        dimension:          'Dimension',
+        occupancy_label:    'Occupancy',
+        construction_type:  'Construction Type',
+        scope_indicator:    'Scope Indicator',
+        title_block:        'Title Block',
+        stamp:              'Professional Stamp',
+        structural_element: 'Structural Element',
+        general_note:       'General Note',
+        reviewer_note:      'Reviewer Note',
     };
 
     // ===========================
@@ -1384,6 +1439,37 @@
     window.addEventListener('resize', function() {
         clearTimeout(_resizeTimer);
         _resizeTimer = setTimeout(refreshAllAnnotations, 200);
+    });
+
+    // ===========================
+    // Annotation Legend
+    // ===========================
+    function toggleLegend() {
+        const el = document.getElementById('annotation-legend');
+        if (!el.innerHTML) buildLegend();
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function buildLegend() {
+        const el = document.getElementById('annotation-legend');
+        let html = '';
+        for (const [type, color] of Object.entries(ANNOTATION_COLORS)) {
+            const label = ANNOTATION_LABELS[type] || type;
+            html += '<div class="legend-item">' +
+                '<span class="legend-swatch" style="background:' + color + '"></span>' +
+                '<span>' + label + '</span></div>';
+        }
+        el.innerHTML = html;
+    }
+
+    // Close legend when clicking outside
+    document.addEventListener('click', function(e) {
+        const legend = document.getElementById('annotation-legend');
+        const btn = document.getElementById('legend-btn');
+        if (legend && legend.style.display !== 'none' &&
+            !legend.contains(e.target) && e.target !== btn) {
+            legend.style.display = 'none';
+        }
     });
 
     // ===========================
