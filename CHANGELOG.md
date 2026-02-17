@@ -1,5 +1,73 @@
 # Changelog
 
+## Session 24 — Rebrand: Expediter → Land Use Consultant + LUCK (2026-02-17)
+
+### Terminology Rename
+- **"Expediter" → "Land Use Consultant"** across all user-facing UI, tools, knowledge base, and tests
+- **LUCK branding**: Knowledge base referenced as "LUCK (Land Use Consultants Knowledgebase)" in user-facing contexts
+- **Internal `KnowledgeBase` class** preserved — LUCK is user-facing only
+- **Backward compatibility**: Old `/expediters` routes 301/308 redirect to `/consultants`; "expediter" kept as search alias in semantic index and intent router
+
+### Core Python (6 files)
+- `src/tools/recommend_consultants.py` — **NEW** (replaces `recommend_expediters.py`): `ScoredConsultant`, `recommend_consultants()`, `_query_consultants()`, `_format_recommendations()`
+- `src/server.py` — updated import and tool registration
+- `src/ingest.py` — role map value `"pmt consultant/expediter": "consultant"` (raw SODA key preserved)
+- `src/tools/intent_router.py` — `PERSON_ROLES`, `_ROLE_TYPOS`, regex patterns updated; old terms map to `"consultant"`
+- `src/tools/team_lookup.py` — parameter `consultant=`, label "Land Use Consultant"
+- `src/tools/search_entity.py` — docstrings and entity_type enum updated
+
+### Web Backend (3 files)
+- `web/app.py` — routes `/consultants`, `/consultants/search`; form field `consultant_name`; legacy redirects from `/expediters`
+- `web/report.py` — `_compute_consultant_signal()`, `_SIGNAL_MESSAGES` rebranded, return key `consultant_signal`
+- `web/owner_mode.py` — `compute_extended_consultant_factors()`
+
+### Templates (7 files)
+- `web/templates/consultants.html` — **NEW** (replaces `expediters.html`)
+- `web/templates/report.html` — section "Do You Need a Consultant?", all `.expeditor-*` CSS → `.consultant-*`
+- `web/templates/report_email.html` — "Consultant Assessment" section
+- `web/templates/brief.html` — "Find a Consultant" badge
+- `web/templates/index.html` — "Land Use Consultant" form label
+- `web/templates/invite_email.html` — cohort `"consultants"`, "land use consultants"
+- `web/templates/account.html` — cohort option "Land Use Consultants (professional)", LUCK source link
+
+### Knowledge Base (3 JSON files)
+- `tier1/semantic-index.json` — canonical name "Land Use Consultant", old terms kept as aliases
+- `tier1/permit-consultants-registry.json` — field names updated, raw SODA values preserved
+- `tier1/remediation-roadmap.json` — all "permit expediter" → "land use consultant" (~10 edits)
+
+### LUCK Branding (5 files)
+- `web/templates/account.html` — "LUCK (Land Use Consultants Knowledgebase) sources"
+- `web/templates/admin_sources.html` — title "LUCK Sources", heading "LUCK Source Inventory"
+- `web/templates/admin_regulatory_watch.html` — "may affect LUCK"
+- `src/tools/revision_risk.py` — "LUCK-based assessment"
+- `src/tools/estimate_timeline.py` — "LUCK-based estimates"
+
+### Tests & Scripts (8 files)
+- `tests/test_report.py` — `TestConsultantSignal`, `_compute_consultant_signal`
+- `tests/test_owner_mode.py` — `TestExtendedConsultantFactors`
+- `tests/test_intent_router.py` — role assertions → `"consultant"`
+- `tests/test_team_lookup.py` — `consultant="Consultant C"`, "Land Use Consultant"
+- `tests/test_web.py` — `"consultant_name"` assertion
+- `tests/test_auth.py` — cohort `"consultants"`, "Land Use Consultants (professional)"
+- `tests/test_sources.py` — "LUCK Source Inventory" assertion
+- `scripts/feedback_triage.py` — `"/consultants": "Find a Consultant"`
+- `scripts/add_user_tables.sql` — comment updated
+
+### Documentation (3 files)
+- `CHANGELOG.md` — this entry
+- `data/knowledge/SOURCES.md` — "DBI Consultant Rankings"
+- `data/knowledge/INGESTION_LOG.md` — terminology updates
+
+### Production DB Migration (run manually)
+```sql
+UPDATE contacts SET role = 'consultant' WHERE role = 'expediter';
+UPDATE entities SET entity_type = 'consultant' WHERE entity_type = 'expediter';
+```
+
+### Stats
+- **~35 files changed**, 213 insertions, 986 deletions
+- **949 tests passing** (7 pre-existing failures, 18 pre-existing errors — all unrelated)
+
 ## Session 22.6 — RAG Knowledge Retrieval System Phase 1 (2026-02-17)
 
 ### RAG Pipeline

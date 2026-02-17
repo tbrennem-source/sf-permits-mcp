@@ -1,4 +1,4 @@
-"""Tests for property report: ReportLinks, risk assessment, expeditor signal scoring."""
+"""Tests for property report: ReportLinks, risk assessment, consultant signal scoring."""
 
 import pytest
 
@@ -91,48 +91,48 @@ class TestRiskAssessment:
         assert risks == []
 
 
-# ── Expeditor signal scoring tests ────────────────────────────────
+# ── Consultant signal scoring tests ───────────────────────────────
 
-class TestExpediterSignal:
-    """Tests for _compute_expediter_signal in web/report.py."""
+class TestConsultantSignal:
+    """Tests for _compute_consultant_signal in web/report.py."""
 
     def test_no_risk_factors_is_cold(self):
-        from web.report import _compute_expediter_signal
-        result = _compute_expediter_signal(
+        from web.report import _compute_consultant_signal
+        result = _compute_consultant_signal(
             complaints=[], violations=[], permits=[], property_data=[]
         )
         assert result["score"] == 0
         assert result["signal"] == "cold"
 
     def test_active_complaint_adds_3(self):
-        from web.report import _compute_expediter_signal
+        from web.report import _compute_consultant_signal
         complaints = [{"status": "OPEN"}]
-        result = _compute_expediter_signal(
+        result = _compute_consultant_signal(
             complaints=complaints, violations=[], permits=[], property_data=[]
         )
         assert result["score"] >= 3
         assert result["signal"] in ("recommended", "strongly_recommended", "essential")
 
     def test_prior_violations_adds_2(self):
-        from web.report import _compute_expediter_signal
+        from web.report import _compute_consultant_signal
         violations = [{"status": "OPEN"}]
-        result = _compute_expediter_signal(
+        result = _compute_consultant_signal(
             complaints=[], violations=violations, permits=[], property_data=[]
         )
         assert result["score"] >= 2
 
     def test_high_cost_permit_adds_points(self):
-        from web.report import _compute_expediter_signal
+        from web.report import _compute_consultant_signal
         permits = [{"estimated_cost": 600000}]
-        result = _compute_expediter_signal(
+        result = _compute_consultant_signal(
             complaints=[], violations=[], permits=permits, property_data=[]
         )
         assert result["score"] >= 2  # $500K+ = +2
 
     def test_essential_threshold(self):
-        from web.report import _compute_expediter_signal
+        from web.report import _compute_consultant_signal
         # Active complaint (+3) + violations (+2) + high cost (+2) + restrictive zoning (+1) = 8+
-        result = _compute_expediter_signal(
+        result = _compute_consultant_signal(
             complaints=[{"status": "OPEN"}],
             violations=[{"status": "OPEN"}],
             permits=[{"estimated_cost": 600000}],
@@ -142,14 +142,14 @@ class TestExpediterSignal:
         assert result["signal"] == "essential"
 
     def test_signal_thresholds(self):
-        from web.report import _compute_expediter_signal
+        from web.report import _compute_consultant_signal
         # Verify the threshold mapping
         # 0 = cold, 1-2 = warm, 3-4 = recommended, 5-7 = strongly_recommended, 8+ = essential
-        result_0 = _compute_expediter_signal(complaints=[], violations=[], permits=[], property_data=[])
+        result_0 = _compute_consultant_signal(complaints=[], violations=[], permits=[], property_data=[])
         assert result_0["signal"] == "cold"
 
         # warm: 1-2 points — e.g., high cost permit alone ($100K-$500K = +1)
-        result_warm = _compute_expediter_signal(complaints=[], violations=[], permits=[{"estimated_cost": 200000}], property_data=[])
+        result_warm = _compute_consultant_signal(complaints=[], violations=[], permits=[{"estimated_cost": 200000}], property_data=[])
         assert result_warm["signal"] == "warm"
 
 

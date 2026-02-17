@@ -274,7 +274,7 @@ class TestAdminSourcesRoute:
         rv = client.get("/admin/sources")
         assert rv.status_code == 200
         html = rv.data.decode()
-        assert "Knowledge Source Inventory" in html
+        assert "LUCK Source Inventory" in html
         assert "Permit Lifecycle Coverage" in html
         assert "Known Gaps" in html
         assert "Questions for Amy" in html

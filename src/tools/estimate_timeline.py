@@ -301,7 +301,7 @@ async def estimate_timeline(
         # Knowledge-based fallback ranges
         lines.append("\n## Estimated Timeline Ranges\n")
         if not db_available:
-            lines.append("*Historical permit database not available — using knowledge-based estimates*\n")
+            lines.append("*Historical permit database not available — using LUCK-based estimates*\n")
         if review_path == "otc":
             lines.append("| Phase | Estimate |")
             lines.append("|-------|----------|")

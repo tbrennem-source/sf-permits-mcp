@@ -19,7 +19,7 @@ Last updated: 2026-02-14
 | otc-criteria | Projects Eligible for OTC Permit | tier1/otc-criteria.json | 10.5K | Structured - 12 no-plan + 24 with-plan + 19 not-OTC project types |
 | completeness | Residential Pre-Plan Check Checklist | tier1/completeness-checklist.json | 8.2K | Structured - 13 sections, 11 review departments |
 | planning-code | Planning Code Key Sections | tier1/planning-code-key-sections.json | 36K | Structured - 6 major sections (Section 311, CU, variances, historic, CEQA, exemptions) |
-| consultants | SF Permit Consultant Registry | tier1/permit-consultants-registry.json | 115K | Structured - 167 filings, 115 consultants, Amy Lee profile, DBI expediter rankings |
+| consultants | SF Permit Consultant Registry | tier1/permit-consultants-registry.json | 115K | Structured - 167 filings, 115 consultants, Amy Lee profile, DBI consultant rankings |
 | fee-tables | Building Permit Fee Tables (1A-A through 1A-S) | tier1/fee-tables.json | 54K | Structured - 19 tables (14 active, 5 reserved), 10 valuation tiers, 9-step fee algorithm |
 | ab-index | Administrative Bulletins Complete Index | tier1/administrative-bulletins-index.json | 35K | Structured - 47 ABs indexed with titles, line ranges, relevance, subject areas |
 | fire-code | Fire Code Key Sections | tier1/fire-code-key-sections.json | 37K | Structured - 13 SFFD triggers, sprinkler/alarm rules, assembly thresholds, high-rise reqs |
@@ -145,5 +145,5 @@ Last updated: 2026-02-14
 - **Planning Code**: 12.6MB (222K lines) from amlegal.com
 - **BICC + Fire Code**: 3.6MB (57,938 lines) from amlegal.com
 - **Permit Consultant Registry**: 167 filings from SF Ethics Commission (SODA API umwe-sn9p)
-- **DBI Expediter Rankings**: Top 50 by permit volume (SODA API 3pee-9qhc)
+- **DBI Consultant Rankings**: Top 50 by permit volume (SODA API 3pee-9qhc)
 - **Total knowledge base size**: ~1.1MB raw text + ~560K structured JSON + 16.2MB code corpus (Planning + BICC/Fire)

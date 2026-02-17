@@ -792,7 +792,7 @@ def test_send_invite_with_cohort(client, monkeypatch):
     rv = client.post("/admin/send-invite", data={
         "to_email": "expeditor@example.com",
         "invite_code": "team-test-code-1234",
-        "cohort": "expediters",
+        "cohort": "consultants",
         "message": "Welcome to the professional network!",
     })
     assert rv.status_code == 200
@@ -855,5 +855,5 @@ def test_account_shows_cohort_selector(client, monkeypatch):
     assert "invite-cohort" in html
     assert "Friends (casual)" in html
     assert "Beta Testers" in html
-    assert "Expediters (professional)" in html
+    assert "Land Use Consultants (professional)" in html
     assert "invite-message" in html

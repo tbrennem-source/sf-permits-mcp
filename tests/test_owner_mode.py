@@ -5,7 +5,7 @@ from web.owner_mode import (
     detect_owner,
     compute_whats_missing,
     compute_remediation_roadmap,
-    compute_extended_expediter_factors,
+    compute_extended_consultant_factors,
     attach_kb_citations,
     _normalize_street_name,
     _parse_address,
@@ -282,8 +282,8 @@ class TestRemediationRoadmap:
         assert types == {"active_complaint", "classification_drift"}
 
 
-class TestExtendedExpediterFactors:
-    """Test new expediter signal factors for owner context."""
+class TestExtendedConsultantFactors:
+    """Test new consultant signal factors for owner context."""
 
     def test_classification_mismatch_adds_points(self):
         """Classification drift adds +2, dwelling unit change adds +1 more."""
@@ -292,7 +292,7 @@ class TestExtendedExpediterFactors:
             "severity": "moderate",
             "evidence": {"old_use": "1 family dwelling", "new_use": "2 family dwelling"},
         }]
-        factors = compute_extended_expediter_factors(whats_missing)
+        factors = compute_extended_consultant_factors(whats_missing)
         total = sum(f["points"] for f in factors)
         assert total >= 2  # +2 for mismatch, +1 for multi-agency
 
@@ -303,13 +303,13 @@ class TestExtendedExpediterFactors:
             "severity": "moderate",
             "evidence": {"old_use": "1 family dwelling", "new_use": "2 family dwelling"},
         }]
-        factors = compute_extended_expediter_factors(whats_missing)
+        factors = compute_extended_consultant_factors(whats_missing)
         labels = [f["label"] for f in factors]
         assert "Multi-agency review required (dwelling unit change)" in labels
 
     def test_no_mismatch_no_extra_points(self):
         """Clean whats_missing adds 0 points."""
-        factors = compute_extended_expediter_factors([])
+        factors = compute_extended_consultant_factors([])
         assert len(factors) == 0
 
     def test_non_dwelling_drift_no_multi_agency(self):
@@ -319,7 +319,7 @@ class TestExtendedExpediterFactors:
             "severity": "moderate",
             "evidence": {"old_use": "office", "new_use": "retail"},
         }]
-        factors = compute_extended_expediter_factors(whats_missing)
+        factors = compute_extended_consultant_factors(whats_missing)
         labels = [f["label"] for f in factors]
         assert "Use classification mismatch detected" in labels
         assert "Multi-agency review required (dwelling unit change)" not in labels

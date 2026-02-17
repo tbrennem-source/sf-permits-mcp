@@ -267,13 +267,13 @@ def _get_stats_duckdb(conn, entity_id: str, stats: dict):
 def generate_team_profile(
     contractor: str | None = None,
     architect: str | None = None,
-    expediter: str | None = None,
+    consultant: str | None = None,
 ) -> str:
     """Generate a 'Your Team' markdown section for the report.
 
     Looks up each provided name and returns formatted profile summaries.
     """
-    if not any([contractor, architect, expediter]):
+    if not any([contractor, architect, consultant]):
         return ""
 
     sections: list[str] = []
@@ -282,7 +282,7 @@ def generate_team_profile(
     for label, name, role in [
         ("General Contractor", contractor, "contractor"),
         ("Architect / Engineer", architect, "architect"),
-        ("Permit Expediter", expediter, "expediter"),
+        ("Land Use Consultant", consultant, "consultant"),
     ]:
         if not name or not name.strip():
             continue

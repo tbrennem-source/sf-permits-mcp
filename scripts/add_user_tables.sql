@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_id         SERIAL PRIMARY KEY,
     email           TEXT NOT NULL UNIQUE,
     display_name    TEXT,
-    role            TEXT,                -- 'expediter','architect','contractor','owner','other'
+    role            TEXT,                -- 'consultant','architect','contractor','owner','other'
     firm_name       TEXT,
     entity_id       INTEGER,             -- optional: claimed entity from entities table
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

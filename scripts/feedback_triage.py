@@ -304,7 +304,7 @@ PAGE_AREAS = {
     "/account": "Account",
     "/admin": "Admin",
     "/auth": "Auth",
-    "/expediter": "Find Expediter",
+    "/consultants": "Find a Consultant",
 }
 
 

@@ -557,7 +557,7 @@ def analyze():
     target_date = request.form.get("target_date", "").strip() or None
     contractor_name = request.form.get("contractor_name", "").strip() or None
     architect_name = request.form.get("architect_name", "").strip() or None
-    expediter_name = request.form.get("expediter_name", "").strip() or None
+    consultant_name = request.form.get("consultant_name", "").strip() or None
     experience_level = request.form.get("experience_level", "unspecified").strip()
     additional_context = request.form.get("additional_context", "").strip() or None
 
@@ -697,12 +697,12 @@ def analyze():
 
     # 6. Team Lookup (if any names provided)
     team_md = ""
-    if contractor_name or architect_name or expediter_name:
+    if contractor_name or architect_name or consultant_name:
         try:
             team_md = generate_team_profile(
                 contractor=contractor_name,
                 architect=architect_name,
-                expediter=expediter_name,
+                consultant=consultant_name,
             )
             if team_md:
                 results["team"] = md_to_html(team_md)
@@ -765,7 +765,7 @@ def _add_target_date_context(timeline_md: str, target_date: str) -> str:
             f"is **{abs(buffer_days)} days before** the typical permit issuance "
             f"date ({est_permit_date.isoformat()}). Consider: "
             f"filing immediately, using OTC pathway if eligible, "
-            f"or hiring an experienced expediter to compress the timeline."
+            f"or hiring a land use consultant to compress the timeline."
         )
 
     return timeline_md + note
@@ -1999,7 +1999,7 @@ def admin_send_invite():
     COHORT_SUBJECTS = {
         "friends": "Hey! You're invited to try sfpermits.ai",
         "testers": "You're invited to beta test sfpermits.ai",
-        "expediters": "Invitation: Join sfpermits.ai's Professional Network",
+        "consultants": "Invitation: Join sfpermits.ai's Professional Network",
         "custom": "You're invited to sfpermits.ai",
     }
     subject = COHORT_SUBJECTS.get(cohort, COHORT_SUBJECTS["friends"])
@@ -2308,19 +2308,19 @@ def email_unsubscribe():
 
 
 # ---------------------------------------------------------------------------
-# Expediter Dashboard
+# Consultant Dashboard
 # ---------------------------------------------------------------------------
 
-@app.route("/expediters")
-def expediters():
-    """Expediter recommendation dashboard."""
-    return render_template("expediters.html", neighborhoods=NEIGHBORHOODS)
+@app.route("/consultants")
+def consultants_page():
+    """Consultant recommendation dashboard."""
+    return render_template("consultants.html", neighborhoods=NEIGHBORHOODS)
 
 
-@app.route("/expediters/search", methods=["POST"])
-def expediters_search():
-    """Search for expediters and return HTMX fragment with results."""
-    from src.tools.recommend_expediters import recommend_expediters, ScoredExpediter
+@app.route("/consultants/search", methods=["POST"])
+def consultants_search():
+    """Search for consultants and return HTMX fragment with results."""
+    from src.tools.recommend_consultants import recommend_consultants, ScoredConsultant
 
     address = request.form.get("address", "").strip() or None
     block = request.form.get("block", "").strip() or None
@@ -2331,11 +2331,11 @@ def expediters_search():
     needs_planning = request.form.get("needs_planning") == "on"
 
     try:
-        # recommend_expediters is async, returns markdown string
+        # recommend_consultants is async, returns markdown string
         # But for the dashboard we want structured data — call the internal
         # scoring logic directly
-        from src.tools.recommend_expediters import (
-            _query_expediters, _query_relationships,
+        from src.tools.recommend_consultants import (
+            _query_consultants, _query_relationships,
             _load_registry, _get_registered_names,
         )
         from src.db import get_connection, BACKEND
@@ -2343,21 +2343,21 @@ def expediters_search():
 
         conn = get_connection()
         try:
-            expediters_raw = _query_expediters(conn, min_permits=20)
-            if not expediters_raw:
+            consultants_raw = _query_consultants(conn, min_permits=20)
+            if not consultants_raw:
                 return render_template(
-                    "expediters.html",
+                    "consultants.html",
                     neighborhoods=NEIGHBORHOODS,
-                    error="No expediters found with sufficient activity.",
+                    error="No consultants found with sufficient activity.",
                 )
 
-            max_permits = max(e["permit_count"] for e in expediters_raw)
+            max_permits = max(e["permit_count"] for e in consultants_raw)
             registered_names = _get_registered_names()
             registry = _load_registry()
             scored = []
 
-            for exp in expediters_raw:
-                s = ScoredExpediter(
+            for exp in consultants_raw:
+                s = ScoredConsultant(
                     entity_id=exp["entity_id"],
                     name=exp["canonical_name"],
                     firm=exp["canonical_firm"] or "",
@@ -2477,18 +2477,28 @@ def expediters_search():
         top = scored[:10]
 
         return render_template(
-            "expediters.html",
+            "consultants.html",
             neighborhoods=NEIGHBORHOODS,
             results=top,
         )
 
     except Exception as e:
-        logging.error("Expediter search failed: %s", e)
+        logging.error("Consultant search failed: %s", e)
         return render_template(
-            "expediters.html",
+            "consultants.html",
             neighborhoods=NEIGHBORHOODS,
             error=f"Search failed: {e}",
         )
+
+
+# Legacy route redirects (backward compatibility)
+@app.route("/expediters")
+def expediters_redirect():
+    return redirect("/consultants" + ("?" + request.query_string.decode() if request.query_string else ""), 301)
+
+@app.route("/expediters/search", methods=["POST"])
+def expediters_search_redirect():
+    return redirect("/consultants/search", 308)
 
 
 # ---------------------------------------------------------------------------
@@ -2505,7 +2515,7 @@ def property_report(block, lot):
 
     Owner Mode: If the logged-in user's primary address matches the
     report address (or ?owner=1 is set), the report includes a
-    Remediation Roadmap and extended expediter scoring.
+    Remediation Roadmap and extended consultant scoring.
     """
     from web.report import get_property_report
     from web.owner_mode import detect_owner

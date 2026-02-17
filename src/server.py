@@ -37,8 +37,8 @@ from src.tools.validate_plans import validate_plans
 # Phase 4 tools (AI vision analysis)
 from src.tools.analyze_plans import analyze_plans
 
-# Phase 2 tools (expediter recommender)
-from src.tools.recommend_expediters import recommend_expediters
+# Phase 2 tools (consultant recommender)
+from src.tools.recommend_consultants import recommend_consultants
 
 # Phase 4 tools (lookup / status)
 from src.tools.permit_lookup import permit_lookup
@@ -97,8 +97,8 @@ mcp.tool()(validate_plans)
 # Phase 4 tools (AI vision analysis)
 mcp.tool()(analyze_plans)
 
-# Phase 2 tools (expediter recommender)
-mcp.tool()(recommend_expediters)
+# Phase 2 tools (consultant recommender)
+mcp.tool()(recommend_consultants)
 
 # Phase 4 tools (lookup / status)
 mcp.tool()(permit_lookup)
