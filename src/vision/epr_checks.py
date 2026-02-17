@@ -17,6 +17,7 @@ from src.vision.client import analyze_image, is_vision_available, VisionResult
 from src.vision.pdf_to_images import pdf_page_to_base64
 from src.vision.prompts import (
     SYSTEM_PROMPT_EPR,
+    PROMPT_ANNOTATION_EXTRACTION,
     PROMPT_COVER_BLANK_AREA,
     PROMPT_COVER_PAGE_COUNT,
     PROMPT_DENSE_HATCHING,
@@ -564,13 +565,104 @@ async def _check_hatching(
 
 
 # ---------------------------------------------------------------------------
+# Annotation extraction
+# ---------------------------------------------------------------------------
+
+VALID_ANNOTATION_TYPES = frozenset({
+    "epr_issue", "code_reference", "dimension", "occupancy_label",
+    "construction_type", "scope_indicator", "title_block", "stamp",
+    "structural_element", "general_note", "reviewer_note",
+})
+
+VALID_ANCHORS = frozenset({
+    "top-left", "top-right", "bottom-left", "bottom-right",
+})
+
+MAX_ANNOTATIONS_PER_PAGE = 12
+
+
+async def extract_page_annotations(
+    image_b64: str,
+    page_number: int,
+) -> list[dict]:
+    """Extract spatial annotations from a plan page image.
+
+    Calls Claude Vision with the annotation extraction prompt and returns
+    a validated list of annotation dicts.
+
+    Args:
+        image_b64: Base64-encoded PNG image of the page.
+        page_number: 1-indexed page number.
+
+    Returns:
+        List of annotation dicts with keys:
+            type, label, x, y, anchor, importance, page_number
+    """
+    try:
+        result = await analyze_image(
+            image_b64, PROMPT_ANNOTATION_EXTRACTION, SYSTEM_PROMPT_EPR,
+            max_tokens=1500,
+        )
+    except Exception as e:
+        logger.warning("Annotation extraction failed for page %d: %s", page_number, e)
+        return []
+
+    parsed = _parse_json_response(result)
+    if not parsed or not isinstance(parsed.get("annotations"), list):
+        return []
+
+    annotations: list[dict] = []
+    for raw in parsed["annotations"][:MAX_ANNOTATIONS_PER_PAGE]:
+        if not isinstance(raw, dict):
+            continue
+
+        ann_type = raw.get("type", "general_note")
+        if ann_type not in VALID_ANNOTATION_TYPES:
+            ann_type = "general_note"
+
+        label = str(raw.get("label", ""))[:60]
+        if not label:
+            continue
+
+        try:
+            x = float(raw.get("x", 50))
+            y = float(raw.get("y", 50))
+        except (TypeError, ValueError):
+            continue
+
+        # Clamp coordinates to 0-100
+        x = max(0.0, min(100.0, x))
+        y = max(0.0, min(100.0, y))
+
+        anchor = raw.get("anchor", "top-right")
+        if anchor not in VALID_ANCHORS:
+            anchor = "top-right"
+
+        importance = raw.get("importance", "medium")
+        if importance not in ("high", "medium", "low"):
+            importance = "medium"
+
+        annotations.append({
+            "type": ann_type,
+            "label": label,
+            "x": round(x, 1),
+            "y": round(y, 1),
+            "anchor": anchor,
+            "importance": importance,
+            "page_number": page_number,
+        })
+
+    return annotations
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
 async def run_vision_epr_checks(
     pdf_bytes: bytes,
     total_pages: int,
-) -> tuple[list[CheckResult], list[dict]]:
+) -> tuple[list[CheckResult], list[dict], list[dict]]:
     """Run all vision-based EPR checks on a PDF plan set.
 
     Args:
@@ -578,24 +670,27 @@ async def run_vision_epr_checks(
         total_pages: Total page count (from metadata checks).
 
     Returns:
-        Tuple of (check_results, page_extractions) where page_extractions
-        is a list of per-page title block data for use by analyze_plans.
+        Tuple of (check_results, page_extractions, page_annotations) where
+        page_extractions is a list of per-page title block data and
+        page_annotations is a list of spatial annotation dicts for UI overlay.
     """
     if not is_vision_available():
         return (
             _skip_all("ANTHROPIC_API_KEY not configured — vision checks skipped"),
             [],
+            [],
         )
 
     results: list[CheckResult] = []
     page_extractions: list[dict] = []
+    page_annotations: list[dict] = []
 
     # 1. Render cover page
     try:
         cover_b64 = pdf_page_to_base64(pdf_bytes, 0)
     except Exception as e:
         logger.error("Failed to render cover page: %s", e)
-        return _skip_all(f"PDF rendering failed: {e}"), []
+        return _skip_all(f"PDF rendering failed: {e}"), [], []
 
     # EPR-011: Page count on cover
     results.append(await _check_cover_page_count(cover_b64, total_pages))
@@ -618,6 +713,10 @@ async def run_vision_epr_checks(
                 parsed["page_number"] = page_num + 1  # 1-indexed for display
                 title_block_data.append(parsed)
                 page_extractions.append(parsed)
+
+            # Extract spatial annotations from the same rendered image
+            anns = await extract_page_annotations(b64, page_num + 1)
+            page_annotations.extend(anns)
         except Exception as e:
             logger.warning(
                 "Title block extraction failed for page %d: %s", page_num, e
@@ -670,4 +769,4 @@ async def run_vision_epr_checks(
     hatching_pages = [p for p in sample_pages if p != 0][:2]
     results.append(await _check_hatching(pdf_bytes, hatching_pages, cover_b64))
 
-    return results, page_extractions
+    return results, page_extractions, page_annotations

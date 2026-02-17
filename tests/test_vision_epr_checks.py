@@ -389,10 +389,11 @@ def test_stamps_missing():
 async def test_run_vision_no_api_key():
     """All checks skip when API key is missing."""
     with patch("src.vision.epr_checks.is_vision_available", return_value=False):
-        results, extractions = await run_vision_epr_checks(_make_pdf(5), 5)
+        results, extractions, annotations = await run_vision_epr_checks(_make_pdf(5), 5)
     assert len(results) == 11
     assert all(r.status == "skip" for r in results)
     assert extractions == []
+    assert annotations == []
 
 
 @pytest.mark.asyncio
@@ -403,7 +404,7 @@ async def test_run_vision_render_failure():
             "src.vision.epr_checks.pdf_page_to_base64",
             side_effect=Exception("poppler not installed"),
         ):
-            results, extractions = await run_vision_epr_checks(_make_pdf(5), 5)
+            results, extractions, annotations = await run_vision_epr_checks(_make_pdf(5), 5)
     assert len(results) == 11
     assert all(r.status == "skip" for r in results)
 
@@ -434,9 +435,16 @@ async def test_run_vision_full_pipeline():
         "severity": "none",
     }
 
+    annotation_data = {
+        "annotations": [
+            {"type": "code_reference", "label": "CBC 1020.1", "x": 30.0, "y": 50.0,
+             "anchor": "top-right", "importance": "high"},
+        ]
+    }
+
     call_count = 0
 
-    async def mock_analyze(b64, prompt, system_prompt=None, model=None):
+    async def mock_analyze(b64, prompt, system_prompt=None, model=None, max_tokens=2048):
         nonlocal call_count
         call_count += 1
         # Return appropriate data based on prompt content
@@ -446,6 +454,8 @@ async def test_run_vision_full_pipeline():
             data = blank_data
         elif "hatching" in prompt.lower():
             data = hatch_data
+        elif "annotate" in prompt.lower():
+            data = annotation_data
         else:
             data = title_data
         return VisionResult(
@@ -458,7 +468,7 @@ async def test_run_vision_full_pipeline():
     with patch("src.vision.epr_checks.is_vision_available", return_value=True):
         with patch("src.vision.epr_checks.pdf_page_to_base64", return_value="fake_base64"):
             with patch("src.vision.epr_checks.analyze_image", side_effect=mock_analyze):
-                results, extractions = await run_vision_epr_checks(_make_pdf(5), 5)
+                results, extractions, annotations = await run_vision_epr_checks(_make_pdf(5), 5)
 
     assert len(results) == 11
     epr_ids = {r.epr_id for r in results}
@@ -468,3 +478,6 @@ async def test_run_vision_full_pipeline():
     }
     assert epr_ids == expected_ids
     assert len(extractions) > 0
+    assert len(annotations) > 0
+    assert annotations[0]["type"] == "code_reference"
+    assert "page_number" in annotations[0]

@@ -1,10 +1,47 @@
 <!-- HTMX fragment: replaces #job-status-poll while still processing -->
+{% set stage = job.progress_stage or 'analyzing' %}
+{% set stages = ['analyzing', 'rendering', 'finalizing'] %}
+{% set stage_labels = {'analyzing': 'Analyzing', 'rendering': 'Rendering', 'finalizing': 'Finalizing'} %}
+
 <div hx-get="/plan-jobs/{{ job.job_id }}/status"
      hx-trigger="every 3s"
      hx-swap="outerHTML"
      id="job-status-poll">
-    <div class="processing-progress" style="max-width: 400px; margin: 0 auto 16px; height: 6px; background: var(--surface-2, #333); border-radius: 3px; overflow: hidden;">
-        <div style="height: 100%; width: 30%; background: var(--accent, #2563eb); border-radius: 3px; animation: progress-slide 2s ease-in-out infinite;"></div>
+
+    <style>
+        .step-indicator { display: flex; align-items: center; justify-content: center; gap: 0; max-width: 400px; margin: 0 auto 16px; }
+        .step-dot {
+            width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border, #333); background: transparent;
+            flex-shrink: 0; transition: all 0.3s;
+        }
+        .step-dot.completed { background: var(--accent, #2563eb); border-color: var(--accent, #2563eb); }
+        .step-dot.active { border-color: var(--accent, #2563eb); background: var(--accent, #2563eb); animation: step-pulse 1.5s ease-in-out infinite; }
+        .step-line { flex: 1; height: 2px; background: var(--border, #333); transition: background 0.3s; }
+        .step-line.completed { background: var(--accent, #2563eb); }
+        .step-label { font-size: 0.75rem; color: var(--text-muted, #999); margin-top: 6px; text-align: center; }
+        .step-label.active { color: var(--accent, #2563eb); font-weight: 600; }
+        .step-label.completed { color: var(--text-muted, #999); }
+        .step-group { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
+        .step-detail { font-size: 0.85rem; color: var(--text-muted, #999); text-align: center; margin-top: 4px; }
+        @keyframes step-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+        }
+    </style>
+
+    <div class="step-indicator">
+        {% for s in stages %}
+            {% set idx = loop.index0 %}
+            {% set stage_idx = stages.index(stage) if stage in stages else 0 %}
+            <div class="step-group">
+                <div class="step-dot {% if idx < stage_idx %}completed{% elif idx == stage_idx %}active{% endif %}"></div>
+                <div class="step-label {% if idx < stage_idx %}completed{% elif idx == stage_idx %}active{% endif %}">{{ stage_labels[s] }}</div>
+            </div>
+            {% if not loop.last %}
+            <div class="step-line {% if idx < stage_idx %}completed{% endif %}"></div>
+            {% endif %}
+        {% endfor %}
     </div>
-    <div style="font-size: 0.85rem; color: var(--text-muted, #999);">Status: Processing...</div>
+
+    <div class="step-detail">{{ job.progress_detail or 'Processing...' }}</div>
 </div>

@@ -180,6 +180,8 @@ def _run_startup_migrations():
         # user_id column on sessions (link sessions to users for persistent storage)
         cur.execute("ALTER TABLE plan_analysis_sessions ADD COLUMN IF NOT EXISTS user_id INTEGER")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_user ON plan_analysis_sessions (user_id)")
+        # page_annotations column for spatial annotation overlay data
+        cur.execute("ALTER TABLE plan_analysis_sessions ADD COLUMN IF NOT EXISTS page_annotations TEXT")
 
         # Plan analysis jobs table (async processing + job history)
         cur.execute("""
@@ -216,6 +218,10 @@ def _run_startup_migrations():
 
         # Tags column for watch items (client grouping feature)
         cur.execute("ALTER TABLE watch_items ADD COLUMN IF NOT EXISTS tags TEXT DEFAULT ''")
+
+        # Progress tracking columns for multi-stage indicator
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS progress_stage TEXT")
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS progress_detail TEXT")
 
         cur.close()
         conn.close()
@@ -852,11 +858,8 @@ def analyze_plans_route():
     mode = "quick-check" if quick_check else "full-analysis"
     logging.info(f"[analyze-plans] Processing PDF: {filename} ({size_mb:.2f} MB, mode={mode})")
 
-    # ── Async threshold: large full-analysis files go to background worker ──
-    async_threshold_mb = float(os.environ.get("ASYNC_PLAN_THRESHOLD_MB", "10"))
-    use_async = size_mb > async_threshold_mb and not quick_check
-
-    if use_async:
+    # ── Full Analysis always uses background worker (vision API calls take minutes) ──
+    if not quick_check:
         from web.plan_jobs import create_job
         from web.plan_worker import submit_job
 
@@ -928,96 +931,23 @@ def analyze_plans_route():
             session_id=None,
             page_count=0,
             extractions_json="{}",
+            annotations_json="[]",
             quick_check=True,
         )
 
-    # ── Synchronous Full Analysis mode (small files) ──
-    try:
-        result_md, page_extractions = run_async(analyze_plans(
-            pdf_bytes=pdf_bytes,
-            filename=filename,
-            project_description=project_description,
-            permit_type=permit_type,
-            return_structured=True,
-        ))
-        result_html = md_to_html(result_md)
-    except Exception as e:
-        logging.exception(f"[analyze-plans] Error processing PDF '{filename}': {e}")
-        import traceback
-        error_detail = traceback.format_exc()
-        result_html = f'''
-            <div class="error" style="text-align: left; max-width: 900px; margin: 20px auto;">
-                <p style="font-weight: 600; color: #d32f2f;">Analysis Error</p>
-                <p><strong>Error:</strong> {str(e)}</p>
-                <details style="margin-top: 12px;">
-                    <summary style="cursor: pointer; color: #1976d2;">Technical Details</summary>
-                    <pre style="background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin-top: 8px;">{error_detail}</pre>
-                </details>
-                <p style="margin-top: 12px; font-size: 0.9rem; opacity: 0.8;">
-                    This error has been logged. Please try again or contact support if the issue persists.
-                </p>
-            </div>
-        '''
-        page_extractions = []
+    # Note: Full Analysis always routes to async worker above, so this point
+    # is only reached if quick_check somehow falls through (shouldn't happen).
+    return '<div class="error">Unexpected routing error. Please try again.</div>', 500
 
-    # Render page images and create session
-    session_id = None
-    page_count = 0
-    extractions_json = "{}"
 
-    try:
-        from pypdf import PdfReader
-        from io import BytesIO
-        from src.vision.pdf_to_images import pdf_pages_to_base64
-        from web.plan_images import create_session as create_plan_session
-
-        reader = PdfReader(BytesIO(pdf_bytes))
-        page_count = len(reader.pages)
-
-        # Render all pages (cap at 50), use 72 DPI for gallery
-        page_nums = list(range(min(page_count, 50)))
-        page_images = pdf_pages_to_base64(pdf_bytes, page_nums, dpi=72)
-
-        session_id = create_plan_session(
-            filename=filename,
-            page_count=page_count,
-            page_extractions=page_extractions,
-            page_images=page_images,
-            user_id=user_id,
-        )
-
-        # Format extractions for JavaScript (dict keyed by page_number)
-        extractions_json = json.dumps({
-            pe.get("page_number", i + 1) - 1: pe
-            for i, pe in enumerate(page_extractions)
-        })
-    except Exception as e:
-        logging.warning("Image rendering failed (non-fatal): %s", e)
-
-    # Track job for history
-    try:
-        from web.plan_jobs import create_job, update_job_status
-        job_id = create_job(
-            user_id=user_id, filename=filename, file_size_mb=size_mb,
-            property_address=property_address, permit_number=permit_number_input,
-            project_description=project_description, permit_type=permit_type,
-            is_addendum=is_addendum, quick_check=False, is_async=False,
-        )
-        update_job_status(job_id, "completed", session_id=session_id, report_md=result_md)
-    except Exception:
-        pass  # Job tracking is non-fatal
-
-    return render_template(
-        "analyze_plans_results.html",
-        result=result_html,
-        filename=filename,
-        filesize_mb=round(size_mb, 1),
-        session_id=session_id,
-        page_count=page_count,
-        extractions=page_extractions,
-        extractions_json=extractions_json,
-        quick_check=False,
-    )
+def _parse_address(address: str) -> tuple:
+    """Split '123 Main St' into ('123', 'Main St'). Best-effort."""
+    if not address:
+        return ("", "")
+    parts = address.strip().split(None, 1)
+    if len(parts) == 2 and parts[0][0].isdigit():
+        return (parts[0], parts[1])
+    return ("", address)
 
 
 def _get_user_email(user_id: int | None) -> str | None:
@@ -1188,8 +1118,11 @@ def plan_job_results(job_id):
         for i, pe in enumerate(page_extractions)
     }) if page_extractions else "{}"
 
+    page_annotations = session_data.get("page_annotations", [])
+    annotations_json = json.dumps(page_annotations)
+
     return render_template(
-        "analyze_plans_results.html",
+        "plan_results_page.html",
         result=result_html,
         filename=session_data["filename"],
         filesize_mb=round(job["file_size_mb"], 1),
@@ -1197,7 +1130,12 @@ def plan_job_results(job_id):
         page_count=session_data["page_count"],
         extractions=page_extractions,
         extractions_json=extractions_json,
+        annotations_json=annotations_json,
+        annotation_count=len(page_annotations) if page_annotations else 0,
         quick_check=job["quick_check"],
+        property_address=job.get("property_address"),
+        street_number=_parse_address(job.get("property_address", ""))[0],
+        street_name=_parse_address(job.get("property_address", ""))[1],
     )
 
 
@@ -1206,7 +1144,7 @@ def analysis_history():
     """View past plan analyses for logged-in user."""
     user_id = session.get("user_id")
     if not user_id:
-        return redirect(url_for("login_page"))
+        return redirect(url_for("auth_login"))
 
     from web.plan_jobs import get_user_jobs, search_jobs
 
@@ -1887,6 +1825,13 @@ def account():
     # Points data
     total_points = get_user_points(g.user["user_id"])
     points_history = get_points_history(g.user["user_id"], limit=10)
+    # Recent plan analyses
+    recent_analyses = []
+    try:
+        from web.plan_jobs import get_user_jobs
+        recent_analyses = get_user_jobs(g.user["user_id"], limit=3)
+    except Exception:
+        pass  # Non-fatal — plan_jobs table may not exist yet
     # Admin stats for dashboard cards
     activity_stats = None
     feedback_counts = None
@@ -1899,7 +1844,8 @@ def account():
                            activity_stats=activity_stats,
                            feedback_counts=feedback_counts,
                            total_points=total_points,
-                           points_history=points_history)
+                           points_history=points_history,
+                           recent_analyses=recent_analyses)
 
 
 # ---------------------------------------------------------------------------

@@ -112,3 +112,44 @@ PROMPT_FULL_EXTRACTION = (
     '"scope_indicators": {"has_new_work": false, "has_demolition": false, '
     '"scope_description": null}}'
 )
+
+
+# Spatial annotation extraction for visual markup
+PROMPT_ANNOTATION_EXTRACTION = (
+    "Analyze this architectural drawing and identify important items to annotate.\n\n"
+    "For each item, provide:\n"
+    "1. **type**: one of: epr_issue, code_reference, dimension, occupancy_label, "
+    "construction_type, scope_indicator, title_block, stamp, structural_element, "
+    "general_note, reviewer_note\n"
+    "2. **label**: short description (max 60 chars)\n"
+    "3. **x**: horizontal position as percentage (0-100) of page width, where the "
+    "item is located\n"
+    "4. **y**: vertical position as percentage (0-100) of page height, where the "
+    "item is located\n"
+    "5. **anchor**: preferred callout label direction to avoid obscuring drawing "
+    "content (one of: top-left, top-right, bottom-left, bottom-right)\n"
+    "6. **importance**: high, medium, or low\n\n"
+    "Focus on:\n"
+    "- Code references (CBC, NFPA, Building Code sections)\n"
+    "- Occupancy labels and classifications (Group A, B, R, etc.)\n"
+    "- Construction type indicators (Type I, II, III, IV, V)\n"
+    "- Key dimensions and area calculations\n"
+    "- Scope indicators (new work, demolition, existing to remain)\n"
+    "- Professional stamps and signatures\n"
+    "- EPR compliance items (blank stamping areas, sheet numbers, addresses)\n"
+    "- Notable structural elements or systems\n"
+    "- Existing reviewer comments, redlines, or handwritten notes visible on the "
+    "drawing (use type 'reviewer_note' — transcribe the reviewer's comment as "
+    "the label)\n\n"
+    "Return a MAXIMUM of 12 annotations. Prioritize high-importance items first.\n"
+    "Coordinates should point to the CENTER of the item being annotated.\n\n"
+    "Return JSON:\n"
+    '{"annotations": ['
+    '{"type": "code_reference", "label": "CBC 1020.1 — Corridor width min 44in", '
+    '"x": 35.2, "y": 48.7, "anchor": "top-right", "importance": "high"}, '
+    '{"type": "reviewer_note", "label": "Reviewer: Verify egress width at corridor", '
+    '"x": 67.2, "y": 22.3, "anchor": "top-left", "importance": "high"}, '
+    '{"type": "occupancy_label", "label": "Group B Occupancy", '
+    '"x": 52.0, "y": 30.1, "anchor": "bottom-left", "importance": "medium"}'
+    "]}"
+)

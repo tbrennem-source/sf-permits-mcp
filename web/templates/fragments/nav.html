@@ -26,6 +26,9 @@
             <a href="/brief" class="badge {% if active_page == 'brief' %}badge-active{% endif %}">Brief</a>
             <a href="/portfolio" class="badge {% if active_page == 'portfolio' %}badge-active{% endif %}">Portfolio</a>
             {% if g.user %}
+            <a href="/account/analyses" class="badge {% if active_page == 'analyses' %}badge-active{% endif %}">My Analyses</a>
+            {% endif %}
+            {% if g.user %}
             <a href="/account" class="badge {% if active_page == 'account' %}badge-active{% endif %}">{{ g.user.display_name or g.user.email }}</a>
             <form action="/auth/logout" method="post" style="display:inline;">
                 <button class="badge badge-btn" type="submit">Logout</button>

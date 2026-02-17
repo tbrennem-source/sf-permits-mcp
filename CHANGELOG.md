@@ -32,6 +32,90 @@
 
 ---
 
+## Session 23 — AI-Generated Plan Annotations (2026-02-16)
+
+### Vision Annotation Extraction
+- **New prompt**: `PROMPT_ANNOTATION_EXTRACTION` in `src/vision/prompts.py` — asks Claude Vision to identify and spatially locate items on architectural drawings
+- **Extraction function**: `extract_page_annotations()` in `src/vision/epr_checks.py` — validates coordinates (0-100%), type enum (10 types), label truncation (60 chars), max 12 per page
+- **3-tuple return**: `run_vision_epr_checks()` now returns `(checks, extractions, annotations)` — annotations extracted from same sampled pages as title block data (no extra render cost)
+
+### SVG Overlay Rendering
+- **Client-side SVG overlays** on all image views: thumbnails (dots only), detail card (full callouts), lightbox (full callouts), comparison (both sides)
+- **Color-coded by type**: red=EPR issues, green=code refs, blue=dimensions, purple=occupancy, orange=scope, gray=stamps/title blocks, teal=construction type
+- **Resolution-independent**: coordinates stored as percentages (0-100), SVG viewBox maps to naturalWidth/naturalHeight
+- **Toggle & filter controls**: toolbar button to show/hide all annotations, dropdown to filter by annotation type
+
+### Storage & Plumbing
+- **DB column**: `page_annotations TEXT` on `plan_analysis_sessions` (PostgreSQL + DuckDB migrations)
+- **Pipeline threading**: `analyze_plans()` → `plan_worker.py` → `create_session()` → `get_session()` → template context → JavaScript
+- **Graceful degradation**: old sessions with NULL annotations display normally (empty list)
+
+### Tests
+- **20 new tests** in `tests/test_vision_annotations.py` — extraction, validation, failure modes, constants
+- Updated `test_analyze_plans.py` and `test_vision_epr_checks.py` for 3-tuple return signature
+
+### Files Changed
+- `src/vision/prompts.py` — new annotation extraction prompt
+- `src/vision/epr_checks.py` — `extract_page_annotations()`, 3-tuple return
+- `src/tools/analyze_plans.py` — 3-tuple unpacking, annotations threading
+- `web/plan_images.py` — `page_annotations` in create/get session
+- `web/app.py` — DB migration, route updates, `annotations_json` to templates
+- `web/plan_worker.py` — 3-tuple unpacking, annotations to `create_session()`
+- `web/templates/analyze_plans_results.html` — SVG overlay system, JS rendering engine, CSS, controls
+- `src/db.py` — DuckDB schema migration for `page_annotations` column
+- `tests/test_vision_annotations.py` — **NEW** 20 tests
+- `tests/test_analyze_plans.py` — updated for 3-tuple
+- `tests/test_vision_epr_checks.py` — updated for 3-tuple
+
+## Session 22.5 — Plan Analysis UX Overhaul (2026-02-16)
+
+### Multi-Stage Progress Indicator (Item 3)
+- **DB migration**: `progress_stage` + `progress_detail` columns on `plan_analysis_jobs`
+- **Worker updates**: 4 progress checkpoints — Analyzing → Rendering (with page count) → Finalizing
+- **Step indicator UI**: Horizontal 3-dot stepper with pulsing active state, replaces generic bouncing bar
+- Templates: `analyze_plans_processing.html` (initial state) + `analyze_plans_polling.html` (live updates)
+
+### App Shell for Async Results (Item 1)
+- **New template**: `plan_results_page.html` — full-page wrapper with shared nav fragment
+- Async results route now renders inside app shell (header, nav, logout) instead of bare fragment
+- `property_address` passed to template context for watch cross-sell
+
+### Simplified Upload Form (Item 4)
+- **Quick Check is now the default** primary action (instant metadata scan)
+- Full Analysis (AI vision) is opt-in secondary button
+- **Progressive disclosure**: description, permit type, address, permit number hidden behind "More options ▸" toggle
+- Two side-by-side buttons replace single submit + checkbox
+
+### Account Page "Plan Analyses" Card + Nav Links (Item 2)
+- **Account page card**: shows 3 most recent analyses with status badges + "View all analyses →"
+- **Header nav**: "My Analyses" badge added to shared `fragments/nav.html`
+- **Below-form link**: "View your analysis history →" for logged-in users
+
+### Card-Based History Layout (Item 5)
+- **Full rewrite** of `analysis_history.html`: table → responsive card grid
+- Cards show filename, status badge, file size, date, property/permit details, action links
+- Adopted shared `fragments/nav.html` (was inline header)
+- Responsive: single column below 640px
+
+### Post-Analysis Watch Cross-Sell (Item 6)
+- **Address parser**: `_parse_address("123 Main St")` → `("123", "Main St")` for watch system
+- **Logged-in with address**: "Track changes to this property?" card with HTMX watch button
+- **Logged-out with address**: "Sign in to watch {address}" prompt
+- No address: nothing shown
+
+### Files Changed
+- `web/app.py` — migration, address parser, route updates (Items 1,2,3,6)
+- `web/plan_jobs.py` — progress columns in `get_job()` SELECT (Item 3)
+- `web/plan_worker.py` — 4 progress update calls (Item 3)
+- `web/templates/plan_results_page.html` — **NEW** app shell wrapper (Item 1)
+- `web/templates/analyze_plans_processing.html` — step indicator initial state (Item 3)
+- `web/templates/analyze_plans_polling.html` — step indicator live updates (Item 3)
+- `web/templates/index.html` — form restructure + nav link (Items 2,4)
+- `web/templates/account.html` — Plan Analyses card (Item 2)
+- `web/templates/analysis_history.html` — card grid + nav fragment (Item 5)
+- `web/templates/analyze_plans_results.html` — watch cross-sell (Item 6)
+- `web/templates/fragments/nav.html` — "My Analyses" badge (Item 2)
+
 ## Session 22.4 — Recent Searches (2026-02-16)
 
 ### Feature

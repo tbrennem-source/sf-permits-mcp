@@ -29,29 +29,18 @@
             min-height: 100vh;
         }
 
-        .history-container {
+        .container {
             max-width: 960px;
             margin: 0 auto;
-            padding: 32px 16px;
+            padding: 0 16px;
         }
 
-        .history-nav {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 24px;
-            font-size: 0.9rem;
+        /* Page content */
+        .page-content {
+            padding: 32px 0 80px;
         }
 
-        .history-nav a {
-            color: var(--text-muted);
-            text-decoration: none;
-        }
-
-        .history-nav a:hover {
-            color: var(--accent);
-        }
-
-        .history-header {
+        .page-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -60,18 +49,18 @@
             gap: 16px;
         }
 
-        .history-header h1 {
+        .page-header h1 {
             font-size: 1.4rem;
             margin: 0;
             color: var(--accent);
         }
 
-        .history-search {
+        .search-form {
             display: flex;
             gap: 8px;
         }
 
-        .history-search input {
+        .search-form input {
             padding: 8px 14px;
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -82,11 +71,11 @@
             font-family: inherit;
         }
 
-        .history-search input::placeholder {
+        .search-form input::placeholder {
             color: var(--text-muted);
         }
 
-        .history-search button {
+        .search-form button {
             padding: 8px 16px;
             border: none;
             border-radius: 6px;
@@ -97,34 +86,68 @@
             font-family: inherit;
         }
 
-        .history-search button:hover {
+        .search-form button:hover {
             background: var(--accent-hover);
         }
 
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Card grid */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
         }
 
-        .history-table th {
-            text-align: left;
-            padding: 10px 12px;
-            border-bottom: 2px solid var(--border);
+        .analysis-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .analysis-card:hover {
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .card-filename {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
             color: var(--text-muted);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 12px;
         }
 
-        .history-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--surface-2);
-            font-size: 0.9rem;
-            vertical-align: middle;
+        .card-details {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            padding: 8px 0;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .history-table tr:hover td {
-            background: var(--surface-2);
+        .card-actions {
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
         }
 
         .status-badge {
@@ -133,6 +156,7 @@
             border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 600;
+            flex-shrink: 0;
         }
 
         .status-completed { background: #1b5e20; color: #a5d6a7; }
@@ -141,122 +165,96 @@
         .status-failed { background: #b71c1c; color: #ef9a9a; }
         .status-stale { background: #e65100; color: #ffcc80; }
 
-        .empty-history {
-            text-align: center;
-            padding: 60px 24px;
-            color: var(--text-muted);
-        }
-
-        .empty-history p {
-            margin: 8px 0;
-        }
-
-        .filename-cell {
-            max-width: 250px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .meta-cell {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
         .view-link {
             color: var(--accent);
             text-decoration: none;
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
         .view-link:hover {
             text-decoration: underline;
         }
 
-        @media (max-width: 768px) {
-            .history-table th:nth-child(3),
-            .history-table td:nth-child(3) {
-                display: none;
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-state p {
+            margin: 8px 0;
+        }
+
+        @media (max-width: 640px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
             }
 
-            .filename-cell {
-                max-width: 150px;
+            .search-form input {
+                width: 160px;
             }
         }
     </style>
 </head>
 <body>
-<div class="history-container">
-    <nav class="history-nav">
-        <a href="/">&larr; Home</a>
-        <a href="/account">My Account</a>
-    </nav>
+    {% set active_page = 'analyses' %}
+    {% include 'fragments/nav.html' %}
 
-    <div class="history-header">
-        <h1>Plan Analysis History</h1>
-        <form class="history-search" method="get" action="/account/analyses">
-            <input type="text" name="q" placeholder="Search by address, permit, file..."
-                   value="{{ search_q or '' }}">
-            <button type="submit">Search</button>
-        </form>
-    </div>
+    <div class="container page-content">
+        <div class="page-header">
+            <h1>Plan Analysis History</h1>
+            <form class="search-form" method="get" action="/account/analyses">
+                <input type="text" name="q" placeholder="Search by address, permit, file..."
+                       value="{{ search_q or '' }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
 
-    {% if jobs %}
-    <table class="history-table">
-        <thead>
-            <tr>
-                <th>File</th>
-                <th>Status</th>
-                <th>Property / Permit</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+        {% if jobs %}
+        <div class="analysis-grid">
             {% for job in jobs %}
-            <tr>
-                <td class="filename-cell" title="{{ job.filename }}">
-                    {{ job.filename }}
-                    <br><span class="meta-cell">{{ job.file_size_mb }} MB{% if job.quick_check %} &middot; Quick Check{% endif %}</span>
-                </td>
-                <td>
+            <div class="analysis-card">
+                <div class="card-header">
+                    <span class="card-filename" title="{{ job.filename }}">{{ job.filename }}</span>
                     <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
-                </td>
-                <td class="meta-cell">
-                    {% if job.property_address %}{{ job.property_address }}{% endif %}
-                    {% if job.permit_number %}{% if job.property_address %}<br>{% endif %}{{ job.permit_number }}{% endif %}
-                    {% if not job.property_address and not job.permit_number %}&mdash;{% endif %}
-                </td>
-                <td class="meta-cell">
-                    {{ job.created_at.strftime('%b %d, %Y') if job.created_at else '' }}
-                </td>
-                <td>
+                </div>
+                <div class="card-meta">
+                    <span>{{ job.file_size_mb }} MB{% if job.quick_check %} &middot; Quick Check{% endif %}{% if not job.quick_check and job.session_id %} &middot; <span style="color:var(--accent);font-size:0.75rem;">AI Annotations</span>{% endif %}</span>
+                    <span>{{ job.created_at.strftime('%b %d, %Y') if job.created_at else '' }}</span>
+                </div>
+                {% if job.property_address or job.permit_number %}
+                <div class="card-details">
+                    {% if job.property_address %}<span>{{ job.property_address }}</span>{% endif %}
+                    {% if job.permit_number %}<span>Permit #{{ job.permit_number }}</span>{% endif %}
+                </div>
+                {% endif %}
+                <div class="card-actions">
                     {% if job.status == 'completed' and job.session_id %}
-                    <a href="/plan-jobs/{{ job.job_id }}/results" class="view-link">View</a>
+                    <a href="/plan-jobs/{{ job.job_id }}/results" class="view-link">View Results &rarr;</a>
                     {% elif job.status == 'processing' %}
-                    <span class="meta-cell">In progress...</span>
+                    <span style="color:var(--accent);font-size:0.85rem;">In progress...</span>
                     {% elif job.status == 'failed' %}
-                    <span style="color: var(--error); font-size: 0.85rem;"
+                    <span style="color:var(--error);font-size:0.85rem;"
                           title="{{ job.error_message or '' }}">Failed</span>
                     {% else %}
-                    &mdash;
+                    <span style="color:var(--text-muted);font-size:0.85rem;">&mdash;</span>
                     {% endif %}
-                </td>
-            </tr>
+                </div>
+            </div>
             {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="empty-history">
-        {% if search_q %}
-        <p>No analyses found matching "{{ search_q }}"</p>
-        <p><a href="/account/analyses" style="color: var(--accent);">Clear search</a></p>
+        </div>
         {% else %}
-        <p>No plan analyses yet.</p>
-        <p><a href="/" style="color: var(--accent);">Upload a plan set to get started</a></p>
+        <div class="empty-state">
+            {% if search_q %}
+            <p>No analyses found matching "{{ search_q }}"</p>
+            <p><a href="/account/analyses" style="color:var(--accent);">Clear search</a></p>
+            {% else %}
+            <p>No plan analyses yet.</p>
+            <p><a href="/" style="color:var(--accent);">Upload a plan set to get started</a></p>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
-    {% endif %}
-</div>
 </body>
 </html>

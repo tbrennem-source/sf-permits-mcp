@@ -37,34 +37,6 @@
         margin: 0 auto 24px;
     }
 
-    .processing-progress {
-        max-width: 400px;
-        margin: 0 auto 16px;
-        height: 6px;
-        background: var(--surface-2, #333);
-        border-radius: 3px;
-        overflow: hidden;
-    }
-
-    .processing-progress-bar {
-        height: 100%;
-        width: 30%;
-        background: var(--accent, #2563eb);
-        border-radius: 3px;
-        animation: progress-slide 2s ease-in-out infinite;
-    }
-
-    @keyframes progress-slide {
-        0% { transform: translateX(-100%); width: 30%; }
-        50% { transform: translateX(100%); width: 60%; }
-        100% { transform: translateX(300%); width: 30%; }
-    }
-
-    .processing-status {
-        font-size: 0.85rem;
-        color: var(--text-muted, #999);
-    }
-
     .processing-tip {
         margin-top: 24px;
         padding: 16px;
@@ -75,6 +47,23 @@
         max-width: 420px;
         margin-left: auto;
         margin-right: auto;
+    }
+
+    /* Step indicator (initial state — matches polling template) */
+    .step-indicator { display: flex; align-items: center; justify-content: center; gap: 0; max-width: 400px; margin: 0 auto 16px; }
+    .step-dot {
+        width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border, #333); background: transparent;
+        flex-shrink: 0; transition: all 0.3s;
+    }
+    .step-dot.active { border-color: var(--accent, #2563eb); background: var(--accent, #2563eb); animation: step-pulse 1.5s ease-in-out infinite; }
+    .step-line { flex: 1; height: 2px; background: var(--border, #333); }
+    .step-label { font-size: 0.75rem; color: var(--text-muted, #999); margin-top: 6px; text-align: center; }
+    .step-label.active { color: var(--accent, #2563eb); font-weight: 600; }
+    .step-group { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
+    .step-detail { font-size: 0.85rem; color: var(--text-muted, #999); text-align: center; margin-top: 4px; }
+    @keyframes step-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+        50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
     }
 </style>
 
@@ -98,17 +87,32 @@
          hx-trigger="every 3s"
          hx-swap="outerHTML"
          id="job-status-poll">
-        <div class="processing-progress">
-            <div class="processing-progress-bar"></div>
+
+        <div class="step-indicator">
+            <div class="step-group">
+                <div class="step-dot active"></div>
+                <div class="step-label active">Analyzing</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-group">
+                <div class="step-dot"></div>
+                <div class="step-label">Rendering</div>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-group">
+                <div class="step-dot"></div>
+                <div class="step-label">Finalizing</div>
+            </div>
         </div>
-        <div class="processing-status">Status: Processing...</div>
+
+        <div class="step-detail">Preparing analysis...</div>
     </div>
 
     <div class="processing-tip">
         {% if user_email %}
         &#128161; You can close this page &mdash; we'll email you when it's done.
         {% else %}
-        &#128161; <a href="/login" style="color: var(--accent);">Sign in</a> to receive email notifications for future analyses.
+        &#128161; <a href="/auth/login" style="color: var(--accent);">Sign in</a> to receive email notifications for future analyses.
         {% endif %}
     </div>
 </div>

@@ -24,6 +24,7 @@ def create_session(
     page_extractions: list[dict],
     page_images: list[tuple[int, str]],  # (page_number, base64_png)
     user_id: int | None = None,
+    page_annotations: list[dict] | None = None,
 ) -> str:
     """Create a plan analysis session with page images.
 
@@ -33,27 +34,29 @@ def create_session(
         page_extractions: List of extracted metadata dicts from Vision analysis
         page_images: List of (page_number, base64_data) tuples
         user_id: Optional user ID for persistent storage (30-day TTL)
+        page_annotations: Optional list of spatial annotation dicts for UI overlay
 
     Returns:
         session_id (str): Unique session identifier
     """
     session_id = secrets.token_urlsafe(16)
     extractions_json = json.dumps(page_extractions)
+    annotations_json = json.dumps(page_annotations or [])
 
     # Insert session
     if BACKEND == "postgres":
         execute_write(
             "INSERT INTO plan_analysis_sessions "
-            "(session_id, filename, page_count, page_extractions, user_id) "
-            "VALUES (%s, %s, %s, %s, %s)",
-            (session_id, filename, page_count, extractions_json, user_id),
+            "(session_id, filename, page_count, page_extractions, page_annotations, user_id) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (session_id, filename, page_count, extractions_json, annotations_json, user_id),
         )
     else:
         execute_write(
             "INSERT INTO plan_analysis_sessions "
-            "(session_id, filename, page_count, page_extractions, user_id) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (session_id, filename, page_count, extractions_json, user_id),
+            "(session_id, filename, page_count, page_extractions, page_annotations, user_id) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (session_id, filename, page_count, extractions_json, annotations_json, user_id),
         )
 
     # Insert images
@@ -94,26 +97,39 @@ def get_session(session_id: str) -> dict | None:
         session_id: Session identifier
 
     Returns:
-        dict with keys: session_id, filename, page_count, page_extractions, created_at
-        None if session not found
+        dict with keys: session_id, filename, page_count, page_extractions,
+        page_annotations, created_at.  None if session not found.
     """
     row = query_one(
-        "SELECT session_id, filename, page_count, page_extractions, created_at "
+        "SELECT session_id, filename, page_count, page_extractions, "
+        "page_annotations, created_at "
         "FROM plan_analysis_sessions WHERE session_id = %s"
         if BACKEND == "postgres"
-        else "SELECT session_id, filename, page_count, page_extractions, created_at "
+        else "SELECT session_id, filename, page_count, page_extractions, "
+        "page_annotations, created_at "
         "FROM plan_analysis_sessions WHERE session_id = ?",
         (session_id,),
     )
     if not row:
         return None
 
+    def _parse_json_col(val):
+        if isinstance(val, (list, dict)):
+            return val
+        if val:
+            try:
+                return json.loads(val)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return []
+
     return {
         "session_id": row[0],
         "filename": row[1],
         "page_count": row[2],
-        "page_extractions": row[3] if isinstance(row[3], (list, dict)) else (json.loads(row[3]) if row[3] else []),
-        "created_at": row[4],
+        "page_extractions": _parse_json_col(row[3]),
+        "page_annotations": _parse_json_col(row[4]),
+        "created_at": row[5],
     }
 
 
