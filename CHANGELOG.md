@@ -1,5 +1,15 @@
 # Changelog
 
+## Session 22.4 — Recent Searches (2026-02-16)
+
+### Feature
+- **Recent searches** — Last 5 searches saved to localStorage and rendered as clickable preset chips above quick-actions on the home page. Case-insensitive dedup, truncates long queries, clear button to wipe history. Pure client-side, no backend changes.
+
+### Files Changed (1 file, +83 lines)
+- `web/templates/index.html` — Recent searches container, CSS, JS (localStorage read/write, chip rendering, HTMX hook)
+
+---
+
 ## Session 22.3 — Fix False Positive Assessor Use Mismatch (2026-02-16)
 
 ### Bug Fix
