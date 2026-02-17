@@ -1,0 +1,623 @@
+{
+  "metadata": {
+    "title": "Green Building Requirements — AB-093 Implementation & GS Form Decision Logic",
+    "source": "Administrative Bulletin AB-093: Implementation of Green Building Regulations (2022 SFGBC, eff. Jan 1 2023, rev. Dec 13 2023)",
+    "source_url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-89498",
+    "date_structured": "2026-02-16",
+    "last_verified": "2026-02-16",
+    "authority": "SF Department of Building Inspection",
+    "confidence": "high",
+    "notes": [
+      "Extracted from tier3/AB-093.txt full text + existing tier1/title24-energy-compliance.json + tier1/permit-forms-taxonomy.json",
+      "AB-093 is the master implementation bulletin for the 2022 SF Green Building Code",
+      "Effective dates: Jan 1, 2023 through Dec 31, 2025 (this version)",
+      "Green building requirements apply based on permit application date, not construction date",
+      "M-03, M-04, M-06, M-08 info sheets (referenced in GAP-12) were NOT downloaded but their content is captured in title24-energy-compliance.json",
+      "Signed by Patrick O'Riordan, C.B.O., Director DBI, 4/16/2024",
+      "Original version approved by Building Inspection Commission on 9/24/2008, revision approved 12/13/2023"
+    ]
+  },
+
+  "applicable_codes": {
+    "primary": "2022 San Francisco Green Building Code (SFGBC)",
+    "state_base": "2022 California Green Building Standards Code (CALGreen, Title 24 Part 11)",
+    "energy_code": "California Building Energy Efficiency Standards (Title 24 Part 6)",
+    "local_environment": "SF Environment Code, Chapter 7 (municipal projects)",
+    "local_building": "2022 San Francisco Building Code",
+    "effective_dates": {
+      "start": "2023-01-01",
+      "end": "2025-12-31"
+    },
+    "note": "SFGBC combines all mandatory CALGreen elements plus stricter local requirements. 'Locally required measures' = CALGreen prescriptive + local amendments + other local requirements."
+  },
+
+  "applicability_by_code_year": {
+    "description": "Green building requirements apply based on permit application filing date. Site permits use original filing date, not addendum date.",
+    "versions": [
+      {
+        "code_year": "2022 SFGBC",
+        "effective_start": "2023-01-01",
+        "effective_end": "2025-12-31",
+        "ab_093_version": "This bulletin (Jan 2023, rev. Dec 2023)"
+      },
+      {
+        "code_year": "2019 SFGBC",
+        "effective_start": "2020-01-01",
+        "effective_end": "2022-12-31",
+        "ab_093_version": "April 2021 Revision"
+      },
+      {
+        "code_year": "2016 SFGBC",
+        "effective_start": "2017-01-01",
+        "effective_end": "2019-12-31",
+        "ab_093_version": "January 2018 Revision"
+      },
+      {
+        "code_year": "2013 SFGBC",
+        "effective_start": "2014-01-01",
+        "effective_end": "2016-12-31",
+        "ab_093_version": "January 1, 2014"
+      }
+    ],
+    "site_permit_rule": "For Site Permits, the effective date is the date the Site Permit application (not an addendum) is filed. Addenda use the original filing date unless scope changes trigger current codes."
+  },
+
+  "gs_form_decision_logic": {
+    "description": "Decision logic for which GS (Green Building Submittal) form to use. Every building permit application must include the applicable GS form. DBI staff screen all applications to confirm which regulations apply per Attachment A, Table 1.",
+    "forms": [
+      {
+        "form_id": "GS-1",
+        "name": "Green Building Site Permit Submittal",
+        "applies_to": "All Site Permit applications subject to green building regulations",
+        "project_types": ["new_construction_site_permit"],
+        "required_at": "Initial permit application — will NOT be accepted without GS-1",
+        "note": "Every Site Permit subject to green building must include GS-1. This is the gate form."
+      },
+      {
+        "form_id": "GS-2",
+        "name": "Green Building Submittal for LEED or GreenPoint Rated Projects",
+        "applies_to": "Projects meeting LEED or GreenPoint Rated standard",
+        "project_types": [
+          "new_construction_residential_large",
+          "new_construction_commercial_large",
+          "major_alteration_residential_large",
+          "major_alteration_commercial_large"
+        ],
+        "triggers": {
+          "description": "Required when Attachment A Table 1 designates LEED or GreenPoint Rated standard based on occupancy, size, and construction type",
+          "rating_systems": ["LEED BD+C", "LEED Core and Shell", "LEED for Homes", "GreenPoint Rated", "GreenPoint Rated Multifamily"]
+        },
+        "note": "Use when project is required or elects to pursue LEED or GreenPoint Rated certification"
+      },
+      {
+        "form_id": "GS-3",
+        "name": "Green Building Submittal for Other Non-Residential Alterations, Additions & New Construction",
+        "applies_to": "Non-residential projects NOT required to meet LEED standard",
+        "project_types": [
+          "new_construction_commercial_small",
+          "addition_commercial",
+          "alteration_commercial",
+          "tenant_improvement_commercial"
+        ],
+        "triggers": {
+          "description": "Non-residential projects where Attachment A Table 1 does not require LEED or GreenPoint Rated. Covers Locally Required Measures compliance.",
+          "includes": "First-time commercial tenant improvements of any size must comply with applicable CALGreen"
+        },
+        "thresholds": {
+          "new_large_commercial_interior": {
+            "area_sqft": 25000,
+            "description": "First-time tenant improvement in area >= 25,000 sqft must meet SFGBC Section 5.103.4 standards regardless of building construction date"
+          },
+          "all_smaller_commercial_ti": {
+            "description": "Commercial TI < 25,000 sqft must comply with all applicable CALGreen requirements"
+          }
+        },
+        "note": "Catch-all for non-residential projects not on a rating system path"
+      },
+      {
+        "form_id": "GS-4",
+        "name": "Green Building Submittal for Non-Residential Interior-Only Alteration Projects",
+        "applies_to": "Non-residential interior-only alterations (commercial tenant improvements)",
+        "project_types": [
+          "interior_alteration_commercial",
+          "tenant_improvement_interior_only"
+        ],
+        "triggers": {
+          "description": "Interior-only commercial alterations. Subset of GS-3 scope but specifically for interior-only work."
+        },
+        "note": "Use for commercial TI projects that are purely interior (no envelope or structural changes)"
+      },
+      {
+        "form_id": "GS-5",
+        "name": "Green Building Submittal for Residential Alteration + Addition Projects",
+        "applies_to": "Residential alterations and additions",
+        "project_types": [
+          "alteration_residential",
+          "addition_residential",
+          "adu_construction",
+          "adu_freestanding"
+        ],
+        "triggers": {
+          "description": "All residential alterations and additions. ADUs (including freestanding) are treated as additions for green building purposes per AB-093."
+        },
+        "adu_rule": "Construction of a single freestanding ADU accessory to an existing structure is considered an addition. See GS-5 for details.",
+        "professional_exemption": {
+          "description": "Green Building Compliance Professional of Record is NOT required for residential alteration/addition projects where:",
+          "conditions": [
+            "Project area < 25,000 sqft",
+            "Total conditioned floor area increase <= 1,000 sqft"
+          ],
+          "note": "Applicant may complete the green building submittal themselves in these cases"
+        },
+        "note": "Primary form for homeowner renovation and addition projects"
+      },
+      {
+        "form_id": "GS-6",
+        "name": "Green Building Submittal for Municipal Projects",
+        "applies_to": "City and County of San Francisco municipal projects",
+        "project_types": [
+          "municipal_new_construction",
+          "municipal_alteration",
+          "municipal_leasehold_improvement"
+        ],
+        "triggers": {
+          "description": "Any project authorized by any department of the City and County of San Francisco, including leasehold improvements where the City is a tenant",
+          "area_threshold_sqft": 10000,
+          "required_certification": "LEED Gold (per SF Environment Code Chapter 7)"
+        },
+        "compliance_method": "Must use Method 1 only (registration and certification under LEED)",
+        "note": "Municipal projects >= 10,000 sqft must achieve LEED Gold. Only actual LEED certification is acceptable — no self-verification."
+      }
+    ],
+    "selection_rules": [
+      {
+        "step": 1,
+        "question": "Is this a Site Permit application?",
+        "yes": "GS-1 is required",
+        "no": "Continue to step 2"
+      },
+      {
+        "step": 2,
+        "question": "Is this a municipal project >= 10,000 sqft?",
+        "yes": "GS-6 — must achieve LEED Gold",
+        "no": "Continue to step 3"
+      },
+      {
+        "step": 3,
+        "question": "Is this a residential alteration or addition (including ADU)?",
+        "yes": "GS-5",
+        "no": "Continue to step 4"
+      },
+      {
+        "step": 4,
+        "question": "Is this project required to meet LEED or GreenPoint Rated per Attachment A Table 1?",
+        "yes": "GS-2",
+        "no": "Continue to step 5"
+      },
+      {
+        "step": 5,
+        "question": "Is this a non-residential interior-only alteration?",
+        "yes": "GS-4",
+        "no": "GS-3 (catch-all for other non-residential)"
+      }
+    ]
+  },
+
+  "rating_system_requirements": {
+    "description": "Which green building rating system standard applies, per Attachment A Table 1, based on occupancy, project size, and new construction vs alteration.",
+    "new_construction": {
+      "residential": {
+        "leed_or_greenpoint_required": {
+          "description": "New residential construction meeting size thresholds per Attachment A Table 1",
+          "recognized_systems": [
+            "LEED for Homes Midrise",
+            "LEED BD+C",
+            "GreenPoint Rated",
+            "GreenPoint Rated Multifamily New Home"
+          ],
+          "note": "2022 SFGBC recognizes GreenPoint Rated v.9 and all LEED v4 rating systems, plus more recent versions"
+        }
+      },
+      "commercial": {
+        "leed_required": {
+          "description": "New non-residential construction meeting size thresholds per Attachment A Table 1",
+          "recognized_systems": [
+            "LEED BD+C",
+            "LEED Core and Shell"
+          ]
+        }
+      },
+      "municipal": {
+        "leed_gold_required": {
+          "description": "All municipal projects >= 10,000 sqft",
+          "required_level": "LEED Gold",
+          "code_reference": "SF Environment Code, Chapter 7"
+        }
+      }
+    },
+    "alterations": {
+      "major_alteration_definition": {
+        "description": "Major Alteration to Existing Building under SFGBC Sections 5.103.3 or 4.103.3",
+        "criteria": [
+          "Significant upgrade to structural system (30%+ of tributary area altered)",
+          "Significant upgrade to one or more of: mechanical, electrical, and/or plumbing systems",
+          "Area of more than 25,000 gross sqft",
+          "Group B, M, or R occupancy"
+        ],
+        "all_required": true,
+        "structural_threshold": "30% or more of the area of proposed construction — areas tributary to vertical load carrying components (joists, beams, columns, walls) that are removed, added, or altered"
+      },
+      "residential_major_alteration": {
+        "description": "Major alterations to residential buildings may use alternate rating systems",
+        "recognized_systems": [
+          "LEED for Building Design and Construction",
+          "GreenPoint Rated Multifamily New Home",
+          "GreenPoint Rated Multifamily Existing Home"
+        ]
+      }
+    },
+    "locally_required_measures_only": {
+      "description": "Projects not meeting LEED or GreenPoint Rated thresholds must still comply with all locally required measures",
+      "applies_to": [
+        "Small new construction not meeting rating system thresholds",
+        "Additions and alterations not meeting major alteration criteria",
+        "Non-residential projects not required to meet LEED"
+      ]
+    }
+  },
+
+  "compliance_methods": {
+    "description": "Five methods for documenting green building compliance. Methods 1-4 available for rating-system-required projects; Method 5 for locally-required-measures-only projects.",
+    "methods": [
+      {
+        "method": 1,
+        "name": "LEED Registration + Certification",
+        "description": "Register with and submit for LEED certification. Provide documentation showing project meets appropriate LEED certification requirements.",
+        "required_for": ["Municipal projects >= 10,000 sqft"],
+        "note": "Only method allowed for municipal projects"
+      },
+      {
+        "method": 2,
+        "name": "GreenPoint Rated Registration + Certification",
+        "description": "Register with and achieve GreenPoint Rated status from Build It Green.",
+        "required_for": []
+      },
+      {
+        "method": 3,
+        "name": "LEED or GreenPoint Standards Without Certification",
+        "description": "Document compliance with LEED or GreenPoint Rated standards without registering or certifying. Green Building Compliance Professional of Record must verify.",
+        "requires_professional": true
+      },
+      {
+        "method": 4,
+        "name": "Alternate Rating System or Equivalency",
+        "description": "Use another rating system or equivalency as approved by the Director. Requires AB-005 equivalency process.",
+        "requires_professional": true,
+        "requires_director_approval": true
+      },
+      {
+        "method": 5,
+        "name": "Locally Required Measures Only",
+        "description": "Submit documentation of compliance with locally required measures in effect at time of permit submittal.",
+        "applies_when": "Neither LEED nor GreenPoint Rated is required"
+      }
+    ]
+  },
+
+  "green_building_compliance_professional": {
+    "description": "Requirements for the Green Building Compliance Professional of Record — required for Methods 3, 4, and 5.",
+    "qualifications": {
+      "base_requirement": "License or registration as an Architect or Engineer",
+      "specialized_knowledge": {
+        "leed_projects": "LEED accreditation + successful completion of at least one LEED certified project",
+        "greenpoint_projects": "GreenPoint Rater designation, or team includes a GreenPoint Rater",
+        "locally_required_measures_only": "Any of: ICC Certified CalGreen Inspector, GreenPoint Rater designation, LEED accreditation, or equivalent approved by Director"
+      }
+    },
+    "exemptions": [
+      {
+        "condition": "Residential alteration/addition < 25,000 sqft AND increases conditioned floor area by no more than 1,000 sqft",
+        "result": "Green Building Compliance Professional of Record is NOT required — applicant may complete the submittal",
+        "exception": "Major alterations to residential (project area >= 25,000 sqft with significant structural + MEP upgrade) still require professional or certification"
+      }
+    ],
+    "responsibilities": [
+      "Personally review and verify compliance with SFGBC requirements",
+      "Directly supervise persons providing on-site review or verification",
+      "Sign Attachment E (Final Compliance Verification) for Methods 3 and 4",
+      "Provide verification to DBI that all green building design and construction requirements are met"
+    ]
+  },
+
+  "energy_compliance": {
+    "description": "Energy compliance guidelines specific to green building context (detailed Title 24 rules in title24-energy-compliance.json).",
+    "general_rule": "All building permit submittals must show compliance with the California Building Energy Efficiency Standards (Title 24 Part 6) in effect at time of permit submittal, PLUS any compliance margin required by the applicable rating system.",
+    "leed_bdc_projects": {
+      "requirement": "Standard Title 24 Part 6 documentation using CEC-approved software",
+      "forms": "CF1R-PRF-01E (single family), NRCC-PRF-01 (commercial/multifamily)",
+      "note": "LEED BD+C v4 and LEED CS v4 minimum energy efficiency requirements are LESS strict than CA 2013-2022 Title 24 Part 6 Energy Standards"
+    },
+    "ashrae_90_1_option": {
+      "description": "When ASHRAE 90.1 option in LEED v4 is used for voluntary energy points",
+      "requirement": "Supporting analysis must include detailed accounting of ALL on-site building energy use: exterior/security lighting, elevators, process loads, receptacle loads",
+      "documentation": "Must include all information required for LEED certification by Green Building Certification Institute"
+    },
+    "leed_homes_and_greenpoint": {
+      "dual_requirement": [
+        "Comply with California Energy Efficiency Standards (Title 24 Part 6) in effect on date of permit application",
+        "Meet minimum energy performance requirements of the applicable green building rating system"
+      ],
+      "software": "Must use CEC-approved compliance software",
+      "consistency_rule": "Simplest approach: use a single simulation run so compliance run number is consistent throughout documentation"
+    },
+    "all_electric_mandate": {
+      "admin_bulletin": "AB-112",
+      "effective_date": "2021-06-01",
+      "applies_to": "All initial applications for new building construction filed on or after June 1, 2021",
+      "scope": "All space-conditioning, water heating, cooking, and clothes drying must be all-electric",
+      "prohibited": "Installation of infrastructure, piping systems, or piping for distribution of natural gas or propane to such uses indoors or outdoors",
+      "exception": "Limited installation of gas piping for commercial food preparation, or if all-electric is determined to be physically or technically infeasible",
+      "residential_prescriptive_note": "Residential all-electric buildings demonstrating prescriptive compliance may apply GreenPoint Rated J5.1 Option Two: All Electric Compliance with applicable CF1R or NRCC report"
+    }
+  },
+
+  "stormwater_and_runoff": {
+    "construction_site_runoff": {
+      "leed_required_projects": "Must prepare erosion and sedimentation control plan per LEED Sustainable Sites Prerequisite 1 at minimum",
+      "all_projects_note": "More stringent local requirements may apply regardless of LEED applicability",
+      "local_requirements": ["Stormwater soil loss prevention plan", "SWPPP (Stormwater Pollution Prevention Plan)"],
+      "contact": "SFPUC: sfpuc.org/programs/pretreatment-program/construction-site-runoff"
+    },
+    "post_construction_stormwater": {
+      "trigger_combined_sewer": "Projects disturbing >= 5,000 sqft of ground surface",
+      "trigger_separate_sewer": "Projects creating or replacing >= 2,500 sqft of impervious surface",
+      "requirement": "Stormwater Control Plan submitted to SFPUC for approval",
+      "reference": "sfpuc.org/construction-contracts/design-guidelines-standards/water-efficient-landscape"
+    },
+    "water_efficient_irrigation": {
+      "trigger": "Projects with >= 500 sqft of new or modified landscape",
+      "ordinance": "SF Water Efficient Irrigation Ordinance",
+      "note": "Stricter than both CALGreen landscape measures (Title 24 Part 11) and California AB 1881 MWELO",
+      "reference": "sfpuc.org/smr"
+    }
+  },
+
+  "special_cases": {
+    "mixed_occupancy": {
+      "description": "For mixed occupancy buildings where a rating system is required, the project sponsor may apply a single rating system to the entire building.",
+      "requirement": "Each portion of the building must meet the Local Requirements applicable to that occupancy."
+    },
+    "demolition_replacement": {
+      "description": "Replacement buildings on sites where buildings were demolished after the effective date of the ordinance",
+      "rule": "Planning Department confirms applicable green building requirements during permit review per Attachment A Table 2"
+    },
+    "historic_buildings": {
+      "ceqa_determination": "Planning Department determines whether building is an 'historic resource' under CEQA",
+      "california_historical_building_code": "Buildings qualified to use CA Historical Building Code may apply alternate provisions. Separate DBI determination from Planning's CEQA review.",
+      "feature_retention_credit": "Projects retaining, rehabilitating, or repairing significant historical architectural features may receive credit toward green building requirements per Attachment A Table 3",
+      "qualification": "Buildings on federal/state/local adopted lists or surveys, or determined by City to be eligible"
+    },
+    "adu": {
+      "description": "Accessory Dwelling Units — green building treatment",
+      "within_existing": "ADU within existing structure or attached = alteration or addition",
+      "freestanding": "Single freestanding ADU accessory to existing structure = treated as addition for green building compliance",
+      "form": "GS-5"
+    },
+    "new_large_commercial_interiors": {
+      "section": "SFGBC 5.103.4",
+      "description": "First-time tenant improvement work in area >= 25,000 sqft must meet green building standards",
+      "applies_regardless_of_building_age": true,
+      "smaller_ti_note": "All first-time commercial tenant interior work < 25,000 sqft must comply with all applicable CALGreen requirements; see Attachment B Table 3 or GS-3"
+    }
+  },
+
+  "verification_and_completion": {
+    "final_compliance": {
+      "form": "Attachment E — Green Building: Final Compliance Verification",
+      "timing": "Must be submitted prior to final inspection",
+      "methods": [
+        {
+          "method": 1,
+          "description": "LEED certification documentation from Green Building Certification Institute"
+        },
+        {
+          "method": 2,
+          "description": "GreenPoint Rated certificate from Build It Green"
+        },
+        {
+          "method": 3,
+          "description": "Green Building Compliance Professional of Record signs Attachment E"
+        },
+        {
+          "method": 4,
+          "description": "Professional signs Attachment E + documentation of approved AB-005 equivalency approach"
+        }
+      ]
+    },
+    "temporary_certificate_of_occupancy": {
+      "allowed": true,
+      "condition": "May be issued pending final compliance certification",
+      "restriction": "No final Certificate of Completion until Attachment E has been received, reviewed, and accepted by DBI"
+    },
+    "quality_assurance": {
+      "description": "All projects subject to comprehensive review by DBI or its agents",
+      "record_keeping": "Project sponsors must maintain comprehensive records for verification",
+      "third_party_certification": "LEED or GreenPoint Rated certified buildings generally accepted as fully compliant",
+      "discretion": "DBI may review any aspect of green building projects"
+    },
+    "failure_to_comply": {
+      "consequence": "Subject to all enforcement and abatement remedies in the SF Building Code"
+    }
+  },
+
+  "equivalency_process": {
+    "reference": "Administrative Bulletin AB-005 (Procedures for Approval of Local Equivalencies)",
+    "when": "Project sponsors wishing to propose alternates or equivalencies for SFGBC requirements",
+    "submission_timing": "May be submitted with initial permit application or later",
+    "requirements": [
+      "Proposed approach — each alternate presented separately",
+      "Complete analysis of Green Building Code and other code-related issues",
+      "Recommended by and signed by Green Building Compliance Professional of Record",
+      "Calculations or documentation for each specific element confirming proposal meets or exceeds applicable requirements"
+    ],
+    "process": [
+      "DBI staff reviews proposal",
+      "May request review by other City staff or professionals (project sponsor pays)",
+      "May request additional information",
+      "DBI issues decision to approve, deny, or require modifications"
+    ],
+    "appeal_path": "Deputy Director -> Director -> appeal bodies per SF Building Code",
+    "continuing_requirements": "State and local requirements continue to apply regardless: CALGreen (Title 24 Part 11), SFPUC Stormwater Management Ordinance, SFPUC Water Efficient Irrigation Ordinance"
+  },
+
+  "attachment_inventory": {
+    "description": "AB-093 includes 8 attachments (A through H) plus GS forms. Attachments are referenced throughout the bulletin for detailed requirements.",
+    "attachments": [
+      {
+        "id": "Attachment A, Table 1",
+        "title": "Summary of Requirements",
+        "purpose": "Master lookup table — determines which green building standard (LEED, GreenPoint Rated, or Locally Required Measures Only) applies based on occupancy, project size, and new construction vs alteration"
+      },
+      {
+        "id": "Attachment A, Table 2",
+        "title": "Additional Requirements in Case of Demolition",
+        "purpose": "Green building requirements for replacement buildings after demolition"
+      },
+      {
+        "id": "Attachment A, Table 3",
+        "title": "Reduced Requirements for Retention of Significant Historical Architectural Features",
+        "purpose": "Credits available for historic feature preservation"
+      },
+      {
+        "id": "Attachment B, Table 1",
+        "title": "Requirements for Projects Meeting a LEED Standard",
+        "purpose": "Specific required measures for LEED-track projects"
+      },
+      {
+        "id": "Attachment B, Table 2",
+        "title": "Requirements for Projects Meeting the GreenPoint Rated Standard",
+        "purpose": "Specific required measures for GreenPoint Rated-track projects"
+      },
+      {
+        "id": "Attachment B, Table 3",
+        "title": "Requirements for All Non-Residential Projects Not Required to Meet a LEED Standard",
+        "purpose": "Locally required measures for non-residential projects"
+      },
+      {
+        "id": "Attachment B, Table 4",
+        "title": "Requirements for Residential Additions and Alterations",
+        "purpose": "Locally required measures for residential alterations/additions"
+      },
+      {
+        "id": "Attachment C",
+        "title": "Instructions for Green Building Submittals",
+        "purpose": "Instructions for completing GS-1 through GS-6 forms"
+      },
+      {
+        "id": "Attachment D",
+        "title": "Supplementary Energy Compliance Documentation",
+        "purpose": "Additional energy compliance documentation requirements"
+      },
+      {
+        "id": "Attachment E",
+        "title": "Final Compliance Verification",
+        "purpose": "Form signed at project completion to verify all green building requirements met"
+      },
+      {
+        "id": "Attachment F",
+        "title": "Recommended Project Implementation Procedures",
+        "purpose": "Best practices for implementing green building during construction"
+      },
+      {
+        "id": "Attachment G",
+        "title": "Selected Green Building Resources",
+        "purpose": "Reference materials and tools"
+      },
+      {
+        "id": "Attachment H",
+        "title": "Review of Energy Performance Requirements",
+        "purpose": "Energy performance benchmarks and review criteria"
+      }
+    ]
+  },
+
+  "submittal_checklist_items": {
+    "description": "Green building checklist items that must be included in permit application. At first architectural or superstructure addendum (whichever comes first).",
+    "required_items": [
+      "Completed GS form (GS-1 through GS-6 as applicable)",
+      "Checklist incorporated into project plans indicating required green building measures",
+      "Checklist must reference location of green building features in submittal documents",
+      "Detail of which addendum or document will provide compliance details for each performance measure or credit"
+    ],
+    "note": "Checklist required for ALL applicable projects including where Form 3 or Form 8 is used. GS form may be reformatted to conform to plan submittal size if all required information is provided."
+  },
+
+  "quick_reference": {
+    "description": "Common scenario lookup for GS form selection and green building pathway",
+    "scenarios": [
+      {
+        "scenario": "Homeowner kitchen/bath remodel under 1,000 sqft addition",
+        "gs_form": "GS-5",
+        "rating_system": "Locally Required Measures Only",
+        "professional_required": false,
+        "note": "Applicant may self-complete GS-5 if < 25,000 sqft and <= 1,000 sqft added conditioned area"
+      },
+      {
+        "scenario": "Residential addition over 1,000 sqft conditioned area",
+        "gs_form": "GS-5",
+        "rating_system": "May need LEED or GreenPoint Rated per Attachment A Table 1",
+        "professional_required": true,
+        "note": "Check Attachment A Table 1 for size thresholds"
+      },
+      {
+        "scenario": "New ADU (freestanding or attached)",
+        "gs_form": "GS-5",
+        "rating_system": "Locally Required Measures Only (treated as addition)",
+        "professional_required": false,
+        "note": "ADUs treated as additions for green building. Professional not required if < 25,000 sqft and <= 1,000 sqft"
+      },
+      {
+        "scenario": "Commercial tenant improvement (interior only, < 25,000 sqft)",
+        "gs_form": "GS-4",
+        "rating_system": "Locally Required Measures Only (CALGreen)",
+        "professional_required": true,
+        "note": "Must comply with all applicable CALGreen requirements"
+      },
+      {
+        "scenario": "Commercial tenant improvement (first-time, >= 25,000 sqft)",
+        "gs_form": "GS-3",
+        "rating_system": "SFGBC Section 5.103.4 standards",
+        "professional_required": true,
+        "note": "Full green building standards apply regardless of building age"
+      },
+      {
+        "scenario": "New commercial building (non-municipal)",
+        "gs_form": "GS-2 or GS-3",
+        "rating_system": "LEED or GreenPoint Rated if thresholds met, otherwise Locally Required Measures",
+        "professional_required": true,
+        "note": "Use GS-2 if rating system required, GS-3 if not. Also file GS-1 if Site Permit."
+      },
+      {
+        "scenario": "New municipal building >= 10,000 sqft",
+        "gs_form": "GS-6",
+        "rating_system": "LEED Gold required",
+        "professional_required": true,
+        "note": "Only Method 1 (actual LEED certification) is acceptable"
+      },
+      {
+        "scenario": "Major alteration to existing building (Group B/M/R, > 25,000 sqft, structural + MEP upgrade)",
+        "gs_form": "GS-2",
+        "rating_system": "LEED or GreenPoint Rated per SFGBC 5.103.3 / 4.103.3",
+        "professional_required": true,
+        "note": "Must meet 30% structural threshold + MEP upgrade to qualify as major alteration"
+      },
+      {
+        "scenario": "New residential construction (all-electric required since June 2021)",
+        "gs_form": "GS-1 (if Site Permit) + GS-2 or GS-5",
+        "rating_system": "Per Attachment A Table 1 + AB-112 all-electric mandate",
+        "professional_required": true,
+        "note": "All new buildings must be all-electric per AB-112. Also requires Title 24 Part 6 compliance."
+      }
+    ]
+  }
+}

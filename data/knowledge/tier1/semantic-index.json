@@ -452,17 +452,25 @@
 
     "green_building": {
       "canonical_name": "Green Building Requirements",
-      "aliases": ["green building", "GS1", "GS2", "GS3", "GS4", "GS5", "GS6", "Title 24", "energy compliance", "AB-093", "AB-112", "all-electric"],
-      "description": "San Francisco green building requirements, Title 24 energy compliance, and the all-electric new construction mandate (AB-112).",
+      "aliases": ["green building", "GS1", "GS-1", "GS2", "GS-2", "GS3", "GS-3", "GS4", "GS-4", "GS5", "GS-5", "GS6", "GS-6", "Title 24", "energy compliance", "AB-093", "AB-112", "all-electric", "CALGreen", "LEED", "GreenPoint Rated", "green building code", "SFGBC", "green building form", "green building submittal", "locally required measures", "green building compliance professional"],
+      "description": "San Francisco green building requirements per AB-093, GS form selection logic, Title 24 energy compliance, rating system pathways (LEED/GreenPoint Rated), compliance methods, and the all-electric new construction mandate (AB-112).",
       "authoritative_sources": [
-        {"file": "tier1/permit-forms-taxonomy.json", "path": "green_building_forms", "role": "6 green building forms (GS1-GS6)"},
+        {"file": "tier1/green-building-requirements.json", "path": "gs_form_decision_logic", "role": "GS-1 through GS-6 form selection decision tree (5 steps)"},
+        {"file": "tier1/green-building-requirements.json", "path": "rating_system_requirements", "role": "Which rating system (LEED/GreenPoint/Locally Required) applies by occupancy and size"},
+        {"file": "tier1/green-building-requirements.json", "path": "compliance_methods", "role": "5 compliance methods (certification, self-verification, equivalency)"},
+        {"file": "tier1/green-building-requirements.json", "path": "green_building_compliance_professional", "role": "Professional qualifications, exemptions for small residential"},
+        {"file": "tier1/green-building-requirements.json", "path": "energy_compliance", "role": "Title 24 Part 6 in green building context, AB-112 all-electric mandate"},
+        {"file": "tier1/green-building-requirements.json", "path": "special_cases", "role": "ADU, historic, mixed occupancy, demolition replacement, large commercial TI"},
+        {"file": "tier1/green-building-requirements.json", "path": "quick_reference", "role": "9 common scenarios with form, rating system, and professional requirements"},
+        {"file": "tier1/green-building-requirements.json", "path": "verification_and_completion", "role": "Attachment E final compliance, TCO rules, quality assurance"},
+        {"file": "tier1/permit-forms-taxonomy.json", "path": "green_building_forms", "role": "6 green building forms (GS1-GS6) names"},
+        {"file": "tier1/title24-energy-compliance.json", "path": "form_system", "role": "Detailed Title 24 Part 6 energy forms and compliance documentation"},
         {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-093]", "role": "AB-093: Green building regulations implementation"},
-        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-088]", "role": "AB-088: Green building requirements"},
         {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-112]", "role": "AB-112: All-electric new construction"},
         {"file": "tier1/fee-tables.json", "path": "table_1A_N", "role": "Energy conservation fees"}
       ],
       "decision_tree_step": 5,
-      "related_concepts": ["required_documents", "solar"]
+      "related_concepts": ["required_documents", "solar", "energy_compliance", "completeness_checklist"]
     },
 
     "solar": {
@@ -731,15 +739,91 @@
 
     "permit_expiration": {
       "canonical_name": "Permit Expiration and Renewal",
-      "aliases": ["permit expiration", "expired permit", "permit renewal", "permit extension"],
-      "description": "Rules for permit expiration timelines and renewal processes.",
+      "aliases": ["permit expiration", "expired permit", "permit renewal", "permit extension", "Table A", "Table B", "106A.4.4", "106A.3.7", "application expiration", "work completion deadline", "permit validity", "permit time limit", "dormant permit", "abandoned permit"],
+      "description": "Complete permit expiration rules per SFBC Section 106A. Table A governs application expiration by valuation (360/720 days). Table B governs work completion deadlines by valuation ($1-$100K: 360 days, $100K-$2.5M: 1,080 days, $2.5M+: 1,440 days). Demolition permits: 180 days. Extensions available with written request + fee. Expired permits require new applications (106A.4.4.1) or alteration permits (106A.4.4.2).",
       "authoritative_sources": [
-        {"file": "tier1/fee-tables.json", "path": "table_1A_J", "role": "Permit extension fees"},
-        {"file": "decision-tree-draft.json", "path": "steps[5].process_notes", "role": "Timeline-related notes"}
+        {"file": "tier1/permit-expiration-rules.json", "path": "table_b_permit_expiration", "role": "Table B: work completion deadlines by valuation tier (360/1,080/1,440 days)"},
+        {"file": "tier1/permit-expiration-rules.json", "path": "table_a_application_expiration", "role": "Table A: application expiration by valuation (360/720 days)"},
+        {"file": "tier1/permit-expiration-rules.json", "path": "expired_permit_work_not_started", "role": "106A.4.4.1: new application required for expired permits"},
+        {"file": "tier1/permit-expiration-rules.json", "path": "expired_permit_work_not_completed", "role": "106A.4.4.2: alteration permit for uncompleted work"},
+        {"file": "tier1/permit-expiration-rules.json", "path": "fee_refunds", "role": "107A.6: fee refund rules for expired/abandoned permits"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_J", "role": "Permit extension fees"}
       ],
       "decision_tree_step": 6,
-      "related_concepts": ["timeline"],
-      "gap": "GAP-14: Expiration timelines and renewal process not fully documented"
+      "related_concepts": ["timeline", "fee_calculation", "permit_requirements"]
+    },
+
+    "permit_requirements": {
+      "canonical_name": "Permits Required and Exempt Work",
+      "aliases": ["what needs a permit", "permit required", "work exempt from permit", "no permit needed", "exempt work", "106A.1", "106A.2", "do I need a permit", "solar permit", "EV permit", "gas ban", "mixed fuel", "ADU permit", "demolition permit", "grading permit", "sign permit", "boiler permit"],
+      "description": "Section 106A.1 lists 19 work types requiring permits (solar, EV, gas ban, ADU, demolition, grading, signs, boilers, change of occupancy, etc.). Section 106A.2 lists 26 categories of work exempt from permit (small accessory buildings, fences, painting, reroofing under 25%, door replacement, etc.). Exemptions do not authorize code violations.",
+      "authoritative_sources": [
+        {"file": "tier1/permit-requirements.json", "path": "permits_required", "role": "19 work types requiring permits under Section 106A.1"},
+        {"file": "tier1/permit-requirements.json", "path": "work_exempt_from_permit", "role": "26 categories of exempt work under Section 106A.2"},
+        {"file": "tier1/permit-requirements.json", "path": "application_process", "role": "Application requirements and unauthorized dwelling unit legalization"},
+        {"file": "tier1/otc-criteria.json", "role": "OTC eligibility criteria for specific project types"}
+      ],
+      "decision_tree_step": 1,
+      "related_concepts": ["otc_vs_inhouse", "permit_forms", "permit_expiration"]
+    },
+
+    "inspections": {
+      "canonical_name": "Building Inspections Process",
+      "aliases": ["inspection", "building inspection", "required inspections", "reinspection", "reinspection fee", "inspection record card", "job card", "foundation inspection", "frame inspection", "final inspection", "special inspection", "concealed work", "108A", "off-hours inspection"],
+      "description": "Full inspections chapter (Section 108A). Nine required inspection stages: general/structural framework, foundation, concrete slab/under-floor, reinforcing steel, structural steel, frame, lath/gypsum board, fire-rated suspended ceilings, and final inspection. First reinspection is free; subsequent reinspections are charged. Off-hours inspections available by arrangement.",
+      "authoritative_sources": [
+        {"file": "tier1/inspections-process.json", "path": "required_inspections", "role": "9 required inspection stages with timing and requirements"},
+        {"file": "tier1/inspections-process.json", "path": "reinspection", "role": "Reinspection fees and triggers"},
+        {"file": "tier1/inspections-process.json", "path": "off_hours_inspections", "role": "Normal hours 7:30am-4pm, off-hours by arrangement"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_G", "role": "Inspection, survey, and report fees"}
+      ],
+      "decision_tree_step": 6,
+      "related_concepts": ["permit_expiration", "certificates_of_occupancy"]
+    },
+
+    "certificates_of_occupancy": {
+      "canonical_name": "Certificates of Occupancy",
+      "aliases": ["certificate of occupancy", "occupancy certificate", "temporary certificate", "TCO", "final completion", "apartment house license", "hotel license", "109A", "change of occupancy"],
+      "description": "Section 109A: No building may be used or occupied until the Building Official issues a certificate. Temporary certificates valid for up to 12 months. Apartment house/hotel licenses required for all R-1 and R-2 occupancies. Amended certificates track dwelling unit count changes.",
+      "authoritative_sources": [
+        {"file": "tier1/certificates-occupancy.json", "path": "use_and_occupancy", "role": "No building may be used until certificate is issued"},
+        {"file": "tier1/certificates-occupancy.json", "path": "temporary_certificate", "role": "Temporary certificate: 12-month validity"},
+        {"file": "tier1/certificates-occupancy.json", "path": "apartment_house_hotel_license", "role": "R-1/R-2 license requirements"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_P", "role": "Apartment house and hotel license fees"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["inspections", "permit_expiration"]
+    },
+
+    "enforcement": {
+      "canonical_name": "Enforcement Process — NOVs, Hearings, Penalties",
+      "aliases": ["NOV", "notice of violation", "enforcement", "administrative hearing", "administrative order", "stop work", "stop work order", "work without permit", "penalty", "investigation fee", "emergency order", "code violation", "102A", "103A", "104A", "fire life safety notice", "expanded compliance control"],
+      "description": "Full enforcement pipeline: Inspection → NOV (within 15 days) → Administrative Hearing (within 60 days) → Administrative Order (180-day compliance, one 90-day extension). Emergency orders bypass hearings for imminent hazards (48-hour compliance). Civil penalties $200-$1,000/day per violation per unit. Work-without-permit investigation fees per Table 1A-K, appealable but never below 2x permit fee.",
+      "authoritative_sources": [
+        {"file": "tier1/enforcement-process.json", "path": "notice_of_violation", "role": "NOV process and contents"},
+        {"file": "tier1/enforcement-process.json", "path": "administrative_order", "role": "180-day compliance, costs, liens"},
+        {"file": "tier1/enforcement-process.json", "path": "stop_work_orders", "role": "Standard and full-project stop-work orders"},
+        {"file": "tier1/enforcement-process.json", "path": "emergency_orders", "role": "Serious/imminent hazard bypass (48 hours)"},
+        {"file": "tier1/enforcement-process.json", "path": "investigation_fees_work_without_permit", "role": "Work-without-permit fees and appeals"},
+        {"file": "tier1/enforcement-process.json", "path": "violation_penalties", "role": "Civil ($200-$1,000/day) and criminal penalties"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["permit_requirements", "appeals_bodies", "fee_calculation"]
+    },
+
+    "appeals_bodies": {
+      "canonical_name": "Appeals Bodies — Board of Examiners, Abatement Appeals, Access Appeals",
+      "aliases": ["Board of Examiners", "Abatement Appeals Board", "Access Appeals Commission", "appeal", "appeals board", "building code appeal", "code variance", "hardship moratorium", "105A", "vacant building", "abandoned building"],
+      "description": "Three main appeals bodies: Board of Examiners (13 members, materials/methods/variances), Abatement Appeals Board (7 members = Building Inspection Commission, enforcement order appeals), Access Appeals Commission (5 members, disability access). Also covers vacant building registration (103A.4) and vacant commercial storefront registration (103A.5).",
+      "authoritative_sources": [
+        {"file": "tier1/appeals-bodies.json", "path": "board_of_examiners", "role": "13-member board: new materials, variances, code interpretations"},
+        {"file": "tier1/appeals-bodies.json", "path": "abatement_appeals_board", "role": "Enforcement appeals, financial hardship moratorium, displacement moratorium"},
+        {"file": "tier1/appeals-bodies.json", "path": "access_appeals_commission", "role": "Disability access equivalent facilitation, technical infeasibility, hardship"},
+        {"file": "tier1/appeals-bodies.json", "path": "vacant_building_registration", "role": "103A.4: Annual registration for vacant/abandoned buildings"},
+        {"file": "tier1/appeals-bodies.json", "path": "vacant_commercial_storefronts", "role": "103A.5: Annual registration for vacant commercial storefronts"}
+      ],
+      "decision_tree_step": 7,
+      "related_concepts": ["enforcement", "permit_requirements"]
     },
 
     "noise_insulation": {

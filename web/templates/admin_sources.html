@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Knowledge Sources — sfpermits.ai</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+        header .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+        .back-link:hover { color: var(--text); }
+        .print-btn {
+            padding: 6px 14px; border-radius: 6px; font-size: 0.8rem;
+            border: 1px solid var(--accent); color: var(--accent);
+            background: transparent; cursor: pointer;
+        }
+        .print-btn:hover { background: var(--accent); color: #fff; }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 4px; }
+        h2 { font-size: 1.2rem; margin: 32px 0 12px; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        h3 { font-size: 1rem; margin: 20px 0 8px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
+        .generated { color: var(--text-muted); font-size: 0.75rem; margin-bottom: 20px; }
+
+        /* Stats bar */
+        .stats-bar {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px; margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 14px; text-align: center;
+        }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* Lifecycle matrix */
+        .lifecycle-matrix { margin-bottom: 32px; }
+        .lifecycle-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 14px; border-bottom: 1px solid var(--border);
+        }
+        .lifecycle-row:last-child { border-bottom: none; }
+        .lifecycle-stage { width: 130px; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
+        .lifecycle-desc { flex: 1; font-size: 0.8rem; color: var(--text-muted); }
+        .lifecycle-badge {
+            font-size: 0.7rem; padding: 2px 10px; border-radius: 4px;
+            font-weight: 600; text-transform: uppercase; white-space: nowrap;
+        }
+        .lifecycle-badge.strong { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .lifecycle-badge.moderate { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .lifecycle-badge.gap { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+        .lifecycle-files { font-size: 0.75rem; color: var(--text-muted); margin-left: 8px; }
+
+        /* Category sections */
+        .category-header { display: flex; justify-content: space-between; align-items: baseline; }
+        .category-count { font-size: 0.8rem; color: var(--text-muted); font-weight: 400; }
+        .category-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+
+        /* Source cards */
+        .source-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; margin-bottom: 10px;
+        }
+        .source-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .source-title { font-weight: 600; font-size: 0.95rem; flex: 1; }
+        .source-title a { color: var(--text); text-decoration: none; }
+        .source-title a:hover { color: var(--accent); text-decoration: underline; }
+        .source-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px; font-size: 0.8rem; color: var(--text-muted); }
+        .source-meta-item { display: flex; align-items: center; gap: 4px; }
+        .source-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; }
+        .source-links { margin-top: 8px; }
+        .source-links a {
+            font-size: 0.8rem; color: var(--accent); text-decoration: none;
+            margin-right: 12px;
+        }
+        .source-links a:hover { text-decoration: underline; }
+        .badge {
+            font-size: 0.65rem; padding: 2px 7px; border-radius: 3px;
+            text-transform: uppercase; font-weight: 600; white-space: nowrap;
+        }
+        .badge-date { background: rgba(79, 143, 247, 0.12); color: var(--accent); }
+        .badge-fresh { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-aging { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .badge-stale { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+        .badge-unknown { background: rgba(139, 143, 163, 0.15); color: var(--text-muted); }
+        .badge-size { background: rgba(139, 143, 163, 0.15); color: var(--text-muted); }
+        .badge-high { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+
+        /* Freshness legend */
+        .freshness-legend {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;
+        }
+        .freshness-legend-item { display: flex; align-items: center; gap: 5px; }
+
+        /* Gaps section */
+        .gap-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 14px; margin-bottom: 10px;
+        }
+        .gap-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .gap-title { font-weight: 600; font-size: 0.9rem; }
+        .gap-resolved { text-decoration: line-through; color: var(--text-muted); }
+        .badge-resolved { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-open { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+        .badge-critical { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+        .badge-significant { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .badge-minor { background: rgba(139, 143, 163, 0.15); color: var(--text-muted); }
+        .gap-detail { font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; }
+        .gap-amy { font-size: 0.85rem; color: var(--warning); margin-top: 4px; font-style: italic; }
+
+        /* Print styles — clean, light, no dark theme */
+        @media print {
+            :root {
+                --bg: #fff;
+                --surface: #fff;
+                --border: #ddd;
+                --text: #111;
+                --text-muted: #555;
+                --accent: #1a56db;
+                --success: #059669;
+                --warning: #d97706;
+                --error: #dc2626;
+            }
+            body { background: #fff; color: #111; font-size: 10pt; }
+            .container { max-width: 100%; padding: 0; }
+            header { border-bottom: 2px solid #111; padding: 10px 0; }
+            .print-btn, .back-link { display: none; }
+            main { padding: 10px 0; }
+            h1 { font-size: 16pt; }
+            h2 { font-size: 13pt; page-break-after: avoid; }
+            .stats-bar { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+            .stat-card { border: 1px solid #ccc; padding: 8px; }
+            .stat-value { font-size: 14pt; color: #111; }
+            .source-card, .gap-card { border: 1px solid #ccc; padding: 10px; margin-bottom: 6px; page-break-inside: avoid; }
+            .lifecycle-row { padding: 6px 0; }
+            .lifecycle-badge { border: 1px solid currentColor; }
+            .badge { border: 1px solid currentColor; }
+            .source-links a { color: #1a56db; }
+            a[href]:after { content: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <a href="/" class="logo">sfpermits<span>.ai</span></a>
+        <div class="header-actions">
+            <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+            <a href="/admin/activity" class="back-link">Back to Admin</a>
+        </div>
+    </div>
+</header>
+
+<main>
+<div class="container">
+
+    <h1>Knowledge Source Inventory</h1>
+    <p class="subtitle">Comprehensive list of all data sources powering sfpermits.ai — for review with Amy</p>
+    <p class="generated">Auto-generated from {{ stats.total_files }} tier1 JSON files on {{ stats.generated_at }}</p>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_files }}</div>
+            <div class="stat-label">Source Files</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_data_points }}</div>
+            <div class="stat-label">Data Points</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ "%.0f"|format(stats.total_size_kb) }} KB</div>
+            <div class="stat-label">Total Size</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--success);">{{ stats.fresh_count }}</div>
+            <div class="stat-label">Fresh (&le; 6 mo)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--warning);">{{ stats.aging_count + stats.stale_count + stats.unknown_freshness_count }}</div>
+            <div class="stat-label">Need Review</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--error);">{{ stats.open_gaps }}</div>
+            <div class="stat-label">Open Gaps</div>
+        </div>
+    </div>
+
+    <div class="freshness-legend">
+        <span class="freshness-legend-item"><span class="badge badge-fresh">FRESH</span> Verified &le; 6 months</span>
+        <span class="freshness-legend-item"><span class="badge badge-aging">AGING</span> 6&ndash;12 months</span>
+        <span class="freshness-legend-item"><span class="badge badge-stale">STALE</span> &gt; 12 months</span>
+        <span class="freshness-legend-item"><span class="badge badge-unknown">NO DATE</span> Never verified</span>
+    </div>
+
+    <!-- Section 1: Permit Lifecycle Coverage -->
+    <h2>1. Permit Lifecycle Coverage</h2>
+    <p class="category-desc">How well each stage of the permit process is covered by our knowledge base.</p>
+
+    <div class="lifecycle-matrix">
+        {% for stage in lifecycle %}
+        <div class="lifecycle-row">
+            <div class="lifecycle-stage">{{ stage.stage }}</div>
+            <div class="lifecycle-desc">{{ stage.description }}</div>
+            <span class="lifecycle-badge {{ stage.coverage }}">
+                {{ stage.coverage }}{% if stage.file_count %} ({{ stage.file_count }}){% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Section 2: Knowledge Inventory by Category -->
+    <h2>2. Knowledge Inventory</h2>
+
+    {% for cat_id, cat in categories.items() %}
+    {% if cat.files %}
+    <div class="category-header">
+        <h3>{{ cat.label }}</h3>
+        <span class="category-count">{{ cat.count }} files</span>
+    </div>
+    <p class="category-desc">{{ cat.description }}</p>
+
+    {% for file in cat.files %}
+    <div class="source-card">
+        <div class="source-header">
+            <div class="source-title">
+                {% if file.urls %}
+                <a href="{{ file.urls[0] }}" target="_blank" rel="noopener">{{ file.title }}</a>
+                {% else %}
+                {{ file.title }}
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                {% if file.last_updated %}
+                <span class="badge badge-{{ file.freshness }}">{{ file.last_updated }}</span>
+                {% else %}
+                <span class="badge badge-unknown">NO DATE</span>
+                {% endif %}
+                <span class="badge badge-size">{{ file.file_size_kb }} KB</span>
+                {% if file.confidence == "high" %}
+                <span class="badge badge-high">HIGH</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if file.source %}
+        <div class="source-desc">{{ file.source }}</div>
+        {% endif %}
+
+        <div class="source-meta">
+            <span class="source-meta-item">{{ file.filename }}</span>
+            {% if file.data_points %}
+            <span class="source-meta-item">{{ file.data_points }} data points</span>
+            {% endif %}
+            {% if file.authority %}
+            <span class="source-meta-item">{{ file.authority }}</span>
+            {% endif %}
+        </div>
+
+        {% if file.urls and file.urls|length > 0 %}
+        <div class="source-links">
+            {% for url in file.urls %}
+            <a href="{{ url }}" target="_blank" rel="noopener">{{ url|truncate(70, True) }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endfor %}
+
+    <!-- Section 3: Known Gaps -->
+    <h2>3. Known Gaps</h2>
+    <p class="category-desc">What we know we're missing — open gaps are opportunities for Amy to help fill.</p>
+
+    {% for gap in gaps %}
+    <div class="gap-card">
+        <div class="gap-header">
+            <div class="gap-title {% if gap.resolved %}gap-resolved{% endif %}">
+                GAP-{{ gap.gap_id }}: {{ gap.title }}
+            </div>
+            <div style="display: flex; gap: 6px;">
+                <span class="badge badge-{{ gap.severity }}">{{ gap.severity }}</span>
+                {% if gap.resolved %}
+                <span class="badge badge-resolved">RESOLVED</span>
+                {% else %}
+                <span class="badge badge-open">OPEN</span>
+                {% endif %}
+            </div>
+        </div>
+        {% if gap.impact %}
+        <div class="gap-detail">{{ gap.impact }}</div>
+        {% endif %}
+        {% if gap.ask_amy and not gap.resolved %}
+        <div class="gap-amy">Ask Amy: "{{ gap.ask_amy }}"</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <!-- Amy interview questions -->
+    <h2>4. Questions for Amy</h2>
+    <p class="category-desc">Priority questions to fill the remaining gaps and validate existing data.</p>
+
+    <div class="source-card">
+        <div class="source-title" style="margin-bottom: 10px;">Process & Decision Questions</div>
+        <ol style="padding-left: 20px; font-size: 0.9rem; line-height: 2;">
+            <li>"What are realistic timeline expectations you set for clients by project type?"</li>
+            <li>"How often do clients need to modify issued permits? What's the process for revisions?"</li>
+            <li>"What are the top 5 reasons permit applications get rejected or sent back?"</li>
+            <li>"Are there any 'gotchas' in the process that aren't well documented?"</li>
+        </ol>
+    </div>
+
+    <div class="source-card">
+        <div class="source-title" style="margin-bottom: 10px;">Specialty Knowledge</div>
+        <ol start="5" style="padding-left: 20px; font-size: 0.9rem; line-height: 2;">
+            <li>"What school impact fee rates are you currently using? Any exemptions?"</li>
+            <li>"How do you determine which Green Building form (GS1-GS6) applies?"</li>
+            <li>"Which project types typically require special inspections?"</li>
+        </ol>
+    </div>
+
+    <div class="source-card">
+        <div class="source-title" style="margin-bottom: 10px;">Validation</div>
+        <ol start="8" style="padding-left: 20px; font-size: 0.9rem; line-height: 2;">
+            <li>"Can you look at this source list and tell me what's missing or outdated?"</li>
+            <li>"What reference documents do you reach for most often when helping a client?"</li>
+            <li>"Is there anything on this list that surprises you — something we have that you didn't expect?"</li>
+        </ol>
+    </div>
+
+</div>
+</main>
+
+</body>
+</html>

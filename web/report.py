@@ -299,43 +299,49 @@ def _compute_risk_assessment(
                 "link": None,
             })
 
-    # Permit expiration / dormancy — permits filed long ago with no completion
+    # Permit expiration / dormancy — based on Table B (SFBC 106A.4.4) valuation tiers
     from datetime import datetime, timedelta
+    from web.brief import _validity_days
+
     now = datetime.now()
     for p in permits:
         status_lower = (p.get("status") or "").lower()
         if status_lower not in ("issued", "filed", "approved", "reinstated"):
             continue
-        filed = p.get("filed_date") or p.get("issued_date")
-        if not filed:
+        # Use issued_date for expiration (Table B clock starts at issuance)
+        ref_date = p.get("issued_date") or p.get("filed_date")
+        if not ref_date:
             continue
         try:
-            filed_dt = datetime.fromisoformat(str(filed)[:10])
-            age_days = (now - filed_dt).days
+            ref_dt = datetime.fromisoformat(str(ref_date)[:10])
+            age_days = (now - ref_dt).days
             completed = p.get("completed_date")
             pnum = p.get("permit_number", "")
-            if age_days > 1095 and not completed:  # 3+ years
+            validity = _validity_days(p)
+
+            if age_days > validity and not completed:
                 risks.append({
                     "severity": "moderate",
                     "risk_type": "dormant_permit",
-                    "title": f"Dormant permit — {pnum} ({age_days // 365}+ years)",
+                    "title": f"Likely expired permit — {pnum} ({age_days} days, limit {validity})",
                     "description": (
-                        f"Permit {pnum} was filed {age_days // 365} years ago "
-                        f"(status: {p.get('status', 'unknown')}) with no completion date. "
-                        "DBI permits expire after inactivity. A dormant permit may "
-                        "need to be renewed, amended, or cancelled before new work begins."
+                        f"Permit {pnum} has exceeded its Table B expiration limit of "
+                        f"{validity} days (SFBC 106A.4.4). Status: {p.get('status', 'unknown')}. "
+                        "Unless an extension was granted, a new application or alteration permit "
+                        "may be required to continue work."
                     ),
                     "section_ref": "permits",
                     "link": ReportLinks.permit(pnum) if pnum else None,
                 })
-            elif age_days > 730 and not completed:  # 2+ years
+            elif age_days > validity - 90 and not completed:
                 risks.append({
                     "severity": "low",
                     "risk_type": "aging_permit",
-                    "title": f"Aging permit — {pnum} ({age_days // 365}+ years old)",
+                    "title": f"Permit approaching expiration — {pnum} ({validity - age_days} days left)",
                     "description": (
-                        f"Permit {pnum} has been open for {age_days // 365} years without completion. "
-                        "Consider checking whether this permit is still active and in good standing."
+                        f"Permit {pnum} expires in approximately {validity - age_days} days "
+                        f"under Table B ({validity}-day limit). Consider requesting an extension "
+                        "before the deadline if work is not yet complete."
                     ),
                     "section_ref": "permits",
                     "link": ReportLinks.permit(pnum) if pnum else None,
@@ -396,6 +402,40 @@ def _compute_risk_assessment(
             "section_ref": "permits",
             "link": None,
         })
+
+    # Pending regulation — check if any regulatory watch items affect this property's permits
+    try:
+        from web.regulatory_watch import get_alerts_for_concepts
+        # Infer concepts from permit types on this property
+        property_concepts = set()
+        for p in permits:
+            ptype = (p.get("permit_type_definition") or "").lower()
+            # Map common permit types to semantic concepts
+            if any(w in ptype for w in ("addition", "alteration", "renovation", "remodel")):
+                property_concepts.add("permit_expiration")
+            if "demolition" in ptype:
+                property_concepts.update(("permit_expiration", "enforcement"))
+            if "new construction" in ptype:
+                property_concepts.update(("permit_expiration", "permit_requirements"))
+            if any(w in ptype for w in ("adu", "accessory dwelling")):
+                property_concepts.add("permit_requirements")
+        if property_concepts:
+            reg_alerts = get_alerts_for_concepts(list(property_concepts))
+            for alert in reg_alerts:
+                risks.append({
+                    "severity": "low" if alert.get("impact_level") != "high" else "moderate",
+                    "risk_type": "pending_regulation",
+                    "title": f"Pending regulation — {alert['title']}",
+                    "description": (
+                        f"{alert['source_id']}: {alert.get('description') or alert['title']}. "
+                        f"Status: {alert['status']}. "
+                        "This pending change may affect permits on this property."
+                    ),
+                    "section_ref": "permits",
+                    "link": alert.get("url"),
+                })
+    except Exception:
+        pass  # Non-fatal: regulatory_watch table may not exist yet
 
     # Owner Mode: risk items now include risk_type field for remediation
     # roadmap mapping. See web/owner_mode.py for remediation logic.

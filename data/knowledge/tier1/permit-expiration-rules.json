@@ -1,0 +1,263 @@
+{
+  "metadata": {
+    "title": "Permit Expiration Rules — Table A, Table B, and Section 106A.4.4",
+    "source": "SF Building Inspection Commission Code (SFBICC), Section 106A",
+    "source_file": "tier4/sf-bicc-fire-codes-full.txt",
+    "source_lines": "30750-31077, 31484-31505",
+    "date_structured": "2026-02-16",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "Table A governs APPLICATION expiration (before permit is issued)",
+      "Table B governs PERMIT expiration (after permit is issued, work completion deadline)",
+      "Demolition permits have their own 180-day rule separate from Table B",
+      "Code compliance permits initiated by the Building Official have shorter timelines",
+      "Extensions require written request + fee payment before the period ends",
+      "Time is suspended when permit is delayed by Board of Appeals, courts, or state/regional review",
+      "BOS File No. 250811 (filed Jan 2026) proposes revisions to these rules — monitor for changes"
+    ]
+  },
+  "table_a_application_expiration": {
+    "section": "106A.3.7",
+    "source_line": 30750,
+    "title": "Application Expiration — Time to Complete Plan Review and Get Permit Issued",
+    "description": "After an application is deemed acceptable for plan review, corrections and additional information must be submitted within these time limits. The clock runs until the permit is actually issued.",
+    "tiers": [
+      {
+        "min_valuation": 1,
+        "max_valuation": 1000000,
+        "time_limitation_days": 360,
+        "extension_limitation_days": 360,
+        "label": "$1 to $1 million"
+      },
+      {
+        "min_valuation": 1000001,
+        "max_valuation": null,
+        "time_limitation_days": 720,
+        "extension_limitation_days": 720,
+        "label": "Over $1 million"
+      }
+    ],
+    "extension_rules": "A one-time extension per Table A may be granted by the Building Official at any point during the approval process, upon written request and payment of fee. Additional extensions may be granted prior to extension expiration upon written request and payment of fee. See Table 1A-J for fee.",
+    "sixty_day_warning": "If the application has not been approved and issued within 60 days before the end of the stated time period, the Department shall notify the applicant. An application exceeding the stated or extended time after notice is deemed canceled without further action.",
+    "exceptions": [
+      {
+        "id": "APP-EXC-1",
+        "description": "Enforcement actions initiated by the Building Official",
+        "time_limit_days": 30,
+        "extension_days": 10,
+        "note": "Building Official may grant extension for hardship or procedural error. Upon cancellation, referred to City Attorney."
+      },
+      {
+        "id": "APP-EXC-2",
+        "description": "Work without permit investigation fee cases (Table 1A-K)",
+        "time_limit_days": null,
+        "note": "Table A time limits do not apply. Applications canceled only through specific action by the Building Official."
+      },
+      {
+        "id": "APP-EXC-3",
+        "description": "Application returned to Planning Department for design change review",
+        "time_limit_days": null,
+        "note": "Time limits suspended whenever application is returned to Planning due to a design change that the Building Code requires."
+      }
+    ],
+    "new_code_adoption": "If an extension extends the life of an application beyond the effective date of a new code adoption, the Building Official may require all or part of the application to comply with the new code and pay additional plan review fee per Table 1A-A."
+  },
+  "table_b_permit_expiration": {
+    "section": "106A.4.4",
+    "source_line": 30963,
+    "title": "Permit Expiration — Maximum Time Allowed to Complete All Work Authorized by Building Permit",
+    "description": "Every permit expires when the time allowed in Table B is reached, unless an extension has been approved. The clock starts from permit issuance date (or from final action of appeals/courts/regulatory bodies if the permit was delayed).",
+    "tiers": [
+      {
+        "min_valuation": 1,
+        "max_valuation": 100000,
+        "time_allowed_days": 360,
+        "extension_limitation_days": 360,
+        "label": "$1 to $100,000"
+      },
+      {
+        "min_valuation": 100001,
+        "max_valuation": 2499999,
+        "time_allowed_days": 1080,
+        "extension_limitation_days": 720,
+        "label": "$100,001 to $2,499,999"
+      },
+      {
+        "min_valuation": 2500000,
+        "max_valuation": null,
+        "time_allowed_days": 1440,
+        "extension_limitation_days": 720,
+        "label": "$2,500,000 and above"
+      }
+    ],
+    "site_permit_bonus": {
+      "description": "For site permits with a valuation of $2,500,000 or more, the time allowed to complete work may be increased by 50 percent.",
+      "applies_to": "Site permits >= $2,500,000",
+      "bonus_percent": 50,
+      "effective_days_for_top_tier": 2160,
+      "note": "For site permits with a valuation less than $2,500,000, use standard Table B."
+    },
+    "extension_rules": "An extension may be permitted for good reason, provided the request is submitted in writing prior to the end of the time period, accompanied by payment of a fee. Unless approved by the Building Official, no more than one extension may be granted.",
+    "suspension_toll_rule": "When a permit is issued but delayed due to actions before the Board of Appeals or other City agencies, or cases in any court of competent jurisdiction, or is under review by a State or regional regulatory body, the time allowable shall be computed from the date of the final action of the agency or court."
+  },
+  "demolition_permits": {
+    "section": "106A.4.4(4)",
+    "source_line": 30984,
+    "time_allowed_days": 180,
+    "extension_days": 180,
+    "max_extensions": 1,
+    "replacement_structure_rule": "If there is a permit for a replacement structure, the demolition permit shall expire concurrently with the permit for that replacement structure."
+  },
+  "code_compliance_permits": {
+    "section": "106A.4.4(1-2)",
+    "source_line": 30968,
+    "description": "Building Official-initiated code compliance permits have shorter timelines",
+    "start_within_days": 30,
+    "abandonment_suspension_days": 30,
+    "max_time_months": 12,
+    "max_time_min_valuation": 25000,
+    "note": "The maximum time allowed for Building Official-initiated code compliance permits shall be 12 months for all permits exceeding $25,000 total valuation."
+  },
+  "abandonment_suspension_rules": {
+    "section": "106A.4.4(2)",
+    "source_line": 30970,
+    "description": "Permit also expires if work is suspended or abandoned after starting",
+    "rules": [
+      {
+        "permit_type": "Code compliance permits (Building Official-initiated)",
+        "suspension_period_days": 30
+      },
+      {
+        "permit_type": "All other permits",
+        "suspension_period_days": 180
+      }
+    ]
+  },
+  "expired_permit_work_not_started": {
+    "section": "106A.4.4.1",
+    "source_line": 31022,
+    "title": "Commencement of Work on Permit Expired Due to Work Not Started",
+    "description": "Before work can commence on an expired permit on which no work was performed, a new application must be filed and a new permit obtained.",
+    "reduced_fee_eligibility": {
+      "condition": "Not more than one year has elapsed since the expiration of the original permit",
+      "fee_table": "Table 1A-B — Commencement of Work Not Started",
+      "requirements": [
+        "Submit original approved plans and specifications with the new application",
+        "Provide a notarized certification that there are no changes to the plans",
+        "All other applicable fees in Table 1A-A collected in full amount"
+      ]
+    },
+    "refund_disqualification": "If a refund has been granted prior to commencement of work, reduced fee provisions do not apply. A new permit must be applied for with all fees required."
+  },
+  "expired_permit_work_not_completed": {
+    "section": "106A.4.4.2",
+    "source_line": 31041,
+    "title": "Recommencement of Work on Permit Expired Due to Work Not Completed",
+    "description": "An alteration permit must be secured for the uncompleted work.",
+    "fee_table": "Table 1A-F — Specialty Permit Fees (for certifying site conditions)",
+    "fee_basis": "Permit fee based upon the valuation of the uncompleted work",
+    "plan_review": "When the permit is for completing the work as shown on the original approved plans, no additional plan review fee is required."
+  },
+  "permit_suspension_revocation": {
+    "section": "106A.4.5",
+    "source_line": 31048,
+    "description": "The Building Official may suspend or revoke a permit issued in error, based on incorrect information, or in violation of any code provision.",
+    "fee_related": "Any permit for which less than the correct fees were paid shall be considered invalid and suspended until the complete fees are paid. Failure to pay correct fees is grounds for denial of occupancy."
+  },
+  "fee_refunds": {
+    "section": "107A.6",
+    "source_line": 31484,
+    "title": "Fee Refunds",
+    "building_issuance_fee_refund": {
+      "conditions": [
+        "No work has been done",
+        "Project has been abandoned or permit expired per Section 106A.4.4",
+        "Written request made within six months of permit expiration"
+      ],
+      "fee_table": "Table 1A-R — Refunds"
+    },
+    "plan_review_fee_refund": {
+      "section": "107A.6.1",
+      "source_line": 31491,
+      "conditions": [
+        "Application is withdrawn",
+        "No site inspection had been made by Department personnel",
+        "Plan review had not started within any division of the Department"
+      ],
+      "partial_refund": "For other cases, the refund amount (if any) is determined by the Building Official based on the amount of permit processing work already completed.",
+      "deadline": "Requests for refunds must be made within 30 days of withdrawal."
+    },
+    "fees_in_error": {
+      "section": "107A.6.2",
+      "source_line": 31501,
+      "description": "If the Building Official determines a fee assessment error, a refund for the error portion may be made upon written request. See Table 1A-R."
+    }
+  },
+  "investigation_fees_work_without_permit": {
+    "section": "107A.5",
+    "source_line": 31454,
+    "title": "Investigation Fees: Work Without a Permit",
+    "description": "When work requiring a permit has been started without one, a special investigation is required before a permit can be issued.",
+    "fee_table": "Table 1A-K — Penalties, Hearings, Code Enforcement Assessments",
+    "partial_work_rule": "Where only a portion of the work was done without a permit, the investigation fee is based on the portion done without a permit.",
+    "cost_responsibility": "The cost of any penalty, in conjunction with the investigation fee, shall be borne by the owner.",
+    "appeal_options": {
+      "initial_appeal": "The owner or owner's agent may appeal the investigation fee amount if they can provide just cause (unfamiliarity with code, demonstrable employee negligence).",
+      "reduced_fee": "The Building Official may reduce the investigation fee to two times the permit fee (Table 1A-A) for work constructed prior to the current building ownership, with substantiating documentation.",
+      "board_appeal": "If the Building Official rules against the applicant, appeals go to the Board of Appeals per Section 8 of the Business & Tax Regulations Code. The Board may reduce the fee but not below two times the permit fee."
+    }
+  },
+  "permit_transfer": {
+    "section": "106A.4.1.1",
+    "source_line": 30833,
+    "description": "Permits are transferable without payment of fees per Table 1A-D when the new owner submits a letter agreeing to all conditions of approval, stipulations and agreements."
+  },
+  "quick_reference": {
+    "description": "Lookup table for common scenarios",
+    "scenarios": [
+      {
+        "scenario": "Small residential remodel under $100K",
+        "table_b_tier": 1,
+        "time_allowed_days": 360,
+        "extension_days": 360,
+        "total_possible_days": 720
+      },
+      {
+        "scenario": "Major home renovation $100K-$2.5M",
+        "table_b_tier": 2,
+        "time_allowed_days": 1080,
+        "extension_days": 720,
+        "total_possible_days": 1800
+      },
+      {
+        "scenario": "Large project $2.5M+",
+        "table_b_tier": 3,
+        "time_allowed_days": 1440,
+        "extension_days": 720,
+        "total_possible_days": 2160
+      },
+      {
+        "scenario": "Site permit $2.5M+ (with 50% bonus)",
+        "table_b_tier": 3,
+        "time_allowed_days": 2160,
+        "extension_days": 720,
+        "total_possible_days": 2880
+      },
+      {
+        "scenario": "Demolition permit",
+        "table_b_tier": "special",
+        "time_allowed_days": 180,
+        "extension_days": 180,
+        "total_possible_days": 360
+      },
+      {
+        "scenario": "Code compliance permit (Building Official-initiated, >$25K)",
+        "table_b_tier": "special",
+        "time_allowed_days": 365,
+        "extension_days": null,
+        "total_possible_days": 365,
+        "note": "Must start within 30 days, max 12 months"
+      }
+    ]
+  }
+}

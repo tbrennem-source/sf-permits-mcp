@@ -799,7 +799,7 @@ def test_team_activity_lookback(client):
 # ---------------------------------------------------------------------------
 
 def test_expiring_permit_flagged(client):
-    """Permit issued 170 days ago (10 days left) should be flagged."""
+    """$50K permit issued 350 days ago (10 days left of 360-day limit) should be flagged."""
     from src.db import get_connection
     from web.auth import add_watch
     user = _login_user(client)
@@ -807,9 +807,10 @@ def test_expiring_permit_flagged(client):
     conn = get_connection()
     try:
         _seed_permit(conn, "EXP001", status="issued",
-                     issued_date=str(date.today() - timedelta(days=170)),
-                     filed_date=str(date.today() - timedelta(days=200)),
-                     completed_date=None)
+                     issued_date=str(date.today() - timedelta(days=350)),
+                     filed_date=str(date.today() - timedelta(days=380)),
+                     completed_date=None,
+                     estimated_cost=50000.0)
     finally:
         conn.close()
 
@@ -823,7 +824,7 @@ def test_expiring_permit_flagged(client):
 
 
 def test_expired_permit_flagged(client):
-    """Permit issued 200 days ago (expired 20 days ago) should show as expired."""
+    """$50K permit issued 380 days ago (expired 20 days past 360-day limit) should show as expired."""
     from src.db import get_connection
     from web.auth import add_watch
     user = _login_user(client)
@@ -831,9 +832,10 @@ def test_expired_permit_flagged(client):
     conn = get_connection()
     try:
         _seed_permit(conn, "EXP002", status="issued",
-                     issued_date=str(date.today() - timedelta(days=200)),
-                     filed_date=str(date.today() - timedelta(days=230)),
-                     completed_date=None)
+                     issued_date=str(date.today() - timedelta(days=380)),
+                     filed_date=str(date.today() - timedelta(days=410)),
+                     completed_date=None,
+                     estimated_cost=50000.0)
     finally:
         conn.close()
 
@@ -847,7 +849,7 @@ def test_expired_permit_flagged(client):
 
 
 def test_expiring_not_flagged_when_far_out(client):
-    """Permit issued 30 days ago (150 days left) should NOT be flagged."""
+    """$50K permit issued 30 days ago (330 days left of 360-day limit) should NOT be flagged."""
     from src.db import get_connection
     from web.auth import add_watch
     user = _login_user(client)
@@ -857,7 +859,8 @@ def test_expiring_not_flagged_when_far_out(client):
         _seed_permit(conn, "EXP003", status="issued",
                      issued_date=str(date.today() - timedelta(days=30)),
                      filed_date=str(date.today() - timedelta(days=60)),
-                     completed_date=None)
+                     completed_date=None,
+                     estimated_cost=50000.0)
     finally:
         conn.close()
 
@@ -877,9 +880,10 @@ def test_expiring_excludes_completed(client):
     conn = get_connection()
     try:
         _seed_permit(conn, "EXP004", status="completed",
-                     issued_date=str(date.today() - timedelta(days=170)),
-                     filed_date=str(date.today() - timedelta(days=200)),
-                     completed_date=str(date.today()))
+                     issued_date=str(date.today() - timedelta(days=350)),
+                     filed_date=str(date.today() - timedelta(days=380)),
+                     completed_date=str(date.today()),
+                     estimated_cost=50000.0)
     finally:
         conn.close()
 
@@ -891,21 +895,23 @@ def test_expiring_excludes_completed(client):
 
 
 def test_expiring_sorts_soonest_first(client):
-    """Expired permits first, then soonest-to-expire."""
+    """Expired permits first, then soonest-to-expire (Table B: $50K = 360-day limit)."""
     from src.db import get_connection
     from web.auth import add_watch
     user = _login_user(client)
 
     conn = get_connection()
     try:
-        # 10 days left
+        # 10 days left (issued 350 days ago, 360-day limit)
         _seed_permit(conn, "EXP005", status="issued",
-                     issued_date=str(date.today() - timedelta(days=170)),
-                     completed_date=None)
-        # Already expired
+                     issued_date=str(date.today() - timedelta(days=350)),
+                     completed_date=None,
+                     estimated_cost=50000.0)
+        # Already expired (issued 370 days ago, 360-day limit → expired 10 days ago)
         _seed_permit(conn, "EXP006", status="issued",
-                     issued_date=str(date.today() - timedelta(days=190)),
-                     completed_date=None)
+                     issued_date=str(date.today() - timedelta(days=370)),
+                     completed_date=None,
+                     estimated_cost=50000.0)
     finally:
         conn.close()
 

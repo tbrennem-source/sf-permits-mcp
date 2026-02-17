@@ -1,0 +1,236 @@
+{
+  "metadata": {
+    "title": "Permit Requirements — What Needs a Permit and What Is Exempt",
+    "source": "SF Building Inspection Commission Code (SFBICC), Sections 106A.1, 106A.2, 106A.3",
+    "source_file": "tier4/sf-bicc-fire-codes-full.txt",
+    "source_lines": "29300-30206",
+    "date_structured": "2026-02-16",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "Section 106A.1 lists all work types requiring permits",
+      "Section 106A.2 lists 26 categories of exempt work",
+      "Exemptions do NOT authorize work that violates the code — they just skip the permit requirement",
+      "Even exempt work may still need separate plumbing, electrical, or mechanical permits"
+    ]
+  },
+  "permits_required": {
+    "section": "106A.1",
+    "source_line": 29300,
+    "general_rule": "No building or structure shall be erected, constructed, enlarged, altered, repaired, moved, improved, removed, converted or demolished unless a separate permit for each building or structure has first been obtained from the Building Official.",
+    "anti_discrimination": "When considering applications for 'dwellings' as defined in SF Administrative Code Chapter 87, DBI shall not base decisions on information discriminatory to any 'protected class' member.",
+    "permit_types": [
+      {
+        "id": "106A.1.1",
+        "type": "Separate permits for stacked structures",
+        "description": "Where buildings are constructed on top of a base structure with their own addresses or functional identities, separate permits required for each."
+      },
+      {
+        "id": "106A.1.2",
+        "type": "Grading, excavation, or filling",
+        "fee_basis": "Volume of material handled, cost schedule posted in Department",
+        "fee_tables": ["Table 1A-A", "Table 1A-B"]
+      },
+      {
+        "id": "106A.1.3",
+        "type": "Subsidewalk space construction",
+        "requires": "Building Official + City Engineer approval",
+        "fee_table": "Table 1A-F",
+        "note": "Market Street restrictions apply between Steuart and Castro"
+      },
+      {
+        "id": "106A.1.4",
+        "type": "Moving buildings",
+        "requires": "Permit for moving work + separate permit for new site alterations",
+        "fee_tables": ["Table 1A-F (moving)", "Table 1A-A, 1A-B (new site)"]
+      },
+      {
+        "id": "106A.1.5",
+        "type": "Demolition",
+        "fee_tables": ["Table 1A-F", "Table 1A-L (Public Information)"],
+        "see_also": "Section 3303 for general requirements"
+      },
+      {
+        "id": "106A.1.6",
+        "type": "Chimneys and flues",
+        "description": "Flue permit required for non-masonry, non-Type-1 grease hood chimneys/flues. Separate permit per flue/chimney.",
+        "fee_table": "Table 1A-F"
+      },
+      {
+        "id": "106A.1.7",
+        "type": "Temporary buildings or structures",
+        "description": "Reviewing stands, bleachers, grandstands, miscellaneous temporary structures",
+        "fee_table": "Table 1A-F"
+      },
+      {
+        "id": "106A.1.8",
+        "type": "Garage doors",
+        "description": "Permit for installation in existing buildings. Does not apply where structural alterations are needed (use standard building permit).",
+        "fee_table": "Table 1A-F"
+      },
+      {
+        "id": "106A.1.9",
+        "type": "Signs",
+        "description": "Permit required to erect or alter signs under Chapter 31. Replacement of copy without affecting structure or attachment does not require a permit.",
+        "fee_basis": "Job valuation",
+        "fee_table": "Table 1A-A"
+      },
+      {
+        "id": "106A.1.10",
+        "type": "Residential elevators and lifts",
+        "fee_tables": ["Table 1A-A", "Table 1A-B"],
+        "exemption": "State-regulated elevators are exempt from this code, but shafts, enclosures, and structural work must comply."
+      },
+      {
+        "id": "106A.1.11",
+        "type": "Boilers",
+        "description": "Separate building permit for new installation or replacement. Also requires permit to operate.",
+        "fee_tables": ["Table 1A-A (building)", "Table 1A-M (operate)"],
+        "late_fee": "Additional fees billed increase to 2x if not paid within 30 days"
+      },
+      {
+        "id": "106A.1.12",
+        "type": "Change in occupancy or use",
+        "description": "Building permit required for any change of occupancy or use per Section 302.",
+        "simplified_conditions": [
+          "Previously A/B/M occupancy staying within that classification",
+          "Occupant load stays same or decreases",
+          "No alterations as defined by Section 202",
+          "No changes to mechanical, electrical, or plumbing systems",
+          "No new kitchen, service bar, or related equipment"
+        ],
+        "note": "If all 5 conditions are met, plans prepared by a registered design professional are not required."
+      },
+      {
+        "id": "106A.1.13",
+        "type": "Impervious surface in front yard setback",
+        "requires": "Planning Department compliance determination",
+        "penalty": "Up to $500/day civil penalty plus investigation fees per Table 1A-K",
+        "fee_table": "Table 1A-F"
+      },
+      {
+        "id": "106A.1.14",
+        "type": "Fire-damaged apartment houses with displaced occupants",
+        "description": "Property owner must submit information within 72 hours and an Action Plan within 30 days of fire department scene release.",
+        "updates_required": "Every 90 days until all NOVs abated"
+      },
+      {
+        "id": "106A.1.15",
+        "type": "Solar energy systems",
+        "permit_type": "Electrical permit",
+        "fee_table": "Table 1A-E",
+        "otc_threshold": "4 kW or less issued over the counter",
+        "expedited_review": "Eligible per AB-004 Priority Permit Processing Guidelines",
+        "one_inspection": "Small residential rooftop systems get one inspection, scheduled within 3 business days with 2-hour window",
+        "historic_buildings": "Requires Planning Department review + possible Historic Preservation Commission referral",
+        "exemption": "Minor alterations not materially changing size/type/components do not need a permit"
+      },
+      {
+        "id": "106A.1.16",
+        "type": "Electric Vehicle (EV) supply equipment",
+        "permit_type": "Electrical permit by licensed Electrical Contractor",
+        "fee_table": "Table 1A-E",
+        "exemption": "No permit needed for plug-in charger using a previously approved receptacle outlet",
+        "gas_ban_effective": "June 1, 2021 for new construction"
+      },
+      {
+        "id": "106A.1.17",
+        "type": "Mixed-fuel building prohibition (gas ban)",
+        "effective_date": "June 1, 2021",
+        "description": "No permits for new Mixed-Fuel Buildings with initial applications after June 1, 2021. New construction must be All-Electric.",
+        "exceptions": [
+          "Physical/technical infeasibility (not financial) with modification per Section 104A.2.7",
+          "Commercial food service (A-2 occupancy) with gas solely for cooking, with conditions",
+          "Federal Energy Policy and Conservation Act covered appliances with Electric-Ready design"
+        ],
+        "major_renovation_deadline": "After July 1, 2026, no permit applications for Major Renovations of Mixed-Fuel Buildings",
+        "conversion_prohibition": "No permits to convert All-Electric to Mixed-Fuel after June 1, 2021"
+      },
+      {
+        "id": "106A.1.18",
+        "type": "Labor compliance bonds for certain residential projects",
+        "description": "First Construction Document cannot be issued without Controller confirmation of surety bond per Labor and Employment Code Article 81."
+      },
+      {
+        "id": "106A.1.19",
+        "type": "State-mandated ADU/JADU program",
+        "description": "Ministerial review required per California Government Code Sections 66314 and 66333.",
+        "review_deadline_days": 60,
+        "auto_approval": "If the City has not approved or denied within 60 days, the application is deemed approved.",
+        "garage_demolition": "Written/posted notice not required for demolition of detached garage replaced with ADU, unless in historic/conservation district."
+      }
+    ]
+  },
+  "work_exempt_from_permit": {
+    "section": "106A.2",
+    "source_line": 29978,
+    "important_caveat": "Exemptions do NOT authorize any work done in violation of the code or any other laws. Separate plumbing, electrical, and mechanical permits may still be required.",
+    "exempt_categories": [
+      {"id": 1, "description": "One-story detached accessory buildings (tool sheds, playhouses, etc.) not exceeding 120 sq ft"},
+      {"id": 2, "description": "Fences: up to 6 ft high at rear/side lot lines at rear of property; all fences up to 3 ft high"},
+      {"id": 3, "description": "Amusement devices not on fixed foundations"},
+      {"id": 4, "description": "Movable cases, counters, and partitions not over 5 ft 9 in high"},
+      {"id": 5, "description": "Retaining walls not over 4 ft from bottom of footing to top, unless supporting a surcharge or impounding liquids"},
+      {"id": 6, "description": "Water tanks on grade, capacity not exceeding 5,000 gallons, height-to-diameter ratio not exceeding 2:1"},
+      {"id": 7, "description": "Platforms, sidewalks, walks, and driveways not part of an exit, not more than 30 inches above grade, not over any basement"},
+      {"id": 8, "description": "Painting, papering, and similar finish work"},
+      {"id": 9, "description": "Temporary motion picture, television, and theater stage sets and scenery"},
+      {"id": 10, "description": "Minor repairs to existing interior plaster or wallboard, except fire-resistive assemblies"},
+      {"id": 11, "description": "Prefabricated swimming pools accessory to R-3 occupancy, walls entirely above grade, capacity not exceeding 5,000 gallons"},
+      {"id": 12, "description": "State-owned buildings under state fire marshal jurisdiction"},
+      {"id": 13, "description": "Reroofing without sheathing work, if total area in any 12-month period does not exceed 25% of entire roof"},
+      {"id": 14, "description": "Surface mounting of readily removable materials on interior walls"},
+      {"id": 15, "description": "Work on Federal or State government-owned and occupied structures (exceptions apply to private operations on government land)"},
+      {"id": 16, "description": "Floor covering installation/replacement outside bathrooms and toilet rooms, not requiring removal of required flooring"},
+      {"id": 17, "description": "Repair and replacement of glazing in conformity with code (wire glass replaced in kind)"},
+      {"id": 18, "description": "Replacement of doors (except garage doors) in all occupancies, not part of fire-resistive assemblies"},
+      {"id": 19, "description": "Work on City-owned or leased structures financed by lease revenue bonds prior to July 1, 1989"},
+      {"id": 20, "description": "Exempt signs per Section 3107.1.1"},
+      {"id": 21, "description": "Grading permit exemptions per Section J103.2"},
+      {"id": 22, "description": "State-regulated elevators per Section 106A.1.10.3"},
+      {"id": 23, "description": "Homeless shelter construction/repair on City land during declared shelter crisis, with alternative approval process (6 conditions)"},
+      {"id": 24, "description": "Small residential rooftop solar energy systems (not on landmarks or historic buildings) — electrical permit may still be required"},
+      {"id": 25, "description": "Hotel/motel used for Interim Housing per Planning Code Section 202.15, meeting Appendix P fire/safety requirements"},
+      {"id": 26, "description": "Reestablishment of Hotel/Motel use after City Shelter-In-Place Hotel Program participation"}
+    ]
+  },
+  "application_process": {
+    "section": "106A.3.1",
+    "source_line": 30087,
+    "title": "Application Requirements",
+    "required_items": [
+      "Identify and describe the work to be covered",
+      "Describe the land by legal description, street address, or similar",
+      "Indicate use or occupancy of all affected parts",
+      "Plans, diagrams, computations, specifications per Section 106A.3.2",
+      "State the valuation of any new building, addition, remodeling, or alteration",
+      "Signed by owner or authorized agent",
+      "Other data required by Building Official",
+      "Name, address, phone of owner/contractor; state and city license numbers when applicable",
+      "Hold harmless agreement for the City (runs with the land, binding on successors)",
+      "Affidavit that stove/kitchen/bathroom removal is not removing a dwelling unit"
+    ],
+    "application_transfer": {
+      "section": "106A.3.1.2",
+      "description": "Applications are transferable with payment of additional fees when new owner agrees to all conditions. See Table 1A-D."
+    },
+    "unauthorized_dwelling_unit_legalization": {
+      "section": "106A.3.1.3",
+      "source_line": 30138,
+      "description": "Process for legalizing existing unauthorized dwelling units under Planning Code Section 207.3.",
+      "screening_required": [
+        "Dwelling Unit Legalization Checklist form with floor plans",
+        "Evidence the unit existed prior to January 1, 2013",
+        "Assessment by licensed contractor/architect/engineer for code compliance plan",
+        "Other information required by Building Official"
+      ],
+      "nov_suspension": "NOVs are suspended upon initiation of legalization process and rescinded if legalization approved within one year.",
+      "imminent_hazard": "Department will not pursue enforcement based solely on screening information unless an imminent/substantial hazard is identified."
+    }
+  },
+  "submittal_documents": {
+    "section": "106A.3.2",
+    "source_line": 30195,
+    "description": "Plans, specifications, engineering calculations, diagrams, soil investigation reports, special inspection and structural observation programs, and other data constitute the submittal documents.",
+    "licensed_professional": "When plans are not prepared by an architect, land surveyor, or engineer, the Building Official may require demonstration that state law does not require professional preparation. Materials from licensed professionals must be signed and sealed on all plan sheets."
+  }
+}
