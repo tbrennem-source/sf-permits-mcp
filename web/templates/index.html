@@ -1091,8 +1091,8 @@
                         submitButton.style.opacity = '0.6';
                     });
 
-                    form.addEventListener('htmx:afterRequest', function() {
-                        console.log('[Analyze Plans] HTMX afterRequest event fired');
+                    form.addEventListener('htmx:afterSwap', function() {
+                        console.log('[Analyze Plans] HTMX afterSwap event fired');
                         loadingIndicator.style.display = 'none';
                         submitButton.disabled = false;
                         submitButton.style.opacity = '1';
