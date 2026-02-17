@@ -1,5 +1,42 @@
 # Changelog
 
+## Session 26 — Vision Timing, Token Usage & Cost Tracking (2026-02-17)
+
+### Per-Call Timing & Token Tracking
+- **`VisionCallRecord`** dataclass: records call_type, page_number, duration_ms, input/output tokens, success for every API call
+- **`VisionUsageSummary`** aggregator: total calls, tokens, duration, with `estimated_cost_usd` property (Sonnet pricing: $3/$15 per MTok)
+- `VisionResult.duration_ms` field wraps `time.perf_counter()` around each `client.messages.create()` call
+- `_timed_analyze_image()` wrapper in epr_checks threads usage through all 5 vision callsites
+- `run_vision_epr_checks` return changed from 3-tuple to 4-tuple: `(checks, extractions, annotations, usage)`
+
+### Database Persistence
+- New columns: `vision_usage_json TEXT`, `gallery_duration_ms INTEGER` on `plan_analysis_jobs`
+- Full per-call JSON blob stored for every completed analysis (call breakdown, timing, tokens, cost)
+- Gallery render timing captured separately
+
+### User-Facing UI
+- **Elapsed timer during polling**: "Elapsed: 1m 23s · Typical: 1–3 min" (server-computed from started_at)
+- **Vision stats on results page**: "AI Vision: 14 calls · 42,300 tokens · ~$0.19 · 87s · Gallery: 3.2s"
+- Stats only shown for Full Analysis jobs with vision data
+
+### Tests
+- 8 new tests for VisionCallRecord, VisionUsageSummary (aggregation, cost math, JSON serialization)
+- Updated 3→4 tuple unpacking in all existing vision/analyze_plans tests
+- 67 targeted tests pass, 956 full suite pass
+
+### Files Changed
+- `src/vision/client.py` — duration_ms, VisionCallRecord, VisionUsageSummary dataclasses
+- `src/vision/epr_checks.py` — _timed_analyze_image wrapper, 4-tuple return, usage threading
+- `src/tools/analyze_plans.py` — 4-tuple unpack, API Usage line in report header
+- `web/plan_worker.py` — 4-tuple unpack, gallery timing, persist usage to DB
+- `web/plan_jobs.py` — extended get_job() SELECT with new columns
+- `web/app.py` — ALTER TABLE migrations, elapsed_s in polling, vision_stats in results
+- `web/templates/analyze_plans_polling.html` — elapsed timer display
+- `web/templates/analyze_plans_results.html` — vision stats line
+- `tests/test_vision_client.py` — 8 new tests
+- `tests/test_vision_epr_checks.py` — 4-tuple unpacking, usage assertions
+- `tests/test_analyze_plans.py` — 4-tuple unpacking, mock updates
+
 ## Session 25 — Rebrand: Expediter → Land Use Consultant + LUCK (2026-02-17)
 
 ### Terminology Rename
@@ -144,7 +181,6 @@ UPDATE entities SET entity_type = 'consultant' WHERE entity_type = 'expediter';
 - `pyproject.toml` — Added openai dependency
 
 ---
-
 ## Session 23 — AI-Generated Plan Annotations (2026-02-16)
 
 ### Vision Annotation Extraction

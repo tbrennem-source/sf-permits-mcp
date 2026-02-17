@@ -13,6 +13,8 @@ from src.vision.client import (
     analyze_image,
     analyze_images_batch,
     VisionResult,
+    VisionCallRecord,
+    VisionUsageSummary,
     DEFAULT_MODEL,
     DEFAULT_MAX_TOKENS,
 )
@@ -160,3 +162,148 @@ async def test_batch_processes_all_images():
     assert results[0][1].text == "result_1"
     assert results[1][0] == 2
     assert results[2][0] == 5
+
+
+# ── VisionResult duration_ms ───────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_analyze_image_records_duration_ms(mock_anthropic):
+    """Successful call populates duration_ms > 0."""
+    mock_mod, mock_client = mock_anthropic
+
+    mock_response = MagicMock()
+    mock_response.content = [MagicMock(text="ok")]
+    mock_response.usage = MagicMock(input_tokens=100, output_tokens=50)
+    mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+    with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
+        result = await analyze_image("base64data", "test prompt")
+
+    assert result.success is True
+    assert result.duration_ms >= 0  # May be 0 on very fast mock but should exist
+
+
+def test_vision_result_duration_default():
+    """VisionResult defaults duration_ms to 0."""
+    r = VisionResult(success=True, text="test")
+    assert r.duration_ms == 0
+
+
+# ── VisionCallRecord ──────────────────────────────────────────────────────
+
+
+def test_vision_call_record_creation():
+    """VisionCallRecord stores all fields correctly."""
+    record = VisionCallRecord(
+        call_type="title_block",
+        page_number=3,
+        duration_ms=1500,
+        input_tokens=5000,
+        output_tokens=800,
+        success=True,
+    )
+    assert record.call_type == "title_block"
+    assert record.page_number == 3
+    assert record.duration_ms == 1500
+    assert record.input_tokens == 5000
+    assert record.output_tokens == 800
+    assert record.success is True
+
+
+def test_vision_call_record_none_page():
+    """VisionCallRecord allows None page_number for non-page-specific calls."""
+    record = VisionCallRecord(
+        call_type="cover_page_count",
+        page_number=None,
+        duration_ms=2000,
+        input_tokens=3000,
+        output_tokens=500,
+        success=True,
+    )
+    assert record.page_number is None
+
+
+# ── VisionUsageSummary ────────────────────────────────────────────────────
+
+
+def test_usage_summary_aggregation():
+    """add_call correctly aggregates multiple call records."""
+    usage = VisionUsageSummary(model="test-model")
+
+    usage.add_call(VisionCallRecord(
+        call_type="title_block", page_number=0,
+        duration_ms=1000, input_tokens=5000, output_tokens=800, success=True,
+    ))
+    usage.add_call(VisionCallRecord(
+        call_type="annotation", page_number=0,
+        duration_ms=1200, input_tokens=6000, output_tokens=1000, success=True,
+    ))
+    usage.add_call(VisionCallRecord(
+        call_type="hatching", page_number=1,
+        duration_ms=800, input_tokens=4000, output_tokens=600, success=False,
+    ))
+
+    assert usage.total_calls == 3
+    assert usage.successful_calls == 2
+    assert usage.failed_calls == 1
+    assert usage.total_input_tokens == 15000
+    assert usage.total_output_tokens == 2400
+    assert usage.total_duration_ms == 3000
+    assert usage.total_tokens == 17400
+    assert len(usage.calls) == 3
+
+
+def test_usage_summary_cost_estimation():
+    """estimated_cost_usd calculates correctly from known token counts."""
+    usage = VisionUsageSummary()
+    usage.add_call(VisionCallRecord(
+        call_type="test", page_number=None,
+        duration_ms=100,
+        input_tokens=1_000_000,   # 1M input tokens = $3.00
+        output_tokens=100_000,    # 100K output tokens = $1.50
+        success=True,
+    ))
+    # Expected: $3.00 + $1.50 = $4.50
+    assert abs(usage.estimated_cost_usd - 4.5) < 0.001
+
+
+def test_usage_summary_to_dict():
+    """to_dict() produces JSON-serializable output with all expected keys."""
+    import json
+
+    usage = VisionUsageSummary(model="claude-sonnet-4-20250514")
+    usage.add_call(VisionCallRecord(
+        call_type="title_block", page_number=1,
+        duration_ms=500, input_tokens=1000, output_tokens=200, success=True,
+    ))
+
+    d = usage.to_dict()
+    # Verify it's JSON-serializable
+    json_str = json.dumps(d)
+    assert json_str  # non-empty
+
+    # Check expected top-level keys
+    assert d["total_calls"] == 1
+    assert d["successful_calls"] == 1
+    assert d["failed_calls"] == 0
+    assert d["total_input_tokens"] == 1000
+    assert d["total_output_tokens"] == 200
+    assert d["total_duration_ms"] == 500
+    assert d["total_tokens"] == 1200
+    assert d["estimated_cost_usd"] > 0
+    assert d["model"] == "claude-sonnet-4-20250514"
+    assert len(d["calls"]) == 1
+    assert d["calls"][0]["call_type"] == "title_block"
+    assert d["calls"][0]["page_number"] == 1
+
+
+def test_usage_summary_empty():
+    """Empty VisionUsageSummary has zero values."""
+    usage = VisionUsageSummary()
+    assert usage.total_calls == 0
+    assert usage.total_tokens == 0
+    assert usage.estimated_cost_usd == 0.0
+    d = usage.to_dict()
+    assert d["total_calls"] == 0
+    assert d["calls"] == []

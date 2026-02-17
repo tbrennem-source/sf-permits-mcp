@@ -10,10 +10,18 @@ report formatter in validate_plans.py.
 
 import json
 import logging
+import os
 from dataclasses import dataclass
 
 from src.tools.validate_plans import CheckResult
-from src.vision.client import analyze_image, is_vision_available, VisionResult
+from src.vision.client import (
+    analyze_image,
+    is_vision_available,
+    VisionCallRecord,
+    VisionResult,
+    VisionUsageSummary,
+    DEFAULT_MODEL,
+)
 from src.vision.pdf_to_images import pdf_page_to_base64
 from src.vision.prompts import (
     SYSTEM_PROMPT_EPR,
@@ -118,15 +126,45 @@ def _skip_all(reason: str) -> list[CheckResult]:
 
 
 # ---------------------------------------------------------------------------
+# Timed vision call wrapper
+# ---------------------------------------------------------------------------
+
+async def _timed_analyze_image(
+    image_b64: str,
+    prompt: str,
+    call_type: str,
+    usage: VisionUsageSummary,
+    system_prompt: str | None = None,
+    max_tokens: int = 2048,
+    page_number: int | None = None,
+) -> VisionResult:
+    """Wrapper around analyze_image() that records call timing and tokens."""
+    result = await analyze_image(
+        image_b64, prompt, system_prompt, max_tokens=max_tokens,
+    )
+    record = VisionCallRecord(
+        call_type=call_type,
+        page_number=page_number,
+        duration_ms=result.duration_ms,
+        input_tokens=result.input_tokens,
+        output_tokens=result.output_tokens,
+        success=result.success,
+    )
+    usage.add_call(record)
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Individual check functions
 # ---------------------------------------------------------------------------
 
 async def _check_cover_page_count(
-    cover_b64: str, actual_count: int,
+    cover_b64: str, actual_count: int, usage: VisionUsageSummary,
 ) -> CheckResult:
     """EPR-011: Page count on cover matches actual PDF page count."""
-    result = await analyze_image(
-        cover_b64, PROMPT_COVER_PAGE_COUNT, SYSTEM_PROMPT_EPR
+    result = await _timed_analyze_image(
+        cover_b64, PROMPT_COVER_PAGE_COUNT, "cover_page_count", usage,
+        system_prompt=SYSTEM_PROMPT_EPR, page_number=0,
     )
     parsed = _parse_json_response(result)
 
@@ -183,10 +221,13 @@ async def _check_cover_page_count(
     )
 
 
-async def _check_cover_blank_area(cover_b64: str) -> CheckResult:
+async def _check_cover_blank_area(
+    cover_b64: str, usage: VisionUsageSummary,
+) -> CheckResult:
     """EPR-012: 8.5x11 blank area on cover for DBI stamping."""
-    result = await analyze_image(
-        cover_b64, PROMPT_COVER_BLANK_AREA, SYSTEM_PROMPT_EPR
+    result = await _timed_analyze_image(
+        cover_b64, PROMPT_COVER_BLANK_AREA, "cover_blank_area", usage,
+        system_prompt=SYSTEM_PROMPT_EPR, page_number=0,
     )
     parsed = _parse_json_response(result)
 
@@ -518,6 +559,7 @@ async def _check_hatching(
     pdf_bytes: bytes,
     hatching_pages: list[int],
     cover_b64: str,
+    usage: VisionUsageSummary,
 ) -> CheckResult:
     """EPR-022: Check for dense hatching patterns on sample pages."""
     if not hatching_pages:
@@ -533,7 +575,10 @@ async def _check_hatching(
     for pn in hatching_pages:
         try:
             b64 = pdf_page_to_base64(pdf_bytes, pn)
-            result = await analyze_image(b64, PROMPT_DENSE_HATCHING, SYSTEM_PROMPT_EPR)
+            result = await _timed_analyze_image(
+                b64, PROMPT_DENSE_HATCHING, "hatching", usage,
+                system_prompt=SYSTEM_PROMPT_EPR, page_number=pn,
+            )
             parsed = _parse_json_response(result)
             if parsed and parsed.get("has_dense_hatching"):
                 severity = parsed.get("severity", "unknown")
@@ -584,6 +629,7 @@ MAX_ANNOTATIONS_PER_PAGE = 12
 async def extract_page_annotations(
     image_b64: str,
     page_number: int,
+    usage: VisionUsageSummary | None = None,
 ) -> list[dict]:
     """Extract spatial annotations from a plan page image.
 
@@ -593,16 +639,24 @@ async def extract_page_annotations(
     Args:
         image_b64: Base64-encoded PNG image of the page.
         page_number: 1-indexed page number.
+        usage: Optional usage summary to track API call metrics.
 
     Returns:
         List of annotation dicts with keys:
             type, label, x, y, anchor, importance, page_number
     """
     try:
-        result = await analyze_image(
-            image_b64, PROMPT_ANNOTATION_EXTRACTION, SYSTEM_PROMPT_EPR,
-            max_tokens=1500,
-        )
+        if usage is not None:
+            result = await _timed_analyze_image(
+                image_b64, PROMPT_ANNOTATION_EXTRACTION, "annotation", usage,
+                system_prompt=SYSTEM_PROMPT_EPR, max_tokens=1500,
+                page_number=page_number,
+            )
+        else:
+            result = await analyze_image(
+                image_b64, PROMPT_ANNOTATION_EXTRACTION, SYSTEM_PROMPT_EPR,
+                max_tokens=1500,
+            )
     except Exception as e:
         logger.warning("Annotation extraction failed for page %d: %s", page_number, e)
         return []
@@ -662,7 +716,7 @@ async def extract_page_annotations(
 async def run_vision_epr_checks(
     pdf_bytes: bytes,
     total_pages: int,
-) -> tuple[list[CheckResult], list[dict], list[dict]]:
+) -> tuple[list[CheckResult], list[dict], list[dict], VisionUsageSummary]:
     """Run all vision-based EPR checks on a PDF plan set.
 
     Args:
@@ -670,17 +724,22 @@ async def run_vision_epr_checks(
         total_pages: Total page count (from metadata checks).
 
     Returns:
-        Tuple of (check_results, page_extractions, page_annotations) where
-        page_extractions is a list of per-page title block data and
-        page_annotations is a list of spatial annotation dicts for UI overlay.
+        Tuple of (check_results, page_extractions, page_annotations, usage) where
+        page_extractions is a list of per-page title block data,
+        page_annotations is a list of spatial annotation dicts for UI overlay,
+        and usage is a VisionUsageSummary with token counts and timing.
     """
+    model = os.environ.get("VISION_MODEL", DEFAULT_MODEL)
+
     if not is_vision_available():
         return (
             _skip_all("ANTHROPIC_API_KEY not configured — vision checks skipped"),
             [],
             [],
+            VisionUsageSummary(model=model),
         )
 
+    usage = VisionUsageSummary(model=model)
     results: list[CheckResult] = []
     page_extractions: list[dict] = []
     page_annotations: list[dict] = []
@@ -690,13 +749,13 @@ async def run_vision_epr_checks(
         cover_b64 = pdf_page_to_base64(pdf_bytes, 0)
     except Exception as e:
         logger.error("Failed to render cover page: %s", e)
-        return _skip_all(f"PDF rendering failed: {e}"), [], []
+        return _skip_all(f"PDF rendering failed: {e}"), [], [], VisionUsageSummary(model=model)
 
     # EPR-011: Page count on cover
-    results.append(await _check_cover_page_count(cover_b64, total_pages))
+    results.append(await _check_cover_page_count(cover_b64, total_pages, usage))
 
     # EPR-012: 8.5x11 blank area on cover
-    results.append(await _check_cover_blank_area(cover_b64))
+    results.append(await _check_cover_blank_area(cover_b64, usage))
 
     # 2. Sample interior pages for title block checks
     sample_pages = _select_sample_pages(total_pages)
@@ -705,8 +764,9 @@ async def run_vision_epr_checks(
     for page_num in sample_pages:
         try:
             b64 = cover_b64 if page_num == 0 else pdf_page_to_base64(pdf_bytes, page_num)
-            tb_result = await analyze_image(
-                b64, PROMPT_TITLE_BLOCK, SYSTEM_PROMPT_EPR
+            tb_result = await _timed_analyze_image(
+                b64, PROMPT_TITLE_BLOCK, "title_block", usage,
+                system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
             )
             parsed = _parse_json_response(tb_result)
             if parsed:
@@ -715,7 +775,7 @@ async def run_vision_epr_checks(
                 page_extractions.append(parsed)
 
             # Extract spatial annotations from the same rendered image
-            anns = await extract_page_annotations(b64, page_num + 1)
+            anns = await extract_page_annotations(b64, page_num + 1, usage)
             page_annotations.extend(anns)
         except Exception as e:
             logger.warning(
@@ -767,6 +827,12 @@ async def run_vision_epr_checks(
 
     # EPR-022: Dense hatching (sample 2 interior pages)
     hatching_pages = [p for p in sample_pages if p != 0][:2]
-    results.append(await _check_hatching(pdf_bytes, hatching_pages, cover_b64))
+    results.append(await _check_hatching(pdf_bytes, hatching_pages, cover_b64, usage))
 
-    return results, page_extractions, page_annotations
+    logger.info(
+        "Vision usage: %d calls, %d input tokens, %d output tokens, %dms total, ~$%.4f",
+        usage.total_calls, usage.total_input_tokens, usage.total_output_tokens,
+        usage.total_duration_ms, usage.estimated_cost_usd,
+    )
+
+    return results, page_extractions, page_annotations, usage

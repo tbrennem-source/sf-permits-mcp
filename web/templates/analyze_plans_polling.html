@@ -44,4 +44,13 @@
     </div>
 
     <div class="step-detail">{{ job.progress_detail or 'Processing...' }}</div>
+
+    {% if elapsed_s is defined and elapsed_s is not none %}
+    <div style="font-size: 0.78rem; color: var(--text-muted, #666); text-align: center; margin-top: 8px;">
+        Elapsed: {{ elapsed_s // 60 }}m {{ elapsed_s % 60 }}s
+        {% if elapsed_s < 30 %}
+        &nbsp;&middot;&nbsp; Typical: 1–3 min
+        {% endif %}
+    </div>
+    {% endif %}
 </div>

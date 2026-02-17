@@ -223,6 +223,10 @@ def _run_startup_migrations():
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS progress_stage TEXT")
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS progress_detail TEXT")
 
+        # Vision usage tracking (timing, tokens, cost)
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS vision_usage_json TEXT")
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS gallery_duration_ms INTEGER")
+
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -1091,8 +1095,15 @@ def plan_job_status(job_id):
     elif job["status"] == "stale":
         return render_template("analyze_plans_stale.html", job=job)
     else:
-        # Still processing — return polling HTML
-        return render_template("analyze_plans_polling.html", job=job)
+        # Compute elapsed time for display in polling UI
+        elapsed_s = None
+        if job.get("started_at"):
+            from datetime import datetime, timezone
+            started = job["started_at"]
+            if hasattr(started, "tzinfo") and started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            elapsed_s = int((datetime.now(timezone.utc) - started).total_seconds())
+        return render_template("analyze_plans_polling.html", job=job, elapsed_s=elapsed_s)
 
 
 @app.route("/plan-jobs/<job_id>/results")
@@ -1121,6 +1132,15 @@ def plan_job_results(job_id):
     page_annotations = session_data.get("page_annotations", [])
     annotations_json = json.dumps(page_annotations)
 
+    # Parse vision usage stats for display
+    vision_stats = None
+    raw_usage = job.get("vision_usage_json")
+    if raw_usage:
+        try:
+            vision_stats = json.loads(raw_usage) if isinstance(raw_usage, str) else raw_usage
+        except Exception:
+            pass
+
     return render_template(
         "plan_results_page.html",
         result=result_html,
@@ -1136,6 +1156,8 @@ def plan_job_results(job_id):
         property_address=job.get("property_address"),
         street_number=_parse_address(job.get("property_address", ""))[0],
         street_name=_parse_address(job.get("property_address", ""))[1],
+        vision_stats=vision_stats,
+        gallery_duration_ms=job.get("gallery_duration_ms"),
     )
 
 

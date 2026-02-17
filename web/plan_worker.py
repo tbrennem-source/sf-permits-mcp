@@ -14,9 +14,11 @@ The background thread:
 """
 
 import asyncio
+import json
 import logging
 import os
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
@@ -116,6 +118,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         progress_detail="Running AI vision analysis...",
     )
 
+    vision_usage = None
     if job["quick_check"]:
         result_md = loop.run_until_complete(
             validate_plans(
@@ -128,7 +131,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         page_extractions = []
         page_annotations = []
     else:
-        result_md, page_extractions, page_annotations = loop.run_until_complete(
+        result_md, page_extractions, page_annotations, vision_usage = loop.run_until_complete(
             analyze_plans(
                 pdf_bytes=pdf_bytes,
                 filename=filename,
@@ -150,6 +153,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         progress_detail=f"Rendering page gallery (0/{total_render})...",
     )
 
+    gallery_t0 = time.time()
     page_images = []
     for pn in range(total_render):
         try:
@@ -165,6 +169,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
                 progress_stage="rendering",
                 progress_detail=f"Rendering page gallery ({pn + 1}/{total_render})...",
             )
+    gallery_duration_ms = int((time.time() - gallery_t0) * 1000)
 
     # ── Finalize ──
     update_job_status(
@@ -202,6 +207,11 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
             tag_updates["permit_source"] = "auto"
 
     # ── Update job as completed ──
+    usage_fields = {}
+    if vision_usage and vision_usage.total_calls > 0:
+        usage_fields["vision_usage_json"] = json.dumps(vision_usage.to_dict())
+    usage_fields["gallery_duration_ms"] = gallery_duration_ms
+
     update_job_status(
         job_id,
         "completed",
@@ -209,14 +219,22 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         report_md=result_md,
         completed_at=datetime.now(timezone.utc),
         **tag_updates,
+        **usage_fields,
     )
 
     # ── Clear PDF data to free storage ──
     clear_pdf_data(job_id)
 
+    usage_log = ""
+    if vision_usage and vision_usage.total_calls > 0:
+        usage_log = (
+            f", vision={vision_usage.total_calls} calls/"
+            f"{vision_usage.total_tokens:,} tokens/"
+            f"~${vision_usage.estimated_cost_usd:.4f}"
+        )
     logger.info(
         f"[plan-worker] Completed {filename}: {page_count} pages, "
-        f"session={session_id}"
+        f"session={session_id}, gallery={gallery_duration_ms}ms{usage_log}"
     )
 
     # ── Send email notification ──

@@ -718,6 +718,17 @@
             <span class="file-hint">&middot; {{ annotation_count }} annotation{{ 's' if annotation_count != 1 }}</span>
             {% endif %}
         </div>
+        {% if vision_stats is defined and vision_stats %}
+        <div style="font-size: 0.75rem; color: var(--text-muted, #888); margin-top: 4px;">
+            AI Vision: {{ vision_stats.total_calls }} calls
+            &middot; {{ '{:,}'.format(vision_stats.total_tokens) }} tokens
+            &middot; ~${{ '%.2f'|format(vision_stats.estimated_cost_usd) }}
+            &middot; {{ (vision_stats.total_duration_ms / 1000)|round(0)|int }}s
+            {% if gallery_duration_ms is defined and gallery_duration_ms %}
+            &middot; Gallery: {{ (gallery_duration_ms / 1000)|round(1) }}s
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 
     {% if session_id %}
