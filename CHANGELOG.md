@@ -1,5 +1,29 @@
 # Changelog
 
+## Session 22.4 — Recent Searches (2026-02-16)
+
+### Feature
+- **Recent searches** — Last 5 searches saved to localStorage and rendered as clickable preset chips above quick-actions on the home page. Case-insensitive dedup, truncates long queries, clear button to wipe history. Pure client-side, no backend changes.
+
+### Files Changed (1 file, +83 lines)
+- `web/templates/index.html` — Recent searches container, CSS, JS (localStorage read/write, chip rendering, HTMX hook)
+
+---
+
+## Session 22.3 — Fix False Positive Assessor Use Mismatch (2026-02-16)
+
+### Bug Fix
+- **Assessor vs. permit use mismatch false positive** — "Single Family Residential" (Assessor) was flagged as a mismatch against "1 family dwelling" (permit) even though they mean the same thing. Added `"single family residential"` and `"two family residential"` to the `_USE_EQUIVALENTS` table in `web/owner_mode.py`.
+
+### Tests
+- Added `test_assessor_single_family_residential_equivalent` and `test_assessor_single_family_residential_no_mismatch` to `tests/test_owner_mode.py` — 49 tests passing.
+
+### Files Changed (2 files)
+- `web/owner_mode.py` — Added equivalents to `_USE_EQUIVALENTS`
+- `tests/test_owner_mode.py` — 2 new tests for the fix
+
+---
+
 ## Session 22 — Async Plan Analysis with Per-User Storage (2026-02-17)
 
 ### Async Background Processing
