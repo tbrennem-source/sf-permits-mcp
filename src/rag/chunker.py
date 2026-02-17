@@ -98,6 +98,8 @@ def chunk_raw_text(text: str, source_file: str,
 
     Strategy: Sliding window with preference for splitting at paragraph boundaries.
     """
+    # Strip NUL bytes that may appear in raw source files (e.g. G-15.txt)
+    text = text.replace('\x00', '').replace('\ufffd', '')
     if not text or len(text.strip()) < MIN_CHUNK_CHARS:
         return []
 
