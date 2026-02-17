@@ -1,5 +1,31 @@
 # Changelog
 
+## Session 21.6 — Fix Analyze Plans 500 Error with Comprehensive Logging (2026-02-16)
+
+### Bug Fix: Silent 500 Errors on PDF Upload (#61)
+- **Problem:** `/analyze-plans` endpoint returned HTTP 500 with NO error messages in Railway logs - impossible to debug
+- **Root cause:** Flask exception handler caught errors but didn't use `logging.exception()`, so exceptions were silently swallowed
+- **Evidence:** Railway logs showed normal operation despite user seeing 500 errors
+- **Solution:**
+  - Added `logging.exception()` to write full stack traces to Railway logs
+  - User now sees styled error box with expandable technical details
+  - Added file size validation (max 400 MB) with proper HTTP 413 status
+  - Added logging.info() for successful uploads to track processing
+  - Wrapped PDF rendering in try-except to detect poppler dependency issues
+  - Clear error messages for: database errors, missing poppler, Vision API failures, etc.
+
+### Files Changed (2 files, +48 / -8 lines)
+- `web/app.py` — Added comprehensive error logging, file size validation, user-visible tracebacks (lines 783-812)
+- `src/vision/pdf_to_images.py` — Wrapped pdf2image in try-except, detect poppler missing (lines 54-76)
+
+### Expected Outcome
+- Railway logs now show full stack traces for ALL errors
+- Users see helpful error messages instead of generic 500
+- Can diagnose if issue is database, poppler, Vision API, or other
+- Future errors are visible and debuggable
+
+---
+
 ## Session 21.5 — Analyze Plans Loading Indicator Fix (2026-02-16)
 
 ### Bug Fix: No Loading Indicator on PDF Upload (#60)

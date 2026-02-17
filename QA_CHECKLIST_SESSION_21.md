@@ -1,8 +1,8 @@
-# QA Checklist - Sessions 21.2, 21.3, 21.4, 21.5
+# QA Checklist - Sessions 21.2, 21.3, 21.4, 21.5, 21.6
 
 **Test on:** https://sfpermits-ai-production.up.railway.app
 **Deployed:** 2026-02-16
-**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading)
+**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading), 21.6 (Error Logging)
 
 ---
 
@@ -171,6 +171,53 @@
 - [ ] **Verify:** No timeout error (300s limit from Session 21.2)
 - [ ] **Verify:** Gallery appears with results after processing
 - [ ] **Verify in console:** HTMX afterRequest event fires when complete
+
+---
+
+## Session 21.6: Error Logging for Analyze Plans
+
+### ✅ Test 29: Verify Error Logging to Railway (Admin Test)
+**Before:** 500 errors with NO messages in Railway logs
+**After:** Full stack traces logged, users see helpful error messages
+
+- [ ] Hard refresh page
+- [ ] Upload valid small PDF (should work now or show clear error)
+- [ ] **SSH to Railway OR check logs:** `railway logs --service sfpermits-ai --tail 50`
+- [ ] **Verify in logs:** See `INFO [analyze-plans] Processing PDF: filename.pdf (X.XX MB)`
+- [ ] **If upload fails:**
+  - [ ] Check logs for full Python stack trace
+  - [ ] Error should show which component failed (database, poppler, Vision API, etc.)
+  - [ ] User should see styled error box (not generic 500)
+
+### ✅ Test 30: User-Visible Error Details
+**Feature:** Users can now see technical details when analysis fails
+
+- [ ] If analyze fails, verify error display shows:
+  - [ ] Red X icon with "❌ Analysis Error" header
+  - [ ] Clear error message describing what went wrong
+  - [ ] Expandable "📋 Technical Details" section (collapsed by default)
+  - [ ] Click to expand - shows full Python traceback
+  - [ ] "This error has been logged" message at bottom
+- [ ] Error box is styled (not plain text)
+- [ ] Traceback is readable (monospace font, scrollable)
+
+### ✅ Test 31: File Size Validation
+**New:** 400 MB file size limit with proper HTTP 413 status
+
+- [ ] Try uploading file > 400 MB
+- [ ] **Verify:** Error message shows: "❌ File too large: X.X MB / Maximum file size is 400 MB"
+- [ ] **Verify:** Returns HTTP 413 status (not 500)
+- [ ] Upload file < 400 MB
+- [ ] **Verify:** Processes normally (or shows different error if analysis fails)
+
+### ✅ Test 32: Poppler Dependency Detection
+**Feature:** Clear error if poppler-utils not installed
+
+- [ ] If PDF rendering fails with poppler error:
+  - [ ] Error message should say: "PDF rendering failed. This usually means 'poppler-utils' is not installed"
+  - [ ] Railway logs show: `[pdf_to_images] Poppler error converting page X`
+  - [ ] Admin knows to install poppler-utils
+- [ ] **Note:** This test requires poppler to be missing (likely not the case on production)
 
 ---
 
