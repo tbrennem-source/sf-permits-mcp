@@ -217,6 +217,10 @@ def _run_startup_migrations():
         # Tags column for watch items (client grouping feature)
         cur.execute("ALTER TABLE watch_items ADD COLUMN IF NOT EXISTS tags TEXT DEFAULT ''")
 
+        # Progress tracking columns for multi-stage indicator
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS progress_stage TEXT")
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS progress_detail TEXT")
+
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -1007,6 +1011,7 @@ def analyze_plans_route():
     except Exception:
         pass  # Job tracking is non-fatal
 
+    street_number, street_name = _parse_address(property_address)
     return render_template(
         "analyze_plans_results.html",
         result=result_html,
@@ -1017,7 +1022,20 @@ def analyze_plans_route():
         extractions=page_extractions,
         extractions_json=extractions_json,
         quick_check=False,
+        property_address=property_address,
+        street_number=street_number,
+        street_name=street_name,
     )
+
+
+def _parse_address(address: str) -> tuple:
+    """Split '123 Main St' into ('123', 'Main St'). Best-effort."""
+    if not address:
+        return ("", "")
+    parts = address.strip().split(None, 1)
+    if len(parts) == 2 and parts[0][0].isdigit():
+        return (parts[0], parts[1])
+    return ("", address)
 
 
 def _get_user_email(user_id: int | None) -> str | None:
@@ -1189,7 +1207,7 @@ def plan_job_results(job_id):
     }) if page_extractions else "{}"
 
     return render_template(
-        "analyze_plans_results.html",
+        "plan_results_page.html",
         result=result_html,
         filename=session_data["filename"],
         filesize_mb=round(job["file_size_mb"], 1),
@@ -1198,6 +1216,9 @@ def plan_job_results(job_id):
         extractions=page_extractions,
         extractions_json=extractions_json,
         quick_check=job["quick_check"],
+        property_address=job.get("property_address"),
+        street_number=_parse_address(job.get("property_address", ""))[0],
+        street_name=_parse_address(job.get("property_address", ""))[1],
     )
 
 
@@ -1823,6 +1844,13 @@ def account():
     # Points data
     total_points = get_user_points(g.user["user_id"])
     points_history = get_points_history(g.user["user_id"], limit=10)
+    # Recent plan analyses
+    recent_analyses = []
+    try:
+        from web.plan_jobs import get_user_jobs
+        recent_analyses = get_user_jobs(g.user["user_id"], limit=3)
+    except Exception:
+        pass  # Non-fatal — plan_jobs table may not exist yet
     # Admin stats for dashboard cards
     activity_stats = None
     feedback_counts = None
@@ -1835,7 +1863,8 @@ def account():
                            activity_stats=activity_stats,
                            feedback_counts=feedback_counts,
                            total_points=total_points,
-                           points_history=points_history)
+                           points_history=points_history,
+                           recent_analyses=recent_analyses)
 
 
 # ---------------------------------------------------------------------------
