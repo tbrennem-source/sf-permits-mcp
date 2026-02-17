@@ -211,7 +211,7 @@ def _check_assessor_mismatch(
 
     # Find most recent permit with existing_use
     recent = None
-    for p in sorted(permits, key=lambda x: x.get("filed_date", ""), reverse=True):
+    for p in sorted(permits, key=lambda x: x.get("filed_date") or "", reverse=True):
         if (p.get("existing_use") or "").strip():
             recent = p
             break
