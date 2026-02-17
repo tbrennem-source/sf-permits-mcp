@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "title": "Inspections Process — Required Inspections, Reinspection, and Special Inspections",
+    "source": "SF Building Inspection Commission Code (SFBICC), Section 108A",
+    "source_file": "tier4/sf-bicc-fire-codes-full.txt",
+    "source_lines": "32077-32219",
+    "date_structured": "2026-02-16",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "All construction requiring a permit is subject to inspection",
+      "Work must remain accessible and exposed until approved — covering without approval halts work",
+      "Inspection record card (Job Card) must be posted on site from permit issuance until final inspection",
+      "First reinspection for the same issue has no fee; subsequent reinspections are charged"
+    ]
+  },
+  "general": {
+    "section": "108A.1",
+    "source_line": 32077,
+    "description": "All construction or work for which a permit is required shall be subject to inspection by the Building Official. All such work shall remain accessible and exposed for inspection purposes until approved.",
+    "continuous_inspection": "Certain types of construction require continuous inspection by special inspectors as specified in Section 1701.",
+    "approval_disclaimer": "Approval from an inspection shall not be construed as approval of any code violation.",
+    "permit_applicant_duty": "The permit applicant must cause the work to remain accessible and exposed. Neither the Building Official nor the City is liable for expense of removal/replacement to allow inspection.",
+    "lot_survey": "The Building Official may require a lot survey by a registered land surveyor or civil engineer to determine proper building location."
+  },
+  "inspection_record_card": {
+    "section": "108A.2",
+    "source_line": 32097,
+    "title": "Inspection Record Card (Job Card)",
+    "requirements": [
+      "Must be posted before any work begins",
+      "Issued at time of permit issuance by the Department",
+      "Must be in a conspicuous, readily accessible location",
+      "Must remain on job site until final inspection of all work is completed",
+      "After final inspection, the card may be removed and retained by the building owner"
+    ]
+  },
+  "inspection_requests": {
+    "section": "108A.3",
+    "source_line": 32105,
+    "description": "The person doing the work must notify the Building Official when work is ready for inspection.",
+    "advance_notice": "The Building Official may require at least one working day advance notice before inspection.",
+    "request_methods": "Written or by telephone at the option of the Building Official.",
+    "access_duty": "The person requesting inspection must provide access to and means for inspection."
+  },
+  "off_hours_inspections": {
+    "section": "108A.3.1",
+    "source_line": 32113,
+    "normal_hours": "7:30 a.m. to 4:00 p.m., Monday through Friday, excluding legal holidays",
+    "availability": "Off-hours inspections available by prior arrangement and prepayment",
+    "fee_table": "Table 1A-G — Inspections, Surveys and Reports"
+  },
+  "permits_by_other_departments": {
+    "section": "108A.3.2",
+    "source_line": 32119,
+    "description": "When other City departments require DBI inspection, certification, or report as a condition of their permits, the applicant applies to DBI and pays the fee.",
+    "fee_table": "Table 1A-G — Inspections, Surveys and Reports"
+  },
+  "approval_required": {
+    "section": "108A.4",
+    "source_line": 32126,
+    "rule": "No work shall proceed beyond the point indicated in each successive inspection without first obtaining approval. Non-compliant portions must be corrected and shall not be covered or concealed until approved."
+  },
+  "required_inspections": {
+    "section": "108A.5",
+    "source_line": 32134,
+    "description": "The following inspections are required at each successive step of construction:",
+    "inspections": [
+      {
+        "id": "108A.5.1",
+        "name": "General / Structural Framework",
+        "description": "Structural framework shall not be covered or concealed without Building Official approval. Protection of joints and penetrations in fire-resistive assemblies shall not be concealed until inspected and approved."
+      },
+      {
+        "id": "108A.5.2",
+        "name": "Foundation Inspection",
+        "timing": "After excavations for footings are complete and any required reinforcing steel is in place",
+        "requirements": [
+          "Concrete forms must be in place before inspection",
+          "All foundation materials on site (except ready-mixed concrete per approved standards)",
+          "Additional inspections may be required for approved treated wood foundations"
+        ]
+      },
+      {
+        "id": "108A.5.3",
+        "name": "Concrete Slab or Under-Floor Inspection",
+        "timing": "After all in-slab or under-floor reinforcing steel, building service equipment, conduit, piping, accessories, and other ancillary equipment are installed",
+        "before": "Before any concrete is placed or floor sheathing installed, including subfloor"
+      },
+      {
+        "id": "108A.5.4",
+        "name": "Reinforcing Steel Inspection",
+        "timing": "When reinforcing steel is in place in walls, floors, roof framing, and other concrete members",
+        "before": "Before any concrete is poured or placed",
+        "requirement": "All reinforcing steel shall be visible for inspection"
+      },
+      {
+        "id": "108A.5.5",
+        "name": "Structural Steel Inspection",
+        "timing": "When structural steel framework or any structural steel member is in place",
+        "before": "Before being covered or concealed in any manner"
+      },
+      {
+        "id": "108A.5.6",
+        "name": "Frame Inspection",
+        "timing": "After roof/deck/sheathing, all framing, fire blocking, and bracing are in place",
+        "also_requires": "All conduits, plumbing pipes, chimneys, vents to be concealed are complete; rough electrical, plumbing, heating wires/conduits/pipes/ducts are approved"
+      },
+      {
+        "id": "108A.5.7",
+        "name": "Lath or Gypsum Board Inspection",
+        "timing": "After all lathing and gypsum board (interior and exterior) are in place",
+        "before": "Before plastering or before gypsum board joints and fasteners are taped and finished"
+      },
+      {
+        "id": "108A.5.8",
+        "name": "Fire-Rated Suspended Ceilings",
+        "timing": "After installation of hangers, lighting fixtures, air diffusers, protective fixture boxes, and main suspended ceiling members",
+        "before": "Before ceiling is installed"
+      },
+      {
+        "id": "108A.5.9",
+        "name": "Final Inspection",
+        "timing": "When construction work is completed and the structure is ready for occupancy, but before it is occupied",
+        "requires": "Plumbing, electrical, special inspection, and any other applicable approvals must be obtained first",
+        "see_also": "Section 109A for certificate of occupancy requirements",
+        "note": "An exclusive electrical or plumbing final approval shall not be given unless the Building Official ascertains no building permit is required"
+      }
+    ]
+  },
+  "special_inspections": {
+    "section": "108A.6",
+    "source_line": 32183,
+    "reference": "See Chapter 17 for special inspection requirements"
+  },
+  "other_inspections": {
+    "section": "108A.7",
+    "source_line": 32185,
+    "description": "The Building Official may make or require other inspections beyond the called inspections to ascertain compliance."
+  },
+  "concealed_work": {
+    "section": "108A.7.1",
+    "source_line": 32189,
+    "description": "When work requiring called inspections is covered without inspection, or work is performed and concealed without a permit, or when it is necessary to determine if building or parts are unsafe, the Building Official may require the work to be exposed.",
+    "cost_responsibility": "All costs of exposing, recovering, or reconstructing shall be at the expense of the owner, not the City."
+  },
+  "reinspection": {
+    "section": "108A.8",
+    "source_line": 32199,
+    "title": "Reinspection Fees",
+    "triggering_conditions": [
+      "Work called for inspection is not complete",
+      "Corrections called for are not made",
+      "Inspection record Job Card is not properly posted",
+      "Approved plans are not readily available to the inspector",
+      "Failure to provide access on the date requested",
+      "Deviating from plans requiring Building Official approval"
+    ],
+    "fee_rule": "The first reinspection for the same issue is NOT charged a fee. All subsequent reinspections for the same or subsequent errors are charged.",
+    "hold_rule": "After reinspection fee is assessed, no required or requested inspections shall be made nor shall a Certificate of Final Completion and Occupancy be issued until fees are paid at Central Permit Bureau.",
+    "fee_table": "Table 1A-G — Inspections, Surveys and Reports"
+  }
+}

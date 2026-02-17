@@ -178,6 +178,28 @@ def _run_startup_migrations():
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_created ON plan_analysis_sessions (created_at)")
 
+        # Regulatory watch table (tracks pending legislation / code amendments)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS regulatory_watch (
+                watch_id        SERIAL PRIMARY KEY,
+                title           TEXT NOT NULL,
+                description     TEXT,
+                source_type     TEXT NOT NULL,
+                source_id       TEXT NOT NULL,
+                status          TEXT NOT NULL DEFAULT 'monitoring',
+                impact_level    TEXT DEFAULT 'moderate',
+                affected_sections TEXT,
+                semantic_concepts TEXT,
+                url             TEXT,
+                filed_date      TEXT,
+                effective_date  TEXT,
+                notes           TEXT,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_regwatch_status ON regulatory_watch (status)")
+
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -1903,6 +1925,84 @@ def admin_activity():
     stats = get_activity_stats(hours=24)
     return render_template("admin_activity.html", user=g.user,
                            activity=activity, stats=stats)
+
+
+@app.route("/admin/sources")
+@login_required
+def admin_sources():
+    """Knowledge source inventory — printable reference for Amy."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.sources import get_source_inventory
+    inventory = get_source_inventory()
+    return render_template("admin_sources.html", user=g.user, **inventory)
+
+
+@app.route("/admin/regulatory-watch")
+@login_required
+def admin_regulatory_watch():
+    """Admin regulatory watch list."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.regulatory_watch import list_watch_items
+    status_filter = request.args.get("status")
+    items = list_watch_items(status_filter=status_filter)
+    return render_template("admin_regulatory_watch.html", user=g.user,
+                           items=items, current_status=status_filter)
+
+
+@app.route("/admin/regulatory-watch/create", methods=["POST"])
+@login_required
+def admin_regulatory_watch_create():
+    """Create a new regulatory watch item."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.regulatory_watch import create_watch_item
+
+    sections_raw = request.form.get("affected_sections", "").strip()
+    concepts_raw = request.form.get("semantic_concepts", "").strip()
+    affected = [s.strip() for s in sections_raw.split(",") if s.strip()] if sections_raw else None
+    concepts = [s.strip() for s in concepts_raw.split(",") if s.strip()] if concepts_raw else None
+
+    create_watch_item(
+        title=request.form["title"],
+        source_type=request.form["source_type"],
+        source_id=request.form["source_id"],
+        description=request.form.get("description", "").strip() or None,
+        status=request.form.get("status", "monitoring"),
+        impact_level=request.form.get("impact_level", "moderate"),
+        affected_sections=affected,
+        semantic_concepts=concepts,
+        url=request.form.get("url", "").strip() or None,
+        filed_date=request.form.get("filed_date", "").strip() or None,
+        effective_date=request.form.get("effective_date", "").strip() or None,
+        notes=request.form.get("notes", "").strip() or None,
+    )
+    return redirect(url_for("admin_regulatory_watch"))
+
+
+@app.route("/admin/regulatory-watch/<int:watch_id>/update", methods=["POST"])
+@login_required
+def admin_regulatory_watch_update(watch_id):
+    """Update a regulatory watch item status."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.regulatory_watch import update_watch_item
+    status = request.form.get("status")
+    if status:
+        update_watch_item(watch_id, status=status)
+    return redirect(url_for("admin_regulatory_watch"))
+
+
+@app.route("/admin/regulatory-watch/<int:watch_id>/delete", methods=["POST"])
+@login_required
+def admin_regulatory_watch_delete(watch_id):
+    """Delete a regulatory watch item."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.regulatory_watch import delete_watch_item
+    delete_watch_item(watch_id)
+    return redirect(url_for("admin_regulatory_watch"))
 
 
 # ---------------------------------------------------------------------------

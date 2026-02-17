@@ -261,6 +261,31 @@ def init_user_schema(conn=None) -> None:
             except Exception:
                 pass
 
+        # Regulatory watch table (tracks pending legislation / code amendments)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS regulatory_watch (
+                watch_id        INTEGER PRIMARY KEY,
+                title           TEXT NOT NULL,
+                description     TEXT,
+                source_type     TEXT NOT NULL,
+                source_id       TEXT NOT NULL,
+                status          TEXT NOT NULL DEFAULT 'monitoring',
+                impact_level    TEXT DEFAULT 'moderate',
+                affected_sections TEXT,
+                semantic_concepts TEXT,
+                url             TEXT,
+                filed_date      TEXT,
+                effective_date  TEXT,
+                notes           TEXT,
+                created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        try:
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_regwatch_status ON regulatory_watch (status)")
+        except Exception:
+            pass
+
         # Plan analysis session tables (DuckDB version - TEXT instead of JSONB, TIMESTAMP instead of TIMESTAMPTZ)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS plan_analysis_sessions (

@@ -1,0 +1,227 @@
+{
+  "metadata": {
+    "title": "Enforcement Process — NOVs, Administrative Hearings, Stop-Work Orders, Penalties, and Emergency Orders",
+    "source": "SF Building Inspection Commission Code (SFBICC), Sections 102A, 103A, 104A.2.4-5, 107A.5",
+    "source_file": "tier4/sf-bicc-fire-codes-full.txt",
+    "source_lines": "27300-27900, 28437-28499, 31454-31483",
+    "date_structured": "2026-02-16",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "The enforcement pipeline runs: Inspection → NOV → Administrative Hearing → Administrative Order → Appeals/City Attorney",
+      "Emergency orders bypass the hearing process for serious and imminent hazards",
+      "Stop-work orders can halt all work on a project with repeated violations",
+      "Work-without-permit investigation fees can be appealed but never reduced below 2x the permit fee",
+      "Civil penalties: $200-$1,000 per day per violation per unit"
+    ]
+  },
+  "inspections": {
+    "section": "102A.3",
+    "source_line": 27305,
+    "triggers": [
+      "Building Official determines inspection is necessary or desirable",
+      "Any person or agency submits a complaint establishing reasonable cause that the building is unsafe"
+    ]
+  },
+  "unauthorized_dwelling_units": {
+    "section": "102A.3.1",
+    "source_line": 27314,
+    "description": "For unauthorized dwelling units constructed without permits, the NOV shall order the owner to file for legalization under Section 106A.3.1.3 and Planning Code Section 207.3.",
+    "exceptions": [
+      "Removal approved by Planning Commission per Planning Code Section 317",
+      "Department has determined the unit cannot be legalized under 106A.3.1.3",
+      "Building Official has determined a serious and imminent hazard exists"
+    ],
+    "nov_suspension": "NOV is suspended pending a legalization or removal decision. If approved within one year, the NOV and any recorded liens are rescinded.",
+    "extension": "Building Official may extend the one-year period if delay is not the owner's fault."
+  },
+  "notice_of_violation": {
+    "section": "102A.4",
+    "source_line": 27341,
+    "title": "Notice of Municipal Code Violation (NOV)",
+    "timing": "Within 15 days of observing or determining an unsafe condition",
+    "prohibition": "Building Official shall NOT issue successive NOVs for the same violation as a means of extending filing time or enforcement process.",
+    "contents": [
+      "Each violation observed or established",
+      "Violations rendering the building unsafe",
+      "Deadline for abatement",
+      "Date for reinspection",
+      "Penalties, fees, and costs per Sections 102A.7(d) and 103A"
+    ],
+    "service": [
+      "Mailed by first class mail to owner at Assessor-Recorder's address",
+      "Posted conspicuously on the property",
+      "Copy made available to each tenant"
+    ],
+    "public_record": "The NOV is a public record subject to disclosure under Administrative Code Chapter 67."
+  },
+  "administrative_hearing": {
+    "section": "102A.5-102A.6",
+    "source_line": 27362,
+    "title": "Notice of Administrative Hearing",
+    "trigger": "Building Official determines violations not corrected by NOV deadline",
+    "scheduling": "Within 60 days of the deadline, unless owner demonstrates substantial progress",
+    "hearing_notice_contents": [
+      "Date, hour, and place of hearing",
+      "Conspicuous warning of penalties, fees, and costs",
+      "Copy of the NOV",
+      "Notice that interested parties may appear to show cause"
+    ],
+    "service_method": "Certified mail to owner + certified mail to person in charge, mortgage holders, lien holders, lease holders, and other interest holders",
+    "continuance": "One continuance may be granted for good cause, not to exceed 30 days",
+    "hearing_officer": "The Building Official conducts or designates a Hearing Officer. The Hearing Officer must NOT be the same individual who signed the NOV."
+  },
+  "administrative_order": {
+    "section": "102A.7",
+    "source_line": 27420,
+    "title": "Administrative Order",
+    "timing": "Within 30 days following the conclusion of the hearing",
+    "contents": [
+      "Conditions rendering the building unsafe (in reasonable detail)",
+      "Work required to be done",
+      "Copy of the NOV"
+    ],
+    "actions_may_direct": ["Repair", "Alter", "Vacate", "Demolish"],
+    "compliance_deadline_days": 180,
+    "extension": "One extension for good cause, limited to minimum time necessary, not to exceed 90 days",
+    "costs": {
+      "department_costs": "All preparation, hearing, and administrative costs assessed monthly at Table 1A-D and 1A-K rates",
+      "attorneys_fees": "Department entitled to attorney fees and expert witness fees",
+      "lien_enforcement": "Failure to pay results in tax lien proceedings against the property"
+    },
+    "recording": "Administrative Order recorded in the Assessor-Recorder's Office. Rescission recorded when work is completed.",
+    "appeal": "To the Abatement Appeals Board per Section 105A.2, filed within 15 days after the Order is posted and served."
+  },
+  "violation_penalties": {
+    "section": "103A",
+    "source_line": 27851,
+    "civil_penalties": {
+      "range_per_day": "$200 to $1,000",
+      "per_violation_per_unit": true,
+      "description": "Each real property address, each unit within a multi-unit property, and each separate violation is a distinct violation for calculation.",
+      "factors_considered": [
+        "Nature and seriousness of the misconduct",
+        "Number of violations",
+        "Persistence of the misconduct",
+        "Length of time over which misconduct occurred",
+        "Willfulness",
+        "Whether the violation displaced tenants",
+        "Whether the violation is reversible",
+        "Financial gain from the misconduct",
+        "Defendant's assets, liabilities, and net worth"
+      ]
+    },
+    "criminal_penalties": {
+      "fine": "Up to $1,000",
+      "imprisonment": "Up to six months",
+      "separate_offense": "Each day of continuing violation is a separate offense"
+    },
+    "unlawful_demolition_penalty": {
+      "section": "103A.3.4",
+      "amount": 10000,
+      "applies_to": "Any agent, contractor, or other person causing demolition without a permit"
+    }
+  },
+  "stop_work_orders": {
+    "section": "104A.2.4",
+    "source_line": 28437,
+    "standard_stop": {
+      "trigger": "Any work being done contrary to code provisions or pertinent laws",
+      "method": "Written notice served on persons engaged in or causing the work",
+      "effect": "All work must stop immediately until authorized by the Building Official to proceed"
+    },
+    "full_project_stop": {
+      "trigger": "Project has a history of repeated violations",
+      "effect": "ALL work on the project stopped until all code violations are fully investigated and resolved",
+      "requestors": "Director of DBI, Director of Public Works, or Director of Planning may request the stop"
+    }
+  },
+  "occupancy_violations": {
+    "section": "104A.2.5",
+    "source_line": 28453,
+    "description": "When a building is being used contrary to code provisions, the Building Official may order the use discontinued and the building vacated. The person must discontinue the use within the time prescribed."
+  },
+  "investigation_fees_work_without_permit": {
+    "section": "107A.5",
+    "source_line": 31454,
+    "description": "When work requiring a permit has been started without one, a special investigation is required before a permit may be issued.",
+    "fee_table": "Table 1A-K — Penalties, Hearings, Code Enforcement Assessments",
+    "partial_work": "If only a portion of work was done without a permit, the fee is based on the portion done without a permit.",
+    "appeal_options": {
+      "initial": "Owner/agent may appeal fee amount for just cause (unfamiliarity with code, employee negligence)",
+      "building_official_reduction": "May reduce to 2x the permit fee (Table 1A-A) for work predating current ownership, with documentation",
+      "board_of_appeals": "If Building Official rules against applicant, appeal to Board of Appeals. Board may reduce but never below 2x the permit fee."
+    }
+  },
+  "city_performs_work": {
+    "section": "102A.14",
+    "source_line": 27538,
+    "title": "Failure to Comply with Order",
+    "trigger": "Order not complied with within the time set by the Building Official or the Abatement Appeals Board",
+    "city_powers": [
+      "Vacate, barricade, or secure the building against use/occupancy",
+      "Dismantle or demolish the building and clear the site",
+      "Repair or alter the building to render it safe and compliant"
+    ],
+    "forfeiture_of_right": {
+      "section": "102A.15",
+      "process": "Building Official provides 10 days notice of intent to do work. After that date, the owner forfeits all right to do the work.",
+      "cost_assessment": "All costs assessed against the property per Section 102A.17"
+    }
+  },
+  "emergency_orders": {
+    "section": "102A.16",
+    "source_line": 27570,
+    "title": "Serious and Imminent Hazards — Emergency Orders",
+    "trigger": "Condition constituting an imminent and substantial hazard to life, health, safety, or to the building itself, requiring prompt action",
+    "bypass_hearing": true,
+    "may_order": [
+      "Vacate and keep vacant until written permission to reoccupy",
+      "Barricade, board up, or secure against entry/occupancy/use",
+      "Demolish or repair/alter/correct serious and imminent hazard conditions"
+    ],
+    "compliance_deadline_hours": 48,
+    "city_may_compel_work": "If owner fails to comply within 48 hours of posting and service, the Building Official may cause the work to be done.",
+    "repair_cost_limit": "Repairs/alterations ordered by the Building Official shall not exceed 50% of the assessed value of the building.",
+    "service": "Posted conspicuously on property, served on owner per Section 102A.4, recorded in Assessor-Recorder's Office."
+  },
+  "fire_life_safety_notice": {
+    "section": "102A.16.1",
+    "source_line": 27618,
+    "title": "Continuing or Recurring Conditions Creating a Fire Hazard",
+    "applies_to": "Residential buildings with 3 or more dwelling units",
+    "trigger": "Two or more NOVs and Administrative Orders for fire safety violations that continue or recur",
+    "may_order": [
+      "Install new fire sprinkler system",
+      "Improve existing fire sprinkler system to current code",
+      "Install new fire alarm/detection system",
+      "Improve existing fire alarm/detection to current code"
+    ],
+    "hearing_timeline_days": 14,
+    "appeal": "To the Abatement Appeals Board per Section 105A.2, scheduled within 14 days of filing"
+  },
+  "expanded_compliance_control": {
+    "section": "103A.6",
+    "source_line": 28235,
+    "title": "Expanded Compliance Control and Permit Review",
+    "trigger": "Three or more reported violations within 18 months, or egregious single violations",
+    "tracking_violations": [
+      "Misrepresentation of existing conditions or project scope",
+      "Structural work or demolition without or beyond scope of permit",
+      "Work by unlicensed party",
+      "Other substantial non-compliance",
+      "Criminal conviction involving fraud, willful misrepresentation, or bribery",
+      "Planning Department reports significant misrepresentation"
+    ],
+    "duration_years": 5,
+    "extension": "Subsequent violations extend the period by 5 years from date of new violation",
+    "measures": [
+      "Referral to licensing boards and regulatory agencies",
+      "All applications undergo senior staff and multi-station review",
+      "Site inspections by DBI and Planning before permit issuance",
+      "Licensed contractor must be named on permit before issuance",
+      "Dedicated Senior Inspector assigned",
+      "Consultation with City Attorney for additional enforcement",
+      "Possible referral to District Attorney"
+    ]
+  }
+}

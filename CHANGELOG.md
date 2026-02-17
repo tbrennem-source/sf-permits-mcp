@@ -1,5 +1,104 @@
 # Changelog
 
+## Session 22.2 — GAP-12 Green Building Resolution (2026-02-16)
+
+### Green Building Requirements (`green-building-requirements.json`)
+- **Extracted from AB-093** (tier3) — complete GS form selection decision logic, rating system requirements, compliance methods
+- **GS form decision tree** — 6 forms (GS-1 through GS-6) with project type triggers and 5-step selection logic
+- **Rating systems** — When LEED, GreenPoint Rated, or Locally Required Measures apply (by occupancy, size, construction type)
+- **5 compliance methods** — LEED certification, GreenPoint Rated, standards-without-certification, alternate rating/equivalency, locally required measures only
+- **Special cases** — ADU, historic buildings, mixed occupancy, demolition replacement, large commercial TI
+- **9 quick reference scenarios** — Common project types with form, rating system, and professional requirements
+
+### Integration
+- Updated `semantic-index.json` — expanded `green_building` concept with 15+ new aliases (GS-1–GS-6, CALGreen, LEED, GreenPoint, SFGBC, etc.)
+- Updated `GAPS.md` — marked GAP-12 as RESOLVED
+- Updated `web/sources.py` — added to compliance category + fallback URL
+- Updated `knowledge_base.py` — added to `__init__()` and `SOURCE_REGISTRY`
+- **30 tier1 files** total (was 29), **4 open gaps** remaining (was 5)
+
+---
+
+## Session 22.1 — Admin Sources Inventory Page (2026-02-16)
+
+### Knowledge Source Inventory (`/admin/sources`)
+- **Auto-generated inventory** from all 29 tier1 JSON files — title, source, URLs, last updated, file size, data points
+- **Permit lifecycle coverage matrix** — 8 stages (Pre-Application through Enforcement) with strong/moderate/gap indicators
+- **Known gaps section** — parsed from GAPS.md with severity badges, resolution status, "Ask Amy" prompts
+- **Questions for Amy** — 10 curated interview questions organized by category
+- **Print-friendly layout** — dark theme on screen, clean light theme for print/PDF
+- **Hyperlinked sources** — every file links to its authoritative source (sf.gov, amlegal.com, sfethics.org)
+- **Grouped by category** — Building Code, Planning Code, DBI Info Sheets, Compliance, Data, Tools
+
+### Files
+- `web/sources.py` — Inventory builder: scans tier1/, extracts metadata, parses GAPS.md, builds lifecycle matrix
+- `web/templates/admin_sources.html` — Print-friendly admin template with 4 sections
+- `web/app.py` — `/admin/sources` route (admin-only)
+- `tests/test_sources.py` — 24 tests (inventory, gap parser, lifecycle, metadata extraction, route)
+
+---
+
+## Session 22 — Table B Expiration Rules + Regulatory Watch + Tier4 Ingestion (2026-02-16)
+
+### Part A: Table B Permit Expiration (Bug Fix + Knowledge)
+- **Fixed 180-day expiration bug** — `brief.py` hardcoded `DEFAULT_VALIDITY_DAYS = 180` but 180 days only applies to demolition permits. Replaced with `_validity_days()` function using SFBC Section 106A.4.4 Table B valuation tiers:
+  - $1–$100,000: 360 days
+  - $100,001–$2,499,999: 1,080 days
+  - $2,500,000+: 1,440 days
+  - Demolition: 180 days
+- **Fixed report.py dormant/aging thresholds** — Now uses Table B lookup with `issued_date` instead of hardcoded 1095/730-day limits
+- **Created `permit-expiration-rules.json`** — Full Table A, Table B, expired permit recovery, fee refunds, investigation fees
+
+### Part B: Regulatory Watch System (New Feature)
+- **Database schema** — `regulatory_watch` table in both DuckDB and Postgres (14 columns incl. semantic_concepts JSON)
+- **CRUD module** — `web/regulatory_watch.py` with create, read, update, delete, list with status filter
+- **Query helpers** — `get_alerts_for_concepts()` (semantic matching), `get_approaching_effective()` (date filter), `get_regulatory_alerts()` (brief integration)
+- **Admin UI** — Dark-themed admin page with status filter tabs, impact badges, create modal, inline status updates
+- **Morning brief integration** — Section 7: Regulatory Watch with impact-level badges + admin link
+- **Property report integration** — `pending_regulation` risk type surfaces when permit concepts overlap with watched legislation
+- **Email integration** — Regulatory alerts section in morning brief email template
+
+### Part C: Full Tier4 → Tier1 Ingestion (6 New Knowledge Files)
+- **`permit-requirements.json`** — 19 permit types required under 106A.1, 26 exempt categories under 106A.2, UDU legalization (106A.3.1.3)
+- **`inspections-process.json`** — 9 required inspection stages, reinspection rules, off-hours inspections, concealed work
+- **`certificates-occupancy.json`** — Certificate requirements, temporary certificates (12-month validity), apartment/hotel licenses
+- **`enforcement-process.json`** — NOV pipeline, emergency orders, stop-work orders, investigation fees, civil/criminal penalties
+- **`appeals-bodies.json`** — Board of Examiners (13 members), Abatement Appeals Board, Access Appeals Commission, vacant building registration
+- **Loaded all 6 files in `knowledge_base.py`** — Added to KnowledgeBase `__init__` + SOURCE_REGISTRY citations
+
+### Tests & Fixes
+- **63 new tests** across `test_validity_days.py` (24 tests) and `test_regulatory_watch.py` (39 tests)
+- **Updated 7 existing tests** in `test_brief.py` and `test_report.py` for Table B thresholds
+- **Fixed DuckDB CASCADE constraint** — Removed unsupported `ON DELETE CASCADE` from `plan_analysis_images` foreign key
+- **Updated semantic index** — 6 new concepts, resolved GAP-14, expanded `permit_expiration` aliases
+
+### Files Changed (New)
+- `data/knowledge/tier1/permit-expiration-rules.json`
+- `data/knowledge/tier1/permit-requirements.json`
+- `data/knowledge/tier1/inspections-process.json`
+- `data/knowledge/tier1/certificates-occupancy.json`
+- `data/knowledge/tier1/enforcement-process.json`
+- `data/knowledge/tier1/appeals-bodies.json`
+- `web/regulatory_watch.py`
+- `web/templates/admin_regulatory_watch.html`
+- `tests/test_validity_days.py`
+- `tests/test_regulatory_watch.py`
+
+### Files Changed (Modified)
+- `web/brief.py` — `_validity_days()`, `_get_regulatory_alerts()`, expiring permits query
+- `web/report.py` — Table B lookup, `pending_regulation` risk type
+- `web/app.py` — Postgres migration + 4 admin routes
+- `src/db.py` — DuckDB `regulatory_watch` table + CASCADE fix
+- `src/tools/knowledge_base.py` — 6 new tier1 loads + SOURCE_REGISTRY entries
+- `data/knowledge/tier1/semantic-index.json` — 6 new concepts
+- `data/knowledge/GAPS.md` — GAP-14 resolved
+- `web/templates/brief.html` — Regulatory alerts section + Table B text
+- `web/templates/brief_email.html` — Regulatory alerts section
+- `tests/test_brief.py` — Updated expiration thresholds for Table B
+- `tests/test_report.py` — Updated dormant/aging test expectations
+
+---
+
 ## Session 21.8 — Consolidate Validate + Analyze Plans into One Section (2026-02-16)
 
 ### Feature: Merge Redundant Plan Analysis Features (#63)
@@ -144,6 +243,7 @@
 ---
 
 ## Session 21.3 — Permit Lookup UX Enhancements + Critical Fixes (2026-02-16)
+>>>>>>> origin/main
 
 ### Hourglass Spinner + Action Buttons
 - **Added hourglass spinner to permit lookup** — Visual consistency across all forms (⏳ with pulsing dots)

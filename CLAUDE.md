@@ -45,8 +45,9 @@ web/                    # Flask + HTMX web UI (deployed on Railway)
   email_triage.py       # Nightly triage report email delivery
   auth.py               # Magic-link auth, user management
   brief.py              # Morning brief data assembly
+  regulatory_watch.py   # Regulatory watch CRUD + query helpers
 data/knowledge/         # 4-tier knowledge base (gitignored tier4)
-  tier1/                # 21 structured JSON files, 1.15 MB — loaded at startup
+  tier1/                # 30 structured JSON files — loaded at startup
   tier2/                # Raw text info sheets
   tier3/                # Administrative bulletins
   tier4/                # Full code corpus (Planning Code 12.6MB + BICC 3.6MB)
@@ -62,14 +63,14 @@ docs/                   # Architecture, decisions, contact data analysis
 - **14 tools**: 5 SODA API (Phase 1), 3 DuckDB (Phase 2), 5 Knowledge (Phase 2.75), 1 Vision (Phase 4)
 - **22 SODA datasets**, 13.3M records cataloged
 - **DuckDB**: 1.8M contacts -> 1M entities -> 576K relationship edges
-- **PostgreSQL (prod)**: 5.6M rows, 7 tables, 2.05 GB on Railway
-- **Knowledge base**: 21 tier1 JSON files, 1.15 MB, 78 semantic concepts, 692 aliases
-- **Tests**: 812 passing
+- **PostgreSQL (prod)**: 5.6M rows, 8 tables, 2.05 GB on Railway
+- **Knowledge base**: 30 tier1 JSON files, 71 semantic concepts, 640 aliases
+- **Tests**: 951 passing (888 + 63 new)
 - **Live**: https://sfpermits-ai-production.up.railway.app
 
 ## Current State
 
-Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks) deployed. RAG, nightly refresh, regulation monitoring planned but not started. User said "before executing rag, let's regroup and think it through" — do NOT start RAG without explicit direction.
+Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks) deployed. Regulatory watch system (admin CRUD, brief/report integration) deployed. RAG, nightly refresh planned but not started. User said "before executing rag, let's regroup and think it through" — do NOT start RAG without explicit direction.
 
 ## Development
 

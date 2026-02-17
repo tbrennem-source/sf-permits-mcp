@@ -6,7 +6,7 @@ Provides six sections:
   3. Inspection Results — recent pass/fail on watched permits
   4. New Filings — new permits at watched addresses/parcels
   5. Team Activity — watched contractors/architects appearing on new permits
-  6. Expiring Permits — permits approaching 180-day expiration window
+  6. Expiring Permits — permits approaching Table B expiration deadline
 """
 
 from __future__ import annotations
@@ -18,10 +18,33 @@ from src.db import BACKEND, query, query_one, get_connection
 
 logger = logging.getLogger(__name__)
 
-# SF DBI standard: building permits expire 180 days after issuance
-# if construction hasn't started.  We warn at 30 days before expiration.
-DEFAULT_VALIDITY_DAYS = 180
+# Table B (SFBC Section 106A.4.4) — permit expiration by valuation tier.
+# Demolition permits have a flat 180-day limit regardless of valuation.
 EXPIRATION_WARNING_DAYS = 30
+
+
+def _validity_days(permit: dict) -> int:
+    """Look up Table B expiration period based on permit valuation.
+
+    SFBC Section 106A.4.4 — Maximum Time Allowed to Complete Work:
+      - $1 to $100,000:          360 days  (extension: 360 days)
+      - $100,001 to $2,499,999:  1,080 days (extension: 720 days)
+      - $2,500,000 and above:    1,440 days (extension: 720 days)
+      - Demolition permits:      180 days  (extension: 180 days)
+    """
+    ptype = (permit.get("permit_type_definition") or "").lower()
+    if "demolition" in ptype:
+        return 180
+    cost = permit.get("revised_cost") or permit.get("estimated_cost") or 0
+    try:
+        cost = float(cost)
+    except (ValueError, TypeError):
+        cost = 0
+    if cost >= 2_500_000:
+        return 1440
+    if cost >= 100_001:
+        return 1080
+    return 360
 
 
 def _ph() -> str:
@@ -64,6 +87,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     new_filings = _get_new_filings(user_id, since)
     team_activity = _get_team_activity(user_id, since)
     expiring = _get_expiring_permits(user_id)
+    regulatory_alerts = _get_regulatory_alerts()
 
     # Property synopsis for primary address
     property_synopsis = None
@@ -92,6 +116,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "new_filings": new_filings,
         "team_activity": team_activity,
         "expiring": expiring,
+        "regulatory_alerts": regulatory_alerts,
         "property_synopsis": property_synopsis,
         "last_refresh": last_refresh,
         "summary": {
@@ -102,6 +127,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
             "new_filings_count": len(new_filings),
             "team_count": len(team_activity),
             "expiring_count": len(expiring),
+            "regulatory_count": len(regulatory_alerts),
         },
         "lookback_days": lookback_days,
     }
@@ -447,13 +473,13 @@ def _get_team_activity(user_id: int, since: date) -> list[dict]:
 # ── Section 6: Expiring Permits ──────────────────────────────────
 
 def _get_expiring_permits(user_id: int) -> list[dict]:
-    """Flag watched permits approaching 180-day expiration window."""
+    """Flag watched permits approaching Table B expiration deadline."""
     ph = _ph()
 
     rows = query(
         f"SELECT p.permit_number, p.issued_date, p.status, "
         f"p.permit_type_definition, p.street_number, p.street_name, "
-        f"p.neighborhood, wi.label "
+        f"p.neighborhood, wi.label, p.revised_cost, p.estimated_cost "
         f"FROM watch_items wi "
         f"JOIN permits p ON wi.permit_number = p.permit_number "
         f"WHERE wi.user_id = {ph} AND wi.watch_type = 'permit' "
@@ -467,14 +493,21 @@ def _get_expiring_permits(user_id: int) -> list[dict]:
     results = []
     for row in rows:
         (permit_number, issued_date, status, permit_type,
-         street_number, street_name, neighborhood, label) = row
+         street_number, street_name, neighborhood, label,
+         revised_cost, estimated_cost) = row
 
         issued = _parse_date(issued_date)
         if not issued:
             continue
 
+        permit_dict = {
+            "permit_type_definition": permit_type,
+            "revised_cost": revised_cost,
+            "estimated_cost": estimated_cost,
+        }
+        validity = _validity_days(permit_dict)
         days_since_issued = (date.today() - issued).days
-        expires_in = DEFAULT_VALIDITY_DAYS - days_since_issued
+        expires_in = validity - days_since_issued
 
         # Only flag if within warning window or already past
         if expires_in > EXPIRATION_WARNING_DAYS:
@@ -490,6 +523,7 @@ def _get_expiring_permits(user_id: int) -> list[dict]:
             "neighborhood": neighborhood,
             "label": label,
             "days_since_issued": days_since_issued,
+            "validity_days": validity,
             "expires_in": expires_in,
             "is_expired": expires_in <= 0,
         })
@@ -596,7 +630,23 @@ def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
     }
 
 
-# ── Section 8: Data Freshness ────────────────────────────────────
+# ── Section 8: Regulatory Alerts ──────────────────────────────────
+
+def _get_regulatory_alerts() -> list[dict]:
+    """Get active regulatory watch items for the morning brief.
+
+    Returns items with status 'monitoring' or 'passed' (not 'effective' or
+    'withdrawn') so users stay aware of pending changes.
+    """
+    try:
+        from web.regulatory_watch import get_regulatory_alerts
+        return get_regulatory_alerts()
+    except Exception:
+        logger.debug("Regulatory watch query failed (non-fatal)", exc_info=True)
+        return []
+
+
+# ── Section 9: Data Freshness ────────────────────────────────────
 
 def _get_last_refresh() -> dict | None:
     """Get data freshness info from cron_log.
