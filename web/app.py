@@ -1563,9 +1563,17 @@ def _ask_validate_reveal(query: str) -> str:
 
 
 def _ask_general_question(query: str, entities: dict) -> str:
-    """Answer a general question using the knowledge base."""
+    """Answer a general question using RAG retrieval (with keyword fallback)."""
+    effective_query = entities.get("query", query)
+
+    # Try RAG-augmented retrieval first
+    rag_results = _try_rag_retrieval(effective_query)
+    if rag_results:
+        return _render_rag_results(query, rag_results)
+
+    # Fallback: keyword-only matching from KnowledgeBase
     kb = get_knowledge_base()
-    scored = kb.match_concepts_scored(entities.get("query", query))
+    scored = kb.match_concepts_scored(effective_query)
 
     if not scored:
         return render_template(
@@ -1589,6 +1597,62 @@ def _ask_general_question(query: str, entities: dict) -> str:
     result_html = md_to_html("\n\n".join(parts)) if parts else (
         '<div class="info">No matching knowledge found for that query.</div>'
     )
+    return render_template(
+        "search_results.html",
+        query_echo=query,
+        result_html=result_html,
+    )
+
+
+def _try_rag_retrieval(query: str) -> list[dict] | None:
+    """Attempt RAG retrieval. Returns results or None if unavailable."""
+    try:
+        from src.rag.retrieval import retrieve
+        results = retrieve(query, top_k=5)
+        # Filter out keyword-only fallback results (those have similarity=0)
+        real_results = [r for r in results if r.get("similarity", 0) > 0]
+        return real_results if real_results else None
+    except Exception as e:
+        logging.debug("RAG retrieval unavailable: %s", e)
+        return None
+
+
+def _render_rag_results(query: str, results: list[dict]) -> str:
+    """Render RAG retrieval results as HTML."""
+    parts = []
+    seen_sources = set()
+
+    for r in results:
+        content = r.get("content", "")
+        source_file = r.get("source_file", "")
+        source_section = r.get("source_section", "")
+        score = r.get("final_score", 0)
+
+        # Build a readable source label
+        source_label = source_file.replace(".json", "").replace("-", " ").replace("_", " ").title()
+        if source_section and source_section not in source_file:
+            section_label = source_section.replace("_", " ").replace("-", " ").title()
+            source_label = f"{source_label} › {section_label}"
+
+        # Skip near-duplicate sources
+        source_key = f"{source_file}:{source_section}"
+        if source_key in seen_sources:
+            continue
+        seen_sources.add(source_key)
+
+        # Format the content block
+        parts.append(
+            f"**{source_label}** *(relevance: {score:.0%})*\n\n{content}"
+        )
+
+    if not parts:
+        return render_template(
+            "search_results.html",
+            query_echo=query,
+            result_html='<div class="info">No matching knowledge found.</div>',
+        )
+
+    result_html = md_to_html("\n\n---\n\n".join(parts))
     return render_template(
         "search_results.html",
         query_echo=query,
