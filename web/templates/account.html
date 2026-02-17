@@ -174,6 +174,16 @@
             font-size: 0.85rem;
         }
         .watch-item.hidden { display: none; }
+        .tag-pill {
+            display: inline-block;
+            background: rgba(79, 143, 247, 0.15);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-right: 4px;
+        }
+        .tag-editor { margin-top: 4px; }
         .empty { color: var(--text-muted); font-style: italic; }
         .impersonate-banner {
             background: rgba(251, 191, 36, 0.15);
@@ -197,6 +207,8 @@
         .admin-section {
             margin-top: 32px;
         }
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
         .admin-section input[type="email"] {
             padding: 8px 12px;
             background: var(--surface-2);
@@ -227,17 +239,8 @@
     </div>
     {% endif %}
 
-    <header>
-        <div class="container">
-            <a href="/" class="logo">sfpermits<span>.ai</span></a>
-            <div class="header-right">
-                <a href="/account" class="badge">{{ user.display_name or user.email }}</a>
-                <form method="POST" action="/auth/logout" style="display:inline;">
-                    <button class="badge badge-btn" type="submit">Logout</button>
-                </form>
-            </div>
-        </div>
-    </header>
+    {% set active_page = 'account' %}
+    {% include 'fragments/nav.html' %}
 
     <main>
         <div class="container">
@@ -305,6 +308,35 @@
                 </form>
             </div>
 
+            <!-- Portfolio Import -->
+            <div class="card">
+                <h2>Import Portfolio</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
+                    Find and watch all your permits automatically by searching the permit database.
+                </p>
+                <form hx-post="/portfolio/discover" hx-target="#discover-results" hx-indicator="#discover-spinner"
+                      style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end;">
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Name</label>
+                        <input type="text" name="name" placeholder="e.g. Amy Lee"
+                               style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; width: 180px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Firm (optional)</label>
+                        <input type="text" name="firm" placeholder="e.g. 3S LLC"
+                               style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; width: 180px;">
+                    </div>
+                    <button type="submit" class="badge badge-btn"
+                            style="background: var(--accent); color: white; border-color: var(--accent); padding: 8px 16px; font-size: 0.85rem;">
+                        Find My Permits
+                    </button>
+                    <span id="discover-spinner" class="htmx-indicator" style="color: var(--accent); font-size: 0.85rem; margin-left: 8px;">
+                        Searching permits...
+                    </span>
+                </form>
+                <div id="discover-results"></div>
+            </div>
+
             <div class="card" id="watch-list-card">
                 <h2>Watch List (<span id="watch-count">{{ watches | length }}</span>)</h2>
 
@@ -315,12 +347,13 @@
 
                 <ul class="watch-list" id="watch-list">
                     {% for w in watches %}
-                    <li class="watch-item" data-search="{{ (w.label or '') | lower }} {{ (w.street_number or '') | lower }} {{ (w.street_name or '') | lower }} {{ (w.permit_number or '') | lower }} {{ (w.neighborhood or '') | lower }} {{ (w.watch_type or '') | lower }} {{ (w.block or '') }}/{{ (w.lot or '') }}">
+                    <li class="watch-item" data-search="{{ (w.label or '') | lower }} {{ (w.street_number or '') | lower }} {{ (w.street_name or '') | lower }} {{ (w.permit_number or '') | lower }} {{ (w.neighborhood or '') | lower }} {{ (w.watch_type or '') | lower }} {{ (w.block or '') }}/{{ (w.lot or '') }} {{ (w.tags or '') | lower }}">
                         <div class="watch-meta">
                             <span class="watch-label" id="watch-label-{{ w.watch_id }}">
                                 {{ w.label or [w.street_number, w.street_name] | select | join(' ') or w.permit_number or ([w.block, w.lot] | select | join('/')) or w.neighborhood or ('Entity ' ~ w.entity_id) }}
                             </span>
                             <span class="watch-type">{{ w.watch_type }}</span>
+                            {% with watch=w %}{% include 'fragments/tag_editor.html' %}{% endwith %}
                         </div>
                         <div class="watch-actions">
                             <button class="btn-edit" title="Edit label"

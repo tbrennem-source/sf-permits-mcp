@@ -1,0 +1,38 @@
+<style>
+    header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+    header .container { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .logo span { color: var(--text-muted); font-weight: 400; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .badge {
+        font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted);
+        padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
+        text-decoration: none; cursor: pointer; font-family: inherit;
+    }
+    .badge:hover { color: var(--text); border-color: var(--text-muted); }
+    .badge-active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+    .badge-btn {
+        cursor: pointer; font-family: inherit; font-size: 0.7rem;
+        background: var(--surface-2); color: var(--text-muted);
+        padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
+    }
+    .badge-btn:hover { color: var(--text); border-color: var(--text-muted); }
+</style>
+<header>
+    <div class="container">
+        <a href="/" class="logo">sfpermits<span>.ai</span></a>
+        <div class="header-right">
+            <a href="/" class="badge {% if active_page == 'search' %}badge-active{% endif %}">Search</a>
+            <a href="/brief" class="badge {% if active_page == 'brief' %}badge-active{% endif %}">Brief</a>
+            <a href="/portfolio" class="badge {% if active_page == 'portfolio' %}badge-active{% endif %}">Portfolio</a>
+            {% if g.user %}
+            <a href="/account" class="badge {% if active_page == 'account' %}badge-active{% endif %}">{{ g.user.display_name or g.user.email }}</a>
+            <form action="/auth/logout" method="post" style="display:inline;">
+                <button class="badge badge-btn" type="submit">Logout</button>
+            </form>
+            {% else %}
+            <a href="/auth/login" class="badge">Sign in</a>
+            {% endif %}
+        </div>
+    </div>
+</header>

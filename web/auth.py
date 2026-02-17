@@ -397,7 +397,8 @@ def get_watches(user_id: int) -> list[dict]:
     _ensure_schema()
     rows = query(
         "SELECT watch_id, watch_type, permit_number, street_number, street_name, "
-        "block, lot, entity_id, neighborhood, label, created_at "
+        "block, lot, entity_id, neighborhood, label, created_at, "
+        "COALESCE(tags, '') "
         "FROM watch_items WHERE user_id = %s AND is_active = TRUE "
         "ORDER BY created_at DESC",
         (user_id,),
@@ -407,7 +408,7 @@ def get_watches(user_id: int) -> list[dict]:
             "watch_id": r[0], "watch_type": r[1], "permit_number": r[2],
             "street_number": r[3], "street_name": r[4], "block": r[5],
             "lot": r[6], "entity_id": r[7], "neighborhood": r[8],
-            "label": r[9], "created_at": r[10],
+            "label": r[9], "created_at": r[10], "tags": r[11],
         }
         for r in rows
     ]
@@ -475,6 +476,45 @@ def check_watch(user_id: int, watch_type: str, **kwargs) -> dict | None:
         "lot": row[6], "entity_id": row[7], "neighborhood": row[8],
         "label": row[9],
     }
+
+
+# ---------------------------------------------------------------------------
+# Watch tags
+# ---------------------------------------------------------------------------
+
+def update_watch_tags(watch_id: int, user_id: int, tags: str) -> bool:
+    """Update tags for a watch item. Tags are comma-separated, lowercase, trimmed."""
+    _ensure_schema()
+    clean = ",".join(t.strip().lower() for t in tags.split(",") if t.strip())
+    if BACKEND == "postgres":
+        execute_write(
+            "UPDATE watch_items SET tags = %s WHERE watch_id = %s AND user_id = %s AND is_active = TRUE",
+            (clean, watch_id, user_id),
+        )
+    else:
+        conn = get_connection()
+        try:
+            conn.execute(
+                "UPDATE watch_items SET tags = ? WHERE watch_id = ? AND user_id = ? AND is_active = TRUE",
+                (clean, watch_id, user_id),
+            )
+        finally:
+            conn.close()
+    return True
+
+
+def get_user_tags(user_id: int) -> list[str]:
+    """Get all distinct tags across user's active watches."""
+    _ensure_schema()
+    rows = query(
+        "SELECT tags FROM watch_items WHERE user_id = %s AND is_active = TRUE AND tags != ''",
+        (user_id,),
+    )
+    all_tags: set[str] = set()
+    for row in rows:
+        if row[0]:
+            all_tags.update(t.strip() for t in row[0].split(",") if t.strip())
+    return sorted(all_tags)
 
 
 # ---------------------------------------------------------------------------

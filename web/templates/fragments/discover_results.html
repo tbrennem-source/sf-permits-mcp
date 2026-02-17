@@ -1,0 +1,71 @@
+{% if discovery.total_permits > 0 %}
+<div style="margin-top: 16px; padding: 16px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border);">
+    <div style="margin-bottom: 12px;">
+        <strong style="color: var(--success);">Found {{ discovery.total_permits }} permits across {{ discovery.addresses | length }} addresses</strong>
+        <span style="color: var(--text-muted); font-size: 0.85rem;"> ({{ discovery.entity_count }} entity matches)</span>
+    </div>
+
+    <form hx-post="/portfolio/import" hx-target="#discover-results" hx-swap="innerHTML">
+        <div style="max-height: 400px; overflow-y: auto; margin-bottom: 12px;">
+            <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); text-align: left;">
+                        <th style="padding: 6px 4px; width: 30px;">
+                            <input type="checkbox" id="select-all" checked
+                                   onchange="document.querySelectorAll('.addr-check').forEach(c=>c.checked=this.checked)"
+                                   style="accent-color: var(--accent);">
+                        </th>
+                        <th style="padding: 6px 4px;">Address</th>
+                        <th style="padding: 6px 4px;">Permits</th>
+                        <th style="padding: 6px 4px;">Active</th>
+                        <th style="padding: 6px 4px;">Owner/Client</th>
+                        <th style="padding: 6px 4px;">Last Activity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for addr in discovery.addresses %}
+                    <tr style="border-bottom: 1px solid rgba(51,55,73,0.5);">
+                        <td style="padding: 6px 4px;">
+                            <input type="checkbox" name="selected" value="{{ loop.index0 }}" class="addr-check" checked
+                                   style="accent-color: var(--accent);">
+                            <input type="hidden" name="snum_{{ loop.index0 }}" value="{{ addr.street_number }}">
+                            <input type="hidden" name="sname_{{ loop.index0 }}" value="{{ addr.street_name }}">
+                            <input type="hidden" name="block_{{ loop.index0 }}" value="{{ addr.block }}">
+                            <input type="hidden" name="lot_{{ loop.index0 }}" value="{{ addr.lot }}">
+                            <input type="hidden" name="firms_{{ loop.index0 }}" value="{{ addr.owner_firms | join(',') }}">
+                        </td>
+                        <td style="padding: 6px 4px; font-weight: 500;">{{ addr.street_number }} {{ addr.street_name }}</td>
+                        <td style="padding: 6px 4px;">{{ addr.permit_count }}</td>
+                        <td style="padding: 6px 4px;">
+                            {% if addr.active_count > 0 %}
+                            <span style="color: var(--success);">{{ addr.active_count }}</span>
+                            {% else %}
+                            <span style="color: var(--text-muted);">0</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 6px 4px; font-size: 0.8rem; color: var(--text-muted);">
+                            {{ addr.owner_firms[:2] | join(', ') }}
+                            {% if addr.owner_firms | length > 2 %}+{{ addr.owner_firms | length - 2 }}{% endif %}
+                        </td>
+                        <td style="padding: 6px 4px; font-size: 0.8rem; color: var(--text-muted);">{{ addr.latest_activity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="submit" style="background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.9rem;">
+                Watch All Selected
+            </button>
+            <span style="color: var(--text-muted); font-size: 0.8rem;">
+                Adds to your watch list &amp; portfolio
+            </span>
+        </div>
+    </form>
+</div>
+{% elif discovery is defined %}
+<div style="margin-top: 16px; padding: 16px; background: var(--surface-2); border-radius: 8px; color: var(--text-muted);">
+    No permits found. Try a different name or add your firm name.
+</div>
+{% endif %}

@@ -177,6 +177,9 @@ def _run_startup_migrations():
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_created ON plan_analysis_sessions (created_at)")
 
+        # Tags column for watch items (client grouping feature)
+        cur.execute("ALTER TABLE watch_items ADD COLUMN IF NOT EXISTS tags TEXT DEFAULT ''")
+
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -290,8 +293,8 @@ def _load_user():
 
 # Paths worth logging (skip static, favicon, healthcheck, etc.)
 _LOG_PATHS = {"/ask", "/analyze", "/validate", "/analyze-plans", "/lookup", "/brief",
-              "/account", "/auth/send-link", "/auth/verify",
-              "/watch/add", "/watch/remove", "/feedback/submit",
+              "/portfolio", "/account", "/auth/send-link", "/auth/verify",
+              "/watch/add", "/watch/remove", "/watch/tags", "/feedback/submit",
               "/admin/send-invite", "/account/primary-address",
               "/account/primary-address/clear"}
 
@@ -321,6 +324,7 @@ def _log_activity(response):
             "/auth/send-link": "login_request",
             "/watch/add": "watch_add",
             "/watch/remove": "watch_remove",
+            "/watch/tags": "watch_tags_update",
             "/feedback/submit": "feedback_submit",
             "/admin/send-invite": "admin_invite",
             "/account/primary-address": "primary_address_set",
@@ -1507,6 +1511,28 @@ def watch_remove():
     return ""
 
 
+@app.route("/watch/tags", methods=["POST"])
+def watch_tags():
+    """Update tags for a watch item. Returns HTMX tag editor fragment."""
+    if not g.user:
+        return "Unauthorized", 401
+
+    from web.auth import update_watch_tags, get_watches
+
+    watch_id = int(request.form.get("watch_id", 0))
+    tags = request.form.get("tags", "")
+    update_watch_tags(watch_id, g.user["user_id"], tags)
+    # Return the updated tag editor
+    watch = None
+    for w in get_watches(g.user["user_id"]):
+        if w["watch_id"] == watch_id:
+            watch = w
+            break
+    if watch:
+        return render_template("fragments/tag_editor.html", watch=watch)
+    return "", 204
+
+
 @app.route("/watch/list")
 @login_required
 def watch_list():
@@ -1603,6 +1629,48 @@ def brief():
     brief_data = get_morning_brief(g.user["user_id"], lookback_days,
                                    primary_address=primary_addr)
     return render_template("brief.html", user=g.user, brief=brief_data)
+
+
+# ---------------------------------------------------------------------------
+# Portfolio Dashboard
+# ---------------------------------------------------------------------------
+
+@app.route("/portfolio")
+@login_required
+def portfolio():
+    """Portfolio dashboard — property card grid with health indicators."""
+    from web.portfolio import get_portfolio
+
+    filter_by = request.args.get("filter", "all")
+    sort_by = request.args.get("sort", "recent")
+
+    data = get_portfolio(g.user["user_id"])
+    properties = data["properties"]
+
+    # Apply filters
+    if filter_by == "action_needed":
+        properties = [p for p in properties if p["worst_health"] in ("behind", "at_risk")]
+    elif filter_by == "in_review":
+        properties = [p for p in properties if any(pm["status"] == "filed" for pm in p["permits"])]
+    elif filter_by == "active":
+        properties = [p for p in properties if p["active_count"] > 0]
+
+    # Apply sort
+    health_order = {"at_risk": 0, "behind": 1, "slower": 2, "on_track": 3}
+    if sort_by == "cost_desc":
+        properties.sort(key=lambda p: p["total_cost"] or 0, reverse=True)
+    elif sort_by == "stale":
+        properties.sort(key=lambda p: p["latest_activity"] or "")
+    elif sort_by == "health":
+        properties.sort(key=lambda p: health_order.get(p["worst_health"], 4))
+    else:
+        properties.sort(key=lambda p: p["latest_activity"] or "", reverse=True)
+
+    return render_template("portfolio.html",
+                           properties=properties,
+                           summary=data["summary"],
+                           filter_by=filter_by,
+                           sort_by=sort_by)
 
 
 # ---------------------------------------------------------------------------
@@ -2231,6 +2299,54 @@ def property_report_share(block, lot):
     except Exception as e:
         logging.exception("Failed to send report email to %s", to_email)
         return f"<div class='flash error'>Failed to send email: {e}</div>", 500
+
+
+# ---------------------------------------------------------------------------
+# Portfolio — inspection timeline (HTMX lazy-load)
+# ---------------------------------------------------------------------------
+
+@app.route("/portfolio/timeline/<block>/<lot>")
+def portfolio_timeline(block, lot):
+    """HTMX: load inspection timeline for a property."""
+    from web.portfolio import get_inspection_timeline
+    timeline = get_inspection_timeline(block, lot)
+    return render_template("fragments/inspection_timeline.html", timeline=timeline)
+
+
+@app.route("/portfolio/discover", methods=["POST"])
+@login_required
+def portfolio_discover():
+    """HTMX: search for consultant's permits by name/firm."""
+    from web.portfolio import discover_portfolio
+
+    name = request.form.get("name", "").strip()
+    firm = request.form.get("firm", "").strip()
+
+    if not name and not firm:
+        return '<div style="color: var(--text-muted);">Enter a name or firm to search.</div>'
+
+    discovery = discover_portfolio(name, firm or None)
+    return render_template("fragments/discover_results.html", discovery=discovery)
+
+
+@app.route("/portfolio/import", methods=["POST"])
+@login_required
+def portfolio_import():
+    """HTMX: bulk-create watches from discovery results."""
+    from web.portfolio import bulk_add_watches
+
+    selected = request.form.getlist("selected")
+    addresses = []
+    for idx in selected:
+        addresses.append({
+            "street_number": request.form.get(f"snum_{idx}", ""),
+            "street_name": request.form.get(f"sname_{idx}", ""),
+            "block": request.form.get(f"block_{idx}", ""),
+            "lot": request.form.get(f"lot_{idx}", ""),
+        })
+
+    count = bulk_add_watches(g.user["user_id"], addresses)
+    return render_template("fragments/import_confirmation.html", count=count)
 
 
 # ---------------------------------------------------------------------------
