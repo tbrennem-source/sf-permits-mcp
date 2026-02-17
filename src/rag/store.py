@@ -98,7 +98,7 @@ def insert_chunks(chunks: list[dict], embeddings: list[list[float]],
                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     str(emb),  # pgvector accepts string representation
-                    chunk["content"],
+                    chunk["content"].replace('\x00', '').replace('\ufffd', ''),
                     source_tier,
                     chunk.get("source_file"),
                     chunk.get("source_section"),
