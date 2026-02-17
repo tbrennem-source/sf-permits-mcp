@@ -39,7 +39,7 @@ async def analyze_plans(
     project_description: str | None = None,
     permit_type: str | None = None,
     return_structured: bool = False,
-) -> str | tuple[str, list[dict]]:
+) -> str | tuple[str, list[dict], list[dict]]:
     """Analyze a PDF plan set with AI vision and EPR compliance checking.
 
     Performs a comprehensive analysis combining:
@@ -54,11 +54,12 @@ async def analyze_plans(
         filename: Original filename for convention check.
         project_description: Optional project description for completeness assessment.
         permit_type: Optional permit type (e.g., 'alterations', 'new_construction').
-        return_structured: If True, returns (markdown, page_extractions) tuple.
+        return_structured: If True, returns (markdown, page_extractions, page_annotations) tuple.
 
     Returns:
         Comprehensive markdown analysis report (str).
-        If return_structured=True, returns tuple of (markdown_str, page_extractions_list).
+        If return_structured=True, returns tuple of
+        (markdown_str, page_extractions_list, page_annotations_list).
     """
     # Handle base64 input (for MCP transport)
     if isinstance(pdf_bytes, str):
@@ -118,6 +119,7 @@ async def analyze_plans(
     # ------------------------------------------------------------------
     vision_results: list[CheckResult] = []
     page_extractions: list[dict] = []
+    page_annotations: list[dict] = []
 
     try:
         from src.vision.client import is_vision_available
@@ -126,11 +128,13 @@ async def analyze_plans(
             from src.vision.epr_checks import run_vision_epr_checks
 
             logger.info("Running vision analysis on %s (%d pages)", filename, page_count)
-            vision_results, page_extractions = await run_vision_epr_checks(
+            vision_results, page_extractions, page_annotations = await run_vision_epr_checks(
                 pdf_bytes, page_count,
             )
-            logger.info("Vision analysis complete: %d checks, %d page extractions",
-                        len(vision_results), len(page_extractions))
+            logger.info(
+                "Vision analysis complete: %d checks, %d page extractions, %d annotations",
+                len(vision_results), len(page_extractions), len(page_annotations),
+            )
         else:
             logger.info("Vision not available — metadata-only analysis for %s", filename)
     except Exception as e:
@@ -165,7 +169,7 @@ async def analyze_plans(
     )
 
     if return_structured:
-        return report, page_extractions
+        return report, page_extractions, page_annotations
     return report
 
 

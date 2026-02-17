@@ -308,9 +308,10 @@ def init_user_schema(conn=None) -> None:
                 FOREIGN KEY (session_id) REFERENCES plan_analysis_sessions(session_id)
             )
         """)
-        # user_id column on sessions
+        # user_id + page_annotations columns on sessions
         for alter_stmt in [
             "ALTER TABLE plan_analysis_sessions ADD COLUMN user_id INTEGER",
+            "ALTER TABLE plan_analysis_sessions ADD COLUMN page_annotations TEXT",
         ]:
             try:
                 conn.execute(alter_stmt)

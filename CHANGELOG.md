@@ -1,5 +1,40 @@
 # Changelog
 
+## Session 23 — AI-Generated Plan Annotations (2026-02-16)
+
+### Vision Annotation Extraction
+- **New prompt**: `PROMPT_ANNOTATION_EXTRACTION` in `src/vision/prompts.py` — asks Claude Vision to identify and spatially locate items on architectural drawings
+- **Extraction function**: `extract_page_annotations()` in `src/vision/epr_checks.py` — validates coordinates (0-100%), type enum (10 types), label truncation (60 chars), max 12 per page
+- **3-tuple return**: `run_vision_epr_checks()` now returns `(checks, extractions, annotations)` — annotations extracted from same sampled pages as title block data (no extra render cost)
+
+### SVG Overlay Rendering
+- **Client-side SVG overlays** on all image views: thumbnails (dots only), detail card (full callouts), lightbox (full callouts), comparison (both sides)
+- **Color-coded by type**: red=EPR issues, green=code refs, blue=dimensions, purple=occupancy, orange=scope, gray=stamps/title blocks, teal=construction type
+- **Resolution-independent**: coordinates stored as percentages (0-100), SVG viewBox maps to naturalWidth/naturalHeight
+- **Toggle & filter controls**: toolbar button to show/hide all annotations, dropdown to filter by annotation type
+
+### Storage & Plumbing
+- **DB column**: `page_annotations TEXT` on `plan_analysis_sessions` (PostgreSQL + DuckDB migrations)
+- **Pipeline threading**: `analyze_plans()` → `plan_worker.py` → `create_session()` → `get_session()` → template context → JavaScript
+- **Graceful degradation**: old sessions with NULL annotations display normally (empty list)
+
+### Tests
+- **20 new tests** in `tests/test_vision_annotations.py` — extraction, validation, failure modes, constants
+- Updated `test_analyze_plans.py` and `test_vision_epr_checks.py` for 3-tuple return signature
+
+### Files Changed
+- `src/vision/prompts.py` — new annotation extraction prompt
+- `src/vision/epr_checks.py` — `extract_page_annotations()`, 3-tuple return
+- `src/tools/analyze_plans.py` — 3-tuple unpacking, annotations threading
+- `web/plan_images.py` — `page_annotations` in create/get session
+- `web/app.py` — DB migration, route updates, `annotations_json` to templates
+- `web/plan_worker.py` — 3-tuple unpacking, annotations to `create_session()`
+- `web/templates/analyze_plans_results.html` — SVG overlay system, JS rendering engine, CSS, controls
+- `src/db.py` — DuckDB schema migration for `page_annotations` column
+- `tests/test_vision_annotations.py` — **NEW** 20 tests
+- `tests/test_analyze_plans.py` — updated for 3-tuple
+- `tests/test_vision_epr_checks.py` — updated for 3-tuple
+
 ## Session 22.5 — Plan Analysis UX Overhaul (2026-02-16)
 
 ### Multi-Stage Progress Indicator (Item 3)
