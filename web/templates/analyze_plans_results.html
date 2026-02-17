@@ -518,6 +518,92 @@
         font-size: 0.75rem;
         opacity: 0.7;
     }
+
+    /* ========== Print Stylesheet ========== */
+    @media print {
+        /* Hide everything on the parent page when printing report */
+        body.printing-report .top-bar,
+        body.printing-report .main-nav,
+        body.printing-report nav,
+        body.printing-report header,
+        body.printing-report footer,
+        body.printing-report .hero,
+        body.printing-report .search-section,
+        body.printing-report .preset-chips,
+        body.printing-report .tool-cards,
+        body.printing-report .tabs,
+        body.printing-report form,
+        body.printing-report .feedback-section,
+        body.printing-report .results-section > *:not(#analyze-plans-results),
+        body.printing-report .section:not(:has(#analyze-plans-results)) {
+            display: none !important;
+        }
+
+        /* Hide interactive elements within the results */
+        body.printing-report .bulk-actions-toolbar,
+        body.printing-report .thumbnail-gallery,
+        body.printing-report .detail-card,
+        body.printing-report .lightbox,
+        body.printing-report .comparison-panel,
+        body.printing-report .email-modal,
+        body.printing-report #analyze-plans-loading {
+            display: none !important;
+        }
+
+        /* Show the report header and markdown content cleanly */
+        body.printing-report .result-card {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        body.printing-report .validate-header {
+            margin-bottom: 16px;
+        }
+
+        body.printing-report .validate-header h2 {
+            color: #000 !important;
+            font-size: 1.5rem;
+        }
+
+        body.printing-report .markdown-report {
+            color: #000 !important;
+            font-size: 12pt;
+            line-height: 1.5;
+        }
+
+        body.printing-report .markdown-report h1,
+        body.printing-report .markdown-report h2,
+        body.printing-report .markdown-report h3 {
+            color: #000 !important;
+            page-break-after: avoid;
+        }
+
+        body.printing-report .markdown-report table {
+            border-collapse: collapse;
+            width: 100%;
+            page-break-inside: avoid;
+        }
+
+        body.printing-report .markdown-report th,
+        body.printing-report .markdown-report td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            text-align: left;
+        }
+
+        body.printing-report .markdown-report pre,
+        body.printing-report .markdown-report code {
+            background: #f5f5f5 !important;
+            color: #000 !important;
+        }
+
+        /* Clean page setup */
+        @page {
+            margin: 0.75in;
+        }
+    }
 </style>
 
 <div class="result-card">
@@ -538,36 +624,35 @@
         <button onclick="downloadAllPages()" class="action-btn">
             📦 Download All Pages (ZIP)
         </button>
-        <button onclick="downloadReport()" class="action-btn">
+        <button onclick="printReport()" class="action-btn">
             📄 Download Analysis Report (PDF)
         </button>
         <button onclick="emailAnalysis()" class="action-btn">
             ✉️ Email Full Analysis
         </button>
-        <button onclick="window.print()" class="action-btn">
+        <button onclick="printReport()" class="action-btn">
             🖨️ Print Report
         </button>
     </div>
 
     <!-- Thumbnail Gallery -->
-    {% if extractions %}
+    {% if session_id and page_count > 0 %}
     <div class="thumbnail-gallery" id="thumbnail-gallery">
-        {% for extraction in extractions %}
-        <div class="thumbnail-item" onclick="openPageDetail({{ loop.index0 }})">
-            <img src="/plan-images/{{ session_id }}/{{ loop.index0 }}"
+        {% for page_num in range(page_count) %}
+        <div class="thumbnail-item" onclick="openPageDetail({{ page_num }})">
+            <img src="/plan-images/{{ session_id }}/{{ page_num }}"
                  loading="lazy"
-                 alt="Page {{ loop.index }}"
+                 alt="Page {{ page_num + 1 }}"
                  class="thumbnail-img">
             <div class="thumbnail-overlay">
-                <div class="page-num">Page {{ loop.index }}</div>
-                <div class="sheet-id">{{ extraction.sheet_id or 'No ID' }}</div>
+                <div class="page-num">Page {{ page_num + 1 }}</div>
             </div>
         </div>
         {% endfor %}
     </div>
-    {% else %}
+    {% elif not session_id %}
     <div class="empty-state">
-        No page extractions available
+        No page images available
     </div>
     {% endif %}
 
@@ -823,9 +908,19 @@
         }, 500);
     }
 
-    function downloadReport() {
-        // Use browser print-to-PDF as the report download
+    function printReport() {
+        // Add printing class to body so @media print CSS hides non-report elements
+        document.body.classList.add('printing-report');
         window.print();
+        // Remove class after print dialog closes (or cancels)
+        window.addEventListener('afterprint', function onAfterPrint() {
+            document.body.classList.remove('printing-report');
+            window.removeEventListener('afterprint', onAfterPrint);
+        });
+        // Fallback: remove after 1 second if afterprint doesn't fire
+        setTimeout(() => {
+            document.body.classList.remove('printing-report');
+        }, 1000);
     }
 
     // ===========================
