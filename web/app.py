@@ -973,15 +973,12 @@ def download_all_pages(session_id):
 
 
 @app.route("/plan-analysis/<session_id>/email", methods=["POST"])
-def email_analysis():
+def email_analysis(session_id):
     """Email plan analysis to specified recipient."""
-    import json
-    import base64
-    from web.plan_images import get_session, get_page_image
-    from web.email_brief import send_email
+    from web.plan_images import get_session
+    from web.email_brief import send_brief_email
 
     data = request.get_json()
-    session_id = data.get('session_id')
     recipient = data.get('recipient')
     message = data.get('message', '')
     context = data.get('context', 'full')
@@ -993,34 +990,34 @@ def email_analysis():
     # Build email body
     if context == 'full':
         subject = f"Plan Analysis: {session['filename']}"
-        body = f"""
-{message}
-
-Analysis for {session['filename']} ({session['page_count']} pages)
-
-View online: {request.url_root}plan-session/{session_id}
+        html_body = f"""
+<h2>Plan Analysis: {session['filename']}</h2>
+<p>{message}</p>
+<p>Analysis for <strong>{session['filename']}</strong> ({session['page_count']} pages)</p>
+<p><a href="{request.url_root}plan-session/{session_id}">View online</a></p>
 """
     elif context.startswith('comparison-'):
-        _, left, right = context.split('-')
+        parts = context.split('-')
+        left, right = parts[1], parts[2]
         subject = f"Plan Comparison: Pages {int(left)+1} and {int(right)+1}"
-        body = f"""
-{message}
-
-Comparison of pages {int(left)+1} and {int(right)+1} from {session['filename']}
+        html_body = f"""
+<h2>Plan Comparison</h2>
+<p>{message}</p>
+<p>Comparison of pages {int(left)+1} and {int(right)+1} from <strong>{session['filename']}</strong></p>
 """
     else:
         subject = f"Plan Analysis: {session['filename']}"
-        body = message
+        html_body = f"<p>{message}</p>"
 
     try:
-        send_email(
-            to=recipient,
+        send_brief_email(
+            to_email=recipient,
             subject=subject,
-            body=body,
+            html_body=html_body,
         )
         return jsonify({'success': True})
     except Exception as e:
-        logger.error(f"Email send failed: {e}")
+        logging.error(f"Email send failed: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 
