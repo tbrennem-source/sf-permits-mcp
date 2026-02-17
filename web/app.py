@@ -720,7 +720,12 @@ def _add_target_date_context(timeline_md: str, target_date: str) -> str:
 
 @app.route("/validate", methods=["POST"])
 def validate():
-    """Upload a PDF plan set and validate against EPR requirements."""
+    """DEPRECATED: Kept for backwards compatibility. Use /analyze-plans instead.
+
+    The Validate Plan Set section has been merged into Analyze Plans.
+    This route still works but logs a deprecation notice.
+    """
+    logging.info("[validate] DEPRECATED route called — use /analyze-plans with quick_check=on instead")
     uploaded = request.files.get("planfile")
     if not uploaded or not uploaded.filename:
         return '<div class="error">Please select a PDF file to upload.</div>', 400
@@ -749,6 +754,7 @@ def validate():
         ))
         result_html = md_to_html(result_md)
     except Exception as e:
+        logging.exception(f"[validate] Error: {e}")
         result_html = f'<div class="error">Validation error: {e}</div>'
 
     return render_template(
@@ -772,6 +778,8 @@ def analyze_plans_route():
 
     project_description = request.form.get("project_description", "").strip() or None
     permit_type = request.form.get("permit_type", "").strip() or None
+    quick_check = request.form.get("quick_check") == "on"
+    is_addendum = request.form.get("is_addendum") == "on"
 
     try:
         pdf_bytes = uploaded.read()
@@ -783,13 +791,49 @@ def analyze_plans_route():
 
     # VALIDATION: Check file size
     size_mb = len(pdf_bytes) / (1024 * 1024)
-    if size_mb > 400:
-        return f'<div class="error">❌ File too large: {size_mb:.1f} MB<br>Maximum file size is 400 MB.</div>', 413
+    max_size = 350 if is_addendum else 400
+    if size_mb > max_size:
+        return f'<div class="error">File too large: {size_mb:.1f} MB<br>Maximum is {max_size} MB.</div>', 413
 
-    # LOG: File accepted, starting processing
-    logging.info(f"[analyze-plans] Processing PDF: {filename} ({size_mb:.2f} MB)")
+    mode = "quick-check" if quick_check else "full-analysis"
+    logging.info(f"[analyze-plans] Processing PDF: {filename} ({size_mb:.2f} MB, mode={mode})")
 
-    # Run analysis with structured return to get page extractions
+    # ── Quick Check mode: metadata-only via validate_plans ──
+    if quick_check:
+        try:
+            result_md = run_async(validate_plans(
+                pdf_bytes=pdf_bytes,
+                filename=filename,
+                is_site_permit_addendum=is_addendum,
+                enable_vision=False,
+            ))
+            result_html = md_to_html(result_md)
+        except Exception as e:
+            logging.exception(f"[analyze-plans] Quick-check error for '{filename}': {e}")
+            import traceback
+            result_html = f'''
+                <div class="error" style="text-align: left; max-width: 900px; margin: 20px auto;">
+                    <p style="font-weight: 600; color: #d32f2f;">Quick Check Error</p>
+                    <p><strong>Error:</strong> {str(e)}</p>
+                    <details style="margin-top: 12px;">
+                        <summary style="cursor: pointer; color: #1976d2;">Technical Details</summary>
+                        <pre style="background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin-top: 8px;">{traceback.format_exc()}</pre>
+                    </details>
+                </div>
+            '''
+
+        return render_template(
+            "analyze_plans_results.html",
+            result=result_html,
+            filename=filename,
+            filesize_mb=round(size_mb, 1),
+            session_id=None,
+            page_count=0,
+            extractions_json="{}",
+            quick_check=True,
+        )
+
+    # ── Full Analysis mode: AI vision + gallery ──
     try:
         result_md, page_extractions = run_async(analyze_plans(
             pdf_bytes=pdf_bytes,
@@ -800,18 +844,15 @@ def analyze_plans_route():
         ))
         result_html = md_to_html(result_md)
     except Exception as e:
-        # Log to Railway logs for admin debugging
         logging.exception(f"[analyze-plans] Error processing PDF '{filename}': {e}")
-
-        # Show detailed error to user (helpful for debugging during development)
         import traceback
         error_detail = traceback.format_exc()
         result_html = f'''
             <div class="error" style="text-align: left; max-width: 900px; margin: 20px auto;">
-                <p style="font-weight: 600; color: #d32f2f;">❌ Analysis Error</p>
+                <p style="font-weight: 600; color: #d32f2f;">Analysis Error</p>
                 <p><strong>Error:</strong> {str(e)}</p>
                 <details style="margin-top: 12px;">
-                    <summary style="cursor: pointer; color: #1976d2;">📋 Technical Details (click to expand)</summary>
+                    <summary style="cursor: pointer; color: #1976d2;">Technical Details</summary>
                     <pre style="background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin-top: 8px;">{error_detail}</pre>
                 </details>
                 <p style="margin-top: 12px; font-size: 0.9rem; opacity: 0.8;">
@@ -824,7 +865,7 @@ def analyze_plans_route():
     # Render page images and create session
     session_id = None
     page_count = 0
-    extractions_json = "[]"
+    extractions_json = "{}"
 
     try:
         from pypdf import PdfReader
@@ -858,10 +899,11 @@ def analyze_plans_route():
         "analyze_plans_results.html",
         result=result_html,
         filename=filename,
-        filesize_mb=round(len(pdf_bytes) / (1024 * 1024), 1),
+        filesize_mb=round(size_mb, 1),
         session_id=session_id,
         page_count=page_count,
         extractions_json=extractions_json,
+        quick_check=False,
     )
 
 

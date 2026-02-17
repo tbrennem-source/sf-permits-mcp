@@ -813,8 +813,7 @@
                     </button>
                     {% endif %}
                     <button class="preset-chip" onclick="revealSection('analyze')">Analyze a project</button>
-                    <button class="preset-chip" onclick="revealSection('validate')">Validate plans</button>
-                    <button class="preset-chip" onclick="revealSection('analyze-plans')">Analyze plans (AI)</button>
+                    <button class="preset-chip" onclick="revealSection('analyze-plans')">Analyze plans</button>
                     <button class="preset-chip" onclick="revealSection('lookup')">Look up a permit</button>
                 </div>
             </div>
@@ -989,69 +988,6 @@
 
             </div><!-- /section-analyze -->
 
-            <!-- === Plan Set Validator Section (hidden by default) === -->
-            <div class="tool-section" id="section-validate">
-
-            <div class="section-divider"></div>
-
-            <h2 class="section-title">Plan Set Validator</h2>
-            <p class="subtitle">Upload a PDF plan set to check EPR (Electronic Plan Review) compliance before submitting to DBI.</p>
-
-            <div class="form-card">
-                <form hx-post="/validate"
-                      hx-target="#validate-results"
-                      hx-indicator="#validate-loading"
-                      hx-encoding="multipart/form-data"
-                      class="form-grid">
-
-                    <div class="full-width">
-                        <label for="planfile">PDF Plan Set</label>
-                        <div class="file-upload-area" id="drop-zone">
-                            <input type="file" id="planfile" name="planfile" accept=".pdf"
-                                class="file-input" onchange="updateFileLabel(this)">
-                            <div class="file-upload-label" id="file-label">
-                                <span class="file-icon">&#128196;</span>
-                                <span>Drag & drop a PDF here, or <strong>click to browse</strong></span>
-                                <span class="file-hint">Max 400 MB &mdash; .pdf only</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="full-width checkbox-row">
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="is_addendum" id="is_addendum">
-                            <span>This is a Site Permit Addendum (allows up to 350 MB)</span>
-                        </label>
-                    </div>
-
-                    <div class="full-width checkbox-row">
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="enable_vision" id="enable_vision"
-                                   onchange="toggleVisionLoading(this)">
-                            <span>Enable AI Vision Analysis (checks title blocks, stamps, addresses)</span>
-                        </label>
-                    </div>
-
-                    <div class="full-width">
-                        <button type="submit" class="btn btn-secondary">
-                            <span class="label">Validate Plan Set</span>
-                            <span class="spinner">Validating...</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <div id="validate-loading" class="htmx-indicator">
-                <div class="loading-bar">
-                    <div class="dots">...</div>
-                    <p id="validate-loading-text">Checking EPR compliance — analyzing PDF metadata</p>
-                </div>
-            </div>
-
-            <div id="validate-results"></div>
-
-            </div><!-- /section-validate -->
-
             <!-- === Analyze Plans Section (hidden by default) === -->
             <div class="tool-section" id="section-analyze-plans">
 
@@ -1096,6 +1032,21 @@
                             <option value="demolition">Demolition</option>
                             <option value="additions">Additions</option>
                         </select>
+                    </div>
+
+                    <div class="full-width checkbox-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_addendum" id="analyze-is-addendum">
+                            <span>This is a Site Permit Addendum (allows up to 350 MB)</span>
+                        </label>
+                    </div>
+
+                    <div class="full-width checkbox-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="quick_check" id="analyze-quick-check"
+                                   onchange="toggleAnalyzeMode(this)">
+                            <span>Quick Check &mdash; metadata only (no AI vision, faster)</span>
+                        </label>
                     </div>
 
                     <div class="full-width">
@@ -1377,14 +1328,14 @@
             }
         }
 
-        // Vision loading text toggle
-        function toggleVisionLoading(checkbox) {
-            const text = document.getElementById("validate-loading-text");
-            if (text) {
+        // Toggle analyze mode: quick check vs full AI analysis
+        function toggleAnalyzeMode(checkbox) {
+            const loadingMsg = document.querySelector('#analyze-plans-loading p');
+            if (loadingMsg) {
                 if (checkbox.checked) {
-                    text.textContent = "Analyzing with AI vision — this may take 30-60 seconds";
+                    loadingMsg.textContent = "Running quick metadata check...";
                 } else {
-                    text.textContent = "Checking EPR compliance — analyzing PDF metadata";
+                    loadingMsg.textContent = "Analyzing plan set...";
                 }
             }
         }
