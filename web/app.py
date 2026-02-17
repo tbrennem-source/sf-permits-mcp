@@ -2838,6 +2838,72 @@ def cron_send_briefs():
         )
 
 
+@app.route("/cron/rag-ingest", methods=["POST"])
+def cron_rag_ingest():
+    """Run RAG knowledge ingestion — chunk, embed, store to pgvector.
+
+    Protected by CRON_SECRET bearer token. Call once after deploy to populate
+    the vector store, or after knowledge base updates.
+
+    Query params:
+      - tier: 'tier1', 'tier2', 'tier3', or 'all' (default: all)
+      - clear: '1' to clear existing chunks first (default: false)
+    """
+    token = request.headers.get("Authorization", "")
+    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
+    if not os.environ.get("CRON_SECRET") or token != expected:
+        abort(403)
+
+    import json as json_mod
+    tier = request.args.get("tier", "all")
+    clear = request.args.get("clear", "").lower() in ("1", "true", "yes")
+
+    try:
+        from src.rag.store import ensure_table, clear_tier, get_stats, rebuild_ivfflat_index
+        from scripts.rag_ingest import ingest_tier1, ingest_tier2, ingest_tier3
+
+        ensure_table()
+
+        cleared = 0
+        if clear:
+            cleared = clear_tier("official")
+
+        total = 0
+        if tier in ("tier1", "all"):
+            total += ingest_tier1()
+        if tier in ("tier2", "all"):
+            total += ingest_tier2()
+        if tier in ("tier3", "all"):
+            total += ingest_tier3()
+
+        # Rebuild index after bulk insert
+        if total > 0:
+            try:
+                rebuild_ivfflat_index()
+            except Exception as ie:
+                logging.warning("IVFFlat rebuild skipped: %s", ie)
+
+        stats = get_stats()
+
+        return Response(
+            json_mod.dumps({
+                "status": "ok",
+                "chunks_ingested": total,
+                "chunks_cleared": cleared,
+                "tier": tier,
+                "stats": stats,
+            }, indent=2, default=str),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        logging.error("RAG ingestion cron failed: %s", e)
+        return Response(
+            json_mod.dumps({"status": "error", "error": str(e)}, indent=2),
+            status=500,
+            mimetype="application/json",
+        )
+
+
 # ---------------------------------------------------------------------------
 # API endpoints — CRON_SECRET-protected JSON access for CLI tools
 # ---------------------------------------------------------------------------
