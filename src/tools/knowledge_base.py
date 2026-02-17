@@ -89,6 +89,17 @@ class KnowledgeBase:
         self.enforcement_process = _load_json(tier1 / "enforcement-process.json")
         self.appeals_bodies = _load_json(tier1 / "appeals-bodies.json")
 
+        # DBI Permit Services — sf.gov scraped content (Session 22.5)
+        self.otc_step_by_step = _load_json(tier1 / "otc-step-by-step.json")
+        self.adu_programs = _load_json(tier1 / "adu-programs.json")
+        self.pre_application_meetings = _load_json(tier1 / "pre-application-meetings.json")
+        self.recheck_resubmission = _load_json(tier1 / "recheck-resubmission-process.json")
+        self.permit_issuance_documents = _load_json(tier1 / "permit-issuance-documents.json")
+        self.geotechnical_requirements = _load_json(tier1 / "geotechnical-requirements.json")
+        self.construction_types = _load_json(tier1 / "construction-types.json")
+        self.floodplain_soft_story = _load_json(tier1 / "floodplain-soft-story.json")
+        self.sf_2025_code_amendments = _load_json(tier1 / "sf-2025-code-amendments.json")
+
         # Build keyword index from semantic index
         self._keyword_index = self._build_keyword_index()
 
@@ -285,6 +296,42 @@ SOURCE_REGISTRY: dict[str, dict[str, str]] = {
     "appeals_bodies": {
         "label": "SFBC Sections 103A–105A — Appeals Bodies, Vacant Building Registration",
         "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/",
+    },
+    "otc_step_by_step": {
+        "label": "DBI OTC Step-by-Step Guides (residential interior, exterior, commercial)",
+        "url": "https://www.sf.gov/step-by-step--get-otc-permit-your-interior-residential-remodel/",
+    },
+    "adu_programs": {
+        "label": "DBI ADU Programs (new ADU, detached pre-approval, unit legalization)",
+        "url": "https://www.sf.gov/topics--accessory-dwelling-unit-adu/",
+    },
+    "pre_application_meetings": {
+        "label": "DBI Pre-Application Meetings (binding code interpretations)",
+        "url": "https://www.sf.gov/schedule-pre-application-meeting/",
+    },
+    "recheck_resubmission": {
+        "label": "DBI Recheck/Resubmission Process (plan rechecks, streamlined housing, affordable)",
+        "url": "https://www.sf.gov/recheck-plans-OTC-building-permit-application/",
+    },
+    "permit_issuance_documents": {
+        "label": "DBI Permit Issuance Documents & Plans Requirements",
+        "url": "https://www.sf.gov/gather-documents-your-building-permit-issuance/",
+    },
+    "geotechnical_requirements": {
+        "label": "DBI Geotechnical Reports & Third-Party Engineering Review",
+        "url": "https://www.sf.gov/check-if-your-project-requires-a-geotechnical-report-or-third-party-engineering-review/",
+    },
+    "construction_types": {
+        "label": "DBI Building Construction Type Definitions (Type I-V)",
+        "url": "https://www.sf.gov/information--building-construction-type-definitions/",
+    },
+    "floodplain_soft_story": {
+        "label": "DBI Floodplain Management & Soft Story Retrofit",
+        "url": "https://www.sf.gov/comply-floodplain-management-requirements/",
+    },
+    "sf_2025_code_amendments": {
+        "label": "2025 SF Code Amendments (effective Jan 1, 2026)",
+        "url": "https://www.sf.gov/resource--2022--current-san-francisco-building-codes/",
     },
     "duckdb_permits": {
         "label": "SF Open Data — Building Permits (1.1M+ records via SODA API)",

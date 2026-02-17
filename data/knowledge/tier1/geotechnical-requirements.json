@@ -1,0 +1,42 @@
+{
+  "source": "sf.gov DBI — Geotechnical Reports and Third-Party Engineering Review",
+  "source_url": "https://www.sf.gov/check-if-your-project-requires-a-geotechnical-report-or-third-party-engineering-review/",
+  "last_verified": "2026-02-17",
+  "description": "When geotechnical reports and third-party engineering review are required for building permits",
+  "geotechnical_report": {
+    "when_required": [
+      "Most new structures",
+      "Many additions",
+      "Grading with 50 cubic yards or less of fill less than 1 foot deep",
+      "Excavation less than 2 feet deep",
+      "Other requirements per DBI Information Sheet S-05"
+    ],
+    "required_contents": [
+      "Soil settlement and bearing pressure information",
+      "Map showing where soil tests were done",
+      "Groundwater depth findings",
+      "Foundation recommendations addressing soil strength, weak soils, and earthquake safety",
+      "Retaining wall design requirements",
+      "Test results for any added or compacted soil"
+    ],
+    "prepared_by": "Licensed engineer"
+  },
+  "third_party_engineering_review": {
+    "description": "Independent engineering review required for projects in hazardous areas",
+    "triggers": [
+      "Located in or adjacent to Earthquake-Induced Landslide Areas (per CA Seismic Hazard Zones Map)",
+      "Areas with landslide history",
+      "New buildings exceeding 1,000 square feet",
+      "Additions creating 1,000+ sq ft within three years",
+      "More than 50 cubic yards of excavation/fill",
+      "Projects with substantial impact on stability of any property"
+    ],
+    "process": "DBI selects pre-vetted third-party engineer; property owner bears costs",
+    "selection": "DBI chooses the reviewer (applicant cannot select)"
+  },
+  "structural_advisory_committee": {
+    "areas": ["Northwest Mount Sutro", "Edgehill Mountain landslide zones"],
+    "requirement": "Independent committee review with at least one public hearing before approval"
+  },
+  "expediter_note": "Hillside properties, proximity to landslide zones, and large excavations are common triggers that add cost and time. Check Seismic Hazard Zones Map early."
+}

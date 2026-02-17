@@ -1,0 +1,39 @@
+{
+  "source": "sf.gov DBI — Current San Francisco Building Codes",
+  "source_url": "https://www.sf.gov/resource--2022--current-san-francisco-building-codes/",
+  "last_verified": "2026-02-17",
+  "description": "2025 SF code amendments inventory and transition rules. Full code text not yet ingested — this file tracks what exists and where to find it.",
+  "effective_date": "January 1, 2026",
+  "grace_period": "None — 2025 codes required for all filings after January 1, 2026",
+  "amendment_pdfs": [
+    {"code": "2025 SF Building Code", "url": "https://www.sf.gov/documents/49625/2025_SFBC_Amendments_7XOcYCC.pdf"},
+    {"code": "2025 SF Existing Building Code", "url": "https://www.sf.gov/documents/49619/2025-08-04_SFEBC_amendments.pdf"},
+    {"code": "2025 SF Mechanical Code", "url": "https://www.sf.gov/documents/49620/2025-08-05_SFMC_amendments.pdf"},
+    {"code": "2025 SF Plumbing Code", "url": "https://www.sf.gov/documents/49622/2025-08-05_SFPC_Amendments.pdf"},
+    {"code": "2025 SF Electrical Code", "url": "https://www.sf.gov/documents/49621/2025-08-08_SFEC_amendments.pdf"},
+    {"code": "2025 SF Green Building Code", "url": "https://www.sf.gov/documents/49624/SFGBC_Amended_Chapters.pdf"},
+    {"code": "2025 SF Housing Code", "url": null, "note": "Not found as separate amendment PDF"}
+  ],
+  "california_base_codes_2025": [
+    "2025 California Building Code (Volumes 1 & 2)",
+    "2025 California Existing Building Code",
+    "2025 California Electrical Code",
+    "2025 California Mechanical Code",
+    "2025 California Green Building Code",
+    "2025 California Plumbing Code",
+    "2025 California Energy Code",
+    "2025 California Historical Building Code"
+  ],
+  "previous_edition": {
+    "year": "2022",
+    "access": "American Legal Publishing (AmLegal) code library",
+    "codes_available": ["Building", "Electrical", "Mechanical", "Plumbing", "Green Building", "Housing", "Existing Building"]
+  },
+  "ingestion_status": {
+    "tier4_2022_bicc": "Ingested — 3.6MB, 57,938 lines (Building, Fire, fee tables, ABs)",
+    "tier4_planning_code": "Ingested — 12.6MB, 222K lines",
+    "2025_amendments": "NOT YET INGESTED — 7 PDFs identified, need download and extraction",
+    "ca_base_codes": "NOT INGESTED — available via ICC Safe and IAPMO publishers"
+  },
+  "expediter_note": "Critical: any project filed after January 1, 2026 must comply with 2025 codes. Projects filed in 2025 but not yet issued may need to transition. Check with plan checker."
+}
