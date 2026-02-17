@@ -1,5 +1,80 @@
 # Changelog
 
+## Session 23 — Portfolio Dashboard, Intelligence Engine & UI Polish (2026-02-16)
+
+### 6 New Features (Amy Lee Expediter Workflow)
+
+**Feature 1: Portfolio Dashboard** (`/portfolio`)
+- Property card grid with health indicators (on_track / behind / at_risk)
+- Filter by: All, Action Needed, In Review, Active
+- Sort by: Recent Activity, Highest Cost, Most Stale, Worst Health
+- Click-to-expand shows permit list per property
+- Mobile-responsive with breakpoint at 500px
+
+**Feature 2: Client Tags** (`/watch/tags`)
+- Tag editor on each watch item (comma-separated tags)
+- Collapsed by default with pencil (✎) toggle
+- HTMX inline save, no page reload
+- Tags column added to `watch_items` table (DuckDB + PostgreSQL)
+
+**Feature 3: Stale Permit Alerts**
+- Morning brief surfaces permits with >60 days of inactivity
+- Merged with expiring-soon into unified "Permits Needing Attention" section
+- Color-coded: stale (warning), expiring (error)
+
+**Feature 4: Inspection Timeline**
+- 11-phase progress bar (SITE VERIFICATION → FINAL INSPECT/APPRVD)
+- Lazy-loaded via HTMX `intersect once` trigger inside portfolio card expansion
+- Color-coded: green (completed), blue (current), gray (upcoming)
+
+**Feature 5: Intelligence Engine** (`web/intelligence.py`)
+- 8 proactive rules: bundle_inspections, companion_permits, triage_delay, plan_check_delay, completion_push, extension_needed, cost_variance, fresh_issuance
+- Action items surfaced in morning brief with priority/urgency
+- Cross-linked to portfolio dashboard
+
+**Feature 6: Bulk Onboarding** (`/portfolio/discover`, `/portfolio/import`)
+- Discover properties by owner name or firm name
+- Results table with checkboxes for bulk selection
+- One-click import adds all selected as watch items
+- Confirmation card with links to Portfolio, Brief, Import More
+
+### 13 UI Audit Fixes
+1. ✅ Shared nav partial (`nav.html`) — consistent nav across all 4 pages
+2. ✅ HTMX loading spinner on discover form
+3. ✅ Tag editor collapsed by default with pencil toggle
+4. ✅ Brief summary cards consolidated (6→4)
+5. ✅ Stale & expiring sections merged in brief
+6. ✅ Cross-links between brief, portfolio, and account pages
+7. ✅ Portfolio empty state with onboarding CTAs
+8. ✅ Mobile breakpoint for portfolio filters
+9. ✅ Health text labels alongside color dots
+10. ✅ Inspection timeline wired into portfolio card expansion
+11. ✅ Import confirmation expanded CTAs
+12. ✅ Brief footer links updated
+13. ✅ Action items → portfolio cross-link
+
+### Tests: 836 passing (6 fail, 18 errors — all pre-existing)
+
+### Files Changed (16 files, +1822 / -70)
+- `src/db.py` — tags column migration
+- `web/app.py` — 6 new routes (portfolio, tags, timeline, discover, import)
+- `web/auth.py` — tag CRUD, get_user_tags()
+- `web/brief.py` — stale alerts, intelligence engine wiring, summary consolidation
+- `web/intelligence.py` — NEW: 8-rule proactive intelligence engine
+- `web/portfolio.py` — NEW: portfolio data assembly, discovery, import
+- `web/templates/index.html` — nav partial include
+- `web/templates/brief.html` — summary cards, merged sections, cross-links
+- `web/templates/portfolio.html` — NEW: portfolio dashboard page
+- `web/templates/account.html` — nav include, HTMX spinner
+- `web/templates/fragments/nav.html` — NEW: shared navigation
+- `web/templates/fragments/tag_editor.html` — NEW: collapsible tag editor
+- `web/templates/fragments/import_confirmation.html` — NEW: bulk import confirmation
+- `web/templates/fragments/inspection_timeline.html` — NEW: timeline progress bar
+- `web/templates/fragments/discover_results.html` — NEW: discovery results table
+- `tests/test_brief.py` — updated for new brief structure
+
+---
+
 ## Session 21.8 — Consolidate Validate + Analyze Plans into One Section (2026-02-16)
 
 ### Feature: Merge Redundant Plan Analysis Features (#63)

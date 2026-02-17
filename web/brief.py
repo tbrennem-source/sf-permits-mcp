@@ -1,12 +1,13 @@
 """Morning brief — data logic for the /brief dashboard.
 
-Provides six sections:
+Provides seven sections:
   1. What Changed — status changes on watched permits
   2. Permit Health — are watched permits on track vs statistical norms?
   3. Inspection Results — recent pass/fail on watched permits
   4. New Filings — new permits at watched addresses/parcels
   5. Team Activity — watched contractors/architects appearing on new permits
   6. Expiring Permits — permits approaching 180-day expiration window
+  7. Stale & At-Risk Permits — stale filings, inactive issued permits, expiration risk
 """
 
 from __future__ import annotations
@@ -54,7 +55,8 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
 
     Returns:
         Dict with keys: changes, health, inspections, new_filings,
-        team_activity, expiring, property_synopsis, summary, lookback_days.
+        team_activity, expiring, stale, property_synopsis, summary,
+        lookback_days.
     """
     since = date.today() - timedelta(days=lookback_days)
 
@@ -64,6 +66,15 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     new_filings = _get_new_filings(user_id, since)
     team_activity = _get_team_activity(user_id, since)
     expiring = _get_expiring_permits(user_id)
+    stale = _get_stale_permits(user_id)
+
+    # Action items from intelligence engine
+    try:
+        from web.intelligence import get_action_items
+        action_items = get_action_items(user_id)
+    except Exception:
+        logger.exception("Failed to generate action items")
+        action_items = []
 
     # Property synopsis for primary address
     property_synopsis = None
@@ -92,6 +103,8 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "new_filings": new_filings,
         "team_activity": team_activity,
         "expiring": expiring,
+        "stale": stale,
+        "action_items": action_items,
         "property_synopsis": property_synopsis,
         "last_refresh": last_refresh,
         "summary": {
@@ -102,6 +115,9 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
             "new_filings_count": len(new_filings),
             "team_count": len(team_activity),
             "expiring_count": len(expiring),
+            "stale_count": len(stale),
+            "stale_critical": sum(1 for s in stale if s["severity"] == "critical"),
+            "action_items_count": len(action_items),
         },
         "lookback_days": lookback_days,
     }
@@ -499,7 +515,162 @@ def _get_expiring_permits(user_id: int) -> list[dict]:
     return results
 
 
-# ── Section 7: Property Synopsis ─────────────────────────────────
+# ── Section 7: Stale & At-Risk Permits ─────────────────────────────
+
+STALE_FILED_WARNING_DAYS = 180
+STALE_FILED_CRITICAL_DAYS = 365
+STALE_ISSUED_WARNING_DAYS = 365
+STALE_ISSUED_CRITICAL_DAYS = 730
+EXPIRATION_YEARS = 3
+EXPIRATION_WARNING_MONTHS = 6
+EXPIRATION_CRITICAL_MONTHS = 3
+
+
+def _get_stale_permits(user_id: int) -> list[dict]:
+    """Get permits with stale/expiration risk across all watches.
+
+    Three alert types:
+    - stale_filed: filed but not issued after N days
+    - stale_issued: issued but no inspection activity in N days
+    - expiration_risk: approaching 3-year issuance anniversary
+    """
+    ph = _ph()
+    today = date.today()
+    results: list[dict] = []
+    seen: set[str] = set()
+
+    # Get all watched permits that are filed or issued
+    rows = query(
+        f"SELECT DISTINCT p.permit_number, p.status, p.filed_date, p.issued_date, "
+        f"p.estimated_cost, p.revised_cost, p.description, p.permit_type, "
+        f"p.street_number, p.street_name, p.block, p.lot "
+        f"FROM permits p "
+        f"JOIN contacts c ON c.permit_number = p.permit_number "
+        f"JOIN watch_items wi ON ("
+        f"  (wi.watch_type = 'permit' AND wi.permit_number = p.permit_number) OR "
+        f"  (wi.watch_type = 'address' AND wi.street_number = p.street_number AND UPPER(wi.street_name) = UPPER(p.street_name)) OR "
+        f"  (wi.watch_type = 'parcel' AND wi.block = p.block AND wi.lot = p.lot)"
+        f") "
+        f"WHERE wi.user_id = {ph} AND wi.is_active = TRUE "
+        f"AND p.status IN ('filed', 'issued', 'triage') "
+        f"ORDER BY p.status_date DESC",
+        (user_id,),
+    )
+
+    for row in rows:
+        pn = row[0]
+        if pn in seen:
+            continue
+        seen.add(pn)
+
+        status = row[1]
+        filed_date = _parse_date(row[2])
+        issued_date = _parse_date(row[3])
+        cost = row[4] or 0
+        revised = row[5] or cost
+        desc = (row[6] or "")[:120]
+        ptype = row[7] or ""
+        addr = f"{row[8] or ''} {row[9] or ''}".strip()
+        block, lot = row[10], row[11]
+
+        # --- Stale Filed ---
+        if status == "filed" and filed_date:
+            days = (today - filed_date).days
+            if days >= STALE_FILED_CRITICAL_DAYS:
+                results.append(_stale_item(
+                    pn, addr, block, lot, status, "stale_filed", "critical",
+                    days, filed_date, issued_date, None, revised,
+                    f"Filed {days} days ago with no issuance — consider re-filing or contacting plan check",
+                    desc, ptype,
+                ))
+            elif days >= STALE_FILED_WARNING_DAYS:
+                results.append(_stale_item(
+                    pn, addr, block, lot, status, "stale_filed", "warning",
+                    days, filed_date, issued_date, None, revised,
+                    f"Filed {days} days ago — check for outstanding plan check corrections",
+                    desc, ptype,
+                ))
+
+        # --- Stale Issued / Expiration Risk ---
+        if status == "issued" and issued_date:
+            # Check for last inspection
+            insp_rows = query(
+                f"SELECT MAX(scheduled_date) FROM inspections "
+                f"WHERE block = {ph} AND lot = {ph}",
+                (block, lot),
+            )
+            last_insp_str = insp_rows[0][0] if insp_rows and insp_rows[0][0] else None
+            last_insp = _parse_date(last_insp_str)
+
+            # Days since last activity (inspection or issuance)
+            last_activity = last_insp or issued_date
+            days_inactive = (today - last_activity).days
+
+            if days_inactive >= STALE_ISSUED_CRITICAL_DAYS:
+                results.append(_stale_item(
+                    pn, addr, block, lot, status, "stale_issued", "critical",
+                    days_inactive, filed_date, issued_date, last_insp, revised,
+                    f"No inspection activity in {days_inactive} days — file extension before expiration",
+                    desc, ptype,
+                ))
+            elif days_inactive >= STALE_ISSUED_WARNING_DAYS:
+                results.append(_stale_item(
+                    pn, addr, block, lot, status, "stale_issued", "warning",
+                    days_inactive, filed_date, issued_date, last_insp, revised,
+                    f"No inspection activity in {days_inactive} days — schedule inspection to show active work",
+                    desc, ptype,
+                ))
+
+            # Expiration risk (3 years from issuance)
+            years_since = (today - issued_date).days / 365.25
+            if years_since >= (EXPIRATION_YEARS - EXPIRATION_CRITICAL_MONTHS / 12):
+                days_until = int((EXPIRATION_YEARS * 365.25) - (today - issued_date).days)
+                results.append(_stale_item(
+                    pn, addr, block, lot, status, "expiration_risk", "critical",
+                    (today - issued_date).days, filed_date, issued_date, last_insp, revised,
+                    f"Expires in ~{max(0, days_until)} days — file extension immediately",
+                    desc, ptype,
+                ))
+            elif years_since >= (EXPIRATION_YEARS - EXPIRATION_WARNING_MONTHS / 12):
+                days_until = int((EXPIRATION_YEARS * 365.25) - (today - issued_date).days)
+                results.append(_stale_item(
+                    pn, addr, block, lot, status, "expiration_risk", "warning",
+                    (today - issued_date).days, filed_date, issued_date, last_insp, revised,
+                    f"Approaching expiration (~{max(0, days_until)} days) — consider filing extension",
+                    desc, ptype,
+                ))
+
+    # Sort: critical first, then warning
+    severity_order = {"critical": 0, "warning": 1}
+    results.sort(key=lambda x: (severity_order.get(x["severity"], 2), -x["days_stale"]))
+    return results
+
+
+def _stale_item(permit_number, address, block, lot, status, alert_type, severity,
+                days_stale, filed_date, issued_date, last_inspection_date, cost_at_risk,
+                suggested_action, description, permit_type):
+    refiling_estimate = max(5000, (cost_at_risk or 0) * 0.02)
+    return {
+        "permit_number": permit_number,
+        "address": address,
+        "block": block,
+        "lot": lot,
+        "status": status,
+        "alert_type": alert_type,
+        "severity": severity,
+        "days_stale": days_stale,
+        "filed_date": str(filed_date) if filed_date else None,
+        "issued_date": str(issued_date) if issued_date else None,
+        "last_inspection_date": str(last_inspection_date) if last_inspection_date else None,
+        "cost_at_risk": cost_at_risk,
+        "refiling_estimate": refiling_estimate,
+        "suggested_action": suggested_action,
+        "description": description,
+        "permit_type": permit_type,
+    }
+
+
+# ── Section 8: Property Synopsis ──────────────────────────────────
 
 def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
     """Build a property overview from permits at the user's primary address.
@@ -596,7 +767,7 @@ def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
     }
 
 
-# ── Section 8: Data Freshness ────────────────────────────────────
+# ── Section 9: Data Freshness ────────────────────────────────────
 
 def _get_last_refresh() -> dict | None:
     """Get data freshness info from cron_log.

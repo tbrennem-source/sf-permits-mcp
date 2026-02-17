@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Portfolio — sfpermits.ai</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        :root {
+            --bg: #0f1117; --surface: #1a1d27; --surface-2: #252834;
+            --border: #333749; --text: #e4e6eb; --text-muted: #8b8fa3;
+            --accent: #4f8ff7; --accent-hover: #3a7ae0;
+            --success: #34d399; --warning: #fbbf24; --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+        header .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .badge { font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); text-decoration: none; cursor: pointer; font-family: inherit; }
+        .badge:hover { color: var(--text); border-color: var(--text-muted); }
+        main { padding: 32px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 4px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
+
+        .summary-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; flex: 1; min-width: 120px; text-align: center; }
+        .summary-number { font-size: 1.8rem; font-weight: 700; }
+        .summary-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .summary-card.alert .summary-number { color: var(--error); }
+        .summary-card.warn .summary-number { color: var(--warning); }
+        .summary-card.ok .summary-number { color: var(--success); }
+
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+        .filter-chip { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); cursor: pointer; font-size: 0.8rem; font-family: inherit; text-decoration: none; }
+        .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .filter-chip:hover { color: var(--text); border-color: var(--text-muted); }
+        .sort-select { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-family: inherit; margin-left: auto; }
+
+        .property-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+        @media (min-width: 700px) { .property-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 500px) {
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-chip { text-align: center; }
+            .sort-select { margin-left: 0; width: 100%; }
+            .summary-row { gap: 8px; }
+            .summary-card { min-width: 70px; padding: 12px 8px; }
+            .summary-number { font-size: 1.4rem; }
+        }
+
+        .property-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; cursor: pointer; transition: border-color 0.2s; }
+        .property-card:hover { border-color: var(--accent); }
+        .property-card.health-at_risk { border-left: 3px solid var(--error); }
+        .property-card.health-behind { border-left: 3px solid var(--warning); }
+        .property-card.health-slower { border-left: 3px solid var(--warning); }
+        .property-card.health-on_track { border-left: 3px solid var(--success); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .card-address { font-weight: 600; font-size: 1rem; }
+        .card-address a { color: var(--text); text-decoration: none; }
+        .card-address a:hover { color: var(--accent); }
+        .health-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; margin-top: 6px; }
+        .health-dot.on_track { background: var(--success); }
+        .health-dot.slower { background: var(--warning); }
+        .health-dot.behind { background: var(--warning); }
+        .health-dot.at_risk { background: var(--error); }
+        .health-indicator { display: flex; align-items: center; gap: 4px; }
+        .health-text { font-size: 0.7rem; text-transform: uppercase; font-weight: 600; }
+        .health-text.at_risk { color: var(--error); }
+        .health-text.behind { color: var(--warning); }
+        .health-text.on_track { color: var(--success); }
+        .health-text.complete { color: var(--text-muted); }
+
+        .card-stats { display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+        .card-neighborhood { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+        .tag-pill { display: inline-block; background: rgba(79, 143, 247, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 4px; }
+
+        .permit-list { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; display: none; }
+        .property-card.expanded .permit-list { display: block; }
+        .permit-row { padding: 8px 0; border-bottom: 1px solid rgba(51,55,73,0.5); font-size: 0.85rem; }
+        .permit-row:last-child { border-bottom: none; }
+        .permit-status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .permit-status.filed { background: rgba(79,143,247,0.15); color: var(--accent); }
+        .permit-status.issued { background: rgba(52,211,153,0.2); color: var(--success); }
+        .permit-status.complete { background: rgba(52,211,153,0.3); color: var(--success); }
+        .permit-status.triage { background: rgba(251,191,36,0.15); color: var(--warning); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state h2 { color: var(--text); margin-bottom: 8px; }
+        .empty-state a { color: var(--accent); }
+    </style>
+</head>
+<body>
+    {% set active_page = 'portfolio' %}
+    {% include 'fragments/nav.html' %}
+    <main>
+        <div class="container">
+            <h1>Portfolio</h1>
+            <p class="subtitle">{{ summary.total_properties }} properties &middot; {{ summary.total_active_permits }} active permits</p>
+
+            {% if properties %}
+            <!-- Summary -->
+            <div class="summary-row">
+                <div class="summary-card">
+                    <div class="summary-number">{{ summary.total_properties }}</div>
+                    <div class="summary-label">Properties</div>
+                </div>
+                <div class="summary-card {{ 'alert' if summary.action_needed > 0 else 'ok' }}">
+                    <div class="summary-number">{{ summary.action_needed }}</div>
+                    <div class="summary-label">Action Needed</div>
+                </div>
+                <div class="summary-card {{ 'warn' if summary.in_review > 0 else '' }}">
+                    <div class="summary-number">{{ summary.in_review }}</div>
+                    <div class="summary-label">In Review</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number">${{ "{:,.0f}".format(summary.total_value / 1000000) }}M</div>
+                    <div class="summary-label">Portfolio Value</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-bar">
+                <a href="/portfolio" class="filter-chip {{ 'active' if not filter_by or filter_by == 'all' }}">All</a>
+                <a href="/portfolio?filter=action_needed&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'action_needed' }}">Action Needed</a>
+                <a href="/portfolio?filter=in_review&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'in_review' }}">In Review</a>
+                <a href="/portfolio?filter=active&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'active' }}">Active</a>
+                <select class="sort-select" onchange="window.location.href='/portfolio?filter={{ filter_by or 'all' }}&sort='+this.value">
+                    <option value="recent" {{ 'selected' if sort_by == 'recent' or not sort_by }}>Sort: Recent Activity</option>
+                    <option value="cost_desc" {{ 'selected' if sort_by == 'cost_desc' }}>Sort: Highest Cost</option>
+                    <option value="stale" {{ 'selected' if sort_by == 'stale' }}>Sort: Most Stale</option>
+                    <option value="health" {{ 'selected' if sort_by == 'health' }}>Sort: Worst Health</option>
+                </select>
+            </div>
+
+            <!-- Property Grid -->
+            <div class="property-grid">
+                {% for prop in properties %}
+                <div class="property-card health-{{ prop.worst_health }}" onclick="this.classList.toggle('expanded')">
+                    <div class="card-header">
+                        <div class="card-address">
+                            <a href="/report/{{ prop.block }}/{{ prop.lot }}" onclick="event.stopPropagation()">{{ prop.address }}</a>
+                        </div>
+                        <span class="health-indicator">
+                            <span class="health-dot {{ prop.worst_health }}"></span>
+                            <span class="health-text {{ prop.worst_health }}">{{ prop.worst_health | replace('_', ' ') | title }}</span>
+                        </span>
+                    </div>
+                    {% if prop.neighborhood %}
+                    <div class="card-neighborhood">{{ prop.neighborhood }}</div>
+                    {% endif %}
+                    <div class="card-stats">
+                        <span>{{ prop.active_count }} active</span>
+                        <span>{{ prop.permits | length }} total</span>
+                        {% if prop.total_cost %}
+                        <span>${{ "{:,.0f}".format(prop.total_cost) }}</span>
+                        {% endif %}
+                        {% if prop.latest_activity %}
+                        <span>Last: {{ prop.latest_activity }}</span>
+                        {% endif %}
+                    </div>
+                    {% if prop.tags %}
+                    <div style="margin-bottom: 4px;">
+                        {% for tag in prop.tags.split(',') if tag.strip() %}
+                        <span class="tag-pill">{{ tag.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if prop.last_inspection %}
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                        Last inspection: {{ prop.last_inspection.type }} —
+                        <span style="color: {{ 'var(--success)' if prop.last_inspection.result == 'PASSED' else 'var(--error)' if prop.last_inspection.result == 'FAILED' else 'var(--text-muted)' }}">
+                            {{ prop.last_inspection.result or 'Pending' }}
+                        </span>
+                        ({{ prop.last_inspection.date }})
+                    </div>
+                    {% endif %}
+
+                    <!-- Expanded permit list -->
+                    <div class="permit-list">
+                        {% for pm in prop.permits %}
+                        <div class="permit-row">
+                            <span class="permit-status {{ pm.status }}">{{ pm.status }}</span>
+                            <strong>{{ pm.permit_number }}</strong> — {{ pm.permit_type }}
+                            {% if pm.cost %}<span style="color: var(--text-muted);"> &middot; ${{ "{:,.0f}".format(pm.cost) }}</span>{% endif %}
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">{{ pm.description }}</div>
+                        </div>
+                        {% endfor %}
+                        <!-- Inspection timeline (lazy-loaded) -->
+                        <div id="timeline-{{ prop.block }}-{{ prop.lot }}"
+                             hx-get="/portfolio/timeline/{{ prop.block }}/{{ prop.lot }}"
+                             hx-trigger="intersect once"
+                             hx-swap="innerHTML">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div style="text-align: center; padding: 60px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+                <div style="font-size: 2.5rem; margin-bottom: 12px;">&#128203;</div>
+                <h2 style="font-size: 1.3rem; margin-bottom: 8px;">Build your portfolio</h2>
+                <p style="color: var(--text-muted); max-width: 420px; margin: 0 auto 20px; font-size: 0.9rem;">
+                    Track all your properties in one place with health indicators, inspection timelines, and smart alerts.
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="/" style="background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                        Search permits &rarr;
+                    </a>
+                    <a href="/account" style="background: var(--surface-2); color: var(--text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--border);">
+                        Import by name &rarr;
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

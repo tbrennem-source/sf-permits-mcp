@@ -175,7 +175,8 @@ def init_user_schema(conn=None) -> None:
                 neighborhood TEXT,
                 label TEXT,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                is_active BOOLEAN NOT NULL DEFAULT TRUE
+                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                tags TEXT DEFAULT ''
             )
         """)
         conn.execute("""
@@ -237,6 +238,7 @@ def init_user_schema(conn=None) -> None:
         # Add columns for existing DuckDB databases
         for alter_stmt in [
             "ALTER TABLE feedback ADD COLUMN screenshot_data TEXT",
+            "ALTER TABLE watch_items ADD COLUMN tags TEXT DEFAULT ''",
         ]:
             try:
                 conn.execute(alter_stmt)

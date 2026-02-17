@@ -983,13 +983,13 @@ def test_nav_shows_brief_link_for_logged_in(client):
     _login_user(client)
     rv = client.get("/")
     html = rv.data.decode()
-    assert "Morning Brief" in html
+    assert 'href="/brief"' in html
 
 
-def test_nav_hides_brief_link_for_anonymous(client):
+def test_nav_shows_brief_link_for_anonymous(client):
     rv = client.get("/")
     html = rv.data.decode()
-    assert "Morning Brief" not in html
+    assert 'href="/brief"' in html
 
 
 # ---------------------------------------------------------------------------

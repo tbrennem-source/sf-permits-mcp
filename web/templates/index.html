@@ -768,23 +768,8 @@
         </form>
     </div>
     {% endif %}
-    <header>
-        <div class="container">
-            <a href="/" class="logo">sfpermits<span>.ai</span></a>
-            <div class="header-right">
-                <a href="/expediters" class="badge badge-link">Find Expediter</a>
-                {% if g.user %}
-                <a href="/brief" class="badge badge-link">Morning Brief</a>
-                <a href="/account" class="badge badge-link">{{ g.user.display_name or g.user.email }}</a>
-                <form method="POST" action="/auth/logout" style="display:inline;">
-                    <button class="badge badge-btn" type="submit">Logout</button>
-                </form>
-                {% else %}
-                <a href="/auth/login" class="badge badge-link">Sign in</a>
-                {% endif %}
-            </div>
-        </div>
-    </header>
+    {% set active_page = 'search' %}
+    {% include 'fragments/nav.html' %}
 
     <main>
         <div class="container">
