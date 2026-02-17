@@ -177,8 +177,8 @@ def _check_classification_drift(permits: list[dict]) -> list[dict]:
 # Known equivalent use descriptions that should NOT trigger a mismatch
 _USE_EQUIVALENTS = [
     # Sets of terms that are semantically equivalent
-    {"1 family dwelling", "single family dwelling", "single family", "sfr", "one family dwelling"},
-    {"2 family dwelling", "two family dwelling", "duplex", "2 family"},
+    {"1 family dwelling", "single family dwelling", "single family", "single family residential", "sfr", "one family dwelling"},
+    {"2 family dwelling", "two family dwelling", "two family residential", "duplex", "2 family"},
     {"apartments", "multi-family", "multifamily"},
     {"office", "offices"},
     {"retail", "retail sales", "retail store"},

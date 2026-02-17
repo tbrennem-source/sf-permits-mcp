@@ -163,6 +163,17 @@ class TestWhatsMissing:
         assert _uses_equivalent("office", "offices") is True
         assert _uses_equivalent("1 family dwelling", "2 family dwelling") is False
 
+    def test_assessor_single_family_residential_equivalent(self):
+        """Assessor 'Single Family Residential' matches permit '1 family dwelling'."""
+        assert _uses_equivalent("Single Family Residential", "1 family dwelling") is True
+
+    def test_assessor_single_family_residential_no_mismatch(self):
+        """Assessor 'Single Family Residential' should NOT flag mismatch against '1 family dwelling'."""
+        permits = [{"filed_date": "2024-08-01", "existing_use": "1 family dwelling", "permit_number": "202408068071"}]
+        property_data = [{"use_definition": "Single Family Residential"}]
+        results = _check_assessor_mismatch(permits, property_data)
+        assert len(results) == 0
+
     def test_compute_whats_missing_sorts_by_severity(self):
         """Moderate findings sort before low findings."""
         permits = [
