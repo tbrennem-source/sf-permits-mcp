@@ -1,7 +1,7 @@
-"""Tool: recommend_expediters — Score and rank permit expediters for a project.
+"""Tool: recommend_consultants — Score and rank land use consultants for a project.
 
 Composite tool querying DuckDB entities/relationships tables and the
-permit-consultants-registry JSON to find and rank the best expediters
+permit-consultants-registry JSON to find and rank the best consultants
 for a specific project profile.
 
 Scoring (100 pts max + bonuses):
@@ -63,8 +63,8 @@ def _get_registered_names() -> set[str]:
 
 
 @dataclass
-class ScoredExpediter:
-    """An expediter with scoring breakdown."""
+class ScoredConsultant:
+    """A land use consultant with scoring breakdown."""
     entity_id: int
     name: str
     firm: str
@@ -78,7 +78,7 @@ class ScoredExpediter:
     contact_info: dict = field(default_factory=dict)
 
 
-async def recommend_expediters(
+async def recommend_consultants(
     address: str | None = None,
     block: str | None = None,
     lot: str | None = None,
@@ -88,7 +88,7 @@ async def recommend_expediters(
     needs_planning_coordination: bool = False,
     limit: int = 5,
 ) -> str:
-    """Recommend top expediters for a project based on scoring criteria.
+    """Recommend top land use consultants for a project based on scoring criteria.
 
     Args:
         address: Property street name (e.g., 'ROBIN HOOD')
@@ -101,31 +101,31 @@ async def recommend_expediters(
         limit: Number of recommendations (default 5, max 20)
 
     Returns:
-        Formatted ranked list of recommended expediters with scores.
+        Formatted ranked list of recommended consultants with scores.
     """
     limit = min(max(1, limit), 20)
 
     conn = get_connection()
     try:
-        # Step 1: Get all expediters with minimum activity
+        # Step 1: Get all consultants with minimum activity
         ph = "?" if BACKEND == "duckdb" else "%s"
-        expediters = _query_expediters(conn, min_permits=20)
+        consultants = _query_consultants(conn, min_permits=20)
 
-        if not expediters:
-            return "No expediters found in the database with sufficient activity."
+        if not consultants:
+            return "No consultants found in the database with sufficient activity."
 
         # Step 2: Get max permit count for normalization
-        max_permits = max(e["permit_count"] for e in expediters)
+        max_permits = max(e["permit_count"] for e in consultants)
 
-        # Step 3: Get relationships for each expediter
-        entity_ids = [e["entity_id"] for e in expediters]
+        # Step 3: Get relationships for each consultant
+        entity_ids = [e["entity_id"] for e in consultants]
 
-        # Step 4: Score each expediter
+        # Step 4: Score each consultant
         registered_names = _get_registered_names()
-        scored: list[ScoredExpediter] = []
+        scored: list[ScoredConsultant] = []
 
-        for exp in expediters:
-            s = ScoredExpediter(
+        for exp in consultants:
+            s = ScoredConsultant(
                 entity_id=exp["entity_id"],
                 name=exp["canonical_name"],
                 firm=exp["canonical_firm"] or "",
@@ -222,16 +222,16 @@ async def recommend_expediters(
 
             # -- Bonus: complaint resolution (+10) --
             if has_active_complaint:
-                # Check if expediter has worked at addresses with complaints
-                # (simplified: give bonus if expediter has high volume in diverse neighborhoods)
+                # Check if consultant has worked at addresses with complaints
+                # (simplified: give bonus if consultant has high volume in diverse neighborhoods)
                 if exp["permit_count"] >= 50 and len(all_neighborhoods) >= 3:
                     s.breakdown["complaint_bonus"] = 10
                     s.score += 10
 
             # -- Bonus: planning coordination (+10) --
             if needs_planning_coordination:
-                # Check if expediter co-occurs with planning-related contacts
-                # (simplified: give bonus if expediter has strong network)
+                # Check if consultant co-occurs with planning-related contacts
+                # (simplified: give bonus if consultant has strong network)
                 if network_partners >= 5:
                     s.breakdown["planning_bonus"] = 10
                     s.score += 10
@@ -266,13 +266,13 @@ async def recommend_expediters(
     return _format_recommendations(top, neighborhood, has_active_complaint, needs_planning_coordination)
 
 
-def _query_expediters(conn, min_permits: int = 20) -> list[dict]:
-    """Query entities table for active expediters."""
+def _query_consultants(conn, min_permits: int = 20) -> list[dict]:
+    """Query entities table for active land use consultants."""
     if BACKEND == "duckdb":
         rows = conn.execute(
             "SELECT entity_id, canonical_name, canonical_firm, permit_count "
             "FROM entities "
-            "WHERE entity_type = 'pmt consultant/expediter' "
+            "WHERE entity_type = 'consultant' "
             "AND permit_count >= ? "
             "ORDER BY permit_count DESC "
             "LIMIT 200",
@@ -288,7 +288,7 @@ def _query_expediters(conn, min_permits: int = 20) -> list[dict]:
         rows = query(
             "SELECT entity_id, canonical_name, canonical_firm, permit_count "
             "FROM entities "
-            "WHERE entity_type = 'pmt consultant/expediter' "
+            "WHERE entity_type = 'consultant' "
             "AND permit_count >= %s "
             "ORDER BY permit_count DESC "
             "LIMIT 200",
@@ -344,16 +344,16 @@ def _query_relationships(conn, entity_id: int) -> list[dict]:
 
 
 def _format_recommendations(
-    scored: list[ScoredExpediter],
+    scored: list[ScoredConsultant],
     neighborhood: str | None,
     has_active_complaint: bool,
     needs_planning_coordination: bool,
 ) -> str:
-    """Format scored expediters as readable markdown."""
+    """Format scored consultants as readable markdown."""
     if not scored:
-        return "No qualified expediters found matching your criteria."
+        return "No qualified consultants found matching your criteria."
 
-    lines = [f"# Top {len(scored)} Recommended Expediters\n"]
+    lines = [f"# Top {len(scored)} Recommended Consultants\n"]
 
     if neighborhood:
         lines.append(f"**Target neighborhood:** {neighborhood}")

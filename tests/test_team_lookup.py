@@ -89,7 +89,7 @@ def test_profile_no_names():
 
 
 def test_profile_empty_strings():
-    result = generate_team_profile(contractor="", architect="", expediter="")
+    result = generate_team_profile(contractor="", architect="", consultant="")
     assert result == ""
 
 
@@ -163,8 +163,8 @@ def test_profile_multiple_roles(mock_conn, mock_lookup, mock_stats):
     result = generate_team_profile(
         contractor="Contractor A",
         architect="Architect B",
-        expediter="Expediter C",
+        consultant="Consultant C",
     )
     assert "General Contractor" in result
     assert "Architect / Engineer" in result
-    assert "Permit Expediter" in result
+    assert "Land Use Consultant" in result

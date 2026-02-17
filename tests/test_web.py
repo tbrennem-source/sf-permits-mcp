@@ -253,7 +253,7 @@ def test_index_has_personalization(client):
     assert "priority-chip" in html
     assert "contractor_name" in html
     assert "architect_name" in html
-    assert "expediter_name" in html
+    assert "consultant_name" in html
     assert "experience_level" in html
     assert "additional_context" in html
     assert "target_date" in html

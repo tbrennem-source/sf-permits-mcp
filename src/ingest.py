@@ -53,7 +53,7 @@ ROLE_MAP = {
     "engineer": "engineer",
     "lessee": "owner",
     "payor": "other",
-    "pmt consultant/expediter": "expediter",
+    "pmt consultant/expediter": "consultant",
     "designer": "designer",
     "project contact": "other",
     "attorney": "other",

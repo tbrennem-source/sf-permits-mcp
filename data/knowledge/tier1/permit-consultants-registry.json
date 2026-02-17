@@ -10,7 +10,7 @@
       "Permit consultants must register with the SF Ethics Commission under S.F. Campaign & Governmental Conduct Code Section 3.400 et seq.",
       "This registry includes both original registrations and amendments.",
       "Some consultants appear multiple times due to amendments or re-registrations.",
-      "DBI expediter stats come from dataset 3pee-9qhc, querying role='pmt consultant/expediter'."
+      "DBI consultant stats come from dataset 3pee-9qhc, querying role='pmt consultant/expediter'."
     ]
   },
   "summary": {
@@ -126,8 +126,8 @@
         "filing_count": 1
       }
     ],
-    "total_expediters_in_dbi": 25576,
-    "expediter_note": "DBI contacts dataset shows 25,576 permit consultant/expediter contact entries across all permits"
+    "total_consultants_in_dbi": 25576,
+    "consultant_note": "DBI contacts dataset shows 25,576 land use consultant contact entries across all permits"
   },
   "amy_lee_profile": {
     "legal_name": "Eun Young Lee",
@@ -140,7 +140,7 @@
     "first_registration": "2019-10-14",
     "latest_filing": "2024-12-09",
     "qualifies_as_lobbyist": true,
-    "dbi_expediter_rank": 42,
+    "dbi_consultant_rank": 42,
     "dbi_total_permits": 117,
     "filings": [
       {
@@ -2663,12 +2663,12 @@
       "docusign_id": "legacy paper filing"
     }
   ],
-  "dbi_expediter_rankings": {
+  "dbi_consultant_rankings": {
     "source": "SF DBI Building Permit Contacts",
     "dataset_id": "3pee-9qhc",
     "api_endpoint": "https://data.sfgov.org/resource/3pee-9qhc.json",
     "query_filter": "role='pmt consultant/expediter'",
-    "description": "Top 50 permit expediters by total permit volume in DBI system",
+    "description": "Top 50 land use consultants by total permit volume in DBI system",
     "rankings": [
       {
         "rank": 1,
@@ -3022,11 +3022,11 @@
       }
     ],
     "competitive_landscape_notes": {
-      "top_expediter": "Danielle Romero (1702 permits)",
+      "top_consultant": "Danielle Romero (1702 permits)",
       "amy_lee_position": "Rank #42 with 117 permits",
       "median_top50_permits": 182,
       "total_permits_top50": 13580,
-      "key_insight": "The market is concentrated: top 5 expediters handle more permits than the bottom 30 combined. Amy Lee at #42 has a solid practice but significant room for growth."
+      "key_insight": "The market is concentrated: top 5 consultants handle more permits than the bottom 30 combined. Amy Lee at #42 has a solid practice but significant room for growth."
     }
   }
 }

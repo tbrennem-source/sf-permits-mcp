@@ -73,17 +73,17 @@
           ]
         },
         {
-          "label": "Hire a permit expediter to manage resolution",
+          "label": "Hire a land use consultant to manage resolution",
           "effort": "least_effort",
-          "description": "Engage a professional permit expediter or consultant to coordinate the violation resolution process on your behalf, including interfacing with DBI, managing contractors, and tracking inspections.",
-          "cost_range": "$2,000–$10,000 (expediter fees) + corrective work costs",
+          "description": "Engage a professional land use consultant to coordinate the violation resolution process on your behalf, including interfacing with DBI, managing contractors, and tracking inspections.",
+          "cost_range": "$2,000–$10,000 (consultant fees) + corrective work costs",
           "timeline": "2–6 months",
           "steps": [
-            "Select a permit expediter from the SF Ethics Commission permit consultant registry",
-            "Provide the expediter with the NOV document and property access",
-            "The expediter will develop a compliance plan, file permits, and coordinate contractors",
+            "Select a land use consultant from the SF Ethics Commission permit consultant registry",
+            "Provide the consultant with the NOV document and property access",
+            "The consultant will develop a compliance plan, file permits, and coordinate contractors",
             "Review progress updates and approve any scope changes",
-            "Expediter manages inspections and NOV abatement sign-off"
+            "Consultant manages inspections and NOV abatement sign-off"
           ]
         },
         {
@@ -109,17 +109,17 @@
       "what_at_stake": "Permits with construction values exceeding $500,000 receive additional scrutiny from DBI plan review, may trigger enhanced seismic or structural review requirements, and are more likely to require in-house review rather than over-the-counter approval. Higher-value projects also attract longer review timelines and may require separate engineering peer review.",
       "options": [
         {
-          "label": "Engage a permit expediter for full-service management",
+          "label": "Engage a land use consultant for full-service management",
           "effort": "least_effort",
-          "description": "Hire a permit expediter to manage the entire permitting process, from application through final inspection, ensuring submissions are complete and reviews move efficiently.",
-          "cost_range": "$5,000–$25,000 (expediter fees)",
+          "description": "Hire a land use consultant to manage the entire permitting process, from application through final inspection, ensuring submissions are complete and reviews move efficiently.",
+          "cost_range": "$5,000–$25,000 (consultant fees)",
           "timeline": "Saves 1–3 months vs. self-managed",
           "steps": [
-            "Select a permit expediter experienced with high-value projects from the SF Ethics Commission registry",
+            "Select a land use consultant experienced with high-value projects from the SF Ethics Commission registry",
             "Provide complete project plans and engineering documents",
-            "Expediter pre-screens application for completeness using DBI 13-section checklist",
-            "Expediter files application at 1660 Mission St and tracks routing through all review stations",
-            "Expediter coordinates responses to plan check corrections and manages re-submittals"
+            "Consultant pre-screens application for completeness using DBI 13-section checklist",
+            "Consultant files application at 1660 Mission St and tracks routing through all review stations",
+            "Consultant coordinates responses to plan check corrections and manages re-submittals"
           ]
         },
         {
@@ -160,17 +160,17 @@
       "what_at_stake": "Permits with construction values between $100,000 and $500,000 undergo standard in-house plan review, typically routing through 3–5 review stations (Building, Plumbing/Mechanical, Electrical, Fire, Planning). While not at the enhanced scrutiny level of high-cost projects, these still require careful preparation to avoid review delays.",
       "options": [
         {
-          "label": "Use an expediter for complex review portions",
+          "label": "Use a land use consultant for complex review portions",
           "effort": "least_effort",
-          "description": "Engage a permit expediter to handle specific complex aspects of the review process (e.g., Planning review, Fire Department coordination) while managing simpler portions yourself.",
-          "cost_range": "$1,500–$5,000 (expediter fees for partial service)",
+          "description": "Engage a land use consultant to handle specific complex aspects of the review process (e.g., Planning review, Fire Department coordination) while managing simpler portions yourself.",
+          "cost_range": "$1,500–$5,000 (consultant fees for partial service)",
           "timeline": "Saves 2–6 weeks on complex review stations",
           "steps": [
             "Identify which review stations are likely to be most complex for your project type",
-            "Engage an expediter for those specific stations (Planning and Fire are common choices)",
+            "Engage a land use consultant for those specific stations (Planning and Fire are common choices)",
             "File the permit application yourself at the DBI screening counter (1660 Mission St, 1st Floor)",
             "Manage straightforward review stations (Building, Electrical) independently",
-            "Have the expediter handle corrections and re-submittals for complex stations"
+            "Have the consultant handle corrections and re-submittals for complex stations"
           ]
         },
         {
@@ -196,17 +196,17 @@
       "what_at_stake": "Having multiple active permits on the same property creates coordination complexity. Inspectors from different permits may have conflicting requirements, scheduling becomes more difficult, and work under one permit can inadvertently affect approved conditions under another. Without active coordination, you risk inspection failures, stop-work orders, or permit revocations.",
       "options": [
         {
-          "label": "Consolidate management under a single expediter",
+          "label": "Consolidate management under a single land use consultant",
           "effort": "least_effort",
-          "description": "Hire one permit expediter to manage all active permits as a coordinated package, ensuring inspection schedules align and work under each permit does not conflict.",
-          "cost_range": "$3,000–$10,000 (expediter fees for multi-permit coordination)",
+          "description": "Hire one land use consultant to manage all active permits as a coordinated package, ensuring inspection schedules align and work under each permit does not conflict.",
+          "cost_range": "$3,000–$10,000 (consultant fees for multi-permit coordination)",
           "timeline": "Ongoing for duration of active permits",
           "steps": [
-            "Select a permit expediter from the SF Ethics Commission permit consultant registry",
-            "Provide the expediter with copies of all active permits and approved plan sets",
-            "Expediter creates a master coordination schedule across all permits",
-            "Expediter manages inspection sequencing to avoid conflicts",
-            "Expediter serves as single point of contact with DBI for all permit-related issues"
+            "Select a land use consultant from the SF Ethics Commission permit consultant registry",
+            "Provide the consultant with copies of all active permits and approved plan sets",
+            "Consultant creates a master coordination schedule across all permits",
+            "Consultant manages inspection sequencing to avoid conflicts",
+            "Consultant serves as single point of contact with DBI for all permit-related issues"
           ]
         },
         {
@@ -249,7 +249,7 @@
         {
           "label": "Engage a planning consultant",
           "effort": "full_compliance",
-          "description": "Hire a planning consultant or permit expediter experienced with RH-1 projects to manage the Planning review process, including Section 311 notification and potential DR hearings.",
+          "description": "Hire a planning consultant or land use consultant experienced with RH-1 projects to manage the Planning review process, including Section 311 notification and potential DR hearings.",
           "cost_range": "$3,000–$15,000 (consultant fees depending on DR hearing involvement)",
           "timeline": "Adds 1–2 months for proactive neighbor outreach; DR hearing adds 2–6 months if triggered",
           "steps": [

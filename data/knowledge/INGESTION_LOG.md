@@ -123,14 +123,14 @@
 #### ~21:00 - SF Planning Code Ingested
 - Complete SF Planning Code downloaded from amlegal.com (12.6MB, 222K lines)
 - Saved to: tier4/sf-planning-code-full.txt
-- Contains 17 OTC references, 73 completeness/plan-check references, 180 facilitator/expediter references
+- Contains 17 OTC references, 73 completeness/plan-check references, 180 facilitator/consultant references
 - Needs indexing/parsing for structured extraction
 - **GAP-4 PARTIALLY RESOLVED** — raw text available, needs structuring
 
 #### ~21:00 - SF Permit Consultant Registry Discovered
 - SF Ethics Commission dataset: umwe-sn9p (~200 registered permit consultants)
 - Amy Lee found: "Eun Young (Amy) Lee", firm "3S LLC", registered Oct 2019
-- 40 permits as "pmt consultant/expediter" in DBI contacts dataset (3pee-9qhc)
+- 40 permits as "pmt consultant/expediter" (raw SODA value) in DBI contacts dataset (3pee-9qhc)
 - Former Acting Director of SF DBI (~2005)
 - New potential data source for djarvis user base
 
@@ -150,7 +150,7 @@
 - 115 unique consultant names; top firms: Reuben Junius & Rose (29), Lighthouse Public Affairs (23)
 - Amy Lee profile: Eun Young (Amy) Lee, 3S LLC, rank #42 with 117 DBI permits
 - 3S LLC team: Jerry Sanguinetti, Mark Luellen, Michie Wong, Simon Tam
-- Top expediter: Danielle Romero (1,702 permits)
+- Top consultant: Danielle Romero (1,702 permits)
 - Created: tier1/permit-consultants-registry.json (115K)
 
 #### ~05:27 - Planning Code Key Sections Parsed (Task B) ✅

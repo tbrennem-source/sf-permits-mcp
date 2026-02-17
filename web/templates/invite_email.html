@@ -14,11 +14,11 @@
                 <!-- Body -->
                 <tr>
                     <td style="padding:32px;">
-                        {% if cohort == 'expediters' %}
+                        {% if cohort == 'consultants' %}
                         <h1 style="font-size:1.3rem;color:#1a1d27;margin:0 0 16px;">You're invited to join our professional network</h1>
                         <p style="color:#555;font-size:0.95rem;line-height:1.6;margin:0 0 20px;">
                             {{ sender_name or "Someone" }} has invited you to
-                            <strong>sfpermits.ai</strong> — a professional platform for SF permit expeditors, architects, and contractors.
+                            <strong>sfpermits.ai</strong> — a professional platform for land use consultants, architects, and contractors.
                         </p>
                         {% elif cohort == 'testers' %}
                         <h1 style="font-size:1.3rem;color:#1a1d27;margin:0 0 16px;">You're invited to beta test sfpermits.ai</h1>
@@ -42,7 +42,7 @@
                         {% endif %}
 
                         {# Feature highlights vary by cohort #}
-                        {% if cohort == 'expediters' %}
+                        {% if cohort == 'consultants' %}
                         <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
                             <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2022; Monitor 25+ client properties with daily brief emails</td></tr>
                             <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2022; AI-powered plan set validation (EPR compliance)</td></tr>

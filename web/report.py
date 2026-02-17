@@ -3,7 +3,7 @@
 Builds a structured property report for a given block/lot parcel by:
   1. Querying local DB for permits, contacts, inspections, nearby activity
   2. Querying SODA API in parallel for complaints, violations, property tax data
-  3. Computing risk assessment and expediter signal from combined data
+  3. Computing risk assessment and consultant signal from combined data
 
 Called from synchronous Flask routes; handles async SODA calls internally.
 """
@@ -483,27 +483,27 @@ def _get_zoning_interpretation(zoning: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Expediter signal
+# Consultant signal
 # ---------------------------------------------------------------------------
 
 # Signal threshold messages — shared between base scoring and Owner Mode augmentation
 _SIGNAL_MESSAGES = {
-    "cold": "No significant risk factors detected. An expeditor is unlikely to be necessary.",
-    "warm": "Minor complexity factors present. An expeditor could be helpful but is not critical.",
-    "recommended": "Multiple risk factors suggest professional permit expediting would be beneficial.",
+    "cold": "No significant risk factors detected. A consultant is unlikely to be necessary.",
+    "warm": "Minor complexity factors present. A consultant could be helpful but is not critical.",
+    "recommended": "Multiple risk factors suggest professional permit consulting would be beneficial.",
     "strongly_recommended": (
-        "An expeditor is strongly advised given the combination of active complaints, "
+        "A consultant is strongly advised given the combination of active complaints, "
         "violations, high project cost, or zoning restrictions."
     ),
     "essential": (
-        "Strong recommendation to engage a permit expeditor. Multiple high-risk factors "
+        "Strong recommendation to engage a land use consultant. Multiple high-risk factors "
         "make professional navigation of the permitting process essential."
     ),
 }
 
 
 def _score_to_signal(score: int) -> str:
-    """Map a numeric expediter score to a signal tier.
+    """Map a numeric consultant score to a signal tier.
 
     Thresholds: 0=cold, 1-2=warm, 3-4=recommended, 5-7=strongly_recommended, 8+=essential.
     """
@@ -524,13 +524,13 @@ def _signal_to_message(signal: str) -> str:
     return _SIGNAL_MESSAGES.get(signal, _SIGNAL_MESSAGES["cold"])
 
 
-def _compute_expediter_signal(
+def _compute_consultant_signal(
     complaints: list[dict],
     violations: list[dict],
     permits: list[dict],
     property_data: list[dict],
 ) -> dict:
-    """Score the recommendation for hiring a permit expediter.
+    """Score the recommendation for hiring a land use consultant.
 
     Factors and weights:
         Active DBI complaint:           +3
@@ -546,7 +546,7 @@ def _compute_expediter_signal(
         5-7     -> strongly_recommended
         8+      -> essential
 
-    Note: Owner Mode adds additional factors via compute_extended_expediter_factors()
+    Note: Owner Mode adds additional factors via compute_extended_consultant_factors()
     in web/owner_mode.py, which augments the score after this base computation.
     """
     score = 0
@@ -618,11 +618,11 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
         block: SF Assessor block number (e.g., "2991")
         lot: SF Assessor lot number (e.g., "012")
         is_owner: If True, compute Owner Mode sections (remediation roadmap,
-            extended expediter factors, KB citations). Default False.
+            extended consultant factors, KB citations). Default False.
 
     Returns:
         Dict with keys: block, lot, address, property_profile, permits,
-        complaints, violations, risk_assessment, expediter_signal,
+        complaints, violations, risk_assessment, consultant_signal,
         nearby_activity, links, is_owner, whats_missing, remediation_roadmap.
     """
     block = block.strip()
@@ -685,7 +685,7 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
     risk_assessment = _compute_risk_assessment(
         permits, complaints, violations, property_data,
     )
-    expediter_signal = _compute_expediter_signal(
+    consultant_signal = _compute_consultant_signal(
         complaints, violations, permits, property_data,
     )
     property_profile = _format_property_profile(property_data)
@@ -694,7 +694,7 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
     from web.owner_mode import (
         compute_whats_missing,
         compute_remediation_roadmap,
-        compute_extended_expediter_factors,
+        compute_extended_consultant_factors,
         attach_kb_citations,
     )
     whats_missing = compute_whats_missing(permits, complaints, property_data)
@@ -716,16 +716,16 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
                 moderate_plus, whats_missing, templates,
             )
 
-            # Extended expediter signal factors
-            extra_factors = compute_extended_expediter_factors(whats_missing)
+            # Extended consultant signal factors
+            extra_factors = compute_extended_consultant_factors(whats_missing)
             for ef in extra_factors:
-                expediter_signal["score"] += ef["points"]
-                expediter_signal["factors"].append(
+                consultant_signal["score"] += ef["points"]
+                consultant_signal["factors"].append(
                     f"{ef['label']} (+{ef['points']})"
                 )
             # Recompute signal tier after augmentation
-            expediter_signal["signal"] = _score_to_signal(expediter_signal["score"])
-            expediter_signal["message"] = _signal_to_message(expediter_signal["signal"])
+            consultant_signal["signal"] = _score_to_signal(consultant_signal["score"])
+            consultant_signal["message"] = _signal_to_message(consultant_signal["signal"])
 
             # Knowledge base citations
             attach_kb_citations(risk_assessment, remediation_roadmap)
@@ -753,7 +753,7 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
         "complaints": complaints,
         "violations": violations,
         "risk_assessment": risk_assessment,
-        "expediter_signal": expediter_signal,
+        "consultant_signal": consultant_signal,
         "nearby_activity": nearby,
         "links": {
             "parcel": ReportLinks.parcel(block, lot),

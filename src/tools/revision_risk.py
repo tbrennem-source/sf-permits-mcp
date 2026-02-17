@@ -284,8 +284,8 @@ async def revision_risk(
             lines.append(f"- 90th percentile (worst case): {stats['p90_days']} days")
     else:
         if not db_available:
-            lines.append("\n*Historical permit database not available — using knowledge-based assessment*")
-        lines.append("\n## Risk Assessment (knowledge-based)\n")
+            lines.append("\n*Historical permit database not available — using LUCK-based assessment*")
+        lines.append("\n## Risk Assessment (LUCK-based)\n")
         lines.append("Based on SF DBI patterns, typical revision risk factors:")
         lines.append("- **In-house review:** ~15-20% of permits require corrections")
         lines.append("- **Revision penalty:** +60-120 days typical when corrections occur")

@@ -1,6 +1,6 @@
 """Tool: search_entity — Search for a person or company across all permit contact data.
 
-Returns expediter-friendly output: headline info, portfolio summary,
+Returns consultant-friendly output: headline info, portfolio summary,
 recent permits, and network connections — prioritized by what matters
 for decision-making.
 """
@@ -265,13 +265,13 @@ def _status_icon(status: str | None) -> str:
 async def search_entity(name: str, entity_type: str | None = None) -> str:
     """Search for a person or company across all permit contact data.
 
-    Returns expediter-friendly output with portfolio summary, recent
+    Returns consultant-friendly output with portfolio summary, recent
     permits, and network connections.
 
     Args:
         name: Name to search for (person or company, case-insensitive)
         entity_type: Optional filter by type: 'contractor', 'architect',
-                     'engineer', 'owner', 'agent', 'expediter', 'designer'
+                     'engineer', 'owner', 'agent', 'consultant', 'designer'
 
     Returns:
         Formatted markdown with entity profiles.
@@ -315,7 +315,7 @@ async def search_entity(name: str, entity_type: str | None = None) -> str:
 
 
 def _format_entity(entity: dict, lines: list[str], is_single: bool = False):
-    """Format a single entity result as expediter-friendly markdown."""
+    """Format a single entity result as consultant-friendly markdown."""
     name = entity.get("canonical_name") or "Unknown"
     firm = entity.get("canonical_firm")
     etype = entity.get("entity_type", "unknown")

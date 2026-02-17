@@ -588,13 +588,13 @@
     },
 
     "permit_consultant": {
-      "canonical_name": "Permit Consultant / Expediter",
-      "aliases": ["permit consultant", "expediter", "permit expediter", "3S LLC", "Amy Lee", "permit agent", "authorized agent"],
-      "description": "Registered permit consultants/expediters who navigate the DBI process on behalf of clients.",
+      "canonical_name": "Land Use Consultant",
+      "aliases": ["permit consultant", "expediter", "permit expediter", "land use consultant", "3S LLC", "Amy Lee", "permit agent", "authorized agent"],
+      "description": "Registered land use consultants who navigate the DBI process on behalf of clients.",
       "authoritative_sources": [
         {"file": "tier1/permit-consultants-registry.json", "path": "consultants", "role": "167 registered consultant filings"},
         {"file": "tier1/permit-consultants-registry.json", "path": "amy_lee_profile", "role": "Amy Lee profile: 3S LLC, rank #42, 117 DBI permits"},
-        {"file": "tier1/permit-consultants-registry.json", "path": "dbi_expediter_rankings", "role": "Top 50 expediters by permit volume"}
+        {"file": "tier1/permit-consultants-registry.json", "path": "dbi_consultant_rankings", "role": "Top 50 consultants by permit volume"}
       ],
       "decision_tree_step": null,
       "related_concepts": []

@@ -130,7 +130,7 @@ PERSON_PATTERNS = [
     # "projects by John Smith" / "permits for Amy Lee"
     re.compile(r"(?:projects?|permits?|work|portfolio)\s+(?:by|for|of)\s+(.+)", re.IGNORECASE),
     # "find contractor Bob" / "search architect Jane" / "show expediter Tom"
-    re.compile(r"(?:find|search|show|look\s*up)\s+(?:contractor|architect|engineer|expediter|owner)?\s*(.+)", re.IGNORECASE),
+    re.compile(r"(?:find|search|show|look\s*up)\s+(?:contractor|architect|engineer|consultant|expediter|owner)?\s*(.+)", re.IGNORECASE),
     # "Amy Lee's projects" / "Smith Construction's permits"
     re.compile(r"(.+?)(?:'s)\s+(?:projects?|permits?|work|portfolio|jobs?)", re.IGNORECASE),
     # "who is John Smith" / "tell me about Amy Lee"
@@ -138,11 +138,12 @@ PERSON_PATTERNS = [
 ]
 
 # Roles that can appear in person search queries
-PERSON_ROLES = ["contractor", "architect", "engineer", "expediter", "owner", "designer"]
+PERSON_ROLES = ["contractor", "architect", "engineer", "consultant", "owner", "designer"]
 
 # Common misspellings of roles — map to canonical form
 _ROLE_TYPOS = {
-    "expiditer": "expediter", "expeditor": "expediter", "expiditor": "expediter",
+    "expiditer": "consultant", "expeditor": "consultant", "expiditor": "consultant",
+    "expediter": "consultant",  # old term maps to new canonical
     "architech": "architect", "architecht": "architect",
     "enginnier": "engineer", "enginner": "engineer",
     "contractr": "contractor", "contracter": "contractor",

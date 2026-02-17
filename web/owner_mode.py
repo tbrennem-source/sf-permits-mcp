@@ -456,13 +456,13 @@ def compute_remediation_roadmap(
 
 
 # ---------------------------------------------------------------------------
-# Extended expediter signal factors (Owner Mode)
+# Extended consultant signal factors (Owner Mode)
 # ---------------------------------------------------------------------------
 
-def compute_extended_expediter_factors(
+def compute_extended_consultant_factors(
     whats_missing: list[dict],
 ) -> list[dict]:
-    """Compute owner-context expediter signal factors.
+    """Compute owner-context consultant signal factors.
 
     New factors per spec \u00a74.5:
     - Use classification mismatch detected: +2

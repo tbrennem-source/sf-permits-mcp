@@ -439,16 +439,16 @@
                     </tr>
                     {% endif %}
 
-                    {# ===== Section 7: Expeditor Assessment ===== #}
-                    {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
+                    {# ===== Section 7: Consultant Assessment ===== #}
+                    {% if report.consultant_signal and report.consultant_signal.signal != 'cold' %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Expeditor Assessment</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Consultant Assessment</h2>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            {% set sig = report.expediter_signal %}
+                            {% set sig = report.consultant_signal %}
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td style="padding:14px 16px;border-radius:6px;
@@ -460,19 +460,19 @@
 
                                         {% if sig.signal == 'warm' %}
                                         <div style="font-size:0.9rem;color:#6b7280;">
-                                            Depending on your project scope, an expeditor could save time.
+                                            Depending on your project scope, a consultant could save time.
                                         </div>
                                         {% elif sig.signal == 'recommended' %}
                                         <div style="font-size:0.9rem;color:#d97706;font-weight:500;">
-                                            Based on the risk profile, we recommend using an expeditor for this property.
+                                            Based on the risk profile, we recommend using a consultant for this property.
                                         </div>
                                         {% elif sig.signal == 'strongly_recommended' %}
                                         <div style="font-size:0.9rem;color:#dc2626;font-weight:500;">
-                                            {{ sig.message or 'An expeditor is strongly advised given the circumstances of this property.' }}
+                                            {{ sig.message or 'A consultant is strongly advised given the circumstances of this property.' }}
                                         </div>
                                         {% elif sig.signal == 'essential' %}
                                         <div style="font-size:0.9rem;color:#dc2626;font-weight:700;">
-                                            {{ sig.message or 'An experienced expeditor is essential for navigating the permitting process on this property.' }}
+                                            {{ sig.message or 'An experienced consultant is essential for navigating the permitting process on this property.' }}
                                         </div>
                                         {% endif %}
 
@@ -485,7 +485,7 @@
                                         {% endif %}
 
                                         <div style="margin-top:10px;">
-                                            <a href="{{ report_url.rsplit('/', 1)[0] if '/' in report_url else report_url }}/../expediters?block={{ report.block }}&lot={{ report.lot }}" style="color:#4f8ff7;text-decoration:none;font-weight:600;font-size:0.9rem;">Find an expeditor &rarr;</a>
+                                            <a href="{{ report_url.rsplit('/', 1)[0] if '/' in report_url else report_url }}/../consultants?block={{ report.block }}&lot={{ report.lot }}" style="color:#4f8ff7;text-decoration:none;font-weight:600;font-size:0.9rem;">Find a consultant &rarr;</a>
                                         </div>
                                     </td>
                                 </tr>

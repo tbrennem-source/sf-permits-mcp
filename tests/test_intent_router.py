@@ -353,7 +353,7 @@ def test_person_misspelled_role():
     r = classify("show me expiditer amy lee's projects")
     assert r.intent == "search_person"
     assert r.entities["person_name"].lower() == "amy lee"
-    assert r.entities.get("role") == "expediter"
+    assert r.entities.get("role") == "consultant"
 
 
 def test_person_misspelled_architect():
@@ -368,7 +368,7 @@ def test_person_show_me_with_role():
     r = classify("show me expediter Amy Lee")
     assert r.intent == "search_person"
     assert r.entities["person_name"].lower() == "amy lee"
-    assert r.entities.get("role") == "expediter"
+    assert r.entities.get("role") == "consultant"
 
 
 def test_person_trailing_projects_stripped():
@@ -381,7 +381,7 @@ def test_person_role_expiditor():
     r = classify("look up expiditor jane smith")
     assert r.intent == "search_person"
     assert r.entities["person_name"].lower() == "jane smith"
-    assert r.entities.get("role") == "expediter"
+    assert r.entities.get("role") == "consultant"
 
 
 # ---------------------------------------------------------------------------

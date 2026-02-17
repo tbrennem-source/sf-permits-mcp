@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Find an Expediter — sfpermits.ai</title>
+    <title>Find a Consultant — sfpermits.ai</title>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <style>
         :root {
@@ -105,7 +105,7 @@
         /* Results */
         .results-area { margin-top: 28px; }
 
-        .expediter-card {
+        .consultant-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -113,7 +113,7 @@
             margin-bottom: 16px;
             transition: border-color 0.2s;
         }
-        .expediter-card:hover { border-color: var(--accent); }
+        .consultant-card:hover { border-color: var(--accent); }
 
         .exp-header {
             display: flex;
@@ -213,7 +213,7 @@
 
     <main>
         <div class="container">
-            <h1>Find an Expediter</h1>
+            <h1>Find a Consultant</h1>
             <p class="subtitle">
                 Get ranked recommendations based on permit volume, neighborhood expertise,
                 professional network, and SF Ethics registration.
@@ -221,14 +221,14 @@
 
             {% if prefill and prefill.signal %}
             <div style="margin-bottom:16px;padding:12px 16px;background:rgba(79,143,247,0.08);border:1px solid rgba(79,143,247,0.2);border-radius:8px;font-size:0.9rem;">
-                Searching for expediters matching your property at
+                Searching for consultants matching your property at
                 <strong>Block {{ prefill.block }}, Lot {{ prefill.lot }}</strong>
                 {% if prefill.neighborhood %} in {{ prefill.neighborhood }}{% endif %}...
             </div>
             {% endif %}
 
             <div class="form-card">
-                <form id="expediter-form" hx-post="/expediters/search"
+                <form id="consultant-form" hx-post="/consultants/search"
                       hx-target="#results"
                       hx-indicator="#loading">
                     <div class="form-row three-col">
@@ -285,14 +285,14 @@
                             Needs Planning Dept coordination
                         </label>
                     </div>
-                    <button class="btn" type="submit">Find Expediters</button>
+                    <button class="btn" type="submit">Find Consultants</button>
                 </form>
             </div>
             {% if prefill and prefill.block and prefill.lot %}
             <script>
             // Auto-submit when arriving from property report with context
             document.addEventListener('DOMContentLoaded', function() {
-                var form = document.getElementById('expediter-form');
+                var form = document.getElementById('consultant-form');
                 if (form && typeof htmx !== 'undefined') {
                     setTimeout(function() { htmx.trigger(form, 'submit'); }, 300);
                 }
@@ -306,7 +306,7 @@
             <div id="results" class="results-area">
                 {% if results %}
                 {% for exp in results %}
-                <div class="expediter-card">
+                <div class="consultant-card">
                     <div class="exp-header">
                         <div>
                             <span class="exp-rank">#{{ loop.index }}</span>

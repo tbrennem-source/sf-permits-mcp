@@ -183,30 +183,30 @@
         }
         .sub-divider { border-top: 1px solid var(--border); margin: 20px 0; }
 
-        /* Expeditor callout */
-        .expeditor-callout {
+        /* Consultant callout */
+        .consultant-callout {
             padding: 16px 20px; border-radius: 8px; font-size: 0.9rem;
         }
-        .expeditor-warm {
+        .consultant-warm {
             background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2);
             color: var(--text-muted);
         }
-        .expeditor-recommended {
+        .consultant-recommended {
             background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3);
             color: var(--warning);
         }
-        .expeditor-strongly_recommended {
+        .consultant-strongly_recommended {
             background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3);
             color: var(--error);
         }
-        .expeditor-essential {
+        .consultant-essential {
             background: rgba(248, 113, 113, 0.12); border: 2px solid var(--error);
             color: var(--error); font-weight: 600;
         }
-        .expeditor-callout a { color: var(--accent); text-decoration: none; font-weight: 600; }
-        .expeditor-callout a:hover { text-decoration: underline; }
-        .expeditor-factors { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
-        .expeditor-factors li { margin-bottom: 2px; }
+        .consultant-callout a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .consultant-callout a:hover { text-decoration: underline; }
+        .consultant-factors { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+        .consultant-factors li { margin-bottom: 2px; }
 
         /* Owner Mode banner */
         .owner-banner {
@@ -806,18 +806,18 @@
             </div>
             {% endif %}
 
-            {# ===== Section 9: Expeditor Needs Assessment ===== #}
-            {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
-            <div class="section" id="section-expeditor">
-                <h2>Expeditor Needs Assessment</h2>
+            {# ===== Section 9: Consultant Recommendation ===== #}
+            {% if report.consultant_signal and report.consultant_signal.signal != 'cold' %}
+            <div class="section" id="section-consultant">
+                <h2>Do You Need a Consultant?</h2>
                 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
                     Based on this property's permit history, open issues, and complexity profile, here's
-                    our assessment of whether professional expediting help would benefit your project.
-                    Expeditors specialize in navigating SF's permitting process and can save significant
+                    our assessment of whether professional consulting help would benefit your project.
+                    Land use consultants specialize in navigating SF's permitting process and can save significant
                     time on complex or at-risk properties.
                 </p>
-                {% set sig = report.expediter_signal %}
-                {% set exp_url = '/expediters?block=' ~ report.block ~ '&lot=' ~ report.lot ~ '&signal=' ~ sig.signal %}
+                {% set sig = report.consultant_signal %}
+                {% set exp_url = '/consultants?block=' ~ report.block ~ '&lot=' ~ report.lot ~ '&signal=' ~ sig.signal %}
                 {% if report.property_profile and report.property_profile.neighborhood %}
                 {% set exp_url = exp_url ~ '&neighborhood=' ~ report.property_profile.neighborhood %}
                 {% endif %}
@@ -826,32 +826,32 @@
                 {% endif %}
 
                 {% if sig.signal == 'warm' %}
-                <div class="expeditor-callout expeditor-warm">
-                    Depending on your project scope, an expeditor could save time.
-                    <a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                <div class="consultant-callout consultant-warm">
+                    Depending on your project scope, a consultant could save time.
+                    <a href="{{ exp_url }}">Find a consultant &rarr;</a>
                 </div>
 
                 {% elif sig.signal == 'recommended' %}
-                <div class="expeditor-callout expeditor-recommended">
-                    Based on the risk profile, we recommend using an expeditor for this property.
-                    <a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                <div class="consultant-callout consultant-recommended">
+                    Based on the risk profile, we recommend using a consultant for this property.
+                    <a href="{{ exp_url }}">Find a consultant &rarr;</a>
                 </div>
 
                 {% elif sig.signal == 'strongly_recommended' %}
-                <div class="expeditor-callout expeditor-strongly_recommended">
-                    {{ sig.message or 'An expeditor is strongly advised given the circumstances of this property.' }}
-                    <br><a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                <div class="consultant-callout consultant-strongly_recommended">
+                    {{ sig.message or 'A consultant is strongly advised given the circumstances of this property.' }}
+                    <br><a href="{{ exp_url }}">Find a consultant &rarr;</a>
                 </div>
 
                 {% elif sig.signal == 'essential' %}
-                <div class="expeditor-callout expeditor-essential">
-                    {{ sig.message or 'An experienced expeditor is essential for navigating the permitting process on this property.' }}
-                    <br><a href="{{ exp_url }}">Find an expeditor &rarr;</a>
+                <div class="consultant-callout consultant-essential">
+                    {{ sig.message or 'An experienced consultant is essential for navigating the permitting process on this property.' }}
+                    <br><a href="{{ exp_url }}">Find a consultant &rarr;</a>
                 </div>
                 {% endif %}
 
                 {% if sig.factors %}
-                <ul class="expeditor-factors">
+                <ul class="consultant-factors">
                     {% for f in sig.factors %}
                     <li>{{ f }}</li>
                     {% endfor %}
