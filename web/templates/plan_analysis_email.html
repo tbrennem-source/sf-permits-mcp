@@ -1,0 +1,65 @@
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 600px; margin: 0 auto; color: #333;">
+
+    <!-- Header -->
+    <div style="text-align: center; padding: 24px 0; border-bottom: 2px solid #2563eb;">
+        <h1 style="color: #2563eb; margin: 0; font-size: 1.5rem; letter-spacing: -0.5px;">sfpermits.ai</h1>
+    </div>
+
+    <!-- Body -->
+    <div style="padding: 32px 0;">
+        <h2 style="color: #1a1a1a; font-size: 1.2rem; margin: 0 0 16px;">
+            Your Plan Analysis is Ready
+        </h2>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.95rem;">
+            <tr>
+                <td style="padding: 8px 0; color: #666; width: 120px;">File</td>
+                <td style="padding: 8px 0; font-weight: 600;">{{ filename }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666;">Pages</td>
+                <td style="padding: 8px 0;">{{ page_count }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666;">Size</td>
+                <td style="padding: 8px 0;">{{ filesize_mb }} MB</td>
+            </tr>
+            {% if property_address %}
+            <tr>
+                <td style="padding: 8px 0; color: #666;">Address</td>
+                <td style="padding: 8px 0;">{{ property_address }}</td>
+            </tr>
+            {% endif %}
+            {% if permit_number %}
+            <tr>
+                <td style="padding: 8px 0; color: #666;">Permit</td>
+                <td style="padding: 8px 0;">{{ permit_number }}</td>
+            </tr>
+            {% endif %}
+        </table>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{{ results_url }}"
+               style="display: inline-block; background: #2563eb; color: white;
+                      padding: 14px 36px; border-radius: 8px; text-decoration: none;
+                      font-weight: 600; font-size: 1rem;">
+                View Full Analysis
+            </a>
+        </div>
+
+        <p style="color: #999; font-size: 0.85rem; text-align: center;">
+            Results are available for 30 days. You can also find this analysis
+            in your <a href="{{ results_url.rsplit('/', 2)[0] }}/account/analyses"
+                       style="color: #2563eb;">analysis history</a>.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="border-top: 1px solid #eee; padding: 16px 0; text-align: center;">
+        <p style="color: #999; font-size: 0.8rem; margin: 0;">
+            sfpermits.ai &mdash; AI-powered permit analysis for San Francisco
+        </p>
+    </div>
+</div>

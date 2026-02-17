@@ -1,0 +1,10 @@
+<!-- HTMX fragment: replaces #job-status-poll while still processing -->
+<div hx-get="/plan-jobs/{{ job.job_id }}/status"
+     hx-trigger="every 3s"
+     hx-swap="outerHTML"
+     id="job-status-poll">
+    <div class="processing-progress" style="max-width: 400px; margin: 0 auto 16px; height: 6px; background: var(--surface-2, #333); border-radius: 3px; overflow: hidden;">
+        <div style="height: 100%; width: 30%; background: var(--accent, #2563eb); border-radius: 3px; animation: progress-slide 2s ease-in-out infinite;"></div>
+    </div>
+    <div style="font-size: 0.85rem; color: var(--text-muted, #999);">Status: Processing...</div>
+</div>
