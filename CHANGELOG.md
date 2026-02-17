@@ -1,18 +1,40 @@
 # Changelog
 
-## Session 22.3 — Fix False Positive Assessor Use Mismatch (2026-02-16)
+## Session 22 — Async Plan Analysis with Per-User Storage (2026-02-17)
 
-### Bug Fix
-- **Assessor vs. permit use mismatch false positive** — "Single Family Residential" (Assessor) was flagged as a mismatch against "1 family dwelling" (permit) even though they mean the same thing. Added `"single family residential"` and `"two family residential"` to the `_USE_EQUIVALENTS` table in `web/owner_mode.py`.
+### Async Background Processing
+- **Large PDFs (>10 MB) processed asynchronously** via `ThreadPoolExecutor(max_workers=1)` — eliminates gunicorn timeout for 22+ MB architectural plan sets
+- Immediate "Processing..." response with HTMX polling (3s interval)
+- **Email notification** when analysis completes (success or failure) via existing SMTP
+- Stale job recovery on worker restart — marks stuck jobs as "stale" after 15 min
+- Gallery images rendered at **72 DPI** (vs 150 DPI for vision) for 4x faster rendering
 
-### Tests
-- Added `test_assessor_single_family_residential_equivalent` and `test_assessor_single_family_residential_no_mismatch` to `tests/test_owner_mode.py` — 49 tests passing.
+### Per-User Persistent Storage
+- **`plan_analysis_jobs` table** — tracks every analysis with full lifecycle: pending → processing → completed/failed/stale
+- Original PDF stored as BYTEA during processing, cleared after completion
+- **Tiered TTL**: 30-day retention for logged-in users, 24h for anonymous
+- `user_id` column added to `plan_analysis_sessions` for ownership
 
-### Files Changed (2 files)
-- `web/owner_mode.py` — Added equivalents to `_USE_EQUIVALENTS`
-- `tests/test_owner_mode.py` — 2 new tests for the fix
+### Property/Permit Tagging
+- **Manual entry**: Property Address + Permit Number fields on upload form
+- **Auto-extraction**: `_auto_extract_tags()` scans vision results for address and permit patterns
+- Tags stored with source tracking: `manual`, `auto`, or `both`
 
----
+### Analysis History
+- **`/account/analyses` page** — searchable table of past analyses
+- Search by address, permit number, or filename
+- Status badges (completed, processing, failed, stale)
+- Direct "View" links to completed results
+
+### New Files
+- `web/plan_jobs.py` — Job CRUD (385 lines, 8 functions)
+- `web/plan_worker.py` — Background worker (336 lines)
+- 6 new templates: processing, polling, complete, failed, stale, email, history
+
+### Routes Added
+- `GET /plan-jobs/<job_id>/status` — HTMX polling endpoint
+- `GET /plan-jobs/<job_id>/results` — View completed async results
+- `GET /account/analyses` — Analysis history page
 
 ## Session 21.10 — Fix 5 Analyze Plans QA Bugs (2026-02-17)
 
