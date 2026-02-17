@@ -1,8 +1,8 @@
-# QA Checklist - Sessions 21.2–21.7
+# QA Checklist - Sessions 21.2–21.8
 
 **Test on:** https://sfpermits-ai-production.up.railway.app
 **Deployed:** 2026-02-16
-**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading), 21.6 (Error Logging), 21.7 (NameError Fix)
+**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading), 21.6 (Error Logging), 21.7 (NameError Fix), 21.8 (Consolidation)
 
 ---
 
@@ -244,6 +244,49 @@
 - [ ] **Verify:** Hourglass appears, results render after processing
 - [ ] **Verify:** Multiple page thumbnails in gallery
 - [ ] **Verify:** Page extractions display correctly
+
+---
+
+## Session 21.8: Consolidate Validate + Analyze Plans
+
+### ✅ Test 35: Validate Section Removed
+- [ ] Hard refresh page
+- [ ] **Verify:** No "Plan Set Validator" section on homepage
+- [ ] **Verify:** No "Validate plans" preset chip in quick actions
+- [ ] **Verify:** "Analyze plans" chip IS present (renamed from "Analyze plans (AI)")
+- [ ] **Verify:** Only ONE plan analysis section exists
+
+### ✅ Test 36: Full Analysis Mode (Default)
+- [ ] Click "Analyze plans" chip
+- [ ] Upload a PDF
+- [ ] Leave "Quick Check" checkbox UNCHECKED
+- [ ] Click "Analyze Plan Set"
+- [ ] **Verify:** Hourglass spinner appears
+- [ ] **Verify:** Full analysis results with page gallery
+- [ ] **Verify:** Bulk action buttons (Download ZIP, Email, Print)
+- [ ] **Verify:** No "Quick Check" badge in report header
+
+### ✅ Test 37: Quick Check Mode (Metadata Only)
+- [ ] Click "Analyze plans" chip
+- [ ] Upload a PDF
+- [ ] CHECK the "Quick Check — metadata only" checkbox
+- [ ] Click "Analyze Plan Set"
+- [ ] **Verify:** Results appear faster (no Vision API call)
+- [ ] **Verify:** "Quick Check (metadata only)" badge in report header
+- [ ] **Verify:** NO page gallery (no thumbnails)
+- [ ] **Verify:** NO bulk action buttons
+- [ ] **Verify:** EPR metadata checks displayed (file size, encryption, fonts, etc.)
+
+### ✅ Test 38: Site Permit Addendum Checkbox
+- [ ] Check "This is a Site Permit Addendum"
+- [ ] Upload any PDF
+- [ ] **Verify:** Form submits successfully
+- [ ] **Verify:** File size limit is 350 MB (not 400 MB)
+
+### ✅ Test 39: Deprecated /validate Route Still Works
+- [ ] Manually POST to `/validate` (via curl or Postman)
+- [ ] **Verify:** Still returns results (backwards compatible)
+- [ ] Check Railway logs: `[validate] DEPRECATED route called`
 
 ---
 

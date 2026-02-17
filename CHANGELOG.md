@@ -1,5 +1,31 @@
 # Changelog
 
+## Session 21.8 — Consolidate Validate + Analyze Plans into One Section (2026-02-16)
+
+### Feature: Merge Redundant Plan Analysis Features (#63)
+- **Problem:** Homepage had two overlapping plan analysis features:
+  - "Validate Plan Set" (metadata + optional AI vision checkbox)
+  - "Analyze Plans (AI Vision)" (full analysis + gallery + recommendations)
+  - Both used the same vision code; Analyze Plans was strictly better
+  - Users confused about which to use
+- **Solution:** Merged into one unified "Analyze Plans" section with two modes:
+  - **Full Analysis (default):** AI vision + page gallery + sheet completeness + recommendations
+  - **Quick Check (checkbox):** Metadata-only EPR checks, no Vision API call, fast
+- **Changes:**
+  - Removed "Validate Plan Set" section entirely (60 lines of HTML)
+  - Removed "Validate plans" preset chip from homepage
+  - Added "Quick Check — metadata only" checkbox to Analyze Plans form
+  - Added "Site Permit Addendum" checkbox (previously only on Validate)
+  - `/validate` route preserved but marked DEPRECATED with logging notice
+  - Results template shows "Quick Check (metadata only)" badge when applicable
+
+### Files Changed (3 files, +80 / -84 lines)
+- `web/templates/index.html` — Removed validate section, added checkboxes to analyze form
+- `web/app.py` — Route handles `quick_check` + `is_addendum` params, deprecated `/validate`
+- `web/templates/analyze_plans_results.html` — Quick-check badge
+
+---
+
 ## Session 21.7 — Fix Two NameErrors Crashing Analyze Plans (2026-02-16)
 
 ### Bug Fix: Analysis Succeeded but Results Never Rendered (#62)
