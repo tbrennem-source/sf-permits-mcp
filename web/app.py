@@ -180,6 +180,8 @@ def _run_startup_migrations():
         # user_id column on sessions (link sessions to users for persistent storage)
         cur.execute("ALTER TABLE plan_analysis_sessions ADD COLUMN IF NOT EXISTS user_id INTEGER")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_plan_sessions_user ON plan_analysis_sessions (user_id)")
+        # page_annotations column for spatial annotation overlay data
+        cur.execute("ALTER TABLE plan_analysis_sessions ADD COLUMN IF NOT EXISTS page_annotations TEXT")
 
         # Plan analysis jobs table (async processing + job history)
         cur.execute("""
@@ -932,12 +934,14 @@ def analyze_plans_route():
             session_id=None,
             page_count=0,
             extractions_json="{}",
+            annotations_json="[]",
             quick_check=True,
         )
 
     # ── Synchronous Full Analysis mode (small files) ──
+    page_annotations = []
     try:
-        result_md, page_extractions = run_async(analyze_plans(
+        result_md, page_extractions, page_annotations = run_async(analyze_plans(
             pdf_bytes=pdf_bytes,
             filename=filename,
             project_description=project_description,
@@ -988,6 +992,7 @@ def analyze_plans_route():
             page_extractions=page_extractions,
             page_images=page_images,
             user_id=user_id,
+            page_annotations=page_annotations,
         )
 
         # Format extractions for JavaScript (dict keyed by page_number)
@@ -1011,6 +1016,7 @@ def analyze_plans_route():
     except Exception:
         pass  # Job tracking is non-fatal
 
+    annotations_json = json.dumps(page_annotations or [])
     street_number, street_name = _parse_address(property_address)
     return render_template(
         "analyze_plans_results.html",
@@ -1021,6 +1027,7 @@ def analyze_plans_route():
         page_count=page_count,
         extractions=page_extractions,
         extractions_json=extractions_json,
+        annotations_json=annotations_json,
         quick_check=False,
         property_address=property_address,
         street_number=street_number,
@@ -1206,6 +1213,9 @@ def plan_job_results(job_id):
         for i, pe in enumerate(page_extractions)
     }) if page_extractions else "{}"
 
+    page_annotations = session_data.get("page_annotations", [])
+    annotations_json = json.dumps(page_annotations)
+
     return render_template(
         "plan_results_page.html",
         result=result_html,
@@ -1215,6 +1225,7 @@ def plan_job_results(job_id):
         page_count=session_data["page_count"],
         extractions=page_extractions,
         extractions_json=extractions_json,
+        annotations_json=annotations_json,
         quick_check=job["quick_check"],
         property_address=job.get("property_address"),
         street_number=_parse_address(job.get("property_address", ""))[0],

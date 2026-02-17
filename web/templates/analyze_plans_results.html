@@ -519,6 +519,72 @@
         opacity: 0.7;
     }
 
+    /* ========== Annotation Overlay ========== */
+    .annotated-image {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .annotation-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .annotation-layer .annotation {
+        pointer-events: auto;
+        cursor: default;
+    }
+
+    .annotation-layer .annotation:hover .ann-label-bg {
+        opacity: 1 !important;
+    }
+
+    .annotation-layer .annotation:hover .ann-label-text {
+        font-weight: 700;
+    }
+
+    /* Thumbnail annotations: dots only */
+    .annotation-thumbnail .ann-label-bg,
+    .annotation-thumbnail .ann-label-text,
+    .annotation-thumbnail .ann-leader {
+        display: none;
+    }
+
+    /* Annotation toggle/filter toolbar */
+    .annotation-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .annotation-controls select {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    .annotation-controls select:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    .ann-toggle-on {
+        background: rgba(34, 197, 94, 0.15) !important;
+        border-color: #22c55e !important;
+        color: #22c55e !important;
+    }
+
     /* ========== Print Stylesheet ========== */
     @media print {
         /* Hide everything on the parent page when printing report */
@@ -633,6 +699,22 @@
         <button onclick="printReport()" class="action-btn">
             🖨️ Print Report
         </button>
+        <div class="annotation-controls">
+            <button id="toggle-annotations" onclick="toggleAnnotations()" class="action-btn ann-toggle-on">
+                Annotations: ON
+            </button>
+            <select id="annotation-filter" onchange="filterAnnotations()">
+                <option value="all">All Types</option>
+                <option value="epr_issue">EPR Issues</option>
+                <option value="code_reference">Code References</option>
+                <option value="dimension">Dimensions</option>
+                <option value="occupancy_label">Occupancy</option>
+                <option value="construction_type">Construction Type</option>
+                <option value="scope_indicator">Scope</option>
+                <option value="stamp">Stamps</option>
+                <option value="structural_element">Structural</option>
+            </select>
+        </div>
     </div>
 
     <!-- Thumbnail Gallery -->
@@ -640,10 +722,14 @@
     <div class="thumbnail-gallery" id="thumbnail-gallery">
         {% for page_num in range(page_count) %}
         <div class="thumbnail-item" onclick="openPageDetail({{ page_num }})">
-            <img src="/plan-images/{{ session_id }}/{{ page_num }}"
-                 loading="lazy"
-                 alt="Page {{ page_num + 1 }}"
-                 class="thumbnail-img">
+            <div class="annotated-image">
+                <img src="/plan-images/{{ session_id }}/{{ page_num }}"
+                     loading="lazy"
+                     alt="Page {{ page_num + 1 }}"
+                     class="thumbnail-img"
+                     onload="renderThumbnailAnnotations(this, {{ page_num }})">
+                <svg class="annotation-layer annotation-thumbnail" data-page="{{ page_num }}"></svg>
+            </div>
             <div class="thumbnail-overlay">
                 <div class="page-num">Page {{ page_num + 1 }}</div>
             </div>
@@ -663,8 +749,10 @@
             <button onclick="closeDetail()" class="close-btn">&times;</button>
         </div>
         <div class="detail-grid">
-            <div class="detail-image">
-                <img id="detail-img" src="" alt="Page detail">
+            <div class="detail-image annotated-image">
+                <img id="detail-img" src="" alt="Page detail"
+                     onload="renderAnnotations(this, document.getElementById('detail-annotations'), currentPage)">
+                <svg id="detail-annotations" class="annotation-layer"></svg>
             </div>
             <div class="detail-metadata">
                 <table class="metadata-table">
@@ -687,7 +775,11 @@
         <div class="lightbox-content" onclick="event.stopPropagation()">
             <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
             <button class="lightbox-prev" onclick="event.stopPropagation(); prevPage()">&lsaquo;</button>
-            <img id="lightbox-img" src="" alt="Full screen view">
+            <div class="annotated-image" style="max-width:100%;max-height:80vh;">
+                <img id="lightbox-img" src="" alt="Full screen view"
+                     onload="renderAnnotations(this, document.getElementById('lightbox-annotations'), currentPage)">
+                <svg id="lightbox-annotations" class="annotation-layer"></svg>
+            </div>
             <button class="lightbox-next" onclick="event.stopPropagation(); nextPage()">&rsaquo;</button>
             <div class="lightbox-info">
                 <span id="lightbox-page-info"></span>
@@ -711,14 +803,22 @@
                 <select id="compare-left" onchange="updateComparisonPanel('left')">
                     <!-- Populated by JS -->
                 </select>
-                <img id="compare-left-img" src="" alt="Left comparison">
+                <div class="annotated-image">
+                    <img id="compare-left-img" src="" alt="Left comparison"
+                         onload="renderComparisonAnnotations('left')">
+                    <svg id="compare-left-annotations" class="annotation-layer"></svg>
+                </div>
             </div>
             <div class="comparison-side">
                 <label>Right Page</label>
                 <select id="compare-right" onchange="updateComparisonPanel('right')">
                     <!-- Populated by JS -->
                 </select>
-                <img id="compare-right-img" src="" alt="Right comparison">
+                <div class="annotated-image">
+                    <img id="compare-right-img" src="" alt="Right comparison"
+                         onload="renderComparisonAnnotations('right')">
+                    <svg id="compare-right-annotations" class="annotation-layer"></svg>
+                </div>
             </div>
         </div>
         <div class="comparison-actions">
@@ -789,6 +889,224 @@
     const sessionId = '{{ session_id }}';
     const pageCount = {{ page_count or 0 }};
     const extractions = {{ extractions_json | safe }};
+    const pageAnnotations = {{ annotations_json | safe }};
+    let annotationsVisible = true;
+    let annotationFilter = 'all';
+
+    // ===========================
+    // Annotation Color Map
+    // ===========================
+    const ANNOTATION_COLORS = {
+        epr_issue:          '#ef4444',
+        code_reference:     '#22c55e',
+        dimension:          '#3b82f6',
+        occupancy_label:    '#a855f7',
+        construction_type:  '#a855f7',
+        scope_indicator:    '#f97316',
+        title_block:        '#6b7280',
+        stamp:              '#6b7280',
+        structural_element: '#22c55e',
+        general_note:       '#22c55e',
+    };
+
+    // ===========================
+    // Annotation Helpers
+    // ===========================
+    function getAnnotationsForPage(pageNum) {
+        // pageNum is 0-indexed; annotations store 1-indexed page_number
+        return (pageAnnotations || []).filter(a => a.page_number === pageNum + 1);
+    }
+
+    function computeLabelPosition(ann, imgW, imgH) {
+        const targetX = (ann.x / 100) * imgW;
+        const targetY = (ann.y / 100) * imgH;
+        const OFFSET = Math.max(40, imgW * 0.05);
+
+        const offsets = {
+            'top-left':     { dx: -OFFSET, dy: -OFFSET },
+            'top-right':    { dx: OFFSET,  dy: -OFFSET },
+            'bottom-left':  { dx: -OFFSET, dy: OFFSET  },
+            'bottom-right': { dx: OFFSET,  dy: OFFSET  },
+        };
+        const off = offsets[ann.anchor] || offsets['top-right'];
+
+        let labelX = targetX + off.dx;
+        let labelY = targetY + off.dy;
+
+        // Estimate label width (approximate)
+        const labelText = (ann.label || '').substring(0, 50);
+        const fontSize = Math.max(10, Math.min(14, imgW * 0.009));
+        const textWidth = labelText.length * fontSize * 0.55 + 12;
+        const textHeight = fontSize + 10;
+
+        // Clamp to image bounds
+        labelX = Math.max(5, Math.min(labelX, imgW - textWidth - 5));
+        labelY = Math.max(textHeight + 5, Math.min(labelY, imgH - 5));
+
+        return { targetX, targetY, labelX, labelY, fontSize, textWidth, textHeight };
+    }
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    function renderAnnotations(imgEl, svgEl, pageNum) {
+        if (!svgEl || !imgEl || !imgEl.naturalWidth) return;
+
+        const w = imgEl.naturalWidth;
+        const h = imgEl.naturalHeight;
+        svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svgEl.innerHTML = '';
+
+        if (!annotationsVisible) return;
+
+        const anns = getAnnotationsForPage(pageNum)
+            .filter(a => annotationFilter === 'all' || a.type === annotationFilter);
+
+        for (const ann of anns) {
+            renderSingleAnnotation(svgEl, ann, w, h);
+        }
+    }
+
+    function renderSingleAnnotation(svg, ann, imgW, imgH) {
+        const color = ANNOTATION_COLORS[ann.type] || '#22c55e';
+        const pos = computeLabelPosition(ann, imgW, imgH);
+        const labelText = (ann.label || '').substring(0, 50);
+
+        const g = document.createElementNS(SVG_NS, 'g');
+        g.setAttribute('class', `annotation ann-${ann.type}`);
+
+        // Target dot
+        const circle = document.createElementNS(SVG_NS, 'circle');
+        circle.setAttribute('cx', pos.targetX);
+        circle.setAttribute('cy', pos.targetY);
+        circle.setAttribute('r', Math.max(3, imgW * 0.003));
+        circle.setAttribute('fill', color);
+        circle.setAttribute('stroke', '#fff');
+        circle.setAttribute('stroke-width', '1.5');
+        g.appendChild(circle);
+
+        // Leader line
+        const line = document.createElementNS(SVG_NS, 'line');
+        line.setAttribute('class', 'ann-leader');
+        line.setAttribute('x1', pos.targetX);
+        line.setAttribute('y1', pos.targetY);
+        line.setAttribute('x2', pos.labelX + pos.textWidth / 2);
+        line.setAttribute('y2', pos.labelY);
+        line.setAttribute('stroke', color);
+        line.setAttribute('stroke-width', Math.max(1, imgW * 0.001));
+        line.setAttribute('stroke-dasharray', '4 2');
+        g.appendChild(line);
+
+        // Label background
+        const rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('class', 'ann-label-bg');
+        rect.setAttribute('x', pos.labelX);
+        rect.setAttribute('y', pos.labelY - pos.textHeight + 2);
+        rect.setAttribute('width', pos.textWidth);
+        rect.setAttribute('height', pos.textHeight);
+        rect.setAttribute('rx', 3);
+        rect.setAttribute('fill', color);
+        rect.setAttribute('opacity', '0.88');
+        g.appendChild(rect);
+
+        // Label text
+        const textEl = document.createElementNS(SVG_NS, 'text');
+        textEl.setAttribute('class', 'ann-label-text');
+        textEl.setAttribute('x', pos.labelX + 6);
+        textEl.setAttribute('y', pos.labelY - 3);
+        textEl.setAttribute('fill', '#ffffff');
+        textEl.setAttribute('font-size', pos.fontSize);
+        textEl.setAttribute('font-family', 'system-ui, -apple-system, sans-serif');
+        textEl.textContent = labelText;
+        g.appendChild(textEl);
+
+        svg.appendChild(g);
+    }
+
+    function renderThumbnailAnnotations(imgEl, pageNum) {
+        const svgEl = imgEl.parentElement.querySelector('.annotation-thumbnail');
+        if (!svgEl || !imgEl.naturalWidth) return;
+
+        const w = imgEl.naturalWidth;
+        const h = imgEl.naturalHeight;
+        svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svgEl.innerHTML = '';
+
+        if (!annotationsVisible) return;
+
+        const anns = getAnnotationsForPage(pageNum)
+            .filter(a => annotationFilter === 'all' || a.type === annotationFilter);
+
+        for (const ann of anns) {
+            const color = ANNOTATION_COLORS[ann.type] || '#22c55e';
+            const cx = (ann.x / 100) * w;
+            const cy = (ann.y / 100) * h;
+
+            const circle = document.createElementNS(SVG_NS, 'circle');
+            circle.setAttribute('cx', cx);
+            circle.setAttribute('cy', cy);
+            circle.setAttribute('r', Math.max(6, w * 0.008));
+            circle.setAttribute('fill', color);
+            circle.setAttribute('stroke', '#fff');
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('opacity', '0.9');
+            svgEl.appendChild(circle);
+        }
+    }
+
+    function renderComparisonAnnotations(side) {
+        const select = document.getElementById(`compare-${side}`);
+        const img = document.getElementById(`compare-${side}-img`);
+        const svg = document.getElementById(`compare-${side}-annotations`);
+        if (!select || !img || !svg) return;
+        const pageNum = parseInt(select.value);
+        renderAnnotations(img, svg, pageNum);
+    }
+
+    function toggleAnnotations() {
+        annotationsVisible = !annotationsVisible;
+        const btn = document.getElementById('toggle-annotations');
+        btn.textContent = `Annotations: ${annotationsVisible ? 'ON' : 'OFF'}`;
+        if (annotationsVisible) {
+            btn.classList.add('ann-toggle-on');
+        } else {
+            btn.classList.remove('ann-toggle-on');
+        }
+        refreshAllAnnotations();
+    }
+
+    function filterAnnotations() {
+        annotationFilter = document.getElementById('annotation-filter').value;
+        refreshAllAnnotations();
+    }
+
+    function refreshAllAnnotations() {
+        // Re-render all thumbnail annotations
+        document.querySelectorAll('.annotation-thumbnail').forEach(svg => {
+            const pageNum = parseInt(svg.dataset.page);
+            const img = svg.parentElement.querySelector('img');
+            if (img && img.naturalWidth) {
+                renderThumbnailAnnotations(img, pageNum);
+            }
+        });
+
+        // Re-render detail card annotations
+        const detailImg = document.getElementById('detail-img');
+        const detailSvg = document.getElementById('detail-annotations');
+        if (detailImg && detailSvg && detailImg.naturalWidth) {
+            renderAnnotations(detailImg, detailSvg, currentPage);
+        }
+
+        // Re-render lightbox annotations
+        const lbImg = document.getElementById('lightbox-img');
+        const lbSvg = document.getElementById('lightbox-annotations');
+        if (lbImg && lbSvg && lbImg.naturalWidth) {
+            renderAnnotations(lbImg, lbSvg, currentPage);
+        }
+
+        // Re-render comparison annotations
+        renderComparisonAnnotations('left');
+        renderComparisonAnnotations('right');
+    }
 
     // ===========================
     // Core Functions

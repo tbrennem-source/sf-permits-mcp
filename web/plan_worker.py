@@ -126,8 +126,9 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
             )
         )
         page_extractions = []
+        page_annotations = []
     else:
-        result_md, page_extractions = loop.run_until_complete(
+        result_md, page_extractions, page_annotations = loop.run_until_complete(
             analyze_plans(
                 pdf_bytes=pdf_bytes,
                 filename=filename,
@@ -179,6 +180,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         page_extractions=page_extractions,
         page_images=page_images,
         user_id=job["user_id"],
+        page_annotations=page_annotations,
     )
 
     # ── Auto-extract tags ──

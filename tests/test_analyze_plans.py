@@ -333,13 +333,20 @@ async def test_analyze_plans_return_structured_true():
     blank_area = {"has_blank_area": True, "estimated_size": "8.5x11", "location": "upper-right"}
     hatch = {"has_dense_hatching": False, "severity": "none"}
 
-    async def mock_analyze(b64, prompt, system_prompt=None, model=None):
+    ann_data = {"annotations": [
+        {"type": "code_reference", "label": "CBC 1020.1", "x": 30.0, "y": 50.0,
+         "anchor": "top-right", "importance": "high"},
+    ]}
+
+    async def mock_analyze(b64, prompt, system_prompt=None, model=None, max_tokens=2048):
         if "page count" in prompt.lower() or "sheet count" in prompt.lower():
             data = cover_count
         elif "blank" in prompt.lower() and "8.5" in prompt:
             data = blank_area
         elif "hatching" in prompt.lower():
             data = hatch
+        elif "annotate" in prompt.lower():
+            data = ann_data
         else:
             data = title_data
         from src.vision.client import VisionResult
@@ -357,10 +364,10 @@ async def test_analyze_plans_return_structured_true():
 
     # Verify result is a tuple
     assert isinstance(result, tuple)
-    assert len(result) == 2
+    assert len(result) == 3
 
     # First element is the markdown report
-    report, extractions = result
+    report, extractions, annotations = result
     assert isinstance(report, str)
     assert "# Plan Set Analysis Report" in report
     assert "structured.pdf" in report
@@ -406,13 +413,15 @@ async def test_page_extractions_structure():
     blank_area = {"has_blank_area": False, "estimated_size": None, "location": None}
     hatch = {"has_dense_hatching": True, "severity": "moderate"}
 
-    async def mock_analyze(b64, prompt, system_prompt=None, model=None):
+    async def mock_analyze(b64, prompt, system_prompt=None, model=None, max_tokens=2048):
         if "page count" in prompt.lower() or "sheet count" in prompt.lower():
             data = cover_count
         elif "blank" in prompt.lower() and "8.5" in prompt:
             data = blank_area
         elif "hatching" in prompt.lower():
             data = hatch
+        elif "annotate" in prompt.lower():
+            data = {"annotations": []}
         else:
             data = title_data
         from src.vision.client import VisionResult
@@ -423,7 +432,7 @@ async def test_page_extractions_structure():
         with patch("src.vision.epr_checks.is_vision_available", return_value=True):
             with patch("src.vision.epr_checks.pdf_page_to_base64", return_value="fake"):
                 with patch("src.vision.epr_checks.analyze_image", side_effect=mock_analyze):
-                    _, extractions = await analyze_plans(
+                    _, extractions, _ = await analyze_plans(
                         _make_pdf(2), "structure.pdf",
                         return_structured=True,
                     )
