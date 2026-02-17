@@ -1238,7 +1238,7 @@ def analysis_history():
     """View past plan analyses for logged-in user."""
     user_id = session.get("user_id")
     if not user_id:
-        return redirect(url_for("login_page"))
+        return redirect(url_for("auth_login"))
 
     from web.plan_jobs import get_user_jobs, search_jobs
 
