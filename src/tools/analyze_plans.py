@@ -39,7 +39,7 @@ async def analyze_plans(
     project_description: str | None = None,
     permit_type: str | None = None,
     return_structured: bool = False,
-) -> str | tuple[str, list[dict], list[dict]]:
+) -> str | tuple[str, list[dict], list[dict], "VisionUsageSummary"]:
     """Analyze a PDF plan set with AI vision and EPR compliance checking.
 
     Performs a comprehensive analysis combining:
@@ -54,12 +54,12 @@ async def analyze_plans(
         filename: Original filename for convention check.
         project_description: Optional project description for completeness assessment.
         permit_type: Optional permit type (e.g., 'alterations', 'new_construction').
-        return_structured: If True, returns (markdown, page_extractions, page_annotations) tuple.
+        return_structured: If True, returns (markdown, page_extractions, page_annotations, vision_usage) tuple.
 
     Returns:
         Comprehensive markdown analysis report (str).
         If return_structured=True, returns tuple of
-        (markdown_str, page_extractions_list, page_annotations_list).
+        (markdown_str, page_extractions_list, page_annotations_list, vision_usage).
     """
     # Handle base64 input (for MCP transport)
     if isinstance(pdf_bytes, str):
@@ -117,9 +117,12 @@ async def analyze_plans(
     # ------------------------------------------------------------------
     # 2. Vision EPR checks
     # ------------------------------------------------------------------
+    from src.vision.client import VisionUsageSummary
+
     vision_results: list[CheckResult] = []
     page_extractions: list[dict] = []
     page_annotations: list[dict] = []
+    vision_usage = VisionUsageSummary()
 
     try:
         from src.vision.client import is_vision_available
@@ -128,8 +131,8 @@ async def analyze_plans(
             from src.vision.epr_checks import run_vision_epr_checks
 
             logger.info("Running vision analysis on %s (%d pages)", filename, page_count)
-            vision_results, page_extractions, page_annotations = await run_vision_epr_checks(
-                pdf_bytes, page_count,
+            vision_results, page_extractions, page_annotations, vision_usage = (
+                await run_vision_epr_checks(pdf_bytes, page_count)
             )
             logger.info(
                 "Vision analysis complete: %d checks, %d page extractions, %d annotations",
@@ -166,10 +169,11 @@ async def analyze_plans(
         metadata_results, vision_results, page_extractions,
         completeness_md, strategic_md,
         page_count, file_size_mb, filename, project_description,
+        vision_usage=vision_usage,
     )
 
     if return_structured:
-        return report, page_extractions, page_annotations
+        return report, page_extractions, page_annotations, vision_usage
     return report
 
 
@@ -295,6 +299,7 @@ def _build_report(
     file_size_mb: float,
     filename: str,
     project_description: str | None,
+    vision_usage: "VisionUsageSummary | None" = None,
 ) -> str:
     """Build the comprehensive analysis report."""
     all_results = metadata_results + vision_results
@@ -309,6 +314,13 @@ def _build_report(
         lines.append("**AI Vision:** Enabled")
     else:
         lines.append("**AI Vision:** Not available (metadata analysis only)")
+    if vision_usage and vision_usage.total_calls > 0:
+        duration_s = vision_usage.total_duration_ms // 1000
+        lines.append(
+            f"**API Usage:** {vision_usage.total_calls} calls · "
+            f"{vision_usage.total_tokens:,} tokens · "
+            f"~{duration_s}s vision time"
+        )
     if project_description:
         lines.append(f"**Project:** {project_description[:200]}")
 

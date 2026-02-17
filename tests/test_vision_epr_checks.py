@@ -11,7 +11,7 @@ from unittest.mock import patch, AsyncMock, MagicMock
 
 from pypdf import PdfWriter
 
-from src.vision.client import VisionResult
+from src.vision.client import VisionResult, VisionUsageSummary
 from src.vision.epr_checks import (
     run_vision_epr_checks,
     _parse_json_response,
@@ -167,7 +167,7 @@ async def test_cover_page_count_match():
         "sheet_index_entries": ["G0.0", "A1.0", "A2.0"],
     })
     with patch("src.vision.epr_checks.analyze_image", AsyncMock(return_value=mock_result)):
-        check = await _check_cover_page_count("base64", 10)
+        check = await _check_cover_page_count("base64", 10, VisionUsageSummary())
     assert check.status == "pass"
     assert check.epr_id == "EPR-011"
 
@@ -180,7 +180,7 @@ async def test_cover_page_count_mismatch():
         "stated_count": 15,
     })
     with patch("src.vision.epr_checks.analyze_image", AsyncMock(return_value=mock_result)):
-        check = await _check_cover_page_count("base64", 10)
+        check = await _check_cover_page_count("base64", 10, VisionUsageSummary())
     assert check.status == "fail"
 
 
@@ -191,7 +191,7 @@ async def test_cover_page_count_not_found():
         "found_count": False,
     })
     with patch("src.vision.epr_checks.analyze_image", AsyncMock(return_value=mock_result)):
-        check = await _check_cover_page_count("base64", 10)
+        check = await _check_cover_page_count("base64", 10, VisionUsageSummary())
     assert check.status == "warn"
 
 
@@ -207,7 +207,7 @@ async def test_cover_blank_area_found():
         "location": "upper-right",
     })
     with patch("src.vision.epr_checks.analyze_image", AsyncMock(return_value=mock_result)):
-        check = await _check_cover_blank_area("base64")
+        check = await _check_cover_blank_area("base64", VisionUsageSummary())
     assert check.status == "pass"
     assert check.epr_id == "EPR-012"
 
@@ -219,7 +219,7 @@ async def test_cover_blank_area_not_found():
         "has_blank_area": False,
     })
     with patch("src.vision.epr_checks.analyze_image", AsyncMock(return_value=mock_result)):
-        check = await _check_cover_blank_area("base64")
+        check = await _check_cover_blank_area("base64", VisionUsageSummary())
     assert check.status == "fail"
 
 
@@ -389,11 +389,12 @@ def test_stamps_missing():
 async def test_run_vision_no_api_key():
     """All checks skip when API key is missing."""
     with patch("src.vision.epr_checks.is_vision_available", return_value=False):
-        results, extractions, annotations = await run_vision_epr_checks(_make_pdf(5), 5)
+        results, extractions, annotations, usage = await run_vision_epr_checks(_make_pdf(5), 5)
     assert len(results) == 11
     assert all(r.status == "skip" for r in results)
     assert extractions == []
     assert annotations == []
+    assert usage.total_calls == 0
 
 
 @pytest.mark.asyncio
@@ -404,9 +405,10 @@ async def test_run_vision_render_failure():
             "src.vision.epr_checks.pdf_page_to_base64",
             side_effect=Exception("poppler not installed"),
         ):
-            results, extractions, annotations = await run_vision_epr_checks(_make_pdf(5), 5)
+            results, extractions, annotations, usage = await run_vision_epr_checks(_make_pdf(5), 5)
     assert len(results) == 11
     assert all(r.status == "skip" for r in results)
+    assert usage.total_calls == 0
 
 
 @pytest.mark.asyncio
@@ -468,7 +470,7 @@ async def test_run_vision_full_pipeline():
     with patch("src.vision.epr_checks.is_vision_available", return_value=True):
         with patch("src.vision.epr_checks.pdf_page_to_base64", return_value="fake_base64"):
             with patch("src.vision.epr_checks.analyze_image", side_effect=mock_analyze):
-                results, extractions, annotations = await run_vision_epr_checks(_make_pdf(5), 5)
+                results, extractions, annotations, usage = await run_vision_epr_checks(_make_pdf(5), 5)
 
     assert len(results) == 11
     epr_ids = {r.epr_id for r in results}
@@ -481,3 +483,11 @@ async def test_run_vision_full_pipeline():
     assert len(annotations) > 0
     assert annotations[0]["type"] == "code_reference"
     assert "page_number" in annotations[0]
+
+    # Usage tracking assertions
+    assert usage.total_calls > 0
+    assert usage.total_input_tokens > 0
+    assert usage.total_output_tokens > 0
+    assert usage.successful_calls == usage.total_calls
+    assert usage.failed_calls == 0
+    assert usage.estimated_cost_usd > 0
