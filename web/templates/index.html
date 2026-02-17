@@ -737,6 +737,27 @@
             margin-top: 4px;
         }
 
+        .recent-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            align-self: center;
+        }
+
+        .recent-clear {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            align-self: center;
+            opacity: 0.6;
+        }
+        .recent-clear:hover { opacity: 1; }
+
         .search-echo {
             font-size: 0.8rem;
             color: var(--text-muted);
@@ -790,6 +811,11 @@
                         </button>
                     </div>
                 </form>
+                <div id="recent-searches" class="quick-actions" style="display:none;">
+                    <span class="recent-label">Recent</span>
+                    <!-- chips injected by JS -->
+                    <button class="recent-clear" onclick="_clearRecentSearches()" title="Clear recent searches">&times;</button>
+                </div>
                 <div class="quick-actions">
                     {% if g.user and g.user.primary_street_number and g.user.primary_street_name %}
                     <button class="preset-chip" style="border-color:var(--accent);color:var(--accent);"
@@ -1436,6 +1462,63 @@
                 });
             });
         }
+
+        // ── Recent Searches (localStorage) ──────────────────────────
+        var _RS_KEY = "sf_recent_searches";
+        var _RS_MAX = 5;
+
+        function _saveRecentSearch(q) {
+            q = (q || "").trim();
+            if (!q) return;
+            var list = [];
+            try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
+            // Remove duplicate (case-insensitive)
+            list = list.filter(function(item) { return item.toLowerCase() !== q.toLowerCase(); });
+            list.unshift(q);
+            if (list.length > _RS_MAX) list = list.slice(0, _RS_MAX);
+            localStorage.setItem(_RS_KEY, JSON.stringify(list));
+        }
+
+        function _renderRecentSearches() {
+            var container = document.getElementById("recent-searches");
+            if (!container) return;
+            var list = [];
+            try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
+            // Remove old chips (keep label + clear button)
+            container.querySelectorAll(".preset-chip").forEach(function(el) { el.remove(); });
+            if (list.length === 0) { container.style.display = "none"; return; }
+            var clearBtn = container.querySelector(".recent-clear");
+            list.forEach(function(q) {
+                var btn = document.createElement("button");
+                btn.className = "preset-chip";
+                btn.textContent = q.length > 30 ? q.substring(0, 28) + "..." : q;
+                btn.title = q;
+                btn.onclick = function() {
+                    document.getElementById("search-q").value = q;
+                    htmx.trigger(document.querySelector(".search-form"), "submit");
+                };
+                container.insertBefore(btn, clearBtn);
+            });
+            container.style.display = "flex";
+        }
+
+        function _clearRecentSearches() {
+            localStorage.removeItem(_RS_KEY);
+            _renderRecentSearches();
+        }
+
+        // Save search on form submit
+        document.querySelector(".search-form").addEventListener("htmx:configRequest", function(evt) {
+            var q = (evt.detail.parameters.q || "").trim();
+            if (q) {
+                _saveRecentSearch(q);
+                // Re-render after a tick so chip appears even before results come back
+                setTimeout(_renderRecentSearches, 50);
+            }
+        });
+
+        // Render on page load
+        _renderRecentSearches();
     </script>
     {% include 'fragments/feedback_widget.html' %}
 </body>
