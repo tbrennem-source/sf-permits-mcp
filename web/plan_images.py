@@ -106,7 +106,7 @@ def get_session(session_id: str) -> dict | None:
         "session_id": row[0],
         "filename": row[1],
         "page_count": row[2],
-        "page_extractions": json.loads(row[3]) if row[3] else [],
+        "page_extractions": row[3] if isinstance(row[3], (list, dict)) else (json.loads(row[3]) if row[3] else []),
         "created_at": row[4],
     }
 
