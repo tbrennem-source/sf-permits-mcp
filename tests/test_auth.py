@@ -773,3 +773,87 @@ def test_non_admin_no_quick_search(client):
     rv = client.get("/account")
     html = rv.data.decode()
     assert "Quick Search" not in html
+
+
+# ---------------------------------------------------------------------------
+# Invite email: cohort templates + message
+# ---------------------------------------------------------------------------
+
+def test_send_invite_with_cohort(client, monkeypatch):
+    """Admin can send invite with cohort template selection."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-cohort@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"team-test-code-1234"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.post("/admin/send-invite", data={
+        "to_email": "expeditor@example.com",
+        "invite_code": "team-test-code-1234",
+        "cohort": "expediters",
+        "message": "Welcome to the professional network!",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "expeditor@example.com" in html
+
+
+def test_send_invite_with_personal_message(client, monkeypatch):
+    """Admin invite includes optional personal message."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-msg@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"friends-code-abcd"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.post("/admin/send-invite", data={
+        "to_email": "buddy@example.com",
+        "invite_code": "friends-code-abcd",
+        "cohort": "friends",
+        "message": "Hey, check this out!",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "buddy@example.com" in html
+
+
+def test_send_invite_default_cohort(client, monkeypatch):
+    """Invite defaults to 'friends' cohort when not specified."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-default@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"default-code-1234"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.post("/admin/send-invite", data={
+        "to_email": "default@example.com",
+        "invite_code": "default-code-1234",
+    })
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "default@example.com" in html
+
+
+def test_account_shows_cohort_selector(client, monkeypatch):
+    """Admin account page shows cohort template selector."""
+    import web.auth as auth_mod
+    admin = _make_admin("admin-cohort-ui@test.com", monkeypatch)
+    monkeypatch.setattr(auth_mod, "INVITE_CODES", {"test-code-1234"})
+
+    from web.auth import create_magic_token
+    token = create_magic_token(admin["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
+    rv = client.get("/account")
+    html = rv.data.decode()
+    assert "invite-cohort" in html
+    assert "Friends (casual)" in html
+    assert "Beta Testers" in html
+    assert "Expediters (professional)" in html
+    assert "invite-message" in html

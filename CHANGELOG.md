@@ -99,22 +99,172 @@
 
 ---
 
-## Session 21.3 — Permit Lookup UX Enhancements (2026-02-16)
+## Session 21.8 — Consolidate Validate + Analyze Plans into One Section (2026-02-16)
+
+### Feature: Merge Redundant Plan Analysis Features (#63)
+- **Problem:** Homepage had two overlapping plan analysis features:
+  - "Validate Plan Set" (metadata + optional AI vision checkbox)
+  - "Analyze Plans (AI Vision)" (full analysis + gallery + recommendations)
+  - Both used the same vision code; Analyze Plans was strictly better
+  - Users confused about which to use
+- **Solution:** Merged into one unified "Analyze Plans" section with two modes:
+  - **Full Analysis (default):** AI vision + page gallery + sheet completeness + recommendations
+  - **Quick Check (checkbox):** Metadata-only EPR checks, no Vision API call, fast
+- **Changes:**
+  - Removed "Validate Plan Set" section entirely (60 lines of HTML)
+  - Removed "Validate plans" preset chip from homepage
+  - Added "Quick Check — metadata only" checkbox to Analyze Plans form
+  - Added "Site Permit Addendum" checkbox (previously only on Validate)
+  - `/validate` route preserved but marked DEPRECATED with logging notice
+  - Results template shows "Quick Check (metadata only)" badge when applicable
+
+### Files Changed (3 files, +80 / -84 lines)
+- `web/templates/index.html` — Removed validate section, added checkboxes to analyze form
+- `web/app.py` — Route handles `quick_check` + `is_addendum` params, deprecated `/validate`
+- `web/templates/analyze_plans_results.html` — Quick-check badge
+
+---
+
+## Session 21.7 — Fix Two NameErrors Crashing Analyze Plans (2026-02-16)
+
+### Bug Fix: Analysis Succeeded but Results Never Rendered (#62)
+- **Problem:** PDF analysis completed successfully (Vision API called, session created) but results never displayed — Flask returned 500
+- **Root cause:** Two `NameError` bugs in `web/app.py`:
+  1. `json.dumps()` used at line 849 but `import json` was missing
+  2. `logger.warning()` at line 854 should be `logging.warning()`
+- **How they interacted:** Analysis succeeds → `json` NameError when serializing results → falls into except handler → `logger` NameError in except handler → unhandled exception → Flask 500
+- **Fix:** Added `import json` to imports, changed `logger` → `logging`
+- **Discovered via:** Session 21.6 error logging (which made the stack trace visible in Railway logs for the first time)
+
+### Files Changed (1 file, +2 / -1 lines)
+- `web/app.py` — Added `import json` (line 14), fixed `logger` → `logging` (line 855)
+
+---
+
+## Session 21.6 — Fix Analyze Plans 500 Error with Comprehensive Logging (2026-02-16)
+
+### Bug Fix: Silent 500 Errors on PDF Upload (#61)
+- **Problem:** `/analyze-plans` endpoint returned HTTP 500 with NO error messages in Railway logs - impossible to debug
+- **Root cause:** Flask exception handler caught errors but didn't use `logging.exception()`, so exceptions were silently swallowed
+- **Evidence:** Railway logs showed normal operation despite user seeing 500 errors
+- **Solution:**
+  - Added `logging.exception()` to write full stack traces to Railway logs
+  - User now sees styled error box with expandable technical details
+  - Added file size validation (max 400 MB) with proper HTTP 413 status
+  - Added logging.info() for successful uploads to track processing
+  - Wrapped PDF rendering in try-except to detect poppler dependency issues
+  - Clear error messages for: database errors, missing poppler, Vision API failures, etc.
+
+### Files Changed (2 files, +48 / -8 lines)
+- `web/app.py` — Added comprehensive error logging, file size validation, user-visible tracebacks (lines 783-812)
+- `src/vision/pdf_to_images.py` — Wrapped pdf2image in try-except, detect poppler missing (lines 54-76)
+
+### Expected Outcome
+- Railway logs now show full stack traces for ALL errors
+- Users see helpful error messages instead of generic 500
+- Can diagnose if issue is database, poppler, Vision API, or other
+- Future errors are visible and debuggable
+
+---
+
+## Session 21.5 — Analyze Plans Loading Indicator Fix (2026-02-16)
+
+### Bug Fix: No Loading Indicator on PDF Upload (#60)
+- **Problem:** When uploading PDF to "Analyze Plan Set" and clicking submit, NO loading indicator appeared - form appeared frozen with no visual feedback
+- **Root cause:** HTMX's `hx-encoding="multipart/form-data"` for file uploads may not trigger `.htmx-request` CSS class reliably, plus potential DOMContentLoaded timing issues
+- **Solution (Iteration 1):** Added explicit JavaScript event listeners for analyze-plans form
+  - Listens for HTMX events (`htmx:beforeRequest`, `htmx:afterRequest`)
+  - Fallback to form submit event if HTMX doesn't fire (100ms delay)
+  - Manually controls loading indicator visibility
+  - Disables submit button during upload
+- **Solution (Iteration 2 - MORE ROBUST):** Improved event handling with debugging
+  - Changed to IIFE (immediately invoked function) instead of DOMContentLoaded
+  - Checks `document.readyState` and runs immediately if DOM already loaded
+  - Form `submit` event is PRIMARY handler (most reliable, fires first)
+  - Added `console.log` statements for debugging
+  - Added `htmx:responseError` handler for error cases
+  - Sets button opacity to `0.6` when disabled for visual feedback
+  - Prevents timing issues and browser caching problems
+- **Outcome:** Hourglass spinner (⏳) now appears immediately when "Analyze Plan Set" is clicked, providing clear visual feedback during long PDF uploads (up to 2-3 minutes)
+
+### Files Changed (1 file, +59 lines total)
+- `web/templates/index.html` — Added `<script>` with robust event listeners after analyze-plans-loading div (lines 1125-1171)
+
+---
+
+## Session 22 — Report Share Fix + Invite Cohort Templates (2026-02-16)
+
+### Bug Fix: Report Share Was Completely Broken (#59)
+- **Fixed field name mismatch** — Share form sent `recipient_email` but route read `email`, so every share attempt silently failed
+- **Added personal message** — Optional textarea in share modal, renders as styled callout in email
+- **Email template** — Personal message block with sender name, hidden when empty
+
+### Invite Email Cohort Templates (#14)
+- **Admin cohort selector** — Dropdown: Friends (casual), Beta Testers, Expediters (professional), Custom
+- **Pre-fill templates** — JavaScript auto-populates suggested message per cohort
+- **Cohort-specific emails** — Different headings, descriptions, and feature highlights per audience
+- **Subject lines** — `"Hey! You're invited..."` (friends) vs `"Invitation: Join sfpermits.ai's Professional Network"` (expediters)
+
+### DuckDB Test Fix
+- **Removed `ON DELETE CASCADE`** from `plan_analysis_images` foreign key — DuckDB doesn't support cascade actions, was blocking all test execution
+
+### Tests: 10 new (822+ total)
+- 4 auth tests: cohort invites, personal message, default cohort, UI selector
+- 6 web tests: share auth, email validation, field name regression, message field, email template rendering
+
+### Files Changed (8 files, +358 / -29)
+- `src/db.py` — Remove CASCADE from DuckDB FK
+- `web/app.py` — Share route fix + cohort invite support
+- `web/templates/report.html` — Fix field name, add message textarea
+- `web/templates/report_email.html` — Personal message block
+- `web/templates/account.html` — Cohort selector + message field
+- `web/templates/invite_email.html` — Cohort-specific email templates
+- `tests/test_auth.py` — 4 new invite tests
+- `tests/test_web.py` — 6 new share tests
+
+---
+
+## Session 21.4 — External DBI Link Fix (2026-02-16)
+
+### Replace External Links with Internal Searches
+- **Fixed broken external redirects** — Clicking permit/complaint numbers in property reports redirected to dbiweb02.sfgov.org (broken ASP.NET site showing errors)
+- **Internal search routes** — All permit/complaint links now navigate to `/?q={number}` which triggers internal search
+- **Stays within app** — Users remain in our AI-powered interface with Quick Actions available
+
+### Changes
+- `src/report_links.py` — Replace external URLs with `/?q={number}` routes (2 methods)
+- `web/templates/report.html` — Remove `target="_blank"` from 4 links (lines 563, 655, 681, 777)
+
+**Before:** Click permit → external DBI site → ASP.NET error page
+**After:** Click permit → internal search → our database results + Quick Actions
+
+**Commit:** `c376e80` — fix: Replace external DBI links with internal searches
+
+---
+
+## Session 21.3 — Permit Lookup UX Enhancements + Critical Fixes (2026-02-16)
+>>>>>>> origin/main
 
 ### Hourglass Spinner + Action Buttons
 - **Added hourglass spinner to permit lookup** — Visual consistency across all forms (⏳ with pulsing dots)
 - **Enhanced action buttons** — 4 quick actions after all search results (View Report, Ask AI, Analyze Project, Check Violations)
+- **Action buttons at TOP** — Moved from bottom to top in highlighted blue box (user request)
 - **Contextual actions** — Buttons auto-populate with address/permit data from search/lookup
 
 ### Action Buttons
 1. 📊 **View Property Report** (primary) — Links to full property analysis
 2. 💬 **Ask AI** — "What permits are needed for work at {address}?"
-3. 🔍 **Analyze Project** — Prefills analyze form with address/permit type
+3. 🔍 **Analyze Project** — Submits to /ask with address
 4. ⚠️ **Check Violations** — "Are there any violations at {address}?"
 
+### CRITICAL Bug Fixes
+- **Fixed `_ph()` ImportError** — Removed non-existent `_ph()` function calls causing property report button to never appear
+- **Fixed block/lot resolution** — Restored fallback query for addresses like "1234 market" where exact match fails
+- **Fixed Analyze Project button** — Changed from broken link to working form POST
+
 ### Before/After
-- **Before:** Basic pulsing dots on lookup, only 1 button (View Report) on search results
-- **After:** Hourglass spinner everywhere, 4 contextual action buttons on all search/lookup results
+- **Before:** Basic pulsing dots on lookup, only 1 button (View Report) at bottom, property report missing for most searches
+- **After:** Hourglass spinner everywhere, 4 functional action buttons at TOP in blue box, property report works for all addresses
 
 ### Files Changed
 - `web/templates/index.html` — Hourglass spinner for lookup (6 → 14 lines)

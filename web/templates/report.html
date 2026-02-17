@@ -381,7 +381,16 @@
         <div class="container">
             <a href="/" class="back-link">&larr; Back to search</a>
 
-            <h1 class="page-title">Property Report</h1>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <h1 class="page-title" style="margin-bottom:0;">Property Report</h1>
+                {% if user %}
+                <button class="btn-primary" onclick="openShareModal()" style="font-size:0.85rem;padding:8px 18px;white-space:nowrap;">
+                    &#x2709; Share Report
+                </button>
+                {% else %}
+                <a href="/auth/login" class="badge" style="font-size:0.8rem;">Sign in to share</a>
+                {% endif %}
+            </div>
             <p class="page-subtitle">
                 <strong>{{ report.address }}</strong>
                 &nbsp;&middot;&nbsp;
@@ -439,7 +448,83 @@
                 {% endif %}
             </div>
 
-            {# ===== Section 1.5: Remediation Roadmap (Owner Mode) ===== #}
+            {# ===== Section 2: Complaints & Violations ===== #}
+            <div class="section" id="section-complaints">
+                <h2>Complaints &amp; Violations</h2>
+
+                <div class="sub-heading">Complaints</div>
+                {% if report.complaints %}
+                {% for c in report.complaints %}
+                <div class="cv-card">
+                    <div class="cv-header">
+                        <span class="cv-number">
+                            <a href="{{ links.complaint(c.complaint_number) }}" target="_blank" rel="noopener">#{{ c.complaint_number }}</a>
+                        </span>
+                        <span class="status-badge status-{{ (c.status or '')|lower }}">{{ c.status or 'Unknown' }}</span>
+                    </div>
+                    <div class="cv-meta">
+                        Filed {{ c.date_filed or 'N/A' }}
+                        {% if c.street_name %} &middot; {{ c.street_name }}{% endif %}
+                    </div>
+                    {% if c.complaint_description %}
+                    <div class="cv-description">{{ c.complaint_description }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="section-empty">No complaints on file.</p>
+                {% endif %}
+
+                <div class="sub-divider"></div>
+
+                <div class="sub-heading">Violations (Notices of Violation)</div>
+                {% if report.violations %}
+                {% for v in report.violations %}
+                <div class="cv-card">
+                    <div class="cv-header">
+                        <span class="cv-number">
+                            {% if v.complaint_number %}
+                            <a href="{{ links.complaint(v.complaint_number) }}" target="_blank" rel="noopener">#{{ v.complaint_number }}</a>
+                            {% else %}
+                            Violation
+                            {% endif %}
+                        </span>
+                        <span class="status-badge status-{{ (v.status or '')|lower }}">{{ v.status or 'Unknown' }}</span>
+                    </div>
+                    <div class="cv-meta">
+                        Filed {{ v.date_filed or 'N/A' }}
+                        {% if v.nov_category_description %} &middot; {{ v.nov_category_description }}{% endif %}
+                    </div>
+                    {% if v.description %}
+                    <div class="cv-description">{{ v.description }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="section-empty">No violations on file.</p>
+                {% endif %}
+            </div>
+
+            {# ===== Section 3: Cross-Reference Analysis ===== #}
+            {% if report.whats_missing %}
+            <div class="section" id="section-cross-ref">
+                <h2>&#x26A0; Cross-Reference Analysis</h2>
+                {% for item in report.whats_missing %}
+                <div class="risk-card risk-{{ item.severity }}">
+                    <div class="risk-header">
+                        <span class="severity-badge severity-{{ item.severity }}">{{ item.severity }}</span>
+                        <span class="risk-title">{{ item.title }}</span>
+                    </div>
+                    <div class="risk-description">{{ item.description }}</div>
+                    {% if item.section_ref %}
+                    <a href="#section-{{ item.section_ref }}" class="risk-xref">See &sect;{{ item.section_ref }}</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {# ===== Section 4: Remediation Roadmap (Owner Mode) ===== #}
             {% if report.remediation_roadmap %}
             <div class="section" id="section-remediation">
                 <h2>Remediation Roadmap</h2>
@@ -478,7 +563,7 @@
             </div>
             {% endif %}
 
-            {# ===== Section 2: Property Profile ===== #}
+            {# ===== Section 5: Property Profile ===== #}
             {% if report.property_profile %}
             <div class="section" id="section-profile">
                 <h2>Property Profile</h2>
@@ -509,37 +594,37 @@
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Assessed Value</span>
-                        <span class="profile-value">{{ report.property_profile.assessed_value or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.assessed_value or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Property Class</span>
-                        <span class="profile-value">{{ report.property_profile.property_class or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.property_class or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Year Built</span>
-                        <span class="profile-value">{{ report.property_profile.year_built or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.year_built or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Building Area</span>
-                        <span class="profile-value">{{ report.property_profile.building_area or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.building_area or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Lot Area</span>
-                        <span class="profile-value">{{ report.property_profile.lot_area or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.lot_area or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Use Code</span>
-                        <span class="profile-value">{{ report.property_profile.use_code or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.use_code or '—' }}</span>
                     </div>
                     <div class="profile-item">
                         <span class="profile-label">Tax Year</span>
-                        <span class="profile-value">{{ report.property_profile.tax_year or '&mdash;' }}</span>
+                        <span class="profile-value">{{ report.property_profile.tax_year or '—' }}</span>
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            {# ===== Section 3: Permit History ===== #}
+            {# ===== Section 6: Permit History ===== #}
             <div class="section" id="section-permits">
                 <h2>Permit History</h2>
                 {% if report.permits %}
@@ -562,8 +647,8 @@
                                 <td>
                                     <a href="{{ links.permit(p.permit_number) }}">{{ p.permit_number }}</a>
                                 </td>
-                                <td>{{ p.permit_type_definition or '&mdash;' }}</td>
-                                <td>{{ p.description or '&mdash;' }}</td>
+                                <td>{{ p.permit_type_definition or '—' }}</td>
+                                <td>{{ p.description or '—' }}</td>
                                 <td>
                                     {% if p.estimated_cost %}
                                     ${{ '{:,.0f}'.format(p.estimated_cost) }}
@@ -574,7 +659,7 @@
                                 <td>
                                     <span class="status-badge status-{{ (p.status or '')|lower }}">{{ p.status or 'Unknown' }}</span>
                                 </td>
-                                <td>{{ p.filed_date or '&mdash;' }}</td>
+                                <td>{{ p.filed_date or '—' }}</td>
                                 <td>
                                     {% if p.contacts or p.inspections %}
                                     <button class="permit-expand-btn" onclick="togglePermitDetails('permit-{{ loop.index }}')">Details</button>
@@ -623,83 +708,9 @@
                 <p class="section-empty">No permits found for this property.</p>
                 {% endif %}
 
-                {# What's Missing cross-reference analysis #}
-                {% if report.whats_missing %}
-                <div class="sub-divider"></div>
-                <div class="whats-missing-header">&#x26A0; Cross-Reference Analysis</div>
-                {% for item in report.whats_missing %}
-                <div class="risk-card risk-{{ item.severity }}">
-                    <div class="risk-header">
-                        <span class="severity-badge severity-{{ item.severity }}">{{ item.severity }}</span>
-                        <span class="risk-title">{{ item.title }}</span>
-                    </div>
-                    <div class="risk-description">{{ item.description }}</div>
-                    {% if item.section_ref %}
-                    <a href="#section-{{ item.section_ref }}" class="risk-xref">See &sect;{{ item.section_ref }}</a>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% endif %}
             </div>
 
-            {# ===== Section 4: Complaints & Violations ===== #}
-            <div class="section" id="section-complaints">
-                <h2>Complaints &amp; Violations</h2>
-
-                <div class="sub-heading">Complaints</div>
-                {% if report.complaints %}
-                {% for c in report.complaints %}
-                <div class="cv-card">
-                    <div class="cv-header">
-                        <span class="cv-number">
-                            <a href="{{ links.complaint(c.complaint_number) }}">#{{ c.complaint_number }}</a>
-                        </span>
-                        <span class="status-badge status-{{ (c.status or '')|lower }}">{{ c.status or 'Unknown' }}</span>
-                    </div>
-                    <div class="cv-meta">
-                        Filed {{ c.date_filed or 'N/A' }}
-                        {% if c.street_name %} &middot; {{ c.street_name }}{% endif %}
-                    </div>
-                    {% if c.complaint_description %}
-                    <div class="cv-description">{{ c.complaint_description }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">No complaints on file.</p>
-                {% endif %}
-
-                <div class="sub-divider"></div>
-
-                <div class="sub-heading">Violations (Notices of Violation)</div>
-                {% if report.violations %}
-                {% for v in report.violations %}
-                <div class="cv-card">
-                    <div class="cv-header">
-                        <span class="cv-number">
-                            {% if v.complaint_number %}
-                            <a href="{{ links.complaint(v.complaint_number) }}">#{{ v.complaint_number }}</a>
-                            {% else %}
-                            Violation
-                            {% endif %}
-                        </span>
-                        <span class="status-badge status-{{ (v.status or '')|lower }}">{{ v.status or 'Unknown' }}</span>
-                    </div>
-                    <div class="cv-meta">
-                        Filed {{ v.date_filed or 'N/A' }}
-                        {% if v.nov_category_description %} &middot; {{ v.nov_category_description }}{% endif %}
-                    </div>
-                    {% if v.description %}
-                    <div class="cv-description">{{ v.description }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">No violations on file.</p>
-                {% endif %}
-            </div>
-
-            {# ===== Section 5: Zoning & Regulatory Context ===== #}
+            {# ===== Section 7: Zoning & Regulatory Context ===== #}
             {% if report.property_profile and report.property_profile.zoning %}
             <div class="section" id="section-zoning">
                 <h2>Zoning &amp; Regulatory Context</h2>
@@ -754,7 +765,7 @@
             </div>
             {% endif %}
 
-            {# ===== Section 6: Nearby Activity ===== #}
+            {# ===== Section 8: Nearby Activity ===== #}
             {% if report.nearby_activity %}
             <div class="section" id="section-nearby">
                 <h2>Nearby Permit Activity</h2>
@@ -776,7 +787,7 @@
                                 <td>
                                     <a href="{{ links.permit(n.permit_number) }}">{{ n.permit_number }}</a>
                                 </td>
-                                <td>{{ n.description or '&mdash;' }}</td>
+                                <td>{{ n.description or '—' }}</td>
                                 <td>
                                     {% if n.estimated_cost %}
                                     ${{ '{:,.0f}'.format(n.estimated_cost) }}
@@ -795,7 +806,7 @@
             </div>
             {% endif %}
 
-            {# ===== Section 7: Expeditor Needs Assessment ===== #}
+            {# ===== Section 9: Expeditor Needs Assessment ===== #}
             {% if report.expediter_signal and report.expediter_signal.signal != 'cold' %}
             <div class="section" id="section-expeditor">
                 <h2>Expeditor Needs Assessment</h2>
@@ -866,7 +877,11 @@
             <form hx-post="/report/{{ report.block }}/{{ report.lot }}/share"
                   hx-target="#share-result"
                   hx-swap="innerHTML">
-                <input type="email" name="recipient_email" placeholder="Recipient email address" required>
+                <input type="email" name="email" placeholder="Recipient email address" required
+                       style="width:100%;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;margin-bottom:8px;">
+                <textarea name="message" placeholder="Add a personal note (optional)"
+                          rows="3" maxlength="500"
+                          style="width:100%;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.85rem;resize:vertical;font-family:inherit;margin-bottom:4px;"></textarea>
                 <div id="share-result"></div>
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeShareModal()">Cancel</button>

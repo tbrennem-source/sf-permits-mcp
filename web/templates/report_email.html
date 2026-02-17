@@ -34,6 +34,22 @@
                         </td>
                     </tr>
 
+                    {# ===== Personal Message (if shared) ===== #}
+                    {% if personal_message %}
+                    <tr>
+                        <td style="padding:4px 28px 16px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding:14px 18px;border-radius:6px;background:#f0f4ff;border-left:3px solid #4f8ff7;">
+                                        <div style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">{{ sender_name or "Someone" }} shared this with you:</div>
+                                        <div style="font-size:0.9rem;color:#1a1a2e;line-height:1.5;">{{ personal_message }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
                     {# ===== Section 1: Risk Assessment ===== #}
                     <tr>
                         <td style="padding:20px 28px 8px;">
@@ -146,31 +162,31 @@
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Assessed Value</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.assessed_value or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.assessed_value or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Property Class</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.property_class or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.property_class or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Neighborhood</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.neighborhood or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.neighborhood or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Year Built</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.year_built or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.year_built or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Building Area</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.building_area or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.building_area or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Lot Area</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.lot_area or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.lot_area or '—' }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:6px 0;font-size:0.8rem;color:#6b7280;font-weight:600;">Tax Year</td>
-                                    <td style="padding:6px 0;font-size:0.9rem;">{{ report.property_profile.tax_year or '&mdash;' }}</td>
+                                    <td style="padding:6px 0;font-size:0.9rem;">{{ report.property_profile.tax_year or '—' }}</td>
                                 </tr>
                             </table>
                         </td>
@@ -197,9 +213,9 @@
                                 {% for p in report.permits[:10] %}
                                 <tr>
                                     <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
-                                        <a href="{{ links.permit(p.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ p.permit_number }}</a>
+                                        <a href="{{ base_url }}{{ links.permit(p.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ p.permit_number }}</a>
                                     </td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.permit_type_definition or '&mdash;' }}</td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.permit_type_definition or '—' }}</td>
                                     <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
                                         {% if p.estimated_cost %}${{ '{:,.0f}'.format(p.estimated_cost) }}{% else %}&mdash;{% endif %}
                                     </td>
@@ -211,7 +227,7 @@
                                             {{ p.status or 'Unknown' }}
                                         </span>
                                     </td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.filed_date or '&mdash;' }}</td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.filed_date or '—' }}</td>
                                 </tr>
                                 {% if p.description %}
                                 <tr>
@@ -279,7 +295,7 @@
                                 <tr>
                                     <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
                                         <div style="display:inline;">
-                                            <a href="{{ links.complaint(c.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ c.complaint_number }}</a>
+                                            <a href="{{ base_url }}{{ links.complaint(c.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ c.complaint_number }}</a>
                                             <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:600;margin-left:8px;
                                                 {% if (c.status or '')|lower == 'open' %}background:#fef3c7;color:#d97706;
                                                 {% else %}background:#d1fae5;color:#059669;{% endif %}">
@@ -312,7 +328,7 @@
                                     <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
                                         <div style="display:inline;">
                                             {% if v.complaint_number %}
-                                            <a href="{{ links.complaint(v.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ v.complaint_number }}</a>
+                                            <a href="{{ base_url }}{{ links.complaint(v.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ v.complaint_number }}</a>
                                             {% else %}
                                             <span style="font-weight:600;font-size:0.9rem;">Violation</span>
                                             {% endif %}
@@ -397,9 +413,9 @@
                                 <tr>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.street_number }} {{ n.street_name }} {{ n.street_suffix or '' }}</td>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
-                                        <a href="{{ links.permit(n.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ n.permit_number }}</a>
+                                        <a href="{{ base_url }}{{ links.permit(n.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ n.permit_number }}</a>
                                     </td>
-                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.description or '&mdash;' }}</td>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.description or '—' }}</td>
                                     <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
                                         <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;
                                             {% if (n.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#d1fae5;color:#059669;

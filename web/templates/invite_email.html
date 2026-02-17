@@ -14,17 +14,48 @@
                 <!-- Body -->
                 <tr>
                     <td style="padding:32px;">
+                        {% if cohort == 'expediters' %}
+                        <h1 style="font-size:1.3rem;color:#1a1d27;margin:0 0 16px;">You're invited to join our professional network</h1>
+                        <p style="color:#555;font-size:0.95rem;line-height:1.6;margin:0 0 20px;">
+                            {{ sender_name or "Someone" }} has invited you to
+                            <strong>sfpermits.ai</strong> — a professional platform for SF permit expeditors, architects, and contractors.
+                        </p>
+                        {% elif cohort == 'testers' %}
+                        <h1 style="font-size:1.3rem;color:#1a1d27;margin:0 0 16px;">You're invited to beta test sfpermits.ai</h1>
+                        <p style="color:#555;font-size:0.95rem;line-height:1.6;margin:0 0 20px;">
+                            {{ sender_name or "Someone" }} has invited you to the private beta for
+                            <strong>sfpermits.ai</strong> — a comprehensive SF building permit intelligence platform.
+                        </p>
+                        {% else %}
                         <h1 style="font-size:1.3rem;color:#1a1d27;margin:0 0 16px;">You're invited!</h1>
                         <p style="color:#555;font-size:0.95rem;line-height:1.6;margin:0 0 20px;">
                             {{ sender_name or "Someone" }} has invited you to
                             <strong>sfpermits.ai</strong> — a permit intelligence tool for
                             SF building professionals.
                         </p>
+                        {% endif %}
 
                         {% if message %}
                         <p style="color:#555;font-size:0.95rem;line-height:1.6;margin:0 0 20px;padding:12px 16px;background:#f9fafb;border-left:3px solid #4f8ff7;border-radius:4px;">
                             {{ message }}
                         </p>
+                        {% endif %}
+
+                        {# Feature highlights vary by cohort #}
+                        {% if cohort == 'expediters' %}
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2022; Monitor 25+ client properties with daily brief emails</td></tr>
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2022; AI-powered plan set validation (EPR compliance)</td></tr>
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2022; Instant permit history and risk assessment</td></tr>
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2022; Network intelligence (contractor performance, recommendations)</td></tr>
+                        </table>
+                        {% elif cohort == 'testers' %}
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2713; Instant permit history lookup for any SF address</td></tr>
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2713; Daily monitoring and alerts for tracked properties</td></tr>
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2713; AI-powered plan set analysis and compliance checking</td></tr>
+                            <tr><td style="padding:4px 0;color:#555;font-size:0.9rem;">&#x2713; Risk assessment and contractor track records</td></tr>
+                        </table>
                         {% endif %}
 
                         <p style="color:#555;font-size:0.95rem;line-height:1.6;margin:0 0 8px;">

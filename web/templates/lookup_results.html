@@ -13,17 +13,6 @@
             </a>
             {% endif %}
 
-            <!-- Ask AI about this property -->
-            {% if street_address %}
-            <form method="POST" action="/ask" style="display: inline; margin: 0;">
-                <input type="hidden" name="q" value="What permits are needed for work at {{ street_address }}?">
-                <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--accent);border:1px solid var(--accent);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
-                    💬 Ask AI
-                </button>
-            </form>
-            {% endif %}
-
             <!-- Analyze Project (prefill with permit type/address) -->
             {% if permit_type or street_address %}
             <form method="POST" action="/ask" style="display: inline; margin: 0;">
