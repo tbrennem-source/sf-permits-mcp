@@ -1,5 +1,21 @@
 # Changelog
 
+## Session 21.9 — Fix Thumbnails, Image URLs, and Rendering Delay (2026-02-16)
+
+### Bug Fixes: 4 Issues Preventing Full Analysis Results (#64)
+- **Bug 1 — Missing thumbnails:** Template checked `{% if extractions %}` but only `extractions_json` (JSON string) was passed, not the Python list. Added `extractions=page_extractions` to `render_template()`.
+- **Bug 2 — Broken image URLs:** Template used `/plan-analysis/session/page/N` but Flask route is `/plan-images/session/N`. Fixed ~8 occurrences across template.
+- **Bug 3 — Broken download ZIP:** URL was `/plan-analysis/.../download-zip` but route is `/plan-images/.../download-all`. Fixed. Download PDF now uses `window.print()`.
+- **Bug 4 — Rendering delay:** `htmx:afterRequest` fires before HTML is in DOM, causing blank gap after hourglass disappears. Changed to `htmx:afterSwap`.
+- **Bonus — Email endpoint:** URL was missing `sessionId` in path.
+
+### Files Changed (3 files, +15 / -13 lines)
+- `web/app.py` — Added `extractions=page_extractions` to render_template
+- `web/templates/analyze_plans_results.html` — Fixed all `/plan-analysis/` → `/plan-images/` URLs, fixed email URL, download PDF fallback
+- `web/templates/index.html` — Changed `afterRequest` → `afterSwap`
+
+---
+
 ## Session 22.2 — GAP-12 Green Building Resolution (2026-02-16)
 
 ### Green Building Requirements (`green-building-requirements.json`)

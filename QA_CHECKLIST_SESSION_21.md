@@ -1,8 +1,8 @@
-# QA Checklist - Sessions 21.2–21.8
+# QA Checklist - Sessions 21.2–21.9
 
 **Test on:** https://sfpermits-ai-production.up.railway.app
 **Deployed:** 2026-02-16
-**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading), 21.6 (Error Logging), 21.7 (NameError Fix), 21.8 (Consolidation)
+**Sessions:** 21.2–21.9
 
 ---
 
@@ -291,6 +291,35 @@
 ---
 
 ## Edge Cases & Regression Tests
+
+## Session 21.9: Thumbnails, Image URLs, Rendering Delay
+
+### ✅ Test 40: Thumbnail Gallery Renders
+- [ ] Hard refresh, upload multi-page PDF
+- [ ] **Verify:** Thumbnail gallery appears below bulk actions
+- [ ] **Verify:** Each page has thumbnail image (not broken icon)
+- [ ] **Verify:** Sheet IDs overlay on thumbnails
+
+### ✅ Test 41: Thumbnail Click → Detail View
+- [ ] Click any thumbnail
+- [ ] **Verify:** Detail card opens with full-size page image
+- [ ] **Verify:** Metadata table shows (sheet ID, address, firm, etc.)
+
+### ✅ Test 42: No Rendering Delay
+- [ ] Upload PDF, watch hourglass
+- [ ] **Verify:** Hourglass stays visible until results actually appear
+- [ ] **Verify:** No blank gap between hourglass disappearing and content rendering
+
+### ✅ Test 43: Download ZIP Works
+- [ ] Click "Download All Pages (ZIP)" button
+- [ ] **Verify:** ZIP file downloads with page images
+
+### ✅ Test 44: Image URLs Return 200
+- [ ] Open browser DevTools → Network tab
+- [ ] Upload PDF and wait for results
+- [ ] **Verify:** Image requests to `/plan-images/...` return 200 (not 404)
+
+---
 
 ### ✅ Test 17: No Results Case
 - [ ] Search for address with no permits (e.g., "99999 nonexistent st")
