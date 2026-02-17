@@ -64,7 +64,106 @@ def _run_startup_migrations():
         conn = get_connection()
         conn.autocommit = True
         cur = conn.cursor()
-        # invite_code column (added in invite code feature)
+
+        # ── Base tables (needed for fresh Postgres, idempotent) ──────
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id     SERIAL PRIMARY KEY,
+                email       TEXT NOT NULL UNIQUE,
+                display_name TEXT,
+                role        TEXT,
+                firm_name   TEXT,
+                entity_id   INTEGER,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                last_login_at TIMESTAMPTZ,
+                email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+                is_admin    BOOLEAN NOT NULL DEFAULT FALSE,
+                is_active   BOOLEAN NOT NULL DEFAULT TRUE,
+                brief_frequency TEXT NOT NULL DEFAULT 'none',
+                last_brief_sent_at TIMESTAMPTZ,
+                invite_code TEXT,
+                primary_street_number TEXT,
+                primary_street_name TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS auth_tokens (
+                token_id    SERIAL PRIMARY KEY,
+                user_id     INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                token       TEXT NOT NULL UNIQUE,
+                purpose     TEXT NOT NULL DEFAULT 'login',
+                expires_at  TIMESTAMPTZ NOT NULL,
+                used_at     TIMESTAMPTZ,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS watch_items (
+                watch_id    SERIAL PRIMARY KEY,
+                user_id     INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                watch_type  TEXT NOT NULL,
+                permit_number TEXT,
+                street_number TEXT,
+                street_name TEXT,
+                block       TEXT,
+                lot         TEXT,
+                entity_id   INTEGER,
+                neighborhood TEXT,
+                label       TEXT,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                is_active   BOOLEAN NOT NULL DEFAULT TRUE,
+                tags        TEXT DEFAULT ''
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS permit_changes (
+                change_id   SERIAL PRIMARY KEY,
+                permit_number TEXT NOT NULL,
+                change_date DATE NOT NULL,
+                detected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                old_status  TEXT,
+                new_status  TEXT NOT NULL,
+                old_status_date TEXT,
+                new_status_date TEXT,
+                change_type TEXT NOT NULL,
+                is_new_permit BOOLEAN NOT NULL DEFAULT FALSE,
+                source      TEXT NOT NULL DEFAULT 'nightly',
+                permit_type TEXT,
+                street_number TEXT,
+                street_name TEXT,
+                neighborhood TEXT,
+                block       TEXT,
+                lot         TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS regulatory_watch (
+                watch_id    SERIAL PRIMARY KEY,
+                title       TEXT NOT NULL,
+                description TEXT,
+                source_type TEXT NOT NULL,
+                source_id   TEXT NOT NULL,
+                status      TEXT NOT NULL DEFAULT 'monitoring',
+                impact_level TEXT DEFAULT 'moderate',
+                affected_sections TEXT,
+                semantic_concepts TEXT,
+                url         TEXT,
+                filed_date  TEXT,
+                effective_date TEXT,
+                notes       TEXT,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_auth_token ON auth_tokens (token)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_watch_user ON watch_items (user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_watch_permit ON watch_items (permit_number)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_pc_date ON permit_changes (change_date)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_pc_permit ON permit_changes (permit_number)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_regwatch_status ON regulatory_watch (status)")
+
+        # invite_code column (added in invite code feature — safe on fresh DB too)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS invite_code TEXT")
         cur.execute("""
             CREATE INDEX IF NOT EXISTS idx_users_invite_code
