@@ -11,6 +11,7 @@ Plus the plan set validator (EPR compliance checker).
 """
 
 import asyncio
+import json
 import logging
 import os
 import sys
@@ -851,7 +852,7 @@ def analyze_plans_route():
             for i, pe in enumerate(page_extractions)
         })
     except Exception as e:
-        logger.warning("Image rendering failed (non-fatal): %s", e)
+        logging.warning("Image rendering failed (non-fatal): %s", e)
 
     return render_template(
         "analyze_plans_results.html",
