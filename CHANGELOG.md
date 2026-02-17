@@ -1,5 +1,21 @@
 # Changelog
 
+## Session 21.7 — Fix Two NameErrors Crashing Analyze Plans (2026-02-16)
+
+### Bug Fix: Analysis Succeeded but Results Never Rendered (#62)
+- **Problem:** PDF analysis completed successfully (Vision API called, session created) but results never displayed — Flask returned 500
+- **Root cause:** Two `NameError` bugs in `web/app.py`:
+  1. `json.dumps()` used at line 849 but `import json` was missing
+  2. `logger.warning()` at line 854 should be `logging.warning()`
+- **How they interacted:** Analysis succeeds → `json` NameError when serializing results → falls into except handler → `logger` NameError in except handler → unhandled exception → Flask 500
+- **Fix:** Added `import json` to imports, changed `logger` → `logging`
+- **Discovered via:** Session 21.6 error logging (which made the stack trace visible in Railway logs for the first time)
+
+### Files Changed (1 file, +2 / -1 lines)
+- `web/app.py` — Added `import json` (line 14), fixed `logger` → `logging` (line 855)
+
+---
+
 ## Session 21.6 — Fix Analyze Plans 500 Error with Comprehensive Logging (2026-02-16)
 
 ### Bug Fix: Silent 500 Errors on PDF Upload (#61)

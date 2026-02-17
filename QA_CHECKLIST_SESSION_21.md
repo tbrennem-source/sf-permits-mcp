@@ -1,8 +1,8 @@
-# QA Checklist - Sessions 21.2, 21.3, 21.4, 21.5, 21.6
+# QA Checklist - Sessions 21.2–21.7
 
 **Test on:** https://sfpermits-ai-production.up.railway.app
 **Deployed:** 2026-02-16
-**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading), 21.6 (Error Logging)
+**Sessions:** 21.2 (Timeout), 21.3 (Action Buttons), 21.4 (External Links), 21.5 (Analyze Plans Loading), 21.6 (Error Logging), 21.7 (NameError Fix)
 
 ---
 
@@ -218,6 +218,32 @@
   - [ ] Railway logs show: `[pdf_to_images] Poppler error converting page X`
   - [ ] Admin knows to install poppler-utils
 - [ ] **Note:** This test requires poppler to be missing (likely not the case on production)
+
+---
+
+## Session 21.7: NameError Fix (Analyze Plans Now Works End-to-End)
+
+### ✅ Test 33: Full Analyze Plans End-to-End (CRITICAL)
+**Before:** Analysis succeeded but results never rendered (two NameErrors crashed serialization)
+**After:** `import json` added, `logger` → `logging` fixed
+
+- [ ] Hard refresh page (`Cmd+Shift+R`)
+- [ ] Navigate to "Analyze Plan Set" section
+- [ ] Upload a PDF file
+- [ ] Click "Analyze Plan Set"
+- [ ] **Verify:** Hourglass spinner appears immediately (Session 21.5)
+- [ ] **Verify:** After 30-60 seconds, analysis results render on screen
+- [ ] **Verify:** Page image gallery appears with thumbnails
+- [ ] **Verify:** EPR compliance checks shown
+- [ ] **Verify:** No 500 error in browser console
+- [ ] **Verify in Railway logs:** No `NameError` — clean completion
+
+### ✅ Test 34: Multi-Page PDF Analysis
+- [ ] Upload PDF with 5+ pages
+- [ ] Click "Analyze Plan Set"
+- [ ] **Verify:** Hourglass appears, results render after processing
+- [ ] **Verify:** Multiple page thumbnails in gallery
+- [ ] **Verify:** Page extractions display correctly
 
 ---
 
