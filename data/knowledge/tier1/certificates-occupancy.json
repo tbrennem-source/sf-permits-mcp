@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "title": "Certificates of Occupancy — Requirements, Temporary Certificates, and Apartment House Licenses",
+    "source": "SF Building Inspection Commission Code (SFBICC), Section 109A",
+    "source_file": "tier4/sf-bicc-fire-codes-full.txt",
+    "source_lines": "32220-32314",
+    "date_structured": "2026-02-16",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "No building may be used or occupied until the Building Official issues a certificate",
+      "Temporary certificates are valid for up to 12 months",
+      "Apartment house/hotel licenses are required for all R-1 and R-2 occupancies",
+      "Amended certificates track changes in dwelling unit count"
+    ]
+  },
+  "use_and_occupancy": {
+    "section": "109A.1",
+    "source_line": 32222,
+    "rule": "No building or structure shall be used or occupied, and no change in existing occupancy classification shall be made, until the Building Official has issued a certificate of final completion and occupancy or an amended certificate, or the use has otherwise been approved by DBI.",
+    "disclaimer": "Issuance of a certificate shall not be construed as approval of any code violation. The Police Department shall enforce this provision when called upon by the Building Official."
+  },
+  "change_in_occupancy": {
+    "section": "109A.2",
+    "source_line": 32235,
+    "description": "Changes in the character or use of a building must follow SF Existing Building Code Section 407. A certificate is required for changes in use or occupancy as set forth in Section 407.",
+    "exception": "Group R-1 and R-2 occupancies are subject to Sections 109A.7 and 109A.8 instead."
+  },
+  "certificate_issued": {
+    "section": "109A.3",
+    "source_line": 32245,
+    "when_issued": [
+      "Buildings or structures erected or enlarged",
+      "Each change in occupancy classification in any building, structure, or portion",
+      "Buildings or structures seismically upgraded per code"
+    ],
+    "amended_certificate": {
+      "trigger": "Existing building where there is an increase in the number of legal dwelling units resulting in a change of occupancy",
+      "must_include": "Date of first certificate of occupancy and any subsequent certificates",
+      "no_original": "If no original certificate exists, the amended certificate shall refer to the date of initial construction on file"
+    },
+    "zoning_restriction": "These provisions are not available in RH-1 or RH-1(D) zoning districts, nor for any residential dwelling inconsistent with existing law.",
+    "exception": "For R-1 and R-2 occupancies, see Sections 109A.7 and 109A.8."
+  },
+  "temporary_certificate": {
+    "section": "109A.4",
+    "source_line": 32263,
+    "conditions": [
+      "Building Official finds no substantial hazard will result from occupancy before completion",
+      "Satisfactory evidence that work could not have been completed prior to occupancy"
+    ],
+    "request_method": "Written request required. No occupancy until temporary certificate is issued.",
+    "validity_months": 12,
+    "extension": "Extension of time may be approved by the Building Official",
+    "fee_table": "Table 1A-G — Inspections, Surveys and Reports"
+  },
+  "posting": {
+    "section": "109A.5",
+    "source_line": 32274,
+    "requirement": "No requirements."
+  },
+  "revocation": {
+    "section": "109A.6",
+    "source_line": 32275,
+    "grounds": [
+      "Certificate issued in error",
+      "Based on incorrect information supplied",
+      "Building or structure found to be in violation of any code or ordinance"
+    ],
+    "method": "In writing by the Building Official"
+  },
+  "r1_r2_certificate": {
+    "section": "109A.7",
+    "source_line": 32281,
+    "title": "Certificate of Final Completion and Occupancy for Group R-1 and R-2 Occupancies",
+    "description": "Before DBI may issue a certificate for newly-erected R-1/R-2 buildings, amended certificates for existing buildings per Section 109A.3, or Apartment House/Hotel Licenses, a written compliance report must be obtained from all agencies having jurisdiction.",
+    "amended_certificate_must_include": [
+      "Date of first certificate and any subsequent certificates",
+      "If no original exists, the date of initial construction on file"
+    ],
+    "board_of_appeals": "Where any permit was appealed to the Board of Appeals with conditions imposed, DBI may not issue a certificate until conditions are met. A copy of the certificate shall be forwarded to the Board."
+  },
+  "apartment_house_hotel_license": {
+    "section": "109A.8",
+    "source_line": 32303,
+    "title": "Group R-1 and R-2 Occupancy — Apartment House/Hotel License",
+    "requirement": "A license is required for every Group R-1 and R-2 occupancy structure.",
+    "fee_table": "Table 1A-P — Apartment House and Hotel License Fees",
+    "non_transferable": true,
+    "new_owner_deadline_days": 30,
+    "note": "New license must be applied for by the new owner within 30 days of change of ownership.",
+    "disclaimer": "The license shall not be construed as authority to violate, cancel, alter, or set aside any provision of any law or ordinance."
+  }
+}

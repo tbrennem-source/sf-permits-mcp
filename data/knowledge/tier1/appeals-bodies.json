@@ -1,0 +1,254 @@
+{
+  "metadata": {
+    "title": "Appeals Bodies — Board of Examiners, Abatement Appeals Board, Access Appeals Commission, and Related Bodies",
+    "source": "SF Building Inspection Commission Code (SFBICC), Sections 105A, 103A.4-5",
+    "source_file": "tier4/sf-bicc-fire-codes-full.txt",
+    "source_lines": "28024-28235, 28728-29289",
+    "date_structured": "2026-02-16",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "Three main appeals bodies: Board of Examiners, Abatement Appeals Board, Access Appeals Commission",
+      "Code Advisory Committee and Structural Advisory Committee are advisory, not appellate",
+      "Abatement Appeals Board IS the Building Inspection Commission (same 7 members)",
+      "Board of Examiners has 13 members including specialized seats",
+      "Access Appeals Commission has 5 members (2 disabled, 2 construction, 1 public)",
+      "Sections 103A.4 and 103A.5 cover vacant building registration obligations"
+    ]
+  },
+  "board_of_examiners": {
+    "section": "105A.1",
+    "source_line": 28729,
+    "title": "Board of Examiners",
+    "membership": {
+      "total_members": 13,
+      "term_years": 3,
+      "appointed_by": "Building Inspection Commission",
+      "compensation_per_meeting": 125,
+      "regular_members": [
+        "Registered structural engineer",
+        "Registered mechanical engineer",
+        "Registered electrical engineer",
+        "Registered fire protection engineer",
+        "Licensed general contractor",
+        "Licensed architect",
+        "Building trades representative"
+      ],
+      "specialized_members": [
+        {"seat": "Plumbing member", "qualification": "Licensed plumbing contractor", "serves_when": "Plumbing or electrical code issues"},
+        {"seat": "Electrical member", "qualification": "Licensed electrical contractor", "serves_when": "Plumbing or electrical code issues"},
+        {"seat": "High-rise sprinkler member", "qualification": "Building owner representative", "serves_when": "High-rise sprinkler issues"},
+        {"seat": "Seismic improvement member 1", "qualification": "Tenant who is a licensed architect/engineer", "serves_when": "Chapter 4D seismic retrofit issues"},
+        {"seat": "Seismic improvement member 2", "qualification": "Property owner who is a licensed architect/engineer", "serves_when": "Chapter 4D seismic retrofit issues"},
+        {"seat": "Seismic improvement member 3", "qualification": "Structural engineer specializing in seismic improvement", "serves_when": "Chapter 4D seismic retrofit issues"}
+      ],
+      "ex_officio": ["Building Official (Secretary, no vote)", "Fire Marshal (no vote)"],
+      "quorum": 4,
+      "votes_required": 3
+    },
+    "functions": [
+      "Determine if new materials, methods, and types of construction meet code safety standards",
+      "Determine if variances from code requirements should be approved (unreasonable hardship)",
+      "Recommend reasonable code interpretations to the Building Official",
+      "Hear appeals from Abatement Orders involving construction methods or safety"
+    ],
+    "authority_new_materials": {
+      "section": "105A.1.5",
+      "description": "When the Building Official denies approval of new materials/methods, the Board may determine if they comply with safety standards.",
+      "testing": "Board adopts rules for examining and testing. Applicant bears all test and examination costs.",
+      "expert_consultation": "Board may call upon experts at the applicant's expense."
+    },
+    "authority_variances": {
+      "section": "105A.1.6",
+      "description": "Where new materials are not involved, the Board may consider variance applications.",
+      "standard": "Variance will not result in a condition less safe or desirable from the viewpoint of public welfare.",
+      "effect": "Upon Board recommendation, the Building Official shall approve the permit with any conditions the Board attaches."
+    },
+    "filing_fee": "Table 1A-K — Penalties, Hearings, Code Enforcement Assessments"
+  },
+  "abatement_appeals_board": {
+    "section": "105A.2",
+    "source_line": 28900,
+    "title": "Abatement Appeals Board",
+    "membership": {
+      "total_members": 7,
+      "identity": "The seven members of the Building Inspection Commission",
+      "appointed_by": "Per SF Charter",
+      "secretary": "Building Official or designee",
+      "compensation": "None (serves without compensation)",
+      "quorum": 4,
+      "votes_required": 4
+    },
+    "powers": [
+      "Hear and decide appeals from Orders of Abatement after Building Official public hearing",
+      "Hear appeals regarding final bills for assessment of costs (upon showing substantial error)",
+      "May uphold, modify, or reverse orders to secure public health, safety, and welfare"
+    ],
+    "jurisdiction_exception": "Disabled access cases are heard by the Access Appeals Commission, not the Abatement Appeals Board.",
+    "hearing_process": {
+      "scheduling": "Within 10 days of filing, fix time and place for hearing (not more than 30 days after filing)",
+      "notice": "Posted on property + served on appellant + transmitted to Building Official, at least 10 days before hearing",
+      "stay": "Once an appeal is filed, the Building Official's order is stayed until a decision is rendered",
+      "continuance": "One continuance for good cause, not to exceed 60 days",
+      "rehearing": "Request must be made in writing within 10 days of the decision date"
+    },
+    "decision_timeline": "Findings and decisions issued no later than 10 days after conclusion of hearing. Posted on property, served on appellant, and transmitted to Building Official within 5 days.",
+    "failure_to_appear": "Building Official's order is immediately effective from the date it was issued (time under appeal not counted toward compliance).",
+    "life_safety_hazards": {
+      "section": "105A.2.8.2",
+      "description": "If the Board finds a serious and imminent hazard exists, work to correct must commence within 30 days and be completed within 90 days.",
+      "non_hazard_violations": "Work to repair must commence within 60 days and be completed within 18 months."
+    },
+    "moratorium_financial_hardship": {
+      "section": "105A.2.8.3",
+      "eligibility": "Owner-occupant of a single- or two-family dwelling where all serious and imminent hazards have been corrected",
+      "applies_to": "Conditions that are NOT serious and imminent hazards",
+      "decision_includes": "Duration and conditions for termination, recorded in Assessor-Recorder's Office"
+    },
+    "moratorium_displacement": {
+      "section": "105A.2.8.4",
+      "purpose": "Prevent displacement of low and moderate income persons from affordable housing",
+      "conditions": [
+        "Building Official's order issued after April 1, 1986",
+        "Group R, Division 1 building",
+        "Built prior to January 1, 1956",
+        "Not a serious/imminent hazard or life hazard",
+        "Does not violate Fire Code or any code other than Building Code and Housing Code",
+        "Does not affect adequate egress",
+        "Does not endanger life, health, property, safety, or welfare",
+        "50% or more of households pay annual rent ≤ 30% of low/moderate income",
+        "Abatement would reasonably probably displace low/moderate income occupants"
+      ],
+      "term_years": 10,
+      "extensions": "Five-year extensions available upon written request and hearing",
+      "rescission": "Any person may request rescission via written request and hearing"
+    },
+    "failure_to_comply": "Matter referred to City Attorney within 5 days for appropriate legal action."
+  },
+  "access_appeals_commission": {
+    "section": "105A.3",
+    "source_line": 29046,
+    "title": "Access Appeals Commission",
+    "authority": "California Health and Safety Code Section 19957.5",
+    "membership": {
+      "total_members": 5,
+      "composition": [
+        "2 persons with a physical disability",
+        "2 persons experienced in construction",
+        "1 public member"
+      ],
+      "appointed_by": "Building Inspection Commission",
+      "term_years": 4,
+      "secretary": "Building Official or designee (no vote)",
+      "compensation_per_meeting": 125
+    },
+    "powers": [
+      "Hear written appeals on enforcement of California Health & Safety Code Part 5.5 (disability access)",
+      "Hear appeals on DBI enforcement of disability access and adaptability provisions",
+      "Approve or disapprove DBI interpretations and enforcement actions",
+      "Determine equivalent facilitation",
+      "Determine technical infeasibility",
+      "Determine unreasonable hardship",
+      "Grant extensions of time"
+    ],
+    "finality": "Approvals or disapprovals are final and conclusive as to the Department, absent fraud or prejudicial abuse of discretion.",
+    "filing": "Written appeals filed with the Secretary of the Access Appeals Commission",
+    "rehearing": "Upon motion of a Commission member and affirmative vote of at least 3 members, within 10 days of the decision",
+    "fee_waiver": "Indigency declaration under penalty of perjury may exempt from filing fees",
+    "fee_table": "Table 1A-K — Penalties, Hearings, Code Enforcement Assessments",
+    "notice_to_mayors_office": "Materials for each matter sent to the Mayor's Office of Disability"
+  },
+  "code_advisory_committee": {
+    "section": "105A.4",
+    "source_line": 29132,
+    "title": "Code Advisory Committee",
+    "type": "Advisory (not appellate)",
+    "membership": {
+      "total_members": 17,
+      "term_years": 3,
+      "appointed_by": "Building Inspection Commission",
+      "ex_officio": ["Building Official (Secretary, no vote)", "Fire Marshal (no vote)"]
+    },
+    "functions": [
+      "Review recommendations for code changes",
+      "Develop and recommend code changes",
+      "Review rules and regulations",
+      "Recommend which existing rules should remain, be modified, or canceled after new code adoption",
+      "Review and recommend on legislation proposed by Board of Supervisors"
+    ],
+    "meetings": "At least once monthly, open to the public"
+  },
+  "structural_advisory_committee": {
+    "section": "105A.6",
+    "source_line": 29241,
+    "title": "Structural Advisory Committee",
+    "type": "Advisory (not appellate)",
+    "membership": {
+      "total_members": 3,
+      "selection": {
+        "member_1": "Selected by the Building Official",
+        "member_2": "Selected by the owner",
+        "member_3": "Selected jointly by Building Official and owner"
+      },
+      "compensation": "By the owner",
+      "qualification": "Knowledgeable in structural engineering and construction issues presented by the special features"
+    },
+    "function": "Advise the Building Official on buildings with special features or special design procedures. The engineer of record must demonstrate how structural concepts, designs, details, erection methods, and quality control will meet code intent.",
+    "slope_protection_areas": {
+      "applies_to": ["Edgehill Mountain Slope Protection Area (Section 106A.4.1.2)", "Northwest Mt. Sutro Slope Protection Area (Section 106A.4.1.3)"],
+      "modified_composition": "Structural engineer + geologist + geotechnical engineer + consulting architect (voting member)",
+      "modified_selection": "Two members by Building Official/Public Works, one by Building Official and owner from neighborhood recommendations",
+      "mandatory_denial": "If the Committee determines reasonable likelihood of unsafe conditions or hillside instability that cannot be mitigated, the Building Official shall deny the permit. Appealable only to Board of Appeals."
+    }
+  },
+  "building_inspection_commission_appellate": {
+    "section": "105A.8",
+    "source_line": 29289,
+    "title": "Appellate Authority of the Building Inspection Commission",
+    "authority": "SF Charter Section D3.750-4, implemented by Administrative Code Chapter 77"
+  },
+  "vacant_building_registration": {
+    "section": "103A.4",
+    "source_line": 28024,
+    "title": "Vacant or Abandoned Buildings — Annual Registration",
+    "definition_conditions": [
+      "Unoccupied and unsecured",
+      "Unoccupied and secured by boarding or similar",
+      "Unoccupied and unsafe per Section 102A",
+      "Unoccupied and has multiple code violations",
+      "Unoccupied for over 30 days"
+    ],
+    "exceptions": [
+      "Valid building permit for repair/construction with work completed within 1 year of permit issuance",
+      "Code compliant, not blighted, ready for occupancy, and actively listed for sale/lease/rent",
+      "Code compliant, not blighted, undergoing probate (up to 2 years)"
+    ],
+    "registration_deadline_days": 30,
+    "registration_fee": "Annual, per Table 1A-J",
+    "sign_posting": "Name, address, phone of owner (and lender if in foreclosure). Minimum 8.5 x 11 inches, conspicuous protected location.",
+    "maintenance_requirements": {
+      "exterior": ["Landscaping maintained", "Trash/debris/graffiti removed regularly", "Structural integrity maintained (paint, foundation, roof, windows, etc.)", "Criminal activity prevented", "Unnecessary utilities turned off"],
+      "interior": ["Preserved from damage by elements or plumbing leaks", "Free from garbage accumulation and pest infestation"],
+      "security": "Secured against unauthorized entry, methods approved by the Director"
+    },
+    "insurance": "Fire and liability insurance as the Director determines necessary",
+    "violation": "Deemed a public nuisance, subject to enforcement under Sections 102A and 103A"
+  },
+  "vacant_commercial_storefronts": {
+    "section": "103A.5",
+    "source_line": 28123,
+    "title": "Vacant or Abandoned Commercial Storefronts — Annual Registration",
+    "definition": "Any area within a building that may be individually leased/rented for non-residential purpose, that has been unoccupied for over 30 days (or meets other vacancy criteria).",
+    "exceptions": [
+      "Valid building permit with work completed within 1 year (extendable by Department)",
+      "Actively seeking required authorizations, permits, or licenses",
+      "Vacancy due to public infrastructure construction lasting over 30 days (180-day exemption, extendable)"
+    ],
+    "registration_deadline_days": 30,
+    "registration_fee": "Annual, same as Section 103A.4.2 (Table 1A-J)",
+    "partial_refund": "If rented and occupied before the registration payment deadline, up to half the fee refunded based on remaining days.",
+    "annual_report": "Licensed professional must confirm interior and exterior maintenance",
+    "registry": "Department maintains a registry, furnished quarterly to Office of Economic and Workforce Development",
+    "penalty_for_failure_to_register": "Table 1A-K — Failure to register vacant commercial storefront",
+    "violation": "Deemed a public nuisance"
+  }
+}

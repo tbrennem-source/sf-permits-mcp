@@ -1,7 +1,7 @@
 # Knowledge Gaps Analysis
 ## SF Permitting Knowledge Base - Phase 2.5
 
-Last updated: 2026-02-14
+Last updated: 2026-02-16
 
 ## Critical Gaps (Block Decision Tree Accuracy)
 
@@ -105,19 +105,41 @@ Last updated: 2026-02-14
 **What we need**: Current fee rates per sq ft, exemptions
 **Source**: G-11 (School Impaction Fee) - not yet downloaded
 
-### GAP-12: Green Building Requirements Detail
+### GAP-12: Green Building Requirements Detail — RESOLVED
 **What we know**: GS1-GS6 forms exist. Title 24 energy compliance required.
 **What we need**: Decision logic for which GS form applies to which project type
 **Source**: M-03, M-04, M-06, M-08 info sheets (not downloaded)
+**Resolution**: Full AB-093 (Implementation of Green Building Regulations) extracted from tier3/AB-093.txt into structured JSON:
+- **GS Form Decision Logic**: 5-step decision tree mapping project type to GS-1 through GS-6
+- **Rating System Requirements**: When LEED, GreenPoint Rated, or Locally Required Measures apply (by occupancy, size, new/alteration)
+- **5 Compliance Methods**: LEED certification, GreenPoint Rated, standards-without-certification, equivalency, locally required measures only
+- **Green Building Compliance Professional**: Qualifications (Architect/Engineer + specialization), exemption for small residential (< 25K sqft, <= 1K sqft addition)
+- **Special Cases**: ADU (treated as addition, use GS-5), historic buildings, mixed occupancy, municipal LEED Gold, large commercial TI (>= 25K sqft)
+- **Energy Compliance**: Title 24 Part 6 in green building context, AB-112 all-electric mandate (since June 2021)
+- **9 Quick Reference Scenarios**: Common project types with form, rating system, and professional requirements
+- **Verification**: Attachment E final compliance, TCO rules, quality assurance
+- M-03/M-04/M-06/M-08 content already captured in tier1/title24-energy-compliance.json (no separate download needed)
+- Saved as: tier1/green-building-requirements.json
+- Semantic index updated with expanded green_building concept pointing to new file
 
 ### GAP-13: Special Inspection Requirements Detail
 **What we know**: Structural work often requires special inspections
 **What we need**: Which project types require which special inspections
 **Source**: AB-046, S-series structural info sheets
 
-### GAP-14: Permit Expiration and Renewal Rules
-**What we know**: Permits can expire. Renewals route through G-20.
-**What we need**: Expiration timelines, renewal process, fee implications
+### GAP-14: Permit Expiration and Renewal Rules — ✅ RESOLVED
+**Impact**: Permit expiration was hardcoded as 180 days for all permits, but actual law uses valuation-tiered limits
+**Resolution**: Full Section 106A.4.4 extracted from BICC tier4 (line 30963) into structured JSON:
+- **Table A** (application expiration): $1-$1M = 360 days, Over $1M = 720 days
+- **Table B** (work completion): $1-$100K = 360 days, $100K-$2.5M = 1,080 days, $2.5M+ = 1,440 days
+- Demolition permits: 180 days (the ONLY permit type with this limit)
+- Site permits $2.5M+ get 50% bonus time (2,160 days)
+- Extension rules, suspension/toll provisions, expired permit recovery (106A.4.4.1, 106A.4.4.2)
+- Fee refunds (107A.6), investigation fees for work without permit (107A.5)
+- Code fix: `web/brief.py` `_validity_days()` now uses Table B lookup instead of hardcoded 180 days
+- Code fix: `web/report.py` dormant/aging risk flags now use Table B tiers instead of arbitrary 2yr/3yr thresholds
+- Saved as: tier1/permit-expiration-rules.json
+- Also created 5 additional tier1 files from BICC audit: permit-requirements.json, inspections-process.json, certificates-occupancy.json, enforcement-process.json, appeals-bodies.json
 
 ## Amy Interview Questions (Refined)
 

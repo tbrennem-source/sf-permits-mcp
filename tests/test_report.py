@@ -277,13 +277,13 @@ class TestDeepReportRisks:
         risks = _compute_risk_assessment(permits=permits, complaints=[], violations=[], property_data=[])
         dormant = [r for r in risks if r["risk_type"] == "dormant_permit"]
         assert len(dormant) == 1
-        assert "dormant" in dormant[0]["title"].lower()
+        assert "expired" in dormant[0]["title"].lower()
 
     def test_aging_permit_detected(self):
         from web.report import _compute_risk_assessment
         from datetime import datetime, timedelta
-        # ~2.5 years old
-        filed = (datetime.now() - timedelta(days=900)).strftime("%Y-%m-%d")
+        # $5K permit, 360-day limit. 300 days old = within 90-day warning window (360-90=270).
+        filed = (datetime.now() - timedelta(days=300)).strftime("%Y-%m-%d")
         permits = [{
             "permit_number": "P002", "status": "FILED",
             "filed_date": filed, "completed_date": None,

@@ -167,8 +167,19 @@
     </style>
 </head>
 <body>
-    {% set active_page = 'brief' %}
-    {% include 'fragments/nav.html' %}
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <div class="header-right">
+                <a href="/expediters" class="badge">Find Expediter</a>
+                <a href="/brief" class="badge badge-active">Morning Brief</a>
+                <a href="/account" class="badge">{{ user.display_name or user.email }}</a>
+                <form method="POST" action="/auth/logout" style="display:inline;">
+                    <button class="badge" type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+    </header>
 
     <main>
         <div class="container">
@@ -287,17 +298,21 @@
                     <div class="summary-number">{{ brief.summary.changes_count }}</div>
                     <div class="summary-label">Changed</div>
                 </div>
-                <div class="summary-card {{ 'alert' if brief.summary.stale_critical > 0 or brief.summary.at_risk_count > 0 else ('warn' if brief.summary.stale_count > 0 or brief.summary.expiring_count > 0 else '') }}">
-                    <div class="summary-number">{{ brief.summary.at_risk_count + brief.summary.stale_count + brief.summary.expiring_count }}</div>
-                    <div class="summary-label">Needs Attention</div>
+                <div class="summary-card {{ 'alert' if brief.summary.at_risk_count > 0 else '' }}">
+                    <div class="summary-number">{{ brief.summary.at_risk_count }}</div>
+                    <div class="summary-label">At Risk</div>
                 </div>
                 <div class="summary-card {{ 'warn' if brief.summary.inspections_count > 0 else '' }}">
                     <div class="summary-number">{{ brief.summary.inspections_count }}</div>
                     <div class="summary-label">Inspections</div>
                 </div>
+                <div class="summary-card {{ 'warn' if brief.summary.expiring_count > 0 else '' }}">
+                    <div class="summary-number">{{ brief.summary.expiring_count }}</div>
+                    <div class="summary-label">Expiring</div>
+                </div>
             </div>
 
-            {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.stale and not brief.property_synopsis %}
+            {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.regulatory_alerts and not brief.property_synopsis %}
             {% if all_empty %}
             <div style="background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2); border-radius: 10px; padding: 24px; margin-bottom: 24px; text-align: center;">
                 <div style="font-size: 1.5rem; margin-bottom: 8px;">&#x2705;</div>
@@ -309,46 +324,6 @@
                 </div>
                 <div style="margin-top: 16px;">
                     <a href="/" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Search for permits to watch &rarr;</a>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Action Items (from intelligence engine) -->
-            {% if brief.action_items %}
-            <div class="section" style="border-left: 3px solid var(--accent);">
-                <h2 style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.2rem;">&#128161;</span> Action Items
-                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">
-                        {{ brief.action_items | length }} recommendation{{ 's' if brief.action_items | length != 1 }}
-                    </span>
-                </h2>
-                {% for item in brief.action_items %}
-                <div class="change-card" style="border-left: 3px solid {{ 'var(--error)' if item.severity == 'critical' else 'var(--warning)' if item.severity == 'warning' else 'var(--accent)' }}; padding-left: 12px; margin-bottom: 8px;">
-                    <div class="change-meta" style="flex: 1;">
-                        <div class="change-permit">
-                            {% if item.severity == 'critical' %}
-                            <span style="color: var(--error); font-size: 0.8rem;">&#9888; Critical</span>
-                            {% elif item.severity == 'warning' %}
-                            <span style="color: var(--warning); font-size: 0.8rem;">&#9888; Warning</span>
-                            {% else %}
-                            <span style="color: var(--accent); font-size: 0.8rem;">&#128161; Tip</span>
-                            {% endif %}
-                            &mdash; {{ item.title }}
-                        </div>
-                        <div class="change-detail">{{ item.detail }}</div>
-                        <div style="margin-top: 6px; font-size: 0.85rem;">
-                            <strong style="color: var(--accent);">&#8594; {{ item.suggested_action }}</strong>
-                            {% if item.savings_estimate %}
-                            <span style="color: var(--text-muted); margin-left: 8px;">({{ item.savings_estimate }})</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                <div style="margin-top: 12px; text-align: right;">
-                    <a href="/portfolio?filter=action_needed" style="color: var(--accent); font-size: 0.85rem; text-decoration: none;">
-                        View all in Portfolio &rarr;
-                    </a>
                 </div>
             </div>
             {% endif %}
@@ -502,41 +477,10 @@
                 {% endif %}
             </div>
 
-            <!-- Section: Permits Needing Attention -->
-            {% if brief.stale or brief.expiring %}
-            <div class="section" style="border-left: 3px solid var(--error);">
-                <h2>Permits Needing Attention</h2>
-
-                {% if brief.stale %}
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
-                    Stale permits — potential re-filing costs: ${{ "{:,.0f}".format(brief.stale | map(attribute='refiling_estimate') | sum) }}
-                </p>
-                {% for item in brief.stale %}
-                <div class="change-card" style="border-left: 3px solid {{ 'var(--error)' if item.severity == 'critical' else 'var(--warning)' }}; padding-left: 12px;">
-                    <div class="change-meta">
-                        <div class="change-permit">
-                            <span style="font-size: 0.75rem; {% if item.severity == 'critical' %}color: var(--error);{% else %}color: var(--warning);{% endif %}">
-                                &#9888;
-                                {{ item.alert_type | replace('_', ' ') | title }}
-                            </span>
-                            &mdash;
-                            <a href="/report/{{ item.block }}/{{ item.lot }}">{{ item.address }}</a>
-                        </div>
-                        <div class="change-detail">
-                            {{ item.permit_number }} &middot; {{ item.permit_type }} &middot; {{ item.days_stale }} days
-                        </div>
-                        <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text);">
-                            {{ item.suggested_action }}
-                        </div>
-                    </div>
-                    <span class="status-badge status-{{ item.status }}">{{ item.status }}</span>
-                </div>
-                {% endfor %}
-                {% endif %}
-
+            <!-- Section 6: Expiring Permits -->
+            <div class="section">
+                <h2>Expiring Permits</h2>
                 {% if brief.expiring %}
-                {% if brief.stale %}<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);"></div>{% endif %}
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">Approaching expiration</p>
                 {% for e in brief.expiring %}
                 <div class="change-card">
                     <div class="change-meta">
@@ -558,16 +502,45 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% else %}
+                <p class="section-empty">No permits approaching their Table B expiration deadline.</p>
+                {% endif %}
+            </div>
+
+            <!-- Section 7: Regulatory Alerts -->
+            {% if brief.regulatory_alerts %}
+            <div class="section">
+                <h2>Regulatory Watch</h2>
+                {% for a in brief.regulatory_alerts %}
+                <div class="change-card">
+                    <div class="change-meta">
+                        <span class="change-permit">{{ a.title }}</span>
+                        <span class="change-detail">
+                            {{ a.source_type | replace('_', ' ') | title }} &mdash; {{ a.source_id }}
+                            {% if a.filed_date %} &middot; Filed {{ a.filed_date }}{% endif %}
+                        </span>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <span class="badge-{{ a.impact_level }}" style="font-size:0.7rem;padding:1px 6px;border-radius:3px;text-transform:uppercase;font-weight:600;
+                            {% if a.impact_level == 'high' %}background:rgba(248,113,113,0.15);color:#f87171;
+                            {% elif a.impact_level == 'moderate' %}background:rgba(251,191,36,0.15);color:#fbbf24;
+                            {% else %}background:rgba(79,143,247,0.12);color:#4f8ff7;{% endif %}">{{ a.impact_level }}</span>
+                        <span style="font-size:0.75rem;color:var(--text-muted);">{{ a.status }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if g and g.user and g.user.is_admin %}
+                <div style="text-align:right;margin-top:8px;">
+                    <a href="/admin/regulatory-watch" style="font-size:0.8rem;color:var(--accent);">Manage watch items &rarr;</a>
+                </div>
                 {% endif %}
             </div>
             {% endif %}
 
             <!-- Email preferences hint -->
-            <div style="text-align:center;margin-top:16px;font-size:0.8rem;">
-                <a href="/portfolio" style="color:var(--text-muted);text-decoration:none;">Portfolio</a>
-                <span style="color:var(--border);margin:0 8px;">&middot;</span>
-                <a href="/account" style="color:var(--text-muted);text-decoration:none;">
-                    Manage email preferences
+            <div style="text-align:center;margin-top:16px;">
+                <a href="/account" style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;">
+                    Manage email preferences &middot; Get this brief in your inbox
                 </a>
             </div>
 

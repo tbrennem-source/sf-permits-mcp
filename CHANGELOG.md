@@ -1,77 +1,101 @@
 # Changelog
 
-## Session 23 — Portfolio Dashboard, Intelligence Engine & UI Polish (2026-02-16)
+## Session 22.2 — GAP-12 Green Building Resolution (2026-02-16)
 
-### 6 New Features (Amy Lee Expediter Workflow)
+### Green Building Requirements (`green-building-requirements.json`)
+- **Extracted from AB-093** (tier3) — complete GS form selection decision logic, rating system requirements, compliance methods
+- **GS form decision tree** — 6 forms (GS-1 through GS-6) with project type triggers and 5-step selection logic
+- **Rating systems** — When LEED, GreenPoint Rated, or Locally Required Measures apply (by occupancy, size, construction type)
+- **5 compliance methods** — LEED certification, GreenPoint Rated, standards-without-certification, alternate rating/equivalency, locally required measures only
+- **Special cases** — ADU, historic buildings, mixed occupancy, demolition replacement, large commercial TI
+- **9 quick reference scenarios** — Common project types with form, rating system, and professional requirements
 
-**Feature 1: Portfolio Dashboard** (`/portfolio`)
-- Property card grid with health indicators (on_track / behind / at_risk)
-- Filter by: All, Action Needed, In Review, Active
-- Sort by: Recent Activity, Highest Cost, Most Stale, Worst Health
-- Click-to-expand shows permit list per property
-- Mobile-responsive with breakpoint at 500px
+### Integration
+- Updated `semantic-index.json` — expanded `green_building` concept with 15+ new aliases (GS-1–GS-6, CALGreen, LEED, GreenPoint, SFGBC, etc.)
+- Updated `GAPS.md` — marked GAP-12 as RESOLVED
+- Updated `web/sources.py` — added to compliance category + fallback URL
+- Updated `knowledge_base.py` — added to `__init__()` and `SOURCE_REGISTRY`
+- **30 tier1 files** total (was 29), **4 open gaps** remaining (was 5)
 
-**Feature 2: Client Tags** (`/watch/tags`)
-- Tag editor on each watch item (comma-separated tags)
-- Collapsed by default with pencil (✎) toggle
-- HTMX inline save, no page reload
-- Tags column added to `watch_items` table (DuckDB + PostgreSQL)
+---
 
-**Feature 3: Stale Permit Alerts**
-- Morning brief surfaces permits with >60 days of inactivity
-- Merged with expiring-soon into unified "Permits Needing Attention" section
-- Color-coded: stale (warning), expiring (error)
+## Session 22.1 — Admin Sources Inventory Page (2026-02-16)
 
-**Feature 4: Inspection Timeline**
-- 11-phase progress bar (SITE VERIFICATION → FINAL INSPECT/APPRVD)
-- Lazy-loaded via HTMX `intersect once` trigger inside portfolio card expansion
-- Color-coded: green (completed), blue (current), gray (upcoming)
+### Knowledge Source Inventory (`/admin/sources`)
+- **Auto-generated inventory** from all 29 tier1 JSON files — title, source, URLs, last updated, file size, data points
+- **Permit lifecycle coverage matrix** — 8 stages (Pre-Application through Enforcement) with strong/moderate/gap indicators
+- **Known gaps section** — parsed from GAPS.md with severity badges, resolution status, "Ask Amy" prompts
+- **Questions for Amy** — 10 curated interview questions organized by category
+- **Print-friendly layout** — dark theme on screen, clean light theme for print/PDF
+- **Hyperlinked sources** — every file links to its authoritative source (sf.gov, amlegal.com, sfethics.org)
+- **Grouped by category** — Building Code, Planning Code, DBI Info Sheets, Compliance, Data, Tools
 
-**Feature 5: Intelligence Engine** (`web/intelligence.py`)
-- 8 proactive rules: bundle_inspections, companion_permits, triage_delay, plan_check_delay, completion_push, extension_needed, cost_variance, fresh_issuance
-- Action items surfaced in morning brief with priority/urgency
-- Cross-linked to portfolio dashboard
+### Files
+- `web/sources.py` — Inventory builder: scans tier1/, extracts metadata, parses GAPS.md, builds lifecycle matrix
+- `web/templates/admin_sources.html` — Print-friendly admin template with 4 sections
+- `web/app.py` — `/admin/sources` route (admin-only)
+- `tests/test_sources.py` — 24 tests (inventory, gap parser, lifecycle, metadata extraction, route)
 
-**Feature 6: Bulk Onboarding** (`/portfolio/discover`, `/portfolio/import`)
-- Discover properties by owner name or firm name
-- Results table with checkboxes for bulk selection
-- One-click import adds all selected as watch items
-- Confirmation card with links to Portfolio, Brief, Import More
+---
 
-### 13 UI Audit Fixes
-1. ✅ Shared nav partial (`nav.html`) — consistent nav across all 4 pages
-2. ✅ HTMX loading spinner on discover form
-3. ✅ Tag editor collapsed by default with pencil toggle
-4. ✅ Brief summary cards consolidated (6→4)
-5. ✅ Stale & expiring sections merged in brief
-6. ✅ Cross-links between brief, portfolio, and account pages
-7. ✅ Portfolio empty state with onboarding CTAs
-8. ✅ Mobile breakpoint for portfolio filters
-9. ✅ Health text labels alongside color dots
-10. ✅ Inspection timeline wired into portfolio card expansion
-11. ✅ Import confirmation expanded CTAs
-12. ✅ Brief footer links updated
-13. ✅ Action items → portfolio cross-link
+## Session 22 — Table B Expiration Rules + Regulatory Watch + Tier4 Ingestion (2026-02-16)
 
-### Tests: 836 passing (6 fail, 18 errors — all pre-existing)
+### Part A: Table B Permit Expiration (Bug Fix + Knowledge)
+- **Fixed 180-day expiration bug** — `brief.py` hardcoded `DEFAULT_VALIDITY_DAYS = 180` but 180 days only applies to demolition permits. Replaced with `_validity_days()` function using SFBC Section 106A.4.4 Table B valuation tiers:
+  - $1–$100,000: 360 days
+  - $100,001–$2,499,999: 1,080 days
+  - $2,500,000+: 1,440 days
+  - Demolition: 180 days
+- **Fixed report.py dormant/aging thresholds** — Now uses Table B lookup with `issued_date` instead of hardcoded 1095/730-day limits
+- **Created `permit-expiration-rules.json`** — Full Table A, Table B, expired permit recovery, fee refunds, investigation fees
 
-### Files Changed (16 files, +1822 / -70)
-- `src/db.py` — tags column migration
-- `web/app.py` — 6 new routes (portfolio, tags, timeline, discover, import)
-- `web/auth.py` — tag CRUD, get_user_tags()
-- `web/brief.py` — stale alerts, intelligence engine wiring, summary consolidation
-- `web/intelligence.py` — NEW: 8-rule proactive intelligence engine
-- `web/portfolio.py` — NEW: portfolio data assembly, discovery, import
-- `web/templates/index.html` — nav partial include
-- `web/templates/brief.html` — summary cards, merged sections, cross-links
-- `web/templates/portfolio.html` — NEW: portfolio dashboard page
-- `web/templates/account.html` — nav include, HTMX spinner
-- `web/templates/fragments/nav.html` — NEW: shared navigation
-- `web/templates/fragments/tag_editor.html` — NEW: collapsible tag editor
-- `web/templates/fragments/import_confirmation.html` — NEW: bulk import confirmation
-- `web/templates/fragments/inspection_timeline.html` — NEW: timeline progress bar
-- `web/templates/fragments/discover_results.html` — NEW: discovery results table
-- `tests/test_brief.py` — updated for new brief structure
+### Part B: Regulatory Watch System (New Feature)
+- **Database schema** — `regulatory_watch` table in both DuckDB and Postgres (14 columns incl. semantic_concepts JSON)
+- **CRUD module** — `web/regulatory_watch.py` with create, read, update, delete, list with status filter
+- **Query helpers** — `get_alerts_for_concepts()` (semantic matching), `get_approaching_effective()` (date filter), `get_regulatory_alerts()` (brief integration)
+- **Admin UI** — Dark-themed admin page with status filter tabs, impact badges, create modal, inline status updates
+- **Morning brief integration** — Section 7: Regulatory Watch with impact-level badges + admin link
+- **Property report integration** — `pending_regulation` risk type surfaces when permit concepts overlap with watched legislation
+- **Email integration** — Regulatory alerts section in morning brief email template
+
+### Part C: Full Tier4 → Tier1 Ingestion (6 New Knowledge Files)
+- **`permit-requirements.json`** — 19 permit types required under 106A.1, 26 exempt categories under 106A.2, UDU legalization (106A.3.1.3)
+- **`inspections-process.json`** — 9 required inspection stages, reinspection rules, off-hours inspections, concealed work
+- **`certificates-occupancy.json`** — Certificate requirements, temporary certificates (12-month validity), apartment/hotel licenses
+- **`enforcement-process.json`** — NOV pipeline, emergency orders, stop-work orders, investigation fees, civil/criminal penalties
+- **`appeals-bodies.json`** — Board of Examiners (13 members), Abatement Appeals Board, Access Appeals Commission, vacant building registration
+- **Loaded all 6 files in `knowledge_base.py`** — Added to KnowledgeBase `__init__` + SOURCE_REGISTRY citations
+
+### Tests & Fixes
+- **63 new tests** across `test_validity_days.py` (24 tests) and `test_regulatory_watch.py` (39 tests)
+- **Updated 7 existing tests** in `test_brief.py` and `test_report.py` for Table B thresholds
+- **Fixed DuckDB CASCADE constraint** — Removed unsupported `ON DELETE CASCADE` from `plan_analysis_images` foreign key
+- **Updated semantic index** — 6 new concepts, resolved GAP-14, expanded `permit_expiration` aliases
+
+### Files Changed (New)
+- `data/knowledge/tier1/permit-expiration-rules.json`
+- `data/knowledge/tier1/permit-requirements.json`
+- `data/knowledge/tier1/inspections-process.json`
+- `data/knowledge/tier1/certificates-occupancy.json`
+- `data/knowledge/tier1/enforcement-process.json`
+- `data/knowledge/tier1/appeals-bodies.json`
+- `web/regulatory_watch.py`
+- `web/templates/admin_regulatory_watch.html`
+- `tests/test_validity_days.py`
+- `tests/test_regulatory_watch.py`
+
+### Files Changed (Modified)
+- `web/brief.py` — `_validity_days()`, `_get_regulatory_alerts()`, expiring permits query
+- `web/report.py` — Table B lookup, `pending_regulation` risk type
+- `web/app.py` — Postgres migration + 4 admin routes
+- `src/db.py` — DuckDB `regulatory_watch` table + CASCADE fix
+- `src/tools/knowledge_base.py` — 6 new tier1 loads + SOURCE_REGISTRY entries
+- `data/knowledge/tier1/semantic-index.json` — 6 new concepts
+- `data/knowledge/GAPS.md` — GAP-14 resolved
+- `web/templates/brief.html` — Regulatory alerts section + Table B text
+- `web/templates/brief_email.html` — Regulatory alerts section
+- `tests/test_brief.py` — Updated expiration thresholds for Table B
+- `tests/test_report.py` — Updated dormant/aging test expectations
 
 ---
 
@@ -219,6 +243,7 @@
 ---
 
 ## Session 21.3 — Permit Lookup UX Enhancements + Critical Fixes (2026-02-16)
+>>>>>>> origin/main
 
 ### Hourglass Spinner + Action Buttons
 - **Added hourglass spinner to permit lookup** — Visual consistency across all forms (⏳ with pulsing dots)

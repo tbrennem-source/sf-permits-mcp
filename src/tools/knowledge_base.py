@@ -67,6 +67,7 @@ class KnowledgeBase:
 
         # Compliance knowledge (Phase 2.6 supplement)
         self.title24 = _load_json(tier1 / "title24-energy-compliance.json")
+        self.green_building = _load_json(tier1 / "green-building-requirements.json")
         self.dph_food = _load_json(tier1 / "dph-food-facility-requirements.json")
         self.ada_accessibility = _load_json(tier1 / "ada-accessibility-requirements.json")
 
@@ -79,6 +80,14 @@ class KnowledgeBase:
 
         # Phase E — Owner Mode remediation roadmap
         self.remediation_roadmap = _load_json(tier1 / "remediation-roadmap.json")
+
+        # Building Code deep-dive — full SFBC ingestion from tier4
+        self.permit_expiration_rules = _load_json(tier1 / "permit-expiration-rules.json")
+        self.permit_requirements = _load_json(tier1 / "permit-requirements.json")
+        self.inspections_process = _load_json(tier1 / "inspections-process.json")
+        self.certificates_occupancy = _load_json(tier1 / "certificates-occupancy.json")
+        self.enforcement_process = _load_json(tier1 / "enforcement-process.json")
+        self.appeals_bodies = _load_json(tier1 / "appeals-bodies.json")
 
         # Build keyword index from semantic index
         self._keyword_index = self._build_keyword_index()
@@ -225,6 +234,10 @@ SOURCE_REGISTRY: dict[str, dict[str, str]] = {
         "label": "DBI Title-24 Energy Compliance (M-03, M-04, M-06, M-08)",
         "url": "https://sf.gov/resource/2022/information-sheets-dbi",
     },
+    "green_building": {
+        "label": "AB-093: Green Building Requirements (GS form logic, LEED/GreenPoint, compliance methods)",
+        "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-89498",
+    },
     "dph_food": {
         "label": "DPH Food Facility Construction Requirements (22 checks)",
         "url": "https://www.sfdph.org/dph/EH/Food/default.asp",
@@ -248,6 +261,30 @@ SOURCE_REGISTRY: dict[str, dict[str, str]] = {
     "remediation_roadmap": {
         "label": "SF Permits Remediation Roadmap (risk-to-action mapping)",
         "url": "https://sfpermits-ai-production.up.railway.app/report",
+    },
+    "permit_expiration_rules": {
+        "label": "SFBC Section 106A.4.4 — Permit Expiration Rules (Table A, Table B)",
+        "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/",
+    },
+    "permit_requirements": {
+        "label": "SFBC Section 106A.1–106A.3 — Permit Requirements & Exemptions",
+        "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/",
+    },
+    "inspections_process": {
+        "label": "SFBC Section 109A — Inspections (9 stages, reinspection rules)",
+        "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/",
+    },
+    "certificates_occupancy": {
+        "label": "SFBC Section 110A — Certificates of Occupancy & Apartment Licenses",
+        "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/",
+    },
+    "enforcement_process": {
+        "label": "SFBC Sections 102A.8–102A.12 — Enforcement, NOVs, Penalties",
+        "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/",
+    },
+    "appeals_bodies": {
+        "label": "SFBC Sections 103A–105A — Appeals Bodies, Vacant Building Registration",
+        "url": "https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/",
     },
     "duckdb_permits": {
         "label": "SF Open Data — Building Permits (1.1M+ records via SODA API)",
