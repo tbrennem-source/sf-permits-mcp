@@ -1,5 +1,18 @@
 # Changelog
 
+## Session 21.10 — Fix 5 Analyze Plans QA Bugs (2026-02-17)
+
+### Bug Fixes
+- **ZIP Download 500 fix** — PostgreSQL JSONB returns Python objects (not JSON strings); `get_session()` now handles already-parsed list/dict via `isinstance()` check instead of always calling `json.loads()`
+- **All thumbnails shown** — Thumbnail gallery now loops `range(page_count)` (all 17 pages) instead of `extractions` (only 5 vision-sampled pages)
+- **Print/Download Report scoped** — Added `@media print` CSS that hides toolbar, gallery, lightbox, comparison, email modal; `printReport()` JS wrapper adds `printing-report` class to `<body>` during print
+- **Email route fixed** — 4 sub-fixes: accept `session_id` route param, import `send_brief_email` (not `send_email`), use correct arg names (`to_email`, `html_body`), use `logging.error` (not `logger`)
+
+### Files Modified
+- `web/plan_images.py` — JSONB isinstance check (line 109)
+- `web/templates/analyze_plans_results.html` — Thumbnail loop, @media print CSS (80+ lines), `printReport()` JS function
+- `web/app.py` — Email route rewritten with correct imports, params, and error handling
+
 ## Session 20 — Phase 4.5: Visual Plan Analysis UI (2026-02-16)
 
 ### Visual Plan Gallery & Viewer
