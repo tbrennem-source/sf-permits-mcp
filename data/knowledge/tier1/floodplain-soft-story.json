@@ -1,0 +1,50 @@
+{
+  "source": "sf.gov DBI — Floodplain Management Requirements, Soft Story Retrofit",
+  "source_urls": [
+    "https://www.sf.gov/comply-floodplain-management-requirements/",
+    "https://www.sf.gov/step-by-step--get-building-permit-do-soft-story-retrofit/"
+  ],
+  "last_verified": "2026-02-17",
+  "description": "Floodplain compliance requirements and mandatory soft story seismic retrofit program",
+  "floodplain": {
+    "triggers": {
+      "both_required": [
+        "Property located within FEMA FIRM Flood Hazard zone",
+        "Project involves new construction OR costs exceed 50% of structure's market value"
+      ],
+      "check_method": "Property Information Map → Environmental Information tab → Flooding: FEMA FIRM Flood Hazards (Coastal)",
+      "note": "Stormwater flood zones alone do NOT trigger requirements"
+    },
+    "required_documents": {
+      "before_permit_approval": [
+        "Completed Flood Hazard Zone Protection Checklist (page 5, attachment A of Info Sheet G-28)",
+        "Checklist signed and stamped by CA-licensed engineer or architect",
+        "Plans showing property's flood zone"
+      ],
+      "before_occupancy_certificate": [
+        "FEMA Elevation Certificate",
+        "FEMA Flood-proofing Certificate (if using dry flood-proofing methods)"
+      ]
+    },
+    "construction_standards": "Projects must be elevated above floodwaters or flood-proofed, and must not cause physical damage to neighboring properties during flooding",
+    "exemptions": "DBI and SF Planning may modify requirements for historic structures, water-dependent facilities, or exceptional hardships (case-by-case)",
+    "reference": "Information Sheet G-28"
+  },
+  "soft_story": {
+    "description": "Mandatory seismic upgrade program for specific wood-frame multi-family buildings",
+    "affected_buildings": "Wood-frame multi-family buildings on mandatory Soft Story property list",
+    "eligibility_check": "Search DBI's Soft Story property list",
+    "steps": [
+      {"step": 1, "title": "Verify eligibility", "detail": "Check if building is on mandatory Soft Story property list"},
+      {"step": 2, "title": "Design plans", "detail": "Hire designer/architect/engineer. Bring 2 sets."},
+      {"step": 3, "title": "Complete role forms", "detail": "Owner package or contractor statement"},
+      {"step": 4, "title": "Submit applications", "detail": "OTC permit application + Green Building forms at Permit Center"},
+      {"step": 5, "title": "Address plan revisions", "detail": "Update plans per plan check comments, coordinate with assigned plan checker"},
+      {"step": 6, "title": "Pay fees and begin work", "detail": "3-4.5% of construction cost. Get job card before starting."}
+    ],
+    "fees": "3-4.5% of construction cost",
+    "tax_incentive": "Seismic retrofit may qualify for CA property tax exclusion — file claim with Assessor's Office before or within 30 days of completion",
+    "deadline": "Original deadline was September 15, 2021",
+    "professional_required": true
+  }
+}

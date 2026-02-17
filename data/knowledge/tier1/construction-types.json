@@ -1,0 +1,43 @@
+{
+  "source": "sf.gov DBI — Building Construction Type Definitions",
+  "source_url": "https://www.sf.gov/information--building-construction-type-definitions/",
+  "last_verified": "2026-02-17",
+  "description": "Five main building construction types (I-V) with fire-resistance ratings",
+  "construction_types": [
+    {
+      "type": "I", "name": "Fire Resistive Non-Combustible",
+      "subtypes": [
+        {"subtype": "I-A", "common_use": "High-rise buildings", "exterior_walls": "3-hour", "structural_frame": "3-hour", "floor_ceiling": "2-hour", "roof": "1.5-hour"},
+        {"subtype": "I-B", "common_use": "Mid-rise office and Group R buildings", "exterior_walls": "2-hour", "structural_frame": "2-hour", "floor_ceiling": "2-hour"}
+      ]
+    },
+    {
+      "type": "II", "name": "Protected & Unprotected Non-Combustible",
+      "subtypes": [
+        {"subtype": "II-A", "common_use": "Newer school buildings", "all_components": "1-hour"},
+        {"subtype": "II-B", "common_use": "Most common non-combustible commercial", "fire_resistance": "None"}
+      ]
+    },
+    {
+      "type": "III", "name": "Protected & Unprotected Combustible (Ordinary)",
+      "subtypes": [
+        {"subtype": "III-A", "common_use": "Ordinary construction", "exterior_walls": "2-hour", "interior": "1-hour"},
+        {"subtype": "III-B", "common_use": "Ordinary with masonry walls", "exterior_walls": "Masonry", "interior_fire_resistance": "None"}
+      ]
+    },
+    {
+      "type": "IV", "name": "Heavy Timber (Mill Construction)",
+      "minimum_member_size": "8-inch nominal dimensions",
+      "exterior_walls": "2-hour",
+      "floor_ceiling": "Heavy timber assemblies"
+    },
+    {
+      "type": "V", "name": "Protected & Unprotected Wood Frame",
+      "subtypes": [
+        {"subtype": "V-A", "common_use": "Newer apartment buildings", "fire_resistance": "1-hour", "exposed_wood": false},
+        {"subtype": "V-B", "common_use": "Single family homes and garages", "fire_resistance": "None"}
+      ]
+    }
+  ],
+  "permit_relevance": "Construction type determines fire-resistance requirements, sprinkler triggers, maximum height/area, and which code sections apply to alterations and change-of-use"
+}

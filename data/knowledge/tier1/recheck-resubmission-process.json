@@ -1,0 +1,76 @@
+{
+  "source": "sf.gov DBI — Recheck plans, Resubmit for streamlined housing, Affordable housing online",
+  "source_urls": [
+    "https://www.sf.gov/recheck-plans-OTC-building-permit-application/",
+    "https://www.sf.gov/resubmit-building-permit-new-housing-using-citys-streamlined-process/",
+    "https://www.sf.gov/apply-building-permit-affordable/"
+  ],
+  "last_verified": "2026-02-17",
+  "description": "Post-filing processes: plan rechecks, streamlined housing resubmission, affordable housing online permits",
+  "plan_recheck": {
+    "when": "At the end of plan review, you may need to revise plans and bring them back for a recheck",
+    "process": {
+      "step_1": "Revise plans and print updated sheets",
+      "step_2": "Contact assigned plan checker via email to coordinate timing",
+      "step_3": "Register at Permit Center via Qless system"
+    },
+    "otc_recheck": {
+      "registration": "Register as 'OTC recheck'",
+      "queue": "Two customers queue per plan checker; may wait onsite",
+      "contact": "Email plan checker for availability"
+    },
+    "inhouse_recheck": {
+      "registration": "Register as 'In-house recheck' with scheduled appointment",
+      "stations": "Reviews at stations 68 and 69",
+      "contact": "Schedule formal appointment with plan checker"
+    },
+    "qless_times": {
+      "morning": "8 AM start (9 AM Wednesdays)",
+      "afternoon": "11:30 AM start"
+    },
+    "location": "Permit Center, 49 South Van Ness, 2nd floor",
+    "hours": "Mon-Fri 8-5 (Mon 9-5). Queues close 4:30 PM; payments until 5 PM.",
+    "staff_directory_note": "If you lack plan checker contact info, find it in the DBI staff directory",
+    "contact": "dbicustomerservice@sfgov.org"
+  },
+  "streamlined_housing_resubmission": {
+    "description": "Withdraw and resubmit housing permits filed before 1/1/2024 to benefit from faster timelines and enhanced legal protections",
+    "eligibility": {
+      "filed_before": "January 1, 2024",
+      "project_type": "At least two-thirds residential"
+    },
+    "steps": [
+      "Withdraw original application using Unissued Extension or Withdrawal Form",
+      "Request partial refund of permit fees via Refund Request Form",
+      "Review step-by-step guide for In-house Review submission",
+      "Resubmit through online permit application portal"
+    ],
+    "legal_context": {
+      "AB_2234_2022": {
+        "completeness_notice": "Building departments must notify within 15 days if application is complete",
+        "approval_timelines": {
+          "25_units_or_fewer": "30 business days",
+          "26_plus_units": "60 business days"
+        }
+      },
+      "AB_1114_2023": {
+        "effect": "Broadens post-entitlement permit definition; removes ability to subject permits to public appeals or legal challenges",
+        "benefit": "Insulates applicants from costly post-issuance legal battles"
+      }
+    }
+  },
+  "affordable_housing_online": {
+    "qualifying_projects": [
+      "100% affordable housing projects",
+      "Development Agreement projects (require Board of Supervisors + Mayor approval)"
+    ],
+    "submission_requirements": {
+      "plans": "Editable PDFs, max 350 MB each",
+      "title_blocks": "Project address, sheet count, sheet names required",
+      "stamps": "Every sheet must have signature and stamp",
+      "back_check_page": "Include city's required Back Check Page PDF for Bluebeam submissions"
+    },
+    "priority_confirmation": "Request letter from City department partner if project qualifies",
+    "contact": "dbi.epr@sfgov.org"
+  }
+}

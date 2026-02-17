@@ -5,7 +5,7 @@
     "created_date": "2026-02-14",
     "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
     "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
-    "total_concepts": 66
+    "total_concepts": 78
   },
 
   "concepts": {
@@ -966,6 +966,120 @@
       ],
       "decision_tree_step": 3,
       "related_concepts": ["seismic", "otc_review", "plan_signature_requirements"]
+    },
+
+    "otc_step_by_step": {
+      "canonical_name": "OTC Permit Step-by-Step Guides",
+      "aliases": ["OTC process", "OTC steps", "how to get OTC permit", "residential remodel permit", "exterior permit", "commercial permit steps", "pink form", "Form 3/8", "permit center process", "walk-in permit process"],
+      "description": "Detailed step-by-step guides for OTC permit applications: residential interior, residential exterior, and commercial projects.",
+      "authoritative_sources": [
+        {"file": "tier1/otc-step-by-step.json", "path": "otc_residential_interior", "role": "9-step interior residential remodel OTC guide"},
+        {"file": "tier1/otc-step-by-step.json", "path": "otc_residential_exterior", "role": "9-step exterior residential OTC guide"},
+        {"file": "tier1/otc-step-by-step.json", "path": "otc_commercial", "role": "7-step commercial OTC guide"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["otc_review", "permit_forms", "fees"]
+    },
+
+    "adu": {
+      "canonical_name": "Accessory Dwelling Unit (ADU) Programs",
+      "aliases": ["ADU", "accessory dwelling unit", "granny flat", "in-law unit", "in law", "cottage", "garage apartment", "ADU pre-approval", "pre-approved plans", "unit legalization", "legalize unit", "illegal unit", "unpermitted unit", "unit conversion", "add a unit", "second unit", "backyard cottage", "detached ADU"],
+      "description": "ADU permitting programs: new ADU construction, detached ADU plan pre-approval, and unit legalization for pre-2013 units.",
+      "authoritative_sources": [
+        {"file": "tier1/adu-programs.json", "path": "adu_overview", "role": "ADU program overview, requirements, partner agencies"},
+        {"file": "tier1/adu-programs.json", "path": "detached_adu_pre_approval", "role": "Pre-approved detached ADU plans program ($1,472 fee)"},
+        {"file": "tier1/adu-programs.json", "path": "unit_legalization", "role": "Unit Legalization Program for pre-2013 units (6-9% fee)"}
+      ],
+      "decision_tree_step": 3,
+      "related_concepts": ["inhouse_review", "planning_review", "street_trees"]
+    },
+
+    "pre_application_meeting": {
+      "canonical_name": "Pre-Application Meeting",
+      "aliases": ["pre-application", "pre-app meeting", "pre app", "code interpretation meeting", "pre-plan meeting", "pre application review", "binding agreement", "meet with DBI", "consult DBI"],
+      "description": "Voluntary meetings with DBI and Fire to review code issues before applying. Written agreements are binding.",
+      "authoritative_sources": [
+        {"file": "tier1/pre-application-meetings.json", "path": "fees", "role": "Fee schedule: $1,472 building, $612 fire, $368/hr overage"},
+        {"file": "tier1/pre-application-meetings.json", "path": "how_to_schedule", "role": "Submission process and email"},
+        {"file": "tier1/pre-application-meetings.json", "path": "key_benefit", "role": "Binding code interpretations"}
+      ],
+      "related_concepts": ["inhouse_review", "agency_routing"]
+    },
+
+    "plan_recheck": {
+      "canonical_name": "Plan Recheck & Resubmission Process",
+      "aliases": ["recheck", "resubmit", "plan check comments", "plan revision", "back check", "recheck plans", "plan corrections", "plan checker", "Qless", "station 68", "station 69", "streamlined housing", "AB 2234", "AB 1114", "affordable housing permit"],
+      "description": "Post-filing processes: responding to plan check comments, scheduling rechecks, and streamlined housing resubmission.",
+      "authoritative_sources": [
+        {"file": "tier1/recheck-resubmission-process.json", "path": "plan_recheck", "role": "Recheck scheduling, Qless system, station assignments"},
+        {"file": "tier1/recheck-resubmission-process.json", "path": "streamlined_housing_resubmission", "role": "AB 2234/1114 streamlined housing timelines"},
+        {"file": "tier1/recheck-resubmission-process.json", "path": "affordable_housing_online", "role": "Online affordable housing permit submission"}
+      ],
+      "related_concepts": ["inhouse_review", "otc_review", "timeline"]
+    },
+
+    "permit_issuance": {
+      "canonical_name": "Permit Issuance Documents",
+      "aliases": ["permit issuance", "job card", "get job card", "pick up permit", "contractor statement", "owner disclosure", "workman's compensation", "insurance", "permit payment", "permit pickup", "issuance documents", "plans required", "do I need plans"],
+      "description": "Documents required to pick up an issued permit and whether plans are required for different project types.",
+      "authoritative_sources": [
+        {"file": "tier1/permit-issuance-documents.json", "path": "issuance_documents", "role": "Required forms, insurance, payment, ID"},
+        {"file": "tier1/permit-issuance-documents.json", "path": "plans_requirements", "role": "Which permits need plans vs no-plans"}
+      ],
+      "related_concepts": ["permit_forms", "fees", "otc_review"]
+    },
+
+    "geotechnical": {
+      "canonical_name": "Geotechnical Reports & Third-Party Engineering",
+      "aliases": ["geotechnical", "geotech", "soils report", "soil report", "hillside", "landslide", "slope", "excavation", "third-party engineering", "structural advisory committee", "Mount Sutro", "Edgehill", "seismic hazard zone", "liquefaction"],
+      "description": "When geotechnical reports and independent engineering review are required for building permits.",
+      "authoritative_sources": [
+        {"file": "tier1/geotechnical-requirements.json", "path": "geotechnical_report", "role": "When geotech reports are required and what they must contain"},
+        {"file": "tier1/geotechnical-requirements.json", "path": "third_party_engineering_review", "role": "Triggers for independent engineering review"},
+        {"file": "tier1/geotechnical-requirements.json", "path": "structural_advisory_committee", "role": "Mount Sutro and Edgehill special review"}
+      ],
+      "related_concepts": ["seismic", "inhouse_review"]
+    },
+
+    "construction_type": {
+      "canonical_name": "Building Construction Types",
+      "aliases": ["construction type", "Type I", "Type II", "Type III", "Type IV", "Type V", "fire resistive", "non-combustible", "heavy timber", "wood frame", "combustible", "I-A", "I-B", "II-A", "II-B", "III-A", "III-B", "V-A", "V-B", "mill construction"],
+      "description": "Five construction types (I-V) with fire-resistance ratings, affecting sprinkler triggers, height/area limits, and code requirements.",
+      "authoritative_sources": [
+        {"file": "tier1/construction-types.json", "path": "construction_types", "role": "All 5 types with subtypes and fire-resistance ratings"}
+      ],
+      "related_concepts": ["fire_code", "sprinklers"]
+    },
+
+    "floodplain": {
+      "canonical_name": "Floodplain Management Requirements",
+      "aliases": ["floodplain", "flood zone", "FEMA", "FIRM", "flood hazard", "elevation certificate", "flood-proofing", "coastal flooding"],
+      "description": "Requirements for projects in FEMA FIRM Flood Hazard zones.",
+      "authoritative_sources": [
+        {"file": "tier1/floodplain-soft-story.json", "path": "floodplain", "role": "Triggers, required documents, construction standards, exemptions"}
+      ],
+      "related_concepts": ["geotechnical", "inhouse_review"]
+    },
+
+    "soft_story": {
+      "canonical_name": "Soft Story Retrofit Program",
+      "aliases": ["soft story", "soft-story", "seismic retrofit", "mandatory retrofit", "wood frame multi-family", "soft story program", "seismic upgrade"],
+      "description": "Mandatory seismic retrofit program for wood-frame multi-family buildings.",
+      "authoritative_sources": [
+        {"file": "tier1/floodplain-soft-story.json", "path": "soft_story", "role": "Program details, affected buildings, 7-step process, tax incentive"}
+      ],
+      "related_concepts": ["seismic", "earthquake_brace_bolt", "otc_review"]
+    },
+
+    "code_transition_2025": {
+      "canonical_name": "2025 SF Code Amendments",
+      "aliases": ["2025 code", "new code", "code update", "code change", "2025 amendments", "code cycle", "January 2026", "new building code", "current code", "which code applies"],
+      "description": "2025 SF Building Code amendments effective January 1, 2026 with no grace period. All filings after that date must comply with 2025 codes.",
+      "authoritative_sources": [
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs", "role": "7 amendment PDFs with download URLs"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "effective_date", "role": "January 1, 2026 — no grace period"}
+      ],
+      "related_concepts": ["green_building", "fire_code", "permit_requirements"]
     }
   }
 }

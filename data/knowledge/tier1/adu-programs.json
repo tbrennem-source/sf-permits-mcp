@@ -1,0 +1,92 @@
+{
+  "source": "sf.gov DBI — ADU topic page, Detached ADU Pre-Approval, Unit Legalization Program",
+  "source_urls": [
+    "https://www.sf.gov/topics--accessory-dwelling-unit-adu/",
+    "https://www.sf.gov/get-your-detached-accessory-dwelling-unit-adu-plan-pre-approved-future-use/",
+    "https://www.sf.gov/step-by-step--legalize-unit-your-home/"
+  ],
+  "last_verified": "2026-02-17",
+  "description": "ADU permitting programs: new ADU construction, detached ADU pre-approval, and unit legalization",
+  "adu_overview": {
+    "also_known_as": ["granny flats", "in-law units", "cottages", "garage apartments"],
+    "services": [
+      "Apply for ADU building permit",
+      "Design units meeting safety and livability codes",
+      "Pre-approved detached ADU plans",
+      "Permit Review Roundtable for State Program ADUs"
+    ],
+    "requirements": {
+      "street_trees": "One street tree per every 20 feet of frontage bordering public right of way",
+      "local_program_notice": "Post notice 15 days before submitting Local program ADU applications"
+    },
+    "partner_agencies": ["SF Planning", "DBI", "Fire Department", "Public Utilities Commission"],
+    "contact": "628-652-3200 | dbicustomerservice@sfgov.org"
+  },
+  "detached_adu_pre_approval": {
+    "description": "Building designers submit detached ADU plans for official approval; once approved, plans can be used for multiple site-specific projects",
+    "fee": "$1,472 flat fee per submission",
+    "submit_to": "dbi.preapprequests@sfgov.org",
+    "design_standard": "Plans must be designed for 25-foot lots",
+    "code_cycle_validity": "Pre-approval valid only during current code cycle; resubmission required if codes change",
+    "geographic_restrictions": [
+      "Cannot be used in slope protection areas",
+      "Cannot be used in landslide/liquefaction zones",
+      "Cannot be used in Maher Zones",
+      "Cannot be used in flood zones"
+    ],
+    "required_documents": [
+      "Completed detached ADU pre-approval application form",
+      "Stamped and signed construction plans",
+      "Structural calculations (maximum probable dead load design)",
+      "Energy calculations",
+      "Fire sprinkler design",
+      "Website image (225x150 pixels max)"
+    ],
+    "review_elements": [
+      "Building size, height and setbacks",
+      "Habitable room sizes and ceiling heights",
+      "Window size, natural light and ventilation",
+      "Title 24 lighting",
+      "Gravity, wind and seismic code compliance",
+      "Dead loads, fire ratings, egress paths",
+      "Heating systems, green building requirements"
+    ],
+    "post_approval_process": [
+      "Submission deemed complete",
+      "Payment instructions sent",
+      "Permit Review Roundtable scheduled for feedback",
+      "Designer makes revisions for code compliance",
+      "Plans resubmitted and reviewed",
+      "Acceptance as pre-approved ADU plan"
+    ],
+    "site_specific_review": [
+      "Planning Code compliance",
+      "Soils reports",
+      "Fire separation distances",
+      "Foundation design",
+      "Drainage requirements"
+    ]
+  },
+  "unit_legalization": {
+    "description": "Program to legalize residential units built before 2013 without permits",
+    "eligibility": {
+      "built_before": "2013",
+      "requirement": "Must be an independent space where someone can live full-time without walking through the main house"
+    },
+    "steps": [
+      {"step": 1, "title": "Feasibility check", "detail": "Hire CA-licensed architect, contractor, or civil/structural engineer to assess code compliance"},
+      {"step": 2, "title": "Optional pre-application meeting", "detail": "Cost $348-$2,162, 2 hours, with DBI/Planning/Fire Department"},
+      {"step": 3, "title": "Building permit application", "detail": "Submit 2 sets of plans. Fees 6-9% of building costs (half upfront). Can get separate permit for additional work."},
+      {"step": 4, "title": "Department review", "detail": "Quality review, routing to Planning/DBI/Fire. Plan review via Bluebeam. Planning issues Notice of Special Restriction (must be notarized and recorded at Assessor's office)."},
+      {"step": 5, "title": "Street tree permit", "detail": "Free to apply. In-lieu fee: $2,193 per tree. Submit checklist even if not planting."},
+      {"step": 6, "title": "Construction", "detail": "Receive job card. Schedule inspections before covering work."},
+      {"step": 7, "title": "Final completion", "detail": "Certificate of final completion issued after final inspection."}
+    ],
+    "fees": "6-9% of building costs (half upfront)",
+    "contacts": {
+      "general": "permitcenter@sfgov.org",
+      "alternative_programs": "cpc.adu@sfgov.org",
+      "condo_conversion": "SF Public Works"
+    }
+  }
+}
