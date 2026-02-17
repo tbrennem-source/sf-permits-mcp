@@ -1012,7 +1012,7 @@
             <div class="section-divider"></div>
 
             <h2 class="section-title">Analyze Plans (AI Vision)</h2>
-            <p class="subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. Full Analysis uses AI vision for EPR compliance, title block extraction, and strategic recommendations.</p>
+            <p class="subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. Full Analysis uses AI vision to annotate your plans with EPR issues, code references, dimensions, and compliance checks.</p>
 
             <div class="form-card">
                 <form hx-post="/analyze-plans"
@@ -1098,9 +1098,13 @@
                         </button>
                         <button type="button" class="btn btn-secondary" id="full-analysis-btn" style="flex:1;"
                                 onclick="submitFullAnalysis(this)">
-                            Full Analysis
+                            Full Analysis (AI Markup)
                         </button>
                     </div>
+                    <p style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:10px;line-height:1.5;">
+                        Full Analysis includes AI-powered annotations &mdash; EPR issues, code references,
+                        dimensions, and more marked directly on your plan pages.
+                    </p>
                 </form>
             </div>
 
@@ -1156,7 +1160,7 @@
                         var faBtn = document.getElementById('full-analysis-btn');
                         if (faBtn) {
                             faBtn.classList.remove('btn-active');
-                            faBtn.textContent = 'Full Analysis';
+                            faBtn.textContent = 'Full Analysis (AI Markup)';
                             faBtn.disabled = false;
                         }
                     }
@@ -1172,13 +1176,20 @@
                         if (qcField) qcField.value = 'on';
                     });
 
-                    // Error handler
+                    // Error handler — show user-visible feedback on failures
                     form.addEventListener('htmx:responseError', function(evt) {
                         console.error('[Analyze Plans] HTMX error:', evt.detail);
                         loadingIndicator.style.display = 'none';
                         submitButton.disabled = false;
                         submitButton.style.opacity = '1';
                         resetFullAnalysisBtn();
+                        // Show user-visible error message
+                        var resultsDiv = document.getElementById('analyze-plans-results');
+                        if (resultsDiv) {
+                            resultsDiv.innerHTML = '<div style="text-align:center;padding:32px;color:var(--error, #f87171);">' +
+                                '<p style="font-size:1.1rem;font-weight:600;">Analysis request failed</p>' +
+                                '<p style="margin-top:8px;color:var(--text-muted);font-size:0.9rem;">The server may be busy. Please try again.</p></div>';
+                        }
                     });
                 }
 
