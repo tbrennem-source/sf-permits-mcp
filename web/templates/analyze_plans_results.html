@@ -561,6 +561,39 @@
         display: flex;
         gap: 8px;
         align-items: center;
+        position: relative;
+    }
+
+    /* Annotation legend dropdown */
+    .annotation-legend {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 6px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 16px;
+        z-index: 10;
+        min-width: 220px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+        font-size: 0.82rem;
+        color: var(--text);
+    }
+
+    .legend-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.2);
     }
 
     .annotation-controls select {
@@ -681,6 +714,9 @@
             {% if quick_check %}
             <span style="display: inline-block; margin-left: 12px; background: var(--surface-2); border: 1px solid var(--border); padding: 2px 10px; border-radius: 12px; font-size: 0.8rem;">Quick Check (metadata only)</span>
             {% endif %}
+            {% if annotation_count is defined and annotation_count > 0 %}
+            <span class="file-hint">&middot; {{ annotation_count }} annotation{{ 's' if annotation_count != 1 }}</span>
+            {% endif %}
         </div>
     </div>
 
@@ -700,10 +736,10 @@
             🖨️ Print Report
         </button>
         <div class="annotation-controls">
-            <button id="toggle-annotations" onclick="toggleAnnotations()" class="action-btn ann-toggle-on">
+            <button id="toggle-annotations" onclick="toggleAnnotations()" class="action-btn ann-toggle-on" aria-label="Toggle annotations">
                 Annotations: ON
             </button>
-            <select id="annotation-filter" onchange="filterAnnotations()">
+            <select id="annotation-filter" onchange="filterAnnotations()" aria-label="Filter annotation types">
                 <option value="all">All Types</option>
                 <option value="epr_issue">EPR Issues</option>
                 <option value="code_reference">Code References</option>
@@ -711,9 +747,16 @@
                 <option value="occupancy_label">Occupancy</option>
                 <option value="construction_type">Construction Type</option>
                 <option value="scope_indicator">Scope</option>
+                <option value="title_block">Title Block</option>
                 <option value="stamp">Stamps</option>
                 <option value="structural_element">Structural</option>
+                <option value="general_note">General Note</option>
+                <option value="reviewer_note">Reviewer Notes</option>
             </select>
+            <button onclick="toggleLegend()" class="action-btn" id="legend-btn" aria-label="Show annotation legend">
+                Legend
+            </button>
+            <div id="annotation-legend" class="annotation-legend" style="display:none;"></div>
         </div>
     </div>
 
@@ -728,7 +771,7 @@
                      alt="Page {{ page_num + 1 }}"
                      class="thumbnail-img"
                      onload="renderThumbnailAnnotations(this, {{ page_num }})">
-                <svg class="annotation-layer annotation-thumbnail" data-page="{{ page_num }}"></svg>
+                <svg class="annotation-layer annotation-thumbnail" data-page="{{ page_num }}" role="img" aria-label="Annotations for page {{ page_num + 1 }}"></svg>
             </div>
             <div class="thumbnail-overlay">
                 <div class="page-num">Page {{ page_num + 1 }}</div>
@@ -752,7 +795,7 @@
             <div class="detail-image annotated-image">
                 <img id="detail-img" src="" alt="Page detail"
                      onload="renderAnnotations(this, document.getElementById('detail-annotations'), currentPage)">
-                <svg id="detail-annotations" class="annotation-layer"></svg>
+                <svg id="detail-annotations" class="annotation-layer" role="img" aria-label="Detail view annotations"></svg>
             </div>
             <div class="detail-metadata">
                 <table class="metadata-table">
@@ -778,7 +821,7 @@
             <div class="annotated-image" style="max-width:100%;max-height:80vh;">
                 <img id="lightbox-img" src="" alt="Full screen view"
                      onload="renderAnnotations(this, document.getElementById('lightbox-annotations'), currentPage)">
-                <svg id="lightbox-annotations" class="annotation-layer"></svg>
+                <svg id="lightbox-annotations" class="annotation-layer" role="img" aria-label="Lightbox annotations"></svg>
             </div>
             <button class="lightbox-next" onclick="event.stopPropagation(); nextPage()">&rsaquo;</button>
             <div class="lightbox-info">
@@ -806,7 +849,7 @@
                 <div class="annotated-image">
                     <img id="compare-left-img" src="" alt="Left comparison"
                          onload="renderComparisonAnnotations('left')">
-                    <svg id="compare-left-annotations" class="annotation-layer"></svg>
+                    <svg id="compare-left-annotations" class="annotation-layer" role="img" aria-label="Left comparison annotations"></svg>
                 </div>
             </div>
             <div class="comparison-side">
@@ -817,7 +860,7 @@
                 <div class="annotated-image">
                     <img id="compare-right-img" src="" alt="Right comparison"
                          onload="renderComparisonAnnotations('right')">
-                    <svg id="compare-right-annotations" class="annotation-layer"></svg>
+                    <svg id="compare-right-annotations" class="annotation-layer" role="img" aria-label="Right comparison annotations"></svg>
                 </div>
             </div>
         </div>
@@ -890,23 +933,38 @@
     const pageCount = {{ page_count or 0 }};
     const extractions = {{ extractions_json | safe }};
     const pageAnnotations = {{ annotations_json | safe }};
-    let annotationsVisible = true;
-    let annotationFilter = 'all';
+    let annotationsVisible = localStorage.getItem('annotationsVisible') !== 'false';
+    let annotationFilter = localStorage.getItem('annotationFilter') || 'all';
 
     // ===========================
     // Annotation Color Map
     // ===========================
     const ANNOTATION_COLORS = {
-        epr_issue:          '#ef4444',
-        code_reference:     '#22c55e',
-        dimension:          '#3b82f6',
-        occupancy_label:    '#a855f7',
-        construction_type:  '#a855f7',
-        scope_indicator:    '#f97316',
-        title_block:        '#6b7280',
-        stamp:              '#6b7280',
-        structural_element: '#22c55e',
-        general_note:       '#22c55e',
+        epr_issue:          '#ef4444',   // red
+        code_reference:     '#22c55e',   // green
+        dimension:          '#3b82f6',   // blue
+        occupancy_label:    '#a855f7',   // purple
+        construction_type:  '#14b8a6',   // teal
+        scope_indicator:    '#f97316',   // orange
+        title_block:        '#6b7280',   // gray
+        stamp:              '#78716c',   // warm gray
+        structural_element: '#eab308',   // yellow
+        general_note:       '#8b5cf6',   // violet
+        reviewer_note:      '#ec4899',   // pink
+    };
+
+    const ANNOTATION_LABELS = {
+        epr_issue:          'EPR Issue',
+        code_reference:     'Code Reference',
+        dimension:          'Dimension',
+        occupancy_label:    'Occupancy',
+        construction_type:  'Construction Type',
+        scope_indicator:    'Scope Indicator',
+        title_block:        'Title Block',
+        stamp:              'Professional Stamp',
+        structural_element: 'Structural Element',
+        general_note:       'General Note',
+        reviewer_note:      'Reviewer Note',
     };
 
     // ===========================
@@ -1064,6 +1122,7 @@
 
     function toggleAnnotations() {
         annotationsVisible = !annotationsVisible;
+        localStorage.setItem('annotationsVisible', annotationsVisible);
         const btn = document.getElementById('toggle-annotations');
         btn.textContent = `Annotations: ${annotationsVisible ? 'ON' : 'OFF'}`;
         if (annotationsVisible) {
@@ -1076,6 +1135,7 @@
 
     function filterAnnotations() {
         annotationFilter = document.getElementById('annotation-filter').value;
+        localStorage.setItem('annotationFilter', annotationFilter);
         refreshAllAnnotations();
     }
 
@@ -1371,5 +1431,60 @@
             }
         }
     });
+
+    // ===========================
+    // Window Resize Handler
+    // ===========================
+    let _resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(refreshAllAnnotations, 200);
+    });
+
+    // ===========================
+    // Annotation Legend
+    // ===========================
+    function toggleLegend() {
+        const el = document.getElementById('annotation-legend');
+        if (!el.innerHTML) buildLegend();
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function buildLegend() {
+        const el = document.getElementById('annotation-legend');
+        let html = '';
+        for (const [type, color] of Object.entries(ANNOTATION_COLORS)) {
+            const label = ANNOTATION_LABELS[type] || type;
+            html += '<div class="legend-item">' +
+                '<span class="legend-swatch" style="background:' + color + '"></span>' +
+                '<span>' + label + '</span></div>';
+        }
+        el.innerHTML = html;
+    }
+
+    // Close legend when clicking outside
+    document.addEventListener('click', function(e) {
+        const legend = document.getElementById('annotation-legend');
+        const btn = document.getElementById('legend-btn');
+        if (legend && legend.style.display !== 'none' &&
+            !legend.contains(e.target) && e.target !== btn) {
+            legend.style.display = 'none';
+        }
+    });
+
+    // ===========================
+    // Restore Persisted State
+    // ===========================
+    (function initAnnotationState() {
+        // Sync toggle button with restored state
+        const btn = document.getElementById('toggle-annotations');
+        if (btn) {
+            btn.textContent = 'Annotations: ' + (annotationsVisible ? 'ON' : 'OFF');
+            if (!annotationsVisible) btn.classList.remove('ann-toggle-on');
+        }
+        // Sync filter dropdown with restored state
+        const filter = document.getElementById('annotation-filter');
+        if (filter && annotationFilter !== 'all') filter.value = annotationFilter;
+    })();
 </script>
 {% endif %}

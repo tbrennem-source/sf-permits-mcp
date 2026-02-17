@@ -1,0 +1,31 @@
+{
+  "source": "sf.gov DBI — Schedule Pre-Application Meeting",
+  "source_url": "https://www.sf.gov/schedule-pre-application-meeting/",
+  "last_verified": "2026-02-17",
+  "description": "Pre-application meeting process for building permits — voluntary meetings with DBI and Fire to review code issues before applying",
+  "who_should_schedule": "Projects where you anticipate potential code compliance issues or need clarification on building permit code interpretation",
+  "participating_departments": {
+    "dbi": "Mandatory for all pre-application meetings",
+    "fire": "Required only if building 3+ units"
+  },
+  "how_to_schedule": {
+    "step_1": "Complete the Pre-application Plan Review Packet including schematic drawings and specific code-related questions",
+    "step_2_email": "dbi.preapprequests@sfgov.org",
+    "step_2_mail": "Plan review supervisor for DBI pre-application meeting, 49 South Van Ness Ave, Suite 590, San Francisco, CA 94103",
+    "step_3": "Attend meeting and receive written notes and binding agreements outlining compliance requirements"
+  },
+  "what_to_bring": [
+    "Schematic drawings showing existing conditions and proposed project",
+    "List of specific code-related questions"
+  ],
+  "fees": {
+    "building_review": {"cost": "$1,472", "duration": "4 hours", "required": true},
+    "mechanical_review": {"cost": "$1,472", "duration": "4 hours", "required": false},
+    "electrical_review": {"cost": "$1,472", "duration": "4 hours", "required": false},
+    "fire_initial_fee": {"cost": "$612", "required": false},
+    "overage_dbi": "$368/hour",
+    "overage_fire": "$153/hour (research time)"
+  },
+  "key_benefit": "Written agreements from pre-application meetings are binding and used to measure project compliance during permit review",
+  "expediter_note": "Pre-application meetings are especially valuable for complex projects, unit additions, change-of-use, and work in historic districts — they lock in code interpretations before costly plan preparation"
+}

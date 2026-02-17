@@ -1,0 +1,54 @@
+{
+  "source": "sf.gov DBI — Gather Documents for Permit Issuance, Plans Requirements",
+  "source_urls": [
+    "https://www.sf.gov/gather-documents-your-building-permit-issuance/",
+    "https://www.sf.gov/information--check-if-your-building-permit-needs-plans/"
+  ],
+  "last_verified": "2026-02-17",
+  "description": "Documents required for permit issuance and plan requirements",
+  "issuance_documents": {
+    "role_specific_forms": {
+      "contractors": "Licensed Contractor's Statement Form",
+      "authorized_agents": "Permit Applicant Disclosure Form",
+      "owner_builders": "Property Owner's Disclosures Form"
+    },
+    "sign_posting": {
+      "forms": ["Affidavit for sign posting", "Affidavit for lobby sign posting"],
+      "when_required": "If applicable to project"
+    },
+    "contractor_requirements": [
+      "Certificate of Workman's Compensation Insurance Coverage",
+      "San Francisco business license",
+      "State of California contractor's license and classification (pocket card)"
+    ],
+    "authorization": {
+      "non_owners": "Owner authorization letter dated within past 30 days",
+      "final_declaration": "Form confirming disclosures and project authorization",
+      "llc_owners": "Written proof of partnership or verification from CA Secretary of State"
+    },
+    "payment": {
+      "accepted": ["Cash", "Check", "Visa", "MasterCard"],
+      "who_can_pay": "Only authorized agents or property owners",
+      "id_required": "Government-issued identification (driver's license, passport)"
+    },
+    "validity": [
+      "All documents must be currently valid (no expired materials)",
+      "Business tax registration certificates must be current",
+      "Recent property acquisitions require recorded grant deed or property tax statement"
+    ]
+  },
+  "plans_requirements": {
+    "no_plans_needed": [
+      "Replace windows/doors in-kind (same size and location)",
+      "Replace or repair exterior siding in-kind",
+      "Replace garage doors",
+      "Re-roofing",
+      "Repair less than 50% of deck/exterior stairs (without new firewalls)",
+      "Minor dry rot repairs",
+      "Remodel kitchen or bathroom without changing floor plan, moving walls, or adding fixtures"
+    ],
+    "plans_required": "All other projects require architectural plans",
+    "submission": "In-kind replacements via PermitSF portal; others bring 2 sets of plans",
+    "code_reference": "SF Building Code Section 106 A.2"
+  }
+}

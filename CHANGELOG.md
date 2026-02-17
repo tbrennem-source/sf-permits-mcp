@@ -68,6 +68,38 @@ UPDATE entities SET entity_type = 'consultant' WHERE entity_type = 'expediter';
 - **~35 files changed**, 213 insertions, 986 deletions
 - **949 tests passing** (7 pre-existing failures, 18 pre-existing errors — all unrelated)
 
+## Session 22.6 — RAG Knowledge Retrieval System Phase 1 (2026-02-17)
+
+### RAG Pipeline
+- **`src/rag/` module** — Complete retrieval-augmented generation pipeline for the knowledge base
+- **`chunker.py`** — Three chunking strategies: tier1 JSON section-level, tier2/3 paragraph sliding window (800 char, 150 overlap), tier4 code section boundaries
+- **`embeddings.py`** — OpenAI `text-embedding-3-small` client with batching (100/batch), retries (3x exponential backoff), 30K char truncation
+- **`store.py`** — pgvector CRUD: `knowledge_chunks` table with `vector(1536)` embeddings, IVFFlat indexing, tier/file/trust_weight columns, similarity search
+- **`retrieval.py`** — Hybrid scoring pipeline: `final_score = (vector_sim × 0.60 + keyword_score × 0.30 + tier_boost × 0.10) × trust_weight`. Deduplication via Jaccard word-set comparison. Graceful fallback to keyword-only when embeddings unavailable.
+
+### Ingestion Script
+- **`scripts/rag_ingest.py`** — CLI to chunk, embed, and store all knowledge tiers. Supports `--tier`, `--dry-run`, `--clear`, `--rebuild-index`, `--stats`. Dry run shows 1,012 chunks across 38 tier1 JSON files, 52 tier2 text files, and 6 tier3 bulletins.
+
+### Web Integration
+- **`/ask` route** — General questions now attempt RAG retrieval before falling back to keyword-only concept matching. Results show source attribution with relevance scores.
+
+### Infrastructure
+- Added `openai>=1.0.0` to `pyproject.toml` dependencies
+- **32 new tests** in `tests/test_rag.py` covering chunker (10), retrieval scoring (10), embeddings (2), store (6), ingestion (2), context assembly (2)
+
+### Files Changed (7 files)
+- `src/rag/__init__.py` — Module docstring
+- `src/rag/embeddings.py` — OpenAI embedding client
+- `src/rag/chunker.py` — Chunking strategies
+- `src/rag/store.py` — pgvector store operations
+- `src/rag/retrieval.py` — Hybrid retrieval pipeline
+- `scripts/rag_ingest.py` — Ingestion CLI
+- `web/app.py` — RAG integration in `_ask_general_question`
+- `tests/test_rag.py` — 32 tests
+- `pyproject.toml` — Added openai dependency
+
+---
+
 ## Session 23 — AI-Generated Plan Annotations (2026-02-16)
 
 ### Vision Annotation Extraction

@@ -858,11 +858,8 @@ def analyze_plans_route():
     mode = "quick-check" if quick_check else "full-analysis"
     logging.info(f"[analyze-plans] Processing PDF: {filename} ({size_mb:.2f} MB, mode={mode})")
 
-    # ── Async threshold: large full-analysis files go to background worker ──
-    async_threshold_mb = float(os.environ.get("ASYNC_PLAN_THRESHOLD_MB", "10"))
-    use_async = size_mb > async_threshold_mb and not quick_check
-
-    if use_async:
+    # ── Full Analysis always uses background worker (vision API calls take minutes) ──
+    if not quick_check:
         from web.plan_jobs import create_job
         from web.plan_worker import submit_job
 
@@ -938,101 +935,9 @@ def analyze_plans_route():
             quick_check=True,
         )
 
-    # ── Synchronous Full Analysis mode (small files) ──
-    page_annotations = []
-    try:
-        result_md, page_extractions, page_annotations = run_async(analyze_plans(
-            pdf_bytes=pdf_bytes,
-            filename=filename,
-            project_description=project_description,
-            permit_type=permit_type,
-            return_structured=True,
-        ))
-        result_html = md_to_html(result_md)
-    except Exception as e:
-        logging.exception(f"[analyze-plans] Error processing PDF '{filename}': {e}")
-        import traceback
-        error_detail = traceback.format_exc()
-        result_html = f'''
-            <div class="error" style="text-align: left; max-width: 900px; margin: 20px auto;">
-                <p style="font-weight: 600; color: #d32f2f;">Analysis Error</p>
-                <p><strong>Error:</strong> {str(e)}</p>
-                <details style="margin-top: 12px;">
-                    <summary style="cursor: pointer; color: #1976d2;">Technical Details</summary>
-                    <pre style="background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin-top: 8px;">{error_detail}</pre>
-                </details>
-                <p style="margin-top: 12px; font-size: 0.9rem; opacity: 0.8;">
-                    This error has been logged. Please try again or contact support if the issue persists.
-                </p>
-            </div>
-        '''
-        page_extractions = []
-
-    # Render page images and create session
-    session_id = None
-    page_count = 0
-    extractions_json = "{}"
-
-    try:
-        from pypdf import PdfReader
-        from io import BytesIO
-        from src.vision.pdf_to_images import pdf_pages_to_base64
-        from web.plan_images import create_session as create_plan_session
-
-        reader = PdfReader(BytesIO(pdf_bytes))
-        page_count = len(reader.pages)
-
-        # Render all pages (cap at 50), use 72 DPI for gallery
-        page_nums = list(range(min(page_count, 50)))
-        page_images = pdf_pages_to_base64(pdf_bytes, page_nums, dpi=72)
-
-        session_id = create_plan_session(
-            filename=filename,
-            page_count=page_count,
-            page_extractions=page_extractions,
-            page_images=page_images,
-            user_id=user_id,
-            page_annotations=page_annotations,
-        )
-
-        # Format extractions for JavaScript (dict keyed by page_number)
-        extractions_json = json.dumps({
-            pe.get("page_number", i + 1) - 1: pe
-            for i, pe in enumerate(page_extractions)
-        })
-    except Exception as e:
-        logging.warning("Image rendering failed (non-fatal): %s", e)
-
-    # Track job for history
-    try:
-        from web.plan_jobs import create_job, update_job_status
-        job_id = create_job(
-            user_id=user_id, filename=filename, file_size_mb=size_mb,
-            property_address=property_address, permit_number=permit_number_input,
-            project_description=project_description, permit_type=permit_type,
-            is_addendum=is_addendum, quick_check=False, is_async=False,
-        )
-        update_job_status(job_id, "completed", session_id=session_id, report_md=result_md)
-    except Exception:
-        pass  # Job tracking is non-fatal
-
-    annotations_json = json.dumps(page_annotations or [])
-    street_number, street_name = _parse_address(property_address)
-    return render_template(
-        "analyze_plans_results.html",
-        result=result_html,
-        filename=filename,
-        filesize_mb=round(size_mb, 1),
-        session_id=session_id,
-        page_count=page_count,
-        extractions=page_extractions,
-        extractions_json=extractions_json,
-        annotations_json=annotations_json,
-        quick_check=False,
-        property_address=property_address,
-        street_number=street_number,
-        street_name=street_name,
-    )
+    # Note: Full Analysis always routes to async worker above, so this point
+    # is only reached if quick_check somehow falls through (shouldn't happen).
+    return '<div class="error">Unexpected routing error. Please try again.</div>', 500
 
 
 def _parse_address(address: str) -> tuple:
@@ -1226,6 +1131,7 @@ def plan_job_results(job_id):
         extractions=page_extractions,
         extractions_json=extractions_json,
         annotations_json=annotations_json,
+        annotation_count=len(page_annotations) if page_annotations else 0,
         quick_check=job["quick_check"],
         property_address=job.get("property_address"),
         street_number=_parse_address(job.get("property_address", ""))[0],
@@ -1595,9 +1501,17 @@ def _ask_validate_reveal(query: str) -> str:
 
 
 def _ask_general_question(query: str, entities: dict) -> str:
-    """Answer a general question using the knowledge base."""
+    """Answer a general question using RAG retrieval (with keyword fallback)."""
+    effective_query = entities.get("query", query)
+
+    # Try RAG-augmented retrieval first
+    rag_results = _try_rag_retrieval(effective_query)
+    if rag_results:
+        return _render_rag_results(query, rag_results)
+
+    # Fallback: keyword-only matching from KnowledgeBase
     kb = get_knowledge_base()
-    scored = kb.match_concepts_scored(entities.get("query", query))
+    scored = kb.match_concepts_scored(effective_query)
 
     if not scored:
         return render_template(
@@ -1621,6 +1535,62 @@ def _ask_general_question(query: str, entities: dict) -> str:
     result_html = md_to_html("\n\n".join(parts)) if parts else (
         '<div class="info">No matching knowledge found for that query.</div>'
     )
+    return render_template(
+        "search_results.html",
+        query_echo=query,
+        result_html=result_html,
+    )
+
+
+def _try_rag_retrieval(query: str) -> list[dict] | None:
+    """Attempt RAG retrieval. Returns results or None if unavailable."""
+    try:
+        from src.rag.retrieval import retrieve
+        results = retrieve(query, top_k=5)
+        # Filter out keyword-only fallback results (those have similarity=0)
+        real_results = [r for r in results if r.get("similarity", 0) > 0]
+        return real_results if real_results else None
+    except Exception as e:
+        logging.debug("RAG retrieval unavailable: %s", e)
+        return None
+
+
+def _render_rag_results(query: str, results: list[dict]) -> str:
+    """Render RAG retrieval results as HTML."""
+    parts = []
+    seen_sources = set()
+
+    for r in results:
+        content = r.get("content", "")
+        source_file = r.get("source_file", "")
+        source_section = r.get("source_section", "")
+        score = r.get("final_score", 0)
+
+        # Build a readable source label
+        source_label = source_file.replace(".json", "").replace("-", " ").replace("_", " ").title()
+        if source_section and source_section not in source_file:
+            section_label = source_section.replace("_", " ").replace("-", " ").title()
+            source_label = f"{source_label} › {section_label}"
+
+        # Skip near-duplicate sources
+        source_key = f"{source_file}:{source_section}"
+        if source_key in seen_sources:
+            continue
+        seen_sources.add(source_key)
+
+        # Format the content block
+        parts.append(
+            f"**{source_label}** *(relevance: {score:.0%})*\n\n{content}"
+        )
+
+    if not parts:
+        return render_template(
+            "search_results.html",
+            query_echo=query,
+            result_html='<div class="info">No matching knowledge found.</div>',
+        )
+
+    result_html = md_to_html("\n\n---\n\n".join(parts))
     return render_template(
         "search_results.html",
         query_echo=query,

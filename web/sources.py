@@ -93,6 +93,16 @@ _FILE_CATEGORY: dict[str, str] = {
     "dph-food-facility-requirements": "compliance",
     "nrcc-commissioning": "compliance",
     "nrcc-process-systems": "compliance",
+    # DBI Permit Services (sf.gov)
+    "otc-step-by-step": "dbi_info_sheets",
+    "adu-programs": "dbi_info_sheets",
+    "pre-application-meetings": "dbi_info_sheets",
+    "recheck-resubmission-process": "dbi_info_sheets",
+    "permit-issuance-documents": "dbi_info_sheets",
+    "geotechnical-requirements": "dbi_info_sheets",
+    "construction-types": "dbi_info_sheets",
+    "floodplain-soft-story": "compliance",
+    "sf-2025-code-amendments": "building_code",
     # Data / Tools
     "semantic-index": "data_sources",
     "decision-tree-gaps": "tools",
@@ -131,6 +141,15 @@ _FALLBACK_URLS: dict[str, str] = {
     "remediation-roadmap": "https://sfpermits-ai-production.up.railway.app/report",
     "nrcc-commissioning": "https://sf.gov/resource/2022/information-sheets-dbi",
     "nrcc-process-systems": "https://sf.gov/resource/2022/information-sheets-dbi",
+    "otc-step-by-step": "https://www.sf.gov/step-by-step--get-otc-permit-your-interior-residential-remodel/",
+    "adu-programs": "https://www.sf.gov/topics--accessory-dwelling-unit-adu/",
+    "pre-application-meetings": "https://www.sf.gov/schedule-pre-application-meeting/",
+    "recheck-resubmission-process": "https://www.sf.gov/recheck-plans-OTC-building-permit-application/",
+    "permit-issuance-documents": "https://www.sf.gov/gather-documents-your-building-permit-issuance/",
+    "geotechnical-requirements": "https://www.sf.gov/check-if-your-project-requires-a-geotechnical-report-or-third-party-engineering-review/",
+    "construction-types": "https://www.sf.gov/information--building-construction-type-definitions/",
+    "floodplain-soft-story": "https://www.sf.gov/comply-floodplain-management-requirements/",
+    "sf-2025-code-amendments": "https://www.sf.gov/resource--2022--current-san-francisco-building-codes/",
 }
 
 
@@ -409,22 +428,26 @@ _LIFECYCLE_STAGES = [
 _STAGE_COVERAGE: dict[str, list[str]] = {
     "Pre-Application": [
         "planning-code-key-sections", "permit-requirements", "otc-criteria",
+        "pre-application-meetings", "adu-programs", "geotechnical-requirements",
     ],
     "Application": [
         "permit-forms-taxonomy", "completeness-checklist", "fee-tables",
         "G-20-routing", "otc-criteria", "permit-requirements",
+        "otc-step-by-step", "construction-types", "sf-2025-code-amendments",
     ],
     "Agency Routing": [
         "G-20-routing", "G-20-tables", "planning-code-key-sections",
         "fire-code-key-sections", "dph-food-facility-requirements",
+        "floodplain-soft-story",
     ],
     "Review": [
         "inhouse-review-process", "epr-requirements", "plan-signature-requirements",
         "title24-energy-compliance", "ada-accessibility-requirements",
         "nrcc-commissioning", "nrcc-process-systems",
+        "recheck-resubmission-process",
     ],
     "Issuance": [
-        "permit-expiration-rules",
+        "permit-expiration-rules", "permit-issuance-documents",
     ],
     "Inspections": [
         "inspections-process",

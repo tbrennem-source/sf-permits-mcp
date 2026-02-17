@@ -571,7 +571,7 @@ async def _check_hatching(
 VALID_ANNOTATION_TYPES = frozenset({
     "epr_issue", "code_reference", "dimension", "occupancy_label",
     "construction_type", "scope_indicator", "title_block", "stamp",
-    "structural_element", "general_note",
+    "structural_element", "general_note", "reviewer_note",
 })
 
 VALID_ANCHORS = frozenset({

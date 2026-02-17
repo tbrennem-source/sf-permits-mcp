@@ -1,0 +1,110 @@
+{
+  "source": "sf.gov DBI Permit Services — OTC step-by-step guides",
+  "source_urls": [
+    "https://www.sf.gov/step-by-step--get-otc-permit-your-interior-residential-remodel/",
+    "https://www.sf.gov/step-by-step--get-otc-permit-your-exterior-residential-project/",
+    "https://www.sf.gov/step-by-step--get-otc-permit-your-commercial-project/"
+  ],
+  "last_verified": "2026-02-17",
+  "description": "Step-by-step OTC permit guides for residential interior, residential exterior, and commercial projects",
+  "otc_residential_interior": {
+    "eligible_projects": [
+      "Interior remodels",
+      "In-kind kitchen remodels",
+      "In-kind bathroom remodels",
+      "New bathrooms",
+      "New laundry rooms",
+      "Deck and stair repairs (less than 50%)"
+    ],
+    "plans_required_when": [
+      "Kitchen/bathroom remodels with layout changes or wall removal",
+      "Residential interior remodels with floor plan changes",
+      "Structural repairs and alterations",
+      "Voluntary seismic upgrades",
+      "New mechanical equipment installations",
+      "New laundry installations",
+      "In-kind garage slab replacement",
+      "Brace and bolt seismic upgrades per DBI Info Sheet S-09"
+    ],
+    "seismic_upgrade_triggers": [
+      "Horizontal addition adding more than 30% to building size",
+      "Structural alterations to more than 30% of floor/roof areas",
+      "Wall/ceiling changes on more than two-thirds of building stories",
+      "Occupancy changes exceeding 100 people",
+      "Adding a third dwelling unit in below-ground basement"
+    ],
+    "steps": [
+      {"step": 1, "title": "Verify project eligibility", "detail": "Confirm project type matches OTC-eligible categories"},
+      {"step": 2, "title": "Determine if plans are required", "detail": "Contact techq@sfgov.org if uncertain. Bring 2 sets of plans if required."},
+      {"step": 3, "title": "Evaluate seismic requirements", "detail": "Check if project triggers earthquake safety improvements"},
+      {"step": 4, "title": "Complete role-based forms", "detail": "Owners: owner package. Contractors: contractor statement form. Print and bring."},
+      {"step": 5, "title": "Complete required applications", "detail": "Building Permit Form (Form 3/8 pink form), Green Building forms, Water Use forms if applicable"},
+      {"step": 6, "title": "Submit at Permit Center", "detail": "2-8 hours processing. Bring forms and plans. Receive permit application number."},
+      {"step": 7, "title": "Address plan check comments", "detail": "Update plans per reviewer feedback. Schedule rechecks via email with assigned plan checker."},
+      {"step": 8, "title": "Obtain related permits", "detail": "Street space permits, electrical permits, plumbing permits (separate from building permit)"},
+      {"step": 9, "title": "Pay fees and receive job card", "detail": "3-4.5% of construction cost. Job card required before construction begins. Post documents at job site."}
+    ],
+    "fees": "3-4.5% of construction cost",
+    "contact": "techq@sfgov.org"
+  },
+  "otc_residential_exterior": {
+    "no_plans_eligible": [
+      "In-kind window replacement (same size/location) — via PermitSF portal",
+      "In-kind exterior door replacement (same size/location) — via PermitSF portal",
+      "In-kind exterior siding repair/replacement — via PermitSF portal",
+      "Garage door replacement",
+      "Re-roofing (contractors can apply online)",
+      "Minor dry rot repairs",
+      "Deck/stair repairs less than 50%",
+      "Decks under 10ft above grade meeting Planning setbacks",
+      "Roof decks in buildable areas meeting Planning setbacks",
+      "Fences: 6+ feet in side/rear yards (max 10ft) or 3+ feet in front yards"
+    ],
+    "plans_required_when": [
+      "Deck/stair repairs exceeding 50%",
+      "New windows or exterior doors in new locations",
+      "New skylights in new locations",
+      "Decks under 20ft meeting Planning setbacks",
+      "Facade work visible from street with finish changes",
+      "Residential security gates, bars, grills, or grates",
+      "New mechanical equipment (when permit required)"
+    ],
+    "planning_check_required": "Use Property Information Map to verify Planning Department requirements",
+    "tax_incentive": "Seismic retrofit work may qualify for CA property tax exclusion under Revenue and Taxation Code Section 74.5(b)(2)",
+    "steps_count": 9,
+    "fees": "3-4.5% of construction cost"
+  },
+  "otc_commercial": {
+    "eligible_projects": [
+      "Commercial tenant improvement projects",
+      "Office or B occupancy remodels",
+      "Power door operators"
+    ],
+    "not_eligible": [
+      "In-kind replacements must use PermitSF portal",
+      "Other commercial projects require in-house review"
+    ],
+    "required_forms": [
+      "OTC building permit application (Form 3/8 pink form)",
+      "Green Building forms",
+      "Water use forms (if adding fixtures/sprinklers)",
+      "Health Plan Review form"
+    ],
+    "role_forms": {
+      "owners": "Property Owner's Disclosures form",
+      "tenants": "Owner package with property owner authorization",
+      "contractors": "Licensed Contractor Statement"
+    },
+    "steps_count": 7,
+    "plans_required": true,
+    "plan_sets": 2,
+    "fees": "3-4.5% of construction cost",
+    "processing_time": "2-8 hours at Permit Center"
+  },
+  "common_notes": {
+    "disabled_access": "DBI now conducts disabled access review as part of plan review (no longer MOD)",
+    "pre_permit_inspection": "Homeowners may obtain confidential third-party code inspection from licensed contractor before submission",
+    "plan_sets": "Bring 2 sets of plans when required",
+    "permit_center": "49 South Van Ness, 2nd floor, SF CA 94103"
+  }
+}
