@@ -554,7 +554,7 @@
     <div class="thumbnail-gallery" id="thumbnail-gallery">
         {% for extraction in extractions %}
         <div class="thumbnail-item" onclick="openPageDetail({{ loop.index0 }})">
-            <img src="/plan-analysis/{{ session_id }}/page/{{ loop.index0 }}"
+            <img src="/plan-images/{{ session_id }}/{{ loop.index0 }}"
                  loading="lazy"
                  alt="Page {{ loop.index }}"
                  class="thumbnail-img">
@@ -687,7 +687,7 @@
 
         // Update detail card content
         document.getElementById('detail-page-num').textContent = pageNum + 1;
-        document.getElementById('detail-img').src = `/plan-analysis/${sessionId}/page/${pageNum}`;
+        document.getElementById('detail-img').src = `/plan-images/${sessionId}/${pageNum}`;
         document.getElementById('meta-sheet').textContent = extraction.sheet_id || 'N/A';
         document.getElementById('meta-address').textContent = extraction.address || 'N/A';
         document.getElementById('meta-firm').textContent = extraction.firm || 'N/A';
@@ -728,7 +728,7 @@
 
     function updateLightbox() {
         const extraction = extractions[currentPage];
-        document.getElementById('lightbox-img').src = `/plan-analysis/${sessionId}/page/${currentPage}`;
+        document.getElementById('lightbox-img').src = `/plan-images/${sessionId}/${currentPage}`;
         document.getElementById('lightbox-page-info').textContent =
             `Page ${currentPage + 1} of ${pageCount} — ${extraction.sheet_id || 'No ID'}`;
 
@@ -792,7 +792,7 @@
         const img = document.getElementById(`compare-${side}-img`);
         const pageNum = parseInt(select.value);
 
-        img.src = `/plan-analysis/${sessionId}/page/${pageNum}`;
+        img.src = `/plan-images/${sessionId}/${pageNum}`;
     }
 
     function closeComparison() {
@@ -803,11 +803,11 @@
     // Download Functions
     // ===========================
     function downloadPage() {
-        window.location.href = `/plan-analysis/${sessionId}/page/${currentPage}?download=1`;
+        window.location.href = `/plan-images/${sessionId}/${currentPage}?download=1`;
     }
 
     function downloadAllPages() {
-        window.location.href = `/plan-analysis/${sessionId}/download-zip`;
+        window.location.href = `/plan-images/${sessionId}/download-all`;
     }
 
     function downloadComparison() {
@@ -815,23 +815,24 @@
         const rightPage = parseInt(document.getElementById('compare-right').value);
 
         // Download left page
-        window.location.href = `/plan-analysis/${sessionId}/page/${leftPage}?download=1`;
+        window.location.href = `/plan-images/${sessionId}/${leftPage}?download=1`;
 
         // Download right page after short delay
         setTimeout(() => {
-            window.location.href = `/plan-analysis/${sessionId}/page/${rightPage}?download=1`;
+            window.location.href = `/plan-images/${sessionId}/${rightPage}?download=1`;
         }, 500);
     }
 
     function downloadReport() {
-        window.location.href = `/plan-analysis/${sessionId}/download-pdf`;
+        // Use browser print-to-PDF as the report download
+        window.print();
     }
 
     // ===========================
     // Print Functions
     // ===========================
     function printPage() {
-        const imgSrc = `/plan-analysis/${sessionId}/page/${currentPage}`;
+        const imgSrc = `/plan-images/${sessionId}/${currentPage}`;
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
             <html>
@@ -880,7 +881,7 @@
         const message = document.getElementById('email-message').value;
         const context = document.getElementById('email-context').value;
 
-        fetch('/plan-analysis/email', {
+        fetch(`/plan-analysis/${sessionId}/email`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

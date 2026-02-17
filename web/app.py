@@ -902,6 +902,7 @@ def analyze_plans_route():
         filesize_mb=round(size_mb, 1),
         session_id=session_id,
         page_count=page_count,
+        extractions=page_extractions,
         extractions_json=extractions_json,
         quick_check=False,
     )
