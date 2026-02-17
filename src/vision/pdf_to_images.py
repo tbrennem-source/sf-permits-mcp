@@ -53,15 +53,29 @@ def pdf_page_to_base64(
         ImportError: If pdf2image/poppler is not installed.
     """
     from pdf2image import convert_from_bytes
+    import subprocess
+    import logging
 
     # pdf2image uses 1-indexed pages
-    images = convert_from_bytes(
-        pdf_bytes,
-        dpi=dpi,
-        first_page=page_number + 1,
-        last_page=page_number + 1,
-        fmt="png",
-    )
+    try:
+        images = convert_from_bytes(
+            pdf_bytes,
+            dpi=dpi,
+            first_page=page_number + 1,
+            last_page=page_number + 1,
+            fmt="png",
+        )
+    except subprocess.CalledProcessError as e:
+        # Poppler binary missing or failed
+        logging.error(f"[pdf_to_images] Poppler error converting page {page_number}: {e}")
+        raise RuntimeError(
+            f"PDF rendering failed. This usually means 'poppler-utils' is not installed. "
+            f"Error: {e}"
+        ) from e
+    except Exception as e:
+        # Other PDF processing errors
+        logging.exception(f"[pdf_to_images] Unexpected error converting page {page_number}: {e}")
+        raise
 
     if not images:
         raise ValueError(f"Failed to render page {page_number}")

@@ -780,6 +780,14 @@ def analyze_plans_route():
     if len(pdf_bytes) == 0:
         return '<div class="error">The uploaded file is empty.</div>', 400
 
+    # VALIDATION: Check file size
+    size_mb = len(pdf_bytes) / (1024 * 1024)
+    if size_mb > 400:
+        return f'<div class="error">❌ File too large: {size_mb:.1f} MB<br>Maximum file size is 400 MB.</div>', 413
+
+    # LOG: File accepted, starting processing
+    logging.info(f"[analyze-plans] Processing PDF: {filename} ({size_mb:.2f} MB)")
+
     # Run analysis with structured return to get page extractions
     try:
         result_md, page_extractions = run_async(analyze_plans(
@@ -791,7 +799,25 @@ def analyze_plans_route():
         ))
         result_html = md_to_html(result_md)
     except Exception as e:
-        result_html = f'<div class="error">Analysis error: {e}</div>'
+        # Log to Railway logs for admin debugging
+        logging.exception(f"[analyze-plans] Error processing PDF '{filename}': {e}")
+
+        # Show detailed error to user (helpful for debugging during development)
+        import traceback
+        error_detail = traceback.format_exc()
+        result_html = f'''
+            <div class="error" style="text-align: left; max-width: 900px; margin: 20px auto;">
+                <p style="font-weight: 600; color: #d32f2f;">❌ Analysis Error</p>
+                <p><strong>Error:</strong> {str(e)}</p>
+                <details style="margin-top: 12px;">
+                    <summary style="cursor: pointer; color: #1976d2;">📋 Technical Details (click to expand)</summary>
+                    <pre style="background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; margin-top: 8px;">{error_detail}</pre>
+                </details>
+                <p style="margin-top: 12px; font-size: 0.9rem; opacity: 0.8;">
+                    This error has been logged. Please try again or contact support if the issue persists.
+                </p>
+            </div>
+        '''
         page_extractions = []
 
     # Render page images and create session
