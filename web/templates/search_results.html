@@ -47,6 +47,7 @@
             <form hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
                   hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="analyze" value="1">
+                <input type="hidden" name="address" value="{{ street_address or '' }}">
                 {% if project_context %}
                 <input type="hidden" name="q" value="{{ project_context.description }}">
                 <input type="hidden" name="estimated_cost" value="{{ project_context.estimated_cost or '' }}">
