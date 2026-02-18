@@ -1,0 +1,880 @@
+--- Page 1 ---
+~ 1 ~ 
+ 
+2025 
+San Francisco Green Building Code 
+ 
+Amendments to the 
+ 
+2025 California Green Building Standards Code 
+(CALGreen) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Operative date: January 1, 2026 
+  
+
+--- Page 2 ---
+~ 2 ~ 
+ 
+ 
+ 
+Text Format: 
+   
+ 
+   Unchanged language from the 2025 California Code is shaded, and may 
+include bold and/or italicized formatting. 
+   San Francisco amendments are printed in unformatted ("plain") text, and may 
+include bold and/or italicized formatting. 
+[ ← ]   An arrow represents the location of language that has been deleted by San Francisco from 
+the 2025 California Code. 
+   A solid line represents a change from the original published edition of the 2025 San Francisco 
+Green Building Code. 
+ 
+Chapter 1 
+ 
+ADMINISTRATION 
+SECTION 101 – GENERAL 
+101.1 Revise this section as follows: 
+101.1 Title. These regulations shall be known as the [ ← ] San Francisco Green 
+Building [ ← ]  Code, and may be cited as such, and will be referred to herein as “this 
+code”. [ ← ]  The [ ← ] San Francisco Green Building [ ← ]  Code is Part 11 of thirteen parts of 
+the official compilation and publication of the adoption, amendment and repeal of building 
+regulations to the California Code of Regulations, Title 24, [ ← ] and Chapter 13C of San 
+Francisco Building Inspection Commission Amendments to the California Building Standards 
+Code. 
+101.2 Revise this section as follows: 
+101.2 Purpose. The purpose of this [ ← ] chapter is to promote the health, safety and general 
+welfare of San Francisco residents, workers, and visitors by [ ← ] minimizing waste of energy, 
+water, and other resources in the construction and operation of buildings in the City and County 
+of San Francisco and by providing a healthy indoor environment. The green building practices 
+required by this chapter will also further the goal of reducing the greenhouse gas emissions in the 
+City and County of San Francisco to 61 percent below 1990 levels by the year 2030, as stated in 
+San Francisco Environment Code Chapter 9. 
+101.3 Revise this section as follows: 
+101.3 Scope. The provisions of this code shall apply to the planning, design, operation, 
+construction, use and occupancy of every newly constructed building or structure, unless 
+otherwise indicated in this code, as well as alterations to existing buildings throughout [ ← ] the 
+City and County of San Francisco. 
+   While [ ← ]  this code  [ ← ]  references green building programs, the City and County of San 
+Francisco does not confer certification  [ ← ]  under any green building program. 
+101.3.1 Revise this section as follows: 
+101.3.1 [ ← ]  Regulated buildings, structures and applications. Provisions of this code shall 
+apply to the following buildings, structures, and applications regulated by state agencies as 
+specified in Sections 103 through 106 [ ← ] of California Green Building Standards Code Title 
+
+--- Page 3 ---
+~ 3 ~ 
+ 
+24 Part 11, modified by local ordinance with supplemental requirements applicable to occupancy 
+types A, B, I, M, E and R as defined by California Building Code Title 24 Section 302 (2022 
+2025) as amended pursuant to Section 101.7. When adopted by a state agency, the provisions of 
+this code shall be enforced by the appropriate enforcing agency, but only to the extent of 
+authority granted to such agency by statute. 
+101.4 Revise this section as follows: 
+101.4 Appendices. [ ← ] [Reserved] 
+101.6 Revise this section as follows: 
+101.6.1 Differences. In the event of any differences between these building standards and the 
+standard reference documents, the text of [ ← ] this Chapter shall govern. 
+101.6.3 Revise this section as follows: 
+101.6.3 Conflicts. When the requirements of this code conflict with the requirements of any 
+other part of the California Building Standards Code, Title 24, any provision contained 
+elsewhere in the San Francisco Municipal Code, or any regulation or requirement adopted by the 
+Public Utilities Commission or other City agency under its Charter authority, the most restrictive 
+requirement shall prevail. 
+101.7 Revise this section as follows: 
+101.7 City [ ← ]  and county amendments, additions [ ← ]  and deletions. This code includes 
+the amendments, deletions, and additions to California green building requirements which 
+maintain stricter local green building standards. 
+101.10 Revise this section as follows: 
+101.10 [ ← ]  Equivalency. Wherever reference is made to the LEED® or GreenPoint Rated 
+systems, a comparable equivalent rating system may be used if approved by the Director. The 
+applicable LEED®, GreenPoint Rated or equivalent versions of performance standards for 
+applications subject to this chapter are: 
+LEED v4 for Interior Design and Construction (LEED v4 ID+C) 
+LEED v4 for Building Design and Construction (LEED v4 BD+C) 
+LEED v4 for Homes Design and Construction 
+GreenPoint Rated (GPR) Single Family New Home Construction – 9.0 10.0 or current 
+GreenPoint Rated (GPR) Multifamily New Home Construction – 9.0 or current 
+GreenPoint Rated (GPR) Existing Multifamily –v1.0 2.0 or current 
+   Wherever specific LEED prerequisites or credits are cited, such references are to LEED v4 
+BD+C. More recent LEED and GreenPoint Rated versions may be used, provided the credits and 
+points achieved are as or at least as stringent as LEED v4 BD+C or GPR v9.0 10.0. 
+   Wherever the LEED or GreenPoint Rated systems include a minimum energy or other 
+performance requirement, the permit applicant may choose to meet the minimum performance 
+requirements with an alternative equivalent method approved by the Director. 
+   Compliance with any of these requirements may be verified and/or certified by any means, 
+including third-party review or equivalent requirements verified via other rating systems, as 
+approved by the Director. 
+101.11 Revise this section as follows: 
+101.11 Effective use of this code. The following steps shall be used to establish which 
+provisions of this code are applicable to a specific occupancy: 
+   1.   Establish the type of occupancy. 
+ [ ← ]     2.   Find the section which covers the established occupancy. 
+   3.   Identify the minimum requirements of this code for the [ ← ]  established occupancy in 
+Sections 4 and 5. 
+
+--- Page 4 ---
+~ 4 ~ 
+ 
+ [ ← ]     4.   Administrative Bulletin 93, provided by the Department of Building Inspection, 
+summarizes how the requirements of San Francisco Green Building Code and relevant local 
+requirements may be met. Appendices to Administrative Bulletin 93 include tabular summaries 
+of required measures, and provide submittal forms. 
+ 
+Chapter 2 
+ 
+DEFINITIONS 
+SECTION 202 – DEFINITIONS 
+202 Add and amend the following definitions: 
+   ELECTRIC VEHICLE CHARGING SPACE (EV Space). A space intended for future 
+installation of EV charging equipment and charging of electric vehicles. The EV Space need not 
+be reserved exclusively for electric vehicle charging. 
+   ELECTRIC VEHICLE CHARGING STATION (EVCS). One or more electric vehicle 
+charging spaces served by electric vehicle charger(s) or other charging equipment allowing 
+charging of electric vehicles. For purposes of determining compliance with accessibility 
+requirements, when the permitted length of time a vehicle may occupy an electric vehicle 
+charging station differs from the permitted duration of stay in publicly accessible parking spaces 
+in the same parking area, electric vehicle charging stations are not considered parking 
+spaces. When the permitted duration of stay in a space served by electric vehicle charger(s) is the 
+same as other publicly accessible parking spaces in the same parking area, EVCS may be 
+considered parking spaces. The EVCS need not be reserved exclusively for electric vehicle 
+charging. 
+   GREENPOINT RATED, GREENPOINTS and GREENPOINTS CHECKLIST. The 
+residential green building rating system and checklist and certification methodology of the non-
+profit organization Build It Green. 
+   HISTORICAL RESOURCE. A property that meets the terms of the definitions in Section 
+21084.1 of the CEQA Statute (The California Environmental Quality Act [Public Resources 
+Code Section 21084.1]) and Section 15064.5 of the CEQA Guidelines, as determined by the San 
+Francisco Planning Department. 
+   LARGE COMMERCIAL BUILDING. A commercial building or addition of Group B, M, A, 
+I, or E, occupancy that is 25,000 gross square feet or more. 
+   LEED® and LEED® CHECKLIST. The Leadership in Energy and Environment Design 
+rating system, certification methodology, and checklist of the United States Green Building 
+Council (USGBC). 
+   MAJOR ALTERATIONS. Alterations and additions where interior finishes are removed and 
+significant upgrades to structural and mechanical, electrical, and/or plumbing systems are 
+proposed where areas of such construction are 25,000 gross square feet or more in Group B, M, 
+or R occupancies of existing buildings. 
+   MIXED-FUEL BUILDING. A building that uses natural gas or propane as fuel for space 
+heating, water heating (including pools and spas), cooking appliances or clothes drying 
+appliances, or is plumbed for such equipment. 
+
+--- Page 5 ---
+~ 5 ~ 
+ 
+   NEW LARGE COMMERCIAL INTERIORS. First-time tenant improvements where areas of 
+such construction are over 25,000 gross square feet or more in Group B or M occupancy areas of 
+existing buildings. 
+   NEWLY CONSTRUCTED (or NEW CONSTRUCTION). A newly constructed building (or 
+new construction) is a building that has never before been used or occupied for any purpose 
+and does not include additions, alterations or repairs.     
+   TOTAL ENERGY DESIGN RATING. A metric required by the California Energy 
+Commission to be applied to low-rise residential construction in order to comply with California 
+Title 24 Part 6 Energy Standards. The Total Energy Design Rating has two components: (a) the 
+Energy Efficiency Design Rating; and (b) the Solar Electric Generation and Demand Flexibility 
+Design Rating. The Solar Electric Generation and Demand Flexibility Design Rating is 
+subtracted from the Energy Efficiency Design Rating to determine the Total Energy Design 
+Rating. California Energy Standards require that each building must separately comply with the 
+Energy Efficiency Design Rating and the Total Energy Design Rating. 
+ 
+RESIDENTIAL LONG-TERM BICYCLE PARKING. [HCD] A secure locker, weather 
+protected enclosure, or storage room that provides bicycle parking for more than twelve hours 
+that allows individual locking of bicycles to a permanently anchored parking device or rack. 
+ 
+RESIDENTIAL SHORT-TERM BICYCLE PARKING. [HCD] A permanently anchored 
+bicycle parking device, rack or lockers, in an unsheltered, open area, that provides bicycle 
+parking for twelve hours or less that allows individual locking of bicycles to the parking device 
+or rack. 
+ 
+ 
+Chapter 3 
+ 
+GREEN BUILDING 
+SECTION 301 – GENERAL 
+301.1 Revise this section as follows: 
+301.1 Scope. Buildings in the City and County of San Francisco shall be designed to include the 
+green building measures specified as mandatory [ ← ] under the California Green Building 
+Standards Code (CalGreen). 
+   Additional green building requirements established by the City and County of San Francisco 
+are mandatory for: 
+   (1)   Newly constructed Group R occupancy buildings, 
+   (2)   Newly constructed buildings of Group B, M, A, and I occupancies that are 25,000 gross 
+square feet or more, 
+   (3)   New first-time build-outs of commercial interiors that are 25,000 gross square feet or 
+more in buildings of Group B or M occupancies, and 
+
+--- Page 6 ---
+~ 6 ~ 
+ 
+   (4)   Major alterations that are 25,000 gross square feet or more in existing buildings of Group 
+B, M or R occupancies, where interior finishes are removed and significant upgrades to structural 
+and mechanical, electrical and/or plumbing systems are proposed. 
+SECTION 302 – MIXED OCCUPANCY BUILDINGS 
+302.1 Revise this section as follows: 
+302.1 Mixed Occupancy Buildings. In mixed occupancy buildings, each portion of a building 
+shall comply with the specific [ ← ]  measures applicable to each specific occupancy as required 
+by California Code of Regulations Title 24 Part 11 and the San Francisco Green Building Code. 
+However, to fulfill any requirements of San Francisco Green Building Code Sections 4.103 
+through 4.105 and 5.103 through 5.105, as applicable, the project sponsor may apply a single 
+required green building standard tothe entire building. 
+   Exceptions: 
+      1.   [HCD] Accessory structures and accessory occupancies serving residential buildings 
+shall comply with Chapter 4 and Appendix A4, as applicable. 
+      2.   [HCD] For the purposes of CALGreen, live/work units, complying with Section 419 of 
+the California Building Code, shall not be considered mixed occupancies. Live/work units shall 
+comply with Chapter 4 and Appendix A4, as applicable. 
+SECTION 303 – PHASED PROJECTS 
+303.1.1.1 Add the following section: 
+303.1.1.1 Maintenance of required features. Any structure subject to this chapter shall 
+maintain the green building features required herein, or equivalent, regardless of subsequent 
+alterations, additions, or changes of use, unless subject to subsequent or more stringent 
+requirements. 
+304 Modify the following section: 
+SECTION 304 – VOLUNTARY TIERS 
+ [ ← ]  This section not applicable in San Francisco. 
+305 Modify the following section: 
+SECTION 305 [OSHPD 1] – CALGREEN TIER 1 AND 
+CALGREEN TIER 2 
+ [ ← ]  This section not applicable in San Francisco. 
+306 Modify the following section: 
+SECTION 306  [ ← ]  – VOLUNTARY MEASURES 
+ [ ← ]  This section not applicable in San Francisco. 
+Chapter 4 
+RESIDENTIAL MANDATORY MEASURES 
+
+--- Page 7 ---
+~ 7 ~ 
+ 
+Division 4.1 
+ 
+PLANNING AND DESIGN 
+SECTION 4.101 – GENERAL 
+4101.1 Revise the section as follows: 
+4.101.1 Scope. The provisions of this division outline planning, design and development 
+methods that include environmentally responsible site selection, building design, building siting 
+and development to protect, restore and enhance the environmental quality of the 
+site, [ ← ]  respect the integrity of adjacent properties and promote the health, safety and welfare 
+of San Francisco residents. 
+4.103 Replace this section as follows: 
+ [ ← ] SECTION 4.103 – REQUIREMENTS FOR GROUP R 
+OCCUPANCY BUILDINGS 
+4.103.1 New low-rise residential buildings. 
+4.103.1.1 Rating requirements 
+   New residential buildings must be GreenPoint Rated and applicants must submit 
+documentation demonstrating that a minimum of 75 GreenPoints from the GreenPoints Single 
+Family New Construction Checklist or the GreenPoints Multifamily New Construction Checklist 
+will be achieved. Alternatively, this rating requirement may be met by obtaining LEED Silver 
+certification. 
+4.103.1.2 Stormwater management 
+   Projects subject to this section shall meet the San Francisco Public Utilities Commission 
+stormwater management requirements. 
+4.103.2 New high-rise residential buildings 
+4.103.2.1 Rating requirement 
+   Permit applicants must submit documentation to achieve LEED® “Silver” certification. 
+Alternatively, this rating requirement may be met by obtaining the GreenPoint Rated designation 
+and submitting documentation demonstrating that a minimum of 75 GreenPoints from the 
+GreenPoint Rated Multifamily New Construction checklist will be achieved. 
+4.103.2.2 [Reserved] 
+4.103.2.3 Construction debris management. Permit applicants must submit documentation 
+verifying the diversion of a minimum 75 percent of the projects construction and demolition 
+debris. The waste management plan necessary to meet this requirement shall be updated as 
+necessary and shall be accessible during construction for examination by the Department of 
+Building Inspection. Permit applicants must also meet the requirements of San Francisco 
+Environment Code Chapter 14 and San Francisco Building Code Chapter 13B (Construction and 
+Demolition Debris Recovery Program.) 
+4.103.2.4 Stormwater management. Projects subject to this section shall meet the San 
+Francisco Public Utilities Commission stormwater management requirements. 
+4.103.2.4.1 Construction activity stormwater pollution prevention. All projects, whether 
+greater or lesser than one acre, must develop and implement construction activity pollution 
+prevention and site run-off controls adopted by the San Francisco Public Utilities Commission. 
+4.103.3 Major Alterations to Existing Group R Occupancy Buildings. 
+
+--- Page 8 ---
+~ 8 ~ 
+ 
+4.103.3.1 Rating Requirement. 
+   Permit applicants must submit documentation to achieve a LEED® Silver rating. Alternatively, 
+this rating requirement may be met by obtaining the GreenPoint Rated designation and 
+submitting documentation demonstrating that a minimum of 75 GreenPoints from the 
+GreenPoint Rated Multifamily checklist will be achieved. Major alterations applying to less than 
+80% of the building’s gross floor area may alternately submit documentation demonstrating that 
+49 points from the GreenPoint Rated Existing Multifamily checklist have been achieved within 
+the project area. 
+4.103.3.2 Low-Emitting Materials. 
+   Alterations utilizing LEED must submit documentation verifying that low-emitting materials 
+are used, subject to on-site verification, meeting at least the following categories of materials 
+covered under LEED EQ Credit Low-Emitting Materials wherever applicable: interior paints and 
+coatings applied on-site, interior sealants and adhesives applied on site, flooring, and composite 
+wood. 
+   Alterations utilizing GreenPoint Rated must submit documentation to verify the use of low-
+emitting materials meeting the GreenPoint Rated Multifamily New Homes measures for low-
+emitting coatings, adhesives and sealants, and carpet systems. 
+4.104 Replace this section as follows: 
+SECTION 4.104 – [ ← ] HISTORIC PRESERVATION 
+4.104.1 On-site retention of historical features. For alterations of buildings determined to be 
+historical resources, after demonstrating compliance with all applicable codes, including the 
+2022 California Building Energy Efficiency Standards (Title 24, Part 6) and the 2022 California 
+Historical Building Code (Title 24, Part 8), the minimum points or credits required under this 
+chapter shall be reduced for retention and in-situ reuse or restoration of certain character defining 
+features, as described in Table 4.104A. Retention includes the rehabilitation and repair of 
+character-defining features that conform to the Secretary of the Interior’s Standards for the 
+Treatment of Historic Properties. 
+TABLE 4.104.A 
+SIGNIFICANT HISTORICAL 
+ARCHITECTURAL 
+FEATURES 
+PERCENT 
+RETAINED* 
+ADJUSTMENT 
+TO MINIMUM 
+LEED POINT 
+REQUIREMENT 
+ADJUSTMENT TO 
+MINIMUM 
+GREENPOINTS 
+REQUIREMENT 
+Windows @ principal façade(s) 100% 4 15 
+Other windows At least 50% 1 3 
+Other windows 100% 2 6 
+Exterior doors @ principal 
+façade(s) 
+100% 1 3 
+Siding or wall finish @ principal 
+façade(s) 
+100% 1 4 
+Trim & casing @ wall openings 
+on principal façade(s) 
+100% 1 3 
+Roof cornices or decorative eaves 
+visible from right-of-way 
+100% 1 3 
+
+--- Page 9 ---
+~ 9 ~ 
+ 
+Sub-cornices, belt courses, water 
+tables, and running trim visible 
+from right-of-way 
+100% 1 3 
+Character-defining elements of 
+significant interior spaces 
+100% 4 15 
+Other exterior ornamentation (e.g. 
+cartouches, corbels, quoins, etc.) 
+visible from right-of-way 
+80% 1 3 
+  
+4.104.2. Adjustment to Green Credit for Retention of Historic Features. Where the historical 
+resource is a portion of the total project, the LEED or GreenPoint Rated requirement shall be 
+adjusted to equal the percentage of gross floor area of the historical resource compared to the 
+total project gross floor area. 
+4.105 Replace this section as follows: 
+SECTION 4.105 – [ ← ] DEMOLITION OF EXISTING 
+STRUCTURES 
+4.105.1 Adjustments to Rating Requirements for Building Demolition and 
+Density. Applications subject to the San Francisco Green Building Code, whereby construction 
+of a new building is proposed within five years of the demolition of a building on the site, where 
+such demolition occurred after the effective date of the Green Building Ordinance - November 3, 
+2008 - the sustainability requirements for new buildings pursuant to the San Francisco Green 
+Building Code shall be increased as follows: 
+4.105.1.1 LEED® Projects. For projects attaining a LEED® certification: 
+   (1)   Where the building demolished was an historical resource, the required points shall be 
+increased by 10 points. 
+   (2)   Where the building demolished was not an historical resource, the required points shall be 
+increased by 6 additional points. 
+   (3)   Where the building demolished was not an historical resource and the number of 
+dwellings in the residential portion of the replacement structure are tripled, the required points 
+shall be increased by 5 additional points. 
+4.105.1.2 GreenPoint Rated Projects. For projects attaining GreenPoint Rated: 
+   (1)   Where the building demolished was an historical resource, the required points shall be 
+increased by 25 additional points. 
+   (2)   Where the building demolished was not an historical resource, the required points shall be 
+increased by 20 additional points. 
+   (3)   Where the building demolished was not an historical resource and the number of 
+dwellings in the residential portion of the replacement structure are tripled, the required points 
+shall be increased by 17 additional points. 
+SECTION 4.106 – SITE DEVELOPMENT 
+4.106.4 Revise this section as follows: 
+4.106.4 Electric vehicle (EV) charging for new construction. New construction shall comply 
+with Section 4.106.4.1 or 4.106.4.2 to facilitate future installation and use of EV chargers. 
+Electric vehicle supply equipment (EVSE) shall be installed in accordance with the California 
+Electrical Code, Article 625. 
+
+--- Page 10 ---
+~ 10 ~ 
+ 
+   Exceptions: 
+      1.   On a case-by-case basis, where the local enforcing agency has determined EV charging 
+and infrastructure are not feasible based upon one or more of the following conditions: 
+         1.1   Where there is no local utility power supply or the local utility is unable to supply 
+adequate power. 
+         1.2   Where there is evidence suitable to the local enforcing agency substantiating that 
+additional local utility infrastructure design requirements, directly related to the implementation 
+of Section 4.106.4,  [ ← ]  increase the utility side cost to the homeowner or the developer by 
+more than $400 per parking space. In such cases, buildings subject to Section 4.106.4 shall 
+maximize the number of EV Charging Spaces, up to a utility side cost of a maximum of $400 per 
+space. Cost shall be determined by dividing the increase in local utility infrastructure cost 
+attributable to compliance with this section by the sum of parking spaces and EV Charging 
+Spaces. 
+      2.   Accessory Dwelling Units (ADU) and Junior Accessory Dwelling Units (JADU) without 
+additional parking facilities. 
+4.106.4.1 New one-and-two-family dwellings and townhouses with attached or 
+adjacent private garages. [ ← ] For each parking space, install a 40-Amp 208 or 240-volt 
+branch circuit, including raceway, electrical panel capacity, overprotection devices, wire, and 
+termination point such as a receptacle. The termination point shall be in close proximity to the 
+proposed EV charger location. Raceways are required to be continuous at enclosed, inaccessible, 
+or concealed areas and spaces. Raceway for each circuit shall not be less than trade size 1 
+(nominal 1-inch inside diameter). 
+4.106.4.1.1 Identification. The service panel or subpanel circuit directory shall identify the 
+overcurrent protective device space(s) reserved for future EV charging as [ ← ] “EV READY” 
+for full circuits. The raceway termination location shall be permanently and visibly marked 
+as [ ← ] “EV READY” for full circuits. 
+4.106.4.2.2.1.2 Electric vehicle charging stations (EVCS) dimensions. The charging spaces 
+shall be designed to comply with the following: 
+   1.   The minimum length of each EV space shall be 18 feet (5486 mm). 
+   2.   The minimum width of each EV space shall be 9 feet (2743 mm). 
+   3.   One in every 25 charging spaces, but not less than one, shall also have an 8-foot (2438 mm) 
+wide minimum aisle. A 5-foot (1524 mm) wide minimum aisle shall be permitted provided the 
+minimum width of the EV space is 12 feet (3658 mm). 
+      a.   Surface slope for this EV space and the aisle shall not exceed 1 unit vertical in 48 units 
+horizontal (2.083 percent slope) in any direction. 
+      b.   Notwithstanding any other applicable requirements, when an EV charger is installed 
+serving an accessible parking space, the space may be considered a parking space if the duration 
+of stay is not subject to any limitations different from those generally applied to other publicly 
+accessible parking spaces in the same parking area. If the duration of stay in an accessible space 
+equipped with an EV charger is subject to limitations different from those generally applied to 
+other publicly accessible parking spaces in the same parking area, the space is not a parking 
+space. 
+4.106.4.2.2.1.3 Accessible EV spaces. In addition to the requirements in Sections 4.106.4.2.2.1.1 
+and 4.106.4.2.2.1.2, all EVSE, when installed, shall comply with the accessibility provisions for 
+EV chargers in the California Building Code, Chapter 11B. EV ready spaces and EVCS in 
+multifamily developments shall comply with California Building Code, Chapter 11A, Section 
+
+--- Page 11 ---
+~ 11 ~ 
+ 
+1109A. Accessible spaces must meet the dimensions specified in Section 4.106 .4.2.2.1.2, 
+Planning Code Section 154, or other applicable accessibility requirements, whichever would 
+result in the largest space size. 
+4.106.4.2.3 EV space requirements. 
+   1.   Single EV space required. [ ← ] Where a single EV space is required, install a full 
+circuit with a minimum of 40-Amp 208 or 240 Volt capacity, including listed raceway, sufficient 
+electrical panel capacity, overcurrent protection devices, wire, and termination point such as a 
+receptacle. The termination point shall be in close proximity to the proposed EV charger 
+location. The raceway shall not be less than trade size 1 (nominal 1-inch inside diameter). 
+   2.   Multiple EV spaces required. Construction documents shall indicate the raceway 
+termination point and the location of installed or future EV spaces, receptacles, or EV chargers. 
+Construction documents shall also provide information on amperage of installed or future 
+receptacles or EVSE, raceway method(s), wiring schematics and electrical load calculations. 
+Plan design shall be based upon a 40-ampere minimum branch circuit. Required raceways and 
+related components that are planned to be installed underground, enclosed, inaccessible or in 
+concealed areas and spaces shall be installed at the time of original construction. 
+   Exception: A raceway is not required if a minimum 40-ampere 208/240-volt dedicated EV 
+branch circuit is installed in close proximity to the location or the proposed location of the EV 
+space at the time of original construction in accordance with the California Electrical Code. 
+      a.   Multiple Levels of Parking: 
+         i.   Branch circuit panelboard(s) shall be installed at each parking level with service 
+capacity dedicated to EV Capable Spaces and EV spaces proportional to the number of vehicle 
+spaces on each level, including panelboard(s) space and capacity. The circuits and overcurrent 
+protective devices shall remain reserved exclusively for EV charging. 
+         Exception: Circuits and overcurrent protective devices in panelboards not located on the 
+same level may contribute to the requirements of 4.106.4.2.4(b), provided the circuits are 
+reserved exclusively for EV charging. For example, the circuit serving an EV Space dedicated to 
+a condominium owner may connect to the electrical panelboard of the corresponding 
+condominium. 
+         ii.   Install raceway or sleeves where penetrations to walls, floors, or other partitions will be 
+necessary to install panels, raceways, or related electrical components necessary per site 
+conditions for future installation of branch circuits. All such penetrations must comply with 
+applicable codes, including but not limited to the San Francisco Electrical Code and the San 
+Francisco Fire Code. 
+   NOTES: 
+   Electric vehicle charging infrastructure and housing are critical priorities for the City and 
+County of San Francisco. Automated Load Management Systems, energy efficiency, and 
+selection of low-amperage technologies can help mitigate increases to peak electric load. Where 
+the installation of a utility electrical transformer may be determined to be necessary in the 
+context of compliance with Section 4.106.4.2.4 of this chapter, SF Building Code 
+Section 106A.1.17.1, or other provisions of the San Francisco Electrical Code, and where such 
+transformer cannot be accommodated on the project site due to the combination of project site 
+dimensions, San Francisco Building Code, San Francisco Electrical Code, and applicable utility 
+regulations, the Director of Public Works is encouraged to issue a Sidewalk Vault Encroachment 
+Permit, provided that the fronting property owner complies with all requirements governing 
+
+
+--- Page 12 ---
+~ 12 ~ 
+ 
+street occupancy, including but not limited to the San Francisco Public Works Code and 
+Department of Public Works Order 165,553. 
+4.106.4.2.4 Identification. The service panel or subpanel circuit directory shall identify the 
+overcurrent protective device space(s) reserved for future EV charging purposes as “EVSE 
+READY” for full circuits and otherwise “EVSE CAPABLE” in accordance with the California 
+Electrical Code. 
+Division 4.2 
+ 
+ENERGY EFFICIENCY 
+SECTION 4.201 – GENERAL 
+4.201 Add the following section: 
+4.201.2. Better roofs. 
+   (a)   Newly constructed Group R occupancy buildings are required by California Title 24 Part 6 
+Energy Standards to install photovoltaic (PV) energy systems. For newly constructed 
+multifamily buildings the minimum size of such systems is required by Section 170.2(f) and 
+170.2(g) to be not less than the smaller of PV system size determined by Equation 170.2-C or 
+Equation 170.2-D, or the total of all Solar Access Roof Area (SARA) multiplied by 14 W/ft2. 
+Projects that constitute a Large Development Project or Small Development Project under the 
+Stormwater Management Ordinance (Public Works Code secs 147-147.6) may exclude from 
+SARA any roof area where both: 
+      (1)   The area is occupied by living roof, meaning the area of media for growing plants, and 
+      (2)   The area occupied by living roof contributes to determination of compliance with the 
+Stormwater Management Ordinance, as documented by a Preliminary Stormwater Control Plan 
+or a Modified Compliance Application submitted to the San Francisco Public Utilities 
+Commission. 
+   (b)   In any final Stormwater Control Plan approved by the San Francisco Public Utilities 
+Commission, including where such approval may occur subsequent to addenda to a Site Permit 
+wherein compliance with California Title 24 Part 6 Energy Standards is documented, the 
+applicant shall ensure the area occupied by living roof contributing to determination of 
+compliance with the Stormwater Management Ordinance is no less than the square footage 
+approved for exclusion from SARA. 
+4.201.3 Energy Performance. 
+   (a)   All-electric buildings. A newly constructed residential all-electric building shall be 
+designed and constructed such that the Energy Budget for the proposed building is no greater 
+than the corresponding Energy Budget for a Standard Design Building compliant with California 
+Title 24 Part 6 Energy Standards. 
+   (b)   Mixed-fuel residential buildings. A newly constructed mixed-fuel residential building 
+shall be designed and constructed such that the Energy Budget is no greater than 90% of the Title 
+24 Part 6 Energy Budget for the Standard Design Building as calculated by compliance software 
+approved by the California Energy Commission. 
+ 
+
+--- Page 13 ---
+~ 13 ~ 
+ 
+Chapter 5 
+ 
+NONRESIDENTIAL MANDATORY MEASURES 
+Division 5.1 
+ 
+PLANNING AND DESIGN 
+SECTION 5.101 – GENERAL 
+5.101.1 Modify the section as follows: 
+5.101.1 Scope. The provisions of this chapter outline planning, design and development methods 
+that include environmentally responsible site selection, building design, building siting and 
+development to protect, restore, and enhance the environmental quality of the site, [ ← ]  respect 
+the integrity of adjacent properties, and promote the health, safety and welfare of San Francisco 
+residents. 
+5.103 Replace this section as follows: 
+SECTION 5.103  [ ← ]  – REQUIREMENTS FOR GROUP A, B, I, 
+E and M BUILDINGS 
+5.103.1 New large commercial buildings. 
+5.103.1 New large commercial buildings. 
+5.103.1.1 Rating requirement. Permit applicants must submit documentation to achieve LEED 
+“Gold” certification. 
+5.103.1.2 Indoor water use reduction. Permit applicants must submit documentation verifying 
+that project meets maximum prescriptive fixture flow rates in accordance with the California 
+Plumbing Code. The project must also achieve the LEED WE Prerequisite Indoor Water Use 
+Reduction (WEp2) and a minimum 30 percent reduction in the use of indoor potable water, as 
+calculated to meet the LEED WE credit Indoor Water Use Reduction (WEc2). 
+5.103.1.3 Construction waste management. Permit applicants must submit documentation 
+verifying the diversion of a minimum 75 percent of the project’s construction and demolition 
+waste, as calculated to meet LEED MR Prerequisite Construction and Demolition Waste 
+Management Planning and LEED MR Credit Construction and Demolition Waste Management. 
+Permit applicants must also meet the requirements of San Francisco Environment Code Chapter 
+14 and San Francisco Building Code Chapter 13B (Construction and Demolition Debris 
+Recovery Program). The waste management plan necessary to meet this requirement shall be 
+updated as necessary and shall be accessible during construction for examination by the 
+Department of Building Inspection. 
+5.103.1.4 Commissioning. Permit applicants must submit documentation verifying that the 
+facility has been or will meet the criteria necessary to achieve CALGreen section 5.410.2 and 
+Option 1 of LEED EA credit (Enhanced Commissioning), in addition to LEED EA Prerequisite 
+(Fundamental Commissioning) and Verification. 
+5.103.1.6 Stormwater management. Projects subject to this section shall meet the San 
+Francisco Public Utilities Commission stormwater management requirements. All new building 
+
+--- Page 14 ---
+~ 14 ~ 
+ 
+projects must develop and implement an Erosion and Sediment Control Plan or Stormwater 
+Pollution Prevention Plan and implement site run-off controls adopted by the San Francisco 
+Public Utilities Commission as applicable. 
+5.103.1.7 Energy performance. [Reserved] 
+5.103.1.8 Temporary ventilation and IAQ management during construction. Permit 
+applicants must submit documentation verifying that an Indoor Air Quality Management Plan is 
+prepared and implemented which meets LEED EQ Credit Construction Indoor Air Quality 
+Management and Title 24 Part 11 Sections 5.504.1 and 5.504.3. 
+5.103.1.9 Low-Emitting Materials. Permit applicants must submit documentation verifying that 
+low-emitting materials are used, subject to on-site verification, meeting at least the following 
+categories of materials covered under LEED EQ Credit Low-Emitting Materials wherever 
+applicable: interior paints and coatings applied on-site, interior sealants and adhesives applied on 
+site, flooring, and composite wood. 
+5.103.1.10 CALGreen mandatory measures. The following measures are mandatory in 
+California for new non-residential buildings. Optionally, similar LEED credits can be used as 
+alternative compliance paths, as noted below: 
+  
+Title 24 Part 11 Section(s) Topic/Requirement Alternate Compliance Option: 
+5.106.8 Light pollution 
+reduction 
+Meet LEED SS Credit Light Pollution Reduction 
+5.508.1.2 Halons not allowed 
+in HVAC, 
+refrigeration and 
+fire suppression 
+equipment. 
+Meet LEED EA Credit Enhanced Refrigerant 
+Management, and additionally document that all 
+HVAC&R systems do not contain CFCs or halons. 
+ 
+5.103.3 Major alterations to existing non-residential buildings. 
+5.103.3.1 Rating requirement. Permit applicants must submit documentation to achieve LEED 
+“Gold” certification. 
+5.103.3.2 Low emitting materials. Permit applicants must submit documentation verifying that 
+low-emitting materials are used, subject to in-site verification, meeting at least the following 
+categories of materials covered under LEED EQ Credit Low-Emitting Materials: interior paints 
+and coatings applied on-site, interior sealants and adhesives applied on site, flooring, and 
+composite wood. 
+5.103.3.3 Electric vehicle charging. Section 5.106.5.3 of this chapter shall apply to major 
+alterations and newly-constructed parking facilities associated with existing Group A, B, I, and 
+M occupancy buildings where electrical service to the building will be upgraded. In major 
+alterations where existing electrical service will not be upgraded, all requirements under Section 
+5.106.5 shall apply to the maximum extent that: 
+   (1)   does not require upgrade to existing service; and 
+   (2)   the Director does not determine that compliance with Section 5.106.5.3.3 and Title 24 
+Chapter 11B, if applicable, is technically infeasible, as defined in California Building Code 
+Chapter 2, Section 202. 
+5.103.4 New large commercial interiors. 
+
+--- Page 15 ---
+~ 15 ~ 
+ 
+5.103.4.1 Rating requirement. Permit applicants must submit documentation to achieve LEED 
+“Gold” certification. 
+5.103.4.2 Low emitting materials. Permit applicants must submit documentation verifying that 
+low-emitting materials are used, subject to in-site verification, meeting at least the following 
+categories of materials covered under LEED EQ Credit Low-Emitting Materials: interior paints 
+and coatings applied on-site, interior sealants and adhesives applied on site, flooring, and 
+composite wood. 
+5.104 Replace this section as follows: 
+SECTION 5.104  [ ← ]  – HISTORIC PRESERVATION 
+5.104.1 On-site Retention of Historical Features. For alterations of buildings determined to be 
+historical resources, after demonstrating compliance with all applicable codes, including the 
+2022 California Building Energy Efficiency Standards (Title 24, Part 6) and the 2022 California 
+Historical Building Code (Title 24, Part 8), the minimum points or credits required under this 
+chapter shall be reduced for retention and in-situ reuse or restoration of certain character defining 
+features, as described in Table 5.104A. Retention includes the rehabilitation and repair of 
+character-defining features that conform to the Secretary of the Interior’s Standards for the 
+Treatment of Historic Properties. 
+ 
+TABLE 5.104.A 
+SIGNIFICANT HISTORICAL 
+ARCHITECTURAL FEATURES 
+PERCENT 
+RETAINED* 
+ADJUSTMENT TO 
+MINIMUM LEED POINT 
+REQUIREMENT 
+ADJUSTMENT TO MINIMUM 
+GREENPOINTS 
+REQUIREMENT 
+Windows @ principal 
+façade(s) 100% 4 15 
+Other windows At least 50% 1 3 
+Other windows 100% 2 6 
+Exterior doors @ principal 
+façade(s) 100% 1 3 
+Siding or wall finish @ 
+principal façade(s) 100% 1 4 
+Trim & casing @ wall 
+openings on principal 
+façade(s) 
+100% 1 3 
+Roof cornices or decorative 
+eaves visible from right-of-
+way 
+100% 1 3 
+Sub-cornices, belt courses, 
+water tables, and running 
+trim visible from right-of-
+way 
+100% 1 3 
+Character-defining elements 
+of significant interior spaces 100% 4 15 
+Other exterior 
+ornamentation (e.g. 
+cartouches, corbels, quoins, 
+80% 1 3 
+
+--- Page 16 ---
+~ 16 ~ 
+ 
+etc.) visible from right-of-
+way 
+  
+5.104.2. Adjustment to Green Credit for Retention of Historic Features. Where the historical 
+resource is a portion of the total project, the LEED or GreenPoint Rated point requirement shall 
+be adjusted to equal the percentage of gross floor area of the historical resource compared to the 
+total project gross floor area. 
+5.105 Replace this section as follows: 
+SECTION 5.105 –  [ ← ]  DEMOLITION OF EXISTING 
+STRUCTURES 
+5.105.1 Adjustments to rating requirements. Applications subject to the San Francisco Green 
+Building Code, whereby construction of a new building is proposed within five years of the 
+demolition of a building on the site, where such demolition occurred after November 3, 2008, the 
+sustainability requirements for new buildings pursuant to the San Francisco Green Building Code 
+shall be increased as follows: 
+5.105.1.1 LEED® projects. For projects attaining a LEED® certification: 
+   (1)   Where the building demolished was an historical resource, the required points shall be 
+increased by 10 points, which is 10% of the total available in the LEED® rating system, absent 
+demolition. 
+   (2)   Where the building demolished was not an historical resource, the required points shall be 
+increased by 6 additional points, which is 10% of the maximum total required points under this 
+chapter, absent demolition. 
+   (3)   Where the building demolished was not an historical resource and the number of 
+dwellings in the residential portion of the replacement structure are tripled, the required points 
+shall be increased by 5 additional points, which is 8% of the maximum total required points 
+under this chapter, absent demolition. 
+5.105.1.2 GreenPoint rated projects. For projects attaining GreenPoint Rated: 
+   (1)   Where the building demolished was an historical resource, the required points shall be 
+increased by 25 additional points. 
+   (2)   Where the building demolished was not an historical resource, the required points shall be 
+increased by 20 additional points. 
+   (3)   Where the building demolished was not an historical resource and the number of 
+dwellings in the residential portion of the replacement structure are tripled, the required points 
+shall be increased by 17 additional points. 
+SECTION 5.106 – SITE DEVELOPMENT 
+5.106.5.3 Revise this section as follows: 
+5.106.5.3 Revise this section as follows: 
+5.106.5.3 Electric vehicle (EV) charging. [N] Construction to provide electric vehicle 
+infrastructure and facilitate electric vehicle charging shall comply with Section 5.106.5.3.1 EV 
+capable spaces, Section 5.106.5.3.2 Electric vehicle charging stations (EVCS)-Power allocation 
+method and associated Table 5.106.5.3.6, and shall be provided in accordance with regulations in 
+the California Building Code and the California Electrical Code. 
+   Exceptions: (Relocated from 2019 CALGreen Section 5.106.5.3.3 and edited) 
+
+--- Page 17 ---
+~ 17 ~ 
+ 
+   1.   On a case-by-case basis where the local enforcing agency has determined compliance with 
+this section is not feasible based upon one of the following conditions: 
+      a.   Where there is no local utility power supply. 
+      b.   Where the local utility is unable to supply adequate power. 
+      c.   Where there is evidence suitable to the local enforcement agency substantiating that 
+additional local utility infrastructure design requirements, directly related to the implementation 
+of Section 5.106.5.3, may adversely impact the construction cost of the project. 
+   2.   [ ← ]  Areas of parking facilities served by parking lifts, including but not limited to, 
+automated mechanical-access open parking garages as defined in the California Building Code; or 
+parking facilities otherwise incapable of supporting electric vehicle charging. 
+   3.    In major alterations, where there is evidence substantiating that meeting the requirements 
+of this section present an unreasonable hardship or are technically infeasible, the Director may 
+upon request from the project sponsor consider an appeal to reduce the number of EV Spaces 
+required.  
+ 
+TABLE 5.106.5.3.1 
+TOTAL NUMBER OF 
+ACTUAL PARKING 
+SPACES 
+NUMBER OF 
+REQUIRED EV 
+CAPABLE SPACES 
+Other than Office and Retail  
+ 
+NUMBER OF REQUIRED 
+EVCS [ ← ]  2 3 
+     Office and Retail 
+ 
+   NUMBER OF 
+REQUIRED EVCS 2,3 
+1-41-9 2 01 2 
+10-25 5 23 4 
+26-50 11 46 8 
+51-75 19 510 14 
+76-100 26 913 20 
+101-150 38 1319 29 
+151-200 53 1827 40 
+201 and over [ ← ]30 percent of 
+total 1 
+[ ← ] 33 50 percent of EV 
+capable spaces 1 
+75 percent of EV 
+capable spaces1 
+1.   Calculation for spaces shall be rounded up to the nearest whole number. 
+2.   [ ← ]Each EVSE shall reduce the number of required EV capable spaces by the same number.  
+3. At least one Level 2 EVSE shall be provided. 
+ 
+Division 5.2 
+ 
+ENERGY EFFICIENCY 
+SECTION 5.201 – GENERAL 
+5.201 Add the following section: 
+5.201.1.1 Energy performance. 
+
+--- Page 18 ---
+~ 18 ~ 
+ 
+   (a)   All-electric buildings. A newly constructed all-electric non-residential building shall 
+demonstrate the Energy Budget for the proposed building is no greater than the Energy Budget 
+calculated for the Standard Design Building meeting California Title 24 Part 6 Energy Standards. 
+   (b)   Mixed-fuel buildings. A newly constructed mixed-fuel non-residential building shall 
+demonstrate the Energy Budget for the proposed building is no greater than 90% of the Title 24 
+Part 6 Energy Budget for the Standard Design Building meeting California Title 24 Part 6 
+Energy Standards. 
+   Exception: Buildings consisting primarily of occupancy F, L, or H are exempt from this 
+Section. 
+5.201.1.2. Better roofs. 
+   (a)   California Title 24 Part 6 Energy Standards section 140.10 requires newly constructed 
+buildings of uses noted in Table 140.10-A to install photovoltaic (PV) energy systems, and 
+requires the minimum size of such systems to be not less than the smaller of PV direct current 
+size determined by Equation 140.10-A, or the total of all Solar Access Roof Area (SARA) 
+multiplied by 14 W/ft
+2. Projects that constitute a Large Development Project or Small 
+Development Project under the Stormwater Management Ordinance (Public Works Code secs 
+147-147.6) may exclude from SARA any roof area where both: 
+      (1)   The area is occupied by living roof, meaning the area of media for growing plants, and 
+      (2)   The area occupied by living roof contributes to determination of compliance with the 
+Stormwater Management Ordinance, as documented by a Preliminary Stormwater Control Plan 
+or a Modified Compliance Application submitted to the San Francisco Public Utilities 
+Commission. 
+   (b)   In any final Stormwater Control Plan approved by the San Francisco Public Utilities 
+Commission, including where such approval may occur subsequent to addenda to a Site Permit 
+wherein compliance with California Title 24 Part 6 Energy Standards is documented, the 
+applicant shall ensure the area occupied by living roof contributing to determination of 
+compliance with the Stormwater Management Ordinance is no less than the square footage 
+approved for exclusion from SARA. 
+Chapter 7 
+ 
+INSTALLER AND SPECIAL INSPECTOR 
+QUALIFICATIONS 
+SECTION 701 – GENERAL 
+701.1 Add the following section: 
+701.1 These requirements apply to installers and Special inspectors with regards to the 
+requirements of this chapter. 
+SECTION 702 – QUALIFICATIONS 
+702.2 Modify certification number 2 as follows: 
+702.2 Special inspection. … 
+
+--- Page 19 ---
+~ 19 ~ 
+ 
+   2.   Certification by a statewide energy consulting or verification organization,[ ← ] 
+building performance contractors,  [ ← ]  home energy auditors, and ICC Certified CALGreen 
+Inspectors. 
+702.3 Add the following section: 
+702.3 Special inspection. The Director of the Department of Building Inspection may require 
+special inspection to verify compliance with this code or other laws that are enforced by the 
+agency. The special inspector shall be a qualified person who shall demonstrate competence, to 
+the satisfaction of the Director of the Department of Building Inspection, for inspection of the 
+particular type of construction or operation requiring special inspection. In addition, the special 
+inspector shall have a certification from a recognized state, national, or international association, 
+as determined by the Director of the Department of Building Inspection. The area of certification 
+shall be closely related to the primary job function, as determined by the local agency. 
+SECTION 703 – VERIFICATIONS 
+703.1 Modify the section as follows: 
+703.1 Documentation. Documentation used to show compliance with this code shall include but 
+is not limited to, construction documents, plans, specifications, builder or installer certification, 
+inspection reports, or other methods acceptable to the [ ← ] Director of the Department of 
+Building Inspection which demonstrate substantial conformance. When specific documentation 
+or special inspection is necessary to verify compliance, that method of compliance will be 
+specified in [ ← ] Administrative Bulletin 93. 
+ 

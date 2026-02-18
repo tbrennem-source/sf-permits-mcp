@@ -244,6 +244,30 @@
 - 15 new tests: structural assertions, scenario coverage, semantic matching
 - 174 knowledge tests passing
 
+### Session 10: 2025 Code Amendment PDFs Ingested (2026-02-17, ~20:55)
+
+#### ~20:55 - 2025 SF Code Amendment PDFs Downloaded and Extracted ✅
+- Downloaded 6 amendment PDFs from sf.gov (7th — Housing Code — has no separate PDF)
+- Source URLs from tier1/sf-2025-code-amendments.json inventory
+- Total: 297 pages, 874KB extracted text, 13,730 lines
+- All 6 codes operative January 1, 2026
+
+| Code | PDF Size | Pages | Extracted Text | Lines |
+|------|----------|-------|---------------|-------|
+| SF Building Code (SFBC) | 1.4MB | 160 | 506KB | 7,758 |
+| SF Existing Building Code (SFEBC) | 1.2MB | 71 | 205KB | 3,114 |
+| SF Electrical Code (SFEC) | 312KB | 20 | 55KB | 855 |
+| SF Green Building Code (SFGBC) | 396KB | 19 | 48KB | 880 |
+| SF Plumbing Code (SFPC) | 292KB | 18 | 42KB | 775 |
+| SF Mechanical Code (SFMC) | 239KB | 9 | 18KB | 348 |
+
+- PDFs saved to: tier4/2025-amendments/*.pdf (gitignored)
+- Extracted text saved to: tier4/sf-2025-*-amendments.txt (gitignored)
+- Text extraction via pypdf (PdfReader) — clean output with section numbers preserved
+- Format uses shaded text for California base code, plain text for SF amendments, arrows for deletions
+- Updated: tier1/sf-2025-code-amendments.json (ingestion_status), SOURCES.md, INGESTION_LOG.md
+- **Previously flagged gap "2025 amendments NOT YET INGESTED" is now RESOLVED**
+
 ### Known Issues (Updated)
 1. **20 scanned image PDFs**: ✅ RESOLVED — All OCR'd successfully (183K chars, 85 pages)
 2. **File naming offset**: ✅ RESOLVED — document-mapping.json created, tier1 files renamed

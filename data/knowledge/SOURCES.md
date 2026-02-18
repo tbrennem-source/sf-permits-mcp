@@ -125,6 +125,12 @@ Last updated: 2026-02-17
 |--------|------|------|--------|
 | SF Planning Code (complete) | tier4/sf-planning-code-full.txt | 12.6MB (222K lines) | ✅ Downloaded from amlegal.com — key sections parsed to tier1 |
 | SF BICC + Fire Code (complete) | tier4/sf-bicc-fire-codes-full.txt | 3.6MB (57,938 lines) | ✅ Downloaded from amlegal.com — fee tables, AB index, fire code extracted to tier1 |
+| 2025 SF Building Code Amendments | tier4/sf-2025-building-code-amendments.txt | 506KB (7,758 lines) | ✅ Downloaded from sf.gov — 160 pages, operative Jan 1 2026 |
+| 2025 SF Existing Building Code Amendments | tier4/sf-2025-existing-building-code-amendments.txt | 205KB (3,114 lines) | ✅ Downloaded from sf.gov — 71 pages |
+| 2025 SF Electrical Code Amendments | tier4/sf-2025-electrical-code-amendments.txt | 55KB (855 lines) | ✅ Downloaded from sf.gov — 20 pages |
+| 2025 SF Green Building Code Amendments | tier4/sf-2025-green-building-code-amendments.txt | 48KB (880 lines) | ✅ Downloaded from sf.gov — 19 pages |
+| 2025 SF Plumbing Code Amendments | tier4/sf-2025-plumbing-code-amendments.txt | 42KB (775 lines) | ✅ Downloaded from sf.gov — 18 pages |
+| 2025 SF Mechanical Code Amendments | tier4/sf-2025-mechanical-code-amendments.txt | 18KB (348 lines) | ✅ Downloaded from sf.gov — 9 pages |
 
 ## Derived Outputs
 

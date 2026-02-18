@@ -1753,10 +1753,10 @@ def test_semantic_index_has_s09_concept():
 
 
 def test_semantic_index_total_concepts_updated():
-    """Semantic index should have 86 total concepts (80 prior + 6 FS-series fire safety)."""
+    """Semantic index should have 92 total concepts (80 original + 6 FS-series + 6 for 2025 code amendments)."""
     kb = get_knowledge_base()
     total = kb.semantic_index["metadata"]["total_concepts"]
-    assert total == 86
+    assert total == 92
 
 
 # ── FS-Series Fire Safety Info Sheets Tests ─────────────────────────
@@ -1801,7 +1801,7 @@ def test_fs04_pfp_50_units_threshold():
 
 
 def test_fs05_r3_to_r2_scenarios():
-    """FS-05 should cover R3→R2 conversion scenarios at different story counts."""
+    """FS-05 should cover R3->R2 conversion scenarios at different story counts."""
     kb = get_knowledge_base()
     fs = kb.fire_safety_info_sheets
     scenarios = fs["FS-05"]["scenarios"]

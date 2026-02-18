@@ -1,0 +1,349 @@
+--- Page 1 ---
+Page 1 
+ 
+ 
+MECHANICAL CODE 
+2025 Edition 
+  
+PREFACE 
+Text Format: 
+   The text in this publication is formatted to allow the user to quickly and easily determine the 
+source of the included material. Language derived from the 2025 California Code that 
+is unchanged by local amendment is printed in shaded text (see below). Language constituting 
+San Francisco amendments to the California Code is printed in unformatted (or “plain”) text. In 
+either case, bold and/or italic typefaces may be used as appropriate for emphasis, etc. See below 
+for examples. 
+   To further simplify use of the San Francisco amendments with corresponding sections of the 
+2025 California Code, explanatory remarks appearing in italics are provided (in boxes at the 
+beginning of affected provisions) indicating whether the San Francisco amendment to the 
+California Code is adding, revising, or replacing a section or portion of a section. 
+   To summarize: 
+Explanatory remarks are boxed and italicized. 
+   Unchanged language from the 2025 California Code is shaded, and may 
+include bold and/or italicized formatting. 
+   San Francisco amendments are printed in unformatted ("plain") text, and may 
+include bold and/or italicized formatting. 
+Marginal Markings: 
+   An arrow [ ← ] represents the location of language that has been deleted by San Francisco 
+from the 2025 California Code. 
+   A solid line represents a change from the original published edition of the 2025 San Francisco 
+Mechanical Code. 
+Historical Notations: 
+   Language which has been added, amended, or deleted from the 2025 publication of the San 
+Francisco Mechanical Code is indicated with an historical notation, setting forth the ordinance 
+number and date of adoption. Additionally, a table is included below that lists and summarizes 
+all legislation that has affected this Code and the other Building Inspection Commission codes 
+after their initial enactment. 
+ 
+ 
+ 
+ 
+
+--- Page 2 ---
+Page 2 
+ 
+Chapter 1 
+ADMINISTRATION 
+Division I 
+CALIFORNIA ADMINISTRATION 
+See Division II Administration for San Francisco Mechanical Code administrative provisions. 
+No San Francisco Mechanical Code Amendments. 
+Division II 
+ADMINISTRATION 
+SECTION 101.0 – TITLE 
+101.1 Revise this section as follows: 
+101.1 Title. This document shall be known as the [ ← ] 2025 San Francisco Mechanical Code, 
+may be cited as such, and will be referred to herein as “this code.” 
+SECTION 103.0 – DUTIES AND POWERS OF THE AUTHORITY 
+HAVING JURISDICTION 
+103.1 Revise the first paragraph as follows: 
+103.1 General. The Authority Having Jurisdiction shall be the Authority duly appointed to 
+enforce this code. For such purposes, the Authority Having Jurisdiction shall have the powers of 
+a law enforcement officer. The Authority Having Jurisdiction, when necessary, may call upon 
+the Police Department and other city agencies for aid or assistance in carrying out or enforcing 
+any of the provisions of this code. The Authority Having Jurisdiction shall have the power to 
+render interpretations of this code and to adopt and enforce rules and regulations supplemental to 
+this code as deemed necessary in order to clarify the application of the provisions of this code. 
+Such interpretations, rules and regulations shall comply with the intent and purpose of this code. 
+103.4 Revise the first paragraph as follows: 
+103.4 Right of Entry. [ ← ] When it is necessary to make an inspection to enforce the 
+provisions of this code or other codes or ordinances, or [ ← ] when the Authority Having 
+Jurisdiction has reasonable cause to believe that there exists in a building or upon a premises a 
+condition or violation of this code or other codes or ordinances that makes the building or 
+premises unsafe, insanitary, dangerous or hazardous, the Authority Having Jurisdiction shall be 
+permitted to enter the building or premises at reasonable times to inspect or to perform the duties 
+imposed upon the Authority having Jurisdiction by this code or other codes or 
+ordinances, provided that where such building or premises is occupied, the Authority Having 
+Jurisdiction shall present credentials to the occupant and request entry. Where such building or 
+premises is unoccupied, the Authority Having Jurisdiction shall first make a reasonable effort to 
+locate the owner or other person having charge or control of the building or premises and request 
+entry. Where entry is refused, the Authority Having Jurisdiction has recourse to every remedy 
+provided by law to secure entry. 
+103.5 Add the following section: 
+103.5 Authority Having Jurisdiction May Adopt Rules and Regulations. The Authority 
+Having Jurisdiction shall have the power to render interpretations of this code and to adopt and 
+enforce rules and supplemental regulations to clarify the application of its provisions. Such 
+interpretations, rules and regulations shall be in conformance with the intent and purpose of this 
+
+--- Page 3 ---
+Page 3 
+ 
+code. Such rules and regulations, commonly referred to as “Code Rulings” and “Administrative 
+Bulletins,” supplemental to this code, shall not take effect until approved by the Building 
+Inspection Commission and signed by the Authority Having Jurisdiction except in unusual 
+circumstances where the Authority Having Jurisdiction has determined there is an immediate 
+need to protect the public health and safety. When the Authority Having Jurisdiction finds that 
+such circumstances exist, the Authority Having Jurisdiction may order immediate enforcement of 
+a particular rule or regulation. The Authority Having Jurisdiction shall arrange for a subscription 
+service to such rules and regulations, the entire cost of which is to be borne by the subscribers. 
+103.6 Add the following section: 
+103.6 Code Revisions. The Authority Having Jurisdiction shall transmit to the Building 
+Inspection Commission, at intervals not exceeding three years, recommendations for changes to 
+this code, based on studies of the following: 
+   1.   Requests of the Board of Examiners for variances from this code, and for approvals of 
+alternate materials, alternate designs and methods of construction. 
+   2.   Code changes recommended by the Board of Examiners. 
+   3.   Code changes recommended by the Code Advisory Committee or other bodies subordinate 
+to the Building Inspection Commission. 
+   4.   Results obtained and problems encountered from legal actions taken to correct code 
+violations. 
+   5.   Changes or improvements in materials, methods of construction or design and changes 
+proposed by interested persons. 
+   6.   Investigations of fire and structural damage to buildings, and of complaints of 
+unsatisfactory mechanical system performance. 
+   7.   Periodic changes to the California Mechanical Code and other State regulations which may 
+affect this code. 
+   8.   Administrative Bulletins and Code Rulings currently in effect. 
+   9.   Violations of this code found on inspections or investigations. 
+SECTION 104.0 – PERMITS 
+104.2 Add item (6) as follows: 
+   (6)   Replacement water heaters of not more than 100 gallons (378.54 liters) capacity are 
+exempt from building permits when a new flue is not installed, but shall require plumbing 
+permits. 
+104.3 Replace this section as follows: 
+104.3 Application for Permit. [ ← ] Applications for permits to perform regulated mechanical 
+work shall conform to the applicable requirements as set forth in Chapter 1A of the Building 
+Code and Chapter 1, Division II of the Plumbing Code. 
+104.4 Replace this section as follows: 
+104.4 Permit Issuance. [ ← ] Permit processing and issuance for regulated mechanical work 
+shall conform to the applicable requirements as set forth in Chapter 1A of the Building Code and 
+Chapter 1, Division II of the Plumbing Code. 
+104.4.3 Replace this section as follows: 
+104.4.3 Permit Expiration. [ ← ] Mechanical permits expire per Section 106A.4.4 of the San 
+Francisco Building Code. Permit fees may be partially refunded if a written cancellation request 
+is made to the Building Official prior to commencement of the permitted work and within 90 
+days of the date of permit issuance. See Section 110A, Table 1A-R Refunds of the Building 
+Code for refunds. 
+104.5 Replace this entire section including subsections with the following section: 
+
+--- Page 4 ---
+Page 4 
+ 
+ [ ← ] 104.5 Fees. Fees for regulated mechanical work shall be as set forth in Chapter 1A of the 
+Building Code and in Chapter 1, Division II of the Plumbing Code. 
+SECTION 106.0 – VIOLATIONS AND PENALTIES 
+106.0 Add the following three sections: 
+106.7 Violations. Any person, the owner or the owner’s authorized agent, who violates, 
+disobeys, omits, neglects or refuses to comply with, or resists or opposes the execution of any of 
+the provisions of this code, shall be liable for a civil penalty, not to exceed $500 for each day 
+such violation is committed or permitted to continue, which penalty shall be assessed and 
+recovered in a civil action brought in the name of the people of the City and County of San 
+Francisco by the City Attorney in any court of competent jurisdiction. Any penalty assessed and 
+recovered in an action brought pursuant to this paragraph shall be paid to the City Treasurer and 
+credited to the Department of Building Inspection’s Special Fund. 
+106.8 Any person, the owner or the owner’s authorized agent, who violates, disobeys, omits, 
+neglects or refuses to comply with, or who resists or opposes the execution of any of the 
+provisions of this code, shall be guilty of a misdemeanor, and upon conviction thereof shall be 
+punished by a fine not exceeding $500 or by imprisonment not exceeding six months, or by both 
+such fine and imprisonment, unless otherwise provided in this code, and shall be deemed guilty 
+of a separate offense for every day such violation, disobedience, omission, neglect or refusal 
+shall continue. Any person who shall do any work in violation of any of the provisions of this 
+code, and any person having charge of such work who shall permit it to be done, shall be liable 
+for the penalty provided. 
+106.9 It shall be unlawful for any person to interfere with the posting of any notice provided for 
+in this code, or to tear down or mutilate any such notice so posted by the Department of Building 
+Inspection. 
+SECTION 107.0 – BOARD OF APPEALS 
+107.0 Replace this title and entire section as follows: 
+107.0 [ ← ]  Board of Examiners. Applicants may appeal decisions made by the Department of 
+Building Inspection to the Board of Examiners regarding approval of alternate materials, 
+methods and types of construction and for variances from the provisions of this code. See 
+Building Code Section 105A.1. 
+ 
+Chapter 2 
+DEFINITIONS 
+No San Francisco Mechanical Code Amendments. 
+ 
+ 
+ 
+
+--- Page 5 ---
+Page 5 
+ 
+Chapter 3 
+GENERAL REGULATIONS 
+SECTION 302.2 - ALTERNATE MATERIALS AND METHODS 
+OF CONSTRUCTION EQUIVALENCY 
+302.2.2 Add the following section: 
+302.2.2 Fees. See Building Code Section 110A, Table 1A-J Miscellaneous Fees for applicable 
+fees. 
+ 
+Chapter 4 
+VENTILATION AIR 
+No San Francisco Mechanical Code Amendments. 
+ 
+Chapter 5 
+EXHAUST SYSTEMS 
+SECTION 504.3 – DOMESTIC COOKING EXHAUST 
+EQUIPMENT 
+504.3 Add the following sentence as item number (7) to the list: 
+  
+(7) Provide exhaust hood above kitchen range, stove or cooktop. Exhaust duct shall terminate to 
+the exterior per California Mechanical Code Section 502.2.1 
+ 
+ 
+Chapter 6 
+DUCT SYSTEMS 
+No San Francisco Mechanical Code Amendments. 
+ 
+Chapter 7 
+COMBUSTION AIR 
+No San Francisco Mechanical Code Amendments. 
+ 
+
+--- Page 6 ---
+Page 6 
+ 
+Chapter 8 
+CHIMNEYS AND VENTS 
+SECTION 802.2 – CONNECTION TO VENTING SYSTEMS 
+802.2.6 Revise this section as follows: 
+802.2.6 Direct-Vent Appliances. Listed direct-vent appliances shall be installed in accordance 
+with the manufacturer’s installation instructions and Section 802.8.2. [NFPA 54:12.3.5], 
+provided the installation does not violate existing State or Local ordinance and does not create a 
+nuisance as defined within this code and section 216.0 of the San Francisco Plumbing Code. 
+SECTION 802.6 – GAS VENTS 
+802.6.1 Revise the heading and first sentence of this section as follows: 
+802.6.1 Additional Termination Requirements. A gas vent shall terminate at least four (4) feet 
+(1219 mm) from a property line, except a public way and in accordance with one of the 
+following: 
+SECTION 802.8 – THROUGH-THE-WALL VENT 
+TERMINATIONS 
+802.8 Revise the first sentence of this section and add an exception (3) to this section as follows:  
+802.8 Through-the-Wall Vent Termination. A mechanical draft venting system shall terminate 
+at least four (4) feet (1219 mm) from a property line, except a public way and not less than 3 feet 
+(914 mm) above any forced air inlet located within 10 feet (3048 mm). (See Figure 802.8) 
+Exceptions: 
+   (1)   This provision shall not apply to the combustion-air intake of a direct-vent appliance. 
+   (2)   This provision shall not apply to the separation of the integral outdoor-air inlet and flue 
+gas discharge of listed outdoor appliances. [NFPA 54:12.9.1] 
+   (3)   Direct-vent appliances shall comply with sections 802.2.6 and 802.8.2 
+ 
+Chapter 9 
+INSTALLATION OF SPECIFIC APPLIANCES 
+SECTION 924.1 – INCINERATORS AND CREMATORIES 
+924.1 Add the following sentence as a second paragraph: 
+   The operation and installation of incinerators shall also comply with the regulations of the Bay 
+Area Air Quality Management District. 
+SECTION 1013.0 – INSPECTIONS AND TESTS 
+1013.1 Revise this section as follows: 
+1013.1 General. An installation for which a permit is required shall not be put into service until 
+it has been [ ← ] certified by a licensed boiler contractor or inspected by an approved insuring 
+company inspector and an operating permit has been issued. 
+   It shall be the duty of the owner or his authorized representative to notify the Authority Having 
+Jurisdiction that the installation [ ← ] has been certified or inspected. It also shall be the duty of 
+the owner or his authorized representative to post in a conspicuous position on the installation a 
+notice in substantially the following form: “Warning! This installation has not been inspected 
+
+--- Page 7 ---
+Page 7 
+ 
+and approved by the Authority Having Jurisdiction and shall not be covered or concealed until so 
+inspected and approved,” and it shall be unlawful for anyone other than the Authority Having 
+Jurisdiction to remove such notice. The Authority Having Jurisdiction shall require such tests as 
+it deems necessary to determine that the installation [ ← ] complies with the provision of this 
+section. Such tests shall be made by the owner or his authorized representative in the presence of 
+the Authority Having Jurisdiction. 
+Exception: On installations designed and supervised by a registered professional engineer, the 
+Authority Having Jurisdiction shall have the authority to permit inspection and testing by such 
+registered design professional. 
+1013.2 Revise this section as follows: 
+1013.2 Operating Permit. 
+   It shall be unlawful to operate a boiler or pressure vessel without first obtaining a valid 
+operating permit to do so from the Authority Having Jurisdiction. Such permit shall be displayed 
+in a conspicuous place adjacent to the boiler or pressure vessel. The operating permit shall not be 
+issued until the equipment has been [ ← ] certified as complying with State of California 
+Building Safety Orders by a licensed boiler contractor, by employees of an approved insuring 
+company holding commissions from the National Board of Boiler and Pressure Vessel Inspectors 
+or by a registered professional engineer. 
+Exception: The operation of steam-heating boilers, low-pressure hot-water-heating boilers, hot 
+water supply boilers, and pressure vessels in residential occupancies of less than six dwelling 
+units and utility occupancies. 
+1013.3 Revise this section as follows: 
+1013.3 Maintenance Inspection. The Authority Having Jurisdiction shall [ ← ] require an 
+inspection of boilers and pressure vessels operated under permit in accordance with 
+ASHRAE/ACCA 180 at such intervals as deemed necessary, but not less frequently than in 
+accordance with Section 1013.4 through Section 1013.7. 
+1013.7 Revise the second paragraph as follows: 
+   Inspection of boilers and pressure vessels may be made by licensed C-4 Boiler Contractors 
+and, when covered by insurance shall be permitted to be made by employees of the insuring 
+company holding commissions from the National Board of Boiler and Pressure Vessel 
+Inspectors, subject to approval of the Authority Having Jurisdiction. Approved insuring company 
+inspectors shall make reports on prescribed forms on inspections authorized by the Authority 
+Having Jurisdiction. The reports shall be filed in the Authority Having Jurisdiction office. 
+Company inspectors shall notify the Authority Having Jurisdiction of suspension of insurance 
+because of dangerous conditions, new insurance in effect, and discontinuance of insurance 
+coverage, or any unsafe conditions requiring correction. 
+ 
+ 
+ 
+ 
+
+--- Page 8 ---
+Page 8 
+ 
+Chapter 11 
+REFRIGERATION 
+No San Francisco Mechanical Code Amendments. 
+ 
+Chapter 12 
+HYDRONICS 
+No San Francisco Mechanical Code Amendments. 
+ 
+Chapter 13 
+FUEL GAS PIPING 
+No San Francisco Mechanical Code Amendments. 
+Chapter 14 
+PROCESS PIPING 
+No San Francisco Mechanical Code Amendments. 
+ 
+Chapter 15 
+SOLAR ENERGY SYSTEMS 
+No San Francisco Mechanical Code Amendments. 
+ 
+Chapter 16 
+STATIONARY POWER PLANTS 
+No San Francisco Mechanical Code Amendments. 
+ 
+Chapter 17 
+REFERENCED STANDARDS 
+No San Francisco Mechanical Code Amendments. 
+ 
+
+--- Page 9 ---
+Page 9 
+ 
+ 
+Appendix B 
+PROCEDURES TO BE FOLLOWED TO PLACE 
+GAS EQUIPMENT IN OPERATION 
+No San Francisco Mechanical Code Amendments. 
+ 
+Appendix C 
+INSTALLATION AND TESTING OF OIL (LIQUID) 
+FUEL-FIRED EQUIPMENT 
+No San Francisco Mechanical Code Amendments. 
+ 
+ 
+Note: Appendices A, D, E, F and G not adopted by CMC. 
+ 

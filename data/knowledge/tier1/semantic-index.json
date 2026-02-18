@@ -5,7 +5,7 @@
     "created_date": "2026-02-14",
     "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
     "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
-    "total_concepts": 86
+    "total_concepts": 92
   },
 
   "concepts": {
@@ -1079,13 +1079,20 @@
 
     "code_transition_2025": {
       "canonical_name": "2025 SF Code Amendments",
-      "aliases": ["2025 code", "new code", "code update", "code change", "2025 amendments", "code cycle", "January 2026", "new building code", "current code", "which code applies"],
-      "description": "2025 SF Building Code amendments effective January 1, 2026 with no grace period. All filings after that date must comply with 2025 codes.",
+      "aliases": ["2025 code", "new code", "code update", "code change", "2025 amendments", "code cycle", "January 2026", "new building code", "current code", "which code applies", "code transition", "new requirements", "2025 building code", "2025 amendments effective", "code effective date"],
+      "description": "2025 SF Building Code amendments effective January 1, 2026 with no grace period. All filings after that date must comply with 2025 codes. Covers Building, Existing Building, Electrical, Green Building, Plumbing, and Mechanical codes.",
       "authoritative_sources": [
         {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs", "role": "7 amendment PDFs with download URLs"},
-        {"file": "tier1/sf-2025-code-amendments.json", "path": "effective_date", "role": "January 1, 2026 — no grace period"}
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "effective_date", "role": "January 1, 2026 — no grace period"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "ingestion_status.2025_amendments_files", "role": "6 extracted text files with sizes"},
+        {"file": "tier4/sf-2025-building-code-amendments.txt", "path": "full_text", "role": "Complete 2025 SF Building Code amendments (506KB, 160 pages)"},
+        {"file": "tier4/sf-2025-existing-building-code-amendments.txt", "path": "full_text", "role": "Complete 2025 SF Existing Building Code amendments (205KB, 71 pages)"},
+        {"file": "tier4/sf-2025-electrical-code-amendments.txt", "path": "full_text", "role": "Complete 2025 SF Electrical Code amendments (55KB, 20 pages)"},
+        {"file": "tier4/sf-2025-green-building-code-amendments.txt", "path": "full_text", "role": "Complete 2025 SF Green Building Code amendments (48KB, 19 pages)"},
+        {"file": "tier4/sf-2025-plumbing-code-amendments.txt", "path": "full_text", "role": "Complete 2025 SF Plumbing Code amendments (42KB, 18 pages)"},
+        {"file": "tier4/sf-2025-mechanical-code-amendments.txt", "path": "full_text", "role": "Complete 2025 SF Mechanical Code amendments (18KB, 9 pages)"}
       ],
-      "related_concepts": ["green_building", "fire_code", "permit_requirements"]
+      "related_concepts": ["green_building", "fire_code", "permit_requirements", "building_code_2025", "existing_building_code_2025", "electrical_code_2025", "green_building_code_2025", "plumbing_code_2025", "mechanical_code_2025"]
     },
 
     "roof_deck_fire": {
@@ -1147,6 +1154,72 @@
         {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-03", "role": "4 addition scenarios (full sprinkler) vs 2 alteration scenarios (area only), cross-references EG-03 and EG-01"}
       ],
       "related_concepts": ["sprinkler_required", "dwelling_unit_sprinkler", "construction_type"]
+    },
+
+    "building_code_2025": {
+      "canonical_name": "2025 SF Building Code Amendments",
+      "aliases": ["SFBC 2025", "building code amendments", "2025 building code", "new building code sections", "SFBC amendments", "building code changes"],
+      "description": "2025 amendments to the SF Building Code (SFBC). The largest amendment set (160 pages). Covers structural, fire-resistive construction, accessibility, and other building safety requirements.",
+      "authoritative_sources": [
+        {"file": "tier4/sf-2025-building-code-amendments.txt", "path": "full_text", "role": "Complete text of 2025 SFBC amendments (506KB, 7,758 lines, 160 pages)"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs[0]", "role": "PDF URL and metadata"}
+      ],
+      "related_concepts": ["code_transition_2025", "existing_building_code_2025", "seismic"]
+    },
+
+    "existing_building_code_2025": {
+      "canonical_name": "2025 SF Existing Building Code Amendments",
+      "aliases": ["SFEBC 2025", "existing building code", "2025 existing building", "SFEBC amendments", "existing building amendments", "existing building code changes", "alterations code"],
+      "description": "2025 amendments to the SF Existing Building Code (SFEBC). Governs alterations, repairs, and additions to existing buildings. 71 pages of amendments.",
+      "authoritative_sources": [
+        {"file": "tier4/sf-2025-existing-building-code-amendments.txt", "path": "full_text", "role": "Complete text of 2025 SFEBC amendments (205KB, 3,114 lines, 71 pages)"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs[1]", "role": "PDF URL and metadata"}
+      ],
+      "related_concepts": ["code_transition_2025", "building_code_2025", "adaptive_reuse"]
+    },
+
+    "electrical_code_2025": {
+      "canonical_name": "2025 SF Electrical Code Amendments",
+      "aliases": ["SFEC 2025", "electrical code", "2025 electrical", "SFEC amendments", "electrical amendments", "electrical code changes", "electrical requirements"],
+      "description": "2025 amendments to the SF Electrical Code (SFEC). 20 pages covering electrical installation and safety requirements.",
+      "authoritative_sources": [
+        {"file": "tier4/sf-2025-electrical-code-amendments.txt", "path": "full_text", "role": "Complete text of 2025 SFEC amendments (55KB, 855 lines, 20 pages)"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs[4]", "role": "PDF URL and metadata"}
+      ],
+      "related_concepts": ["code_transition_2025", "all_electric_construction"]
+    },
+
+    "green_building_code_2025": {
+      "canonical_name": "2025 SF Green Building Code Amendments",
+      "aliases": ["SFGBC 2025", "green building code", "2025 green building", "SFGBC amendments", "green building amendments", "green code changes", "sustainability code"],
+      "description": "2025 amendments to the SF Green Building Code (SFGBC). 19 pages covering energy efficiency, water conservation, and sustainable building practices.",
+      "authoritative_sources": [
+        {"file": "tier4/sf-2025-green-building-code-amendments.txt", "path": "full_text", "role": "Complete text of 2025 SFGBC amendments (48KB, 880 lines, 19 pages)"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs[5]", "role": "PDF URL and metadata"}
+      ],
+      "related_concepts": ["code_transition_2025", "green_building", "all_electric_construction"]
+    },
+
+    "plumbing_code_2025": {
+      "canonical_name": "2025 SF Plumbing Code Amendments",
+      "aliases": ["SFPC 2025", "plumbing code", "2025 plumbing", "SFPC amendments", "plumbing amendments", "plumbing code changes", "plumbing requirements"],
+      "description": "2025 amendments to the SF Plumbing Code (SFPC). 18 pages covering plumbing installation and water/drainage requirements.",
+      "authoritative_sources": [
+        {"file": "tier4/sf-2025-plumbing-code-amendments.txt", "path": "full_text", "role": "Complete text of 2025 SFPC amendments (42KB, 775 lines, 18 pages)"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs[3]", "role": "PDF URL and metadata"}
+      ],
+      "related_concepts": ["code_transition_2025"]
+    },
+
+    "mechanical_code_2025": {
+      "canonical_name": "2025 SF Mechanical Code Amendments",
+      "aliases": ["SFMC 2025", "mechanical code", "2025 mechanical", "SFMC amendments", "mechanical amendments", "mechanical code changes", "HVAC code", "ventilation code"],
+      "description": "2025 amendments to the SF Mechanical Code (SFMC). 9 pages covering HVAC, ventilation, and mechanical system requirements.",
+      "authoritative_sources": [
+        {"file": "tier4/sf-2025-mechanical-code-amendments.txt", "path": "full_text", "role": "Complete text of 2025 SFMC amendments (18KB, 348 lines, 9 pages)"},
+        {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs[2]", "role": "PDF URL and metadata"}
+      ],
+      "related_concepts": ["code_transition_2025"]
     }
   }
 }
