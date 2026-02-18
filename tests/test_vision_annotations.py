@@ -406,5 +406,5 @@ def test_valid_anchors():
 
 
 def test_max_annotations_per_page():
-    """MAX_ANNOTATIONS_PER_PAGE is 12."""
-    assert MAX_ANNOTATIONS_PER_PAGE == 12
+    """MAX_ANNOTATIONS_PER_PAGE is 15."""
+    assert MAX_ANNOTATIONS_PER_PAGE == 15

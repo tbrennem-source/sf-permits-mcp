@@ -208,7 +208,7 @@
         .btn {
             background: var(--accent);
             color: #fff;
-            border: none;
+            border: 1px solid transparent;
             border-radius: 8px;
             padding: 14px 32px;
             font-size: 1rem;
@@ -236,6 +236,12 @@
         .htmx-request .btn .label {
             display: none;
         }
+
+        /* JS-toggled loading state — HTMX 2.x puts .htmx-request on the
+           hx-indicator target, not the triggering form/button, so we use
+           a .loading class toggled by beforeRequest/afterRequest listeners. */
+        form.loading .btn .spinner { display: inline-block; }
+        form.loading .btn .label   { display: none; }
 
         /* Results area */
         #results {
@@ -578,6 +584,12 @@
         @keyframes pill-pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
+        }
+        .btn-pill.loading {
+            pointer-events: none;
+            border-color: var(--accent);
+            color: var(--accent);
+            animation: pill-pulse 0.8s ease-in-out infinite;
         }
 
         /* Plan analysis button tooltips */
@@ -1185,7 +1197,8 @@
                         <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
                             <button type="button" class="btn btn-outline" id="compliance-check-btn" style="width:100%;"
                                     onclick="submitComplianceCheck(this)">
-                                Compliance Check
+                                <span class="label">Compliance Check</span>
+                                <span class="spinner">Analyzing…</span>
                             </button>
                             <div class="plan-btn-tooltip">
                                 <strong>AI title block verification</strong><br>
@@ -1195,7 +1208,8 @@
                         <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
                             <button type="button" class="btn btn-outline" id="full-analysis-btn" style="width:100%;"
                                     onclick="submitFullAnalysis(this)">
-                                Full Analysis
+                                <span class="label">Full Analysis</span>
+                                <span class="spinner">Analyzing…</span>
                             </button>
                             <div class="plan-btn-tooltip">
                                 <strong>Complete AI markup</strong><br>
@@ -1264,28 +1278,22 @@
                     });
 
                     function resetAnalysisBtns() {
-                        var faBtn = document.getElementById('full-analysis-btn');
-                        if (faBtn) {
-                            faBtn.classList.remove('btn-active');
-                            faBtn.textContent = 'Full Analysis';
-                            faBtn.disabled = false;
-                            faBtn.style.opacity = '';
-                        }
-                        var ccBtn = document.getElementById('compliance-check-btn');
-                        if (ccBtn) {
-                            ccBtn.classList.remove('btn-active');
-                            ccBtn.textContent = 'Compliance Check';
-                            ccBtn.disabled = false;
-                            ccBtn.style.opacity = '';
-                        }
-                        // Reset Quick Check button — restore solid blue as default
-                        var qcBtn = document.querySelector('#section-analyze-plans button[type="submit"]');
-                        if (qcBtn) {
-                            qcBtn.classList.remove('btn-outline');
-                            qcBtn.classList.add('btn');
-                            qcBtn.disabled = false;
-                            qcBtn.style.opacity = '';
-                        }
+                        var allBtns = [
+                            document.getElementById('full-analysis-btn'),
+                            document.getElementById('compliance-check-btn'),
+                            document.querySelector('#section-analyze-plans button[type="submit"]'),
+                        ];
+                        allBtns.forEach(function(b) {
+                            if (!b) return;
+                            b.classList.remove('btn-active');
+                            b.disabled = false;
+                            b.style.opacity = '';
+                            // Restore label/spinner visibility
+                            var label = b.querySelector('.label');
+                            var spinner = b.querySelector('.spinner');
+                            if (label) label.style.display = '';
+                            if (spinner) spinner.style.display = '';
+                        });
                     }
 
                     form.addEventListener('htmx:afterSwap', function() {
@@ -1496,6 +1504,28 @@
             }
         });
 
+        // Loading state for buttons — HTMX 2.x puts .htmx-request on the
+        // hx-indicator target, not the triggering element. We toggle .loading
+        // on the trigger so CSS can show spinners / pulse animations.
+        document.body.addEventListener('htmx:beforeRequest', function(evt) {
+            var elt = evt.detail.elt;
+            if (elt.tagName === 'FORM' && elt.hasAttribute('hx-indicator')) {
+                elt.classList.add('loading');
+            }
+            if (elt.classList.contains('btn-pill')) {
+                elt.classList.add('loading');
+            }
+        });
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            var elt = evt.detail.elt;
+            if (elt.tagName === 'FORM' && elt.hasAttribute('hx-indicator')) {
+                elt.classList.remove('loading');
+            }
+            if (elt.classList.contains('btn-pill')) {
+                elt.classList.remove('loading');
+            }
+        });
+
         // File upload label
         function updateFileLabel(input) {
             const label = document.getElementById("file-label");
@@ -1540,7 +1570,7 @@
             section.classList.toggle("open");
         }
 
-        // Disable all 3 plan analysis buttons, highlight only the active one
+        // Disable all 3 plan analysis buttons, show spinner on the active one
         function _lockPlanButtons(activeBtn) {
             var qcBtn = document.querySelector('#section-analyze-plans button[type="submit"]');
             var ccBtn = document.getElementById('compliance-check-btn');
@@ -1550,16 +1580,14 @@
                 b.disabled = true;
                 if (b !== activeBtn) {
                     b.style.opacity = '0.4';
-                    // Deselect non-active buttons — swap to outline so only the
-                    // active button appears solid blue
-                    if (b === qcBtn) {
-                        b.classList.remove('btn');
-                        b.classList.add('btn-outline');
-                    }
                 }
             });
-            // Ensure active button shows solid blue
+            // Show spinner on active button, hide label
             activeBtn.classList.add('btn-active');
+            var label = activeBtn.querySelector('.label');
+            var spinner = activeBtn.querySelector('.spinner');
+            if (label) label.style.display = 'none';
+            if (spinner) spinner.style.display = 'inline-block';
         }
 
         // Scroll loading indicator into view
@@ -1573,7 +1601,6 @@
         // Submit form in Compliance Check mode
         function submitComplianceCheck(btn) {
             _lockPlanButtons(btn);
-            btn.textContent = 'Analyzing\u2026';
             document.getElementById('quick-check-hidden').value = '';
             document.getElementById('analysis-mode-hidden').value = 'compliance';
             var loadingMsg = document.querySelector('#analyze-plans-loading p');
@@ -1588,7 +1615,6 @@
         // Submit form in Full Analysis mode (clears quick_check flag)
         function submitFullAnalysis(btn) {
             _lockPlanButtons(btn);
-            btn.textContent = 'Analyzing\u2026';
             document.getElementById('quick-check-hidden').value = '';
             document.getElementById('analysis-mode-hidden').value = 'sample';
             var loadingMsg = document.querySelector('#analyze-plans-loading p');
