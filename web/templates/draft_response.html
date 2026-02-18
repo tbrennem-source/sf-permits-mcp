@@ -154,9 +154,11 @@
     </div>
     {% endif %}
 
+    {% if not is_expert %}
     <div style="margin-top:16px; font-size:0.85rem; color:var(--text-muted);">
-        Have a follow-up question? Just type it in the search box above.
+        Have a follow-up question? Type it in the search bar at the top of the page.
     </div>
+    {% endif %}
 </div>
 
 <script>
