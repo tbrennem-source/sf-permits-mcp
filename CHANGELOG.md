@@ -1,5 +1,53 @@
 # Changelog
 
+## Session 31 — Smart Address Card Enhancements (2026-02-18)
+
+### Problem Solved
+The address search result card showed a static "Analyze Project" button that posted a useless literal string, and a "Check Violations" button that looked identical whether there were 0 or 10 open violations — no incentive to engage.
+
+### Solution: Rich Quick Actions + Go Button Pulse
+
+#### Smart "Analyze Project" button (`web/app.py`, `web/templates/search_results.html`)
+- New `_get_primary_permit_context()` helper queries the most recent permit at an address
+- Button label shows real permit type + cost: **"🔍 Analyze: Additions + Repairs · $85K"**
+- Hidden fields `estimated_cost` + `neighborhood` POST directly to `_ask_analyze_prefill()`
+- `_ask_analyze_prefill()` updated to read those fields, pre-filling the cost analyzer form with real data
+- Falls back to "🔍 Analyze Project" if no permit context available
+
+#### Violations badge — 3 visual states (`web/app.py`, `web/templates/search_results.html`)
+- New `_get_open_violation_counts()` helper counts open violations + complaints by block/lot
+- **Red badge** when violations exist: "⚠️ Check Violations · 3 open"
+- **Green** when clean: "✓ No open violations"
+- **Neutral** when violations table not yet ingested (auto-activates when data lands)
+
+#### Active businesses row (gated on data)
+- New `_get_active_businesses()` helper fetches up to 5 active businesses at the address
+- Green-tinted card shows business name, operating since year, and type flag (🅿️ Parking, 🏨 Short-term rental)
+- Auto-activates when `businesses` table is populated
+
+#### "Who's Here" 4th button (gated on data)
+- Appears only when businesses data exists
+- "🏢 Who's Here · 3 businesses" or "🏢 Who's Here · Acme Corp" for single business
+- Routes to AI question about who operates at the address
+
+#### Go button pulse (`web/templates/index.html`)
+- One CSS rule: `form.loading .search-btn` gets a breathing opacity animation (0.9s) while `/ask` response is loading
+- Reuses existing `@keyframes pulse` + `.loading` class already toggled by HTMX event listeners
+
+#### More detail + sources (`web/app.py`, `web/templates/draft_response.html`)
+- "Cite sources" button removed; "More detail" renamed to **"More detail + sources"**
+- `more_detail` modifier instructions updated to include citation rules:
+  - SF Planning Code + SFBC: formatted as AM Legal markdown hyperlinks (clickable end-to-end)
+  - CBC, Title 24, ASCE 7: inline citations only (paywalled)
+
+### Gating Strategy
+All new data-dependent features (`_get_open_violation_counts`, `_get_active_businesses`) check table population with `SELECT COUNT(*) … LIMIT 1` and return `None`/`[]` silently when empty. Template guards ensure zero UI change until data lands — safe to ship before ingest completes.
+
+### Tests
+985 passing, 6 pre-existing failures (unrelated: test_auth watch edit routes, test_report URL format, test_web Plan Set Validator).
+
+---
+
 ## Session 30 — Building Permit Addenda Routing + Nightly Change Detection (2026-02-18)
 
 ### Problem Solved
