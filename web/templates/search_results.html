@@ -6,12 +6,48 @@
 .search-result-card table td a:hover {
     color: #7ab0ff;
 }
+/* Property Intelligence Panel */
+.intel-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+@media (min-width: 640px) {
+    .intel-panel {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+    }
+}
+.intel-col {
+    padding: 12px 14px;
+    background: var(--surface, #1a1d27);
+    border: 1px solid var(--border, #333749);
+    border-radius: 10px;
+}
+.intel-col-label {
+    font-size: 0.7rem;
+    color: var(--text-muted, #8b8fa3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+}
+.intel-col-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+.intel-col-detail {
+    font-size: 0.78rem;
+    color: var(--text-muted, #8b8fa3);
+    margin-top: 2px;
+}
 </style>
 {# Default context vars — callers that don't pass these get safe no-op values #}
 {% set project_context = project_context if project_context is defined else none %}
 {% set violation_counts = violation_counts if violation_counts is defined else none %}
 {% set active_businesses = active_businesses if active_businesses is defined else [] %}
 {% set show_quick_actions = show_quick_actions if show_quick_actions is defined else false %}
+{% set address_intel = address_intel if address_intel is defined else none %}
 <div class="result-card search-result-card">
     <div class="search-echo" style="display: flex; justify-content: space-between; align-items: center;">
         <span>{{ query_echo }}</span>
@@ -105,21 +141,60 @@
     </div>
     {% endif %}
 
-    {# Active businesses row — only on address searches when businesses table is populated #}
-    {% if show_quick_actions and active_businesses %}
-    <div style="margin-bottom:16px;padding:12px 16px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.18);border-radius:10px;">
-        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Active at this address</div>
-        <div style="display:flex;flex-direction:column;gap:5px;">
-            {% for b in active_businesses %}
-            <div style="display:flex;align-items:center;gap:8px;font-size:0.88rem;">
-                <span>🏢</span>
-                <span style="color:var(--text);">{{ b.name }}</span>
-                <span style="color:var(--text-muted);font-size:0.78rem;">since {{ b.since }}</span>
-                {% if b.type_flag %}
-                <span style="font-size:0.72rem;padding:1px 6px;background:rgba(79,143,247,0.12);border-radius:4px;color:var(--accent);">{{ b.type_flag }}</span>
+    {# ===== Property Intelligence Panel ===== #}
+    {% if address_intel and show_quick_actions and not no_results %}
+    <div class="intel-panel">
+        {# Column 1: Enforcement #}
+        <div class="intel-col"{% if address_intel.enforcement_total and address_intel.enforcement_total > 0 %} style="background:rgba(239,68,68,0.07);border-color:rgba(239,68,68,0.25);"{% endif %}>
+            <div class="intel-col-label">Enforcement</div>
+            {% if address_intel.enforcement_total is not none %}
+                {% if address_intel.enforcement_total > 0 %}
+                <div class="intel-col-value" style="color:#f87171;">{{ address_intel.enforcement_total }} open</div>
+                <div class="intel-col-detail" style="color:#f87171;">
+                    {% if address_intel.open_violations %}{{ address_intel.open_violations }} violation{{ 's' if address_intel.open_violations != 1 else '' }}{% endif %}{% if address_intel.open_violations and address_intel.open_complaints %}, {% endif %}{% if address_intel.open_complaints %}{{ address_intel.open_complaints }} complaint{{ 's' if address_intel.open_complaints != 1 else '' }}{% endif %}
+                </div>
+                {% else %}
+                <div class="intel-col-value" style="color:var(--success, #34d399);">✓ Clear</div>
+                <div class="intel-col-detail">No open violations</div>
                 {% endif %}
+            {% else %}
+            <div class="intel-col-value" style="color:var(--text-muted);">&mdash;</div>
+            <div class="intel-col-detail">No parcel data</div>
+            {% endif %}
+        </div>
+
+        {# Column 2: Businesses #}
+        <div class="intel-col">
+            <div class="intel-col-label">Businesses</div>
+            {% if address_intel.business_count > 0 %}
+            <div class="intel-col-value" style="color:var(--text);">{{ address_intel.business_count }} active</div>
+            <div class="intel-col-detail">
+                {{ address_intel.active_businesses[0].name[:28] }}{% if address_intel.business_count > 1 %} +{{ address_intel.business_count - 1 }}{% endif %}
             </div>
-            {% endfor %}
+            {% elif address_intel.business_count == 0 and address_intel.active_businesses is defined %}
+            <div class="intel-col-value" style="color:var(--text-muted);">None</div>
+            <div class="intel-col-detail">No registered businesses</div>
+            {% else %}
+            <div class="intel-col-value" style="color:var(--text-muted);">&mdash;</div>
+            <div class="intel-col-detail">Parcel search only</div>
+            {% endif %}
+        </div>
+
+        {# Column 3: Permits #}
+        <div class="intel-col">
+            <div class="intel-col-label">Permits</div>
+            {% if address_intel.total_permits is not none %}
+            <div class="intel-col-value" style="color:var(--text);">
+                {{ address_intel.total_permits }}
+                <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);">total</span>
+            </div>
+            <div class="intel-col-detail">
+                {% if address_intel.active_permits %}{{ address_intel.active_permits }} active{% else %}None active{% endif %}{% if address_intel.latest_permit_type %} · {{ address_intel.latest_permit_type }}{% endif %}
+            </div>
+            {% else %}
+            <div class="intel-col-value" style="color:var(--text-muted);">&mdash;</div>
+            <div class="intel-col-detail">No permit data</div>
+            {% endif %}
         </div>
     </div>
     {% endif %}

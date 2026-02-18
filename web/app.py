@@ -1849,6 +1849,150 @@ def _get_active_businesses(street_number: str, street_name: str) -> list:
         return []
 
 
+def _get_address_intel(
+    block: str | None = None,
+    lot: str | None = None,
+    street_number: str | None = None,
+    street_name: str | None = None,
+) -> dict:
+    """Assemble property intelligence panel data.
+
+    Each section is independently fault-tolerant — one failure
+    doesn't prevent the others from returning data.
+    """
+    from src.db import query as db_query
+
+    result = {
+        "open_violations": None,
+        "open_complaints": None,
+        "enforcement_total": None,
+        "business_count": 0,
+        "active_businesses": [],
+        "total_permits": None,
+        "active_permits": None,
+        "latest_permit_type": None,
+    }
+
+    # ── Section 1: Violations (needs block + lot) ──
+    open_v = 0
+    if block and lot:
+        try:
+            v_rows = db_query(
+                "SELECT COUNT(*) FROM violations "
+                "WHERE block = %s AND lot = %s AND LOWER(status) = 'open'",
+                (block, lot),
+            )
+            open_v = v_rows[0][0] if v_rows else 0
+            result["open_violations"] = open_v
+        except Exception as e:
+            logging.debug("_get_address_intel violations failed: %s", e)
+
+    # ── Section 2: Complaints (needs block + lot) ──
+    open_c = 0
+    if block and lot:
+        try:
+            c_rows = db_query(
+                "SELECT COUNT(*) FROM complaints "
+                "WHERE block = %s AND lot = %s AND LOWER(status) = 'open'",
+                (block, lot),
+            )
+            open_c = c_rows[0][0] if c_rows else 0
+            result["open_complaints"] = open_c
+        except Exception as e:
+            logging.debug("_get_address_intel complaints failed: %s", e)
+
+    if result["open_violations"] is not None or result["open_complaints"] is not None:
+        result["enforcement_total"] = (result["open_violations"] or 0) + (result["open_complaints"] or 0)
+
+    # ── Section 3: Businesses (needs street address) ──
+    if street_number and street_name:
+        try:
+            biz_rows = db_query(
+                "SELECT dba_name, ownership_name, dba_start_date, "
+                "       parking_tax, transient_occupancy_tax "
+                "FROM businesses "
+                "WHERE full_business_address ILIKE %s "
+                "  AND location_end_date IS NULL "
+                "ORDER BY dba_start_date DESC LIMIT 5",
+                (f"%{street_number}%{street_name.split()[0]}%",),
+            )
+            for dba, ownership, start, parking, tot in biz_rows:
+                name = (dba or ownership or "").strip()
+                if not name:
+                    continue
+                since = str(start or "")[:4] or "?"
+                type_flag = None
+                if parking == "Y":
+                    type_flag = "🅿️ Parking"
+                elif tot == "Y":
+                    type_flag = "🏨 Short-term rental"
+                result["active_businesses"].append(
+                    {"name": name, "since": since, "type_flag": type_flag}
+                )
+            result["business_count"] = len(result["active_businesses"])
+        except Exception as e:
+            logging.debug("_get_address_intel businesses failed: %s", e)
+
+    # ── Section 4: Permit stats (works with address OR block+lot) ──
+    try:
+        if street_number and street_name:
+            count_rows = db_query(
+                "SELECT COUNT(*), "
+                "       COUNT(*) FILTER (WHERE UPPER(status) IN "
+                "           ('ISSUED', 'FILED', 'PLANCHECK', 'REINSTATED')) "
+                "FROM permits "
+                "WHERE street_number = %s "
+                "  AND UPPER(street_name) LIKE UPPER(%s)",
+                (street_number, f"%{street_name.split()[0]}%"),
+            )
+        elif block and lot:
+            count_rows = db_query(
+                "SELECT COUNT(*), "
+                "       COUNT(*) FILTER (WHERE UPPER(status) IN "
+                "           ('ISSUED', 'FILED', 'PLANCHECK', 'REINSTATED')) "
+                "FROM permits "
+                "WHERE block = %s AND lot = %s",
+                (block, lot),
+            )
+        else:
+            count_rows = None
+
+        if count_rows and count_rows[0]:
+            result["total_permits"] = count_rows[0][0]
+            result["active_permits"] = count_rows[0][1]
+    except Exception as e:
+        logging.debug("_get_address_intel permit counts failed: %s", e)
+
+    try:
+        if street_number and street_name:
+            latest_rows = db_query(
+                "SELECT permit_type_definition FROM permits "
+                "WHERE street_number = %s "
+                "  AND UPPER(street_name) LIKE UPPER(%s) "
+                "ORDER BY filed_date DESC LIMIT 1",
+                (street_number, f"%{street_name.split()[0]}%"),
+            )
+        elif block and lot:
+            latest_rows = db_query(
+                "SELECT permit_type_definition FROM permits "
+                "WHERE block = %s AND lot = %s "
+                "ORDER BY filed_date DESC LIMIT 1",
+                (block, lot),
+            )
+        else:
+            latest_rows = None
+
+        if latest_rows and latest_rows[0]:
+            ptd = latest_rows[0][0] or ""
+            ptd = ptd.replace("Additions Alterations or Repairs", "Additions + Repairs")
+            ptd = ptd.replace("New Construction Wood Frame", "New Construction")
+            result["latest_permit_type"] = ptd[:40] if ptd else None
+    except Exception as e:
+        logging.debug("_get_address_intel latest permit failed: %s", e)
+
+    return result
+
+
 def _ask_address_search(query: str, entities: dict) -> str:
     """Handle address-based permit search."""
     street_number = entities.get("street_number")
@@ -1902,13 +2046,26 @@ def _ask_address_search(query: str, entities: dict) -> str:
     street_address = f"{street_number} {street_name}" if street_number and street_name else None
     # Enrich Quick Actions with live context
     project_context = None
-    violation_counts = None
-    active_businesses = []
+    address_intel = None
     if not no_results:
         project_context = _get_primary_permit_context(street_number, street_name)
-        active_businesses = _get_active_businesses(street_number, street_name)
-    if bl and not no_results:
-        violation_counts = _get_open_violation_counts(bl[0], bl[1])
+        address_intel = _get_address_intel(
+            block=bl[0] if bl else None,
+            lot=bl[1] if bl else None,
+            street_number=street_number,
+            street_name=street_name,
+        )
+    # Extract for backward compat with Quick Actions buttons
+    violation_counts = None
+    active_businesses = []
+    if address_intel:
+        if address_intel["enforcement_total"] is not None:
+            violation_counts = {
+                "open_violations": address_intel["open_violations"] or 0,
+                "open_complaints": address_intel["open_complaints"] or 0,
+                "total": address_intel["enforcement_total"],
+            }
+        active_businesses = address_intel["active_businesses"]
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
@@ -1923,6 +2080,7 @@ def _ask_address_search(query: str, entities: dict) -> str:
         project_context=project_context,
         violation_counts=violation_counts,
         active_businesses=active_businesses,
+        address_intel=address_intel,
         show_quick_actions=True,
         **_watch_context(watch_data),
     )
@@ -1945,10 +2103,17 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
     }
     report_url = f"/report/{block}/{lot}" if block and lot else None
     street_address = f"Block {block}, Lot {lot}" if block and lot else None
-    # Violations badge for parcel searches (businesses/analyze not wired for parcel)
+    # Property intel — block/lot only, no street address for business lookup
+    address_intel = None
     violation_counts = None
     if block and lot:
-        violation_counts = _get_open_violation_counts(block, lot)
+        address_intel = _get_address_intel(block=block, lot=lot)
+        if address_intel and address_intel["enforcement_total"] is not None:
+            violation_counts = {
+                "open_violations": address_intel["open_violations"] or 0,
+                "open_complaints": address_intel["open_complaints"] or 0,
+                "total": address_intel["enforcement_total"],
+            }
     return render_template(
         "search_results.html",
         query_echo=f"Block {block}, Lot {lot}",
@@ -1958,6 +2123,7 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
         project_context=None,
         violation_counts=violation_counts,
         active_businesses=[],
+        address_intel=address_intel,
         show_quick_actions=True,
         **_watch_context(watch_data),
     )
