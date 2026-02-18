@@ -107,8 +107,10 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         raise ValueError(f"No PDF data for job {job_id}")
 
     filename = job["filename"]
+    job_t0 = time.time()
     logger.info(
-        f"[plan-worker] Processing {filename} ({job['file_size_mb']:.1f} MB)"
+        f"[plan-worker] Processing {filename} ({job['file_size_mb']:.1f} MB) "
+        f"mode={job.get('analysis_mode', 'sample')} quick={job['quick_check']}"
     )
 
     # ── Run analysis ──
@@ -153,7 +155,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     reader = PdfReader(BytesIO(pdf_bytes))
     page_count = len(reader.pages)
 
-    # ── Render gallery images at lower DPI ──
+    # ── Render gallery images at lower DPI (parallel) ──
     total_render = min(page_count, 50)
     update_job_status(
         job_id, "processing",
@@ -162,21 +164,36 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     )
 
     gallery_t0 = time.time()
-    page_images = []
-    for pn in range(total_render):
+
+    def _render_page(pn: int) -> tuple[int, str] | None:
         try:
             b64 = pdf_page_to_base64(pdf_bytes, pn, dpi=GALLERY_DPI)
-            page_images.append((pn, b64))
+            return (pn, b64)
         except Exception as e:
             logger.warning(f"[plan-worker] Skipped page {pn} for {filename}: {e}")
+            return None
 
-        # Update progress every 5 pages
-        if (pn + 1) % 5 == 0 or pn == total_render - 1:
-            update_job_status(
-                job_id, "processing",
-                progress_stage="rendering",
-                progress_detail=f"Rendering page gallery ({pn + 1}/{total_render})...",
-            )
+    # Parallel rendering with 4 threads (PDF rendering is I/O-bound on disk)
+    from concurrent.futures import ThreadPoolExecutor as GalleryPool
+
+    page_images = []
+    with GalleryPool(max_workers=4, thread_name_prefix="gallery") as gallery_exec:
+        futures = {gallery_exec.submit(_render_page, pn): pn for pn in range(total_render)}
+        done_count = 0
+        for future in futures:
+            result = future.result()
+            if result:
+                page_images.append(result)
+            done_count += 1
+            if done_count % 5 == 0 or done_count == total_render:
+                update_job_status(
+                    job_id, "processing",
+                    progress_stage="rendering",
+                    progress_detail=f"Rendering page gallery ({done_count}/{total_render})...",
+                )
+
+    # Sort by page number to maintain order
+    page_images.sort(key=lambda x: x[0])
     gallery_duration_ms = int((time.time() - gallery_t0) * 1000)
     logger.info(f"[plan-worker] stage=gallery pages={total_render} duration_ms={gallery_duration_ms} job={job_id}")
 
@@ -242,9 +259,11 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
             f"{vision_usage.total_tokens:,} tokens/"
             f"~${vision_usage.estimated_cost_usd:.4f}"
         )
+    total_wall_ms = int((time.time() - job_t0) * 1000)
     logger.info(
         f"[plan-worker] Completed {filename}: {page_count} pages, "
-        f"session={session_id}, gallery={gallery_duration_ms}ms{usage_log}"
+        f"session={session_id}, analysis={analysis_ms}ms, gallery={gallery_duration_ms}ms, "
+        f"total_wall={total_wall_ms}ms{usage_log}"
     )
 
     # ── Send email notification ──

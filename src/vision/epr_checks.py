@@ -96,6 +96,27 @@ def _select_sample_pages(total_pages: int) -> list[int]:
     return sorted(set(pages))
 
 
+def _select_compliance_pages(total_pages: int) -> list[int]:
+    """Select minimal pages for compliance mode.
+
+    Fewer pages = fewer API calls = faster turnaround.
+    Strategy: cover + first interior + middle (3 pages max).
+    """
+    if total_pages <= 2:
+        return list(range(total_pages))
+
+    pages = [0]  # Cover
+
+    if total_pages >= 2:
+        pages.append(1)  # First interior
+
+    mid = total_pages // 2
+    if mid not in pages and total_pages >= 4:
+        pages.append(mid)
+
+    return sorted(set(pages))
+
+
 # ---------------------------------------------------------------------------
 # Skip helpers
 # ---------------------------------------------------------------------------
@@ -788,6 +809,9 @@ async def run_vision_epr_checks(
     # ── Stage 3: Select and render sample pages ──
     if analyze_all_pages:
         sample_pages = list(range(total_pages))
+    elif is_compliance:
+        # Compliance mode: fewer sample pages (cover + 2 interior) to minimize API calls
+        sample_pages = _select_compliance_pages(total_pages)
     else:
         sample_pages = _select_sample_pages(total_pages)
 
@@ -798,14 +822,19 @@ async def run_vision_epr_checks(
             preview_annotation_page = interior_pages[0]
             logger.info("[vision] compliance preview annotation on page %d", preview_annotation_page)
 
+    # DPI strategy: annotations need 150 for spatial precision, title-block-only pages
+    # need only 100 DPI (~55% smaller payload → faster upload & model processing).
+    DPI_TITLE_BLOCK = 100   # Good enough for text readability
+    DPI_ANNOTATIONS = 150   # Needs spatial precision for coordinate extraction
+    DPI_HATCHING = 100      # Pattern recognition, not fine detail
+
     render_t0 = time.perf_counter()
     page_images: dict[int, str] = {}
     for page_num in sample_pages:
-        if page_num == 0:
-            # Re-render cover at higher DPI for title block / annotations
-            page_images[0] = pdf_page_to_base64(pdf_bytes, 0, dpi=150)
-        else:
-            page_images[page_num] = pdf_page_to_base64(pdf_bytes, page_num, dpi=150)
+        # Pages that get annotations need higher DPI
+        needs_annotations = (not is_compliance) or (page_num == preview_annotation_page)
+        dpi = DPI_ANNOTATIONS if needs_annotations else DPI_TITLE_BLOCK
+        page_images[page_num] = pdf_page_to_base64(pdf_bytes, page_num, dpi=dpi)
     logger.info(
         "[vision] stage=render_samples pages=%d duration_ms=%d",
         len(sample_pages), int((time.perf_counter() - render_t0) * 1000),
