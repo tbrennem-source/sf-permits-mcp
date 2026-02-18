@@ -89,6 +89,9 @@ class KnowledgeBase:
         self.enforcement_process = _load_json(tier1 / "enforcement-process.json")
         self.appeals_bodies = _load_json(tier1 / "appeals-bodies.json")
 
+        # FS-Series Fire Safety Info Sheets (Session 24)
+        self.fire_safety_info_sheets = _load_json(tier1 / "fire-safety-info-sheets.json")
+
         # DBI Permit Services — sf.gov scraped content (Session 22.5)
         self.otc_step_by_step = _load_json(tier1 / "otc-step-by-step.json")
         self.adu_programs = _load_json(tier1 / "adu-programs.json")

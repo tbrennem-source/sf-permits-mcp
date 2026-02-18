@@ -49,6 +49,12 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
 app.permanent_session_lifetime = timedelta(days=30)
 
+# Cookie security: Secure (HTTPS-only in prod), HttpOnly (default), SameSite=Lax
+_is_prod = os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("BASE_URL", "").startswith("https")
+app.config["SESSION_COOKIE_SECURE"] = bool(_is_prod)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
 # 400 MB max upload for plan set PDFs (site permit addenda can be up to 350 MB)
 app.config["MAX_CONTENT_LENGTH"] = 400 * 1024 * 1024
 
