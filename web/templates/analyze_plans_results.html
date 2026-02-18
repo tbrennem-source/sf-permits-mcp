@@ -618,6 +618,54 @@
         color: #22c55e !important;
     }
 
+    /* Compliance Upsell Teaser */
+    .compliance-upsell {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(79, 143, 247, 0.10));
+        border: 1px solid rgba(124, 58, 237, 0.35);
+        border-radius: 10px;
+    }
+
+    .upsell-icon {
+        font-size: 1.6rem;
+        flex-shrink: 0;
+    }
+
+    .upsell-content {
+        flex: 1;
+        font-size: 0.9rem;
+        color: var(--text);
+        line-height: 1.5;
+    }
+
+    .upsell-cta {
+        flex-shrink: 0;
+        padding: 8px 20px;
+        background: var(--accent);
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        transition: background 0.2s;
+    }
+
+    .upsell-cta:hover {
+        background: var(--accent-hover);
+    }
+
+    @media (max-width: 640px) {
+        .compliance-upsell {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+
     /* ========== Print Stylesheet ========== */
     @media print {
         /* Hide everything on the parent page when printing report */
@@ -639,6 +687,7 @@
         }
 
         /* Hide interactive elements within the results */
+        body.printing-report .compliance-upsell,
         body.printing-report .bulk-actions-toolbar,
         body.printing-report .thumbnail-gallery,
         body.printing-report .detail-card,
@@ -713,6 +762,8 @@
             <span class="file-hint">&mdash; {{ filesize_mb }} MB</span>
             {% if quick_check %}
             <span style="display: inline-block; margin-left: 12px; background: var(--surface-2); border: 1px solid var(--border); padding: 2px 10px; border-radius: 12px; font-size: 0.8rem;">Quick Check (metadata only)</span>
+            {% elif analysis_mode is defined and analysis_mode == 'compliance' %}
+            <span style="display: inline-block; margin-left: 12px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.4); color: #a78bfa; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem;">Compliance Check</span>
             {% endif %}
             {% if annotation_count is defined and annotation_count > 0 %}
             <span class="file-hint">&middot; {{ annotation_count }} annotation{{ 's' if annotation_count != 1 }}</span>
@@ -770,6 +821,23 @@
             <div id="annotation-legend" class="annotation-legend" style="display:none;"></div>
         </div>
     </div>
+
+    <!-- Compliance Mode Upsell Teaser -->
+    {% if analysis_mode is defined and analysis_mode == 'compliance' %}
+    <div class="compliance-upsell">
+        <div class="upsell-icon">🔍</div>
+        <div class="upsell-content">
+            <strong>Compliance Preview</strong> —
+            {% if annotation_count is defined and annotation_count > 0 %}
+            We found <span style="color:var(--success);font-weight:700;">{{ annotation_count }} annotation{{ 's' if annotation_count != 1 }}</span> on just 1 page.
+            {% else %}
+            AI annotations are available for your plan set.
+            {% endif %}
+            Run a <strong>Full Analysis</strong> to get detailed markups on every sampled sheet — including EPR issues, code references, dimensions, and scope indicators.
+        </div>
+        <a href="/" class="upsell-cta">Run Full Analysis &rarr;</a>
+    </div>
+    {% endif %}
 
     <!-- Thumbnail Gallery -->
     {% if session_id and page_count > 0 %}

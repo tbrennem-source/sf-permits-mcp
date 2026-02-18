@@ -746,8 +746,10 @@ async def run_vision_epr_checks(
     # Resolve analyze_all_pages from analysis_mode (backward compat)
     if analysis_mode == "full":
         analyze_all_pages = True
-    skip_annotations = (analysis_mode == "compliance")
-    skip_hatching = (analysis_mode == "compliance")
+    is_compliance = (analysis_mode == "compliance")
+    skip_hatching = is_compliance
+    # In compliance mode, we run annotations on 1 preview page to showcase markups
+    preview_annotation_page: int | None = None  # Set after sample pages are selected
     model = os.environ.get("VISION_MODEL", DEFAULT_MODEL)
 
     if not is_vision_available():
@@ -789,6 +791,13 @@ async def run_vision_epr_checks(
     else:
         sample_pages = _select_sample_pages(total_pages)
 
+    # In compliance mode, pick the first interior page for annotation preview
+    if is_compliance:
+        interior_pages = [p for p in sample_pages if p != 0]
+        if interior_pages:
+            preview_annotation_page = interior_pages[0]
+            logger.info("[vision] compliance preview annotation on page %d", preview_annotation_page)
+
     render_t0 = time.perf_counter()
     page_images: dict[int, str] = {}
     for page_num in sample_pages:
@@ -807,18 +816,11 @@ async def run_vision_epr_checks(
         """Run title block + annotation extraction for one page."""
         tb_parsed = None
         anns = []
+        # In compliance mode, run annotations only on the preview page
+        run_annotations = (not is_compliance) or (page_num == preview_annotation_page)
         try:
-            if skip_annotations:
-                # Compliance mode: title block only — no annotations
-                tb_result = await _timed_analyze_image(
-                    b64, PROMPT_TITLE_BLOCK, "title_block", usage,
-                    system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
-                )
-                tb_parsed = _parse_json_response(tb_result)
-                if tb_parsed:
-                    tb_parsed["page_number"] = page_num + 1
-            else:
-                # Full/sample mode: title block + annotations in parallel
+            if run_annotations:
+                # Title block + annotations in parallel
                 tb_task = _timed_analyze_image(
                     b64, PROMPT_TITLE_BLOCK, "title_block", usage,
                     system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
@@ -830,6 +832,15 @@ async def run_vision_epr_checks(
                 if tb_parsed:
                     tb_parsed["page_number"] = page_num + 1
                 anns = page_anns
+            else:
+                # Title block only — no annotations
+                tb_result = await _timed_analyze_image(
+                    b64, PROMPT_TITLE_BLOCK, "title_block", usage,
+                    system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
+                )
+                tb_parsed = _parse_json_response(tb_result)
+                if tb_parsed:
+                    tb_parsed["page_number"] = page_num + 1
         except Exception as e:
             logger.warning("Page %d analysis failed: %s", page_num, e)
         return tb_parsed, anns

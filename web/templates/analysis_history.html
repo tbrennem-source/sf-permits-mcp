@@ -234,6 +234,57 @@
             margin-top: 4px;
         }
 
+        /* Filter chips */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+
+        .filter-chip {
+            padding: 4px 14px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: none;
+            color: var(--text-muted);
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .filter-chip:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .filter-chip.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .filter-chip .chip-count {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-left: 4px;
+        }
+
+        .filter-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 4px;
+        }
+
         @media (max-width: 640px) {
             .analysis-grid {
                 grid-template-columns: 1fr;
@@ -260,9 +311,27 @@
         </div>
 
         {% if jobs %}
-        <div class="analysis-grid">
+        <!-- Filter Chips -->
+        <div class="filter-bar" id="filter-bar">
+            <span class="filter-label">Status:</span>
+            <button class="filter-chip active" data-filter="status" data-value="all" onclick="toggleFilter(this)">All</button>
+            <button class="filter-chip" data-filter="status" data-value="completed" onclick="toggleFilter(this)">Completed</button>
+            <button class="filter-chip" data-filter="status" data-value="processing" onclick="toggleFilter(this)">Processing</button>
+            <button class="filter-chip" data-filter="status" data-value="failed" onclick="toggleFilter(this)">Failed</button>
+            <div class="filter-divider"></div>
+            <span class="filter-label">Mode:</span>
+            <button class="filter-chip active" data-filter="mode" data-value="all" onclick="toggleFilter(this)">All</button>
+            <button class="filter-chip" data-filter="mode" data-value="quick" onclick="toggleFilter(this)">Quick</button>
+            <button class="filter-chip" data-filter="mode" data-value="compliance" onclick="toggleFilter(this)">Compliance</button>
+            <button class="filter-chip" data-filter="mode" data-value="sample" onclick="toggleFilter(this)">Analysis</button>
+            <button class="filter-chip" data-filter="mode" data-value="full" onclick="toggleFilter(this)">Full</button>
+        </div>
+
+        <div class="analysis-grid" id="analysis-grid">
             {% for job in jobs %}
-            <div class="analysis-card" id="job-card-{{ job.job_id }}">
+            <div class="analysis-card" id="job-card-{{ job.job_id }}"
+                 data-status="{{ job.status }}"
+                 data-mode="{{ 'quick' if job.quick_check else (job.analysis_mode or 'sample') }}">
                 <div class="card-header">
                     <span class="card-filename" title="{{ job.filename }}">{{ job.filename }}</span>
                     <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
@@ -350,5 +419,56 @@
         </div>
         {% endif %}
     </div>
+
+    <script>
+    // Client-side filtering for analysis history
+    const activeFilters = { status: 'all', mode: 'all' };
+
+    function toggleFilter(chip) {
+        const filterType = chip.dataset.filter;
+        const value = chip.dataset.value;
+
+        // Update active state within this filter group
+        document.querySelectorAll(`.filter-chip[data-filter="${filterType}"]`).forEach(c => {
+            c.classList.remove('active');
+        });
+        chip.classList.add('active');
+
+        activeFilters[filterType] = value;
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const cards = document.querySelectorAll('.analysis-card');
+        let visible = 0;
+
+        cards.forEach(card => {
+            const matchStatus = activeFilters.status === 'all' || card.dataset.status === activeFilters.status;
+            const matchMode = activeFilters.mode === 'all' || card.dataset.mode === activeFilters.mode;
+
+            if (matchStatus && matchMode) {
+                card.style.display = '';
+                visible++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show/hide empty state for filtered results
+        let emptyMsg = document.getElementById('filter-empty');
+        if (visible === 0 && cards.length > 0) {
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('div');
+                emptyMsg.id = 'filter-empty';
+                emptyMsg.style.cssText = 'text-align:center; padding:40px 24px; color:var(--text-muted); grid-column:1/-1;';
+                emptyMsg.innerHTML = '<p>No analyses match the selected filters.</p>';
+                document.getElementById('analysis-grid').appendChild(emptyMsg);
+            }
+            emptyMsg.style.display = '';
+        } else if (emptyMsg) {
+            emptyMsg.style.display = 'none';
+        }
+    }
+    </script>
 </body>
 </html>

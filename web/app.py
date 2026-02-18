@@ -1341,6 +1341,7 @@ def plan_job_results(job_id):
         annotations_json=annotations_json,
         annotation_count=len(page_annotations) if page_annotations else 0,
         quick_check=job["quick_check"],
+        analysis_mode=job.get("analysis_mode", "sample"),
         property_address=job.get("property_address"),
         street_number=_parse_address(job.get("property_address", ""))[0],
         street_name=_parse_address(job.get("property_address", ""))[1],
