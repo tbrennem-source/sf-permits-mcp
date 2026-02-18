@@ -263,19 +263,19 @@ def _run_startup_migrations():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_points_user ON points_ledger (user_id)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_points_feedback ON points_ledger (feedback_id)")
         # Fix inspections.id for auto-increment (needed for nightly upserts)
-        # Original migration used INTEGER, but we need SERIAL for auto-increment
+        # Original migration used INTEGER, but we need SERIAL for auto-increment.
+        # Always resync the sequence to MAX(id) in case bulk data was loaded.
         try:
             cur.execute("""
                 DO $$
                 BEGIN
-                    -- Create a sequence if it doesn't exist
+                    -- Create sequence if it doesn't exist
                     IF NOT EXISTS (SELECT 1 FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'inspections_id_seq') THEN
                         CREATE SEQUENCE inspections_id_seq;
-                        -- Set the sequence to start after the max existing id
-                        PERFORM setval('inspections_id_seq', COALESCE((SELECT MAX(id) FROM inspections), 0) + 1);
-                        -- Set the column default
                         ALTER TABLE inspections ALTER COLUMN id SET DEFAULT nextval('inspections_id_seq');
                     END IF;
+                    -- Always resync to MAX(id) so nightly inserts don't collide
+                    PERFORM setval('inspections_id_seq', COALESCE((SELECT MAX(id) FROM inspections), 0) + 1);
                 END
                 $$
             """)
