@@ -43,6 +43,9 @@ from src.tools.recommend_consultants import recommend_consultants
 # Phase 4 tools (lookup / status)
 from src.tools.permit_lookup import permit_lookup
 
+# Phase 5 tools (addenda routing)
+from src.tools.search_addenda import search_addenda
+
 # Create MCP server
 mcp = FastMCP(
     "SF Permits",
@@ -63,7 +66,9 @@ mcp = FastMCP(
         "DBI enforcement datasets via SODA API for building complaints, notices of violation, "
         "and inspection records — useful for due diligence and property analysis. "
         "Phase 4 tool (permit_lookup) searches local DB by permit number, address, or parcel "
-        "and returns full details, project team, inspections, and related permits."
+        "and returns full details, project team, inspections, plan review routing, and related permits. "
+        "Phase 5 tool (search_addenda) searches 3.9M+ addenda routing records for plan review "
+        "status by permit, station, reviewer, department, or date range."
     ),
 )
 
@@ -102,6 +107,9 @@ mcp.tool()(recommend_consultants)
 
 # Phase 4 tools (lookup / status)
 mcp.tool()(permit_lookup)
+
+# Phase 5 tools (addenda routing)
+mcp.tool()(search_addenda)
 
 
 if __name__ == "__main__":

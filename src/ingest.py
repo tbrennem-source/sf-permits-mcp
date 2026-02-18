@@ -244,6 +244,46 @@ def _normalize_permit(record: dict) -> tuple:
     )
 
 
+def _normalize_addenda(record: dict, row_id: int) -> tuple:
+    """Normalize a building permit addenda routing record."""
+    addenda_number = None
+    raw_an = record.get("addenda_number")
+    if raw_an:
+        try:
+            addenda_number = int(float(raw_an))
+        except (ValueError, TypeError):
+            pass
+
+    step = None
+    raw_step = record.get("step")
+    if raw_step:
+        try:
+            step = int(float(raw_step))
+        except (ValueError, TypeError):
+            pass
+
+    return (
+        row_id,
+        record.get("primary_key"),
+        record.get("application_number", ""),
+        addenda_number,
+        step,
+        (record.get("station") or "").strip() or None,
+        record.get("arrive"),
+        record.get("assign_date"),
+        record.get("start_date"),
+        record.get("finish_date"),
+        record.get("approved_date"),
+        (record.get("plan_checked_by") or "").strip() or None,
+        (record.get("review_results") or "").strip() or None,
+        (record.get("hold_description") or "").strip() or None,
+        (record.get("addenda_status") or "").strip() or None,
+        (record.get("department") or "").strip() or None,
+        (record.get("title") or "").strip() or None,
+        record.get("data_as_of"),
+    )
+
+
 def _normalize_inspection(record: dict, row_id: int) -> tuple:
     """Normalize a building inspection record."""
     return (
@@ -486,10 +526,44 @@ async def ingest_inspections(conn, client: SODAClient) -> int:
     return len(batch)
 
 
+async def ingest_addenda(conn, client: SODAClient) -> int:
+    """Ingest building permit addenda + routing into addenda table."""
+    print("\n=== Ingesting Building Permit Addenda + Routing ===")
+
+    conn.execute("DELETE FROM addenda")
+
+    records = await _fetch_all_pages(
+        client, "87xy-gk8d", "Building Permit Addenda + Routing"
+    )
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        batch.append(_normalize_addenda(r, i))
+    if batch:
+        conn.executemany(
+            "INSERT INTO addenda VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} addenda routing records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        [
+            "87xy-gk8d",
+            "Building Permit Addenda + Routing",
+            datetime.now(timezone.utc).isoformat(),
+            len(records),
+            len(records),
+        ],
+    )
+    return len(batch)
+
+
 async def run_ingestion(
     contacts: bool = True,
     permits: bool = True,
     inspections: bool = True,
+    addenda: bool = True,
     db_path: str | None = None,
 ) -> dict:
     """Run the full ingestion pipeline.
@@ -510,6 +584,8 @@ async def run_ingestion(
             results["permits"] = await ingest_permits(conn, client)
         if inspections:
             results["inspections"] = await ingest_inspections(conn, client)
+        if addenda:
+            results["addenda"] = await ingest_addenda(conn, client)
     finally:
         await client.close()
 
@@ -533,17 +609,19 @@ def main():
     parser.add_argument("--contacts", action="store_true", help="Only ingest contacts")
     parser.add_argument("--permits", action="store_true", help="Only ingest permits")
     parser.add_argument("--inspections", action="store_true", help="Only ingest inspections")
+    parser.add_argument("--addenda", action="store_true", help="Only ingest addenda routing")
     parser.add_argument("--db", type=str, help="Custom database path")
     args = parser.parse_args()
 
     # If no specific flag, ingest everything
-    do_all = not (args.contacts or args.permits or args.inspections)
+    do_all = not (args.contacts or args.permits or args.inspections or args.addenda)
 
     asyncio.run(
         run_ingestion(
             contacts=do_all or args.contacts,
             permits=do_all or args.permits,
             inspections=do_all or args.inspections,
+            addenda=do_all or args.addenda,
             db_path=args.db,
         )
     )

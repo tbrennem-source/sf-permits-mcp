@@ -121,6 +121,43 @@
                     </tr>
                     {% endif %}
 
+                    {% if plan_reviews %}
+                    <!-- Plan Review Activity -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Plan Review Activity</h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for pr in plan_reviews[:10] %}
+                                <tr>
+                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                                        <div style="font-weight:600;font-size:0.95rem;">
+                                            {{ pr.label or pr.permit_number }} &mdash; {{ pr.station }}
+                                            {% if pr.department %}<span style="color:#6b7280;font-weight:400;"> ({{ pr.department }})</span>{% endif %}
+                                        </div>
+                                        <div style="font-size:0.85rem;color:#6b7280;margin-top:2px;">
+                                            {% if pr.result == 'Approved' %}
+                                            <span style="background:#059669;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
+                                            {% elif pr.result == 'Issued Comments' %}
+                                            <span style="background:#d97706;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
+                                            {% elif pr.result %}
+                                            <span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
+                                            {% else %}
+                                            <span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">Routed</span>
+                                            {% endif %}
+                                            {% if pr.reviewer %} &middot; {{ pr.reviewer }}{% endif %}
+                                            {% if pr.finish_date %} &middot; {{ pr.finish_date[:10] }}{% endif %}
+                                        </div>
+                                        {% if pr.notes %}
+                                        <div style="font-size:0.8rem;color:#9ca3af;margin-top:4px;">{{ pr.notes }}</div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
                     {% if health %}
                     <!-- Permit Health -->
                     <tr>

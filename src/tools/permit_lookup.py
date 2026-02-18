@@ -243,16 +243,72 @@ def _get_related_team(conn, permit_number: str) -> list[dict]:
     return [{cols[i]: r[i] for i in range(len(cols))} for r in rows]
 
 
+def _get_addenda(conn, permit_number: str) -> list[dict]:
+    """Get addenda routing steps for a permit, ordered by addenda then step."""
+    sql = f"""
+        SELECT addenda_number, step, station, plan_checked_by,
+               review_results, finish_date, hold_description, department,
+               arrive, start_date
+        FROM addenda
+        WHERE application_number = {_PH}
+        ORDER BY addenda_number, step
+    """
+    rows = _exec(conn, sql, [permit_number])
+    cols = ["addenda_number", "step", "station", "reviewer",
+            "result", "finish_date", "notes", "department",
+            "arrive", "start_date"]
+    return [{cols[i]: r[i] for i in range(len(cols))} for r in rows]
+
+
 # ---------------------------------------------------------------------------
 # Markdown formatters
 # ---------------------------------------------------------------------------
+
+def _format_addenda(addenda: list[dict]) -> str:
+    """Format addenda routing as markdown table."""
+    if not addenda:
+        return "*No plan review routing data available for this permit.*"
+
+    # Summary stats
+    total_steps = len(addenda)
+    completed = sum(1 for a in addenda if a.get("result"))
+    pending = total_steps - completed
+    stations = set(a.get("station") for a in addenda if a.get("station"))
+
+    lines = [
+        f"**{total_steps} routing steps** across **{len(stations)} stations** "
+        f"({completed} completed, {pending} pending)\n",
+        "| Station | Rev | Reviewer | Result | Finish Date | Notes |",
+        "|---------|-----|----------|--------|-------------|-------|",
+    ]
+    for a in addenda[:50]:  # Cap at 50 rows
+        station = a.get("station") or "---"
+        rev = a.get("addenda_number")
+        rev_str = str(rev) if rev is not None else "---"
+        reviewer = a.get("reviewer") or "---"
+        result = a.get("result") or "---"
+        finish = a.get("finish_date") or "---"
+        if finish and len(finish) > 10:
+            finish = finish[:10]
+        notes = a.get("notes") or "---"
+        if len(notes) > 80:
+            notes = notes[:80] + "..."
+        lines.append(f"| {station} | {rev_str} | {reviewer} | {result} | {finish} | {notes} |")
+
+    if len(addenda) > 50:
+        lines.append(f"\n*Showing 50 of {len(addenda)} routing steps.*")
+
+    return "\n".join(lines)
+
 
 def _format_permit_detail(p: dict) -> str:
     """Format a single permit as markdown."""
     lines = []
     pn = p['permit_number']
     pn_url = f"https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn}"
-    lines.append(f"**Permit Number:** [{pn}]({pn_url})")
+    from src.report_links import ReportLinks
+    details_url = ReportLinks.dbi_permit_details(pn)
+    lines.append(f"**Permit Number:** [{pn}]({pn_url}) | [DBI Permit Details]({details_url})")
     lines.append(f"**Type:** {p.get('permit_type_definition') or p.get('permit_type') or 'Unknown'}")
     lines.append(f"**Status:** {p.get('status') or 'Unknown'}")
     if p.get("status_date"):
@@ -510,6 +566,14 @@ async def permit_lookup(
         lines.append("\n## Inspection History\n")
         inspections = _get_inspections(conn, pnum)
         lines.append(_format_inspections(inspections))
+
+        # 5.5 Plan Review Routing (Addenda)
+        lines.append("\n## Plan Review Routing\n")
+        try:
+            addenda_rows = _get_addenda(conn, pnum)
+            lines.append(_format_addenda(addenda_rows))
+        except Exception:
+            lines.append("*Plan review routing data not available.*")
 
         # 6. Related permits
         lines.append("\n## Related Permits\n")

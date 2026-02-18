@@ -478,6 +478,8 @@ async def test_permit_lookup_by_number_found(mock_get_conn):
         [("contractor", "John Smith", "Smith Co", 1, "John Smith", "Smith Co", 47)],
         # _get_inspections
         [("2024-06-15", "Torres", "Approved", "Rough plumbing")],
+        # _get_addenda
+        [],
         # _get_related_location
         [("P999", "alterations", "complete", "2023-01-01", 50000.0, "Bathroom remodel")],
         # _get_related_team
@@ -532,6 +534,8 @@ async def test_permit_lookup_by_address_multiple(mock_get_conn):
         # _get_contacts for first permit
         [],
         # _get_inspections for first permit
+        [],
+        # _get_addenda for first permit
         [],
         # _get_related_location for first permit
         [],
