@@ -588,20 +588,38 @@ NEIGHBORHOODS = [
 
 @app.route("/health")
 def health():
-    """Health check endpoint — tests database connectivity."""
+    """Health check endpoint — database connectivity and table row counts.
+
+    Public (no auth). Used by Claude sessions to verify prod DB state
+    without needing Railway CLI or direct database access.
+    """
     from src.db import get_connection, BACKEND, DATABASE_URL
-    info = {"status": "ok", "backend": BACKEND, "has_db_url": bool(DATABASE_URL)}
+    info = {"status": "ok", "backend": BACKEND, "has_db_url": bool(DATABASE_URL), "tables": {}}
     try:
         conn = get_connection()
         try:
             if BACKEND == "postgres":
+                conn.autocommit = True
                 with conn.cursor() as cur:
-                    cur.execute("SELECT COUNT(*) FROM permits")
-                    info["permits"] = cur.fetchone()[0]
-                    cur.execute("SELECT COUNT(*) FROM timeline_stats")
-                    info["timeline_stats"] = cur.fetchone()[0]
+                    cur.execute(
+                        "SELECT table_name FROM information_schema.tables "
+                        "WHERE table_schema = 'public' ORDER BY table_name"
+                    )
+                    for (table_name,) in cur.fetchall():
+                        try:
+                            cur.execute(f'SELECT COUNT(*) FROM "{table_name}"')
+                            info["tables"][table_name] = cur.fetchone()[0]
+                        except Exception:
+                            info["tables"][table_name] = "error"
             else:
-                info["permits"] = conn.execute("SELECT COUNT(*) FROM permits").fetchone()[0]
+                tables = conn.execute(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'main' ORDER BY table_name"
+                ).fetchall()
+                for (table_name,) in tables:
+                    info["tables"][table_name] = conn.execute(
+                        f"SELECT COUNT(*) FROM {table_name}"
+                    ).fetchone()[0]
             info["db_connected"] = True
         finally:
             conn.close()

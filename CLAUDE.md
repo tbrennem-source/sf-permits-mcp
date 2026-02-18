@@ -72,6 +72,74 @@ docs/                   # Architecture, decisions, contact data analysis
 
 Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks) deployed. Regulatory watch system (admin CRUD, brief/report integration) deployed. RAG, nightly refresh planned but not started. User said "before executing rag, let's regroup and think it through" — do NOT start RAG without explicit direction.
 
+## Railway Production Infrastructure
+
+**Live URL**: https://sfpermits-ai-production.up.railway.app
+**Project**: sfpermits-ai (Railway)
+
+### Services
+
+| Service | Role | Status |
+|---|---|---|
+| **sfpermits-ai** | Flask web app (auto-deploys from `main` branch) | Active |
+| **pgvector-db** | PostgreSQL + pgvector — user data, RAG embeddings, permit changes | Active, primary DB |
+| **pgVector-Railway** | pgvector instance (appears unused, has empty volume) | Active |
+| Postgres | Old DB (removed, pending deletion, volume has 5.6GB data) | Removed |
+| Postgres-CrX7 | Old DB (removed, pending deletion, volume has 1.1GB data) | Removed |
+
+### Database (pgvector-db)
+
+The app's `DATABASE_URL` points to `pgvector-db.railway.internal:5432` — **only reachable from within Railway's network**, not from local machines.
+
+**Tables on pgvector-db:**
+- User tables: `users`, `auth_tokens`, `watch_items`, `feedback`, `activity_log`, `points_ledger`
+- Permit tracking: `permit_changes`, `cron_log`, `regulatory_watch`
+- Vision: `plan_analysis_sessions`, `plan_analysis_images`, `plan_analysis_jobs`
+- RAG: `knowledge_chunks` (pgvector embeddings, ~624 chunks)
+- Note: bulk permit/entity/relationship data is NOT in Postgres — that's in local DuckDB
+
+### Interacting with Railway
+
+```bash
+# CLI basics (must be in project root)
+railway status                          # Current project/service/env
+railway service link <service-name>     # Switch active service context
+railway variable list                   # Show env vars for linked service
+railway logs -n 100                     # Recent logs for linked service
+railway deployment list                 # Recent deployments
+railway redeploy --yes                  # Trigger redeploy
+
+# You CANNOT connect to pgvector-db from local — it's internal-only.
+# To check prod DB state, use the /health endpoint:
+curl -s https://sfpermits-ai-production.up.railway.app/health | python3 -m json.tool
+
+# Trigger backup:
+curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" \
+  https://sfpermits-ai-production.up.railway.app/cron/backup
+
+# Key env vars are on the sfpermits-ai service:
+#   DATABASE_URL, CRON_SECRET, ADMIN_EMAIL, INVITE_CODES,
+#   SMTP_HOST/PORT/FROM/USER/PASS, ANTHROPIC_API_KEY, OPENAI_API_KEY
+```
+
+### Backups
+
+See `docs/BACKUPS.md` for full strategy. Key points:
+- Admin auto-seed: empty `users` table + `ADMIN_EMAIL` env var → admin account created on startup
+- `POST /cron/backup` — pg_dump of user-data tables (CRON_SECRET auth)
+- `python -m scripts.db_backup` — local CLI for backup/restore
+- Railway native backups: enable Daily + Weekly in dashboard → pgvector-db → Settings → Backups
+
+### What's recoverable vs. what needs backups
+
+| Data | Source of truth | Recovery |
+|---|---|---|
+| Permits, contacts, entities, relationships | SODA API → DuckDB | `python -m src.ingest && python -m src.entities && python -m src.graph` |
+| Knowledge base (tier1-3) | git (`data/knowledge/`) | Already in repo |
+| Knowledge base (tier4) | Local files (gitignored, >1MB each) | Manual — keep local copies |
+| RAG embeddings | pgvector-db `knowledge_chunks` | Re-run `POST /cron/rag-ingest` |
+| Users, watches, feedback | pgvector-db | **Needs backups** — no external source |
+
 ## Development
 
 ```bash
