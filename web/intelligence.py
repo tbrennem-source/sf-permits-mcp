@@ -33,6 +33,9 @@ def get_action_items(user_id: int) -> list[dict]:
 
     Runs all rules against the user's watched permits and returns
     a prioritized list of recommendations.
+
+    Returns empty list if permit/inspection tables are unavailable
+    (e.g. on production where bulk data is in DuckDB, not Postgres).
     """
     watches = get_watches(user_id)
     if not watches:
@@ -51,12 +54,16 @@ def get_action_items(user_id: int) -> list[dict]:
     # Also find permits at watched addresses
     for w in watches:
         if w["watch_type"] == "address" and w.get("street_number") and w.get("street_name"):
-            rows = query(
-                f"SELECT permit_number, block, lot FROM permits "
-                f"WHERE street_number = {_ph()} AND UPPER(street_name) = {_ph()} "
-                f"AND status IN ('filed', 'issued', 'triage')",
-                (w["street_number"], w["street_name"].upper()),
-            )
+            try:
+                rows = query(
+                    f"SELECT permit_number, block, lot FROM permits "
+                    f"WHERE street_number = {_ph()} AND UPPER(street_name) = {_ph()} "
+                    f"AND status IN ('filed', 'issued', 'triage')",
+                    (w["street_number"], w["street_name"].upper()),
+                )
+            except Exception as e:
+                logger.warning("permits table query failed (address): %s", e)
+                return []
             for r in rows:
                 permit_numbers.add(r[0])
                 if r[1] and r[2]:
@@ -66,31 +73,35 @@ def get_action_items(user_id: int) -> list[dict]:
         return []
 
     # Get active permits data
-    if permit_numbers:
-        placeholders = ",".join([_ph()] * len(permit_numbers))
-        permits = query(
-            f"SELECT permit_number, permit_type, permit_type_definition, status, "
-            f"status_date, filed_date, issued_date, estimated_cost, revised_cost, "
-            f"description, street_number, street_name, block, lot "
-            f"FROM permits WHERE permit_number IN ({placeholders}) "
-            f"AND status IN ('filed', 'issued', 'triage')",
-            list(permit_numbers),
-        )
-    else:
-        permits = []
+    try:
+        if permit_numbers:
+            placeholders = ",".join([_ph()] * len(permit_numbers))
+            permits = query(
+                f"SELECT permit_number, permit_type, permit_type_definition, status, "
+                f"status_date, filed_date, issued_date, estimated_cost, revised_cost, "
+                f"description, street_number, street_name, block, lot "
+                f"FROM permits WHERE permit_number IN ({placeholders}) "
+                f"AND status IN ('filed', 'issued', 'triage')",
+                list(permit_numbers),
+            )
+        else:
+            permits = []
 
-    # Also get permits at watched parcels not already found
-    for block, lot in parcels:
-        extra = query(
-            f"SELECT permit_number, permit_type, permit_type_definition, status, "
-            f"status_date, filed_date, issued_date, estimated_cost, revised_cost, "
-            f"description, street_number, street_name, block, lot "
-            f"FROM permits WHERE block = {_ph()} AND lot = {_ph()} "
-            f"AND status IN ('filed', 'issued', 'triage')",
-            (block, lot),
-        )
-        seen = {p[0] for p in permits}
-        permits.extend(r for r in extra if r[0] not in seen)
+        # Also get permits at watched parcels not already found
+        for block, lot in parcels:
+            extra = query(
+                f"SELECT permit_number, permit_type, permit_type_definition, status, "
+                f"status_date, filed_date, issued_date, estimated_cost, revised_cost, "
+                f"description, street_number, street_name, block, lot "
+                f"FROM permits WHERE block = {_ph()} AND lot = {_ph()} "
+                f"AND status IN ('filed', 'issued', 'triage')",
+                (block, lot),
+            )
+            seen = {p[0] for p in permits}
+            permits.extend(r for r in extra if r[0] not in seen)
+    except Exception as e:
+        logger.warning("permits table query failed: %s", e)
+        return []
 
     # Parse into dicts
     permit_dicts = []
@@ -170,11 +181,14 @@ def _rule_bundle_inspections(permits, today):
     for (block, lot), group in by_parcel.items():
         if len(group) >= 2:
             # Check if recent inspection activity (last 90 days)
-            insp = query(
-                f"SELECT COUNT(*) FROM inspections WHERE block = {_ph()} AND lot = {_ph()} "
-                f"AND scheduled_date >= {_ph()}",
-                (block, lot, str(today - timedelta(days=90))),
-            )
+            try:
+                insp = query(
+                    f"SELECT COUNT(*) FROM inspections WHERE block = {_ph()} AND lot = {_ph()} "
+                    f"AND scheduled_date >= {_ph()}",
+                    (block, lot, str(today - timedelta(days=90))),
+                )
+            except Exception:
+                continue
             if insp and insp[0][0] > 0:
                 pnums = [p["permit_number"] for p in group]
                 items.append(_make_item(
@@ -266,25 +280,31 @@ def _rule_completion_push(permits):
     for p in permits:
         if p["status"] != "issued" or not p["block"] or not p["lot"]:
             continue
-        insp = query(
-            f"SELECT inspection_description, result FROM inspections "
-            f"WHERE block = {_ph()} AND lot = {_ph()} "
-            f"AND UPPER(inspection_description) LIKE '%PRE-FINAL%' "
-            f"AND result = 'PASSED' "
-            f"ORDER BY scheduled_date DESC LIMIT 1",
-            (p["block"], p["lot"]),
-        )
+        try:
+            insp = query(
+                f"SELECT inspection_description, result FROM inspections "
+                f"WHERE block = {_ph()} AND lot = {_ph()} "
+                f"AND UPPER(inspection_description) LIKE '%PRE-FINAL%' "
+                f"AND result = 'PASSED' "
+                f"ORDER BY scheduled_date DESC LIMIT 1",
+                (p["block"], p["lot"]),
+            )
+        except Exception:
+            continue
         if not insp:
             continue
         # Check if final already passed
-        final = query(
-            f"SELECT result FROM inspections "
-            f"WHERE block = {_ph()} AND lot = {_ph()} "
-            f"AND UPPER(inspection_description) LIKE '%FINAL INSPECT%' "
-            f"AND result = 'PASSED' "
-            f"ORDER BY scheduled_date DESC LIMIT 1",
-            (p["block"], p["lot"]),
-        )
+        try:
+            final = query(
+                f"SELECT result FROM inspections "
+                f"WHERE block = {_ph()} AND lot = {_ph()} "
+                f"AND UPPER(inspection_description) LIKE '%FINAL INSPECT%' "
+                f"AND result = 'PASSED' "
+                f"ORDER BY scheduled_date DESC LIMIT 1",
+                (p["block"], p["lot"]),
+            )
+        except Exception:
+            continue
         if not final:
             items.append(_make_item(
                 "completion_push", "opportunity",
