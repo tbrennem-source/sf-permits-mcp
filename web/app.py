@@ -1520,7 +1520,11 @@ def _watch_context(watch_data: dict) -> dict:
 def _ask_permit_lookup(query: str, entities: dict) -> str:
     """Handle permit number lookup."""
     permit_num = entities.get("permit_number")
-    result_md = run_async(permit_lookup(permit_number=permit_num))
+    try:
+        result_md = run_async(permit_lookup(permit_number=permit_num))
+    except Exception as e:
+        logging.warning("permit_lookup failed for permit %s: %s", permit_num, e)
+        return _ask_general_question(query, entities)
     watch_data = {
         "watch_type": "permit",
         "permit_number": permit_num,
@@ -1546,22 +1550,31 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
     parts = []
 
     # Search complaints
-    complaints_md = run_async(search_complaints(
-        complaint_number=complaint_number,
-        address=address,
-        block=block,
-        lot=lot,
-    ))
-    parts.append("## Complaints\n\n" + complaints_md)
+    try:
+        complaints_md = run_async(search_complaints(
+            complaint_number=complaint_number,
+            address=address,
+            block=block,
+            lot=lot,
+        ))
+        parts.append("## Complaints\n\n" + complaints_md)
+    except Exception as e:
+        logging.warning("search_complaints failed: %s", e)
 
     # Search violations
-    violations_md = run_async(search_violations(
-        complaint_number=complaint_number,
-        address=address,
-        block=block,
-        lot=lot,
-    ))
-    parts.append("## Violations (NOVs)\n\n" + violations_md)
+    try:
+        violations_md = run_async(search_violations(
+            complaint_number=complaint_number,
+            address=address,
+            block=block,
+            lot=lot,
+        ))
+        parts.append("## Violations (NOVs)\n\n" + violations_md)
+    except Exception as e:
+        logging.warning("search_violations failed: %s", e)
+
+    if not parts:
+        return _ask_general_question(query, entities)
 
     combined_md = "\n\n---\n\n".join(parts)
 
@@ -1616,10 +1629,15 @@ def _ask_address_search(query: str, entities: dict) -> str:
     """Handle address-based permit search."""
     street_number = entities.get("street_number")
     street_name = entities.get("street_name")
-    result_md = run_async(permit_lookup(
-        street_number=street_number,
-        street_name=street_name,
-    ))
+    try:
+        result_md = run_async(permit_lookup(
+            street_number=street_number,
+            street_name=street_name,
+        ))
+    except Exception as e:
+        logging.warning("permit_lookup failed for address %s %s: %s",
+                        street_number, street_name, e)
+        return _ask_general_question(query, entities)
     watch_data = {
         "watch_type": "address",
         "street_number": street_number,
@@ -1677,7 +1695,11 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
     """Handle block/lot parcel search."""
     block = entities.get("block")
     lot = entities.get("lot")
-    result_md = run_async(permit_lookup(block=block, lot=lot))
+    try:
+        result_md = run_async(permit_lookup(block=block, lot=lot))
+    except Exception as e:
+        logging.warning("permit_lookup failed for parcel %s/%s: %s", block, lot, e)
+        return _ask_general_question(query, entities)
     watch_data = {
         "watch_type": "parcel",
         "block": block,
@@ -1700,7 +1722,11 @@ def _ask_person_search(query: str, entities: dict) -> str:
     """Handle person/company name search."""
     name = entities.get("person_name", "")
     role = entities.get("role")
-    result_md = run_async(search_entity(name=name, entity_type=role))
+    try:
+        result_md = run_async(search_entity(name=name, entity_type=role))
+    except Exception as e:
+        logging.warning("search_entity failed for %s: %s", name, e)
+        return _ask_general_question(query, entities)
     # For person searches, we can't easily get entity_id without a DB lookup,
     # so we watch by name (general_question fallback — entity watching is best
     # done from the detailed entity page in a future iteration)
@@ -3367,8 +3393,141 @@ def cron_rag_ingest():
 
 
 # ---------------------------------------------------------------------------
-# API endpoints — CRON_SECRET-protected JSON access for CLI tools
+# Data migration endpoints — push bulk DuckDB data to production Postgres
 # ---------------------------------------------------------------------------
+
+@app.route("/cron/migrate-schema", methods=["POST"])
+def cron_migrate_schema():
+    """Create bulk data tables (permits, contacts, etc.) on production Postgres.
+
+    Protected by CRON_SECRET. Runs scripts/postgres_schema.sql which uses
+    CREATE IF NOT EXISTS — safe to re-run.
+    """
+    _check_api_auth()
+    import json as _json
+    from pathlib import Path
+    from src.db import get_connection, BACKEND
+
+    if BACKEND != "postgres":
+        return Response(
+            _json.dumps({"ok": False, "error": "Not running on Postgres"}),
+            status=400, mimetype="application/json",
+        )
+
+    schema_file = Path(__file__).parent.parent / "scripts" / "postgres_schema.sql"
+    if not schema_file.exists():
+        return Response(
+            _json.dumps({"ok": False, "error": "Schema file not found"}),
+            status=404, mimetype="application/json",
+        )
+
+    conn = get_connection()
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute(schema_file.read_text())
+        # Report created tables
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema = 'public' ORDER BY table_name"
+            )
+            tables = [r[0] for r in cur.fetchall()]
+        return Response(
+            _json.dumps({"ok": True, "tables": tables}),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        logging.error("migrate-schema failed: %s", e)
+        return Response(
+            _json.dumps({"ok": False, "error": str(e)}),
+            status=500, mimetype="application/json",
+        )
+    finally:
+        conn.close()
+
+
+@app.route("/cron/migrate-data", methods=["POST"])
+def cron_migrate_data():
+    """Accept a batch of rows for a bulk data table.
+
+    Protected by CRON_SECRET. Accepts JSON body:
+        {
+            "table": "permits",
+            "columns": ["col1", "col2", ...],
+            "rows": [[val1, val2, ...], ...],
+            "truncate": false  // optional, set true for first batch
+        }
+
+    Uses psycopg2.extras.execute_values for fast bulk insert.
+    """
+    _check_api_auth()
+    import json as _json
+    from src.db import get_connection, BACKEND
+
+    if BACKEND != "postgres":
+        return Response(
+            _json.dumps({"ok": False, "error": "Not running on Postgres"}),
+            status=400, mimetype="application/json",
+        )
+
+    ALLOWED_TABLES = {
+        "permits", "contacts", "entities", "relationships",
+        "inspections", "timeline_stats", "ingest_log",
+    }
+
+    data = request.get_json(force=True)
+    table = data.get("table", "")
+    columns = data.get("columns", [])
+    rows = data.get("rows", [])
+    do_truncate = data.get("truncate", False)
+
+    if table not in ALLOWED_TABLES:
+        return Response(
+            _json.dumps({"ok": False, "error": f"Table '{table}' not allowed"}),
+            status=400, mimetype="application/json",
+        )
+    if not columns or not rows:
+        return Response(
+            _json.dumps({"ok": False, "error": "columns and rows required"}),
+            status=400, mimetype="application/json",
+        )
+
+    conn = get_connection()
+    try:
+        from psycopg2.extras import execute_values
+
+        if do_truncate:
+            with conn.cursor() as cur:
+                cur.execute(f"TRUNCATE {table} CASCADE")
+            conn.commit()
+
+        cols = ", ".join(columns)
+        placeholders = ", ".join(["%s"] * len(columns))
+        with conn.cursor() as cur:
+            execute_values(
+                cur,
+                f"INSERT INTO {table} ({cols}) VALUES %s",
+                rows,
+                template=f"({placeholders})",
+                page_size=5000,
+            )
+        conn.commit()
+
+        return Response(
+            _json.dumps({"ok": True, "table": table, "rows_inserted": len(rows)}),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        conn.rollback()
+        logging.error("migrate-data failed for %s: %s", table, e)
+        return Response(
+            _json.dumps({"ok": False, "error": str(e)}),
+            status=500, mimetype="application/json",
+        )
+    finally:
+        conn.close()
+
 
 def _check_api_auth():
     """Verify CRON_SECRET bearer token. Aborts 403 if invalid."""
@@ -3376,6 +3535,11 @@ def _check_api_auth():
     expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
     if not os.environ.get("CRON_SECRET") or token != expected:
         abort(403)
+
+
+# ---------------------------------------------------------------------------
+# API endpoints — CRON_SECRET-protected JSON access for CLI tools
+# ---------------------------------------------------------------------------
 
 
 @app.route("/api/feedback")
