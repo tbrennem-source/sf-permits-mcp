@@ -3252,6 +3252,7 @@ def portfolio_import():
 @app.route("/cron/status")
 def cron_status():
     """Read-only view of recent cron job results."""
+    from src.db import query
     try:
         rows = query(
             "SELECT job_type, started_at, completed_at, status, "
