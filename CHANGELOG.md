@@ -1,5 +1,35 @@
 # Changelog
 
+## Session 27 — FS-Series Fire Safety Knowledge + Cookie Hardening (2026-02-17)
+
+### FS-Series Fire Safety Info Sheets (Task #46)
+- **New tier1 file**: `fire-safety-info-sheets.json` — 7 DBI fire safety info sheets encoded from raw OCR tier2 text
+  - **FS-01**: Combustible Roof Decks — 500 sqft max, WUI-listed materials, ASTM E-84 Class B
+  - **FS-03**: R-3 4-Story Sprinkler Rules — addition = full building, alteration = area only
+  - **FS-04**: Wood-Frame Construction Fire Safety — Pre-Fire Plan for 50+ units / 350K+ sqft
+  - **FS-05**: Dwelling Unit Sprinkler Rules — R3→R2 conversion scenario matrix (Ord 43-14/49-14/30-15)
+  - **FS-06**: Deck Fire Separation — 3ft R3, 5ft R2 from property line
+  - **FS-07**: High-Rise Elevator Lobbies — 20-min/45-min doors, CBC exceptions don't apply
+  - **FS-12**: ADU Fire Exemption — state law Gov Code 65852.2 overrides local sprinkler requirements
+- **Semantic index**: 80 → 86 concepts, 817 aliases, 273 source references
+  - 6 new concepts: `roof_deck_fire`, `dwelling_unit_sprinkler`, `wood_frame_construction_fire`, `deck_fire_protection`, `elevator_lobby_highrise`, `r3_sprinkler_4story`
+  - 4 existing concepts updated with FS cross-references: `sprinkler_required`, `fire_department`, `high_rise`, `adu`
+- **KnowledgeBase**: `fire_safety_info_sheets` attribute registered
+- **15 new tests**, 174 knowledge tests passing
+
+### Session Cookie Hardening
+- `SESSION_COOKIE_SECURE = True` in production (HTTPS-only)
+- `SESSION_COOKIE_HTTPONLY = True` (XSS protection)
+- `SESSION_COOKIE_SAMESITE = "Lax"` (CSRF protection)
+- Auto-detects prod vs dev via `RAILWAY_ENVIRONMENT` / `BASE_URL`
+
+### Files Changed
+- `data/knowledge/tier1/fire-safety-info-sheets.json` — NEW (7 FS sheets)
+- `data/knowledge/tier1/semantic-index.json` — 6 new concepts, 4 updated
+- `src/tools/knowledge_base.py` — fire_safety_info_sheets attribute
+- `tests/test_knowledge_supplement.py` — 15 new FS tests
+- `web/app.py` — cookie security settings
+
 ## Session 26 — Vision Timing, Token Usage & Cost Tracking (2026-02-17)
 
 ### Per-Call Timing & Token Tracking

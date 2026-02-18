@@ -215,6 +215,35 @@
 - Iteration path: v0.1 was 41% concept recall → added natural language aliases → 67% → added related_concepts inference → 100%
 - Created: tier1/semantic-index.json (75K), scripts/stress_test_semantic_index.py
 
+### Session 9: FS-Series Fire Safety Encoding (2026-02-17)
+
+#### FS-Series Assessment
+- 8 FS files in `tier2/FS-series/` — filenames systematically shifted by one from OCR batch
+- FS-01.txt contains DA-19 (wrong series, skipped)
+- Actual mapping verified from document headers: FS-03.txt→FS-01, FS-04.txt→FS-03, etc.
+- 7 usable fire safety info sheets identified
+
+#### FS-Series Structuring ✅
+- Encoded all 7 sheets into `tier1/fire-safety-info-sheets.json` (~30K)
+- FS-01: Combustible Roof Decks (500 sqft limit, WUI materials, ASTM E-84)
+- FS-03: R-3 4-Story Sprinkler (addition=full building vs alteration=area only)
+- FS-04: Wood-Frame Construction Fire Safety (PFP for 50+ units / 350K+ sqft)
+- FS-05: Dwelling Unit Sprinkler (R3→R2 conversion matrix, Ordinances 43-14/49-14/30-15)
+- FS-06: Residential Deck Fire Separation (3ft R3, 5ft R2 from property line)
+- FS-07: High-Rise Elevator Lobbies (20-min/45-min doors, CBC exceptions stripped)
+- FS-12: ADU Fire Exemption (Gov Code 65852.2 sprinkler override, R3 preservation)
+
+#### Semantic Index Updated ✅
+- 6 new concepts: roof_deck_fire, dwelling_unit_sprinkler, wood_frame_construction_fire, deck_fire_protection, elevator_lobby_highrise, r3_sprinkler_4story
+- 4 existing concepts updated with FS cross-references: sprinkler_required, fire_department, high_rise, adu
+- ADU concept gained JADU/junior ADU aliases
+- Total: 80 → 86 concepts, ~817 aliases, 273 source references
+
+#### KnowledgeBase + Tests ✅
+- `fire_safety_info_sheets` attribute registered in knowledge_base.py
+- 15 new tests: structural assertions, scenario coverage, semantic matching
+- 174 knowledge tests passing
+
 ### Known Issues (Updated)
 1. **20 scanned image PDFs**: ✅ RESOLVED — All OCR'd successfully (183K chars, 85 pages)
 2. **File naming offset**: ✅ RESOLVED — document-mapping.json created, tier1 files renamed
