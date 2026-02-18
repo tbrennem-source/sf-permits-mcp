@@ -570,7 +570,14 @@
             border-color: var(--accent); color: var(--accent);
         }
         .btn-pill.htmx-request {
-            opacity: 0.6; pointer-events: none;
+            pointer-events: none;
+            border-color: var(--accent);
+            color: var(--accent);
+            animation: pill-pulse 0.8s ease-in-out infinite;
+        }
+        @keyframes pill-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
         /* Plan analysis button tooltips */
