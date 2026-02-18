@@ -45,6 +45,7 @@
             <!-- Analyze Project (prefill with real permit data if available) -->
             {% if street_address %}
             <form method="POST" action="/ask" style="display:inline;margin:0;">
+                <input type="hidden" name="analyze" value="1">
                 {% if project_context %}
                 <input type="hidden" name="q" value="{{ project_context.description }}">
                 <input type="hidden" name="estimated_cost" value="{{ project_context.estimated_cost or '' }}">
