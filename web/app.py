@@ -368,6 +368,9 @@ def _run_startup_migrations():
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS analysis_mode TEXT DEFAULT 'sample'")
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS pages_analyzed INTEGER")
 
+        # Voice & style preferences (macro instructions for AI response tone)
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS voice_style TEXT")
+
         # ── Admin auto-seed ───────────────────────────────────────
         # If the users table is empty and ADMIN_EMAIL is set, create
         # the admin account automatically so a fresh DB is immediately
@@ -1894,6 +1897,7 @@ def _synthesize_with_ai(query: str, rag_context: str, role: str) -> str | None:
     """Call Claude to synthesize a conversational response from RAG context.
 
     Returns the AI-generated markdown response, or None if unavailable.
+    Injects user's voice_style preferences if set.
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -1918,8 +1922,23 @@ def _synthesize_with_ai(query: str, rag_context: str, role: str) -> str | None:
             "guidance where relevant."
         )
 
+    # Inject user's voice & style preferences (macro instructions)
+    voice_style = ""
+    try:
+        if g.user and g.user.get("voice_style"):
+            voice_style = g.user["voice_style"]
+    except RuntimeError:
+        pass  # Outside request context
+
+    style_block = ""
+    if voice_style:
+        style_block = (
+            f"\n\nIMPORTANT — The user has set these style preferences. "
+            f"Follow them closely:\n{voice_style}\n"
+        )
+
     system_prompt = (
-        f"{tone}\n\n"
+        f"{tone}{style_block}\n\n"
         "Use the following knowledge base context to answer the question. "
         "If the context doesn't fully answer the question, say what you know "
         "and note what you're less certain about.\n\n"
@@ -2516,6 +2535,28 @@ def account_brief_frequency():
     return f'<span style="color:var(--success);">Saved: {label}</span>'
 
 
+@app.route("/account/voice-style", methods=["POST"])
+@login_required
+def account_voice_style():
+    """Save user's voice & style preferences for AI response generation."""
+    from src.db import execute_write
+
+    voice_style = request.form.get("voice_style", "").strip()
+
+    # Limit to 2000 chars
+    if len(voice_style) > 2000:
+        voice_style = voice_style[:2000]
+
+    execute_write(
+        "UPDATE users SET voice_style = %s WHERE user_id = %s",
+        (voice_style or None, g.user["user_id"]),
+    )
+
+    if voice_style:
+        return '<span style="color:var(--success);">Saved — I\'ll use this style in future responses.</span>'
+    return '<span style="color:var(--text-muted);">Cleared — using default style.</span>'
+
+
 # ---------------------------------------------------------------------------
 # Admin: send invite
 # ---------------------------------------------------------------------------
@@ -2640,6 +2681,84 @@ def feedback_submit():
         '<span style="color:var(--success);">Thanks for the feedback! '
         'We\'ll review it soon.</span>'
     )
+
+
+@app.route("/feedback/draft-edit", methods=["POST"])
+def feedback_draft_edit():
+    """Capture an expert's edits to an AI-generated draft response.
+
+    Stores the (query, original, edited) tuple as an 'amy'-tier RAG chunk
+    so future similar queries benefit from the expert's corrections.
+    """
+    original_query = request.form.get("original_query", "").strip()
+    ai_draft = request.form.get("ai_draft", "").strip()
+    edited_version = request.form.get("edited_version", "").strip()
+
+    if not edited_version or len(edited_version) < 10:
+        return '<span style="color:var(--error, #ef4444);">Edited version too short.</span>'
+
+    if not original_query:
+        return '<span style="color:var(--error, #ef4444);">Missing original query.</span>'
+
+    # Build a learning note that captures the correction
+    learning_note = (
+        f"EXPERT CORRECTION for query: \"{original_query}\"\n\n"
+        f"The AI-generated response was edited by the expert. "
+        f"The expert's preferred version:\n\n{edited_version}"
+    )
+
+    user_id = g.user["user_id"] if g.user else None
+
+    try:
+        from src.rag.store import insert_single_note
+        insert_single_note(learning_note, {
+            "added_by_user_id": user_id,
+            "query_context": original_query,
+            "source": "draft_edit",
+            "edit_type": "correction",
+        })
+
+        # Also log to activity
+        from web.activity import log_activity
+        log_activity(user_id, "draft_edit", {
+            "query": original_query[:200],
+            "had_changes": True,
+        })
+
+        return (
+            '<span style="color:var(--success, #34d399); font-weight:600;">'
+            '&#10003; Got it — I\'ll learn from your edits for next time.</span>'
+        )
+    except Exception as e:
+        logging.error("Failed to save draft edit: %s", e)
+        return f'<span style="color:var(--error, #ef4444);">Error saving: {e}</span>'
+
+
+@app.route("/feedback/draft-good", methods=["POST"])
+def feedback_draft_good():
+    """Record that an AI-generated draft was used as-is (positive signal).
+
+    This is a lightweight positive reinforcement signal — no RAG chunk needed,
+    just an activity log entry.
+    """
+    original_query = request.form.get("original_query", "").strip()
+    ai_draft = request.form.get("ai_draft", "").strip()
+
+    user_id = g.user["user_id"] if g.user else None
+
+    try:
+        from web.activity import log_activity
+        log_activity(user_id, "draft_used_as_is", {
+            "query": original_query[:200],
+        })
+
+        return (
+            '<span style="color:var(--success, #34d399);">'
+            '&#10003; Thanks! Good to know that worked well.</span>'
+        )
+    except Exception as e:
+        logging.error("Failed to log draft-good: %s", e)
+        return '<span style="color:var(--success, #34d399);">&#10003; Noted!</span>'
 
 
 @app.route("/admin/feedback")
