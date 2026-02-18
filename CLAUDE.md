@@ -169,9 +169,13 @@ Database regeneration (from SODA API):
 python -m src.ingest && python -m src.entities && python -m src.graph && python -m src.validate all
 ```
 
-## Branch
+## Branch & Merge Workflow
 
-Development uses ephemeral Claude Code worktree branches (auto-created under `.claude/worktrees/`). All work merges to `main` via PR.
+Development uses ephemeral Claude Code worktree branches (auto-created under `.claude/worktrees/`).
+
+**Current workflow (solo developer):** Merge to `main` locally and push directly — no PRs needed. Railway auto-deploys on push to `main`.
+
+**When to use PRs:** Only when multiple developers are contributing and code review is needed.
 
 ## Deployment Rules
 
