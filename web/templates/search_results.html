@@ -191,6 +191,28 @@
             <div class="intel-col-detail">
                 {% if address_intel.active_permits %}{{ address_intel.active_permits }} active{% else %}None active{% endif %}{% if address_intel.latest_permit_type %} · {{ address_intel.latest_permit_type }}{% endif %}
             </div>
+            {% if address_intel.routing_total and address_intel.routing_total > 0 %}
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border, #333749);">
+                <div class="intel-col-label">Plan Review</div>
+                {% set pct = ((address_intel.routing_complete or 0) * 100 / address_intel.routing_total) | int %}
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+                        <div style="width:{{ pct }}%;height:100%;background:{% if pct == 100 %}var(--success, #34d399){% elif pct >= 50 %}var(--accent, #4f8ff7){% else %}#f59e0b{% endif %};border-radius:3px;"></div>
+                    </div>
+                    <span style="font-size:0.78rem;font-weight:600;color:var(--text);white-space:nowrap;">{{ address_intel.routing_complete }}/{{ address_intel.routing_total }}</span>
+                </div>
+                {% if address_intel.routing_latest_station %}
+                <div class="intel-col-detail" style="margin-top:4px;">
+                    {% if address_intel.routing_latest_result and 'approv' in address_intel.routing_latest_result|lower %}
+                    <span style="color:var(--success, #34d399);">✓</span>
+                    {% elif address_intel.routing_latest_result and 'comment' in address_intel.routing_latest_result|lower %}
+                    <span style="color:#f59e0b;">💬</span>
+                    {% endif %}
+                    {{ address_intel.routing_latest_station }}{% if address_intel.routing_latest_date %} · {{ address_intel.routing_latest_date }}{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
             {% else %}
             <div class="intel-col-value" style="color:var(--text-muted);">&mdash;</div>
             <div class="intel-col-detail">No permit data</div>
