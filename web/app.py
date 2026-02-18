@@ -1657,9 +1657,18 @@ def _ask_permit_lookup(query: str, entities: dict) -> str:
 def _ask_complaint_search(query: str, entities: dict) -> str:
     """Handle complaint/violation/enforcement search."""
     complaint_number = entities.get("complaint_number")
-    address = entities.get("street_name")
+    street_number = entities.get("street_number")
+    street_name = entities.get("street_name")
     block = entities.get("block")
     lot = entities.get("lot")
+
+    # Build full address string for display and filtering
+    if street_number and street_name:
+        full_address = f"{street_number} {street_name}"
+    elif street_name:
+        full_address = street_name
+    else:
+        full_address = None
 
     # Run both complaints and violations searches in parallel via the same
     # run_async helper. Build combined results.
@@ -1669,7 +1678,8 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
     try:
         complaints_md = run_async(search_complaints(
             complaint_number=complaint_number,
-            address=address,
+            address=street_name,
+            street_number=street_number,
             block=block,
             lot=lot,
         ))
@@ -1681,7 +1691,8 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
     try:
         violations_md = run_async(search_violations(
             complaint_number=complaint_number,
-            address=address,
+            address=street_name,
+            street_number=street_number,
             block=block,
             lot=lot,
         ))
@@ -1697,8 +1708,8 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
     # Build label for display
     if complaint_number:
         label = f"Complaint #{complaint_number}"
-    elif address:
-        label = f"Complaints near {address}"
+    elif full_address:
+        label = f"Complaints at {full_address}"
     elif block and lot:
         label = f"Complaints at Block {block}, Lot {lot}"
     else:
@@ -1713,11 +1724,11 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
             "lot": lot,
             "label": f"Block {block}, Lot {lot}",
         }
-    elif address:
+    elif street_name:
         watch_data = {
             "watch_type": "address",
-            "street_name": address,
-            "label": f"Near {address}",
+            "street_name": street_name,
+            "label": f"Near {full_address or street_name}",
         }
 
     ctx = {}
@@ -1725,11 +1736,7 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
         ctx = _watch_context(watch_data)
 
     report_url = f"/report/{block}/{lot}" if block and lot else None
-    street_address = None
-    if address:
-        street_address = address
-    elif block and lot:
-        street_address = f"Block {block}, Lot {lot}"
+    street_address = full_address or (f"Block {block}, Lot {lot}" if block and lot else None)
 
     return render_template(
         "search_results.html",

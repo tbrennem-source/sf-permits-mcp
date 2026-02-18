@@ -9,6 +9,7 @@ ENDPOINT_ID = "nbtm-fbw5"  # Notices of Violation (509K records)
 async def search_violations(
     complaint_number: str | None = None,
     address: str | None = None,
+    street_number: str | None = None,
     block: str | None = None,
     lot: str | None = None,
     status: str | None = None,
@@ -23,8 +24,9 @@ async def search_violations(
     Args:
         complaint_number: Complaint number that generated the NOV (e.g., '202429366')
         address: Search by street name (e.g., 'ROBIN HOOD', 'MARKET')
+        street_number: Street number to narrow address search (e.g., '125')
         block: Assessor block number (e.g., '2920')
-        lot: Assessor lot number (e.g., '020')
+        lot: Assessor lot number (e.g., '040')
         status: NOV status (e.g., 'open', 'closed', 'complied')
         category: NOV category (e.g., 'building', 'electrical', 'plumbing')
         date_from: Filed after this date (YYYY-MM-DD)
@@ -40,6 +42,8 @@ async def search_violations(
         conditions.append(f"complaint_number='{_escape(complaint_number)}'")
     if address:
         conditions.append(f"upper(street_name) LIKE '%{_escape(address.upper())}%'")
+    if street_number:
+        conditions.append(f"street_number='{_escape(street_number)}'")
     if block:
         conditions.append(f"block='{_escape(block)}'")
     if lot:

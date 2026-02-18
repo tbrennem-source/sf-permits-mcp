@@ -9,6 +9,7 @@ ENDPOINT_ID = "gm2e-bten"  # DBI Complaints (326K records)
 async def search_complaints(
     complaint_number: str | None = None,
     address: str | None = None,
+    street_number: str | None = None,
     block: str | None = None,
     lot: str | None = None,
     status: str | None = None,
@@ -22,6 +23,7 @@ async def search_complaints(
     Args:
         complaint_number: Specific complaint number (e.g., '202429366')
         address: Search by street name (e.g., 'ROBIN HOOD', 'MARKET')
+        street_number: Street number to narrow address search (e.g., '125')
         block: Assessor block number (e.g., '2920')
         lot: Assessor lot number (e.g., '020')
         status: Complaint status (e.g., 'open', 'abated', 'closed')
@@ -38,6 +40,8 @@ async def search_complaints(
         conditions.append(f"complaint_number='{_escape(complaint_number)}'")
     if address:
         conditions.append(f"upper(street_name) LIKE '%{_escape(address.upper())}%'")
+    if street_number:
+        conditions.append(f"street_number='{_escape(street_number)}'")
     if block:
         conditions.append(f"block='{_escape(block)}'")
     if lot:
