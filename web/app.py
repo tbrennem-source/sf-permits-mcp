@@ -1574,10 +1574,9 @@ def ask():
     if modifier:
         return _ask_draft_response(query, {"query": query}, modifier=modifier)
 
-    # Smart Analyze button: if estimated_cost or neighborhood are posted,
-    # the button pre-filled the form — always route to analyze_project regardless
-    # of what the raw description string looks like to the classifier.
-    if request.form.get("estimated_cost") or request.form.get("neighborhood"):
+    # Smart Analyze button: analyze=1 is always posted by the button,
+    # so route to analyze_project regardless of description content.
+    if request.form.get("analyze") == "1":
         return _ask_analyze_prefill(query, {})
 
     # Classify intent
