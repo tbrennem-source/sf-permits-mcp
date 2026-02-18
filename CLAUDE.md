@@ -100,16 +100,15 @@ The app's `DATABASE_URL` points to `pgvector-db.railway.internal:5432` — **onl
 
 ### Deploying to Production
 
-**IMPORTANT**: GitHub auto-deploy may not be configured. Pushing to `main` does NOT reliably trigger a Railway build. After merging to main and pushing, you MUST deploy explicitly:
+GitHub auto-deploy is connected: pushes to `main` on `tbrennem-source/sf-permits-mcp` automatically trigger a Railway build and deploy. After merging and pushing:
 
 ```bash
-# Deploy from local (builds fresh from current directory):
-cd /Users/timbrenneman/AIprojects/sf-permits-mcp && railway service link sfpermits-ai && railway up
-
-# Verify deploy succeeded:
-railway deployment list                 # Check status
+# Verify deploy succeeded (give it ~2 min to build):
+railway deployment list                 # Check status shows SUCCESS
 curl -s https://sfpermits-ai-production.up.railway.app/health | python3 -m json.tool
 ```
+
+If auto-deploy ever stops working, fallback: `cd /Users/timbrenneman/AIprojects/sf-permits-mcp && railway service link sfpermits-ai && railway up`
 
 **DO NOT** use `railway redeploy --yes` — it restarts the old image without rebuilding from new code.
 
