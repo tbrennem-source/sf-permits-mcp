@@ -63,14 +63,16 @@ docs/                   # Architecture, decisions, contact data analysis
 - **14 tools**: 5 SODA API (Phase 1), 3 DuckDB (Phase 2), 5 Knowledge (Phase 2.75), 1 Vision (Phase 4)
 - **22 SODA datasets**, 13.3M records cataloged
 - **DuckDB**: 1.8M contacts -> 1M entities -> 576K relationship edges
-- **PostgreSQL (prod)**: 5.6M rows, 8 tables, 2.05 GB on Railway
-- **Knowledge base**: 30 tier1 JSON files, 71 semantic concepts, 640 aliases
-- **Tests**: 951 passing (888 + 63 new)
+- **PostgreSQL (prod)**: 5.6M rows, 2.05 GB on Railway
+- **Knowledge base**: 40 tier1 JSON files, 86 semantic concepts, ~817 aliases
+- **RAG**: 1,035 chunks, hybrid retrieval (pgvector)
+- **Voice calibration**: 15 scenarios, 7 audiences, 8 situations
+- **Tests**: 1,033+ passing
 - **Live**: https://sfpermits-ai-production.up.railway.app
 
 ## Current State
 
-Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks) deployed. Regulatory watch system (admin CRUD, brief/report integration) deployed. RAG, nightly refresh planned but not started. User said "before executing rag, let's regroup and think it through" — do NOT start RAG without explicit direction.
+Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks, annotation legend, lasso zoom, minimap) deployed. RAG fully built + nightly refresh configured. Voice calibration Phase A deployed (templates, CRUD, admin UI, quick-action modifiers). Regulatory watch system deployed.
 
 ## Railway Production Infrastructure
 
