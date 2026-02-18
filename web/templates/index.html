@@ -242,6 +242,11 @@
            a .loading class toggled by beforeRequest/afterRequest listeners. */
         form.loading .btn .spinner { display: inline-block; }
         form.loading .btn .label   { display: none; }
+        /* Pulse the Go button while waiting for /ask response */
+        form.loading .search-btn {
+            animation: pulse 0.9s ease-in-out infinite;
+            background: var(--accent-hover, #3a7de8);
+        }
 
         /* Results area */
         #results {
@@ -1759,7 +1764,7 @@
 
         // ── Recent Searches (localStorage) ──────────────────────────
         var _RS_KEY = "sf_recent_searches";
-        var _RS_MAX = 5;
+        var _RS_MAX = 10;
 
         function _saveRecentSearch(q) {
             q = (q || "").trim();
@@ -1788,7 +1793,12 @@
                 btn.textContent = q.length > 30 ? q.substring(0, 28) + "..." : q;
                 btn.title = q;
                 btn.onclick = function() {
-                    document.getElementById("search-q").value = q;
+                    // Reset draft mode so recent chips always do a normal search
+                    var dm = document.getElementById("draft-mode");
+                    if (dm) { dm.value = "0"; }
+                    var sq = document.getElementById("search-q");
+                    sq.placeholder = "Permit number, address, client question, or anything about SF permits...";
+                    sq.value = q;
                     htmx.trigger(document.querySelector(".search-form"), "submit");
                 };
                 container.insertBefore(btn, clearBtn);

@@ -37,28 +37,79 @@
             </a>
             {% endif %}
 
-            <!-- Analyze Project (prefill with address) -->
+            <!-- Analyze Project (prefill with real permit data if available) -->
             {% if street_address %}
-            <form method="POST" action="/ask" style="display: inline; margin: 0;">
+            <form method="POST" action="/ask" style="display:inline;margin:0;">
+                {% if project_context %}
+                <input type="hidden" name="q" value="{{ project_context.description }}">
+                <input type="hidden" name="estimated_cost" value="{{ project_context.estimated_cost or '' }}">
+                <input type="hidden" name="neighborhood" value="{{ project_context.neighborhood or '' }}">
+                {% else %}
                 <input type="hidden" name="q" value="I want to analyze a project at {{ street_address }}">
+                {% endif %}
                 <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
-                    🔍 Analyze Project
+                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+                    🔍 {% if project_context %}Analyze: {{ project_context.label }}{% else %}Analyze Project{% endif %}
                 </button>
             </form>
             {% endif %}
 
-            <!-- Search Violations at this address -->
+            <!-- Check Violations — 3 visual states based on data availability -->
             {% if street_address %}
-            <form method="POST" action="/ask" style="display: inline; margin: 0;">
+            <form method="POST" action="/ask" style="display:inline;margin:0;">
                 <input type="hidden" name="q" value="Are there any violations at {{ street_address }}?">
-                <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
-                    ⚠️ Check Violations
+                <button type="submit" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;
+                    {% if violation_counts and violation_counts.total > 0 %}
+                        background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.35);
+                    {% elif violation_counts %}
+                        background:rgba(52,211,153,0.08);color:#6ee7b7;border:1px solid rgba(52,211,153,0.25);
+                    {% else %}
+                        background:var(--surface);color:var(--text);border:1px solid var(--border);
+                    {% endif %}
+                ">
+                    {% if violation_counts and violation_counts.total > 0 %}
+                        ⚠️ Check Violations · {{ violation_counts.total }} open
+                    {% elif violation_counts %}
+                        ✓ No open violations
+                    {% else %}
+                        ⚠️ Check Violations
+                    {% endif %}
                 </button>
             </form>
             {% endif %}
 
+            <!-- Who's Here — only shown when businesses data is available -->
+            {% if active_businesses and street_address %}
+            <form method="POST" action="/ask" style="display:inline;margin:0;">
+                <input type="hidden" name="q" value="Who is operating at {{ street_address }}?">
+                <button type="submit"
+                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+                    🏢 Who's Here
+                    {% if active_businesses|length == 1 %}· {{ active_businesses[0].name[:22] }}
+                    {% else %}· {{ active_businesses|length }} businesses{% endif %}
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+    </div>
+    {% endif %}
+
+    {# Active businesses row — only shown when businesses table is populated #}
+    {% if active_businesses %}
+    <div style="margin-bottom:16px;padding:12px 16px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.18);border-radius:10px;">
+        <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Active at this address</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+            {% for b in active_businesses %}
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.88rem;">
+                <span>🏢</span>
+                <span style="color:var(--text);">{{ b.name }}</span>
+                <span style="color:var(--text-muted);font-size:0.78rem;">since {{ b.since }}</span>
+                {% if b.type_flag %}
+                <span style="font-size:0.72rem;padding:1px 6px;background:rgba(79,143,247,0.12);border-radius:4px;color:var(--accent);">{{ b.type_flag }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
