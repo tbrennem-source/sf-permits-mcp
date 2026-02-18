@@ -170,3 +170,18 @@ python -m src.ingest && python -m src.entities && python -m src.graph && python 
 ## Branch
 
 Working branch: `claude/sad-williams` (worktree at `.claude/worktrees/sad-williams`)
+
+## Deployment Rules
+
+**IMPORTANT: Do NOT run `railway up` or any Railway CLI deployment commands.**
+
+Deployment is handled automatically by Railway via the GitHub integration whenever code is pushed or merged to the `main` branch. Running `railway up` manually will cancel the GitHub-triggered deployment and cause conflicts.
+
+### What to do instead
+- Push/commit code to `main` (or merge a PR into `main`)
+- - Railway will automatically detect the change and deploy
+ 
+  - ### Forbidden commands
+  - - `railway up`
+    - - `railway deploy`
+      - - Any other Railway CLI command that triggers a deployment
