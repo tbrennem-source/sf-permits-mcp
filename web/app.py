@@ -1993,14 +1993,16 @@ def _ask_analyze_prefill(query: str, entities: dict) -> str:
     # Accept real permit fields posted directly from the smart Analyze button
     cost_raw = request.form.get("estimated_cost", "")
     neighborhood_raw = request.form.get("neighborhood", "")
+    address_raw = request.form.get("address", "")
     prefill_data = {
         "description": entities.get("description", query),
         "estimated_cost": float(cost_raw) if cost_raw else entities.get("estimated_cost"),
         "square_footage": entities.get("square_footage"),
         "neighborhood": neighborhood_raw or entities.get("neighborhood"),
+        "address": address_raw or entities.get("address"),
     }
-    # Remove None values for cleaner JSON
-    prefill_data = {k: v for k, v in prefill_data.items() if v is not None}
+    # Remove None/empty values for cleaner JSON
+    prefill_data = {k: v for k, v in prefill_data.items() if v}
     return render_template(
         "search_prefill.html",
         prefill_json=json.dumps(prefill_data),

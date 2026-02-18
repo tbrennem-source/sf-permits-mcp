@@ -1714,6 +1714,7 @@
 
         // Pre-fill the analyze form from search results
         function prefillAnalyze(data) {
+            if (data.address) document.getElementById("address").value = data.address;
             if (data.description) document.getElementById("description").value = data.description;
             if (data.estimated_cost) document.getElementById("cost").value = Math.round(data.estimated_cost);
             if (data.square_footage) document.getElementById("sqft").value = Math.round(data.square_footage);
