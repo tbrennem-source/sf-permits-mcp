@@ -22,7 +22,7 @@ This is a Python/FastMCP MCP server providing San Francisco building permit data
 
 ```
 src/                    # MCP server code
-  server.py             # FastMCP entry point, registers 14 tools
+  server.py             # FastMCP entry point, registers 20 tools
   soda_client.py        # Async SODA API client (httpx)
   formatters.py         # Response formatting for Claude
   db.py                 # DuckDB + PostgreSQL dual-mode connections, points_ledger table
@@ -32,7 +32,7 @@ src/                    # MCP server code
   graph.py              # Co-occurrence graph (SQL self-join)
   validate.py           # Anomaly detection queries
   report_links.py       # External links for property reports
-  tools/                # 14 tool implementations (5 SODA, 3 DuckDB, 5 Knowledge, 1 Vision)
+  tools/                # 20 tool implementations (8 SODA, 3 Entity, 5 Knowledge, 2 Facilitation, 2 Vision)
   vision/               # AI vision modules (Claude Vision API)
     client.py           # Anthropic Vision API wrapper
     pdf_to_images.py    # PDF-to-base64 image conversion
@@ -47,7 +47,7 @@ web/                    # Flask + HTMX web UI (deployed on Railway)
   brief.py              # Morning brief data assembly
   regulatory_watch.py   # Regulatory watch CRUD + query helpers
 data/knowledge/         # 4-tier knowledge base (gitignored tier4)
-  tier1/                # 30 structured JSON files — loaded at startup
+  tier1/                # 39 structured JSON files — loaded at startup
   tier2/                # Raw text info sheets
   tier3/                # Administrative bulletins
   tier4/                # Full code corpus (Planning Code 12.6MB + BICC 3.6MB)
@@ -60,7 +60,7 @@ docs/                   # Architecture, decisions, contact data analysis
 
 ## Key Numbers
 
-- **14 tools**: 5 SODA API (Phase 1), 3 DuckDB (Phase 2), 5 Knowledge (Phase 2.75), 1 Vision (Phase 4)
+- **20 tools**: 8 SODA API (Phase 1), 3 Entity/Network (Phase 2), 5 Knowledge (Phase 2.75), 2 Facilitation (Phase 3.5), 2 Vision (Phase 4)
 - **22 SODA datasets**, 13.3M records cataloged
 - **DuckDB**: 1.8M contacts -> 1M entities -> 576K relationship edges
 - **PostgreSQL (prod)**: 5.6M rows, 2.05 GB on Railway
@@ -97,8 +97,8 @@ The app's `DATABASE_URL` points to `pgvector-db.railway.internal:5432` — **onl
 - User tables: `users`, `auth_tokens`, `watch_items`, `feedback`, `activity_log`, `points_ledger`
 - Permit tracking: `permit_changes`, `cron_log`, `regulatory_watch`
 - Vision: `plan_analysis_sessions`, `plan_analysis_images`, `plan_analysis_jobs`
-- RAG: `knowledge_chunks` (pgvector embeddings, ~624 chunks)
-- Note: bulk permit/entity/relationship data is NOT in Postgres — that's in local DuckDB
+- RAG: `knowledge_chunks` (pgvector embeddings, ~1,012 chunks)
+- Bulk data: `contacts` (1.8M), `entities` (1M), `relationships` (576K), `permits` (1.1M), `inspections` (671K), `timeline_stats` (382K)
 
 ### Deploying to Production
 
@@ -181,9 +181,10 @@ Deployment is handled automatically by Railway via the GitHub integration whenev
 
 ### What to do instead
 - Push/commit code to `main` (or merge a PR into `main`)
-- - Railway will automatically detect the change and deploy
- 
-  - ### Forbidden commands
-  - - `railway up`
-    - - `railway deploy`
-      - - Any other Railway CLI command that triggers a deployment
+- Railway will automatically detect the change and deploy
+- Verify with: `curl -s https://sfpermits-ai-production.up.railway.app/health | python3 -m json.tool`
+
+### Forbidden commands
+- `railway up` — conflicts with GitHub auto-deploy
+- `railway deploy` — same issue
+- `railway redeploy --yes` — only restarts old image, doesn't rebuild from new code

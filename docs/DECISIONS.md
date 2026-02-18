@@ -208,3 +208,110 @@ N-hop traversal is done in Python by iteratively expanding a frontier set and qu
 - **NetworkX:** Evaluated — good for algorithms but requires loading the full graph into memory. At scale (100K+ edges), memory and startup cost become significant. Also adds a dependency.
 - **Neo4j:** Rejected — server dependency, operational overhead. Overkill for a single-user MCP server querying a static dataset.
 - **DuckDB recursive CTEs:** Considered for N-hop traversal. Decided against because DuckDB's recursive CTE support is functional but the Python frontier-expansion approach is clearer and easier to debug.
+
+---
+
+## Decision 7: PostgreSQL (pgvector) for Production, DuckDB for Local Development
+
+**Date:** 2026-02-15
+**Status:** Decided — Dual-mode via DATABASE_URL detection
+
+### Context
+
+Phase 3+ requires persistent user data (accounts, auth tokens, watch items, feedback), RAG vector embeddings, and vision analysis sessions. DuckDB is excellent for analytical queries but doesn't support pgvector extensions or concurrent web connections well.
+
+### Decision
+
+Use PostgreSQL with pgvector in production (Railway), DuckDB locally. `src/db.py` auto-detects `DATABASE_URL` env var:
+- Present → PostgreSQL mode (production)
+- Absent → DuckDB mode (local development)
+
+### Rationale
+
+- **pgvector** provides native vector similarity search for RAG (1536-dim OpenAI embeddings)
+- **PostgreSQL** handles concurrent web connections from Flask, cron jobs, and background workers
+- **DuckDB** stays for local development — fast, zero-setup, no server dependency
+- Startup migrations (`_run_startup_migrations()`) handle schema creation in both modes
+- Same SQL works in both backends for most queries; db.py abstracts the differences
+
+---
+
+## Decision 8: Railway Deployment with GitHub Auto-Deploy
+
+**Date:** 2026-02-15 (initial), 2026-02-17 (auto-deploy configured)
+**Status:** Decided — Railway + GitHub auto-deploy from `main` branch
+
+### Context
+
+Need a deployment platform that supports Python, PostgreSQL with pgvector, automatic builds, and internal networking between services.
+
+### Decision
+
+Deploy on Railway with:
+- **sfpermits-ai** service: Flask web app, auto-deploys on push to `main`
+- **pgvector-db** service: PostgreSQL + pgvector, internal networking only
+- GitHub auto-deploy: pushes to `main` trigger Railway builds automatically
+
+### Rationale
+
+- Railway supports NIXPACKS (auto-detects Python from `pyproject.toml`)
+- Internal networking means Postgres is never exposed to the internet
+- GitHub auto-deploy eliminates manual `railway up` CLI commands
+- `railway redeploy` only restarts old images — must push new code to trigger fresh builds
+- Fallback: `railway up` from CLI if auto-deploy breaks
+
+---
+
+## Decision 9: Three-Layer Backup Strategy
+
+**Date:** 2026-02-17
+**Status:** Decided — Railway native + pg_dump cron + admin auto-seed
+
+### Context
+
+Production Postgres was wiped during a database migration, losing all user accounts. No backups existed. Need a recovery strategy that prevents this from happening again.
+
+### Decision
+
+Three complementary layers:
+1. **Railway native backups** — Daily + Weekly snapshots via Railway dashboard
+2. **pg_dump cron** — `POST /cron/backup` endpoint, CRON_SECRET auth, custom-format dumps
+3. **Admin auto-seed** — If `users` table is empty and `ADMIN_EMAIL` is set, create admin account on startup
+
+### Rationale
+
+- Railway native backups are the first line of defense (point-in-time recovery)
+- pg_dump provides portable backups that can be restored anywhere
+- Admin auto-seed ensures the system is never completely locked out after a wipe
+- User-generated data (accounts, watches, feedback) is the only data that genuinely needs backups — permit/entity/knowledge data is regenerable from SODA API and git
+
+---
+
+## Decision 10: Claude Vision API for Plan Analysis
+
+**Date:** 2026-02-16
+**Status:** Decided — Anthropic Claude Vision API with async job processing
+
+### Context
+
+Phase 4 requires analyzing architectural drawings (PDFs) for EPR compliance — checking energy requirements, plumbing code, structural elements. This is a visual analysis task that requires understanding building plans.
+
+### Decision
+
+Use Anthropic's Claude Vision API via `src/vision/`:
+- PDFs converted to base64 images (`pdf_to_images.py`)
+- Sent to Claude Vision with structured EPR prompts (`prompts.py`)
+- Results stored in `plan_analysis_*` PostgreSQL tables
+- Full analysis runs as async background jobs to avoid HTTP timeouts
+
+### Rationale
+
+- Claude Vision handles architectural drawings well (spatial reasoning, text recognition)
+- Async processing prevents web request timeouts on multi-page PDFs
+- Structured prompts ensure consistent EPR checking across submissions
+- Results persist in Postgres for session continuity and annotation
+
+### Alternatives Considered
+
+- **OpenAI Vision:** Evaluated — Claude Vision showed better spatial understanding for architectural plans
+- **Custom CV pipeline:** Rejected — would require significant training data and wouldn't match the quality of foundation model vision

@@ -1,104 +1,115 @@
 # SF Permits MCP Server
 
-MCP server that exposes San Francisco public permitting data to Claude. Built with [FastMCP](https://github.com/jlowin/fastmcp) and the [Socrata SODA API](https://dev.socrata.com/).
+MCP server + web application for San Francisco building permit data, entity network analysis, AI-powered permit guidance, and AI vision plan analysis. Built with [FastMCP](https://github.com/jlowin/fastmcp), Flask + HTMX, and deployed on [Railway](https://railway.app).
 
-Phase 1 of a larger project that will add fraud detection (social network analysis of permit actors) and permit facilitation.
+**Live**: https://sfpermits-ai-production.up.railway.app
 
-## Tools
+## Tools (20 MCP Tools)
 
-| Tool | Description |
-|------|-------------|
-| `search_permits` | Search building permits by neighborhood, type, status, cost, date, address, or description |
-| `get_permit_details` | Get full details for a specific permit by permit number |
-| `permit_stats` | Aggregate statistics grouped by neighborhood, type, status, month, or year |
-| `search_businesses` | Search registered business locations in SF |
-| `property_lookup` | Look up property assessments by address or block/lot |
+| Phase | Tool | Description |
+|-------|------|-------------|
+| **1 — SODA API** | `search_permits` | Search building permits by neighborhood, type, status, cost, date, address |
+| | `get_permit_details` | Full details for a specific permit by number |
+| | `permit_stats` | Aggregate statistics grouped by neighborhood, type, status, month, year |
+| | `search_businesses` | Search registered business locations |
+| | `property_lookup` | Property assessments by address or block/lot |
+| | `search_complaints` | DBI complaint records |
+| | `search_violations` | Notices of violation |
+| | `search_inspections` | Building inspection records |
+| **2 — Entity/Network** | `search_entity` | Find entities by name across 1M+ resolved records |
+| | `entity_network` | N-hop network traversal for entity relationships |
+| | `network_anomalies` | Anomaly detection across entity networks |
+| **2.75 — Knowledge** | `predict_permits` | Predict required permits via decision tree walk |
+| | `estimate_timeline` | Timeline estimates from historical percentiles |
+| | `estimate_fees` | Fee calculation from structured fee tables |
+| | `required_documents` | Document checklist assembly |
+| | `revision_risk` | Revision probability from cost/code analysis |
+| **3.5 — Facilitation** | `recommend_consultants` | Land use consultant recommendations |
+| | `permit_lookup` | Quick permit lookup by number |
+| **4 — Vision** | `analyze_plans` | AI vision analysis of architectural drawings |
+| | `validate_plans` | EPR compliance checking via Claude Vision |
 
 ## Data Sources
 
-All data from [DataSF](https://data.sfgov.org/) (San Francisco Open Data) via the Socrata SODA API. 22 datasets cataloged covering:
+All data from [DataSF](https://data.sfgov.org/) via the Socrata SODA API. **22 datasets** cataloged, **13.3M records**:
 
 - **Permits**: Building (1.3M), Plumbing (513K), Electrical (344K), Boiler (152K), Street-Use (1.2M)
-- **Contacts**: Building Permits Contacts (1M records, 11 actor types), Electrical Contacts (340K), Plumbing Contacts (503K)
-- **Violations**: Building Inspections (671K), DBI Complaints (326K), Notices of Violation (509K)
+- **Contacts**: Building (1M), Electrical (340K), Plumbing (503K) — resolved into 1M+ entities
+- **Violations**: Inspections (671K), Complaints (326K), Notices of Violation (509K)
 - **Enrichment**: Business Locations (354K), Property Tax Rolls (3.7M), Development Pipeline, Housing Production
 
-See [`datasets/CATALOG.md`](datasets/CATALOG.md) for the full catalog and [`docs/contact-data-report.md`](docs/contact-data-report.md) for the contact/actor data analysis.
-
-## Setup
-
-```bash
-# Clone
-git clone https://github.com/tbrennem-source/sf-permits-mcp.git
-cd sf-permits-mcp
-
-# Install dependencies
-pip install -e ".[dev]"
-
-# Optional: set SODA app token for higher rate limits
-export SODA_APP_TOKEN="your_token_here"
-
-# Run the MCP server
-python -m src.server
-```
+See [`datasets/CATALOG.md`](datasets/CATALOG.md) for the full catalog.
 
 ## Architecture
 
 ```
+Users (browser)
+    |
+    v
+Flask + HTMX Web UI (Railway)  <-- https://sfpermits-ai-production.up.railway.app
+    |
+    |--- PostgreSQL (pgvector-db) -- users, auth, RAG embeddings, permit tracking
+    |--- SODA API (data.sfgov.org) -- live permit queries
+    |--- Claude Vision API ---------- plan analysis
+    |
 Claude (claude.ai / Claude Code)
-    ↓ MCP tool call
-SF Permits MCP Server (FastMCP)
-    ↓ HTTP GET (SoQL)
-data.sfgov.org SODA API
-    ↓ JSON response
-MCP Server formats + returns
-    ↓ structured results
-Claude renders for user
+    |
+    v
+FastMCP Server — 20 tools
+    |--- Phase 1 (8 tools) -------> SODA API (live HTTP)
+    |--- Phase 2 (3 tools) -------> PostgreSQL (entities, relationships)
+    |--- Phase 2.75 (5 tools) ----> Knowledge Base (39 tier1 JSON files)
+    |--- Phase 3.5 (2 tools) -----> PostgreSQL + Knowledge Base
+    |--- Phase 4 (2 tools) -------> Claude Vision API
 ```
 
-### Key Files
+## Key Numbers
 
-```
-src/
-├── server.py           # FastMCP entry point, tool registration
-├── soda_client.py      # Async SODA API client (httpx)
-├── formatters.py       # Response formatting for Claude consumption
-└── tools/
-    ├── search_permits.py
-    ├── get_permit_details.py
-    ├── permit_stats.py
-    ├── search_businesses.py
-    └── property_lookup.py
-```
+| Metric | Value |
+|--------|-------|
+| MCP tools | 20 |
+| SODA datasets | 22 (13.3M records) |
+| Entities | 1M+ (resolved from 1.8M contacts) |
+| Relationship edges | 576K |
+| Knowledge base | 39 tier1 JSON files, ~78 semantic concepts |
+| RAG chunks | 1,012 (pgvector embeddings) |
+| Tests | 1,058 |
+| PostgreSQL tables | 20 |
 
-## Tests
+## Setup
 
 ```bash
-# Run integration tests (hits live API)
+git clone https://github.com/tbrennem-source/sf-permits-mcp.git
+cd sf-permits-mcp
+pip install -e ".[dev]"
+
+# MCP server
+python -m src.server
+
+# Web UI (local)
+python -m web.app
+
+# Tests
 pytest tests/ -v
 ```
 
-## Performance
-
-Benchmarks run against the live SODA API (see [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md)):
-
-- **Single lookups**: ~500ms
-- **Filtered searches**: ~600-720ms
-- **Aggregations**: ~600ms warm cache, 10-14s cold cache on large datasets
-- **Full-text search**: ~600ms-1.4s (most datasets)
-
-The API is sufficient for interactive use. Aggregation results should be cached for production.
-
 ## Project Phases
 
-- [x] **Phase 1**: MCP server + dataset catalog + benchmarks ← *you are here*
-- [ ] **Phase 2**: Local storage decision, contacts data ingestion
-- [ ] **Phase 3**: Fraud detection prototype (social network analysis using Mehri model)
-- [ ] **Phase 4**: Predictive analytics, Railway deployment
+- [x] **Phase 1**: MCP server + SODA API tools + dataset catalog + benchmarks
+- [x] **Phase 2**: DuckDB local analytics, entity resolution, co-occurrence graph
+- [x] **Phase 2.75**: Knowledge base, decision tree, permit guidance tools
+- [x] **Phase 3**: Web UI (Flask + HTMX), auth, morning briefs, feedback
+- [x] **Phase 3.5**: Railway deployment, PostgreSQL migration, regulatory watch, consultant recommendations
+- [x] **Phase 4** (partial): AI Vision plan analysis, EPR compliance checking
+- [ ] **Phase 4** (remaining): RAG activation, nightly refresh
 
-## Decisions
+## Documentation
 
-See [`docs/DECISIONS.md`](docs/DECISIONS.md) for architecture decisions including:
-- Why we built from scratch vs. forking existing Socrata MCP servers
-- Custom SODA client vs. sodapy
-- NIXPACKS deployment strategy
+| Document | Purpose |
+|----------|---------|
+| [`CLAUDE.md`](CLAUDE.md) | **Primary reference** — project structure, Railway infra, deploy instructions |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Data flow, schemas, module details |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Architecture decision log |
+| [`docs/BACKUPS.md`](docs/BACKUPS.md) | Backup strategy and recovery playbook |
+| [`CHANGELOG.md`](CHANGELOG.md) | Session-by-session build log |
+| [`data/knowledge/SOURCES.md`](data/knowledge/SOURCES.md) | Knowledge base inventory |

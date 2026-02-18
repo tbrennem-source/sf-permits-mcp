@@ -7,30 +7,50 @@ Claude (claude.ai / Claude Code)
     |
     | MCP tool calls
     v
-SF Permits MCP Server (FastMCP) — 13 tools
+SF Permits MCP Server (FastMCP) — 20 tools
     |
-    |--- Phase 1 tools (5) -------> data.sfgov.org SODA API (live HTTP)
+    |--- Phase 1 tools (8) -------> data.sfgov.org SODA API (live HTTP)
     |                                     |
     |                                     v
     |                                JSON response -> formatters.py -> Claude
     |
-    |--- Phase 2 tools (3) -------> Local DuckDB (data/sf_permits.duckdb)
+    |--- Phase 2 tools (3) -------> PostgreSQL / DuckDB (entities, relationships)
     |                                     |
     |                                     v
     |                                SQL query results -> Claude
     |
     |--- Phase 2.75 tools (5) ----> Knowledge Base (data/knowledge/tier1/*.json)
-                                    + Local DuckDB (historical statistics)
+    |                                + PostgreSQL/DuckDB (historical statistics)
+    |                                     |
+    |                                     v
+    |                                Decision tree walk -> predictions -> Claude
+    |
+    |--- Phase 3.5 tools (2) ----> PostgreSQL + Knowledge Base
+    |                                     |
+    |                                     v
+    |                                Consultant recommendations, permit lookup -> Claude
+    |
+    |--- Phase 4 tools (2) ------> Claude Vision API (Anthropic)
                                          |
                                          v
-                                    Decision tree walk -> predictions -> Claude
+                                    Plan analysis + EPR compliance -> Claude
+
+Flask + HTMX Web UI (Railway) — https://sfpermits-ai-production.up.railway.app
+    |
+    |--- PostgreSQL (pgvector-db) -- users, auth, RAG, vision sessions, permit tracking
+    |--- SODA API (proxied) -------- live permit queries for web users
+    |--- Claude Vision API --------- async plan analysis jobs
 ```
 
-Phase 1 tools (`search_permits`, `get_permit_details`, `permit_stats`, `search_businesses`, `property_lookup`) query data.sfgov.org live via `SODAClient`.
+Phase 1 tools (`search_permits`, `get_permit_details`, `permit_stats`, `search_businesses`, `property_lookup`, `search_complaints`, `search_violations`, `search_inspections`) query data.sfgov.org live via `SODAClient`.
 
-Phase 2 tools (`search_entity`, `entity_network`, `network_anomalies`) query a local DuckDB database containing 1.8M+ resolved contact records, entity relationships, and anomaly detection results.
+Phase 2 tools (`search_entity`, `entity_network`, `network_anomalies`) query PostgreSQL (production) or DuckDB (local) containing 1.8M+ resolved contact records, entity relationships, and anomaly detection results.
 
-Phase 2.75 tools (`predict_permits`, `estimate_timeline`, `estimate_fees`, `required_documents`, `revision_risk`) walk a 7-step permit decision tree backed by structured knowledge files (fee tables, routing matrix, OTC criteria, fire/planning code) plus DuckDB historical statistics.
+Phase 2.75 tools (`predict_permits`, `estimate_timeline`, `estimate_fees`, `required_documents`, `revision_risk`) walk a 7-step permit decision tree backed by structured knowledge files (fee tables, routing matrix, OTC criteria, fire/planning code) plus historical statistics.
+
+Phase 3.5 tools (`recommend_consultants`, `permit_lookup`) combine knowledge base consultant data with permit lookups.
+
+Phase 4 tools (`analyze_plans`, `validate_plans`) use the Claude Vision API to analyze architectural drawings and check EPR compliance.
 
 ---
 
@@ -265,29 +285,43 @@ ingest_log
 
 ```
 src/
-├── server.py        # FastMCP entry point, registers all 13 tools
+├── server.py        # FastMCP entry point, registers all 20 tools
 ├── soda_client.py   # Async SODA API client (httpx), used by Phase 1 tools + ingestion
 ├── formatters.py    # Response formatting for Claude consumption
-├── db.py            # DuckDB connection + schema (6 tables, 16 indexes)
-├── ingest.py        # SODA -> DuckDB pipeline (paginated fetch, normalization)
+├── db.py            # DuckDB + PostgreSQL dual-mode connections
+├── knowledge.py     # KnowledgeBase singleton, semantic index
+├── ingest.py        # SODA -> DuckDB/Postgres pipeline (paginated fetch, normalization)
 ├── entities.py      # 5-step entity resolution cascade
 ├── graph.py         # Co-occurrence graph (self-join + N-hop traversal)
 ├── validate.py      # Validation queries + anomaly detection
+├── report_links.py  # External links for property reports
+├── vision/          # AI Vision modules
+│   ├── client.py        # Anthropic Vision API wrapper
+│   ├── pdf_to_images.py # PDF-to-base64 image conversion
+│   ├── prompts.py       # EPR check prompts
+│   └── epr_checks.py    # Vision-based EPR compliance checker
 └── tools/
     ├── search_permits.py      # Phase 1: SODA API
     ├── get_permit_details.py  # Phase 1: SODA API
     ├── permit_stats.py        # Phase 1: SODA API
     ├── search_businesses.py   # Phase 1: SODA API
     ├── property_lookup.py     # Phase 1: SODA API
-    ├── search_entity.py       # Phase 2: DuckDB
-    ├── entity_network.py      # Phase 2: DuckDB
-    ├── network_anomalies.py   # Phase 2: DuckDB
+    ├── search_complaints.py   # Phase 1: SODA API
+    ├── search_violations.py   # Phase 1: SODA API
+    ├── search_inspections.py  # Phase 1: SODA API
+    ├── search_entity.py       # Phase 2: Entity search
+    ├── entity_network.py      # Phase 2: Network traversal
+    ├── network_anomalies.py   # Phase 2: Anomaly detection
     ├── knowledge_base.py      # Phase 2.75: Shared loader for all tier1 JSON
     ├── predict_permits.py     # Phase 2.75: Decision tree walk + predictions
-    ├── estimate_timeline.py   # Phase 2.75: DuckDB timeline percentiles
+    ├── estimate_timeline.py   # Phase 2.75: Timeline percentiles
     ├── estimate_fees.py       # Phase 2.75: Fee table calculation + statistics
     ├── required_documents.py  # Phase 2.75: Document checklist assembly
-    └── revision_risk.py       # Phase 2.75: Revision probability from cost data
+    ├── revision_risk.py       # Phase 2.75: Revision probability from cost data
+    ├── recommend_consultants.py # Phase 3.5: Land use consultant recommendations
+    ├── permit_lookup.py       # Phase 3.5: Quick permit lookup
+    ├── analyze_plans.py       # Phase 4: AI vision plan analysis
+    └── validate_plans.py      # Phase 4: EPR compliance checking
 ```
 
 ### Knowledge Base Dependencies (Phase 2.75)
@@ -310,6 +344,11 @@ All 15 knowledge files loaded once via `KnowledgeBase` singleton (`@lru_cache`).
 |---|---|---|
 | `SODA_APP_TOKEN` | SODA API app token for higher rate limits | None (anonymous) |
 | `SF_PERMITS_DB` | Path to DuckDB database file | `data/sf_permits.duckdb` |
+| `DATABASE_URL` | PostgreSQL connection string (production) | None (uses DuckDB) |
+| `ADMIN_EMAIL` | Auto-seed admin user on empty DB | None |
+| `CRON_SECRET` | Bearer token for cron endpoints | Required in prod |
+| `ANTHROPIC_API_KEY` | Claude Vision API for plan analysis | Required for Vision tools |
+| `OPENAI_API_KEY` | OpenAI embeddings for RAG | Required for RAG |
 
 The DuckDB file lives in `data/` (gitignored). Regenerate by running the full pipeline:
 
@@ -319,3 +358,64 @@ python -m src.entities      # Resolve entities
 python -m src.graph         # Build co-occurrence graph
 python -m src.validate all  # Run validation + anomaly scan
 ```
+
+---
+
+## PostgreSQL Production Database
+
+In production (Railway), the app uses PostgreSQL with pgvector instead of DuckDB. `src/db.py` detects `DATABASE_URL` and switches backends automatically.
+
+**pgvector-db tables:**
+
+| Category | Tables |
+|----------|--------|
+| User data | `users`, `auth_tokens`, `watch_items`, `feedback`, `activity_log`, `points_ledger` |
+| Permit data | `contacts`, `entities`, `relationships`, `permits`, `inspections`, `timeline_stats`, `ingest_log`, `permit_changes` |
+| Vision | `plan_analysis_sessions`, `plan_analysis_images`, `plan_analysis_jobs` |
+| RAG | `knowledge_chunks` (pgvector 1536-dim embeddings) |
+| System | `cron_log`, `regulatory_watch` |
+
+The database is internal-only (`pgvector-db.railway.internal:5432`). Use the `/health` endpoint to check table state remotely.
+
+---
+
+## Flask Web UI
+
+The web application (`web/app.py`) provides a browser-based interface deployed on Railway:
+
+- **Authentication**: Magic-link passwordless login (`web/auth.py`)
+- **Morning briefs**: Daily permit activity summaries (`web/brief.py`, `web/email_brief.py`)
+- **Triage reports**: Nightly email digests (`web/email_triage.py`)
+- **Plan analysis**: Async AI vision analysis of uploaded PDFs (`/analyze`)
+- **Regulatory watch**: Admin CRUD for regulation monitoring (`web/regulatory_watch.py`)
+- **Feedback system**: User feedback with bounty points (`web/activity.py`)
+- **Admin auto-seed**: Creates admin user from `ADMIN_EMAIL` on empty database
+
+Tech stack: Flask, HTMX, Jinja2 templates, deployed via Railway GitHub auto-deploy.
+
+---
+
+## AI Vision Infrastructure
+
+The Vision subsystem (`src/vision/`) analyzes architectural drawings using the Anthropic Claude Vision API:
+
+```
+PDF upload → pdf_to_images.py (base64 conversion) → client.py (Claude Vision API)
+    → epr_checks.py (EPR compliance prompts) → results stored in plan_analysis_* tables
+```
+
+- **Async processing**: Full analysis runs as background jobs to avoid HTTP timeouts
+- **EPR checks**: Energy, plumbing, structural compliance verification against code requirements
+- **Annotations**: 10-color system with localStorage persistence, ARIA accessibility
+
+---
+
+## Backup Infrastructure
+
+Three-layer strategy (see `docs/BACKUPS.md` for full details):
+
+1. **Railway native backups** — Daily + Weekly via dashboard (pgvector-db → Settings → Backups)
+2. **pg_dump cron** — `POST /cron/backup` endpoint with CRON_SECRET auth
+3. **Admin auto-seed** — Empty `users` table + `ADMIN_EMAIL` env var → admin account on startup
+
+User-generated data (users, watches, feedback) requires backups. Permit/entity/knowledge data is regenerable from SODA API and git.
