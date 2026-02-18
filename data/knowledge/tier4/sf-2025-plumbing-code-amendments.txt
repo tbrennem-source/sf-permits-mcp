@@ -1,0 +1,776 @@
+--- Page 1 ---
+Page | 1 
+ 
+PLUMBING CODE 
+2025 Edition 
+ 
+PREFACE 
+Text Format: 
+   The text in this publication is formatted to allow the user to quickly and easily determine the 
+source of the included material. Language derived from the 2025 California Code that 
+is unchanged by local amendment is printed in shaded text (see below). Language constituting 
+San Francisco amendments to the California Code is printed in unformatted (or “plain”) text. In 
+either case, bold and/or italic typefaces may be used as appropriate for emphasis, etc. See below 
+for examples. 
+   To further simplify use of the San Francisco amendments with corresponding sections of the 
+2025 California Code, explanatory remarks appearing in italics are provided (in boxes at the 
+beginning of affected provisions) indicating whether the San Francisco amendment to the 
+California Code is adding, revising, or replacing a section or portion of a section. 
+ 
+   To summarize: 
+Explanatory remarks are boxed and italicized. 
+   Unchanged language from the 2025 California Code is shaded, and may 
+include bold and/or italicized formatting. 
+   San Francisco amendments are printed in unformatted ("plain") text, and may 
+include bold and/or italicized formatting. 
+Marginal Markings: 
+   An arrow [ ← ] represents the location of language that has been deleted by San Francisco 
+from the 2022 California Code. 
+   Material altered after the initial adoption of the 2025 San Francisco Mechanical Code is shown 
+by a solid vertical line at the left margin of the text. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+--- Page 2 ---
+Page | 2 
+ 
+Chapter 1 
+ADMINISTRATION 
+Division I 
+CALIFORNIA ADMINISTRATION 
+No San Francisco Plumbing Code Amendments 
+Division II 
+ADMINISTRATION 
+SECTION 101.0 – GENERAL 
+101.1 Revise this section as follows: 
+101.1 Title. This document shall be known as the “ [ ← ] 2025 San Francisco Plumbing Code,” 
+may be cited as such, and will be referred to herein as “this code.” 
+SECTION 103.0 – DUTIES AND POWERS OF THE AUTHORITY 
+HAVING JURISDICTION 
+103.1 Replace the third paragraph with the following: 
+ [ ← ]    The Authority Having Jurisdiction, when necessary, may call upon the Police 
+Department and other City and County of San Francisco agencies for aid or assistance in 
+carrying out or enforcing any of the provisions of this code. 
+103.4 Revise the first paragraph of this section as follows: 
+103.4 Right of Entry. Where it is necessary to make an inspection to enforce the provisions of 
+this code or other codes or ordinances, or where the Authority Having Jurisdiction has 
+reasonable cause to believe that there exists in a building or upon premises a condition or 
+violation of this code or other codes or ordinances that makes the building or premises unsafe, 
+insanitary, dangerous or hazardous, the Authority Having Jurisdiction shall be permitted to enter 
+the building or premises at reasonable times to inspect or to perform the duties imposed upon the 
+Authority Having Jurisdiction by this code or other codes or ordinances, provided that where 
+such building or premises is occupied, the Authority Having Jurisdiction shall present credentials 
+to the occupant and request entry. Where such building or premises is unoccupied, the Authority 
+Having Jurisdiction shall first make a reasonable effort to locate the owner or other person 
+having charge or control of the building or premises and request entry. Where entry is refused, 
+the Authority Having Jurisdiction has recourse to every remedy provided by law to secure entry. 
+103.5 Add the following section: 
+103.5 Rules and Regulations. The Authority Having Jurisdiction shall have the power to render 
+interpretations of this code and to adopt and enforce rules and supplemental regulations to clarify 
+the application of its provisions. Such interpretations, rules and regulations shall be in 
+conformance with the intent and purpose of this code. Such rules and regulations, commonly 
+referred to as “Code Rulings” and “Administrative Bulletins” supplemental to this code, shall not 
+take effect until approved by the Building Inspection Commission and signed by the Authority 
+Having Jurisdiction except in unusual circumstances where the Authority Having Jurisdiction 
+has determined that there is an immediate need to protect the public health and safety. When the 
+Authority Having Jurisdiction finds that such circumstances exist, the Authority Having 
+Jurisdiction may order immediate enforcement of a particular rule or regulation. The Authority 
+
+
+--- Page 3 ---
+Page | 3 
+ 
+Having Jurisdiction shall arrange for a subscription service to such rules and regulations, the 
+entire cost of which is to be borne by the subscribers. 
+103.6 Add the following section: 
+103.6 Code Revisions. The Authority Having Jurisdiction shall transmit to the Building 
+Inspection Commission, at intervals not exceeding three years, recommendations for changes to 
+this code, based on studies of the following: 
+   1.   Requests of the Board of Examiners for variances from this code, and for approvals of 
+alternate materials, alternate designs and methods of construction. 
+   2.   Code changes recommended by the Board of Examiners. 
+   3.   Code changes recommended by the Code Advisory Committee or other bodies subordinate 
+to the Building Inspection Commission. 
+   4.   Results obtained and problems encountered in legal actions taken to correct code 
+violations. 
+   5.   Changes or improvements in materials, methods of construction or design, and changes 
+proposed by interested persons. 
+   6.   Investigations of fire and structural damage to buildings, and of determination of 
+unsatisfactory building performance. 
+   7.   Periodic changes to the California Plumbing Code and other State regulations which may 
+affect this code. 
+   8.   Administrative Bulletins and Code Rulings currently in effect. 
+   9.   Violations of the code found on inspections or investigations. 
+103.7 Add the following section: 
+103.7 Modifications. When there are practical difficulties involved in carrying out the 
+provisions of this code, the Authority Having Jurisdiction may grant modifications for individual 
+cases. The Authority Having Jurisdiction shall first find that a special individual reason makes 
+the strict letter of this code impractical and that the modification is in conformance with the 
+intent and purpose of this code and that such modification does not lessen the standard of this 
+code to safeguard life or limb, health, property, or public welfare. The details of any action 
+granting modifications shall be recorded and entered in the files of the Department of Building 
+Inspection. 
+SECTION 104.0 – PERMITS 
+104.1 Add the following as the second paragraph of this section: 
+   Emergency work for the protection of life or limb, health, property and public welfare shall 
+have a permit obtained within one day of commencing such work, excluding Saturdays, Sundays 
+and legal holidays. 
+104.1.1 Add the following section: 
+104.1.1 Homeowner’s Permit. A permit for plumbing work in, on or about a single-family 
+dwelling may be issued by the Authority Having Jurisdiction, provided said work is done by the 
+owner or a family member who has demonstrated, to the satisfaction of the administrative 
+authority, his or her qualifications to satisfactorily perform the plumbing work in the dwelling 
+which is, or is intended to be, occupied by the owner. If the plumbing work performed under the 
+homeowner’s permit does not comply with the requirements of this code and if the corrections 
+are not made as required by the Department of Building Inspection, then the work shall be 
+corrected by a State-licensed plumbing contractor under a separate permit. 
+   Such State-licensed plumbing contractor shall be required to pay only the permit issuance fee 
+as set forth in Section 110A, Table 1A-C - Plumbing/Mechanical Permit Issuance and Inspection 
+Fees - of the Building Code. If additional inspection is required, the appropriate fees as set forth 
+
+--- Page 4 ---
+Page | 4 
+ 
+in Section 110A, Table 1A-C - Plumbing/Mechanical Permit Issuance and Inspection Fees and 
+Table 1A-G - Inspection, Surveys and Reports - of the Building Code shall apply. 
+104.1.2 Add the following section: 
+104.1.2 Amending Applications. After a permit has been issued and an inspection of the work 
+has been made, the scope of the permit may be altered by filing an amended permit application 
+and paying fees for any additional work as set forth in Table 1A-C - Plumbing/Mechanical 
+Permit Issuance and Inspection Fees and Table 1A-G - Inspections, Survey, and Reports of 
+Section 110A of the Building Code. 
+104.2 Replace Section 104.2(1) and the first paragraph of Section 104.2(2) as follows:  
+104.2 Exempt Work. A permit shall not be required for the following: [ ← ]  
+   (1)   Repair of leaks not requiring cutting into or removing piping. 
+   (2)   Unstopping of traps, sewers, vents or waste pipes not requiring cutting into or removal of 
+traps or piping. 
+   (3)   Replacement, repair or maintenance of faucets, angle stops, hose bibbs or roof drain not 
+requiring cutting into or removal of piping. 
+   (4)   Replacement of toilets except in structures with alternate water piping. 
+   (5)   Replacement of furnace filters. 
+   (6)   Removal of drainage, water or gas piping from a building when the water supply, gas and 
+drainage lines have been disconnected in an approved manner under a permit. 
+   (7)   Work involved in setting up for display of plumbing fixtures or appliances, when not 
+connected to any supply or drainage lines, in a sales establishment. 
+   (8)   Replacement of water conservation devices not requiring cutting into or removal of 
+piping. 
+   (9)   Work performed in buildings or structures owned and occupied by the State and Federal 
+governments. 
+104.3 Replace this section as follows: 
+104.3 Application for Permit. [ ← ] Permit applicants shall file with the Department of 
+Building Inspection an application on a form furnished for that purpose. 
+   A permit for inspection of the proposed plumbing work set forth in the application will be 
+issued to State-licensed contractors or to homeowners subject to the requirements of Section 
+104.1.1. A separate permit shall be obtained for each separate building, structure or property. 
+104.3.2 Replace this section as follows: 
+104.3.2 [ ← ] Inspections Not Covered by Permit Fees. 
+104.3.2.1 Off Hours of Inspection. Off-hour inspection may be performed outside normal 
+inspection hours by prior arrangement and prepayment of fees as set forth in Section 110A , 
+Table 1A-G - Inspections, Surveys and Reports - of the Building Code. 
+104.3.2.2 Reinspections. A reinspection fee shall be assessed for each inspection or reinspection 
+made necessary by any of the following conditions: 
+   (1)   When the portion of the work for which the inspection is requested is not complete or 
+code complying. 
+   (2)   When previously identified deficiencies in the work are not properly corrected. 
+   (3)   When the approved construction documents are not available to the inspector. 
+   (4)   When access is not provided on the date and time of the inspection appointment. 
+   (5)   When work deviates from the approved construction documents. 
+   The first reinspection for failure to comply with code requirements shall not be assessed a 
+reinspection fee. All subsequent reinspections for the same or subsequent errors or omissions 
+shall be charged a reinspection fee. 
+
+--- Page 5 ---
+Page | 5 
+ 
+   Subsequent to inspector determination of reinspection fee requirements, no required or 
+requested inspections shall be made nor shall the job be given a certificate of final completion 
+and occupancy or final approval until the required reinspection fees are paid. See Section 110A, 
+Table 1A-G - Inspections, Surveys and Reports - of the Building Code for applicable fees. 
+104.3.2.3 Survey. A plumbing survey may be requested when a plumbing inspector’s assistance 
+is desired to establish code compliance of existing or proposed plumbing system requirements. 
+See Section 110A , Table 1A-G - Inspections, Survey and Reports - of the Building Code for 
+applicable fees. 
+104.4 Add a new second paragraph to this section as follows: 
+   An issued permit entitles the permittee to proceed with the work described therein. The 
+issuance of a permit does not constitute approval of any work done under that permit. Permits 
+shall not be transferable. 
+104.4.3 Replace this section as follows: 
+104.4.3 Permit Expiration. [ ← ] Plumbing permits expire per Section 106A.4.4 of the San 
+Francisco Building Code. Permit fees may be partially refunded if a written cancellation request 
+is made to the Building Official prior to commencement of the permitted work and within 90 
+days of the date of permit issuance. See Section 110A , Table 1A-R - Refunds - of the Building 
+Code for refunds. 
+104.4.3.2 Add the following section: 
+104.4.3.2 Commencement of Work on Permit Expired Due to Work Not Started. A new 
+permit shall be obtained to undertake the work described on an expired permit on which no work 
+was performed. If not more than one year has elapsed since the expiration of the original permit, 
+the applicant is eligible for reduced fees. See Section 110A , Table 1A-B - Other Building Permit 
+and Plan Review Fees - of the Building Code for applicable fees. 
+   If a refund has been granted per Section 104.4.3, the applicant shall not be eligible for the 
+reduced fees as set forth in Section 110A, Table 1A-B - Other Building Permit and Plan Review 
+Fees - of the Building Code. 
+104.4.3.3 Add the following section: 
+104.4.3.3 Recommencement of Work on Permit Expired Due to Work Not Completed. The 
+applicant shall obtain a new permit for the work not completed. The permit fee shall be based on 
+work remaining to be done. Fees shall be as set forth in Section 110A , Table 1A-C - 
+Plumbing/Mechanical Permit Issuance and Inspection Fees - of the Building Code. 
+104.5 Replace this section as follows: 
+104.5 Permit Fees. [ ← ] Before any permit is issued, the applicant shall pay to the Central 
+Permit Bureau the fees as set forth in Section 110A, Table 1A-C - Plumbing/Mechanical Permit 
+Issuance and Inspection Fees - of the Building Code. The replacement of a plumbing fixture or a 
+gas appliance without a change in drainage, piping or venting shall not require the payment of 
+permit issuance fee. A separate permit issuance fee shall be paid for each class of work, i.e., 
+sewers and drainage, gas and water. 
+   Final inspection will not be made unless all outstanding fees related to the permit work have 
+been paid. 
+104.5.2 Revise this section as follows: 
+104.5.2 Investigation Fees. An investigation fee, in addition to the permit fee, shall be collected 
+whether or not a permit is then or subsequently issued. [ ← ] See Section 110A, Table 1A-C - 
+Plumbing/Mechanical Permit Issuance and Inspection Fees, and Table 1A-K - Penalties, 
+Hearings, Code Enforcement Assessments - of the Building Code for applicable fees. The 
+
+--- Page 6 ---
+Page | 6 
+ 
+payment of such investigation fee shall not exempt a person from compliance with other 
+provisions of this code, nor from a penalty prescribed by law. 
+   The Director may reduce the investigation fee to two times the amount of the permit fee as 
+called for in Section 110A, Table 1A-C - Plumbing/Mechanical Permit Issuance and Inspection 
+Fees - of the Building Code for work that was constructed prior to the current building ownership 
+or for work without permit which was done prior to January 1, 1967, if the owner files with the 
+Director a notarized affidavit together with documents substantiating such dates of work. 
+   Appeals of investigation fees may be filed with the Board of Appeals in the manner provided 
+in Section 8 et seq. of the Business & Tax Regulations Code. Such filing shall be subject to the 
+fees and rules of the Board of Appeals. The Board of Appeals, in reviewing the appeal, may 
+reduce the appealed amount to not less than two times the permit fee as set forth in 
+Section 110A, Table 1A-C - Plumbing/Mechanical Permit Issuance and Inspection Fees - of the 
+Building Code. 
+104.5.3 Replace this section as follows: 
+104.5.3 Fee Refunds. [ ← ] For fee refunds, see Section 107A.6 of the Building Code. 
+SECTION 105.0 – INSPECTIONS AND TESTING 
+105.2.6 Revise the fourth paragraph as follows: 
+   To obtain reinspection, the applicant shall file an application therefore in writing upon a form 
+furnished for that purpose and pay the reinspection fee in accordance with [ ← ] Section 110A, 
+Table 1A-G - Inspections, Surveys and Reports - of the Building Code. 
+SECTION 106.0 – VIOLATIONS AND PENALTIES 
+106.3 Replace this section as follows: 
+106.3 Penalties. [ ← ] Any person, the owner or the owner’s authorized agent, who violates, 
+disobeys, omits, neglects or refuses to comply with, or resists or opposes the execution of any of 
+the provisions of this code, shall be liable for a civil penalty, not to exceed $500 for each day 
+such violation is committed or permitted to continue, which penalty shall be assessed and 
+recovered in a civil action brought in the name of the people of the City and County of San 
+Francisco by the City Attorney in any court of competent jurisdiction. Any penalty assessed and 
+recovered in an action brought pursuant to this paragraph shall be paid to the City Treasurer and 
+credited to the Department of Building Inspection’s Special Fund. 
+   Any person, the owner or the owner’s authorized agent, who violates, disobeys, omits, neglects 
+or refuses to comply with, or who resists or opposes the execution of any of the provisions of this 
+code, shall be guilty of a misdemeanor, and upon conviction thereof shall be punished by a fine 
+not exceeding $500 or by imprisonment not exceeding six months, or by both such fine and 
+imprisonment, unless otherwise provided in this code, and shall be deemed guilty of a separate 
+offense for every day such violation, disobedience, omission, neglect or refusal shall continue. 
+Any person who shall do any work in violation of any of the provisions of this code, and any 
+person having charge of such work who shall permit it to be done, shall be liable for the penalty 
+provided. 
+   It shall be unlawful for any person to interfere with the posting of any notice provided for in 
+this code or to tear down or mutilate any such notice posted by the Department of Building 
+Inspection. 
+106.5 Revise this section as follows: 
+106.5 Authority to Disconnect Utilities in Emergencies. The Authority Having Jurisdiction 
+shall have the authority to disconnect a plumbing system to a building, structure or equipment 
+
+--- Page 7 ---
+Page | 7 
+ 
+regulated by this code in case of emergency where necessary to eliminate an immediate hazard to 
+life or property. For notification procedures, see Section 102A.16 of the Building Code. 
+SECTION 107.0 – BOARD OF APPEALS 
+107.0 Replace this title and the entire section as follows: 
+ [ ← ] 107.0 Board of Examiners. Application may be made to the Board of Examiners for 
+approval of alternate materials, methods and types of construction and for variances from the 
+provisions of this code. See Building Code, Section 105A.1. 
+108.0 Add the following section: 
+SECTION 108.0 – ABATEMENT OF PUBLIC NUISANCE 
+108.0 Abatement of Public Nuisance. In order to abate a nuisance as defined in Section 216.0 
+of this code, the inspection and abatement procedures as set forth in Section 102A of the 
+Building Code, including, but not limited to, Section 102A.3 through 102A.8, shall apply. 
+109.0 Add the following section: 
+SECTION 109.0 – REPAIRS TO DEFECTIVE BUILDING 
+SEWERS 
+109.0 Repairs to Defective Building Sewers 
+109.1 General. Any defective building sewer found to be a nuisance or hazardous to the public 
+shall be repaired at the owner’s expense by a licensed plumbing contractor in accordance with 
+this code. In the event the owner fails to repair the defective building sewer after written notice 
+has been sent the owner by the Authority Having Jurisdiction, the Authority Having Jurisdiction 
+shall abate the condition in accordance with Section 102A of the Building Code. 
+109.2 Cost of Repairs by City and County of San Francisco. Whenever the Authority Having 
+Jurisdiction, pursuant to the authority conferred by this code and the Building Code, shall cause a 
+building sewer to be repaired or replaced, the cost thereof shall be paid from the “Plumbing 
+Building Sewer Revolving Fund” and assessed against the property served by said building 
+sewer. 
+109.3 Plumbing Building Sewer Revolving Fund. A special revolving fund, to be known as the 
+“Plumbing Building Sewer Revolving Fund,” is hereby created for the purpose of defraying the 
+costs and expenses which may be incurred by the Department of Building Inspection in carrying 
+out the authority conferred by this code to repair or replace defective building sewers. 
+   The Board of Supervisors shall transfer one-half of the funds appropriated to the “Side Sewer 
+Repair” fund of the Department of Building Inspection or shall appropriate, establish or increase 
+the special revolving fund with such funds as it may deem necessary in order to expedite 
+performance of the work of repairing or replacing defective building sewers. The special 
+revolving fund shall be replenished with all funds collected under the proceeding hereinafter 
+provided for, either upon voluntary payments or as a result of the sale of the property after 
+delinquency, or otherwise. Balances remaining in the Plumbing Building Sewer Revolving Fund 
+at the close of any fiscal year shall be carried forward in such fund. 
+109.4 Assessment for Costs. The Authority Having Jurisdiction shall take action to have the 
+costs of all work done or caused to be done pursuant to this Section 109.0 assessed against the 
+parcel or parcels of land upon which said building is served by the building sewer per 
+Section 102A of the Building Code. Such costs shall include, in addition to all costs related to 
+repairing or replacing the building sewer or demolishing and clearing the site, the City and 
+County of San Francisco’s costs in administering the required work. See Section 110A, Table 
+1A-K - Penalties, Hearings, Code Enforcement Assessments - of the Building Code for the 
+applicable fee. 
+
+--- Page 8 ---
+Page | 8 
+ 
+Chapter 2 
+DEFINITIONS 
+SECTION 201.0 – GENERAL 
+201.1 Add the following to the end of the first sentence: 
+Where words, terms and phrases are not defined, they shall have their ordinary accepted meaning 
+within the context with which they are used. 
+SECTION 204.0 – B 
+204.0 Add the following definition: 
+Boiler. A closed vessel used for heating water or liquid, or for generating steam or vapor by 
+direct application of heat from combustible fuels or electricity. 
+SECTION 208.0 – F 
+208.0 Add the following definition: 
+Foot Vent - See “Relief Vent,” Section 220.0. 
+SECTION 216.0 – N 
+216.0 Add the following items after Item (3) under definition of “Nuisance”: 
+   (4)   Open, unsecured, leaking, plugged or otherwise defective sewer, gas or water lines. 
+   (5)   Inadequate plumbing system maintenance, dilapidation, obsolescence, or damage. 
+   (6)   Plumbing or plumbing fixtures, gas appliances or piping installed in violation of this code 
+or without permit. 
+   (7)   Where a change in occupancy classification is made without complying with the 
+applicable provisions of this code and the Building Code. 
+SECTION 218.0 – P 
+218.0 Revise this definition as follows: 
+Plumbing System. Includes all potable water, alternate water sources, building supply, and 
+distribution pipes; all plumbing fixtures and traps; all drainage and vent pipes; and all building 
+drains and building sewers, including their respective joints and connections, devices, receptors, 
+and appurtenances within the property lines of the premises and shall include potable water 
+piping, potable water treating or using equipment, medical gas and medical vacuum systems, 
+liquid and fuel gas piping, and water heaters and vents for same, and fire sprinkler systems. 
+Plumbing systems shall include all plumbing appliances, plumbing appurtenances and plumbing 
+fixtures. 
+SECTION 221.0 – S 
+221.0 Add the following definition: 
+Story. That portion of a building included between the upper surface of any floor and the upper 
+surface of the floor next above. For the purposes of this code, balcony, loft and mezzanine levels 
+that contain plumbing outlets are also to be considered as stories. 
+ 
+ 
+ 
+
+--- Page 9 ---
+Page | 9 
+ 
+Chapter 3 
+GENERAL REGULATIONS 
+SECTION 313.0 – HANGERS AND SUPPORTS 
+313.2 Add the following sections: 
+313.9 313.2 Materials. 
+313.9.1 313.2.1 Plumber’s tape hanger iron may be used to secure pipe not greater than 2 inches 
+(50.8 mm) in diameter. 
+313.9.2 313.2.2 Hanger iron shall be galvanized and not thinner than 22 gauge, 1/32-inch thick 
+(0.8 mm) and 3/4-inch (19.05 mm) wide, securely nailed or screwed to the structure. When the 
+strap-iron is formed around the pipe, it shall be secured with a 1/4-inch (6.35 mm) stove bolt. 
+ 
+Chapter 4 
+PLUMBING FIXTURES AND FIXTURE FITTINGS 
+SECTION 405 – PROHIBITED FIXTURES 
+405.0 Add the following section: 
+405.4 Watercloset-Sink Combinations. Watercloset-Sink combinations are not allowed in 
+structures with treated alternate water piping. 
+SECTION 415.0 – DRINKING FOUNTAINS 
+415.2 Add the following section: 
+415.2.1 Drink Tap Stations. New construction that provides one or more drinking fountains 
+shall provide a Drink Tap Station per San Francisco Environment Code Section 2304. 
+ 
+Chapter 5 
+WATER HEATERS 
+SECTION 504.0 – WATER HEATER REQUIREMENTS 
+504.1 Add the following as the first paragraph of this section: 
+504.1 Location. Water Heaters mounted on the exterior of a building and located 7' or more 
+above the floor or grade shall be provided with a permanent platform capable of supporting a 
+tester or maintenance person. 
+Chapter 6 
+WATER SUPPLY AND DISTRIBUTION 
+SECTION 603.0 – CROSS-CONNECTION CONTROL 
+603.1 Add a third paragraph to this section as follows: 
+   Structures with alternate water piping shall have a Reduced-Pressure Principle Backflow 
+Prevention Assembly installed on the domestic supply as close as practical to the meter. 
+603.2 Revise Table 603.2 as follows: 
+
+--- Page 10 ---
+Page | 10 
+ 
+Add a footnote for the Applicable Standards heading that states: 
+All backflow prevention assemblies or devices that are testable must have passed laboratory and 
+field evaluation tests performed by a recognized testing organization. 
+Revise the tenth entry in the Table to read as follows: 
+  
+Backflow preventer for 
+Carbonated Beverage 
+Dispensers (two 
+independent check valves 
+with a vent to the 
+atmosphere) 
+ASSE 
+1022 
+X -
+- 
+X -
+- 
+Installation includes carbonated beverage machines 
+or dispensers. These devices operate under 
+intermittent or continuous pressure conditions. This 
+device is only permitted in systems with no upstream 
+copper pipe. Otherwise, a reduced pressure principle 
+backflow prevention assembly is required. 
+  
+603.5.6.4 Add the following section: 
+603.5.6.4 Approval. All such installations shall be approved in writing by the San Francisco 
+Water Department prior to installation. 
+603.5.12 Revise section as follows: 
+603.5.12 Beverage Dispensers. Potable water supply to beverage dispensers, carbonated 
+beverage dispensers, or coffee machines shall be protected by an air gap, a reduced pressure 
+principle backflow prevention assembly, or a vented backflow preventer that complies with 
+ASSE 1022, except that a vented backflow preventer may not be used to protect carbonated 
+beverage dispensers in systems with upstream copper pipe. For carbonated beverage dispensers, 
+piping material installed downstream of the backflow preventer shall not be affected by carbon 
+dioxide gas. 
+603.5.23 Add the following section: 
+603.5.22 603.5.23 Industrial Water Chillers. Potable water connections to closed-loop 
+industrial water chillers shall be protected from backflow by a reduced pressure principle 
+backflow prevention assembly in accordance with Table 603.2. 
+SECTION 604.0 – MATERIALS 
+604.1 Add the following sentence to the end of the second paragraph: 
+Connections between copper water piping and ferrous materials shall be made with dielectric or 
+insulated fittings or brass nipples of 6 inches (152.4 mm) minimum length. 
+SECTION 606.0 – VALVES 
+606.2 Revise this section as follows: 
+606.2 Fullway Valve. A fullway valve controlling outlets shall be installed on the discharge side 
+of each water meter and each unmetered water supply as near as possible to the point after where 
+the water supply enters the building and before the first fitting or branch line. Water piping 
+supplying more than one building on one premise shall be equipped with a separate fullway 
+valve to each building, so arranged that the water supply can be turned on or off to any 
+individual or separate building provided; however, that supply piping to a single-family 
+residence and building accessory thereto shall be permitted to be controlled by one valve. Such 
+shutoff valves shall be accessible. A fullway valve shall be installed on the discharge piping from 
+water supply tanks at or near the tank. A fullway valve shall be installed on the cold water supply 
+pipe to each water heater at or near the water heater. In cases where one water heater or boiler 
+supplies hot water to multiple units additional fullway valves will be installed so that the hot 
+water supplies to any apartment / unit / dwelling or condominium can be shut off without 
+interrupting the hot water supply to any other apartment / unit / dwelling or condominium. These 
+
+--- Page 11 ---
+Page | 11 
+ 
+valves shall be accessible in the dwelling unit they control or other common area within the 
+building. 
+606.3 Revise this section as follows: 
+606.3 Multidwelling Units. In multidwelling units, one or more shutoff valves shall be provided 
+in each dwelling unit so that the hot and cold water [ ← ] supplies to [ ← ] any apartment / unit / 
+dwelling or condominium can be shut off without [ ← ] interrupting the water supply 
+to [ ← ] another apartment / unit / dwelling or condominium. These valves shall be accessible in 
+the dwelling unit they control or other common area within the building. 
+606.3.1 Add the following section: 
+606.3.1 Any apartment / unit / dwelling or condominium where a remodel is performed shall 
+meet the requirements of sections 606.2, 606.3 and 606.5. 
+606.5 Revise this section as follows: 
+606.5 Control Valve. A control valve shall be installed immediately ahead of each plumbing 
+fixture hot and cold water supply and water supplied appliances [ ← ] to permit servicing and 
+replacement of individual fixtures. 
+606.11 Add the following section: 
+606.11 Backflow Assembly. All buildings four stories or more in height or water supply greater 
+than 40 feet above the water meter shall have an approved backflow assembly installed as near as 
+possible to the water meter and before the first fitting or branch line. The backflow assembly 
+installed shall be in accordance to the degree of hazard within the building, but in no case less 
+than an approved double check assembly. See Table 603.2. 
+SECTION 609.0 – INSTALLATION, TESTING, UNIONS AND 
+LOCATION 
+609.11.2 Add the following section: 
+609.11.2 Air Chambers. Air chambers shall be installed on all hot and cold water outlets 
+supplying quick-acting valves to provide water hammer relief. The size of each air chamber shall 
+be 24 times the diameter of the fixture supply. 
+609.11.3 Add the following section: 
+609.11.3 Quick-Acting Valves. The following valves shall be considered quick-acting: 
+flushometers, single-handle faucets, single-handle tub and tub/shower combination control 
+valves, single-handle shower control valves, rapid response electric solenoid valves (such as used 
+on ice-makers, clothes washers, etc.) and any other appliance or fixture that dispenses water in a 
+quick open and close method in its operation. 
+ 
+Chapter 7 
+SANITARY DRAINAGE 
+Part I – DRAINAGE SYSTEMS 
+SECTION 701.0 – GENERAL 
+701.2(2)(a) Revise this section as follows: 
+701.2(2)(a)   ABS and PVC installations are limited to not more than two stories of areas 
+of commercial or private residential accommodations. 
+701.2(3) Revise this section as follows: 
+
+--- Page 12 ---
+Page | 12 
+ 
+701.2(3)   No vitrified clay pipe or fittings shall be used aboveground or where pressurized by a 
+pump or ejector or underground within the foundation line of the building. They shall be kept not 
+less than 12 inches (305 mm) belowground. 
+701.2(7) Add the following section: 
+701.2(7)   Copper tubing shall not be used for urinal drainage or applications which are 
+detrimental to the integrity of copper tubing. 
+SECTION 706.0 – CHANGES IN DIRECTION OF DRAINAGE 
+FLOW 
+706.4 Revise this section as follows: 
+706.4 Vertical to Horizontal. Vertical drainage lines connecting with horizontal drainage lines 
+shall enter through 45 degree (0.79 rad) wye branches, combination wye and one-eighth bend 
+branches, or other approved fittings of equivalent sweep. Branches or offsets of 60 degrees (1.05 
+rad) shall be permitted to be used where installed in a true vertical position. In buildings more 
+than three stories in height, any fixture within 10 feet (304 mm) of the connection of the vertical 
+to horizontal change shall enter the horizontal drainage line at least 10 feet (304 mm) 
+downstream from the change or may connect into the next vertical downstream line. 
+SECTION 710.0 – DRAINAGE OF FIXTURES LOCATED 
+BELOW THE NEXT UPSTREAM MANHOLE OR BELOW THE 
+MAIN SEWER LEVEL 
+710.1.1 Add the following section: 
+710.1.1 Drainage of Fixtures Located Below the Fresh Air Inlet. Where a fixture is installed 
+with the flood rim level equal to or lower than the elevation of the fresh air inlet serving the 
+house trap, the piping serving the fixture shall be protected by installing an approved type of 
+backwater valve. Where a fixture is installed with the flood rim level higher than the elevation of 
+the fresh air inlet serving the house trap, the fixture shall not discharge through such backwater 
+valve. 
+ 
+Chapter 8 
+INDIRECT WASTES 
+No San Francisco Plumbing Code Amendments. 
+ 
+Chapter 9 
+VENTS 
+SECTION 901.0 – GENERAL 
+901.1 Add the following second paragraph to this section: 
+   No mechanical device shall be installed in any venting system. Such venting system shall 
+remain unobstructed to an approved termination. 
+SECTION 907.0 – VENT STACKS AND RELIEF VENTS 
+907.1 Revise the first sentence of this section as follows: 
+
+--- Page 13 ---
+Page | 13 
+ 
+907.1 Drainage Stack. Each drainage stack that extends [ ← ] six (6) or more stories shall be 
+served by a parallel vent stack, which shall extend undiminished in size from its upper terminal 
+and connect to the drainage stack at or immediately below the lowest fixture drain. 
+907.3 Add the following section: 
+907.3 Vent Stacks and Relief Vents. Every building in which plumbing is installed shall have at 
+least one main stack which shall run undiminished in size and as directly as possible from each 
+building drain serving said building through to the open air above the roof. 
+   For the purposes of this section, the main stack shall be defined as the largest size stack that is 
+connected to a building drain or sewer. 
+   A vent stack shall be installed with a soil or waste stack whenever relief vents or other branch 
+vents are required in two or more branch intervals. A vent stack shall be installed in accordance 
+with Section 706.1. 
+   The size of the soil stack shall be determined by the total fixture units on that stack as per 
+Table 703.2. 
+SECTION 911.0 – CIRCUIT VENTING 
+911.0 Revise this section as follows: 
+911.0 Circuit Venting. Circuit venting is not permitted unless it is approved as an alternative 
+engineered design in accordance with Section 301.5 of this Code. 
+ 
+Chapter 10 
+TRAPS AND INTERCEPTORS 
+1001.3 Add the following section: 
+1001.3 Placement and Minimum Size of Building Traps. The building sewer or building drain 
+shall have a building trap placed as near as possible to the curb line or immediately inside any 
+subsidewalk basement wall under the sidewalk. Trap size shall be a minimum of 4 inches (101.6 
+mm). 
+SECTION 1008.0 – BUILDING TRAPS 
+1008.1 Revise this section as follows: 
+1008.1 General. Building traps shall not be installed except where required by the Authority 
+Having Jurisdiction. Each building trap where installed shall be provided with a cleanout and 
+with a relieving vent or fresh-air intake on the inlet side of the trap.  [ ← ]  Such trap shall have a 
+fresh air inlet of not less than 4 inch (101.6 mm) diameter pipe. The inlet shall be covered by an 
+approved perforated plate not less than 16 square inches (10,323 mm2). Perforations shall be not 
+more than 3/8 inch (9.6 mm) diameter and provide an aggregate open area of not less than one-
+half the cross-sectional area of the sewer trap. The air inlet shall be connected to the building 
+side of the trap and shall lead to the open air, terminating at a point not less than 10 feet (3.05 m) 
+from any window or door. 
+SECTION 1016.0 – SAND INTERCEPTORS 
+1016.3 Add the following section: 
+1016.3.1 When drains are provided for planter boxes, such drains shall enter into the sanitary or 
+storm drainage plumbing system by discharging into an approved sump, receiving tank or sand 
+settling tank. No trap shall be installed between the planter box and any approved receptor. Sizes 
+of drains shall conform to Table 703.2. 
+
+--- Page 14 ---
+Page | 14 
+ 
+   Catch basins or sumps to drain surface water or collect subsoil drainage shall meet the 
+following requirements: 
+   (1)   The catch basin or sump shall be poured in place, and all sides and bottom shall be 
+watertight. 
+   (2)   A removable metal grill approved for applied design loads shall be placed on top with a 
+screen to prevent mosquito breeding. 
+   (3)   Each catch basin shall be served with its own trap and cleanout, and shall connect to the 
+storm or sanitary system independently. 
+   (4)   If inlet is located below the building sewer or drain, a sump pump minimum of 1-1/2" 
+(38.1 mm) outlet may be used. The bottom of sump shall maintain a 1' - 0" (304.8 mm) distance 
+from the inlet, creating a 1' - 0" (304.8 mm) sand trap. 
+   (5)   If the depth of the sump is over 5' - 0" (1.52 m) a larger catch basin shall be required with 
+a permanent ladder securely bolted to the interior to provide access for maintenance. A minimum 
+clear space of 30" × 30" (762 mm × 762 mm) shall be provided. 
+   (6)   A listed and approved plastic catch basin may be installed in areas of residential buildings 
+that are not subjected to any vehicular traffic and shall be installed on a concrete base to prevent 
+settling, provided all other code requirements of this section and the listing and installation 
+requirements of such catch basin are met. 
+ 
+Chapter 11 
+STORM DRAINAGE 
+SECTION 1101.0 – GENERAL 
+1101.2.1 Add the following section: 
+1101.2.1 Leaders, Connection to Drain. All storm water or casual water from roof areas, 
+balconies, lightwells, courtyards or similar areas which total more than 200 square feet (18.4 
+square meters) aggregate shall drain or be conveyed directly to the building drain, or building 
+sewer, or to an approved alternate location based on approved geotechnical and engineering 
+designs. Such drainage shall not be directed to flow onto adjacent property or over public way, 
+including sidewalks. The opening of the leader shall meet the same requirements as Section 
+1103.0 of the California Plumbing Code. 
+1101.2.2 Add the following section: 
+1101.2.2 Temporary Provisions. When the stormwater sewer is not yet installed, the building 
+stormwater drainage system may discharge into the sewer on the street side of the main trap as 
+near to the curbline as possible. 
+1101.2.3 Add the following section: 
+1101.2.3 Temporary Provisions Drain Trap. When, under the provisions of Section 1101.2.2 
+the building stormwater drainage system discharges to the sewer, a trap shall be placed in that 
+drain at a point near where it branches into the sewer. The trap shall be supplied with clean water 
+by an approved means such as a hose bibb or trap primer. 
+ 
+ 
+
+--- Page 15 ---
+Page | 15 
+ 
+Chapter 12 
+FUEL GAS PIPING 
+SECTION 1210.0 – GAS PIPING INSTALLATION  
+1210.3. Installation of Aboveground Piping 
+Add additional item (7) to list. 
+(7) Gas piping in exterior locations, except as otherwise regulated by this code, shall be of 
+galvanized iron or steel, with galvanized fittings. 
+ 
+Chapter 13 
+HEALTH CARE FACILITIES AND MEDICAL GAS 
+AND VACUUM SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+ 
+Chapter 14 
+FIRESTOP PROTECTION 
+No San Francisco Plumbing Code Amendments. 
+ 
+Chapter 15 
+ALTERNATE WATER SOURCES FOR 
+NONPOTABLE APPLICATIONS 
+No San Francisco Plumbing Code Amendments. 
+ 
+Chapter 16 
+NONPOTABLE RAINWATER CATCHMENT 
+SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+Chapter 17 
+REFERENCED STANDARDS 
+
+--- Page 16 ---
+Page | 16 
+ 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix A 
+RECOMMENDED RULES FOR SIZING THE 
+WATER SUPPLY SYSTEM 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix B 
+EXPLANATORY NOTES ON COMBINATION 
+WASTE AND VENT SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+ 
+Appendix C 
+ALTERNATE PLUMBING SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix D 
+SIZING STORMWATER DRAINAGE SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix E 
+MANUFACTURED MOBILE HOME PARKS AND 
+RECREATIONAL VEHICLE PARKS 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix F 
+FIREFIGHTER BREATHING AIR 
+REPLENISHMENT SYSTEMS 
+
+--- Page 17 ---
+Page | 17 
+ 
+No San Francisco Plumbing Code Amendments. 
+ 
+ 
+Appendix G 
+SIZING OF VENTING SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+ 
+Appendix H 
+PRIVATE SEWAGE DISPOSAL SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+ 
+Appendix I 
+INSTALLATION STANDARD 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix J 
+COMBINATION OF INDOOR AND OUTDOOR 
+COMBUSTION AND VENTILATION OPENING 
+DESIGN 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix K 
+POTABLE RAINWATER CATCHMENT SYSTEMS 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix L 
+SUSTAINABLE PRACTICES 
+
+--- Page 18 ---
+Page | 18 
+ 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix M 
+PEAK WATER DEMAND CALCULATOR 
+No San Francisco Plumbing Code Amendments. 
+ 
+Appendix N 
+IMPACT OF WATER TEMPERATURE ON THE 
+POTENTIAL FOR SCALDING AND LEGIONELLA 
+GROWTH 
+No San Francisco Plumbing Code Amendments. 
+ 

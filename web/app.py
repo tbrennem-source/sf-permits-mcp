@@ -3308,7 +3308,7 @@ def cron_rag_ingest():
     the vector store, or after knowledge base updates.
 
     Query params:
-      - tier: 'tier1', 'tier2', 'tier3', or 'all' (default: all)
+      - tier: 'tier1', 'tier2', 'tier3', 'tier4', or 'all' (default: all)
       - clear: '1' to clear existing chunks first (default: false)
     """
     token = request.headers.get("Authorization", "")
@@ -3322,7 +3322,7 @@ def cron_rag_ingest():
 
     try:
         from src.rag.store import ensure_table, clear_tier, get_stats, rebuild_ivfflat_index
-        from scripts.rag_ingest import ingest_tier1, ingest_tier2, ingest_tier3
+        from scripts.rag_ingest import ingest_tier1, ingest_tier2, ingest_tier3, ingest_tier4
 
         ensure_table()
 
@@ -3337,6 +3337,8 @@ def cron_rag_ingest():
             total += ingest_tier2()
         if tier in ("tier3", "all"):
             total += ingest_tier3()
+        if tier in ("tier4", "all"):
+            total += ingest_tier4()
 
         # Rebuild index after bulk insert
         if total > 0:

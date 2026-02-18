@@ -1,0 +1,856 @@
+--- Page 1 ---
+ELECTRICAL CODE 
+ 
+2025 Edition 
+ 
+PREFACE 
+Text Format: 
+   The text in this publication is formatted to allow the user to quickly and easily determine the 
+source of the included material. Language derived from the 2025 California Code that 
+is unchanged by local amendment is printed in shaded text (see below). Language constituting 
+San Francisco amendments to the California Code is printed in unformatted (or “plain”) text. In 
+either case, bold and/or italic typefaces may be used as appropriate for emphasis, etc. See below 
+for examples. 
+   To further simplify use of the San Francisco amendments with corresponding sections of the 
+2025 California Code, explanatory remarks appearing in italics are provided (in boxes at the 
+beginning of affected provisions) indicating whether the San Francisco amendment to the 
+California Code is adding, revising, or replacing a section or portion of a section. 
+   To summarize: 
+Explanatory remarks are boxed and italicized. 
+   Unchanged language from the 2025 California Code is shaded, and may 
+include bold and/or italicized formatting. 
+   San Francisco amendments are printed in unformatted ("plain") text, and may 
+include bold and/or italicized formatting. 
+   An arrow [ ← ] represents the location of language that has been deleted by San Francisco 
+from the 2025 California Code. 
+   A solid line represents a change from the original published edition of the 2025 San Francisco 
+Electrical Code. 
+Historical Notations: 
+   Language which has been added, amended, or deleted from the 2025 publication of the San 
+Francisco Electrical Code is indicated with an historical notation, setting forth the ordinance 
+number and date of adoption. 
+Additionally, a table is included below that lists and summarizes all legislation that has affected 
+this Code and the other Building Inspection Commission codes after their initial enactment. 
+Article 89 
+ 
+GENERAL CODE PROVISIONS 
+89.101.1 Replace the first sentence of this section with the following: 
+89.101.1 Title. [ ← ] The provisions contained in this Code shall be known as the 2022 2025 San 
+Francisco Electrical Code, and may be cited as such and will be referred to as “this code.” 
+89.115 Add the following section: 
+
+--- Page 2 ---
+89.115 Suppression. This code shall supersede all previous Electrical Codes and ordinances in 
+the City and County of San Francisco. Nothing herein shall require the revision of electrical 
+installation plans submitted prior to the adoption date of this code. Electrical permits obtained 
+prior to the effective date of this code shall comply with the provisions of the Electrical Code, 
+ordinances, regulations and rulings in effect when the permit was granted. 
+89.116 Add the following section: 
+89.116 Maintenance. All electrical equipment, wiring and systems and installations shall be 
+maintained in a safe operating and code-complying condition. The owner or the owner’s 
+designated agent, or both, shall be legally responsible for the maintenance of all electrical wiring 
+systems and installations. 
+   Nothing contained in this code shall be construed to require any existing electrical equipment, 
+wiring or systems regulated by this code to be altered, reconstructed, removed or demolished, 
+providing such existing electrical equipment, wiring or system was installed and maintained in 
+accordance with the adopted code in effect at the time of installation or subsequent alteration. 
+   Unused conductors and cables shall be either removed or suitably identified and terminated in 
+an approved manner. 
+89.117 Add the following section: 
+89.117 Alternate Materials, Design and Methods of Construction. 
+   (A)   Alternates Require Approval: The provisions of this code are not intended to prevent 
+the use of a product or method of construction not specifically prescribed by this code, provided 
+any such alternate has been approved and the use authorized by the Building Official. 
+   (B)   Equivalency of Alternates. The Building Official may authorize an alternate, provided 
+the Building Official finds the proposed design is satisfactory for the intended use and complies 
+with the provisions of this code and that the product, method or work offered is, for the purpose 
+intended, at least equivalent to that prescribed by this code in suitability, strength, effectiveness, 
+fire resistivity, durability and safety. 
+   (C)   Evidence Required. The Building Official shall require sufficient evidence or proof be 
+submitted to substantiate any claims made regarding the use of alternates. The details of any 
+action granting approval of an alternate shall be recorded and shall be entered in the files of the 
+Department of Building Inspection. 
+   (D)   Conditions and Fees. See Building Code Section 104A.2.8 for conditions and 
+Section 110A, Table IA-J – Miscellaneous Fees – for applicable fees. 
+89.118 Add the following section: 
+89.118 Change in Occupancy. Electrical equipment, wiring and systems which are part of any 
+building or structure, or portion thereof, undergoing a change in occupancy or use, as defined in 
+the Building Code, shall comply with all requirements of this code which may be applicable to 
+the new occupancy or use. 
+   Exception: The provisions of this section shall not require the change of existing electrical 
+equipment, wiring and systems where such electrical equipment, wiring and systems are deemed 
+adequate for the new occupancy involved. 
+89.119 Add the following section: 
+89.119 Modifications. When there are practical difficulties involved in carrying out the 
+provisions of this code, the Building Official may grant modifications for individual cases. The 
+Building Official shall first find that a special individual reason makes the strict letter of this 
+code impractical and that the modification is in conformance with the intent and purpose of this 
+code and that such modification does not lessen health, life-safety and fire-safety requirements. 
+
+--- Page 3 ---
+The details of any action granting modifications shall be recorded and entered in the files of the 
+Department of Building Inspection. 
+89.120 Add the following section: 
+89.120 Permits Required. 
+   (A)   General. It shall be unlawful for any person to install, construct, alter, move, add to or 
+replace any electrical installation regulated by this code, except as permitted in Section 89.121, 
+without first obtaining a permit from the Department of Building Inspection. 
+   (B)   Nonliability of City and County of San Francisco. Permits issued under the provisions 
+of this code shall contain or be construed to contain an agreement by the owner of the building, 
+structure or premises, or the owner’s authorized agent, to save City and County of San Francisco 
+officials and employees harmless from all costs, liability and damages resulting, whether directly 
+or indirectly, from anything in connection with the work included in the permit, including 
+equipment, methods of construction, inspections and approvals. 
+   (C)   Application for Permit. Permit applicants shall file with the Department of Building 
+Inspection an application form furnished for that purpose. The permit application shall show a 
+complete itemization of the proposed electrical installation and the correct address of the job site. 
+Electrical permits may be issued to duly licensed contractors who have registered with the 
+Central Permit Bureau by having their state contractor’s license verified by the Department of 
+Building Inspection, or issued to a homeowner subject to Section 89.120(E). A separate permit 
+shall be obtained for each separate building or structure. 
+   See Section 110A, Table 1A-E – Electrical Permit Fees – of the Building Code for the 
+applicable fees. 
+   (D)   Illegal Use of Permit. No person, firm, corporation, or state licensed contractor shall file 
+an application for a permit to install any electrical wiring system unless such person, firm, 
+corporation, or state licensed contractor shall perform such work. The Building Official or the 
+Building Official’s authorized representative shall have the authority to cancel any permit upon 
+finding that it is contrary to this section. The permittee shall be responsible for all work 
+performed. 
+   (E)   Homeowner’s Permit. A permit for electrical work in or about a single-family dwelling 
+may be issued by the Building Official to a homeowner, provided the work to be done will be 
+performed by the homeowner. If the electrical work performed under the homeowner’s permit 
+does not comply with the requirements of this code and if the corrections are not made as 
+required by the Department of Building Inspection, then the deficiencies shall be corrected by a 
+State licensed electrical contractor under a separate permit. 
+   Note: LLC’s are not eligible for an Electrical Homeowner’s Permit 
+   (F)   Emergency Work. Emergency electrical work for the protection of persons or property 
+shall have a permit obtained within one business day of commencing such work. 
+89.121 Add the following section: 
+89.121 Work Exempt from Permits. Electrical permits and fees shall not be required for the 
+following: 
+   (A)   Repair or replacement of Broken or Damaged luminaires where: 
+      (1)   the luminaire(s) are not installed to provide emergency illumination required by San 
+Francisco Building Code, and 
+      (2)   no change in existing wiring is involved, and 
+      (3)   the luminaires weigh 22.68 Kg (50 pounds) or less. 
+   (B)   Repair or replacement of a domestic appliance where no change in existing wiring is 
+involved. 
+
+--- Page 4 ---
+   (C)   Replacement of fuses, controls, motors of less than 2 horsepower, and switches and 
+receptacles of not more than 20 amperes rating, where no change in existing wiring is involved. 
+   (D)   Replacement of circuit breakers, externally operated switches and fuse holders of the 
+same type and rating as the defective unit or component, if not rated in excess of 100 amperes. 
+Exception: Replacement of main service disconnecting means are subject to permit and 
+inspection regardless of rating. 
+   (E)   Wiring for temporary theater stages and platforms, motion picture and television studio 
+sets supplied from approved electrical outlets installed for the purpose. 
+   (F)   Replacement of component parts for electric signs or gas-tube lighting systems of the 
+same size and rating. 
+   (G)   Installation of data/communications cable and/or outlets in R-3 occupancies and within 
+individual residential units (3000 Square Feet or Less), provided they do not monitor or control 
+electrical utilization equipment and/or life safety functions. 
+89.122 Add the following section: 
+89.122 Permit Issuance. 
+   (A)   General. An issued permit entitles the permittee to proceed with the installation 
+described therein. Work done in excess of that shown on the application will be subject to extra 
+permit fees as set forth in Section 110A, Table 1A-F – Specialty Permit Fees – of the Building 
+Code. The issuance of a permit does not constitute an approval or an authorization of the work 
+specified therein. Neither the issuance of a permit, nor the approval by the Building Official of 
+any document, shall constitute an approval of a violation of any provision of this code or any law 
+or ordinance. A permit or other document purporting to give authority to violate any code, law or 
+ordinance shall not be valid with respect thereto. Permits shall not be transferable. Proposed 
+electrical installations delineated on a permit application shall be performed only by the 
+permittee or bona fide employee thereof in accordance with the California Code of Regulations, 
+Title 8, Chapter 2, Part IV. The permit shall be posted on the job site where the work is to be 
+done. 
+   (B)   Permit Expiration. Electrical permits expire per Section 106A.4.4 of the San Francisco 
+Building Code. Permit fees may be partially refunded if cancellation request is made to the 
+Building Official prior to commencement of the permitted work and within 90 days of the date of 
+permit issuance. See Section 110A, Table 1A-R – Refunds – of the Building Code for refund. 
+   (C)   Commencement of Work on Permit Expired Due to Work Not Started. Before work 
+may be commenced on an expired permit on which no work was performed, a new permit shall 
+be obtained. 
+   (D)   Recommencement of Work on Permit Expired Due to Work Not Completed. The 
+applicant shall secure a new permit for the work not completed. The permit fee shall be based 
+upon items or work remaining to be done. 
+   (E)   Cancellation of Permit: Permits may be canceled by the Building Official: 
+      (1)   If after inspection, it is judged by a senior inspector that the permit holder is unable or 
+unwilling to correct an unsafe condition or Code violations. 
+      (2)   If the permit was obtained fraudulently or under false pretenses. 
+89.123 Add the following section: 
+89.123 Fees. 
+   (A)   General. Permit and inspection fees, as set forth in Section 110A, Table 1A-E – 
+Electrical Permit Fees – of the Building Code, shall be paid prior to permit issuance. When 
+additional permit or inspection fees are due, they shall be payable prior to issuance of Permission 
+to Connect Current, Certificate of Occupancy, or Declaration of Inspection. 
+
+--- Page 5 ---
+   (B)   Other Fees. A standard hourly inspection fee shall be charged for services provided by 
+Electrical Inspection Division personnel which are not otherwise detailed. See Section 110A, 
+Table 1A-G – Inspections, Surveys and Reports – of the Building Code. 
+   (C)   Work Without Permit – Investigation Fee. If the Building Official finds that a person, 
+company or entity has performed electrical installation work for which a permit is required, 
+without first obtaining an electrical permit and payment of fees, the Building Official shall 
+require the payment of an investigative fee in addition to the prescribed permit fee. See 
+Section 110A, Table 1A-K – Penalties, Hearings, Code Enforcement Assessments – of the 
+Building Code for the applicable fees. The payment of such investigation fee shall not exempt 
+any person from compliance with all other provisions of this Code, nor from any penalty 
+prescribed by law. The Building Official may reduce the investigation fee to two times the 
+amount of the permit fee as called for in Section 110A, Table 1A-E – Electrical Permit Fees – of 
+the Building Code for work that was constructed prior to the current building ownership if the 
+owner files with the Building Official a notarized affidavit together with documents 
+substantiating such dates of work. 
+   Appeal of such investigative fee may be filed with the Board of Appeals in the manner 
+provided in Section 8 et seq. of the Business & Tax Regulations Code. Such filing shall be 
+subject to the fees and rules of the Board of Appeals. The Board of Appeals, in reviewing the 
+appeal, may reduce the appealed amount to not less than two times (2x) the permit fee as set 
+forth in Section 110A, Table 1A-E – Electrical Permit Fees – of the Building Code. 
+89.124 Add the following new section: 
+89.124 Powers and Duties of the Building Official. 
+   (A)   General. The Building Official is hereby authorized and directed to enforce all the 
+provisions of this code. For such purposes, the Building Official shall have the powers of a law 
+enforcement officer. The Building Official, when necessary, may call upon the Police 
+Department and other city agencies for aid or assistance in carrying out or enforcing any of the 
+provisions of this code. 
+   (B)   Right of Entry. When it is necessary to make an inspection to enforce the provisions of 
+this code or other codes or ordinances, or when the Building Official has reasonable cause to 
+believe that there exists in a building or upon a premises a condition that is contrary to, or in 
+violation of, this code or other codes or ordinances that makes the building or premises unsafe, 
+dangerous or hazardous, the Building Official may enter the building or premises at reasonable 
+times to inspect or to perform the duties imposed by this code or other codes or ordinances, 
+provided that if such building or premises be occupied, credentials be presented to the occupant 
+and entry requested. If such building or premises be unoccupied, the Building Official shall first 
+make a reasonable effort to locate the owner or other person having charge or control of the 
+building or premises and request entry. If entry is refused, the Building Official shall have 
+recourse to the remedies provided by law to secure entry. 
+   (C)   Stop Orders. Whenever any work is being done contrary to the provisions of this code, 
+or other pertinent laws or ordinances implemented through the enforcement of this code, the 
+Building Official may order the work stopped by notice in writing served on any persons 
+engaged in the doing or causing such work to be done, and any such persons shall forthwith stop 
+such work until authorized by the Building Official to proceed with the work. 
+   (D)   Temporary Use of Electrical Energy. The Building Official may permit the temporary 
+use of electrical energy by any person, firm or corporation in cases where it does not create a 
+hazard to life or property. 
+
+--- Page 6 ---
+   (E)   Building Official may adopt rules and regulations. The Building Official shall have the 
+power to render interpretations of this code and to adopt and enforce rules and supplemental 
+regulations to clarify the application of its provisions. Such interpretations, rules and regulations 
+shall be in conformance with the intent and purpose of this code. Such rules and regulations, 
+commonly referred to as Code Rulings and Administrative Bulletins, supplemental to this code, 
+shall not take effect until approved by the Building Inspection Commission and signed by the 
+Building Official except in unusual circumstances where the Building Official has determined 
+there is an immediate need to protect the public health and safety. When the Building Official 
+finds that such circumstances exist, the Building Official may order immediate enforcement of a 
+particular rule or regulation. The Building Official shall arrange for a subscription service to 
+such rules and regulations, the entire cost of which is to be borne by the subscribers. 
+   (F)   Code Revisions. The Building Official shall transmit to the Building Inspection 
+Commission, at intervals not exceeding three years, recommendations for changes to this code, 
+based on studies of the following: 
+      (1)   Requests of the Board of Examiners for variances from this code, and for approvals of 
+alternate materials, alternate designs and methods of construction. 
+      (2)   Code changes recommended by the Board of Examiners. 
+      (3)   Code changes recommended by the Code Advisory Committee or other bodies 
+subordinate to the Building Inspection Commission. 
+      (4)   Results obtained and problems encountered from legal actions taken to correct code 
+violations. 
+      (5)   Changes or improvements in materials, methods of construction or design, and changes 
+proposed by interested persons. 
+      (6)   Investigations of fire and structural damage to buildings, and of complaints of 
+unsatisfactory electrical system performance. 
+      (7)   Periodic changes to the California Electrical Code and other State regulations which 
+may affect this code. 
+      (8)   Administrative Bulletins and Code Rulings currently in effect. 
+      (9)   Violations of this code found on inspections and investigations. 
+   (G)   Disconnection of Electric Service Due to Serious and Imminent Hazards. The 
+building Official shall have the authority to disconnect electric service to a building, structure, 
+property or equipment regulated by this code when it is necessary to abate a serious and 
+imminent hazard to the life, health or safety of the occupant or other persons, or such building, 
+structure or property. See Section 102A of the Building Code. Persons shall not reconnect such 
+electrical supply until authorized in writing by the Building Official. 
+89.125 Add the following section: 
+89.125 Violation. Any person, the owner or the owner’s authorized agent, who violates, 
+disobeys, omits, neglects, or refuses to comply with, or resists or opposes the execution of any of 
+the provisions of this code, shall be liable for a civil penalty, not to exceed $500 for each day 
+such violation is committed or permitted to continue, which penalty shall be assessed and 
+recovered in a civil action brought in the name of the people of the City and County of San 
+Francisco by the City Attorney in any court of competent jurisdiction. Any penalty assessed and 
+recovered in an action brought pursuant to this paragraph shall be paid to the City Treasurer and 
+credited to the Department of Building Inspection’s Special Fund. 
+   Any person, the owner or the owner’s authorized agent, who violates, disobeys, omits, 
+neglects, or refuses to comply with, or who resists or opposes the execution of any of the 
+provisions of this code, shall be guilty of a misdemeanor, and upon conviction thereof shall be 
+
+--- Page 7 ---
+punished by a fine not exceeding $500, or by imprisonment not exceeding six months, or by both 
+such fine and imprisonment, unless otherwise provided in this code, and shall be deemed guilty 
+of a separate offense for every day such violation, disobedience, omission, neglect or refusal 
+shall continue. Any person who shall do any work in violation of any of the provisions of this 
+code, and any person having charge of such work who shall permit it to be done, shall be liable 
+for the penalty provided. 
+   It shall be unlawful for any person to interfere with the posting of any notice provided for in 
+this code, or to tear down or mutilate any such notice so posted by the Department of Building 
+Inspection. 
+89.126 Add the following section: 
+89.126 Unsafe Buildings or Structures. Any buildings, structures, or parts thereof, shall be 
+considered unsafe when any of the following conditions are present: 
+   (A)   Electrical equipment, wiring and systems deemed hazardous to human life or structure 
+safety; 
+   (B)   Electrical equipment, wiring and systems that are in violation of the code that was in 
+effect at the time of construction or installation or such work was performed without permit or 
+approval; 
+   (C)   Change in occupancy without complying with the provision of Section 89.118 of this 
+code. 
+   Such unsafe building, structure, property or portion shall be vacated, repaired, altered or 
+demolished, and violations of this code abated, in accordance with Section 102A of the Building 
+Code, including, but not limited to, Sections 102A.3 through 102A.8. 
+89.127 Add the following section: 
+89.127 Inspection. 
+   (A)   General. All electrical equipment, wiring and systems, regulated by this code and for 
+which a permit is required, shall be subject to inspection to insure compliance with this code. 
+Upon the completion and final approval of the permitted installation and payment of all permit 
+and inspection fees, a Declaration of Inspection shall be issued. Said declaration shall indicate in 
+concise terms the electrical installation thus approved and the date of approval. 
+   (B)   Unlawful Use of Electrical Energy. It shall be unlawful to energize an electrical 
+installation in, on or about any building, structure or property in the City and County of San 
+Francisco unless a Certificate to Connect Current (Green Tag) has been issued. The Certificate to 
+Connect Current authorizes the owner of the structure to energize the permitted installation. 
+   (C)   Inspection Requests. It shall be the responsibility of the permit holder to notify the 
+Electrical Inspection Division orally or in writing when the permitted installation will be ready 
+for inspection. Such notification shall be given at least 24 hours before any inspection is desired. 
+Inspections may be performed outside of normal inspection hours by prior arrangement and 
+prepayment. See Section 110A, Table 1A-G – Off-hours Inspections – of the Building Code for 
+the applicable fees. 
+   (D)   Required Inspections. Required inspections shall include: 
+      (1)   Pre-Cover Inspection. Electrical equipment, wiring and systems authorized by permit 
+shall be inspected for code compliance prior to covering or concealing. 
+      (2)   Final Inspection. Final inspection and demonstration of satisfactory operation shall be 
+made after the installation authorized by permit has been completed. 
+      (3)   Other Inspection. As may be required to insure compliance with the provisions of this 
+code. 
+
+--- Page 8 ---
+   (E)   Electrical Wiring or Installation Unlawful to Conceal. It shall be unlawful to conceal, 
+cover, or put into use electrical wiring, installations, or parts thereof, until such has been 
+inspected and accepted as prescribed in this code. Whenever such work is concealed or covered 
+before first having been inspected and approved, or whenever electrical wiring or systems are 
+installed and concealed or covered without a permit, the Building Official may require, by 
+written notice to the responsible person(s) that such wiring or installation be exposed for 
+inspection. The work of exposing and reconstructing portions of a structure for such work shall 
+not entail expense to the City and County of San Francisco or any of its officials or employees. 
+   (F)   Reinspections. Reinspections shall be required when any of the following conditions 
+occurs: 
+      (1)   When the portion of the work for which inspection is requested is incomplete or not 
+code complying. 
+      (2)   When previously identified deficiencies in the work are not properly corrected. 
+      (3)   When the approved construction documents are not available to the inspector. 
+      (4)   When access is not provided on the date and time of the inspection appointment. 
+      (5)   When there are deviations from the approved construction documents. 
+   The first reinspection for failure to comply with code requirements shall not be assessed a 
+reinspection fee. All subsequent reinspections on a job for the same or subsequent errors or 
+omissions shall be charged with a reinspection fee. A Certificate of Final Completion and 
+Occupancy or final approval shall not be granted until the required fees are paid. See 
+Section 110A, Table 1A-G – Inspections, Surveys and Reports – of the Building Code for 
+applicable reinspection fees. 
+89.128 Add the following section: 
+89.128 Survey. An electrical survey may be requested when an electrical inspector’s assistance 
+is desired to establish code compliance of existing or proposed electrical equipment, wiring and 
+installations. See Section 110A, Table 1A-G of the Building Code for applicable fees. 
+89.129 Add the following section: 
+89.129 Board of Examiners. Application may be made to the Board of Examiners for approval 
+of alternate materials, methods and types of construction and for variances from the provisions of 
+this code. See Building Code, Section 105A.1. 
+ARTICLE 90 – INTRODUCTION 
+No San Francisco Electrical Code Amendments. 
+Chapter 1. 
+ 
+General 
+ARTICLE 110 – 
+ 
+REQUIREMENTS FOR ELECTRICAL INSTALLATIONS 
+110.15 Revise this section as follows: 
+
+--- Page 9 ---
+110.15 High-Leg Marking. On a 4-wire, delta-connected system where the midpoint of one 
+phase winding is grounded, only the conductor or busbar having the higher phase voltage to 
+ground shall be durably and permanently marked by an outer finish that is [ ← ] purple in color 
+or by other effective means. Such identification shall be placed at each point on the system 
+where a connection is made if the grounded conductor is also present. 
+   Information Note: Identification of Ungrounded Branch Circuit Conductors & Feeder 
+conductors shall comply with Section 210.5(C)(1) Branch Circuits Supplied from More Than 
+One Nominal Voltage System & 215.12(C)(1) Feeders Supplied from More Than One Nominal 
+Voltage System. 
+110.26(A)(3) Revise this section as follows: 
+      (3)   Height of Working Space. The work space shall be clear and extend from the grade, 
+floor, or platform to a height of 2.0 m (61/2 ft) or the height of the equipment, whichever is 
+greater. Within the height requirements of this section, other equipment that is associated with 
+the electrical installation and is located above or below the electrical equipment shall be 
+permitted to extend not more than 150 mm (6 in.) beyond the front of the electrical equipment. 
+Exception No. 1: On battery systems mounted on open racks, the top clearance shall comply 
+with 480.10(D). 
+Exception No. 2: [ ← ] [Exception deleted by local amendment.] 
+Exception No. 3: Meters that are installed in meter sockets shall be permitted to extend beyond 
+the other equipment. The meter socket shall be required to follow the rules of this section. 
+110.26(B) Revise this section as follows: 
+   (B)   Clear Spaces. Working space required by this section shall not be used for storage. When 
+normally enclosed live parts are exposed for inspection or servicing, the working space, if in a 
+passageway or general open space, shall be suitably guarded. The standing area of the workspace 
+shall not contain obstructions, abrupt changes in grade, or irregularities. 
+Chapter 2. 
+ 
+Wiring and Protection 
+ARTICLE 210 – BRANCH CIRCUITS 
+210.5(C)(1)(a) Revise this section as follows: 
+   (a)   Means of Identification. The means of identification for conductors #8AWG or 
+larger shall be permitted to be by separate color coding, marking tape, tagging, or other approved 
+means. Conductors of any size in cable assemblies may be suitably identified at all termination, 
+connection and splice points. Conductor insulation in raceways shall contain continuous color 
+pigment for circuit wire sizes # 10 AWG and smaller. 
+   Phase Identification Colors for Branch Circuits shall be as follows: 
+      (1)   120/240 Volt 3-Wire Single Phase Systems – “A” Phase Black, “B” Phase Red. 
+      (2)   120/208 Volt 4-Wire 3-Phase Wye Systems – “A” Phase Black, “B” Phase Red, “C” 
+Phase Blue. 
+      (3)   120/240 Volt 3-Phase Delta Systems – “A” Phase Black, “B” (High Leg) Phase Purple, 
+“C” Phase Red. 
+         Information Note: New Construction or Complete Remodel of an Existing Building 
+
+--- Page 10 ---
+      (4)   120/240 Volt 3-Phase Delta Systems – “A” Phase Black, “B” Phase Red, “C” (High 
+Leg) Phase Purple. 
+         Information Note: Partial Remodel of an Existing Building – i.e. Replace Main Electrical 
+Service where “C” Phase is Purple, & Re-Connect Existing Panels. 
+      (5)   277/480 Volt 4-Wire 3-Phase Wye Systems – “A” Phase Brown, “B” Phase Orange, “C” 
+Phase Yellow. 
+      (6)   Ungrounded conductors for other voltages shall be identified by different color coding, 
+marking tape, tagging, or other approved means. 
+      (7)   Branch Circuit Conductors for switch legs may be of a different color than the 
+Ungrounded Circuit Conductor when suitably identified at pull boxes, junction boxes and outlet 
+boxes with marking tape, tagging or other equally effective means. 
+   Exception No 1: In Multi-Family Dwelling Unit Buildings supplied by 120/208 Volt 4-Wire 3-
+Phase Systems, within Dwelling Units supplied by 120/208 Volt 3-Wire Single Phase Systems, 
+Ungrounded Branch Circuit Conductor shall be permitted to be “A” Phase Black, “B” Phase 
+Red. 
+   Informational Note: See Section 200.7 for limitations on re-identification of white or grey for 
+Grounded Conductors, and 250.119 for prohibition on using Green for Ungrounded Conductors. 
+ARTICLE 215 – FEEDERS 
+215.12(C)(1)(a) Revise this section as follows: 
+   (a)   Means of Identification. The means of identification for conductor #8 AWG or 
+larger shall be permitted to be by separate color coding, marking tape, tagging, or other approved 
+means. Conductors of any size in cable assemblies may be suitably identified at all termination, 
+connection and splice points. 
+   Phase Identification Colors for Feeders shall be as follows: 
+      (1)   120/240 Volt 3-Wire Single Phase Systems – “A” Phase Black, “B” Phase Red. 
+      (2)   120/208 Volt 4-Wire 3-Phase Wye Systems – “A” Phase Black, “B” Phase Red, “C” 
+Phase Blue. 
+      (3)   120/240 Volt 3-Phase Delta Systems – “A” Phase Black, “B” Phase (High Leg) Purple, 
+“C” Phase Red. 
+         Information Note: New Construction or Complete Remodel of an Existing Building 
+      (4)   120/240 Volt 3-Phase Delta Systems – “A” Phase Black, “B” Phase Red, “C” Phase 
+(High Leg) Purple. 
+         Information Note: Partial Remodel of an Existing Building – i.e. Replace Main Electrical 
+Service where “C” Phase is Purple, & Re-Connect Existing Panels. 
+      (5)   277/480 Volt 4-Wire 3-Phase Wye Systems – “A” Phase Brown, “B” Phase Orange, “C” 
+Phase Yellow. 
+      (6)   Ungrounded conductors for other voltages shall be identified by different color coding, 
+marking tape, tagging, or other approved means. 
+      (7)   Branch Circuit Conductors for Switch Legs may be of a different color than the 
+Ungrounded Feeder Circuit Conductor when suitably identified at pull boxes, junction boxes and 
+outlet boxes with marking tape, tagging or other equally effective means. 
+      (8)   In Multi-Family Dwelling Unit Buildings supplied by 120/208 Volt 4-Wire 3-Phase 
+Systems, within Dwelling Units supplied by 120/208 Volt- 3-Wire Single Phase Systems, within 
+
+--- Page 11 ---
+Dwelling Units supplied by 120/208 Volt 3-Wire Single Phase Systems, Ungrounded Feeder 
+Conductors shall be the following: 
+            a)   120/208 Volt 3 Wire Single Phase “A” Phase Black, “B” Phase Red 
+            b)   120/208 Volt 3 Wire Single Phase “B” Phase Red, “C” Phase Blue 
+            c)   120/208 Volt 3 Wire Single Phase “A” Phase Black, “C” Phase Blue 
+            d)   Labeling Required at the Sub-Panel indicating which Phases Serve the Unit from the 
+120/208 Volt 4-Wire 3-Phase Multi / Meter Distribution System 
+   Informational Note: See Section 200.7 for limitations on identification of white or grey for 
+Grounded Conductors, and 250.119 for prohibition on using Green for Ungrounded Conductors. 
+   Informational Note: See 210.5(C)(1) for additional information regarding Identification of 
+Ungrounded Conductors. 
+ARTICLE 230 – SERVICES 
+230.43 Revise this section as follows: 
+230.43 Wiring Methods for 1000 Volts, Nominal, or Less. 
+   (A)   Acceptable Wiring Methods. Service-entrance conductors shall be installed in 
+accordance with the applicable requirements of this Code covering the type of wiring method 
+used and shall be limited to the following methods: 
+  (1)    [ ← ]  Reserved 
+  (2)    [ ← ] Reserved 
+      (3)   Rigid metal conduit (RMC) 
+      (4)   Intermediate metal conduit (IMC) 
+  (5)    [ ← ] Reserved 
+  (6)    [ ← ] Reserved 
+  (7)    [ ← ] Reserved 
+  (8)    [ ← ] Reserved 
+      (9)   Busways 
+      (10)   Auxiliary gutters 
+      (11)   Rigid polyvinyl chloride conduit (PVC) 
+ (12)    [ ← ] Reserved 
+ (13)    [ ← ] Reserved 
+      (14)   Mineral-insulated, metal sheathed cable, Type MI 
+      (15)    [ ← ] Reserved 
+      (16)    [ ← ] Reserved 
+      (17)   High density polyethylene conduit (HDPE) 
+      (18)   Non-metallic underground conduit with conductors (NUCC) 
+      (19)   Reinforced thermosetting resin conduit (RTRC) 
+      (20)   [ ← ] Reserved 
+      (21)   [ ← ] Reserved 
+   (B)   Raceway Size. Minimum raceway size shall comply with the following: 
+
+
+--- Page 12 ---
+      (1)   Except as provided in Section 230.43(B)(2) and (3) the minimum size raceway installed 
+for service entrance conductor shall be 1-1/4 inch (31.8 mm). 
+      (2)   Raceways for service entrance conductors for sign or billboard lighting shall not be 
+smaller than 3/4 inch (19.1 mm) conduit. 
+      (3)   Installations consisting of not more than two 2-wire branch circuits may be supplied by 
+No. 8 conductors in 3/4 inch (19.1 mm) conduit. 
+   Exception: New service entrance conductors may be re-pulled in previously approved service 
+raceways, provided the installation complies with the requirements of SFEC Section 89.116 and 
+Chapters 1, 2 and 3. 
+   Informational Note: Refer to electric utility service requirements for raceway sizes. 
+230.56 Revise this section as follows: 
+230.56 Service Conductor with the Higher Voltage to Ground. On a four-wire, delta-
+connected service, where the midpoint of one phase winding is grounded, the service conductor 
+having the higher phase voltage to ground shall be durably and permanently marked by an outer 
+finish that is purple in color, or by other effective means, at each termination or junction point. 
+230.71(A) Revise this section and add two exceptions as follows: 
+230.71 Maximum Number of Disconnects. 
+   (A)   General. The service disconnecting means for each service permitted by 230.2, or for 
+each set of service-entrance conductors permitted by 230.40, Exception Nos. 1, 3, 4, or 5, shall 
+consist of [ ← ] a single circuit breaker or switch and set of fuses. 
+   For the purpose of this section, disconnecting means installed as part of listed equipment and 
+used solely for the following shall not be considered a service disconnecting means: 
+      (1)   Power monitoring equipment 
+      (2)   Surge-protective device(s) 
+      (3)   Control circuit of the ground-fault protection system 
+      (4)   Power-operable service disconnecting means. 
+   Exception No. 1: 
+   a)   Multi-Family Dwellings with a Maximum of (6) units, shall consist of not more than six 
+switches or sets of circuit-breakers, or a combination of not more than six switches and sets of 
+circuit breakers, mounted in a single enclosure, in a group of separate enclosures, or in or on a 
+switchboard or in switchgear. 
+   b)   There shall be not more than six sets of disconnects per service grouped in any one 
+location. 
+   Exception No. 2: A Single Main Circuit Breaker or set of fuses shall be provided for each 
+Dwelling Unit. 
+ARTICLE 250 – GROUNDING AND BONDING 
+250.50 Revise the first paragraph of this section as follows: 
+250.50 Grounding Electrode System. All grounding electrodes as described in 250.52(A)(1) 
+through (A)(7) that are present at each building or structure served shall be bonded together to 
+form the grounding electrode system. A concrete encased electrode as defined by 250.52(A)(3) 
+shall be installed at each new building or structure, and for existing buildings or structures when 
+a new or replacement foundation or footing with a perimeter length of 6.0 m (20 ft.) or more is 
+installed in direct contact with the earth.  If none of these electrodes exist, one or more of the 
+grounding electrodes specified in 250.52(A)(4) through (A)(8) shall be installed and used. 
+
+--- Page 13 ---
+   Exception: Concrete-encased electrodes of existing buildings or structures shall not be 
+required to be part of the grounding electrode system if the rebar is not accessible for use without 
+disturbing the concrete. 
+250.64(A) Revise this section as follows: 
+250.64(A)   Aluminum or Copper-Clad Aluminum Conductors. Bare aluminum or copper-
+clad aluminum grounding electrode conductors shall not be used where in direct contact with 
+masonry or the earth or where subject to corrosive conditions. [ ← ] Aluminum or copper-clad 
+aluminum grounding electrode conductors shall not be [ ← ] installed on the outside of a 
+building or structure. 
+250.64(B) Revise this section as follows: 
+250.64(B)   Securing and Protection Against Physical Damage.  If exposed, a grounding 
+electrode conductor or its enclosure shall be securely fastened to the surface on which it is 
+carried. Grounding electrode conductors shall be permitted to be installed on or through framing 
+members. 
+      (1)   Not Exposed to Physical Damage. A 6 AWG [ ← ] grounding electrode 
+conductor [ ← ] that is free from exposure to physical damage shall be permitted to be run along 
+the surface of the building construction without metal covering or protection. 
+       (2)   Exposed to Physical Damage. A [ ← ] 4 AWG or larger copper or aluminum 
+grounding electrode conductor exposed to physical damage shall be protected in rigid metal 
+conduit (RMC), intermediate metal conduit (IMC), rigid polyvinyl chloride conduit (PVC), 
+reinforced thermosetting resin conduit Type XW (RTRC-XW), electrical metallic tubing (EMT), 
+or cable armor. Exposed grounding electrode conductors that are accessible to the general public 
+shall be installed in approved metallic raceway. 
+      (3)   Smaller than 6 AWG. Grounding electrode conductors smaller than 6 AWG shall be 
+protected in RMC, IMC, PVC, RTRC-XW, EMT, or cable armor. 6 AWG or smaller grounding 
+electrode conductors shall not be installed exposed below 5 feet. 
+      (4)   In contact with the Earth. Grounding electrode conductors and grounding electrode 
+bonding jumpers in contact with the earth shall not be required to comply with 300.5, or 305.15 
+but shall be buried or otherwise protected if subject to physical damage. 
+Chapter 3. 
+ 
+Wiring Methods and Materials 
+ARTICLE 300 – GENERAL REQUIREMENTS FOR 
+WIRING METHODS AND MATERIALS 
+300.3(C) Revise this section as follows: 
+300.3(C)   Conductors of Different Systems. 
+   (1)   1000 Volts ac, 1500 volts dc Nominal or Less. Conductors of ac and dc circuits rated 
+1000 volts ac, 1500 volts dc, circuits.    [ ← ] from separately derived systems, from separate 
+services, or from separate utility meters shall not be permitted to occupy the same equipment 
+wiring enclosure, cable or raceway with conductors from other systems, services, or meters. All 
+
+
+--- Page 14 ---
+conductors shall have an insulation rating equal to at least the maximum circuit voltage applied 
+to any conductor within the enclosure, cable, or raceway. 
+   Secondary wiring to electric-discharge lamps of 1000 volts ac, 1500 volts dc or less, if 
+insulated for the secondary voltage involved, shall be permitted to occupy the same luminaire, 
+sign, or outline lighting enclosure as the branch-circuit conductors. 
+   Informational Note No. 1: See 725.136(A) for Class 2 and 3 circuit conductors. 
+   Informational Note No. 2: See 690.31(B) for photovoltaic source and output circuits. 
+   Exception No 1: Photovoltaic Systems: PV Source Circuits and PV Output Circuits in 
+accordance with Section 690.31(B) Identification and Grouping. 
+   Exception No. 2: Emergency Systems: Conductors installed in accordance with Section 700.10 
+Wiring. 
+   Exception No. 3: Remote-Control, Signaling, and Power-Limited Circuits: Class 1, 2 or 3 
+Conductors installed in accordance with Article 725.136(A) General. 
+   Exception No. 4: Auxiliary Gutters: When approved by the AHJ Conductors connected to 
+Separately Derived Systems, Service Equipment, or Meter Banks Article 366. 
+300.4(I) Add the following section: 
+   (I)   Subject to Physical Damage. Premises wiring systems installed less than 2.44 m (8 feet) 
+above a walking surface or finished floor are considered subject to physical damage. 
+300.37 Revise this section as follows: 
+300.37 Aboveground Wiring Methods. Aboveground conductors, 12KV or larger, in 
+Residential or Commercial Occupancies, shall be installed in Rigid Steel Conduit. 
+   Aboveground conductors less than 12 KV, in other than Residential or Commercial 
+Occupancies, shall be installed in rigid metal conduit, in intermediate metal conduit, in electrical 
+metallic tubing, in RTRC and PVC conduit, in cable trays, in auxiliary gutters, as busways, as 
+cablebus, in other identified raceways, or as exposed runs of metal-clad cable suitable for the use 
+and purpose. In locations accessible to qualified persons only, exposed runs of Type MV cables, 
+bare conductors, and bare busbars shall also be permitted. Busbars shall be permitted tobe either 
+copper or aluminum. 
+ARTICLE 320 – ARMORED CABLE: TYPE AC 
+320.108 Revise this section as follows: 
+320.108 Equipment Grounding Conductor. Type AC cable shall provide an adequate path for 
+fault current as required by 250.4(A)(5) or (B)(4) to act as an equipment grounding 
+conductor. An equipment grounding conductor, sized as required by Table 250.122, shall be 
+provided within the cable assembly. 
+ARTICLE 330 – METAL-CLAD CABLE: TYPE MC 
+330.12 Revise item (1) as follows: 
+330.12 Uses Not Permitted. Type MC cable shall not be used under either of the following 
+conditions: 
+   (1)   Where subject to physical damage 
+   Informational Note: See the 2022 2025 San Francisco Electrical Code Section 300.4 (I) 
+Subject to Physical Damage. 
+   ... 
+
+--- Page 15 ---
+   Exception: Type MC Cable #4 AWG or larger, installed in a lockable room dedicated solely to 
+an electrical service and distribution equipment and accessible only to qualified personnel, shall 
+be considered to have equivalent protection from physical damage when in-stalled in a neat and 
+workman like manner, properly supported, and securely fastened in place. 
+330.108 Revise this section as follows: 
+330.108 Equipment Grounding Conductor. Where Type MC cable is used to provide an 
+equipment grounding conductor, it shall comply with 250.118(10) and 250.122. An equipment 
+grounding conductor, sized as required by Table 250.122, shall be provided within the cable 
+assembly. 
+ARTICLE 334 – NONMETALLIC-SHEATHED CABLE: 
+TYPES NM, NMC, AND NMS 
+334.10 Revise Item (2) as follows: 
+334.10 Uses permitted. 
+   (2)   Multi-family dwellings permitted to be of Types III, IV, and V wood 
+frame construction not exceeding 6 stories as defined by the San Francisco Building Code except 
+as prohibited in 334.12. 
+334.12 Add Items (11), (12) and (13) as follows: 
+334.12 Uses Not Permitted. 
+   (A)   Types NM and NMC. 
+      (11)   In any nonresidential structure or occupancy. 
+      (12)   In Common Areas of Multi-family Dwelling Units of Group R-1 and R-2 buildings of 
+Type IIIA construction per the 2022 2025 California Building Code 510.5 
+      (13)   Nominal voltages above 120 volts to ground 
+ARTICLE 340 – UNDERGROUND FEEDER AND 
+BRANCH-CIRCUIT CABLE: TYPE UF 
+340.10 Revise Item (1) as follows: 
+340.10 Uses Permitted. Type UF cable shall be permitted as follows: 
+   (1)   For use underground in systems not exceeding 50 volts, including direct burial in the 
+earth. For underground requirements see 300.5. 
+ARTICLE 348 – FLEXIBLE METAL CONDUIT: TYPE 
+FMC 
+348.10 Revise this section as follows: 
+348.10 Uses Permitted. FMC shall be permitted to be used in [ ← ]  concealed locations and 
+where necessary for flexibility in lengths not to exceed 1.829 m (6 feet). 
+ARTICLE 350 – LIQUIDTIGHT FLEXIBLE METAL 
+CONDUIT: TYPE LFMC 
+350.10 Revise the first sentence as follows: 
+
+--- Page 16 ---
+350.10 Uses Permitted. LFMC shall be permitted to be used [ ← ]  exposed where necessary for 
+flexibility in lengths not to exceed 1.829 m (6 feet) or concealed locations as follows: 
+ARTICLE 352 – RIGID POLYVINYL CHLORIDE 
+CONDUIT: TYPE PVC 
+352.10 Revise Items (A) through (K) as follows: 
+352.10 Uses Permitted. The use of PVC conduit shall be permitted in accordance with 352.10 
+(A) through (K). 
+(A) [ ← ] Reserved 
+(B) Encased in Concrete PVC conduit shall be permitted [ ← ] embedded in concrete. The 
+conduit may emerge not more than 3 inches from the concrete within wiring enclosures, 
+otherwise metal raceways shall be provided where emerging from the concrete. 
+(C) Corrosive Influences. 
+PVC conduit shall be permited in locations subject to severe corrosive influences as covered in 
+300.6 and where subject to chemicals for which the materials are specifically approved. 
+(D) Cinders 
+PCV conduit shall be permitted in cinder fill. 
+(E) Reserved 
+(F) Reserved 
+(G) Reserved 
+(H) Underground installations. For underground installations, PVC shall be permitted for direct 
+burial and underground encased in concrete. See 300.5 and 305.15. 
+(I) Reserved 
+(J) Reserved 
+(K) Reserved 
+ 
+ARTICLE 355 – REINFORCED THERMOSETTING 
+RESIN CONDUIT: TYPE RTRC 
+355.10 Revise Item (A) as follows: 
+355.10 Uses Permitted. The use of RTRC shall be permitted in accordance with 355.10(A) 
+through (I). 
+   (A)   Concealed. RTRC shall be permitted [ ← ] embedded in concrete. The conduit may 
+emerge not more than 3 inches from the concrete within wiring enclosures, otherwise metal 
+raceways shall be provided where emerging from the concrete. 
+ARTICLE 356 – LIQUIDTIGHT FLEXIBLE 
+NONMETALLIC CONDUIT: TYPE LFNC 
+356.10 Revise the first sentence of this section and item (5) as follows: 
+356.10 Uses Permitted. LFNC shall be permitted to be used in exposed locations in lengths not 
+to exceed 1.8m (6 feet) or concealed locations where encased in concrete for the following 
+purposes: 
+   (5)   When approved by the AHJ, Type LFNC shall be permitted to be installed in lengths 
+longer than 1.8 m (6 feet) where secured in accordance with 356.30. 
+
+
+--- Page 17 ---
+ARTICLE 358 – ELECTRICAL METALLIC TUBING: 
+TYPE EMT 
+358.10(D) Add a second paragraph as follows: 
+358.10(D)   Wet Locations. 
+   Where EMT emerges from concrete in a damp or wet location, it shall be protected against 
+corrosion at the point of emergence by wrapping of PVC tape, or by other approved means. 
+358.12 Add Item (3) as follows: 
+358.12 Uses Not Permitted. EMT shall not be used under the following conditions: 
+   (3)   In concrete slabs on grade. 
+ARTICLE 362 – ELECTRICAL NONMETALLIC 
+TUBING: TYPE ENT 
+362.10 Revise Item 6 and delete Items 1, 2, 4, 5, 7, 8, 9 and 10 as follows: 
+362.10 Uses Permitted. For the purpose of this article, the first floor of a building shall be that 
+floor that has 50 percent or more of the exterior wall surface area level with or above finished 
+grade. One additional level that is the first level and not designed for human habitation and used 
+only for vehicle parking, storage, or similar use shall be permitted. The use of ENT and fittings 
+shall be permitted in the following: 
+   (1)  [ ← ]    Reserved. 
+   (2)  [ ← ]   Reserved. 
+   (4)  [ ← ]   Reserved. 
+   (5)  [ ← ]   Reserved. 
+   (6)   Encased in poured concrete floors, ceiling, walls, and slabs. Metal raceways shall be 
+provided where emerging  
+from the concrete. 
+   (7)  Embedded in concrete slab on grade where ENT is placed on sand or approved screenings, 
+provided fittings identified for the purpose are used for connections. Metal raceways shall be 
+provided where emerging from the concrete. 
+   (8)  [ ← ]   Reserved. 
+   (9)  [ ← ]   Reserved. 
+   (10)[ ← ]    Reserved 
+ARTICLE 378 – NONMETALLIC WIREWAYS 
+378.12 Add Item (6) as follows: 
+378.12 Uses Not Permitted. Nonmetallic wireways shall not be used in the following: 
+   (6)   Where the voltage of the contained conductors is in excess of 50 volts. 
+Chapter 4. 
+ 
+Equipment for General Use 
+
+--- Page 18 ---
+ARTICLE 410 – LUMINAIRES (LIGHTING FIXTURES), 
+LAMPHOLDERS, AND LAMPS 
+410.36(B) Revise this section as follows: 
+410.36(B)   Suspended Ceilings. Framing members of suspended ceiling systems used to 
+support luminaires shall be securely fastened to each other and shall be securely attached to the 
+building structure at appropriate intervals. Luminaires shall be securely fastened to the ceiling 
+framing member by mechanical means such as bolts, screws, or rivets. Listed clips identified for 
+use with the type of ceiling framing member(s) and luminaire(s) shall also be permitted. All 
+luminaires or luminaire outlets supported by suspended ceiling systems shall have supplemental 
+support wires (minimum #12 gauge) connected from the fixture housing or fixture support 
+bracket to the structure above. Recessed lighting fixtures measuring 610 mm (2 feet) nominal or 
+larger in any dimension shall have two (minimum #12 gauge) support wires. See CBC Section 
+808.1.1.1 and ASTM standards C635 and C636. 
+   Exception: Supplemental support wires shall not be required when listed clips identified to be 
+used without supplemental ceiling wires in compliance with CBC Section 808.1.1.1 are installed. 
+ARTICLE 411 – LOW VOLTAGE LIGHTING 
+411.5 Revise Section 411.5(A) as follows: Revise Section 411.6(A)as follows: 
+411.6 Specific Location Requirements. 
+   (A)   Walls, Floors and Ceilings. Conductors concealed or extended through a wall, floor, 
+ceiling, or suspended ceiling shall be in accordance one of the following: 
+      (1)   Installed using any of the wiring methods specified in Chapter 3 
+      (2)   Installed using wiring supplied by a listed Class 2 power source and installed in 
+accordance with 725.130. 
+Chapter 5. 
+ 
+Special Occupancies 
+No San Francisco Electrical Code Amendments. 
+Chapter 6. 
+ 
+Special Equipment 
+No San Francisco Electrical Code Amendments. 
+Chapter 7. 
+ 
+Special Conditions 
+ARTICLE 700 – EMERGENCY SYSTEMS 
+
+--- Page 19 ---
+700.12(I)(2) 700.12(H)(2)Revise item (2) and (5) of this section as follows: 
+700.12(H)(2)  Installation of Unit Equipment. Unit equipment shall be installed in accordance 
+with the following: 
+   (2)   Unit equipment shall be permanently fixed (i.e., not portable) in place and shall have 
+all wiring to each unit installed in accordance with the requirements of any of the wiring methods 
+in Chapter 3. Flexible cord-and-plug connection shall not be permitted  [ ← ]  . 
+   (5)   Emergency luminaires (illumination fixtures) that obtain power from a unit equipment and 
+are not part of the unit equipment shall be wired to the unit equipment as required by 700.10 and 
+by one of the wiring methods of Chapter 3. 
+700.16(A) Revise this section as follows: 
+700.16(A)   Emergency Illumination. Emergency illumination shall include means of egress 
+lighting, illuminated exit signs, and all other luminaires specified as necessary to provide 
+required illumination. Emergency illumination shall be provided at the location of transfer 
+switches, switchboards and panelboards that supply emergency and legally required stand-by 
+loads. 
+ARTICLE 760 – FIRE ALARM SYSTEMS 
+760.46 Revise this section as follows: 
+760.46 NPLFA Circuit Wiring. Installation of non-power-limited fire alarm circuits shall be in 
+accordance with 110.3(B), 300.7, 300.11, 300.15, 300.17, 300.19(B), and other appropriate 
+articles of Chapter 3. Conductors shall be installed in metallic raceways or concrete-encased 
+nonmetallic raceways. 
+    Exception No. 1: A s provided in Sections 760.48 through 760.53. 
+[ ← ] [Editor’s Note: Exception 2 is deleted by local amendment.] 
+760.130(A) Revise Exception No. 2 of this section as follows: 
+   (A)   NPLFA Wiring Methods and Materials. Installation shall be in accordance with 
+760.46, and conductors shall be solid or stranded copper. 
+   Exception No. 2: Conductors and multiconductor cables described in and installed in 
+accordance with 760.49 [ ← ]  shall be permitted. 
+760.130(B) Revise the first paragraph of this section as follows: 
+760.130(B)   PLFA Wiring Methods and Materials. Power-limited fire alarm conductors and 
+cables described in 760.179 shall be installed [ ← ] in metallic raceway in accordance with 
+760.46. Devices shall be installed in accordance with 110.3(B), 300.7, 300.11(A), and 300.15. 
+760.180 Add the following new section: 
+760.180 System Requirements. 
+   (A)   Supervising Station Fire Alarm Systems. Supervising station fire alarm system wiring 
+installed within or on buildings shall be installed in metallic race ways. 
+   Exception: Communication conductors installed entirely within a dedicated telephone 
+equipment room, switchboard area or fire control room. 
+   (B)   Source of Power. Circuits supplying fire alarm control units that are not monitored by an 
+approved supervising station, or a constantly attended location approved by the fire code official 
+shall be connected to either the line or load side of the service disconnect. Circuits shall be 
+protected by means of an externally operated fused safety switch or a circuit breaker either in a 
+separate enclosure or within a switchboard entirely separate from other circuit breakers. The 
+switch and/or circuit breaker shall be clearly labeled and locked in the on position. 
+   Informational Note: 
+ See CEC (2016) (2025)760.41 & 760.121; CBC (2016) (2025)903.4; 
+NFPA 72 (2016) 10.5.3; NFPA 13 (2016) 6.8.4.1 
+
+
+--- Page 20 ---
+Chapter 8. 
+ 
+Communications Systems 
+No San Francisco Electrical Code Amendments 
+Chapter 9. 
+ 
+Tables 
+No San Francisco Electrical Code Amendments 
+ 

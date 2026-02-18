@@ -161,6 +161,54 @@ def ingest_tier3(dry_run: bool = False) -> int:
     return _embed_and_store(all_chunks, "official", TIER_TRUST["tier3"])
 
 
+def ingest_tier4(dry_run: bool = False) -> int:
+    """Chunk and embed tier4 code corpus text files.
+
+    Currently ingests:
+      - 2025 SF code amendment text files (874KB, 6 files)
+      - Skips the large full code files (planning-code-full, bicc-fire-codes-full)
+        which are 12.6MB and 3.6MB respectively — too large for efficient chunking
+        without targeted section extraction (already done in tier1).
+    """
+    from src.rag.chunker import chunk_code_sections
+
+    tier4_dir = DATA_DIR / "tier4"
+    if not tier4_dir.exists():
+        logger.error("tier4 directory not found: %s", tier4_dir)
+        return 0
+
+    # Only ingest the 2025 amendment files (manageable size)
+    # The full code corpus files are too large and their key sections
+    # are already extracted into tier1 structured JSON
+    amendment_files = sorted(tier4_dir.glob("sf-2025-*-amendments.txt"))
+
+    if not amendment_files:
+        logger.warning("No 2025 amendment files found in %s", tier4_dir)
+        return 0
+
+    logger.info("Found %d tier4 amendment files", len(amendment_files))
+
+    all_chunks = []
+    for filepath in amendment_files:
+        try:
+            text = filepath.read_text(encoding="utf-8", errors="replace")
+        except IOError as e:
+            logger.warning("Could not read %s: %s", filepath.name, e)
+            continue
+
+        chunks = chunk_code_sections(text, f"tier4/{filepath.name}")
+        logger.info("  %s → %d chunks (%d chars)", filepath.name, len(chunks), len(text))
+        all_chunks.extend(chunks)
+
+    logger.info("Total tier4 chunks: %d", len(all_chunks))
+
+    if dry_run:
+        _preview_chunks(all_chunks, "tier4")
+        return len(all_chunks)
+
+    return _embed_and_store(all_chunks, "official", TIER_TRUST["tier4"])
+
+
 def _embed_and_store(chunks: list[dict], source_tier: str, trust_weight: float) -> int:
     """Embed chunks and insert into pgvector store."""
     from src.rag.embeddings import embed_texts
@@ -216,7 +264,7 @@ def show_stats():
 
 def main():
     parser = argparse.ArgumentParser(description="RAG knowledge ingestion")
-    parser.add_argument("--tier", choices=["tier1", "tier2", "tier3", "all"],
+    parser.add_argument("--tier", choices=["tier1", "tier2", "tier3", "tier4", "all"],
                         default="all", help="Which tier to ingest (default: all)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Preview chunks without embedding or storing")
@@ -255,6 +303,9 @@ def main():
 
     if args.tier in ("tier3", "all"):
         total += ingest_tier3(dry_run=args.dry_run)
+
+    if args.tier in ("tier4", "all"):
+        total += ingest_tier4(dry_run=args.dry_run)
 
     elapsed = time.time() - start
 

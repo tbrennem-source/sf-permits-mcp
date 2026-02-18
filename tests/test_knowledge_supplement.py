@@ -1753,7 +1753,7 @@ def test_semantic_index_has_s09_concept():
 
 
 def test_semantic_index_total_concepts_updated():
-    """Semantic index should have 78 total concepts."""
+    """Semantic index should have 86 total concepts (80 original + 6 for 2025 code amendments)."""
     kb = get_knowledge_base()
     total = kb.semantic_index["metadata"]["total_concepts"]
-    assert total == 78
+    assert total == 86
