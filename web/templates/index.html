@@ -541,6 +541,22 @@
             color: #fff;
         }
 
+        /* Outline button variant (border-only, no fill) */
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+        .btn-outline:hover {
+            background: rgba(79, 143, 247, 0.1);
+        }
+        .btn-outline:active,
+        .btn-outline.btn-active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
         /* Plan analysis button tooltips */
         .plan-btn-wrap {
             position: relative;
@@ -1144,7 +1160,7 @@
                             </div>
                         </div>
                         <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
-                            <button type="button" class="btn btn-secondary" id="compliance-check-btn" style="width:100%;"
+                            <button type="button" class="btn btn-outline" id="compliance-check-btn" style="width:100%;"
                                     onclick="submitComplianceCheck(this)">
                                 Compliance Check
                             </button>
@@ -1154,7 +1170,7 @@
                             </div>
                         </div>
                         <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
-                            <button type="button" class="btn btn-secondary" id="full-analysis-btn" style="width:100%;"
+                            <button type="button" class="btn" id="full-analysis-btn" style="width:100%;"
                                     onclick="submitFullAnalysis(this)">
                                 Full Analysis
                             </button>

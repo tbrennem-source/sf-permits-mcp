@@ -874,7 +874,9 @@
                 <option value="structural_element">Structural</option>
                 <option value="general_note">General Note</option>
                 <option value="reviewer_note">Reviewer Notes</option>
+                <option value="ai_reviewer_response">AI Responses</option>
             </select>
+            <span id="filter-page-count" style="display:none; font-size:0.78rem; color:var(--text-muted, #999); margin-left:8px;"></span>
             <button onclick="toggleLegend()" class="action-btn" id="legend-btn" aria-label="Show annotation legend">
                 Legend
             </button>
@@ -903,7 +905,7 @@
     {% if session_id and page_count > 0 %}
     <div class="thumbnail-gallery" id="thumbnail-gallery">
         {% for page_num in range(page_count) %}
-        <div class="thumbnail-item" onclick="openPageDetail({{ page_num }})">
+        <div class="thumbnail-item" data-page="{{ page_num }}" onclick="openPageDetail({{ page_num }})">
             <div class="annotated-image">
                 <img src="/plan-images/{{ session_id }}/{{ page_num }}"
                      loading="lazy"
@@ -1087,31 +1089,33 @@
     // Annotation Color Map
     // ===========================
     const ANNOTATION_COLORS = {
-        epr_issue:          '#ef4444',   // red
-        code_reference:     '#22c55e',   // green
-        dimension:          '#3b82f6',   // blue
-        occupancy_label:    '#a855f7',   // purple
-        construction_type:  '#14b8a6',   // teal
-        scope_indicator:    '#f97316',   // orange
-        title_block:        '#6b7280',   // gray
-        stamp:              '#78716c',   // warm gray
-        structural_element: '#eab308',   // yellow
-        general_note:       '#8b5cf6',   // violet
-        reviewer_note:      '#ec4899',   // pink
+        epr_issue:              '#ef4444',   // red
+        code_reference:         '#22c55e',   // green
+        dimension:              '#3b82f6',   // blue
+        occupancy_label:        '#a855f7',   // purple
+        construction_type:      '#14b8a6',   // teal
+        scope_indicator:        '#f97316',   // orange
+        title_block:            '#6b7280',   // gray
+        stamp:                  '#78716c',   // warm gray
+        structural_element:     '#eab308',   // yellow
+        general_note:           '#8b5cf6',   // violet
+        reviewer_note:          '#ec4899',   // pink
+        ai_reviewer_response:   '#06b6d4',   // cyan
     };
 
     const ANNOTATION_LABELS = {
-        epr_issue:          'EPR Issue',
-        code_reference:     'Code Reference',
-        dimension:          'Dimension',
-        occupancy_label:    'Occupancy',
-        construction_type:  'Construction Type',
-        scope_indicator:    'Scope Indicator',
-        title_block:        'Title Block',
-        stamp:              'Professional Stamp',
-        structural_element: 'Structural Element',
-        general_note:       'General Note',
-        reviewer_note:      'Reviewer Note',
+        epr_issue:              'EPR Issue',
+        code_reference:         'Code Reference',
+        dimension:              'Dimension',
+        occupancy_label:        'Occupancy',
+        construction_type:      'Construction Type',
+        scope_indicator:        'Scope Indicator',
+        title_block:            'Title Block',
+        stamp:                  'Professional Stamp',
+        structural_element:     'Structural Element',
+        general_note:           'General Note',
+        reviewer_note:          'Reviewer Note',
+        ai_reviewer_response:   'AI Response',
     };
 
     // ===========================
@@ -1283,6 +1287,40 @@
     function filterAnnotations() {
         annotationFilter = document.getElementById('annotation-filter').value;
         localStorage.setItem('annotationFilter', annotationFilter);
+
+        // Filter thumbnail visibility — hide pages with no matching annotations
+        var totalPages = 0;
+        var visiblePages = 0;
+        document.querySelectorAll('.thumbnail-item').forEach(function(item) {
+            totalPages++;
+            if (annotationFilter === 'all') {
+                item.style.display = '';
+                visiblePages++;
+            } else {
+                var pageIdx = parseInt(item.dataset.page || '0');
+                var pageAnns = (pageAnnotations || []).filter(function(a) {
+                    return a.page_number === (pageIdx + 1) && a.type === annotationFilter;
+                });
+                if (pageAnns.length > 0) {
+                    item.style.display = '';
+                    visiblePages++;
+                } else {
+                    item.style.display = 'none';
+                }
+            }
+        });
+
+        // Show page count indicator
+        var countEl = document.getElementById('filter-page-count');
+        if (countEl) {
+            if (annotationFilter === 'all') {
+                countEl.style.display = 'none';
+            } else {
+                countEl.textContent = 'Showing ' + visiblePages + ' of ' + totalPages + ' pages';
+                countEl.style.display = '';
+            }
+        }
+
         refreshAllAnnotations();
     }
 

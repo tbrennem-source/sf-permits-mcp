@@ -1282,6 +1282,21 @@ def plan_job_status(job_id):
         return render_template("analyze_plans_failed.html", job=job)
     elif job["status"] == "stale":
         return render_template("analyze_plans_stale.html", job=job)
+    elif job["status"] == "cancelled":
+        return """
+        <div id="job-status-poll" style="text-align:center;">
+            <div style="font-size:2rem; margin-bottom:12px;">&#10060;</div>
+            <div style="font-size:1rem; font-weight:600; color:var(--text, #fff); margin-bottom:8px;">
+                Analysis Cancelled
+            </div>
+            <div style="font-size:0.85rem; color:var(--text-muted, #999); margin-bottom:16px;">
+                The analysis was cancelled.
+            </div>
+            <a href="/#section-analyze-plans" style="color:var(--accent); font-size:0.9rem;">
+                &larr; Start New Analysis
+            </a>
+        </div>
+        """
     else:
         # Compute elapsed time for display in polling UI
         elapsed_s = None
@@ -1292,6 +1307,36 @@ def plan_job_status(job_id):
                 started = started.replace(tzinfo=timezone.utc)
             elapsed_s = int((datetime.now(timezone.utc) - started).total_seconds())
         return render_template("analyze_plans_polling.html", job=job, elapsed_s=elapsed_s)
+
+
+@app.route("/plan-jobs/<job_id>/cancel", methods=["POST"])
+def cancel_plan_job(job_id):
+    """Cancel a running async plan analysis job."""
+    from web.plan_jobs import cancel_job
+
+    user_id = g.user["id"] if g.user else None
+    if user_id is None:
+        abort(403)
+
+    success = cancel_job(job_id, user_id)
+    if not success:
+        abort(404)
+
+    # Return an HTMX fragment that replaces the polling div
+    return """
+    <div id="job-status-poll" style="text-align:center;">
+        <div style="font-size:2rem; margin-bottom:12px;">&#10060;</div>
+        <div style="font-size:1rem; font-weight:600; color:var(--text, #fff); margin-bottom:8px;">
+            Analysis Cancelled
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-muted, #999); margin-bottom:16px;">
+            The analysis has been cancelled. You can start a new one anytime.
+        </div>
+        <a href="/#section-analyze-plans" style="color:var(--accent); font-size:0.9rem;">
+            &larr; Try Again
+        </a>
+    </div>
+    """
 
 
 @app.route("/plan-jobs/<job_id>/results")
@@ -3198,6 +3243,40 @@ def portfolio_import():
 
     count = bulk_add_watches(g.user["user_id"], addresses)
     return render_template("fragments/import_confirmation.html", count=count)
+
+
+# ---------------------------------------------------------------------------
+# Cron status endpoint — read-only, no auth required
+# ---------------------------------------------------------------------------
+
+@app.route("/cron/status")
+def cron_status():
+    """Read-only view of recent cron job results."""
+    try:
+        rows = query(
+            "SELECT job_type, started_at, completed_at, status, "
+            "soda_records, changes_inserted, inspections_updated, "
+            "was_catchup, error_message "
+            "FROM cron_log "
+            "ORDER BY started_at DESC "
+            "LIMIT 20"
+        )
+        jobs = []
+        for r in rows:
+            jobs.append({
+                "job_type": r[0],
+                "started_at": str(r[1]) if r[1] else None,
+                "completed_at": str(r[2]) if r[2] else None,
+                "status": r[3],
+                "soda_records": r[4],
+                "changes_inserted": r[5],
+                "inspections_updated": r[6],
+                "was_catchup": r[7],
+                "error_message": r[8],
+            })
+        return jsonify({"ok": True, "jobs": jobs, "total": len(jobs)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e), "jobs": []})
 
 
 # ---------------------------------------------------------------------------

@@ -139,8 +139,11 @@ PROMPT_ANNOTATION_EXTRACTION = (
     "- EPR compliance items (blank stamping areas, sheet numbers, addresses)\n"
     "- Notable structural elements or systems\n"
     "- Existing reviewer comments, redlines, or handwritten notes visible on the "
-    "drawing (use type 'reviewer_note' — transcribe the reviewer's comment as "
-    "the label)\n\n"
+    "drawing — create ONE annotation PER DISTINCT comment (do NOT group multiple "
+    "comments into one generic annotation like 'possible reviewer marks'). Use "
+    "type 'reviewer_note' and transcribe each reviewer's comment verbatim as the "
+    "label. If there are 4 separate comment boxes, create 4 separate "
+    "reviewer_note annotations.\n\n"
     "Return a MAXIMUM of 12 annotations. Prioritize high-importance items first.\n"
     "Coordinates should point to the CENTER of the item being annotated.\n\n"
     "Return JSON:\n"
@@ -152,4 +155,29 @@ PROMPT_ANNOTATION_EXTRACTION = (
     '{"type": "occupancy_label", "label": "Group B Occupancy", '
     '"x": 52.0, "y": 30.1, "anchor": "bottom-left", "importance": "medium"}'
     "]}"
+)
+
+
+# AI response to existing reviewer comments
+PROMPT_REVIEWER_RESPONSE = (
+    "You are a San Francisco building code expert reviewing an architectural "
+    "drawing. A plan checker has left the following comments on this page. "
+    "For each comment, provide a brief, substantive AI response with relevant "
+    "code references that would help the applicant address the comment.\n\n"
+    "Reviewer comments found on this page:\n{reviewer_notes}\n\n"
+    "For each comment, respond with:\n"
+    "- Whether the reviewer's request is valid and standard for SF DBI\n"
+    "- The specific code section that applies (CBC, NFPA, SF Building Code, etc.)\n"
+    "- A brief recommendation for how the applicant should address it\n\n"
+    "Return JSON:\n"
+    '{{"responses": ['
+    '{{"original_note": "Add 1-hour rated partition detail", '
+    '"ai_response": "Valid — CBC 706.1 requires fire-resistive partition assemblies. '
+    'Include UL assembly number (e.g., U305) with hour rating.", '
+    '"code_reference": "CBC 706.1", "importance": "high"}}, '
+    '{{"original_note": "Mention thickness (5/8)", '
+    '"ai_response": "Likely refers to 5/8-inch Type X gypsum board per CBC Table 722.1. '
+    'Label material thickness on detail.", '
+    '"code_reference": "CBC 722.1", "importance": "medium"}}'
+    "]}}"
 )
