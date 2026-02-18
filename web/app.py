@@ -3015,15 +3015,30 @@ def admin_knowledge_quiz():
 
     question = QUIZ_QUESTIONS[idx]
 
-    # Get current RAG answer for this question
+    # Get current RAG answer and synthesize a natural-language response
     rag_results = _try_rag_retrieval(question)
     current_answer_html = ""
     if rag_results:
-        parts = []
+        context_parts = []
         for r in rag_results[:3]:
-            content = _clean_chunk_content(r.get("content", ""), r.get("source_file", ""))
-            parts.append(content)
-        current_answer_html = md_to_html("\n\n---\n\n".join(parts))
+            content = r.get("content", "")
+            source = r.get("source_file", "")
+            if source:
+                content = f"[Source: {source}]\n{content}"
+            context_parts.append(content)
+        rag_context = "\n\n---\n\n".join(context_parts)
+
+        # Synthesize with AI (same as /ask endpoint) for human-readable answer
+        ai_text = _synthesize_with_ai(question, rag_context, "professional")
+        if ai_text:
+            current_answer_html = md_to_html(ai_text)
+        else:
+            # Fallback: cleaned chunks if AI unavailable
+            parts = [
+                _clean_chunk_content(r.get("content", ""), r.get("source_file", ""))
+                for r in rag_results[:3]
+            ]
+            current_answer_html = md_to_html("\n\n---\n\n".join(parts))
 
     return render_template(
         "fragments/knowledge_quiz.html",
