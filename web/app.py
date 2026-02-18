@@ -331,6 +331,23 @@ def _run_startup_migrations():
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS analysis_mode TEXT DEFAULT 'sample'")
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS pages_analyzed INTEGER")
 
+        # ── Admin auto-seed ───────────────────────────────────────
+        # If the users table is empty and ADMIN_EMAIL is set, create
+        # the admin account automatically so a fresh DB is immediately
+        # usable without an invite code.
+        admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
+        if admin_email:
+            cur.execute("SELECT COUNT(*) FROM users")
+            if cur.fetchone()[0] == 0:
+                cur.execute(
+                    "INSERT INTO users (email, is_admin, email_verified, is_active) "
+                    "VALUES (%s, TRUE, TRUE, TRUE)",
+                    (admin_email,),
+                )
+                logging.getLogger(__name__).info(
+                    "Auto-seeded admin user: %s", admin_email
+                )
+
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -3171,6 +3188,28 @@ def api_user_points(user_id):
         json.dumps({"user_id": user_id, "total": total, "history": history}),
         mimetype="application/json",
     )
+
+
+# ---------------------------------------------------------------------------
+# Database backup endpoint — pg_dump to local file or stdout
+# ---------------------------------------------------------------------------
+
+@app.route("/cron/backup", methods=["POST"])
+def cron_backup():
+    """Run pg_dump and store a timestamped backup.
+
+    Protected by CRON_SECRET bearer token. Designed to be called daily
+    by an external scheduler after the nightly refresh.
+
+    Returns JSON with backup metadata (filename, size, row counts).
+    """
+    _check_api_auth()
+    import json
+    from scripts.db_backup import run_backup
+
+    result = run_backup()
+    status = 200 if result.get("ok") else 500
+    return Response(json.dumps(result, indent=2), mimetype="application/json"), status
 
 
 if __name__ == "__main__":
