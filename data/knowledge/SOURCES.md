@@ -1,7 +1,7 @@
 # Knowledge Source Index
 ## SF Permitting Knowledge Base - Phase 2.5
 
-Last updated: 2026-02-14
+Last updated: 2026-02-17
 
 ## Tier 1: Core Reference Documents (Structured JSON)
 
@@ -23,7 +23,8 @@ Last updated: 2026-02-14
 | fee-tables | Building Permit Fee Tables (1A-A through 1A-S) | tier1/fee-tables.json | 54K | Structured - 19 tables (14 active, 5 reserved), 10 valuation tiers, 9-step fee algorithm |
 | ab-index | Administrative Bulletins Complete Index | tier1/administrative-bulletins-index.json | 35K | Structured - 47 ABs indexed with titles, line ranges, relevance, subject areas |
 | fire-code | Fire Code Key Sections | tier1/fire-code-key-sections.json | 37K | Structured - 13 SFFD triggers, sprinkler/alarm rules, assembly thresholds, high-rise reqs |
-| semantic-index | Semantic Concept-to-Source Mapping | tier1/semantic-index.json | 75K | Structured - 61 concepts, ~500 aliases, cross-cutting search layer, 10/10 stress test |
+| fire-safety-info-sheets | DBI FS-Series Fire Safety Info Sheets | tier1/fire-safety-info-sheets.json | ~30K | Structured - 7 info sheets (FS-01/03/04/05/06/07/12), sprinkler rules, deck fire, PFP, ADU exemption |
+| semantic-index | Semantic Concept-to-Source Mapping | tier1/semantic-index.json | ~90K | Structured - 86 concepts, ~817 aliases, cross-cutting search layer, 10/10 stress test |
 
 *Note: File naming has systematic offset from sf.gov index page. See document-mapping.json for correct mapping.
 
@@ -67,16 +68,21 @@ Last updated: 2026-02-14
 | DA-19 | TBD | Scanned image | 0 | Needs OCR |
 
 ### FS-Series (Fire/Sprinkler)
-| File Label | Actual Doc | Subject | Chars | Status |
-|-----------|-----------|---------|-------|--------|
-| FS-01 | DA-19 | Stoops (mislabeled) | 5.1K | Extracted but wrong series |
-| FS-03 | TBD | (Fire/Sprinkler) | 5K | Extracted |
-| FS-04 | TBD | Scanned image | 0 | Needs OCR |
-| FS-05 | TBD | Scanned image | 0 | Needs OCR (20 pages!) |
-| FS-06 | TBD | (Fire/Sprinkler) | 3.6K | Extracted |
-| FS-07 | TBD | Scanned image | 0 | Needs OCR |
-| FS-12 | TBD | Scanned image | 0 | Needs OCR |
-| FS-13 | TBD | Scanned image | 0 | Needs OCR |
+
+**Structured**: `tier1/fire-safety-info-sheets.json` — 7 info sheets encoded (Session 27)
+
+| File Label | Actual Doc | Subject | Status |
+|-----------|-----------|---------|--------|
+| FS-01 | DA-19 | Stoops (mislabeled — wrong series) | ❌ Skip |
+| FS-03 | **FS-01** | Combustible Roof Decks — Materials & Area | ✅ Structured |
+| FS-04 | **FS-03** | R-3 4-Story Sprinkler (addition vs alteration) | ✅ Structured |
+| FS-05 | **FS-04** | Wood-Frame Construction Fire Safety (PFP) | ✅ Structured |
+| FS-06 | **FS-05** | Dwelling Unit Sprinkler (R3→R2, in-law) | ✅ Structured |
+| FS-07 | **FS-06** | Deck/Stairway Fire Protection at Property Lines | ✅ Structured |
+| FS-12 | **FS-07** | Elevator Lobbies in High-Rise Buildings | ✅ Structured |
+| FS-13 | **FS-12** | ADU Fire Safety — Sprinkler & Unit Separation | ✅ Structured |
+
+*Note: Filenames are systematically shifted by one position from OCR batch. Actual FS numbers verified from document headers.*
 
 ### S-Series (Structural)
 | File Label | Actual Doc | Subject | Chars | Status |
