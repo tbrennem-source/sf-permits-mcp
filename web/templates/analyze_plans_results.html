@@ -601,6 +601,19 @@
     .report-filter-bar .filter-chip.active[data-value="skip"] { background: #6b7280; border-color: #6b7280; }
     .report-filter-bar .filter-chip.active[data-value="info"] { background: #3b82f6; border-color: #3b82f6; }
 
+    /* Status badge pills on EPR h3 headings — color-matches the filter chips */
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: 600;
+        color: #fff;
+        margin-right: 6px;
+        vertical-align: middle;
+        letter-spacing: 0.02em;
+    }
+
     /* Empty state */
     .empty-state {
         text-align: center;
@@ -1067,6 +1080,13 @@
             color: #000 !important;
         }
 
+        /* Status badges — preserve colors for print */
+        body.printing-report .status-badge {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
         /* Clean page setup */
         @page {
             margin: 0.75in;
@@ -1443,25 +1463,30 @@
         let labelX = targetX + off.dx;
         let labelY = targetY + off.dy;
 
-        // Estimate label width (approximate)
-        const labelText = (ann.label || '').substring(0, 50);
+        // Estimate label width — cap at 25% of image width for word wrapping
+        const labelText = (ann.label || '').substring(0, 80);
         const fontSize = Math.max(10, Math.min(14, imgW * 0.009));
-        const textWidth = labelText.length * fontSize * 0.55 + 12;
-        const textHeight = fontSize + 10;
+        const rawTextWidth = labelText.length * fontSize * 0.55 + 12;
+        const maxLabelWidth = Math.max(100, imgW * 0.25);
+        const textWidth = Math.min(rawTextWidth, maxLabelWidth);
+
+        // Estimate wrapped line count and height
+        const lineCount = Math.max(1, Math.ceil(rawTextWidth / maxLabelWidth));
+        const textHeight = lineCount * (fontSize + 4) + 8;
 
         // Clamp to image bounds
         labelX = Math.max(5, Math.min(labelX, imgW - textWidth - 5));
         labelY = Math.max(textHeight + 5, Math.min(labelY, imgH - 5));
 
-        return { targetX, targetY, labelX, labelY, fontSize, textWidth, textHeight };
+        return { targetX, targetY, labelX, labelY, fontSize, textWidth, textHeight, maxLabelWidth, labelText };
     }
 
     const SVG_NS = 'http://www.w3.org/2000/svg';
 
     function resolveCollisions(positions, imgW, imgH) {
-        // Simple iterative collision resolution — push overlapping labels apart
-        const PAD = 4;  // padding between labels
-        const MAX_ITER = 12;
+        // Iterative collision resolution — push overlapping labels apart
+        const PAD = 8;  // padding between labels
+        const MAX_ITER = 20;
 
         for (let iter = 0; iter < MAX_ITER; iter++) {
             let moved = false;
@@ -1546,7 +1571,7 @@
 
     function renderSingleAnnotationAtPosition(svg, ann, pos, imgW, imgH) {
         const color = ANNOTATION_COLORS[ann.type] || '#22c55e';
-        const labelText = (ann.label || '').substring(0, 50);
+        const labelText = pos.labelText || (ann.label || '').substring(0, 80);
 
         const g = document.createElementNS(SVG_NS, 'g');
         g.setAttribute('class', `annotation ann-${ann.type}`);
@@ -1561,40 +1586,46 @@
         circle.setAttribute('stroke-width', '1.5');
         g.appendChild(circle);
 
-        // Leader line
+        // Leader line — connect dot to center of label box
         const line = document.createElementNS(SVG_NS, 'line');
         line.setAttribute('class', 'ann-leader');
         line.setAttribute('x1', pos.targetX);
         line.setAttribute('y1', pos.targetY);
         line.setAttribute('x2', pos.labelX + pos.textWidth / 2);
-        line.setAttribute('y2', pos.labelY);
+        line.setAttribute('y2', pos.labelY - pos.textHeight / 2);
         line.setAttribute('stroke', color);
         line.setAttribute('stroke-width', Math.max(1, imgW * 0.001));
         line.setAttribute('stroke-dasharray', '4 2');
         g.appendChild(line);
 
-        // Label background
-        const rect = document.createElementNS(SVG_NS, 'rect');
-        rect.setAttribute('class', 'ann-label-bg');
-        rect.setAttribute('x', pos.labelX);
-        rect.setAttribute('y', pos.labelY - pos.textHeight + 2);
-        rect.setAttribute('width', pos.textWidth);
-        rect.setAttribute('height', pos.textHeight);
-        rect.setAttribute('rx', 3);
-        rect.setAttribute('fill', color);
-        rect.setAttribute('opacity', '0.88');
-        g.appendChild(rect);
+        // Label — use foreignObject for word-wrapping support
+        const fo = document.createElementNS(SVG_NS, 'foreignObject');
+        fo.setAttribute('class', 'ann-label-bg');
+        fo.setAttribute('x', pos.labelX);
+        fo.setAttribute('y', pos.labelY - pos.textHeight);
+        fo.setAttribute('width', pos.textWidth + 4);
+        fo.setAttribute('height', pos.textHeight + 4);
 
-        // Label text
-        const textEl = document.createElementNS(SVG_NS, 'text');
-        textEl.setAttribute('class', 'ann-label-text');
-        textEl.setAttribute('x', pos.labelX + 6);
-        textEl.setAttribute('y', pos.labelY - 3);
-        textEl.setAttribute('fill', '#ffffff');
-        textEl.setAttribute('font-size', pos.fontSize);
-        textEl.setAttribute('font-family', 'system-ui, -apple-system, sans-serif');
-        textEl.textContent = labelText;
-        g.appendChild(textEl);
+        const div = document.createElement('div');
+        div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        div.style.cssText = [
+            `background: ${color}`,
+            'opacity: 0.92',
+            `border-radius: 3px`,
+            `padding: 3px 6px`,
+            `color: #fff`,
+            `font-size: ${pos.fontSize}px`,
+            `font-family: system-ui, -apple-system, sans-serif`,
+            `line-height: ${pos.fontSize + 4}px`,
+            `word-wrap: break-word`,
+            `overflow-wrap: break-word`,
+            `white-space: normal`,
+            `max-width: ${pos.textWidth}px`,
+            `overflow: hidden`,
+        ].join('; ');
+        div.textContent = labelText;
+        fo.appendChild(div);
+        g.appendChild(fo);
 
         svg.appendChild(g);
     }
@@ -2566,11 +2597,23 @@
 
     var statusPattern = /^(PASS|FAIL|WARN|SKIP|INFO)\s*[—\-]/;
     var counts = { all: 0, pass: 0, fail: 0, warn: 0, skip: 0, info: 0 };
+    var statusColors = {
+        pass: '#22c55e', fail: '#ef4444', warn: '#f59e0b',
+        skip: '#6b7280', info: '#3b82f6'
+    };
 
     headings.forEach(function(h3) {
         var match = h3.textContent.match(statusPattern);
         if (!match) return;
         var status = match[1].toLowerCase();
+
+        // Replace plain status text with a colored pill badge
+        var statusUpper = match[1];
+        var badgeColor = statusColors[status] || '#6b7280';
+        h3.innerHTML = h3.innerHTML.replace(
+            statusUpper,
+            '<span class="status-badge" style="background:' + badgeColor + '">' + statusUpper + '</span>'
+        );
 
         // Wrap h3 + its sibling content in a filterable div
         var wrapper = document.createElement('div');

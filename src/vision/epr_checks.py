@@ -924,7 +924,7 @@ async def generate_reviewer_responses(
 
     # Build numbered list of reviewer comments for the prompt
     notes_text = "\n".join(
-        f"{i + 1}. \"{note['label']}\" (at position x={note['x']}%, y={note['y']}%)"
+        f"{i + 1}. \"{note.get('full_content', note['label'])}\" (at position x={note['x']}%, y={note['y']}%)"
         for i, note in enumerate(reviewer_notes)
     )
     prompt = PROMPT_REVIEWER_RESPONSE.format(reviewer_notes=notes_text)
@@ -962,10 +962,12 @@ async def generate_reviewer_responses(
         label = f"{code_ref}: {ai_response}" if code_ref else ai_response
         label = label[:60]  # Enforce max length
 
-        # Position near the original reviewer note (offset slightly)
+        # Position near the original reviewer note (offset further, alternate sides)
         source_note = reviewer_notes[i] if i < len(reviewer_notes) else reviewer_notes[-1]
-        x = min(100.0, source_note["x"] + 2.0)
-        y = min(100.0, source_note["y"] + 3.0)
+        x_offset = 8.0 if (i % 2 == 0) else -8.0
+        y_offset = 10.0 + (i * 3.0)  # stagger vertically per response
+        x = max(2.0, min(98.0, source_note["x"] + x_offset))
+        y = max(2.0, min(98.0, source_note["y"] + y_offset))
 
         importance = resp.get("importance", "medium")
         if importance not in ("high", "medium", "low"):

@@ -1,8 +1,8 @@
-# QA Checklist - Sessions 21.2–21.9
+# QA Checklist - Sessions 21–30
 
 **Test on:** https://sfpermits-ai-production.up.railway.app
-**Deployed:** 2026-02-16
-**Sessions:** 21.2–21.9
+**Deployed:** 2026-02-16 (Sessions 21.2–21.9), 2026-02-18 (Sessions 29–30)
+**Sessions:** 21.2–21.9, 29, 30
 
 ---
 
@@ -449,12 +449,194 @@
 
 ---
 
+## Session 29: Bug Fixes + Status Filter Chips
+
+### ✅ Test 45: Loading Indicators
+**Fixes:** Hourglass spinners now appear for Knowledge Check and plan analysis
+
+- [ ] Navigate to homepage
+- [ ] Click "Knowledge Check" and submit a question
+- [ ] **Verify:** Hourglass spinner (⏳) appears while processing
+- [ ] **Verify:** Spinner disappears when results render
+- [ ] Click "Analyze Plan Set" and upload a PDF
+- [ ] **Verify:** Hourglass spinner appears immediately on submit
+- [ ] **Verify:** Spinner persists until results render
+
+### ✅ Test 46: Knowledge Check JSON Fix
+**Before:** Knowledge Check showed raw JSON instead of formatted text
+
+- [ ] Navigate to Knowledge Check section
+- [ ] Submit a question (e.g., "What is EPR?")
+- [ ] **Verify:** Response is formatted text with headings, bullets, paragraphs
+- [ ] **Verify:** NO raw JSON visible (no `{`, `}`, `"key":` patterns)
+- [ ] **Verify:** Source citations display properly
+
+### ✅ Test 47: Plan Analysis Button Sizing
+**Fix:** Three analysis buttons now have distinct, correct sizes
+
+- [ ] Navigate to Analyze Plan Set section
+- [ ] Upload a PDF file
+- [ ] **Verify:** Three buttons visible:
+  - [ ] "Quick Check" — smallest, metadata-only
+  - [ ] "Compliance Check" — medium, 3-page sample
+  - [ ] "Full Analysis" — largest/most prominent, all pages
+- [ ] **Verify:** Visual hierarchy is clear (Full Analysis stands out)
+- [ ] **Verify:** Buttons don't overlap or wrap awkwardly
+
+### ✅ Test 48: Full Screen Fix for Non-Analyzed Pages
+**Before:** Clicking Full Screen on a non-analyzed page caused TypeError crash
+**Fix:** Added `|| {}` fallback for undefined `extractions[pageNum]`
+
+- [ ] Upload a PDF and run Compliance Check (analyzes only ~3 pages)
+- [ ] In the thumbnail gallery, click on a page that was NOT analyzed
+- [ ] Click "Full Screen" button on the detail card
+- [ ] **Verify:** Lightbox opens without crash
+- [ ] **Verify:** Page image displays correctly
+- [ ] **Verify:** Navigation arrows work (left/right through all pages)
+- [ ] **Verify:** No JavaScript errors in browser console
+
+### ✅ Test 49: Status Filter Chips
+**Feature:** Colored filter chips above the report to show/hide EPR checks by status
+
+- [ ] Upload a PDF and run any analysis (Compliance or Full)
+- [ ] Wait for report to render
+- [ ] **Verify:** Filter bar appears above the EPR Compliance section
+- [ ] **Verify:** Chips are color-coded:
+  - [ ] FAIL — red (#ef4444)
+  - [ ] WARN — amber (#f59e0b)
+  - [ ] PASS — green (#22c55e)
+  - [ ] SKIP — gray (#6b7280)
+  - [ ] INFO — blue (#3b82f6)
+- [ ] **Verify:** Each chip shows count (e.g., "PASS (8)")
+- [ ] **Verify:** Only chips with count > 0 are shown
+- [ ] Click a chip (e.g., PASS)
+- [ ] **Verify:** All PASS checks are hidden from the report
+- [ ] **Verify:** Chip visual changes to indicate "deselected" state
+- [ ] Click the chip again
+- [ ] **Verify:** PASS checks reappear
+- [ ] Click multiple chips to filter multiple statuses
+- [ ] **Verify:** Correct checks hidden/shown
+- [ ] **Verify:** Filter bar is hidden in print preview (Cmd+P / Ctrl+P)
+
+---
+
+## Session 30: Full Analysis Tier
+
+### ✅ Test 50: Full Analysis Button Sends Correct Mode
+**Before:** "Full Analysis" button sent `analysis_mode='sample'` (bug)
+**Fix:** Now sends `analysis_mode='full'`
+
+- [ ] Open browser DevTools → Network tab
+- [ ] Upload a PDF
+- [ ] Click "Full Analysis" button
+- [ ] **Verify in Network tab:** POST request to `/analyze-plans` has form data `analysis_mode=full`
+- [ ] **Verify:** Loading message says "Running full AI analysis on ALL pages"
+- [ ] **Verify:** Loading message mentions "3-5 minutes" for processing time
+- [ ] **Verify:** Tooltip on Full Analysis button mentions "all pages"
+
+### ✅ Test 51: Full Analysis Analyzes ALL Pages
+**Before:** Even "Full Analysis" only analyzed 5-6 sample pages
+**After:** All pages are analyzed
+
+- [ ] Upload a PDF with 10+ pages
+- [ ] Click "Full Analysis"
+- [ ] Wait for results (may take 3-5 minutes for large plan sets)
+- [ ] **Verify:** Sheet Index table shows entries for ALL pages (not just 5-6)
+- [ ] **Verify:** Thumbnail gallery shows all pages
+- [ ] **Verify:** EPR checks reference all analyzed pages
+
+### ✅ Test 52: Plan Checker Comments Section (With Annotations)
+**Feature:** Extracts native PDF plan checker comments (green speech bubbles)
+
+- [ ] Upload a PDF that has native plan checker annotations (markup from Bluebeam, Adobe, etc.)
+- [ ] Run Full Analysis
+- [ ] **Verify:** "Plan Checker Comments" section appears in the report
+- [ ] **Verify:** Section is placed after Sheet Index, before EPR Compliance
+- [ ] **Verify:** Comments are grouped by page (e.g., "### Page 1", "### Page 3")
+- [ ] **Verify:** Each comment shows author name (bold) or annotation type (italic)
+- [ ] **Verify:** Comment text is displayed
+- [ ] **Verify:** Summary line shows total count: "X annotation(s) found across Y page(s)"
+- [ ] **Verify:** Long comments (>500 chars) are truncated with "..."
+
+### ✅ Test 53: Plan Checker Comments Absent When No Annotations
+- [ ] Upload a clean PDF with NO native annotations (e.g., a fresh architectural drawing)
+- [ ] Run Full Analysis
+- [ ] **Verify:** NO "Plan Checker Comments" section appears in the report
+- [ ] **Verify:** Report jumps from Sheet Index directly to EPR Compliance
+- [ ] **Verify:** No errors in browser console or Railway logs
+
+### ✅ Test 54: Enhanced Sheet Consistency Scoring (EPR-017)
+**Before:** EPR-017 only checked address and firm name consistency
+**After:** 7 checks including stamps, signatures, blank areas, sheet gaps
+
+- [ ] Upload a multi-sheet PDF (5+ pages with title blocks)
+- [ ] Run Compliance Check or Full Analysis
+- [ ] Scroll to EPR-017 in the report
+- [ ] **Verify:** Detail text shows "Consistency score: X% (N/M checks passed)"
+- [ ] **Verify:** Detail items may include:
+  - [ ] Address consistency (with normalized comparison)
+  - [ ] Firm name consistency
+  - [ ] Professional stamp presence across pages
+  - [ ] Signature presence across pages
+  - [ ] 2x2 blank area presence
+  - [ ] Sheet numbering gaps (e.g., "Gap: A1.0 → A3.0, missing A2.0")
+  - [ ] Sheet numbering duplicates
+- [ ] **Verify:** Status is appropriate:
+  - [ ] `FAIL` if addresses or firms are inconsistent
+  - [ ] `WARN` if stamps/signatures missing on some pages
+  - [ ] `PASS` if all checks pass
+
+### ✅ Test 55: Zoning Context Section
+**Feature:** Looks up zoning data for extracted SF address via SODA API
+
+- [ ] Upload a PDF with a valid SF address in the title blocks (e.g., "123 Main St, San Francisco")
+- [ ] Run Full Analysis
+- [ ] **Verify:** "Zoning Context" section appears in the report
+- [ ] **Verify:** Section is placed after Plan Checker Comments (or after Sheet Index if no annotations), before EPR Compliance
+- [ ] **Verify:** Shows zoning district code and name (e.g., "RH-1 — Residential, House, One Family")
+- [ ] **Verify:** Shows description of the zoning district
+- [ ] **Verify:** Shows height district (if available) with description
+- [ ] **Verify:** Shows lot dimensions (area, frontage, depth) if available
+- [ ] **Verify:** Shows existing building info (stories, use, construction type, year built) if available
+
+### ✅ Test 56: Zoning Context Absent for Non-SF Addresses
+- [ ] Upload a PDF with a non-SF address (e.g., "456 Oak Ave, Oakland, CA")
+- [ ] Run Full Analysis
+- [ ] **Verify:** NO "Zoning Context" section appears
+- [ ] **Verify:** No errors or error messages about zoning lookup failure
+- [ ] **Verify:** Rest of report renders normally
+
+### ✅ Test 57: Zoning Cross-Reference Flags
+**Feature:** Flags potential zoning issues based on sheet names + zoning data
+
+- [ ] Upload a PDF with:
+  - Valid SF address, AND
+  - Sheet names containing "ADU" or "addition" or "extension"
+- [ ] Run Full Analysis
+- [ ] **Verify:** "Cross-Reference Flags" subsection appears within Zoning Context
+- [ ] **Verify:** Flags mention verifying against district limits
+- [ ] Example flags:
+  - "ADU sheets detected — verify ADU eligibility in [zone] district"
+  - "Plans include addition/extension sheets — verify proposed height against [height district] limits"
+
+### ✅ Test 58: Filter Chips Interaction with New Sections
+- [ ] Run Full Analysis on a PDF (with annotations + valid SF address if possible)
+- [ ] **Verify:** Filter chips count includes ALL EPR checks (Metadata + Vision)
+- [ ] Click various filter chips to hide/show checks
+- [ ] **Verify:** "Plan Checker Comments" section is NOT affected by filter chips (it's informational, not an EPR check)
+- [ ] **Verify:** "Zoning Context" section is NOT affected by filter chips
+- [ ] **Verify:** "Sheet Index" is NOT affected by filter chips
+- [ ] **Verify:** Only `### STATUS — EPR-ID: Rule` formatted sections are filtered
+
+---
+
 ## Sign-Off
 
 **Tester:** _______________
 **Date:** _______________
 **Environment:** Production (Railway)
-**Build:** `c47fc88` (Session 22) / `c376e80` (Session 21.4)
+**Build:** `fef9923` (Session 30 merge) / `a9dc29f` (Full Analysis tier) / `992349f` (Full Screen fix) / `2afeaa9` (Status filters)
+**Sessions covered:** 21.2–30
 
 **Overall Status:**
 - [ ] ✅ All tests passed
