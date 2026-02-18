@@ -1753,7 +1753,148 @@ def test_semantic_index_has_s09_concept():
 
 
 def test_semantic_index_total_concepts_updated():
-    """Semantic index should have 78 total concepts."""
+    """Semantic index should have 86 total concepts (80 prior + 6 FS-series fire safety)."""
     kb = get_knowledge_base()
     total = kb.semantic_index["metadata"]["total_concepts"]
-    assert total == 78
+    assert total == 86
+
+
+# ── FS-Series Fire Safety Info Sheets Tests ─────────────────────────
+
+
+def test_fs_info_sheets_loaded():
+    """fire-safety-info-sheets.json should be loaded with 7 FS sheets."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    assert fs is not None
+    # Should have metadata + 7 FS sheets
+    fs_keys = [k for k in fs if k.startswith("FS-")]
+    assert len(fs_keys) == 7
+    assert set(fs_keys) == {"FS-01", "FS-03", "FS-04", "FS-05", "FS-06", "FS-07", "FS-12"}
+
+
+def test_fs01_roof_deck_500sqft_limit():
+    """FS-01 should contain the 500 sqft roof deck area limit."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    assert "500 square feet" in fs["FS-01"]["key_rules"]["area_limit"]
+
+
+def test_fs03_addition_vs_alteration_sprinkler():
+    """FS-03 should distinguish additions (full building) from alterations (area only)."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    additions = fs["FS-03"]["additions_requiring_sprinklers_throughout"]
+    alterations = fs["FS-03"]["alterations_limited_sprinklers"]
+    assert len(additions["examples"]) == 4
+    assert len(alterations["examples"]) == 2
+    assert "Entire building" in additions["examples"][0]["sprinkler_scope"]
+    assert "Area of alteration only" in alterations["examples"][0]["sprinkler_scope"]
+
+
+def test_fs04_pfp_50_units_threshold():
+    """FS-04 should require PFP for 50+ dwelling units or 350K+ sqft."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    assert "50 or more" in fs["FS-04"]["applicability"]["large_project_threshold"]
+    assert "350,000" in fs["FS-04"]["applicability"]["large_project_threshold"]
+
+
+def test_fs05_r3_to_r2_scenarios():
+    """FS-05 should cover R3→R2 conversion scenarios at different story counts."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    scenarios = fs["FS-05"]["scenarios"]
+    assert "A_r3_to_r2_3_stories_or_less" in scenarios
+    assert "B_r3_to_r2_more_than_3_stories" in scenarios
+    assert "C_existing_r2_adding_unit" in scenarios
+
+
+def test_fs05_applicable_ordinances():
+    """FS-05 should reference Ordinances 43-14, 49-14, and 30-15."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    ords = {o["number"] for o in fs["FS-05"]["applicable_ordinances"]}
+    assert ords == {"43-14", "49-14", "30-15"}
+
+
+def test_fs06_fire_separation_distance():
+    """FS-06 should have 3ft for R3 and 5ft for R2 deck fire separation."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    assert fs["FS-06"]["fire_separation_without_fire_wall"]["R3_buildings"]["minimum_fsd"] == "3 feet or more from property line"
+    assert fs["FS-06"]["fire_separation_without_fire_wall"]["R2_buildings"]["minimum_fsd"] == "5 feet or more from property line"
+
+
+def test_fs07_elevator_lobby_door_ratings():
+    """FS-07 should require 20-min standard and 45-min for fire service access."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    requirements = fs["FS-07"]["requirements"]
+    ratings = {r["door_rating"] for r in requirements if "door_rating" in r}
+    assert "20-minute rated doors" in ratings
+    assert "45-minute rated doors" in ratings
+
+
+def test_fs12_adu_sprinkler_exemption():
+    """FS-12 should have the state law ADU sprinkler exemption."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    exemptions = fs["FS-12"]["exceptions"]
+    sprinkler_rule = next(e for e in exemptions if e["number"] == 2)
+    assert "shall NOT require fire sprinklers" in sprinkler_rule["rule"]
+    assert "65852.2" in sprinkler_rule["authority"]
+
+
+def test_fs12_r3_occupancy_preservation():
+    """FS-12 should allow R3 occupancy with up to 3 total dwelling units."""
+    kb = get_knowledge_base()
+    fs = kb.fire_safety_info_sheets
+    exemptions = fs["FS-12"]["exceptions"]
+    r3_rule = next(e for e in exemptions if e["number"] == 1)
+    assert "three total dwelling units" in r3_rule["rule"]
+    assert "No occupancy classification change needed" in r3_rule["practical_meaning"]
+
+
+def test_semantic_index_new_fs_concepts():
+    """Semantic index should contain the 6 new FS-series concepts."""
+    kb = get_knowledge_base()
+    concepts = kb.semantic_index["concepts"]
+    new_concepts = [
+        "roof_deck_fire", "dwelling_unit_sprinkler",
+        "wood_frame_construction_fire", "deck_fire_protection",
+        "elevator_lobby_highrise", "r3_sprinkler_4story",
+    ]
+    for c in new_concepts:
+        assert c in concepts, f"Missing concept: {c}"
+        assert len(concepts[c]["aliases"]) > 0
+        assert len(concepts[c]["authoritative_sources"]) > 0
+
+
+def test_semantic_match_roof_deck():
+    """Querying 'roof deck materials' should match the roof_deck_fire concept."""
+    kb = get_knowledge_base()
+    matches = kb.match_concepts("what materials can I use for a roof deck")
+    assert "roof_deck_fire" in matches
+
+
+def test_semantic_match_adu_sprinkler():
+    """Querying 'ADU sprinkler' should match both adu and sprinkler_required."""
+    kb = get_knowledge_base()
+    matches = kb.match_concepts("do I need sprinklers for my ADU")
+    assert "adu" in matches
+    assert "sprinkler_required" in matches
+
+
+def test_semantic_match_pre_fire_plan():
+    """Querying 'pre-fire plan' should match wood_frame_construction_fire."""
+    kb = get_knowledge_base()
+    matches = kb.match_concepts("do I need a pre-fire plan for my wood frame building")
+    assert "wood_frame_construction_fire" in matches
+
+
+def test_semantic_match_elevator_lobby():
+    """Querying 'elevator lobby' should match elevator_lobby_highrise."""
+    kb = get_knowledge_base()
+    matches = kb.match_concepts("elevator lobby requirements for high-rise")
+    assert "elevator_lobby_highrise" in matches

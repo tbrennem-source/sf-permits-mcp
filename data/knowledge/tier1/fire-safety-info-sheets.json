@@ -1,0 +1,327 @@
+{
+  "metadata": {
+    "title": "DBI Fire Safety Information Sheets (FS-Series)",
+    "source": "SF Department of Building Inspection, Technical Services Division",
+    "source_files": [
+      "tier2/FS-series/FS-03.txt (contains FS-01)",
+      "tier2/FS-series/FS-04.txt (contains FS-03)",
+      "tier2/FS-series/FS-05.txt (contains FS-04)",
+      "tier2/FS-series/FS-06.txt (contains FS-05)",
+      "tier2/FS-series/FS-07.txt (contains FS-06)",
+      "tier2/FS-series/FS-12.txt (contains FS-07)",
+      "tier2/FS-series/FS-13.txt (contains FS-12)"
+    ],
+    "date_structured": "2026-02-17",
+    "extraction_notes": "OCR batch created filename offsets — actual FS numbers verified from document headers. FS-01.txt contains DA-19 (disability access, not fire safety) and was excluded.",
+    "authority": "SF Department of Building Inspection + SF Fire Department",
+    "total_info_sheets": 7
+  },
+
+  "FS-01": {
+    "title": "Combustible Roof Decks — Allowable Materials and Area",
+    "date": "July 24, 2024",
+    "director": "Patrick O'Riordan, C.B.O.",
+    "purpose": "Clarify standards for allowable building materials used in the construction of roof decks that conform to minimum standards for resistance to intrusion and spread of flames.",
+    "references": [
+      "SFBC Sections 104A.2.8 and 1511.10",
+      "CBC Sections 703A.5.1, 703A.5.2, 703A.7, 709A.3, 2303.1.9, 2303.2",
+      "CRSC Section 12-7A-4 (Decking SFM Standard 12-7A-4)",
+      "CRSC Section 12-7A-4A (Decking Alternate Method A)",
+      "ASTM E-84 Test for Surface Burning Characteristics",
+      "OSFM Wildland Urban Interface (WUI) Products Handbook"
+    ],
+    "key_rules": {
+      "area_limit": "Total area of all roof decks on the same story shall not exceed 500 square feet (SFBC 1511.10 #1)",
+      "base_requirement": "SFBC 1511.10 #4 requires fire-retardant treated wood approved for exterior use, or 2-inch nominal All Heart redwood",
+      "equivalency_standard": "Material must conform to ASTM E-84 Class B (or A) flame spread index AND SFM Standard 12-7A-4 (Part A) or 12-7A-4A",
+      "weathering_test": "Must also pass accelerated weathering test and be identified as exterior type per ASTM D 2898 and ASTM D 3201",
+      "approved_materials": "Materials listed in the WUI Products Handbook Decking section conforming to ASTM E-84 Class B or A are deemed equivalent",
+      "case_by_case": "Materials not in WUI handbook but with documentation showing conformance may be considered on a case-by-case basis",
+      "substructure": "Deck substructure below wood decking surface may be non-fire-treated lumber but must be preservative-treated per CBC 2303.1.9",
+      "wui_handbook_url": "https://osfm.fire.ca.gov/what-we-do/fire-engineering-and-investigations/building-materials-listing"
+    },
+    "practical_impact": "Homeowners and contractors building occupiable roof decks in SF must use either fire-retardant treated wood, All Heart redwood, or WUI-listed decking materials. Total deck area capped at 500 sqft per story."
+  },
+
+  "FS-03": {
+    "title": "Automatic Sprinkler System Requirements for Additions and Alterations in Existing Non-Sprinklered R-3 Occupancies with 4-Stories or Resulting in 4-Stories",
+    "date": "December 6, 2023",
+    "director": "Patrick O'Riordan, C.B.O.",
+    "purpose": "Clarify the automatic sprinkler system requirements triggered by additions and alterations in existing three- and four-story R-3 occupancies of Type-V construction.",
+    "references": [
+      "SFBC Current Edition, Section 903.2.8",
+      "SFEBC Current Edition, Sections 502 and 503",
+      "CBC Sections 202, 503.1.4, 504, 903.2.8, 903.3, 1004.7"
+    ],
+    "additions_requiring_sprinklers_throughout": {
+      "description": "Additions (extension or increase in floor area, number of stories, or height) require the entire building to comply with CBC 504, triggering sprinklers throughout.",
+      "examples": [
+        {
+          "scenario": "Vertical addition to existing 3-story non-sprinklered building resulting in more than 3 stories",
+          "sprinkler_scope": "Entire building"
+        },
+        {
+          "scenario": "Conversion of unoccupied attic to occupiable space in existing 3-story non-sprinklered building (converted attic = added story)",
+          "sprinkler_scope": "Entire building"
+        },
+        {
+          "scenario": "Horizontal addition to existing 4-story non-sprinklered building",
+          "sprinkler_scope": "Entire building"
+        },
+        {
+          "scenario": "Excavation of basement to create occupiable space in existing 4-story non-sprinklered building",
+          "sprinkler_scope": "Entire building"
+        }
+      ]
+    },
+    "alterations_limited_sprinklers": {
+      "description": "Alterations (construction or renovation other than repair or addition) require sprinklers only in the area of alteration, not throughout the entire building.",
+      "examples": [
+        {
+          "scenario": "Conversion of existing 1st floor unoccupiable space to occupiable space in 4-story R-3",
+          "sprinkler_scope": "Area of alteration only"
+        },
+        {
+          "scenario": "Conversion of basement to habitable or occupiable space without excavation in 4-story R-3",
+          "sprinkler_scope": "Area of alteration only"
+        }
+      ]
+    },
+    "cross_references": [
+      "Information Sheet EG-03 — existing R-3 occupancies with 3 stories or less",
+      "Information Sheet EG-01 — new residential decks including occupiable roofs"
+    ],
+    "practical_impact": "Critical distinction: adding a story (vertical addition, attic conversion) triggers full-building sprinkler retrofit. Converting existing space without adding height/area (alteration) only requires sprinklers in the work area. This can mean the difference between $15K and $100K+ in sprinkler costs."
+  },
+
+  "FS-04": {
+    "title": "Fire Safety Requirements for Wood-Frame Buildings during Construction",
+    "date": "April 21, 2014",
+    "director": "Tom C. Hui, S.E., C.B.O.",
+    "fire_marshal": "Michie Wong",
+    "purpose": "Establish fire safety requirements, provide guidelines to minimize the potential for occurrence and spread of fires, and facilitate firefighting efforts during construction of wood frame buildings.",
+    "references": [
+      "California Fire Code Chapters 33 and 35",
+      "San Francisco Building Code Sections 3309, 3311"
+    ],
+    "applicability": {
+      "scope": "Activities occurring during construction of certain wood frame buildings",
+      "large_project_threshold": "50 or more attached dwelling units, OR total exceeding 350,000 gross square feet of exposed wood framing",
+      "adjacent_measurement": "Adjacent on-going wood frame construction separated by less than 60 feet of open air is considered within the project"
+    },
+    "pre_fire_plan_pfp": {
+      "required_for": "Any building utilizing exposed wood framing in construction of 50+ dwelling units or 350,000+ gross square feet",
+      "approval_required": "SFFD must provide written approval before wood frame construction may commence",
+      "copies_required": 2,
+      "must_address": [
+        "Fire flow and fire hydrants",
+        "Fire Department access roads",
+        "Fire protection equipment (extinguishers, standpipes, FDCs)",
+        "AWSS — temporary, permanent, or existing installations",
+        "Procedures during hot work activities",
+        "Storage, use and handling of flammable liquids",
+        "Removal of construction debris",
+        "Construction sequencing and temporary mitigating fire protection barriers",
+        "Off-hours security solution"
+      ],
+      "posted_on_site": true
+    },
+    "fire_prevention_program_superintendent": {
+      "required": true,
+      "qualifications": "Trained/certified by organization providing core competencies of occupational safety and health for construction",
+      "must_be_present": "At all times while hot work is being performed after wood framing has commenced",
+      "duties": [
+        "Monitor fire watch during all hot work operations",
+        "Confirm flammable liquids conform to CFC Chapters 50 and 57",
+        "Ensure construction debris removed from site",
+        "Verify fire protection equipment in place and operational",
+        "Confirm temporary mitigating fire protection barriers in place",
+        "Conduct weekly safety briefings with documented sign-in",
+        "Available during Fire Department inspections",
+        "24/7 contact phone number required"
+      ]
+    },
+    "key_requirements": {
+      "max_exposed_wood_framing": "350,000 gross square feet",
+      "temporary_barriers": "At least one layer 5/8 inch type X gypsum board; must enclose areas of not more than 50,000 square feet",
+      "fire_watch_after_hot_work": "Minimum 30 minutes after conclusion of hot work activity",
+      "access_roads": "All-weather access roads must be in place before wood framing commences",
+      "awss": "Auxiliary Water Supply System or equivalent must be in place",
+      "standpipes": "Temporary standpipes required when construction reaches 3+ stories (40+ feet)",
+      "fire_extinguishers": "Minimum 2-A:10-B:C throughout building, max 75ft travel distance; 2-A:20-B:C within 30ft of hot work",
+      "no_smoking": "Enforced for duration of project"
+    },
+    "inspection_process": [
+      "Call district fire inspector (415) 558-3300 to schedule SFFD inspection before wood framing starts",
+      "SFFD inspector verifies access roads, water flow, hydrants, extinguishers, standpipes, signage, fire watch training",
+      "When adequate compliance verified, SFFD inspector authorizes wood framing to commence",
+      "Both building and fire inspectors check fire safety measures during regular inspections"
+    ],
+    "practical_impact": "Large wood-frame residential projects (50+ units or 350K+ sqft) cannot begin wood framing without an SFFD-approved Pre-Fire Plan. Requires a dedicated Fire Prevention Program Superintendent on-site. Adds planning time and cost but is non-negotiable for large projects."
+  },
+
+  "FS-05": {
+    "title": "Sprinkler Systems Requirements for Addition or Legalization of Dwelling Unit",
+    "date": "September 30, 2015",
+    "director": "Tom C. Hui, S.E., C.B.O.",
+    "fire_marshal": "Daniel de Cossio",
+    "purpose": "Clarify the sprinkler systems requirements for addition or legalization of dwelling unit.",
+    "references": [
+      "2013 San Francisco Building Code",
+      "Ordinance No. 43-14 (Legalization of Dwelling Units Installed Without A Permit)",
+      "Ordinance No. 49-14 (In-Law Units in Existing Residential Buildings)",
+      "Ordinance No. 30-15 (Adding Dwelling Units During Seismic Retrofitting)"
+    ],
+    "scenarios": {
+      "A_r3_to_r2_3_stories_or_less": {
+        "trigger": "Occupancy changed from Group R3 to Group R2 by adding/legalizing a dwelling unit, resulting in building not more than 3 stories within existing envelope",
+        "rules": [
+          {
+            "condition": "Added/legalized unit is on the first floor",
+            "sprinkler_scope": "Entire first level (NFPA 13R and NFPA 13)",
+            "additional": "For buildings more than 2 stories, 1-hour fire rated construction between first floor and upper floor on the affected side"
+          },
+          {
+            "condition": "Added/legalized unit is NOT on the first floor",
+            "sprinkler_scope": "Added/legalized unit AND its egress path only",
+            "additional": "For buildings more than 2 stories, 1-hour fire rated construction between first floor and upper floor on the affected side"
+          }
+        ]
+      },
+      "B_r3_to_r2_more_than_3_stories": {
+        "trigger": "Occupancy changed from Group R3 to Group R2 by adding/legalizing a dwelling unit, resulting in building more than 3 stories",
+        "rules": [
+          {
+            "condition": "Building envelope is changed (excluding exterior egress)",
+            "sprinkler_scope": "Entire building"
+          },
+          {
+            "condition": "Story count is increased to 4 stories within existing envelope",
+            "sprinkler_scope": "Entire building"
+          },
+          {
+            "condition": "Story count is not changed AND within existing envelope",
+            "sprinkler_scope": "Added/legalized unit AND its egress path only"
+          }
+        ]
+      },
+      "C_existing_r2_adding_unit": {
+        "trigger": "Dwelling unit added or legalized in an existing Group R2 building within existing envelope",
+        "sprinkler_scope": "Added/legalized unit AND its egress path only"
+      },
+      "D_ceiling_upgrade_alternative": {
+        "trigger": "Existing 3- or 4-story building (or resulting in 3-4 stories)",
+        "alternative": "Ground floor ceiling may be upgraded to 1-hour rated construction in lieu of upgrading to 1-hour rated building"
+      }
+    },
+    "applicable_ordinances": [
+      {"number": "43-14", "description": "Legalization of Dwelling Units Installed Without A Permit"},
+      {"number": "49-14", "description": "Construction of In-Law Units in Existing Residential Buildings or Auxiliary Structures on the Same Lot"},
+      {"number": "30-15", "description": "Adding Dwelling Units to Existing Buildings Undergoing Seismic Retrofitting"}
+    ],
+    "other_conditions": "Other conditions evaluated on a case-by-case basis by Supervisor or Manager. Pre-application meeting or approval of AB-005 is required.",
+    "practical_impact": "Key for in-law unit and ADU legalization projects. If the unit is added within the existing envelope without changing story count, sprinklers are typically limited to the new unit and its egress path — much cheaper than full-building retrofit. But changing the building envelope or adding stories triggers full sprinklering."
+  },
+
+  "FS-06": {
+    "title": "Fire Protection for Residential Decks and Deck Stairways in Rear or Side Yard",
+    "date": "November 2023",
+    "director": "Patrick O'Riordan, C.B.O.",
+    "purpose": "Clarify the requirements for residential deck and deck stairway protection at property lines located at the rear or side yards in alterations to existing buildings.",
+    "references": [
+      "San Francisco Building Code, Current Edition",
+      "CBC Sections 705.2, 705.8, 705.11, 1015, 1027.5"
+    ],
+    "key_concept": "Residential decks and deck stairways in rear or side yards represent an opening in exterior wall lines. Fire separation distance (FSD) from property line is governed by CBC Table 705.8.",
+    "fire_separation_without_fire_wall": {
+      "R3_buildings": {
+        "minimum_fsd": "3 feet or more from property line"
+      },
+      "R2_buildings": {
+        "minimum_fsd": "5 feet or more from property line",
+        "exception": "Egress components may have different requirements"
+      }
+    },
+    "fire_wall_alternative": "If a one-hour fire-resistive wall is provided extending from the ground to 30 inches above the walking surface of the deck and deck stairway, the FSD rules per Table 705.8 apply instead. Guard requirements per CBC Section 1015 still apply.",
+    "egress_requirements": "Where deck or deck stairway serves as a required egress component, minimum distance from property line must comply with CBC Section 1027.5.",
+    "scope_exclusions": [
+      "Overhangs and projections — governed by SFBC Section 705.2",
+      "Balconies and pool decks as defined by CBC Section 202"
+    ],
+    "practical_impact": "Rear and side yard decks near property lines must maintain fire separation distance: 3ft for single-family (R3), 5ft for multi-family (R2). A fire-rated wall extending 30 inches above the deck surface can serve as an alternative. Critical for tight lot-line conditions common in SF."
+  },
+
+  "FS-07": {
+    "title": "Elevator Lobbies in High-Rise Buildings",
+    "date": "November 17, 2015",
+    "director": "Tom C. Hui, S.E., C.B.O.",
+    "fire_marshal": "Daniel de Cossio",
+    "purpose": "Restrict movement of smoke and heat between floors through elevator doors and hoist-ways.",
+    "references": [
+      "CBC-2013 Section 713.14.1 Exceptions 2-8",
+      "CBC-2013 Section 1008.1.2 Exception 6"
+    ],
+    "key_rule": "Exceptions listed in CBC 713.14.1 (Exceptions 2-8) and 1008.1.2 (Exception 6) shall NOT be applicable to high-rise buildings in San Francisco.",
+    "requirements": [
+      {
+        "condition": "Elevator lobbies in high-rise buildings",
+        "door_rating": "20-minute rated doors",
+        "door_type": "Pivoted or side-hinged swinging type"
+      },
+      {
+        "condition": "Lobbies serving Fire Service Access Elevators",
+        "door_rating": "45-minute rated doors",
+        "door_type": "Side-hinged swinging type"
+      },
+      {
+        "condition": "Existing side-hinged swinging doors in high-rise elevator lobbies",
+        "rule": "Shall NOT be removed"
+      },
+      {
+        "condition": "Existing non-conforming high-rise buildings with unenclosed elevator lobbies",
+        "acceptable_solution": "Installation of listed products complying with 2013 CBC 713.14.1 Exceptions 5 or 8"
+      }
+    ],
+    "practical_impact": "SF is stricter than the base CBC for high-rise elevator lobbies — the code exceptions that allow open lobbies in non-high-rise buildings do NOT apply. All high-rise elevator lobbies must be enclosed with fire-rated doors. Important for renovation projects in existing high-rises that may have open lobbies."
+  },
+
+  "FS-12": {
+    "title": "Accessory Dwelling Units — Group R3 Occupancy Change, Sprinkler Requirements, and Unit Separation Requirements",
+    "date": "May 5, 2023",
+    "director": "Patrick O'Riordan, C.B.O.",
+    "purpose": "Clarify Group-R3 occupancy change triggers, sprinkler requirements, and unit separation requirements when accessory dwelling units are added.",
+    "references": [
+      "Current edition California Building Code (CBC), Section 310",
+      "California Government Code 65852.2 and 65852.22",
+      "Information Sheet G-23",
+      "ADU Handbook by CA Department of Housing and Community Development"
+    ],
+    "effective_date": "Permit applications with filing dates after January 1, 2023",
+    "exceptions": [
+      {
+        "number": 1,
+        "rule": "Adding an ADU or JADU to a Group R3 occupancy resulting in three total dwelling units may remain Group R3",
+        "authority": "California Government Code 65852.2(a)(D)(viii)",
+        "practical_meaning": "No occupancy classification change needed — avoids triggering full R2 requirements"
+      },
+      {
+        "number": 2,
+        "rule": "Creating an ADU (attached or detached) shall NOT require fire sprinklers in the new ADU or existing primary dwelling if none existed prior",
+        "authority": "California Government Code 65852.2(a)(D)(xii)",
+        "exception": "Where a fire sprinkler system is otherwise triggered by these alterations (vertical/horizontal additions, travel distance, new buildings, etc.)",
+        "practical_meaning": "State law exempts ADUs from sprinkler requirements in most cases — major cost savings"
+      },
+      {
+        "number": 3,
+        "rule": "Where a JADU is created within existing conditioned space, unit separation and independent heating system are NOT required",
+        "practical_meaning": "JADUs in existing space (e.g., converting a bedroom) have the fewest fire requirements"
+      }
+    ],
+    "general_requirements": "ADUs and JADUs must comply with all applicable local building codes for detached dwellings, including unit separation, independent heating system, and independent ingress/egress — unless the above exceptions apply.",
+    "cross_references": [
+      "Information Sheet G-23 (ADU general requirements)",
+      "https://sfplanning.org/accessory-dwelling-units"
+    ],
+    "practical_impact": "This is the most homeowner-friendly FS sheet. State law (Gov Code 65852.2) overrides local sprinkler requirements for most ADU projects. An ADU added to an existing non-sprinklered home does NOT require sprinklers unless other code triggers (like adding a story) apply. This saves homeowners $10K-$30K+ in sprinkler costs."
+  }
+}

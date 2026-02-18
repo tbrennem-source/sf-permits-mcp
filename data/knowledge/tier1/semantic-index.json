@@ -5,7 +5,7 @@
     "created_date": "2026-02-14",
     "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
     "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
-    "total_concepts": 78
+    "total_concepts": 86
   },
 
   "concepts": {
@@ -199,10 +199,11 @@
       "authoritative_sources": [
         {"file": "tier1/fire-code-key-sections.json", "path": "decision_tree_key.triggers", "role": "13 triggers for SFFD review (always/conditional/operational)"},
         {"file": "tier1/fire-code-key-sections.json", "path": "chapter_1_administration.plan_review_fees", "role": "SFFD plan review fee tables"},
-        {"file": "tier1/G-20-routing.json", "path": "agencies.SFFD", "role": "G-20 SFFD routing triggers (// symbol)"}
+        {"file": "tier1/G-20-routing.json", "path": "agencies.SFFD", "role": "G-20 SFFD routing triggers (// symbol)"},
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-04.pre_fire_plan_pfp", "role": "Pre-Fire Plan approval required from SFFD for large wood-frame projects (50+ units / 350K+ sqft)"}
       ],
       "decision_tree_step": 4,
-      "related_concepts": ["sprinkler_required", "fire_alarm", "assembly_occupancy", "high_rise", "commercial_kitchen_hood"]
+      "related_concepts": ["sprinkler_required", "fire_alarm", "assembly_occupancy", "high_rise", "commercial_kitchen_hood", "wood_frame_construction_fire"]
     },
 
     "sprinkler_required": {
@@ -213,10 +214,13 @@
         {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems", "role": "Complete sprinkler trigger rules by occupancy/height/use"},
         {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems.existing_building_retrofits", "role": "Retrofit requirements for SRO, hotels, high-rise"},
         {"file": "tier1/fire-code-key-sections.json", "path": "assembly_occupancy_thresholds", "role": "Assembly occupancy thresholds (A-2: 100 occupants / 5000 sqft)"},
-        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-105]", "role": "Voluntary sprinkler for pre-1974 high-rises"}
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-105]", "role": "Voluntary sprinkler for pre-1974 high-rises"},
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-03", "role": "Sprinkler triggers for additions vs alterations in 4-story R-3 (addition=whole building, alteration=area only)"},
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-05", "role": "Sprinkler rules for dwelling unit addition/legalization (R3→R2, in-law units, Ord 43-14/49-14/30-15)"},
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-12", "role": "ADU sprinkler exemption — state law Gov Code 65852.2 overrides local requirements"}
       ],
       "decision_tree_step": 4,
-      "related_concepts": ["fire_department", "assembly_occupancy", "high_rise", "restaurant"]
+      "related_concepts": ["fire_department", "assembly_occupancy", "high_rise", "restaurant", "adu", "dwelling_unit_sprinkler"]
     },
 
     "fire_alarm": {
@@ -253,10 +257,11 @@
         {"file": "tier1/fire-code-key-sections.json", "path": "chapter_9.sprinkler_systems.existing_building_retrofits.high_rise_over_120ft", "role": "High-rise sprinkler retrofit"},
         {"file": "tier1/fire-code-key-sections.json", "path": "chapter_5_fire_service_features", "role": "Fire command center, ERRCS, air replenishment"},
         {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-083]", "role": "Tall building (240+ ft) seismic design"},
-        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-105]", "role": "Voluntary sprinkler for pre-1974 high-rises"}
+        {"file": "tier1/administrative-bulletins-index.json", "path": "administrative_bulletins[AB-105]", "role": "Voluntary sprinkler for pre-1974 high-rises"},
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-07", "role": "Elevator lobby enclosure requirements — SF stricter than base CBC, no exceptions for high-rise"}
       ],
       "decision_tree_step": 4,
-      "related_concepts": ["fire_department", "sprinkler_required", "seismic"]
+      "related_concepts": ["fire_department", "sprinkler_required", "seismic", "elevator_lobby_highrise"]
     },
 
     "commercial_kitchen_hood": {
@@ -983,15 +988,16 @@
 
     "adu": {
       "canonical_name": "Accessory Dwelling Unit (ADU) Programs",
-      "aliases": ["ADU", "accessory dwelling unit", "granny flat", "in-law unit", "in law", "cottage", "garage apartment", "ADU pre-approval", "pre-approved plans", "unit legalization", "legalize unit", "illegal unit", "unpermitted unit", "unit conversion", "add a unit", "second unit", "backyard cottage", "detached ADU"],
+      "aliases": ["ADU", "accessory dwelling unit", "granny flat", "in-law unit", "in law", "cottage", "garage apartment", "ADU pre-approval", "pre-approved plans", "unit legalization", "legalize unit", "illegal unit", "unpermitted unit", "unit conversion", "add a unit", "second unit", "backyard cottage", "detached ADU", "JADU", "junior ADU", "junior accessory dwelling unit"],
       "description": "ADU permitting programs: new ADU construction, detached ADU plan pre-approval, and unit legalization for pre-2013 units.",
       "authoritative_sources": [
         {"file": "tier1/adu-programs.json", "path": "adu_overview", "role": "ADU program overview, requirements, partner agencies"},
         {"file": "tier1/adu-programs.json", "path": "detached_adu_pre_approval", "role": "Pre-approved detached ADU plans program ($1,472 fee)"},
-        {"file": "tier1/adu-programs.json", "path": "unit_legalization", "role": "Unit Legalization Program for pre-2013 units (6-9% fee)"}
+        {"file": "tier1/adu-programs.json", "path": "unit_legalization", "role": "Unit Legalization Program for pre-2013 units (6-9% fee)"},
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-12", "role": "ADU fire safety: sprinkler exemption, R3 occupancy preservation, JADU separation waiver"}
       ],
       "decision_tree_step": 3,
-      "related_concepts": ["inhouse_review", "planning_review", "street_trees"]
+      "related_concepts": ["inhouse_review", "planning_review", "street_trees", "dwelling_unit_sprinkler"]
     },
 
     "pre_application_meeting": {
@@ -1080,6 +1086,67 @@
         {"file": "tier1/sf-2025-code-amendments.json", "path": "effective_date", "role": "January 1, 2026 — no grace period"}
       ],
       "related_concepts": ["green_building", "fire_code", "permit_requirements"]
+    },
+
+    "roof_deck_fire": {
+      "canonical_name": "Combustible Roof Deck Fire Safety (FS-01)",
+      "aliases": ["roof deck", "combustible deck", "wood roof deck", "roof deck materials", "deck fire rating", "roof deck fire", "occupiable roof", "rooftop deck", "deck area limit", "fire retardant deck", "WUI decking"],
+      "description": "Allowable materials and area limits for occupiable roof decks. Max 500 sqft per story, requires ASTM E-84 Class B or better flame spread, WUI-listed materials.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-01", "role": "Complete roof deck material standards, equivalency criteria, 500 sqft limit, WUI handbook reference"}
+      ],
+      "related_concepts": ["construction_type", "fire_department"]
+    },
+
+    "dwelling_unit_sprinkler": {
+      "canonical_name": "Dwelling Unit Addition/Legalization Sprinkler Rules (FS-05)",
+      "aliases": ["in-law sprinkler", "unit legalization sprinkler", "R3 to R2 sprinkler", "add unit sprinkler", "dwelling unit fire", "Ordinance 43-14", "Ordinance 49-14", "Ordinance 30-15", "legalize unit sprinkler", "add dwelling unit fire requirements"],
+      "description": "Sprinkler requirements when adding or legalizing a dwelling unit — depends on story count, whether envelope changes, and which floor the unit is on. Includes in-law unit and seismic retrofit scenarios.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-05", "role": "Complete scenario matrix: R3→R2 at 3 stories, R3→R2 at 4+ stories, existing R2, ceiling upgrade alternative"},
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-03", "role": "Addition vs alteration distinction for 4-story R-3 sprinkler scope"}
+      ],
+      "related_concepts": ["sprinkler_required", "adu", "fire_department"]
+    },
+
+    "wood_frame_construction_fire": {
+      "canonical_name": "Wood-Frame Construction Fire Safety (FS-04)",
+      "aliases": ["wood frame fire", "pre-fire plan", "PFP", "construction fire safety", "fire prevention superintendent", "exposed wood framing", "large wood frame", "wood frame building project", "fire during construction", "construction fire", "hot work", "temporary fire barrier"],
+      "description": "Fire safety requirements during construction of large wood-frame buildings (50+ units or 350K+ sqft). Requires SFFD-approved Pre-Fire Plan, on-site Fire Prevention Program Superintendent, temporary barriers.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-04", "role": "Complete PFP requirements, superintendent duties, inspection process, barrier specs, 350K sqft limit"}
+      ],
+      "related_concepts": ["fire_department", "construction_type", "inspections"]
+    },
+
+    "deck_fire_protection": {
+      "canonical_name": "Residential Deck Fire Protection at Property Lines (FS-06)",
+      "aliases": ["deck fire separation", "deck property line", "rear yard deck", "side yard deck", "deck stairway fire", "fire separation distance deck", "FSD deck", "deck setback fire"],
+      "description": "Fire separation distance requirements for residential decks and deck stairways near rear/side property lines: 3ft for R3, 5ft for R2, or 1-hour fire wall alternative.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-06", "role": "FSD rules for R3 (3ft) and R2 (5ft), fire wall alternative, egress requirements, scope exclusions"}
+      ],
+      "related_concepts": ["construction_type", "fire_department"]
+    },
+
+    "elevator_lobby_highrise": {
+      "canonical_name": "High-Rise Elevator Lobby Enclosure (FS-07)",
+      "aliases": ["elevator lobby", "elevator lobby fire", "elevator lobby doors", "hoist-way smoke", "elevator fire rating", "elevator lobby enclosure"],
+      "description": "SF requires enclosed elevator lobbies in high-rise buildings with fire-rated doors (20-min standard, 45-min for fire service access). CBC exceptions do NOT apply to high-rises.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-07", "role": "Door ratings (20-min/45-min), CBC exception override, existing non-conforming buildings"}
+      ],
+      "related_concepts": ["high_rise", "fire_department"]
+    },
+
+    "r3_sprinkler_4story": {
+      "canonical_name": "R-3 Sprinkler Requirements for 4-Story Buildings (FS-03)",
+      "aliases": ["4 story sprinkler", "R-3 sprinkler", "addition sprinkler", "alteration sprinkler", "Type V sprinkler", "attic conversion sprinkler", "3 story sprinkler", "basement conversion sprinkler", "R3 four story"],
+      "description": "Sprinkler requirements for additions and alterations in existing 3-4 story R-3 Type-V buildings. Additions trigger full-building sprinklers; alterations only require sprinklers in the area of work.",
+      "authoritative_sources": [
+        {"file": "tier1/fire-safety-info-sheets.json", "path": "FS-03", "role": "4 addition scenarios (full sprinkler) vs 2 alteration scenarios (area only), cross-references EG-03 and EG-01"}
+      ],
+      "related_concepts": ["sprinkler_required", "dwelling_unit_sprinkler", "construction_type"]
     }
   }
 }
