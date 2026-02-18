@@ -678,6 +678,213 @@
         color: #22c55e !important;
     }
 
+    /* Lasso selection rectangle */
+    .lasso-rect {
+        position: absolute;
+        border: 2px dashed var(--accent, #4f8ff7);
+        background: rgba(79, 143, 247, 0.12);
+        pointer-events: none;
+        z-index: 1020;
+        display: none;
+    }
+
+    .lasso-active {
+        cursor: crosshair !important;
+    }
+
+    .lasso-active * {
+        cursor: crosshair !important;
+    }
+
+    .zoom-btn.lasso-mode-on {
+        background: rgba(79, 143, 247, 0.4) !important;
+        border-color: var(--accent) !important;
+        color: #fff !important;
+    }
+
+    /* Left-side annotation legend panel (lightbox) */
+    .lightbox-legend-panel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 220px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        border-right: 1px solid var(--border, #333749);
+        z-index: 1015;
+        overflow-y: auto;
+        padding: 16px 14px;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border, #333749) transparent;
+    }
+
+    .lightbox-legend-panel.open {
+        transform: translateX(0);
+    }
+
+    .lightbox-legend-panel h4 {
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted, #8b8fa3);
+        margin: 0 0 12px;
+        font-weight: 600;
+    }
+
+    .legend-toggle-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 4px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.15s;
+        user-select: none;
+    }
+
+    .legend-toggle-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .legend-toggle-item.disabled {
+        opacity: 0.35;
+    }
+
+    .legend-toggle-check {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 2px solid var(--border, #333749);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+
+    .legend-toggle-item:not(.disabled) .legend-toggle-check {
+        border-color: currentColor;
+    }
+
+    .legend-toggle-swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .legend-toggle-label {
+        font-size: 0.82rem;
+        color: var(--text, #e8e9ec);
+        flex: 1;
+    }
+
+    .legend-toggle-count {
+        font-size: 0.72rem;
+        color: var(--text-muted, #8b8fa3);
+        min-width: 16px;
+        text-align: right;
+    }
+
+    .legend-panel-divider {
+        border: none;
+        border-top: 1px solid var(--border, #333749);
+        margin: 10px 0;
+    }
+
+    .legend-panel-actions {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .legend-panel-actions button {
+        flex: 1;
+        background: none;
+        border: 1px solid var(--border, #333749);
+        color: var(--text-muted, #8b8fa3);
+        padding: 5px 8px;
+        border-radius: 5px;
+        font-size: 0.72rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s;
+    }
+
+    .legend-panel-actions button:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--accent, #4f8ff7);
+        color: var(--text, #e8e9ec);
+    }
+
+    /* Toggle button for legend panel in lightbox */
+    .legend-panel-toggle {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1020;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border, #333749);
+        background: rgba(0, 0, 0, 0.7);
+        color: var(--text, #e8e9ec);
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .legend-panel-toggle:hover {
+        background: rgba(79, 143, 247, 0.3);
+        border-color: var(--accent, #4f8ff7);
+    }
+
+    .legend-panel-toggle.active {
+        background: rgba(79, 143, 247, 0.4);
+        border-color: var(--accent, #4f8ff7);
+        left: 232px;
+    }
+
+    /* Minimap */
+    .minimap {
+        position: absolute;
+        bottom: 80px;
+        left: 20px;
+        width: 140px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        z-index: 1010;
+        background: rgba(0, 0, 0, 0.7);
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: auto;
+    }
+
+    .minimap.visible {
+        opacity: 1;
+    }
+
+    .minimap img {
+        width: 100%;
+        display: block;
+        max-height: none !important;
+        border-radius: 0 !important;
+    }
+
+    .minimap-viewport {
+        position: absolute;
+        border: 2px solid var(--accent, #4f8ff7);
+        background: rgba(79, 143, 247, 0.15);
+        pointer-events: none;
+    }
+
     /* Compliance Upsell Teaser */
     .compliance-upsell {
         display: flex;
@@ -956,6 +1163,16 @@
 
     <!-- Lightbox Viewer (hidden by default) -->
     <div id="lightbox" class="lightbox" style="display:none;" onclick="closeLightbox()">
+        <!-- Left-side annotation legend panel -->
+        <div id="lightbox-legend-panel" class="lightbox-legend-panel" onclick="event.stopPropagation()">
+            <h4>Annotations</h4>
+            <div class="legend-panel-actions">
+                <button onclick="legendShowAll()">Show All</button>
+                <button onclick="legendHideAll()">Hide All</button>
+            </div>
+            <div id="legend-panel-items"></div>
+        </div>
+        <button id="legend-panel-toggle-btn" class="legend-panel-toggle" onclick="event.stopPropagation(); toggleLegendPanel()" title="Toggle annotation legend">☰</button>
         <div class="lightbox-content" onclick="event.stopPropagation()">
             <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
             <button class="lightbox-prev" onclick="event.stopPropagation(); prevPage()">&lsaquo;</button>
@@ -967,11 +1184,19 @@
                 </div>
             </div>
             <button class="lightbox-next" onclick="event.stopPropagation(); nextPage()">&rsaquo;</button>
+            <!-- Lasso selection rectangle (inside lightbox-content so it overlays viewport) -->
+            <div id="lasso-rect" class="lasso-rect"></div>
+            <!-- Minimap (visible when zoomed in) -->
+            <div id="minimap" class="minimap" onclick="event.stopPropagation()">
+                <img id="minimap-img" src="" alt="minimap">
+                <div id="minimap-viewport" class="minimap-viewport"></div>
+            </div>
             <div class="zoom-controls" onclick="event.stopPropagation()">
+                <button class="zoom-btn" id="lasso-btn" onclick="toggleLassoMode()" title="Lasso zoom — draw a rectangle to zoom in">⬚</button>
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">+</button>
                 <div class="zoom-level" id="zoom-level">100%</div>
                 <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">&minus;</button>
-                <button class="zoom-btn" onclick="resetZoom()" title="Reset zoom" style="font-size:0.8rem;">↺</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Fit to screen" style="font-size:0.8rem;">↺</button>
             </div>
             <div class="lightbox-info">
                 <span id="lightbox-page-info"></span>
@@ -1157,6 +1382,65 @@
 
     const SVG_NS = 'http://www.w3.org/2000/svg';
 
+    function resolveCollisions(positions, imgW, imgH) {
+        // Simple iterative collision resolution — push overlapping labels apart
+        const PAD = 4;  // padding between labels
+        const MAX_ITER = 12;
+
+        for (let iter = 0; iter < MAX_ITER; iter++) {
+            let moved = false;
+            for (let i = 0; i < positions.length; i++) {
+                for (let j = i + 1; j < positions.length; j++) {
+                    const a = positions[i];
+                    const b = positions[j];
+
+                    // Check bounding box overlap
+                    const aLeft = a.labelX, aRight = a.labelX + a.textWidth + PAD;
+                    const aTop = a.labelY - a.textHeight, aBottom = a.labelY + PAD;
+                    const bLeft = b.labelX, bRight = b.labelX + b.textWidth + PAD;
+                    const bTop = b.labelY - b.textHeight, bBottom = b.labelY + PAD;
+
+                    if (aLeft < bRight && aRight > bLeft && aTop < bBottom && bTop < aBottom) {
+                        // Overlap detected — push apart vertically
+                        const overlapY = Math.min(aBottom - bTop, bBottom - aTop);
+                        const shift = (overlapY / 2) + PAD;
+
+                        // Move the one further from its target point more
+                        if (a.labelY <= b.labelY) {
+                            a.labelY -= shift;
+                            b.labelY += shift;
+                        } else {
+                            a.labelY += shift;
+                            b.labelY -= shift;
+                        }
+
+                        // Also nudge horizontally if heavily stacked
+                        if (Math.abs(a.labelX - b.labelX) < 20) {
+                            const hShift = Math.min(30, a.textWidth * 0.3);
+                            if (a.labelX <= b.labelX) {
+                                a.labelX -= hShift;
+                                b.labelX += hShift;
+                            } else {
+                                a.labelX += hShift;
+                                b.labelX -= hShift;
+                            }
+                        }
+
+                        // Clamp to image bounds
+                        a.labelX = Math.max(5, Math.min(a.labelX, imgW - a.textWidth - 5));
+                        a.labelY = Math.max(a.textHeight + 5, Math.min(a.labelY, imgH - 5));
+                        b.labelX = Math.max(5, Math.min(b.labelX, imgW - b.textWidth - 5));
+                        b.labelY = Math.max(b.textHeight + 5, Math.min(b.labelY, imgH - 5));
+
+                        moved = true;
+                    }
+                }
+            }
+            if (!moved) break;
+        }
+        return positions;
+    }
+
     function renderAnnotations(imgEl, svgEl, pageNum) {
         if (!svgEl || !imgEl || !imgEl.naturalWidth) return;
 
@@ -1170,14 +1454,22 @@
         const anns = getAnnotationsForPage(pageNum)
             .filter(a => annotationFilter === 'all' || a.type === annotationFilter);
 
-        for (const ann of anns) {
-            renderSingleAnnotation(svgEl, ann, w, h);
+        // Compute all label positions first
+        const positions = anns.map(ann => computeLabelPosition(ann, w, h));
+
+        // Resolve collisions between overlapping labels
+        if (positions.length > 1) {
+            resolveCollisions(positions, w, h);
+        }
+
+        // Render with resolved positions
+        for (let i = 0; i < anns.length; i++) {
+            renderSingleAnnotationAtPosition(svgEl, anns[i], positions[i], w, h);
         }
     }
 
-    function renderSingleAnnotation(svg, ann, imgW, imgH) {
+    function renderSingleAnnotationAtPosition(svg, ann, pos, imgW, imgH) {
         const color = ANNOTATION_COLORS[ann.type] || '#22c55e';
-        const pos = computeLabelPosition(ann, imgW, imgH);
         const labelText = (ann.label || '').substring(0, 50);
 
         const g = document.createElementNS(SVG_NS, 'g');
@@ -1229,6 +1521,12 @@
         g.appendChild(textEl);
 
         svg.appendChild(g);
+    }
+
+    // Backwards-compatible version (used by comparison views)
+    function renderSingleAnnotation(svg, ann, imgW, imgH) {
+        const pos = computeLabelPosition(ann, imgW, imgH);
+        renderSingleAnnotationAtPosition(svg, ann, pos, imgW, imgH);
     }
 
     function renderThumbnailAnnotations(imgEl, pageNum) {
@@ -1389,6 +1687,8 @@
     function closeLightbox() {
         document.getElementById('lightbox').style.display = 'none';
         document.body.style.overflow = '';
+        // Exit lasso mode if active
+        if (lassoMode) toggleLassoMode();
     }
 
     function prevPage() {
@@ -1454,9 +1754,9 @@
         zoomScale = 1;
         panX = 0;
         panY = 0;
-        applyTransform();
+        applyTransform();  // applyTransform is patched to call updateMinimap()
         const viewport = document.getElementById('lightbox-viewport');
-        if (viewport) viewport.style.cursor = 'grab';
+        if (viewport) viewport.style.cursor = lassoMode ? 'crosshair' : 'grab';
     }
 
     function zoomIn() {
@@ -1505,6 +1805,7 @@
 
         // Mouse drag to pan
         viewport.addEventListener('mousedown', function(e) {
+            if (lassoMode) return;  // lasso handles its own mousedown
             if (zoomScale <= 1) return;
             isDragging = true;
             dragStartX = e.clientX;
@@ -1533,6 +1834,7 @@
 
         // Double-click to zoom in / reset
         viewport.addEventListener('dblclick', function(e) {
+            if (lassoMode) return;
             e.preventDefault();
             if (zoomScale > 1.2) {
                 resetZoom();
@@ -1791,7 +2093,17 @@
                 nextPage();
             } else if (e.key === 'Escape') {
                 e.preventDefault();
-                closeLightbox();
+                // Close lasso mode first, then legend panel, then lightbox
+                if (lassoMode) {
+                    toggleLassoMode();
+                } else {
+                    const panel = document.getElementById('lightbox-legend-panel');
+                    if (panel && panel.classList.contains('open')) {
+                        toggleLegendPanel();
+                    } else {
+                        closeLightbox();
+                    }
+                }
             }
         }
     });
@@ -1835,6 +2147,315 @@
             legend.style.display = 'none';
         }
     });
+
+    // ===========================
+    // Lasso Zoom Mode
+    // ===========================
+    let lassoMode = false;
+    let lassoActive = false;
+    let lassoStartX = 0, lassoStartY = 0;
+
+    function toggleLassoMode() {
+        lassoMode = !lassoMode;
+        const btn = document.getElementById('lasso-btn');
+        const viewport = document.getElementById('lightbox-viewport');
+        if (lassoMode) {
+            btn.classList.add('lasso-mode-on');
+            viewport.classList.add('lasso-active');
+            viewport.style.cursor = 'crosshair';
+        } else {
+            btn.classList.remove('lasso-mode-on');
+            viewport.classList.remove('lasso-active');
+            viewport.style.cursor = zoomScale > 1 ? 'grab' : 'grab';
+            // Hide lasso rect if visible
+            const rect = document.getElementById('lasso-rect');
+            if (rect) rect.style.display = 'none';
+        }
+    }
+
+    // Lasso mouse events on the lightbox-content (so rect can extend beyond viewport)
+    (function initLasso() {
+        const content = document.querySelector('.lightbox-content');
+        const viewport = document.getElementById('lightbox-viewport');
+        if (!content || !viewport) return;
+
+        viewport.addEventListener('mousedown', function(e) {
+            if (!lassoMode) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            lassoActive = true;
+            const contentRect = content.getBoundingClientRect();
+            lassoStartX = e.clientX - contentRect.left;
+            lassoStartY = e.clientY - contentRect.top;
+
+            const rect = document.getElementById('lasso-rect');
+            rect.style.left = lassoStartX + 'px';
+            rect.style.top = lassoStartY + 'px';
+            rect.style.width = '0';
+            rect.style.height = '0';
+            rect.style.display = 'block';
+        }, true);
+
+        document.addEventListener('mousemove', function(e) {
+            if (!lassoActive) return;
+            e.preventDefault();
+
+            const contentRect = content.getBoundingClientRect();
+            const curX = e.clientX - contentRect.left;
+            const curY = e.clientY - contentRect.top;
+
+            const rect = document.getElementById('lasso-rect');
+            const x = Math.min(lassoStartX, curX);
+            const y = Math.min(lassoStartY, curY);
+            const w = Math.abs(curX - lassoStartX);
+            const h = Math.abs(curY - lassoStartY);
+
+            rect.style.left = x + 'px';
+            rect.style.top = y + 'px';
+            rect.style.width = w + 'px';
+            rect.style.height = h + 'px';
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (!lassoActive) return;
+            lassoActive = false;
+
+            const rect = document.getElementById('lasso-rect');
+            rect.style.display = 'none';
+
+            const contentRect = content.getBoundingClientRect();
+            const curX = e.clientX - contentRect.left;
+            const curY = e.clientY - contentRect.top;
+
+            const selW = Math.abs(curX - lassoStartX);
+            const selH = Math.abs(curY - lassoStartY);
+
+            // Ignore tiny selections (accidental clicks)
+            if (selW < 20 || selH < 20) return;
+
+            // Calculate selection center relative to viewport
+            const vpRect = viewport.getBoundingClientRect();
+            const selCenterX = Math.min(lassoStartX, curX) + selW / 2 + contentRect.left - vpRect.left;
+            const selCenterY = Math.min(lassoStartY, curY) + selH / 2 + contentRect.top - vpRect.top;
+
+            // Convert selection center from viewport coords to image coords (accounting for current pan/zoom)
+            const imgX = (selCenterX - panX) / zoomScale;
+            const imgY = (selCenterY - panY) / zoomScale;
+
+            // Calculate zoom needed to fit selection in viewport
+            const vpW = viewport.clientWidth;
+            const vpH = viewport.clientHeight;
+            const fitZoom = Math.min(vpW / (selW / zoomScale), vpH / (selH / zoomScale));
+            const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, fitZoom));
+
+            // Set new zoom and pan to center the selected area
+            zoomScale = newZoom;
+            panX = vpW / 2 - imgX * zoomScale;
+            panY = vpH / 2 - imgY * zoomScale;
+
+            clampPan();
+            applyTransform();
+            updateMinimap();
+
+            // Exit lasso mode after zooming
+            toggleLassoMode();
+        });
+    })();
+
+    // ===========================
+    // Minimap
+    // ===========================
+    function updateMinimap() {
+        const minimap = document.getElementById('minimap');
+        const minimapImg = document.getElementById('minimap-img');
+        const minimapVp = document.getElementById('minimap-viewport');
+        const viewport = document.getElementById('lightbox-viewport');
+        const img = document.getElementById('lightbox-img');
+        if (!minimap || !minimapImg || !minimapVp || !viewport || !img) return;
+
+        // Show minimap only when zoomed in
+        if (zoomScale <= 1.1) {
+            minimap.classList.remove('visible');
+            return;
+        }
+        minimap.classList.add('visible');
+
+        // Set minimap image to current page
+        if (minimapImg.src !== img.src) {
+            minimapImg.src = img.src;
+        }
+
+        // Calculate viewport indicator position
+        const imgW = img.clientWidth;
+        const imgH = img.clientHeight;
+        const minimapW = minimap.clientWidth;
+        const minimapH = minimapImg.clientHeight || (minimapW * (imgH / imgW));
+
+        if (minimapH <= 0 || imgW <= 0) return;
+
+        const scale = minimapW / (imgW * zoomScale);
+        const vpW = viewport.clientWidth * scale;
+        const vpH = viewport.clientHeight * scale;
+        const vpX = -panX * scale;
+        const vpY = -panY * scale;
+
+        minimapVp.style.left = Math.max(0, vpX) + 'px';
+        minimapVp.style.top = Math.max(0, vpY) + 'px';
+        minimapVp.style.width = Math.min(minimapW, vpW) + 'px';
+        minimapVp.style.height = Math.min(minimapH, vpH) + 'px';
+    }
+
+    // Hook minimap update into applyTransform
+    (function patchApplyTransform() {
+        const origApplyTransform = applyTransform;
+        applyTransform = function() {
+            origApplyTransform();
+            updateMinimap();
+        };
+    })();
+
+    // ===========================
+    // Left-Side Legend Panel
+    // ===========================
+    // Track per-type visibility (separate from the global annotationsVisible toggle)
+    let typeVisibility = {};
+    (function initTypeVisibility() {
+        const saved = localStorage.getItem('annotationTypeVisibility');
+        if (saved) {
+            try { typeVisibility = JSON.parse(saved); } catch(e) {}
+        }
+        // Default: all types visible
+        for (const type in ANNOTATION_COLORS) {
+            if (!(type in typeVisibility)) typeVisibility[type] = true;
+        }
+    })();
+
+    function saveTypeVisibility() {
+        localStorage.setItem('annotationTypeVisibility', JSON.stringify(typeVisibility));
+    }
+
+    function toggleLegendPanel() {
+        const panel = document.getElementById('lightbox-legend-panel');
+        const btn = document.getElementById('legend-panel-toggle-btn');
+        const isOpen = panel.classList.contains('open');
+        if (isOpen) {
+            panel.classList.remove('open');
+            btn.classList.remove('active');
+        } else {
+            panel.classList.add('open');
+            btn.classList.add('active');
+            buildLegendPanel();
+        }
+    }
+
+    function buildLegendPanel() {
+        const container = document.getElementById('legend-panel-items');
+        if (!container) return;
+
+        // Count annotations per type for current page
+        const anns = getAnnotationsForPage(currentPage);
+        const typeCounts = {};
+        for (const ann of anns) {
+            typeCounts[ann.type] = (typeCounts[ann.type] || 0) + 1;
+        }
+
+        // Count total across all pages
+        const totalCounts = {};
+        for (const ann of (pageAnnotations || [])) {
+            totalCounts[ann.type] = (totalCounts[ann.type] || 0) + 1;
+        }
+
+        let html = '';
+        for (const [type, color] of Object.entries(ANNOTATION_COLORS)) {
+            const label = ANNOTATION_LABELS[type] || type;
+            const count = typeCounts[type] || 0;
+            const total = totalCounts[type] || 0;
+            const isOn = typeVisibility[type] !== false;
+            const disabledClass = isOn ? '' : ' disabled';
+            const checkMark = isOn ? '✓' : '';
+
+            html += '<div class="legend-toggle-item' + disabledClass + '" data-type="' + type + '" onclick="toggleAnnotationType(\'' + type + '\')">' +
+                '<div class="legend-toggle-check" style="color:' + color + ';">' + checkMark + '</div>' +
+                '<span class="legend-toggle-swatch" style="background:' + color + ';"></span>' +
+                '<span class="legend-toggle-label">' + label + '</span>' +
+                '<span class="legend-toggle-count">' + (count > 0 ? count : '') + '</span>' +
+                '</div>';
+        }
+
+        container.innerHTML = html;
+    }
+
+    function toggleAnnotationType(type) {
+        typeVisibility[type] = !typeVisibility[type];
+        saveTypeVisibility();
+        buildLegendPanel();
+        refreshAllAnnotations();
+    }
+
+    function legendShowAll() {
+        for (const type in ANNOTATION_COLORS) {
+            typeVisibility[type] = true;
+        }
+        saveTypeVisibility();
+        buildLegendPanel();
+        refreshAllAnnotations();
+    }
+
+    function legendHideAll() {
+        for (const type in ANNOTATION_COLORS) {
+            typeVisibility[type] = false;
+        }
+        saveTypeVisibility();
+        buildLegendPanel();
+        refreshAllAnnotations();
+    }
+
+    // Patch getAnnotationsForPage to respect per-type visibility
+    const _origGetAnnotationsForPage = getAnnotationsForPage;
+    getAnnotationsForPage = function(pageNum) {
+        return _origGetAnnotationsForPage(pageNum).filter(function(a) {
+            return typeVisibility[a.type] !== false;
+        });
+    };
+
+    // Update legend panel when page changes
+    (function patchUpdateLightbox() {
+        const origUpdateLightbox = updateLightbox;
+        updateLightbox = function() {
+            origUpdateLightbox();
+            // Refresh legend panel if open
+            const panel = document.getElementById('lightbox-legend-panel');
+            if (panel && panel.classList.contains('open')) {
+                buildLegendPanel();
+            }
+        };
+    })();
+
+    // ===========================
+    // Enhanced Keyboard Navigation
+    // ===========================
+    (function patchKeyboard() {
+        // Add zoom keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            const lightbox = document.getElementById('lightbox');
+            if (!lightbox || lightbox.style.display === 'none') return;
+
+            if (e.key === '+' || e.key === '=') {
+                e.preventDefault();
+                zoomIn();
+            } else if (e.key === '-') {
+                e.preventDefault();
+                zoomOut();
+            } else if (e.key === '0') {
+                e.preventDefault();
+                resetZoom();
+            } else if (e.key === 'l' || e.key === 'L') {
+                e.preventDefault();
+                toggleLegendPanel();
+            }
+        });
+    })();
 
     // ===========================
     // Restore Persisted State
