@@ -1212,8 +1212,8 @@
                                 <span class="spinner">Analyzing…</span>
                             </button>
                             <div class="plan-btn-tooltip">
-                                <strong>Complete AI markup</strong><br>
-                                Everything in Compliance Check plus annotations &mdash; EPR issues, code references, dimensions, and hatching patterns marked on your plans. ~1-2 minutes.
+                                <strong>Complete AI markup (all pages)</strong><br>
+                                Analyzes every page with AI vision &mdash; EPR issues, code references, annotations, zoning context, plan checker comments, and sheet consistency scoring. ~3-5 minutes.
                             </div>
                         </div>
                     </div>
@@ -1616,10 +1616,10 @@
         function submitFullAnalysis(btn) {
             _lockPlanButtons(btn);
             document.getElementById('quick-check-hidden').value = '';
-            document.getElementById('analysis-mode-hidden').value = 'sample';
+            document.getElementById('analysis-mode-hidden').value = 'full';
             var loadingMsg = document.querySelector('#analyze-plans-loading p');
             if (loadingMsg) {
-                loadingMsg.textContent = "Running full AI analysis \u2014 this takes 1-2 minutes...";
+                loadingMsg.textContent = "Running full AI analysis on ALL pages \u2014 this may take 3-5 minutes for large plan sets...";
             }
             var form = document.querySelector('form[hx-post="/analyze-plans"]');
             if (form) form.requestSubmit();

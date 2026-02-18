@@ -475,6 +475,138 @@ def _check_annotations(reader: PdfReader) -> CheckResult:
     )
 
 
+def extract_native_pdf_annotations(reader: PdfReader) -> list[dict]:
+    """Extract text-bearing PDF annotations (plan checker comments).
+
+    Reads /Annots from each page and extracts annotations that contain
+    text content (e.g., sticky notes, free text, pop-up comments).
+    Skips form widgets, links, and popup shells.
+
+    Args:
+        reader: An open PdfReader instance.
+
+    Returns:
+        List of dicts with keys: page_number (1-indexed), type, subtype,
+        content, author, x, y (page percentages, top-left origin),
+        creation_date.
+    """
+    SKIP_SUBTYPES = frozenset({"/Widget", "/Link", "/Popup"})
+    annotations: list[dict] = []
+
+    for page_idx, page in enumerate(reader.pages):
+        try:
+            annots_raw = page.get("/Annots")
+            if not annots_raw:
+                continue
+            if hasattr(annots_raw, "get_object"):
+                annots_raw = annots_raw.get_object()
+            if not isinstance(annots_raw, (list, ArrayObject)):
+                continue
+
+            # Page dimensions for coordinate conversion
+            try:
+                box = page.mediabox
+                page_width = float(box.width)
+                page_height = float(box.height)
+            except Exception:
+                page_width, page_height = 612.0, 792.0  # Letter default
+
+            for annot_ref in annots_raw:
+                try:
+                    annot = (
+                        annot_ref.get_object()
+                        if hasattr(annot_ref, "get_object")
+                        else annot_ref
+                    )
+                    if not isinstance(annot, DictionaryObject):
+                        continue
+
+                    subtype = str(annot.get("/Subtype", ""))
+                    if subtype in SKIP_SUBTYPES:
+                        continue
+
+                    # Must have text content
+                    raw_content = annot.get("/Contents")
+                    if raw_content is None:
+                        continue
+                    content = str(raw_content).strip()
+                    if not content:
+                        continue
+
+                    # Position from /Rect [x1, y1, x2, y2] (PDF coords)
+                    rect = annot.get("/Rect")
+                    x_pct, y_pct = 50.0, 50.0
+                    if rect:
+                        try:
+                            if hasattr(rect, "get_object"):
+                                rect = rect.get_object()
+                            coords = [float(v) for v in rect]
+                            cx = (coords[0] + coords[2]) / 2.0
+                            cy = (coords[1] + coords[3]) / 2.0
+                            # PDF origin is bottom-left; convert to top-left %
+                            x_pct = max(0.0, min(100.0, (cx / page_width) * 100.0))
+                            y_pct = max(
+                                0.0,
+                                min(100.0, ((page_height - cy) / page_height) * 100.0),
+                            )
+                        except (TypeError, ValueError, IndexError):
+                            pass
+
+                    author = str(annot.get("/T", "")).strip() or None
+                    creation_date = str(annot.get("/CreationDate", "")).strip() or None
+
+                    annotations.append({
+                        "page_number": page_idx + 1,
+                        "type": "native_annotation",
+                        "subtype": subtype.lstrip("/"),
+                        "content": content,
+                        "author": author,
+                        "x": round(x_pct, 1),
+                        "y": round(y_pct, 1),
+                        "creation_date": creation_date,
+                    })
+                except Exception:
+                    continue
+        except Exception:
+            continue
+
+    return annotations
+
+
+def native_annotations_to_reviewer_notes(
+    native_annotations: list[dict],
+) -> list[dict]:
+    """Convert native PDF annotations to reviewer_note format.
+
+    The returned format is compatible with ``generate_reviewer_responses()``
+    in :mod:`src.vision.epr_checks`.
+
+    Args:
+        native_annotations: Output from :func:`extract_native_pdf_annotations`.
+
+    Returns:
+        List of dicts with keys: type, label, x, y, page_number, anchor,
+        importance, full_content, author, source.
+    """
+    notes: list[dict] = []
+    for ann in native_annotations:
+        content = ann["content"]
+        label = content[:60] + ("..." if len(content) > 60 else "")
+        notes.append({
+            "type": "reviewer_note",
+            "label": label,
+            "x": ann["x"],
+            "y": ann["y"],
+            "page_number": ann["page_number"],
+            "anchor": "top-right",
+            "importance": "high",
+            "full_content": content,
+            "author": ann.get("author"),
+            "source": "native_pdf",
+        })
+    return notes
+
+
 def _check_filename(filename: str) -> CheckResult:
     """EPR-020: Document naming convention."""
     if FILENAME_PATTERN.match(filename):

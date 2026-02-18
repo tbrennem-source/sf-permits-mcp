@@ -14,6 +14,9 @@ import logging
 import os
 import time
 from dataclasses import dataclass
+from io import BytesIO
+
+from pypdf import PdfReader
 
 from src.tools.validate_plans import CheckResult
 from src.vision.client import (
@@ -467,8 +470,81 @@ def _assess_blank_areas(
     )
 
 
+def _normalize_address(addr: str) -> str:
+    """Normalize an address for fuzzy comparison.
+
+    Handles common variations: 'Street' vs 'St', extra whitespace,
+    punctuation, city/state suffixes.
+    """
+    import re as _re
+
+    addr = addr.lower().strip()
+    addr = _re.sub(r"\s+", " ", addr)
+    addr = addr.replace(".", "").replace(",", "")
+    for old, new in {
+        " street": " st", " avenue": " ave", " boulevard": " blvd",
+        " drive": " dr", " lane": " ln", " road": " rd",
+        " place": " pl", " court": " ct", " circle": " cir",
+        " san francisco ca": "", " san francisco": "", " sf": "",
+    }.items():
+        addr = addr.replace(old, new)
+    return addr.strip()
+
+
+def _find_sheet_number_gaps(
+    sheet_numbers: list[str],
+) -> tuple[list[str], list[str]]:
+    """Detect gaps and duplicates in sheet numbering.
+
+    Parses sheet numbers like A1.0, A1.1, A2.0 and groups by prefix.
+    Within each prefix group, checks for sequential gaps and duplicates.
+
+    Returns:
+        (gaps, duplicates) — each a list of descriptive strings.
+    """
+    import re as _re
+
+    gaps: list[str] = []
+    duplicates: list[str] = []
+
+    groups: dict[str, list[tuple[str, float]]] = {}
+    for sn in sheet_numbers:
+        match = _re.match(r"^([A-Za-z]+)([\d.]+)$", sn.strip())
+        if not match:
+            continue
+        prefix = match.group(1).upper()
+        try:
+            num_val = float(match.group(2))
+        except ValueError:
+            continue
+        groups.setdefault(prefix, []).append((sn, num_val))
+
+    for prefix, items in groups.items():
+        nums = [n for _, n in items]
+        seen: set[float] = set()
+        for sn, n in items:
+            if n in seen:
+                duplicates.append(sn)
+            seen.add(n)
+
+        int_parts = sorted(set(int(n) for _, n in items))
+        if len(int_parts) >= 2:
+            for i in range(len(int_parts) - 1):
+                if int_parts[i + 1] - int_parts[i] > 1:
+                    gaps.append(
+                        f"{prefix}{int_parts[i]}.x \u2192 {prefix}{int_parts[i + 1]}.x (gap)"
+                    )
+
+    return gaps, duplicates
+
+
 def _assess_consistency(title_data: list[dict]) -> CheckResult:
-    """EPR-017: 3 consistent items across set (address, firm, numbering)."""
+    """EPR-017: Enhanced consistency checks across the plan set.
+
+    Checks address, firm, stamps, signatures, blank areas, and sheet
+    numbering for consistency across all sampled pages.  Returns a single
+    CheckResult with a percentage-based consistency score.
+    """
     if len(title_data) < 2:
         return CheckResult(
             epr_id="EPR-017",
@@ -478,21 +554,47 @@ def _assess_consistency(title_data: list[dict]) -> CheckResult:
             detail="Not enough pages sampled to assess consistency.",
         )
 
+    issues: list[str] = []
+    info_items: list[str] = []
+    total_checks = 0
+    passed_checks = 0
+
+    # --- 1. Address consistency ---
+    total_checks += 1
     addresses = {
         td.get("project_address", "").strip().lower()
         for td in title_data
         if td.get("project_address")
     }
+    if len(addresses) > 1:
+        normalized = {_normalize_address(a) for a in addresses}
+        if len(normalized) == 1:
+            info_items.append(
+                f"Address variations detected but normalize to same: "
+                f"{', '.join(sorted(addresses))}"
+            )
+            passed_checks += 1
+        else:
+            issues.append(f"Multiple addresses: {', '.join(sorted(addresses))}")
+    elif addresses:
+        passed_checks += 1
+
+    # --- 2. Firm name consistency ---
+    total_checks += 1
     firms = {
         td.get("firm_name", "").strip().lower()
         for td in title_data
         if td.get("firm_name")
     }
-    # Check sheet numbering uses consistent prefix scheme
+    if len(firms) > 1:
+        issues.append(f"Multiple firms: {', '.join(sorted(firms))}")
+    elif firms:
+        passed_checks += 1
+
+    # --- 3. Sheet numbering prefix scheme ---
     numbers = [td.get("sheet_number", "") for td in title_data if td.get("sheet_number")]
-    prefixes = set()
+    prefixes: set[str] = set()
     for num in numbers:
-        # Extract letter prefix (e.g., "A" from "A1.0")
         prefix = ""
         for ch in num:
             if ch.isalpha():
@@ -500,37 +602,95 @@ def _assess_consistency(title_data: list[dict]) -> CheckResult:
             else:
                 break
         if prefix:
-            prefixes.add(prefix)
+            prefixes.add(prefix.upper())
 
-    issues = []
-    if len(addresses) > 1:
-        issues.append(f"Multiple addresses: {', '.join(addresses)}")
-    if len(firms) > 1:
-        issues.append(f"Multiple firms: {', '.join(firms)}")
-    # Multiple prefixes is fine (A, S, M, E are expected) — inconsistency
-    # would be things like mixed naming conventions
+    # --- 4. Stamp consistency ---
+    total_checks += 1
+    has_stamp = [td for td in title_data if td.get("has_professional_stamp")]
+    no_stamp = [td for td in title_data if not td.get("has_professional_stamp")]
+    if has_stamp and no_stamp:
+        missing = [str(td.get("page_number", "?")) for td in no_stamp]
+        issues.append(
+            f"Professional stamp missing on page(s) {', '.join(missing)} "
+            f"but present on {len(has_stamp)} other page(s)"
+        )
+    elif has_stamp:
+        passed_checks += 1
+
+    # --- 5. Signature consistency ---
+    total_checks += 1
+    has_sig = [td for td in title_data if td.get("has_signature")]
+    no_sig = [td for td in title_data if not td.get("has_signature")]
+    if has_sig and no_sig:
+        missing = [str(td.get("page_number", "?")) for td in no_sig]
+        issues.append(
+            f"Signature missing on page(s) {', '.join(missing)} "
+            f"but present on {len(has_sig)} other page(s)"
+        )
+    elif has_sig:
+        passed_checks += 1
+
+    # --- 6. 2x2 blank area consistency ---
+    total_checks += 1
+    has_blank = [td for td in title_data if td.get("has_2x2_blank")]
+    no_blank = [td for td in title_data if not td.get("has_2x2_blank")]
+    if has_blank and no_blank:
+        missing = [str(td.get("page_number", "?")) for td in no_blank]
+        info_items.append(
+            f"2\u00d72 blank area missing on page(s) {', '.join(missing)}"
+        )
+    elif has_blank:
+        passed_checks += 1
+
+    # --- 7. Sheet numbering gaps ---
+    total_checks += 1
+    gaps, dupes = _find_sheet_number_gaps(numbers)
+    if dupes:
+        issues.append(f"Duplicate sheet numbers: {', '.join(dupes)}")
+    elif gaps:
+        info_items.append(f"Possible sheet numbering gaps: {', '.join(gaps)}")
+        passed_checks += 1  # Gaps are informational, not failures
+    else:
+        passed_checks += 1
+
+    # --- Build result ---
+    consistency_pct = int((passed_checks / total_checks) * 100) if total_checks > 0 else 0
 
     if not issues:
+        detail = (
+            f"Consistency score: {consistency_pct}% "
+            f"({passed_checks}/{total_checks} checks passed). "
+            f"Address and firm name are consistent across sampled pages."
+        )
         return CheckResult(
             epr_id="EPR-017",
             rule="3 consistent items across set",
             status="pass",
             severity="recommendation",
-            detail="Address and firm name are consistent across sampled pages.",
+            detail=detail,
             page_details=[
                 f"Address: {next(iter(addresses)) if addresses else 'N/A'}",
                 f"Firm: {next(iter(firms)) if firms else 'N/A'}",
                 f"Sheet prefixes: {', '.join(sorted(prefixes)) if prefixes else 'N/A'}",
-            ],
+            ] + info_items,
         )
 
+    # Fail for address/firm issues, warn for stamp/signature/gap issues
+    is_hard_fail = any(
+        "address" in i.lower() or "firm" in i.lower() for i in issues
+    )
+    detail = (
+        f"Consistency score: {consistency_pct}% "
+        f"({passed_checks}/{total_checks} checks passed). "
+        f"{len(issues)} inconsistency issue(s) found."
+    )
     return CheckResult(
         epr_id="EPR-017",
         rule="3 consistent items across set",
-        status="fail",
+        status="fail" if is_hard_fail else "warn",
         severity="recommendation",
-        detail="Inconsistencies found across sampled pages.",
-        page_details=issues,
+        detail=detail,
+        page_details=issues + info_items,
     )
 
 
@@ -1009,6 +1169,60 @@ async def run_vision_epr_checks(
                 sum(len(a) for a in response_results),
                 int((time.perf_counter() - review_t0) * 1000),
             )
+
+    # ── Stage 4d: Extract native PDF annotations (no API calls) ──
+    native_annotations: list[dict] = []
+    if not is_compliance:
+        try:
+            from src.tools.validate_plans import (
+                extract_native_pdf_annotations,
+                native_annotations_to_reviewer_notes,
+            )
+            native_reader = PdfReader(BytesIO(pdf_bytes))
+            native_annotations = extract_native_pdf_annotations(native_reader)
+            if native_annotations:
+                native_reviewer_notes = native_annotations_to_reviewer_notes(
+                    native_annotations
+                )
+                page_annotations.extend(native_reviewer_notes)
+                logger.info(
+                    "[vision] stage=native_annotations count=%d",
+                    len(native_annotations),
+                )
+        except Exception as e:
+            logger.warning("Native annotation extraction failed: %s", e)
+
+    # ── Stage 4e: AI responses to native PDF reviewer notes ──
+    if native_annotations and not is_compliance:
+        native_notes = [
+            a for a in page_annotations
+            if a.get("type") == "reviewer_note" and a.get("source") == "native_pdf"
+        ]
+        if native_notes:
+            native_t0 = time.perf_counter()
+            native_by_page: dict[int, list[dict]] = {}
+            for note in native_notes:
+                pn = note["page_number"]
+                native_by_page.setdefault(pn, []).append(note)
+
+            native_tasks = []
+            for pn, notes in native_by_page.items():
+                img_idx = pn - 1
+                if img_idx in page_images:
+                    native_tasks.append(
+                        generate_reviewer_responses(page_images[img_idx], notes, usage)
+                    )
+            if native_tasks:
+                native_results = await asyncio.gather(*native_tasks)
+                for ai_anns in native_results:
+                    page_annotations.extend(ai_anns)
+                logger.info(
+                    "[vision] stage=native_reviewer_responses pages=%d "
+                    "ai_annotations=%d duration_ms=%d",
+                    len(native_tasks),
+                    sum(len(a) for a in native_results),
+                    int((time.perf_counter() - native_t0) * 1000),
+                )
 
     # ── Stage 5: Assessment checks (no API calls — instant) ──
     results.append(_assess_address_presence(title_block_data, sample_pages, total_pages))
