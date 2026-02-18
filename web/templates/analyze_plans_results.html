@@ -1656,7 +1656,7 @@
     // ===========================
     function openPageDetail(pageNum) {
         currentPage = pageNum;
-        const extraction = extractions[pageNum];
+        const extraction = extractions[pageNum] || {};
 
         // Update detail card content
         document.getElementById('detail-page-num').textContent = pageNum + 1;
@@ -1702,7 +1702,7 @@
     }
 
     function updateLightbox() {
-        const extraction = extractions[currentPage];
+        const extraction = extractions[currentPage] || {};
         document.getElementById('lightbox-img').src = `/plan-images/${sessionId}/${currentPage}`;
         document.getElementById('lightbox-page-info').textContent =
             `Page ${currentPage + 1} of ${pageCount} — ${extraction.sheet_id || 'No ID'}`;
@@ -1928,7 +1928,7 @@
         rightSelect.innerHTML = '';
 
         for (let i = 0; i < pageCount; i++) {
-            const extraction = extractions[i];
+            const extraction = extractions[i] || {};
             const label = `Page ${i + 1} — ${extraction.sheet_id || 'No ID'}`;
 
             const leftOption = document.createElement('option');
