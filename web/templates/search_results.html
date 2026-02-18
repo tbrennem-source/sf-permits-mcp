@@ -7,6 +7,10 @@
     color: #7ab0ff;
 }
 </style>
+{# Default context vars — callers that don't pass these get safe no-op values #}
+{% set project_context = project_context if project_context is defined else none %}
+{% set violation_counts = violation_counts if violation_counts is defined else none %}
+{% set active_businesses = active_businesses if active_businesses is defined else [] %}
 <div class="result-card search-result-card">
     <div class="search-echo" style="display: flex; justify-content: space-between; align-items: center;">
         <span>{{ query_echo }}</span>
