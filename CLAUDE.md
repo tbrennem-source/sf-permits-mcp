@@ -53,7 +53,7 @@ data/knowledge/         # 4-tier knowledge base (gitignored tier4)
   tier4/                # Full code corpus (Planning Code 12.6MB + BICC 3.6MB)
 scripts/                # CLI tools
   feedback_triage.py    # 3-tier feedback classification + auto-resolve
-tests/                  # 812 tests
+tests/                  # 1,033+ tests
 datasets/               # SODA dataset catalog (22 datasets, 13.3M records)
 docs/                   # Architecture, decisions, contact data analysis
 ```
@@ -171,7 +171,7 @@ python -m src.ingest && python -m src.entities && python -m src.graph && python 
 
 ## Branch
 
-Working branch: `claude/sad-williams` (worktree at `.claude/worktrees/sad-williams`)
+Development uses ephemeral Claude Code worktree branches (auto-created under `.claude/worktrees/`). All work merges to `main` via PR.
 
 ## Deployment Rules
 
