@@ -101,7 +101,7 @@ def get_user_by_email(email: str) -> dict | None:
         "email_verified, is_admin, is_active, "
         "COALESCE(brief_frequency, 'none'), invite_code, "
         "primary_street_number, primary_street_name, "
-        "COALESCE(subscription_tier, 'free') "
+        "COALESCE(subscription_tier, 'free'), voice_style "
         "FROM users WHERE email = %s",
         (email,),
     )
@@ -116,7 +116,7 @@ def get_user_by_id(user_id: int) -> dict | None:
         "email_verified, is_admin, is_active, "
         "COALESCE(brief_frequency, 'none'), invite_code, "
         "primary_street_number, primary_street_name, "
-        "COALESCE(subscription_tier, 'free') "
+        "COALESCE(subscription_tier, 'free'), voice_style "
         "FROM users WHERE user_id = %s",
         (user_id,),
     )
@@ -150,6 +150,7 @@ def _row_to_user(row) -> dict:
         "primary_street_number": row[11] if len(row) > 11 else None,
         "primary_street_name": row[12] if len(row) > 12 else None,
         "subscription_tier": row[13] if len(row) > 13 else "free",
+        "voice_style": row[14] if len(row) > 14 else None,
     }
 
 

@@ -148,7 +148,8 @@ def init_user_schema(conn=None) -> None:
                 invite_code TEXT,
                 primary_street_number TEXT,
                 primary_street_name TEXT,
-                subscription_tier TEXT NOT NULL DEFAULT 'free'
+                subscription_tier TEXT NOT NULL DEFAULT 'free',
+                voice_style TEXT
             )
         """)
         conn.execute("""

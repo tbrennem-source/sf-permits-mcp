@@ -320,6 +320,28 @@
                 </form>
             </div>
 
+            <!-- Voice & Style Preferences -->
+            {% if user.is_admin or user.role in ('admin', 'consultant') %}
+            <div class="card">
+                <h2>Voice &amp; Style</h2>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:12px;">
+                    Tell me how you want AI responses to sound. These instructions apply to every response I generate for you.
+                </p>
+                <form hx-post="/account/voice-style"
+                      hx-target="#voice-status"
+                      hx-swap="innerHTML"
+                      style="display:flex; flex-direction:column; gap:10px;">
+                    <textarea name="voice_style" rows="4"
+                        placeholder="e.g. Be warm and direct. Use bullet points for action items. Start with a one-line summary. Sign off as 'Amy'. Avoid jargon when talking to homeowners..."
+                        style="width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px; font-family:inherit; font-size:0.9rem; resize:vertical;">{{ user.voice_style or '' }}</textarea>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <button type="submit" style="padding:8px 16px; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">Save Style</button>
+                        <span id="voice-status" style="font-size:0.85rem;"></span>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
             <!-- Portfolio Import -->
             <div class="card">
                 <h2>Import Portfolio</h2>

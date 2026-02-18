@@ -1170,7 +1170,7 @@
                             </div>
                         </div>
                         <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
-                            <button type="button" class="btn" id="full-analysis-btn" style="width:100%;"
+                            <button type="button" class="btn btn-outline" id="full-analysis-btn" style="width:100%;"
                                     onclick="submitFullAnalysis(this)">
                                 Full Analysis
                             </button>
@@ -1255,9 +1255,11 @@
                             ccBtn.disabled = false;
                             ccBtn.style.opacity = '';
                         }
-                        // Reset Quick Check button too
+                        // Reset Quick Check button — restore solid blue as default
                         var qcBtn = document.querySelector('#section-analyze-plans button[type="submit"]');
                         if (qcBtn) {
+                            qcBtn.classList.remove('btn-outline');
+                            qcBtn.classList.add('btn');
                             qcBtn.disabled = false;
                             qcBtn.style.opacity = '';
                         }
@@ -1523,8 +1525,17 @@
             [qcBtn, ccBtn, faBtn].forEach(function(b) {
                 if (!b) return;
                 b.disabled = true;
-                if (b !== activeBtn) b.style.opacity = '0.4';
+                if (b !== activeBtn) {
+                    b.style.opacity = '0.4';
+                    // Deselect non-active buttons — swap to outline so only the
+                    // active button appears solid blue
+                    if (b === qcBtn) {
+                        b.classList.remove('btn');
+                        b.classList.add('btn-outline');
+                    }
+                }
             });
+            // Ensure active button shows solid blue
             activeBtn.classList.add('btn-active');
         }
 

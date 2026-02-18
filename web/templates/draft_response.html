@@ -11,13 +11,22 @@
             {{ brand.answer_header }}
             {% endif %}
         </div>
-        <button type="button" onclick="_copyDraft(this)"
-                style="background:none; border:1px solid var(--border); color:var(--accent); padding:6px 14px; border-radius:6px; font-size:0.8rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
-            <span class="copy-label">Copy</span>
-        </button>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" id="draft-edit-btn" onclick="_startEditing()"
+                    style="background:none; border:1px solid var(--border); color:var(--text-muted); padding:6px 14px; border-radius:6px; font-size:0.8rem; cursor:pointer;">
+                Edit
+            </button>
+            <button type="button" onclick="_copyDraft(this)"
+                    style="background:none; border:1px solid var(--border); color:var(--accent); padding:6px 14px; border-radius:6px; font-size:0.8rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                <span class="copy-label">Copy</span>
+            </button>
+        </div>
     </div>
 
-    <div id="draft-content" style="padding:16px; background:var(--surface-2, #252834); border-radius:10px; border:1px solid var(--border);">
+    {# Hidden field stores original AI text for diff comparison #}
+    <input type="hidden" id="ai-draft-original" value="">
+
+    <div id="draft-content" style="padding:16px; background:var(--surface-2, #252834); border-radius:10px; border:1px solid var(--border); transition: border-color 0.2s;">
         {% if ai_response_html is defined and ai_response_html %}
         {# AI-synthesized response — clean, conversational #}
         <div class="ai-response" style="line-height:1.7; font-size:0.95rem;">
@@ -45,6 +54,30 @@
             {% endfor %}
         </div>
         {% endif %}
+    </div>
+
+    {# Editing toolbar — hidden until Edit is clicked #}
+    <div id="draft-edit-toolbar" style="display:none; margin-top:10px; padding:10px 16px; background:var(--surface-2, #252834); border-radius:8px; border:1px solid var(--accent);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:0.82rem; color:var(--text-muted);">
+                Editing — make your changes directly above, then:
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" onclick="_saveDraftEdit()"
+                        class="btn" style="padding:6px 16px; width:auto; font-size:0.82rem;">
+                    Save Changes
+                </button>
+                <button type="button" onclick="_cancelEditing()"
+                        style="background:none; border:1px solid var(--border); color:var(--text-muted); padding:6px 14px; border-radius:6px; font-size:0.82rem; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="button" onclick="_markDraftGood()"
+                        style="background:none; border:1px solid var(--border); color:var(--success, #34d399); padding:6px 14px; border-radius:6px; font-size:0.82rem; cursor:pointer;">
+                    Used as-is &#10003;
+                </button>
+            </div>
+        </div>
+        <div id="edit-confirm" style="margin-top:6px;"></div>
     </div>
 
     {# Collapsible source details #}
@@ -100,6 +133,8 @@
 </div>
 
 <script>
+var _draftEditing = false;
+
 function _copyDraft(btn) {
     var content = document.getElementById('draft-content');
     if (!content) return;
@@ -110,4 +145,129 @@ function _copyDraft(btn) {
         setTimeout(function() { label.textContent = 'Copy'; }, 2000);
     });
 }
+
+function _startEditing() {
+    var content = document.getElementById('draft-content');
+    var toolbar = document.getElementById('draft-edit-toolbar');
+    var editBtn = document.getElementById('draft-edit-btn');
+    var original = document.getElementById('ai-draft-original');
+    if (!content || !toolbar) return;
+
+    // Store original text for diff
+    original.value = content.innerText || content.textContent;
+
+    // Make content editable
+    content.contentEditable = 'true';
+    content.style.borderColor = 'var(--accent)';
+    content.style.outline = 'none';
+    content.focus();
+
+    // Show toolbar, hide edit button
+    toolbar.style.display = 'block';
+    if (editBtn) editBtn.style.display = 'none';
+    _draftEditing = true;
+}
+
+function _cancelEditing() {
+    var content = document.getElementById('draft-content');
+    var toolbar = document.getElementById('draft-edit-toolbar');
+    var editBtn = document.getElementById('draft-edit-btn');
+    if (!content || !toolbar) return;
+
+    content.contentEditable = 'false';
+    content.style.borderColor = 'var(--border)';
+    toolbar.style.display = 'none';
+    if (editBtn) editBtn.style.display = '';
+    _draftEditing = false;
+}
+
+function _saveDraftEdit() {
+    var content = document.getElementById('draft-content');
+    var original = document.getElementById('ai-draft-original');
+    var confirm = document.getElementById('edit-confirm');
+    if (!content || !original) return;
+
+    var editedText = content.innerText || content.textContent;
+    var originalText = original.value;
+
+    // Check if actually changed
+    if (editedText.trim() === originalText.trim()) {
+        _markDraftGood();
+        return;
+    }
+
+    // Submit edit via fetch
+    var formData = new FormData();
+    formData.append('original_query', '{{ query | e }}');
+    formData.append('ai_draft', originalText);
+    formData.append('edited_version', editedText);
+
+    fetch('/feedback/draft-edit', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+        if (confirm) confirm.innerHTML = html;
+        // Exit editing mode
+        content.contentEditable = 'false';
+        content.style.borderColor = 'var(--border)';
+        _draftEditing = false;
+        // Keep toolbar visible to show confirmation
+    })
+    .catch(function(err) {
+        if (confirm) confirm.innerHTML = '<span style="color:var(--error);">Failed to save — try again.</span>';
+    });
+}
+
+function _markDraftGood() {
+    var original = document.getElementById('ai-draft-original');
+    var confirm = document.getElementById('edit-confirm');
+    var content = document.getElementById('draft-content');
+
+    var originalText = original ? original.value : '';
+    // If editing hasn't started, grab current text
+    if (!originalText) {
+        originalText = content ? (content.innerText || content.textContent) : '';
+    }
+
+    var formData = new FormData();
+    formData.append('original_query', '{{ query | e }}');
+    formData.append('ai_draft', originalText);
+
+    fetch('/feedback/draft-good', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
+        // Show toolbar if hidden so confirmation is visible
+        var toolbar = document.getElementById('draft-edit-toolbar');
+        if (toolbar) toolbar.style.display = 'block';
+        if (confirm) confirm.innerHTML = html;
+        // Exit editing mode
+        if (content) {
+            content.contentEditable = 'false';
+            content.style.borderColor = 'var(--border)';
+        }
+        _draftEditing = false;
+        // Hide the edit button and other toolbar buttons
+        var editBtn = document.getElementById('draft-edit-btn');
+        if (editBtn) editBtn.style.display = 'none';
+    })
+    .catch(function() {
+        if (confirm) confirm.innerHTML = '<span style="color:var(--error);">Failed — try again.</span>';
+    });
+}
+
+// Store original text on page load for the "Used as-is" button
+document.addEventListener('DOMContentLoaded', function() {
+    var content = document.getElementById('draft-content');
+    var original = document.getElementById('ai-draft-original');
+    if (content && original && !original.value) {
+        original.value = content.innerText || content.textContent;
+    }
+});
 </script>
