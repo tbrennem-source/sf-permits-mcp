@@ -549,6 +549,58 @@
         margin-top: 32px;
     }
 
+    /* Report status filter chips */
+    .report-filter-bar {
+        display: flex;
+        gap: 8px;
+        margin-top: 32px;
+        margin-bottom: -16px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .report-filter-bar .filter-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-right: 4px;
+    }
+
+    .report-filter-bar .filter-chip {
+        padding: 4px 14px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        background: none;
+        color: var(--text-muted);
+        font-family: inherit;
+        transition: all 0.15s;
+    }
+
+    .report-filter-bar .filter-chip:hover {
+        border-color: var(--accent);
+        color: var(--text);
+    }
+
+    .report-filter-bar .filter-chip.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+
+    .report-filter-bar .filter-chip .chip-count {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        margin-left: 4px;
+    }
+
+    /* Status-specific chip colors when active */
+    .report-filter-bar .filter-chip.active[data-value="fail"] { background: #ef4444; border-color: #ef4444; }
+    .report-filter-bar .filter-chip.active[data-value="warn"] { background: #f59e0b; border-color: #f59e0b; }
+    .report-filter-bar .filter-chip.active[data-value="pass"] { background: #22c55e; border-color: #22c55e; }
+    .report-filter-bar .filter-chip.active[data-value="skip"] { background: #6b7280; border-color: #6b7280; }
+    .report-filter-bar .filter-chip.active[data-value="info"] { background: #3b82f6; border-color: #3b82f6; }
+
     /* Empty state */
     .empty-state {
         text-align: center;
@@ -961,6 +1013,7 @@
         body.printing-report .lightbox,
         body.printing-report .comparison-panel,
         body.printing-report .email-modal,
+        body.printing-report .report-filter-bar,
         body.printing-report #analyze-plans-loading {
             display: none !important;
         }
@@ -1263,6 +1316,29 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Report Status Filters -->
+    <div class="report-filter-bar" id="report-filter-bar" style="display:none;">
+        <span class="filter-label">Filter:</span>
+        <button class="filter-chip active" data-value="all" onclick="toggleReportFilter(this)">
+            All <span class="chip-count"></span>
+        </button>
+        <button class="filter-chip" data-value="fail" onclick="toggleReportFilter(this)">
+            FAIL <span class="chip-count"></span>
+        </button>
+        <button class="filter-chip" data-value="warn" onclick="toggleReportFilter(this)">
+            WARN <span class="chip-count"></span>
+        </button>
+        <button class="filter-chip" data-value="pass" onclick="toggleReportFilter(this)">
+            PASS <span class="chip-count"></span>
+        </button>
+        <button class="filter-chip" data-value="skip" onclick="toggleReportFilter(this)">
+            SKIP <span class="chip-count"></span>
+        </button>
+        <button class="filter-chip" data-value="info" onclick="toggleReportFilter(this)">
+            INFO <span class="chip-count"></span>
+        </button>
+    </div>
 
     <!-- Markdown Report -->
     <div class="markdown-report">
@@ -2471,5 +2547,86 @@
         const filter = document.getElementById('annotation-filter');
         if (filter && annotationFilter !== 'all') filter.value = annotationFilter;
     })();
+
 </script>
 {% endif %}
+
+{# Report status filter JS — runs for both Quick Check (no session_id) and async results #}
+<script>
+// ===========================
+// Report Status Filters
+// ===========================
+(function() {
+    var report = document.querySelector('.markdown-report');
+    if (!report) return;
+
+    // Find all h3 elements matching "STATUS — EPR-ID: Rule"
+    var headings = report.querySelectorAll('h3');
+    if (!headings.length) return;
+
+    var statusPattern = /^(PASS|FAIL|WARN|SKIP|INFO)\s*[—\-]/;
+    var counts = { all: 0, pass: 0, fail: 0, warn: 0, skip: 0, info: 0 };
+
+    headings.forEach(function(h3) {
+        var match = h3.textContent.match(statusPattern);
+        if (!match) return;
+        var status = match[1].toLowerCase();
+
+        // Wrap h3 + its sibling content in a filterable div
+        var wrapper = document.createElement('div');
+        wrapper.className = 'epr-check-item';
+        wrapper.dataset.status = status;
+        h3.parentNode.insertBefore(wrapper, h3);
+        wrapper.appendChild(h3);
+
+        // Move subsequent siblings until next h2 or h3
+        while (wrapper.nextSibling) {
+            var next = wrapper.nextSibling;
+            if (next.nodeType === 1 && (next.tagName === 'H3' || next.tagName === 'H2')) break;
+            wrapper.appendChild(next);
+        }
+
+        counts[status]++;
+        counts.all++;
+    });
+
+    // Update chip counts and show the filter bar
+    var bar = document.getElementById('report-filter-bar');
+    if (bar && counts.all > 0) {
+        bar.style.display = 'flex';
+        bar.querySelectorAll('.filter-chip').forEach(function(chip) {
+            var val = chip.dataset.value;
+            var countSpan = chip.querySelector('.chip-count');
+            if (countSpan && counts[val] !== undefined) {
+                countSpan.textContent = '(' + counts[val] + ')';
+            }
+            // Hide chips with zero count (except "all")
+            if (val !== 'all' && counts[val] === 0) {
+                chip.style.display = 'none';
+            }
+        });
+    }
+})();
+
+var _reportFilter = 'all';
+
+function toggleReportFilter(chip) {
+    var value = chip.dataset.value;
+
+    // Update active state
+    document.querySelectorAll('#report-filter-bar .filter-chip').forEach(function(c) {
+        c.classList.remove('active');
+    });
+    chip.classList.add('active');
+    _reportFilter = value;
+
+    // Show/hide EPR check items
+    document.querySelectorAll('.epr-check-item').forEach(function(item) {
+        if (value === 'all' || item.dataset.status === value) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
