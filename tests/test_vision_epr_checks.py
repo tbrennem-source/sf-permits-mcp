@@ -491,3 +491,84 @@ async def test_run_vision_full_pipeline():
     assert usage.successful_calls == usage.total_calls
     assert usage.failed_calls == 0
     assert usage.estimated_cost_usd > 0
+
+
+@pytest.mark.asyncio
+async def test_run_vision_analyze_all_pages():
+    """analyze_all_pages=True processes every page, not just the sample."""
+    title_data = {
+        "project_address": "100 Main",
+        "sheet_number": "A1",
+        "sheet_name": "PLAN",
+        "firm_name": "Firm",
+        "has_professional_stamp": True,
+        "has_signature": True,
+        "has_2x2_blank": True,
+    }
+    cover_data = {"found_count": True, "stated_count": 5}
+    blank_data = {"has_blank_area": True, "estimated_size": "8.5x11", "location": "upper-right"}
+    hatch_data = {"has_dense_hatching": False, "severity": "none"}
+
+    async def mock_analyze(b64, prompt, system_prompt=None, model=None, max_tokens=2048):
+        if "sheet count" in prompt.lower() or "page count" in prompt.lower():
+            data = cover_data
+        elif "blank" in prompt.lower() and "8.5" in prompt:
+            data = blank_data
+        elif "hatching" in prompt.lower():
+            data = hatch_data
+        elif "annotate" in prompt.lower():
+            data = {"annotations": []}
+        else:
+            data = title_data
+        return VisionResult(success=True, text=json.dumps(data), input_tokens=100, output_tokens=50)
+
+    with patch("src.vision.epr_checks.is_vision_available", return_value=True):
+        with patch("src.vision.epr_checks.pdf_page_to_base64", return_value="fake"):
+            with patch("src.vision.epr_checks.analyze_image", side_effect=mock_analyze):
+                _, extractions, _, usage = await run_vision_epr_checks(
+                    _make_pdf(5), 5, analyze_all_pages=True,
+                )
+
+    # All 5 pages should have extractions (not just the 4 sampled)
+    assert len(extractions) == 5
+
+
+@pytest.mark.asyncio
+async def test_run_vision_sample_pages_default():
+    """Default analyze_all_pages=False uses sample strategy for 10-page PDF."""
+    title_data = {
+        "project_address": "200 Oak",
+        "sheet_number": "S1",
+        "sheet_name": "STRUCTURAL",
+        "firm_name": "Firm",
+        "has_professional_stamp": True,
+        "has_signature": True,
+        "has_2x2_blank": True,
+    }
+    cover_data = {"found_count": True, "stated_count": 10}
+    blank_data = {"has_blank_area": True, "estimated_size": "8.5x11", "location": "upper-right"}
+    hatch_data = {"has_dense_hatching": False, "severity": "none"}
+
+    async def mock_analyze(b64, prompt, system_prompt=None, model=None, max_tokens=2048):
+        if "sheet count" in prompt.lower() or "page count" in prompt.lower():
+            data = cover_data
+        elif "blank" in prompt.lower() and "8.5" in prompt:
+            data = blank_data
+        elif "hatching" in prompt.lower():
+            data = hatch_data
+        elif "annotate" in prompt.lower():
+            data = {"annotations": []}
+        else:
+            data = title_data
+        return VisionResult(success=True, text=json.dumps(data), input_tokens=100, output_tokens=50)
+
+    with patch("src.vision.epr_checks.is_vision_available", return_value=True):
+        with patch("src.vision.epr_checks.pdf_page_to_base64", return_value="fake"):
+            with patch("src.vision.epr_checks.analyze_image", side_effect=mock_analyze):
+                _, extractions, _, _ = await run_vision_epr_checks(
+                    _make_pdf(10), 10, analyze_all_pages=False,
+                )
+
+    # Sample of 10 pages = 5 pages (cover, 1, 3, 5, 8)
+    assert len(extractions) < 10
+    assert len(extractions) == 5

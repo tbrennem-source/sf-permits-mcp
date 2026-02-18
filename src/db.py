@@ -147,7 +147,8 @@ def init_user_schema(conn=None) -> None:
                 last_brief_sent_at TIMESTAMP,
                 invite_code TEXT,
                 primary_street_number TEXT,
-                primary_street_name TEXT
+                primary_street_name TEXT,
+                subscription_tier TEXT NOT NULL DEFAULT 'free'
             )
         """)
         conn.execute("""

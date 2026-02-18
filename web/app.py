@@ -326,6 +326,11 @@ def _run_startup_migrations():
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS vision_usage_json TEXT")
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS gallery_duration_ms INTEGER")
 
+        # Billing tier plumbing (Free/Pro)
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier TEXT DEFAULT 'free'")
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS analysis_mode TEXT DEFAULT 'sample'")
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS pages_analyzed INTEGER")
+
         cur.close()
         conn.close()
         logging.getLogger(__name__).info("Startup migrations complete")
@@ -942,6 +947,7 @@ def analyze_plans_route():
     is_addendum = request.form.get("is_addendum") == "on"
     property_address = request.form.get("property_address", "").strip() or None
     permit_number_input = request.form.get("permit_number", "").strip() or None
+    analyze_all_pages = request.form.get("analyze_all_pages") == "on"
 
     try:
         pdf_bytes = uploaded.read()
@@ -963,8 +969,13 @@ def analyze_plans_route():
 
     # ── Full Analysis always uses background worker (vision API calls take minutes) ──
     if not quick_check:
+        from web.auth import get_user_by_id
+        from web.billing import resolve_analysis_mode
         from web.plan_jobs import create_job
         from web.plan_worker import submit_job
+
+        user = get_user_by_id(user_id) if user_id else None
+        analysis_mode = resolve_analysis_mode(user, analyze_all_pages)
 
         job_id = create_job(
             user_id=user_id,
@@ -978,6 +989,7 @@ def analyze_plans_route():
             is_addendum=is_addendum,
             quick_check=False,
             is_async=True,
+            analysis_mode=analysis_mode,
         )
         submit_job(job_id)
 

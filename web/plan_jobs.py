@@ -32,6 +32,7 @@ def create_job(
     is_addendum: bool = False,
     quick_check: bool = False,
     is_async: bool = False,
+    analysis_mode: str = "sample",
 ) -> str:
     """Create a new plan analysis job.
 
@@ -47,6 +48,7 @@ def create_job(
         is_addendum: Whether this is a site permit addendum
         quick_check: Whether this is metadata-only (no vision)
         is_async: Whether this job runs in background
+        analysis_mode: 'sample' (free tier) or 'full' (pro tier, all pages)
 
     Returns:
         job_id (str): Unique job identifier
@@ -63,8 +65,9 @@ def create_job(
                     "INSERT INTO plan_analysis_jobs "
                     "(job_id, user_id, filename, file_size_mb, pdf_data, "
                     "property_address, permit_number, address_source, permit_source, "
-                    "project_description, permit_type, is_addendum, quick_check, is_async) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "project_description, permit_type, is_addendum, quick_check, is_async, "
+                    "analysis_mode) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         job_id,
                         user_id,
@@ -80,6 +83,7 @@ def create_job(
                         is_addendum,
                         quick_check,
                         is_async,
+                        analysis_mode,
                     ),
                 )
             conn.commit()
@@ -90,8 +94,9 @@ def create_job(
             "INSERT INTO plan_analysis_jobs "
             "(job_id, user_id, filename, file_size_mb, pdf_data, "
             "property_address, permit_number, address_source, permit_source, "
-            "project_description, permit_type, is_addendum, quick_check, is_async) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "project_description, permit_type, is_addendum, quick_check, is_async, "
+            "analysis_mode) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 job_id,
                 user_id,
@@ -107,6 +112,7 @@ def create_job(
                 is_addendum,
                 quick_check,
                 is_async,
+                analysis_mode,
             ),
         )
 
@@ -130,7 +136,8 @@ def get_job(job_id: str) -> dict | None:
         "property_address, permit_number, address_source, permit_source, "
         "created_at, started_at, completed_at, email_sent, "
         "progress_stage, progress_detail, "
-        "vision_usage_json, gallery_duration_ms "
+        "vision_usage_json, gallery_duration_ms, "
+        "analysis_mode, pages_analyzed "
         "FROM plan_analysis_jobs WHERE job_id = %s",
         (job_id,),
     )
@@ -163,6 +170,8 @@ def get_job(job_id: str) -> dict | None:
         "progress_detail": row[22],
         "vision_usage_json": row[23],
         "gallery_duration_ms": row[24],
+        "analysis_mode": row[25],
+        "pages_analyzed": row[26],
     }
 
 

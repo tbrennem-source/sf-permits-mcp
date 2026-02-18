@@ -477,3 +477,18 @@ async def test_page_extractions_structure():
         assert first["architect_name"] == "Jane Smith PE"
     if "date" in first:
         assert first["date"] == "2024-02-15"
+
+
+@pytest.mark.asyncio
+async def test_analyze_plans_accepts_analyze_all_pages():
+    """analyze_all_pages parameter is accepted and passed through."""
+    with patch("src.vision.client.is_vision_available", return_value=False):
+        # Should work without error — no vision so analyze_all_pages has
+        # no visible effect, but we verify the parameter is accepted
+        result = await analyze_plans(
+            _make_pdf(3), "allpages.pdf",
+            analyze_all_pages=True,
+        )
+
+    assert isinstance(result, str)
+    assert "# Plan Set Analysis Report" in result

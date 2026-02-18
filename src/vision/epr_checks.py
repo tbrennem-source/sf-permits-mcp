@@ -716,12 +716,15 @@ async def extract_page_annotations(
 async def run_vision_epr_checks(
     pdf_bytes: bytes,
     total_pages: int,
+    analyze_all_pages: bool = False,
 ) -> tuple[list[CheckResult], list[dict], list[dict], VisionUsageSummary]:
     """Run all vision-based EPR checks on a PDF plan set.
 
     Args:
         pdf_bytes: Raw PDF bytes.
         total_pages: Total page count (from metadata checks).
+        analyze_all_pages: If True, analyze every page instead of sampling.
+            Pro tier feature — free tier always uses sampling.
 
     Returns:
         Tuple of (check_results, page_extractions, page_annotations, usage) where
@@ -757,8 +760,11 @@ async def run_vision_epr_checks(
     # EPR-012: 8.5x11 blank area on cover
     results.append(await _check_cover_blank_area(cover_b64, usage))
 
-    # 2. Sample interior pages for title block checks
-    sample_pages = _select_sample_pages(total_pages)
+    # 2. Select pages for title block checks (sample or all)
+    if analyze_all_pages:
+        sample_pages = list(range(total_pages))
+    else:
+        sample_pages = _select_sample_pages(total_pages)
 
     title_block_data: list[dict] = []
     for page_num in sample_pages:

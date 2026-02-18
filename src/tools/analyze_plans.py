@@ -39,6 +39,7 @@ async def analyze_plans(
     project_description: str | None = None,
     permit_type: str | None = None,
     return_structured: bool = False,
+    analyze_all_pages: bool = False,
 ) -> str | tuple[str, list[dict], list[dict], "VisionUsageSummary"]:
     """Analyze a PDF plan set with AI vision and EPR compliance checking.
 
@@ -132,7 +133,10 @@ async def analyze_plans(
 
             logger.info("Running vision analysis on %s (%d pages)", filename, page_count)
             vision_results, page_extractions, page_annotations, vision_usage = (
-                await run_vision_epr_checks(pdf_bytes, page_count)
+                await run_vision_epr_checks(
+                    pdf_bytes, page_count,
+                    analyze_all_pages=analyze_all_pages,
+                )
             )
             logger.info(
                 "Vision analysis complete: %d checks, %d page extractions, %d annotations",
