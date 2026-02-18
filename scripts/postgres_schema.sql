@@ -144,6 +144,112 @@ CREATE TABLE IF NOT EXISTS inspections (
 CREATE INDEX IF NOT EXISTS idx_inspections_ref ON inspections(reference_number);
 CREATE INDEX IF NOT EXISTS idx_inspections_inspector ON inspections(inspector);
 
+-- Addenda (3.9M records — permit review routing steps)
+CREATE TABLE IF NOT EXISTS addenda (
+    id                  INTEGER PRIMARY KEY,
+    application_number  TEXT NOT NULL,
+    addenda_number      TEXT,
+    step                TEXT,
+    station             TEXT,
+    arrive              TEXT,
+    assign_date         TEXT,
+    start_date          TEXT,
+    finish_date         TEXT,
+    approved_date       TEXT,
+    plan_checked_by     TEXT,
+    addenda_status      TEXT,
+    department          TEXT,
+    data_as_of          TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_addenda_app ON addenda(application_number);
+CREATE INDEX IF NOT EXISTS idx_addenda_dept ON addenda(department);
+CREATE INDEX IF NOT EXISTS idx_addenda_status ON addenda(addenda_status);
+CREATE INDEX IF NOT EXISTS idx_addenda_checker ON addenda(plan_checked_by);
+
+-- Violations (509K records — Notices of Violation)
+CREATE TABLE IF NOT EXISTS violations (
+    id                      INTEGER PRIMARY KEY,
+    complaint_number        TEXT,
+    item_sequence_number    TEXT,
+    date_filed              TEXT,
+    block                   TEXT,
+    lot                     TEXT,
+    street_number           TEXT,
+    street_name             TEXT,
+    street_suffix           TEXT,
+    unit                    TEXT,
+    status                  TEXT,
+    receiving_division      TEXT,
+    assigned_division       TEXT,
+    nov_category_description TEXT,
+    item                    TEXT,
+    nov_item_description    TEXT,
+    neighborhood            TEXT,
+    supervisor_district     TEXT,
+    zipcode                 TEXT,
+    data_as_of              TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_violations_complaint ON violations(complaint_number);
+CREATE INDEX IF NOT EXISTS idx_violations_block_lot ON violations(block, lot);
+CREATE INDEX IF NOT EXISTS idx_violations_status ON violations(status);
+CREATE INDEX IF NOT EXISTS idx_violations_date ON violations(date_filed);
+
+-- Complaints (326K records — DBI Complaints)
+CREATE TABLE IF NOT EXISTS complaints (
+    id                      INTEGER PRIMARY KEY,
+    complaint_number        TEXT,
+    date_filed              TEXT,
+    date_abated             TEXT,
+    block                   TEXT,
+    lot                     TEXT,
+    parcel_number           TEXT,
+    street_number           TEXT,
+    street_name             TEXT,
+    street_suffix           TEXT,
+    unit                    TEXT,
+    zip_code                TEXT,
+    complaint_description   TEXT,
+    status                  TEXT,
+    nov_type                TEXT,
+    receiving_division      TEXT,
+    assigned_division       TEXT,
+    data_as_of              TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_complaints_number ON complaints(complaint_number);
+CREATE INDEX IF NOT EXISTS idx_complaints_block_lot ON complaints(block, lot);
+CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status);
+CREATE INDEX IF NOT EXISTS idx_complaints_date ON complaints(date_filed);
+
+-- Businesses (354K records — Registered Business Locations)
+CREATE TABLE IF NOT EXISTS businesses (
+    id                      INTEGER PRIMARY KEY,
+    certificate_number      TEXT,
+    ttxid                   TEXT,
+    ownership_name          TEXT,
+    dba_name                TEXT,
+    full_business_address   TEXT,
+    city                    TEXT,
+    state                   TEXT,
+    business_zip            TEXT,
+    dba_start_date          TEXT,
+    dba_end_date            TEXT,
+    location_start_date     TEXT,
+    location_end_date       TEXT,
+    parking_tax             TEXT,
+    transient_occupancy_tax TEXT,
+    data_as_of              TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_businesses_ownership ON businesses(ownership_name);
+CREATE INDEX IF NOT EXISTS idx_businesses_dba ON businesses(dba_name);
+CREATE INDEX IF NOT EXISTS idx_businesses_zip ON businesses(business_zip);
+CREATE INDEX IF NOT EXISTS idx_businesses_cert ON businesses(certificate_number);
+CREATE INDEX IF NOT EXISTS idx_businesses_ownership_trgm ON businesses USING gin(ownership_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_businesses_dba_trgm ON businesses USING gin(dba_name gin_trgm_ops);
+
 -- Ingest log (metadata)
 CREATE TABLE IF NOT EXISTS ingest_log (
     dataset_id      TEXT PRIMARY KEY,

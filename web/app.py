@@ -3995,6 +3995,7 @@ def cron_migrate_data():
     ALLOWED_TABLES = {
         "permits", "contacts", "entities", "relationships",
         "inspections", "timeline_stats", "ingest_log",
+        "addenda", "violations", "complaints", "businesses",
     }
 
     data = request.get_json(force=True)
