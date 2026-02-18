@@ -98,16 +98,30 @@ The app's `DATABASE_URL` points to `pgvector-db.railway.internal:5432` — **onl
 - RAG: `knowledge_chunks` (pgvector embeddings, ~624 chunks)
 - Note: bulk permit/entity/relationship data is NOT in Postgres — that's in local DuckDB
 
+### Deploying to Production
+
+**IMPORTANT**: GitHub auto-deploy may not be configured. Pushing to `main` does NOT reliably trigger a Railway build. After merging to main and pushing, you MUST deploy explicitly:
+
+```bash
+# Deploy from local (builds fresh from current directory):
+cd /Users/timbrenneman/AIprojects/sf-permits-mcp && railway service link sfpermits-ai && railway up
+
+# Verify deploy succeeded:
+railway deployment list                 # Check status
+curl -s https://sfpermits-ai-production.up.railway.app/health | python3 -m json.tool
+```
+
+**DO NOT** use `railway redeploy --yes` — it restarts the old image without rebuilding from new code.
+
 ### Interacting with Railway
 
 ```bash
-# CLI basics (must be in project root)
+# CLI basics (must be in project root: /Users/timbrenneman/AIprojects/sf-permits-mcp)
 railway status                          # Current project/service/env
 railway service link <service-name>     # Switch active service context
 railway variable list                   # Show env vars for linked service
 railway logs -n 100                     # Recent logs for linked service
 railway deployment list                 # Recent deployments
-railway redeploy --yes                  # Trigger redeploy
 
 # You CANNOT connect to pgvector-db from local — it's internal-only.
 # To check prod DB state, use the /health endpoint:
