@@ -557,6 +557,22 @@
             color: #fff;
         }
 
+        /* Pill button — small modifier actions */
+        .btn-pill {
+            display: inline-flex; align-items: center;
+            padding: 4px 12px; border-radius: 20px;
+            font-size: 0.78rem; font-weight: 500;
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-muted); cursor: pointer;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-pill:hover {
+            border-color: var(--accent); color: var(--accent);
+        }
+        .btn-pill.htmx-request {
+            opacity: 0.6; pointer-events: none;
+        }
+
         /* Plan analysis button tooltips */
         .plan-btn-wrap {
             position: relative;

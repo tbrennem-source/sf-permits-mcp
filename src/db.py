@@ -241,6 +241,7 @@ def init_user_schema(conn=None) -> None:
         for alter_stmt in [
             "ALTER TABLE feedback ADD COLUMN screenshot_data TEXT",
             "ALTER TABLE watch_items ADD COLUMN tags TEXT DEFAULT ''",
+            "ALTER TABLE users ADD COLUMN voice_style TEXT",
         ]:
             try:
                 conn.execute(alter_stmt)
@@ -359,6 +360,32 @@ def init_user_schema(conn=None) -> None:
             "CREATE INDEX IF NOT EXISTS idx_plan_jobs_permit ON plan_analysis_jobs (permit_number)",
             "CREATE INDEX IF NOT EXISTS idx_plan_jobs_address ON plan_analysis_jobs (property_address)",
             "CREATE INDEX IF NOT EXISTS idx_plan_jobs_created ON plan_analysis_jobs (created_at)",
+        ]:
+            try:
+                conn.execute(stmt)
+            except Exception:
+                pass
+
+        # Voice calibration — per-scenario style preferences
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS voice_calibrations (
+                calibration_id  INTEGER PRIMARY KEY,
+                user_id         INTEGER NOT NULL,
+                scenario_key    TEXT NOT NULL,
+                audience        TEXT NOT NULL,
+                situation       TEXT NOT NULL,
+                template_text   TEXT NOT NULL,
+                user_text       TEXT,
+                style_notes     TEXT,
+                is_calibrated   BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, scenario_key)
+            )
+        """)
+        for stmt in [
+            "CREATE INDEX IF NOT EXISTS idx_voicecal_user ON voice_calibrations (user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_voicecal_scenario ON voice_calibrations (scenario_key)",
         ]:
             try:
                 conn.execute(stmt)

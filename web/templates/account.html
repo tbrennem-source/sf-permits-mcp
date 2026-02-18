@@ -339,6 +339,19 @@
                         <span id="voice-status" style="font-size:0.85rem;"></span>
                     </div>
                 </form>
+                <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+                    <a href="/admin/voice-calibration"
+                       style="color:var(--accent); text-decoration:none; font-size:0.88rem; font-weight:500;">
+                        Voice Calibration &rarr;
+                    </a>
+                    <span style="color:var(--text-muted); font-size:0.82rem; margin-left:8px;">
+                        {% if cal_stats %}
+                        {{ cal_stats.calibrated }} of {{ cal_stats.total }} scenarios calibrated
+                        {% else %}
+                        Teach me your voice for different situations
+                        {% endif %}
+                    </span>
+                </div>
             </div>
             {% endif %}
 

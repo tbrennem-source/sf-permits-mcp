@@ -127,6 +127,33 @@
     </div>
     {% endif %}
 
+    {# Quick-action modifier buttons — re-generate with a specific overlay #}
+    {% if is_expert and ai_response_html is defined and ai_response_html %}
+    <div style="display:flex; gap:6px; margin-top:14px; flex-wrap:wrap; align-items:center;">
+        <span style="font-size:0.78rem; color:var(--text-muted); margin-right:2px;">Re-generate:</span>
+        <button type="button" class="btn-pill"
+                hx-post="/ask" hx-target="#results" hx-swap="innerHTML"
+                hx-vals='{"query":"{{ query | e }}","modifier":"get_meeting"}'>
+            Get a meeting
+        </button>
+        <button type="button" class="btn-pill"
+                hx-post="/ask" hx-target="#results" hx-swap="innerHTML"
+                hx-vals='{"query":"{{ query | e }}","modifier":"cite_sources"}'>
+            Cite sources
+        </button>
+        <button type="button" class="btn-pill"
+                hx-post="/ask" hx-target="#results" hx-swap="innerHTML"
+                hx-vals='{"query":"{{ query | e }}","modifier":"shorter"}'>
+            Shorter
+        </button>
+        <button type="button" class="btn-pill"
+                hx-post="/ask" hx-target="#results" hx-swap="innerHTML"
+                hx-vals='{"query":"{{ query | e }}","modifier":"more_detail"}'>
+            More detail
+        </button>
+    </div>
+    {% endif %}
+
     <div style="margin-top:16px; font-size:0.85rem; color:var(--text-muted);">
         Have a follow-up question? Just type it in the search box above.
     </div>
