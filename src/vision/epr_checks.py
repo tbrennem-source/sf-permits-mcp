@@ -651,7 +651,7 @@ VALID_ANCHORS = frozenset({
     "top-left", "top-right", "bottom-left", "bottom-right",
 })
 
-MAX_ANNOTATIONS_PER_PAGE = 12
+MAX_ANNOTATIONS_PER_PAGE = 15
 
 
 async def extract_page_annotations(
