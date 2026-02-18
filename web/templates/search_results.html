@@ -44,7 +44,8 @@
 
             <!-- Analyze Project (prefill with real permit data if available) -->
             {% if street_address %}
-            <form method="POST" action="/ask" style="display:inline;margin:0;">
+            <form hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
+                  hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="analyze" value="1">
                 {% if project_context %}
                 <input type="hidden" name="q" value="{{ project_context.description }}">
@@ -62,7 +63,8 @@
 
             <!-- Check Violations — 3 visual states based on data availability -->
             {% if street_address %}
-            <form method="POST" action="/ask" style="display:inline;margin:0;">
+            <form hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
+                  hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="q" value="Are there any violations at {{ street_address }}?">
                 <button type="submit" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;
                     {% if violation_counts and violation_counts.total > 0 %}
@@ -86,7 +88,8 @@
 
             <!-- Who's Here — only shown when businesses data is available -->
             {% if active_businesses and street_address %}
-            <form method="POST" action="/ask" style="display:inline;margin:0;">
+            <form hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
+                  hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="q" value="Who is operating at {{ street_address }}?">
                 <button type="submit"
                     style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
