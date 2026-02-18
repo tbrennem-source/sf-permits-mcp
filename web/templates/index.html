@@ -1699,6 +1699,14 @@
 
         // Render on page load
         _renderRecentSearches();
+
+        // Auto-reveal section from URL hash (e.g., /#plan-upload)
+        (function() {
+            var hash = window.location.hash;
+            if (hash === '#plan-upload' || hash === '#analyze-plans') {
+                revealSection('analyze-plans');
+            }
+        })();
     </script>
     {% include 'fragments/feedback_widget.html' %}
 </body>

@@ -199,10 +199,70 @@
         align-items: center;
     }
 
+    .lightbox-viewport {
+        overflow: hidden;
+        max-width: 90vw;
+        max-height: 80vh;
+        cursor: grab;
+        border-radius: 8px;
+        position: relative;
+        touch-action: none;
+    }
+
+    .lightbox-viewport.dragging {
+        cursor: grabbing;
+    }
+
+    .lightbox-viewport .annotated-image {
+        transform-origin: 0 0;
+        transition: none;
+        will-change: transform;
+    }
+
     .lightbox-content img {
         max-width: 100%;
         max-height: 80vh;
         border-radius: 8px;
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
+    .zoom-controls {
+        position: absolute;
+        bottom: 80px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 1010;
+    }
+
+    .zoom-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.7);
+        color: var(--text);
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .zoom-btn:hover {
+        background: rgba(79, 143, 247, 0.3);
+        border-color: var(--accent);
+    }
+
+    .zoom-level {
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        user-select: none;
     }
 
     .lightbox-close {
@@ -833,9 +893,9 @@
             {% else %}
             AI annotations are available for your plan set.
             {% endif %}
-            Run a <strong>Full Analysis</strong> to get detailed markups on every sampled sheet — including EPR issues, code references, dimensions, and scope indicators.
+            Upload again and choose <strong>Full Analysis</strong> to get detailed markups on every sampled sheet — including EPR issues, code references, dimensions, and scope indicators.
         </div>
-        <a href="/" class="upsell-cta">Run Full Analysis &rarr;</a>
+        <a href="/#plan-upload" class="upsell-cta">Upload for Full Analysis &rarr;</a>
     </div>
     {% endif %}
 
@@ -897,12 +957,20 @@
         <div class="lightbox-content" onclick="event.stopPropagation()">
             <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
             <button class="lightbox-prev" onclick="event.stopPropagation(); prevPage()">&lsaquo;</button>
-            <div class="annotated-image" style="max-width:100%;max-height:80vh;">
-                <img id="lightbox-img" src="" alt="Full screen view"
-                     onload="renderAnnotations(this, document.getElementById('lightbox-annotations'), currentPage)">
-                <svg id="lightbox-annotations" class="annotation-layer" role="img" aria-label="Lightbox annotations"></svg>
+            <div id="lightbox-viewport" class="lightbox-viewport">
+                <div class="annotated-image" id="lightbox-zoomable" style="max-width:100%;max-height:80vh;">
+                    <img id="lightbox-img" src="" alt="Full screen view"
+                         onload="renderAnnotations(this, document.getElementById('lightbox-annotations'), currentPage); resetZoom();">
+                    <svg id="lightbox-annotations" class="annotation-layer" role="img" aria-label="Lightbox annotations"></svg>
+                </div>
             </div>
             <button class="lightbox-next" onclick="event.stopPropagation(); nextPage()">&rsaquo;</button>
+            <div class="zoom-controls" onclick="event.stopPropagation()">
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">+</button>
+                <div class="zoom-level" id="zoom-level">100%</div>
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">&minus;</button>
+                <button class="zoom-btn" onclick="resetZoom()" title="Reset zoom" style="font-size:0.8rem;">↺</button>
+            </div>
             <div class="lightbox-info">
                 <span id="lightbox-page-info"></span>
                 <div class="lightbox-actions">
@@ -1306,7 +1374,186 @@
             document.querySelector('.lightbox-prev').style.display = 'none';
             document.querySelector('.lightbox-next').style.display = 'none';
         }
+        resetZoom();
     }
+
+    // ===========================
+    // Lightbox Zoom & Pan
+    // ===========================
+    let zoomScale = 1;
+    const ZOOM_MIN = 1;
+    const ZOOM_MAX = 6;
+    const ZOOM_STEP = 0.3;
+    let panX = 0, panY = 0;
+    let isDragging = false;
+    let dragStartX = 0, dragStartY = 0;
+    let panStartX = 0, panStartY = 0;
+
+    function applyTransform() {
+        const el = document.getElementById('lightbox-zoomable');
+        if (!el) return;
+        el.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+        document.getElementById('zoom-level').textContent = Math.round(zoomScale * 100) + '%';
+    }
+
+    function clampPan() {
+        const viewport = document.getElementById('lightbox-viewport');
+        const el = document.getElementById('lightbox-zoomable');
+        if (!viewport || !el) return;
+        const vw = viewport.clientWidth;
+        const vh = viewport.clientHeight;
+        const img = document.getElementById('lightbox-img');
+        const iw = (img ? img.clientWidth : vw) * zoomScale;
+        const ih = (img ? img.clientHeight : vh) * zoomScale;
+        // Only allow pan if zoomed content is larger than viewport
+        if (iw <= vw) { panX = 0; }
+        else { panX = Math.min(0, Math.max(vw - iw, panX)); }
+        if (ih <= vh) { panY = 0; }
+        else { panY = Math.min(0, Math.max(vh - ih, panY)); }
+    }
+
+    function resetZoom() {
+        zoomScale = 1;
+        panX = 0;
+        panY = 0;
+        applyTransform();
+        const viewport = document.getElementById('lightbox-viewport');
+        if (viewport) viewport.style.cursor = 'grab';
+    }
+
+    function zoomIn() {
+        zoomScale = Math.min(ZOOM_MAX, zoomScale + ZOOM_STEP);
+        clampPan();
+        applyTransform();
+    }
+
+    function zoomOut() {
+        zoomScale = Math.max(ZOOM_MIN, zoomScale - ZOOM_STEP);
+        clampPan();
+        applyTransform();
+    }
+
+    function zoomAtPoint(delta, clientX, clientY) {
+        const viewport = document.getElementById('lightbox-viewport');
+        if (!viewport) return;
+        const rect = viewport.getBoundingClientRect();
+        // Mouse position relative to viewport
+        const mx = clientX - rect.left;
+        const my = clientY - rect.top;
+
+        const oldScale = zoomScale;
+        zoomScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomScale + delta));
+
+        // Adjust pan so the point under the cursor stays fixed
+        const ratio = zoomScale / oldScale;
+        panX = mx - ratio * (mx - panX);
+        panY = my - ratio * (my - panY);
+
+        clampPan();
+        applyTransform();
+        viewport.style.cursor = zoomScale > 1 ? 'grab' : 'grab';
+    }
+
+    // Wheel zoom
+    (function() {
+        const viewport = document.getElementById('lightbox-viewport');
+        if (!viewport) return;
+
+        viewport.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
+            zoomAtPoint(delta, e.clientX, e.clientY);
+        }, { passive: false });
+
+        // Mouse drag to pan
+        viewport.addEventListener('mousedown', function(e) {
+            if (zoomScale <= 1) return;
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            panStartX = panX;
+            panStartY = panY;
+            viewport.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            panX = panStartX + (e.clientX - dragStartX);
+            panY = panStartY + (e.clientY - dragStartY);
+            clampPan();
+            applyTransform();
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                const vp = document.getElementById('lightbox-viewport');
+                if (vp) vp.classList.remove('dragging');
+            }
+        });
+
+        // Double-click to zoom in / reset
+        viewport.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+            if (zoomScale > 1.2) {
+                resetZoom();
+            } else {
+                zoomAtPoint(1.5, e.clientX, e.clientY);
+            }
+        });
+
+        // Touch pinch-to-zoom
+        let lastTouchDist = 0;
+        let lastTouchMidX = 0, lastTouchMidY = 0;
+
+        viewport.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 2) {
+                lastTouchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                lastTouchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                lastTouchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                e.preventDefault();
+            } else if (e.touches.length === 1 && zoomScale > 1) {
+                isDragging = true;
+                dragStartX = e.touches[0].clientX;
+                dragStartY = e.touches[0].clientY;
+                panStartX = panX;
+                panStartY = panY;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchmove', function(e) {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const delta = (dist - lastTouchDist) * 0.008;
+                zoomAtPoint(delta, midX, midY);
+                lastTouchDist = dist;
+                lastTouchMidX = midX;
+                lastTouchMidY = midY;
+            } else if (e.touches.length === 1 && isDragging) {
+                e.preventDefault();
+                panX = panStartX + (e.touches[0].clientX - dragStartX);
+                panY = panStartY + (e.touches[0].clientY - dragStartY);
+                clampPan();
+                applyTransform();
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchend', function() {
+            isDragging = false;
+            lastTouchDist = 0;
+        });
+    })();
 
     // ===========================
     // Comparison View
