@@ -377,6 +377,26 @@ def _run_startup_migrations():
         # Voice & style preferences (macro instructions for AI response tone)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS voice_style TEXT")
 
+        # Voice calibration — per-scenario style preferences
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS voice_calibrations (
+                calibration_id  SERIAL PRIMARY KEY,
+                user_id         INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                scenario_key    TEXT NOT NULL,
+                audience        TEXT NOT NULL,
+                situation       TEXT NOT NULL,
+                template_text   TEXT NOT NULL,
+                user_text       TEXT,
+                style_notes     TEXT,
+                is_calibrated   BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(user_id, scenario_key)
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_voicecal_user ON voice_calibrations (user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_voicecal_scenario ON voice_calibrations (scenario_key)")
+
         # ── Admin auto-seed ───────────────────────────────────────
         # If the users table is empty and ADMIN_EMAIL is set, create
         # the admin account automatically so a fresh DB is immediately
@@ -1513,9 +1533,16 @@ def lookup():
 @app.route("/ask", methods=["POST"])
 def ask():
     """Classify a free-text query and route to the appropriate handler."""
-    query = request.form.get("q", "").strip()
+    query = request.form.get("q", "").strip() or request.form.get("query", "").strip()
     if not query:
         return '<div class="error">Please type a question or search term.</div>', 400
+
+    # Quick-action modifier (re-generate with overlay instructions)
+    modifier = request.form.get("modifier", "").strip() or None
+
+    # If modifier is set, skip classification — go straight to draft_response
+    if modifier:
+        return _ask_draft_response(query, {"query": query}, modifier=modifier)
 
     # Classify intent
     result = classify_intent(query, [n for n in NEIGHBORHOODS if n])
@@ -1818,11 +1845,14 @@ def _ask_validate_reveal(query: str) -> str:
     return render_template("search_reveal.html", section="validate")
 
 
-def _ask_draft_response(query: str, entities: dict) -> str:
+def _ask_draft_response(query: str, entities: dict, modifier: str | None = None) -> str:
     """Generate an AI-synthesized response to a conversational question.
 
     Uses RAG retrieval for context, then sends to Claude for a natural,
     helpful response. Falls back to raw RAG display if AI is unavailable.
+
+    Args:
+        modifier: Optional quick-action modifier (get_meeting, cite_sources, shorter, more_detail)
     """
     effective_query = entities.get("query", query)
 
@@ -1862,7 +1892,9 @@ def _ask_draft_response(query: str, entities: dict) -> str:
         return _ask_general_question(query, entities)
 
     # Synthesize with Claude
-    ai_response = _synthesize_with_ai(effective_query, "\n\n---\n\n".join(context_parts), role)
+    ai_response = _synthesize_with_ai(
+        effective_query, "\n\n---\n\n".join(context_parts), role, modifier=modifier
+    )
 
     if ai_response:
         return render_template(
@@ -1899,11 +1931,17 @@ def _ask_draft_response(query: str, entities: dict) -> str:
     )
 
 
-def _synthesize_with_ai(query: str, rag_context: str, role: str) -> str | None:
+def _synthesize_with_ai(
+    query: str, rag_context: str, role: str, modifier: str | None = None,
+) -> str | None:
     """Call Claude to synthesize a conversational response from RAG context.
 
     Returns the AI-generated markdown response, or None if unavailable.
     Injects user's voice_style preferences if set.
+
+    Args:
+        modifier: Optional quick-action modifier that overrides default guidelines.
+            Supported: get_meeting, cite_sources, shorter, more_detail
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -1943,8 +1981,36 @@ def _synthesize_with_ai(query: str, rag_context: str, role: str) -> str | None:
             f"Follow them closely:\n{voice_style}\n"
         )
 
+    # Quick-action modifier overrides
+    modifier_instructions = ""
+    if modifier == "get_meeting":
+        modifier_instructions = (
+            "\n\nOVERRIDE: Keep the response brief (2-3 sentences max). "
+            "Give one concrete helpful fact, then warmly suggest scheduling "
+            "a call to discuss in detail. End with something like 'Would you "
+            "like to set up a quick call to walk through this?'\n"
+        )
+    elif modifier == "cite_sources":
+        modifier_instructions = (
+            "\n\nOVERRIDE: Include specific code section references "
+            "(CBC, SFBC, Planning Code, Title 24, ASCE 7) for every claim "
+            "and recommendation. Format citations inline like (CBC 706.1) "
+            "or (Planning Code §207(c)(4)).\n"
+        )
+    elif modifier == "shorter":
+        modifier_instructions = (
+            "\n\nOVERRIDE: Maximum 100 words. Be direct and concise. "
+            "No pleasantries, just the key facts and one next step.\n"
+        )
+    elif modifier == "more_detail":
+        modifier_instructions = (
+            "\n\nOVERRIDE: Provide a thorough 400-600 word response with "
+            "full details, code references, timelines, fees, and step-by-step "
+            "guidance. Be comprehensive.\n"
+        )
+
     system_prompt = (
-        f"{tone}{style_block}\n\n"
+        f"{tone}{style_block}{modifier_instructions}\n\n"
         "Use the following knowledge base context to answer the question. "
         "If the context doesn't fully answer the question, say what you know "
         "and note what you're less certain about.\n\n"
@@ -2409,13 +2475,24 @@ def account():
         from web.activity import get_activity_stats, get_feedback_counts
         activity_stats = get_activity_stats(hours=24)
         feedback_counts = get_feedback_counts()
+    # Voice calibration stats (admin/consultant only)
+    cal_stats = None
+    if g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant"):
+        try:
+            from web.voice_calibration import get_calibration_stats
+            cal_stats = get_calibration_stats(g.user["user_id"])
+            if cal_stats["total"] == 0:
+                cal_stats = None  # Not yet seeded — show generic text
+        except Exception:
+            pass
     return render_template("account.html", user=g.user, watches=watches,
                            invite_codes=invite_codes,
                            activity_stats=activity_stats,
                            feedback_counts=feedback_counts,
                            total_points=total_points,
                            points_history=points_history,
-                           recent_analyses=recent_analyses)
+                           recent_analyses=recent_analyses,
+                           cal_stats=cal_stats)
 
 
 # ---------------------------------------------------------------------------
@@ -3048,6 +3125,93 @@ def admin_add_note():
     except Exception as e:
         logging.error("Failed to save expert note: %s", e)
         return f'<span style="color:var(--error, #ef4444);">Error saving note: {e}</span>'
+
+
+# ---------------------------------------------------------------------------
+# Admin: Voice calibration
+# ---------------------------------------------------------------------------
+
+@app.route("/admin/voice-calibration")
+@login_required
+def admin_voice_calibration():
+    """Voice calibration page — rewrite templates in your voice."""
+    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
+        abort(403)
+    from web.voice_calibration import seed_scenarios, get_calibrations_by_audience, get_calibration_stats
+    from web.voice_templates import AUDIENCES, SITUATIONS, AUDIENCE_MAP, SITUATION_MAP
+
+    # Auto-seed scenarios on first visit
+    seed_scenarios(g.user["user_id"])
+
+    grouped = get_calibrations_by_audience(g.user["user_id"])
+    stats = get_calibration_stats(g.user["user_id"])
+
+    return render_template("admin_voice_calibration.html",
+                           user=g.user,
+                           grouped=grouped,
+                           stats=stats,
+                           audiences=AUDIENCES,
+                           audience_map=AUDIENCE_MAP,
+                           situation_map=SITUATION_MAP)
+
+
+@app.route("/admin/voice-calibration/save", methods=["POST"])
+@login_required
+def admin_voice_calibration_save():
+    """Save the expert's rewritten version for a scenario (HTMX)."""
+    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
+        abort(403)
+    from web.voice_calibration import save_calibration, get_calibration, get_calibration_stats
+
+    scenario_key = request.form.get("scenario_key", "").strip()
+    user_text = request.form.get("user_text", "").strip()
+
+    if not scenario_key:
+        return '<span style="color:var(--error);">Missing scenario key.</span>'
+    if not user_text or len(user_text) < 20:
+        return '<span style="color:var(--error);">Please write at least 20 characters.</span>'
+
+    save_calibration(g.user["user_id"], scenario_key, user_text)
+
+    # Return updated status + stats
+    stats = get_calibration_stats(g.user["user_id"])
+    return (
+        f'<span style="color:var(--success, #34d399);">✓ Saved!</span>'
+        f'<script>'
+        f'document.getElementById("cal-progress").textContent='
+        f'"{stats["calibrated"]} of {stats["total"]} done";'
+        f'var badge = document.getElementById("badge-{scenario_key}");'
+        f'if(badge) {{ badge.textContent = "✓ calibrated"; badge.style.color = "var(--success, #34d399)"; }}'
+        f'</script>'
+    )
+
+
+@app.route("/admin/voice-calibration/reset", methods=["POST"])
+@login_required
+def admin_voice_calibration_reset():
+    """Clear calibration for a scenario (HTMX)."""
+    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
+        abort(403)
+    from web.voice_calibration import reset_calibration, get_calibration, get_calibration_stats
+
+    scenario_key = request.form.get("scenario_key", "").strip()
+    if not scenario_key:
+        return '<span style="color:var(--error);">Missing scenario key.</span>'
+
+    reset_calibration(g.user["user_id"], scenario_key)
+
+    stats = get_calibration_stats(g.user["user_id"])
+    return (
+        f'<span style="color:var(--text-muted);">Reset — ready for rewrite.</span>'
+        f'<script>'
+        f'document.getElementById("cal-progress").textContent='
+        f'"{stats["calibrated"]} of {stats["total"]} done";'
+        f'var badge = document.getElementById("badge-{scenario_key}");'
+        f'if(badge) {{ badge.textContent = "○ not yet"; badge.style.color = "var(--text-muted)"; }}'
+        f'var ta = document.getElementById("ta-{scenario_key}");'
+        f'if(ta) ta.value = "";'
+        f'</script>'
+    )
 
 
 # ---------------------------------------------------------------------------
