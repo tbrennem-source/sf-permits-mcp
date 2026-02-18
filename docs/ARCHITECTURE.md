@@ -7,7 +7,7 @@ Claude (claude.ai / Claude Code)
     |
     | MCP tool calls
     v
-SF Permits MCP Server (FastMCP) — 20 tools
+SF Permits MCP Server (FastMCP) — 21 tools
     |
     |--- Phase 1 tools (8) -------> data.sfgov.org SODA API (live HTTP)
     |                                     |
@@ -31,9 +31,14 @@ SF Permits MCP Server (FastMCP) — 20 tools
     |                                Consultant recommendations, permit lookup -> Claude
     |
     |--- Phase 4 tools (2) ------> Claude Vision API (Anthropic)
+    |                                     |
+    |                                     v
+    |                                Plan analysis + EPR compliance -> Claude
+    |
+    |--- Phase 5 tools (1) ------> PostgreSQL / DuckDB (addenda routing, 3.9M rows)
                                          |
                                          v
-                                    Plan analysis + EPR compliance -> Claude
+                                    Plan review routing search -> Claude
 
 Flask + HTMX Web UI (Railway) — https://sfpermits-ai-production.up.railway.app
     |
@@ -51,6 +56,8 @@ Phase 2.75 tools (`predict_permits`, `estimate_timeline`, `estimate_fees`, `requ
 Phase 3.5 tools (`recommend_consultants`, `permit_lookup`) combine knowledge base consultant data with permit lookups.
 
 Phase 4 tools (`analyze_plans`, `validate_plans`) use the Claude Vision API to analyze architectural drawings and check EPR compliance.
+
+Phase 5 tool (`search_addenda`) searches 3.9M+ addenda routing records in the local database for plan review status by permit, station, reviewer, department, or date range. The `permit_lookup` tool also includes plan review routing data from the addenda table.
 
 ---
 
@@ -78,7 +85,7 @@ Validation Results / MCP Tool Responses
 
 ### Ingestion (`src/ingest.py`)
 
-Fetches 5 datasets from SODA API into DuckDB:
+Fetches 6 datasets from SODA API into DuckDB:
 
 | Dataset | Endpoint | Target Table | Records |
 |---|---|---|---|
@@ -87,6 +94,7 @@ Fetches 5 datasets from SODA API into DuckDB:
 | Plumbing Permits Contacts | `k6kv-9kix` | `contacts` | ~503K |
 | Building Permits | `i98e-djp9` | `permits` | ~1.28M |
 | Building Inspections | `vckc-dh2h` | `inspections` | ~671K |
+| Building Permit Addenda + Routing | `87xy-gk8d` | `addenda` | ~3.9M |
 
 Contact records are normalized into a unified schema during ingestion. Key normalizations:
 - `license1` (building) mapped to `license_number`

@@ -2,7 +2,7 @@
 
 ## Quick Orientation
 
-This is a Python/FastMCP MCP server providing San Francisco building permit data, entity network analysis, AI-powered permit guidance, and AI vision plan analysis via 20 tools + a Flask web UI.
+This is a Python/FastMCP MCP server providing San Francisco building permit data, entity network analysis, AI-powered permit guidance, and AI vision plan analysis via 21 tools + a Flask web UI.
 
 **Start here to understand the project:**
 1. `README.md` — tools, architecture, setup, project phases
@@ -22,7 +22,7 @@ This is a Python/FastMCP MCP server providing San Francisco building permit data
 
 ```
 src/                    # MCP server code
-  server.py             # FastMCP entry point, registers 20 tools
+  server.py             # FastMCP entry point, registers 21 tools
   soda_client.py        # Async SODA API client (httpx)
   formatters.py         # Response formatting for Claude
   db.py                 # DuckDB + PostgreSQL dual-mode connections, points_ledger table
@@ -32,7 +32,7 @@ src/                    # MCP server code
   graph.py              # Co-occurrence graph (SQL self-join)
   validate.py           # Anomaly detection queries
   report_links.py       # External links for property reports
-  tools/                # 20 tool implementations (8 SODA, 3 Entity, 5 Knowledge, 2 Facilitation, 2 Vision)
+  tools/                # 21 tool implementations (8 SODA, 3 Entity, 5 Knowledge, 2 Facilitation, 2 Vision, 1 Addenda)
   vision/               # AI vision modules (Claude Vision API)
     client.py           # Anthropic Vision API wrapper
     pdf_to_images.py    # PDF-to-base64 image conversion
@@ -53,26 +53,26 @@ data/knowledge/         # 4-tier knowledge base (gitignored tier4)
   tier4/                # Full code corpus (Planning Code 12.6MB + BICC 3.6MB)
 scripts/                # CLI tools
   feedback_triage.py    # 3-tier feedback classification + auto-resolve
-tests/                  # 1,033+ tests
+tests/                  # 1,075+ tests
 datasets/               # SODA dataset catalog (22 datasets, 13.3M records)
 docs/                   # Architecture, decisions, contact data analysis
 ```
 
 ## Key Numbers
 
-- **20 tools**: 8 SODA API (Phase 1), 3 Entity/Network (Phase 2), 5 Knowledge (Phase 2.75), 2 Facilitation (Phase 3.5), 2 Vision (Phase 4)
+- **21 tools**: 8 SODA API (Phase 1), 3 Entity/Network (Phase 2), 5 Knowledge (Phase 2.75), 2 Facilitation (Phase 3.5), 2 Vision (Phase 4), 1 Addenda (Phase 5)
 - **22 SODA datasets**, 13.3M records cataloged
 - **DuckDB**: 1.8M contacts -> 1M entities -> 576K relationship edges
 - **PostgreSQL (prod)**: 5.6M rows, 2.05 GB on Railway
 - **Knowledge base**: 40 tier1 JSON files, 86 semantic concepts, ~817 aliases
 - **RAG**: 1,035 chunks, hybrid retrieval (pgvector)
 - **Voice calibration**: 15 scenarios, 7 audiences, 8 situations
-- **Tests**: 1,033+ passing
+- **Tests**: 1,075+ passing
 - **Live**: https://sfpermits-ai-production.up.railway.app
 
 ## Current State
 
-Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks, annotation legend, lasso zoom, minimap) deployed. RAG fully built + nightly refresh configured. Voice calibration Phase A deployed (templates, CRUD, admin UI, quick-action modifiers). Regulatory watch system deployed.
+Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks, annotation legend, lasso zoom, minimap) deployed. Phase 5: Building Permit Addenda + Routing ingestion (3.9M rows), nightly change detection, search_addenda MCP tool, plan review routing in permit_lookup, and Plan Review Activity in morning brief — all deployed. RAG fully built + nightly refresh configured. Voice calibration Phase A deployed (templates, CRUD, admin UI, quick-action modifiers). Regulatory watch system deployed.
 
 ## Railway Production Infrastructure
 

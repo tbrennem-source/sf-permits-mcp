@@ -4,7 +4,7 @@ MCP server + web application for San Francisco building permit data, entity netw
 
 **Live**: https://sfpermits-ai-production.up.railway.app
 
-## Tools (20 MCP Tools)
+## Tools (21 MCP Tools)
 
 | Phase | Tool | Description |
 |-------|------|-------------|
@@ -25,9 +25,10 @@ MCP server + web application for San Francisco building permit data, entity netw
 | | `required_documents` | Document checklist assembly |
 | | `revision_risk` | Revision probability from cost/code analysis |
 | **3.5 — Facilitation** | `recommend_consultants` | Land use consultant recommendations |
-| | `permit_lookup` | Quick permit lookup by number |
+| | `permit_lookup` | Quick permit lookup by number, address, or parcel with plan review routing |
 | **4 — Vision** | `analyze_plans` | AI vision analysis of architectural drawings |
 | | `validate_plans` | EPR compliance checking via Claude Vision |
+| **5 — Addenda** | `search_addenda` | Search 3.9M+ plan review routing records by permit, station, reviewer, date |
 
 ## Data Sources
 
@@ -55,26 +56,28 @@ Flask + HTMX Web UI (Railway)  <-- https://sfpermits-ai-production.up.railway.ap
 Claude (claude.ai / Claude Code)
     |
     v
-FastMCP Server — 20 tools
+FastMCP Server — 21 tools
     |--- Phase 1 (8 tools) -------> SODA API (live HTTP)
     |--- Phase 2 (3 tools) -------> PostgreSQL (entities, relationships)
     |--- Phase 2.75 (5 tools) ----> Knowledge Base (39 tier1 JSON files)
     |--- Phase 3.5 (2 tools) -----> PostgreSQL + Knowledge Base
     |--- Phase 4 (2 tools) -------> Claude Vision API
+    |--- Phase 5 (1 tool) -------> PostgreSQL (addenda routing, 3.9M rows)
 ```
 
 ## Key Numbers
 
 | Metric | Value |
 |--------|-------|
-| MCP tools | 20 |
-| SODA datasets | 22 (13.3M records) |
+| MCP tools | 21 |
+| SODA datasets | 23 (17.2M records) |
 | Entities | 1M+ (resolved from 1.8M contacts) |
 | Relationship edges | 576K |
-| Knowledge base | 39 tier1 JSON files, ~78 semantic concepts |
-| RAG chunks | 1,012 (pgvector embeddings) |
-| Tests | 1,058 |
-| PostgreSQL tables | 20 |
+| Addenda routing records | 3.9M |
+| Knowledge base | 39 tier1 JSON files, ~86 semantic concepts |
+| RAG chunks | 3,682 (pgvector embeddings) |
+| Tests | 1,075+ |
+| PostgreSQL tables | 21 |
 
 ## Setup
 

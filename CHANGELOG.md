@@ -1,5 +1,67 @@
 # Changelog
 
+## Session 30 — Building Permit Addenda Routing + Nightly Change Detection (2026-02-18)
+
+### Problem Solved
+Amy discovered permit 202509155257 ($13M, 125 Mason St) showed "no changes" despite 25 active plan review routing steps across 10 agencies with approvals as recent as 2/18. Root cause: our nightly change detection only watched the top-level `status` field on the Building Permits dataset (`i98e-djp9`), which stayed "filed" throughout the multi-month plan review process.
+
+### Solution: Ingest Building Permit Addenda + Routing Dataset (87xy-gk8d)
+
+#### Database Schema
+- **`addenda` table** — 18 columns storing station-by-station plan review routing data (DuckDB + PostgreSQL)
+- **`addenda_changes` table** — nightly delta tracking with 4 change types: `new_routing`, `review_completed`, `review_updated`, `routing_updated`
+- **6 indexes** on addenda table: application_number, station, reviewer, finish_date, composite app/addenda/step, primary_key
+
+#### Ingestion Pipeline (`src/ingest.py`)
+- `_normalize_addenda()` — field extraction with int conversion for addenda_number/step, whitespace stripping, empty→None
+- `ingest_addenda()` — DELETE + re-insert pattern for 3.9M rows from SODA endpoint `87xy-gk8d`
+- CLI: `python -m src.ingest --addenda`
+
+#### Nightly Change Detection (`scripts/nightly_changes.py`)
+- `fetch_recent_addenda()` — queries SODA for `finish_date > since OR arrive > since`
+- `detect_addenda_changes()` — compares SODA records against local addenda table by `primary_key`, detects 4 change types
+- `_upsert_addenda_row()` — keeps local addenda table current via insert/update
+- Non-fatal error handling — addenda failures don't block permit/inspection processing
+
+#### Permit Lookup Enhancement (`src/tools/permit_lookup.py`)
+- **Plan Review Routing section** between Inspection History and Related Permits
+- Summary stats: routing steps, station count, completed/pending counts
+- Markdown table with Station, Rev, Reviewer, Result, Finish Date, Notes
+- **DBI Permit Details link** — direct URL to `dbiweb02.sfgov.org` permit tracker
+
+#### New MCP Tool: `search_addenda` (Phase 5, tool #21)
+- Search local addenda table by permit_number, station, reviewer, department, review_result, date range
+- Returns markdown table + review notes section
+- Registered in `src/server.py`
+
+#### Morning Brief + Email Brief
+- **Plan Review Activity section** in `web/brief.py` — joins `addenda_changes` with `watch_items` (permit, address, parcel watches)
+- Color-coded result badges: green (Approved), orange (Issued Comments), blue (Routed)
+- Up to 10 items in email brief, 50 in dashboard brief
+- Added to `has_content` check in email delivery
+
+#### Report Links
+- `ReportLinks.dbi_permit_details(permit_number)` — URL builder for DBI permit tracker detail page
+
+### Files Changed (12 modified + 2 new)
+- `src/db.py` — addenda + addenda_changes tables, 6 indexes
+- `src/ingest.py` — _normalize_addenda(), ingest_addenda(), --addenda CLI flag
+- `src/report_links.py` — dbi_permit_details() method
+- `src/server.py` — register search_addenda tool
+- `src/tools/permit_lookup.py` — _get_addenda(), _format_addenda(), DBI details link
+- `scripts/nightly_changes.py` — fetch_recent_addenda(), detect_addenda_changes(), _upsert_addenda_row()
+- `web/app.py` — addenda_changes table in PostgreSQL migrations
+- `web/brief.py` — _get_plan_review_activity(), plan_reviews in get_morning_brief()
+- `web/email_brief.py` — plan_reviews in render context + has_content check
+- `web/templates/brief.html` — Plan Review Activity section
+- `web/templates/brief_email.html` — Plan Review Activity section (inline styles)
+- `tests/test_permit_lookup.py` — added _get_addenda mock entries
+- `src/tools/search_addenda.py` — **NEW**: search_addenda MCP tool
+- `tests/test_addenda.py` — **NEW**: 14 tests (normalization, formatting, search, brief integration)
+
+### Commits
+- `b6fc3aa` — feat: ingest building permit addenda routing + nightly change detection
+
 ## Session 29 — Voice Calibration, Plan Viewer UX, Vision Prompt Enhancement (2026-02-17)
 
 ### Voice Calibration System (Phase A)
