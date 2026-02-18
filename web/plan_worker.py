@@ -118,6 +118,9 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         progress_detail="Running AI vision analysis...",
     )
 
+    analysis_mode = job.get("analysis_mode", "sample")
+    analyze_all_pages = (analysis_mode == "full")
+
     vision_usage = None
     if job["quick_check"]:
         result_md = loop.run_until_complete(
@@ -138,6 +141,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
                 project_description=job["project_description"],
                 permit_type=job["permit_type"],
                 return_structured=True,
+                analyze_all_pages=analyze_all_pages,
             )
         )
 
@@ -211,6 +215,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     if vision_usage and vision_usage.total_calls > 0:
         usage_fields["vision_usage_json"] = json.dumps(vision_usage.to_dict())
     usage_fields["gallery_duration_ms"] = gallery_duration_ms
+    usage_fields["pages_analyzed"] = len(page_extractions)
 
     update_job_status(
         job_id,
