@@ -228,7 +228,8 @@ def get_user_jobs(user_id: int, limit: int = 20) -> list[dict]:
     rows = query(
         "SELECT job_id, session_id, filename, file_size_mb, status, "
         "is_async, quick_check, property_address, permit_number, "
-        "created_at, completed_at, error_message "
+        "created_at, completed_at, error_message, "
+        "analysis_mode, pages_analyzed "
         "FROM plan_analysis_jobs "
         "WHERE user_id = %s "
         "ORDER BY created_at DESC "
@@ -249,6 +250,8 @@ def get_user_jobs(user_id: int, limit: int = 20) -> list[dict]:
             "created_at": r[9],
             "completed_at": r[10],
             "error_message": r[11],
+            "analysis_mode": r[12],
+            "pages_analyzed": r[13],
         }
         for r in rows
     ]
@@ -269,7 +272,8 @@ def search_jobs(user_id: int, query_text: str, limit: int = 20) -> list[dict]:
     rows = query(
         "SELECT job_id, session_id, filename, file_size_mb, status, "
         "is_async, quick_check, property_address, permit_number, "
-        "created_at, completed_at, error_message "
+        "created_at, completed_at, error_message, "
+        "analysis_mode, pages_analyzed "
         "FROM plan_analysis_jobs "
         "WHERE user_id = %s "
         "AND (property_address ILIKE %s OR permit_number ILIKE %s OR filename ILIKE %s) "
@@ -291,6 +295,8 @@ def search_jobs(user_id: int, query_text: str, limit: int = 20) -> list[dict]:
             "created_at": r[9],
             "completed_at": r[10],
             "error_message": r[11],
+            "analysis_mode": r[12],
+            "pages_analyzed": r[13],
         }
         for r in rows
     ]
@@ -385,6 +391,32 @@ def cleanup_old_jobs(days: int = 30) -> int:
     if count > 0:
         logger.info(f"Cleaned up {count} old plan analysis jobs (>{days}d old)")
     return count
+
+
+def delete_job(job_id: str, user_id: int) -> bool:
+    """Delete a job belonging to a specific user.
+
+    Args:
+        job_id: Job identifier
+        user_id: Owner user ID (ensures users can only delete their own jobs)
+
+    Returns:
+        True if a row was deleted, False otherwise
+    """
+    # Check ownership first
+    row = query_one(
+        "SELECT user_id FROM plan_analysis_jobs WHERE job_id = %s",
+        (job_id,),
+    )
+    if not row or row[0] != user_id:
+        return False
+
+    execute_write(
+        "DELETE FROM plan_analysis_jobs WHERE job_id = %s AND user_id = %s",
+        (job_id, user_id),
+    )
+    logger.info(f"Deleted plan job {job_id} for user {user_id}")
+    return True
 
 
 def clear_pdf_data(job_id: str) -> None:

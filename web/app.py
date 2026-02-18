@@ -1019,7 +1019,12 @@ def analyze_plans_route():
     is_addendum = request.form.get("is_addendum") == "on"
     property_address = request.form.get("property_address", "").strip() or None
     permit_number_input = request.form.get("permit_number", "").strip() or None
+    # analysis_mode: 'compliance', 'sample', or 'full' (from form hidden field)
+    requested_mode = request.form.get("analysis_mode", "sample").strip()
+    # Legacy support: analyze_all_pages checkbox
     analyze_all_pages = request.form.get("analyze_all_pages") == "on"
+    if analyze_all_pages and requested_mode == "sample":
+        requested_mode = "full"
 
     try:
         pdf_bytes = uploaded.read()
@@ -1047,7 +1052,7 @@ def analyze_plans_route():
         from web.plan_worker import submit_job
 
         user = get_user_by_id(user_id) if user_id else None
-        analysis_mode = resolve_analysis_mode(user, analyze_all_pages)
+        analysis_mode = resolve_analysis_mode(user, requested_mode)
 
         job_id = create_job(
             user_id=user_id,
@@ -1364,6 +1369,23 @@ def analysis_history():
         jobs=jobs,
         search_q=search_q,
     )
+
+
+@app.route("/api/plan-jobs/<job_id>", methods=["DELETE"])
+def delete_plan_job(job_id):
+    """Delete a plan analysis job (HTMX endpoint)."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    from web.plan_jobs import delete_job
+
+    deleted = delete_job(job_id, user_id)
+    if not deleted:
+        return "", 404
+
+    # Return empty string so HTMX removes the card (outerHTML swap)
+    return ""
 
 
 @app.route("/lookup", methods=["POST"])

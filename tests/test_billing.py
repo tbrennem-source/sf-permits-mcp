@@ -3,6 +3,7 @@
 from web.billing import (
     can_use_full_analysis,
     resolve_analysis_mode,
+    MODE_COMPLIANCE,
     MODE_SAMPLE,
     MODE_FULL,
     TIER_FREE,
@@ -36,23 +37,35 @@ def test_can_use_full_analysis_missing_tier():
 # ── resolve_analysis_mode ──────────────────────────────────────────
 
 
-def test_resolve_mode_pro_requests_all():
+def test_resolve_mode_pro_requests_full():
     user = {"subscription_tier": TIER_PRO}
-    assert resolve_analysis_mode(user, True) == MODE_FULL
+    assert resolve_analysis_mode(user, "full") == MODE_FULL
 
 
 def test_resolve_mode_pro_requests_sample():
-    """Pro user not requesting all pages still gets sample."""
+    """Pro user requesting sample still gets sample."""
     user = {"subscription_tier": TIER_PRO}
-    assert resolve_analysis_mode(user, False) == MODE_SAMPLE
+    assert resolve_analysis_mode(user, "sample") == MODE_SAMPLE
 
 
-def test_resolve_mode_free_requests_all():
-    """Free tier requesting all pages still gets sample."""
+def test_resolve_mode_free_requests_full():
+    """Free tier requesting full gets downgraded to sample."""
     user = {"subscription_tier": TIER_FREE}
-    assert resolve_analysis_mode(user, True) == MODE_SAMPLE
+    assert resolve_analysis_mode(user, "full") == MODE_SAMPLE
 
 
 def test_resolve_mode_anonymous():
-    """Anonymous user always gets sample."""
-    assert resolve_analysis_mode(None, True) == MODE_SAMPLE
+    """Anonymous user requesting full gets downgraded to sample."""
+    assert resolve_analysis_mode(None, "full") == MODE_SAMPLE
+
+
+def test_resolve_mode_compliance():
+    """Anyone can use compliance mode."""
+    assert resolve_analysis_mode(None, "compliance") == MODE_COMPLIANCE
+    user = {"subscription_tier": TIER_FREE}
+    assert resolve_analysis_mode(user, "compliance") == MODE_COMPLIANCE
+
+
+def test_resolve_mode_default():
+    """Default mode is sample."""
+    assert resolve_analysis_mode(None) == MODE_SAMPLE

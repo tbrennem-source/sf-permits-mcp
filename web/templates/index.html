@@ -541,6 +541,44 @@
             color: #fff;
         }
 
+        /* Plan analysis button tooltips */
+        .plan-btn-wrap {
+            position: relative;
+        }
+        .plan-btn-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-2, #252834);
+            border: 1px solid var(--border, #333749);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: var(--text);
+            line-height: 1.5;
+            width: 240px;
+            z-index: 20;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+        .plan-btn-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--border, #333749);
+        }
+        .plan-btn-wrap:hover .plan-btn-tooltip {
+            display: block;
+        }
+        @media (max-width: 640px) {
+            .plan-btn-tooltip { display: none !important; }
+        }
+
         /* Validation result status colors */
         .result-card .pass { color: var(--success); }
         .result-card .fail { color: var(--error); }
@@ -1036,8 +1074,9 @@
                         </div>
                     </div>
 
-                    <!-- Hidden input for quick check mode (default: on — Quick Check is the primary action) -->
+                    <!-- Hidden inputs for mode selection -->
                     <input type="hidden" name="quick_check" id="quick-check-hidden" value="on">
+                    <input type="hidden" name="analysis_mode" id="analysis-mode-hidden" value="sample">
 
                     <!-- "More options" toggle — uses existing personalize-toggle pattern -->
                     <div class="full-width">
@@ -1092,21 +1131,39 @@
                         </div>
                     </div>
 
-                    <!-- Two action buttons: Quick Check (primary default) and Full Analysis (secondary) -->
-                    <div class="full-width" style="display:flex; gap:12px;">
-                        <button type="submit" class="btn" style="flex:1;">
-                            <span class="label">Quick Check</span>
-                            <span class="spinner">Checking...</span>
-                        </button>
-                        <button type="button" class="btn btn-secondary" id="full-analysis-btn" style="flex:1;"
-                                onclick="submitFullAnalysis(this)">
-                            Full Analysis (AI Markup)
-                        </button>
+                    <!-- Three action buttons with hover tooltips -->
+                    <div class="full-width" style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
+                            <button type="submit" class="btn" style="width:100%;">
+                                <span class="label">Quick Check</span>
+                                <span class="spinner">Checking...</span>
+                            </button>
+                            <div class="plan-btn-tooltip">
+                                <strong>Instant metadata scan</strong><br>
+                                Checks file size, page dimensions, fonts, encryption, bookmarks, and filename conventions. No AI &mdash; results in seconds.
+                            </div>
+                        </div>
+                        <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
+                            <button type="button" class="btn btn-secondary" id="compliance-check-btn" style="width:100%;"
+                                    onclick="submitComplianceCheck(this)">
+                                Compliance Check
+                            </button>
+                            <div class="plan-btn-tooltip">
+                                <strong>AI title block verification</strong><br>
+                                Scans sampled pages for addresses, sheet numbers, professional stamps, and set consistency. ~30 seconds.
+                            </div>
+                        </div>
+                        <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
+                            <button type="button" class="btn btn-secondary" id="full-analysis-btn" style="width:100%;"
+                                    onclick="submitFullAnalysis(this)">
+                                Full Analysis
+                            </button>
+                            <div class="plan-btn-tooltip">
+                                <strong>Complete AI markup</strong><br>
+                                Everything in Compliance Check plus annotations &mdash; EPR issues, code references, dimensions, and hatching patterns marked on your plans. ~1-2 minutes.
+                            </div>
+                        </div>
                     </div>
-                    <p style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:10px;line-height:1.5;">
-                        Full Analysis includes AI-powered annotations &mdash; EPR issues, code references,
-                        dimensions, and more marked directly on your plan pages.
-                    </p>
                 </form>
             </div>
 
@@ -1158,12 +1215,18 @@
                         submitButton.style.opacity = '0.6';
                     });
 
-                    function resetFullAnalysisBtn() {
+                    function resetAnalysisBtns() {
                         var faBtn = document.getElementById('full-analysis-btn');
                         if (faBtn) {
                             faBtn.classList.remove('btn-active');
-                            faBtn.textContent = 'Full Analysis (AI Markup)';
+                            faBtn.textContent = 'Full Analysis';
                             faBtn.disabled = false;
+                        }
+                        var ccBtn = document.getElementById('compliance-check-btn');
+                        if (ccBtn) {
+                            ccBtn.classList.remove('btn-active');
+                            ccBtn.textContent = 'Compliance Check';
+                            ccBtn.disabled = false;
                         }
                     }
 
@@ -1172,10 +1235,12 @@
                         loadingIndicator.style.display = 'none';
                         submitButton.disabled = false;
                         submitButton.style.opacity = '1';
-                        resetFullAnalysisBtn();
+                        resetAnalysisBtns();
                         // Reset quick_check to default (Quick Check is the default action)
                         var qcField = document.getElementById('quick-check-hidden');
                         if (qcField) qcField.value = 'on';
+                        var amField = document.getElementById('analysis-mode-hidden');
+                        if (amField) amField.value = 'sample';
                     });
 
                     // Error handler — show user-visible feedback on failures
@@ -1184,7 +1249,7 @@
                         loadingIndicator.style.display = 'none';
                         submitButton.disabled = false;
                         submitButton.style.opacity = '1';
-                        resetFullAnalysisBtn();
+                        resetAnalysisBtns();
                         // Show user-visible error message
                         var resultsDiv = document.getElementById('analyze-plans-results');
                         if (resultsDiv) {
@@ -1417,17 +1482,33 @@
             section.classList.toggle("open");
         }
 
+        // Submit form in Compliance Check mode
+        function submitComplianceCheck(btn) {
+            btn.classList.add('btn-active');
+            btn.textContent = 'Analyzing\u2026';
+            btn.disabled = true;
+            document.getElementById('quick-check-hidden').value = '';
+            document.getElementById('analysis-mode-hidden').value = 'compliance';
+            var loadingMsg = document.querySelector('#analyze-plans-loading p');
+            if (loadingMsg) {
+                loadingMsg.textContent = "Running compliance check \u2014 verifying title blocks (~30s)...";
+            }
+            var form = document.querySelector('form[hx-post="/analyze-plans"]');
+            if (form) form.requestSubmit();
+        }
+
         // Submit form in Full Analysis mode (clears quick_check flag)
         function submitFullAnalysis(btn) {
             btn.classList.add('btn-active');
-            btn.textContent = 'Analyzing…';
+            btn.textContent = 'Analyzing\u2026';
             btn.disabled = true;
             document.getElementById('quick-check-hidden').value = '';
-            const loadingMsg = document.querySelector('#analyze-plans-loading p');
+            document.getElementById('analysis-mode-hidden').value = 'sample';
+            var loadingMsg = document.querySelector('#analyze-plans-loading p');
             if (loadingMsg) {
-                loadingMsg.textContent = "Running AI vision analysis — this takes 30-60 seconds...";
+                loadingMsg.textContent = "Running full AI analysis \u2014 this takes 1-2 minutes...";
             }
-            const form = document.querySelector('form[hx-post="/analyze-plans"]');
+            var form = document.querySelector('form[hx-post="/analyze-plans"]');
             if (form) form.requestSubmit();
         }
 

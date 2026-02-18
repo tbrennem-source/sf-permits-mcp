@@ -143,6 +143,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
                 permit_type=job["permit_type"],
                 return_structured=True,
                 analyze_all_pages=analyze_all_pages,
+                analysis_mode=analysis_mode,
             )
         )
     analysis_ms = int((time.time() - analysis_t0) * 1000)

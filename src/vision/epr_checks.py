@@ -723,6 +723,7 @@ async def run_vision_epr_checks(
     pdf_bytes: bytes,
     total_pages: int,
     analyze_all_pages: bool = False,
+    analysis_mode: str = "sample",
 ) -> tuple[list[CheckResult], list[dict], list[dict], VisionUsageSummary]:
     """Run all vision-based EPR checks on a PDF plan set.
 
@@ -731,6 +732,10 @@ async def run_vision_epr_checks(
         total_pages: Total page count (from metadata checks).
         analyze_all_pages: If True, analyze every page instead of sampling.
             Pro tier feature — free tier always uses sampling.
+        analysis_mode: One of 'compliance', 'sample', 'full'.
+            - compliance: title block extraction only (no annotations, no hatching)
+            - sample: title blocks + annotations + hatching on sampled pages
+            - full: title blocks + annotations + hatching on ALL pages
 
     Returns:
         Tuple of (check_results, page_extractions, page_annotations, usage) where
@@ -738,6 +743,11 @@ async def run_vision_epr_checks(
         page_annotations is a list of spatial annotation dicts for UI overlay,
         and usage is a VisionUsageSummary with token counts and timing.
     """
+    # Resolve analyze_all_pages from analysis_mode (backward compat)
+    if analysis_mode == "full":
+        analyze_all_pages = True
+    skip_annotations = (analysis_mode == "compliance")
+    skip_hatching = (analysis_mode == "compliance")
     model = os.environ.get("VISION_MODEL", DEFAULT_MODEL)
 
     if not is_vision_available():
@@ -798,18 +808,28 @@ async def run_vision_epr_checks(
         tb_parsed = None
         anns = []
         try:
-            # Title block and annotations run in parallel for this page
-            tb_task = _timed_analyze_image(
-                b64, PROMPT_TITLE_BLOCK, "title_block", usage,
-                system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
-            )
-            ann_task = extract_page_annotations(b64, page_num + 1, usage)
-            tb_result, page_anns = await asyncio.gather(tb_task, ann_task)
+            if skip_annotations:
+                # Compliance mode: title block only — no annotations
+                tb_result = await _timed_analyze_image(
+                    b64, PROMPT_TITLE_BLOCK, "title_block", usage,
+                    system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
+                )
+                tb_parsed = _parse_json_response(tb_result)
+                if tb_parsed:
+                    tb_parsed["page_number"] = page_num + 1
+            else:
+                # Full/sample mode: title block + annotations in parallel
+                tb_task = _timed_analyze_image(
+                    b64, PROMPT_TITLE_BLOCK, "title_block", usage,
+                    system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
+                )
+                ann_task = extract_page_annotations(b64, page_num + 1, usage)
+                tb_result, page_anns = await asyncio.gather(tb_task, ann_task)
 
-            tb_parsed = _parse_json_response(tb_result)
-            if tb_parsed:
-                tb_parsed["page_number"] = page_num + 1  # 1-indexed for display
-            anns = page_anns
+                tb_parsed = _parse_json_response(tb_result)
+                if tb_parsed:
+                    tb_parsed["page_number"] = page_num + 1
+                anns = page_anns
         except Exception as e:
             logger.warning("Page %d analysis failed: %s", page_num, e)
         return tb_parsed, anns
@@ -865,11 +885,21 @@ async def run_vision_epr_checks(
         )
     )
 
-    # ── Stage 6: Hatching check — parallel across pages ──
-    hatching_pages = [p for p in sample_pages if p != 0][:2]
-    hatch_t0 = time.perf_counter()
-    results.append(await _check_hatching(pdf_bytes, hatching_pages, cover_b64, usage))
-    logger.info("[vision] stage=hatching_check duration_ms=%d", int((time.perf_counter() - hatch_t0) * 1000))
+    # ── Stage 6: Hatching check — parallel across pages (skipped in compliance mode) ──
+    if skip_hatching:
+        results.append(CheckResult(
+            epr_id="EPR-022",
+            rule="Avoid dense hatching patterns",
+            status="skip",
+            severity="recommendation",
+            detail="Hatching check skipped in Compliance Check mode.",
+        ))
+        logger.info("[vision] stage=hatching_check SKIPPED (compliance mode)")
+    else:
+        hatching_pages = [p for p in sample_pages if p != 0][:2]
+        hatch_t0 = time.perf_counter()
+        results.append(await _check_hatching(pdf_bytes, hatching_pages, cover_b64, usage))
+        logger.info("[vision] stage=hatching_check duration_ms=%d", int((time.perf_counter() - hatch_t0) * 1000))
 
     total_ms = int((time.perf_counter() - job_t0) * 1000)
     logger.info(
