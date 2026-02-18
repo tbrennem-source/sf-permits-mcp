@@ -62,6 +62,39 @@ Amy discovered permit 202509155257 ($13M, 125 Mason St) showed "no changes" desp
 ### Commits
 - `b6fc3aa` — feat: ingest building permit addenda routing + nightly change detection
 
+## Session 30b — Ingest 3 New SODA Datasets + Contact Extraction (2026-02-18)
+
+### New Dataset Ingestion
+- **Notices of Violation** (nbtm-fbw5, ~509K rows): Violation tracking by property, joins to permits via block+lot and to complaints via complaint_number
+- **DBI Complaints** (gm2e-bten, ~326K rows): Complaint lifecycle tracking, links to violations
+- **Registered Business Locations** (g8m3-pdis, active only): Entity resolution enrichment — fetches only active businesses via SODA-level `location_end_date IS NULL` filter
+
+### Addenda Ingestion Enhancement
+- Memory-efficient batch INSERT with 50K page size + 100K row flush (for 3.9M rows)
+
+### Contact Extraction
+- Plan checkers from addenda routing -> contacts table (source='addenda', role='plan_checker')
+- Business owners/DBAs from business registry -> contacts table (source='business', role='owner'/'dba')
+- All new contacts participate in entity resolution cascade automatically
+
+### Schema Changes
+- 3 new DuckDB tables: `violations`, `complaints`, `businesses`
+- 3 new PostgreSQL tables with matching schema + pg_trgm indexes on business names
+- 12 new indexes on join columns (complaint_number, block/lot, etc.)
+
+### Pipeline Updates
+- CLI flags: `--violations`, `--complaints`, `--businesses`
+- Extended `_fetch_all_pages()` with `where` and `page_size` parameters
+- Pipeline ordering: new datasets ingest before contacts so extraction can read them
+- Updated `ALLOWED_TABLES` for data migration endpoint
+
+### Files Changed
+- `src/db.py` — 3 new table DDL in `init_schema`, 12 new indexes in `_create_indexes`
+- `src/ingest.py` — 3 DATASETS entries, 3 normalizers, 3 ingest functions, 2 contact extractors, memory-efficient addenda batching, updated `run_ingestion` + CLI
+- `scripts/postgres_schema.sql` — 3 new table definitions with indexes
+- `web/app.py` — updated `ALLOWED_TABLES`
+- `tests/test_phase2.py` — 11 new tests (normalizers, schema, contact extraction)
+
 ## Session 29 — Voice Calibration, Plan Viewer UX, Vision Prompt Enhancement (2026-02-17)
 
 ### Voice Calibration System (Phase A)

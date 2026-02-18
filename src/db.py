@@ -570,6 +570,75 @@ def init_schema(conn) -> None:
     """)
 
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS violations (
+            id INTEGER PRIMARY KEY,
+            complaint_number TEXT,
+            item_sequence_number TEXT,
+            date_filed TEXT,
+            block TEXT,
+            lot TEXT,
+            street_number TEXT,
+            street_name TEXT,
+            street_suffix TEXT,
+            unit TEXT,
+            status TEXT,
+            receiving_division TEXT,
+            assigned_division TEXT,
+            nov_category_description TEXT,
+            item TEXT,
+            nov_item_description TEXT,
+            neighborhood TEXT,
+            supervisor_district TEXT,
+            zipcode TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS complaints (
+            id INTEGER PRIMARY KEY,
+            complaint_number TEXT,
+            date_filed TEXT,
+            date_abated TEXT,
+            block TEXT,
+            lot TEXT,
+            parcel_number TEXT,
+            street_number TEXT,
+            street_name TEXT,
+            street_suffix TEXT,
+            unit TEXT,
+            zip_code TEXT,
+            complaint_description TEXT,
+            status TEXT,
+            nov_type TEXT,
+            receiving_division TEXT,
+            assigned_division TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS businesses (
+            id INTEGER PRIMARY KEY,
+            certificate_number TEXT,
+            ttxid TEXT,
+            ownership_name TEXT,
+            dba_name TEXT,
+            full_business_address TEXT,
+            city TEXT,
+            state TEXT,
+            business_zip TEXT,
+            dba_start_date TEXT,
+            dba_end_date TEXT,
+            location_start_date TEXT,
+            location_end_date TEXT,
+            parking_tax TEXT,
+            transient_occupancy_tax TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS ingest_log (
             dataset_id TEXT PRIMARY KEY,
             dataset_name TEXT,
@@ -604,12 +673,30 @@ def _create_indexes(conn) -> None:
         ("idx_entities_name", "entities", "canonical_name"),
         ("idx_entities_license", "entities", "license_number"),
         ("idx_entities_pts", "entities", "pts_agent_id"),
+        # Addenda indexes (main's 6 + department/status)
         ("idx_addenda_app_num", "addenda", "application_number"),
         ("idx_addenda_station", "addenda", "station"),
         ("idx_addenda_reviewer", "addenda", "plan_checked_by"),
         ("idx_addenda_finish", "addenda", "finish_date"),
         ("idx_addenda_app_step", "addenda", "application_number, addenda_number, step"),
         ("idx_addenda_primary_key", "addenda", "primary_key"),
+        ("idx_addenda_dept", "addenda", "department"),
+        ("idx_addenda_status", "addenda", "addenda_status"),
+        # Violation indexes
+        ("idx_violations_complaint", "violations", "complaint_number"),
+        ("idx_violations_block_lot", "violations", "block, lot"),
+        ("idx_violations_status", "violations", "status"),
+        ("idx_violations_date", "violations", "date_filed"),
+        # Complaint indexes
+        ("idx_complaints_number", "complaints", "complaint_number"),
+        ("idx_complaints_block_lot", "complaints", "block, lot"),
+        ("idx_complaints_status", "complaints", "status"),
+        ("idx_complaints_date", "complaints", "date_filed"),
+        # Business indexes
+        ("idx_businesses_ownership", "businesses", "ownership_name"),
+        ("idx_businesses_dba", "businesses", "dba_name"),
+        ("idx_businesses_zip", "businesses", "business_zip"),
+        ("idx_businesses_cert", "businesses", "certificate_number"),
     ]
     for idx_name, table, columns in indexes:
         try:

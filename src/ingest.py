@@ -41,6 +41,22 @@ DATASETS = {
         "endpoint_id": "vckc-dh2h",
         "name": "Building Inspections",
     },
+    "addenda": {
+        "endpoint_id": "87xy-gk8d",
+        "name": "Building Permit Addenda with Routing",
+    },
+    "violations": {
+        "endpoint_id": "nbtm-fbw5",
+        "name": "Notices of Violation",
+    },
+    "complaints": {
+        "endpoint_id": "gm2e-bten",
+        "name": "DBI Complaints",
+    },
+    "businesses": {
+        "endpoint_id": "g8m3-pdis",
+        "name": "Registered Business Locations",
+    },
 }
 
 PAGE_SIZE = 10_000
@@ -306,19 +322,94 @@ def _normalize_inspection(record: dict, row_id: int) -> tuple:
     )
 
 
+def _normalize_violation(record: dict, row_id: int) -> tuple:
+    """Normalize a notice of violation record."""
+    return (
+        row_id,
+        record.get("complaint_number"),
+        record.get("item_sequence_number"),
+        record.get("date_filed"),
+        record.get("block"),
+        record.get("lot"),
+        record.get("street_number"),
+        record.get("street_name"),
+        record.get("street_suffix"),
+        record.get("unit"),
+        record.get("status"),
+        record.get("receiving_division"),
+        record.get("assigned_division"),
+        record.get("nov_category_description"),
+        record.get("item"),
+        record.get("nov_item_description"),
+        record.get("neighborhoods_analysis_boundaries"),
+        record.get("supervisor_district"),
+        record.get("zipcode"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_complaint(record: dict, row_id: int) -> tuple:
+    """Normalize a DBI complaint record."""
+    return (
+        row_id,
+        record.get("complaint_number"),
+        record.get("date_filed"),
+        record.get("date_abated"),
+        record.get("block"),
+        record.get("lot"),
+        record.get("parcel_number"),
+        record.get("street_number"),
+        record.get("street_name"),
+        record.get("street_suffix"),
+        record.get("unit"),
+        record.get("zip_code"),
+        record.get("complaint_description"),
+        record.get("status"),
+        record.get("nov_type"),
+        record.get("receiving_division"),
+        record.get("assigned_division"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_business(record: dict, row_id: int) -> tuple:
+    """Normalize a registered business location record."""
+    return (
+        row_id,
+        record.get("certificate_number"),
+        record.get("ttxid"),
+        (record.get("ownership_name") or "").strip() or None,
+        (record.get("dba_name") or "").strip() or None,
+        (record.get("full_business_address") or "").strip() or None,
+        record.get("city"),
+        record.get("state"),
+        record.get("business_zip"),
+        record.get("dba_start_date"),
+        record.get("dba_end_date"),
+        record.get("location_start_date"),
+        record.get("location_end_date"),
+        record.get("parking_tax"),
+        record.get("transient_occupancy_tax"),
+        record.get("data_as_of"),
+    )
+
+
 async def _fetch_all_pages(
     client: SODAClient,
     endpoint_id: str,
     dataset_name: str,
     order: str = ":id",
+    where: str | None = None,
+    page_size: int | None = None,
 ) -> list[dict]:
     """Fetch all records from a SODA endpoint with pagination."""
     all_records = []
     offset = 0
     start = time.time()
+    fetch_size = page_size or PAGE_SIZE
 
     # Get total count first
-    total = await client.count(endpoint_id)
+    total = await client.count(endpoint_id, where=where)
     print(f"  {dataset_name}: {total:,} total records to fetch")
 
     max_retries = 3
@@ -328,7 +419,8 @@ async def _fetch_all_pages(
             try:
                 page = await client.query(
                     endpoint_id=endpoint_id,
-                    limit=PAGE_SIZE,
+                    where=where,
+                    limit=fetch_size,
                     offset=offset,
                     order=order,
                 )
@@ -355,7 +447,7 @@ async def _fetch_all_pages(
             flush=True,
         )
 
-        if len(page) < PAGE_SIZE:
+        if len(page) < fetch_size:
             break
 
     elapsed = time.time() - start
@@ -458,6 +550,14 @@ async def ingest_contacts(conn, client: SODAClient) -> int:
         ],
     )
 
+    # Extract contacts from addenda and businesses (if those tables are populated)
+    addenda_contacts = _extract_addenda_contacts(conn, row_id)
+    row_id += addenda_contacts
+    total += addenda_contacts
+
+    business_contacts = _extract_business_contacts(conn, row_id)
+    total += business_contacts
+
     print(f"\n  Total contacts loaded: {total:,}")
     return total
 
@@ -526,36 +626,265 @@ async def ingest_inspections(conn, client: SODAClient) -> int:
     return len(batch)
 
 
-async def ingest_addenda(conn, client: SODAClient) -> int:
-    """Ingest building permit addenda + routing into addenda table."""
-    print("\n=== Ingesting Building Permit Addenda + Routing ===")
+ADDENDA_PAGE_SIZE = 50_000  # Larger page for 3.9M addenda dataset
+ADDENDA_BATCH_FLUSH = 100_000  # Flush to DB every 100K rows
 
+
+async def ingest_addenda(conn, client: SODAClient) -> int:
+    """Ingest building permit addenda + routing into addenda table.
+
+    Uses larger page size and periodic batch flushing for the ~3.9M row dataset.
+    """
+    print("\n=== Ingesting Building Permit Addenda + Routing ===")
     conn.execute("DELETE FROM addenda")
 
-    records = await _fetch_all_pages(
-        client, "87xy-gk8d", "Building Permit Addenda + Routing"
-    )
+    endpoint_id = "87xy-gk8d"
+    total_count = await client.count(endpoint_id)
+    print(f"  Building Permit Addenda: {total_count:,} total records to fetch")
 
+    row_id = 0
+    total = 0
+    offset = 0
+    start = time.time()
+    max_retries = 3
     batch = []
-    for i, r in enumerate(records, 1):
-        batch.append(_normalize_addenda(r, i))
+
+    while True:
+        page = None
+        for attempt in range(max_retries):
+            try:
+                page = await client.query(
+                    endpoint_id=endpoint_id,
+                    limit=ADDENDA_PAGE_SIZE,
+                    offset=offset,
+                    order=":id",
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait = 2 ** (attempt + 1)
+                    print(f"  Retry {attempt + 1}/{max_retries}: {e}. Waiting {wait}s...", flush=True)
+                    await asyncio.sleep(wait)
+                else:
+                    raise
+        if not page:
+            break
+
+        for r in page:
+            row_id += 1
+            batch.append(_normalize_addenda(r, row_id))
+
+        offset += len(page)
+        elapsed = time.time() - start
+        rate = offset / elapsed if elapsed > 0 else 0
+        pct = offset * 100 // total_count if total_count else 0
+        print(
+            f"  Fetched {offset:,}/{total_count:,} ({pct}%) — "
+            f"{rate:,.0f} rec/s — {elapsed:.1f}s",
+            flush=True,
+        )
+
+        # Flush batch to DB periodically to limit memory
+        if len(batch) >= ADDENDA_BATCH_FLUSH:
+            conn.executemany(
+                "INSERT INTO addenda VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                batch,
+            )
+            total += len(batch)
+            batch = []
+
+        if len(page) < ADDENDA_PAGE_SIZE:
+            break
+
+    # Flush remaining
     if batch:
         conn.executemany(
             "INSERT INTO addenda VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             batch,
         )
-        print(f"  Loaded {len(batch):,} addenda routing records")
+        total += len(batch)
 
     conn.execute(
         "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
-        [
-            "87xy-gk8d",
-            "Building Permit Addenda + Routing",
-            datetime.now(timezone.utc).isoformat(),
-            len(records),
-            len(records),
-        ],
+        [endpoint_id, "Building Permit Addenda + Routing", datetime.now(timezone.utc).isoformat(), total, total],
     )
+    elapsed = time.time() - start
+    print(f"  Loaded {total:,} addenda records in {elapsed:.1f}s")
+    return total
+
+
+async def ingest_violations(conn, client: SODAClient) -> int:
+    """Ingest notices of violation into violations table."""
+    print("\n=== Ingesting Notices of Violation ===")
+    conn.execute("DELETE FROM violations")
+
+    records = await _fetch_all_pages(client, "nbtm-fbw5", "Notices of Violation")
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        batch.append(_normalize_violation(r, i))
+    if batch:
+        conn.executemany(
+            "INSERT INTO violations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} violation records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["nbtm-fbw5", "Notices of Violation", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_complaints(conn, client: SODAClient) -> int:
+    """Ingest DBI complaints into complaints table."""
+    print("\n=== Ingesting DBI Complaints ===")
+    conn.execute("DELETE FROM complaints")
+
+    records = await _fetch_all_pages(client, "gm2e-bten", "DBI Complaints")
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        batch.append(_normalize_complaint(r, i))
+    if batch:
+        conn.executemany(
+            "INSERT INTO complaints VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} complaint records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["gm2e-bten", "DBI Complaints", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_businesses(conn, client: SODAClient) -> int:
+    """Ingest active registered business locations into businesses table."""
+    print("\n=== Ingesting Registered Business Locations (active only) ===")
+    conn.execute("DELETE FROM businesses")
+
+    records = await _fetch_all_pages(
+        client, "g8m3-pdis", "Registered Business Locations",
+        where="location_end_date IS NULL",
+    )
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        batch.append(_normalize_business(r, i))
+    if batch:
+        conn.executemany(
+            "INSERT INTO businesses VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} business records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["g8m3-pdis", "Registered Business Locations", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+def _extract_addenda_contacts(conn, start_row_id: int) -> int:
+    """Extract plan_checked_by from addenda as contacts for entity resolution."""
+    print("\n  Extracting addenda contacts (plan_checked_by)...")
+
+    # Get distinct (application_number, plan_checked_by) pairs
+    try:
+        records = conn.execute("""
+            SELECT DISTINCT application_number, plan_checked_by
+            FROM addenda
+            WHERE plan_checked_by IS NOT NULL
+              AND TRIM(plan_checked_by) != ''
+        """).fetchall()
+    except Exception:
+        # addenda table may not exist or be empty
+        return 0
+
+    batch = []
+    row_id = start_row_id
+    for app_num, checker in records:
+        row_id += 1
+        batch.append((
+            row_id, "addenda", app_num, "plan_checker", checker,
+            None, None, None,  # first_name, last_name, firm_name
+            None, None, None,  # pts_agent_id, license, biz_license
+            None,  # phone
+            None, None, None, None,  # address, city, state, zip
+            None, None,  # is_applicant, from_date
+            None,  # entity_id
+            None,  # data_as_of
+        ))
+
+    if batch:
+        conn.executemany(
+            "INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} addenda contact records")
+
+    return len(batch)
+
+
+def _extract_business_contacts(conn, start_row_id: int) -> int:
+    """Extract ownership_name and dba_name from businesses as contacts."""
+    print("\n  Extracting business contacts (ownership_name, dba_name)...")
+
+    try:
+        records = conn.execute("""
+            SELECT certificate_number, ownership_name, dba_name
+            FROM businesses
+            WHERE ownership_name IS NOT NULL OR dba_name IS NOT NULL
+        """).fetchall()
+    except Exception:
+        # businesses table may not exist or be empty
+        return 0
+
+    batch = []
+    row_id = start_row_id
+    seen = set()  # Avoid duplicate (cert_number, name) pairs
+
+    for cert_num, owner, dba in records:
+        permit_ref = cert_num or ""
+
+        if owner and (permit_ref, owner) not in seen:
+            seen.add((permit_ref, owner))
+            row_id += 1
+            batch.append((
+                row_id, "business", permit_ref, "owner", owner,
+                None, None, None,  # first_name, last_name, firm_name
+                None, None, None,  # pts_agent_id, license, biz_license
+                None,  # phone
+                None, None, None, None,  # address, city, state, zip
+                None, None,  # is_applicant, from_date
+                None,  # entity_id
+                None,  # data_as_of
+            ))
+
+        if dba and dba != owner and (permit_ref, dba) not in seen:
+            seen.add((permit_ref, dba))
+            row_id += 1
+            batch.append((
+                row_id, "business", permit_ref, "dba", dba,
+                None, None, None,
+                None, None, None,
+                None,
+                None, None, None, None,
+                None, None,
+                None,
+                None,
+            ))
+
+    if batch:
+        conn.executemany(
+            "INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} business contact records")
+
     return len(batch)
 
 
@@ -564,6 +893,9 @@ async def run_ingestion(
     permits: bool = True,
     inspections: bool = True,
     addenda: bool = True,
+    violations: bool = True,
+    complaints: bool = True,
+    businesses: bool = True,
     db_path: str | None = None,
 ) -> dict:
     """Run the full ingestion pipeline.
@@ -578,14 +910,21 @@ async def run_ingestion(
     results = {}
 
     try:
+        # Ingest new datasets first so contact extraction can read them
+        if addenda:
+            results["addenda"] = await ingest_addenda(conn, client)
+        if violations:
+            results["violations"] = await ingest_violations(conn, client)
+        if complaints:
+            results["complaints"] = await ingest_complaints(conn, client)
+        if businesses:
+            results["businesses"] = await ingest_businesses(conn, client)
         if contacts:
             results["contacts"] = await ingest_contacts(conn, client)
         if permits:
             results["permits"] = await ingest_permits(conn, client)
         if inspections:
             results["inspections"] = await ingest_inspections(conn, client)
-        if addenda:
-            results["addenda"] = await ingest_addenda(conn, client)
     finally:
         await client.close()
 
@@ -610,11 +949,16 @@ def main():
     parser.add_argument("--permits", action="store_true", help="Only ingest permits")
     parser.add_argument("--inspections", action="store_true", help="Only ingest inspections")
     parser.add_argument("--addenda", action="store_true", help="Only ingest addenda routing")
+    parser.add_argument("--violations", action="store_true", help="Only ingest violations")
+    parser.add_argument("--complaints", action="store_true", help="Only ingest complaints")
+    parser.add_argument("--businesses", action="store_true", help="Only ingest businesses")
     parser.add_argument("--db", type=str, help="Custom database path")
     args = parser.parse_args()
 
     # If no specific flag, ingest everything
-    do_all = not (args.contacts or args.permits or args.inspections or args.addenda)
+    do_all = not (args.contacts or args.permits or args.inspections
+                  or args.addenda or args.violations or args.complaints
+                  or args.businesses)
 
     asyncio.run(
         run_ingestion(
@@ -622,6 +966,9 @@ def main():
             permits=do_all or args.permits,
             inspections=do_all or args.inspections,
             addenda=do_all or args.addenda,
+            violations=do_all or args.violations,
+            complaints=do_all or args.complaints,
+            businesses=do_all or args.businesses,
             db_path=args.db,
         )
     )
