@@ -1205,6 +1205,15 @@
                         loadingIndicator.style.display = 'block';
                         submitButton.disabled = true;
                         submitButton.style.opacity = '0.6';
+                        // Disable secondary buttons too
+                        var ccBtn = document.getElementById('compliance-check-btn');
+                        var faBtn = document.getElementById('full-analysis-btn');
+                        if (ccBtn) { ccBtn.disabled = true; ccBtn.style.opacity = '0.4'; }
+                        if (faBtn) { faBtn.disabled = true; faBtn.style.opacity = '0.4'; }
+                        // Scroll loading indicator into view
+                        setTimeout(function() {
+                            loadingIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
                     });
 
                     // Secondary handler: HTMX events (if HTMX processes it)
@@ -1221,12 +1230,20 @@
                             faBtn.classList.remove('btn-active');
                             faBtn.textContent = 'Full Analysis';
                             faBtn.disabled = false;
+                            faBtn.style.opacity = '';
                         }
                         var ccBtn = document.getElementById('compliance-check-btn');
                         if (ccBtn) {
                             ccBtn.classList.remove('btn-active');
                             ccBtn.textContent = 'Compliance Check';
                             ccBtn.disabled = false;
+                            ccBtn.style.opacity = '';
+                        }
+                        // Reset Quick Check button too
+                        var qcBtn = document.querySelector('#section-analyze-plans button[type="submit"]');
+                        if (qcBtn) {
+                            qcBtn.disabled = false;
+                            qcBtn.style.opacity = '';
                         }
                     }
 
@@ -1482,11 +1499,31 @@
             section.classList.toggle("open");
         }
 
+        // Disable all 3 plan analysis buttons, highlight only the active one
+        function _lockPlanButtons(activeBtn) {
+            var qcBtn = document.querySelector('#section-analyze-plans button[type="submit"]');
+            var ccBtn = document.getElementById('compliance-check-btn');
+            var faBtn = document.getElementById('full-analysis-btn');
+            [qcBtn, ccBtn, faBtn].forEach(function(b) {
+                if (!b) return;
+                b.disabled = true;
+                if (b !== activeBtn) b.style.opacity = '0.4';
+            });
+            activeBtn.classList.add('btn-active');
+        }
+
+        // Scroll loading indicator into view
+        function _scrollToLoading() {
+            var el = document.getElementById('analyze-plans-loading');
+            if (el) setTimeout(function() {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+
         // Submit form in Compliance Check mode
         function submitComplianceCheck(btn) {
-            btn.classList.add('btn-active');
+            _lockPlanButtons(btn);
             btn.textContent = 'Analyzing\u2026';
-            btn.disabled = true;
             document.getElementById('quick-check-hidden').value = '';
             document.getElementById('analysis-mode-hidden').value = 'compliance';
             var loadingMsg = document.querySelector('#analyze-plans-loading p');
@@ -1495,13 +1532,13 @@
             }
             var form = document.querySelector('form[hx-post="/analyze-plans"]');
             if (form) form.requestSubmit();
+            _scrollToLoading();
         }
 
         // Submit form in Full Analysis mode (clears quick_check flag)
         function submitFullAnalysis(btn) {
-            btn.classList.add('btn-active');
+            _lockPlanButtons(btn);
             btn.textContent = 'Analyzing\u2026';
-            btn.disabled = true;
             document.getElementById('quick-check-hidden').value = '';
             document.getElementById('analysis-mode-hidden').value = 'sample';
             var loadingMsg = document.querySelector('#analyze-plans-loading p');
@@ -1510,6 +1547,7 @@
             }
             var form = document.querySelector('form[hx-post="/analyze-plans"]');
             if (form) form.requestSubmit();
+            _scrollToLoading();
         }
 
         // Personalization section toggle
