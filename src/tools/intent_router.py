@@ -171,7 +171,13 @@ ANALYZE_SIGNALS = [
     "solar", "seismic", "sprinkler", "elevator",
 ]
 
-# Priority 6.5: Draft response / email-style query
+# Priority 3.7 / 4.5: Draft response / email-style query
+# Explicit prefix commands — ALWAYS route to draft regardless of length
+DRAFT_EXPLICIT_RE = re.compile(
+    r'^(?:draft|reply\s+to|respond\s+to):',
+    re.IGNORECASE,
+)
+# Broader signals — require word_count > 12 to avoid short address queries
 DRAFT_SIGNALS_RE = re.compile(
     r'(?:^(?:hi|hello|hey|dear)\b|'             # greeting start
     r'client\s+(?:is\s+)?asking|'                # "client is asking"
@@ -269,9 +275,26 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
             entities={},
         )
 
+    # --- Priority 3.7: Early draft/conversational detection ---
+    # Long messages that start with greetings ("Hi Amy, ...") or contain
+    # draft signals should route to draft_response, NOT address search.
+    # Without this, "Hi Amy, ... on 723 16th Avenue ..." would match
+    # the address regex at Priority 4 and return a permit lookup instead
+    # of a conversational AI response.
+    has_explicit_draft = bool(DRAFT_EXPLICIT_RE.search(text))
+    has_draft_signal = bool(DRAFT_SIGNALS_RE.search(text))
+    is_long_question = len(text) > 150 and '?' in text
+    word_count = len(text.split())
+    if has_explicit_draft or ((has_draft_signal or is_long_question) and word_count > 12):
+        return IntentResult(
+            intent="draft_response",
+            confidence=0.80,
+            entities={"query": text},
+        )
+
     # --- Priority 4: Address search ---
     has_address_signal = any(sig in text_lower for sig in ADDRESS_SIGNALS)
-    is_short = len(text.split()) <= 8
+    is_short = word_count <= 8  # reuse word_count from Priority 3.7
 
     # Pre-clean: strip mailing address tails and unit numbers so
     # "146 Lake St 1425 San Francisco, CA 94118 US" → "146 Lake St"
@@ -319,11 +342,9 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
                 entities={"street_number": street_number, "street_name": street_name},
             )
 
-    # --- Priority 4.5: Draft response (email-style query) ---
-    # Check BEFORE person search and analyze_project so "Hi Amy, client
-    # wants to convert..." routes to draft mode, not person/project.
-    has_draft_signal = bool(DRAFT_SIGNALS_RE.search(text))
-    is_long_question = len(text) > 150 and '?' in text
+    # --- Priority 4.5: Draft response fallback ---
+    # Catches short draft-signal queries that didn't meet the word_count > 12
+    # threshold at Priority 3.7 (e.g., "Draft: reply about permits").
     if has_draft_signal or is_long_question:
         return IntentResult(
             intent="draft_response",
