@@ -14,12 +14,13 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 import time
 from collections import defaultdict
 from datetime import timedelta
 from functools import wraps
-from flask import Flask, render_template, request, abort, Response, redirect, url_for, session, g, send_file, jsonify
+from flask import Flask, render_template, render_template_string, request, abort, Response, redirect, url_for, session, g, send_file, jsonify
 import markdown
 
 # Configure logging so gunicorn captures warnings from tools
@@ -50,6 +51,42 @@ app.permanent_session_lifetime = timedelta(days=30)
 
 # 400 MB max upload for plan set PDFs (site permit addenda can be up to 350 MB)
 app.config["MAX_CONTENT_LENGTH"] = 400 * 1024 * 1024
+
+# ---------------------------------------------------------------------------
+# White-label / brand config (env-overridable)
+# ---------------------------------------------------------------------------
+BRAND_CONFIG = {
+    "name": os.environ.get("BRAND_NAME", "sfpermits.ai"),
+    "persona": os.environ.get("BRAND_PERSONA", "our knowledge base"),
+    "answer_header": os.environ.get("BRAND_ANSWER_HEADER", "Here's what I found"),
+    "draft_header": os.environ.get("BRAND_DRAFT_HEADER", "Draft reply"),
+}
+
+
+# Knowledge quiz — curated questions from data/knowledge/GAPS.md
+QUIZ_QUESTIONS = [
+    "Walk me through how you decide whether a project qualifies for OTC vs in-house review.",
+    "What's your mental checklist when a new client describes their project? What questions do you ask first?",
+    "What are the top 5 reasons building permit applications get rejected or sent back?",
+    "How do you estimate timelines for clients? What's the range for a typical residential remodel vs commercial TI vs new construction?",
+    "How do you calculate/estimate permit fees for a client before they apply?",
+    "What unexpected fees catch clients off guard?",
+    "Which agency reviews cause the most delays? Planning? Fire?",
+    "For what types of projects do you NOT need Planning review?",
+    "How does the OCII routing work in practice? How often do you deal with it?",
+    "What are the 5 most common project types you help clients with?",
+    "What's the most confusing part of the process for first-time applicants?",
+    "Are there any 'gotchas' in the process that aren't well documented?",
+    "Can you validate this form selection logic for common permit types?",
+    "Can you validate this agency routing for a kitchen remodel?",
+    "Is the 11-step in-house review process on sf.gov accurate and complete?",
+]
+
+
+@app.context_processor
+def inject_brand():
+    """Make BRAND_CONFIG available in all templates."""
+    return {"brand": BRAND_CONFIG}
 
 
 # ---------------------------------------------------------------------------
@@ -1408,6 +1445,14 @@ def ask():
     intent = result.intent
     entities = result.entities
 
+    # Allow explicit draft mode override via form field
+    if request.form.get("draft") == "1" and intent not in (
+        "lookup_permit", "search_complaint", "search_address",
+        "search_parcel", "search_person", "validate_plans",
+    ):
+        intent = "draft_response"
+        entities = {"query": query}
+
     try:
         if intent == "lookup_permit":
             return _ask_permit_lookup(query, entities)
@@ -1423,6 +1468,8 @@ def ask():
             return _ask_analyze_prefill(query, entities)
         elif intent == "validate_plans":
             return _ask_validate_reveal(query)
+        elif intent == "draft_response":
+            return _ask_draft_response(query, entities)
         else:
             return _ask_general_question(query, entities)
     except Exception as e:
@@ -1668,6 +1715,54 @@ def _ask_validate_reveal(query: str) -> str:
     return render_template("search_reveal.html", section="validate")
 
 
+def _ask_draft_response(query: str, entities: dict) -> str:
+    """Generate a draft reply for an email-style question using RAG retrieval."""
+    effective_query = entities.get("query", query)
+
+    # Try RAG-augmented retrieval
+    rag_results = _try_rag_retrieval(effective_query)
+    if not rag_results:
+        # Fall back to general question handler if no RAG results
+        return _ask_general_question(query, entities)
+
+    role = _get_user_response_role()
+    seen_sources = set()
+    cleaned_results = []
+    references = []
+
+    for r in rag_results:
+        source_file = r.get("source_file", "")
+        source_section = r.get("source_section", "")
+        source_key = f"{source_file}:{source_section}"
+        if source_key in seen_sources:
+            continue
+        seen_sources.add(source_key)
+
+        content = _clean_chunk_content(r.get("content", ""), source_file)
+        label = _build_source_label(source_file, source_section)
+        cleaned_results.append({
+            "content_html": md_to_html(content),
+            "source_label": label,
+            "score": r.get("final_score", 0),
+            "source_tier": r.get("source_tier", ""),
+        })
+        # Collect reference labels for the "Key references" line
+        if label and label not in references:
+            references.append(label)
+
+    if not cleaned_results:
+        return _ask_general_question(query, entities)
+
+    return render_template(
+        "draft_response.html",
+        query=query,
+        results=cleaned_results,
+        references=references[:5],
+        role=role,
+        is_expert=_is_expert_user(),
+    )
+
+
 def _ask_general_question(query: str, entities: dict) -> str:
     """Answer a general question using RAG retrieval (with keyword fallback)."""
     effective_query = entities.get("query", query)
@@ -1723,46 +1818,99 @@ def _try_rag_retrieval(query: str) -> list[dict] | None:
         return None
 
 
+def _clean_chunk_content(content: str, source_file: str = "") -> str:
+    """Clean raw RAG chunk content for human-readable display.
+
+    Handles tier1 JSON-style key:value content, tier2 raw text,
+    and expert notes.
+    """
+    lines = content.split("\n")
+    cleaned = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # Strip [filename] prefixes like "[epr-requirements]"
+        stripped = re.sub(r'^\[[\w\-\.]+\]\s*', '', stripped)
+        # Convert "key: value" (YAML-style) to bold key
+        m = re.match(r'^(\w[\w_\s]{1,30}?):\s+(.+)$', stripped)
+        if m:
+            key = m.group(1).replace("_", " ").strip().title()
+            val = m.group(2).strip()
+            # Special handling for quote fields
+            if key.lower() == "quote":
+                cleaned.append(f'> "{val}"')
+            else:
+                cleaned.append(f"**{key}**: {val}")
+        elif stripped.startswith("- ") or stripped.startswith("* "):
+            cleaned.append(stripped)
+        elif stripped.startswith('"') and stripped.endswith('"'):
+            cleaned.append(f"> {stripped}")
+        else:
+            cleaned.append(stripped)
+    return "\n\n".join(cleaned)
+
+
+def _get_user_response_role() -> str:
+    """Determine response role based on current user."""
+    if not g.user:
+        return "general"
+    if g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant"):
+        return "professional"
+    return "homeowner"
+
+
+def _is_expert_user() -> bool:
+    """Check if current user can add expert notes."""
+    return bool(
+        g.user
+        and (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant"))
+    )
+
+
+def _build_source_label(source_file: str, source_section: str) -> str:
+    """Build a readable source label from file/section names."""
+    label = source_file.replace(".json", "").replace(".txt", "")
+    label = label.replace("-", " ").replace("_", " ").title()
+    if source_section and source_section not in source_file:
+        section = source_section.replace("_", " ").replace("-", " ").title()
+        label = f"{label} \u203a {section}"
+    return label
+
+
 def _render_rag_results(query: str, results: list[dict]) -> str:
-    """Render RAG retrieval results as HTML."""
-    parts = []
+    """Render RAG retrieval results as a clean knowledge answer card."""
     seen_sources = set()
+    cleaned_results = []
 
     for r in results:
-        content = r.get("content", "")
         source_file = r.get("source_file", "")
         source_section = r.get("source_section", "")
-        score = r.get("final_score", 0)
-
-        # Build a readable source label
-        source_label = source_file.replace(".json", "").replace("-", " ").replace("_", " ").title()
-        if source_section and source_section not in source_file:
-            section_label = source_section.replace("_", " ").replace("-", " ").title()
-            source_label = f"{source_label} › {section_label}"
-
-        # Skip near-duplicate sources
         source_key = f"{source_file}:{source_section}"
         if source_key in seen_sources:
             continue
         seen_sources.add(source_key)
 
-        # Format the content block
-        parts.append(
-            f"**{source_label}** *(relevance: {score:.0%})*\n\n{content}"
-        )
+        content = _clean_chunk_content(r.get("content", ""), source_file)
+        cleaned_results.append({
+            "content_html": md_to_html(content),
+            "source_label": _build_source_label(source_file, source_section),
+            "score": r.get("final_score", 0),
+            "source_tier": r.get("source_tier", ""),
+        })
 
-    if not parts:
+    if not cleaned_results:
         return render_template(
             "search_results.html",
             query_echo=query,
             result_html='<div class="info">No matching knowledge found.</div>',
         )
 
-    result_html = md_to_html("\n\n---\n\n".join(parts))
     return render_template(
-        "search_results.html",
-        query_echo=query,
-        result_html=result_html,
+        "knowledge_answer.html",
+        query=query,
+        results=cleaned_results,
+        is_expert=_is_expert_user(),
     )
 
 
@@ -2423,6 +2571,129 @@ def admin_regulatory_watch_delete(watch_id):
     from web.regulatory_watch import delete_watch_item
     delete_watch_item(watch_id)
     return redirect(url_for("admin_regulatory_watch"))
+
+
+# ---------------------------------------------------------------------------
+# Admin: Knowledge capture
+# ---------------------------------------------------------------------------
+
+@app.route("/admin/knowledge/quiz")
+@login_required
+def admin_knowledge_quiz():
+    """Serve the next quiz question with current RAG answer (admin only)."""
+    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
+        abort(403)
+
+    idx = request.args.get("idx", 0, type=int)
+    if idx < 0 or idx >= len(QUIZ_QUESTIONS):
+        return '<div style="color:var(--text-muted);padding:16px;">All questions completed! Check back later for new ones.</div>'
+
+    question = QUIZ_QUESTIONS[idx]
+
+    # Get current RAG answer for this question
+    rag_results = _try_rag_retrieval(question)
+    current_answer_html = ""
+    if rag_results:
+        parts = []
+        for r in rag_results[:3]:
+            content = _clean_chunk_content(r.get("content", ""), r.get("source_file", ""))
+            parts.append(content)
+        current_answer_html = md_to_html("\n\n---\n\n".join(parts))
+
+    return render_template(
+        "fragments/knowledge_quiz.html",
+        question=question,
+        question_idx=idx,
+        total_questions=len(QUIZ_QUESTIONS),
+        current_answer_html=current_answer_html,
+    )
+
+
+@app.route("/admin/knowledge/quiz/submit", methods=["POST"])
+@login_required
+def admin_knowledge_quiz_submit():
+    """Accept a quiz improvement and save as expert note."""
+    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
+        abort(403)
+
+    question = request.form.get("question", "")
+    improvement = request.form.get("improvement", "").strip()
+    idx = request.form.get("idx", 0, type=int)
+
+    if not improvement or len(improvement) < 10:
+        return '<span style="color:var(--error, #ef4444);">Answer too short (minimum 10 characters).</span>'
+
+    try:
+        from src.rag.store import insert_single_note
+        insert_single_note(improvement, {
+            "added_by_user_id": g.user["user_id"],
+            "firm_id": g.user.get("firm_id"),
+            "query_context": question,
+            "source": "quiz",
+        })
+
+        # Re-retrieve to show updated answer
+        rag_results = _try_rag_retrieval(question)
+        updated_html = ""
+        if rag_results:
+            parts = []
+            for r in rag_results[:3]:
+                content = _clean_chunk_content(r.get("content", ""), r.get("source_file", ""))
+                parts.append(content)
+            updated_html = md_to_html("\n\n---\n\n".join(parts))
+
+        next_idx = idx + 1
+        return render_template_string("""
+            <div style="color:var(--success, #34d399); font-weight:600; margin-bottom:12px;">
+                Got it! Here's how your answer appears now:
+            </div>
+            <div style="padding:12px; background:var(--surface-2, #252834); border-radius:8px; margin-bottom:12px; font-size:0.9rem;">
+                {{ updated_html | safe }}
+            </div>
+            {% if next_idx < total %}
+            <button type="button"
+                hx-get="/admin/knowledge/quiz?idx={{ next_idx }}"
+                hx-target="#quiz-card"
+                hx-swap="innerHTML"
+                class="btn" style="padding:10px 24px; width:auto; font-size:0.85rem;">
+                Next Question &rarr;
+            </button>
+            {% else %}
+            <div style="color:var(--text-muted); font-size:0.85rem;">
+                All questions completed! Check back later for new ones.
+            </div>
+            {% endif %}
+        """, updated_html=updated_html, next_idx=next_idx, total=len(QUIZ_QUESTIONS))
+    except Exception as e:
+        logging.error("Failed to save quiz answer: %s", e)
+        return f'<span style="color:var(--error, #ef4444);">Error: {e}</span>'
+
+
+@app.route("/admin/knowledge/add-note", methods=["POST"])
+@login_required
+def admin_add_note():
+    """Add an expert note to the RAG knowledge base (admin/consultant only)."""
+    user = g.user
+    if not (user.get("is_admin") or user.get("role") in ("admin", "consultant")):
+        abort(403)
+
+    note_text = request.form.get("note_text", "").strip()
+    query_context = request.form.get("query_context", "")
+
+    if not note_text or len(note_text) < 10:
+        return '<span style="color:var(--error, #ef4444);">Note too short (minimum 10 characters).</span>'
+
+    try:
+        from src.rag.store import insert_single_note
+        insert_single_note(note_text, {
+            "added_by_user_id": user["user_id"],
+            "firm_id": user.get("firm_id"),
+            "query_context": query_context,
+        })
+        return '<span style="color:var(--success, #34d399);">Note saved — it will appear in future answers.</span>'
+    except Exception as e:
+        logging.error("Failed to save expert note: %s", e)
+        return f'<span style="color:var(--error, #ef4444);">Error saving note: {e}</span>'
 
 
 # ---------------------------------------------------------------------------

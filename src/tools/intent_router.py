@@ -4,12 +4,14 @@ Rule-based intent classification with priority ordering. No LLM calls.
 Used by the /ask endpoint to route conversational search box queries.
 
 Intents (priority order):
-  1. lookup_permit   — permit number detected
-  2. search_parcel   — block/lot pattern
-  3. validate_plans  — validation keywords
-  4. search_address  — street address pattern
-  5. search_person   — person/company name search
-  6. analyze_project — project description with action verbs
+  1. lookup_permit    — permit number detected
+  2. search_complaint — complaint/violation keywords
+  3. search_parcel    — block/lot pattern
+  3.5 validate_plans  — validation keywords
+  4. search_address   — street address pattern
+  4.5 draft_response  — email-style question or long query with ?
+  5. search_person    — person/company name search
+  6. analyze_project  — project description with action verbs
   7. general_question — fallback
 """
 
@@ -169,6 +171,17 @@ ANALYZE_SIGNALS = [
     "solar", "seismic", "sprinkler", "elevator",
 ]
 
+# Priority 6.5: Draft response / email-style query
+DRAFT_SIGNALS_RE = re.compile(
+    r'(?:^(?:hi|hello|hey|dear)\b|'             # greeting start
+    r'client\s+(?:is\s+)?asking|'                # "client is asking"
+    r'homeowner\s+(?:wants|needs|asked)|'        # "homeowner wants"
+    r'^(?:draft|reply\s+to|respond\s+to):|'      # explicit prefix
+    r'how\s+(?:should|would|do)\s+(?:I|we)\s+respond|'  # "how should I respond"
+    r'(?:they|he|she)\s+(?:asked|wants?\s+to\s+know))',  # "they asked"
+    re.IGNORECASE | re.MULTILINE,
+)
+
 # Entity extraction patterns
 COST_RE = re.compile(r'\$\s*([\d,]+)\s*([kK])?')
 SQFT_RE = re.compile(r'(\d[\d,]*)\s*(?:sq\.?\s*ft\.?|square\s*feet|sqft|sf)\b', re.IGNORECASE)
@@ -305,6 +318,18 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
                 confidence=0.85,
                 entities={"street_number": street_number, "street_name": street_name},
             )
+
+    # --- Priority 4.5: Draft response (email-style query) ---
+    # Check BEFORE person search and analyze_project so "Hi Amy, client
+    # wants to convert..." routes to draft mode, not person/project.
+    has_draft_signal = bool(DRAFT_SIGNALS_RE.search(text))
+    is_long_question = len(text) > 150 and '?' in text
+    if has_draft_signal or is_long_question:
+        return IntentResult(
+            intent="draft_response",
+            confidence=0.75,
+            entities={"query": text},
+        )
 
     # --- Priority 5: Person search ---
     for pattern in PERSON_PATTERNS:

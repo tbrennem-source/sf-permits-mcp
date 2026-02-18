@@ -497,3 +497,155 @@ class TestIngestionScript:
         assert TIER_TRUST["tier1"] == 1.0
         assert TIER_TRUST["tier2"] < TIER_TRUST["tier1"]
         assert TIER_TRUST["tier3"] < TIER_TRUST["tier2"]
+
+
+# ---------------------------------------------------------------------------
+# Clean chunk content tests
+# ---------------------------------------------------------------------------
+
+class TestCleanChunkContent:
+    """Test the _clean_chunk_content helper in web/app.py.
+
+    Uses the Flask test app to get proper context for imports.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup_app(self):
+        from web.app import app, _clean_chunk_content
+        self._app = app
+        self._clean_fn = _clean_chunk_content
+
+    def _clean(self, content, source_file=""):
+        with self._app.app_context():
+            return self._clean_fn(content, source_file)
+
+    def test_strips_filename_prefix(self):
+        result = self._clean("[epr-requirements] Some content here")
+        assert "[epr-requirements]" not in result
+        assert "Some content here" in result
+
+    def test_converts_key_value_to_bold(self):
+        result = self._clean("permit_type: Building Permit")
+        assert "**Permit Type**:" in result
+        assert "Building Permit" in result
+
+    def test_converts_quote_to_blockquote(self):
+        result = self._clean('quote: This is important info')
+        assert '> "This is important info"' in result
+
+    def test_preserves_bullet_lists(self):
+        result = self._clean("- Item one\n- Item two")
+        assert "- Item one" in result
+        assert "- Item two" in result
+
+    def test_wraps_quoted_strings(self):
+        result = self._clean('"This is a quoted statement"')
+        assert '> "This is a quoted statement"' in result
+
+    def test_strips_empty_lines(self):
+        result = self._clean("Line one\n\n\n\nLine two")
+        assert result == "Line one\n\nLine two"
+
+    def test_empty_input(self):
+        result = self._clean("")
+        assert result == ""
+
+
+# ---------------------------------------------------------------------------
+# Draft intent classification tests
+# ---------------------------------------------------------------------------
+
+class TestDraftResponseIntent:
+    """Test the draft_response intent classification."""
+
+    def test_greeting_start(self):
+        from src.tools.intent_router import classify
+        result = classify("Hi Amy, a client wants to convert their garage to an ADU, what permits?")
+        assert result.intent == "draft_response"
+
+    def test_client_asking(self):
+        from src.tools.intent_router import classify
+        result = classify("Client is asking about the timeline for a kitchen remodel permit")
+        assert result.intent == "draft_response"
+
+    def test_homeowner_wants(self):
+        from src.tools.intent_router import classify
+        result = classify("Homeowner wants to know if they need a permit for replacing windows")
+        assert result.intent == "draft_response"
+
+    def test_how_should_respond(self):
+        from src.tools.intent_router import classify
+        result = classify("How should I respond to a question about seismic retrofit requirements?")
+        assert result.intent == "draft_response"
+
+    def test_draft_prefix(self):
+        from src.tools.intent_router import classify
+        result = classify("Draft: response about ADU permit requirements and timeline")
+        assert result.intent == "draft_response"
+
+    def test_long_question_with_question_mark(self):
+        from src.tools.intent_router import classify
+        # 150+ chars with a ?
+        long_q = "I have a client who is interested in purchasing a property in the Sunset district and they want to know what kinds of renovations would require permits and what the general timeline would be for getting approvals?"
+        result = classify(long_q)
+        assert result.intent == "draft_response"
+
+    def test_short_question_stays_general(self):
+        from src.tools.intent_router import classify
+        result = classify("What is EPR?")
+        assert result.intent != "draft_response"
+
+    def test_address_still_matches_address(self):
+        from src.tools.intent_router import classify
+        result = classify("123 Main St")
+        assert result.intent == "search_address"
+
+    def test_permit_number_still_matches(self):
+        from src.tools.intent_router import classify
+        result = classify("202301012345")
+        assert result.intent == "lookup_permit"
+
+
+# ---------------------------------------------------------------------------
+# insert_single_note tests (mocked DB + embeddings)
+# ---------------------------------------------------------------------------
+
+class TestInsertSingleNote:
+    """Test the insert_single_note helper."""
+
+    @patch("src.rag.store.insert_chunks")
+    @patch("src.rag.embeddings.embed_texts")
+    def test_basic_insert(self, mock_embed, mock_insert):
+        from src.rag.store import insert_single_note
+
+        mock_embed.return_value = [[0.1] * 1536]
+
+        result = insert_single_note("This is an expert correction about OTC criteria", {
+            "added_by_user_id": 42,
+            "firm_id": None,
+            "query_context": "What is OTC?",
+        })
+
+        assert result == 1
+        mock_embed.assert_called_once()
+        mock_insert.assert_called_once()
+
+        # Check the chunk passed to insert_chunks
+        call_args = mock_insert.call_args
+        chunks = call_args[0][0]
+        assert chunks[0]["content"] == "This is an expert correction about OTC criteria"
+        assert chunks[0]["source_file"] == "expert-note"
+        assert call_args[1]["source_tier"] == "amy"
+        assert call_args[1]["trust_weight"] == 0.9
+
+    @patch("src.rag.store.insert_chunks")
+    @patch("src.rag.embeddings.embed_texts")
+    def test_metadata_includes_timestamp(self, mock_embed, mock_insert):
+        from src.rag.store import insert_single_note
+
+        mock_embed.return_value = [[0.1] * 1536]
+
+        insert_single_note("A note about something", {"added_by_user_id": 1})
+
+        chunks = mock_insert.call_args[0][0]
+        assert "added_at" in chunks[0]["metadata"]

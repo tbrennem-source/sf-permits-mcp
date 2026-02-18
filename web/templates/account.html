@@ -482,6 +482,12 @@
                 </form>
             </div>
 
+            <div id="quiz-card"
+                 hx-get="/admin/knowledge/quiz?idx=0"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+            </div>
+
             <div class="card admin-section">
                 <h2>Admin: Activity</h2>
                 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">

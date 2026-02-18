@@ -1,0 +1,103 @@
+<div class="result-card search-result-card">
+    <div class="search-echo">{{ query }}</div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0 12px;">
+        <div style="font-weight:600; font-size:1.1rem; color:var(--text);">
+            {% if role == "professional" %}
+            {{ brand.draft_header }}
+            {% elif role == "homeowner" %}
+            Here's what this means
+            {% else %}
+            {{ brand.answer_header }}
+            {% endif %}
+        </div>
+        <button type="button" onclick="_copyDraft(this)"
+                style="background:none; border:1px solid var(--border); color:var(--accent); padding:6px 14px; border-radius:6px; font-size:0.8rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
+            <span class="copy-label">Copy</span>
+        </button>
+    </div>
+
+    <div id="draft-content" style="padding:16px; background:var(--surface-2, #252834); border-radius:10px; border:1px solid var(--border);">
+        {% if role == "professional" %}
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px; font-style:italic;">
+            Based on SF DBI guidelines and Planning Code requirements:
+        </div>
+        {% endif %}
+
+        {% for r in results %}
+        <div style="margin-bottom:12px; {% if not loop.last %}padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06);{% endif %}">
+            {{ r.content_html | safe }}
+        </div>
+        {% endfor %}
+
+        {% if references %}
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:0.85rem; color:var(--text-muted);">
+            <strong>Key references:</strong>
+            {% for ref in references %}
+            <span>{{ ref }}{% if not loop.last %}, {% endif %}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    {# Collapsible sources #}
+    <details style="margin-top:16px;">
+        <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted); font-weight:600;">
+            Sources ({{ results | length }})
+        </summary>
+        <div style="margin-top:8px; padding:12px; background:var(--surface-2, #252834); border-radius:8px;">
+            {% for r in results %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:0.8rem;">
+                <span style="color:var(--text-muted);">
+                    {{ r.source_label }}
+                    {% if r.source_tier == 'amy' %}
+                    <span style="color:var(--success); font-weight:600;">(Expert note)</span>
+                    {% endif %}
+                </span>
+                <span style="color:var(--accent); font-weight:600;">{{ "%.0f%%" | format(r.score * 100) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </details>
+
+    {# Admin: Add a note #}
+    {% if is_expert %}
+    <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+        <button type="button" onclick="this.style.display='none'; document.getElementById('draft-note-form').style.display='block';"
+                style="background:none; border:1px solid var(--border); color:var(--text-muted); padding:6px 14px; border-radius:6px; font-size:0.8rem; cursor:pointer;">
+            + Add a note
+        </button>
+        <div id="draft-note-form" style="display:none; margin-top:10px;">
+            <form hx-post="/admin/knowledge/add-note"
+                  hx-target="#draft-note-confirm"
+                  hx-swap="innerHTML">
+                <input type="hidden" name="query_context" value="{{ query }}">
+                <textarea name="note_text" rows="3"
+                    placeholder="Add a correction, tip, or additional context..."
+                    style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px; font-family:inherit; font-size:0.9rem; resize:vertical;"></textarea>
+                <button type="submit" class="btn" style="margin-top:8px; padding:10px 24px; width:auto; font-size:0.85rem;">
+                    Save Note
+                </button>
+            </form>
+            <div id="draft-note-confirm" style="margin-top:8px;"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top:16px; font-size:0.85rem; color:var(--text-muted);">
+        Have a follow-up question? Just type it in the search box above.
+    </div>
+</div>
+
+<script>
+function _copyDraft(btn) {
+    var content = document.getElementById('draft-content');
+    if (!content) return;
+    var text = content.innerText || content.textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        var label = btn.querySelector('.copy-label');
+        label.textContent = 'Copied!';
+        setTimeout(function() { label.textContent = 'Copy'; }, 2000);
+    });
+}
+</script>

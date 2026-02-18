@@ -808,9 +808,10 @@
                       hx-post="/ask"
                       hx-target="#search-results"
                       hx-indicator="#search-loading">
+                    <input type="hidden" name="draft" id="draft-mode" value="0">
                     <div class="search-box-wrapper">
                         <input type="text" name="q" id="search-q"
-                            placeholder="Permit number, address, project idea, or any question..."
+                            placeholder="Permit number, address, client question, or anything about SF permits..."
                             autocomplete="off" autofocus>
                         <button type="submit" class="btn search-btn">
                             <span class="label">Go</span>
@@ -833,6 +834,7 @@
                     <button class="preset-chip" onclick="revealSection('analyze')">Analyze a project</button>
                     <button class="preset-chip" onclick="revealSection('analyze-plans')">Analyze plans</button>
                     <button class="preset-chip" onclick="revealSection('lookup')">Look up a permit</button>
+                    <button class="preset-chip" onclick="_enterDraftMode()">Draft a reply</button>
                 </div>
             </div>
 
@@ -1490,6 +1492,25 @@
                 section.scrollIntoView({ behavior: "smooth", block: "start" });
             }, 50);
         }
+
+        // Enter draft-reply mode: set hidden flag and focus search
+        function _enterDraftMode() {
+            document.getElementById('draft-mode').value = '1';
+            var q = document.getElementById('search-q');
+            q.placeholder = 'Paste a client question or email here...';
+            q.value = '';
+            q.focus();
+        }
+
+        // Reset draft mode after form submission
+        document.addEventListener('htmx:afterRequest', function(evt) {
+            var dm = document.getElementById('draft-mode');
+            if (dm && dm.value === '1') {
+                dm.value = '0';
+                document.getElementById('search-q').placeholder =
+                    'Permit number, address, client question, or anything about SF permits...';
+            }
+        });
 
         // Pre-fill the analyze form from search results
         function prefillAnalyze(data) {

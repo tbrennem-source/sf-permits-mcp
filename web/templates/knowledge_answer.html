@@ -1,0 +1,61 @@
+<div class="result-card search-result-card">
+    <div class="search-echo">{{ query }}</div>
+
+    <div style="font-weight:600; font-size:1.1rem; margin:16px 0 12px; color:var(--text);">
+        {{ brand.answer_header }}
+    </div>
+
+    {% for r in results %}
+    <div style="margin-bottom:16px; {% if not loop.last %}padding-bottom:16px; border-bottom:1px solid var(--border);{% endif %}">
+        {{ r.content_html | safe }}
+    </div>
+    {% endfor %}
+
+    {# Collapsible sources #}
+    <details style="margin-top:16px;">
+        <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted); font-weight:600;">
+            Sources ({{ results | length }})
+        </summary>
+        <div style="margin-top:8px; padding:12px; background:var(--surface-2, #252834); border-radius:8px;">
+            {% for r in results %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:0.8rem;">
+                <span style="color:var(--text-muted);">
+                    {{ r.source_label }}
+                    {% if r.source_tier == 'amy' %}
+                    <span style="color:var(--success); font-weight:600;">(Expert note)</span>
+                    {% endif %}
+                </span>
+                <span style="color:var(--accent); font-weight:600;">{{ "%.0f%%" | format(r.score * 100) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </details>
+
+    {# Admin: Add a note #}
+    {% if is_expert %}
+    <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+        <button type="button" onclick="this.style.display='none'; document.getElementById('note-form').style.display='block';"
+                style="background:none; border:1px solid var(--border); color:var(--text-muted); padding:6px 14px; border-radius:6px; font-size:0.8rem; cursor:pointer;">
+            + Add a note
+        </button>
+        <div id="note-form" style="display:none; margin-top:10px;">
+            <form hx-post="/admin/knowledge/add-note"
+                  hx-target="#note-confirm"
+                  hx-swap="innerHTML">
+                <input type="hidden" name="query_context" value="{{ query }}">
+                <textarea name="note_text" rows="3"
+                    placeholder="Add a correction, tip, or additional context..."
+                    style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px; font-family:inherit; font-size:0.9rem; resize:vertical;"></textarea>
+                <button type="submit" class="btn" style="margin-top:8px; padding:10px 24px; width:auto; font-size:0.85rem;">
+                    Save Note
+                </button>
+            </form>
+            <div id="note-confirm" style="margin-top:8px;"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="margin-top:16px; font-size:0.85rem; color:var(--text-muted);">
+        Have a follow-up question? Just type it in the search box above.
+    </div>
+</div>

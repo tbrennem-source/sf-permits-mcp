@@ -228,6 +228,34 @@ def get_stats() -> dict:
         conn.close()
 
 
+def insert_single_note(text: str, metadata: dict) -> int:
+    """Insert a single expert note into the knowledge base.
+
+    Embeds the text, then inserts as an 'amy'-tier chunk with high trust weight.
+
+    Args:
+        text: The note content.
+        metadata: Dict with added_by_user_id, firm_id, query_context, etc.
+
+    Returns:
+        Number of chunks inserted (1 on success).
+    """
+    from datetime import datetime, timezone
+    from src.rag.embeddings import embed_texts
+
+    emb = embed_texts([text])[0]
+    metadata["added_at"] = datetime.now(timezone.utc).isoformat()
+
+    chunks = [{
+        "content": text,
+        "source_file": "expert-note",
+        "source_section": metadata.get("query_context", "")[:100],
+        "metadata": metadata,
+    }]
+    insert_chunks(chunks, [emb], source_tier="amy", trust_weight=0.9)
+    return 1
+
+
 def rebuild_ivfflat_index():
     """Rebuild the IVFFlat index after bulk insertion.
 
