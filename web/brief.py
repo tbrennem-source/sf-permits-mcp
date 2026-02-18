@@ -82,6 +82,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     since = date.today() - timedelta(days=lookback_days)
 
     changes = _get_watched_changes(user_id, since)
+    plan_reviews = _get_plan_review_activity(user_id, since)
     health = _get_predictability(user_id)
     inspections = _get_inspection_results(user_id, since)
     new_filings = _get_new_filings(user_id, since)
@@ -111,6 +112,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
 
     return {
         "changes": changes,
+        "plan_reviews": plan_reviews,
         "health": health,
         "inspections": inspections,
         "new_filings": new_filings,
@@ -122,6 +124,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "summary": {
             "total_watches": total_watches,
             "changes_count": len(changes),
+            "plan_reviews_count": len(plan_reviews),
             "at_risk_count": at_risk,
             "inspections_count": len(inspections),
             "new_filings_count": len(new_filings),
@@ -482,6 +485,113 @@ def _get_team_activity(user_id: int, since: date) -> list[dict]:
             "role": r[7],
             "entity_name": r[8],
             "label": r[9],
+        }
+        for r in rows
+    ]
+
+
+# ── Section 5.5: Plan Review Activity ────────────────────────────
+
+def _get_plan_review_activity(user_id: int, since: date) -> list[dict]:
+    """Get recent plan review routing activity for watched permits.
+
+    Queries addenda_changes for reviews completed on watched permits
+    since the given date.
+    """
+    ph = _ph()
+    results: list[dict] = []
+
+    # Permit watches — direct match
+    try:
+        rows = query(
+            f"SELECT ac.application_number, ac.change_date, ac.station, "
+            f"ac.plan_checked_by, ac.new_review_results, ac.hold_description, "
+            f"ac.change_type, ac.department, ac.finish_date, "
+            f"ac.permit_type, ac.street_number, ac.street_name, "
+            f"ac.neighborhood, wi.label "
+            f"FROM addenda_changes ac "
+            f"JOIN watch_items wi ON wi.permit_number = ac.application_number "
+            f"  AND wi.watch_type = 'permit' AND wi.is_active = TRUE "
+            f"WHERE wi.user_id = {ph} AND ac.change_date >= {ph} "
+            f"ORDER BY ac.change_date DESC, ac.finish_date DESC "
+            f"LIMIT 50",
+            (user_id, since),
+        )
+    except Exception:
+        logger.debug("Plan review activity query failed (addenda_changes may not exist)", exc_info=True)
+        return []
+
+    results.extend(_rows_to_plan_reviews(rows))
+
+    # Address watches
+    try:
+        rows = query(
+            f"SELECT ac.application_number, ac.change_date, ac.station, "
+            f"ac.plan_checked_by, ac.new_review_results, ac.hold_description, "
+            f"ac.change_type, ac.department, ac.finish_date, "
+            f"ac.permit_type, ac.street_number, ac.street_name, "
+            f"ac.neighborhood, wi.label "
+            f"FROM addenda_changes ac "
+            f"JOIN watch_items wi ON wi.street_number = ac.street_number "
+            f"  AND UPPER(wi.street_name) = UPPER(ac.street_name) "
+            f"  AND wi.watch_type = 'address' AND wi.is_active = TRUE "
+            f"WHERE wi.user_id = {ph} AND ac.change_date >= {ph} "
+            f"ORDER BY ac.change_date DESC "
+            f"LIMIT 30",
+            (user_id, since),
+        )
+        results.extend(_rows_to_plan_reviews(rows))
+    except Exception:
+        pass
+
+    # Parcel watches
+    try:
+        rows = query(
+            f"SELECT ac.application_number, ac.change_date, ac.station, "
+            f"ac.plan_checked_by, ac.new_review_results, ac.hold_description, "
+            f"ac.change_type, ac.department, ac.finish_date, "
+            f"ac.permit_type, ac.street_number, ac.street_name, "
+            f"ac.neighborhood, wi.label "
+            f"FROM addenda_changes ac "
+            f"JOIN watch_items wi ON wi.block = ac.block AND wi.lot = ac.lot "
+            f"  AND wi.watch_type = 'parcel' AND wi.is_active = TRUE "
+            f"WHERE wi.user_id = {ph} AND ac.change_date >= {ph} "
+            f"ORDER BY ac.change_date DESC "
+            f"LIMIT 30",
+            (user_id, since),
+        )
+        results.extend(_rows_to_plan_reviews(rows))
+    except Exception:
+        pass
+
+    # Deduplicate by (permit_number, station, change_date)
+    seen = set()
+    unique = []
+    for r in results:
+        key = (r["permit_number"], r["station"], str(r["change_date"]))
+        if key not in seen:
+            seen.add(key)
+            unique.append(r)
+    return unique
+
+
+def _rows_to_plan_reviews(rows: list[tuple]) -> list[dict]:
+    return [
+        {
+            "permit_number": r[0],
+            "change_date": r[1],
+            "station": r[2],
+            "reviewer": r[3],
+            "result": r[4],
+            "notes": (r[5] or "")[:120],
+            "change_type": r[6],
+            "department": r[7],
+            "finish_date": r[8],
+            "permit_type": r[9],
+            "street_number": r[10],
+            "street_name": r[11],
+            "neighborhood": r[12],
+            "label": r[13],
         }
         for r in rows
     ]

@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 BUILDING_PERMITS_ENDPOINT = "i98e-djp9"
 INSPECTIONS_ENDPOINT = "vckc-dh2h"
+ADDENDA_ENDPOINT = "87xy-gk8d"
 PAGE_SIZE = 10_000
 MAX_LOOKBACK_DAYS = 30
 
@@ -73,7 +74,7 @@ def _parse_int(text: str | None) -> int | None:
 # ── cron_log table ───────────────────────────────────────────────
 
 def ensure_cron_log_table() -> None:
-    """Create cron_log table if it doesn't exist."""
+    """Create cron_log and addenda_changes tables if they don't exist."""
     ph = _ph()
     if BACKEND == "postgres":
         execute_write("""
@@ -91,6 +92,41 @@ def ensure_cron_log_table() -> None:
                 was_catchup BOOLEAN DEFAULT FALSE
             )
         """)
+        # Ensure addenda_changes table exists for nightly addenda delta
+        execute_write("""
+            CREATE TABLE IF NOT EXISTS addenda_changes (
+                change_id           SERIAL PRIMARY KEY,
+                application_number  TEXT NOT NULL,
+                change_date         DATE NOT NULL,
+                detected_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                station             TEXT,
+                addenda_number      INTEGER,
+                step                INTEGER,
+                plan_checked_by     TEXT,
+                old_review_results  TEXT,
+                new_review_results  TEXT,
+                hold_description    TEXT,
+                finish_date         TEXT,
+                change_type         TEXT NOT NULL,
+                source              TEXT NOT NULL DEFAULT 'nightly',
+                department          TEXT,
+                permit_type         TEXT,
+                street_number       TEXT,
+                street_name         TEXT,
+                neighborhood        TEXT,
+                block               TEXT,
+                lot                 TEXT
+            )
+        """)
+        for idx_sql in [
+            "CREATE INDEX IF NOT EXISTS idx_ac_date ON addenda_changes (change_date)",
+            "CREATE INDEX IF NOT EXISTS idx_ac_app_num ON addenda_changes (application_number)",
+            "CREATE INDEX IF NOT EXISTS idx_ac_station ON addenda_changes (station)",
+        ]:
+            try:
+                execute_write(idx_sql)
+            except Exception:
+                pass
     else:
         init_user_schema()
         conn = get_connection()
@@ -506,6 +542,231 @@ def upsert_inspections(soda_records: list[dict]) -> int:
     return updated
 
 
+# ── Addenda delta ────────────────────────────────────────────────
+
+async def fetch_recent_addenda(client: SODAClient, since_date: str) -> list[dict]:
+    """Fetch addenda routing steps changed since `since_date` from SODA API.
+
+    Queries for rows where finish_date or arrive recently updated, which
+    catches both new routing assignments and completed reviews.
+    """
+    all_records: list[dict] = []
+    offset = 0
+    while True:
+        records = await client.query(
+            endpoint_id=ADDENDA_ENDPOINT,
+            where=(
+                f"finish_date > '{since_date}T00:00:00.000' "
+                f"OR arrive > '{since_date}T00:00:00.000'"
+            ),
+            order=":id",
+            limit=PAGE_SIZE,
+            offset=offset,
+        )
+        if not records:
+            break
+        all_records.extend(records)
+        if len(records) < PAGE_SIZE:
+            break
+        offset += PAGE_SIZE
+    return all_records
+
+
+def detect_addenda_changes(soda_records: list[dict], dry_run: bool = False,
+                           source: str = "nightly") -> int:
+    """Compare SODA addenda records against DB and insert diffs into addenda_changes."""
+    ph = _ph()
+    today = date.today()
+    inserted = 0
+
+    # For DuckDB manual IDs
+    change_id_counter = 0
+    if BACKEND == "duckdb":
+        try:
+            id_row = query("SELECT COALESCE(MAX(change_id), 0) FROM addenda_changes")
+            if id_row:
+                change_id_counter = id_row[0][0]
+        except Exception:
+            change_id_counter = 0
+
+    for record in soda_records:
+        app_num = record.get("application_number")
+        if not app_num:
+            continue
+
+        soda_pk = record.get("primary_key")
+        new_review_results = (record.get("review_results") or "").strip() or None
+        finish_date = record.get("finish_date")
+        station = (record.get("station") or "").strip() or None
+        addenda_number = _parse_int(record.get("addenda_number"))
+        step_val = _parse_int(record.get("step"))
+        reviewer = (record.get("plan_checked_by") or "").strip() or None
+        hold_desc = (record.get("hold_description") or "").strip() or None
+        department = (record.get("department") or "").strip() or None
+
+        # Check if we already have this exact row in addenda table
+        try:
+            existing = query_one(
+                f"SELECT review_results, finish_date FROM addenda "
+                f"WHERE primary_key = {ph} LIMIT 1",
+                (soda_pk,),
+            )
+        except Exception:
+            existing = None
+
+        if existing is None:
+            change_type = "new_routing"
+            old_review = None
+        else:
+            old_review = existing[0]
+            old_finish = existing[1]
+            # Skip if nothing meaningful changed
+            if old_review == new_review_results and old_finish == finish_date:
+                continue
+            if new_review_results and not old_review:
+                change_type = "review_completed"
+            elif new_review_results != old_review:
+                change_type = "review_updated"
+            else:
+                change_type = "routing_updated"
+
+        # Denormalize permit info for fast brief queries
+        try:
+            permit_info = query_one(
+                f"SELECT permit_type_definition, street_number, street_name, "
+                f"neighborhood, block, lot "
+                f"FROM permits WHERE permit_number = {ph}",
+                (app_num,),
+            )
+        except Exception:
+            permit_info = None
+        if permit_info:
+            permit_type, street_number, street_name, neighborhood, block_val, lot_val = permit_info
+        else:
+            permit_type = street_number = street_name = neighborhood = block_val = lot_val = None
+
+        if dry_run:
+            logger.info("  %s: %s at %s (%s)", app_num, change_type, station, new_review_results)
+            inserted += 1
+            continue
+
+        change_id_counter += 1
+
+        # Insert change record
+        if BACKEND == "postgres":
+            execute_write(
+                "INSERT INTO addenda_changes "
+                "(application_number, change_date, station, addenda_number, step, "
+                "plan_checked_by, old_review_results, new_review_results, "
+                "hold_description, finish_date, change_type, source, department, "
+                "permit_type, street_number, street_name, neighborhood, block, lot) "
+                f"VALUES ({', '.join(['%s'] * 19)})",
+                (app_num, today, station, addenda_number, step_val,
+                 reviewer, old_review, new_review_results,
+                 hold_desc, finish_date, change_type, source, department,
+                 permit_type, street_number, street_name, neighborhood, block_val, lot_val),
+            )
+        else:
+            conn = get_connection()
+            try:
+                conn.execute(
+                    "INSERT INTO addenda_changes "
+                    "(change_id, application_number, change_date, station, addenda_number, step, "
+                    "plan_checked_by, old_review_results, new_review_results, "
+                    "hold_description, finish_date, change_type, source, department, "
+                    "permit_type, street_number, street_name, neighborhood, block, lot) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (change_id_counter, app_num, today, station, addenda_number, step_val,
+                     reviewer, old_review, new_review_results,
+                     hold_desc, finish_date, change_type, source, department,
+                     permit_type, street_number, street_name, neighborhood, block_val, lot_val),
+                )
+            finally:
+                conn.close()
+
+        # Upsert into addenda table (keep local state current)
+        _upsert_addenda_row(record, soda_pk)
+
+        inserted += 1
+
+    return inserted
+
+
+def _upsert_addenda_row(record: dict, soda_pk: str) -> None:
+    """Insert or update a single addenda row from SODA data."""
+    ph = _ph()
+    try:
+        existing = query_one(
+            f"SELECT id FROM addenda WHERE primary_key = {ph}",
+            (soda_pk,),
+        )
+    except Exception:
+        # addenda table may not exist yet in some environments
+        return
+
+    if existing:
+        execute_write(
+            f"UPDATE addenda SET review_results = {ph}, finish_date = {ph}, "
+            f"plan_checked_by = {ph}, hold_description = {ph}, "
+            f"addenda_status = {ph}, data_as_of = {ph} "
+            f"WHERE primary_key = {ph}",
+            (
+                (record.get("review_results") or "").strip() or None,
+                record.get("finish_date"),
+                (record.get("plan_checked_by") or "").strip() or None,
+                (record.get("hold_description") or "").strip() or None,
+                (record.get("addenda_status") or "").strip() or None,
+                record.get("data_as_of"),
+                soda_pk,
+            ),
+        )
+    else:
+        # New row — insert
+        if BACKEND == "postgres":
+            execute_write(
+                "INSERT INTO addenda (primary_key, application_number, addenda_number, "
+                "step, station, arrive, assign_date, start_date, finish_date, "
+                "approved_date, plan_checked_by, review_results, hold_description, "
+                "addenda_status, department, title, data_as_of) "
+                f"VALUES ({', '.join(['%s'] * 17)})",
+                (
+                    record.get("primary_key"),
+                    record.get("application_number", ""),
+                    _parse_int(record.get("addenda_number")),
+                    _parse_int(record.get("step")),
+                    (record.get("station") or "").strip() or None,
+                    record.get("arrive"),
+                    record.get("assign_date"),
+                    record.get("start_date"),
+                    record.get("finish_date"),
+                    record.get("approved_date"),
+                    (record.get("plan_checked_by") or "").strip() or None,
+                    (record.get("review_results") or "").strip() or None,
+                    (record.get("hold_description") or "").strip() or None,
+                    (record.get("addenda_status") or "").strip() or None,
+                    (record.get("department") or "").strip() or None,
+                    (record.get("title") or "").strip() or None,
+                    record.get("data_as_of"),
+                ),
+            )
+        else:
+            try:
+                id_row = query("SELECT COALESCE(MAX(id), 0) FROM addenda")
+                new_id = (id_row[0][0] if id_row else 0) + 1
+            except Exception:
+                return
+            conn = get_connection()
+            try:
+                from src.ingest import _normalize_addenda
+                row = _normalize_addenda(record, new_id)
+                conn.execute(
+                    "INSERT INTO addenda VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    row,
+                )
+            finally:
+                conn.close()
+
+
 # ── Main entry point ─────────────────────────────────────────────
 
 async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
@@ -542,6 +803,10 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             # Fetch inspections
             inspection_records = await fetch_recent_inspections(client, since_str)
             logger.info("SODA returned %d inspection records", len(inspection_records))
+
+            # Fetch addenda routing
+            addenda_records = await fetch_recent_addenda(client, since_str)
+            logger.info("SODA returned %d addenda records", len(addenda_records))
         finally:
             await client.close()
 
@@ -558,14 +823,24 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
         if not dry_run:
             inspections_updated = upsert_inspections(inspection_records)
 
-        total_soda = len(permit_records) + len(inspection_records)
+        # Detect and record addenda routing changes
+        addenda_inserted = 0
+        try:
+            addenda_inserted = detect_addenda_changes(
+                addenda_records, dry_run=dry_run, source=source,
+            )
+        except Exception as e:
+            logger.warning("Addenda change detection failed (non-fatal): %s", e)
+
+        total_soda = len(permit_records) + len(inspection_records) + len(addenda_records)
 
         logger.info(
-            "%s: %d permit changes %s, %d inspections updated from %d SODA records",
+            "%s: %d permit changes, %d inspections, %d addenda changes %s from %d SODA records",
             "DRY RUN" if dry_run else "DONE",
             changes_inserted,
-            "detected" if dry_run else "inserted",
             inspections_updated,
+            addenda_inserted,
+            "detected" if dry_run else "inserted",
             total_soda,
         )
 
@@ -584,8 +859,10 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "was_catchup": was_catchup,
             "soda_permits": len(permit_records),
             "soda_inspections": len(inspection_records),
+            "soda_addenda": len(addenda_records),
             "changes_inserted": changes_inserted,
             "inspections_updated": inspections_updated,
+            "addenda_inserted": addenda_inserted,
             "dry_run": dry_run,
         }
 

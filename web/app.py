@@ -397,6 +397,36 @@ def _run_startup_migrations():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_voicecal_user ON voice_calibrations (user_id)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_voicecal_scenario ON voice_calibrations (scenario_key)")
 
+        # Addenda changes table (tracks plan review routing changes nightly)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS addenda_changes (
+                change_id           SERIAL PRIMARY KEY,
+                application_number  TEXT NOT NULL,
+                change_date         DATE NOT NULL,
+                detected_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                station             TEXT,
+                addenda_number      INTEGER,
+                step                INTEGER,
+                plan_checked_by     TEXT,
+                old_review_results  TEXT,
+                new_review_results  TEXT,
+                hold_description    TEXT,
+                finish_date         TEXT,
+                change_type         TEXT NOT NULL,
+                source              TEXT NOT NULL DEFAULT 'nightly',
+                department          TEXT,
+                permit_type         TEXT,
+                street_number       TEXT,
+                street_name         TEXT,
+                neighborhood        TEXT,
+                block               TEXT,
+                lot                 TEXT
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_date ON addenda_changes (change_date)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_app_num ON addenda_changes (application_number)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_station ON addenda_changes (station)")
+
         # ── Admin auto-seed ───────────────────────────────────────
         # If the users table is empty and ADMIN_EMAIL is set, create
         # the admin account automatically so a fresh DB is immediately

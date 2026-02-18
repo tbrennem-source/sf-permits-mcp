@@ -363,6 +363,42 @@
                 {% endif %}
             </div>
 
+            <!-- Section 1.5: Plan Review Activity -->
+            {% if brief.plan_reviews %}
+            <div class="section">
+                <h2>Plan Review Activity</h2>
+                {% for pr in brief.plan_reviews %}
+                <div class="change-card">
+                    <div class="change-meta">
+                        <span class="change-permit">
+                            <a href="/?q={{ pr.permit_number }}">{{ pr.label or pr.permit_number }}</a>
+                        </span>
+                        <span class="change-date">{{ pr.change_date }}</span>
+                    </div>
+                    <div class="change-detail">
+                        <strong>{{ pr.station }}</strong>
+                        {% if pr.department %}<span style="color:var(--text-muted);"> ({{ pr.department }})</span>{% endif %}
+                        {% if pr.reviewer %} &middot; {{ pr.reviewer }}{% endif %}
+                    </div>
+                    <div>
+                        {% if pr.result == 'Approved' %}
+                        <span class="status-badge" style="background:#059669;color:#fff;">{{ pr.result }}</span>
+                        {% elif pr.result == 'Issued Comments' %}
+                        <span class="status-badge" style="background:#d97706;color:#fff;">{{ pr.result }}</span>
+                        {% elif pr.result %}
+                        <span class="status-badge" style="background:#6b7280;color:#fff;">{{ pr.result }}</span>
+                        {% else %}
+                        <span class="status-badge" style="background:#3b82f6;color:#fff;">Routed</span>
+                        {% endif %}
+                    </div>
+                    {% if pr.notes %}
+                    <div style="margin-top:4px;font-size:0.85rem;color:var(--text-muted);">{{ pr.notes }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <!-- Section 2: Permit Health -->
             <div class="section">
                 <h2>Permit Health</h2>

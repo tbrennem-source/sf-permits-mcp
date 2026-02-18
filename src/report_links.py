@@ -69,3 +69,8 @@ class ReportLinks:
     def planning_adu() -> str:
         """SF Planning ADU resource page."""
         return "https://sfplanning.org/accessory-dwelling-units"
+
+    @staticmethod
+    def dbi_permit_details(permit_number: str) -> str:
+        """DBI Permit Tracker detail page URL (addenda routing, inspections, contacts)."""
+        return f"https://dbiweb02.sfgov.org/dbipts/default.aspx?page=PermitDetails&PermitNumber={quote_plus(permit_number)}"

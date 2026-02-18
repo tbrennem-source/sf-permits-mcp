@@ -128,6 +128,7 @@ def render_brief_email(user: dict, brief_data: dict) -> str:
         lookback_days=brief_data["lookback_days"],
         summary=brief_data["summary"],
         changes=brief_data["changes"],
+        plan_reviews=brief_data.get("plan_reviews", []),
         health=brief_data["health"],
         inspections=brief_data["inspections"],
         new_filings=brief_data["new_filings"],
@@ -206,6 +207,7 @@ def send_briefs(frequency: str = "daily") -> dict:
             summary = brief_data["summary"]
             has_content = (
                 summary["changes_count"] > 0
+                or summary.get("plan_reviews_count", 0) > 0
                 or summary["at_risk_count"] > 0
                 or summary["inspections_count"] > 0
                 or summary["new_filings_count"] > 0

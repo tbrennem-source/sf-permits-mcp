@@ -266,6 +266,42 @@ def init_user_schema(conn=None) -> None:
             except Exception:
                 pass
 
+        # Addenda changes table (tracks plan review routing changes)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS addenda_changes (
+                change_id           INTEGER PRIMARY KEY,
+                application_number  TEXT NOT NULL,
+                change_date         DATE NOT NULL,
+                detected_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                station             TEXT,
+                addenda_number      INTEGER,
+                step                INTEGER,
+                plan_checked_by     TEXT,
+                old_review_results  TEXT,
+                new_review_results  TEXT,
+                hold_description    TEXT,
+                finish_date         TEXT,
+                change_type         TEXT NOT NULL,
+                source              TEXT NOT NULL DEFAULT 'nightly',
+                department          TEXT,
+                permit_type         TEXT,
+                street_number       TEXT,
+                street_name         TEXT,
+                neighborhood        TEXT,
+                block               TEXT,
+                lot                 TEXT
+            )
+        """)
+        for stmt in [
+            "CREATE INDEX IF NOT EXISTS idx_ac_date ON addenda_changes (change_date)",
+            "CREATE INDEX IF NOT EXISTS idx_ac_app_num ON addenda_changes (application_number)",
+            "CREATE INDEX IF NOT EXISTS idx_ac_station ON addenda_changes (station)",
+        ]:
+            try:
+                conn.execute(stmt)
+            except Exception:
+                pass
+
         # Regulatory watch table (tracks pending legislation / code amendments)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS regulatory_watch (
@@ -511,6 +547,29 @@ def init_schema(conn) -> None:
     """)
 
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS addenda (
+            id                  INTEGER PRIMARY KEY,
+            primary_key         TEXT,
+            application_number  TEXT NOT NULL,
+            addenda_number      INTEGER,
+            step                INTEGER,
+            station             TEXT,
+            arrive              TEXT,
+            assign_date         TEXT,
+            start_date          TEXT,
+            finish_date         TEXT,
+            approved_date       TEXT,
+            plan_checked_by     TEXT,
+            review_results      TEXT,
+            hold_description    TEXT,
+            addenda_status      TEXT,
+            department          TEXT,
+            title               TEXT,
+            data_as_of          TEXT
+        )
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS ingest_log (
             dataset_id TEXT PRIMARY KEY,
             dataset_name TEXT,
@@ -545,6 +604,12 @@ def _create_indexes(conn) -> None:
         ("idx_entities_name", "entities", "canonical_name"),
         ("idx_entities_license", "entities", "license_number"),
         ("idx_entities_pts", "entities", "pts_agent_id"),
+        ("idx_addenda_app_num", "addenda", "application_number"),
+        ("idx_addenda_station", "addenda", "station"),
+        ("idx_addenda_reviewer", "addenda", "plan_checked_by"),
+        ("idx_addenda_finish", "addenda", "finish_date"),
+        ("idx_addenda_app_step", "addenda", "application_number, addenda_number, step"),
+        ("idx_addenda_primary_key", "addenda", "primary_key"),
     ]
     for idx_name, table, columns in indexes:
         try:
