@@ -2,7 +2,7 @@
 
 ## Quick Orientation
 
-This is a Python/FastMCP MCP server providing San Francisco building permit data, entity network analysis, AI-powered permit guidance, and AI vision plan analysis via 14 tools + a Flask web UI.
+This is a Python/FastMCP MCP server providing San Francisco building permit data, entity network analysis, AI-powered permit guidance, and AI vision plan analysis via 20 tools + a Flask web UI.
 
 **Start here to understand the project:**
 1. `README.md` — tools, architecture, setup, project phases
