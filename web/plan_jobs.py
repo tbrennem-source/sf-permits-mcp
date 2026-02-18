@@ -419,6 +419,41 @@ def delete_job(job_id: str, user_id: int) -> bool:
     return True
 
 
+def cancel_job(job_id: str, user_id: int) -> bool:
+    """Cancel a running job belonging to a specific user.
+
+    Sets status to 'cancelled'. The background worker thread continues
+    but results will be discarded (the status check in plan_job_status
+    won't show completed results for cancelled jobs).
+
+    Args:
+        job_id: Job identifier
+        user_id: Owner user ID (ensures users can only cancel their own jobs)
+
+    Returns:
+        True if the job was cancelled, False otherwise
+    """
+    row = query_one(
+        "SELECT user_id, status FROM plan_analysis_jobs WHERE job_id = %s",
+        (job_id,),
+    )
+    if not row:
+        return False
+    # Must be owned by user (or anonymous job with None user_id)
+    if row[0] is not None and row[0] != user_id:
+        return False
+    # Only cancel jobs that are still active
+    if row[1] not in ("pending", "processing"):
+        return False
+
+    execute_write(
+        "UPDATE plan_analysis_jobs SET status = 'cancelled' WHERE job_id = %s",
+        (job_id,),
+    )
+    logger.info(f"Cancelled plan job {job_id} for user {user_id}")
+    return True
+
+
 def clear_pdf_data(job_id: str) -> None:
     """Clear stored PDF bytes after processing to free storage.
 

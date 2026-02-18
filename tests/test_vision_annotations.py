@@ -395,6 +395,7 @@ def test_valid_annotation_types():
         "epr_issue", "code_reference", "dimension", "occupancy_label",
         "construction_type", "scope_indicator", "title_block", "stamp",
         "structural_element", "general_note", "reviewer_note",
+        "ai_reviewer_response",
     }
     assert VALID_ANNOTATION_TYPES == expected
 

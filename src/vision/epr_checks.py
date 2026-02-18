@@ -644,6 +644,7 @@ VALID_ANNOTATION_TYPES = frozenset({
     "epr_issue", "code_reference", "dimension", "occupancy_label",
     "construction_type", "scope_indicator", "title_block", "stamp",
     "structural_element", "general_note", "reviewer_note",
+    "ai_reviewer_response",
 })
 
 VALID_ANCHORS = frozenset({
@@ -734,6 +735,93 @@ async def extract_page_annotations(
         })
 
     return annotations
+
+
+async def generate_reviewer_responses(
+    image_b64: str,
+    reviewer_notes: list[dict],
+    usage: VisionUsageSummary | None = None,
+) -> list[dict]:
+    """Generate AI responses to existing reviewer comments found on a page.
+
+    Calls Claude Vision with the reviewer response prompt, passing the
+    transcribed reviewer notes for substantive code-based commentary.
+
+    Args:
+        image_b64: Base64-encoded PNG image of the page (for context).
+        reviewer_notes: List of reviewer_note annotation dicts from
+            extract_page_annotations().
+        usage: Optional usage summary for API call metrics.
+
+    Returns:
+        List of ai_reviewer_response annotation dicts positioned near
+        the original reviewer notes.
+    """
+    from .prompts import PROMPT_REVIEWER_RESPONSE
+
+    if not reviewer_notes:
+        return []
+
+    # Build numbered list of reviewer comments for the prompt
+    notes_text = "\n".join(
+        f"{i + 1}. \"{note['label']}\" (at position x={note['x']}%, y={note['y']}%)"
+        for i, note in enumerate(reviewer_notes)
+    )
+    prompt = PROMPT_REVIEWER_RESPONSE.format(reviewer_notes=notes_text)
+
+    try:
+        if usage is not None:
+            result = await _timed_analyze_image(
+                image_b64, prompt, "reviewer_response", usage,
+                system_prompt=SYSTEM_PROMPT_EPR, max_tokens=2048,
+                page_number=reviewer_notes[0].get("page_number"),
+            )
+        else:
+            result = await analyze_image(
+                image_b64, prompt, SYSTEM_PROMPT_EPR, max_tokens=2048,
+            )
+    except Exception as e:
+        logger.warning("Reviewer response generation failed: %s", e)
+        return []
+
+    parsed = _parse_json_response(result)
+    if not parsed or not isinstance(parsed.get("responses"), list):
+        return []
+
+    ai_annotations: list[dict] = []
+    for i, resp in enumerate(parsed["responses"]):
+        if not isinstance(resp, dict):
+            continue
+
+        ai_response = str(resp.get("ai_response", ""))[:120]
+        code_ref = str(resp.get("code_reference", ""))[:30]
+        if not ai_response:
+            continue
+
+        # Build label: code ref + brief response
+        label = f"{code_ref}: {ai_response}" if code_ref else ai_response
+        label = label[:60]  # Enforce max length
+
+        # Position near the original reviewer note (offset slightly)
+        source_note = reviewer_notes[i] if i < len(reviewer_notes) else reviewer_notes[-1]
+        x = min(100.0, source_note["x"] + 2.0)
+        y = min(100.0, source_note["y"] + 3.0)
+
+        importance = resp.get("importance", "medium")
+        if importance not in ("high", "medium", "low"):
+            importance = "medium"
+
+        ai_annotations.append({
+            "type": "ai_reviewer_response",
+            "label": label,
+            "x": round(x, 1),
+            "y": round(y, 1),
+            "anchor": "bottom-right",
+            "importance": importance,
+            "page_number": source_note.get("page_number", 1),
+        })
+
+    return ai_annotations
 
 
 # ---------------------------------------------------------------------------
@@ -891,6 +979,36 @@ async def run_vision_epr_checks(
         "[vision] stage=page_analysis pages=%d duration_ms=%d",
         len(sample_pages), int((time.perf_counter() - pages_t0) * 1000),
     )
+
+    # ── Stage 4c: Generate AI responses to reviewer notes (if any found) ──
+    reviewer_notes = [a for a in page_annotations if a["type"] == "reviewer_note"]
+    if reviewer_notes and not is_compliance:
+        review_t0 = time.perf_counter()
+        # Group reviewer notes by page
+        notes_by_page: dict[int, list[dict]] = {}
+        for note in reviewer_notes:
+            pn = note.get("page_number", 1)
+            notes_by_page.setdefault(pn, []).append(note)
+
+        # Generate responses for each page with reviewer notes (in parallel)
+        response_tasks = []
+        for pn, notes in notes_by_page.items():
+            # Find the page image (page_number is 1-indexed, page_images uses 0-indexed)
+            img_idx = pn - 1
+            if img_idx in page_images:
+                response_tasks.append(
+                    generate_reviewer_responses(page_images[img_idx], notes, usage)
+                )
+        if response_tasks:
+            response_results = await asyncio.gather(*response_tasks)
+            for ai_anns in response_results:
+                page_annotations.extend(ai_anns)
+            logger.info(
+                "[vision] stage=reviewer_responses pages=%d ai_annotations=%d duration_ms=%d",
+                len(response_tasks),
+                sum(len(a) for a in response_results),
+                int((time.perf_counter() - review_t0) * 1000),
+            )
 
     # ── Stage 5: Assessment checks (no API calls — instant) ──
     results.append(_assess_address_presence(title_block_data, sample_pages, total_pages))
