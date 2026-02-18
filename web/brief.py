@@ -239,17 +239,23 @@ def _get_predictability(user_id: int) -> list[dict]:
     ph = _ph()
 
     # Get watched permits in active status
-    rows = query(
-        f"SELECT p.permit_number, p.status, p.filed_date, p.issued_date, "
-        f"p.permit_type_definition, p.neighborhood, p.estimated_cost, "
-        f"p.street_number, p.street_name, wi.label "
-        f"FROM watch_items wi "
-        f"JOIN permits p ON wi.permit_number = p.permit_number "
-        f"WHERE wi.user_id = {ph} AND wi.watch_type = 'permit' "
-        f"  AND wi.is_active = TRUE "
-        f"  AND p.status IN ('filed', 'approved', 'issued', 'reinstated')",
-        (user_id,),
-    )
+    # NOTE: The `permits` table only exists in DuckDB (local), not in PostgreSQL (prod).
+    # Gracefully return empty if the table doesn't exist.
+    try:
+        rows = query(
+            f"SELECT p.permit_number, p.status, p.filed_date, p.issued_date, "
+            f"p.permit_type_definition, p.neighborhood, p.estimated_cost, "
+            f"p.street_number, p.street_name, wi.label "
+            f"FROM watch_items wi "
+            f"JOIN permits p ON wi.permit_number = p.permit_number "
+            f"WHERE wi.user_id = {ph} AND wi.watch_type = 'permit' "
+            f"  AND wi.is_active = TRUE "
+            f"  AND p.status IN ('filed', 'approved', 'issued', 'reinstated')",
+            (user_id,),
+        )
+    except Exception:
+        logger.debug("Permit health query failed (permits table may not exist)", exc_info=True)
+        return []
 
     results = []
     conn = get_connection()
@@ -332,17 +338,22 @@ def _get_inspection_results(user_id: int, since: date) -> list[dict]:
     """Get recent inspection results for watched permits."""
     ph = _ph()
 
-    rows = query(
-        f"SELECT i.reference_number, i.scheduled_date, i.result, "
-        f"i.inspection_description, i.inspector, wi.label "
-        f"FROM inspections i "
-        f"JOIN watch_items wi ON wi.permit_number = i.reference_number "
-        f"  AND wi.watch_type = 'permit' AND wi.is_active = TRUE "
-        f"WHERE wi.user_id = {ph} AND i.scheduled_date >= {ph} "
-        f"ORDER BY i.scheduled_date DESC "
-        f"LIMIT 50",
-        (user_id, str(since)),
-    )
+    # NOTE: The `inspections` table only exists in DuckDB (local), not in PostgreSQL (prod).
+    try:
+        rows = query(
+            f"SELECT i.reference_number, i.scheduled_date, i.result, "
+            f"i.inspection_description, i.inspector, wi.label "
+            f"FROM inspections i "
+            f"JOIN watch_items wi ON wi.permit_number = i.reference_number "
+            f"  AND wi.watch_type = 'permit' AND wi.is_active = TRUE "
+            f"WHERE wi.user_id = {ph} AND i.scheduled_date >= {ph} "
+            f"ORDER BY i.scheduled_date DESC "
+            f"LIMIT 50",
+            (user_id, str(since)),
+        )
+    except Exception:
+        logger.debug("Inspection results query failed (inspections table may not exist)", exc_info=True)
+        return []
 
     return [
         {
@@ -438,20 +449,26 @@ def _get_team_activity(user_id: int, since: date) -> list[dict]:
     """Get new permits involving watched entities (contractors/architects)."""
     ph = _ph()
 
-    rows = query(
-        f"SELECT p.permit_number, p.permit_type_definition, p.status, "
-        f"p.filed_date, p.street_number, p.street_name, p.neighborhood, "
-        f"c.role, e.canonical_name, wi.label "
-        f"FROM watch_items wi "
-        f"JOIN entities e ON wi.entity_id = e.entity_id "
-        f"JOIN contacts c ON e.entity_id = c.entity_id "
-        f"JOIN permits p ON c.permit_number = p.permit_number "
-        f"WHERE wi.user_id = {ph} AND wi.watch_type = 'entity' "
-        f"  AND wi.is_active = TRUE AND p.filed_date >= {ph} "
-        f"ORDER BY p.filed_date DESC "
-        f"LIMIT 30",
-        (user_id, str(since)),
-    )
+    # NOTE: The `permits`, `entities`, and `contacts` tables only exist in DuckDB (local),
+    # not in PostgreSQL (prod).
+    try:
+        rows = query(
+            f"SELECT p.permit_number, p.permit_type_definition, p.status, "
+            f"p.filed_date, p.street_number, p.street_name, p.neighborhood, "
+            f"c.role, e.canonical_name, wi.label "
+            f"FROM watch_items wi "
+            f"JOIN entities e ON wi.entity_id = e.entity_id "
+            f"JOIN contacts c ON e.entity_id = c.entity_id "
+            f"JOIN permits p ON c.permit_number = p.permit_number "
+            f"WHERE wi.user_id = {ph} AND wi.watch_type = 'entity' "
+            f"  AND wi.is_active = TRUE AND p.filed_date >= {ph} "
+            f"ORDER BY p.filed_date DESC "
+            f"LIMIT 30",
+            (user_id, str(since)),
+        )
+    except Exception:
+        logger.debug("Team activity query failed (permits/entities tables may not exist)", exc_info=True)
+        return []
 
     return [
         {
@@ -476,19 +493,24 @@ def _get_expiring_permits(user_id: int) -> list[dict]:
     """Flag watched permits approaching Table B expiration deadline."""
     ph = _ph()
 
-    rows = query(
-        f"SELECT p.permit_number, p.issued_date, p.status, "
-        f"p.permit_type_definition, p.street_number, p.street_name, "
-        f"p.neighborhood, wi.label, p.revised_cost, p.estimated_cost "
-        f"FROM watch_items wi "
-        f"JOIN permits p ON wi.permit_number = p.permit_number "
-        f"WHERE wi.user_id = {ph} AND wi.watch_type = 'permit' "
-        f"  AND wi.is_active = TRUE "
-        f"  AND p.issued_date IS NOT NULL "
-        f"  AND p.completed_date IS NULL "
-        f"  AND p.status NOT IN ('completed', 'expired', 'cancelled', 'withdrawn')",
-        (user_id,),
-    )
+    # NOTE: The `permits` table only exists in DuckDB (local), not in PostgreSQL (prod).
+    try:
+        rows = query(
+            f"SELECT p.permit_number, p.issued_date, p.status, "
+            f"p.permit_type_definition, p.street_number, p.street_name, "
+            f"p.neighborhood, wi.label, p.revised_cost, p.estimated_cost "
+            f"FROM watch_items wi "
+            f"JOIN permits p ON wi.permit_number = p.permit_number "
+            f"WHERE wi.user_id = {ph} AND wi.watch_type = 'permit' "
+            f"  AND wi.is_active = TRUE "
+            f"  AND p.issued_date IS NOT NULL "
+            f"  AND p.completed_date IS NULL "
+            f"  AND p.status NOT IN ('completed', 'expired', 'cancelled', 'withdrawn')",
+            (user_id,),
+        )
+    except Exception:
+        logger.debug("Expiring permits query failed (permits table may not exist)", exc_info=True)
+        return []
 
     results = []
     for row in rows:
@@ -545,26 +567,31 @@ def _get_property_synopsis(street_number: str, street_name: str) -> dict | None:
 
     # Match the same way permit_lookup does — base name + full name+suffix
     # Includes fuzzy space matching: "robin hood" matches "ROBINHOOD"
-    from src.tools.permit_lookup import _strip_suffix
-    base_name, _suffix = _strip_suffix(street_name)
-    base_pattern = f"%{base_name}%"
-    full_pattern = f"%{street_name}%"
-    nospace_pattern = f"%{base_name.replace(' ', '')}%"
-    rows = query(
-        f"SELECT permit_number, permit_type_definition, status, "
-        f"filed_date, issued_date, completed_date, estimated_cost, "
-        f"description, neighborhood, block, lot, street_suffix "
-        f"FROM permits "
-        f"WHERE street_number = {ph} "
-        f"  AND ("
-        f"    UPPER(street_name) LIKE UPPER({ph})"
-        f"    OR UPPER(street_name) LIKE UPPER({ph})"
-        f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
-        f"    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') LIKE UPPER({ph})"
-        f"  ) "
-        f"ORDER BY filed_date DESC",
-        (street_number, base_pattern, full_pattern, full_pattern, nospace_pattern),
-    )
+    # NOTE: The `permits` table only exists in DuckDB (local), not in PostgreSQL (prod).
+    try:
+        from src.tools.permit_lookup import _strip_suffix
+        base_name, _suffix = _strip_suffix(street_name)
+        base_pattern = f"%{base_name}%"
+        full_pattern = f"%{street_name}%"
+        nospace_pattern = f"%{base_name.replace(' ', '')}%"
+        rows = query(
+            f"SELECT permit_number, permit_type_definition, status, "
+            f"filed_date, issued_date, completed_date, estimated_cost, "
+            f"description, neighborhood, block, lot, street_suffix "
+            f"FROM permits "
+            f"WHERE street_number = {ph} "
+            f"  AND ("
+            f"    UPPER(street_name) LIKE UPPER({ph})"
+            f"    OR UPPER(street_name) LIKE UPPER({ph})"
+            f"    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({ph})"
+            f"    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') LIKE UPPER({ph})"
+            f"  ) "
+            f"ORDER BY filed_date DESC",
+            (street_number, base_pattern, full_pattern, full_pattern, nospace_pattern),
+        )
+    except Exception:
+        logger.debug("Property synopsis query failed (permits table may not exist)", exc_info=True)
+        return None
 
     if not rows:
         return None
