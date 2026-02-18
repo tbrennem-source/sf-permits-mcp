@@ -1738,6 +1738,7 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
         result_html=md_to_html(combined_md),
         report_url=report_url,
         street_address=street_address,
+        show_quick_actions=False,
         **ctx,
     )
 
@@ -1916,6 +1917,7 @@ def _ask_address_search(query: str, entities: dict) -> str:
         project_context=project_context,
         violation_counts=violation_counts,
         active_businesses=active_businesses,
+        show_quick_actions=True,
         **_watch_context(watch_data),
     )
 
@@ -1950,6 +1952,7 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
         project_context=None,
         violation_counts=violation_counts,
         active_businesses=[],
+        show_quick_actions=True,
         **_watch_context(watch_data),
     )
 
