@@ -1810,19 +1810,25 @@ def _ask_validate_reveal(query: str) -> str:
 
 
 def _ask_draft_response(query: str, entities: dict) -> str:
-    """Generate a draft reply for an email-style question using RAG retrieval."""
+    """Generate an AI-synthesized response to a conversational question.
+
+    Uses RAG retrieval for context, then sends to Claude for a natural,
+    helpful response. Falls back to raw RAG display if AI is unavailable.
+    """
     effective_query = entities.get("query", query)
 
-    # Try RAG-augmented retrieval
+    # Try RAG-augmented retrieval for context
     rag_results = _try_rag_retrieval(effective_query)
     if not rag_results:
-        # Fall back to general question handler if no RAG results
         return _ask_general_question(query, entities)
 
     role = _get_user_response_role()
+
+    # Assemble context from RAG results
     seen_sources = set()
-    cleaned_results = []
+    context_parts = []
     references = []
+    source_details = []
 
     for r in rag_results:
         source_file = r.get("source_file", "")
@@ -1832,21 +1838,48 @@ def _ask_draft_response(query: str, entities: dict) -> str:
             continue
         seen_sources.add(source_key)
 
-        content = _clean_chunk_content(r.get("content", ""), source_file)
+        content = r.get("content", "")
         label = _build_source_label(source_file, source_section)
+        context_parts.append(f"[{label}]\n{content}")
+        if label and label not in references:
+            references.append(label)
+        source_details.append({
+            "source_label": label,
+            "score": r.get("final_score", 0),
+            "source_tier": r.get("source_tier", ""),
+        })
+
+    if not context_parts:
+        return _ask_general_question(query, entities)
+
+    # Synthesize with Claude
+    ai_response = _synthesize_with_ai(effective_query, "\n\n---\n\n".join(context_parts), role)
+
+    if ai_response:
+        return render_template(
+            "draft_response.html",
+            query=query,
+            ai_response_html=md_to_html(ai_response),
+            references=references[:5],
+            source_details=source_details,
+            role=role,
+            is_expert=_is_expert_user(),
+        )
+
+    # Fallback: show raw RAG results if AI synthesis fails
+    cleaned_results = []
+    for r in rag_results:
+        sf = r.get("source_file", "")
+        ss = r.get("source_section", "")
+        sk = f"{sf}:{ss}"
+        content = _clean_chunk_content(r.get("content", ""), sf)
+        label = _build_source_label(sf, ss)
         cleaned_results.append({
             "content_html": md_to_html(content),
             "source_label": label,
             "score": r.get("final_score", 0),
             "source_tier": r.get("source_tier", ""),
         })
-        # Collect reference labels for the "Key references" line
-        if label and label not in references:
-            references.append(label)
-
-    if not cleaned_results:
-        return _ask_general_question(query, entities)
-
     return render_template(
         "draft_response.html",
         query=query,
@@ -1857,6 +1890,74 @@ def _ask_draft_response(query: str, entities: dict) -> str:
     )
 
 
+def _synthesize_with_ai(query: str, rag_context: str, role: str) -> str | None:
+    """Call Claude to synthesize a conversational response from RAG context.
+
+    Returns the AI-generated markdown response, or None if unavailable.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return None
+
+    if role == "professional":
+        tone = (
+            "You are Amy, an expert SF permit expeditor. Respond professionally "
+            "but warmly, as if advising a colleague. Be specific about code "
+            "sections, required forms, and practical next steps."
+        )
+    elif role == "homeowner":
+        tone = (
+            "You are Amy, a friendly SF permit expert helping a homeowner. "
+            "Explain things simply and clearly, avoiding jargon. Focus on "
+            "what they need to do and what to expect."
+        )
+    else:
+        tone = (
+            "You are Amy, an SF building permit expert. Provide a clear, "
+            "helpful response. Include specific code references and practical "
+            "guidance where relevant."
+        )
+
+    system_prompt = (
+        f"{tone}\n\n"
+        "Use the following knowledge base context to answer the question. "
+        "If the context doesn't fully answer the question, say what you know "
+        "and note what you're less certain about.\n\n"
+        "Guidelines:\n"
+        "- Start with a brief, direct summary (2-3 sentences) answering their core question\n"
+        "- Then provide relevant details and next steps\n"
+        "- Cite specific code sections (CBC, Planning Code, SFBC) when applicable\n"
+        "- Keep the response concise — aim for 200-400 words\n"
+        "- Use markdown formatting (bold, bullets, headers) for readability\n"
+        "- End with a clear next-step recommendation\n"
+        "- Do NOT say 'Based on the context provided' or reference the retrieval system\n"
+    )
+
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        f"Knowledge base context:\n{rag_context}\n\n"
+                        f"---\n\nQuestion from user:\n{query}"
+                    ),
+                }
+            ],
+        )
+        if response.content and response.content[0].type == "text":
+            return response.content[0].text
+        return None
+    except Exception as e:
+        logging.warning("AI synthesis failed: %s", e)
+        return None
+
+
 def _ask_general_question(query: str, entities: dict) -> str:
     """Answer a general question using RAG retrieval (with keyword fallback)."""
     effective_query = entities.get("query", query)
@@ -1864,6 +1965,40 @@ def _ask_general_question(query: str, entities: dict) -> str:
     # Try RAG-augmented retrieval first
     rag_results = _try_rag_retrieval(effective_query)
     if rag_results:
+        # Try AI synthesis first, fall back to raw display
+        role = _get_user_response_role()
+        context_parts = []
+        references = []
+        source_details = []
+        seen = set()
+        for r in rag_results:
+            sf = r.get("source_file", "")
+            ss = r.get("source_section", "")
+            sk = f"{sf}:{ss}"
+            if sk in seen:
+                continue
+            seen.add(sk)
+            label = _build_source_label(sf, ss)
+            context_parts.append(f"[{label}]\n{r.get('content', '')}")
+            if label and label not in references:
+                references.append(label)
+            source_details.append({
+                "source_label": label,
+                "score": r.get("final_score", 0),
+                "source_tier": r.get("source_tier", ""),
+            })
+        ai_response = _synthesize_with_ai(effective_query, "\n\n---\n\n".join(context_parts), role)
+        if ai_response:
+            return render_template(
+                "draft_response.html",
+                query=query,
+                ai_response_html=md_to_html(ai_response),
+                references=references[:5],
+                source_details=source_details,
+                role=role,
+                is_expert=_is_expert_user(),
+            )
+        # Fall back to raw RAG display
         return _render_rag_results(query, rag_results)
 
     # Fallback: keyword-only matching from KnowledgeBase
