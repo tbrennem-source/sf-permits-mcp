@@ -48,6 +48,55 @@ All new data-dependent features (`_get_open_violation_counts`, `_get_active_busi
 
 ---
 
+## Session 32 — Populate 4 New SODA Tables in Production (2026-02-18)
+
+### Problem Solved
+4 new tables (addenda, violations, complaints, businesses) existed in prod Postgres with schema but no data. Needed full SODA → DuckDB → Postgres population for the first time.
+
+### Solution: Full SODA Ingest + Push to Prod
+
+#### Data Ingested (SODA → local DuckDB)
+- **addenda** (87xy-gk8d): 3,920,710 rows — ~82 min, 50K page / 100K batch flush
+- **violations** (nbtm-fbw5): 508,906 rows — ~5 min
+- **complaints** (gm2e-bten): 325,977 rows — ~4 min
+- **businesses** (g8m3-pdis, active only): 126,585 rows — ~1.5 min
+
+#### Data Pushed to Production Postgres
+Used `scripts/push_to_prod.py` via `/cron/migrate-data` endpoint:
+- violations: 56s (~9K rows/sec)
+- complaints: 32s
+- businesses: 14s
+- addenda: ~7.5 min (3.9M rows)
+
+#### push_to_prod.py Script (New)
+- `scripts/push_to_prod.py` — CLI tool for pushing any of the 4 tables from local DuckDB to prod Postgres
+- Usage: `python scripts/push_to_prod.py --table violations` or `--all`
+- Reads DuckDB in 5K-row batches, POSTs to `/cron/migrate-data` with truncate-on-first-batch
+- Requires `CRON_SECRET` env var (get full value via `railway run -- printenv CRON_SECRET`)
+
+#### Production State After
+```
+addenda:       3,920,710 rows
+violations:      508,906 rows
+complaints:      325,977 rows
+businesses:      126,585 rows
+contacts:      1,847,052 rows (unchanged — extraction runs separately)
+entities:      1,014,670 rows (unchanged)
+relationships:   576,323 rows (unchanged)
+permits:       1,137,816 rows (unchanged)
+inspections:     671,359 rows (unchanged)
+```
+
+### Notes
+- DuckDB is single-writer — ingest jobs must run sequentially, not in parallel
+- Full ingest is a one-time cost; daily updates only fetch changed records (seconds to minutes)
+- Bulk data (SODA-sourced) is fully recoverable from API; only user-generated data needs Railway backups
+
+### Files Changed
+- `scripts/push_to_prod.py` — **NEW**: DuckDB → prod Postgres push script
+
+---
+
 ## Session 30 — Building Permit Addenda Routing + Nightly Change Detection (2026-02-18)
 
 ### Problem Solved
