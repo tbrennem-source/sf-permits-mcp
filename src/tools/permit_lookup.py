@@ -1,6 +1,7 @@
 """Tool: permit_lookup — Look up permits by number, address, or parcel and show related permits."""
 
 import logging
+from datetime import date, timedelta
 
 from src.db import get_connection, BACKEND
 
@@ -261,6 +262,92 @@ def _get_addenda(conn, permit_number: str) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Recent activity summary (last 30 days)
+# ---------------------------------------------------------------------------
+
+def _summarize_recent_activity(permits: list[dict], days: int = 30) -> str | None:
+    """Build a markdown activity-summary block from an already-fetched permits list.
+
+    Returns None when there is nothing noteworthy in the window, so the caller
+    can skip the section entirely rather than show an empty card.
+    """
+    cutoff = date.today() - timedelta(days=days)
+    cutoff_str = cutoff.isoformat()   # "YYYY-MM-DD" — same format as DB column
+
+    new_permits: list[dict] = []
+    recently_issued: list[dict] = []
+    recently_completed: list[dict] = []
+
+    for p in permits:
+        fd = (p.get("filed_date") or "")[:10]
+        issued = (p.get("issued_date") or "")[:10]
+        completed = (p.get("completed_date") or "")[:10]
+
+        if fd >= cutoff_str:
+            new_permits.append(p)
+        if issued >= cutoff_str:
+            recently_issued.append(p)
+        if completed >= cutoff_str:
+            recently_completed.append(p)
+
+    # Nothing interesting → skip section
+    if not new_permits and not recently_issued and not recently_completed:
+        return None
+
+    lines = [f"## 🕐 Last {days} Days at This Address\n"]
+
+    # ── New filings ──
+    if new_permits:
+        count = len(new_permits)
+        noun = "permit" if count == 1 else "permits"
+        lines.append(f"**🆕 {count} new {noun} filed**")
+        for p in new_permits[:3]:
+            pn = p.get("permit_number", "")
+            pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
+            pt = (p.get("permit_type_definition") or "Building Permit")[:40]
+            fd = (p.get("filed_date") or "")[:10]
+            cost = p.get("revised_cost") or p.get("estimated_cost") or 0
+            cost_str = f" · ${cost:,.0f}" if cost else ""
+            lines.append(f"- {pn_link} — {pt} · filed {fd}{cost_str}")
+        if count > 3:
+            lines.append(f"- *…and {count - 3} more*")
+        lines.append("")
+
+    # ── Issued ──
+    if recently_issued:
+        count = len(recently_issued)
+        noun = "permit" if count == 1 else "permits"
+        lines.append(f"**✅ {count} {noun} issued**")
+        for p in recently_issued[:3]:
+            pn = p.get("permit_number", "")
+            pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
+            pt = (p.get("permit_type_definition") or "")[:40]
+            issued = (p.get("issued_date") or "")[:10]
+            lines.append(f"- {pn_link} — {pt} · issued {issued}")
+        if count > 3:
+            lines.append(f"- *…and {count - 3} more*")
+        lines.append("")
+
+    # ── Completed ──
+    if recently_completed:
+        count = len(recently_completed)
+        noun = "permit" if count == 1 else "permits"
+        lines.append(f"**🏁 {count} {noun} completed**")
+        for p in recently_completed[:3]:
+            pn = p.get("permit_number", "")
+            pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
+            pt = (p.get("permit_type_definition") or "")[:40]
+            completed = (p.get("completed_date") or "")[:10]
+            lines.append(f"- {pn_link} — {pt} · completed {completed}")
+        if count > 3:
+            lines.append(f"- *…and {count - 3} more*")
+        lines.append("")
+
+    lines.append("---\n")
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # Markdown formatters
 # ---------------------------------------------------------------------------
 
@@ -518,6 +605,12 @@ async def permit_lookup(
         pnum = primary["permit_number"]
 
         lines = ["# Permit Lookup Results\n"]
+
+        # 2a. Recent activity banner (address/parcel searches only — not single permit lookup)
+        if has_address or has_parcel:
+            activity_md = _summarize_recent_activity(permits)
+            if activity_md:
+                lines.append(activity_md)
 
         # If address/parcel returned multiple, show the list first
         if len(permits) > 1:

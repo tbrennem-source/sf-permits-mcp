@@ -140,12 +140,6 @@
         <button type="button" class="btn-pill"
                 hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
                 hx-indicator="#search-loading"
-                hx-vals='js:{"query": {{ query | tojson }}, "modifier": "cite_sources"}'>
-            Cite sources
-        </button>
-        <button type="button" class="btn-pill"
-                hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
-                hx-indicator="#search-loading"
                 hx-vals='js:{"query": {{ query | tojson }}, "modifier": "shorter"}'>
             Shorter
         </button>
@@ -153,7 +147,7 @@
                 hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
                 hx-indicator="#search-loading"
                 hx-vals='js:{"query": {{ query | tojson }}, "modifier": "more_detail"}'>
-            More detail
+            More detail + sources
         </button>
     </div>
     {% endif %}

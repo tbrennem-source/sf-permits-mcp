@@ -1736,6 +1736,106 @@ def _ask_complaint_search(query: str, entities: dict) -> str:
     )
 
 
+def _get_primary_permit_context(street_number: str, street_name: str) -> dict | None:
+    """Get the most recent permit at an address for Analyze button pre-fill."""
+    try:
+        from src.db import query
+        rows = query(
+            "SELECT description, permit_type_definition, estimated_cost, "
+            "       revised_cost, proposed_use, adu, neighborhood "
+            "FROM permits "
+            "WHERE street_number = %s "
+            "  AND UPPER(street_name) LIKE UPPER(%s) "
+            "ORDER BY filed_date DESC LIMIT 1",
+            (street_number, f"%{street_name.split()[0]}%"),
+        )
+        if not rows:
+            return None
+        desc, ptd, cost, revised_cost, proposed_use, adu, neighborhood = rows[0]
+        effective_cost = revised_cost or cost
+        # Build a short human label for the button
+        label_parts = []
+        if ptd:
+            short = ptd.replace("Additions Alterations or Repairs", "Additions + Repairs")
+            short = short.replace("New Construction Wood Frame", "New Construction")
+            label_parts.append(short[:35])
+        if effective_cost:
+            label_parts.append(
+                f"${effective_cost/1000:.0f}K" if effective_cost < 1_000_000
+                else f"${effective_cost/1_000_000:.1f}M"
+            )
+        label = " · ".join(label_parts) if label_parts else "Active Permit"
+        return {
+            "description": (desc or ptd or "")[:200],
+            "estimated_cost": effective_cost,
+            "neighborhood": neighborhood,
+            "label": label,
+        }
+    except Exception as e:
+        logging.debug("_get_primary_permit_context failed: %s", e)
+        return None
+
+
+def _get_open_violation_counts(block: str, lot: str) -> dict | None:
+    """Count open violations + complaints at a parcel. Returns None if tables empty."""
+    try:
+        from src.db import query
+        # Check table is populated first — return None if ingest not yet done
+        check = query("SELECT COUNT(*) FROM violations LIMIT 1", ())
+        if not check or check[0][0] == 0:
+            return None
+        v_rows = query(
+            "SELECT COUNT(*) FROM violations "
+            "WHERE block = %s AND lot = %s AND LOWER(status) = 'open'",
+            (block, lot),
+        )
+        c_rows = query(
+            "SELECT COUNT(*) FROM complaints "
+            "WHERE block = %s AND lot = %s AND LOWER(status) = 'open'",
+            (block, lot),
+        )
+        open_v = v_rows[0][0] if v_rows else 0
+        open_c = c_rows[0][0] if c_rows else 0
+        return {"open_violations": open_v, "open_complaints": open_c, "total": open_v + open_c}
+    except Exception as e:
+        logging.debug("_get_open_violation_counts failed: %s", e)
+        return None
+
+
+def _get_active_businesses(street_number: str, street_name: str) -> list:
+    """Get active registered businesses at this address. Returns [] if table empty."""
+    try:
+        from src.db import query
+        check = query("SELECT COUNT(*) FROM businesses LIMIT 1", ())
+        if not check or check[0][0] == 0:
+            return []
+        rows = query(
+            "SELECT dba_name, ownership_name, dba_start_date, "
+            "       parking_tax, transient_occupancy_tax "
+            "FROM businesses "
+            "WHERE full_business_address ILIKE %s "
+            "  AND location_end_date IS NULL "
+            "ORDER BY dba_start_date DESC LIMIT 5",
+            (f"%{street_number}%{street_name.split()[0]}%",),
+        )
+        results = []
+        for dba, ownership, start, parking, tot in rows:
+            name = (dba or ownership or "").strip()
+            if not name:
+                continue
+            since = str(start or "")[:4] or "?"
+            type_flag = None
+            if parking == "Y":
+                type_flag = "🅿️ Parking"
+            elif tot == "Y":
+                type_flag = "🏨 Short-term rental"
+            results.append({"name": name, "since": since, "type_flag": type_flag})
+        return results
+    except Exception as e:
+        logging.debug("_get_active_businesses failed: %s", e)
+        return []
+
+
 def _ask_address_search(query: str, entities: dict) -> str:
     """Handle address-based permit search."""
     street_number = entities.get("street_number")
@@ -1787,6 +1887,15 @@ def _ask_address_search(query: str, entities: dict) -> str:
     # Detect no-results to show helpful next-step CTAs
     no_results = result_md.startswith("No permits found")
     street_address = f"{street_number} {street_name}" if street_number and street_name else None
+    # Enrich Quick Actions with live context
+    project_context = None
+    violation_counts = None
+    active_businesses = []
+    if not no_results:
+        project_context = _get_primary_permit_context(street_number, street_name)
+        active_businesses = _get_active_businesses(street_number, street_name)
+    if bl and not no_results:
+        violation_counts = _get_open_violation_counts(bl[0], bl[1])
     return render_template(
         "search_results.html",
         query_echo=f"{street_number} {street_name}",
@@ -1798,6 +1907,9 @@ def _ask_address_search(query: str, entities: dict) -> str:
         street_address=street_address,
         no_results=no_results,
         no_results_address=f"{street_number} {street_name}" if no_results else None,
+        project_context=project_context,
+        violation_counts=violation_counts,
+        active_businesses=active_businesses,
         **_watch_context(watch_data),
     )
 
@@ -1819,12 +1931,19 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
     }
     report_url = f"/report/{block}/{lot}" if block and lot else None
     street_address = f"Block {block}, Lot {lot}" if block and lot else None
+    # Violations badge for parcel searches (businesses/analyze not wired for parcel)
+    violation_counts = None
+    if block and lot:
+        violation_counts = _get_open_violation_counts(block, lot)
     return render_template(
         "search_results.html",
         query_echo=f"Block {block}, Lot {lot}",
         result_html=md_to_html(result_md),
         report_url=report_url,
         street_address=street_address,
+        project_context=None,
+        violation_counts=violation_counts,
+        active_businesses=[],
         **_watch_context(watch_data),
     )
 
@@ -1856,11 +1975,14 @@ def _ask_person_search(query: str, entities: dict) -> str:
 def _ask_analyze_prefill(query: str, entities: dict) -> str:
     """Pre-fill the analyze form and reveal it."""
     import json
+    # Accept real permit fields posted directly from the smart Analyze button
+    cost_raw = request.form.get("estimated_cost", "")
+    neighborhood_raw = request.form.get("neighborhood", "")
     prefill_data = {
         "description": entities.get("description", query),
-        "estimated_cost": entities.get("estimated_cost"),
+        "estimated_cost": float(cost_raw) if cost_raw else entities.get("estimated_cost"),
         "square_footage": entities.get("square_footage"),
-        "neighborhood": entities.get("neighborhood"),
+        "neighborhood": neighborhood_raw or entities.get("neighborhood"),
     }
     # Remove None values for cleaner JSON
     prefill_data = {k: v for k, v in prefill_data.items() if v is not None}
@@ -2020,13 +2142,6 @@ def _synthesize_with_ai(
             "a call to discuss in detail. End with something like 'Would you "
             "like to set up a quick call to walk through this?'\n"
         )
-    elif modifier == "cite_sources":
-        modifier_instructions = (
-            "\n\nOVERRIDE: Include specific code section references "
-            "(CBC, SFBC, Planning Code, Title 24, ASCE 7) for every claim "
-            "and recommendation. Format citations inline like (CBC 706.1) "
-            "or (Planning Code §207(c)(4)).\n"
-        )
     elif modifier == "shorter":
         modifier_instructions = (
             "\n\nOVERRIDE: Maximum 100 words. Be direct and concise. "
@@ -2034,9 +2149,15 @@ def _synthesize_with_ai(
         )
     elif modifier == "more_detail":
         modifier_instructions = (
-            "\n\nOVERRIDE: Provide a thorough 400-600 word response with "
-            "full details, code references, timelines, fees, and step-by-step "
-            "guidance. Be comprehensive.\n"
+            "\n\nOVERRIDE: Provide a thorough 400-600 word response with full details, "
+            "timelines, fees, and step-by-step guidance. Include specific code section "
+            "references for every claim. Use these rules for citations:\n"
+            "- SF Planning Code sections: format as markdown links, e.g. "
+            "[Planning Code §207](https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_planning/0-0-0-1)\n"
+            "- SF Building Code (SFBC) sections: format as markdown links, e.g. "
+            "[SFBC §3301](https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_building/0-0-0-1)\n"
+            "- CBC, Title 24, ASCE 7: use inline citations only, e.g. (CBC §706.1) — no links, these are paywalled.\n"
+            "Be comprehensive and cite sources inline throughout, not just at the end.\n"
         )
 
     system_prompt = (
