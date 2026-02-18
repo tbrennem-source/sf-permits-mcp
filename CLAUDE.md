@@ -173,9 +173,18 @@ python -m src.ingest && python -m src.entities && python -m src.graph && python 
 
 Development uses ephemeral Claude Code worktree branches (auto-created under `.claude/worktrees/`).
 
-**Current workflow (solo developer):** Merge to `main` locally and push directly — no PRs needed. Railway auto-deploys on push to `main`.
+### Who can push to main directly
+- **Tim (repo owner):** Merge to `main` locally and push directly — no PRs needed.
+- **All other contributors (Steven, etc.):** Must open a PR and get Tim's review before merging. See `.github/PULL_REQUEST_TEMPLATE.md` for required QA evidence.
 
-**When to use PRs:** Only when multiple developers are contributing and code review is needed.
+### PR requirements for contributors
+- Branch from latest `main`, keep PRs small and focused (one feature or fix per PR)
+- Fill out the PR template completely — "show your work" with screenshots, test output, manual QA steps
+- Update `CHANGELOG.md` in every PR
+- All `pytest` tests must pass before requesting review
+
+### Onboarding
+New developers: see `docs/ONBOARDING.md` for local setup, architecture overview, and coding conventions.
 
 ## Deployment Rules
 
