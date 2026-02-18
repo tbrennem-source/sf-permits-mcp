@@ -8,9 +8,11 @@ Returns CheckResult objects compatible with the existing metadata-only
 report formatter in validate_plans.py.
 """
 
+import asyncio
 import json
 import logging
 import os
+import time
 from dataclasses import dataclass
 
 from src.tools.validate_plans import CheckResult
@@ -571,10 +573,9 @@ async def _check_hatching(
             detail="No interior pages available for hatching check.",
         )
 
-    issues = []
-    for pn in hatching_pages:
+    async def _check_one_page(pn: int) -> str | None:
         try:
-            b64 = pdf_page_to_base64(pdf_bytes, pn)
+            b64 = pdf_page_to_base64(pdf_bytes, pn, dpi=100)  # Lower DPI for hatching
             result = await _timed_analyze_image(
                 b64, PROMPT_DENSE_HATCHING, "hatching", usage,
                 system_prompt=SYSTEM_PROMPT_EPR, page_number=pn,
@@ -583,9 +584,14 @@ async def _check_hatching(
             if parsed and parsed.get("has_dense_hatching"):
                 severity = parsed.get("severity", "unknown")
                 area = parsed.get("affected_areas", "")
-                issues.append(f"Page {pn + 1}: {severity} hatching — {area}")
+                return f"Page {pn + 1}: {severity} hatching — {area}"
         except Exception as e:
             logger.warning("Hatching check failed for page %d: %s", pn, e)
+        return None
+
+    # Run hatching checks in parallel
+    hatch_results = await asyncio.gather(*[_check_one_page(pn) for pn in hatching_pages])
+    issues = [r for r in hatch_results if r is not None]
 
     if issues:
         return CheckResult(
@@ -747,66 +753,94 @@ async def run_vision_epr_checks(
     page_extractions: list[dict] = []
     page_annotations: list[dict] = []
 
-    # 1. Render cover page
+    job_t0 = time.perf_counter()
+
+    # ── Stage 1: Render cover page ──
+    render_t0 = time.perf_counter()
     try:
-        cover_b64 = pdf_page_to_base64(pdf_bytes, 0)
+        cover_b64 = pdf_page_to_base64(pdf_bytes, 0, dpi=72)  # Low DPI for cover checks
     except Exception as e:
         logger.error("Failed to render cover page: %s", e)
         return _skip_all(f"PDF rendering failed: {e}"), [], [], VisionUsageSummary(model=model)
+    logger.info("[vision] stage=render_cover duration_ms=%d", int((time.perf_counter() - render_t0) * 1000))
 
-    # EPR-011: Page count on cover
-    results.append(await _check_cover_page_count(cover_b64, total_pages, usage))
+    # ── Stage 2: Cover checks — run in parallel ──
+    cover_t0 = time.perf_counter()
+    cover_results = await asyncio.gather(
+        _check_cover_page_count(cover_b64, total_pages, usage),
+        _check_cover_blank_area(cover_b64, usage),
+    )
+    results.extend(cover_results)
+    logger.info("[vision] stage=cover_checks duration_ms=%d", int((time.perf_counter() - cover_t0) * 1000))
 
-    # EPR-012: 8.5x11 blank area on cover
-    results.append(await _check_cover_blank_area(cover_b64, usage))
-
-    # 2. Select pages for title block checks (sample or all)
+    # ── Stage 3: Select and render sample pages ──
     if analyze_all_pages:
         sample_pages = list(range(total_pages))
     else:
         sample_pages = _select_sample_pages(total_pages)
 
-    title_block_data: list[dict] = []
+    render_t0 = time.perf_counter()
+    page_images: dict[int, str] = {}
     for page_num in sample_pages:
+        if page_num == 0:
+            # Re-render cover at higher DPI for title block / annotations
+            page_images[0] = pdf_page_to_base64(pdf_bytes, 0, dpi=150)
+        else:
+            page_images[page_num] = pdf_page_to_base64(pdf_bytes, page_num, dpi=150)
+    logger.info(
+        "[vision] stage=render_samples pages=%d duration_ms=%d",
+        len(sample_pages), int((time.perf_counter() - render_t0) * 1000),
+    )
+
+    # ── Stage 4: Title block + annotation extraction — parallel across ALL pages ──
+    async def _analyze_page(page_num: int, b64: str) -> tuple[dict | None, list[dict]]:
+        """Run title block + annotation extraction for one page."""
+        tb_parsed = None
+        anns = []
         try:
-            b64 = cover_b64 if page_num == 0 else pdf_page_to_base64(pdf_bytes, page_num)
-            tb_result = await _timed_analyze_image(
+            # Title block and annotations run in parallel for this page
+            tb_task = _timed_analyze_image(
                 b64, PROMPT_TITLE_BLOCK, "title_block", usage,
                 system_prompt=SYSTEM_PROMPT_EPR, page_number=page_num,
             )
-            parsed = _parse_json_response(tb_result)
-            if parsed:
-                parsed["page_number"] = page_num + 1  # 1-indexed for display
-                title_block_data.append(parsed)
-                page_extractions.append(parsed)
+            ann_task = extract_page_annotations(b64, page_num + 1, usage)
+            tb_result, page_anns = await asyncio.gather(tb_task, ann_task)
 
-            # Extract spatial annotations from the same rendered image
-            anns = await extract_page_annotations(b64, page_num + 1, usage)
-            page_annotations.extend(anns)
+            tb_parsed = _parse_json_response(tb_result)
+            if tb_parsed:
+                tb_parsed["page_number"] = page_num + 1  # 1-indexed for display
+            anns = page_anns
         except Exception as e:
-            logger.warning(
-                "Title block extraction failed for page %d: %s", page_num, e
-            )
+            logger.warning("Page %d analysis failed: %s", page_num, e)
+        return tb_parsed, anns
 
-    # EPR-013: Project address on every sheet
+    pages_t0 = time.perf_counter()
+    page_tasks = [
+        _analyze_page(pn, page_images[pn]) for pn in sample_pages
+    ]
+    page_results = await asyncio.gather(*page_tasks)
+
+    title_block_data: list[dict] = []
+    for tb_parsed, anns in page_results:
+        if tb_parsed:
+            title_block_data.append(tb_parsed)
+            page_extractions.append(tb_parsed)
+        page_annotations.extend(anns)
+
+    logger.info(
+        "[vision] stage=page_analysis pages=%d duration_ms=%d",
+        len(sample_pages), int((time.perf_counter() - pages_t0) * 1000),
+    )
+
+    # ── Stage 5: Assessment checks (no API calls — instant) ──
     results.append(_assess_address_presence(title_block_data, sample_pages, total_pages))
-
-    # EPR-014: Sheet number on every sheet
     results.append(_assess_sheet_numbers(title_block_data, sample_pages, total_pages))
-
-    # EPR-015: Sheet name on every sheet
     results.append(_assess_sheet_names(title_block_data, sample_pages, total_pages))
-
-    # EPR-016: 2x2 blank area on every sheet
     results.append(_assess_blank_areas(title_block_data, sample_pages, total_pages))
-
-    # EPR-017: 3 consistent items
     results.append(_assess_consistency(title_block_data))
-
-    # EPR-018: Professional stamp/signature
     results.append(_assess_stamps(title_block_data, sample_pages, total_pages))
 
-    # EPR-003: Single consolidated PDF — auto-pass (it's one file)
+    # EPR-003: Single consolidated PDF — auto-pass
     results.append(
         CheckResult(
             epr_id="EPR-003",
@@ -817,7 +851,7 @@ async def run_vision_epr_checks(
         )
     )
 
-    # EPR-004: Full 1:1 scale — info only (dimensions verified in metadata)
+    # EPR-004: Full 1:1 scale — info only
     results.append(
         CheckResult(
             epr_id="EPR-004",
@@ -831,14 +865,17 @@ async def run_vision_epr_checks(
         )
     )
 
-    # EPR-022: Dense hatching (sample 2 interior pages)
+    # ── Stage 6: Hatching check — parallel across pages ──
     hatching_pages = [p for p in sample_pages if p != 0][:2]
+    hatch_t0 = time.perf_counter()
     results.append(await _check_hatching(pdf_bytes, hatching_pages, cover_b64, usage))
+    logger.info("[vision] stage=hatching_check duration_ms=%d", int((time.perf_counter() - hatch_t0) * 1000))
 
+    total_ms = int((time.perf_counter() - job_t0) * 1000)
     logger.info(
-        "Vision usage: %d calls, %d input tokens, %d output tokens, %dms total, ~$%.4f",
+        "[vision] COMPLETE: %d calls, %d+%d tokens, %dms api_time, %dms wall_time, ~$%.4f",
         usage.total_calls, usage.total_input_tokens, usage.total_output_tokens,
-        usage.total_duration_ms, usage.estimated_cost_usd,
+        usage.total_duration_ms, total_ms, usage.estimated_cost_usd,
     )
 
     return results, page_extractions, page_annotations, usage

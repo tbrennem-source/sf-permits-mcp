@@ -175,8 +175,16 @@ async def analyze_image(
             kwargs["system"] = system_prompt
 
         t0 = time.perf_counter()
-        response = await client.messages.create(**kwargs)
+        response = await client.messages.create(timeout=120.0, **kwargs)
         duration_ms = int((time.perf_counter() - t0) * 1000)
+        logger.info(
+            "[vision] call=%s model=%s duration_ms=%d in_tok=%d out_tok=%d",
+            prompt[:40].replace("\n", " "),
+            kwargs.get("model", DEFAULT_MODEL),
+            duration_ms,
+            response.usage.input_tokens,
+            response.usage.output_tokens,
+        )
 
         text = response.content[0].text if response.content else ""
         return VisionResult(
@@ -200,20 +208,31 @@ async def analyze_images_batch(
     prompt: str,
     system_prompt: str | None = None,
     model: str | None = None,
+    parallel: bool = False,
 ) -> list[tuple[int, VisionResult]]:
     """Analyze multiple images with the same prompt.
-
-    Processes sequentially to avoid rate limits.
 
     Args:
         images: List of ``(page_number, base64_png)`` tuples.
         prompt: Prompt to apply to each image.
         system_prompt: Optional system context.
         model: Model override.
+        parallel: If True, run all calls concurrently via asyncio.gather.
 
     Returns:
         List of ``(page_number, VisionResult)`` tuples.
     """
+    if parallel and len(images) > 1:
+        import asyncio
+
+        async def _call(page_num: int, b64: str) -> tuple[int, VisionResult]:
+            result = await analyze_image(b64, prompt, system_prompt, model)
+            return (page_num, result)
+
+        tasks = [_call(pn, b64) for pn, b64 in images]
+        return list(await asyncio.gather(*tasks))
+
+    # Sequential fallback
     results = []
     for page_num, b64 in images:
         result = await analyze_image(b64, prompt, system_prompt, model)

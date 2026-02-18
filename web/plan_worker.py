@@ -24,8 +24,8 @@ from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
-# Single-worker thread pool — one concurrent analysis per gunicorn worker
-_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="plan-worker")
+# Allow 2 concurrent analysis jobs per gunicorn worker
+_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="plan-worker")
 
 # DPI for gallery images (lower than 150 DPI used for vision analysis)
 GALLERY_DPI = 72
@@ -121,6 +121,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     analysis_mode = job.get("analysis_mode", "sample")
     analyze_all_pages = (analysis_mode == "full")
 
+    analysis_t0 = time.time()
     vision_usage = None
     if job["quick_check"]:
         result_md = loop.run_until_complete(
@@ -144,6 +145,8 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
                 analyze_all_pages=analyze_all_pages,
             )
         )
+    analysis_ms = int((time.time() - analysis_t0) * 1000)
+    logger.info(f"[plan-worker] stage=analysis duration_ms={analysis_ms} job={job_id}")
 
     # ── Get page count ──
     reader = PdfReader(BytesIO(pdf_bytes))
@@ -174,6 +177,7 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
                 progress_detail=f"Rendering page gallery ({pn + 1}/{total_render})...",
             )
     gallery_duration_ms = int((time.time() - gallery_t0) * 1000)
+    logger.info(f"[plan-worker] stage=gallery pages={total_render} duration_ms={gallery_duration_ms} job={job_id}")
 
     # ── Finalize ──
     update_job_status(
