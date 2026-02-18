@@ -6,7 +6,7 @@
             {% if role == "professional" %}
             {{ brand.draft_header }}
             {% elif role == "homeowner" %}
-            Here's what this means
+            Here's what you need to know
             {% else %}
             {{ brand.answer_header }}
             {% endif %}
@@ -18,35 +18,44 @@
     </div>
 
     <div id="draft-content" style="padding:16px; background:var(--surface-2, #252834); border-radius:10px; border:1px solid var(--border);">
-        {% if role == "professional" %}
-        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px; font-style:italic;">
-            Based on SF DBI guidelines and Planning Code requirements:
+        {% if ai_response_html is defined and ai_response_html %}
+        {# AI-synthesized response — clean, conversational #}
+        <div class="ai-response" style="line-height:1.7; font-size:0.95rem;">
+            {{ ai_response_html | safe }}
         </div>
-        {% endif %}
-
+        {% elif results is defined and results %}
+        {# Fallback: raw RAG chunks (when AI synthesis unavailable) #}
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px; font-style:italic;">
+            AI synthesis unavailable — showing raw knowledge base results:
+        </div>
         {% for r in results %}
         <div style="margin-bottom:12px; {% if not loop.last %}padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06);{% endif %}">
             {{ r.content_html | safe }}
         </div>
         {% endfor %}
+        {% else %}
+        <div style="color:var(--text-muted);">No relevant information found.</div>
+        {% endif %}
 
         {% if references %}
-        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:0.85rem; color:var(--text-muted);">
-            <strong>Key references:</strong>
+        <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border); font-size:0.82rem; color:var(--text-muted);">
+            <strong>Sources:</strong>
             {% for ref in references %}
-            <span>{{ ref }}{% if not loop.last %}, {% endif %}</span>
+            <span>{{ ref }}{% if not loop.last %} &middot; {% endif %}</span>
             {% endfor %}
         </div>
         {% endif %}
     </div>
 
-    {# Collapsible sources #}
-    <details style="margin-top:16px;">
-        <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted); font-weight:600;">
-            Sources ({{ results | length }})
+    {# Collapsible source details #}
+    {% set sources = source_details if source_details is defined else results %}
+    {% if sources %}
+    <details style="margin-top:12px;">
+        <summary style="cursor:pointer; font-size:0.82rem; color:var(--text-muted); font-weight:600;">
+            Knowledge sources ({{ sources | length }})
         </summary>
         <div style="margin-top:8px; padding:12px; background:var(--surface-2, #252834); border-radius:8px;">
-            {% for r in results %}
+            {% for r in sources %}
             <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:0.8rem;">
                 <span style="color:var(--text-muted);">
                     {{ r.source_label }}
@@ -59,6 +68,7 @@
             {% endfor %}
         </div>
     </details>
+    {% endif %}
 
     {# Admin: Add a note #}
     {% if is_expert %}
