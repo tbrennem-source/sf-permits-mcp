@@ -265,11 +265,48 @@ def _get_addenda(conn, permit_number: str) -> list[dict]:
 # Recent activity summary (last 30 days)
 # ---------------------------------------------------------------------------
 
-def _summarize_recent_activity(permits: list[dict], days: int = 30) -> str | None:
+def _get_recent_addenda_activity(conn, permit_numbers: list[str], days: int = 30) -> list[dict]:
+    """Get recently completed plan review routing steps across multiple permits.
+
+    Returns list of dicts with: permit_number, station, reviewer, result,
+    finish_date, addenda_number.  Sorted by finish_date DESC.
+    """
+    if not permit_numbers:
+        return []
+    cutoff = date.today() - timedelta(days=days)
+    cutoff_str = cutoff.isoformat()
+
+    # Build IN clause
+    placeholders = ", ".join([_PH] * len(permit_numbers))
+    sql = f"""
+        SELECT application_number, station, plan_checked_by,
+               review_results, finish_date, addenda_number
+        FROM addenda
+        WHERE application_number IN ({placeholders})
+          AND finish_date IS NOT NULL
+          AND CAST(finish_date AS TEXT) >= {_PH}
+        ORDER BY finish_date DESC
+        LIMIT 20
+    """
+    try:
+        rows = _exec(conn, sql, permit_numbers + [cutoff_str])
+    except Exception:
+        logger.debug("Recent addenda activity query failed", exc_info=True)
+        return []
+
+    cols = ["permit_number", "station", "reviewer", "result",
+            "finish_date", "addenda_number"]
+    return [{cols[i]: r[i] for i in range(len(cols))} for r in rows]
+
+
+def _summarize_recent_activity(permits: list[dict], days: int = 30,
+                               conn=None) -> str | None:
     """Build a markdown activity-summary block from an already-fetched permits list.
 
     Returns None when there is nothing noteworthy in the window, so the caller
     can skip the section entirely rather than show an empty card.
+
+    If *conn* is provided, also queries addenda for recent plan review activity.
     """
     cutoff = date.today() - timedelta(days=days)
     cutoff_str = cutoff.isoformat()   # "YYYY-MM-DD" — same format as DB column
@@ -290,11 +327,61 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30) -> str | Non
         if completed >= cutoff_str:
             recently_completed.append(p)
 
+    # ── Plan review activity (addenda) ──
+    recent_addenda: list[dict] = []
+    if conn:
+        pnums = [p.get("permit_number") for p in permits if p.get("permit_number")]
+        recent_addenda = _get_recent_addenda_activity(conn, pnums, days)
+
     # Nothing interesting → skip section
-    if not new_permits and not recently_issued and not recently_completed:
+    if not new_permits and not recently_issued and not recently_completed and not recent_addenda:
         return None
 
     lines = [f"## 🕐 Last {days} Days at This Address\n"]
+
+    # ── Plan review activity (most actionable — show first) ──
+    if recent_addenda:
+        # Group by result type for a cleaner summary
+        approved = [a for a in recent_addenda
+                    if a.get("result") and "approv" in (a["result"] or "").lower()]
+        comments = [a for a in recent_addenda
+                    if a.get("result") and "comment" in (a["result"] or "").lower()]
+        other = [a for a in recent_addenda
+                 if a not in approved and a not in comments]
+
+        total = len(recent_addenda)
+        noun = "review" if total == 1 else "reviews"
+        lines.append(f"**🗂️ {total} plan {noun} completed**")
+
+        # Show approved first (green signal)
+        for a in approved[:4]:
+            pn = a.get("permit_number", "")
+            station = a.get("station") or "—"
+            reviewer = a.get("reviewer") or "—"
+            fd = str(a.get("finish_date") or "")[:10]
+            rev = a.get("addenda_number")
+            rev_str = f" · rev {rev}" if rev is not None else ""
+            lines.append(f"- ✅ **{station}** approved by {reviewer} · {fd}{rev_str}")
+
+        # Show comments (needs response)
+        for a in comments[:3]:
+            pn = a.get("permit_number", "")
+            station = a.get("station") or "—"
+            reviewer = a.get("reviewer") or "—"
+            fd = str(a.get("finish_date") or "")[:10]
+            lines.append(f"- 💬 **{station}** issued comments by {reviewer} · {fd}")
+
+        # Show other completions
+        for a in other[:2]:
+            station = a.get("station") or "—"
+            result = a.get("result") or "completed"
+            fd = str(a.get("finish_date") or "")[:10]
+            lines.append(f"- {station} — {result} · {fd}")
+
+        shown = min(len(approved), 4) + min(len(comments), 3) + min(len(other), 2)
+        if total > shown:
+            lines.append(f"- *…and {total - shown} more*")
+        lines.append("")
 
     # ── New filings ──
     if new_permits:
@@ -608,7 +695,7 @@ async def permit_lookup(
 
         # 2a. Recent activity banner (address/parcel searches only — not single permit lookup)
         if has_address or has_parcel:
-            activity_md = _summarize_recent_activity(permits)
+            activity_md = _summarize_recent_activity(permits, conn=conn)
             if activity_md:
                 lines.append(activity_md)
 

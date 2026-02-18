@@ -1871,6 +1871,12 @@ def _get_address_intel(
         "total_permits": None,
         "active_permits": None,
         "latest_permit_type": None,
+        # Routing progress for primary active permit
+        "routing_total": None,
+        "routing_complete": None,
+        "routing_latest_station": None,
+        "routing_latest_date": None,
+        "routing_latest_result": None,
     }
 
     # ── Section 1: Violations (needs block + lot) ──
@@ -1989,6 +1995,72 @@ def _get_address_intel(
             result["latest_permit_type"] = ptd[:40] if ptd else None
     except Exception as e:
         logging.debug("_get_address_intel latest permit failed: %s", e)
+
+    # ── Section 5: Routing progress for primary active permit ──
+    try:
+        # Find the most recently filed active permit at this address
+        primary_pnum = None
+        if street_number and street_name:
+            pn_rows = db_query(
+                "SELECT permit_number FROM permits "
+                "WHERE street_number = %s "
+                "  AND UPPER(street_name) LIKE UPPER(%s) "
+                "  AND UPPER(status) IN ('FILED', 'PLANCHECK') "
+                "ORDER BY filed_date DESC LIMIT 1",
+                (street_number, f"%{street_name.split()[0]}%"),
+            )
+        elif block and lot:
+            pn_rows = db_query(
+                "SELECT permit_number FROM permits "
+                "WHERE block = %s AND lot = %s "
+                "  AND UPPER(status) IN ('FILED', 'PLANCHECK') "
+                "ORDER BY filed_date DESC LIMIT 1",
+                (block, lot),
+            )
+        else:
+            pn_rows = None
+
+        if pn_rows and pn_rows[0]:
+            primary_pnum = pn_rows[0][0]
+
+        if primary_pnum:
+            # Get the latest addenda_number for this permit
+            latest_rev = db_query(
+                "SELECT MAX(addenda_number) FROM addenda "
+                "WHERE application_number = %s",
+                (primary_pnum,),
+            )
+            rev_num = latest_rev[0][0] if latest_rev and latest_rev[0][0] is not None else None
+
+            if rev_num is not None:
+                # Count total steps and completed steps for this revision
+                routing_rows = db_query(
+                    "SELECT COUNT(*), "
+                    "       COUNT(*) FILTER (WHERE finish_date IS NOT NULL) "
+                    "FROM addenda "
+                    "WHERE application_number = %s AND addenda_number = %s",
+                    (primary_pnum, rev_num),
+                )
+                if routing_rows and routing_rows[0]:
+                    result["routing_total"] = routing_rows[0][0]
+                    result["routing_complete"] = routing_rows[0][1]
+
+                # Get the most recent completed step
+                latest_step = db_query(
+                    "SELECT station, finish_date, review_results "
+                    "FROM addenda "
+                    "WHERE application_number = %s AND addenda_number = %s "
+                    "  AND finish_date IS NOT NULL "
+                    "ORDER BY finish_date DESC LIMIT 1",
+                    (primary_pnum, rev_num),
+                )
+                if latest_step and latest_step[0]:
+                    result["routing_latest_station"] = latest_step[0][0]
+                    fd = latest_step[0][1]
+                    result["routing_latest_date"] = str(fd)[:10] if fd else None
+                    result["routing_latest_result"] = latest_step[0][2]
+    except Exception as e:
+        logging.debug("_get_address_intel routing progress failed: %s", e)
 
     return result
 
