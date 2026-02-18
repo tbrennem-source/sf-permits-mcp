@@ -32,7 +32,15 @@
   "ingestion_status": {
     "tier4_2022_bicc": "Ingested — 3.6MB, 57,938 lines (Building, Fire, fee tables, ABs)",
     "tier4_planning_code": "Ingested — 12.6MB, 222K lines",
-    "2025_amendments": "NOT YET INGESTED — 7 PDFs identified, need download and extraction",
+    "2025_amendments": "Ingested 2026-02-17 — 6 PDFs downloaded and extracted to tier4, 874KB total, 13,730 lines",
+    "2025_amendments_files": [
+      "sf-2025-building-code-amendments.txt (506KB, 7,758 lines, 160 pages)",
+      "sf-2025-existing-building-code-amendments.txt (205KB, 3,114 lines, 71 pages)",
+      "sf-2025-electrical-code-amendments.txt (55KB, 855 lines, 20 pages)",
+      "sf-2025-green-building-code-amendments.txt (48KB, 880 lines, 19 pages)",
+      "sf-2025-plumbing-code-amendments.txt (42KB, 775 lines, 18 pages)",
+      "sf-2025-mechanical-code-amendments.txt (18KB, 348 lines, 9 pages)"
+    ],
     "ca_base_codes": "NOT INGESTED — available via ICC Safe and IAPMO publishers"
   },
   "expediter_note": "Critical: any project filed after January 1, 2026 must comply with 2025 codes. Projects filed in 2025 but not yet issued may need to transition. Check with plan checker."
