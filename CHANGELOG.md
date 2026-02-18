@@ -1,5 +1,57 @@
 # Changelog
 
+## Session 29 — Voice Calibration, Plan Viewer UX, Vision Prompt Enhancement (2026-02-17)
+
+### Voice Calibration System (Phase A)
+- **Voice templates**: 15 scenario templates across 7 audience types × 8 situation types in `web/voice_templates.py`
+- **Voice calibration CRUD**: `web/voice_calibration.py` — seed, save, reset, get calibration data
+- **Database schema**: `voice_calibrations` table added to both Postgres and DuckDB
+- **Admin page**: `/admin/voice-calibration` — cards grouped by audience, side-by-side template/rewrite textareas, save/reset per scenario, HTMX inline updates
+- **Account page**: calibration progress indicator + link to calibration page
+- **Quick-action buttons**: "Get a meeting", "Cite sources", "Shorter", "More detail" pills on AI responses in `draft_response.html`
+- **Modifier handling**: `/ask` route accepts `modifier` param, `_synthesize_with_ai()` prepends modifier instructions
+
+### Inline Draft Editing & Voice Settings
+- **Inline contenteditable editing** on AI draft responses — Edit button makes draft editable, Save submits diff to `/feedback/draft-edit`, "Used as-is" sends positive signal to `/feedback/draft-good`
+- **Voice style textarea** on account page — stored in `users.voice_style`, injected into `_synthesize_with_ai()` system prompt
+- **Button styling**: consistent primary/outline styling across plan analysis and response UI
+
+### Plan Viewer UX Improvements
+- **Label collision avoidance**: `resolveCollisions()` iterative algorithm pushes overlapping annotation labels apart with leader lines to original positions
+- **Lasso/rubber-band zoom**: Click-drag to select rectangular area, zoom to fit selection — toggle via ⬚ button or keyboard
+- **Minimap**: Shows viewport position indicator when zoomed beyond 1.1x, updates on pan/zoom
+- **Left-side legend panel**: Slide-out panel with per-annotation-type toggle checkboxes, color swatches, counts, Show All / Hide All buttons
+- **Per-type visibility**: Individual annotation type toggles persisted to localStorage
+- **Enhanced keyboard shortcuts**: +/- zoom, 0 reset, L legend panel, Escape cascades (lasso → legend → lightbox)
+- **Pan/dblclick handlers**: Updated to respect lasso mode state
+
+### Vision Prompt Enhancement
+- **Reviewer comment pattern recognition**: Enhanced `PROMPT_ANNOTATION_EXTRACTION` with specific visual patterns — revision clouds/bubbles (green, red, blue wavy outlines), callout bubbles with leader lines, handwritten markings, delta/revision triangles, strikethrough marks, circled items
+- **Priority boost**: Reviewer notes prioritized first in annotation extraction
+- **Max annotations**: Bumped from 12 to 15 per page to avoid crowding out reviewer notes
+
+### Files Changed
+- `web/voice_templates.py` — NEW: 15 scenario templates, audience/situation definitions
+- `web/voice_calibration.py` — NEW: CRUD + seed + stats for voice calibrations
+- `web/templates/admin_voice_calibration.html` — NEW: admin calibration page
+- `web/templates/draft_response.html` — inline editing, quick-action modifier buttons
+- `web/templates/account.html` — voice style textarea, calibration progress link
+- `web/templates/analyze_plans_results.html` — lasso zoom, minimap, legend panel, collision avoidance (+629 lines)
+- `web/app.py` — voice calibration routes, modifier handling in `/ask`, DB schema
+- `src/db.py` — `voice_calibrations` table in DuckDB schema
+- `src/vision/prompts.py` — enhanced reviewer comment detection patterns
+- `src/vision/epr_checks.py` — max annotations 12→15
+
+### Commits
+- `bae27f2` — feat: inline draft editing, voice settings, and button styling fixes
+- `af55176` — feat: voice calibration system + quick-action response modifiers (Phase A)
+- `5c41c54` — feat: plan viewer UX — lasso zoom, minimap, legend panel, label collision avoidance
+- `44f8167` — feat: enhance vision prompt to recognize reviewer comment patterns
+
+## Session 28 — AI Reviewer Responses, Nightly Cron, RAG Activation (2026-02-17)
+
+_(Previously Session 28 entries here)_
+
 ## Session 26 — Vision Timing, Token Usage & Cost Tracking (2026-02-17)
 
 ### Per-Call Timing & Token Tracking
