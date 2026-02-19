@@ -661,7 +661,7 @@
                                 </td>
                                 <td>{{ p.filed_date or '—' }}</td>
                                 <td>
-                                    {% if p.contacts or p.inspections %}
+                                    {% if p.contacts or p.inspections or (p.routing and p.routing.total > 0) %}
                                     <button class="permit-expand-btn" onclick="togglePermitDetails('permit-{{ loop.index }}')">Details</button>
                                     {% endif %}
                                 </td>
@@ -696,6 +696,43 @@
                                             </span>
                                         </div>
                                         {% endfor %}
+                                        {% endif %}
+                                        {% if p.routing and p.routing.total > 0 %}
+                                        <h4 style="margin-top:12px;">Plan Review Routing</h4>
+                                        <div style="margin-bottom:8px;">
+                                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                                                <div style="flex:1;max-width:200px;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+                                                    <div style="width:{{ p.routing.pct }}%;height:100%;background:{% if p.routing.pct == 100 %}var(--success, #34d399){% elif p.routing.pct >= 50 %}var(--accent, #4f8ff7){% else %}#f59e0b{% endif %};border-radius:4px;"></div>
+                                                </div>
+                                                <span style="font-size:0.85rem;font-weight:600;">
+                                                    {{ p.routing.completed }}/{{ p.routing.total }} stations
+                                                    {% if p.routing.is_all_clear %}
+                                                    <span style="color:var(--success);">✓ All clear</span>
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            {% if p.routing.approved %}<span class="detail-item" style="color:var(--success);">{{ p.routing.approved }} approved</span>{% endif %}
+                                            {% if p.routing.comments %}<span class="detail-item" style="color:#f59e0b;{% if p.routing.approved %}margin-left:12px;{% endif %}">{{ p.routing.comments }} with comments</span>{% endif %}
+                                            {% if p.routing.pending > 0 %}
+                                            <div class="detail-item" style="margin-top:4px;color:var(--text-muted);font-size:0.82rem;">
+                                                Pending: {{ p.routing.pending_stations | join(', ') }}
+                                            </div>
+                                            {% endif %}
+                                            {% if p.routing.stalled %}
+                                            <div style="margin-top:4px;">
+                                                {% for s in p.routing.stalled %}
+                                                <span class="detail-item" style="color:#f87171;">⚠ {{ s.station }} stalled {{ s.days }}d</span>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            {% if p.routing.latest %}
+                                            <div class="detail-item" style="margin-top:4px;font-size:0.82rem;color:var(--text-muted);">
+                                                Latest: {{ p.routing.latest.station }}
+                                                {% if p.routing.latest.result %} · {{ p.routing.latest.result }}{% endif %}
+                                                {% if p.routing.latest.date %} · {{ p.routing.latest.date }}{% endif %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
                                         {% endif %}
                                     </div>
                                 </td>
