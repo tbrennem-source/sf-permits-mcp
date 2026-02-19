@@ -907,7 +907,7 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         rows = query(
             f"SELECT p.permit_number, p.status, p.filed_date, p.issued_date, "
             f"p.street_number, p.street_name, p.block, p.lot, p.neighborhood, "
-            f"p.permit_type_definition "
+            f"p.permit_type_definition, p.street_suffix "
             f"FROM permits p WHERE {where} "
             f"ORDER BY p.status_date DESC",
             params,
@@ -919,7 +919,8 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
     if not rows:
         return []
 
-    # Group by property key (block/lot or address)
+    # Group by address (normalized) so multiple lots at the same address
+    # become one card. Track all block/lot pairs for enforcement queries.
     today = date.today()
     property_map: dict[str, dict] = {}
     health_order = {"on_track": 0, "slower": 1, "behind": 2, "at_risk": 3}
@@ -930,9 +931,16 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         snum, sname = row[4] or "", row[5] or ""
         block, lot = row[6] or "", row[7] or ""
         neighborhood = row[8] or ""
+        street_suffix = row[10] or "" if len(row) > 10 else ""
 
-        addr = f"{snum} {sname}".strip()
-        key = f"{block}/{lot}" if block and lot else addr
+        # Build full address with suffix: "125 MASON ST"
+        full_name = sname
+        if street_suffix and street_suffix.upper() not in sname.upper():
+            full_name = f"{sname} {street_suffix}"
+        # Group by normalized address so 125 MASON on lots 018/003/004
+        # becomes a single property card
+        addr = f"{snum} {full_name}".strip().upper()
+        key = addr if addr else f"{block}/{lot}"
 
         # Health calculation (same thresholds as portfolio.py lines 131-141)
         health = "on_track"
@@ -956,10 +964,13 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
                 health = "behind"
 
         if key not in property_map:
+            # Title-case for display: "125 MASON ST" -> "125 Mason St"
+            display_addr = addr.title() if addr else f"{block}/{lot}"
             property_map[key] = {
-                "address": addr,
+                "address": display_addr,
                 "block": block,
                 "lot": lot,
+                "parcels": set(),  # all block/lot pairs at this address
                 "neighborhood": neighborhood,
                 "label": "",
                 "total_permits": 0,
@@ -976,6 +987,14 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         prop = property_map[key]
         prop["total_permits"] += 1
 
+        # Track all block/lot pairs for this address
+        if block and lot:
+            prop["parcels"].add((block, lot))
+            # Keep first non-empty block/lot as primary display parcel
+            if not prop["block"]:
+                prop["block"] = block
+                prop["lot"] = lot
+
         active_statuses = ("filed", "issued", "approved", "reinstated")
         if status in active_statuses:
             prop["active_permits"] += 1
@@ -990,35 +1009,50 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         label = w.get("label", "")
         if not label:
             continue
-        if w.get("block") and w.get("lot"):
-            key = f"{w['block']}/{w['lot']}"
-        elif w.get("street_number") and w.get("street_name"):
-            key = f"{w['street_number']} {w['street_name']}".strip().upper()
-        else:
-            continue
-        if key in property_map and not property_map[key]["label"]:
-            property_map[key]["label"] = label
+        # Try to match by address first. Watch items store street_name
+        # without suffix (e.g. "MASON") while keys may include it
+        # (e.g. "125 MASON ST"), so use startswith matching.
+        matched = False
+        if w.get("street_number") and w.get("street_name"):
+            addr_prefix = f"{w['street_number']} {w['street_name']}".strip().upper()
+            for pkey, pprop in property_map.items():
+                if pkey.startswith(addr_prefix) and not pprop["label"]:
+                    pprop["label"] = label
+                    matched = True
+                    break
+        # Fall back to finding by block/lot in parcels sets
+        if not matched and w.get("block") and w.get("lot"):
+            parcel = (w["block"], w["lot"])
+            for prop in property_map.values():
+                if parcel in prop.get("parcels", set()) and not prop["label"]:
+                    prop["label"] = label
+                    break
 
-    # Enforcement: violations + complaints per property (block/lot required)
+    # Enforcement: violations + complaints per property
+    # Query across ALL parcels at each address for complete enforcement picture
     for key, prop in property_map.items():
-        if not prop["block"] or not prop["lot"]:
+        parcels = prop.get("parcels", set())
+        if not parcels:
             continue
         try:
-            v_rows = query(
-                f"SELECT COUNT(*) FROM violations "
-                f"WHERE block = {ph} AND lot = {ph} AND LOWER(status) = 'open'",
-                (prop["block"], prop["lot"]),
-            )
-            c_rows = query(
-                f"SELECT COUNT(*) FROM complaints "
-                f"WHERE block = {ph} AND lot = {ph} AND LOWER(status) = 'open'",
-                (prop["block"], prop["lot"]),
-            )
-            open_v = v_rows[0][0] if v_rows else 0
-            open_c = c_rows[0][0] if c_rows else 0
-            prop["open_violations"] = open_v
-            prop["open_complaints"] = open_c
-            prop["enforcement_total"] = open_v + open_c
+            total_v = 0
+            total_c = 0
+            for b, l in parcels:
+                v_rows = query(
+                    f"SELECT COUNT(*) FROM violations "
+                    f"WHERE block = {ph} AND lot = {ph} AND LOWER(status) = 'open'",
+                    (b, l),
+                )
+                c_rows = query(
+                    f"SELECT COUNT(*) FROM complaints "
+                    f"WHERE block = {ph} AND lot = {ph} AND LOWER(status) = 'open'",
+                    (b, l),
+                )
+                total_v += v_rows[0][0] if v_rows else 0
+                total_c += c_rows[0][0] if c_rows else 0
+            prop["open_violations"] = total_v
+            prop["open_complaints"] = total_c
+            prop["enforcement_total"] = total_v + total_c
         except Exception:
             logger.debug("Property snapshot enforcement query failed for %s", key, exc_info=True)
             # Leave as None (data unavailable)
@@ -1083,8 +1117,17 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
                 "velocity": velocity,
             }
 
-        # Remove internal-only field
+        # Remove internal-only fields (parcels set is not JSON-serializable)
         del prop["plancheck_permits"]
+        parcels_list = sorted(prop.get("parcels", set()))
+        del prop["parcels"]
+        # Store parcels as display string: "0331/018, 0331/003" for multi-lot
+        if len(parcels_list) > 1:
+            prop["parcels_display"] = ", ".join(f"{b}/{l}" for b, l in parcels_list)
+        elif parcels_list:
+            prop["parcels_display"] = f"{parcels_list[0][0]}/{parcels_list[0][1]}"
+        else:
+            prop["parcels_display"] = ""
 
     # Sort: at_risk first, then behind, then slower, then on_track
     properties = sorted(
