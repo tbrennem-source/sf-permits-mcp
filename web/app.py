@@ -1401,7 +1401,7 @@ def cancel_plan_job(job_id):
 @app.route("/plan-jobs/<job_id>/results")
 def plan_job_results(job_id):
     """View completed async analysis results."""
-    from web.plan_jobs import get_job
+    from web.plan_jobs import get_job, find_previous_analyses
     from web.plan_images import get_session
 
     job = get_job(job_id)
@@ -1433,6 +1433,18 @@ def plan_job_results(job_id):
         except Exception:
             pass
 
+    # Find previous analyses for same address/permit (revision tracking)
+    previous_analyses = []
+    try:
+        previous_analyses = find_previous_analyses(
+            job_id=job_id,
+            property_address=job.get("property_address"),
+            permit_number=job.get("permit_number"),
+            user_id=job.get("user_id"),
+        )
+    except Exception:
+        logging.debug("Previous analyses lookup failed", exc_info=True)
+
     return render_template(
         "plan_results_page.html",
         result=result_html,
@@ -1451,6 +1463,7 @@ def plan_job_results(job_id):
         street_name=_parse_address(job.get("property_address", ""))[1],
         vision_stats=vision_stats,
         gallery_duration_ms=job.get("gallery_duration_ms"),
+        previous_analyses=previous_analyses,
     )
 
 

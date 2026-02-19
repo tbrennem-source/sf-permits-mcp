@@ -302,6 +302,89 @@ def search_jobs(user_id: int, query_text: str, limit: int = 20) -> list[dict]:
     ]
 
 
+def find_previous_analyses(
+    *,
+    job_id: str | None = None,
+    property_address: str | None = None,
+    permit_number: str | None = None,
+    user_id: int | None = None,
+    limit: int = 5,
+) -> list[dict]:
+    """Find previous completed analyses for the same address or permit.
+
+    Used for revision tracking — when a user re-uploads plans for the same
+    property, show links to their prior analyses.
+
+    Matches on:
+    1. Same permit_number (strongest match)
+    2. Same property_address (weaker match, addresses may vary in format)
+
+    Excludes the current job_id if provided.
+
+    Returns list of job dicts ordered by completed_at DESC.
+    """
+    if not property_address and not permit_number:
+        return []
+
+    conditions = []
+    params: list = []
+
+    if permit_number:
+        conditions.append("permit_number = %s")
+        params.append(permit_number)
+    elif property_address:
+        conditions.append("UPPER(property_address) = UPPER(%s)")
+        params.append(property_address)
+
+    # Only completed analyses with results
+    conditions.append("status = 'completed'")
+    conditions.append("session_id IS NOT NULL")
+
+    # Exclude current job
+    if job_id:
+        conditions.append("job_id != %s")
+        params.append(job_id)
+
+    # Optionally scope to same user
+    if user_id:
+        conditions.append("user_id = %s")
+        params.append(user_id)
+
+    where = " AND ".join(conditions)
+    params.append(limit)
+
+    try:
+        rows = query(
+            f"SELECT job_id, session_id, filename, file_size_mb, "
+            f"property_address, permit_number, analysis_mode, pages_analyzed, "
+            f"created_at, completed_at "
+            f"FROM plan_analysis_jobs "
+            f"WHERE {where} "
+            f"ORDER BY completed_at DESC "
+            f"LIMIT %s",
+            tuple(params),
+        )
+    except Exception:
+        logger.debug("find_previous_analyses failed", exc_info=True)
+        return []
+
+    return [
+        {
+            "job_id": r[0],
+            "session_id": r[1],
+            "filename": r[2],
+            "file_size_mb": r[3],
+            "property_address": r[4],
+            "permit_number": r[5],
+            "analysis_mode": r[6],
+            "pages_analyzed": r[7],
+            "created_at": r[8],
+            "completed_at": r[9],
+        }
+        for r in rows
+    ]
+
+
 def mark_stale_jobs(max_age_minutes: int = 15) -> int:
     """Mark jobs stuck in 'processing' as 'stale'.
 

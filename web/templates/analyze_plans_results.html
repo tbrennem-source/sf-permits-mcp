@@ -1122,6 +1122,27 @@
         {% endif %}
     </div>
 
+    {# ===== Previous Analyses Banner (Revision Tracking) ===== #}
+    {% if previous_analyses is defined and previous_analyses %}
+    <div style="background:rgba(79,143,247,0.08);border:1px solid rgba(79,143,247,0.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+        <div style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:6px;">
+            📋 Previous {{ 'version' if previous_analyses|length == 1 else 'versions' }} analyzed
+        </div>
+        {% for prev in previous_analyses %}
+        <div style="display:flex;align-items:center;gap:10px;{% if not loop.first %}margin-top:6px;{% endif %}font-size:0.8rem;">
+            <a href="/plan-jobs/{{ prev.job_id }}/results" style="color:var(--accent);text-decoration:none;">
+                {{ prev.filename }}
+            </a>
+            <span style="color:var(--text-muted);">
+                {{ prev.completed_at.strftime('%b %d, %Y') if prev.completed_at and prev.completed_at.strftime else prev.completed_at }}
+                {% if prev.analysis_mode %} &middot; {{ prev.analysis_mode }}{% endif %}
+                {% if prev.pages_analyzed %} &middot; {{ prev.pages_analyzed }} pages{% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if session_id %}
     <!-- Bulk Actions Toolbar -->
     <div class="bulk-actions-toolbar">
