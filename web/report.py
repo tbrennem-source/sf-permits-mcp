@@ -534,11 +534,14 @@ def _compute_consultant_signal(
     """Score the recommendation for hiring a land use consultant.
 
     Factors and weights:
-        Active DBI complaint:           +3
-        Prior NOVs on parcel:           +2
-        Permit cost > $500K:            +2  (replaces the $100K score, not cumulative)
+        Active DBI complaint:             +3
+        Prior NOVs on parcel:             +2
+        Permit cost > $500K:              +2  (replaces $100K, not cumulative)
         Permit cost > $100K (but <=500K): +1
-        Restrictive zoning (RH-1):      +1
+        Cost revision > 50%:              +2
+        Restrictive zoning (RH-1):        +1
+        Stalled plan review station:      +2
+        Multiple revision cycles (>=3):   +1
 
     Signal thresholds:
         0       -> cold
@@ -588,12 +591,26 @@ def _compute_consultant_signal(
         score += 1
         factors.append(f"Permit cost > $100K (+1)")
 
+    # Cost revision variance > 50%
+    for p in permits:
+        est = _safe_float(p.get("estimated_cost"))
+        rev = _safe_float(p.get("revised_cost"))
+        if est and rev and est > 0:
+            variance = abs(rev - est) / est
+            if variance > 0.5:
+                score += 2
+                factors.append(f"Cost revision > 50% (+2)")
+                break
+
     # Restrictive zoning
     if property_data:
         zoning = (property_data[0].get("zoning_code") or "").upper().strip()
         if zoning in _RESTRICTIVE_ZONES:
             score += 1
             factors.append("Restrictive zoning (+1)")
+
+    # Plan review routing factors (Tier 0 operational intelligence)
+    score, factors = _add_routing_factors(permits, score, factors)
 
     signal = _score_to_signal(score)
 
@@ -603,6 +620,55 @@ def _compute_consultant_signal(
         "factors": factors,
         "message": _signal_to_message(signal),
     }
+
+
+def _add_routing_factors(
+    permits: list[dict], score: int, factors: list[str],
+) -> tuple[int, list[str]]:
+    """Add plan review routing factors to consultant signal score.
+
+    Checks active permits for stalled stations and multiple revision cycles.
+    Returns updated (score, factors) tuple.
+    """
+    try:
+        from web.routing import get_routing_progress
+    except ImportError:
+        return score, factors
+
+    added_stall = False
+    added_revision = False
+
+    for p in permits:
+        pnum = p.get("permit_number", "")
+        status = (p.get("status") or "").lower()
+        if status not in ("filed", "plancheck"):
+            continue
+        if not pnum:
+            continue
+
+        try:
+            rp = get_routing_progress(pnum)
+            if not rp:
+                continue
+
+            # Stalled stations (>14 days pending)
+            if not added_stall and rp.stalled_stations:
+                score += 2
+                factors.append("Stalled plan review station (+2)")
+                added_stall = True
+
+            # Multiple revision cycles
+            if not added_revision and rp.addenda_number and rp.addenda_number >= 3:
+                score += 1
+                factors.append(
+                    f"Multiple revision cycles — addenda #{rp.addenda_number} (+1)"
+                )
+                added_revision = True
+
+        except Exception:
+            continue
+
+    return score, factors
 
 
 # ---------------------------------------------------------------------------

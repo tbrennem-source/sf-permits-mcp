@@ -52,12 +52,14 @@ def _ph() -> str:
     return "%s" if BACKEND == "postgres" else "?"
 
 
-def _parse_date(text: str | None) -> date | None:
-    """Parse a TEXT date field to a Python date."""
+def _parse_date(text) -> date | None:
+    """Parse a TEXT/date field to a Python date."""
     if not text:
         return None
+    if isinstance(text, date):
+        return text
     try:
-        return date.fromisoformat(text[:10])
+        return date.fromisoformat(str(text)[:10])
     except (ValueError, TypeError):
         return None
 
@@ -89,6 +91,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     team_activity = _get_team_activity(user_id, since)
     expiring = _get_expiring_permits(user_id)
     regulatory_alerts = _get_regulatory_alerts()
+    property_cards = _get_property_snapshot(user_id)
 
     # Property synopsis for primary address
     property_synopsis = None
@@ -106,6 +109,10 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     total_watches = watch_count_row[0][0] if watch_count_row else 0
 
     at_risk = sum(1 for h in health if h.get("status") in ("behind", "at_risk"))
+    enforcement_count = sum(
+        1 for p in property_cards
+        if p.get("enforcement_total") and p["enforcement_total"] > 0
+    )
 
     # Data freshness from cron_log
     last_refresh = _get_last_refresh()
@@ -119,13 +126,16 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "team_activity": team_activity,
         "expiring": expiring,
         "regulatory_alerts": regulatory_alerts,
+        "property_cards": property_cards,
         "property_synopsis": property_synopsis,
         "last_refresh": last_refresh,
         "summary": {
             "total_watches": total_watches,
+            "total_properties": len(property_cards),
             "changes_count": len(changes),
             "plan_reviews_count": len(plan_reviews),
             "at_risk_count": at_risk,
+            "enforcement_count": enforcement_count,
             "inspections_count": len(inspections),
             "new_filings_count": len(new_filings),
             "team_count": len(team_activity),
@@ -572,7 +582,56 @@ def _get_plan_review_activity(user_id: int, since: date) -> list[dict]:
         if key not in seen:
             seen.add(key)
             unique.append(r)
+
+    # Enrich with routing progress and station velocity context
+    if unique:
+        _enrich_plan_reviews_with_routing(unique)
+
     return unique
+
+
+def _enrich_plan_reviews_with_routing(reviews: list[dict]) -> None:
+    """Add routing completion context and station velocity to plan review items.
+
+    Modifies items in-place, adding:
+      - routing_completion_pct, routing_total_stations, routing_completed_stations
+      - routing_pending_stations (list of station names)
+      - station_typical_label (e.g. "~12 days")
+    """
+    permit_numbers = list({r["permit_number"] for r in reviews})
+
+    # Batch routing progress
+    routing_map: dict = {}
+    try:
+        from web.routing import get_routing_progress_batch
+        routing_map = get_routing_progress_batch(permit_numbers)
+    except Exception:
+        logger.debug("Plan review routing enrichment failed", exc_info=True)
+
+    # Station velocity cache
+    velocity_cache: dict[str, str | None] = {}
+
+    for pr in reviews:
+        rp = routing_map.get(pr["permit_number"])
+        if rp:
+            pr["routing_completion_pct"] = rp.completion_pct
+            pr["routing_total_stations"] = rp.total_stations
+            pr["routing_completed_stations"] = rp.completed_stations
+            pr["routing_pending_stations"] = rp.pending_station_names
+        else:
+            pr["routing_completion_pct"] = None
+
+        # Station velocity for this specific station
+        station = pr.get("station", "")
+        if station and station not in velocity_cache:
+            try:
+                from web.station_velocity import get_station_baseline
+                baseline = get_station_baseline(station)
+                velocity_cache[station] = baseline.label if baseline else None
+            except Exception:
+                velocity_cache[station] = None
+
+        pr["station_typical_label"] = velocity_cache.get(station)
 
 
 def _rows_to_plan_reviews(rows: list[tuple]) -> list[dict]:
@@ -783,7 +842,261 @@ def _get_regulatory_alerts() -> list[dict]:
         return []
 
 
-# ── Section 9: Data Freshness ────────────────────────────────────
+# ── Section 9: Property Snapshot (always visible) ────────────────
+
+def _get_property_snapshot(user_id: int) -> list[dict]:
+    """Build always-visible property cards from user's watch list.
+
+    For each watched property (grouped by block/lot or address key):
+    - Active/total permit counts
+    - Worst health status (simple day-threshold à la portfolio.py)
+    - Open violation + complaint counts
+    - Routing progress for the primary permit in plan check
+
+    Returns list of property snapshot dicts, sorted by worst_health desc.
+    """
+    from web.auth import get_watches
+
+    ph = _ph()
+    watches = get_watches(user_id)
+    if not watches:
+        return []
+
+    # Collect watch targets by type (same pattern as portfolio.py lines 46-59)
+    watch_permits: set[str] = set()
+    watch_addresses: set[tuple[str, str]] = set()
+    watch_parcels: set[tuple[str, str]] = set()
+
+    for w in watches:
+        wt = w["watch_type"]
+        if wt == "permit" and w.get("permit_number"):
+            watch_permits.add(w["permit_number"])
+        elif wt == "address" and w.get("street_number") and w.get("street_name"):
+            watch_addresses.add((w["street_number"], w["street_name"].upper()))
+        elif wt == "parcel" and w.get("block") and w.get("lot"):
+            watch_parcels.add((w["block"], w["lot"]))
+        # Skip neighborhood and entity watches (too broad for property cards)
+
+    # Build SQL conditions (same pattern as portfolio.py lines 74-106)
+    conditions: list[str] = []
+    params: list = []
+
+    if watch_permits:
+        placeholders = ",".join([ph] * len(watch_permits))
+        conditions.append(f"p.permit_number IN ({placeholders})")
+        params.extend(watch_permits)
+    if watch_addresses:
+        addr_conds = []
+        for sn, st in watch_addresses:
+            addr_conds.append(f"(p.street_number = {ph} AND UPPER(p.street_name) = {ph})")
+            params.extend([sn, st])
+        conditions.append("(" + " OR ".join(addr_conds) + ")")
+    if watch_parcels:
+        parcel_conds = []
+        for b, l in watch_parcels:
+            parcel_conds.append(f"(p.block = {ph} AND p.lot = {ph})")
+            params.extend([b, l])
+        conditions.append("(" + " OR ".join(parcel_conds) + ")")
+
+    if not conditions:
+        return []
+
+    where = " OR ".join(conditions)
+
+    try:
+        rows = query(
+            f"SELECT p.permit_number, p.status, p.filed_date, p.issued_date, "
+            f"p.street_number, p.street_name, p.block, p.lot, p.neighborhood, "
+            f"p.permit_type_definition "
+            f"FROM permits p WHERE {where} "
+            f"ORDER BY p.status_date DESC",
+            params,
+        )
+    except Exception:
+        logger.debug("_get_property_snapshot permits query failed", exc_info=True)
+        return []
+
+    if not rows:
+        return []
+
+    # Group by property key (block/lot or address)
+    today = date.today()
+    property_map: dict[str, dict] = {}
+    health_order = {"on_track": 0, "slower": 1, "behind": 2, "at_risk": 3}
+
+    for row in rows:
+        pn, status = row[0], (row[1] or "").lower()
+        filed_str, issued_str = row[2], row[3]
+        snum, sname = row[4] or "", row[5] or ""
+        block, lot = row[6] or "", row[7] or ""
+        neighborhood = row[8] or ""
+
+        addr = f"{snum} {sname}".strip()
+        key = f"{block}/{lot}" if block and lot else addr
+
+        # Health calculation (same thresholds as portfolio.py lines 131-141)
+        health = "on_track"
+        filed_date = _parse_date(filed_str)
+        issued_date = _parse_date(issued_str)
+
+        if status == "filed" and filed_date:
+            days_filed = (today - filed_date).days
+            if days_filed > 365:
+                health = "at_risk"
+            elif days_filed > 180:
+                health = "behind"
+            elif days_filed > 90:
+                health = "slower"
+
+        if status == "issued" and issued_date:
+            days_issued = (today - issued_date).days
+            if days_issued > 365 * 2.5:
+                health = "at_risk"
+            elif days_issued > 365 * 2:
+                health = "behind"
+
+        if key not in property_map:
+            property_map[key] = {
+                "address": addr,
+                "block": block,
+                "lot": lot,
+                "neighborhood": neighborhood,
+                "label": "",
+                "total_permits": 0,
+                "active_permits": 0,
+                "worst_health": "on_track",
+                "plancheck_permits": [],
+                "open_violations": None,
+                "open_complaints": None,
+                "enforcement_total": None,
+                "routing": None,
+                "search_url": f"/?q={addr.replace(' ', '+')}" if addr else f"/?q={block}/{lot}",
+            }
+
+        prop = property_map[key]
+        prop["total_permits"] += 1
+
+        active_statuses = ("filed", "issued", "approved", "reinstated")
+        if status in active_statuses:
+            prop["active_permits"] += 1
+        if status == "filed":
+            prop["plancheck_permits"].append(pn)
+
+        if health_order.get(health, 0) > health_order.get(prop["worst_health"], 0):
+            prop["worst_health"] = health
+
+    # Assign watch labels
+    for w in watches:
+        label = w.get("label", "")
+        if not label:
+            continue
+        if w.get("block") and w.get("lot"):
+            key = f"{w['block']}/{w['lot']}"
+        elif w.get("street_number") and w.get("street_name"):
+            key = f"{w['street_number']} {w['street_name']}".strip().upper()
+        else:
+            continue
+        if key in property_map and not property_map[key]["label"]:
+            property_map[key]["label"] = label
+
+    # Enforcement: violations + complaints per property (block/lot required)
+    for key, prop in property_map.items():
+        if not prop["block"] or not prop["lot"]:
+            continue
+        try:
+            v_rows = query(
+                f"SELECT COUNT(*) FROM violations "
+                f"WHERE block = {ph} AND lot = {ph} AND LOWER(status) = 'open'",
+                (prop["block"], prop["lot"]),
+            )
+            c_rows = query(
+                f"SELECT COUNT(*) FROM complaints "
+                f"WHERE block = {ph} AND lot = {ph} AND LOWER(status) = 'open'",
+                (prop["block"], prop["lot"]),
+            )
+            open_v = v_rows[0][0] if v_rows else 0
+            open_c = c_rows[0][0] if c_rows else 0
+            prop["open_violations"] = open_v
+            prop["open_complaints"] = open_c
+            prop["enforcement_total"] = open_v + open_c
+        except Exception:
+            logger.debug("Property snapshot enforcement query failed for %s", key, exc_info=True)
+            # Leave as None (data unavailable)
+
+    # Routing progress: batch query for all plancheck permits
+    all_plancheck = []
+    for prop in property_map.values():
+        all_plancheck.extend(prop["plancheck_permits"])
+
+    routing_map: dict = {}
+    if all_plancheck:
+        try:
+            from web.routing import get_routing_progress_batch
+            routing_map = get_routing_progress_batch(all_plancheck)
+        except Exception:
+            logger.debug("Property snapshot routing batch failed", exc_info=True)
+
+    # Station velocity cache
+    velocity_cache: dict = {}
+
+    def _get_velocity(station_name: str) -> str | None:
+        if station_name in velocity_cache:
+            return velocity_cache[station_name]
+        try:
+            from web.station_velocity import get_station_baseline
+            baseline = get_station_baseline(station_name)
+            label = baseline.label if baseline else None
+        except Exception:
+            label = None
+        velocity_cache[station_name] = label
+        return label
+
+    # Assign routing to properties
+    for prop in property_map.values():
+        best_routing = None
+        for pn in prop["plancheck_permits"]:
+            rp = routing_map.get(pn)
+            if rp is None:
+                continue
+            # Pick permit with lowest completion (most interesting to show)
+            if best_routing is None or rp.completion_pct < best_routing.completion_pct:
+                best_routing = rp
+
+        if best_routing:
+            pending_names = best_routing.pending_station_names
+            stalled = [s.station for s in best_routing.stalled_stations]
+            held = [s.station for s in best_routing.held_stations]
+            velocity = []
+            for sn in pending_names[:5]:  # Cap velocity lookups
+                typical = _get_velocity(sn)
+                if typical:
+                    velocity.append({"station": sn, "typical": typical})
+
+            prop["routing"] = {
+                "permit_number": best_routing.permit_number,
+                "completion_pct": best_routing.completion_pct,
+                "total_stations": best_routing.total_stations,
+                "completed_stations": best_routing.completed_stations,
+                "pending_station_names": pending_names,
+                "stalled_stations": stalled,
+                "held_stations": held,
+                "velocity": velocity,
+            }
+
+        # Remove internal-only field
+        del prop["plancheck_permits"]
+
+    # Sort: at_risk first, then behind, then slower, then on_track
+    properties = sorted(
+        property_map.values(),
+        key=lambda p: health_order.get(p["worst_health"], 0),
+        reverse=True,
+    )
+
+    return properties
+
+
+# ── Section 10: Data Freshness ───────────────────────────────────
 
 def _get_last_refresh() -> dict | None:
     """Get data freshness info from cron_log.

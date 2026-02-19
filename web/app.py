@@ -1111,7 +1111,7 @@ def analyze_plans_route():
         from web.plan_worker import submit_job
 
         user = get_user_by_id(user_id) if user_id else None
-        analysis_mode = resolve_analysis_mode(user, requested_mode)
+        analysis_mode, was_downgraded = resolve_analysis_mode(user, requested_mode)
 
         job_id = create_job(
             user_id=user_id,
@@ -1129,13 +1129,15 @@ def analyze_plans_route():
         )
         submit_job(job_id)
 
-        logging.info(f"[analyze-plans] Async job {job_id} submitted for {filename}")
+        logging.info(f"[analyze-plans] Async job {job_id} submitted for {filename} (mode={analysis_mode}, downgraded={was_downgraded})")
         return render_template(
             "analyze_plans_processing.html",
             job_id=job_id,
             filename=filename,
             filesize_mb=round(size_mb, 1),
             user_email=_get_user_email(user_id),
+            mode_downgraded=was_downgraded,
+            analysis_mode=analysis_mode,
         )
 
     # ── Quick Check mode: metadata-only via validate_plans ──
@@ -1401,7 +1403,7 @@ def cancel_plan_job(job_id):
 @app.route("/plan-jobs/<job_id>/results")
 def plan_job_results(job_id):
     """View completed async analysis results."""
-    from web.plan_jobs import get_job
+    from web.plan_jobs import get_job, find_previous_analyses
     from web.plan_images import get_session
 
     job = get_job(job_id)
@@ -1433,6 +1435,18 @@ def plan_job_results(job_id):
         except Exception:
             pass
 
+    # Find previous analyses for same address/permit (revision tracking)
+    previous_analyses = []
+    try:
+        previous_analyses = find_previous_analyses(
+            job_id=job_id,
+            property_address=job.get("property_address"),
+            permit_number=job.get("permit_number"),
+            user_id=job.get("user_id"),
+        )
+    except Exception:
+        logging.debug("Previous analyses lookup failed", exc_info=True)
+
     return render_template(
         "plan_results_page.html",
         result=result_html,
@@ -1451,6 +1465,7 @@ def plan_job_results(job_id):
         street_name=_parse_address(job.get("property_address", ""))[1],
         vision_stats=vision_stats,
         gallery_duration_ms=job.get("gallery_duration_ms"),
+        previous_analyses=previous_analyses,
     )
 
 
@@ -3691,8 +3706,60 @@ def email_unsubscribe():
 
 @app.route("/consultants")
 def consultants_page():
-    """Consultant recommendation dashboard."""
-    return render_template("consultants.html", neighborhoods=NEIGHBORHOODS)
+    """Consultant recommendation dashboard.
+
+    Accepts optional query params from property report "Find a consultant" link:
+      ?block=XXXX&lot=YYY&signal=recommended
+    When present, pre-fills the form and auto-submits.
+    """
+    from src.db import query as db_query
+
+    prefill = None
+    block = request.args.get("block", "").strip()
+    lot = request.args.get("lot", "").strip()
+    signal = request.args.get("signal", "").strip()
+
+    if block and lot:
+        # Look up address and neighborhood from permits table
+        addr = ""
+        neighborhood = ""
+        try:
+            row = db_query(
+                "SELECT street_number, street_name, neighborhood "
+                "FROM permits WHERE block = %s AND lot = %s "
+                "ORDER BY filed_date DESC LIMIT 1",
+                (block, lot),
+            )
+            if row:
+                addr = f"{row[0][0] or ''} {row[0][1] or ''}".strip()
+                neighborhood = row[0][2] or ""
+        except Exception:
+            pass
+
+        # Check if property has active complaints (for checkbox prefill)
+        has_complaint = False
+        try:
+            c_row = db_query(
+                "SELECT COUNT(*) FROM complaints "
+                "WHERE block = %s AND lot = %s AND LOWER(status) = 'open'",
+                (block, lot),
+            )
+            has_complaint = bool(c_row and c_row[0][0] > 0)
+        except Exception:
+            pass
+
+        prefill = {
+            "block": block,
+            "lot": lot,
+            "address": addr,
+            "neighborhood": neighborhood,
+            "signal": signal,
+            "has_complaint": has_complaint,
+        }
+
+    return render_template("consultants.html",
+                           neighborhoods=NEIGHBORHOODS,
+                           prefill=prefill)
 
 
 @app.route("/consultants/search", methods=["POST"])
@@ -3707,6 +3774,7 @@ def consultants_search():
     permit_type = request.form.get("permit_type", "").strip() or None
     has_complaint = request.form.get("has_active_complaint") == "on"
     needs_planning = request.form.get("needs_planning") == "on"
+    sort_by = request.form.get("sort_by", "score").strip()
 
     try:
         # recommend_consultants is async, returns markdown string
@@ -3732,6 +3800,24 @@ def consultants_search():
             max_permits = max(e["permit_count"] for e in consultants_raw)
             registered_names = _get_registered_names()
             registry = _load_registry()
+
+            # Check which consultants have worked at this address (block/lot)
+            address_match_ids: set[int] = set()
+            if block and lot:
+                try:
+                    from src.db import query as db_query
+                    ph = "%s" if BACKEND == "postgres" else "?"
+                    addr_rows = db_query(
+                        f"SELECT DISTINCT e.entity_id "
+                        f"FROM contacts c JOIN entities e ON c.entity_id = e.entity_id "
+                        f"WHERE c.block = {ph} AND c.lot = {ph} "
+                        f"AND e.entity_type = 'consultant'",
+                        (block, lot),
+                    )
+                    address_match_ids = {r[0] for r in addr_rows} if addr_rows else set()
+                except Exception:
+                    pass
+
             scored = []
 
             for exp in consultants_raw:
@@ -3785,6 +3871,7 @@ def consultants_search():
                 s.score += spec_score
 
                 # Neighborhood (0-20)
+                hood_match = False
                 if neighborhood:
                     target_lower = neighborhood.lower()
                     hood_match = any(
@@ -3847,17 +3934,49 @@ def consultants_search():
                             }
                             break
 
+                # Address match bonus (+5) + badge
+                if exp["entity_id"] in address_match_ids:
+                    s.score += 5
+                    s.breakdown["address_match"] = 5
+
+                # Build smart badges list (stored as tuples: label, css_class)
+                badges = []
+                if exp["entity_id"] in address_match_ids:
+                    badges.append(("Worked at this address", "badge-address"))
+                if s.is_registered:
+                    badges.append(("Ethics Registered", "badge-ethics"))
+                if hood_match and neighborhood:
+                    badges.append(("Neighborhood match", "badge-hood"))
+                if exp["permit_count"] >= 100:
+                    badges.append(("High volume", "badge-volume"))
+                if network_partners >= 10:
+                    badges.append(("Strong network", "badge-network"))
+                if recency_score == 15:
+                    badges.append(("Recently active", "badge-recent"))
+                # Store badges on the dataclass via dynamic attr
+                s.badges = badges  # type: ignore[attr-defined]
+
                 scored.append(s)
         finally:
             conn.close()
 
-        scored.sort(key=lambda x: x.score, reverse=True)
+        # Sort by user-selected criterion
+        if sort_by == "permits":
+            scored.sort(key=lambda x: x.permit_count, reverse=True)
+        elif sort_by == "recency":
+            scored.sort(key=lambda x: x.date_range_end or "", reverse=True)
+        elif sort_by == "network":
+            scored.sort(key=lambda x: x.network_size, reverse=True)
+        else:  # default: score
+            scored.sort(key=lambda x: x.score, reverse=True)
+
         top = scored[:10]
 
         return render_template(
             "consultants.html",
             neighborhoods=NEIGHBORHOODS,
             results=top,
+            sort_by=sort_by,
         )
 
     except Exception as e:
@@ -4197,6 +4316,16 @@ def cron_nightly():
                 logging.error("Station velocity refresh failed (non-fatal): %s", ve)
                 velocity_result = {"error": str(ve)}
 
+        # Refresh reviewer-entity interaction graph (non-fatal)
+        reviewer_result = {}
+        if not dry_run:
+            try:
+                from web.reviewer_graph import refresh_reviewer_interactions
+                reviewer_result = refresh_reviewer_interactions()
+            except Exception as re_:
+                logging.error("Reviewer graph refresh failed (non-fatal): %s", re_)
+                reviewer_result = {"error": str(re_)}
+
         # Refresh operational knowledge chunks (non-fatal, runs after velocity)
         ops_chunks_result = {}
         if not dry_run:
@@ -4214,6 +4343,7 @@ def cron_nightly():
                 "triage": triage_result,
                 "cleanup": cleanup_result,
                 "velocity": velocity_result,
+                "reviewer_graph": reviewer_result,
                 "ops_chunks": ops_chunks_result,
             }, indent=2),
             mimetype="application/json",

@@ -217,6 +217,7 @@
         transform-origin: 0 0;
         transition: none;
         will-change: transform;
+        overflow: visible;
     }
 
     .lightbox-content img {
@@ -302,14 +303,21 @@
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
+        z-index: 1025;
     }
 
     .lightbox-prev {
-        left: 20px;
+        left: -75px;
     }
 
     .lightbox-next {
-        right: 20px;
+        right: -75px;
+    }
+
+    /* On narrow screens, pull arrows back inside content edges */
+    @media (max-width: 1100px) {
+        .lightbox-prev { left: 8px; }
+        .lightbox-next { right: 8px; }
     }
 
     .lightbox-prev:hover,
@@ -1122,6 +1130,27 @@
         {% endif %}
     </div>
 
+    {# ===== Previous Analyses Banner (Revision Tracking) ===== #}
+    {% if previous_analyses is defined and previous_analyses %}
+    <div style="background:rgba(79,143,247,0.08);border:1px solid rgba(79,143,247,0.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+        <div style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:6px;">
+            📋 Previous {{ 'version' if previous_analyses|length == 1 else 'versions' }} analyzed
+        </div>
+        {% for prev in previous_analyses %}
+        <div style="display:flex;align-items:center;gap:10px;{% if not loop.first %}margin-top:6px;{% endif %}font-size:0.8rem;">
+            <a href="/plan-jobs/{{ prev.job_id }}/results" style="color:var(--accent);text-decoration:none;">
+                {{ prev.filename }}
+            </a>
+            <span style="color:var(--text-muted);">
+                {{ prev.completed_at.strftime('%b %d, %Y') if prev.completed_at and prev.completed_at.strftime else prev.completed_at }}
+                {% if prev.analysis_mode %} &middot; {{ prev.analysis_mode }}{% endif %}
+                {% if prev.pages_analyzed %} &middot; {{ prev.pages_analyzed }} pages{% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if session_id %}
     <!-- Bulk Actions Toolbar -->
     <div class="bulk-actions-toolbar">
@@ -1839,6 +1868,21 @@
         if (!el) return;
         el.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
         document.getElementById('zoom-level').textContent = Math.round(zoomScale * 100) + '%';
+
+        // Counter-scale the SVG annotation layer so text renders at native DPI
+        // (CSS transform: scale() on the parent rasterizes text at original size,
+        //  causing fuzzy labels when zoomed in)
+        const svg = document.getElementById('lightbox-annotations');
+        if (svg) {
+            const inv = 1 / zoomScale;
+            // Scale the SVG inversely — it will render at 1:1 pixels
+            // but still occupy the same visual space over the image
+            svg.style.transform = `scale(${inv})`;
+            svg.style.transformOrigin = '0 0';
+            // Expand the SVG element dimensions so it covers the full image area
+            svg.style.width = (zoomScale * 100) + '%';
+            svg.style.height = (zoomScale * 100) + '%';
+        }
     }
 
     function clampPan() {

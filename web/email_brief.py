@@ -135,6 +135,7 @@ def render_brief_email(user: dict, brief_data: dict) -> str:
         expiring=brief_data["expiring"],
         last_refresh=brief_data.get("last_refresh"),
         property_synopsis=brief_data.get("property_synopsis"),
+        property_cards=brief_data.get("property_cards", []),
         unsubscribe_url=unsubscribe_url,
     )
 
@@ -203,7 +204,7 @@ def send_briefs(frequency: str = "daily") -> dict:
         try:
             brief_data = get_morning_brief(user["user_id"], lookback_days)
 
-            # Skip if nothing to report (no changes, no health issues, etc.)
+            # Skip if nothing to report (no changes, no health issues, no properties)
             summary = brief_data["summary"]
             has_content = (
                 summary["changes_count"] > 0
@@ -212,6 +213,7 @@ def send_briefs(frequency: str = "daily") -> dict:
                 or summary["inspections_count"] > 0
                 or summary["new_filings_count"] > 0
                 or summary["expiring_count"] > 0
+                or len(brief_data.get("property_cards", [])) > 0
             )
             if not has_content:
                 stats["skipped"] += 1

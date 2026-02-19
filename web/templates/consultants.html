@@ -176,6 +176,34 @@
             color: var(--text-muted);
         }
 
+        /* Smart badges */
+        .exp-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+        .exp-badge {
+            font-size: 0.72rem; font-weight: 600; padding: 3px 10px;
+            border-radius: 12px; white-space: nowrap;
+        }
+        .badge-address { background: rgba(79,143,247,0.15); color: var(--accent); border: 1px solid rgba(79,143,247,0.3); }
+        .badge-ethics { background: rgba(52,211,153,0.12); color: var(--success); border: 1px solid rgba(52,211,153,0.3); }
+        .badge-hood { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+        .badge-volume { background: rgba(251,191,36,0.1); color: var(--warning); border: 1px solid rgba(251,191,36,0.25); }
+        .badge-network { background: rgba(96,165,250,0.12); color: #93c5fd; border: 1px solid rgba(96,165,250,0.25); }
+        .badge-recent { background: rgba(52,211,153,0.08); color: #6ee7b7; border: 1px solid rgba(52,211,153,0.2); }
+
+        /* Sort controls */
+        .sort-bar {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .sort-label { font-size: 0.8rem; color: var(--text-muted); }
+        .sort-chip {
+            font-size: 0.78rem; padding: 5px 14px; border-radius: 16px;
+            background: var(--surface-2); border: 1px solid var(--border);
+            color: var(--text-muted); cursor: pointer; font-family: inherit;
+            transition: all 0.15s;
+        }
+        .sort-chip:hover { color: var(--text); border-color: var(--text-muted); }
+        .sort-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
         .error { background: rgba(248,113,113,0.1); border: 1px solid var(--error);
                   color: var(--error); padding: 12px 16px; border-radius: 8px; }
         .info { background: rgba(79,143,247,0.1); border: 1px solid var(--accent);
@@ -285,6 +313,7 @@
                             Needs Planning Dept coordination
                         </label>
                     </div>
+                    <input type="hidden" name="sort_by" id="sort_by" value="{{ sort_by if sort_by is defined else 'score' }}">
                     <button class="btn" type="submit">Find Consultants</button>
                 </form>
             </div>
@@ -305,21 +334,40 @@
             </div>
             <div id="results" class="results-area">
                 {% if results %}
+                <div class="sort-bar">
+                    <span class="sort-label">Sort by:</span>
+                    <button class="sort-chip {{ 'active' if (sort_by is not defined or sort_by == 'score') else '' }}"
+                            onclick="sortResults('score')">Best Match</button>
+                    <button class="sort-chip {{ 'active' if sort_by is defined and sort_by == 'permits' else '' }}"
+                            onclick="sortResults('permits')">Most Permits</button>
+                    <button class="sort-chip {{ 'active' if sort_by is defined and sort_by == 'recency' else '' }}"
+                            onclick="sortResults('recency')">Most Recent</button>
+                    <button class="sort-chip {{ 'active' if sort_by is defined and sort_by == 'network' else '' }}"
+                            onclick="sortResults('network')">Largest Network</button>
+                </div>
                 {% for exp in results %}
                 <div class="consultant-card">
                     <div class="exp-header">
                         <div>
                             <span class="exp-rank">#{{ loop.index }}</span>
                             <span class="exp-name">{{ exp.name }}</span>
-                            {% if exp.is_registered %}
-                            <span class="exp-registered">&#10003; Ethics Registered</span>
-                            {% endif %}
                             {% if exp.firm %}
                             <div class="exp-firm">{{ exp.firm }}</div>
                             {% endif %}
                         </div>
                         <div class="exp-score">{{ exp.score|int }}</div>
                     </div>
+                    {% if exp.badges is defined and exp.badges %}
+                    <div class="exp-badges">
+                        {% for label, css in exp.badges %}
+                        <span class="exp-badge {{ css }}">{{ label }}</span>
+                        {% endfor %}
+                    </div>
+                    {% elif exp.is_registered %}
+                    <div class="exp-badges">
+                        <span class="exp-badge badge-ethics">Ethics Registered</span>
+                    </div>
+                    {% endif %}
                     <div class="exp-details">
                         <div class="exp-detail"><strong>Permits:</strong> {{ exp.permit_count }}</div>
                         <div class="exp-detail"><strong>Network:</strong> {{ exp.network_size }} collaborators</div>
@@ -382,6 +430,16 @@
             if (cb2) cb2.checked = true;
         }
     })();
+
+    // Sort results by re-submitting the form with updated sort_by
+    function sortResults(criterion) {
+        var sortInput = document.getElementById('sort_by');
+        if (sortInput) sortInput.value = criterion;
+        var form = document.getElementById('consultant-form');
+        if (form && typeof htmx !== 'undefined') {
+            htmx.trigger(form, 'submit');
+        }
+    }
     </script>
 </body>
 </html>

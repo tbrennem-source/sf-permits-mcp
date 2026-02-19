@@ -568,6 +568,21 @@
             color: #fff;
         }
 
+        /* Locked button — future billing gate (grayed out with lock icon + tooltip) */
+        .btn-locked {
+            opacity: 0.45;
+            cursor: not-allowed;
+            position: relative;
+        }
+        .btn-locked::after {
+            content: '\1F512';
+            margin-left: 6px;
+            font-size: 0.75em;
+        }
+        .btn-locked:hover {
+            background: transparent;
+        }
+
         /* Pill button — small modifier actions */
         .btn-pill {
             display: inline-flex; align-items: center;
@@ -1005,7 +1020,7 @@
                     <div>
                         <label for="cost">Estimated Cost ($)</label>
                         <input type="number" id="cost" name="cost"
-                            placeholder="e.g., 85000" min="0" step="1000">
+                            placeholder="e.g., 85000" min="0" step="1">
                     </div>
 
                     <div>
@@ -1108,7 +1123,7 @@
             <div class="section-divider"></div>
 
             <h2 class="section-title">Analyze Plans (AI Vision)</h2>
-            <p class="subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. Full Analysis uses AI vision to annotate your plans with EPR issues, code references, dimensions, and compliance checks.</p>
+            <p class="subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. AI Analysis and Full Analysis use AI vision to annotate your plans with EPR issues, code references, dimensions, and compliance checks.</p>
 
             <div class="form-card">
                 <form hx-post="/analyze-plans"
@@ -1187,10 +1202,10 @@
                         </div>
                     </div>
 
-                    <!-- Three action buttons with hover tooltips -->
-                    <div class="full-width" style="display:flex; gap:10px; flex-wrap:wrap;">
-                        <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
-                            <button type="submit" class="btn" style="width:100%;">
+                    <!-- Four action buttons with hover tooltips -->
+                    <div class="full-width" style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
+                            <button type="submit" class="btn btn-outline btn-active" id="quick-check-btn" style="width:100%;">
                                 <span class="label">Quick Check</span>
                                 <span class="spinner">Checking...</span>
                             </button>
@@ -1199,26 +1214,37 @@
                                 Checks file size, page dimensions, fonts, encryption, bookmarks, and filename conventions. No AI &mdash; results in seconds.
                             </div>
                         </div>
-                        <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
+                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
                             <button type="button" class="btn btn-outline" id="compliance-check-btn" style="width:100%;"
                                     onclick="submitComplianceCheck(this)">
-                                <span class="label">Compliance Check</span>
+                                <span class="label">Compliance</span>
                                 <span class="spinner">Analyzing…</span>
                             </button>
                             <div class="plan-btn-tooltip">
                                 <strong>AI title block verification</strong><br>
-                                Scans sampled pages for addresses, sheet numbers, professional stamps, and set consistency. ~30 seconds.
+                                Scans sample pages for addresses, sheet numbers, professional stamps, and set consistency. ~30 seconds.
                             </div>
                         </div>
-                        <div style="flex:1; min-width:120px; position:relative;" class="plan-btn-wrap">
+                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
+                            <button type="button" class="btn btn-outline" id="ai-analysis-btn" style="width:100%;"
+                                    onclick="submitAIAnalysis(this)">
+                                <span class="label">AI Analysis</span>
+                                <span class="spinner">Analyzing…</span>
+                            </button>
+                            <div class="plan-btn-tooltip">
+                                <strong>AI markup on sample pages</strong><br>
+                                Full AI vision analysis &mdash; EPR issues, annotations, hatching, code references, and compliance checks on a representative sample of pages. ~1-2 minutes.
+                            </div>
+                        </div>
+                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
                             <button type="button" class="btn btn-outline" id="full-analysis-btn" style="width:100%;"
                                     onclick="submitFullAnalysis(this)">
                                 <span class="label">Full Analysis</span>
                                 <span class="spinner">Analyzing…</span>
                             </button>
                             <div class="plan-btn-tooltip">
-                                <strong>Complete AI markup (all pages)</strong><br>
-                                Analyzes every page with AI vision &mdash; EPR issues, code references, annotations, zoning context, plan checker comments, and sheet consistency scoring. ~3-5 minutes.
+                                <strong>AI markup on every page</strong><br>
+                                Same as AI Analysis but processes every page in the set. Best for final review before submission. ~3-5 minutes for large sets.
                             </div>
                         </div>
                     </div>
@@ -1261,13 +1287,13 @@
                         console.log('[Analyze Plans] Form submit event fired');
                         // Show indicator IMMEDIATELY
                         loadingIndicator.style.display = 'block';
-                        submitButton.disabled = true;
-                        submitButton.style.opacity = '0.6';
-                        // Disable secondary buttons too
-                        var ccBtn = document.getElementById('compliance-check-btn');
-                        var faBtn = document.getElementById('full-analysis-btn');
-                        if (ccBtn) { ccBtn.disabled = true; ccBtn.style.opacity = '0.4'; }
-                        if (faBtn) { faBtn.disabled = true; faBtn.style.opacity = '0.4'; }
+                        // _lockPlanButtons already handles button states when called
+                        // from submitComplianceCheck/submitFullAnalysis.
+                        // For Quick Check (default submit), lock here:
+                        var qcBtn = document.getElementById('quick-check-btn');
+                        if (qcBtn && !qcBtn.disabled) {
+                            _lockPlanButtons(qcBtn);
+                        }
                         // Scroll loading indicator into view
                         setTimeout(function() {
                             loadingIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1278,15 +1304,14 @@
                     form.addEventListener('htmx:beforeRequest', function() {
                         console.log('[Analyze Plans] HTMX beforeRequest event fired');
                         loadingIndicator.style.display = 'block';
-                        submitButton.disabled = true;
-                        submitButton.style.opacity = '0.6';
                     });
 
                     function resetAnalysisBtns() {
                         var allBtns = [
-                            document.getElementById('full-analysis-btn'),
+                            document.getElementById('quick-check-btn'),
                             document.getElementById('compliance-check-btn'),
-                            document.querySelector('#section-analyze-plans button[type="submit"]'),
+                            document.getElementById('ai-analysis-btn'),
+                            document.getElementById('full-analysis-btn'),
                         ];
                         allBtns.forEach(function(b) {
                             if (!b) return;
@@ -1299,13 +1324,14 @@
                             if (label) label.style.display = '';
                             if (spinner) spinner.style.display = '';
                         });
+                        // Restore Quick Check as default active (solid blue)
+                        var qcBtn = document.getElementById('quick-check-btn');
+                        if (qcBtn) qcBtn.classList.add('btn-active');
                     }
 
                     form.addEventListener('htmx:afterSwap', function() {
                         console.log('[Analyze Plans] HTMX afterSwap event fired');
                         loadingIndicator.style.display = 'none';
-                        submitButton.disabled = false;
-                        submitButton.style.opacity = '1';
                         resetAnalysisBtns();
                         // Reset quick_check to default (Quick Check is the default action)
                         var qcField = document.getElementById('quick-check-hidden');
@@ -1318,8 +1344,6 @@
                     form.addEventListener('htmx:responseError', function(evt) {
                         console.error('[Analyze Plans] HTMX error:', evt.detail);
                         loadingIndicator.style.display = 'none';
-                        submitButton.disabled = false;
-                        submitButton.style.opacity = '1';
                         resetAnalysisBtns();
                         // Show user-visible error message
                         var resultsDiv = document.getElementById('analyze-plans-results');
@@ -1575,20 +1599,25 @@
             section.classList.toggle("open");
         }
 
-        // Disable all 3 plan analysis buttons, show spinner on the active one
+        // Disable all 4 plan analysis buttons, show spinner on the active one
         function _lockPlanButtons(activeBtn) {
-            var qcBtn = document.querySelector('#section-analyze-plans button[type="submit"]');
-            var ccBtn = document.getElementById('compliance-check-btn');
-            var faBtn = document.getElementById('full-analysis-btn');
-            [qcBtn, ccBtn, faBtn].forEach(function(b) {
+            var allBtns = [
+                document.getElementById('quick-check-btn'),
+                document.getElementById('compliance-check-btn'),
+                document.getElementById('ai-analysis-btn'),
+                document.getElementById('full-analysis-btn'),
+            ];
+            allBtns.forEach(function(b) {
                 if (!b) return;
                 b.disabled = true;
+                b.classList.remove('btn-active');
                 if (b !== activeBtn) {
                     b.style.opacity = '0.4';
                 }
             });
-            // Show spinner on active button, hide label
+            // Make the active button solid blue and show spinner
             activeBtn.classList.add('btn-active');
+            activeBtn.style.opacity = '1';
             var label = activeBtn.querySelector('.label');
             var spinner = activeBtn.querySelector('.spinner');
             if (label) label.style.display = 'none';
@@ -1617,7 +1646,21 @@
             _scrollToLoading();
         }
 
-        // Submit form in Full Analysis mode (clears quick_check flag)
+        // Submit form in AI Analysis mode (sample pages)
+        function submitAIAnalysis(btn) {
+            _lockPlanButtons(btn);
+            document.getElementById('quick-check-hidden').value = '';
+            document.getElementById('analysis-mode-hidden').value = 'sample';
+            var loadingMsg = document.querySelector('#analyze-plans-loading p');
+            if (loadingMsg) {
+                loadingMsg.textContent = "Running AI analysis on sample pages \u2014 annotations, EPR checks, hatching (~1-2 min)...";
+            }
+            var form = document.querySelector('form[hx-post="/analyze-plans"]');
+            if (form) form.requestSubmit();
+            _scrollToLoading();
+        }
+
+        // Submit form in Full Analysis mode (all pages)
         function submitFullAnalysis(btn) {
             _lockPlanButtons(btn);
             document.getElementById('quick-check-hidden').value = '';
