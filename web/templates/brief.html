@@ -29,18 +29,8 @@
             min-height: 100vh;
         }
         .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
-        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
-        header .container { display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
-        .logo span { color: var(--text-muted); font-weight: 400; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .badge {
-            font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted);
-            padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
-            text-decoration: none; cursor: pointer; font-family: inherit;
-        }
-        .badge:hover { color: var(--text); border-color: var(--text-muted); }
-        .badge-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        /* header styles provided by fragments/nav.html */
+        /* badge-active provided by fragments/nav.html */
         main { padding: 40px 0 80px; }
         h1 { font-size: 1.5rem; margin-bottom: 4px; }
         .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
@@ -220,19 +210,7 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <a href="/" class="logo">sfpermits<span>.ai</span></a>
-            <div class="header-right">
-                <a href="/consultants" class="badge">Find a Consultant</a>
-                <a href="/brief" class="badge badge-active">Morning Brief</a>
-                <a href="/account" class="badge">{{ user.display_name or user.email }}</a>
-                <form method="POST" action="/auth/logout" style="display:inline;">
-                    <button class="badge" type="submit">Logout</button>
-                </form>
-            </div>
-        </div>
-    </header>
+    {% include 'fragments/nav.html' %}
 
     <main>
         <div class="container">
