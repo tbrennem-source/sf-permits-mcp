@@ -62,8 +62,73 @@
                         </td>
                     </tr>
 
-                    {% if property_synopsis and property_synopsis.block and property_synopsis.lot %}
-                    <!-- Your Property Report link -->
+                    {% if property_cards %}
+                    <!-- Your Properties -->
+                    <tr>
+                        <td style="padding:0 28px 20px;">
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Your Properties</h2>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                {% for prop in property_cards[:6] %}
+                                <tr>
+                                    <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <div style="font-weight:600;font-size:0.95rem;">
+                                                        <a href="{{ base_url }}{{ prop.search_url }}" style="color:#1a1a2e;text-decoration:none;">{{ prop.address }}</a>
+                                                        {% if prop.worst_health == 'at_risk' %}
+                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc2626;margin-left:6px;vertical-align:middle;"></span>
+                                                        {% elif prop.worst_health == 'behind' %}
+                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d97706;margin-left:6px;vertical-align:middle;"></span>
+                                                        {% elif prop.worst_health == 'slower' %}
+                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-left:6px;vertical-align:middle;"></span>
+                                                        {% else %}
+                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#059669;margin-left:6px;vertical-align:middle;"></span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">
+                                                        {{ prop.active_permits }} active of {{ prop.total_permits }}
+                                                        {% if prop.neighborhood %} &middot; {{ prop.neighborhood }}{% endif %}
+                                                        {% if prop.block and prop.lot %} &middot; {{ prop.block }}/{{ prop.lot }}{% endif %}
+                                                    </div>
+                                                </td>
+                                                <td align="right" style="vertical-align:top;white-space:nowrap;">
+                                                    {% if prop.enforcement_total is not none and prop.enforcement_total > 0 %}
+                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#fee2e2;color:#dc2626;">
+                                                        &#9888; {{ prop.enforcement_total }} open
+                                                    </span>
+                                                    {% elif prop.enforcement_total is not none and prop.enforcement_total == 0 %}
+                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#d1fae5;color:#059669;">
+                                                        &#10003; Clear
+                                                    </span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% if prop.routing %}
+                                            <tr>
+                                                <td colspan="2" style="padding-top:6px;">
+                                                    <div style="font-size:0.8rem;color:#6b7280;">
+                                                        Plan Check: {{ prop.routing.completed_stations }}/{{ prop.routing.total_stations }} stations ({{ prop.routing.completion_pct }}%)
+                                                    </div>
+                                                    <!-- Simple progress bar -->
+                                                    <div style="margin-top:4px;background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;">
+                                                        <div style="height:100%;border-radius:4px;width:{{ prop.routing.completion_pct }}%;background:{% if prop.routing.completion_pct >= 80 %}#059669{% elif prop.routing.completion_pct >= 50 %}#3b82f6{% else %}#d97706{% endif %};"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if property_cards|length > 6 %}
+                                <tr><td style="padding:8px 0;color:#6b7280;font-size:0.8rem;">+ {{ property_cards|length - 6 }} more properties</td></tr>
+                                {% endif %}
+                            </table>
+                        </td>
+                    </tr>
+                    {% elif property_synopsis and property_synopsis.block and property_synopsis.lot %}
+                    <!-- Fallback: single property link (legacy) -->
                     <tr>
                         <td style="padding:0 28px 20px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;">

@@ -217,6 +217,7 @@
         transform-origin: 0 0;
         transition: none;
         will-change: transform;
+        overflow: visible;
     }
 
     .lightbox-content img {
@@ -302,14 +303,21 @@
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
+        z-index: 1025;
     }
 
     .lightbox-prev {
-        left: 20px;
+        left: -75px;
     }
 
     .lightbox-next {
-        right: 20px;
+        right: -75px;
+    }
+
+    /* On narrow screens, pull arrows back inside content edges */
+    @media (max-width: 1100px) {
+        .lightbox-prev { left: 8px; }
+        .lightbox-next { right: 8px; }
     }
 
     .lightbox-prev:hover,
@@ -1860,6 +1868,21 @@
         if (!el) return;
         el.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
         document.getElementById('zoom-level').textContent = Math.round(zoomScale * 100) + '%';
+
+        // Counter-scale the SVG annotation layer so text renders at native DPI
+        // (CSS transform: scale() on the parent rasterizes text at original size,
+        //  causing fuzzy labels when zoomed in)
+        const svg = document.getElementById('lightbox-annotations');
+        if (svg) {
+            const inv = 1 / zoomScale;
+            // Scale the SVG inversely — it will render at 1:1 pixels
+            // but still occupy the same visual space over the image
+            svg.style.transform = `scale(${inv})`;
+            svg.style.transformOrigin = '0 0';
+            // Expand the SVG element dimensions so it covers the full image area
+            svg.style.width = (zoomScale * 100) + '%';
+            svg.style.height = (zoomScale * 100) + '%';
+        }
     }
 
     function clampPan() {

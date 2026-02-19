@@ -115,6 +115,8 @@ class KnowledgeBase:
         index: dict[str, list[str]] = {}
         concepts = self.semantic_index.get("concepts", {})
         for concept_name, concept_data in concepts.items():
+            if not isinstance(concept_data, dict):
+                continue  # skip comment entries like _comment_tier0
             aliases = concept_data.get("aliases", [])
             for alias in aliases:
                 key = alias.lower().strip()

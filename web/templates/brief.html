@@ -164,6 +164,59 @@
             font-size: 0.75rem; font-family: inherit; margin-left: 8px;
         }
         .btn-dismiss:hover { border-color: var(--success); color: var(--success); }
+
+        /* Property snapshot grid */
+        .property-snapshot-grid {
+            display: grid; gap: 16px; grid-template-columns: 1fr;
+        }
+        @media (min-width: 640px) {
+            .property-snapshot-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .prop-card {
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px;
+        }
+        .prop-card.health-at_risk { border-left: 3px solid var(--error); }
+        .prop-card.health-behind { border-left: 3px solid var(--warning); }
+        .prop-card.health-slower { border-left: 3px solid rgba(251,191,36,0.5); }
+        .prop-card.health-on_track { border-left: 3px solid var(--success); }
+        .prop-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+        }
+        .prop-address {
+            font-weight: 600; font-size: 1rem; color: var(--text); text-decoration: none;
+        }
+        .prop-address:hover { color: var(--accent); }
+        .health-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px;
+        }
+        .health-dot.on_track { background: var(--success); }
+        .health-dot.slower { background: var(--warning); }
+        .health-dot.behind { background: var(--error); }
+        .health-dot.at_risk { background: var(--error); }
+        .health-text {
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+        }
+        .health-text.on_track { color: var(--success); }
+        .health-text.slower { color: var(--warning); }
+        .health-text.behind { color: var(--error); }
+        .health-text.at_risk { color: var(--error); }
+        .prop-stats { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+        .prop-enforcement { margin-bottom: 8px; }
+        .enforcement-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 0.75rem; font-weight: 500;
+        }
+        .enforcement-badge.clear { background: rgba(52,211,153,0.12); color: var(--success); }
+        .enforcement-badge.alert { background: rgba(248,113,113,0.15); color: var(--error); }
+        .enforcement-badge.unknown { color: var(--text-muted); font-style: italic; font-size: 0.75rem; }
+        .prop-routing { margin-top: 8px; }
+        .routing-label { font-size: 0.8rem; color: var(--text); margin-bottom: 4px; }
+        .routing-alert { font-size: 0.75rem; margin-top: 4px; }
+        .routing-alert.stalled { color: var(--error); }
+        .routing-alert.held { color: var(--warning); }
+        .routing-pending { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+        .routing-velocity { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -291,16 +344,16 @@
             <!-- Summary cards -->
             <div class="summary-row">
                 <div class="summary-card">
-                    <div class="summary-number">{{ brief.summary.total_watches }}</div>
-                    <div class="summary-label">Watching</div>
+                    <div class="summary-number">{{ brief.summary.total_properties or brief.summary.total_watches }}</div>
+                    <div class="summary-label">Properties</div>
                 </div>
                 <div class="summary-card {{ 'ok' if brief.summary.changes_count > 0 else '' }}">
                     <div class="summary-number">{{ brief.summary.changes_count }}</div>
                     <div class="summary-label">Changed</div>
                 </div>
-                <div class="summary-card {{ 'alert' if brief.summary.at_risk_count > 0 else '' }}">
-                    <div class="summary-number">{{ brief.summary.at_risk_count }}</div>
-                    <div class="summary-label">At Risk</div>
+                <div class="summary-card {{ 'alert' if brief.summary.get('enforcement_count', 0) > 0 else '' }}">
+                    <div class="summary-number">{{ brief.summary.get('enforcement_count', 0) }}</div>
+                    <div class="summary-label">Enforcement</div>
                 </div>
                 <div class="summary-card {{ 'warn' if brief.summary.inspections_count > 0 else '' }}">
                     <div class="summary-number">{{ brief.summary.inspections_count }}</div>
@@ -312,20 +365,84 @@
                 </div>
             </div>
 
-            {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.regulatory_alerts and not brief.property_synopsis %}
+            {# ===== Your Properties — always visible when property cards exist ===== #}
+            {% if brief.property_cards %}
+            <div class="section" style="margin-bottom:28px;">
+                <h2>Your Properties</h2>
+                <div class="property-snapshot-grid">
+                    {% for prop in brief.property_cards %}
+                    <div class="prop-card health-{{ prop.worst_health }}">
+                        <div class="prop-header">
+                            <a href="{{ prop.search_url }}" class="prop-address">
+                                {{ prop.label or prop.address }}
+                            </a>
+                            <span class="health-indicator">
+                                <span class="health-dot {{ prop.worst_health }}"></span>
+                                <span class="health-text {{ prop.worst_health }}">{{ prop.worst_health | replace('_', ' ') }}</span>
+                            </span>
+                        </div>
+                        <div class="prop-stats">
+                            {{ prop.active_permits }} active of {{ prop.total_permits }} permits
+                            {% if prop.neighborhood %} &middot; {{ prop.neighborhood }}{% endif %}
+                            {% if prop.block %} &middot; {{ prop.block }}/{{ prop.lot }}{% endif %}
+                        </div>
+                        {# Enforcement badge #}
+                        <div class="prop-enforcement">
+                            {% if prop.enforcement_total is none %}
+                            <span class="enforcement-badge unknown">&mdash; Enforcement data not available</span>
+                            {% elif prop.enforcement_total == 0 %}
+                            <span class="enforcement-badge clear">&#10003; No open violations or complaints</span>
+                            {% else %}
+                            <span class="enforcement-badge alert">&#9888;
+                                {% if prop.open_violations %}{{ prop.open_violations }} violation{{ 's' if prop.open_violations != 1 else '' }}{% endif %}{% if prop.open_violations and prop.open_complaints %} + {% endif %}{% if prop.open_complaints %}{{ prop.open_complaints }} complaint{{ 's' if prop.open_complaints != 1 else '' }}{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                        {# Routing progress #}
+                        {% if prop.routing %}
+                        <div class="prop-routing">
+                            <div class="routing-label">
+                                Plan Review: {{ prop.routing.completed_stations }} of {{ prop.routing.total_stations }} stations ({{ prop.routing.completion_pct }}%)
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill {{ 'on_track' if prop.routing.completion_pct >= 50 else 'slower' }}"
+                                     style="width:{{ prop.routing.completion_pct }}%"></div>
+                            </div>
+                            {% if prop.routing.stalled_stations %}
+                            <div class="routing-alert stalled">&#9888; Stalled: {{ prop.routing.stalled_stations | join(', ') }}</div>
+                            {% endif %}
+                            {% if prop.routing.held_stations %}
+                            <div class="routing-alert held">&#9201; Held: {{ prop.routing.held_stations | join(', ') }}</div>
+                            {% endif %}
+                            {% if prop.routing.pending_station_names %}
+                            <div class="routing-pending">Waiting on: {{ prop.routing.pending_station_names | join(', ') }}</div>
+                            {% endif %}
+                            {% if prop.routing.velocity %}
+                            <div class="routing-velocity">
+                                {% for v in prop.routing.velocity %}{{ v.station }}: typically {{ v.typical }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            {# Fallback if no property cards — show simplified quiet message #}
+            {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.regulatory_alerts %}
             {% if all_empty %}
             <div style="background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2); border-radius: 10px; padding: 24px; margin-bottom: 24px; text-align: center;">
                 <div style="font-size: 1.5rem; margin-bottom: 8px;">&#x2705;</div>
                 <div style="font-weight: 600; margin-bottom: 6px;">All quiet on your watched items</div>
                 <div style="color: var(--text-muted); font-size: 0.9rem; max-width: 480px; margin: 0 auto;">
-                    You're watching {{ brief.summary.total_watches }} item{{ 's' if brief.summary.total_watches != 1 else '' }},
-                    but there's no permit activity to report
-                    {% if brief.lookback_days == 1 %}today. Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> or <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% elif brief.lookback_days < 30 %}in the last {{ brief.lookback_days }} days. Try <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% else %}in the last 30 days.{% endif %}
+                    {% if brief.lookback_days == 1 %}No activity today. Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> or <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% elif brief.lookback_days < 30 %}No activity in the last {{ brief.lookback_days }} days.{% else %}No activity in the last 30 days.{% endif %}
                 </div>
                 <div style="margin-top: 16px;">
                     <a href="/" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Search for permits to watch &rarr;</a>
                 </div>
             </div>
+            {% endif %}
             {% endif %}
 
             <!-- Section 1: What Changed -->
@@ -393,6 +510,30 @@
                     </div>
                     {% if pr.notes %}
                     <div style="margin-top:4px;font-size:0.85rem;color:var(--text-muted);">{{ pr.notes }}</div>
+                    {% endif %}
+                    {# Routing context + velocity #}
+                    {% if pr.routing_completion_pct is defined and pr.routing_completion_pct is not none %}
+                    <div style="margin-top:6px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div class="progress-track" style="flex:1;height:6px;">
+                                <div class="progress-fill {{ 'on_track' if pr.routing_completion_pct >= 50 else 'slower' }}"
+                                     style="width:{{ pr.routing_completion_pct }}%"></div>
+                            </div>
+                            <span style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                                {{ pr.routing_completed_stations }}/{{ pr.routing_total_stations }} stations
+                            </span>
+                        </div>
+                        {% if pr.station_typical_label %}
+                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">
+                            {{ pr.station }} typically takes {{ pr.station_typical_label }}
+                        </div>
+                        {% endif %}
+                        {% if pr.routing_pending_stations %}
+                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">
+                            Waiting on: {{ pr.routing_pending_stations | join(', ') }}
+                        </div>
+                        {% endif %}
+                    </div>
                     {% endif %}
                 </div>
                 {% endfor %}

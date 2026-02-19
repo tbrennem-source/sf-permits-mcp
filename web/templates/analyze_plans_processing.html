@@ -68,6 +68,12 @@
 </style>
 
 <div class="result-card processing-card">
+    {% if mode_downgraded %}
+    <div style="margin-bottom:16px;padding:12px 16px;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;font-size:0.85rem;color:#92400e;text-align:left;">
+        <strong>&#9888; Full Analysis requires a Pro subscription.</strong>
+        Running sample-page analysis instead. <a href="/account" style="color:#d97706;text-decoration:underline;">Upgrade</a> to analyze all pages.
+    </div>
+    {% endif %}
     <div class="processing-spinner">&#9203;</div>
     <h2>Processing Your Plan Set</h2>
     <div class="file-info">

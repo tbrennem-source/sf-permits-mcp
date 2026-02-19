@@ -1111,7 +1111,7 @@ def analyze_plans_route():
         from web.plan_worker import submit_job
 
         user = get_user_by_id(user_id) if user_id else None
-        analysis_mode = resolve_analysis_mode(user, requested_mode)
+        analysis_mode, was_downgraded = resolve_analysis_mode(user, requested_mode)
 
         job_id = create_job(
             user_id=user_id,
@@ -1129,13 +1129,15 @@ def analyze_plans_route():
         )
         submit_job(job_id)
 
-        logging.info(f"[analyze-plans] Async job {job_id} submitted for {filename}")
+        logging.info(f"[analyze-plans] Async job {job_id} submitted for {filename} (mode={analysis_mode}, downgraded={was_downgraded})")
         return render_template(
             "analyze_plans_processing.html",
             job_id=job_id,
             filename=filename,
             filesize_mb=round(size_mb, 1),
             user_email=_get_user_email(user_id),
+            mode_downgraded=was_downgraded,
+            analysis_mode=analysis_mode,
         )
 
     # ── Quick Check mode: metadata-only via validate_plans ──
@@ -3704,8 +3706,60 @@ def email_unsubscribe():
 
 @app.route("/consultants")
 def consultants_page():
-    """Consultant recommendation dashboard."""
-    return render_template("consultants.html", neighborhoods=NEIGHBORHOODS)
+    """Consultant recommendation dashboard.
+
+    Accepts optional query params from property report "Find a consultant" link:
+      ?block=XXXX&lot=YYY&signal=recommended
+    When present, pre-fills the form and auto-submits.
+    """
+    from src.db import query as db_query
+
+    prefill = None
+    block = request.args.get("block", "").strip()
+    lot = request.args.get("lot", "").strip()
+    signal = request.args.get("signal", "").strip()
+
+    if block and lot:
+        # Look up address and neighborhood from permits table
+        addr = ""
+        neighborhood = ""
+        try:
+            row = db_query(
+                "SELECT street_number, street_name, neighborhood "
+                "FROM permits WHERE block = %s AND lot = %s "
+                "ORDER BY filed_date DESC LIMIT 1",
+                (block, lot),
+            )
+            if row:
+                addr = f"{row[0][0] or ''} {row[0][1] or ''}".strip()
+                neighborhood = row[0][2] or ""
+        except Exception:
+            pass
+
+        # Check if property has active complaints (for checkbox prefill)
+        has_complaint = False
+        try:
+            c_row = db_query(
+                "SELECT COUNT(*) FROM complaints "
+                "WHERE block = %s AND lot = %s AND LOWER(status) = 'open'",
+                (block, lot),
+            )
+            has_complaint = bool(c_row and c_row[0][0] > 0)
+        except Exception:
+            pass
+
+        prefill = {
+            "block": block,
+            "lot": lot,
+            "address": addr,
+            "neighborhood": neighborhood,
+            "signal": signal,
+            "has_complaint": has_complaint,
+        }
+
+    return render_template("consultants.html",
+                           neighborhoods=NEIGHBORHOODS,
+                           prefill=prefill)
 
 
 @app.route("/consultants/search", methods=["POST"])
