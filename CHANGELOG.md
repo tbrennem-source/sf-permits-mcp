@@ -17,7 +17,7 @@ Introduced "Tier 0: Operational Intelligence" — a new knowledge layer derived 
 - Progress bar in Permits column: color-coded (green=100%, blue≥50%, amber<50%)
 - Latest station name + approval/comment indicator
 
-### Phase B: Pattern Detection (ON BRANCH)
+### Phase B: Pattern Detection
 
 #### 6 Addenda Intelligence Rules (`web/intelligence.py`)
 - **Rule 9: Station Stall** — routing step arrived >30 days ago with no finish/hold (critical >60d)
@@ -34,7 +34,7 @@ Introduced "Tier 0: Operational Intelligence" — a new knowledge layer derived 
 - `get_routing_progress()` — single permit detailed routing state
 - `get_routing_progress_batch()` — batch query for portfolio dashboard efficiency
 
-### Phase C: Knowledge Materialization (ON BRANCH)
+### Phase C: Knowledge Materialization
 
 #### 8 Operational Concepts in Semantic Index (`data/knowledge/tier1/semantic-index.json`)
 - Extended from 92 → 100 concepts
@@ -47,13 +47,42 @@ Introduced "Tier 0: Operational Intelligence" — a new knowledge layer derived 
 - Station velocity baselines for 15 stations
 - Feature implications documented (velocity dashboard, bottleneck alerts, addenda predictor, OTC detection)
 
-### Files Changed (5 modified + 2 new)
+### Phase D: Property Report + Velocity + RAG
+
+#### Plan Review Routing in Property Report (`web/report.py` + `web/templates/report.html`)
+- Enriches active permits with routing progress via `get_routing_progress_batch()`
+- Shows color-coded progress bar (green=100%, blue≥50%, amber<50%), station counts
+- Approved/comments breakdown, pending station names, stalled warnings (>14d)
+- Latest activity with station name, result, and date
+
+#### Station Velocity Baselines (`web/station_velocity.py`)
+- **NEW FILE**: Rolling 90-day percentile baselines per plan review station
+- `StationBaseline` dataclass: avg/median/p75/p90/min/max turnaround days
+- PostgreSQL `station_velocity` table with `(station, baseline_date)` primary key
+- `refresh_station_velocity()` — PERCENTILE_CONT aggregation with UPSERT
+- DuckDB fallback for dev mode using MEDIAN()
+- Wired into `/cron/nightly` as non-fatal post-processing step
+
+#### Operational Knowledge Chunk Generator (`web/ops_chunks.py`)
+- **NEW FILE**: Generates RAG chunks from live operational data (Tier 0 → pgvector)
+- Station velocity chunks: one per station with natural language turnaround stats + summary ranking
+- Routing pattern chunks: station volume rankings, addenda cycle counts, result distributions
+- System stats chunk: global operational overview
+- Stored as `source_tier='learned'`, `trust_weight=0.7`, `source_file='ops-live-data'`
+- Clears previous ops chunks before each refresh (no stale accumulation)
+- Wired into both `/cron/nightly` and `/cron/rag-ingest?tier=ops`
+
+### Files Changed (7 modified + 4 new)
 - `src/tools/permit_lookup.py` — _get_recent_addenda_activity(), enhanced _summarize_recent_activity()
-- `web/app.py` — Section 5 routing progress in _get_address_intel()
+- `web/app.py` — Section 5 routing progress in _get_address_intel(); station velocity + ops chunks in nightly cron; ops tier in rag-ingest
 - `web/templates/search_results.html` — Plan Review progress bar in intel panel
 - `web/intelligence.py` — 6 new addenda-based rules (Rules 9-14)
+- `web/report.py` — Routing progress enrichment for active permits
+- `web/templates/report.html` — Plan Review Routing section in permit details
 - `data/knowledge/tier1/semantic-index.json` — 8 operational concepts (92→100)
 - `web/routing.py` — **NEW**: RoutingProgress tracker module
+- `web/station_velocity.py` — **NEW**: Station velocity baseline computation
+- `web/ops_chunks.py` — **NEW**: Operational knowledge chunk generator
 - `docs/ADDENDA_DATA_EXPLORATION.md` — **NEW**: Data exploration report
 
 ### Commits
@@ -61,6 +90,9 @@ Introduced "Tier 0: Operational Intelligence" — a new knowledge layer derived 
 - `7e3d932` — T0-B1: 6 addenda intelligence rules
 - `d54498c` — T0-C2: 8 operational concepts in semantic index
 - `96ff7ab` — T0-B3: Routing completion tracker module
+- `de08908` — T0-A3: Plan review routing in property report
+- `8117905` — T0-B2: Station velocity baselines + cron wiring
+- `8095cfb` — T0-C1: Operational knowledge chunk generator
 
 ### Chief Brain State
 - New spec: `specs/tier-0-operational-intelligence-live-data-as-knowledge.md`
