@@ -3720,6 +3720,7 @@ def consultants_search():
     permit_type = request.form.get("permit_type", "").strip() or None
     has_complaint = request.form.get("has_active_complaint") == "on"
     needs_planning = request.form.get("needs_planning") == "on"
+    sort_by = request.form.get("sort_by", "score").strip()
 
     try:
         # recommend_consultants is async, returns markdown string
@@ -3745,6 +3746,24 @@ def consultants_search():
             max_permits = max(e["permit_count"] for e in consultants_raw)
             registered_names = _get_registered_names()
             registry = _load_registry()
+
+            # Check which consultants have worked at this address (block/lot)
+            address_match_ids: set[int] = set()
+            if block and lot:
+                try:
+                    from src.db import query as db_query
+                    ph = "%s" if BACKEND == "postgres" else "?"
+                    addr_rows = db_query(
+                        f"SELECT DISTINCT e.entity_id "
+                        f"FROM contacts c JOIN entities e ON c.entity_id = e.entity_id "
+                        f"WHERE c.block = {ph} AND c.lot = {ph} "
+                        f"AND e.entity_type = 'consultant'",
+                        (block, lot),
+                    )
+                    address_match_ids = {r[0] for r in addr_rows} if addr_rows else set()
+                except Exception:
+                    pass
+
             scored = []
 
             for exp in consultants_raw:
@@ -3798,6 +3817,7 @@ def consultants_search():
                 s.score += spec_score
 
                 # Neighborhood (0-20)
+                hood_match = False
                 if neighborhood:
                     target_lower = neighborhood.lower()
                     hood_match = any(
@@ -3860,17 +3880,49 @@ def consultants_search():
                             }
                             break
 
+                # Address match bonus (+5) + badge
+                if exp["entity_id"] in address_match_ids:
+                    s.score += 5
+                    s.breakdown["address_match"] = 5
+
+                # Build smart badges list (stored as tuples: label, css_class)
+                badges = []
+                if exp["entity_id"] in address_match_ids:
+                    badges.append(("Worked at this address", "badge-address"))
+                if s.is_registered:
+                    badges.append(("Ethics Registered", "badge-ethics"))
+                if hood_match and neighborhood:
+                    badges.append(("Neighborhood match", "badge-hood"))
+                if exp["permit_count"] >= 100:
+                    badges.append(("High volume", "badge-volume"))
+                if network_partners >= 10:
+                    badges.append(("Strong network", "badge-network"))
+                if recency_score == 15:
+                    badges.append(("Recently active", "badge-recent"))
+                # Store badges on the dataclass via dynamic attr
+                s.badges = badges  # type: ignore[attr-defined]
+
                 scored.append(s)
         finally:
             conn.close()
 
-        scored.sort(key=lambda x: x.score, reverse=True)
+        # Sort by user-selected criterion
+        if sort_by == "permits":
+            scored.sort(key=lambda x: x.permit_count, reverse=True)
+        elif sort_by == "recency":
+            scored.sort(key=lambda x: x.date_range_end or "", reverse=True)
+        elif sort_by == "network":
+            scored.sort(key=lambda x: x.network_size, reverse=True)
+        else:  # default: score
+            scored.sort(key=lambda x: x.score, reverse=True)
+
         top = scored[:10]
 
         return render_template(
             "consultants.html",
             neighborhoods=NEIGHBORHOODS,
             results=top,
+            sort_by=sort_by,
         )
 
     except Exception as e:
