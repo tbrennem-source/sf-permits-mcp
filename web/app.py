@@ -4187,8 +4187,35 @@ def cron_nightly():
                 logging.error("Plan session cleanup failed (non-fatal): %s", ce)
                 cleanup_result = {"error": str(ce)}
 
+        # Refresh station velocity baselines (non-fatal)
+        velocity_result = {}
+        if not dry_run:
+            try:
+                from web.station_velocity import refresh_station_velocity
+                velocity_result = refresh_station_velocity()
+            except Exception as ve:
+                logging.error("Station velocity refresh failed (non-fatal): %s", ve)
+                velocity_result = {"error": str(ve)}
+
+        # Refresh operational knowledge chunks (non-fatal, runs after velocity)
+        ops_chunks_result = {}
+        if not dry_run:
+            try:
+                from web.ops_chunks import ingest_ops_chunks
+                count = ingest_ops_chunks()
+                ops_chunks_result = {"chunks": count}
+            except Exception as oe:
+                logging.error("Ops chunk ingestion failed (non-fatal): %s", oe)
+                ops_chunks_result = {"error": str(oe)}
+
         return Response(
-            json.dumps({"status": "ok", **result, "triage": triage_result, "cleanup": cleanup_result}, indent=2),
+            json.dumps({
+                "status": "ok", **result,
+                "triage": triage_result,
+                "cleanup": cleanup_result,
+                "velocity": velocity_result,
+                "ops_chunks": ops_chunks_result,
+            }, indent=2),
             mimetype="application/json",
         )
     except Exception as e:
@@ -4259,7 +4286,7 @@ def cron_rag_ingest():
     the vector store, or after knowledge base updates.
 
     Query params:
-      - tier: 'tier1', 'tier2', 'tier3', 'tier4', or 'all' (default: all)
+      - tier: 'tier1', 'tier2', 'tier3', 'tier4', 'ops', or 'all' (default: all)
       - clear: '1' to clear existing chunks first (default: false)
     """
     token = request.headers.get("Authorization", "")
@@ -4290,6 +4317,12 @@ def cron_rag_ingest():
             total += ingest_tier3()
         if tier in ("tier4", "all"):
             total += ingest_tier4()
+        if tier in ("ops", "all"):
+            try:
+                from web.ops_chunks import ingest_ops_chunks
+                total += ingest_ops_chunks()
+            except Exception as oe:
+                logging.warning("Ops chunk ingestion failed (non-fatal): %s", oe)
 
         # Rebuild index after bulk insert
         if total > 0:
