@@ -4197,6 +4197,16 @@ def cron_nightly():
                 logging.error("Station velocity refresh failed (non-fatal): %s", ve)
                 velocity_result = {"error": str(ve)}
 
+        # Refresh reviewer-entity interaction graph (non-fatal)
+        reviewer_result = {}
+        if not dry_run:
+            try:
+                from web.reviewer_graph import refresh_reviewer_interactions
+                reviewer_result = refresh_reviewer_interactions()
+            except Exception as re_:
+                logging.error("Reviewer graph refresh failed (non-fatal): %s", re_)
+                reviewer_result = {"error": str(re_)}
+
         # Refresh operational knowledge chunks (non-fatal, runs after velocity)
         ops_chunks_result = {}
         if not dry_run:
@@ -4214,6 +4224,7 @@ def cron_nightly():
                 "triage": triage_result,
                 "cleanup": cleanup_result,
                 "velocity": velocity_result,
+                "reviewer_graph": reviewer_result,
                 "ops_chunks": ops_chunks_result,
             }, indent=2),
             mimetype="application/json",
