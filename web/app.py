@@ -2971,7 +2971,8 @@ def brief():
     primary_addr = get_primary_address(g.user["user_id"])
     brief_data = get_morning_brief(g.user["user_id"], lookback_days,
                                    primary_address=primary_addr)
-    return render_template("brief.html", user=g.user, brief=brief_data)
+    return render_template("brief.html", user=g.user, brief=brief_data,
+                           active_page="brief")
 
 
 # ---------------------------------------------------------------------------
