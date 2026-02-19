@@ -173,8 +173,8 @@ def _get_keyword_scores(query: str) -> dict[str, float]:
     Returns dict of {concept_name: normalized_score}.
     """
     try:
-        from src.tools.knowledge_base import KnowledgeBase
-        kb = KnowledgeBase()
+        from src.tools.knowledge_base import get_knowledge_base
+        kb = get_knowledge_base()
         matches = kb.match_concepts_scored(query)
         if not matches:
             return {}
@@ -267,8 +267,8 @@ def _fallback_keyword_only(query: str, top_k: int) -> list[dict]:
     Returns concept-level results from the existing KnowledgeBase.
     """
     try:
-        from src.tools.knowledge_base import KnowledgeBase
-        kb = KnowledgeBase()
+        from src.tools.knowledge_base import get_knowledge_base
+        kb = get_knowledge_base()
         matches = kb.match_concepts_scored(query)
         results = []
         for name, score in matches[:top_k]:

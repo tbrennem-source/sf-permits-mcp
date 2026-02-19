@@ -844,6 +844,33 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             total_soda,
         )
 
+        # Staleness check: flag when SODA returns 0 records for a data source
+        # On a normal weekday SF typically has dozens of permit updates.
+        # Zero records may indicate a SODA API issue, schema change, or outage.
+        staleness_warnings: list[str] = []
+        if len(permit_records) == 0:
+            staleness_warnings.append(
+                "SODA returned 0 permits — possible API issue or data lag"
+            )
+        if len(inspection_records) == 0:
+            staleness_warnings.append(
+                "SODA returned 0 inspections — possible API issue or data lag"
+            )
+        if len(addenda_records) == 0 and actual_lookback <= 2:
+            # Addenda can legitimately be 0 on quiet days, only warn
+            # if single-day lookback returns nothing
+            staleness_warnings.append(
+                "SODA returned 0 addenda records"
+            )
+        if total_soda == 0:
+            staleness_warnings.append(
+                "ALL sources returned 0 records — SODA may be down or unreachable"
+            )
+
+        for warning in staleness_warnings:
+            logger.warning("STALENESS CHECK: %s (since=%s, lookback=%d)",
+                           warning, since_str, actual_lookback)
+
         # Log success
         if not dry_run:
             _log_cron_finish(
@@ -864,6 +891,7 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "inspections_updated": inspections_updated,
             "addenda_inserted": addenda_inserted,
             "dry_run": dry_run,
+            "staleness_warnings": staleness_warnings,
         }
 
     except Exception as e:
