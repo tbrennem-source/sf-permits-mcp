@@ -89,7 +89,7 @@
                                                     <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">
                                                         {{ prop.active_permits }} active of {{ prop.total_permits }}
                                                         {% if prop.neighborhood %} &middot; {{ prop.neighborhood }}{% endif %}
-                                                        {% if prop.block and prop.lot %} &middot; {{ prop.block }}/{{ prop.lot }}{% endif %}
+                                                        {% if prop.parcels_display %} &middot; {{ prop.parcels_display }}{% endif %}
                                                     </div>
                                                 </td>
                                                 <td align="right" style="vertical-align:top;white-space:nowrap;">
