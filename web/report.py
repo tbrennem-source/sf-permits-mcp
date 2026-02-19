@@ -18,6 +18,7 @@ from typing import Any
 from src.db import get_connection, BACKEND
 from src.soda_client import SODAClient
 from src.report_links import ReportLinks
+from web.routing import get_routing_progress_batch
 from src.tools.permit_lookup import (
     _lookup_by_block_lot,
     _get_contacts,
@@ -640,6 +641,46 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
                 permit["contacts"] = _get_contacts(conn, pnum)
                 permit["inspections"] = _get_inspections(conn, pnum)
                 permit["link"] = ReportLinks.permit(pnum)
+
+        # Enrich active permits with routing progress
+        active_pnums = [
+            p["permit_number"] for p in permits
+            if p.get("permit_number")
+            and (p.get("status") or "").lower() in ("filed", "plancheck", "issued", "reinstated")
+        ]
+        routing_map = {}
+        if active_pnums:
+            try:
+                routing_map = get_routing_progress_batch(active_pnums)
+            except Exception:
+                logger.debug("Routing progress batch failed", exc_info=True)
+
+        for permit in permits:
+            pnum = permit.get("permit_number", "")
+            rp = routing_map.get(pnum)
+            if rp:
+                permit["routing"] = {
+                    "total": rp.total_stations,
+                    "completed": rp.completed_stations,
+                    "approved": rp.approved_stations,
+                    "comments": rp.comments_issued,
+                    "pending": rp.pending_stations,
+                    "pct": rp.completion_pct,
+                    "is_all_clear": rp.is_all_clear,
+                    "addenda_number": rp.addenda_number,
+                    "pending_stations": rp.pending_station_names,
+                    "stalled": [
+                        {"station": s.station, "days": s.days_pending}
+                        for s in rp.stalled_stations
+                    ],
+                    "latest": {
+                        "station": rp.latest_activity.station if rp.latest_activity else None,
+                        "result": rp.latest_activity.result if rp.latest_activity else None,
+                        "date": rp.latest_activity.finish_date if rp.latest_activity else None,
+                    } if rp.latest_activity else None,
+                }
+            else:
+                permit["routing"] = None
 
         # Nearby activity
         neighborhood = ""
