@@ -5,7 +5,7 @@
     "created_date": "2026-02-14",
     "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
     "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
-    "total_concepts": 92
+    "total_concepts": 100
   },
 
   "concepts": {
@@ -1220,6 +1220,108 @@
         {"file": "tier1/sf-2025-code-amendments.json", "path": "amendment_pdfs[2]", "role": "PDF URL and metadata"}
       ],
       "related_concepts": ["code_transition_2025"]
+    },
+
+    "_comment_tier0": "=== Tier 0: Operational Intelligence (derived from live data, not static files) ===",
+
+    "plan_review_velocity": {
+      "canonical_name": "Plan Review Station Velocity",
+      "aliases": ["station speed", "how fast is plan review", "review turnaround", "station processing time", "plan check speed", "how long does plan review take now", "current review time", "station turnaround"],
+      "description": "Real-time measurement of how fast each DBI plan review station is processing submissions. Derived from 3.9M addenda routing records — arrive_date to finish_date by station. Answers 'how long should I expect to wait at Station X right now?'",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda", "query_pattern": "AVG(finish_date - arrive) GROUP BY station WHERE finish_date >= NOW() - 90 days", "role": "Rolling 90-day station velocity"},
+        {"file": "tier1/inhouse-review-process.json", "path": "reviewing_agencies", "role": "Static reference for which agencies review what"}
+      ],
+      "data_freshness": "nightly (addenda table refreshed via SODA API)",
+      "related_concepts": ["inhouse_review", "station_bottleneck", "plan_review_timeline"]
+    },
+
+    "station_bottleneck": {
+      "canonical_name": "Station Bottleneck Detection",
+      "aliases": ["slow station", "backlog", "review backlog", "station delay", "which station is slow", "bottleneck", "queue time", "waiting at station"],
+      "description": "Identifies plan review stations running significantly slower than their historical baseline. A station is flagged when current avg turnaround exceeds its 90-day mean by >50%. Critical for consultants deciding whether to escalate.",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda", "query_pattern": "Compare current 30-day avg vs 90-day baseline per station", "role": "Anomaly detection on station velocity"},
+        {"type": "intelligence_rule", "file": "web/intelligence.py", "rule": "station_stall", "role": "Rule 9: alerts when routing step pending >30 days"}
+      ],
+      "data_freshness": "nightly",
+      "related_concepts": ["plan_review_velocity", "station_routing"]
+    },
+
+    "reviewer_patterns": {
+      "canonical_name": "Plan Reviewer Activity Patterns",
+      "aliases": ["who reviewed", "plan checker", "reviewer", "who checks plans", "plan reviewer", "reviewer name", "who approved", "checked by"],
+      "description": "Activity patterns of individual DBI plan reviewers. Derived from plan_checked_by field in addenda (3.9M records). Shows reviewer throughput, approval rates, turnaround times, and which stations they work. Useful for knowing 'who has my project and what's their track record?'",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda", "query_pattern": "GROUP BY plan_checked_by, station — count reviews, avg turnaround, approval rate", "role": "Reviewer activity profiles"},
+        {"type": "intelligence_rule", "file": "web/intelligence.py", "rule": "fresh_approval", "role": "Rule 12: alerts when a reviewer approves in last 7 days"}
+      ],
+      "data_freshness": "nightly",
+      "related_concepts": ["plan_review_velocity", "routing_completion"]
+    },
+
+    "revision_cadence": {
+      "canonical_name": "Revision Cycle Cadence",
+      "aliases": ["how many revisions", "revision count", "correction cycles", "resubmission", "how many rounds", "plan check corrections", "back check", "revision number", "addenda number"],
+      "description": "How many rounds of plan review revision (addenda) a permit goes through before final approval. Derived from MAX(addenda_number) per permit. Typical projects: 1-2 revisions. Complex projects: 3-5+. Projects with >3 revisions may benefit from a supervisor meeting.",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda", "query_pattern": "MAX(addenda_number) per application_number, segmented by permit_type and neighborhood", "role": "Revision cycle statistics"},
+        {"type": "intelligence_rule", "file": "web/intelligence.py", "rule": "revision_escalation", "role": "Rule 14: alerts when addenda_number > 3"}
+      ],
+      "data_freshness": "nightly",
+      "related_concepts": ["plan_review_velocity", "plan_review_timeline"]
+    },
+
+    "routing_completion": {
+      "canonical_name": "Routing Completion Percentage",
+      "aliases": ["how close to issuance", "routing progress", "stations complete", "plan review progress", "how many stations done", "review status", "stations signed off", "routing done"],
+      "description": "Percentage of required plan review routing steps that have been completed for a permit. Total steps vs steps with finish_date, for the latest addenda revision. 100% completion means all stations have signed off — permit may be ready for issuance. Shown as progress bar in intel panel.",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda", "query_pattern": "COUNT(*) vs COUNT(*) FILTER(WHERE finish_date IS NOT NULL) per application_number, latest addenda_number", "role": "Routing completion calculation"},
+        {"type": "intelligence_rule", "file": "web/intelligence.py", "rule": "all_stations_clear", "role": "Rule 11: alerts when 100% of stations have finish_date"},
+        {"type": "ui_component", "file": "web/templates/search_results.html", "component": "intel-panel routing progress bar", "role": "Visual progress indicator"}
+      ],
+      "data_freshness": "real-time (computed per query)",
+      "related_concepts": ["plan_review_velocity", "station_routing"]
+    },
+
+    "hold_resolution": {
+      "canonical_name": "Plan Review Holds",
+      "aliases": ["hold", "plan hold", "review hold", "station hold", "held up", "hold description", "plan check hold", "blocked review", "outstanding hold"],
+      "description": "When a plan review station places a hold on a permit, indicating an issue that must be resolved before the station can sign off. Holds are tracked via hold_description in addenda records. Unresolved holds (no subsequent finish_date) are active blockers.",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda", "query_pattern": "WHERE hold_description IS NOT NULL AND finish_date IS NULL", "role": "Active unresolved holds"},
+        {"type": "intelligence_rule", "file": "web/intelligence.py", "rule": "hold_unresolved", "role": "Rule 10: alerts on outstanding holds"},
+        {"type": "intelligence_rule", "file": "web/intelligence.py", "rule": "comment_response_needed", "role": "Rule 13: alerts when comments issued in last 14 days"}
+      ],
+      "data_freshness": "nightly",
+      "related_concepts": ["routing_completion", "station_bottleneck"]
+    },
+
+    "plan_review_timeline": {
+      "canonical_name": "End-to-End Plan Review Timeline",
+      "aliases": ["plan review duration", "how long does plan review take", "total review time", "filing to issuance", "plan check timeline", "review length"],
+      "description": "Total elapsed time from permit filing to completion of all plan review stations. Combines station velocity data across all stations for a permit. Varies dramatically by permit type (OTC: same day, in-house: weeks to months, complex: 6-18 months).",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda + permits", "query_pattern": "filed_date to MAX(finish_date) across all addenda stations", "role": "End-to-end timeline measurement"},
+        {"file": "tier1/inhouse-review-process.json", "path": "steps", "role": "11-step in-house review process (static reference)"},
+        {"file": "tier1/G-20-routing.json", "path": "routing_rules", "role": "Which agencies are involved by permit type"}
+      ],
+      "data_freshness": "nightly",
+      "related_concepts": ["plan_review_velocity", "revision_cadence", "inhouse_review"]
+    },
+
+    "station_routing": {
+      "canonical_name": "Station Routing Matrix",
+      "aliases": ["which stations review", "routing stations", "what departments review", "plan review stations", "station list", "review departments", "agency routing", "PAD-STR", "BLDG", "SFFD", "CP-ZOC", "MECH-E"],
+      "description": "Which DBI/interagency stations a permit is routed through for plan review. Determined by permit type, project scope, and location. Common stations: BLDG (building), PAD-STR (structural), SFFD-HQ (fire), CP-ZOC (planning zoning), MECH-E (mechanical), ELEC (electrical), DPH (health). The G-20 routing guide defines 154 routing entries across 14 rules.",
+      "authoritative_sources": [
+        {"file": "tier1/G-20-routing.json", "path": "routing_entries", "role": "154 routing entries: which agencies review which permit types"},
+        {"type": "live_query", "table": "addenda", "query_pattern": "DISTINCT station per application_number — actual routing vs expected", "role": "Empirical routing patterns from 3.9M records"},
+        {"file": "tier1/completeness-checklist.json", "path": "sections[10].review_departments", "role": "11 review departments in completeness checklist"}
+      ],
+      "data_freshness": "G-20 is static; addenda data is nightly",
+      "related_concepts": ["plan_review_velocity", "routing_completion", "inhouse_review"]
     }
   }
 }

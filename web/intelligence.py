@@ -149,6 +149,22 @@ def get_action_items(user_id: int) -> list[dict]:
     # ── Rule 8: Fresh Issuance ──
     items.extend(_rule_fresh_issuance(permit_dicts, today))
 
+    # ── Addenda-based rules (Tier 0 — plan review intelligence) ──
+    all_pnums = [p["permit_number"] for p in permit_dicts if p["permit_number"]]
+    if all_pnums:
+        # ── Rule 9: Station Stall ──
+        items.extend(_rule_station_stall(all_pnums, permit_dicts, today))
+        # ── Rule 10: Hold Unresolved ──
+        items.extend(_rule_hold_unresolved(all_pnums, permit_dicts))
+        # ── Rule 11: All Stations Clear ──
+        items.extend(_rule_all_stations_clear(all_pnums, permit_dicts))
+        # ── Rule 12: Fresh Approval ──
+        items.extend(_rule_fresh_approval(all_pnums, permit_dicts, today))
+        # ── Rule 13: Comment Response Needed ──
+        items.extend(_rule_comment_response_needed(all_pnums, permit_dicts, today))
+        # ── Rule 14: Revision Escalation ──
+        items.extend(_rule_revision_escalation(all_pnums, permit_dicts))
+
     # Sort: critical → warning → opportunity
     severity_order = {"critical": 0, "warning": 1, "opportunity": 2}
     items.sort(key=lambda x: severity_order.get(x["severity"], 3))
@@ -382,4 +398,295 @@ def _rule_fresh_issuance(permits, today):
                     "Schedule site verification or first inspection",
                     "Prevent 180-day inactivity expiration",
                 ))
+    return items
+
+
+# ---------------------------------------------------------------------------
+# Addenda-based rules (Tier 0 — plan review operational intelligence)
+# ---------------------------------------------------------------------------
+
+def _permit_address(permit_dicts: list[dict], permit_number: str) -> str:
+    """Look up address for a permit number from the already-loaded permit data."""
+    for p in permit_dicts:
+        if p["permit_number"] == permit_number:
+            return p["address"]
+    return ""
+
+
+def _rule_station_stall(permit_numbers: list[str], permit_dicts: list[dict],
+                        today: date) -> list[dict]:
+    """Routing step arrived >30 days ago with no finish_date and no hold → stalled."""
+    items = []
+    if not permit_numbers:
+        return items
+    ph = _ph()
+    placeholders = ",".join([ph] * len(permit_numbers))
+    cutoff = str(today - timedelta(days=30))
+    try:
+        rows = query(
+            f"SELECT application_number, station, plan_checked_by, arrive, "
+            f"       addenda_number, step "
+            f"FROM addenda "
+            f"WHERE application_number IN ({placeholders}) "
+            f"  AND finish_date IS NULL "
+            f"  AND (hold_description IS NULL OR hold_description = '') "
+            f"  AND arrive IS NOT NULL "
+            f"  AND CAST(arrive AS TEXT) <= {ph} "
+            f"ORDER BY arrive ASC "
+            f"LIMIT 10",
+            permit_numbers + [cutoff],
+        )
+    except Exception:
+        logger.debug("station_stall query failed", exc_info=True)
+        return items
+
+    for r in rows:
+        pnum, station, reviewer, arrive, addenda_num, step = r
+        arrive_dt = _parse_date(str(arrive) if arrive else None)
+        if not arrive_dt:
+            continue
+        days_pending = (today - arrive_dt).days
+        address = _permit_address(permit_dicts, pnum)
+        reviewer_str = f" (assigned to {reviewer})" if reviewer else ""
+        severity = "critical" if days_pending > 60 else "warning"
+        items.append(_make_item(
+            "station_stall", severity,
+            f"Plan review stalled at {station}",
+            f"Permit {pnum}: {station} has had this for {days_pending} days "
+            f"with no activity{reviewer_str}.",
+            [pnum], address,
+            f"Follow up with {station} on routing step status",
+            "Unblock plan review progress",
+        ))
+    return items
+
+
+def _rule_hold_unresolved(permit_numbers: list[str],
+                          permit_dicts: list[dict]) -> list[dict]:
+    """Routing step has hold_description but no finish_date → outstanding hold."""
+    items = []
+    if not permit_numbers:
+        return items
+    ph = _ph()
+    placeholders = ",".join([ph] * len(permit_numbers))
+    try:
+        rows = query(
+            f"SELECT application_number, station, hold_description, "
+            f"       plan_checked_by, addenda_number, arrive "
+            f"FROM addenda "
+            f"WHERE application_number IN ({placeholders}) "
+            f"  AND hold_description IS NOT NULL AND hold_description != '' "
+            f"  AND finish_date IS NULL "
+            f"ORDER BY arrive ASC "
+            f"LIMIT 10",
+            permit_numbers,
+        )
+    except Exception:
+        logger.debug("hold_unresolved query failed", exc_info=True)
+        return items
+
+    for r in rows:
+        pnum, station, hold, reviewer, addenda_num, arrive = r
+        address = _permit_address(permit_dicts, pnum)
+        hold_preview = (hold or "")[:120]
+        if len(hold or "") > 120:
+            hold_preview += "…"
+        items.append(_make_item(
+            "hold_unresolved", "warning",
+            f"Outstanding hold at {station}",
+            f"Permit {pnum}: {station} placed a hold — \"{hold_preview}\"",
+            [pnum], address,
+            f"Address hold comments to unblock {station} sign-off",
+            "Remove plan review blocker",
+        ))
+    return items
+
+
+def _rule_all_stations_clear(permit_numbers: list[str],
+                             permit_dicts: list[dict]) -> list[dict]:
+    """Every routing step for latest addenda has finish_date → ready for issuance."""
+    items = []
+    if not permit_numbers:
+        return items
+    ph = _ph()
+    # Only check permits that are still in 'filed' or 'plancheck' status
+    filed_permits = [p for p in permit_dicts if p["status"] in ("filed", "plancheck")]
+    if not filed_permits:
+        return items
+
+    for p in filed_permits:
+        pnum = p["permit_number"]
+        try:
+            # Get the latest addenda_number
+            rev_rows = query(
+                f"SELECT MAX(addenda_number) FROM addenda "
+                f"WHERE application_number = {ph}",
+                (pnum,),
+            )
+            if not rev_rows or rev_rows[0][0] is None:
+                continue
+            rev = rev_rows[0][0]
+
+            # Count total vs completed
+            count_rows = query(
+                f"SELECT COUNT(*), "
+                f"       COUNT(*) FILTER (WHERE finish_date IS NOT NULL) "
+                f"FROM addenda "
+                f"WHERE application_number = {ph} AND addenda_number = {ph}",
+                (pnum, rev),
+            )
+            if not count_rows or not count_rows[0]:
+                continue
+            total, completed = count_rows[0]
+            if total > 0 and total == completed:
+                items.append(_make_item(
+                    "all_stations_clear", "opportunity",
+                    f"All stations signed off — {p['address']}",
+                    f"Permit {pnum}: all {total} plan review stations have completed review "
+                    f"(rev {rev}). Follow up on permit issuance.",
+                    [pnum], p["address"],
+                    "Contact DBI about permit issuance — all reviews complete",
+                    "Accelerate issuance by days-to-weeks",
+                ))
+        except Exception:
+            logger.debug("all_stations_clear query failed for %s", pnum, exc_info=True)
+            continue
+    return items
+
+
+def _rule_fresh_approval(permit_numbers: list[str], permit_dicts: list[dict],
+                         today: date) -> list[dict]:
+    """Routing step approved in last 7 days → notify of progress."""
+    items = []
+    if not permit_numbers:
+        return items
+    ph = _ph()
+    placeholders = ",".join([ph] * len(permit_numbers))
+    cutoff = str(today - timedelta(days=7))
+    try:
+        rows = query(
+            f"SELECT application_number, station, plan_checked_by, "
+            f"       review_results, finish_date, addenda_number "
+            f"FROM addenda "
+            f"WHERE application_number IN ({placeholders}) "
+            f"  AND LOWER(review_results) LIKE '%approv%' "
+            f"  AND finish_date IS NOT NULL "
+            f"  AND CAST(finish_date AS TEXT) >= {ph} "
+            f"ORDER BY finish_date DESC "
+            f"LIMIT 10",
+            permit_numbers + [cutoff],
+        )
+    except Exception:
+        logger.debug("fresh_approval query failed", exc_info=True)
+        return items
+
+    # Group by permit to avoid noise
+    seen_permits = set()
+    for r in rows:
+        pnum, station, reviewer, result, finish, addenda_num = r
+        if pnum in seen_permits:
+            continue
+        seen_permits.add(pnum)
+        address = _permit_address(permit_dicts, pnum)
+        finish_str = str(finish)[:10] if finish else "recently"
+        reviewer_str = f" by {reviewer}" if reviewer else ""
+        items.append(_make_item(
+            "fresh_approval", "opportunity",
+            f"Plan review approved at {station}",
+            f"Permit {pnum}: {station} approved{reviewer_str} on {finish_str}.",
+            [pnum], address,
+            "Check remaining stations — project is moving",
+        ))
+    return items
+
+
+def _rule_comment_response_needed(permit_numbers: list[str],
+                                  permit_dicts: list[dict],
+                                  today: date) -> list[dict]:
+    """'Issued Comments' result in last 14 days → needs response."""
+    items = []
+    if not permit_numbers:
+        return items
+    ph = _ph()
+    placeholders = ",".join([ph] * len(permit_numbers))
+    cutoff = str(today - timedelta(days=14))
+    try:
+        rows = query(
+            f"SELECT application_number, station, plan_checked_by, "
+            f"       review_results, finish_date, hold_description "
+            f"FROM addenda "
+            f"WHERE application_number IN ({placeholders}) "
+            f"  AND LOWER(review_results) LIKE '%comment%' "
+            f"  AND finish_date IS NOT NULL "
+            f"  AND CAST(finish_date AS TEXT) >= {ph} "
+            f"ORDER BY finish_date DESC "
+            f"LIMIT 10",
+            permit_numbers + [cutoff],
+        )
+    except Exception:
+        logger.debug("comment_response query failed", exc_info=True)
+        return items
+
+    seen_permits = set()
+    for r in rows:
+        pnum, station, reviewer, result, finish, hold = r
+        if pnum in seen_permits:
+            continue
+        seen_permits.add(pnum)
+        address = _permit_address(permit_dicts, pnum)
+        finish_str = str(finish)[:10] if finish else "recently"
+        reviewer_str = f" by {reviewer}" if reviewer else ""
+        hold_str = ""
+        if hold:
+            hold_preview = (hold or "")[:100]
+            if len(hold or "") > 100:
+                hold_preview += "…"
+            hold_str = f" Comments: \"{hold_preview}\""
+        items.append(_make_item(
+            "comment_response_needed", "warning",
+            f"Plan checker comments at {station}",
+            f"Permit {pnum}: {station} issued comments{reviewer_str} on {finish_str}.{hold_str}",
+            [pnum], address,
+            "Prepare and submit correction response",
+            "Unblock plan review — delays compound",
+        ))
+    return items
+
+
+def _rule_revision_escalation(permit_numbers: list[str],
+                              permit_dicts: list[dict]) -> list[dict]:
+    """addenda_number > 3 → project in multiple revision cycles."""
+    items = []
+    if not permit_numbers:
+        return items
+    ph = _ph()
+    # Only check filed permits (still in plan review)
+    filed_permits = [p for p in permit_dicts if p["status"] in ("filed", "plancheck")]
+    if not filed_permits:
+        return items
+
+    for p in filed_permits:
+        pnum = p["permit_number"]
+        try:
+            rev_rows = query(
+                f"SELECT MAX(addenda_number) FROM addenda "
+                f"WHERE application_number = {ph}",
+                (pnum,),
+            )
+            if not rev_rows or rev_rows[0][0] is None:
+                continue
+            max_rev = rev_rows[0][0]
+            if max_rev > 3:
+                items.append(_make_item(
+                    "revision_escalation", "warning",
+                    f"Multiple revision cycles at {p['address']}",
+                    f"Permit {pnum} is on revision {max_rev} — projects with 4+ "
+                    f"revision cycles benefit from a supervisor meeting.",
+                    [pnum], p["address"],
+                    "Request meeting with plan check supervisor to resolve outstanding issues",
+                    "Break the correction cycle",
+                ))
+        except Exception:
+            logger.debug("revision_escalation query failed for %s", pnum, exc_info=True)
+            continue
     return items

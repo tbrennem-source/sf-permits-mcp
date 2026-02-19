@@ -1,5 +1,68 @@
 # Changelog
 
+## Session 34 — Tier 0 Operational Intelligence (2026-02-19)
+
+### Concept
+Introduced "Tier 0: Operational Intelligence" — a new knowledge layer derived from live data (3.9M addenda routing records) rather than static files. While existing tiers answer "what are the rules?" (Tier 1-3) and "what does Amy know?" (Tier 4), Tier 0 answers "what's happening right now?" across the entire permitting pipeline.
+
+### Phase A: Activity Surface (DEPLOYED)
+
+#### Addenda Activity in 30-Day Banner (`src/tools/permit_lookup.py`)
+- New `_get_recent_addenda_activity()` function queries plan review completions across watched permits
+- Enhanced `_summarize_recent_activity()` with 4th category: "🗂️ Plan reviews completed"
+- Plan review activity displays first (most actionable), grouped by approved/comments/other
+
+#### Routing Progress in Intel Panel (`web/app.py` + `web/templates/search_results.html`)
+- Section 5 added to `_get_address_intel()`: finds primary active permit, gets latest addenda revision, counts total/completed stations
+- Progress bar in Permits column: color-coded (green=100%, blue≥50%, amber<50%)
+- Latest station name + approval/comment indicator
+
+### Phase B: Pattern Detection
+
+#### 6 Addenda Intelligence Rules (`web/intelligence.py`)
+- **Rule 9: Station Stall** — routing step arrived >30 days ago with no finish/hold (critical >60d)
+- **Rule 10: Hold Unresolved** — routing hold present with no completion
+- **Rule 11: All Stations Clear** — all routing stations completed (celebration trigger)
+- **Rule 12: Fresh Approval** — station approved within last 7 days
+- **Rule 13: Comment Response Needed** — station issued comments, not yet resolved
+- **Rule 14: Revision Escalation** — permit on addenda ≥3 (complex revision pattern)
+- Each rule independently fault-tolerant with own try/except
+
+#### Routing Completion Tracker (`web/routing.py`)
+- **NEW FILE**: `StationStatus` + `RoutingProgress` dataclasses
+- Computed properties: `completion_pct`, `is_all_clear`, `stalled_stations`, `held_stations`, `days_pending`
+- `get_routing_progress()` — single permit detailed routing state
+- `get_routing_progress_batch()` — batch query for portfolio dashboard efficiency
+
+### Phase C: Knowledge Materialization
+
+#### 8 Operational Concepts in Semantic Index (`data/knowledge/tier1/semantic-index.json`)
+- Extended from 92 → 100 concepts
+- New concepts: plan_review_velocity, station_bottleneck, reviewer_patterns, revision_cadence, routing_completion, hold_resolution, plan_review_timeline, station_routing
+- Each has `data_freshness` field distinguishing live vs static sources
+
+### Data Exploration Report (`docs/ADDENDA_DATA_EXPLORATION.md`)
+- Comprehensive analysis of 3.9M addenda records via SODA API
+- Key findings: 90.6% null review_results, PPC averages 174 days (6mo bottleneck), SFFD 24 days, 95% of rows are original routing (addenda #0)
+- Station velocity baselines for 15 stations
+- Feature implications documented (velocity dashboard, bottleneck alerts, addenda predictor, OTC detection)
+
+### Files Changed (5 modified + 2 new)
+- `src/tools/permit_lookup.py` — _get_recent_addenda_activity(), enhanced _summarize_recent_activity()
+- `web/app.py` — Section 5 routing progress in _get_address_intel()
+- `web/templates/search_results.html` — Plan Review progress bar in intel panel
+- `web/intelligence.py` — 6 new addenda-based rules (Rules 9-14)
+- `data/knowledge/tier1/semantic-index.json` — 8 operational concepts (92→100)
+- `web/routing.py` — **NEW**: RoutingProgress tracker module
+- `docs/ADDENDA_DATA_EXPLORATION.md` — **NEW**: Data exploration report
+
+### Chief Brain State
+- New spec: `specs/tier-0-operational-intelligence-live-data-as-knowledge.md`
+- New goal #4: Tier 0 Operational Intelligence (quarterly, P0)
+- Tasks #83-91: T0-A1 through T0-C3
+
+---
+
 ## Session 31 — Smart Address Card Enhancements (2026-02-18)
 
 ### Problem Solved
