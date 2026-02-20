@@ -853,6 +853,15 @@
             margin-top: 4px;
         }
 
+        .actions-divider {
+            width: 60%;
+            max-width: 280px;
+            height: 1px;
+            background: var(--border, #333);
+            margin: 6px auto 2px;
+            opacity: 0.5;
+        }
+
         .recent-label {
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -933,6 +942,7 @@
                     <!-- chips injected by JS -->
                     <button class="recent-clear" onclick="_clearRecentSearches()" title="Clear recent searches">&times;</button>
                 </div>
+                <div class="actions-divider" id="actions-divider" style="display:none;"></div>
                 <div class="quick-actions">
                     {% if g.user and g.user.primary_street_number and g.user.primary_street_name %}
                     <button class="preset-chip" style="border-color:var(--accent);color:var(--accent);"
@@ -1124,6 +1134,12 @@
 
             <h2 class="section-title">Analyze Plans (AI Vision)</h2>
             <p class="subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. AI Analysis and Full Analysis use AI vision to annotate your plans with EPR issues, code references, dimensions, and compliance checks.</p>
+
+            {% if upload_error %}
+            <div style="margin-bottom:16px;padding:12px 16px;background:rgba(248,113,113,0.1);border:1px solid var(--error, #f87171);border-radius:8px;font-size:0.9rem;color:var(--error, #f87171);">
+                {{ upload_error }}
+            </div>
+            {% endif %}
 
             <div class="form-card">
                 <form hx-post="/analyze-plans"
@@ -1839,7 +1855,9 @@
             try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
             // Remove old chips (keep label + clear button)
             container.querySelectorAll(".preset-chip").forEach(function(el) { el.remove(); });
-            if (list.length === 0) { container.style.display = "none"; return; }
+            var divider = document.getElementById("actions-divider");
+            if (list.length === 0) { container.style.display = "none"; if (divider) divider.style.display = "none"; return; }
+            if (divider) divider.style.display = "block";
             var clearBtn = container.querySelector(".recent-clear");
             list.forEach(function(q) {
                 var btn = document.createElement("button");
