@@ -227,33 +227,28 @@ def get_portfolio(user_id: int) -> dict:
         la = _parse_date(prop.get("latest_activity", ""))
         prop["days_since_activity"] = (today - la).days if la else None
 
-    # Post-process: downgrade expired-permit AT RISK → BEHIND for active sites.
-    # Per-permit scoring can't see property-level activity (latest across ALL
-    # permits at the address), so we reconcile here.  An expired permit at a
-    # site with recent activity (≤30d) OR multiple active permits is
-    # administrative paperwork — the contractor needs a recommencement
-    # application (SFBICC §106A.4.4), not an emergency response.
+    # Post-process: downgrade expired-permit AT RISK for active sites.
+    # Expired permits are extremely common and usually administrative —
+    # the contractor may need a recommencement application (SFBICC §106A.4.4)
+    # but it's not an emergency. Only flag expired permits as a concern when
+    # the site looks truly stale (no recent activity AND no other active work).
     for prop in properties:
         dsa = prop.get("days_since_activity")
         if (
             prop["worst_health"] == "at_risk"
             and "permit expired" in prop.get("health_reason", "")
         ):
-            recent_activity = dsa is not None and dsa <= 30
+            recent_activity = dsa is not None and dsa <= 90
             active = prop.get("active_count", 0)
             has_other_active = active > 1
             if recent_activity or has_other_active:
-                # Many active permits + expired = administrative noise → on_track
-                # Few active permits + expired = gentle reminder → behind
-                if active >= 5 or (recent_activity and active >= 3):
-                    prop["worst_health"] = "on_track"
-                    prop["health_reason"] = ""
-                else:
-                    prop["worst_health"] = "behind"
-                    if recent_activity:
-                        prop["health_reason"] += " (active site)"
-                    else:
-                        prop["health_reason"] += f" ({active} active permits)"
+                # Active site + expired permit = normal administrative status
+                prop["worst_health"] = "on_track"
+                prop["health_reason"] = ""
+            else:
+                # No recent activity AND no other active permits — gentle nudge
+                prop["worst_health"] = "slower"
+                prop["health_reason"] += " (no recent activity)"
 
     # Get tags from watch items
     watch_tags = {}
