@@ -160,6 +160,16 @@ def get_portfolio(user_id: int) -> dict:
             "days_in_status": days_in_status,
         }
 
+        # Build health reason for display on property card
+        health_reason = ""
+        if health != "on_track":
+            if status == "filed" and filed_date:
+                days_filed = (today - filed_date).days
+                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
+            elif status == "issued" and issued_date:
+                days_issued = (today - issued_date).days
+                health_reason = f"{pn} issued {days_issued}d ago (open construction)"
+
         if key not in property_map:
             property_map[key] = {
                 "address": addr,
@@ -168,6 +178,7 @@ def get_portfolio(user_id: int) -> dict:
                 "neighborhood": neighborhood,
                 "permits": [],
                 "worst_health": "on_track",
+                "health_reason": "",
                 "total_cost": 0,
                 "latest_activity": str(status_date) if status_date else "",
                 "active_count": 0,
@@ -186,6 +197,7 @@ def get_portfolio(user_id: int) -> dict:
         health_order = {"on_track": 0, "slower": 1, "behind": 2, "at_risk": 3}
         if health_order.get(health, 0) > health_order.get(prop["worst_health"], 0):
             prop["worst_health"] = health
+            prop["health_reason"] = health_reason
 
         # Count active permits
         if status in ("filed", "issued", "triage"):
