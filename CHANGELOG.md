@@ -1,5 +1,17 @@
 # Changelog
 
+## Session 43 — Portfolio Health: Expired Permit Noise Fix (2026-02-20)
+
+Expired permits no longer trigger "BEHIND" or "AT_RISK" status on active properties. Previously, a single expired mechanical/electrical/plumbing permit would flag an entire property as needing action, even when other permits were active and recent inspections were passing.
+
+### Portfolio Health Logic — `web/portfolio.py`
+- **Active site + expired permit → ON_TRACK**: If property has recent activity (≤90d) or other active permits, expired permits are treated as administrative (recommencement application), not an emergency. Previously showed BEHIND.
+- **Stale site + expired permit → SLOWER**: If truly no activity and no active permits, downgraded from AT_RISK to SLOWER (informational, not "action needed"). Previously stayed AT_RISK.
+- **Widened recency window**: "Recent activity" expanded from 30d to 90d — a site active within 3 months isn't stale.
+- **Untouched**: Violations, complaints, routing holds, expiring-soon permits, and stalled filings still correctly trigger AT_RISK/BEHIND.
+
+---
+
 ## Session 42 — Plan Analysis UX Polish (2026-02-20)
 
 Iterative UX fixes for the plan analysis workflow based on live testing.
