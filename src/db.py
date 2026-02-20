@@ -407,6 +407,34 @@ def init_user_schema(conn=None) -> None:
             except Exception:
                 pass
 
+        # Incremental columns added after initial table creation
+        for alter_stmt in [
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN progress_stage TEXT",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN progress_detail TEXT",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN vision_usage_json TEXT",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN gallery_duration_ms INTEGER",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN analysis_mode TEXT DEFAULT 'sample'",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN pages_analyzed INTEGER",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN submission_stage TEXT",
+            # Phase D1: Close Project — archive flag (DuckDB doesn't support NOT NULL in ALTER)
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN is_archived BOOLEAN DEFAULT FALSE",
+            # Phase D2: Document Fingerprinting
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN pdf_hash TEXT",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN pdf_hash_failed BOOLEAN DEFAULT FALSE",
+            # structural_fingerprint stored as JSON text in DuckDB (JSONB only in Postgres)
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN structural_fingerprint TEXT",
+            # Phase E1: Version Chain data model
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN version_group TEXT",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN version_number INTEGER",
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN parent_job_id TEXT",
+            # Phase E2: Comparison cache (TEXT in DuckDB, JSONB in Postgres)
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN comparison_json TEXT",
+        ]:
+            try:
+                conn.execute(alter_stmt)
+            except Exception:
+                pass  # Column already exists
+
         # Voice calibration — per-scenario style preferences
         conn.execute("""
             CREATE TABLE IF NOT EXISTS voice_calibrations (
@@ -432,6 +460,25 @@ def init_user_schema(conn=None) -> None:
                 conn.execute(stmt)
             except Exception:
                 pass
+
+        # Phase F2: Project Notes — free-text per version group
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS project_notes (
+                note_id         INTEGER PRIMARY KEY,
+                user_id         INTEGER NOT NULL,
+                version_group   TEXT NOT NULL,
+                notes_text      TEXT NOT NULL DEFAULT '',
+                updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, version_group)
+            )
+        """)
+        try:
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_project_notes_user_group "
+                "ON project_notes (user_id, version_group)"
+            )
+        except Exception:
+            pass
 
     finally:
         if close:

@@ -712,6 +712,94 @@
             font-size: 0.85rem;
             font-family: inherit;
         }
+        /* ── Phase F1: Stats Banner ──────────────────────────── */
+        .stats-banner {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 20px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+        .stats-banner .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stats-banner .stat-value {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .stats-sep {
+            color: var(--border);
+            font-size: 0.7rem;
+        }
+
+        /* ── Phase F2: Project Notes ─────────────────────────── */
+        .project-notes-wrap {
+            margin-top: 12px;
+        }
+        .project-notes-toggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .project-notes-toggle:hover { color: var(--accent); }
+        .project-notes-body {
+            display: none;
+            margin-top: 8px;
+        }
+        .project-notes-body.open { display: block; }
+        .project-notes-preview {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-left: 4px;
+        }
+        .notes-textarea {
+            width: 100%;
+            min-height: 80px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.82rem;
+            font-family: inherit;
+            padding: 8px 10px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .notes-textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+        .notes-save-btn {
+            margin-top: 6px;
+            padding: 4px 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .notes-save-btn:hover { background: var(--accent-hover); }
+        .notes-saved-msg {
+            font-size: 0.75rem;
+            color: var(--success);
+            margin-left: 8px;
+            display: none;
+        }
     </style>
     {% import 'fragments/analysis_grouping.html' as grouping %}
     {{ grouping.grouping_css() }}
@@ -878,6 +966,29 @@
         </div>
 
         {% if jobs %}
+        <!-- Phase F1: Stats Banner -->
+        <div class="stats-banner">
+            <div class="stat-item">
+                <span class="stat-value">{{ stats.monthly_count }}</span>
+                <span>anal{{ 'yses' if stats.monthly_count != 1 else 'ysis' }} this month</span>
+            </div>
+            {% if stats.avg_processing_s is not none %}
+            <span class="stats-sep">|</span>
+            <div class="stat-item">
+                <span>Avg processing:</span>
+                <span class="stat-value">
+                    {% set s = stats.avg_processing_s | int %}
+                    {% if s >= 60 %}{{ (s // 60) }}m {{ (s % 60) }}s{% else %}{{ s }}s{% endif %}
+                </span>
+            </div>
+            {% endif %}
+            <span class="stats-sep">|</span>
+            <div class="stat-item">
+                <span class="stat-value">{{ stats.projects_tracked }}</span>
+                <span>project{{ 's' if stats.projects_tracked != 1 else '' }} tracked</span>
+            </div>
+        </div>
+
         <!-- Filter Chips -->
         <div class="filter-bar" id="filter-bar">
             <span class="filter-label">Status:</span>

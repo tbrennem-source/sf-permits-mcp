@@ -221,6 +221,18 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         page_annotations=page_annotations,
     )
 
+    # ── Phase D2: Extract structural fingerprint ──
+    fingerprint_json: str | None = None
+    if page_extractions:  # guard: hollow sessions skip fingerprinting
+        try:
+            import json as _json
+            from web.plan_fingerprint import extract_structural_fingerprint
+            fp = extract_structural_fingerprint(page_extractions)
+            if fp:
+                fingerprint_json = _json.dumps(fp)
+        except Exception:
+            logger.warning("[plan-worker] Fingerprint extraction failed for %s", job_id, exc_info=True)
+
     # ── Auto-extract tags ──
     tags = _auto_extract_tags(page_extractions)
     tag_updates = {}
@@ -246,6 +258,10 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     usage_fields["gallery_duration_ms"] = gallery_duration_ms
     usage_fields["pages_analyzed"] = len(page_extractions)
 
+    fingerprint_fields = {}
+    if fingerprint_json is not None:
+        fingerprint_fields["structural_fingerprint"] = fingerprint_json
+
     update_job_status(
         job_id,
         "completed",
@@ -254,7 +270,61 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
         completed_at=datetime.now(timezone.utc),
         **tag_updates,
         **usage_fields,
+        **fingerprint_fields,
     )
+
+    # ── Phase E1: Assign version group via fingerprint matching ──
+    if job.get("user_id"):
+        try:
+            import json as _json2
+            from web.plan_fingerprint import find_matching_job
+            from web.plan_jobs import assign_version_group
+            from src.db import query_one as _qone
+
+            fp_parsed = _json2.loads(fingerprint_json) if fingerprint_json else []
+            effective_address = tag_updates.get("property_address") or job.get("property_address")
+            effective_permit = tag_updates.get("permit_number") or job.get("permit_number")
+
+            # Fetch pdf_hash from DB (not in get_job() dict)
+            hash_row = _qone(
+                "SELECT pdf_hash FROM plan_analysis_jobs WHERE job_id = %s", (job_id,)
+            )
+            current_hash = hash_row[0] if hash_row else None
+
+            match_job_id = find_matching_job(
+                user_id=job["user_id"],
+                current_job_id=job_id,
+                current_fp=fp_parsed,
+                current_hash=current_hash,
+                filename=filename,
+                property_address=effective_address,
+                permit_number=effective_permit,
+            )
+
+            if match_job_id:
+                # Get the matched job's version_group (or use its job_id as the group seed)
+                match_row = _qone(
+                    "SELECT version_group FROM plan_analysis_jobs WHERE job_id = %s",
+                    (match_job_id,),
+                )
+                existing_group = match_row[0] if match_row else None
+
+                if existing_group:
+                    group_id = existing_group
+                else:
+                    # Seed the group — assign the matched job as v1 first
+                    group_id = match_job_id
+                    assign_version_group(match_job_id, group_id)
+
+                assign_version_group(job_id, group_id)
+                logger.info(
+                    "[plan-worker] Assigned %s to version_group=%s (matched %s)",
+                    job_id,
+                    group_id,
+                    match_job_id,
+                )
+        except Exception:
+            logger.warning("[plan-worker] Version group assignment failed for %s", job_id, exc_info=True)
 
     # ── Clear PDF data to free storage ──
     clear_pdf_data(job_id)
