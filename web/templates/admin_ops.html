@@ -150,10 +150,10 @@
         }
     });
 
-    // Load initial tab from hash or default to pipeline
-    var hash = location.hash.replace('#', '') || 'pipeline';
+    // Load initial tab from hash or default to quality (pipeline is slow)
+    var hash = location.hash.replace('#', '') || 'quality';
     var initialBtn = document.querySelector('.tab-btn[data-tab="' + hash + '"]');
-    if (!initialBtn) initialBtn = document.querySelector('.tab-btn[data-tab="pipeline"]');
+    if (!initialBtn) initialBtn = document.querySelector('.tab-btn[data-tab="quality"]');
     if (initialBtn) {
         initialBtn.classList.add('loading');
         htmx.trigger(initialBtn, 'click');

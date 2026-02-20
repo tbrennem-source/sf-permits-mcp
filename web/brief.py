@@ -113,9 +113,48 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         1 for p in property_cards
         if p.get("enforcement_total") and p["enforcement_total"] > 0
     )
-    # Count properties with recent activity (uses actual SODA status_date,
-    # not the sparse permit_changes detection log)
-    changed_properties = sum(
+    # Merge property-level activity into changes so "What Changed" section
+    # and the "Changed" summary count are consistent.  The permit_changes
+    # detection log is sparse (only captures nightly diffs), but property
+    # cards have accurate days_since_activity from SODA status_date.
+    # Build activity entries for recently-active properties not already in
+    # the permit_changes list, then use the combined list for the count.
+    changes_addresses = set()
+    for c in changes:
+        if c.get("street_number") and c.get("street_name"):
+            changes_addresses.add(
+                f"{c['street_number']} {c['street_name']}".strip().upper()
+            )
+
+    for p in property_cards:
+        dsa = p.get("days_since_activity")
+        if dsa is None or dsa > lookback_days:
+            continue
+        addr_key = p.get("address", "").upper()
+        if addr_key in changes_addresses:
+            continue
+        changes_addresses.add(addr_key)
+        # Create an activity entry (no status transition, just "updated")
+        changes.append({
+            "permit_number": "",
+            "change_date": p.get("latest_activity", ""),
+            "old_status": None,
+            "new_status": "activity",
+            "change_type": "activity",
+            "permit_type": "",
+            "street_number": p.get("address", "").split()[0] if p.get("address") else "",
+            "street_name": " ".join(p.get("address", "").split()[1:]) if p.get("address") else "",
+            "neighborhood": p.get("neighborhood", ""),
+            "label": p.get("label", "") or p.get("address", ""),
+            "watch_type": "property",
+            "total_permits": p.get("total_permits", 0),
+            "active_permits": p.get("active_permits", 0),
+            "health": p.get("worst_health", "on_track"),
+            "health_reason": p.get("health_reason", ""),
+            "days_since_activity": dsa,
+        })
+
+    changed_count = sum(
         1 for p in property_cards
         if p.get("days_since_activity") is not None
         and p["days_since_activity"] <= lookback_days
@@ -139,7 +178,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "summary": {
             "total_watches": total_watches,
             "total_properties": len(property_cards),
-            "changes_count": changed_properties,
+            "changes_count": changed_count,
             "plan_reviews_count": len(plan_reviews),
             "at_risk_count": at_risk,
             "enforcement_count": enforcement_count,
@@ -1204,19 +1243,23 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
     # Post-process: downgrade expired-permit AT RISK → BEHIND for active sites.
     # Per-permit scoring can't see property-level activity (latest across ALL
     # permits at the address), so we reconcile here.  An expired permit at a
-    # site with recent activity (≤30d) is administrative paperwork — the
-    # contractor needs a recommencement application (SFBICC §106A.4.4), not
-    # an emergency response.
+    # site with recent activity (≤30d) OR multiple active permits is
+    # administrative paperwork — the contractor needs a recommencement
+    # application (SFBICC §106A.4.4), not an emergency response.
     for prop in property_map.values():
         dsa = prop.get("days_since_activity")
         if (
             prop["worst_health"] == "at_risk"
             and "permit expired" in prop.get("health_reason", "")
-            and dsa is not None
-            and dsa <= 30
         ):
-            prop["worst_health"] = "behind"
-            prop["health_reason"] += " (active site)"
+            recent_activity = dsa is not None and dsa <= 30
+            has_other_active = prop.get("active_permits", 0) > 1
+            if recent_activity or has_other_active:
+                prop["worst_health"] = "behind"
+                if recent_activity:
+                    prop["health_reason"] += " (active site)"
+                else:
+                    prop["health_reason"] += f" ({prop['active_permits']} active permits)"
 
     # Sort: recently-changed properties first, then by worst health desc.
     # Within each group, highest risk sorts first.

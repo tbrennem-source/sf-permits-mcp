@@ -230,19 +230,23 @@ def get_portfolio(user_id: int) -> dict:
     # Post-process: downgrade expired-permit AT RISK → BEHIND for active sites.
     # Per-permit scoring can't see property-level activity (latest across ALL
     # permits at the address), so we reconcile here.  An expired permit at a
-    # site with recent activity (≤30d) is administrative paperwork — the
-    # contractor needs a recommencement application (SFBICC §106A.4.4), not
-    # an emergency response.
+    # site with recent activity (≤30d) OR multiple active permits is
+    # administrative paperwork — the contractor needs a recommencement
+    # application (SFBICC §106A.4.4), not an emergency response.
     for prop in properties:
         dsa = prop.get("days_since_activity")
         if (
             prop["worst_health"] == "at_risk"
             and "permit expired" in prop.get("health_reason", "")
-            and dsa is not None
-            and dsa <= 30
         ):
-            prop["worst_health"] = "behind"
-            prop["health_reason"] += " (active site)"
+            recent_activity = dsa is not None and dsa <= 30
+            has_other_active = prop.get("active_count", 0) > 1
+            if recent_activity or has_other_active:
+                prop["worst_health"] = "behind"
+                if recent_activity:
+                    prop["health_reason"] += " (active site)"
+                else:
+                    prop["health_reason"] += f" ({prop['active_count']} active permits)"
 
     # Get tags from watch items
     watch_tags = {}

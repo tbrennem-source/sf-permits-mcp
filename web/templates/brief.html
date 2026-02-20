@@ -103,6 +103,11 @@
         .status-issued { background: rgba(52, 211, 153, 0.2); color: var(--success); }
         .status-completed { background: rgba(52, 211, 153, 0.3); color: var(--success); }
         .status-expired, .status-cancelled { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+        .status-activity { background: rgba(79, 143, 247, 0.12); color: var(--accent); }
+        .status-on_track { background: rgba(52, 211, 153, 0.12); color: var(--success); }
+        .status-slower { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
+        .status-behind { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+        .status-at_risk { background: rgba(248, 113, 113, 0.15); color: var(--error); }
         .status-arrow { color: var(--text-muted); margin: 0 4px; }
 
         /* Health bars */
@@ -376,6 +381,24 @@
                 {% if brief.changes %}
                 {% for c in brief.changes %}
                 <div class="change-card" id="change-{{ loop.index }}">
+                    {% if c.change_type == 'activity' %}
+                    {# Property-level activity (from SODA status_date, not permit_changes log) #}
+                    <div class="change-meta">
+                        <span class="change-permit">
+                            <a href="{{ c.label|default('') and '/?q=' + (c.street_number + ' ' + c.street_name)|urlencode or '#' }}" title="Look up property">{{ c.label }}</a>
+                        </span>
+                        <span class="change-detail">
+                            {% if c.neighborhood %}{{ c.neighborhood }} &middot; {% endif %}
+                            {{ c.active_permits }} active of {{ c.total_permits }} permits
+                            {% if c.days_since_activity is defined %} &middot; {{ c.days_since_activity }}d ago{% endif %}
+                        </span>
+                    </div>
+                    <div style="display:flex;align-items:center;">
+                        <span class="status-badge status-{{ c.health|default('on_track') }}" style="font-size:0.65rem;">{{ c.health_reason or 'Activity detected' }}</span>
+                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
+                    </div>
+                    {% else %}
+                    {# Permit-level status transition (from permit_changes detection log) #}
                     <div class="change-meta">
                         <span class="change-permit">
                             <a href="/?q={{ c.permit_number }}" title="Look up permit details">{{ c.label or c.permit_number }}</a>
@@ -395,6 +418,7 @@
                         <span class="status-badge status-{{ c.new_status|lower }}">{{ c.new_status }}</span>
                         <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
                     </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
                 {% else %}

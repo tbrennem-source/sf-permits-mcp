@@ -60,7 +60,8 @@ def _check_cron_status() -> dict:
     """Check when the last successful nightly cron ran."""
     ph = _ph()
     rows = query(
-        f"SELECT MAX(run_date) FROM cron_log WHERE status = {ph}",
+        f"SELECT MAX(started_at) FROM cron_log "
+        f"WHERE job_type = 'nightly' AND status = {ph}",
         ("success",),
     )
     if not rows or not rows[0][0]:
@@ -75,6 +76,8 @@ def _check_cron_status() -> dict:
     last_run = rows[0][0]
     if isinstance(last_run, str):
         last_run = date.fromisoformat(last_run[:10])
+    elif hasattr(last_run, "date"):
+        last_run = last_run.date()
     days_ago = (date.today() - last_run).days
     status = "green" if days_ago <= 1 else ("yellow" if days_ago <= 3 else "red")
     return {
@@ -91,8 +94,9 @@ def _check_records_fetched() -> dict:
     """Check how many records the last cron run fetched."""
     ph = _ph()
     rows = query(
-        f"SELECT records_fetched, run_date FROM cron_log "
-        f"WHERE status = {ph} ORDER BY run_date DESC LIMIT 1",
+        f"SELECT soda_records, started_at FROM cron_log "
+        f"WHERE job_type = 'nightly' AND status = {ph} "
+        f"ORDER BY started_at DESC LIMIT 1",
         ("success",),
     )
     if not rows:
@@ -105,7 +109,8 @@ def _check_records_fetched() -> dict:
             "detail": "No cron_log entries found",
         }
     count = rows[0][0] or 0
-    run_date = rows[0][1]
+    started = rows[0][1]
+    run_date = started.date() if hasattr(started, "date") else started
     status = "green" if count > 0 else "red"
     return {
         "name": "Records Fetched",
@@ -138,7 +143,11 @@ def _check_permit_changes_detected() -> dict:
 
 
 def _check_temporal_violations() -> dict:
-    """Count permits where filed_date > issued_date (temporal anomaly)."""
+    """Count permits where filed_date > issued_date (temporal anomaly).
+
+    Known: SF DBI records filed_date after issued_date for permit amendments
+    and OTC permits.  ~0.2% is normal for this dataset.
+    """
     rows = query(
         "SELECT COUNT(*) FROM permits "
         "WHERE filed_date IS NOT NULL AND issued_date IS NOT NULL "
@@ -146,14 +155,18 @@ def _check_temporal_violations() -> dict:
         (),
     )
     count = rows[0][0] if rows else 0
-    status = "green" if count < 10 else ("yellow" if count < 100 else "red")
+    total_rows = query("SELECT COUNT(*) FROM permits", ())
+    total = total_rows[0][0] if total_rows else 1
+    pct = round(count / max(total, 1) * 100, 2)
+    # <0.5% is normal for SODA data; >1% suggests a load problem
+    status = "green" if pct < 0.5 else ("yellow" if pct < 1 else "red")
     return {
         "name": "Temporal Violations",
         "category": "anomaly",
-        "value": f"{count:,}",
-        "unit": "permits",
+        "value": f"{pct}%",
+        "unit": f"({count:,} of {total:,})",
         "status": status,
-        "detail": f"{count} permits with filed_date after issued_date",
+        "detail": f"{count:,} permits with filed_date after issued_date ({pct}%)",
     }
 
 
@@ -178,7 +191,11 @@ def _check_cost_outliers() -> dict:
 
 
 def _check_orphaned_contacts() -> dict:
-    """Count contacts without matching permits."""
+    """Count contacts without matching permits.
+
+    Known: contacts dataset (1.8M) covers a broader date range than the
+    permits dataset (1.1M), so ~40-50% orphan rate is expected.
+    """
     rows = query(
         "SELECT COUNT(*) FROM contacts c "
         "LEFT JOIN permits p ON c.permit_number = p.permit_number "
@@ -189,7 +206,9 @@ def _check_orphaned_contacts() -> dict:
     total_contacts = query("SELECT COUNT(*) FROM contacts", ())
     total = total_contacts[0][0] if total_contacts else 1
     pct = round(count / max(total, 1) * 100, 1)
-    status = "green" if pct < 5 else ("yellow" if pct < 15 else "red")
+    # 40-50% is expected (contacts covers broader date range than permits).
+    # >60% suggests a permits table load gap.
+    status = "green" if pct < 55 else ("yellow" if pct < 65 else "red")
     return {
         "name": "Orphaned Contacts",
         "category": "anomaly",
