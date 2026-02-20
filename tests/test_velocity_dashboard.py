@@ -222,12 +222,27 @@ def test_list_feedback_registered_in_server():
     assert callable(list_feedback)
 
 
-def test_velocity_dashboard_in_nav(client):
-    """Nav includes Pipeline link on index page."""
+def test_velocity_dashboard_hidden_from_non_admin(client):
+    """Pipeline link is NOT in nav for non-admin users (moved to admin dropdown)."""
     _login(client)
     rv = client.get("/")
     html = rv.data.decode()
-    assert "/dashboard/bottlenecks" in html
+    assert "/dashboard/bottlenecks" not in html
+
+
+def test_velocity_dashboard_in_admin_dropdown(client):
+    """Pipeline link appears in admin dropdown for admin users."""
+    import web.auth as auth_mod
+    old_admin = auth_mod.ADMIN_EMAIL
+    auth_mod.ADMIN_EMAIL = "admin@example.com"
+    try:
+        _login(client, email="admin@example.com")
+        rv = client.get("/")
+        html = rv.data.decode()
+        assert "admin/ops#pipeline" in html
+        assert "Admin" in html
+    finally:
+        auth_mod.ADMIN_EMAIL = old_admin
 
 
 def test_list_feedback_registered_in_server():
