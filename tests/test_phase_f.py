@@ -67,36 +67,34 @@ def test_get_analysis_stats_shape():
     """get_analysis_stats() returns dict with correct keys."""
     from web.plan_jobs import get_analysis_stats
     stats = get_analysis_stats(user_id=1)
-    assert "monthly_count" in stats
-    assert "avg_processing_s" in stats
-    assert "projects_tracked" in stats
+    assert "awaiting_resubmittal" in stats
+    assert "new_issues" in stats
+    assert "last_scan_at" in stats
 
 
 def test_get_analysis_stats_no_jobs():
     """With no jobs, stats are all zeros / None."""
     from web.plan_jobs import get_analysis_stats
     stats = get_analysis_stats(user_id=99)
-    assert stats["monthly_count"] == 0
-    assert stats["avg_processing_s"] is None
-    assert stats["projects_tracked"] == 0
+    assert stats["awaiting_resubmittal"] == 0
+    assert stats["new_issues"] == 0
+    assert stats["last_scan_at"] is None
 
 
-def test_get_analysis_stats_monthly_count():
-    """monthly_count reflects jobs created this month."""
+def test_get_analysis_stats_last_scan():
+    """last_scan_at reflects most recent completed job."""
     from web.plan_jobs import get_analysis_stats
-    _make_job(user_id=1, filename="a.pdf")
-    _make_job(user_id=1, filename="b.pdf")
+    _make_completed_job(user_id=1, filename="a.pdf")
     stats = get_analysis_stats(user_id=1)
-    assert stats["monthly_count"] >= 2
+    assert stats["last_scan_at"] is not None
 
 
-def test_get_analysis_stats_avg_processing():
-    """avg_processing_s is non-None when completed jobs exist with timing."""
+def test_get_analysis_stats_completed_job():
+    """Stats are populated when completed jobs exist."""
     from web.plan_jobs import get_analysis_stats
     _make_completed_job(user_id=1, filename="timed.pdf")
     stats = get_analysis_stats(user_id=1)
-    assert stats["avg_processing_s"] is not None
-    assert stats["avg_processing_s"] > 0
+    assert stats["last_scan_at"] is not None
 
 
 def test_get_analysis_stats_user_isolation():
@@ -104,7 +102,8 @@ def test_get_analysis_stats_user_isolation():
     from web.plan_jobs import get_analysis_stats
     _make_job(user_id=1, filename="u1.pdf")
     stats2 = get_analysis_stats(user_id=2)
-    assert stats2["monthly_count"] == 0
+    assert stats2["awaiting_resubmittal"] == 0
+    assert stats2["new_issues"] == 0
 
 
 def test_analysis_history_route_passes_stats(tmp_path, monkeypatch):
@@ -116,7 +115,7 @@ def test_analysis_history_route_passes_stats(tmp_path, monkeypatch):
     from web.plan_jobs import get_analysis_stats
     stats = get_analysis_stats(user_id=1)
     assert isinstance(stats, dict)
-    assert "monthly_count" in stats
+    assert "awaiting_resubmittal" in stats
 
 
 # ── F2: Project Notes ─────────────────────────────────────────────

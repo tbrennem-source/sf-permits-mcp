@@ -209,7 +209,7 @@
             grid-template-columns: 1fr;
         }
         .ah-group-date-range {
-            display: none;
+            font-size: 0.7rem;
         }
     }
 </style>
@@ -249,7 +249,7 @@
                 {% if group.date_range %}
                 <span class="ah-group-date-range">{{ group.date_range }}</span>
                 {% endif %}
-                <span class="status-badge status-{{ group.latest_status }}">{{ group.latest_status }}</span>
+                <span class="status-badge status-{{ group.latest_status }}">{{ group.latest_status|title }}</span>
             </div>
         </div>
         <div class="ah-group-body">
@@ -273,7 +273,7 @@
                             {% elif job.analysis_mode == 'sample' %}
                             <span class="mode-badge mode-sample">AI Analysis</span>
                             {% endif %}
-                            <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+                            <span class="status-badge status-{{ job.status }}">{{ job.status|title }}</span>
                         </div>
                     </div>
                     <div class="card-meta">
@@ -359,6 +359,8 @@
                 <div class="project-notes-body" id="notes-body-{{ group._version_group }}">
                     <textarea class="notes-textarea"
                               id="notes-text-{{ group._version_group }}"
+                              maxlength="4000"
+                              oninput="updateCharCount('{{ group._version_group }}')"
                               placeholder="Add notes about this project (revision history, decisions, next steps)…">{{ group._notes }}</textarea>
                     <div style="display:flex;align-items:center;margin-top:6px;">
                         <button class="notes-save-btn"
@@ -367,6 +369,10 @@
                         </button>
                         <span class="notes-saved-msg" id="notes-saved-{{ group._version_group }}">
                             ✓ Saved
+                        </span>
+                        <span style="margin-left:auto;font-size:0.72rem;color:var(--text-muted);"
+                              id="notes-count-{{ group._version_group }}">
+                            {{ group._notes|length if group._notes else 0 }} / 4,000
                         </span>
                     </div>
                 </div>
@@ -401,9 +407,22 @@ function toggleProjectGroup(header) {
 
 // Auto-expand single-member groups on page load
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.ah-project-group').forEach(function(group) {
-        const count = parseInt(group.querySelector('.ah-group-count')?.textContent || '0', 10);
+    var groups = document.querySelectorAll('.ah-project-group');
+    var isSearch = new URLSearchParams(window.location.search).has('q');
+    var expandedFirst = false;
+
+    groups.forEach(function(group, index) {
+        var count = parseInt(group.querySelector('.ah-group-count')?.textContent || '0', 10);
         if (count <= 1) {
+            group.classList.add('ah-expanded');
+        }
+        // Auto-expand first multi-member group (most recently updated)
+        if (!expandedFirst && count > 1 && !isSearch) {
+            group.classList.add('ah-expanded');
+            expandedFirst = true;
+        }
+        // If search is active, expand all groups
+        if (isSearch) {
             group.classList.add('ah-expanded');
         }
     });
@@ -432,6 +451,14 @@ function saveProjectNotes(vg) {
             }
         }
     });
+}
+
+function updateCharCount(vg) {
+    var ta = document.getElementById('notes-text-' + vg);
+    var counter = document.getElementById('notes-count-' + vg);
+    if (ta && counter) {
+        counter.textContent = ta.value.length.toLocaleString() + ' / 4,000';
+    }
 }
 </script>
 {% endmacro %}

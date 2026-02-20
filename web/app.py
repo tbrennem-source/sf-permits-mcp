@@ -1852,6 +1852,25 @@ def compare_analyses():
     revisions_a = _extract_revisions(session_a.get("page_extractions") or [])
     revisions_b = _extract_revisions(session_b.get("page_extractions") or [])
 
+    # Fix #17: Load EPR check display names from tier1 knowledge base
+    epr_check_names = {}
+    try:
+        import json as _json
+        import os
+        epr_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "data", "knowledge", "tier1", "epr-requirements.json",
+        )
+        with open(epr_path) as f:
+            epr_data = _json.load(f)
+        for _category in epr_data.get("requirements", {}).values():
+            if isinstance(_category, list):
+                for req in _category:
+                    if req.get("id") and req.get("rule"):
+                        epr_check_names[req["id"]] = req["rule"]
+    except Exception:
+        logger.debug("Failed to load EPR check names", exc_info=True)
+
     return render_template(
         "analysis_compare.html",
         job_a=job_a,
@@ -1866,6 +1885,7 @@ def compare_analyses():
         pages_b=pages_b,
         revisions_a=revisions_a,
         revisions_b=revisions_b,
+        epr_check_names=epr_check_names,
     )
 
 
@@ -1942,7 +1962,10 @@ def save_project_notes_api(version_group):
 
 @app.route("/api/plan-jobs/<job_id>", methods=["DELETE"])
 def delete_plan_job(job_id):
-    """Delete a plan analysis job (HTMX endpoint)."""
+    """Soft-delete a plan analysis job (HTMX endpoint).
+
+    Sets is_archived=TRUE. Can be restored via POST /api/plan-jobs/<job_id>/restore.
+    """
     user_id = session.get("user_id")
     if not user_id:
         return "", 401
@@ -1957,9 +1980,48 @@ def delete_plan_job(job_id):
     return ""
 
 
+@app.route("/api/plan-jobs/<job_id>/restore", methods=["POST"])
+def restore_plan_job(job_id):
+    """Restore a soft-deleted plan analysis job (undo)."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    from web.plan_jobs import restore_job
+
+    restored = restore_job(job_id, user_id)
+    if not restored:
+        return "", 404
+
+    return jsonify({"restored": True})
+
+
+@app.route("/api/plan-jobs/<job_id>/prefill", methods=["GET"])
+def prefill_plan_job(job_id):
+    """Return metadata from a failed job to pre-fill the upload form for retry (#3)."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    from web.plan_jobs import get_job
+
+    job = get_job(job_id)
+    if not job or job.get("user_id") != user_id:
+        return "", 404
+
+    return jsonify({
+        "property_address": job.get("property_address") or "",
+        "permit_number": job.get("permit_number") or "",
+        "submission_stage": job.get("submission_stage") or "",
+        "project_description": job.get("project_description") or "",
+        "permit_type": job.get("permit_type") or "",
+        "filename": job.get("filename") or "",
+    })
+
+
 @app.route("/api/plan-jobs/bulk-delete", methods=["POST"])
 def bulk_delete_plan_jobs():
-    """Bulk delete plan analysis jobs (HTMX/JSON endpoint)."""
+    """Bulk soft-delete plan analysis jobs (HTMX/JSON endpoint)."""
     user_id = session.get("user_id")
     if not user_id:
         return "", 401
@@ -1974,7 +2036,7 @@ def bulk_delete_plan_jobs():
     # Cap at 100 to prevent abuse
     job_ids = job_ids[:100]
     deleted = bulk_delete_jobs(job_ids, user_id)
-    return jsonify({"deleted": deleted})
+    return jsonify({"deleted": deleted, "job_ids": job_ids})
 
 
 @app.route("/api/plan-jobs/bulk-close", methods=["POST"])

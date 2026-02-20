@@ -365,9 +365,10 @@ def search_jobs(user_id: int, query_text: str, limit: int = 20) -> list[dict]:
         "SELECT job_id, session_id, filename, file_size_mb, status, "
         "is_async, quick_check, property_address, permit_number, "
         "created_at, completed_at, error_message, "
-        "analysis_mode, pages_analyzed, started_at "
+        "analysis_mode, pages_analyzed, started_at, "
+        "is_archived, parent_job_id "
         "FROM plan_analysis_jobs "
-        "WHERE user_id = %s "
+        "WHERE user_id = %s AND is_archived = FALSE "
         "AND (property_address ILIKE %s OR permit_number ILIKE %s OR filename ILIKE %s) "
         "ORDER BY created_at DESC "
         "LIMIT %s",
@@ -390,6 +391,8 @@ def search_jobs(user_id: int, query_text: str, limit: int = 20) -> list[dict]:
             "analysis_mode": r[12],
             "pages_analyzed": r[13],
             "started_at": r[14],
+            "is_archived": r[15] if len(r) > 15 else False,
+            "parent_job_id": r[16] if len(r) > 16 else None,
         }
         for r in rows
     ]
@@ -684,14 +687,17 @@ def cleanup_old_jobs(days: int = 30) -> int:
 
 
 def delete_job(job_id: str, user_id: int) -> bool:
-    """Delete a job belonging to a specific user.
+    """Soft-delete a job belonging to a specific user (sets is_archived=TRUE).
+
+    The job can be restored within 30 seconds via restore_job().
+    Permanently deleted later by cleanup_old_jobs().
 
     Args:
         job_id: Job identifier
         user_id: Owner user ID (ensures users can only delete their own jobs)
 
     Returns:
-        True if a row was deleted, False otherwise
+        True if a row was archived, False otherwise
     """
     # Check ownership first
     row = query_one(
@@ -702,24 +708,49 @@ def delete_job(job_id: str, user_id: int) -> bool:
         return False
 
     execute_write(
-        "DELETE FROM plan_analysis_jobs WHERE job_id = %s AND user_id = %s",
+        "UPDATE plan_analysis_jobs SET is_archived = TRUE WHERE job_id = %s AND user_id = %s",
         (job_id, user_id),
     )
-    logger.info(f"Deleted plan job {job_id} for user {user_id}")
+    logger.info(f"Soft-deleted (archived) plan job {job_id} for user {user_id}")
+    return True
+
+
+def restore_job(job_id: str, user_id: int) -> bool:
+    """Restore a soft-deleted job (undo within grace period).
+
+    Args:
+        job_id: Job identifier
+        user_id: Owner user ID
+
+    Returns:
+        True if restored, False otherwise
+    """
+    row = query_one(
+        "SELECT user_id, is_archived FROM plan_analysis_jobs WHERE job_id = %s",
+        (job_id,),
+    )
+    if not row or row[0] != user_id:
+        return False
+
+    execute_write(
+        "UPDATE plan_analysis_jobs SET is_archived = FALSE WHERE job_id = %s AND user_id = %s",
+        (job_id, user_id),
+    )
+    logger.info(f"Restored plan job {job_id} for user {user_id}")
     return True
 
 
 def bulk_delete_jobs(job_ids: list[str], user_id: int) -> int:
-    """Delete multiple jobs owned by user. Returns count deleted."""
+    """Soft-delete multiple jobs owned by user. Returns count archived."""
     if not job_ids:
         return 0
     # Build parameterized IN clause
     placeholders = ", ".join(["%s"] * len(job_ids))
     execute_write(
-        f"DELETE FROM plan_analysis_jobs WHERE user_id = %s AND job_id IN ({placeholders})",
+        f"UPDATE plan_analysis_jobs SET is_archived = TRUE WHERE user_id = %s AND job_id IN ({placeholders})",
         (user_id, *job_ids),
     )
-    logger.info("Bulk deleted %d jobs for user %d: %s", len(job_ids), user_id, job_ids)
+    logger.info("Soft-deleted %d jobs for user %d: %s", len(job_ids), user_id, job_ids)
     return len(job_ids)
 
 
@@ -854,76 +885,106 @@ def get_version_chain(version_group: str) -> list[dict]:
 
 
 def get_analysis_stats(user_id: int) -> dict:
-    """Compute stats for the analysis history stats banner.
+    """Compute actionable stats for the analysis history stats banner.
 
     Returns:
         {
-          "monthly_count":   int,   # analyses submitted this calendar month
-          "avg_processing_s": float | None,  # avg seconds from started_at → completed_at
-          "projects_tracked": int,  # distinct version_groups (or distinct addresses)
+          "awaiting_resubmittal": int,  # projects with unresolved issues
+          "new_issues":          int,  # new annotations found in latest scans
+          "last_scan_at":        datetime | None,  # most recent completed job
         }
     """
     try:
+        # Awaiting resubmittal: completed jobs that have comparison_json
+        # with summary.new > 0 or summary.resolved < total non-unchanged
+        # Simplified: count version groups where the latest comparison has new > 0
         if BACKEND == "postgres":
-            # Monthly count
-            row_m = query_one(
-                "SELECT COUNT(*) FROM plan_analysis_jobs "
-                "WHERE user_id = %s "
-                "AND created_at >= date_trunc('month', NOW())",
+            row_resub = query_one(
+                "SELECT COUNT(DISTINCT COALESCE(version_group, job_id)) "
+                "FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND is_archived = FALSE "
+                "AND comparison_json IS NOT NULL "
+                "AND comparison_json::text LIKE %s",
+                (user_id, '%"new": %'),
+            )
+            # Count total new issues across all latest comparisons
+            row_new = query_one(
+                "SELECT comparison_json FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND is_archived = FALSE "
+                "AND comparison_json IS NOT NULL "
+                "ORDER BY completed_at DESC LIMIT 20",
                 (user_id,),
             )
-            # Avg processing time (seconds)
-            row_avg = query_one(
-                "SELECT AVG(EXTRACT(EPOCH FROM (completed_at - started_at))) "
-                "FROM plan_analysis_jobs "
-                "WHERE user_id = %s AND status = 'completed' "
-                "AND started_at IS NOT NULL AND completed_at IS NOT NULL",
-                (user_id,),
-            )
-            # Projects tracked — distinct version_groups (fall back to distinct addresses)
-            row_p = query_one(
-                "SELECT COUNT(DISTINCT COALESCE(version_group, property_address, filename)) "
-                "FROM plan_analysis_jobs "
-                "WHERE user_id = %s AND is_archived = FALSE",
+            # Last scan
+            row_last = query_one(
+                "SELECT completed_at FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND status = 'completed' AND is_archived = FALSE "
+                "ORDER BY completed_at DESC LIMIT 1",
                 (user_id,),
             )
         else:
-            # DuckDB
-            row_m = query_one(
-                "SELECT COUNT(*) FROM plan_analysis_jobs "
-                "WHERE user_id = %s "
-                "AND created_at >= date_trunc('month', CURRENT_TIMESTAMP)",
+            row_resub = query_one(
+                "SELECT COUNT(DISTINCT COALESCE(version_group, job_id)) "
+                "FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND is_archived = FALSE "
+                "AND comparison_json IS NOT NULL",
                 (user_id,),
             )
-            row_avg = query_one(
-                "SELECT AVG(EPOCH(completed_at) - EPOCH(started_at)) "
-                "FROM plan_analysis_jobs "
-                "WHERE user_id = %s AND status = 'completed' "
-                "AND started_at IS NOT NULL AND completed_at IS NOT NULL",
-                (user_id,),
-            )
-            row_p = query_one(
-                "SELECT COUNT(DISTINCT COALESCE(version_group, property_address, filename)) "
-                "FROM plan_analysis_jobs "
-                "WHERE user_id = %s AND is_archived = FALSE",
+            row_new = None
+            row_last = query_one(
+                "SELECT completed_at FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND status = 'completed' AND is_archived = FALSE "
+                "ORDER BY completed_at DESC LIMIT 1",
                 (user_id,),
             )
 
-        monthly_count = int(row_m[0]) if (row_m and row_m[0] is not None) else 0
-        avg_s = float(row_avg[0]) if (row_avg and row_avg[0] is not None) else None
-        projects = int(row_p[0]) if (row_p and row_p[0] is not None) else 0
+        # Count new issues from comparison JSONs
+        new_issues = 0
+        awaiting = 0
+        try:
+            if BACKEND == "postgres":
+                rows_cmp = query(
+                    "SELECT comparison_json FROM plan_analysis_jobs "
+                    "WHERE user_id = %s AND is_archived = FALSE "
+                    "AND comparison_json IS NOT NULL "
+                    "AND status = 'completed' "
+                    "ORDER BY completed_at DESC LIMIT 50",
+                    (user_id,),
+                )
+                seen_groups = set()
+                for r in rows_cmp:
+                    raw = r[0]
+                    try:
+                        cmp = json.loads(raw) if isinstance(raw, str) else raw
+                        summary = cmp.get("summary", {})
+                        n = summary.get("new", 0)
+                        if n > 0:
+                            new_issues += n
+                            # Count unique projects awaiting resubmittal
+                            job_b_id = cmp.get("job_b_id", "")
+                            if job_b_id not in seen_groups:
+                                seen_groups.add(job_b_id)
+                                awaiting += 1
+                    except Exception:
+                        pass
+            else:
+                awaiting = int(row_resub[0]) if (row_resub and row_resub[0]) else 0
+        except Exception:
+            awaiting = int(row_resub[0]) if (row_resub and row_resub[0]) else 0
+
+        last_scan = row_last[0] if (row_last and row_last[0]) else None
 
         return {
-            "monthly_count": monthly_count,
-            "avg_processing_s": avg_s,
-            "projects_tracked": projects,
+            "awaiting_resubmittal": awaiting,
+            "new_issues": new_issues,
+            "last_scan_at": last_scan,
         }
     except Exception:
         logger.debug("get_analysis_stats failed for user %d", user_id, exc_info=True)
         return {
-            "monthly_count": 0,
-            "avg_processing_s": None,
-            "projects_tracked": 0,
+            "awaiting_resubmittal": 0,
+            "new_issues": 0,
+            "last_scan_at": None,
         }
 
 

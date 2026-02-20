@@ -850,6 +850,22 @@
                 <input type="hidden" name="quick_check" id="uf-quick-check" value="on">
                 <input type="hidden" name="analysis_mode" id="uf-analysis-mode" value="sample">
 
+                <!-- Address + Permit Number (visible by default) -->
+                <div class="uf-full">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label for="uf-address">Property Address</label>
+                            <input type="text" id="uf-address" name="property_address"
+                                   placeholder="e.g., 123 Main St">
+                        </div>
+                        <div>
+                            <label for="uf-permit-num">Permit Number</label>
+                            <input type="text" id="uf-permit-num" name="permit_number"
+                                   placeholder="e.g., 202401015678">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- More options toggle -->
                 <div class="uf-full">
                     <button type="button" class="uf-options-toggle" id="uf-options-toggle" onclick="ufToggleOptions()">
@@ -878,19 +894,6 @@
                                     <option value="demolition">Demolition</option>
                                     <option value="additions">Additions</option>
                                 </select>
-                            </div>
-
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                <div>
-                                    <label for="uf-address">Property Address</label>
-                                    <input type="text" id="uf-address" name="property_address"
-                                           placeholder="e.g., 123 Main St">
-                                </div>
-                                <div>
-                                    <label for="uf-permit-num">Permit Number</label>
-                                    <input type="text" id="uf-permit-num" name="permit_number"
-                                           placeholder="e.g., 202401015678">
-                                </div>
                             </div>
 
                             <div>
@@ -966,26 +969,31 @@
         </div>
 
         {% if jobs %}
-        <!-- Phase F1: Stats Banner -->
+        <!-- Stats Banner -->
         <div class="stats-banner">
+            {% if stats.awaiting_resubmittal > 0 %}
             <div class="stat-item">
-                <span class="stat-value">{{ stats.monthly_count }}</span>
-                <span>anal{{ 'yses' if stats.monthly_count != 1 else 'ysis' }} this month</span>
+                <span class="stat-value" style="color:var(--warning);">{{ stats.awaiting_resubmittal }}</span>
+                <span>awaiting resubmittal</span>
             </div>
-            {% if stats.avg_processing_s is not none %}
             <span class="stats-sep">|</span>
-            <div class="stat-item">
-                <span>Avg processing:</span>
-                <span class="stat-value">
-                    {% set s = stats.avg_processing_s | int %}
-                    {% if s >= 60 %}{{ (s // 60) }}m {{ (s % 60) }}s{% else %}{{ s }}s{% endif %}
-                </span>
-            </div>
             {% endif %}
-            <span class="stats-sep">|</span>
+            {% if stats.new_issues > 0 %}
             <div class="stat-item">
-                <span class="stat-value">{{ stats.projects_tracked }}</span>
-                <span>project{{ 's' if stats.projects_tracked != 1 else '' }} tracked</span>
+                <span class="stat-value" style="color:var(--error);">{{ stats.new_issues }}</span>
+                <span>new issue{{ 's' if stats.new_issues != 1 else '' }} since last scan</span>
+            </div>
+            <span class="stats-sep">|</span>
+            {% endif %}
+            <div class="stat-item">
+                <span>Last scan:</span>
+                <span class="stat-value">
+                    {% if stats.last_scan_at %}
+                    {{ (stats.last_scan_at|to_pst).strftime('%b %d at %I:%M %p PT') }}
+                    {% else %}
+                    —
+                    {% endif %}
+                </span>
             </div>
         </div>
 
@@ -996,6 +1004,7 @@
             <button class="filter-chip" data-filter="status" data-value="completed" onclick="toggleFilter(this)" title="Analyses that finished successfully">Completed</button>
             <button class="filter-chip" data-filter="status" data-value="processing" onclick="toggleFilter(this)" title="Analyses currently running">Processing</button>
             <button class="filter-chip" data-filter="status" data-value="failed" onclick="toggleFilter(this)" title="Analyses that encountered errors">Failed</button>
+            <button class="filter-chip" data-filter="status" data-value="stale" onclick="toggleFilter(this)" title="Analyses that timed out during processing">Stale</button>
             <div class="filter-divider"></div>
             <span class="filter-label">Mode:</span>
             <button class="filter-chip active" data-filter="mode" data-value="all" onclick="toggleFilter(this)" title="Show all analysis types">All</button>
@@ -1032,7 +1041,7 @@
                         {% elif job.analysis_mode == 'sample' %}
                         <span class="mode-badge mode-sample">AI Analysis</span>
                         {% endif %}
-                        <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+                        <span class="status-badge status-{{ job.status }}">{{ job.status|title }}</span>
                     </div>
                 </div>
                 <div class="card-meta">
@@ -1091,12 +1100,21 @@
                             In progress...
                         </a>
                         {% elif job.status == 'failed' or job.status == 'stale' %}
-                        <span style="color:var(--text-muted);font-size:0.85rem;">&mdash;</span>
+                        <a href="#upload" class="view-link" style="color:var(--warning);"
+                           onclick="retryAnalysis('{{ job.job_id }}'); return false;"
+                           title="Re-analyze with same settings">Retry →</a>
                         {% else %}
                         <span style="color:var(--text-muted);font-size:0.85rem;">&mdash;</span>
                         {% endif %}
                     </div>
-                    <div style="display:flex; gap:6px;">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        {% if job.status == 'completed' and job.parent_job_id %}
+                        <a href="/account/analyses/compare?a={{ job.parent_job_id }}&b={{ job.job_id }}"
+                           style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;border:1px solid var(--border);padding:3px 8px;border-radius:5px;"
+                           title="Compare with previous version">
+                            Compare ↔
+                        </a>
+                        {% endif %}
                         <button class="action-link action-delete"
                                 hx-delete="/api/plan-jobs/{{ job.job_id }}"
                                 hx-target="#job-card-{{ job.job_id }}"
@@ -1143,6 +1161,7 @@
     <!-- Undo toast -->
     <div class="undo-toast" id="undo-toast">
         <span id="undo-message">Deleted 0 analyses</span>
+        <button id="undo-btn" onclick="undoDelete()">Undo</button>
     </div>
 
     <script>
@@ -1256,6 +1275,26 @@
     // --- Client-side filtering for analysis history ---
     var activeFilters = { status: 'all', mode: 'all' };
 
+    // Restore filter state from URL params on load
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var s = params.get('status');
+        var m = params.get('mode');
+        if (s && s !== 'all') {
+            activeFilters.status = s;
+            document.querySelectorAll('.filter-chip[data-filter="status"]').forEach(function(c) {
+                c.classList.toggle('active', c.dataset.value === s);
+            });
+        }
+        if (m && m !== 'all') {
+            activeFilters.mode = m;
+            document.querySelectorAll('.filter-chip[data-filter="mode"]').forEach(function(c) {
+                c.classList.toggle('active', c.dataset.value === m);
+            });
+        }
+        if (s || m) applyFilters();
+    })();
+
     function toggleFilter(chip) {
         var filterType = chip.dataset.filter;
         var value = chip.dataset.value;
@@ -1267,6 +1306,21 @@
         chip.classList.add('active');
 
         activeFilters[filterType] = value;
+
+        // Persist filter state in URL params
+        var url = new URL(window.location);
+        if (activeFilters.status !== 'all') {
+            url.searchParams.set('status', activeFilters.status);
+        } else {
+            url.searchParams.delete('status');
+        }
+        if (activeFilters.mode !== 'all') {
+            url.searchParams.set('mode', activeFilters.mode);
+        } else {
+            url.searchParams.delete('mode');
+        }
+        history.replaceState(null, '', url);
+
         applyFilters();
     }
 
@@ -1406,15 +1460,99 @@
             selected.forEach(function(c) { c.remove(); });
             // Exit select mode
             toggleSelectMode();
-            // Show undo toast (informational — no real undo since it's a permanent delete)
+            // Store for undo
+            window._lastDeletedIds = data.job_ids || jobIds;
+            window._undoTimer = setTimeout(function() {
+                var toast = document.getElementById('undo-toast');
+                toast.classList.remove('visible');
+                window._lastDeletedIds = null;
+            }, 30000);
+            // Show undo toast
             var toast = document.getElementById('undo-toast');
             var msg = document.getElementById('undo-message');
             msg.textContent = 'Deleted ' + (data.deleted || 0) + ' analyses';
             toast.classList.add('visible');
-            setTimeout(function() { toast.classList.remove('visible'); }, 4000);
         })
         .catch(function(err) {
             alert('Failed to delete: ' + err.message);
+        });
+    }
+
+    // --- Undo delete (#14) ---
+    function undoDelete() {
+        var ids = window._lastDeletedIds;
+        if (!ids || ids.length === 0) return;
+        clearTimeout(window._undoTimer);
+
+        // Restore each job
+        Promise.all(ids.map(function(id) {
+            return fetch('/api/plan-jobs/' + id + '/restore', { method: 'POST' });
+        })).then(function() {
+            var toast = document.getElementById('undo-toast');
+            toast.classList.remove('visible');
+            window._lastDeletedIds = null;
+            // Reload to show restored cards
+            location.reload();
+        });
+    }
+
+    // Single delete undo support
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.detail.verb === 'delete' && evt.detail.successful) {
+            var path = evt.detail.pathInfo.requestPath;
+            var match = path.match(/\/api\/plan-jobs\/([^/]+)$/);
+            if (match) {
+                var jobId = match[1];
+                window._lastDeletedIds = [jobId];
+                var toast = document.getElementById('undo-toast');
+                var msg = document.getElementById('undo-message');
+                msg.textContent = 'Analysis deleted';
+                toast.classList.add('visible');
+                clearTimeout(window._undoTimer);
+                window._undoTimer = setTimeout(function() {
+                    toast.classList.remove('visible');
+                    window._lastDeletedIds = null;
+                }, 30000);
+            }
+        }
+    });
+
+    // --- Retry failed analysis (#3) ---
+    function retryAnalysis(jobId) {
+        fetch('/api/plan-jobs/' + jobId + '/prefill')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            // Open upload section
+            var section = document.getElementById('upload-section');
+            if (!section.classList.contains('open')) toggleUploadSection();
+            // Pre-fill fields
+            var addr = document.getElementById('uf-address');
+            var permit = document.getElementById('uf-permit-num');
+            var stage = document.getElementById('uf-stage');
+            var desc = document.getElementById('uf-project-desc');
+            var ptype = document.getElementById('uf-permit-type');
+            if (addr && data.property_address) addr.value = data.property_address;
+            if (permit && data.permit_number) permit.value = data.permit_number;
+            if (stage && data.submission_stage) stage.value = data.submission_stage;
+            if (desc && data.project_description) desc.value = data.project_description;
+            if (ptype && data.permit_type) ptype.value = data.permit_type;
+            // Open more options if we have data to show
+            if (data.property_address || data.permit_number || data.submission_stage || data.project_description) {
+                var optBody = document.getElementById('uf-options-body');
+                var optToggle = document.getElementById('uf-options-toggle');
+                if (optBody && !optBody.classList.contains('open')) {
+                    optBody.classList.add('open');
+                    if (optToggle) optToggle.classList.add('open');
+                }
+            }
+            // Scroll to upload
+            setTimeout(function() {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        })
+        .catch(function() {
+            // Fallback: just open upload section
+            toggleUploadSection();
         });
     }
 
