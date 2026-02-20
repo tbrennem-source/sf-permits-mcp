@@ -1,0 +1,376 @@
+{#
+  analysis_grouping.html — CSS + HTML macros for project-grouped view.
+
+  Usage in analysis_history.html:
+    {% import 'fragments/analysis_grouping.html' as grouping %}
+
+    In <head>:
+      {{ grouping.grouping_css() }}
+      {{ grouping.grouping_js() }}
+
+    After filter-bar (inside {% if jobs %}):
+      {{ grouping.view_options_bar(group_mode, sort_by, search_q) }}
+
+    Where the grid goes:
+      {% if group_mode == 'project' %}
+        {{ grouping.grouped_view(groups) }}
+      {% else %}
+        ... existing flat grid ...
+        (add {{ grouping.version_badge_flat(job) }} in each card)
+      {% endif %}
+
+  Template variables expected:
+    - group_mode: str ("project" or "")
+    - groups: list of dicts from group_jobs_by_project()
+    - jobs: list of job dicts (flat)
+    - sort_by: str
+    - search_q: str
+#}
+
+
+{# ── CSS for grouping UI ── #}
+{% macro grouping_css() %}
+<style>
+    /* View options bar */
+    .ah-view-options {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        align-items: center;
+    }
+
+    .ah-view-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-right: 4px;
+    }
+
+    .ah-view-toggle {
+        padding: 5px 14px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        background: none;
+        color: var(--text-muted);
+        font-family: inherit;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+
+    .ah-view-toggle:hover {
+        border-color: var(--accent);
+        color: var(--text);
+    }
+
+    .ah-view-toggle.ah-active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+
+    /* Version badge on flat-view cards */
+    .ah-version-badge {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    /* ── Grouped (accordion) view ── */
+    .ah-grouped-view {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ah-project-group {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+    }
+
+    .ah-project-group:hover {
+        border-color: rgba(79, 143, 247, 0.4);
+    }
+
+    .ah-group-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        cursor: pointer;
+        user-select: none;
+        gap: 12px;
+        transition: background 0.15s;
+    }
+
+    .ah-group-header:hover {
+        background: var(--surface-2);
+    }
+
+    .ah-group-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .ah-group-chevron {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        transition: transform 0.2s;
+        flex-shrink: 0;
+        width: 16px;
+        text-align: center;
+    }
+
+    .ah-project-group.ah-expanded .ah-group-chevron {
+        transform: rotate(90deg);
+    }
+
+    .ah-group-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    .ah-group-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        border-radius: 11px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        flex-shrink: 0;
+    }
+
+    .ah-group-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    .ah-group-date-range {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .ah-group-body {
+        display: none;
+        padding: 0 20px 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .ah-project-group.ah-expanded .ah-group-body {
+        display: block;
+    }
+
+    .ah-group-jobs {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 12px;
+        padding-top: 16px;
+    }
+
+    /* Version label inside grouped cards */
+    .ah-version-label {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--accent);
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+        .ah-group-jobs {
+            grid-template-columns: 1fr;
+        }
+        .ah-group-date-range {
+            display: none;
+        }
+    }
+</style>
+{% endmacro %}
+
+
+{# ── VIEW OPTIONS BAR ──
+   Insert after the filter-bar div.
+#}
+{% macro view_options_bar(group_mode, sort_by, search_q) %}
+<div class="ah-view-options" id="view-options-bar">
+    <span class="ah-view-label">View:</span>
+    <a class="ah-view-toggle {{ '' if group_mode == 'project' else 'ah-active' }}"
+       href="/account/analyses?sort={{ sort_by }}{{ '&q=' ~ search_q if search_q else '' }}">
+        Flat
+    </a>
+    <a class="ah-view-toggle {{ 'ah-active' if group_mode == 'project' else '' }}"
+       href="/account/analyses?group=project&sort={{ sort_by }}{{ '&q=' ~ search_q if search_q else '' }}">
+        Group by Project
+    </a>
+</div>
+{% endmacro %}
+
+
+{# ── GROUPED VIEW (accordion) ── #}
+{% macro grouped_view(groups) %}
+<div class="ah-grouped-view" id="grouped-view">
+    {% for group in groups %}
+    <div class="ah-project-group" id="project-group-{{ loop.index }}">
+        <div class="ah-group-header" onclick="toggleProjectGroup(this)">
+            <div class="ah-group-left">
+                <span class="ah-group-chevron">&#9654;</span>
+                <span class="ah-group-name" title="{{ group.display_name }}">{{ group.display_name }}</span>
+                <span class="ah-group-count">{{ group.count }}</span>
+            </div>
+            <div class="ah-group-right">
+                {% if group.date_range %}
+                <span class="ah-group-date-range">{{ group.date_range }}</span>
+                {% endif %}
+                <span class="status-badge status-{{ group.latest_status }}">{{ group.latest_status }}</span>
+            </div>
+        </div>
+        <div class="ah-group-body">
+            <div class="ah-group-jobs">
+                {% for job in group.jobs %}
+                <div class="analysis-card" id="job-card-{{ job.job_id }}"
+                     data-status="{{ job.status }}"
+                     data-mode="{{ 'quick' if job.quick_check else (job.analysis_mode or 'sample') }}">
+                    <div class="card-header">
+                        <span class="card-filename" title="{{ job.filename }}">{{ job.filename }}</span>
+                        <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+                            {% if group.count > 1 %}
+                            <span class="ah-version-label">v{{ job._version_num }}</span>
+                            {% endif %}
+                            {% if job.quick_check %}
+                            <span class="mode-badge mode-quick">Quick</span>
+                            {% elif job.analysis_mode == 'compliance' %}
+                            <span class="mode-badge mode-compliance">Compliance</span>
+                            {% elif job.analysis_mode == 'full' %}
+                            <span class="mode-badge mode-full">Full</span>
+                            {% elif job.analysis_mode == 'sample' %}
+                            <span class="mode-badge mode-sample">AI Analysis</span>
+                            {% endif %}
+                            <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
+                        </div>
+                    </div>
+                    <div class="card-meta">
+                        <span>
+                            {{ "%.1f"|format(job.file_size_mb) }} MB
+                            {% if job.pages_analyzed %}
+                            &middot; {{ job.pages_analyzed }} pages analyzed
+                            {% endif %}
+                        </span>
+                        <span>{{ job.created_at.strftime('%b %d, %Y %I:%M %p') if job.created_at else '' }}</span>
+                    </div>
+                    {% if job.property_address or job.permit_number %}
+                    <div class="card-details">
+                        {% if job.property_address %}<span>{{ job.property_address }}</span>{% endif %}
+                        {% if job.permit_number %}<span>Permit #{{ job.permit_number }}</span>{% endif %}
+                    </div>
+                    {% endif %}
+                    {% if job.completed_at and job.created_at %}
+                    <div class="duration-info">
+                        {% set duration = (job.completed_at - job.created_at).total_seconds() %}
+                        {% if duration < 60 %}
+                        Completed in {{ "%.0f"|format(duration) }}s
+                        {% elif duration < 3600 %}
+                        Completed in {{ "%.1f"|format(duration / 60) }} min
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if job.status == 'failed' and job.error_message %}
+                    <div style="font-size:0.8rem; color:var(--error); margin-top:6px; padding:6px 8px; background:rgba(248,113,113,0.08); border-radius:6px;">
+                        {{ job.error_message[:120] }}{% if job.error_message|length > 120 %}...{% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="card-actions">
+                        <div>
+                            {% if job.status == 'completed' and job.session_id %}
+                            <a href="/plan-jobs/{{ job.job_id }}/results" class="view-link">View Results &rarr;</a>
+                            {% elif job.status == 'completed' and job.quick_check %}
+                            <a href="/plan-jobs/{{ job.job_id }}/results" class="view-link">View Report &rarr;</a>
+                            {% elif job.status == 'processing' %}
+                            <a href="/plan-jobs/{{ job.job_id }}/status" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">
+                                In progress...
+                            </a>
+                            {% elif job.status == 'failed' or job.status == 'stale' %}
+                            <span style="color:var(--text-muted);font-size:0.85rem;">&mdash;</span>
+                            {% else %}
+                            <span style="color:var(--text-muted);font-size:0.85rem;">&mdash;</span>
+                            {% endif %}
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="action-link action-delete"
+                                    hx-delete="/api/plan-jobs/{{ job.job_id }}"
+                                    hx-target="#job-card-{{ job.job_id }}"
+                                    hx-swap="outerHTML"
+                                    hx-confirm="Delete this analysis? This cannot be undone."
+                                    title="Delete this analysis">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+
+{# ── VERSION BADGE for flat view ──
+   Use inside each card: {{ grouping.version_badge_flat(job) }}
+#}
+{% macro version_badge_flat(job) %}
+{% if job._version_total is defined and job._version_total > 1 %}
+<span class="ah-version-badge" title="Part of a project with {{ job._version_total }} scans">
+    {{ job._version_num }} of {{ job._version_total }}
+</span>
+{% endif %}
+{% endmacro %}
+
+
+{# ── JS for accordion toggle ── #}
+{% macro grouping_js() %}
+<script>
+function toggleProjectGroup(header) {
+    const group = header.closest('.ah-project-group');
+    group.classList.toggle('ah-expanded');
+}
+
+// Auto-expand single-member groups on page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.ah-project-group').forEach(function(group) {
+        const count = parseInt(group.querySelector('.ah-group-count')?.textContent || '0', 10);
+        if (count <= 1) {
+            group.classList.add('ah-expanded');
+        }
+    });
+});
+</script>
+{% endmacro %}

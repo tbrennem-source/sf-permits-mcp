@@ -1,5 +1,40 @@
 # Changelog
 
+## Session 40 — Analysis History Page: UX Overhaul Phases A-C (2026-02-20)
+
+Major UX improvements to the Plan Analysis History page (`/account/analyses`), implementing Phases A through C of the three-role-reviewed plan.
+
+### Phase A: Inline Upload + Duration Fix
+- **Inline upload form**: "+ New Analysis" button now expands a collapsible upload form directly on the history page (no more navigation to home page). Includes drag-and-drop, all 4 analysis modes (Quick/Compliance/AI/Full), and "More options" for address/permit/stage fields.
+- **Duration fix**: Cards now show actual processing time (`completed_at - started_at`) instead of queue+processing time (`completed_at - created_at`), with fallback for older jobs.
+- **Live elapsed timer**: Processing jobs show a live-updating timer ("Processing for 42s...") using `setInterval`.
+- **`started_at` in queries**: Added `started_at` to `get_user_jobs()` and `search_jobs()` SELECT statements.
+
+### Phase B: Bulk Delete + Sort Controls
+- **Bulk delete endpoint**: `POST /api/plan-jobs/bulk-delete` — accepts `job_ids` array, enforces ownership, caps at 100 items.
+- **`bulk_delete_jobs()`**: New function in `plan_jobs.py` with parameterized IN clause and audit logging.
+- **Sort controls**: 5 sort options (Newest, Oldest, Address A-Z, Filename A-Z, Status) via `order_by` parameter on `get_user_jobs()`. SQL injection prevented via allowlist mapping.
+- **View options bar**: Sort dropdown and Group toggle rendered below filter chips (via grouping macros).
+
+### Phase C: Project Grouping + Accordion View
+- **Address normalization**: `_normalize_address_for_grouping()` strips unit/apt, then street type suffixes (ST/AVE/BLVD/etc). "1953 Webster St" and "1953 WEBSTER STREET" correctly group.
+- **Filename normalization**: `_normalize_filename_for_grouping()` strips .pdf, version suffixes (-v2, _rev3, _final), date suffixes, copy markers.
+- **`group_jobs_by_project()`**: Groups jobs by normalized address (preferred) or filename. Computes version numbers, date ranges, latest status per group.
+- **Accordion grouped view**: New `fragments/analysis_grouping.html` with Jinja2 macros for grouped layout — project rows with expand/collapse, version badges (v1, v2...), date range display.
+- **Flat view version badges**: In flat view, cards show "1 of 4 scans" badge when part of a multi-scan project.
+- **"Group by Project" toggle**: Persists via URL query param (`?group=project`).
+
+### Files Changed
+| File | Changes |
+|------|---------|
+| `web/app.py` | +124 lines: normalization helpers, `group_jobs_by_project()`, bulk-delete endpoint, sort/group params in route |
+| `web/plan_jobs.py` | +45 lines: `bulk_delete_jobs()`, `order_by` param with 5 sort options, `started_at` in SELECT |
+| `web/templates/analysis_history.html` | +618 lines: inline upload form, duration fix, live timer, view options bar, group_mode conditional, version badges |
+| `web/templates/fragments/analysis_grouping.html` | NEW: Jinja2 macros for grouped view CSS, HTML, JS |
+
+### Tests
+1,103 passed, 1 skipped (pre-existing `src.plan_images` module issue in test_plan_images.py/test_plan_ui.py).
+
 ## Session 38d — Regulatory Watch Fix + Severity Busy-Site Dismiss + Demo Seeding (2026-02-20)
 
 ### Regulatory Watch Tab Fix — `web/templates/admin_regulatory_watch.html`, `web/templates/admin_ops.html`
@@ -13,10 +48,6 @@
 
 ### Regulatory Watch Demo Seeding — `web/app.py`
 - New `/cron/seed-regulatory` endpoint (CRON_SECRET auth) accepts JSON array of watch items for bulk creation.
-- Seeded 3 demo items on prod for Amy meeting:
-  1. **Permit Expiration Timeline Revision** (BOS File 250811) — High impact, 3yr→5yr extension
-  2. **DBI Bulletin: Updated EPR Requirements** (AB-009) — Moderate, seismic retrofit checklist
-  3. **ADU Streamlining Amendment** (Planning Code 207(c)(4)) — Moderate, removes discretionary review
 
 ### RAG Chunk Deduplication Fix — `.github/workflows/nightly-cron.yml`, `web/app.py`
 - **Bug**: knowledge_chunks grew 9x (1,012 → 9,011) because nightly workflow ran `tier=all&clear=0`, appending all chunks without clearing.
@@ -28,6 +59,54 @@
 
 ### Tests
 - 1,103 passing, 1 skipped
+
+## Session 39 — Plan Analysis: Multi-Role Evaluation Sprint (2026-02-20)
+
+9-role professional evaluation of analyze_plans output using real 12-page plan set (1953 Webster St). Fixed trust-breaking false positives and restructured report output for professional workflows.
+
+### P0-1: Multi-Address False Positive Fix — `src/vision/epr_checks.py`, `web/plan_worker.py`
+- **Bug**: EPR-017 reported FAIL with 9 different addresses — all were reference stamps from the firm's template, not actual address mismatches.
+- **Fix**: `_assess_consistency()` now accepts `known_address` parameter. When user provides property address at upload, matching addresses downgrade from FAIL → INFO with explanation.
+- Threaded `property_address` through: `web/plan_worker.py` → `analyze_plans()` → `run_vision_epr_checks()` → `_assess_consistency()`
+
+### P0-2: Multi-Firm False Positive Fix — `src/vision/epr_checks.py`
+- **Bug**: EPR-017 reported multiple firms ("EDG Collective", "Erik Schlicht Design") — OCR variants of the same firm.
+- **Fix**: Added `_normalize_firm()` (strip suffixes: Inc, LLC, Architects, Design, Collective, Studio) and `_firms_match()` (token overlap scoring — 2+ shared words = same firm).
+
+### P0-3: Categorized Comment Summary — `src/tools/analyze_plans.py`
+- Replaced flat by-page comment dump with structured categorization
+- 10 categories: Fire Safety/Rating, Property Line/Setback, Missing Sheets, Insulation/Energy, Natural Light/Ventilation, Mechanical/BBQ, Structural, Electrical/Lighting, Drawing Corrections, General
+- Each category has priority level (must_fix / review / informational) and discipline routing
+- Summary table at top with counts by category → comments grouped by category (not page) → collapsible by-page view in `<details>` tag
+- Added `_categorize_comments()` and `_pair_comments_with_responses()` (page+position proximity matching)
+
+### P0-4: Submission Stage Label — `web/templates/index.html`, `web/app.py`, `web/plan_jobs.py`, `web/plan_worker.py`, `src/tools/analyze_plans.py`
+- New "Submission Stage" dropdown in upload form: Preliminary / Permit Application / Resubmittal
+- Preliminary mode downgrades EPR-012, EPR-018, EPR-019 from FAIL/WARN → INFO with banner note
+- `submission_stage` column added to `plan_analysis_jobs` table (auto-migrated)
+
+### P0-5: Missing Sheet Comparison — `src/vision/epr_checks.py`, `src/tools/analyze_plans.py`
+- EPR-011 now stores `sheet_index_entries` in `page_details` on FAIL
+- New "Sheet Completeness" section in report: cover index vs actual PDF comparison
+- Missing sheets highlighted with ❌, extra/unlisted sheets with ⚠️
+
+### P1-2: Plain-English Executive Summary — `src/tools/analyze_plans.py`
+- New "What This Means for Your Project" section after executive summary
+- Counts actionable items, separates formatting vs design issues
+- Timeline estimates, no acronyms, homeowner-friendly language
+
+### Tests
+- 1,103 passed, 1 skipped (pre-existing `plan_images` module error unchanged)
+- 79 analyze_plans + EPR-specific tests all pass
+
+### Files Changed (6 files, +522 / -24)
+- `src/tools/analyze_plans.py` — P0-3, P0-4, P0-5, P1-2
+- `src/vision/epr_checks.py` — P0-1, P0-2, P0-5
+- `web/app.py` — P0-4 (form field + DB migration)
+- `web/plan_jobs.py` — P0-4 (submission_stage in create/get)
+- `web/plan_worker.py` — P0-1, P0-4
+- `web/templates/index.html` — P0-4 (dropdown)
+>>>>>>> claude/zen-swanson
 
 ---
 

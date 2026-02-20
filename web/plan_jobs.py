@@ -33,6 +33,7 @@ def create_job(
     quick_check: bool = False,
     is_async: bool = False,
     analysis_mode: str = "sample",
+    submission_stage: str | None = None,
 ) -> str:
     """Create a new plan analysis job.
 
@@ -66,8 +67,8 @@ def create_job(
                     "(job_id, user_id, filename, file_size_mb, pdf_data, "
                     "property_address, permit_number, address_source, permit_source, "
                     "project_description, permit_type, is_addendum, quick_check, is_async, "
-                    "analysis_mode) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "analysis_mode, submission_stage) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         job_id,
                         user_id,
@@ -84,6 +85,7 @@ def create_job(
                         quick_check,
                         is_async,
                         analysis_mode,
+                        submission_stage,
                     ),
                 )
             conn.commit()
@@ -95,8 +97,8 @@ def create_job(
             "(job_id, user_id, filename, file_size_mb, pdf_data, "
             "property_address, permit_number, address_source, permit_source, "
             "project_description, permit_type, is_addendum, quick_check, is_async, "
-            "analysis_mode) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "analysis_mode, submission_stage) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 job_id,
                 user_id,
@@ -113,6 +115,7 @@ def create_job(
                 quick_check,
                 is_async,
                 analysis_mode,
+                submission_stage,
             ),
         )
 
@@ -137,7 +140,8 @@ def get_job(job_id: str) -> dict | None:
         "created_at, started_at, completed_at, email_sent, "
         "progress_stage, progress_detail, "
         "vision_usage_json, gallery_duration_ms, "
-        "analysis_mode, pages_analyzed "
+        "analysis_mode, pages_analyzed, "
+        "submission_stage "
         "FROM plan_analysis_jobs WHERE job_id = %s",
         (job_id,),
     )
@@ -172,6 +176,7 @@ def get_job(job_id: str) -> dict | None:
         "gallery_duration_ms": row[24],
         "analysis_mode": row[25],
         "pages_analyzed": row[26],
+        "submission_stage": row[27] if len(row) > 27 else None,
     }
 
 
@@ -215,24 +220,43 @@ def update_job_status(job_id: str, status: str, **fields) -> None:
     execute_write(sql, tuple(params))
 
 
-def get_user_jobs(user_id: int, limit: int = 20) -> list[dict]:
-    """Get recent jobs for a user, ordered by created_at desc.
+def get_user_jobs(user_id: int, limit: int = 20, order_by: str = "newest") -> list[dict]:
+    """Get recent jobs for a user with configurable sort order.
 
     Args:
         user_id: User identifier
         limit: Max results
+        order_by: Sort order — one of 'newest', 'oldest', 'address',
+                  'filename', 'status'. Defaults to 'newest'.
 
     Returns:
         List of job dicts (without pdf_data or report_md for efficiency)
     """
+    # Validate order_by against allowed values to prevent SQL injection
+    ORDER_CLAUSES = {
+        "newest": "ORDER BY created_at DESC",
+        "oldest": "ORDER BY created_at ASC",
+        "address": "ORDER BY property_address ASC NULLS LAST, created_at DESC",
+        "filename": "ORDER BY filename ASC, created_at DESC",
+        "status": (
+            "ORDER BY CASE WHEN status='failed' THEN 0 "
+            "WHEN status='stale' THEN 1 "
+            "WHEN status='processing' THEN 2 "
+            "WHEN status='pending' THEN 3 "
+            "WHEN status='completed' THEN 4 "
+            "ELSE 5 END, created_at DESC"
+        ),
+    }
+    order_clause = ORDER_CLAUSES.get(order_by, ORDER_CLAUSES["newest"])
+
     rows = query(
         "SELECT job_id, session_id, filename, file_size_mb, status, "
         "is_async, quick_check, property_address, permit_number, "
         "created_at, completed_at, error_message, "
-        "analysis_mode, pages_analyzed "
+        "analysis_mode, pages_analyzed, started_at "
         "FROM plan_analysis_jobs "
         "WHERE user_id = %s "
-        "ORDER BY created_at DESC "
+        f"{order_clause} "
         "LIMIT %s",
         (user_id, limit),
     )
@@ -252,6 +276,7 @@ def get_user_jobs(user_id: int, limit: int = 20) -> list[dict]:
             "error_message": r[11],
             "analysis_mode": r[12],
             "pages_analyzed": r[13],
+            "started_at": r[14],
         }
         for r in rows
     ]
@@ -273,7 +298,7 @@ def search_jobs(user_id: int, query_text: str, limit: int = 20) -> list[dict]:
         "SELECT job_id, session_id, filename, file_size_mb, status, "
         "is_async, quick_check, property_address, permit_number, "
         "created_at, completed_at, error_message, "
-        "analysis_mode, pages_analyzed "
+        "analysis_mode, pages_analyzed, started_at "
         "FROM plan_analysis_jobs "
         "WHERE user_id = %s "
         "AND (property_address ILIKE %s OR permit_number ILIKE %s OR filename ILIKE %s) "
@@ -297,6 +322,7 @@ def search_jobs(user_id: int, query_text: str, limit: int = 20) -> list[dict]:
             "error_message": r[11],
             "analysis_mode": r[12],
             "pages_analyzed": r[13],
+            "started_at": r[14],
         }
         for r in rows
     ]
@@ -500,6 +526,20 @@ def delete_job(job_id: str, user_id: int) -> bool:
     )
     logger.info(f"Deleted plan job {job_id} for user {user_id}")
     return True
+
+
+def bulk_delete_jobs(job_ids: list[str], user_id: int) -> int:
+    """Delete multiple jobs owned by user. Returns count deleted."""
+    if not job_ids:
+        return 0
+    # Build parameterized IN clause
+    placeholders = ", ".join(["%s"] * len(job_ids))
+    execute_write(
+        f"DELETE FROM plan_analysis_jobs WHERE user_id = %s AND job_id IN ({placeholders})",
+        (user_id, *job_ids),
+    )
+    logger.info("Bulk deleted %d jobs for user %d: %s", len(job_ids), user_id, job_ids)
+    return len(job_ids)
 
 
 def cancel_job(job_id: str, user_id: int) -> bool:

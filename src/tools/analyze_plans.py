@@ -189,6 +189,8 @@ async def analyze_plans(
     return_structured: bool = False,
     analyze_all_pages: bool = False,
     analysis_mode: str = "sample",
+    property_address: str | None = None,
+    submission_stage: str | None = None,
 ) -> str:
     """Analyze a PDF plan set with AI vision and EPR compliance checking.
 
@@ -205,6 +207,9 @@ async def analyze_plans(
         project_description: Optional project description for completeness assessment.
         permit_type: Optional permit type (e.g., 'alterations', 'new_construction').
         return_structured: If True, returns (markdown, page_extractions, page_annotations, vision_usage) tuple.
+        property_address: User-provided project address for EPR-017 false positive filtering.
+        submission_stage: One of 'preliminary', 'permit', 'resubmittal'. When 'preliminary',
+            stamp/signature checks are downgraded to INFO.
 
     Returns:
         Comprehensive markdown analysis report (str).
@@ -286,6 +291,7 @@ async def analyze_plans(
                     pdf_bytes, page_count,
                     analyze_all_pages=analyze_all_pages,
                     analysis_mode=analysis_mode,
+                    property_address=property_address,
                 )
             )
             logger.info(
@@ -355,6 +361,8 @@ async def analyze_plans(
         vision_usage=vision_usage,
         native_annotations=native_annotations,
         zoning_data=zoning_data,
+        page_annotations=page_annotations,
+        submission_stage=submission_stage,
     )
 
     if return_structured:
@@ -474,6 +482,166 @@ async def _get_strategic_recommendations(permit_type: str) -> str | None:
         return None
 
 
+# ---------------------------------------------------------------------------
+# Comment categorization for structured plan checker feedback
+# ---------------------------------------------------------------------------
+
+COMMENT_CATEGORIES: dict[str, dict] = {
+    "Fire Safety / Rating": {
+        "keywords": [
+            "fire", "rated", "rating", "1-hour", "1 hour", "one hour",
+            "fire-resistive", "fire rated", "705", "706", "707",
+            "separation distance", "ul assembly", "gypsum association",
+        ],
+        "priority": "must_fix",
+        "disciplines": ["architect", "structural_engineer"],
+    },
+    "Property Line / Setback": {
+        "keywords": [
+            "property line", "setback", "5 feet", "5'", "lot line",
+            "fire separation distance", "705.8", "measurement to property",
+        ],
+        "priority": "must_fix",
+        "disciplines": ["architect"],
+    },
+    "Missing Sheets / Documentation": {
+        "keywords": [
+            "include the green building", "include the pertinent",
+            "need to include", "add a", "provide", "submit",
+            "where is", "gs5", "gs-5", "energy inspection",
+        ],
+        "priority": "must_fix",
+        "disciplines": ["architect"],
+    },
+    "Insulation / Energy": {
+        "keywords": [
+            "insulation", "r-value", "r-15", "r-21", "r15", "r21",
+            "title 24", "t24", "energy", "thermal",
+        ],
+        "priority": "review",
+        "disciplines": ["t24_consultant", "architect"],
+    },
+    "Natural Light / Ventilation": {
+        "keywords": [
+            "natural light", "ventilation", "window area", "1206",
+            "daylight", "glazing", "ventilation calculation",
+        ],
+        "priority": "review",
+        "disciplines": ["architect", "mep_engineer"],
+    },
+    "Mechanical / BBQ / Outdoor": {
+        "keywords": [
+            "bbq", "barbecue", "outdoor cooking", "923", "mechanical",
+            "cmc", "exhaust", "duct", "hood",
+        ],
+        "priority": "review",
+        "disciplines": ["mep_engineer"],
+    },
+    "Structural": {
+        "keywords": [
+            "structural", "slab", "foundation", "footing", "shear",
+            "lateral", "seismic", "plywood", "waterproof",
+        ],
+        "priority": "review",
+        "disciplines": ["structural_engineer"],
+    },
+    "Electrical / Lighting": {
+        "keywords": [
+            "electrical", "lighting", "light fixture", "motion detector",
+            "astronomical", "daylight sensor", "timer",
+        ],
+        "priority": "review",
+        "disciplines": ["mep_engineer", "t24_consultant"],
+    },
+    "Drawing Corrections": {
+        "keywords": [
+            "show measurement", "show dimension", "label", "indicate",
+            "designate", "mention the thickness", "note on", "refer to",
+            "check with", "consolidate",
+        ],
+        "priority": "informational",
+        "disciplines": ["architect"],
+    },
+    "General / Code Compliance": {
+        "keywords": [],
+        "priority": "informational",
+        "disciplines": ["architect"],
+    },
+}
+
+PRIORITY_LABELS = {
+    "must_fix": "Must Fix",
+    "review": "Review",
+    "informational": "Informational",
+}
+
+
+def _categorize_comments(
+    native_annotations: list[dict],
+) -> dict[str, list[dict]]:
+    """Group plan checker comments into categories by keyword matching.
+
+    Returns dict mapping category name to list of annotation dicts.
+    Empty categories are omitted.
+    """
+    categorized: dict[str, list[dict]] = {cat: [] for cat in COMMENT_CATEGORIES}
+
+    for ann in native_annotations:
+        content_lower = ann.get("content", "").lower()
+        if not content_lower.strip():
+            continue
+        matched = False
+        for category, info in COMMENT_CATEGORIES.items():
+            if category == "General / Code Compliance":
+                continue  # catch-all, handled below
+            if any(kw in content_lower for kw in info["keywords"]):
+                categorized[category].append(ann)
+                matched = True
+                break
+        if not matched:
+            categorized["General / Code Compliance"].append(ann)
+
+    # Remove empty categories
+    return {cat: items for cat, items in categorized.items() if items}
+
+
+def _pair_comments_with_responses(
+    native_annotations: list[dict],
+    page_annotations: list[dict],
+) -> dict[int, dict]:
+    """Match native comments with AI reviewer responses by proximity.
+
+    Returns dict mapping (page_number, annotation_index) to the best
+    matching AI response annotation dict (or None).
+
+    Uses page_number match + spatial proximity.
+    """
+    ai_responses = [
+        a for a in page_annotations
+        if a.get("type") == "ai_reviewer_response"
+    ]
+    result: dict[int, dict | None] = {}
+
+    for i, nat in enumerate(native_annotations):
+        nat_page = nat.get("page_number", -1)
+        best_response = None
+        best_dist = float("inf")
+        for resp in ai_responses:
+            if resp.get("page_number") != nat_page:
+                continue
+            # Use x,y proximity if both have coordinates
+            nat_x = nat.get("x", 50)
+            nat_y = nat.get("y", 50)
+            resp_x = resp.get("x", 50)
+            resp_y = resp.get("y", 50)
+            dist = abs(resp_x - nat_x) + abs(resp_y - nat_y)
+            if dist < best_dist:
+                best_dist = dist
+                best_response = resp
+        result[i] = best_response
+    return result
+
+
 def _build_report(
     metadata_results: list[CheckResult],
     vision_results: list[CheckResult],
@@ -487,8 +655,27 @@ def _build_report(
     vision_usage: object = None,
     native_annotations: list[dict] | None = None,
     zoning_data: dict | None = None,
+    page_annotations: list[dict] | None = None,
+    submission_stage: str | None = None,
 ) -> str:
     """Build the comprehensive analysis report."""
+    # In preliminary mode, downgrade stamp/signature checks to INFO
+    PRELIMINARY_DOWNGRADE_EPRS = {"EPR-012", "EPR-018", "EPR-019"}
+    is_preliminary = submission_stage == "preliminary"
+    if is_preliminary:
+        for r in metadata_results:
+            if r.epr_id in PRELIMINARY_DOWNGRADE_EPRS and r.status in ("fail", "warn"):
+                r.status = "info"
+                r.detail = (
+                    f"[Preliminary set — informational only] {r.detail}"
+                )
+        for r in vision_results:
+            if r.epr_id in PRELIMINARY_DOWNGRADE_EPRS and r.status in ("fail", "warn"):
+                r.status = "info"
+                r.detail = (
+                    f"[Preliminary set — informational only] {r.detail}"
+                )
+
     all_results = metadata_results + vision_results
     lines: list[str] = []
 
@@ -497,6 +684,15 @@ def _build_report(
     lines.append(f"**File:** {filename}")
     lines.append(f"**Size:** {file_size_mb:.1f} MB")
     lines.append(f"**Pages:** {page_count}")
+    if submission_stage:
+        stage_labels = {
+            "preliminary": "Preliminary Plan Check",
+            "permit": "Permit Application",
+            "resubmittal": "Resubmittal",
+        }
+        lines.append(
+            f"**Submission Stage:** {stage_labels.get(submission_stage, submission_stage)}"
+        )
     if vision_results:
         lines.append("**AI Vision:** Enabled")
     else:
@@ -510,6 +706,14 @@ def _build_report(
         )
     if project_description:
         lines.append(f"**Project:** {project_description[:200]}")
+
+    # Preliminary mode banner
+    if is_preliminary:
+        lines.append(
+            "\n> **Preliminary Plan Check Mode** — Professional stamp, "
+            "signature, and DBI blank area checks are informational only. "
+            "These will be required for formal permit submission."
+        )
 
     # ------------------------------------------------------------------
     # Executive Summary
@@ -545,6 +749,80 @@ def _build_report(
             lines.append(f"| {status.upper()} | {counts[status]} |")
 
     # ------------------------------------------------------------------
+    # Plain-English Summary (P1-2: for homeowners and non-technical readers)
+    # ------------------------------------------------------------------
+    comment_count = len(native_annotations) if native_annotations else 0
+    if comment_count > 0 or fail_count > 0:
+        lines.append("\n### What This Means for Your Project\n")
+
+        # Categorize to count actionable items
+        categorized_for_summary = (
+            _categorize_comments(native_annotations) if native_annotations else {}
+        )
+        actionable = sum(
+            len(items) for cat, items in categorized_for_summary.items()
+            if COMMENT_CATEGORIES.get(cat, {}).get("priority") == "must_fix"
+        )
+        review_items = sum(
+            len(items) for cat, items in categorized_for_summary.items()
+            if COMMENT_CATEGORIES.get(cat, {}).get("priority") == "review"
+        )
+
+        if is_preliminary:
+            lines.append(
+                f"The plan checker left **{comment_count} comments** on your "
+                f"preliminary drawings."
+            )
+            if actionable > 0:
+                lines.append(
+                    f"Of these, **{actionable} require changes** before you "
+                    f"submit the formal permit application"
+                    + (f" and **{review_items} should be reviewed** with your "
+                       f"design team." if review_items > 0 else ".")
+                )
+        elif comment_count > 0:
+            lines.append(
+                f"The plan checker left **{comment_count} comments** that "
+                f"need to be addressed."
+            )
+            if actionable > 0:
+                lines.append(
+                    f"**{actionable} items must be fixed** before "
+                    f"resubmission."
+                )
+            if review_items > 0:
+                lines.append(
+                    f"**{review_items} items should be reviewed** with your "
+                    f"architect and consultants."
+                )
+            lines.append(
+                "\nAddressing plan check comments typically takes "
+                "**1–3 weeks** depending on the complexity of changes "
+                "and your architect's schedule."
+            )
+
+        if fail_count > 0:
+            formatting_fails = sum(
+                1 for r in all_results
+                if r.status == "fail"
+                and r.epr_id in {"EPR-007", "EPR-008", "EPR-011", "EPR-020", "EPR-021"}
+            )
+            design_fails = fail_count - formatting_fails
+            if formatting_fails > 0 and design_fails > 0:
+                lines.append(
+                    f"\nAdditionally, **{formatting_fails} PDF formatting "
+                    f"issue(s)** need fixing (your architect can handle "
+                    f"these quickly) and **{design_fails} design-related "
+                    f"issue(s)** need attention."
+                )
+            elif formatting_fails > 0:
+                lines.append(
+                    f"\nThere are also **{formatting_fails} PDF formatting "
+                    f"issue(s)** that your architect can fix quickly."
+                )
+        lines.append("")
+
+    # ------------------------------------------------------------------
     # Sheet Index (from vision extractions)
     # ------------------------------------------------------------------
     if page_extractions:
@@ -562,37 +840,156 @@ def _build_report(
             lines.append(f"| {pn} | {sn} | {name} | {addr} |")
 
     # ------------------------------------------------------------------
-    # Plan Checker Comments (native PDF annotations)
+    # Missing Sheets (P0-5: compare cover index vs found sheets)
+    # ------------------------------------------------------------------
+    cover_count_result = next(
+        (r for r in vision_results if r.epr_id == "EPR-011"), None
+    )
+    if cover_count_result and cover_count_result.page_details:
+        # Extract sheet index entries from page_details
+        index_line = next(
+            (p for p in cover_count_result.page_details if p.startswith("Sheet index:")),
+            None,
+        )
+        if index_line:
+            index_sheets = {
+                s.strip().upper()
+                for s in index_line.replace("Sheet index:", "").split(",")
+                if s.strip()
+            }
+            found_sheets = {
+                pe.get("sheet_number", "").strip().upper()
+                for pe in page_extractions
+                if pe.get("sheet_number")
+            }
+            missing = sorted(index_sheets - found_sheets)
+            extra = sorted(found_sheets - index_sheets)
+            if missing or extra:
+                lines.append("\n### Sheet Completeness\n")
+                if missing:
+                    lines.append(
+                        f"**{len(missing)} sheet(s) listed in the cover index "
+                        f"but not found in the PDF:**\n"
+                    )
+                    for s in missing:
+                        lines.append(f"- ❌ **{s}** — listed in index, not in PDF")
+                    lines.append("")
+                if extra:
+                    lines.append(
+                        f"**{len(extra)} sheet(s) found in PDF but not listed "
+                        f"in the cover index:**\n"
+                    )
+                    for s in extra:
+                        lines.append(f"- ⚠️ **{s}** — in PDF, not in index")
+                    lines.append("")
+
+    # ------------------------------------------------------------------
+    # Plan Checker Comments (native PDF annotations) — categorized
     # ------------------------------------------------------------------
     if native_annotations:
-        lines.append("\n## Plan Checker Comments\n")
-        lines.append(
-            "*Extracted from native PDF annotations (plan checker markup):*\n"
-        )
-        # Group by page number
-        by_page: dict[int, list[dict]] = {}
+        # Identify unique authors
+        authors = sorted({
+            ann.get("author", "Unknown")
+            for ann in native_annotations
+            if ann.get("author")
+        })
+        author_str = ", ".join(authors) if authors else "Unknown"
+        by_page_raw: dict[int, list[dict]] = {}
         for ann in native_annotations:
             pn = ann.get("page_number", 0)
-            by_page.setdefault(pn, []).append(ann)
+            by_page_raw.setdefault(pn, []).append(ann)
 
-        for pn in sorted(by_page.keys()):
-            page_anns = by_page[pn]
-            lines.append(f"### Page {pn + 1}\n")
+        lines.append("\n## Plan Checker Comments\n")
+        lines.append(
+            f"*{len(native_annotations)} comment(s) from {author_str} "
+            f"across {len(by_page_raw)} page(s).*\n"
+        )
+
+        # Categorize comments
+        categorized = _categorize_comments(native_annotations)
+
+        # Pair with AI responses if available
+        ai_response_map = {}
+        if page_annotations:
+            ai_response_map = _pair_comments_with_responses(
+                native_annotations, page_annotations
+            )
+
+        # Summary table
+        if len(categorized) > 1:
+            lines.append("### Summary\n")
+            lines.append("| Category | Count | Priority |")
+            lines.append("|----------|-------|----------|")
+            for cat, items in categorized.items():
+                cat_info = COMMENT_CATEGORIES.get(cat, {})
+                priority = PRIORITY_LABELS.get(
+                    cat_info.get("priority", "informational"), "Informational"
+                )
+                lines.append(f"| {cat} | {len(items)} | {priority} |")
+            lines.append("")
+
+        # Comments by category with paired AI responses
+        # Build a lookup from annotation to its index in the flat list
+        ann_index_map: dict[int, int] = {}
+        for i, ann in enumerate(native_annotations):
+            ann_index_map[id(ann)] = i
+
+        for cat, items in categorized.items():
+            cat_info = COMMENT_CATEGORIES.get(cat, {})
+            priority = PRIORITY_LABELS.get(
+                cat_info.get("priority", "informational"), "Informational"
+            )
+            lines.append(f"### {cat} ({len(items)} comment{'s' if len(items) != 1 else ''}) — {priority}\n")
+            for ann in items:
+                content = ann.get("content", "").strip()
+                author = ann.get("author")
+                pn = ann.get("page_number", 0)
+                subtype = ann.get("subtype", "").replace("/", "")
+                prefix = f"**{author}**" if author else f"*{subtype}*"
+                # Truncate very long comments
+                if len(content) > 500:
+                    content = content[:497] + "..."
+
+                # Find sheet info for this page
+                sheet_label = ""
+                for pe in page_extractions:
+                    if pe.get("page_number") == pn + 1:
+                        sn = pe.get("sheet_number", "")
+                        sname = pe.get("sheet_name", "")
+                        if sn:
+                            sheet_label = f" ({sn}"
+                            if sname:
+                                sheet_label += f" — {sname}"
+                            sheet_label += ")"
+                        break
+
+                lines.append(f"- **Page {pn + 1}**{sheet_label}: {prefix}: {content}")
+
+                # Add AI response if available
+                flat_idx = ann_index_map.get(id(ann))
+                if flat_idx is not None and flat_idx in ai_response_map:
+                    ai_resp = ai_response_map[flat_idx]
+                    if ai_resp:
+                        ai_label = ai_resp.get("label", "")
+                        if ai_label:
+                            lines.append(f"  - *AI*: {ai_label}")
+            lines.append("")
+
+        # Also keep a collapsed by-page view for reference
+        lines.append("<details><summary>View comments by page</summary>\n")
+        for pn in sorted(by_page_raw.keys()):
+            page_anns = by_page_raw[pn]
+            lines.append(f"#### Page {pn + 1}\n")
             for ann in page_anns:
                 content = ann.get("content", "").strip()
                 author = ann.get("author")
                 subtype = ann.get("subtype", "").replace("/", "")
                 prefix = f"**{author}**" if author else f"*{subtype}*"
-                # Truncate very long comments for readability
                 if len(content) > 500:
                     content = content[:497] + "..."
                 lines.append(f"- {prefix}: {content}")
             lines.append("")
-
-        lines.append(
-            f"*{len(native_annotations)} annotation(s) found across "
-            f"{len(by_page)} page(s).*\n"
-        )
+        lines.append("</details>\n")
 
     # ------------------------------------------------------------------
     # Zoning Context
