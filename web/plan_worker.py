@@ -146,6 +146,8 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
                 return_structured=True,
                 analyze_all_pages=analyze_all_pages,
                 analysis_mode=analysis_mode,
+                property_address=job.get("property_address"),
+                submission_stage=job.get("submission_stage"),
             )
         )
     analysis_ms = int((time.time() - analysis_t0) * 1000)

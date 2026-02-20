@@ -33,6 +33,7 @@ def create_job(
     quick_check: bool = False,
     is_async: bool = False,
     analysis_mode: str = "sample",
+    submission_stage: str | None = None,
 ) -> str:
     """Create a new plan analysis job.
 
@@ -66,8 +67,8 @@ def create_job(
                     "(job_id, user_id, filename, file_size_mb, pdf_data, "
                     "property_address, permit_number, address_source, permit_source, "
                     "project_description, permit_type, is_addendum, quick_check, is_async, "
-                    "analysis_mode) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "analysis_mode, submission_stage) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         job_id,
                         user_id,
@@ -84,6 +85,7 @@ def create_job(
                         quick_check,
                         is_async,
                         analysis_mode,
+                        submission_stage,
                     ),
                 )
             conn.commit()
@@ -95,8 +97,8 @@ def create_job(
             "(job_id, user_id, filename, file_size_mb, pdf_data, "
             "property_address, permit_number, address_source, permit_source, "
             "project_description, permit_type, is_addendum, quick_check, is_async, "
-            "analysis_mode) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "analysis_mode, submission_stage) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 job_id,
                 user_id,
@@ -113,6 +115,7 @@ def create_job(
                 quick_check,
                 is_async,
                 analysis_mode,
+                submission_stage,
             ),
         )
 
@@ -137,7 +140,8 @@ def get_job(job_id: str) -> dict | None:
         "created_at, started_at, completed_at, email_sent, "
         "progress_stage, progress_detail, "
         "vision_usage_json, gallery_duration_ms, "
-        "analysis_mode, pages_analyzed "
+        "analysis_mode, pages_analyzed, "
+        "submission_stage "
         "FROM plan_analysis_jobs WHERE job_id = %s",
         (job_id,),
     )
@@ -172,6 +176,7 @@ def get_job(job_id: str) -> dict | None:
         "gallery_duration_ms": row[24],
         "analysis_mode": row[25],
         "pages_analyzed": row[26],
+        "submission_stage": row[27] if len(row) > 27 else None,
     }
 
 

@@ -235,6 +235,9 @@ async def _check_cover_page_count(
             detail=f"Cover states {stated} sheets — matches actual PDF ({actual_count} pages).",
         )
 
+    page_details = []
+    if entries:
+        page_details.append(f"Sheet index: {', '.join(entries[:20])}")
     return CheckResult(
         epr_id="EPR-011",
         rule="Page count on cover matches actual",
@@ -244,6 +247,7 @@ async def _check_cover_page_count(
             f"Cover states {stated} sheets but PDF has {actual_count} pages. "
             f"Update the sheet index or page count."
         ),
+        page_details=page_details,
     )
 
 
@@ -538,12 +542,64 @@ def _find_sheet_number_gaps(
     return gaps, duplicates
 
 
-def _assess_consistency(title_data: list[dict]) -> CheckResult:
+def _normalize_firm(name: str) -> str:
+    """Normalize firm name for fuzzy comparison."""
+    import re as _re
+
+    name = name.lower().strip()
+    name = _re.sub(r"\s+", " ", name)
+    # Remove common suffixes
+    for suffix in [
+        " inc", " llc", " llp", " pllc", " pc", " apc",
+        " architects", " architecture", " design", " engineering",
+        " collective", " group", " studio", " associates",
+        " consulting", " services",
+    ]:
+        name = name.replace(suffix, "")
+    name = name.replace(".", "").replace(",", "").replace("&", "and")
+    return name.strip()
+
+
+def _firms_match(firms: set[str]) -> bool:
+    """Check if a set of firm names likely refer to the same entity.
+
+    Uses normalized comparison plus token overlap scoring:
+    if any pair of firm names shares 2+ words after normalization,
+    they are treated as the same firm.
+    """
+    if len(firms) <= 1:
+        return True
+    normalized = {_normalize_firm(f) for f in firms}
+    # Remove empties / "not clearly visible" type entries
+    normalized = {n for n in normalized if n and n != "not clearly visible"}
+    if len(normalized) <= 1:
+        return True
+    # Token overlap: if any pair shares 2+ meaningful words, treat as same
+    firm_tokens = [set(_normalize_firm(f).split()) - {"not", "clearly", "visible"} for f in firms]
+    firm_tokens = [t for t in firm_tokens if t]  # Remove empty sets
+    for i in range(len(firm_tokens)):
+        for j in range(i + 1, len(firm_tokens)):
+            overlap = firm_tokens[i] & firm_tokens[j]
+            if len(overlap) >= 2:
+                return True
+    return False
+
+
+def _assess_consistency(
+    title_data: list[dict],
+    known_address: str | None = None,
+) -> CheckResult:
     """EPR-017: Enhanced consistency checks across the plan set.
 
     Checks address, firm, stamps, signatures, blank areas, and sheet
     numbering for consistency across all sampled pages.  Returns a single
     CheckResult with a percentage-based consistency score.
+
+    Args:
+        title_data: List of per-page title block extraction dicts.
+        known_address: User-provided project address (from upload form).
+            When present, multi-address detections are compared against
+            this ground truth before flagging as inconsistent.
     """
     if len(title_data) < 2:
         return CheckResult(
@@ -574,6 +630,19 @@ def _assess_consistency(title_data: list[dict]) -> CheckResult:
                 f"{', '.join(sorted(addresses))}"
             )
             passed_checks += 1
+        elif known_address:
+            # User provided a project address — check if it matches any found address
+            known_norm = _normalize_address(known_address)
+            if any(known_norm == n or known_norm in n or n in known_norm for n in normalized):
+                info_items.append(
+                    f"Multiple address strings detected in title blocks, but "
+                    f"project address '{known_address}' confirmed present. "
+                    f"Other addresses are likely from the design firm's stamp "
+                    f"template or reference projects."
+                )
+                passed_checks += 1
+            else:
+                issues.append(f"Multiple addresses: {', '.join(sorted(addresses))}")
         else:
             issues.append(f"Multiple addresses: {', '.join(sorted(addresses))}")
     elif addresses:
@@ -587,7 +656,14 @@ def _assess_consistency(title_data: list[dict]) -> CheckResult:
         if td.get("firm_name")
     }
     if len(firms) > 1:
-        issues.append(f"Multiple firms: {', '.join(sorted(firms))}")
+        if _firms_match(firms):
+            info_items.append(
+                f"Firm name variations detected but appear to be the same "
+                f"entity: {', '.join(sorted(firms))}"
+            )
+            passed_checks += 1
+        else:
+            issues.append(f"Multiple firms: {', '.join(sorted(firms))}")
     elif firms:
         passed_checks += 1
 
@@ -995,6 +1071,7 @@ async def run_vision_epr_checks(
     total_pages: int,
     analyze_all_pages: bool = False,
     analysis_mode: str = "sample",
+    property_address: str | None = None,
 ) -> tuple[list[CheckResult], list[dict], list[dict], VisionUsageSummary]:
     """Run all vision-based EPR checks on a PDF plan set.
 
@@ -1007,6 +1084,8 @@ async def run_vision_epr_checks(
             - compliance: title block extraction only (no annotations, no hatching)
             - sample: title blocks + annotations + hatching on sampled pages
             - full: title blocks + annotations + hatching on ALL pages
+        property_address: User-provided project address for filtering
+            false positive multi-address detections in EPR-017.
 
     Returns:
         Tuple of (check_results, page_extractions, page_annotations, usage) where
@@ -1231,7 +1310,7 @@ async def run_vision_epr_checks(
     results.append(_assess_sheet_numbers(title_block_data, sample_pages, total_pages))
     results.append(_assess_sheet_names(title_block_data, sample_pages, total_pages))
     results.append(_assess_blank_areas(title_block_data, sample_pages, total_pages))
-    results.append(_assess_consistency(title_block_data))
+    results.append(_assess_consistency(title_block_data, known_address=property_address))
     results.append(_assess_stamps(title_block_data, sample_pages, total_pages))
 
     # EPR-003: Single consolidated PDF — auto-pass

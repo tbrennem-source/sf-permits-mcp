@@ -374,6 +374,9 @@ def _run_startup_migrations():
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS analysis_mode TEXT DEFAULT 'sample'")
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS pages_analyzed INTEGER")
 
+        # Submission stage (preliminary, permit, resubmittal)
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS submission_stage TEXT")
+
         # Voice & style preferences (macro instructions for AI response tone)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS voice_style TEXT")
 
@@ -1078,6 +1081,7 @@ def analyze_plans_route():
     is_addendum = request.form.get("is_addendum") == "on"
     property_address = request.form.get("property_address", "").strip() or None
     permit_number_input = request.form.get("permit_number", "").strip() or None
+    submission_stage = request.form.get("submission_stage", "").strip() or None
     # analysis_mode: 'compliance', 'sample', or 'full' (from form hidden field)
     requested_mode = request.form.get("analysis_mode", "sample").strip()
     # Legacy support: analyze_all_pages checkbox
@@ -1125,6 +1129,7 @@ def analyze_plans_route():
             is_addendum=is_addendum,
             quick_check=False,
             is_async=True,
+            submission_stage=submission_stage,
             analysis_mode=analysis_mode,
         )
         submit_job(job_id)
