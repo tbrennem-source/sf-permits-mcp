@@ -61,7 +61,14 @@
     <div style="font-size: 0.78rem; color: var(--text-muted, #666); text-align: center; margin-top: 8px;">
         Elapsed: {{ elapsed_s // 60 }}m {{ elapsed_s % 60 }}s
         {% if elapsed_s < 30 %}
+        {% set mode = job.analysis_mode or 'sample' %}
+        {% if mode == 'compliance' %}
+        &nbsp;&middot;&nbsp; Typical: 30–60 sec
+        {% elif mode == 'full' %}
+        &nbsp;&middot;&nbsp; Typical: 2–5 min
+        {% else %}
         &nbsp;&middot;&nbsp; Typical: 1–3 min
+        {% endif %}
         {% endif %}
     </div>
     {% endif %}
