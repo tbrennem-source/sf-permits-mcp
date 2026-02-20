@@ -84,10 +84,22 @@ Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze
 | Service | Role | Status |
 |---|---|---|
 | **sfpermits-ai** | Flask web app (auto-deploys from `main` branch) | Active |
+| **sfpermits-mcp-api** | MCP server over Streamable HTTP (`Dockerfile.mcp`) | Active |
 | **pgvector-db** | PostgreSQL + pgvector — user data, RAG embeddings, permit changes | Active, primary DB |
 | **pgVector-Railway** | pgvector instance (appears unused, has empty volume) | Active |
 | Postgres | Old DB (removed, pending deletion, volume has 5.6GB data) | Removed |
 | Postgres-CrX7 | Old DB (removed, pending deletion, volume has 1.1GB data) | Removed |
+
+### MCP Server (sfpermits-mcp-api)
+
+**MCP URL**: `https://sfpermits-mcp-api-production.up.railway.app/mcp`
+**Health**: `https://sfpermits-mcp-api-production.up.railway.app/health`
+
+Separate Railway service that exposes the same 22 MCP tools over Streamable HTTP for claude.ai integration. Uses `Dockerfile.mcp` and `src/mcp_http.py`. Requires the same env vars as the main Flask app (`DATABASE_URL`, `ANTHROPIC_API_KEY`, etc.).
+
+**Connect from claude.ai**: Settings → Integrations → Add MCP server → paste the MCP URL above.
+
+**Important**: Uses `mcp[cli]>=1.26.0` (Anthropic's official package), NOT the standalone `fastmcp` package. The standalone `fastmcp>=2.0.0` produces incompatible protocol responses that claude.ai cannot parse.
 
 ### Database (pgvector-db)
 

@@ -51,6 +51,7 @@ def _process_job(job_id: str) -> None:
 
     with app.app_context():
         loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         try:
             _do_analysis(job_id, loop)
         except Exception as e:
