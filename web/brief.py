@@ -1253,13 +1253,20 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
             and "permit expired" in prop.get("health_reason", "")
         ):
             recent_activity = dsa is not None and dsa <= 30
-            has_other_active = prop.get("active_permits", 0) > 1
+            active = prop.get("active_permits", 0)
+            has_other_active = active > 1
             if recent_activity or has_other_active:
-                prop["worst_health"] = "behind"
-                if recent_activity:
-                    prop["health_reason"] += " (active site)"
+                # Many active permits + expired = administrative noise → on_track
+                # Few active permits + expired = gentle reminder → behind
+                if active >= 5 or (recent_activity and active >= 3):
+                    prop["worst_health"] = "on_track"
+                    prop["health_reason"] = ""
                 else:
-                    prop["health_reason"] += f" ({prop['active_permits']} active permits)"
+                    prop["worst_health"] = "behind"
+                    if recent_activity:
+                        prop["health_reason"] += " (active site)"
+                    else:
+                        prop["health_reason"] += f" ({active} active permits)"
 
     # Sort: recently-changed properties first, then by worst health desc.
     # Within each group, highest risk sorts first.

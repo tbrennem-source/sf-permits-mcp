@@ -240,13 +240,20 @@ def get_portfolio(user_id: int) -> dict:
             and "permit expired" in prop.get("health_reason", "")
         ):
             recent_activity = dsa is not None and dsa <= 30
-            has_other_active = prop.get("active_count", 0) > 1
+            active = prop.get("active_count", 0)
+            has_other_active = active > 1
             if recent_activity or has_other_active:
-                prop["worst_health"] = "behind"
-                if recent_activity:
-                    prop["health_reason"] += " (active site)"
+                # Many active permits + expired = administrative noise → on_track
+                # Few active permits + expired = gentle reminder → behind
+                if active >= 5 or (recent_activity and active >= 3):
+                    prop["worst_health"] = "on_track"
+                    prop["health_reason"] = ""
                 else:
-                    prop["health_reason"] += f" ({prop['active_count']} active permits)"
+                    prop["worst_health"] = "behind"
+                    if recent_activity:
+                        prop["health_reason"] += " (active site)"
+                    else:
+                        prop["health_reason"] += f" ({active} active permits)"
 
     # Get tags from watch items
     watch_tags = {}
