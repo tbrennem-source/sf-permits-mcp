@@ -1,5 +1,52 @@
 # Changelog
 
+## Session 38c — Brief Fixes + DQ Calibration + Severity Expansion (2026-02-20)
+
+### Brief "What Changed" Count Fix — `web/brief.py`, `web/templates/brief.html`
+- **Bug**: Summary card showed "9 Changed" but What Changed section only listed 2 items. The count used property-level `days_since_activity` (from SODA `status_date`) while the section showed only sparse `permit_changes` detection log entries.
+- **Fix**: Merge property-level activity into the changes list. Properties with recent `status_date` updates that aren't already in `permit_changes` get added as "activity" entries showing health reason, active/total permit counts, and days since activity.
+- Template updated with two rendering paths: status transitions (FILED → ISSUED) for detection log entries, and health-reason cards for property-level activity entries.
+- Added CSS for health-status badges (`status-on_track`, `status-behind`, `status-at_risk`, etc.)
+
+### Brief Section Reorder — `web/templates/brief.html`
+- What Changed section moved ABOVE Your Properties (was below)
+- Summary cards now filter property grid (click to toggle) instead of scrolling
+- Property cards sorted changed-first, then by risk severity
+
+### Severity Expansion: Multi-Active-Permit Downgrade — `web/brief.py`, `web/portfolio.py`
+- **Bug**: 125 Mason showed red "AT RISK" for a permit expired 5,825 days ago (16 years!) despite having 3 active permits. The ≤30d activity window was too narrow — the site isn't abandoned, it just hasn't had SODA updates recently.
+- **Fix**: Expand expired-permit downgrade from AT RISK → BEHIND when property has >1 active permit (not just ≤30d activity). Shows "(3 active permits)" suffix.
+- Applied to both Brief property cards and Portfolio view.
+
+### Data Quality Check Fixes — `web/data_quality.py`
+- **Cron checks**: Fixed wrong column names (`run_date` → `started_at`, `records_fetched` → `soda_records`) to match actual `cron_log` schema. Added `job_type = 'nightly'` filter and `datetime.date()` conversion for timestamps.
+- **Temporal violations**: Changed from absolute count threshold (red at 100) to percentage-based (green < 0.5%, yellow < 1%). 2,031 violations = 0.18% — normal for SODA data (permit amendments, OTC permits).
+- **Orphaned contacts**: Recalibrated from red at 15% to green < 55%. 45.7% is expected — contacts dataset covers 3 permit types (building + electrical + plumbing) but permits table only has building permits.
+
+### Admin Ops Default Tab — `web/templates/admin_ops.html`
+- Changed default from Pipeline Health (slow — 6 heavy queries against 3.9M-row addenda table) to Data Quality (fast — lightweight count queries).
+
+### Tests
+- 1,103 passing, 1 skipped
+
+---
+
+## Session 38b — Brief UX Fixes + Admin Hub Consolidation (2026-02-20)
+
+### Brief "Changed" Count Fix — `web/brief.py`
+- Changed count now derived from property-level `days_since_activity` instead of sparse `permit_changes` detection log
+- Property cards pass `lookback_days` to `_get_property_snapshot()` for consistent filtering
+
+### Admin Hub Consolidation — 12 files
+- `/admin/ops` rewritten as single-page HTMX hub with 6 lazy-loaded tabs: Pipeline Health, Data Quality, User Activity, Feedback, LUCK Sources, Regulatory Watch
+- New `web/data_quality.py`: 10 live DQ checks (cron status, records fetched, changes detected, temporal violations, cost outliers, orphaned contacts, inspection null rate, data freshness, RAG chunks, entity coverage)
+- Existing admin templates converted to fragment mode (`{% if not fragment %}` wrapper)
+- Fragment route dispatcher: `GET /admin/ops/fragment/<tab>`
+- Nav dropdown links updated to `/admin/ops#<tab>`
+- Tab bar with loading pulse animation, hash-based URL bookmarking
+
+---
+
 ## Session 38 — Nav Bug Fixes + Severity Scoring Fix (2026-02-20)
 
 ### Severity Scoring Bug Fix — `web/brief.py`, `web/portfolio.py`
