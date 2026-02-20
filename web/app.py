@@ -2976,6 +2976,23 @@ def brief():
 
 
 # ---------------------------------------------------------------------------
+# Velocity / Bottleneck Dashboard
+# ---------------------------------------------------------------------------
+
+@app.route("/dashboard/bottlenecks")
+@login_required
+def velocity_dashboard():
+    """DBI approval pipeline bottleneck heatmap."""
+    from web.velocity_dashboard import get_dashboard_data
+    data = get_dashboard_data()
+    return render_template(
+        "velocity_dashboard.html",
+        data=data,
+        active_page="bottlenecks",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Portfolio Dashboard
 # ---------------------------------------------------------------------------
 

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Pipeline — sfpermits.ai</title>
+    <style>
+        :root {
+            --bg: #0f1117; --surface: #1a1d27; --surface-2: #22263a;
+            --border: rgba(255,255,255,0.08); --text: #e8eaf6;
+            --text-muted: #8b8fa3; --accent: #4f8ff7;
+            --success: #22c55e; --warning: #f59e0b; --error: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.9rem; line-height: 1.6; min-height: 100vh; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* header styles provided by fragments/nav.html */
+
+        main { padding: 32px 0 60px; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 28px; }
+        h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text); }
+
+        /* Summary bar */
+        .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+        .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+        .summary-number { font-size: 1.8rem; font-weight: 700; }
+        .summary-label { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+        .summary-card.warn .summary-number { color: var(--warning); }
+        .summary-card.alert .summary-number { color: var(--error); }
+
+        /* Health tier colors */
+        .tier-fast    { background: rgba(34,197,94,0.15);  color: #4ade80;  border-color: rgba(34,197,94,0.3);  }
+        .tier-normal  { background: rgba(79,143,247,0.12); color: #93c5fd;  border-color: rgba(79,143,247,0.3); }
+        .tier-slow    { background: rgba(245,158,11,0.12); color: #fbbf24;  border-color: rgba(245,158,11,0.3); }
+        .tier-critical{ background: rgba(249,115,22,0.12); color: #fb923c;  border-color: rgba(249,115,22,0.3); }
+        .tier-severe  { background: rgba(239,68,68,0.14);  color: #f87171;  border-color: rgba(239,68,68,0.35); }
+        .tier-unknown { background: var(--surface-2); color: var(--text-muted); border-color: var(--border); }
+
+        /* Heatmap grid */
+        .heatmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 32px; }
+        .station-card {
+            border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px;
+            transition: transform 0.1s;
+        }
+        .station-card:hover { transform: translateY(-1px); }
+        .station-name { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+        .station-median { font-size: 1.4rem; font-weight: 700; line-height: 1.1; }
+        .station-median-unit { font-size: 0.75rem; font-weight: 400; color: inherit; opacity: 0.75; }
+        .station-meta { font-size: 0.72rem; opacity: 0.65; margin-top: 6px; }
+        .station-p90 { font-size: 0.75rem; opacity: 0.7; margin-top: 2px; }
+
+        /* Currently pending table */
+        .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.83rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .badge-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
+        .held-badge { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .stalled-badge { background: rgba(239,68,68,0.13); color: #f87171; }
+        .days-num { font-weight: 600; }
+        .days-warn { color: var(--warning); }
+        .days-crit { color: var(--error); }
+
+        /* Department rollup */
+        .dept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 32px; }
+        .dept-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+        .dept-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+        .dept-stat { font-size: 0.8rem; color: var(--text-muted); }
+        .dept-slowest { font-size: 0.75rem; color: var(--warning); margin-top: 4px; }
+
+        /* Legend */
+        .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-muted); }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+        .tab { padding: 8px 16px; font-size: 0.82rem; border-radius: 6px 6px 0 0; border: 1px solid transparent; color: var(--text-muted); cursor: pointer; background: none; font-family: inherit; }
+        .tab.active { background: var(--surface); border-color: var(--border); border-bottom-color: var(--bg); color: var(--text); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .data-as-of { color: var(--text-muted); font-size: 0.75rem; text-align: right; margin-top: 8px; }
+
+        @media (max-width: 640px) {
+            .summary-row { grid-template-columns: repeat(2, 1fr); }
+            .heatmap-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    {% include 'fragments/nav.html' %}
+
+    <main>
+        <div class="container">
+            <h1>🔥 Approval Pipeline Bottlenecks</h1>
+            <p class="subtitle">DBI plan review velocity &mdash; where permits stall and why &middot; Based on {{ data.summary.total_stations }} active stations</p>
+
+            <!-- Summary Cards -->
+            <div class="summary-row">
+                <div class="summary-card {% if data.summary.severe_stations > 3 %}alert{% elif data.summary.severe_stations > 0 %}warn{% endif %}">
+                    <div class="summary-number">{{ data.summary.severe_stations }}</div>
+                    <div class="summary-label">Critical Stations</div>
+                </div>
+                <div class="summary-card {% if data.summary.total_stalled > 100 %}alert{% elif data.summary.total_stalled > 20 %}warn{% endif %}">
+                    <div class="summary-number">{{ data.summary.total_stalled }}</div>
+                    <div class="summary-label">Stalled Permits (14+ days)</div>
+                </div>
+                <div class="summary-card {% if data.summary.held_count > 0 %}warn{% endif %}">
+                    <div class="summary-number">{{ data.summary.held_count }}</div>
+                    <div class="summary-label">On Hold</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number">
+                        {% if data.summary.slowest_days %}
+                            {% if data.summary.slowest_days >= 30 %}{{ (data.summary.slowest_days / 30) | round(1) }}mo{% else %}{{ data.summary.slowest_days | round(0) | int }}d{% endif %}
+                        {% else %}—{% endif %}
+                    </div>
+                    <div class="summary-label">Slowest ({{ data.summary.slowest_station or '—' }})</div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <span style="font-size:0.75rem;color:var(--text-muted);margin-right:4px;">Median review time:</span>
+                <div class="legend-item"><div class="legend-dot" style="background:#4ade80;"></div> Same day</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#93c5fd;"></div> Days</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div> Weeks</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#fb923c;"></div> Months</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div> Quarter+</div>
+            </div>
+
+            <!-- Station Heatmap Grid -->
+            <h2>Station Velocity Heatmap</h2>
+            {% if data.baselines %}
+            <div class="heatmap-grid">
+                {% for s in data.baselines %}
+                <div class="station-card {{ s.tier_css }}">
+                    <div class="station-name">{{ s.station }}</div>
+                    <div class="station-median">
+                        {% if s.median_days is not none %}
+                            {% if s.median_days < 1 %}
+                                &lt;1<span class="station-median-unit"> day</span>
+                            {% elif s.median_days < 30 %}
+                                {{ s.median_days | round(1) }}<span class="station-median-unit"> days</span>
+                            {% else %}
+                                {{ (s.median_days / 30) | round(1) }}<span class="station-median-unit"> mo</span>
+                            {% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                    {% if s.p90_days is not none %}
+                    <div class="station-p90">p90: {{ s.p90_days | round(0) | int }}d</div>
+                    {% endif %}
+                    <div class="station-meta">
+                        {{ s.samples }} samples
+                        {% if data.load_map and s.station in data.load_map %}
+                            &middot; {{ data.load_map[s.station].pending_count }} pending
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="section">
+                <p style="color:var(--text-muted);">No station velocity data yet. Run <code>POST /cron/nightly</code> to generate baselines.</p>
+            </div>
+            {% endif %}
+
+            <!-- Tabs for additional detail -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('stalled')">⏳ Stalled Permits ({{ data.summary.total_stalled }})</button>
+                <button class="tab" onclick="showTab('load')">📊 Station Load</button>
+                <button class="tab" onclick="showTab('dept')">🏢 By Department</button>
+            </div>
+
+            <!-- Stalled Permits -->
+            <div id="tab-stalled" class="tab-panel active">
+                <div class="section">
+                    <h2>Permits Stalled 14+ Days (no finish date)</h2>
+                    {% if data.stalled_permits %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Permit</th>
+                                <th>Station</th>
+                                <th>Days Pending</th>
+                                <th>Status</th>
+                                <th>Reviewer</th>
+                                <th>Hold Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in data.stalled_permits %}
+                            <tr>
+                                <td><a href="/?q={{ p.permit_number }}">{{ p.permit_number }}</a></td>
+                                <td><strong>{{ p.station }}</strong></td>
+                                <td>
+                                    <span class="days-num {% if p.days_pending > 90 %}days-crit{% elif p.days_pending > 30 %}days-warn{% endif %}">
+                                        {{ p.days_pending }}d
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if p.is_held %}
+                                    <span class="badge-pill held-badge">⏸ Held</span>
+                                    {% else %}
+                                    <span class="badge-pill stalled-badge">⚠ Stalled</span>
+                                    {% endif %}
+                                </td>
+                                <td style="color:var(--text-muted)">{{ p.reviewer or '—' }}</td>
+                                <td style="font-size:0.78rem;color:var(--text-muted)">
+                                    {% if p.hold_description %}
+                                        {{ p.hold_description[:80] }}{% if p.hold_description|length > 80 %}…{% endif %}
+                                    {% else %}—{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p style="color:var(--text-muted);">No permits stalled &gt;14 days. ✅</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Station Load -->
+            <div id="tab-load" class="tab-panel">
+                <div class="section">
+                    <h2>Current Permit Load by Station</h2>
+                    {% if data.station_load %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Station</th>
+                                <th>Pending (no finish)</th>
+                                <th>On Hold</th>
+                                <th>Avg Days Waiting</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in data.station_load %}
+                            <tr>
+                                <td><strong>{{ s.station }}</strong></td>
+                                <td>{{ "{:,}".format(s.pending_count) }}</td>
+                                <td>{% if s.held_count > 0 %}<span style="color:var(--warning)">{{ s.held_count }}</span>{% else %}—{% endif %}</td>
+                                <td>
+                                    {% if s.avg_days_waiting is not none %}
+                                    <span class="{% if s.avg_days_waiting > 90 %}days-crit{% elif s.avg_days_waiting > 30 %}days-warn{% endif %}">
+                                        {{ s.avg_days_waiting }}d
+                                    </span>
+                                    {% else %}—{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p style="color:var(--text-muted);">Load data unavailable.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Department Rollup -->
+            <div id="tab-dept" class="tab-panel">
+                <h2>Velocity by Department</h2>
+                {% if data.dept_rollup %}
+                <div class="dept-grid">
+                    {% for d in data.dept_rollup %}
+                    <div class="dept-card">
+                        <div class="dept-name">{{ d.department }}</div>
+                        <div class="dept-stat">{{ d.station_count }} stations &middot; {{ "{:,}".format(d.total_samples) }} samples</div>
+                        <div class="dept-stat">
+                            Avg median:
+                            {% if d.avg_median_days is not none %}
+                                {% if d.avg_median_days >= 30 %}{{ (d.avg_median_days / 30) | round(1) }} months{% else %}{{ d.avg_median_days }} days{% endif %}
+                            {% else %}—{% endif %}
+                        </div>
+                        {% if d.slowest_station %}
+                        <div class="dept-slowest">
+                            Slowest: {{ d.slowest_station }}
+                            ({% if d.slowest_days >= 30 %}{{ (d.slowest_days / 30) | round(1) }}mo{% else %}{{ d.slowest_days | round(0) | int }}d{% endif %})
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="section"><p style="color:var(--text-muted);">No department data available.</p></div>
+                {% endif %}
+            </div>
+
+            <p class="data-as-of">Velocity baselines from rolling 90-day window &middot; Updated nightly &middot; <a href="/cron/status">Cron status</a></p>
+        </div>
+    </main>
+
+    <script>
+    function showTab(name) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('tab-' + name).classList.add('active');
+    }
+    </script>
+</body>
+</html>
