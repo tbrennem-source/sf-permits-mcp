@@ -189,7 +189,7 @@ async def analyze_plans(
     return_structured: bool = False,
     analyze_all_pages: bool = False,
     analysis_mode: str = "sample",
-) -> str | tuple[str, list[dict], list[dict], "VisionUsageSummary"]:
+) -> str:
     """Analyze a PDF plan set with AI vision and EPR compliance checking.
 
     Performs a comprehensive analysis combining:
@@ -484,7 +484,7 @@ def _build_report(
     file_size_mb: float,
     filename: str,
     project_description: str | None,
-    vision_usage: "VisionUsageSummary | None" = None,
+    vision_usage: object = None,
     native_annotations: list[dict] | None = None,
     zoning_data: dict | None = None,
 ) -> str:
