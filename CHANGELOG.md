@@ -1,5 +1,35 @@
 # Changelog
 
+## Session 38 — Nav Bug Fixes + Severity Scoring Fix (2026-02-20)
+
+### Severity Scoring Bug Fix — `web/brief.py`, `web/portfolio.py`
+- **Bug**: Expired permits on active sites still showed red "AT RISK" despite Session 37's severity refinement. Root cause: the `recently_active` check used **per-permit** `status_date` (age of that specific permit's last update), but properties show "Activity 3d ago" based on the **property-level** latest activity across ALL permits at the address. A property with 10 permits where the expired one hasn't been touched in 200d would show red AT RISK even though another permit was updated 3 days ago.
+- **Fix**: Removed per-permit `recently_active` heuristic. Added property-level post-processing after `days_since_activity` is computed: if `worst_health == at_risk` AND `health_reason` mentions "permit expired" AND `days_since_activity <= 30`, downgrade to `behind` with "(active site)" suffix. This correctly treats expired permits at active sites as administrative paperwork (SFBICC §106A.4.4).
+
+### Admin Ops Stub — `web/app.py`, `web/templates/admin_ops.html`
+- Created `/admin/ops` route + template to resolve 404 on Pipeline Health and Data Quality links in admin dropdown
+- Tabbed UI with hash-based switching (`#pipeline`, `#quality`)
+- Pipeline tab links to existing `/dashboard/bottlenecks`; Data Quality shows "Coming in Phase B"
+
+### Admin Back-Links Fixed — 4 templates
+- `admin_activity.html`: "← Back to account" → `/account` changed to "← Home" → `/`
+- `admin_feedback.html`: "← Back to account" → `/account` changed to "← Home" → `/`
+- `admin_sources.html`: "Back to Admin" → `/admin/activity` changed to "← Home" → `/`
+- `admin_regulatory_watch.html`: "← Dashboard" → `/brief` changed to "← Home" → `/`; logo also pointed to `/brief`, fixed to `/`
+
+### Voice Calibration Moved to /account — `web/app.py`, templates
+- New routes: `/account/voice-calibration`, `/account/voice-calibration/save`, `/account/voice-calibration/reset` — no admin check, open to all logged-in users
+- Old `/admin/voice-calibration*` routes now 301/307 redirect to new URLs (backward-compatible)
+- New `voice_calibration.html` template (same as admin version, no Admin badge, HTMX URLs updated)
+- Removed Voice Calibration from admin dropdown in `nav.html`
+- Removed admin/consultant gate from Voice & Style card in `account.html` — now visible to all users
+- Updated account route to load `cal_stats` for all users (was admin/consultant only)
+
+### Tests
+- 1,103 passing, 1 skipped (pre-existing `plan_images` module errors unchanged)
+
+---
+
 ## Session 37 — Severity Refinement + Brief UX Enhancements (2026-02-20)
 
 ### Permit Expiration Severity Refinement — `web/brief.py`, `web/portfolio.py`

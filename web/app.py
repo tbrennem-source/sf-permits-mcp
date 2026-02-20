@@ -2913,16 +2913,15 @@ def account():
         from web.activity import get_activity_stats, get_feedback_counts
         activity_stats = get_activity_stats(hours=24)
         feedback_counts = get_feedback_counts()
-    # Voice calibration stats (admin/consultant only)
+    # Voice calibration stats (all users)
     cal_stats = None
-    if g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant"):
-        try:
-            from web.voice_calibration import get_calibration_stats
-            cal_stats = get_calibration_stats(g.user["user_id"])
-            if cal_stats["total"] == 0:
-                cal_stats = None  # Not yet seeded — show generic text
-        except Exception:
-            pass
+    try:
+        from web.voice_calibration import get_calibration_stats
+        cal_stats = get_calibration_stats(g.user["user_id"])
+        if cal_stats["total"] == 0:
+            cal_stats = None  # Not yet seeded — show generic text
+    except Exception:
+        pass
     return render_template("account.html", user=g.user, watches=watches,
                            invite_codes=invite_codes,
                            activity_stats=activity_stats,
@@ -3409,6 +3408,15 @@ def admin_activity():
                            users=users)
 
 
+@app.route("/admin/ops")
+@login_required
+def admin_ops():
+    """Admin operations hub — pipeline health + data quality."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    return render_template("admin_ops.html", user=g.user, active_page="admin")
+
+
 @app.route("/admin/sources")
 @login_required
 def admin_sources():
@@ -3626,15 +3634,35 @@ def admin_add_note():
 
 
 # ---------------------------------------------------------------------------
-# Admin: Voice calibration
+# Voice calibration — moved from /admin/ to /account/ (available to all users)
+# Old /admin/ URLs redirect for bookmarks.
 # ---------------------------------------------------------------------------
 
 @app.route("/admin/voice-calibration")
 @login_required
-def admin_voice_calibration():
+def admin_voice_calibration_redirect():
+    """Redirect old admin URL to new account URL."""
+    return redirect("/account/voice-calibration", code=301)
+
+
+@app.route("/admin/voice-calibration/save", methods=["POST"])
+@login_required
+def admin_voice_calibration_save_redirect():
+    """Redirect old admin POST to new account URL (307 preserves POST)."""
+    return redirect("/account/voice-calibration/save", code=307)
+
+
+@app.route("/admin/voice-calibration/reset", methods=["POST"])
+@login_required
+def admin_voice_calibration_reset_redirect():
+    """Redirect old admin POST to new account URL (307 preserves POST)."""
+    return redirect("/account/voice-calibration/reset", code=307)
+
+
+@app.route("/account/voice-calibration")
+@login_required
+def account_voice_calibration():
     """Voice calibration page — rewrite templates in your voice."""
-    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
-        abort(403)
     from web.voice_calibration import seed_scenarios, get_calibrations_by_audience, get_calibration_stats
     from web.voice_templates import AUDIENCES, SITUATIONS, AUDIENCE_MAP, SITUATION_MAP
 
@@ -3644,7 +3672,7 @@ def admin_voice_calibration():
     grouped = get_calibrations_by_audience(g.user["user_id"])
     stats = get_calibration_stats(g.user["user_id"])
 
-    return render_template("admin_voice_calibration.html",
+    return render_template("voice_calibration.html",
                            user=g.user,
                            grouped=grouped,
                            stats=stats,
@@ -3653,12 +3681,10 @@ def admin_voice_calibration():
                            situation_map=SITUATION_MAP)
 
 
-@app.route("/admin/voice-calibration/save", methods=["POST"])
+@app.route("/account/voice-calibration/save", methods=["POST"])
 @login_required
-def admin_voice_calibration_save():
+def account_voice_calibration_save():
     """Save the expert's rewritten version for a scenario (HTMX)."""
-    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
-        abort(403)
     from web.voice_calibration import save_calibration, get_calibration, get_calibration_stats
 
     scenario_key = request.form.get("scenario_key", "").strip()
@@ -3684,12 +3710,10 @@ def admin_voice_calibration_save():
     )
 
 
-@app.route("/admin/voice-calibration/reset", methods=["POST"])
+@app.route("/account/voice-calibration/reset", methods=["POST"])
 @login_required
-def admin_voice_calibration_reset():
+def account_voice_calibration_reset():
     """Clear calibration for a scenario (HTMX)."""
-    if not (g.user.get("is_admin") or g.user.get("role") in ("admin", "consultant")):
-        abort(403)
     from web.voice_calibration import reset_calibration, get_calibration, get_calibration_stats
 
     scenario_key = request.form.get("scenario_key", "").strip()

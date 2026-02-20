@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Voice Calibration — sfpermits.ai</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+        header .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+        .back-link:hover { color: var(--text); }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 4px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 8px; font-size: 0.95rem; }
+        .progress-bar {
+            margin-bottom: 28px; font-size: 0.85rem; color: var(--text-muted);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .progress-bar .track {
+            flex: 1; max-width: 240px; height: 6px; background: var(--surface-2);
+            border-radius: 3px; overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%; background: var(--success); border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Audience group */
+        .audience-group { margin-bottom: 12px; }
+        .audience-group > summary {
+            cursor: pointer; font-size: 1.1rem; font-weight: 600;
+            padding: 12px 0; color: var(--text); list-style: none;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .audience-group > summary::-webkit-details-marker { display: none; }
+        .audience-group > summary::before {
+            content: "▶"; font-size: 0.7rem; color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+        .audience-group[open] > summary::before { transform: rotate(90deg); }
+        .audience-count {
+            font-size: 0.75rem; color: var(--text-muted); font-weight: 400;
+        }
+
+        /* Scenario card */
+        .scenario-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; margin-bottom: 16px;
+            margin-left: 16px;
+        }
+        .scenario-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 6px; gap: 8px; flex-wrap: wrap;
+        }
+        .scenario-label {
+            font-weight: 600; font-size: 1rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .cal-badge {
+            font-size: 0.72rem; font-weight: 600;
+        }
+        .cal-badge.done { color: var(--success); }
+        .cal-badge.pending { color: var(--text-muted); }
+        .context-hint {
+            font-size: 0.85rem; color: var(--text-muted); font-style: italic;
+            margin-bottom: 14px;
+        }
+
+        /* Two-column layout */
+        .columns {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 700px) {
+            .columns { grid-template-columns: 1fr; }
+        }
+        .col-label {
+            font-size: 0.78rem; color: var(--text-muted); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;
+        }
+        .template-text {
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; font-size: 0.85rem;
+            line-height: 1.6; color: var(--text-muted); white-space: pre-wrap;
+            max-height: 300px; overflow-y: auto;
+        }
+        .user-textarea {
+            width: 100%; min-height: 200px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text); padding: 12px; font-family: inherit;
+            font-size: 0.85rem; line-height: 1.6; resize: vertical;
+        }
+        .user-textarea:focus {
+            outline: none; border-color: var(--accent);
+        }
+
+        /* Actions */
+        .card-actions {
+            display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 6px; padding: 8px 20px; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            text-decoration: none; border: none;
+            background: var(--accent); color: #fff;
+            transition: opacity 0.15s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-muted); font-weight: 500;
+        }
+        .btn-outline:hover { border-color: var(--text-muted); }
+        .card-status { font-size: 0.82rem; margin-left: 4px; }
+
+        /* Style notes display */
+        .style-notes {
+            margin-top: 12px; padding: 10px 14px;
+            background: rgba(52,211,153,0.08); border-radius: 8px;
+            border: 1px solid rgba(52,211,153,0.2);
+            font-size: 0.82rem; color: var(--text);
+        }
+        .style-notes-label {
+            font-size: 0.72rem; font-weight: 600; color: var(--success);
+            text-transform: uppercase; margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <a href="/account" class="back-link">&larr; Back to Account</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Voice Calibration</h1>
+            <p class="subtitle">
+                Rewrite these templates in your voice. I'll learn your style for each situation.
+            </p>
+
+            <div class="progress-bar">
+                <span id="cal-progress">{{ stats.calibrated }} of {{ stats.total }} done</span>
+                <div class="track">
+                    <div class="fill" style="width: {{ (stats.calibrated / stats.total * 100) if stats.total > 0 else 0 }}%;"></div>
+                </div>
+                {% if stats.calibrated == stats.total and stats.total > 0 %}
+                <span style="color:var(--success);">All done!</span>
+                {% endif %}
+            </div>
+
+            {% for aud in audiences %}
+            {% set aud_cals = grouped.get(aud.key, []) %}
+            {% if aud_cals %}
+            <details class="audience-group" {% if loop.first %}open{% endif %}>
+                <summary>
+                    {{ aud.label }}
+                    <span class="audience-count">
+                        ({{ aud_cals | length }} scenario{{ 's' if aud_cals | length != 1 }})
+                        &mdash; {{ aud.description }}
+                    </span>
+                </summary>
+
+                {% for cal in aud_cals %}
+                <div class="scenario-card" id="card-{{ cal.scenario_key }}">
+                    <div class="scenario-header">
+                        <div class="scenario-label">
+                            {{ cal.situation_label }}
+                            <span class="cal-badge {{ 'done' if cal.is_calibrated else 'pending' }}"
+                                  id="badge-{{ cal.scenario_key }}">
+                                {% if cal.is_calibrated %}&#10003; calibrated{% else %}&#9675; not yet{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="context-hint">"{{ cal.context_hint }}"</div>
+
+                    <div class="columns">
+                        <div>
+                            <div class="col-label">Template (generic)</div>
+                            <div class="template-text">{{ cal.template_text }}</div>
+                        </div>
+                        <div>
+                            <div class="col-label">Your version</div>
+                            <textarea class="user-textarea"
+                                      id="ta-{{ cal.scenario_key }}"
+                                      placeholder="Rewrite this in your voice...">{{ cal.user_text or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn"
+                                hx-post="/account/voice-calibration/save"
+                                hx-target="#status-{{ cal.scenario_key }}"
+                                hx-swap="innerHTML"
+                                hx-include="[name='scenario_key_{{ cal.scenario_key }}']"
+                                hx-vals='js:{"scenario_key":"{{ cal.scenario_key }}","user_text":document.getElementById("ta-{{ cal.scenario_key }}").value}'>
+                            Save
+                        </button>
+                        {% if cal.is_calibrated %}
+                        <button class="btn btn-outline"
+                                hx-post="/account/voice-calibration/reset"
+                                hx-target="#status-{{ cal.scenario_key }}"
+                                hx-swap="innerHTML"
+                                hx-vals='{"scenario_key":"{{ cal.scenario_key }}"}'>
+                            Reset
+                        </button>
+                        {% endif %}
+                        <span class="card-status" id="status-{{ cal.scenario_key }}"></span>
+                    </div>
+
+                    {% if cal.style_notes %}
+                    <div class="style-notes">
+                        <div class="style-notes-label">Extracted Style Notes</div>
+                        {{ cal.style_notes }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </details>
+            {% endif %}
+            {% endfor %}
+
+            {# General / cross-audience scenarios #}
+            {% set general_cals = grouped.get("general", []) %}
+            {% if general_cals %}
+            <details class="audience-group">
+                <summary>
+                    General
+                    <span class="audience-count">
+                        ({{ general_cals | length }} scenario{{ 's' if general_cals | length != 1 }})
+                        &mdash; Cross-audience templates
+                    </span>
+                </summary>
+
+                {% for cal in general_cals %}
+                <div class="scenario-card" id="card-{{ cal.scenario_key }}">
+                    <div class="scenario-header">
+                        <div class="scenario-label">
+                            {{ cal.situation_label }}
+                            <span class="cal-badge {{ 'done' if cal.is_calibrated else 'pending' }}"
+                                  id="badge-{{ cal.scenario_key }}">
+                                {% if cal.is_calibrated %}&#10003; calibrated{% else %}&#9675; not yet{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="context-hint">"{{ cal.context_hint }}"</div>
+
+                    <div class="columns">
+                        <div>
+                            <div class="col-label">Template (generic)</div>
+                            <div class="template-text">{{ cal.template_text }}</div>
+                        </div>
+                        <div>
+                            <div class="col-label">Your version</div>
+                            <textarea class="user-textarea"
+                                      id="ta-{{ cal.scenario_key }}"
+                                      placeholder="Rewrite this in your voice...">{{ cal.user_text or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn"
+                                hx-post="/account/voice-calibration/save"
+                                hx-target="#status-{{ cal.scenario_key }}"
+                                hx-swap="innerHTML"
+                                hx-vals='js:{"scenario_key":"{{ cal.scenario_key }}","user_text":document.getElementById("ta-{{ cal.scenario_key }}").value}'>
+                            Save
+                        </button>
+                        {% if cal.is_calibrated %}
+                        <button class="btn btn-outline"
+                                hx-post="/account/voice-calibration/reset"
+                                hx-target="#status-{{ cal.scenario_key }}"
+                                hx-swap="innerHTML"
+                                hx-vals='{"scenario_key":"{{ cal.scenario_key }}"}'>
+                            Reset
+                        </button>
+                        {% endif %}
+                        <span class="card-status" id="status-{{ cal.scenario_key }}"></span>
+                    </div>
+
+                    {% if cal.style_notes %}
+                    <div class="style-notes">
+                        <div class="style-notes-label">Extracted Style Notes</div>
+                        {{ cal.style_notes }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </details>
+            {% endif %}
+
+        </div>
+    </main>
+</body>
+</html>

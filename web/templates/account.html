@@ -321,7 +321,6 @@
             </div>
 
             <!-- Voice & Style Preferences -->
-            {% if user.is_admin or user.role in ('admin', 'consultant') %}
             <div class="card">
                 <h2>Voice &amp; Style</h2>
                 <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:12px;">
@@ -340,7 +339,7 @@
                     </div>
                 </form>
                 <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
-                    <a href="/admin/voice-calibration"
+                    <a href="/account/voice-calibration"
                        style="color:var(--accent); text-decoration:none; font-size:0.88rem; font-weight:500;">
                         Voice Calibration &rarr;
                     </a>
@@ -353,7 +352,6 @@
                     </span>
                 </div>
             </div>
-            {% endif %}
 
             <!-- Portfolio Import -->
             <div class="card">

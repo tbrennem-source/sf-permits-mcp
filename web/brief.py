@@ -982,15 +982,12 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
             validity = _validity_days(permit_dict)
             days_issued = (today - issued_date).days
             expires_in = validity - days_issued
-            recently_active = days_since is not None and days_since <= 30
             if expires_in <= 0:
-                # Permit already expired — severity depends on site activity
-                if recently_active:
-                    health = "behind"
-                    health_reason = f"{pn} permit expired {abs(expires_in)}d ago (active site)"
-                else:
-                    health = "at_risk"
-                    health_reason = f"{pn} permit expired {abs(expires_in)}d ago"
+                # Permit expired — AT RISK at per-permit level; may be
+                # downgraded to BEHIND by property-level post-processing
+                # if the property has recent activity across any permit.
+                health = "at_risk"
+                health_reason = f"{pn} permit expired {abs(expires_in)}d ago"
             elif expires_in <= 30:
                 health = "at_risk"
                 health_reason = f"{pn} expires in {expires_in}d"
@@ -1195,6 +1192,23 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
     for prop in property_map.values():
         la = _parse_date(prop.get("latest_activity", ""))
         prop["days_since_activity"] = (today - la).days if la else None
+
+    # Post-process: downgrade expired-permit AT RISK → BEHIND for active sites.
+    # Per-permit scoring can't see property-level activity (latest across ALL
+    # permits at the address), so we reconcile here.  An expired permit at a
+    # site with recent activity (≤30d) is administrative paperwork — the
+    # contractor needs a recommencement application (SFBICC §106A.4.4), not
+    # an emergency response.
+    for prop in property_map.values():
+        dsa = prop.get("days_since_activity")
+        if (
+            prop["worst_health"] == "at_risk"
+            and "permit expired" in prop.get("health_reason", "")
+            and dsa is not None
+            and dsa <= 30
+        ):
+            prop["worst_health"] = "behind"
+            prop["health_reason"] += " (active site)"
 
     # Sort: at_risk first, then behind, then slower, then on_track
     properties = sorted(
