@@ -78,6 +78,13 @@
     <h2>Processing Your Plan Set</h2>
     <div class="file-info">
         <strong>{{ filename }}</strong> &mdash; {{ filesize_mb }} MB
+        {% if analysis_mode == 'compliance' %}
+        <span style="display:inline-block;margin-left:10px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#a78bfa;padding:2px 10px;border-radius:12px;font-size:0.8rem;">Compliance Check</span>
+        {% elif analysis_mode == 'full' %}
+        <span style="display:inline-block;margin-left:10px;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);color:#fbbf24;padding:2px 10px;border-radius:12px;font-size:0.8rem;">Full Analysis</span>
+        {% elif analysis_mode == 'sample' %}
+        <span style="display:inline-block;margin-left:10px;background:rgba(79,143,247,0.15);border:1px solid rgba(79,143,247,0.4);color:#4f8ff7;padding:2px 10px;border-radius:12px;font-size:0.8rem;">AI Analysis</span>
+        {% endif %}
     </div>
     <div class="message">
         Large plan sets are analyzed in the background.
