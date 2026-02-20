@@ -3425,9 +3425,30 @@ def admin_ops_fragment(tab):
         abort(403)
 
     if tab == "pipeline":
+        import signal
+
+        class _Timeout(Exception):
+            pass
+
+        def _alarm(signum, frame):
+            raise _Timeout()
+
         from web.velocity_dashboard import get_dashboard_data
         user_id = g.user["user_id"] if g.user else None
-        data = get_dashboard_data(user_id=user_id)
+        try:
+            old_handler = signal.signal(signal.SIGALRM, _alarm)
+            signal.alarm(30)  # 30s timeout for heavy pipeline queries
+            data = get_dashboard_data(user_id=user_id)
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
+        except _Timeout:
+            signal.signal(signal.SIGALRM, old_handler)
+            return ('<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">'
+                    '<p style="font-size:1.1rem;margin-bottom:8px;">Pipeline Health is loading slowly</p>'
+                    '<p>The 3.9M-row addenda table queries are taking longer than 30s.</p>'
+                    '<p style="margin-top:12px;"><a href="/dashboard/bottlenecks" '
+                    'style="color:var(--accent);">Open full-page Pipeline dashboard &rarr;</a></p>'
+                    '</div>')
         return render_template("velocity_dashboard.html", data=data,
                                active_page="admin", fragment=True)
 
