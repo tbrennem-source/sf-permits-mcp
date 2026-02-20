@@ -1,5 +1,56 @@
 # Changelog
 
+## Session 44 — Analysis History Phases D2, E1, E2, F (2026-02-20)
+
+Full implementation of the deferred Analysis History features from SPEC-analysis-history-phases-d-f.md.
+
+### Phase D2: Document Fingerprinting (`web/plan_fingerprint.py`)
+- SHA-256 content hash at upload time (Layer 1 — exact match = same file)
+- Structural fingerprint: `(page_number, sheet_number)` composite pairs extracted from vision results (Layer 2 — ≥60% overlap = same document)
+- Metadata fallback: `permit_number` / `property_address` / normalised filename (Layer 3)
+- `find_matching_job()` — selects best match across all three layers
+- `plan_analysis_jobs`: `pdf_hash`, `pdf_hash_failed`, `structural_fingerprint` columns
+
+### Phase E1: Version Chain Data Model (`web/plan_jobs.py`, `web/plan_worker.py`)
+- `plan_analysis_jobs`: `version_group`, `version_number`, `parent_job_id` columns
+- `assign_version_group(job_id, group_id)` — auto-increments within group, sets parent link
+- `get_version_chain(version_group)` — returns jobs ordered by `version_number ASC`
+- `plan_worker.py`: wires fingerprint matching → version group assignment after each job completes
+- `PROMPT_FULL_EXTRACTION`: structured `revisions: [{revision_number, revision_date, description}]` replaces flat `revision: null`
+
+### Phase E2: Comparison Page (`web/plan_compare.py`, `web/templates/analysis_compare.html`)
+- `GET /account/analyses/compare?a=<job_id>&b=<job_id>` with full access control
+- AMB-1 comment matching: type-first bucketing, token overlap threshold 2 (1 for stamps), Euclidean position tiebreak
+- Status classification: `resolved` / `unchanged` / `new`
+- Sheet diff from structural fingerprints; EPR check diff (changed statuses only)
+- `comparison_json` cached on job_b, invalidated when `completed_at > computed_at`
+- Tab-based template: Comments (with filter buttons), Sheets, EPR Changes
+- "Compare ↔" button on v2+ cards in grouped view
+
+### Phase F1: Stats Banner (`web/plan_jobs.py`, `analysis_history.html`)
+- `get_analysis_stats()`: monthly count, avg processing time (seconds), distinct projects tracked
+- Banner rendered above filter chips: "12 analyses this month | Avg processing: 1m 30s | 3 projects tracked"
+
+### Phase F2: Project Notes (`web/plan_notes.py`, DB migrations)
+- `project_notes` table: free-text per `(user_id, version_group)`
+- `GET/POST /api/project-notes/<version_group>` JSON endpoints
+- Collapsible notes widget in grouped view (with 60-char preview in header)
+- Notes also editable from the comparison page
+
+### Phase F3: Visual Comparison (`analysis_compare.html`, `web/app.py`)
+- `GET /api/plan-sessions/<session_id>/pages/<n>/image` — serves stored PNG with ownership check
+- Visual tab on compare page: side-by-side layout + overlay mode with opacity slider
+- Page selectors for V1 and V2 independently; lazy loads on tab open
+
+### Phase F4: Revision Extraction Display (`analysis_compare.html`)
+- Compare route extracts `title_block.revisions` from page_extractions, deduplicates by `(revision_number, revision_date)`
+- Side-by-side "V1 Revision History" / "V2 Revision History" tables displayed below the version chain timeline
+
+### Tests
+- 66 new passing tests (17 E1, 26 E2, 23 F); full suite 1222 passed, 18 pre-existing errors unchanged
+
+---
+
 ## Session 43 — Portfolio Health: Expired Permit Noise Fix (2026-02-20)
 
 Expired permits no longer trigger "BEHIND" or "AT_RISK" status on active properties. Previously, a single expired mechanical/electrical/plumbing permit would flag an entire property as needing action, even when other permits were active and recent inspections were passing.
