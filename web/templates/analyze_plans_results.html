@@ -1420,6 +1420,17 @@
         <a href="/auth/login" style="color:var(--accent, #4f8ff7);">Sign in</a> to watch {{ property_address }} for permit updates.
     </div>
     {% endif %}
+
+    <!-- Analyze Another Plan -->
+    <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border, #333749); text-align:center;">
+        <a href="/#section-analyze-plans"
+           style="display:inline-block; background:transparent; border:1px solid var(--accent, #4f8ff7); color:var(--accent, #4f8ff7);
+                  padding:10px 24px; border-radius:8px; text-decoration:none; font-size:0.9rem; font-weight:500; transition:all 0.2s;"
+           onmouseover="this.style.background='rgba(79,143,247,0.1)'"
+           onmouseout="this.style.background='transparent'">
+            &#43; Analyze Another Plan
+        </a>
+    </div>
 </div>
 
 {% if session_id %}
