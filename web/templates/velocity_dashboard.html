@@ -96,6 +96,13 @@
         .station-dept { font-size: 0.68rem; opacity: 0.55; margin-top: 2px; }
         .station-drill-hint { font-size: 0.65rem; opacity: 0.45; margin-top: 5px; cursor: pointer; }
         .station-card:hover .station-drill-hint { opacity: 0.75; }
+        .station-card.loading {
+            animation: card-pulse 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes card-pulse {
+            from { opacity: 1; }
+            to   { opacity: 0.45; }
+        }
 
         /* Reviewer drawer */
         .reviewer-drawer {
@@ -576,20 +583,46 @@
         critical: '#fb923c', severe: '#f87171', unknown: '#8b8fa3'
     };
 
+    // Spinner frames for loading indicator
+    const SPIN = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
+    let spinIdx = 0, spinTimer = null;
+
+    function startSpinner(el) {
+        stopSpinner();
+        spinTimer = setInterval(() => {
+            el.textContent = SPIN[spinIdx % SPIN.length] + ' Loading reviewer data…';
+            spinIdx++;
+        }, 80);
+    }
+    function stopSpinner() {
+        if (spinTimer) { clearInterval(spinTimer); spinTimer = null; }
+    }
+
     function openReviewerDrawer(station) {
         const drawer = document.getElementById('reviewer-drawer');
         const content = document.getElementById('drawer-content');
         const title = document.getElementById('drawer-station-name');
         const subtitle = document.getElementById('drawer-subtitle');
 
+        // Pulse the card that was clicked
+        const clickedCard = document.querySelector(`[data-station="${CSS.escape(station)}"]`);
+        if (clickedCard) clickedCard.classList.add('loading');
+
         title.textContent = station + ' — Reviewer Breakdown';
         subtitle.textContent = 'Individual plan checker velocity (last 90 days)';
-        content.innerHTML = '<p class="reviewer-loading">⏳ Loading…</p>';
+        const loadingEl = document.createElement('p');
+        loadingEl.className = 'reviewer-loading';
+        loadingEl.textContent = '⠋ Loading reviewer data…';
+        content.innerHTML = '';
+        content.appendChild(loadingEl);
+        startSpinner(loadingEl);
         drawer.classList.add('open');
 
         fetch('/dashboard/bottlenecks/station/' + encodeURIComponent(station))
             .then(r => r.json())
             .then(data => {
+                stopSpinner();
+                if (clickedCard) clickedCard.classList.remove('loading');
                 const reviewers = data.reviewers || [];
                 if (reviewers.length === 0) {
                     content.innerHTML = '<p class="reviewer-empty">No reviewer data available for this station yet (need ≥2 completed reviews per reviewer in the last 90 days).</p>';
@@ -626,6 +659,8 @@
                 content.innerHTML = html;
             })
             .catch(() => {
+                stopSpinner();
+                if (clickedCard) clickedCard.classList.remove('loading');
                 content.innerHTML = '<p class="reviewer-empty">Failed to load reviewer data.</p>';
             });
     }
@@ -638,6 +673,8 @@
     }
 
     function closeDrawer() {
+        stopSpinner();
+        document.querySelectorAll('.station-card.loading').forEach(c => c.classList.remove('loading'));
         document.getElementById('reviewer-drawer').classList.remove('open');
     }
 
