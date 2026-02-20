@@ -127,26 +127,47 @@ def get_portfolio(user_id: int) -> dict:
         issued_date = _parse_date(issued_str)
         cost = rev_cost or est_cost or 0
 
-        # Health calculation
+        # Health calculation — action-signal based, not pure age thresholds.
+        # Filed: stalled (no activity 60+d) = AT RISK; slow but moving = BEHIND/SLOWER.
+        # Issued: expiration approaching = AT RISK/BEHIND; long construction is NORMAL.
         health = "on_track"
+        health_reason = ""
         days_in_status = (today - status_date).days if status_date else 0
 
         if status == "filed" and filed_date:
             days_filed = (today - filed_date).days
-            if days_filed > 365:
+            stalled = days_in_status > 60  # no status change in 60+ days
+            if days_filed > 365 and stalled:
                 health = "at_risk"
-            elif days_filed > 180:
+                health_reason = f"{pn} filed {days_filed}d ago, no activity in {days_in_status}d"
+            elif days_filed > 365:
                 health = "behind"
-            elif days_filed > 90:
+                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
+            elif days_filed > 180:
                 health = "slower"
+                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
 
         if status == "issued" and issued_date:
+            from web.brief import _validity_days
+            permit_dict = {
+                "permit_type_definition": ptype_def or ptype or "",
+                "revised_cost": rev_cost,
+                "estimated_cost": est_cost,
+            }
+            validity = _validity_days(permit_dict)
             days_issued = (today - issued_date).days
-            if days_issued > 365 * 2.5:
+            expires_in = validity - days_issued
+            if expires_in <= 90:
                 health = "at_risk"
-            elif days_issued > 365 * 2:
+                if expires_in <= 0:
+                    health_reason = f"{pn} permit expired {abs(expires_in)}d ago"
+                else:
+                    health_reason = f"{pn} expires in {expires_in}d"
+            elif expires_in <= 180:
                 health = "behind"
+                health_reason = f"{pn} expires in {expires_in}d"
 
+        days_in_status = (today - status_date).days if status_date else 0
         permit_data = {
             "permit_number": pn,
             "permit_type": ptype_def or ptype or "",
@@ -159,16 +180,6 @@ def get_portfolio(user_id: int) -> dict:
             "health": health,
             "days_in_status": days_in_status,
         }
-
-        # Build health reason for display on property card
-        health_reason = ""
-        if health != "on_track":
-            if status == "filed" and filed_date:
-                days_filed = (today - filed_date).days
-                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
-            elif status == "issued" and issued_date:
-                days_issued = (today - issued_date).days
-                health_reason = f"{pn} issued {days_issued}d ago (open construction)"
 
         if key not in property_map:
             property_map[key] = {
@@ -298,6 +309,7 @@ def get_portfolio(user_id: int) -> dict:
             if existing is None or progress.total_stations > existing.total_stations:
                 prop_routing[pid] = progress
 
+        health_order = {"on_track": 0, "slower": 1, "behind": 2, "at_risk": 3}
         for prop in properties:
             rp = prop_routing.get(id(prop))
             if rp:
@@ -319,8 +331,24 @@ def get_portfolio(user_id: int) -> dict:
                     "stalled_stations": stalled,
                     "held_stations": held,
                 }
+                # Upgrade to AT RISK if permit has active holds
+                if held and health_order.get(prop["worst_health"], 0) < health_order["at_risk"]:
+                    prop["worst_health"] = "at_risk"
+                    prop["health_reason"] = f"Hold at {', '.join(held[:2])}"
             else:
                 prop["routing"] = None
+
+            # Upgrade to AT RISK if property has open enforcement
+            viol = prop.get("open_violations") or 0
+            comp = prop.get("open_complaints") or 0
+            if (viol + comp) > 0 and health_order.get(prop["worst_health"], 0) < health_order["at_risk"]:
+                parts = []
+                if viol:
+                    parts.append(f"{viol} violation{'s' if viol != 1 else ''}")
+                if comp:
+                    parts.append(f"{comp} complaint{'s' if comp != 1 else ''}")
+                prop["worst_health"] = "at_risk"
+                prop["health_reason"] = f"Open enforcement: {', '.join(parts)}"
     else:
         for prop in properties:
             prop["routing"] = None

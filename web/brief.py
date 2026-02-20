@@ -907,7 +907,8 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         rows = query(
             f"SELECT p.permit_number, p.status, p.filed_date, p.issued_date, "
             f"p.street_number, p.street_name, p.block, p.lot, p.neighborhood, "
-            f"p.permit_type_definition, p.street_suffix, p.status_date "
+            f"p.permit_type_definition, p.street_suffix, p.status_date, "
+            f"p.revised_cost, p.estimated_cost "
             f"FROM permits p WHERE {where} "
             f"ORDER BY p.status_date DESC",
             params,
@@ -931,9 +932,12 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         snum, sname = row[4] or "", row[5] or ""
         block, lot = row[6] or "", row[7] or ""
         neighborhood = row[8] or ""
+        ptype_def = row[9] or ""
         street_suffix = row[10] or "" if len(row) > 10 else ""
         status_date_str = row[11] if len(row) > 11 else None
         status_date = _parse_date(status_date_str)
+        revised_cost = row[12] if len(row) > 12 else None
+        estimated_cost = row[13] if len(row) > 13 else None
 
         # Build full address with suffix: "125 MASON ST"
         full_name = sname
@@ -944,36 +948,49 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         addr = f"{snum} {full_name}".strip().upper()
         key = addr if addr else f"{block}/{lot}"
 
-        # Health calculation (same thresholds as portfolio.py lines 131-141)
+        # Health calculation — action-signal based, not pure age thresholds.
+        # Filed: AT RISK only if genuinely stalled (no activity 60+d) or active hold/enforcement.
+        #        BEHIND if slow but still moving (>365d filed, activity within 60d).
+        #        SLOWER if moderately slow (>180d filed).
+        # Issued: AT RISK/BEHIND only if approaching Table B expiration.
+        #         Long construction is NORMAL — don't flag it.
         health = "on_track"
+        health_reason = ""
         filed_date = _parse_date(filed_str)
         issued_date = _parse_date(issued_str)
+        days_since = (today - status_date).days if status_date else None
 
         if status == "filed" and filed_date:
             days_filed = (today - filed_date).days
-            if days_filed > 365:
+            stalled = days_since is not None and days_since > 60
+            if days_filed > 365 and stalled:
                 health = "at_risk"
-            elif days_filed > 180:
+                health_reason = f"{pn} filed {days_filed}d ago, no activity in {days_since}d"
+            elif days_filed > 365:
                 health = "behind"
-            elif days_filed > 90:
+                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
+            elif days_filed > 180:
                 health = "slower"
+                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
 
         if status == "issued" and issued_date:
+            permit_dict = {
+                "permit_type_definition": ptype_def,
+                "revised_cost": revised_cost,
+                "estimated_cost": estimated_cost,
+            }
+            validity = _validity_days(permit_dict)
             days_issued = (today - issued_date).days
-            if days_issued > 365 * 2.5:
+            expires_in = validity - days_issued
+            if expires_in <= 90:
                 health = "at_risk"
-            elif days_issued > 365 * 2:
+                if expires_in <= 0:
+                    health_reason = f"{pn} permit expired {abs(expires_in)}d ago"
+                else:
+                    health_reason = f"{pn} expires in {expires_in}d"
+            elif expires_in <= 180:
                 health = "behind"
-
-        # Build health reason string for display in brief card
-        health_reason = ""
-        if health != "on_track":
-            if status == "filed" and filed_date:
-                days_filed = (today - filed_date).days
-                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
-            elif status == "issued" and issued_date:
-                days_issued = (today - issued_date).days
-                health_reason = f"{pn} issued {days_issued}d ago (open construction)"
+                health_reason = f"{pn} expires in {expires_in}d"
 
         if key not in property_map:
             # Title-case for display: "125 MASON ST" -> "125 Mason St"
@@ -1136,6 +1153,22 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
                 "held_stations": held,
                 "velocity": velocity,
             }
+
+            # Upgrade health if permit has active holds — that's a real action signal
+            if held and health_order.get(prop["worst_health"], 0) < health_order["at_risk"]:
+                prop["worst_health"] = "at_risk"
+                prop["health_reason"] = f"Hold at {', '.join(held[:2])}"
+
+        # Upgrade health if property has open enforcement
+        enf_total = prop.get("enforcement_total")
+        if enf_total and enf_total > 0 and health_order.get(prop["worst_health"], 0) < health_order["at_risk"]:
+            parts = []
+            if prop.get("open_violations"):
+                parts.append(f"{prop['open_violations']} violation{'s' if prop['open_violations'] != 1 else ''}")
+            if prop.get("open_complaints"):
+                parts.append(f"{prop['open_complaints']} complaint{'s' if prop['open_complaints'] != 1 else ''}")
+            prop["worst_health"] = "at_risk"
+            prop["health_reason"] = f"Open enforcement: {', '.join(parts)}"
 
         # Remove internal-only fields (parcels set is not JSON-serializable)
         del prop["plancheck_permits"]
