@@ -4661,7 +4661,7 @@ def cron_rag_ingest():
 
     Query params:
       - tier: 'tier1', 'tier2', 'tier3', 'tier4', 'ops', or 'all' (default: all)
-      - clear: '1' to clear existing chunks first (default: false)
+      - clear: '0' to skip clearing (default: true for tier1-4, ops self-manages)
     """
     token = request.headers.get("Authorization", "")
     expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
@@ -4670,7 +4670,7 @@ def cron_rag_ingest():
 
     import json as json_mod
     tier = request.args.get("tier", "all")
-    clear = request.args.get("clear", "").lower() in ("1", "true", "yes")
+    skip_clear = request.args.get("clear", "").lower() in ("0", "false", "no")
 
     try:
         from src.rag.store import ensure_table, clear_tier, get_stats, rebuild_ivfflat_index
@@ -4678,8 +4678,12 @@ def cron_rag_ingest():
 
         ensure_table()
 
+        # Clear existing official (tier1-4) chunks before re-ingesting to
+        # prevent duplicate accumulation.  Ops chunks self-manage via
+        # clear_file() in ingest_ops_chunks().
         cleared = 0
-        if clear:
+        ingesting_static = tier in ("tier1", "tier2", "tier3", "tier4", "all")
+        if ingesting_static and not skip_clear:
             cleared = clear_tier("official")
 
         total = 0

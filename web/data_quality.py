@@ -271,19 +271,47 @@ def _check_data_freshness() -> dict:
 
 
 def _check_rag_chunk_count() -> dict:
-    """Check RAG knowledge_chunks count vs baseline (~1,012)."""
+    """Check RAG knowledge_chunks count vs baseline.
+
+    Baseline: ~1,012 official (tier1-4) + ops chunks (variable).
+    Flags both under-count (data loss) AND over-count (duplicate accumulation).
+    """
     rows = query("SELECT COUNT(*) FROM knowledge_chunks", ())
     count = rows[0][0] if rows else 0
-    baseline = 1012
+    # Check for duplicates by comparing distinct vs total
+    dup_rows = query(
+        "SELECT COUNT(*) FROM ("
+        "  SELECT DISTINCT source_file, source_section, chunk_index "
+        "  FROM knowledge_chunks"
+        ") sub",
+        (),
+    )
+    distinct = dup_rows[0][0] if dup_rows else count
+    duplicates = count - distinct
+    baseline = 1100  # ~1,012 official + ~80-100 ops chunks
     pct_of_baseline = round(count / max(baseline, 1) * 100)
-    status = "green" if pct_of_baseline >= 90 else ("yellow" if pct_of_baseline >= 70 else "red")
+    if duplicates > 50:
+        status = "red"
+        detail = f"{count:,} chunks but only {distinct:,} unique — {duplicates:,} duplicates detected!"
+    elif pct_of_baseline < 70:
+        status = "red"
+        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline {baseline:,}) — data loss?"
+    elif pct_of_baseline < 90:
+        status = "yellow"
+        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline {baseline:,})"
+    elif pct_of_baseline > 200:
+        status = "yellow"
+        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline) — possible accumulation"
+    else:
+        status = "green"
+        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline {baseline:,})"
     return {
         "name": "RAG Chunks",
         "category": "completeness",
         "value": f"{count:,}",
-        "unit": f"(baseline: {baseline:,})",
+        "unit": f"({distinct:,} unique)" if duplicates > 0 else f"(baseline: {baseline:,})",
         "status": status,
-        "detail": f"{count:,} knowledge chunks ({pct_of_baseline}% of baseline {baseline:,})",
+        "detail": detail,
     }
 
 
