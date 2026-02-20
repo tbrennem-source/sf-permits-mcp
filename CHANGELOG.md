@@ -1,5 +1,38 @@
 # Changelog
 
+## Session 42 — Plan Analysis UX Polish (2026-02-20)
+
+Iterative UX fixes for the plan analysis workflow based on live testing.
+
+### Navigation & Breadcrumbs
+- **Results page breadcrumb**: Added "← Analysis History" link at top of all results pages (`plan_results_page.html`)
+- **Processing page breadcrumb**: Added "← Analysis History" link above processing card so users aren't stranded
+- **"Analyze Another Plan" fix**: Changed link from `/#analyze-plans` (home page) to `/account/analyses#upload` (analysis history page with upload form auto-opened). Added `#upload` hash detection to `analysis_history.html`.
+- **Upsell link fix**: "Upload for Full Analysis" now also goes to `/account/analyses#upload`
+
+### Auto-Redirect on Completion
+- **HX-Redirect fix**: Replaced broken inline `<script>` in `analyze_plans_complete.html` with `HX-Redirect` response header in `plan_job_status()`. HTMX doesn't execute inline scripts in swapped content — `HX-Redirect` is the correct approach for HTMX polling → navigation.
+
+### Processing Time & Estimates
+- **Quick Check timestamps**: Now records `started_at` and `completed_at` around the `validate_plans()` call so duration displays in history cards
+- **Mode-aware time estimates**: Processing page shows "Typical: 30–60 sec" for Compliance, "1–3 min" for AI Analysis, "2–5 min" for Full Analysis (was hardcoded "1–3 min" for all)
+
+### Compliance Mode Speed
+- **Gallery rendering optimization**: Compliance mode now renders only 3 gallery pages (matching the 3 analyzed pages) instead of all pages (up to 50). Cuts total processing time roughly in half for large PDFs.
+
+### Files Changed
+| File | Changes |
+|------|---------|
+| `web/app.py` | `make_response` import, `HX-Redirect` for completion, Quick Check timestamps, `datetime` import |
+| `web/plan_worker.py` | Compliance gallery rendering limited to 3 pages |
+| `web/templates/plan_results_page.html` | Breadcrumb nav to Analysis History |
+| `web/templates/analyze_plans_processing.html` | Breadcrumb link to Analysis History |
+| `web/templates/analyze_plans_results.html` | "Analyze Another Plan" → `/account/analyses#upload`; upsell link updated |
+| `web/templates/analyze_plans_polling.html` | Mode-aware time estimates |
+| `web/templates/analysis_history.html` | `#upload` hash auto-opens upload section |
+
+---
+
 ## Session 41 — MCP Server Fixes + Infrastructure (2026-02-20)
 
 Fixed MCP server connectivity for claude.ai and deployed separate MCP service on Railway.
