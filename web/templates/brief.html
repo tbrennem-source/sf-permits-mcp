@@ -66,6 +66,14 @@
             font-size: 0.8rem; font-family: inherit; text-decoration: none;
         }
         .lookback-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .lookback-btn.loading {
+            color: var(--accent) !important;
+            animation: lookback-pulse 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes lookback-pulse {
+            from { border-color: rgba(79,143,247,0.3); }
+            to   { border-color: rgba(79,143,247,1); }
+        }
 
         /* Clickable summary cards */
         .summary-card[data-target] { cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
@@ -732,6 +740,14 @@
     </main>
     {% include 'fragments/feedback_widget.html' %}
 <script>
+// Lookback button loading pulse on click
+document.querySelectorAll('.lookback-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        if (this.classList.contains('active')) return;
+        this.classList.add('loading');
+    });
+});
+
 // Clickable summary cards — scroll to corresponding section
 document.querySelectorAll('.summary-card[data-target]').forEach(function(card) {
     card.addEventListener('click', function() {
