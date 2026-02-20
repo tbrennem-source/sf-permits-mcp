@@ -74,9 +74,10 @@
             background: var(--accent); color: #fff;
             border-color: var(--accent);
         }
-        .fbtn.portfolio-active {
-            background: rgba(79,143,247,0.2); color: var(--accent);
-            border-color: var(--accent);
+        .fbtn.portfolio-has-data {
+            /* subtle indicator that portfolio data is available, but NOT selected */
+            border-color: rgba(79,143,247,0.5);
+            color: var(--accent);
         }
 
         /* Heatmap grid */
@@ -218,13 +219,13 @@
                 <span class="filter-label">View:</span>
                 <div class="filter-group">
                     <button class="fbtn active" id="view-all" onclick="setView('all')">All Stations</button>
-                    <button class="fbtn {% if data.portfolio.count > 0 %}portfolio-active{% endif %}"
+                    <button class="fbtn {% if data.portfolio.count > 0 %}portfolio-has-data{% endif %}"
                             id="view-portfolio"
                             onclick="setView('portfolio')"
                             {% if data.portfolio.count == 0 %}title="Watch permits to enable portfolio view"{% endif %}>
                         My Portfolio
                         {% if data.portfolio.count > 0 %}
-                            <span style="font-size:0.7em;opacity:0.8;">({{ data.portfolio.count }} stations)</span>
+                            <span style="font-size:0.7em;opacity:0.8;">({{ data.portfolio.count }})</span>
                         {% endif %}
                     </button>
                 </div>
@@ -317,7 +318,7 @@
                 </div>
                 {% endfor %}
             </div>
-            <div class="no-results" id="heatmap-empty">No stations match your current filters.</div>
+            <div class="no-results" id="heatmap-empty">No stations match the current filters.</div>
             {% else %}
             <div class="section">
                 <p style="color:var(--text-muted);">No station velocity data yet. Run <code>POST /cron/nightly</code> to generate baselines.</p>
@@ -525,10 +526,16 @@
 
         document.getElementById('view-all').classList.toggle('active', view === 'all');
         document.getElementById('view-portfolio').classList.toggle('active', view === 'portfolio');
+        // portfolio-has-data stays regardless of selection — it's a data indicator, not state
+        if (view === 'portfolio') {
+            document.getElementById('view-portfolio').classList.add('active');
+        }
 
-        // Show hint if portfolio view selected but no portfolio data
+        // Show hint if portfolio view selected but no portfolio data, and scroll to it
         if (portfolioHint) {
-            portfolioHint.style.display = (view === 'portfolio' && !hasPortfolio) ? 'block' : 'none';
+            const show = (view === 'portfolio' && !hasPortfolio);
+            portfolioHint.style.display = show ? 'block' : 'none';
+            if (show) portfolioHint.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         applyFilters();
