@@ -136,12 +136,13 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         changes_addresses.add(addr_key)
         # Create an activity entry (no status transition, just "updated")
         changes.append({
-            "permit_number": "",
+            "permit_number": p.get("latest_permit", ""),
             "change_date": p.get("latest_activity", ""),
             "old_status": None,
             "new_status": "activity",
             "change_type": "activity",
-            "permit_type": "",
+            "permit_type": p.get("latest_permit_type", ""),
+            "latest_permit_status": p.get("latest_permit_status", ""),
             "street_number": p.get("address", "").split()[0] if p.get("address") else "",
             "street_name": " ".join(p.get("address", "").split()[1:]) if p.get("address") else "",
             "neighborhood": p.get("neighborhood", ""),
@@ -1065,6 +1066,9 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
                 "enforcement_total": None,
                 "routing": None,
                 "latest_activity": str(status_date) if status_date else "",
+                "latest_permit": "",
+                "latest_permit_status": "",
+                "latest_permit_type": "",
                 "days_since_activity": None,
                 "search_url": f"/?q={addr.replace(' ', '+')}" if addr else f"/?q={block}/{lot}",
             }
@@ -1075,6 +1079,9 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
         # Track latest status_date across all permits at this address
         if status_date and str(status_date) > prop["latest_activity"]:
             prop["latest_activity"] = str(status_date)
+            prop["latest_permit"] = pn
+            prop["latest_permit_status"] = status
+            prop["latest_permit_type"] = ptype_def
 
         # Track all block/lot pairs for this address
         if block and lot:
