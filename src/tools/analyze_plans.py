@@ -108,9 +108,9 @@ def _get_consensus_address(page_extractions: list[dict]) -> str | None:
     from collections import Counter
 
     addresses = [
-        pe.get("project_address", "").strip()
+        (pe.get("project_address") or "").strip()
         for pe in page_extractions
-        if pe.get("project_address", "").strip()
+        if (pe.get("project_address") or "").strip()
     ]
     if not addresses:
         return None

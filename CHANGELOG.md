@@ -1,5 +1,34 @@
 # Changelog
 
+## Session 41 — MCP Server Fixes + Infrastructure (2026-02-20)
+
+Fixed MCP server connectivity for claude.ai and deployed separate MCP service on Railway.
+
+### MCP Protocol Fix — `src/server.py`, `src/mcp_http.py`, `pyproject.toml`, `web/requirements.txt`
+- **Root cause**: Standalone `fastmcp>=2.0.0` package produces incompatible Streamable HTTP responses (adds `mcp-session-id` headers, requires specific Accept headers) that claude.ai's MCP client cannot parse. Caused 12+ hour outage.
+- **Fix**: Switched to `mcp[cli]>=1.26.0` (Anthropic's official package) — `from mcp.server.fastmcp import FastMCP` instead of `from fastmcp import FastMCP`. Same constructor pattern as Chief MCP server (proven compatible).
+- Rewrote `src/mcp_http.py` as standalone HTTP transport entry point with all 22 tools registered directly.
+- Updated `Dockerfile.mcp` CMD from uvicorn to `python -m src.mcp_http`.
+
+### MCP Railway Service — `sfpermits-mcp-api`
+- Deployed new Railway service (`sfpermits-mcp-api`) for MCP Streamable HTTP access from claude.ai.
+- **MCP URL**: `https://sfpermits-mcp-api-production.up.railway.app/mcp`
+- Health check at `/health` returns tool count and server status.
+- Separate from Flask web app (WSGI) since MCP requires ASGI transport.
+
+### Bug Fixes
+- **Zoning cross-check NoneType fix** — `_get_consensus_address()` in `analyze_plans.py` now handles `None` values from vision extractions using `(pe.get("project_address") or "")` instead of `pe.get("project_address", "")`.
+- **Defensive event loop setup** — Added `asyncio.set_event_loop(loop)` in `plan_worker.py` background thread for compatibility with code that calls `asyncio.get_event_loop()`.
+
+### Docs
+- Updated `CLAUDE.md` with MCP service URL, connection instructions, and `mcp[cli]` vs `fastmcp` guidance.
+- Pushed Phase D-F spec (`SPEC-analysis-history-phases-d-f.md`) to chief-brain-state for claude.ai access.
+
+### Tests
+696 passed, 1 skipped (pre-existing `src.plan_images` module issue).
+
+---
+
 ## Session 40 — Analysis History Page: UX Overhaul Phases A-C (2026-02-20)
 
 Major UX improvements to the Plan Analysis History page (`/account/analyses`), implementing Phases A through C of the three-role-reviewed plan.
