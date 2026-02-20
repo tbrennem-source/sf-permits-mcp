@@ -6,7 +6,7 @@ Phase 2: Local DuckDB network analysis for entity search, relationships, anomali
 Phase 2.75: Permit decision tools — prediction, timelines, fees, documents, revision risk.
 """
 
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 
 from src.tools.search_permits import search_permits
 from src.tools.get_permit_details import get_permit_details
