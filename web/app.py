@@ -2982,7 +2982,7 @@ def brief():
     from web.auth import get_primary_address
     lookback = request.args.get("lookback", "1")
     try:
-        lookback_days = max(1, min(int(lookback), 30))
+        lookback_days = max(1, min(int(lookback), 90))
     except ValueError:
         lookback_days = 1
     primary_addr = get_primary_address(g.user["user_id"])
@@ -4404,7 +4404,7 @@ def cron_nightly():
 
     lookback = request.args.get("lookback", "1")
     try:
-        lookback_days = max(1, min(int(lookback), 30))
+        lookback_days = max(1, min(int(lookback), 90))
     except ValueError:
         lookback_days = 1
 

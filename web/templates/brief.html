@@ -59,13 +59,17 @@
         .section-empty { color: var(--text-muted); font-style: italic; font-size: 0.9rem; }
 
         /* Lookback toggle */
-        .lookback-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+        .lookback-toggle { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
         .lookback-btn {
             padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
             background: var(--surface-2); color: var(--text-muted); cursor: pointer;
             font-size: 0.8rem; font-family: inherit; text-decoration: none;
         }
         .lookback-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* Clickable summary cards */
+        .summary-card[data-target] { cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
+        .summary-card[data-target]:hover { border-color: var(--accent); transform: translateY(-1px); }
 
         /* Change cards */
         .change-card {
@@ -103,8 +107,8 @@
             padding: 2px 8px; border-radius: 4px;
         }
         .health-on_track { background: rgba(52, 211, 153, 0.15); color: var(--success); }
-        .health-slower { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
-        .health-behind { background: rgba(248, 113, 113, 0.15); color: var(--error); }
+        .health-slower { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
+        .health-behind { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
         .health-at_risk { background: rgba(248, 113, 113, 0.25); color: var(--error); }
         .progress-track {
             height: 8px; background: var(--surface-2); border-radius: 4px;
@@ -115,7 +119,7 @@
         }
         .progress-fill.on_track { background: var(--success); }
         .progress-fill.slower { background: var(--warning); }
-        .progress-fill.behind { background: var(--error); }
+        .progress-fill.behind { background: var(--warning); }
         .progress-fill.at_risk { background: var(--error); }
         .health-detail { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 
@@ -182,21 +186,21 @@
         }
         .health-dot.on_track { background: var(--success); }
         .health-dot.slower { background: var(--warning); }
-        .health-dot.behind { background: var(--error); }
+        .health-dot.behind { background: var(--warning); }
         .health-dot.at_risk { background: var(--error); }
         .health-text {
             font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
         }
         .health-text.on_track { color: var(--success); }
         .health-text.slower { color: var(--warning); }
-        .health-text.behind { color: var(--error); }
+        .health-text.behind { color: var(--warning); }
         .health-text.at_risk { color: var(--error); }
         .prop-health-reason {
             font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;
             font-style: italic;
         }
         .prop-card.health-at_risk .prop-health-reason { color: var(--error); opacity: 0.8; }
-        .prop-card.health-behind .prop-health-reason { color: var(--warning); opacity: 0.85; }
+        .prop-card.health-behind .prop-health-reason { color: var(--warning); opacity: 0.9; }
         .prop-card.health-slower .prop-health-reason { color: var(--warning); opacity: 0.7; }
         .prop-recency { font-size: 0.72rem; margin-bottom: 6px; }
         .prop-recency.fresh { color: var(--success); }
@@ -248,6 +252,7 @@
                 <a href="/brief?lookback=1" class="lookback-btn {{ 'active' if brief.lookback_days == 1 else '' }}">Today</a>
                 <a href="/brief?lookback=7" class="lookback-btn {{ 'active' if brief.lookback_days == 7 else '' }}">Last 7 days</a>
                 <a href="/brief?lookback=30" class="lookback-btn {{ 'active' if brief.lookback_days == 30 else '' }}">Last 30 days</a>
+                <a href="/brief?lookback=90" class="lookback-btn {{ 'active' if brief.lookback_days == 90 else '' }}">Last 90 days</a>
             </div>
 
             {% if brief.property_synopsis %}
@@ -329,25 +334,25 @@
             </div>
             {% elif brief.summary.total_watches > 0 or brief.property_synopsis %}
 
-            <!-- Summary cards -->
+            <!-- Summary cards (clickable — scroll to section) -->
             <div class="summary-row">
-                <div class="summary-card">
+                <div class="summary-card" data-target="section-properties">
                     <div class="summary-number">{{ brief.summary.total_properties or brief.summary.total_watches }}</div>
                     <div class="summary-label">{{ 'Property' if (brief.summary.total_properties or brief.summary.total_watches) == 1 else 'Properties' }}</div>
                 </div>
-                <div class="summary-card {{ 'ok' if brief.summary.changes_count > 0 else '' }}">
+                <div class="summary-card {{ 'ok' if brief.summary.changes_count > 0 else '' }}" data-target="section-changes">
                     <div class="summary-number">{{ brief.summary.changes_count }}</div>
                     <div class="summary-label">Changed</div>
                 </div>
-                <div class="summary-card {{ 'alert' if brief.summary.get('enforcement_count', 0) > 0 else '' }}">
+                <div class="summary-card {{ 'alert' if brief.summary.get('enforcement_count', 0) > 0 else '' }}" data-target="section-properties">
                     <div class="summary-number">{{ brief.summary.get('enforcement_count', 0) }}</div>
                     <div class="summary-label">Enforcement</div>
                 </div>
-                <div class="summary-card {{ 'warn' if brief.summary.inspections_count > 0 else '' }}">
+                <div class="summary-card {{ 'warn' if brief.summary.inspections_count > 0 else '' }}" data-target="section-inspections">
                     <div class="summary-number">{{ brief.summary.inspections_count }}</div>
                     <div class="summary-label">Inspections</div>
                 </div>
-                <div class="summary-card {{ 'warn' if brief.summary.expiring_count > 0 else '' }}">
+                <div class="summary-card {{ 'warn' if brief.summary.expiring_count > 0 else '' }}" data-target="section-expiring">
                     <div class="summary-number">{{ brief.summary.expiring_count }}</div>
                     <div class="summary-label">Expiring</div>
                 </div>
@@ -355,7 +360,7 @@
 
             {# ===== Your Properties — always visible when property cards exist ===== #}
             {% if brief.property_cards %}
-            <div class="section" style="margin-bottom:28px;">
+            <div class="section" id="section-properties" style="margin-bottom:28px;">
                 <h2>Your Properties</h2>
                 <div class="property-snapshot-grid">
                     {% for prop in brief.property_cards %}
@@ -437,7 +442,7 @@
                 <div style="font-size: 1.5rem; margin-bottom: 8px;">&#x2705;</div>
                 <div style="font-weight: 600; margin-bottom: 6px;">All quiet on your watched items</div>
                 <div style="color: var(--text-muted); font-size: 0.9rem; max-width: 480px; margin: 0 auto;">
-                    {% if brief.lookback_days == 1 %}No activity today. Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> or <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% elif brief.lookback_days < 30 %}No activity in the last {{ brief.lookback_days }} days.{% else %}No activity in the last 30 days.{% endif %}
+                    {% if brief.lookback_days == 1 %}No activity today. Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> or <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% elif brief.lookback_days < 90 %}No activity in the last {{ brief.lookback_days }} days. {% if brief.lookback_days <= 30 %}Try <a href="/brief?lookback=90" style="color:var(--accent);">last 90 days</a>.{% endif %}{% else %}No activity in the last 90 days.{% endif %}
                 </div>
                 <div style="margin-top: 16px;">
                     <a href="/" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Search for permits to watch &rarr;</a>
@@ -447,7 +452,7 @@
             {% endif %}
 
             <!-- Section 1: What Changed -->
-            <div class="section">
+            <div class="section" id="section-changes">
                 <h2>What Changed</h2>
                 {% if brief.changes %}
                 {% for c in brief.changes %}
@@ -573,7 +578,7 @@
             </div>
 
             <!-- Section 3: Inspection Results -->
-            <div class="section">
+            <div class="section" id="section-inspections">
                 <h2>Inspection Results</h2>
                 {% if brief.inspections %}
                 {% for insp in brief.inspections %}
@@ -656,7 +661,7 @@
             </div>
 
             <!-- Section 6: Expiring Permits -->
-            <div class="section">
+            <div class="section" id="section-expiring">
                 <h2>Expiring Permits</h2>
                 {% if brief.expiring %}
                 {% for e in brief.expiring %}
@@ -726,5 +731,19 @@
         </div>
     </main>
     {% include 'fragments/feedback_widget.html' %}
+<script>
+// Clickable summary cards — scroll to corresponding section
+document.querySelectorAll('.summary-card[data-target]').forEach(function(card) {
+    card.addEventListener('click', function() {
+        var target = document.getElementById(this.dataset.target);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Brief flash highlight
+            target.style.boxShadow = '0 0 0 2px var(--accent)';
+            setTimeout(function() { target.style.boxShadow = ''; }, 1500);
+        }
+    });
+});
+</script>
 </body>
 </html>

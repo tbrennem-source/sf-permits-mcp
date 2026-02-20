@@ -1,5 +1,35 @@
 # Changelog
 
+## Session 37 — Severity Refinement + Brief UX Enhancements (2026-02-20)
+
+### Permit Expiration Severity Refinement — `web/brief.py`, `web/portfolio.py`
+- **Problem**: All expired/expiring permits showed as red "AT RISK" — even active construction sites where expiration is routine paperwork. This created false urgency and noise for Amy.
+- **Research**: Reviewed SFBICC Section 106A.4.4 (Table B) — expired permits on active sites need a recommencement application (alteration permit for uncompleted work, no new plan review). Not an emergency.
+- **New tiered logic** (both Brief property cards and Portfolio):
+  - Expired + recent activity (≤30d): ⚠️ `behind` (yellow) — "permit expired Xd ago (active site)"
+  - Expired + no recent activity (>30d): 🔴 `at_risk` (red) — genuinely stalled
+  - Expiring ≤30 days: 🔴 `at_risk` (red) — urgent, file extension now
+  - Expiring 31–90 days: ⚠️ `behind` (yellow) — file extension soon
+  - Expiring 91–180 days: 💛 `slower` (light yellow) — on the horizon
+- **CSS consistency fix**: `behind` state was styled with red dot/text but yellow border — now fully yellow across all elements (dot, text, badge, progress bar, health reason) in both `brief.html` and `portfolio.html`
+
+### 90-Day Lookback — `web/app.py`, `web/templates/brief.html`
+- Extended maximum lookback from 30 days to 90 days (clamped at `max(1, min(90))`)
+- Added 90-day toggle button to Brief lookback filter bar
+- Updated empty-state text references from 30 to 90
+
+### Clickable Summary Cards — `web/templates/brief.html`
+- Summary card numbers (Properties, Changed, Inspections, Expiring) now clickable
+- Click scrolls to the relevant section with a 1.5s highlight flash
+- Added `data-target` attributes and section `id` anchors
+- Hover cursor and subtle scale transition on clickable cards
+
+### Tests
+- Updated `test_brief_lookback_clamped` to expect "90 days lookback" (was 30)
+- All 1,103 tests passing (18 pre-existing errors from missing `src.plan_images` module unchanged)
+
+---
+
 ## Session 36 — UX Redesign Phase A: Nav + Admin Context (2026-02-20)
 
 ### UX Audit

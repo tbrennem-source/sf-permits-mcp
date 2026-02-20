@@ -157,14 +157,23 @@ def get_portfolio(user_id: int) -> dict:
             validity = _validity_days(permit_dict)
             days_issued = (today - issued_date).days
             expires_in = validity - days_issued
-            if expires_in <= 90:
-                health = "at_risk"
-                if expires_in <= 0:
-                    health_reason = f"{pn} permit expired {abs(expires_in)}d ago"
+            recently_active = days_in_status <= 30
+            if expires_in <= 0:
+                # Permit already expired — severity depends on site activity
+                if recently_active:
+                    health = "behind"
+                    health_reason = f"{pn} permit expired {abs(expires_in)}d ago (active site)"
                 else:
-                    health_reason = f"{pn} expires in {expires_in}d"
-            elif expires_in <= 180:
+                    health = "at_risk"
+                    health_reason = f"{pn} permit expired {abs(expires_in)}d ago"
+            elif expires_in <= 30:
+                health = "at_risk"
+                health_reason = f"{pn} expires in {expires_in}d"
+            elif expires_in <= 90:
                 health = "behind"
+                health_reason = f"{pn} expires in {expires_in}d"
+            elif expires_in <= 180:
+                health = "slower"
                 health_reason = f"{pn} expires in {expires_in}d"
 
         days_in_status = (today - status_date).days if status_date else 0

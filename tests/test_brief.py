@@ -279,7 +279,7 @@ def test_brief_lookback_clamped(client):
     # Over max
     rv = client.get("/brief?lookback=999")
     html = rv.data.decode()
-    assert "30 days lookback" in html
+    assert "90 days lookback" in html
     # Under min
     rv = client.get("/brief?lookback=0")
     html = rv.data.decode()
