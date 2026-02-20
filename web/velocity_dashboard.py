@@ -15,6 +15,68 @@ from web.station_velocity import get_station_baselines, StationBaseline
 logger = logging.getLogger(__name__)
 
 
+# ── Portfolio station detection ───────────────────────────────────────────────
+
+def get_portfolio_stations(user_id: int) -> dict:
+    """Find stations where the user's watched permits are currently pending.
+
+    Returns:
+        {
+          "stations": set[str],          # station codes with user's permits pending
+          "permit_map": {permit: station} # which permit is at which station
+          "permit_numbers": list[str],    # all watched permit numbers (any type)
+        }
+    """
+    from web.auth import get_watches
+    watches = get_watches(user_id)
+
+    # Collect all permit numbers from watch items
+    permit_numbers: list[str] = []
+    for w in watches:
+        if w.get("permit_number"):
+            permit_numbers.append(w["permit_number"].strip())
+        # For parcel/address watches, we'd need to look up permits — skip for now
+        # (Most power users watch by permit number directly)
+
+    if not permit_numbers:
+        return {"stations": set(), "permit_map": {}, "permit_numbers": []}
+
+    ph = _ph()
+    placeholders = ", ".join([ph] * len(permit_numbers))
+
+    try:
+        rows = query(
+            f"""
+            SELECT DISTINCT application_number, station
+            FROM addenda
+            WHERE application_number IN ({placeholders})
+              AND finish_date IS NULL
+              AND arrive IS NOT NULL
+            ORDER BY station
+            """,
+            permit_numbers,
+        )
+    except Exception:
+        logger.debug("get_portfolio_stations query failed", exc_info=True)
+        rows = []
+
+    stations: set[str] = set()
+    permit_map: dict[str, str] = {}
+    for r in rows:
+        pnum = r[0] or ""
+        station = r[1] or ""
+        if station:
+            stations.add(station.upper())
+        if pnum and station:
+            permit_map[pnum] = station.upper()
+
+    return {
+        "stations": stations,
+        "permit_map": permit_map,
+        "permit_numbers": permit_numbers,
+    }
+
+
 def _ph() -> str:
     return "%s" if BACKEND == "postgres" else "?"
 
@@ -260,13 +322,59 @@ def _get_station_load() -> list[StationLoad]:
 
 # ── Main assembly ────────────────────────────────────────────────────────────
 
-def get_dashboard_data() -> dict:
-    """Assemble all data for the bottleneck heatmap dashboard."""
+def get_dashboard_data(user_id: int | None = None) -> dict:
+    """Assemble all data for the bottleneck heatmap dashboard.
+
+    If user_id is given, also computes portfolio_stations so the template
+    can highlight / filter to permits the user is actively watching.
+    """
     baselines = get_station_baselines()
 
-    # Annotate each baseline with health tier
+    # Portfolio stations (if user_id provided)
+    portfolio: dict = {"stations": set(), "permit_map": {}, "permit_numbers": []}
+    if user_id is not None:
+        try:
+            portfolio = get_portfolio_stations(user_id)
+        except Exception:
+            logger.debug("get_portfolio_stations failed", exc_info=True)
+
+    portfolio_stations: set[str] = portfolio["stations"]
+
+    # Build dept map from addenda for annotation
+    dept_map: dict[str, str] = {}
+    try:
+        dept_rows = query(
+            "SELECT DISTINCT station, department FROM addenda "
+            "WHERE department IS NOT NULL LIMIT 2000"
+        )
+        for r in dept_rows:
+            if r[0] and r[1]:
+                dept_map[r[0].upper()] = r[1].upper()
+    except Exception:
+        logger.debug("dept_map pre-load failed", exc_info=True)
+
+    def _infer_dept_for_station(station: str) -> str:
+        s = station.upper()
+        mapped = dept_map.get(s)
+        if mapped:
+            return mapped
+        if s.startswith("SFFD") or s in ("FS", "FIRE"):
+            return "SFFD"
+        if s.startswith("CP") or s in ("PPC", "LPA", "PLANNING"):
+            return "CPC"
+        if s.startswith("PUC") or "UTILITIES" in s:
+            return "PUC"
+        if s.startswith("DPW") or s in ("TRAFFIC", "BOE"):
+            return "DPW"
+        if s.startswith("DPH") or "HEALTH" in s:
+            return "DPH"
+        return "DBI"
+
+    # Annotate each baseline with health tier, dept, and portfolio flag
     annotated = []
     for b in baselines:
+        tier = _health_tier(b.median_days)
+        dept = _infer_dept_for_station(b.station)
         annotated.append({
             "station": b.station,
             "samples": b.samples,
@@ -277,12 +385,14 @@ def get_dashboard_data() -> dict:
             "min_days": b.min_days,
             "max_days": b.max_days,
             "label": b.label,
-            "tier": _health_tier(b.median_days),
-            "tier_label": TIER_LABELS.get(_health_tier(b.median_days), ""),
-            "tier_css": TIER_CSS.get(_health_tier(b.median_days), ""),
+            "tier": tier,
+            "tier_label": TIER_LABELS.get(tier, ""),
+            "tier_css": TIER_CSS.get(tier, ""),
+            "dept": dept,
+            "in_portfolio": b.station.upper() in portfolio_stations,
         })
 
-    stalled = _get_stalled_permits(limit=30)
+    stalled = _get_stalled_permits(limit=50)
     dept_rollup = _get_department_rollup(baselines)
     station_load = _get_station_load()
 
@@ -295,12 +405,22 @@ def get_dashboard_data() -> dict:
     # Build load map for quick lookup in template
     load_map = {s.station: s for s in station_load}
 
+    # Dept list for filter UI (sorted)
+    dept_list = sorted({s["dept"] for s in annotated})
+
     return {
         "baselines": annotated,
         "stalled_permits": stalled,
         "dept_rollup": dept_rollup,
         "station_load": station_load,
         "load_map": load_map,
+        "portfolio": {
+            "stations": sorted(portfolio_stations),
+            "permit_map": portfolio["permit_map"],
+            "permit_numbers": portfolio["permit_numbers"],
+            "count": len(portfolio_stations),
+        },
+        "dept_list": dept_list,
         "summary": {
             "total_stations": total_stations,
             "severe_stations": len(severe_stations),

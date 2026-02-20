@@ -67,23 +67,53 @@ def test_get_dashboard_data_structure():
     assert "stalled_permits" in data
     assert "dept_rollup" in data
     assert "station_load" in data
+    assert "portfolio" in data
+    assert "dept_list" in data
     assert "summary" in data
     summary = data["summary"]
     assert "total_stations" in summary
     assert "severe_stations" in summary
     assert "total_stalled" in summary
     assert "held_count" in summary
+    # Portfolio shape
+    p = data["portfolio"]
+    assert "stations" in p
+    assert "permit_map" in p
+    assert "count" in p
+    assert isinstance(p["stations"], list)
+    assert isinstance(p["count"], int)
 
 
 def test_dashboard_baselines_have_tier():
-    """Each baseline dict has tier and css class."""
+    """Each baseline dict has tier, css class, dept, and in_portfolio."""
     from web.velocity_dashboard import get_dashboard_data
     data = get_dashboard_data()
     for b in data["baselines"]:
         assert "tier" in b
         assert "tier_css" in b
         assert "tier_label" in b
+        assert "dept" in b
+        assert "in_portfolio" in b
         assert b["tier"] in ("fast", "normal", "slow", "critical", "severe", "unknown")
+        assert isinstance(b["in_portfolio"], bool)
+
+
+def test_dashboard_dept_list():
+    """dept_list is sorted list of dept strings."""
+    from web.velocity_dashboard import get_dashboard_data
+    data = get_dashboard_data()
+    depts = data["dept_list"]
+    assert isinstance(depts, list)
+    assert depts == sorted(depts)
+
+
+def test_portfolio_stations_no_user():
+    """get_portfolio_stations returns empty dict for unknown user."""
+    from web.velocity_dashboard import get_portfolio_stations
+    result = get_portfolio_stations(user_id=999999)
+    assert result["stations"] == set() or isinstance(result["stations"], set)
+    assert result["permit_map"] == {}
+    assert result["permit_numbers"] == []
 
 
 def test_dashboard_route(client):

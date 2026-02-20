@@ -2984,7 +2984,8 @@ def brief():
 def velocity_dashboard():
     """DBI approval pipeline bottleneck heatmap."""
     from web.velocity_dashboard import get_dashboard_data
-    data = get_dashboard_data()
+    user_id = g.user["user_id"] if g.user else None
+    data = get_dashboard_data(user_id=user_id)
     return render_template(
         "velocity_dashboard.html",
         data=data,
