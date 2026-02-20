@@ -4249,6 +4249,83 @@ def cron_status():
 # Cron endpoints — protected by bearer token
 # ---------------------------------------------------------------------------
 
+
+def _send_staleness_alert(warnings: list[str], nightly_result: dict) -> dict:
+    """Send an email alert to admins when SODA data staleness is detected.
+
+    Returns dict with send stats.
+    """
+    import smtplib
+    from email.message import EmailMessage
+
+    smtp_host = os.environ.get("SMTP_HOST")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_from = os.environ.get("SMTP_FROM", "noreply@sfpermits.ai")
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASS")
+
+    if not all([smtp_host, smtp_user, smtp_pass]):
+        logging.info("SMTP not configured — skipping staleness alert")
+        return {"skipped": "smtp_not_configured"}
+
+    from web.activity import get_admin_users
+    admins = get_admin_users()
+    if not admins:
+        return {"skipped": "no_admins"}
+
+    severity = "⚠️ Warning"
+    if any("ALL sources returned 0" in w for w in warnings):
+        severity = "🚨 Critical"
+    elif any("even with extended lookback" in w for w in warnings):
+        severity = "🚨 Alert"
+
+    since = nightly_result.get("since", "?")
+    lookback = nightly_result.get("lookback_days", "?")
+    permits = nightly_result.get("soda_permits", 0)
+    inspections = nightly_result.get("soda_inspections", 0)
+    addenda = nightly_result.get("soda_addenda", 0)
+    retry = nightly_result.get("retry_extended", False)
+
+    warning_lines = "\n".join(f"  • {w}" for w in warnings)
+    body = (
+        f"{severity} — SODA Data Staleness Detected\n\n"
+        f"The nightly job detected potential data freshness issues:\n\n"
+        f"{warning_lines}\n\n"
+        f"Details:\n"
+        f"  Since: {since}\n"
+        f"  Lookback: {lookback} days\n"
+        f"  Auto-retry extended: {'Yes' if retry else 'No'}\n"
+        f"  Permits: {permits}\n"
+        f"  Inspections: {inspections}\n"
+        f"  Addenda: {addenda}\n\n"
+        f"If this persists, check https://data.sfgov.org for SODA API status.\n"
+    )
+
+    stats = {"total": len(admins), "sent": 0, "failed": 0}
+    for admin in admins:
+        email = admin.get("email")
+        if not email:
+            continue
+        try:
+            msg = EmailMessage()
+            msg["Subject"] = f"sfpermits.ai {severity} — SODA data staleness"
+            msg["From"] = smtp_from
+            msg["To"] = email
+            msg.set_content(body)
+
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.send_message(msg)
+            stats["sent"] += 1
+        except Exception:
+            logging.exception("Failed to send staleness alert to %s", email)
+            stats["failed"] += 1
+
+    logging.info("Staleness alert: %d sent, %d failed", stats["sent"], stats["failed"])
+    return stats
+
+
 @app.route("/cron/nightly", methods=["POST"])
 def cron_nightly():
     """Nightly delta fetch — detect permit changes via SODA API.
@@ -4338,6 +4415,16 @@ def cron_nightly():
                 logging.error("Ops chunk ingestion failed (non-fatal): %s", oe)
                 ops_chunks_result = {"error": str(oe)}
 
+        # Send staleness alert email to admins if warnings detected
+        staleness_alert_result = {}
+        warnings = result.get("staleness_warnings", [])
+        if warnings and not dry_run:
+            try:
+                staleness_alert_result = _send_staleness_alert(warnings, result)
+            except Exception as se:
+                logging.error("Staleness alert email failed (non-fatal): %s", se)
+                staleness_alert_result = {"error": str(se)}
+
         return Response(
             json.dumps({
                 "status": "ok", **result,
@@ -4346,6 +4433,7 @@ def cron_nightly():
                 "velocity": velocity_result,
                 "reviewer_graph": reviewer_result,
                 "ops_chunks": ops_chunks_result,
+                "staleness_alert": staleness_alert_result,
             }, indent=2),
             mimetype="application/json",
         )

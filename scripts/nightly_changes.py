@@ -795,12 +795,33 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
 
     try:
         client = SODAClient()
+        retry_extended = False
         try:
             # Fetch permits
             permit_records = await fetch_recent_permits(client, since_str)
             logger.info("SODA returned %d permit records", len(permit_records))
 
-            # Fetch inspections
+            # Auto-retry: if permits=0 and lookback was short (1-2 days),
+            # extend to 3 days to distinguish "quiet day" from "SODA lag"
+            if len(permit_records) == 0 and actual_lookback <= 2:
+                retry_since = (date.today() - timedelta(days=3)).isoformat()
+                logger.info(
+                    "Zero permits with %d-day lookback — retrying with 3-day "
+                    "window (since=%s) to check for SODA data lag",
+                    actual_lookback, retry_since,
+                )
+                permit_records = await fetch_recent_permits(client, retry_since)
+                logger.info(
+                    "Retry with 3-day lookback returned %d permit records",
+                    len(permit_records),
+                )
+                if len(permit_records) > 0:
+                    retry_extended = True
+                    # Update since_str so change detection uses the wider window
+                    since_str = retry_since
+                    actual_lookback = 3
+
+            # Fetch inspections (use current since_str, may be extended)
             inspection_records = await fetch_recent_inspections(client, since_str)
             logger.info("SODA returned %d inspection records", len(inspection_records))
 
@@ -844,21 +865,27 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             total_soda,
         )
 
-        # Staleness check: flag when SODA returns 0 records for a data source
+        # Staleness check: flag when SODA returns 0 records for a data source.
         # On a normal weekday SF typically has dozens of permit updates.
         # Zero records may indicate a SODA API issue, schema change, or outage.
+        # If auto-retry already extended the window and found records, it's just
+        # data lag (common on holidays/weekends) — note but don't alarm.
         staleness_warnings: list[str] = []
-        if len(permit_records) == 0:
+        if retry_extended:
             staleness_warnings.append(
-                "SODA returned 0 permits — possible API issue or data lag"
+                f"SODA data lag detected — 0 permits with 1-day lookback but "
+                f"{len(permit_records)} found with 3-day window (likely holiday/weekend)"
+            )
+        elif len(permit_records) == 0:
+            staleness_warnings.append(
+                "SODA returned 0 permits even with extended lookback — "
+                "possible API issue, schema change, or extended outage"
             )
         if len(inspection_records) == 0:
             staleness_warnings.append(
                 "SODA returned 0 inspections — possible API issue or data lag"
             )
         if len(addenda_records) == 0 and actual_lookback <= 2:
-            # Addenda can legitimately be 0 on quiet days, only warn
-            # if single-day lookback returns nothing
             staleness_warnings.append(
                 "SODA returned 0 addenda records"
             )
@@ -884,6 +911,7 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "since": since_str,
             "lookback_days": actual_lookback,
             "was_catchup": was_catchup,
+            "retry_extended": retry_extended,
             "soda_permits": len(permit_records),
             "soda_inspections": len(inspection_records),
             "soda_addenda": len(addenda_records),
