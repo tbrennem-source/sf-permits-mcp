@@ -931,7 +931,7 @@
                         &middot; {{ job.pages_analyzed }} pages analyzed
                         {% endif %}
                     </span>
-                    <span>{{ job.created_at.strftime('%b %d, %Y %I:%M %p') if job.created_at else '' }}</span>
+                    <span>{{ (job.created_at|to_pst).strftime('%b %d, %Y %I:%M %p PT') if job.created_at else '' }}</span>
                 </div>
                 {% if job.property_address or job.permit_number %}
                 <div class="card-details">
@@ -965,7 +965,8 @@
                 {% endif %}
                 {% if job.status == 'failed' and job.error_message %}
                 <div style="font-size:0.8rem; color:var(--error); margin-top:6px; padding:6px 8px; background:rgba(248,113,113,0.08); border-radius:6px;">
-                    {{ job.error_message[:120] }}{% if job.error_message|length > 120 %}...{% endif %}
+                    {% set friendly = job.error_message|friendly_error %}
+                    {{ friendly[:120] }}{% if friendly|length > 120 %}...{% endif %}
                 </div>
                 {% endif %}
                 <div class="card-actions">

@@ -49,6 +49,38 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-prod")
 app.permanent_session_lifetime = timedelta(days=30)
 
+
+# ---------------------------------------------------------------------------
+# Jinja2 template filters
+# ---------------------------------------------------------------------------
+@app.template_filter("to_pst")
+def _to_pst_filter(dt):
+    """Convert a UTC datetime to US/Pacific for display."""
+    if not dt:
+        return ""
+    from datetime import timezone as tz
+    try:
+        from zoneinfo import ZoneInfo
+    except ImportError:
+        from backports.zoneinfo import ZoneInfo
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=tz.utc)
+    return dt.astimezone(ZoneInfo("America/Los_Angeles"))
+
+
+@app.template_filter("friendly_error")
+def _friendly_error_filter(msg):
+    """Convert raw Python errors to user-friendly messages."""
+    if not msg:
+        return ""
+    if "interpreter shutdown" in msg or "cannot schedule new futures" in msg:
+        return "Server restarted during analysis. Please try again."
+    if "ANTHROPIC_API_KEY" in msg:
+        return "AI vision service temporarily unavailable."
+    if "timeout" in msg.lower() or "timed out" in msg.lower():
+        return "Analysis timed out. Try Quick Check for faster results."
+    return msg
+
 # Cookie security: Secure (HTTPS-only in prod), HttpOnly (default), SameSite=Lax
 _is_prod = os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("BASE_URL", "").startswith("https")
 app.config["SESSION_COOKIE_SECURE"] = bool(_is_prod)
@@ -1615,11 +1647,11 @@ def group_jobs_by_project(jobs: list[dict]) -> list[dict]:
     for g in result:
         g["jobs"].sort(key=lambda j: j.get("created_at") or "", reverse=True)
         g["latest_status"] = g["jobs"][0].get("status", "unknown")
-        # Date range
+        # Date range (convert UTC to Pacific)
         dates = [j["created_at"] for j in g["jobs"] if j.get("created_at")]
         if dates:
-            oldest = min(dates)
-            newest = max(dates)
+            oldest = _to_pst_filter(min(dates))
+            newest = _to_pst_filter(max(dates))
             if hasattr(oldest, 'strftime'):
                 g["date_range"] = f"{oldest.strftime('%b %d')} – {newest.strftime('%b %d, %Y')}"
             else:
