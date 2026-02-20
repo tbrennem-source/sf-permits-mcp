@@ -134,25 +134,33 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         if addr_key in changes_addresses:
             continue
         changes_addresses.add(addr_key)
-        # Create an activity entry (no status transition, just "updated")
-        changes.append({
-            "permit_number": "",
-            "change_date": p.get("latest_activity", ""),
-            "old_status": None,
-            "new_status": "activity",
-            "change_type": "activity",
-            "permit_type": "",
-            "street_number": p.get("address", "").split()[0] if p.get("address") else "",
-            "street_name": " ".join(p.get("address", "").split()[1:]) if p.get("address") else "",
-            "neighborhood": p.get("neighborhood", ""),
-            "label": p.get("label", "") or p.get("address", ""),
-            "watch_type": "property",
-            "total_permits": p.get("total_permits", 0),
-            "active_permits": p.get("active_permits", 0),
-            "health": p.get("worst_health", "on_track"),
-            "health_reason": p.get("health_reason", ""),
-            "days_since_activity": dsa,
-        })
+        # Look up which specific permits changed at this property to show
+        # a meaningful description instead of just "activity Xd ago".
+        activity_permits = _get_recent_permit_activity(p, since)
+        if activity_permits:
+            # Add one change card per permit that had a status change
+            for ap in activity_permits:
+                changes.append(ap)
+        else:
+            # Fallback: generic activity entry (no specific permit identified)
+            changes.append({
+                "permit_number": "",
+                "change_date": p.get("latest_activity", ""),
+                "old_status": None,
+                "new_status": "activity",
+                "change_type": "activity",
+                "permit_type": "",
+                "street_number": p.get("address", "").split()[0] if p.get("address") else "",
+                "street_name": " ".join(p.get("address", "").split()[1:]) if p.get("address") else "",
+                "neighborhood": p.get("neighborhood", ""),
+                "label": p.get("label", "") or p.get("address", ""),
+                "watch_type": "property",
+                "total_permits": p.get("total_permits", 0),
+                "active_permits": p.get("active_permits", 0),
+                "health": p.get("worst_health", "on_track"),
+                "health_reason": p.get("health_reason", ""),
+                "days_since_activity": dsa,
+            })
 
     changed_count = sum(
         1 for p in property_cards
@@ -289,6 +297,76 @@ def _rows_to_changes(rows: list[tuple], watch_type: str) -> list[dict]:
         }
         for r in rows
     ]
+
+
+def _get_recent_permit_activity(prop: dict, since: date) -> list[dict]:
+    """Look up specific permits at a property that changed since ``since``.
+
+    When the nightly permit_changes log doesn't capture a specific transition
+    (e.g., SODA status_date updated but our diff didn't fire), this function
+    queries the permits table directly to find permits with recent status_date
+    changes.  Returns permit-level change dicts with current status so the
+    "What Changed" UI can show meaningful info instead of generic "activity".
+    """
+    ph = _ph()
+    block = prop.get("block", "")
+    lot = prop.get("lot", "")
+    addr = prop.get("address", "")
+
+    # Build WHERE clause for this property
+    conditions = []
+    params: list = []
+
+    if block and lot:
+        conditions.append(f"(p.block = {ph} AND p.lot = {ph})")
+        params.extend([block, lot])
+    elif addr:
+        parts = addr.split(None, 1)
+        if len(parts) >= 2:
+            conditions.append(f"(p.street_number = {ph} AND UPPER(p.street_name) LIKE UPPER({ph}))")
+            params.extend([parts[0], f"%{parts[1]}%"])
+
+    if not conditions:
+        return []
+
+    try:
+        rows = query(
+            f"SELECT p.permit_number, p.status, p.status_date, "
+            f"p.permit_type_definition, p.street_number, p.street_name, "
+            f"p.neighborhood "
+            f"FROM permits p "
+            f"WHERE ({' OR '.join(conditions)}) "
+            f"  AND p.status_date >= {ph} "
+            f"ORDER BY p.status_date DESC "
+            f"LIMIT 10",
+            (*params, str(since)),
+        )
+    except Exception:
+        logger.debug("_get_recent_permit_activity query failed", exc_info=True)
+        return []
+
+    if not rows:
+        return []
+
+    label = prop.get("label", "") or prop.get("address", "")
+    results = []
+    for r in rows:
+        pn, status, status_date, ptype, snum, sname, neighborhood = r
+        results.append({
+            "permit_number": pn,
+            "change_date": status_date,
+            "old_status": None,  # We don't know the previous status
+            "new_status": (status or "").upper(),
+            "change_type": "status",
+            "permit_type": ptype or "",
+            "street_number": snum or "",
+            "street_name": sname or "",
+            "neighborhood": neighborhood or "",
+            "label": label,
+            "watch_type": "property",
+        })
+
+    return results
 
 
 # ── Section 2: Permit Health / Predictability ─────────────────────
@@ -1240,33 +1318,28 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
         la = _parse_date(prop.get("latest_activity", ""))
         prop["days_since_activity"] = (today - la).days if la else None
 
-    # Post-process: downgrade expired-permit AT RISK → BEHIND for active sites.
-    # Per-permit scoring can't see property-level activity (latest across ALL
-    # permits at the address), so we reconcile here.  An expired permit at a
-    # site with recent activity (≤30d) OR multiple active permits is
-    # administrative paperwork — the contractor needs a recommencement
-    # application (SFBICC §106A.4.4), not an emergency response.
+    # Post-process: downgrade expired-permit AT RISK for active sites.
+    # Expired permits are extremely common and usually administrative —
+    # the contractor may need a recommencement application (SFBICC §106A.4.4)
+    # but it's not an emergency. Only flag expired permits as a concern when
+    # the site looks truly stale (no recent activity AND no other active work).
     for prop in property_map.values():
         dsa = prop.get("days_since_activity")
         if (
             prop["worst_health"] == "at_risk"
             and "permit expired" in prop.get("health_reason", "")
         ):
-            recent_activity = dsa is not None and dsa <= 30
+            recent_activity = dsa is not None and dsa <= 90
             active = prop.get("active_permits", 0)
             has_other_active = active > 1
             if recent_activity or has_other_active:
-                # Many active permits + expired = administrative noise → on_track
-                # Few active permits + expired = gentle reminder → behind
-                if active >= 5 or (recent_activity and active >= 3):
-                    prop["worst_health"] = "on_track"
-                    prop["health_reason"] = ""
-                else:
-                    prop["worst_health"] = "behind"
-                    if recent_activity:
-                        prop["health_reason"] += " (active site)"
-                    else:
-                        prop["health_reason"] += f" ({active} active permits)"
+                # Active site + expired permit = normal administrative status
+                prop["worst_health"] = "on_track"
+                prop["health_reason"] = ""
+            else:
+                # No recent activity AND no other active permits — gentle nudge
+                prop["worst_health"] = "slower"
+                prop["health_reason"] += " (no recent activity)"
 
     # Sort: recently-changed properties first, then by worst health desc.
     # Within each group, highest risk sorts first.

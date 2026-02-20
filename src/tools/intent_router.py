@@ -4,12 +4,14 @@ Rule-based intent classification with priority ordering. No LLM calls.
 Used by the /ask endpoint to route conversational search box queries.
 
 Intents (priority order):
+  0. draft_response   — conversational / email-style messages (pasted emails,
+                         greetings, multi-line questions, signatures)
   1. lookup_permit    — permit number detected
   2. search_complaint — complaint/violation keywords
   3. search_parcel    — block/lot pattern
   3.5 validate_plans  — validation keywords
   4. search_address   — street address pattern
-  4.5 draft_response  — email-style question or long query with ?
+  4.5 draft_response  — long question fallback (>150 chars with ?)
   5. search_person    — person/company name search
   6. analyze_project  — project description with action verbs
   7. general_question — fallback
@@ -213,6 +215,51 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
                             entities={"query": ""})
 
     text_lower = text.lower()
+    word_count = len(text.split())
+    line_count = text.count('\n') + 1
+
+    # --- Priority 0: Conversational / email-style messages ---
+    # Multi-line messages with greetings, signatures, or email structure
+    # should ALWAYS route to draft_response, even if they contain keywords
+    # like "complaint", "violation", "remodel", etc.  These are pasted
+    # emails or conversational questions, not search queries.
+    has_explicit_draft = bool(DRAFT_EXPLICIT_RE.search(text))
+    has_draft_signal = bool(DRAFT_SIGNALS_RE.search(text))
+    is_multiline = line_count >= 3
+    has_greeting = bool(re.match(r'^(?:hi|hello|hey|dear)\b', text_lower))
+    has_signature = bool(re.search(
+        r'(?:^[\u2014—-]{1,3}\s*\w|'       # "— Karen" or "- Karen"
+        r'(?:regards|thanks|sincerely|best|cheers),?\s*$|'  # sign-off
+        r'^sent\s+from\s+my\b)',            # mobile signature
+        text, re.IGNORECASE | re.MULTILINE,
+    ))
+    is_long = len(text) > 150
+
+    # Route to draft if the text looks like a conversation / pasted email:
+    #   - Explicit "draft:" / "reply to:" prefix → always
+    #   - Multi-line + greeting or signature → always (pasted email)
+    #   - Greeting + long text (>150 chars) → always (conversational question)
+    #   - Draft signal keywords + enough words (>12) → likely a question for AI
+    if has_explicit_draft:
+        return IntentResult(
+            intent="draft_response", confidence=0.95,
+            entities={"query": text},
+        )
+    if is_multiline and (has_greeting or has_signature):
+        return IntentResult(
+            intent="draft_response", confidence=0.90,
+            entities={"query": text},
+        )
+    if has_greeting and is_long:
+        return IntentResult(
+            intent="draft_response", confidence=0.85,
+            entities={"query": text},
+        )
+    if has_draft_signal and word_count > 12:
+        return IntentResult(
+            intent="draft_response", confidence=0.80,
+            entities={"query": text},
+        )
 
     # --- Priority 1: Permit number ---
     m = PERMIT_NUMBER_RE.search(text)
@@ -275,26 +322,9 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
             entities={},
         )
 
-    # --- Priority 3.7: Early draft/conversational detection ---
-    # Long messages that start with greetings ("Hi Amy, ...") or contain
-    # draft signals should route to draft_response, NOT address search.
-    # Without this, "Hi Amy, ... on 723 16th Avenue ..." would match
-    # the address regex at Priority 4 and return a permit lookup instead
-    # of a conversational AI response.
-    has_explicit_draft = bool(DRAFT_EXPLICIT_RE.search(text))
-    has_draft_signal = bool(DRAFT_SIGNALS_RE.search(text))
-    is_long_question = len(text) > 150 and '?' in text
-    word_count = len(text.split())
-    if has_explicit_draft or ((has_draft_signal or is_long_question) and word_count > 12):
-        return IntentResult(
-            intent="draft_response",
-            confidence=0.80,
-            entities={"query": text},
-        )
-
     # --- Priority 4: Address search ---
     has_address_signal = any(sig in text_lower for sig in ADDRESS_SIGNALS)
-    is_short = word_count <= 8  # reuse word_count from Priority 3.7
+    is_short = word_count <= 8  # reuse word_count from Priority 0
 
     # Pre-clean: strip mailing address tails and unit numbers so
     # "146 Lake St 1425 San Francisco, CA 94118 US" → "146 Lake St"
@@ -343,8 +373,8 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
             )
 
     # --- Priority 4.5: Draft response fallback ---
-    # Catches short draft-signal queries that didn't meet the word_count > 12
-    # threshold at Priority 3.7 (e.g., "Draft: reply about permits").
+    # Long questions (>150 chars with ?) that didn't match earlier patterns
+    is_long_question = is_long and '?' in text
     if has_draft_signal or is_long_question:
         return IntentResult(
             intent="draft_response",

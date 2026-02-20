@@ -1,14 +1,23 @@
 # Changelog
 
-## Session 43 — Portfolio Health: Expired Permit Noise Fix (2026-02-20)
+## Session 43 — Intent Router + Portfolio Health + What Changed (2026-02-20)
 
-Expired permits no longer trigger "BEHIND" or "AT_RISK" status on active properties. Previously, a single expired mechanical/electrical/plumbing permit would flag an entire property as needing action, even when other permits were active and recent inspections were passing.
+Three fixes: email-style queries now route to AI draft response instead of wrong search tools; expired permits no longer noise up portfolio health; "What Changed" shows actual permit details.
 
-### Portfolio Health Logic — `web/portfolio.py`
-- **Active site + expired permit → ON_TRACK**: If property has recent activity (≤90d) or other active permits, expired permits are treated as administrative (recommencement application), not an emergency. Previously showed BEHIND.
-- **Stale site + expired permit → SLOWER**: If truly no activity and no active permits, downgraded from AT_RISK to SLOWER (informational, not "action needed"). Previously stayed AT_RISK.
-- **Widened recency window**: "Recent activity" expanded from 30d to 90d — a site active within 3 months isn't stale.
-- **Untouched**: Violations, complaints, routing holds, expiring-soon permits, and stalled filings still correctly trigger AT_RISK/BEHIND.
+### Intent Router — `src/tools/intent_router.py`
+- **Priority 0: Conversational detection**: Multi-line messages with greetings/signatures, or greeting + long text, now route to `draft_response` BEFORE keyword-based searches (complaint, address, analyze). Previously, pasting an email like "Hi, we got a notice about a complaint..." would match "complaint" at Priority 2 and do a complaint search instead of answering the question.
+- **Signature detection**: Recognizes em-dash signatures ("— Karen"), sign-offs ("regards,"), mobile signatures.
+- **Multi-line + greeting/signature → always draft**: 3+ lines with a greeting or signature is definitively an email, not a search.
+- **All 73 existing tests pass** + new scenarios verified: kitchen remodel email → draft, Karen complaint email → draft, short "complaints at 4521 Judah" → still complaint search.
+
+### Portfolio Health — `web/portfolio.py`, `web/brief.py`
+- **Active site + expired permit → ON_TRACK**: If property has recent activity (≤90d) or other active permits, expired permits are administrative, not an emergency. Previously showed BEHIND.
+- **Stale site + expired permit → SLOWER**: Downgraded from AT_RISK to SLOWER (informational). Previously stayed AT_RISK.
+- **Applied same fix to brief.py**: Property snapshot in morning brief uses same logic.
+
+### "What Changed" — `web/brief.py`
+- **Show actual permit details**: When a property has recent activity but no permit_changes log entry, now queries the permits table to find which specific permits changed. Shows permit number, type, and current status badge instead of generic "3d ago · 1 active of 2".
+- **Fallback preserved**: If no specific permits can be identified, still shows the generic activity card.
 
 ---
 
