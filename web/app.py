@@ -20,7 +20,7 @@ import time
 from collections import defaultdict
 from datetime import timedelta
 from functools import wraps
-from flask import Flask, render_template, render_template_string, request, abort, Response, redirect, url_for, session, g, send_file, jsonify
+from flask import Flask, render_template, render_template_string, request, abort, Response, redirect, url_for, session, g, send_file, jsonify, make_response
 import markdown
 
 # Configure logging so gunicorn captures warnings from tools
@@ -1403,7 +1403,11 @@ def plan_job_status(job_id):
         abort(404)
 
     if job["status"] == "completed":
-        return render_template("analyze_plans_complete.html", job=job)
+        # Use HX-Redirect so htmx navigates the browser to results
+        # (inline <script> tags are not executed in htmx-swapped content)
+        resp = make_response("", 200)
+        resp.headers["HX-Redirect"] = f"/plan-jobs/{job['job_id']}/results"
+        return resp
     elif job["status"] == "failed":
         return render_template("analyze_plans_failed.html", job=job)
     elif job["status"] == "stale":
