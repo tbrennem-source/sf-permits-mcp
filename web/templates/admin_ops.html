@@ -150,6 +150,17 @@
         }
     });
 
+    // Handle HTMX errors — show message instead of infinite spinner
+    document.body.addEventListener('htmx:responseError', function(evt) {
+        var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
+        if (trigger && trigger.dataset && trigger.dataset.tab) {
+            document.getElementById('tab-content').innerHTML =
+                '<div class="tab-loading" style="color:var(--error);">' +
+                'Failed to load tab. <a href="javascript:location.reload()" style="color:var(--accent);">Reload page</a></div>';
+            trigger.classList.remove('loading');
+        }
+    });
+
     // Load initial tab from hash or default to quality (pipeline is slow)
     var hash = location.hash.replace('#', '') || 'quality';
     var initialBtn = document.querySelector('.tab-btn[data-tab="' + hash + '"]');
