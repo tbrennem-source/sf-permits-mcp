@@ -882,16 +882,16 @@
         <div class="filter-bar" id="filter-bar">
             <span class="filter-label">Status:</span>
             <button class="filter-chip active" data-filter="status" data-value="all" onclick="toggleFilter(this)">All</button>
-            <button class="filter-chip" data-filter="status" data-value="completed" onclick="toggleFilter(this)">Completed</button>
-            <button class="filter-chip" data-filter="status" data-value="processing" onclick="toggleFilter(this)">Processing</button>
-            <button class="filter-chip" data-filter="status" data-value="failed" onclick="toggleFilter(this)">Failed</button>
+            <button class="filter-chip" data-filter="status" data-value="completed" onclick="toggleFilter(this)" title="Analyses that finished successfully">Completed</button>
+            <button class="filter-chip" data-filter="status" data-value="processing" onclick="toggleFilter(this)" title="Analyses currently running">Processing</button>
+            <button class="filter-chip" data-filter="status" data-value="failed" onclick="toggleFilter(this)" title="Analyses that encountered errors">Failed</button>
             <div class="filter-divider"></div>
             <span class="filter-label">Mode:</span>
-            <button class="filter-chip active" data-filter="mode" data-value="all" onclick="toggleFilter(this)">All</button>
-            <button class="filter-chip" data-filter="mode" data-value="quick" onclick="toggleFilter(this)">Quick</button>
-            <button class="filter-chip" data-filter="mode" data-value="compliance" onclick="toggleFilter(this)">Compliance</button>
-            <button class="filter-chip" data-filter="mode" data-value="sample" onclick="toggleFilter(this)">AI Analysis</button>
-            <button class="filter-chip" data-filter="mode" data-value="full" onclick="toggleFilter(this)">Full</button>
+            <button class="filter-chip active" data-filter="mode" data-value="all" onclick="toggleFilter(this)" title="Show all analysis types">All</button>
+            <button class="filter-chip" data-filter="mode" data-value="quick" onclick="toggleFilter(this)" title="Metadata-only checks (file size, fonts, bookmarks) — no AI vision">Quick</button>
+            <button class="filter-chip" data-filter="mode" data-value="compliance" onclick="toggleFilter(this)" title="AI vision checks for EPR compliance (title blocks, stamps, addresses)">Compliance</button>
+            <button class="filter-chip" data-filter="mode" data-value="sample" onclick="toggleFilter(this)" title="Full AI analysis on sampled pages — EPR checks, annotations, recommendations">AI Analysis</button>
+            <button class="filter-chip" data-filter="mode" data-value="full" onclick="toggleFilter(this)" title="AI analysis on every page — most thorough, longest processing time">Full</button>
             <button class="select-mode-btn" id="select-mode-btn" onclick="toggleSelectMode()">Select</button>
         </div>
 
