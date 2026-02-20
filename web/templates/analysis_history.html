@@ -569,6 +569,149 @@
                 flex-direction: column;
             }
         }
+        /* Bulk select mode */
+        .select-mode-btn {
+            padding: 4px 14px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: none;
+            color: var(--text-muted);
+            font-family: inherit;
+            transition: all 0.15s;
+            margin-left: auto;
+        }
+        .select-mode-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+        .select-mode-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .bulk-checkbox {
+            display: none;
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+            cursor: pointer;
+            z-index: 2;
+        }
+        body.select-mode .bulk-checkbox {
+            display: block;
+        }
+        body.select-mode .analysis-card {
+            position: relative;
+            padding-left: 44px;
+            cursor: pointer;
+        }
+        body.select-mode .analysis-card.selected {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Floating bulk action bar */
+        .bulk-action-bar {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            z-index: 100;
+            align-items: center;
+            gap: 16px;
+            animation: slideUp 0.2s ease-out;
+        }
+        .bulk-action-bar.visible {
+            display: flex;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .bulk-count {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+        }
+        .bulk-select-all {
+            font-size: 0.8rem;
+            color: var(--accent);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+            text-decoration: underline;
+        }
+        .bulk-delete-btn {
+            padding: 8px 20px;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+        .bulk-delete-btn:hover {
+            background: #dc2626;
+        }
+        .bulk-cancel-btn {
+            padding: 8px 16px;
+            background: none;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* Undo toast */
+        .undo-toast {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            z-index: 200;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            align-items: center;
+            gap: 16px;
+        }
+        .undo-toast.visible {
+            display: flex;
+        }
+        .undo-toast button {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: var(--accent);
+            padding: 4px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
     </style>
     {% import 'fragments/analysis_grouping.html' as grouping %}
     {{ grouping.grouping_css() }}
@@ -749,6 +892,7 @@
             <button class="filter-chip" data-filter="mode" data-value="compliance" onclick="toggleFilter(this)">Compliance</button>
             <button class="filter-chip" data-filter="mode" data-value="sample" onclick="toggleFilter(this)">AI Analysis</button>
             <button class="filter-chip" data-filter="mode" data-value="full" onclick="toggleFilter(this)">Full</button>
+            <button class="select-mode-btn" id="select-mode-btn" onclick="toggleSelectMode()">Select</button>
         </div>
 
         {{ grouping.view_options_bar(group_mode, sort_by, search_q) }}
@@ -760,7 +904,10 @@
             {% for job in jobs %}
             <div class="analysis-card" id="job-card-{{ job.job_id }}"
                  data-status="{{ job.status }}"
-                 data-mode="{{ 'quick' if job.quick_check else (job.analysis_mode or 'sample') }}">
+                 data-job-id="{{ job.job_id }}"
+                 data-mode="{{ 'quick' if job.quick_check else (job.analysis_mode or 'sample') }}"
+                 onclick="if(document.body.classList.contains('select-mode'))toggleCardSelect(this)">
+                <input type="checkbox" class="bulk-checkbox" onclick="event.stopPropagation();toggleCardSelect(this.parentElement)">
                 <div class="card-header">
                     <span class="card-filename" title="{{ job.filename }}">{{ job.filename }}</span>
                     <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
@@ -871,6 +1018,19 @@
             {% endif %}
         </div>
         {% endif %}
+    </div>
+
+    <!-- Floating bulk action bar -->
+    <div class="bulk-action-bar" id="bulk-action-bar">
+        <span class="bulk-count" id="bulk-count">0 selected</span>
+        <button class="bulk-select-all" onclick="selectAllCards()">Select all</button>
+        <button class="bulk-delete-btn" onclick="bulkDeleteSelected()">Delete selected</button>
+        <button class="bulk-cancel-btn" onclick="toggleSelectMode()">Cancel</button>
+    </div>
+
+    <!-- Undo toast -->
+    <div class="undo-toast" id="undo-toast">
+        <span id="undo-message">Deleted 0 analyses</span>
     </div>
 
     <script>
@@ -1055,6 +1215,96 @@
         updateTimers();
         setInterval(updateTimers, 1000);
     })();
+
+    // --- Bulk select mode ---
+    function toggleSelectMode() {
+        var body = document.body;
+        var btn = document.getElementById('select-mode-btn');
+        var bar = document.getElementById('bulk-action-bar');
+        var isActive = body.classList.toggle('select-mode');
+        btn.classList.toggle('active', isActive);
+
+        if (!isActive) {
+            // Exiting select mode — clear all selections
+            document.querySelectorAll('.analysis-card.selected').forEach(function(c) {
+                c.classList.remove('selected');
+                var cb = c.querySelector('.bulk-checkbox');
+                if (cb) cb.checked = false;
+            });
+            bar.classList.remove('visible');
+        }
+        btn.textContent = isActive ? 'Cancel' : 'Select';
+    }
+
+    function toggleCardSelect(card) {
+        if (!document.body.classList.contains('select-mode')) return;
+        card.classList.toggle('selected');
+        var cb = card.querySelector('.bulk-checkbox');
+        if (cb) cb.checked = card.classList.contains('selected');
+        updateBulkBar();
+    }
+
+    function updateBulkBar() {
+        var selected = document.querySelectorAll('.analysis-card.selected');
+        var bar = document.getElementById('bulk-action-bar');
+        var count = document.getElementById('bulk-count');
+        if (selected.length > 0) {
+            bar.classList.add('visible');
+            count.textContent = selected.length + ' selected';
+        } else {
+            bar.classList.remove('visible');
+        }
+    }
+
+    function selectAllCards() {
+        var cards = document.querySelectorAll('.analysis-card');
+        var allSelected = document.querySelectorAll('.analysis-card.selected').length === cards.length;
+        cards.forEach(function(c) {
+            if (allSelected) {
+                c.classList.remove('selected');
+                var cb = c.querySelector('.bulk-checkbox');
+                if (cb) cb.checked = false;
+            } else {
+                c.classList.add('selected');
+                var cb = c.querySelector('.bulk-checkbox');
+                if (cb) cb.checked = true;
+            }
+        });
+        updateBulkBar();
+        var btn = document.querySelector('.bulk-select-all');
+        btn.textContent = allSelected ? 'Select all' : 'Deselect all';
+    }
+
+    function bulkDeleteSelected() {
+        var selected = document.querySelectorAll('.analysis-card.selected');
+        if (selected.length === 0) return;
+        if (!confirm('Delete ' + selected.length + ' analyses? This cannot be undone.')) return;
+
+        var jobIds = [];
+        selected.forEach(function(c) { jobIds.push(c.dataset.jobId); });
+
+        fetch('/api/plan-jobs/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_ids: jobIds })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            // Remove cards from DOM
+            selected.forEach(function(c) { c.remove(); });
+            // Exit select mode
+            toggleSelectMode();
+            // Show undo toast (informational — no real undo since it's a permanent delete)
+            var toast = document.getElementById('undo-toast');
+            var msg = document.getElementById('undo-message');
+            msg.textContent = 'Deleted ' + (data.deleted || 0) + ' analyses';
+            toast.classList.add('visible');
+            setTimeout(function() { toast.classList.remove('visible'); }, 4000);
+        })
+        .catch(function(err) {
+            alert('Failed to delete: ' + err.message);
+        });
+    }
     </script>
 </body>
 </html>
