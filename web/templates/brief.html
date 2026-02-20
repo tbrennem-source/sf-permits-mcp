@@ -394,7 +394,7 @@
                         </span>
                     </div>
                     <div style="display:flex;align-items:center;">
-                        <span class="status-badge status-{{ c.health|default('on_track') }}" style="font-size:0.65rem;">{{ c.health_reason or 'Activity detected' }}</span>
+                        <span class="status-badge status-activity" style="font-size:0.65rem;">Activity {{ c.days_since_activity }}d ago</span>
                         <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
                     </div>
                     {% else %}
