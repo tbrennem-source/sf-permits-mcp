@@ -35,34 +35,19 @@
             margin: 0 auto;
             padding: 0 16px;
         }
-        /* ── Nav bar ─────────────────────────────────────────── */
-        .nav-bar {
-            background: var(--surface);
+        /* ── Breadcrumb bar ──────────────────────────────────── */
+        .breadcrumb-bar {
+            padding: 8px 0;
             border-bottom: 1px solid var(--border);
-            padding: 12px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            font-size: 0.82rem;
         }
-        .nav-inner {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .nav-logo {
-            font-weight: 700;
-            font-size: 1rem;
-            color: var(--text);
-            text-decoration: none;
-        }
-        .nav-logo span { color: var(--accent); }
-        .nav-sep { color: var(--text-muted); }
-        .nav-back {
+        .breadcrumb-link {
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.85rem;
         }
-        .nav-back:hover { color: var(--accent); }
+        .breadcrumb-link:hover { color: var(--accent); }
+        .breadcrumb-sep { color: var(--border); margin: 0 8px; }
+        .breadcrumb-text { color: var(--text-muted); }
 
         /* ── Page ────────────────────────────────────────────── */
         .page-content { padding: 28px 0 80px; }
@@ -531,20 +516,47 @@
         .vc-label { color: var(--text-muted); }
         .vc-label.current { color: var(--text); font-weight: 600; }
         .vc-arrow { color: var(--border); }
+
+        /* ── Mobile responsive ──────────────────────────────── */
+        @media (max-width: 768px) {
+            .version-header {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .version-arrow { display: none; }
+            .version-card { text-align: left !important; }
+            .comments-table { display: block; overflow-x: auto; }
+            .epr-table { display: block; overflow-x: auto; }
+            .visual-frame.side-by-side {
+                grid-template-columns: 1fr;
+            }
+            .summary-banner { gap: 8px; }
+            .visual-controls { flex-direction: column; align-items: flex-start; }
+            .tab-bar { gap: 0; }
+            .tab-btn { padding: 10px 10px; font-size: 0.8rem; }
+            .revision-table-wrap + .revision-table-wrap {
+                margin-top: 0;
+            }
+        }
+        @media (max-width: 768px) {
+            div[style*="grid-template-columns:1fr 1fr"] {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+        }
     </style>
 </head>
 <body>
 
-<!-- Nav -->
-<div class="nav-bar">
+{% set active_page = 'analyses' %}
+{% include 'fragments/nav.html' %}
+<div class="breadcrumb-bar">
     <div class="container">
-        <div class="nav-inner">
-            <a href="/" class="nav-logo">sf<span>permits</span>.ai</a>
-            <span class="nav-sep">›</span>
-            <a href="/account/analyses" class="nav-back">Analysis History</a>
-            <span class="nav-sep">›</span>
-            <span class="nav-back" style="color: var(--text);">Compare</span>
-        </div>
+        <span class="breadcrumb-text">
+            <a href="/account/analyses" class="breadcrumb-link">My Analyses</a>
+            <span class="breadcrumb-sep">→</span>
+            Compare: {{ job_a.filename }} vs {{ job_b.filename }}
+        </span>
     </div>
 </div>
 
@@ -639,7 +651,7 @@
     <!-- Version header -->
     <div class="version-header">
         <div class="version-card">
-            <h3>Version 1 (original)</h3>
+            <h3>Version {{ job_a.version_number or 1 }}{% if (job_a.version_number or 1) == 1 %} (original){% endif %}</h3>
             <div class="v-filename">{{ job_a.filename }}</div>
             <div class="v-meta">
                 {{ job_a.pages_analyzed or '?' }} pages
@@ -647,10 +659,11 @@
                 · {{ job_a.completed_at.strftime('%b %d, %Y') if job_a.completed_at else '' }}
                 {% endif %}
             </div>
+            <a href="/plan-jobs/{{ job_a.job_id }}/results" style="color:var(--accent);text-decoration:none;font-size:0.78rem;margin-top:4px;display:inline-block;">View full analysis →</a>
         </div>
         <div class="version-arrow">→</div>
         <div class="version-card" style="text-align:right">
-            <h3>Version 2 (revised)</h3>
+            <h3>Version {{ job_b.version_number or 2 }}{% if (job_b.version_number or 2) == 1 %} (original){% else %} (revised){% endif %}</h3>
             <div class="v-filename">{{ job_b.filename }}</div>
             <div class="v-meta">
                 {{ job_b.pages_analyzed or '?' }} pages
@@ -658,6 +671,7 @@
                 · {{ job_b.completed_at.strftime('%b %d, %Y') if job_b.completed_at else '' }}
                 {% endif %}
             </div>
+            <a href="/plan-jobs/{{ job_b.job_id }}/results" style="color:var(--accent);text-decoration:none;font-size:0.78rem;margin-top:4px;display:inline-block;">View full analysis →</a>
         </div>
     </div>
 
@@ -764,12 +778,31 @@
                 onclick="filterComments('unchanged', this)">Unchanged ({{ n_unchanged }})</button>
             {% endif %}
         </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+            <button onclick="copySummary()"
+                    style="padding:5px 14px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text-muted);font-size:0.78rem;cursor:pointer;font-family:inherit;"
+                    id="copy-summary-btn"
+                    title="Copy a plain-text summary to clipboard">
+                Copy Summary
+            </button>
+        </div>
+        {% set type_labels = {
+            'epr_issue': 'Compliance Issue',
+            'stamp': 'Stamp',
+            'dimension': 'Dimension',
+            'code_reference': 'Code Reference',
+            'reviewer_note': 'Plan Checker Note',
+            'general_note': 'Note',
+            'occupancy': 'Occupancy',
+            'scope': 'Scope',
+            'annotation': 'Annotation'
+        } %}
         <table class="comments-table">
             <thead>
                 <tr>
-                    <th>V1 Comment</th>
+                    <th>Original</th>
                     <th style="width:110px">Status</th>
-                    <th>V2 Comment</th>
+                    <th>Resubmittal</th>
                     <th style="width:60px">Page</th>
                 </tr>
             </thead>
@@ -779,7 +812,7 @@
                     <td>
                         {% if r.v1_label %}
                             <span class="label-text">{{ r.v1_label }}</span>
-                            {% if r.v1_type %}<span class="type-chip">{{ r.v1_type }}</span>{% endif %}
+                            {% if r.v1_type %}<span class="type-chip">{{ type_labels.get(r.v1_type, r.v1_type|replace('_', ' ')|title) }}</span>{% endif %}
                             {% if r.v1_importance %}
                             <br><span class="badge-{{ r.v1_importance }}" style="font-size:0.72rem;">{{ r.v1_importance }}</span>
                             {% endif %}
@@ -797,7 +830,7 @@
                     <td>
                         {% if r.v2_label %}
                             <span class="label-text">{{ r.v2_label }}</span>
-                            {% if r.v2_type %}<span class="type-chip">{{ r.v2_type }}</span>{% endif %}
+                            {% if r.v2_type %}<span class="type-chip">{{ type_labels.get(r.v2_type, r.v2_type|replace('_', ' ')|title) }}</span>{% endif %}
                             {% if r.v2_importance %}
                             <br><span class="badge-{{ r.v2_importance }}" style="font-size:0.72rem;">{{ r.v2_importance }}</span>
                             {% endif %}
@@ -864,17 +897,22 @@
     <div id="tab-visual" class="tab-panel">
         <div class="visual-controls">
             <label for="vis-page-a">V1 Page:</label>
-            <select id="vis-page-a" onchange="loadVisual()">
+            <select id="vis-page-a" onchange="onPageChange('a')">
                 {% for p in range(1, (pages_a or 1) + 1) %}
                 <option value="{{ p }}">{{ p }}</option>
                 {% endfor %}
             </select>
             <label for="vis-page-b">V2 Page:</label>
-            <select id="vis-page-b" onchange="loadVisual()">
+            <select id="vis-page-b" onchange="onPageChange('b')">
                 {% for p in range(1, (pages_b or 1) + 1) %}
                 <option value="{{ p }}">{{ p }}</option>
                 {% endfor %}
             </select>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="vis-sync" checked onchange="togglePageSync(this.checked)"
+                       style="accent-color:var(--accent);width:16px;height:16px;">
+                <span>Sync pages</span>
+            </label>
             <button class="visual-mode-btn active" id="btn-sidebyside"
                     onclick="setVisualMode('side-by-side')">Side by Side</button>
             <button class="visual-mode-btn" id="btn-overlay"
@@ -924,7 +962,10 @@
             <tbody>
             {% for chk in comparison.epr_changes %}
                 <tr>
-                    <td style="font-weight:600;">{{ chk.check_id }}</td>
+                    <td>
+                        <div style="font-weight:600;">{{ epr_check_names.get(chk.check_id, chk.check_id) }}</div>
+                        <div style="font-size:0.72rem;color:var(--text-muted);">{{ chk.check_id }}</div>
+                    </td>
                     <td><span class="epr-status status-{{ chk.v1_status }}">{{ chk.v1_status }}</span></td>
                     <td style="text-align:center;color:var(--text-muted);">→</td>
                     <td><span class="epr-status status-{{ chk.v2_status }}">{{ chk.v2_status }}</span></td>
@@ -935,15 +976,6 @@
     </div>
     {% endif %}
 
-    <!-- Footer links -->
-    <div style="margin-top:32px;display:flex;gap:16px;font-size:0.85rem;">
-        <a href="/plan-jobs/{{ job_a.job_id }}/results" style="color:var(--accent);text-decoration:none;">
-            View V1 full analysis →
-        </a>
-        <a href="/plan-jobs/{{ job_b.job_id }}/results" style="color:var(--accent);text-decoration:none;">
-            View V2 full analysis →
-        </a>
-    </div>
 
 </div><!-- /page-content -->
 </div><!-- /container -->
@@ -965,6 +997,38 @@ function filterComments(status, btn) {
     });
     document.querySelectorAll('#tab-comments .tab-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
+}
+
+function copySummary() {
+    var s = {{ comparison.summary | tojson }};
+    var header = s.resolved + ' resolved, ' + s.new + ' new, ' + s.unchanged + ' unchanged';
+    header += ' — {{ job_a.filename }} vs {{ job_b.filename }}';
+
+    var lines = [header, ''];
+    // List outstanding items (new + unchanged)
+    var rows = document.querySelectorAll('#tab-comments tbody tr[data-status]');
+    rows.forEach(function(row) {
+        var status = row.dataset.status;
+        if (status === 'new' || status === 'unchanged') {
+            var cells = row.querySelectorAll('td');
+            var label = '';
+            if (status === 'new') {
+                label = '[NEW] ' + (cells[2]?.textContent?.trim() || '');
+            } else {
+                label = '[OPEN] ' + (cells[0]?.textContent?.trim() || '');
+            }
+            var page = cells[3]?.textContent?.trim() || '';
+            if (page && page !== '—') label += ' (' + page + ')';
+            lines.push('• ' + label);
+        }
+    });
+
+    var text = lines.join('\n');
+    navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById('copy-summary-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = 'Copy Summary'; }, 2000);
+    });
 }
 
 // ── Phase F2: Project Notes ───────────────────────────────────
@@ -995,6 +1059,19 @@ const _sessionA = {{ session_id_a | tojson }};
 const _sessionB = {{ session_id_b | tojson }};
 let _visualMode = 'side-by-side';
 let _visualInited = false;
+var _syncPages = true;
+
+function togglePageSync(sync) { _syncPages = sync; }
+
+function onPageChange(which) {
+    if (_syncPages) {
+        var selA = document.getElementById('vis-page-a');
+        var selB = document.getElementById('vis-page-b');
+        if (which === 'a' && selB) selB.value = selA.value;
+        if (which === 'b' && selA) selA.value = selB.value;
+    }
+    loadVisual();
+}
 
 function initVisual() {
     if (_visualInited) return;
@@ -1007,6 +1084,20 @@ function loadVisual() {
     const pageB = parseInt(document.getElementById('vis-page-b')?.value || 1, 10);
     _loadImage('vis-a-img', 'vis-a-placeholder', _sessionA, pageA);
     _loadImage('vis-b-img', 'vis-b-placeholder', _sessionB, pageB);
+    // Update overlay if in overlay mode
+    if (_visualMode === 'overlay-mode') {
+        setTimeout(function() { _rebuildOverlay(); }, 300);
+    }
+}
+
+function _rebuildOverlay() {
+    var overlay = document.getElementById('vis-overlay-b');
+    var imgB = document.getElementById('vis-b-img');
+    if (overlay && imgB && imgB.src) {
+        overlay.src = imgB.src;
+    } else if (!overlay && _visualMode === 'overlay-mode') {
+        _buildOverlay();
+    }
 }
 
 function _loadImage(imgId, placeholderId, sessionId, pageNum) {
