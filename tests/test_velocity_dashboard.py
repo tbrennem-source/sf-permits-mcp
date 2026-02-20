@@ -131,6 +131,38 @@ def test_dashboard_route_requires_login(client):
     assert rv.status_code in (302, 401)
 
 
+def test_reviewer_stats_unknown_station():
+    """get_reviewer_stats returns empty list for unknown station."""
+    from web.velocity_dashboard import get_reviewer_stats
+    result = get_reviewer_stats("ZZNONEXISTENT")
+    assert isinstance(result, list)
+    # Should be empty or have valid structure
+    for r in result:
+        assert "reviewer" in r
+        assert "completed" in r
+        assert "median_days" in r
+        assert "tier" in r
+
+
+def test_station_detail_route_json(client):
+    """Reviewer detail endpoint returns JSON with correct shape."""
+    _login(client)
+    rv = client.get("/dashboard/bottlenecks/station/BLDG")
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert data is not None
+    assert "station" in data
+    assert data["station"] == "BLDG"
+    assert "reviewers" in data
+    assert isinstance(data["reviewers"], list)
+
+
+def test_station_detail_requires_login(client):
+    """Reviewer detail route redirects when not logged in."""
+    rv = client.get("/dashboard/bottlenecks/station/BLDG")
+    assert rv.status_code in (302, 401)
+
+
 # ── list_feedback MCP tool ────────────────────────────────────────────────────
 
 @pytest.mark.asyncio

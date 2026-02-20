@@ -2993,6 +2993,16 @@ def velocity_dashboard():
     )
 
 
+@app.route("/dashboard/bottlenecks/station/<path:station>")
+@login_required
+def velocity_station_detail(station: str):
+    """JSON endpoint: reviewer stats for a single station (heatmap drill-down)."""
+    from web.velocity_dashboard import get_reviewer_stats
+    station = station.upper().strip()
+    reviewers = get_reviewer_stats(station)
+    return jsonify({"station": station, "reviewers": reviewers})
+
+
 # ---------------------------------------------------------------------------
 # Portfolio Dashboard
 # ---------------------------------------------------------------------------

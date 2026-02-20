@@ -257,6 +257,117 @@ def _get_department_rollup(baselines: list[StationBaseline]) -> list[DeptRollup]
     return sorted(rollups, key=lambda d: d.avg_median_days or 0, reverse=True)
 
 
+# ── Reviewer stats per station ──────────────────────────────────────────────
+
+def get_reviewer_stats(station: str, lookback_days: int = 90) -> list[dict]:
+    """Return per-reviewer velocity stats for a given station.
+
+    Computes median turnaround per plan_checked_by reviewer over the last
+    lookback_days, plus current pending count per reviewer.
+
+    Returns list of dicts sorted by median_days asc (fastest first):
+        [{"reviewer": str, "completed": int, "median_days": float|None,
+          "avg_days": float|None, "pending": int}, ...]
+    """
+    ph = _ph()
+    cutoff_clause = ""
+
+    try:
+        if BACKEND == "postgres":
+            hist_rows = query(
+                f"""
+                SELECT
+                    plan_checked_by,
+                    COUNT(*) AS completed,
+                    PERCENTILE_CONT(0.5) WITHIN GROUP (
+                        ORDER BY (finish_date::date - arrive::date)
+                    ) AS median_days,
+                    AVG(finish_date::date - arrive::date) AS avg_days
+                FROM addenda
+                WHERE station = {ph}
+                  AND plan_checked_by IS NOT NULL
+                  AND plan_checked_by != ''
+                  AND finish_date IS NOT NULL
+                  AND arrive IS NOT NULL
+                  AND (finish_date::date - arrive::date) BETWEEN 0 AND 365
+                  AND finish_date::date >= CURRENT_DATE - INTERVAL '{lookback_days} days'
+                GROUP BY plan_checked_by
+                HAVING COUNT(*) >= 2
+                ORDER BY median_days ASC
+                LIMIT 20
+                """,
+                (station,),
+            )
+        else:
+            # DuckDB dev mode
+            from datetime import date as _date, timedelta
+            cutoff = (_date.today() - timedelta(days=lookback_days)).isoformat()
+            hist_rows = query(
+                f"""
+                SELECT
+                    plan_checked_by,
+                    COUNT(*) AS completed,
+                    MEDIAN(DATEDIFF('day', CAST(arrive AS DATE), CAST(finish_date AS DATE))) AS median_days,
+                    AVG(DATEDIFF('day', CAST(arrive AS DATE), CAST(finish_date AS DATE))) AS avg_days
+                FROM addenda
+                WHERE station = {ph}
+                  AND plan_checked_by IS NOT NULL
+                  AND plan_checked_by != ''
+                  AND finish_date IS NOT NULL
+                  AND arrive IS NOT NULL
+                  AND DATEDIFF('day', CAST(arrive AS DATE), CAST(finish_date AS DATE)) BETWEEN 0 AND 365
+                  AND CAST(finish_date AS DATE) >= {ph}
+                GROUP BY plan_checked_by
+                HAVING COUNT(*) >= 2
+                ORDER BY median_days ASC
+                LIMIT 20
+                """,
+                (station, cutoff),
+            )
+    except Exception:
+        logger.debug("reviewer hist query failed for %s", station, exc_info=True)
+        hist_rows = []
+
+    # Current pending per reviewer
+    pending_map: dict[str, int] = {}
+    try:
+        pend_rows = query(
+            f"""
+            SELECT plan_checked_by, COUNT(*) AS pending
+            FROM addenda
+            WHERE station = {ph}
+              AND plan_checked_by IS NOT NULL
+              AND plan_checked_by != ''
+              AND finish_date IS NULL
+              AND arrive IS NOT NULL
+            GROUP BY plan_checked_by
+            """,
+            (station,),
+        )
+        for r in pend_rows:
+            if r[0]:
+                pending_map[r[0]] = int(r[1]) if r[1] else 0
+    except Exception:
+        logger.debug("reviewer pending query failed for %s", station, exc_info=True)
+
+    results = []
+    for r in hist_rows:
+        reviewer = r[0] or ""
+        completed = int(r[1]) if r[1] else 0
+        median_d = round(float(r[2]), 1) if r[2] is not None else None
+        avg_d = round(float(r[3]), 1) if r[3] is not None else None
+        results.append({
+            "reviewer": reviewer,
+            "completed": completed,
+            "median_days": median_d,
+            "avg_days": avg_d,
+            "pending": pending_map.get(reviewer, 0),
+            "tier": _health_tier(median_d),
+        })
+
+    return results
+
+
 # ── Volume by station (how many permits currently at each station) ──────────
 
 @dataclass

@@ -93,6 +93,32 @@
         .station-meta { font-size: 0.72rem; opacity: 0.65; margin-top: 6px; }
         .station-p90 { font-size: 0.75rem; opacity: 0.7; margin-top: 2px; }
         .station-dept { font-size: 0.68rem; opacity: 0.55; margin-top: 2px; }
+        .station-drill-hint { font-size: 0.65rem; opacity: 0.45; margin-top: 5px; cursor: pointer; }
+        .station-card:hover .station-drill-hint { opacity: 0.75; }
+
+        /* Reviewer drawer */
+        .reviewer-drawer {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+        }
+        .reviewer-drawer.open { display: flex; }
+        .reviewer-panel {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px 28px; max-width: 560px; width: 100%;
+            max-height: 80vh; overflow-y: auto; position: relative;
+        }
+        .reviewer-panel h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+        .reviewer-panel .sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
+        .reviewer-panel table th { font-size: 0.7rem; }
+        .reviewer-panel table td { font-size: 0.8rem; }
+        .drawer-close {
+            position: absolute; top: 14px; right: 16px;
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1.2rem; cursor: pointer; line-height: 1;
+        }
+        .drawer-close:hover { color: var(--text); }
+        .reviewer-loading { color: var(--text-muted); font-size: 0.85rem; padding: 16px 0; }
+        .reviewer-empty { color: var(--text-muted); font-size: 0.83rem; font-style: italic; }
 
         /* No-results message */
         .no-results {
@@ -257,7 +283,9 @@
                      data-station="{{ s.station }}"
                      data-tier="{{ s.tier }}"
                      data-dept="{{ s.dept }}"
-                     data-portfolio="{{ 'yes' if s.in_portfolio else 'no' }}">
+                     data-portfolio="{{ 'yes' if s.in_portfolio else 'no' }}"
+                     onclick="openReviewerDrawer('{{ s.station }}')"
+                     style="cursor:pointer;">
                     <div class="station-name">
                         {{ s.station }}
                         {% if s.in_portfolio %}<span class="portfolio-badge">MINE</span>{% endif %}
@@ -285,6 +313,7 @@
                         {% endif %}
                     </div>
                     <div class="station-dept">{{ s.dept }}</div>
+                    <div class="station-drill-hint">Click for reviewer breakdown →</div>
                 </div>
                 {% endfor %}
             </div>
@@ -427,6 +456,18 @@
         </div>
     </main>
 
+    <!-- Reviewer Drill-down Drawer -->
+    <div class="reviewer-drawer" id="reviewer-drawer" onclick="closeReviewerDrawer(event)">
+        <div class="reviewer-panel" id="reviewer-panel">
+            <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+            <h3 id="drawer-station-name">Station</h3>
+            <p class="sub" id="drawer-subtitle">90-day reviewer velocity (last 90 days of completed reviews)</p>
+            <div id="drawer-content">
+                <p class="reviewer-loading">Loading…</p>
+            </div>
+        </div>
+    </div>
+
     <script>
     // ── Filter state ─────────────────────────────────────────────────────────
     let currentView = 'all';    // 'all' | 'portfolio'
@@ -521,6 +562,86 @@
     // Auto-activate portfolio view if user has portfolio stations
     // (so Amy sees her permits immediately on load)
     // — intentionally NOT auto-activating; let users click to explore.
+
+    // ── Reviewer drill-down ──────────────────────────────────────────────────
+    const TIER_COLORS = {
+        fast: '#4ade80', normal: '#93c5fd', slow: '#fbbf24',
+        critical: '#fb923c', severe: '#f87171', unknown: '#8b8fa3'
+    };
+
+    function openReviewerDrawer(station) {
+        const drawer = document.getElementById('reviewer-drawer');
+        const content = document.getElementById('drawer-content');
+        const title = document.getElementById('drawer-station-name');
+        const subtitle = document.getElementById('drawer-subtitle');
+
+        title.textContent = station + ' — Reviewer Breakdown';
+        subtitle.textContent = 'Individual plan checker velocity (last 90 days)';
+        content.innerHTML = '<p class="reviewer-loading">⏳ Loading…</p>';
+        drawer.classList.add('open');
+
+        fetch('/dashboard/bottlenecks/station/' + encodeURIComponent(station))
+            .then(r => r.json())
+            .then(data => {
+                const reviewers = data.reviewers || [];
+                if (reviewers.length === 0) {
+                    content.innerHTML = '<p class="reviewer-empty">No reviewer data available for this station yet (need ≥2 completed reviews per reviewer in the last 90 days).</p>';
+                    return;
+                }
+
+                let html = '<table><thead><tr>';
+                html += '<th>Reviewer</th><th>Median</th><th>Avg</th><th>Completed</th><th>Pending</th>';
+                html += '</tr></thead><tbody>';
+
+                reviewers.forEach(r => {
+                    const color = TIER_COLORS[r.tier] || '#8b8fa3';
+                    const medLabel = r.median_days === null ? '—'
+                        : r.median_days < 1 ? '<1d'
+                        : r.median_days < 30 ? r.median_days + 'd'
+                        : (r.median_days / 30).toFixed(1) + 'mo';
+                    const avgLabel = r.avg_days === null ? '—'
+                        : r.avg_days < 30 ? r.avg_days + 'd'
+                        : (r.avg_days / 30).toFixed(1) + 'mo';
+
+                    html += `<tr>
+                        <td style="font-weight:600;">${escHtml(r.reviewer)}</td>
+                        <td style="color:${color};font-weight:700;">${medLabel}</td>
+                        <td style="color:var(--text-muted);">${avgLabel}</td>
+                        <td>${r.completed}</td>
+                        <td>${r.pending > 0 ? '<span style="color:var(--warning);">' + r.pending + '</span>' : '—'}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                html += `<p style="color:var(--text-muted);font-size:0.72rem;margin-top:12px;">
+                    Sorted fastest first &middot; Min. 2 reviews &middot; Based on arrive→finish_date
+                </p>`;
+                content.innerHTML = html;
+            })
+            .catch(() => {
+                content.innerHTML = '<p class="reviewer-empty">Failed to load reviewer data.</p>';
+            });
+    }
+
+    function closeReviewerDrawer(event) {
+        // Close only when clicking the backdrop (not the panel itself)
+        if (event.target === document.getElementById('reviewer-drawer')) {
+            closeDrawer();
+        }
+    }
+
+    function closeDrawer() {
+        document.getElementById('reviewer-drawer').classList.remove('open');
+    }
+
+    function escHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeDrawer();
+    });
     </script>
 </body>
 </html>
