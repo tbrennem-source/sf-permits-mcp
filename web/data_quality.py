@@ -24,19 +24,35 @@ def run_all_checks() -> list[dict]:
 
     Each result dict has:
         name, category, value, unit, status (green|yellow|red), detail
+
+    Results are sorted: red first, then yellow, then green.
+    Checks that require prod-only tables (cron_log, permit_changes, etc.)
+    are skipped gracefully on DuckDB.
     """
-    checks = [
+    from src.db import BACKEND
+
+    # Checks that require prod-only tables (cron_log, permit_changes, knowledge_chunks)
+    prod_only_checks = [
         _check_cron_status,
         _check_records_fetched,
         _check_permit_changes_detected,
+        _check_rag_chunk_count,
+        _check_entity_coverage,
+    ]
+    # Checks that work on both backends
+    universal_checks = [
         _check_temporal_violations,
         _check_cost_outliers,
         _check_orphaned_contacts,
         _check_inspection_null_rate,
         _check_data_freshness,
-        _check_rag_chunk_count,
-        _check_entity_coverage,
     ]
+
+    if BACKEND == "postgres":
+        checks = prod_only_checks + universal_checks
+    else:
+        checks = universal_checks
+
     results = []
     for check_fn in checks:
         try:
@@ -53,6 +69,10 @@ def run_all_checks() -> list[dict]:
                 "status": "red",
                 "detail": "Check failed — see logs",
             })
+
+    # Sort: red first, then yellow, then green
+    status_order = {"red": 0, "yellow": 1, "green": 2}
+    results.sort(key=lambda r: status_order.get(r.get("status", "green"), 9))
     return results
 
 
