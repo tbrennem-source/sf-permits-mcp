@@ -1204,7 +1204,9 @@ def analyze_plans_route():
 
     # ── Quick Check mode: metadata-only via validate_plans ──
     if quick_check:
+        from datetime import datetime, timezone
         result_md = None
+        qc_started_at = datetime.now(timezone.utc)
         try:
             result_md = run_async(validate_plans(
                 pdf_bytes=pdf_bytes,
@@ -1226,6 +1228,7 @@ def analyze_plans_route():
                     </details>
                 </div>
             '''
+        qc_completed_at = datetime.now(timezone.utc)
 
         # Track job for history (no PDF stored for quick check)
         try:
@@ -1235,7 +1238,12 @@ def analyze_plans_route():
                 property_address=property_address, permit_number=permit_number_input,
                 quick_check=True, is_async=False,
             )
-            update_job_status(job_id, "completed", report_md=result_md)
+            update_job_status(
+                job_id, "completed",
+                report_md=result_md,
+                started_at=qc_started_at,
+                completed_at=qc_completed_at,
+            )
         except Exception:
             pass  # Job tracking is non-fatal
 
