@@ -1,5 +1,36 @@
 # Changelog
 
+## Session 38d — Regulatory Watch Fix + Severity Busy-Site Dismiss + Demo Seeding (2026-02-20)
+
+### Regulatory Watch Tab Fix — `web/templates/admin_regulatory_watch.html`, `web/templates/admin_ops.html`
+- **Bug**: Regulatory Watch tab showed infinite "Loading..." spinner. Root cause: local dev server was running from stale `cool-pike` worktree that predated the admin ops hub entirely (routes returned 404). Additionally, no HTMX error handler existed — failed fragment requests left the spinner running forever.
+- **Fix 1**: Namespaced all CSS classes with `rw-` prefix to prevent style collisions in fragment mode. Moved global resets (`*`, `body`) into standalone-only block.
+- **Fix 2**: Added `htmx:responseError` handler to admin_ops.html — failed tab loads now show "Failed to load tab" with reload link instead of infinite spinner.
+
+### Severity: Dismiss Expired Permits at Busy Sites — `web/brief.py`, `web/portfolio.py`
+- **Bug**: 188 The Embarcadero showed "BEHIND" for 1 expired permit despite having 47 active permits (222 total). Properties with heavy active permit loads shouldn't flag on a single old expiration.
+- **Fix**: Added ≥5 active permits tier — properties with ≥5 active permits and an expired permit are dismissed to `on_track` (not flagged at all). 2-4 active → `behind`. <2 active + no recent activity → `at_risk`.
+
+### Regulatory Watch Demo Seeding — `web/app.py`
+- New `/cron/seed-regulatory` endpoint (CRON_SECRET auth) accepts JSON array of watch items for bulk creation.
+- Seeded 3 demo items on prod for Amy meeting:
+  1. **Permit Expiration Timeline Revision** (BOS File 250811) — High impact, 3yr→5yr extension
+  2. **DBI Bulletin: Updated EPR Requirements** (AB-009) — Moderate, seismic retrofit checklist
+  3. **ADU Streamlining Amendment** (Planning Code 207(c)(4)) — Moderate, removes discretionary review
+
+### RAG Chunk Deduplication Fix — `.github/workflows/nightly-cron.yml`, `web/app.py`
+- **Bug**: knowledge_chunks grew 9x (1,012 → 9,011) because nightly workflow ran `tier=all&clear=0`, appending all chunks without clearing.
+- **Fix**: Changed nightly workflow to `tier=ops`. Made `/cron/rag-ingest` default to `clear=true` for static tiers (tier1-4, all). Cleaned prod back to 2,684 chunks.
+
+### What Changed Activity Badge Fix — `web/templates/brief.html`
+- **Bug**: Activity entries in What Changed showed health reason badge ("PERMIT EXPIRED 378D AGO (ACTIVE SITE)") instead of recency.
+- **Fix**: Activity entries now show "Activity 3d ago" badge with neutral styling.
+
+### Tests
+- 1,103 passing, 1 skipped
+
+---
+
 ## Session 38c — Brief Fixes + DQ Calibration + Severity Expansion (2026-02-20)
 
 ### Brief "What Changed" Count Fix — `web/brief.py`, `web/templates/brief.html`
