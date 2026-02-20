@@ -769,11 +769,14 @@ def index():
         except Exception:
             pass  # Non-critical — homepage still works
 
+    upload_error = request.args.get("upload_error")
+
     return render_template(
         "index.html",
         neighborhoods=NEIGHBORHOODS,
         user_report_url=user_report_url,
         user_report_address=user_report_address,
+        upload_error=upload_error,
     )
 
 
@@ -1067,13 +1070,23 @@ def analyze_plans_route():
     Small files (≤ threshold) are processed synchronously.
     Large files (> threshold) are queued for async background processing.
     """
+    # Check if this is an HTMX request (returns fragment) or direct POST (needs full page)
+    is_htmx = request.headers.get("HX-Request") == "true"
+
+    def _upload_error(msg: str, code: int = 400):
+        """Return styled error for HTMX or redirect for direct POST."""
+        if is_htmx:
+            return f'<div class="error">{msg}</div>', code
+        from urllib.parse import quote
+        return redirect(f"/?upload_error={quote(msg)}#analyze-plans")
+
     uploaded = request.files.get("planfile")
     if not uploaded or not uploaded.filename:
-        return '<div class="error">Please select a PDF file to upload.</div>', 400
+        return _upload_error("Please select a PDF file to upload.")
 
     filename = uploaded.filename
     if not filename.lower().endswith(".pdf"):
-        return '<div class="error">Only PDF files are supported.</div>', 400
+        return _upload_error("Only PDF files are supported.")
 
     project_description = request.form.get("project_description", "").strip() or None
     permit_type = request.form.get("permit_type", "").strip() or None
@@ -1092,16 +1105,16 @@ def analyze_plans_route():
     try:
         pdf_bytes = uploaded.read()
     except Exception as e:
-        return f'<div class="error">Error reading file: {e}</div>', 400
+        return _upload_error(f"Error reading file: {e}")
 
     if len(pdf_bytes) == 0:
-        return '<div class="error">The uploaded file is empty.</div>', 400
+        return _upload_error("The uploaded file is empty.")
 
     # VALIDATION: Check file size
     size_mb = len(pdf_bytes) / (1024 * 1024)
     max_size = 350 if is_addendum else 400
     if size_mb > max_size:
-        return f'<div class="error">File too large: {size_mb:.1f} MB<br>Maximum is {max_size} MB.</div>', 413
+        return _upload_error(f"File too large: {size_mb:.1f} MB. Maximum is {max_size} MB.", 413)
 
     user_id = session.get("user_id")
     mode = "quick-check" if quick_check else "full-analysis"
@@ -1135,18 +1148,31 @@ def analyze_plans_route():
         submit_job(job_id)
 
         logging.info(f"[analyze-plans] Async job {job_id} submitted for {filename} (mode={analysis_mode}, downgraded={was_downgraded})")
-        return render_template(
-            "analyze_plans_processing.html",
-            job_id=job_id,
-            filename=filename,
-            filesize_mb=round(size_mb, 1),
-            user_email=_get_user_email(user_id),
-            mode_downgraded=was_downgraded,
-            analysis_mode=analysis_mode,
-        )
+        # HTMX gets a fragment; direct POST gets full page with nav/theme
+        if is_htmx:
+            return render_template(
+                "analyze_plans_processing.html",
+                job_id=job_id,
+                filename=filename,
+                filesize_mb=round(size_mb, 1),
+                user_email=_get_user_email(user_id),
+                mode_downgraded=was_downgraded,
+                analysis_mode=analysis_mode,
+            )
+        else:
+            return render_template(
+                "plan_processing_page.html",
+                job_id=job_id,
+                filename=filename,
+                filesize_mb=round(size_mb, 1),
+                user_email=_get_user_email(user_id),
+                mode_downgraded=was_downgraded,
+                analysis_mode=analysis_mode,
+            )
 
     # ── Quick Check mode: metadata-only via validate_plans ──
     if quick_check:
+        result_md = None
         try:
             result_md = run_async(validate_plans(
                 pdf_bytes=pdf_bytes,
@@ -1181,8 +1207,10 @@ def analyze_plans_route():
         except Exception:
             pass  # Job tracking is non-fatal
 
+        # HTMX requests get a fragment; direct POSTs get the full page wrapper
+        template = "analyze_plans_results.html" if is_htmx else "plan_results_page.html"
         return render_template(
-            "analyze_plans_results.html",
+            template,
             result=result_html,
             filename=filename,
             filesize_mb=round(size_mb, 1),
@@ -1195,7 +1223,7 @@ def analyze_plans_route():
 
     # Note: Full Analysis always routes to async worker above, so this point
     # is only reached if quick_check somehow falls through (shouldn't happen).
-    return '<div class="error">Unexpected routing error. Please try again.</div>', 500
+    return _upload_error("Unexpected routing error. Please try again.", 500)
 
 
 def _parse_address(address: str) -> tuple:
