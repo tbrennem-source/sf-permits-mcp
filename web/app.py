@@ -2984,12 +2984,23 @@ def brief():
 def velocity_dashboard():
     """DBI approval pipeline bottleneck heatmap."""
     from web.velocity_dashboard import get_dashboard_data
-    data = get_dashboard_data()
+    user_id = g.user["user_id"] if g.user else None
+    data = get_dashboard_data(user_id=user_id)
     return render_template(
         "velocity_dashboard.html",
         data=data,
         active_page="bottlenecks",
     )
+
+
+@app.route("/dashboard/bottlenecks/station/<path:station>")
+@login_required
+def velocity_station_detail(station: str):
+    """JSON endpoint: reviewer stats for a single station (heatmap drill-down)."""
+    from web.velocity_dashboard import get_reviewer_stats
+    station = station.upper().strip()
+    reviewers = get_reviewer_stats(station)
+    return jsonify({"station": station, "reviewers": reviewers})
 
 
 # ---------------------------------------------------------------------------

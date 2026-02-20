@@ -1,5 +1,81 @@
 # Changelog
 
+## Session 35 — Pipeline Dashboard, Filters, Reviewer Drill-down (2026-02-20)
+
+### Morning Brief Fixes
+
+#### Property Card Deduplication (`web/brief.py`)
+- All property cards showed "125 MASON ST" — root cause was grouping by block/lot while 125 Mason spans 3 lots (0331/018, 003, 004)
+- Fixed by grouping by normalized address (uppercased street_number + street_name + suffix) as primary key
+- Added `street_suffix` to SQL query (was missing, causing "125 Mason" instead of "125 Mason St")
+- Added `parcels: set()` per address card, tracking all block/lot pairs for enforcement queries
+- Watch label matching changed to `startswith` (watch items don't store suffix)
+- `parcels` set converted to `parcels_display` string ("0331/003, 0331/004, 0331/018") before render
+
+#### Portfolio Nav in Morning Brief (`web/templates/brief.html`)
+- Brief page had hardcoded header missing Portfolio link
+- Replaced hardcoded header with `{% include 'fragments/nav.html' %}`, removed duplicate CSS
+- Added `active_page='brief'` to route
+
+### SODA Staleness Improvements (`scripts/nightly_changes.py`, `web/app.py`)
+
+#### Auto-retry on Zero Records
+- When 0 permits returned with 1-day lookback, automatically retries with 3-day window
+- On retry success, logs "SODA data lag detected — likely holiday/weekend" instead of alerting
+- Distinguishes holiday/weekend lag (expected) from real API outages (needs alert)
+
+#### Admin Staleness Email Alerts
+- `_send_staleness_alert()` in `web/app.py` — sends plain text email to all admins
+- Three severity tiers: ⚠️ Warning (permits=0 but others ok), 🚨 Alert (multiple tables empty), 🚨🚨 Critical (everything empty after retry)
+- Triggered at end of `POST /cron/nightly` when staleness detected
+
+### RAG Fix (`src/rag/retrieval.py`)
+- Fixed `KnowledgeBase()` called with no args in two places — caused WARNING on Railway
+- Changed to `get_knowledge_base()` singleton which resolves `data_dir` correctly
+
+### Pipeline Bottleneck Dashboard (`web/velocity_dashboard.py`, `web/templates/velocity_dashboard.html`)
+**New page at `/dashboard/bottlenecks`** — DBI approval pipeline heatmap for plan review velocity
+
+#### Station Velocity Heatmap
+- Color-coded station cards by health tier: fast (green) / normal (blue) / slow (amber) / critical (orange) / severe (red)
+- Shows median days, p90, sample count, pending count per station
+- Sorted slowest-first for immediate triage
+
+#### Filter Bar (client-side, instant)
+- **View: All Stations / My Portfolio** — Portfolio mode filters to only stations where user's watched permits are currently pending (queries `addenda` for live plan-check status)
+- **Dept filter** — dynamic from real data (DBI / CPC / SFFD / DPW / etc.), filters heatmap cards
+- **Speed: All / 🔴 Bottlenecks only** — hides fast/normal, shows slow/critical/severe
+- Portfolio stations get blue glow ring + `MINE` badge even in All view
+- Stalled Permits tab also filters in Portfolio mode; `Mine` badge on user's stalled rows
+
+#### Reviewer Drill-down
+- Click any station card → modal drawer with per-reviewer velocity stats
+- Shows median/avg turnaround, completed reviews, pending count per plan checker
+- Reviewer median colored by health tier (fastest → slowest)
+- `GET /dashboard/bottlenecks/station/<station>` JSON endpoint (login-required)
+- `get_reviewer_stats()` in `velocity_dashboard.py` — 90-day lookback, min 2 reviews, sorted fastest-first, capped at 20
+- Escape key + backdrop click close drawer
+
+#### Department Rollup, Stalled Permits, Station Load tabs
+- Stalled permits: 14+ day pending with no finish_date, shows hold reason + reviewer
+- Station load: current pending count, held count, avg wait days
+- Dept rollup: station count, avg median, slowest station per agency
+
+### `list_feedback` MCP Tool (`src/tools/list_feedback.py`)
+- New tool: query feedback queue from Claude sessions
+- Filters: status, feedback_type, days_back, limit, include_resolved
+- Returns markdown table with summary counts + truncated message preview
+- Registered in `src/server.py` as Phase 6 operational intelligence tool
+
+### Navigation (`web/templates/fragments/nav.html`)
+- Added "Pipeline" link to shared nav (between Portfolio and My Analyses)
+
+### Tests
+- 23 tests in `tests/test_velocity_dashboard.py` (all passing)
+- 1,004 passing total (7 pre-existing failures unrelated to this session)
+
+---
+
 ## Session 34 — Tier 0 Operational Intelligence (2026-02-19)
 
 ### Concept

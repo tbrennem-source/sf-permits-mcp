@@ -21,11 +21,11 @@
 
         main { padding: 32px 0 60px; }
         h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
-        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 28px; }
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
         h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text); }
 
         /* Summary bar */
-        .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+        .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
         .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
         .summary-number { font-size: 1.8rem; font-weight: 700; }
         .summary-label { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
@@ -40,6 +40,45 @@
         .tier-severe  { background: rgba(239,68,68,0.14);  color: #f87171;  border-color: rgba(239,68,68,0.35); }
         .tier-unknown { background: var(--surface-2); color: var(--text-muted); border-color: var(--border); }
 
+        /* Portfolio highlight */
+        .station-card.portfolio-match {
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+        .portfolio-badge {
+            display: inline-block; font-size: 0.65rem; font-weight: 700;
+            background: rgba(79,143,247,0.2); color: var(--accent);
+            border: 1px solid rgba(79,143,247,0.4);
+            padding: 1px 6px; border-radius: 8px; margin-left: 4px;
+            vertical-align: middle; letter-spacing: 0.04em;
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+        }
+        .filter-label { font-size: 0.75rem; color: var(--text-muted); margin-right: 2px; white-space: nowrap; }
+        .filter-group { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .filter-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+        /* Filter buttons */
+        .fbtn {
+            font-size: 0.75rem; padding: 4px 12px; border-radius: 16px;
+            border: 1px solid var(--border); background: var(--surface-2);
+            color: var(--text-muted); cursor: pointer; font-family: inherit;
+            transition: all 0.1s;
+        }
+        .fbtn:hover { color: var(--text); border-color: var(--text-muted); }
+        .fbtn.active {
+            background: var(--accent); color: #fff;
+            border-color: var(--accent);
+        }
+        .fbtn.portfolio-active {
+            background: rgba(79,143,247,0.2); color: var(--accent);
+            border-color: var(--accent);
+        }
+
         /* Heatmap grid */
         .heatmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 32px; }
         .station-card {
@@ -47,11 +86,46 @@
             transition: transform 0.1s;
         }
         .station-card:hover { transform: translateY(-1px); }
+        .station-card.hidden { display: none; }
         .station-name { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
         .station-median { font-size: 1.4rem; font-weight: 700; line-height: 1.1; }
         .station-median-unit { font-size: 0.75rem; font-weight: 400; color: inherit; opacity: 0.75; }
         .station-meta { font-size: 0.72rem; opacity: 0.65; margin-top: 6px; }
         .station-p90 { font-size: 0.75rem; opacity: 0.7; margin-top: 2px; }
+        .station-dept { font-size: 0.68rem; opacity: 0.55; margin-top: 2px; }
+        .station-drill-hint { font-size: 0.65rem; opacity: 0.45; margin-top: 5px; cursor: pointer; }
+        .station-card:hover .station-drill-hint { opacity: 0.75; }
+
+        /* Reviewer drawer */
+        .reviewer-drawer {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+        }
+        .reviewer-drawer.open { display: flex; }
+        .reviewer-panel {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px 28px; max-width: 560px; width: 100%;
+            max-height: 80vh; overflow-y: auto; position: relative;
+        }
+        .reviewer-panel h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+        .reviewer-panel .sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
+        .reviewer-panel table th { font-size: 0.7rem; }
+        .reviewer-panel table td { font-size: 0.8rem; }
+        .drawer-close {
+            position: absolute; top: 14px; right: 16px;
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1.2rem; cursor: pointer; line-height: 1;
+        }
+        .drawer-close:hover { color: var(--text); }
+        .reviewer-loading { color: var(--text-muted); font-size: 0.85rem; padding: 16px 0; }
+        .reviewer-empty { color: var(--text-muted); font-size: 0.83rem; font-style: italic; }
+
+        /* No-results message */
+        .no-results {
+            display: none; text-align: center; color: var(--text-muted);
+            padding: 32px; font-size: 0.85rem;
+        }
+        .no-results.visible { display: block; }
 
         /* Currently pending table */
         .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; }
@@ -60,9 +134,11 @@
         td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.83rem; }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: rgba(255,255,255,0.02); }
+        tr.hidden { display: none; }
         .badge-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
         .held-badge { background: rgba(245,158,11,0.15); color: #fbbf24; }
         .stalled-badge { background: rgba(239,68,68,0.13); color: #f87171; }
+        .mine-badge { background: rgba(79,143,247,0.15); color: var(--accent); }
         .days-num { font-weight: 600; }
         .days-warn { color: var(--warning); }
         .days-crit { color: var(--error); }
@@ -88,9 +164,19 @@
 
         .data-as-of { color: var(--text-muted); font-size: 0.75rem; text-align: right; margin-top: 8px; }
 
+        /* Portfolio empty state */
+        .portfolio-empty {
+            background: rgba(79,143,247,0.06); border: 1px solid rgba(79,143,247,0.2);
+            border-radius: 8px; padding: 16px 20px; margin-bottom: 20px;
+            font-size: 0.83rem; color: var(--text-muted);
+        }
+        .portfolio-empty a { color: var(--accent); }
+
         @media (max-width: 640px) {
             .summary-row { grid-template-columns: repeat(2, 1fr); }
             .heatmap-grid { grid-template-columns: repeat(2, 1fr); }
+            .filter-bar { flex-direction: column; align-items: flex-start; }
+            .filter-divider { display: none; }
         }
     </style>
 </head>
@@ -126,6 +212,52 @@
                 </div>
             </div>
 
+            <!-- ── Filter Bar ────────────────────────────────────────────── -->
+            <div class="filter-bar">
+                <!-- View: All vs My Portfolio -->
+                <span class="filter-label">View:</span>
+                <div class="filter-group">
+                    <button class="fbtn active" id="view-all" onclick="setView('all')">All Stations</button>
+                    <button class="fbtn {% if data.portfolio.count > 0 %}portfolio-active{% endif %}"
+                            id="view-portfolio"
+                            onclick="setView('portfolio')"
+                            {% if data.portfolio.count == 0 %}title="Watch permits to enable portfolio view"{% endif %}>
+                        My Portfolio
+                        {% if data.portfolio.count > 0 %}
+                            <span style="font-size:0.7em;opacity:0.8;">({{ data.portfolio.count }} stations)</span>
+                        {% endif %}
+                    </button>
+                </div>
+
+                <div class="filter-divider"></div>
+
+                <!-- Department filter -->
+                <span class="filter-label">Dept:</span>
+                <div class="filter-group" id="dept-filters">
+                    <button class="fbtn active" data-dept="all" onclick="setDept('all')">All</button>
+                    {% for dept in data.dept_list %}
+                    <button class="fbtn" data-dept="{{ dept }}" onclick="setDept('{{ dept }}')">{{ dept }}</button>
+                    {% endfor %}
+                </div>
+
+                <div class="filter-divider"></div>
+
+                <!-- Speed filter -->
+                <span class="filter-label">Speed:</span>
+                <div class="filter-group">
+                    <button class="fbtn active" id="speed-all" onclick="setSpeed('all')">All</button>
+                    <button class="fbtn" id="speed-bottlenecks" onclick="setSpeed('bottlenecks')" title="Slow, critical, or severe only">🔴 Bottlenecks only</button>
+                </div>
+            </div>
+
+            {% if data.portfolio.count == 0 %}
+            <div class="portfolio-empty" id="portfolio-hint" style="display:none;">
+                <strong>No watched permits in plan check.</strong>
+                To use Portfolio view, <a href="/portfolio">watch permits</a> from the Portfolio page or property report pages.
+                Once you have permits actively in plan review, their stations will be highlighted here.
+            </div>
+            {% endif %}
+
             <!-- Legend -->
             <div class="legend">
                 <span style="font-size:0.75rem;color:var(--text-muted);margin-right:4px;">Median review time:</span>
@@ -134,15 +266,30 @@
                 <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div> Weeks</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#fb923c;"></div> Months</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div> Quarter+</div>
+                {% if data.portfolio.count > 0 %}
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--accent);border-radius:2px;"></div>
+                    Your permits
+                </div>
+                {% endif %}
             </div>
 
             <!-- Station Heatmap Grid -->
             <h2>Station Velocity Heatmap</h2>
             {% if data.baselines %}
-            <div class="heatmap-grid">
+            <div class="heatmap-grid" id="heatmap-grid">
                 {% for s in data.baselines %}
-                <div class="station-card {{ s.tier_css }}">
-                    <div class="station-name">{{ s.station }}</div>
+                <div class="station-card {{ s.tier_css }} {% if s.in_portfolio %}portfolio-match{% endif %}"
+                     data-station="{{ s.station }}"
+                     data-tier="{{ s.tier }}"
+                     data-dept="{{ s.dept }}"
+                     data-portfolio="{{ 'yes' if s.in_portfolio else 'no' }}"
+                     onclick="openReviewerDrawer('{{ s.station }}')"
+                     style="cursor:pointer;">
+                    <div class="station-name">
+                        {{ s.station }}
+                        {% if s.in_portfolio %}<span class="portfolio-badge">MINE</span>{% endif %}
+                    </div>
                     <div class="station-median">
                         {% if s.median_days is not none %}
                             {% if s.median_days < 1 %}
@@ -165,9 +312,12 @@
                             &middot; {{ data.load_map[s.station].pending_count }} pending
                         {% endif %}
                     </div>
+                    <div class="station-dept">{{ s.dept }}</div>
+                    <div class="station-drill-hint">Click for reviewer breakdown →</div>
                 </div>
                 {% endfor %}
             </div>
+            <div class="no-results" id="heatmap-empty">No stations match your current filters.</div>
             {% else %}
             <div class="section">
                 <p style="color:var(--text-muted);">No station velocity data yet. Run <code>POST /cron/nightly</code> to generate baselines.</p>
@@ -176,9 +326,9 @@
 
             <!-- Tabs for additional detail -->
             <div class="tabs">
-                <button class="tab active" onclick="showTab('stalled')">⏳ Stalled Permits ({{ data.summary.total_stalled }})</button>
-                <button class="tab" onclick="showTab('load')">📊 Station Load</button>
-                <button class="tab" onclick="showTab('dept')">🏢 By Department</button>
+                <button class="tab active" onclick="showTab('stalled', event)">⏳ Stalled Permits (<span id="stalled-count">{{ data.summary.total_stalled }}</span>)</button>
+                <button class="tab" onclick="showTab('load', event)">📊 Station Load</button>
+                <button class="tab" onclick="showTab('dept', event)">🏢 By Department</button>
             </div>
 
             <!-- Stalled Permits -->
@@ -197,10 +347,16 @@
                                 <th>Hold Reason</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="stalled-tbody">
                             {% for p in data.stalled_permits %}
-                            <tr>
-                                <td><a href="/?q={{ p.permit_number }}">{{ p.permit_number }}</a></td>
+                            <tr data-station="{{ p.station }}"
+                                data-portfolio="{{ 'yes' if p.permit_number in data.portfolio.permit_map else 'no' }}">
+                                <td>
+                                    <a href="/?q={{ p.permit_number }}">{{ p.permit_number }}</a>
+                                    {% if p.permit_number in data.portfolio.permit_map %}
+                                    <span class="badge-pill mine-badge">Mine</span>
+                                    {% endif %}
+                                </td>
                                 <td><strong>{{ p.station }}</strong></td>
                                 <td>
                                     <span class="days-num {% if p.days_pending > 90 %}days-crit{% elif p.days_pending > 30 %}days-warn{% endif %}">
@@ -300,13 +456,192 @@
         </div>
     </main>
 
+    <!-- Reviewer Drill-down Drawer -->
+    <div class="reviewer-drawer" id="reviewer-drawer" onclick="closeReviewerDrawer(event)">
+        <div class="reviewer-panel" id="reviewer-panel">
+            <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+            <h3 id="drawer-station-name">Station</h3>
+            <p class="sub" id="drawer-subtitle">90-day reviewer velocity (last 90 days of completed reviews)</p>
+            <div id="drawer-content">
+                <p class="reviewer-loading">Loading…</p>
+            </div>
+        </div>
+    </div>
+
     <script>
-    function showTab(name) {
+    // ── Filter state ─────────────────────────────────────────────────────────
+    let currentView = 'all';    // 'all' | 'portfolio'
+    let currentDept = 'all';
+    let currentSpeed = 'all';   // 'all' | 'bottlenecks'
+
+    const BOTTLENECK_TIERS = new Set(['slow', 'critical', 'severe']);
+    const portfolioHint = document.getElementById('portfolio-hint');
+    const hasPortfolio = {{ 'true' if data.portfolio.count > 0 else 'false' }};
+
+    function applyFilters() {
+        const cards = document.querySelectorAll('#heatmap-grid .station-card');
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const inPortfolio = card.dataset.portfolio === 'yes';
+            const dept = card.dataset.dept;
+            const tier = card.dataset.tier;
+
+            let show = true;
+
+            if (currentView === 'portfolio' && !inPortfolio) show = false;
+            if (currentDept !== 'all' && dept !== currentDept) show = false;
+            if (currentSpeed === 'bottlenecks' && !BOTTLENECK_TIERS.has(tier)) show = false;
+
+            card.classList.toggle('hidden', !show);
+            if (show) visibleCount++;
+        });
+
+        // Show/hide no-results
+        const emptyMsg = document.getElementById('heatmap-empty');
+        emptyMsg.classList.toggle('visible', visibleCount === 0);
+
+        // Filter stalled permits table rows
+        filterStalledTable();
+    }
+
+    function filterStalledTable() {
+        const rows = document.querySelectorAll('#stalled-tbody tr');
+        let visible = 0;
+        rows.forEach(row => {
+            const inPortfolio = row.dataset.portfolio === 'yes';
+            let show = true;
+            if (currentView === 'portfolio' && !inPortfolio) show = false;
+            row.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+        const countEl = document.getElementById('stalled-count');
+        if (countEl) countEl.textContent = visible;
+    }
+
+    // ── View toggle ──────────────────────────────────────────────────────────
+    function setView(view) {
+        currentView = view;
+
+        document.getElementById('view-all').classList.toggle('active', view === 'all');
+        document.getElementById('view-portfolio').classList.toggle('active', view === 'portfolio');
+
+        // Show hint if portfolio view selected but no portfolio data
+        if (portfolioHint) {
+            portfolioHint.style.display = (view === 'portfolio' && !hasPortfolio) ? 'block' : 'none';
+        }
+
+        applyFilters();
+    }
+
+    // ── Dept toggle ──────────────────────────────────────────────────────────
+    function setDept(dept) {
+        currentDept = dept;
+        document.querySelectorAll('#dept-filters button[data-dept]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.dept === dept);
+        });
+        applyFilters();
+    }
+
+    // ── Speed toggle ─────────────────────────────────────────────────────────
+    function setSpeed(speed) {
+        currentSpeed = speed;
+        document.getElementById('speed-all').classList.toggle('active', speed === 'all');
+        document.getElementById('speed-bottlenecks').classList.toggle('active', speed === 'bottlenecks');
+        applyFilters();
+    }
+
+    // ── Tab switching ────────────────────────────────────────────────────────
+    function showTab(name, evt) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        event.target.classList.add('active');
+        if (evt) evt.target.classList.add('active');
         document.getElementById('tab-' + name).classList.add('active');
     }
+
+    // Auto-activate portfolio view if user has portfolio stations
+    // (so Amy sees her permits immediately on load)
+    // — intentionally NOT auto-activating; let users click to explore.
+
+    // ── Reviewer drill-down ──────────────────────────────────────────────────
+    const TIER_COLORS = {
+        fast: '#4ade80', normal: '#93c5fd', slow: '#fbbf24',
+        critical: '#fb923c', severe: '#f87171', unknown: '#8b8fa3'
+    };
+
+    function openReviewerDrawer(station) {
+        const drawer = document.getElementById('reviewer-drawer');
+        const content = document.getElementById('drawer-content');
+        const title = document.getElementById('drawer-station-name');
+        const subtitle = document.getElementById('drawer-subtitle');
+
+        title.textContent = station + ' — Reviewer Breakdown';
+        subtitle.textContent = 'Individual plan checker velocity (last 90 days)';
+        content.innerHTML = '<p class="reviewer-loading">⏳ Loading…</p>';
+        drawer.classList.add('open');
+
+        fetch('/dashboard/bottlenecks/station/' + encodeURIComponent(station))
+            .then(r => r.json())
+            .then(data => {
+                const reviewers = data.reviewers || [];
+                if (reviewers.length === 0) {
+                    content.innerHTML = '<p class="reviewer-empty">No reviewer data available for this station yet (need ≥2 completed reviews per reviewer in the last 90 days).</p>';
+                    return;
+                }
+
+                let html = '<table><thead><tr>';
+                html += '<th>Reviewer</th><th>Median</th><th>Avg</th><th>Completed</th><th>Pending</th>';
+                html += '</tr></thead><tbody>';
+
+                reviewers.forEach(r => {
+                    const color = TIER_COLORS[r.tier] || '#8b8fa3';
+                    const medLabel = r.median_days === null ? '—'
+                        : r.median_days < 1 ? '<1d'
+                        : r.median_days < 30 ? r.median_days + 'd'
+                        : (r.median_days / 30).toFixed(1) + 'mo';
+                    const avgLabel = r.avg_days === null ? '—'
+                        : r.avg_days < 30 ? r.avg_days + 'd'
+                        : (r.avg_days / 30).toFixed(1) + 'mo';
+
+                    html += `<tr>
+                        <td style="font-weight:600;">${escHtml(r.reviewer)}</td>
+                        <td style="color:${color};font-weight:700;">${medLabel}</td>
+                        <td style="color:var(--text-muted);">${avgLabel}</td>
+                        <td>${r.completed}</td>
+                        <td>${r.pending > 0 ? '<span style="color:var(--warning);">' + r.pending + '</span>' : '—'}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                html += `<p style="color:var(--text-muted);font-size:0.72rem;margin-top:12px;">
+                    Sorted fastest first &middot; Min. 2 reviews &middot; Based on arrive→finish_date
+                </p>`;
+                content.innerHTML = html;
+            })
+            .catch(() => {
+                content.innerHTML = '<p class="reviewer-empty">Failed to load reviewer data.</p>';
+            });
+    }
+
+    function closeReviewerDrawer(event) {
+        // Close only when clicking the backdrop (not the panel itself)
+        if (event.target === document.getElementById('reviewer-drawer')) {
+            closeDrawer();
+        }
+    }
+
+    function closeDrawer() {
+        document.getElementById('reviewer-drawer').classList.remove('open');
+    }
+
+    function escHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeDrawer();
+    });
     </script>
 </body>
 </html>
