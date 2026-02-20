@@ -1474,6 +1474,94 @@ def plan_job_results(job_id):
     )
 
 
+def _normalize_address_for_grouping(addr: str) -> str:
+    """Normalize address for project grouping."""
+    if not addr:
+        return ""
+    addr = addr.upper().strip()
+    # Strip unit/apt FIRST (before suffix stripping, since unit comes after street type)
+    addr = re.sub(r'\s*(UNIT|APT|#|SUITE|STE)\s*\S*$', '', addr)
+    addr = re.sub(r'\s+', ' ', addr).strip()
+    # Strip common street-type suffixes
+    for suffix in [" STREET", " ST", " AVENUE", " AVE", " BOULEVARD", " BLVD",
+                   " DRIVE", " DR", " ROAD", " RD", " LANE", " LN",
+                   " COURT", " CT", " PLACE", " PL", " WAY"]:
+        if addr.endswith(suffix):
+            addr = addr[:-len(suffix)]
+            break
+    return addr.strip()
+
+
+def _normalize_filename_for_grouping(name: str) -> str:
+    """Normalize filename for project grouping - strip versions, dates, extensions."""
+    if not name:
+        return ""
+    name = name.lower().strip()
+    # Remove extension
+    name = re.sub(r'\.pdf$', '', name, flags=re.IGNORECASE)
+    # Strip version suffixes: -v2, _v3, -rev2, _final, -FINAL, (1), _copy
+    name = re.sub(r'[-_]?(v\d+|rev\d+|final|copy|draft)$', '', name, flags=re.IGNORECASE)
+    # Strip trailing parens: (1), (2)
+    name = re.sub(r'\s*\(\d+\)$', '', name)
+    # Strip date suffixes: -251114, -2025-02-20, _20250220
+    name = re.sub(r'[-_]?\d{6,8}$', '', name)
+    name = re.sub(r'[-_]?\d{4}-\d{2}-\d{2}$', '', name)
+    name = re.sub(r'\s+', ' ', name).strip()
+    return name
+
+
+def group_jobs_by_project(jobs: list[dict]) -> list[dict]:
+    """Group jobs by normalized property_address or filename.
+
+    Returns list of dicts: {"key": str, "display_name": str, "jobs": list,
+    "count": int, "latest_status": str, "date_range": str}
+    """
+    from collections import OrderedDict
+    groups: OrderedDict[str, dict] = OrderedDict()
+
+    for job in jobs:
+        # Try address first, then filename
+        if job.get("property_address"):
+            key = _normalize_address_for_grouping(job["property_address"])
+            display = job["property_address"]
+        else:
+            key = _normalize_filename_for_grouping(job["filename"])
+            display = job["filename"]
+
+        if not key:
+            key = job["filename"]
+            display = job["filename"]
+
+        if key not in groups:
+            groups[key] = {"key": key, "display_name": display, "jobs": [], "count": 0}
+        groups[key]["jobs"].append(job)
+        groups[key]["count"] += 1
+
+    # Sort groups by most recent job
+    result = list(groups.values())
+    for g in result:
+        g["jobs"].sort(key=lambda j: j.get("created_at") or "", reverse=True)
+        g["latest_status"] = g["jobs"][0].get("status", "unknown")
+        # Date range
+        dates = [j["created_at"] for j in g["jobs"] if j.get("created_at")]
+        if dates:
+            oldest = min(dates)
+            newest = max(dates)
+            if hasattr(oldest, 'strftime'):
+                g["date_range"] = f"{oldest.strftime('%b %d')} – {newest.strftime('%b %d, %Y')}"
+            else:
+                g["date_range"] = ""
+        else:
+            g["date_range"] = ""
+
+        # Add version numbers
+        for i, job in enumerate(reversed(g["jobs"])):
+            job["_version_num"] = i + 1
+            job["_version_total"] = g["count"]
+
+    return result
+
+
 @app.route("/account/analyses")
 def analysis_history():
     """View past plan analyses for logged-in user."""
@@ -1484,15 +1572,29 @@ def analysis_history():
     from web.plan_jobs import get_user_jobs, search_jobs
 
     search_q = request.args.get("q", "").strip()
+    sort_by = request.args.get("sort", "newest")
+    if sort_by not in ("newest", "oldest", "address", "filename", "status"):
+        sort_by = "newest"
+
+    group_mode = request.args.get("group", "").strip()
+    if group_mode not in ("project", ""):
+        group_mode = ""
+
     if search_q:
         jobs = search_jobs(user_id, search_q, limit=50)
     else:
-        jobs = get_user_jobs(user_id, limit=50)
+        jobs = get_user_jobs(user_id, limit=50, order_by=sort_by)
+
+    # Compute project groups (always computed so flat view can show "1 of N")
+    groups = group_jobs_by_project(jobs) if jobs else []
 
     return render_template(
         "analysis_history.html",
         jobs=jobs,
+        groups=groups,
+        group_mode=group_mode,
         search_q=search_q,
+        sort_by=sort_by,
     )
 
 
@@ -1511,6 +1613,26 @@ def delete_plan_job(job_id):
 
     # Return empty string so HTMX removes the card (outerHTML swap)
     return ""
+
+
+@app.route("/api/plan-jobs/bulk-delete", methods=["POST"])
+def bulk_delete_plan_jobs():
+    """Bulk delete plan analysis jobs (HTMX/JSON endpoint)."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    from web.plan_jobs import bulk_delete_jobs
+
+    data = request.get_json(silent=True) or {}
+    job_ids = data.get("job_ids", [])
+    if not job_ids or not isinstance(job_ids, list):
+        return jsonify({"error": "job_ids required"}), 400
+
+    # Cap at 100 to prevent abuse
+    job_ids = job_ids[:100]
+    deleted = bulk_delete_jobs(job_ids, user_id)
+    return jsonify({"deleted": deleted})
 
 
 @app.route("/lookup", methods=["POST"])

@@ -285,6 +285,275 @@
             margin: 0 4px;
         }
 
+        /* New Analysis toggle button */
+        .new-analysis-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: var(--accent);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .new-analysis-btn:hover {
+            background: var(--accent-hover);
+        }
+        .new-analysis-btn.open {
+            background: var(--surface-2);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        .new-analysis-btn.open:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        /* Inline upload section */
+        .upload-section {
+            display: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            animation: slideDown 0.2s ease-out;
+        }
+        .upload-section.open {
+            display: block;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .upload-section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        .upload-section .upload-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* Upload form grid */
+        .upload-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .upload-form-grid .uf-full {
+            grid-column: 1 / -1;
+        }
+
+        /* File upload area */
+        .uf-file-area {
+            position: relative;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .uf-file-area:hover,
+        .uf-file-area.drag-over {
+            border-color: var(--accent);
+            background: rgba(79, 143, 247, 0.05);
+        }
+        .uf-file-input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .uf-file-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        .uf-file-label .uf-icon {
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+        .uf-file-label .uf-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+        .uf-file-label.has-file {
+            color: var(--success);
+        }
+
+        /* Form inputs within upload section */
+        .upload-section label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .upload-section input[type="text"],
+        .upload-section select,
+        .upload-section textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .upload-section input[type="text"]:focus,
+        .upload-section select:focus,
+        .upload-section textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .upload-section textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* More options toggle */
+        .uf-options-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 0.88rem;
+            cursor: pointer;
+            padding: 8px 0;
+            transition: color 0.2s;
+            font-family: inherit;
+        }
+        .uf-options-toggle:hover { color: var(--accent-hover); }
+        .uf-options-toggle .uf-toggle-icon {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+        .uf-options-toggle.open .uf-toggle-icon {
+            transform: rotate(90deg);
+        }
+        .uf-options-body {
+            display: none;
+            padding-top: 12px;
+            margin-top: 4px;
+            border-top: 1px solid var(--border);
+        }
+        .uf-options-body.open { display: block; }
+
+        /* Action buttons row */
+        .uf-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .uf-actions .uf-btn-wrap {
+            flex: 1;
+            min-width: 100px;
+            position: relative;
+        }
+        .uf-btn {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            border-radius: 8px;
+            padding: 12px 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s, color 0.15s;
+        }
+        .uf-btn:hover {
+            background: rgba(79, 143, 247, 0.1);
+        }
+        .uf-btn.uf-btn-active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .uf-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .uf-btn .uf-btn-spinner {
+            display: none;
+        }
+        .uf-btn.loading .uf-btn-label { display: none; }
+        .uf-btn.loading .uf-btn-spinner { display: inline-block; }
+
+        /* Tooltip for action buttons */
+        .uf-btn-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1.5;
+            width: 240px;
+            z-index: 20;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+        .uf-btn-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--border);
+        }
+        .uf-btn-wrap:hover .uf-btn-tooltip {
+            display: block;
+        }
+
+        /* Checkbox in upload form */
+        .uf-checkbox-row {
+            margin-top: -4px;
+        }
+        .uf-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 400;
+        }
+        .uf-checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
         @media (max-width: 640px) {
             .analysis-grid {
                 grid-template-columns: 1fr;
@@ -293,8 +562,17 @@
             .search-form input {
                 width: 160px;
             }
+
+            .uf-btn-tooltip { display: none !important; }
+
+            .uf-actions {
+                flex-direction: column;
+            }
         }
     </style>
+    {% import 'fragments/analysis_grouping.html' as grouping %}
+    {{ grouping.grouping_css() }}
+    {{ grouping.grouping_js() }}
 </head>
 <body>
     {% set active_page = 'analyses' %}
@@ -309,14 +587,151 @@
                            value="{{ search_q or '' }}">
                     <button type="submit">Search</button>
                 </form>
-                <a href="/" style="padding:8px 16px; border-radius:6px; background:var(--accent);
-                   color:white; text-decoration:none; font-size:0.85rem; font-weight:600;
-                   white-space:nowrap; transition:background 0.2s;"
-                   onmouseover="this.style.background='var(--accent-hover)'"
-                   onmouseout="this.style.background='var(--accent)'">
+                <button type="button" class="new-analysis-btn" id="new-analysis-toggle"
+                        onclick="toggleUploadSection()">
                     + New Analysis
-                </a>
+                </button>
             </div>
+        </div>
+
+        <!-- Inline upload section (collapsible, hidden by default) -->
+        <div class="upload-section" id="upload-section">
+            <h2>Analyze Plans (AI Vision)</h2>
+            <p class="upload-subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. AI Analysis and Full Analysis use AI vision to annotate your plans.</p>
+
+            <form method="post" action="/analyze-plans" enctype="multipart/form-data" id="upload-form"
+                  class="upload-form-grid">
+
+                <div class="uf-full">
+                    <label for="uf-planfile">PDF Plan Set</label>
+                    <div class="uf-file-area" id="uf-drop-zone">
+                        <input type="file" id="uf-planfile" name="planfile" accept=".pdf"
+                            class="uf-file-input" onchange="ufUpdateFileLabel(this)">
+                        <div class="uf-file-label" id="uf-file-label">
+                            <span class="uf-icon">&#128196;</span>
+                            <span>Drag &amp; drop a PDF here, or <strong>click to browse</strong></span>
+                            <span class="uf-hint">Max 400 MB &mdash; .pdf only</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden inputs for mode selection -->
+                <input type="hidden" name="quick_check" id="uf-quick-check" value="on">
+                <input type="hidden" name="analysis_mode" id="uf-analysis-mode" value="sample">
+
+                <!-- More options toggle -->
+                <div class="uf-full">
+                    <button type="button" class="uf-options-toggle" id="uf-options-toggle" onclick="ufToggleOptions()">
+                        <span class="uf-toggle-icon">&#9654;</span>
+                        <span>More options</span>
+                    </button>
+                </div>
+
+                <!-- Collapsible options -->
+                <div class="uf-full">
+                    <div class="uf-options-body" id="uf-options-body">
+                        <div style="display:grid; gap:16px;">
+                            <div>
+                                <label for="uf-project-desc">Project Description</label>
+                                <textarea id="uf-project-desc" name="project_description"
+                                          placeholder="e.g., Interior remodel of 2-story residential, adding bathroom and kitchen..."
+                                          rows="3"></textarea>
+                            </div>
+
+                            <div>
+                                <label for="uf-permit-type">Permit Type</label>
+                                <select id="uf-permit-type" name="permit_type">
+                                    <option value="">-- Select --</option>
+                                    <option value="alterations">Alterations</option>
+                                    <option value="new_construction">New Construction</option>
+                                    <option value="demolition">Demolition</option>
+                                    <option value="additions">Additions</option>
+                                </select>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                <div>
+                                    <label for="uf-address">Property Address</label>
+                                    <input type="text" id="uf-address" name="property_address"
+                                           placeholder="e.g., 123 Main St">
+                                </div>
+                                <div>
+                                    <label for="uf-permit-num">Permit Number</label>
+                                    <input type="text" id="uf-permit-num" name="permit_number"
+                                           placeholder="e.g., 202401015678">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="uf-stage">Submission Stage</label>
+                                <select id="uf-stage" name="submission_stage">
+                                    <option value="">-- Select --</option>
+                                    <option value="preliminary">Preliminary Plan Check</option>
+                                    <option value="permit">Permit Application (full set)</option>
+                                    <option value="resubmittal">Resubmittal (addressing comments)</option>
+                                </select>
+                            </div>
+
+                            <div class="uf-checkbox-row">
+                                <label class="uf-checkbox-label">
+                                    <input type="checkbox" name="is_addendum" id="uf-is-addendum">
+                                    <span>This is a Site Permit Addendum (allows up to 350 MB)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Four action buttons -->
+                <div class="uf-full">
+                    <div class="uf-actions">
+                        <div class="uf-btn-wrap">
+                            <button type="submit" class="uf-btn uf-btn-active" id="uf-quick-btn"
+                                    onclick="ufSetMode('quick')">
+                                <span class="uf-btn-label">Quick Check</span>
+                                <span class="uf-btn-spinner">Checking...</span>
+                            </button>
+                            <div class="uf-btn-tooltip">
+                                <strong>Instant metadata scan</strong><br>
+                                Checks file size, page dimensions, fonts, encryption, bookmarks, and filename conventions. No AI &mdash; results in seconds.
+                            </div>
+                        </div>
+                        <div class="uf-btn-wrap">
+                            <button type="submit" class="uf-btn" id="uf-compliance-btn"
+                                    onclick="ufSetMode('compliance')">
+                                <span class="uf-btn-label">Compliance</span>
+                                <span class="uf-btn-spinner">Analyzing...</span>
+                            </button>
+                            <div class="uf-btn-tooltip">
+                                <strong>AI title block verification</strong><br>
+                                Scans sample pages for addresses, sheet numbers, professional stamps, and set consistency. ~30 seconds.
+                            </div>
+                        </div>
+                        <div class="uf-btn-wrap">
+                            <button type="submit" class="uf-btn" id="uf-ai-btn"
+                                    onclick="ufSetMode('sample')">
+                                <span class="uf-btn-label">AI Analysis</span>
+                                <span class="uf-btn-spinner">Analyzing...</span>
+                            </button>
+                            <div class="uf-btn-tooltip">
+                                <strong>AI markup on sample pages</strong><br>
+                                Full AI vision analysis &mdash; EPR issues, annotations, hatching, code references, and compliance checks on a representative sample. ~1-2 minutes.
+                            </div>
+                        </div>
+                        <div class="uf-btn-wrap">
+                            <button type="submit" class="uf-btn" id="uf-full-btn"
+                                    onclick="ufSetMode('full')">
+                                <span class="uf-btn-label">Full Analysis</span>
+                                <span class="uf-btn-spinner">Analyzing...</span>
+                            </button>
+                            <div class="uf-btn-tooltip">
+                                <strong>AI markup on every page</strong><br>
+                                Same as AI Analysis but processes every page in the set. Best for final review before submission. ~3-5 minutes for large sets.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
 
         {% if jobs %}
@@ -336,6 +751,11 @@
             <button class="filter-chip" data-filter="mode" data-value="full" onclick="toggleFilter(this)">Full</button>
         </div>
 
+        {{ grouping.view_options_bar(group_mode, sort_by, search_q) }}
+
+        {% if group_mode == 'project' %}
+        {{ grouping.grouped_view(groups) }}
+        {% else %}
         <div class="analysis-grid" id="analysis-grid">
             {% for job in jobs %}
             <div class="analysis-card" id="job-card-{{ job.job_id }}"
@@ -344,6 +764,7 @@
                 <div class="card-header">
                     <span class="card-filename" title="{{ job.filename }}">{{ job.filename }}</span>
                     <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+                        {{ grouping.version_badge_flat(job) }}
                         {% if job.quick_check %}
                         <span class="mode-badge mode-quick">Quick</span>
                         {% elif job.analysis_mode == 'compliance' %}
@@ -371,7 +792,17 @@
                     {% if job.permit_number %}<span>Permit #{{ job.permit_number }}</span>{% endif %}
                 </div>
                 {% endif %}
-                {% if job.completed_at and job.created_at %}
+                {% if job.completed_at and job.started_at %}
+                <div class="duration-info">
+                    {% set duration = (job.completed_at - job.started_at).total_seconds() %}
+                    {% if duration < 60 %}
+                    Completed in {{ "%.0f"|format(duration) }}s
+                    {% elif duration < 3600 %}
+                    Completed in {{ "%.1f"|format(duration / 60) }} min
+                    {% endif %}
+                </div>
+                {% elif job.completed_at and job.created_at %}
+                {# Fallback: use created_at if started_at not available #}
                 <div class="duration-info">
                     {% set duration = (job.completed_at - job.created_at).total_seconds() %}
                     {% if duration < 60 %}
@@ -379,6 +810,10 @@
                     {% elif duration < 3600 %}
                     Completed in {{ "%.1f"|format(duration / 60) }} min
                     {% endif %}
+                </div>
+                {% elif job.status == 'processing' and job.started_at %}
+                <div class="duration-info" data-elapsed-start="{{ job.started_at.isoformat() }}">
+                    Processing for <span class="elapsed-time">0s</span>...
                 </div>
                 {% endif %}
                 {% if job.status == 'failed' and job.error_message %}
@@ -416,6 +851,7 @@
             </div>
             {% endfor %}
         </div>
+        {% endif %}{# end group_mode #}
         {% else %}
         <div class="empty-state">
             {% if search_q %}
@@ -424,28 +860,136 @@
             {% else %}
             <p style="font-size:1.1rem; margin-bottom:4px;">No plan analyses yet.</p>
             <p style="margin-bottom:20px;">Upload a PDF plan set to get AI-powered compliance and drawing analysis.</p>
-            <a href="/" style="display:inline-block; background:var(--accent); color:white; padding:12px 28px;
-               border-radius:8px; text-decoration:none; font-weight:600; font-size:0.95rem;
-               transition: background 0.2s;"
-               onmouseover="this.style.background='var(--accent-hover)'"
-               onmouseout="this.style.background='var(--accent)'">
+            <button type="button" onclick="toggleUploadSection()"
+                    style="display:inline-block; background:var(--accent); color:white; padding:12px 28px;
+                    border-radius:8px; border:none; font-weight:600; font-size:0.95rem;
+                    cursor:pointer; font-family:inherit; transition:background 0.2s;"
+                    onmouseover="this.style.background='var(--accent-hover)'"
+                    onmouseout="this.style.background='var(--accent)'">
                 Analyze a Plan
-            </a>
+            </button>
             {% endif %}
         </div>
         {% endif %}
     </div>
 
     <script>
-    // Client-side filtering for analysis history
-    const activeFilters = { status: 'all', mode: 'all' };
+    // --- Upload section toggle ---
+    function toggleUploadSection() {
+        var section = document.getElementById('upload-section');
+        var btn = document.getElementById('new-analysis-toggle');
+        var isOpen = section.classList.contains('open');
+        section.classList.toggle('open');
+        btn.classList.toggle('open');
+        if (!isOpen) {
+            // Scroll to upload section smoothly
+            setTimeout(function() {
+                section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
+        }
+    }
+
+    // --- File label update ---
+    function ufUpdateFileLabel(input) {
+        var label = document.getElementById('uf-file-label');
+        if (input.files && input.files[0]) {
+            var f = input.files[0];
+            var sizeMB = (f.size / (1024 * 1024)).toFixed(1);
+            label.innerHTML = '<span class="uf-icon">&#9989;</span>'
+                + '<span><strong>' + f.name + '</strong></span>'
+                + '<span class="uf-hint">' + sizeMB + ' MB</span>';
+            label.classList.add('has-file');
+        } else {
+            label.innerHTML = '<span class="uf-icon">&#128196;</span>'
+                + '<span>Drag &amp; drop a PDF here, or <strong>click to browse</strong></span>'
+                + '<span class="uf-hint">Max 400 MB &mdash; .pdf only</span>';
+            label.classList.remove('has-file');
+        }
+    }
+
+    // --- Drag & drop ---
+    (function() {
+        var zone = document.getElementById('uf-drop-zone');
+        if (!zone) return;
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', function() {
+            zone.classList.remove('drag-over');
+        });
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            var fileInput = document.getElementById('uf-planfile');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                ufUpdateFileLabel(fileInput);
+            }
+        });
+    })();
+
+    // --- More options toggle ---
+    function ufToggleOptions() {
+        var btn = document.getElementById('uf-options-toggle');
+        var body = document.getElementById('uf-options-body');
+        btn.classList.toggle('open');
+        body.classList.toggle('open');
+    }
+
+    // --- Mode selection (set hidden fields before submit) ---
+    function ufSetMode(mode) {
+        var qcField = document.getElementById('uf-quick-check');
+        var modeField = document.getElementById('uf-analysis-mode');
+
+        // Update hidden fields based on selected mode
+        if (mode === 'quick') {
+            qcField.value = 'on';
+            modeField.value = 'sample';
+        } else {
+            qcField.value = '';
+            modeField.value = mode;
+        }
+
+        // Visual feedback: highlight the clicked button
+        var allBtns = ['uf-quick-btn', 'uf-compliance-btn', 'uf-ai-btn', 'uf-full-btn'];
+        allBtns.forEach(function(id) {
+            var b = document.getElementById(id);
+            if (b) b.classList.remove('uf-btn-active');
+        });
+
+        var btnMap = { quick: 'uf-quick-btn', compliance: 'uf-compliance-btn', sample: 'uf-ai-btn', full: 'uf-full-btn' };
+        var activeBtn = document.getElementById(btnMap[mode]);
+        if (activeBtn) activeBtn.classList.add('uf-btn-active');
+    }
+
+    // --- Show loading state on form submit ---
+    (function() {
+        var form = document.getElementById('upload-form');
+        if (!form) return;
+        form.addEventListener('submit', function() {
+            // Disable all buttons and show spinner on the active one
+            var allBtns = form.querySelectorAll('.uf-btn');
+            allBtns.forEach(function(b) {
+                b.disabled = true;
+                if (b.classList.contains('uf-btn-active')) {
+                    b.classList.add('loading');
+                } else {
+                    b.style.opacity = '0.4';
+                }
+            });
+        });
+    })();
+
+    // --- Client-side filtering for analysis history ---
+    var activeFilters = { status: 'all', mode: 'all' };
 
     function toggleFilter(chip) {
-        const filterType = chip.dataset.filter;
-        const value = chip.dataset.value;
+        var filterType = chip.dataset.filter;
+        var value = chip.dataset.value;
 
         // Update active state within this filter group
-        document.querySelectorAll(`.filter-chip[data-filter="${filterType}"]`).forEach(c => {
+        document.querySelectorAll('.filter-chip[data-filter="' + filterType + '"]').forEach(function(c) {
             c.classList.remove('active');
         });
         chip.classList.add('active');
@@ -455,12 +999,12 @@
     }
 
     function applyFilters() {
-        const cards = document.querySelectorAll('.analysis-card');
-        let visible = 0;
+        var cards = document.querySelectorAll('.analysis-card');
+        var visible = 0;
 
-        cards.forEach(card => {
-            const matchStatus = activeFilters.status === 'all' || card.dataset.status === activeFilters.status;
-            const matchMode = activeFilters.mode === 'all' || card.dataset.mode === activeFilters.mode;
+        cards.forEach(function(card) {
+            var matchStatus = activeFilters.status === 'all' || card.dataset.status === activeFilters.status;
+            var matchMode = activeFilters.mode === 'all' || card.dataset.mode === activeFilters.mode;
 
             if (matchStatus && matchMode) {
                 card.style.display = '';
@@ -471,7 +1015,7 @@
         });
 
         // Show/hide empty state for filtered results
-        let emptyMsg = document.getElementById('filter-empty');
+        var emptyMsg = document.getElementById('filter-empty');
         if (visible === 0 && cards.length > 0) {
             if (!emptyMsg) {
                 emptyMsg = document.createElement('div');
@@ -485,6 +1029,32 @@
             emptyMsg.style.display = 'none';
         }
     }
+
+    // --- Live elapsed timer for processing jobs ---
+    (function() {
+        var elapsedEls = document.querySelectorAll('[data-elapsed-start]');
+        if (elapsedEls.length === 0) return;
+
+        function updateTimers() {
+            var now = new Date();
+            elapsedEls.forEach(function(el) {
+                var start = new Date(el.dataset.elapsedStart);
+                var diffSec = Math.max(0, Math.floor((now - start) / 1000));
+                var span = el.querySelector('.elapsed-time');
+                if (!span) return;
+                if (diffSec < 60) {
+                    span.textContent = diffSec + 's';
+                } else {
+                    var mins = Math.floor(diffSec / 60);
+                    var secs = diffSec % 60;
+                    span.textContent = mins + 'm ' + secs + 's';
+                }
+            });
+        }
+
+        updateTimers();
+        setInterval(updateTimers, 1000);
+    })();
     </script>
 </body>
 </html>

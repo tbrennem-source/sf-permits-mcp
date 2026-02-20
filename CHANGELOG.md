@@ -1,5 +1,40 @@
 # Changelog
 
+## Session 40 — Analysis History Page: UX Overhaul Phases A-C (2026-02-20)
+
+Major UX improvements to the Plan Analysis History page (`/account/analyses`), implementing Phases A through C of the three-role-reviewed plan.
+
+### Phase A: Inline Upload + Duration Fix
+- **Inline upload form**: "+ New Analysis" button now expands a collapsible upload form directly on the history page (no more navigation to home page). Includes drag-and-drop, all 4 analysis modes (Quick/Compliance/AI/Full), and "More options" for address/permit/stage fields.
+- **Duration fix**: Cards now show actual processing time (`completed_at - started_at`) instead of queue+processing time (`completed_at - created_at`), with fallback for older jobs.
+- **Live elapsed timer**: Processing jobs show a live-updating timer ("Processing for 42s...") using `setInterval`.
+- **`started_at` in queries**: Added `started_at` to `get_user_jobs()` and `search_jobs()` SELECT statements.
+
+### Phase B: Bulk Delete + Sort Controls
+- **Bulk delete endpoint**: `POST /api/plan-jobs/bulk-delete` — accepts `job_ids` array, enforces ownership, caps at 100 items.
+- **`bulk_delete_jobs()`**: New function in `plan_jobs.py` with parameterized IN clause and audit logging.
+- **Sort controls**: 5 sort options (Newest, Oldest, Address A-Z, Filename A-Z, Status) via `order_by` parameter on `get_user_jobs()`. SQL injection prevented via allowlist mapping.
+- **View options bar**: Sort dropdown and Group toggle rendered below filter chips (via grouping macros).
+
+### Phase C: Project Grouping + Accordion View
+- **Address normalization**: `_normalize_address_for_grouping()` strips unit/apt, then street type suffixes (ST/AVE/BLVD/etc). "1953 Webster St" and "1953 WEBSTER STREET" correctly group.
+- **Filename normalization**: `_normalize_filename_for_grouping()` strips .pdf, version suffixes (-v2, _rev3, _final), date suffixes, copy markers.
+- **`group_jobs_by_project()`**: Groups jobs by normalized address (preferred) or filename. Computes version numbers, date ranges, latest status per group.
+- **Accordion grouped view**: New `fragments/analysis_grouping.html` with Jinja2 macros for grouped layout — project rows with expand/collapse, version badges (v1, v2...), date range display.
+- **Flat view version badges**: In flat view, cards show "1 of 4 scans" badge when part of a multi-scan project.
+- **"Group by Project" toggle**: Persists via URL query param (`?group=project`).
+
+### Files Changed
+| File | Changes |
+|------|---------|
+| `web/app.py` | +124 lines: normalization helpers, `group_jobs_by_project()`, bulk-delete endpoint, sort/group params in route |
+| `web/plan_jobs.py` | +45 lines: `bulk_delete_jobs()`, `order_by` param with 5 sort options, `started_at` in SELECT |
+| `web/templates/analysis_history.html` | +618 lines: inline upload form, duration fix, live timer, view options bar, group_mode conditional, version badges |
+| `web/templates/fragments/analysis_grouping.html` | NEW: Jinja2 macros for grouped view CSS, HTML, JS |
+
+### Tests
+1,103 passed, 1 skipped (pre-existing `src.plan_images` module issue in test_plan_images.py/test_plan_ui.py).
+
 ## Session 39 — Plan Analysis: Multi-Role Evaluation Sprint (2026-02-20)
 
 9-role professional evaluation of analyze_plans output using real 12-page plan set (1953 Webster St). Fixed trust-breaking false positives and restructured report output for professional workflows.
