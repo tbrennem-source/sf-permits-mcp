@@ -907,7 +907,7 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         rows = query(
             f"SELECT p.permit_number, p.status, p.filed_date, p.issued_date, "
             f"p.street_number, p.street_name, p.block, p.lot, p.neighborhood, "
-            f"p.permit_type_definition, p.street_suffix "
+            f"p.permit_type_definition, p.street_suffix, p.status_date "
             f"FROM permits p WHERE {where} "
             f"ORDER BY p.status_date DESC",
             params,
@@ -932,6 +932,8 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
         block, lot = row[6] or "", row[7] or ""
         neighborhood = row[8] or ""
         street_suffix = row[10] or "" if len(row) > 10 else ""
+        status_date_str = row[11] if len(row) > 11 else None
+        status_date = _parse_date(status_date_str)
 
         # Build full address with suffix: "125 MASON ST"
         full_name = sname
@@ -992,11 +994,17 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
                 "open_complaints": None,
                 "enforcement_total": None,
                 "routing": None,
+                "latest_activity": str(status_date) if status_date else "",
+                "days_since_activity": None,
                 "search_url": f"/?q={addr.replace(' ', '+')}" if addr else f"/?q={block}/{lot}",
             }
 
         prop = property_map[key]
         prop["total_permits"] += 1
+
+        # Track latest status_date across all permits at this address
+        if status_date and str(status_date) > prop["latest_activity"]:
+            prop["latest_activity"] = str(status_date)
 
         # Track all block/lot pairs for this address
         if block and lot:
@@ -1140,6 +1148,11 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
             prop["parcels_display"] = f"{parcels_list[0][0]}/{parcels_list[0][1]}"
         else:
             prop["parcels_display"] = ""
+
+    # Compute days_since_activity from latest_activity date
+    for prop in property_map.values():
+        la = _parse_date(prop.get("latest_activity", ""))
+        prop["days_since_activity"] = (today - la).days if la else None
 
     # Sort: at_risk first, then behind, then slower, then on_track
     properties = sorted(

@@ -81,6 +81,9 @@
         .health-at_risk .card-health-reason { color: var(--error); opacity: 0.85; }
         .health-behind .card-health-reason { color: var(--warning); opacity: 0.85; }
         .health-slower .card-health-reason { color: var(--warning); opacity: 0.7; }
+        .card-recency { font-size: 0.72rem; margin-bottom: 6px; }
+        .card-recency.fresh { color: var(--success); }
+        .card-recency.stale { color: var(--text-muted); }
         .tag-pill { display: inline-block; background: rgba(79, 143, 247, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 4px; }
 
         .permit-list { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; display: none; }
@@ -92,6 +95,26 @@
         .permit-status.issued { background: rgba(52,211,153,0.2); color: var(--success); }
         .permit-status.complete { background: rgba(52,211,153,0.3); color: var(--success); }
         .permit-status.triage { background: rgba(251,191,36,0.15); color: var(--warning); }
+
+        /* Enforcement row in expanded card */
+        .enforce-row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; font-size: 0.8rem; flex-wrap: wrap; }
+        .enforce-badge { padding: 3px 9px; border-radius: 10px; font-weight: 600; font-size: 0.72rem; }
+        .enforce-badge.clear { background: rgba(52,211,153,0.15); color: var(--success); }
+        .enforce-badge.alert { background: rgba(248,113,113,0.15); color: var(--error); }
+        .enforce-badge.unknown { background: var(--surface-2); color: var(--text-muted); }
+
+        /* Routing progress in expanded card */
+        .routing-section { margin-bottom: 10px; }
+        .routing-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+        .routing-bar-wrap { background: var(--surface-2); border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 4px; }
+        .routing-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+        .routing-fill-ok { background: var(--success); }
+        .routing-fill-mid { background: var(--warning); }
+        .routing-fill-low { background: var(--accent); }
+        .routing-stations { font-size: 0.75rem; color: var(--text-muted); }
+        .routing-alert { font-size: 0.75rem; margin-top: 3px; }
+        .routing-alert.stalled { color: var(--error); }
+        .routing-alert.held { color: var(--warning); }
 
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
         .empty-state h2 { color: var(--text); margin-bottom: 8px; }
@@ -157,6 +180,16 @@
                     {% if prop.health_reason and prop.worst_health != 'on_track' %}
                     <div class="card-health-reason">{{ prop.health_reason }}</div>
                     {% endif %}
+                    {% if prop.days_since_activity is not none %}
+                    <div class="card-recency {% if prop.days_since_activity <= 7 %}fresh{% else %}stale{% endif %}">
+                        {% if prop.days_since_activity == 0 %}&#x1f7e2; Activity today
+                        {% elif prop.days_since_activity == 1 %}&#x1f7e2; Activity yesterday
+                        {% elif prop.days_since_activity <= 7 %}&#x1f7e2; Activity {{ prop.days_since_activity }}d ago
+                        {% elif prop.days_since_activity <= 30 %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
+                        {% else %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
+                        {% endif %}
+                    </div>
+                    {% endif %}
                     {% if prop.neighborhood %}
                     <div class="card-neighborhood">{{ prop.neighborhood }}</div>
                     {% endif %}
@@ -189,6 +222,52 @@
 
                     <!-- Expanded permit list -->
                     <div class="permit-list">
+
+                        <!-- Enforcement summary -->
+                        {% if prop.open_violations is not none or prop.open_complaints is not none %}
+                        <div class="enforce-row">
+                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Enforcement</span>
+                            {% set viol = prop.open_violations %}
+                            {% set comp = prop.open_complaints %}
+                            {% if (viol is not none and viol > 0) or (comp is not none and comp > 0) %}
+                                {% if viol is not none and viol > 0 %}
+                                <span class="enforce-badge alert">⚠ {{ viol }} violation{{ 's' if viol != 1 }}</span>
+                                {% endif %}
+                                {% if comp is not none and comp > 0 %}
+                                <span class="enforce-badge alert">⚠ {{ comp }} complaint{{ 's' if comp != 1 }}</span>
+                                {% endif %}
+                            {% elif viol == 0 and comp == 0 %}
+                                <span class="enforce-badge clear">✓ No open enforcement</span>
+                            {% else %}
+                                <span class="enforce-badge unknown">— Unknown</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Routing progress (plan check) -->
+                        {% if prop.routing %}
+                        {% set r = prop.routing %}
+                        <div class="routing-section">
+                            <div class="routing-label">Plan Check · {{ r.permit_number }}</div>
+                            <div class="routing-bar-wrap">
+                                <div class="routing-bar-fill {% if r.completion_pct >= 75 %}routing-fill-ok{% elif r.completion_pct >= 40 %}routing-fill-mid{% else %}routing-fill-low{% endif %}"
+                                     style="width: {{ r.completion_pct }}%;"></div>
+                            </div>
+                            <div class="routing-stations">
+                                {{ r.completed_stations }}/{{ r.total_stations }} stations ({{ r.completion_pct }}%)
+                                {% if r.pending_station_names %}
+                                 · Waiting: {{ r.pending_station_names | join(', ') }}
+                                {% endif %}
+                            </div>
+                            {% if r.stalled_stations %}
+                            <div class="routing-alert stalled">⚠ Stalled &gt;30d: {{ r.stalled_stations | join(', ') }}</div>
+                            {% endif %}
+                            {% if r.held_stations %}
+                            <div class="routing-alert held">⏸ On hold: {{ r.held_stations | join(', ') }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
                         {% for pm in prop.permits %}
                         <div class="permit-row">
                             <span class="permit-status {{ pm.status }}">{{ pm.status }}</span>
