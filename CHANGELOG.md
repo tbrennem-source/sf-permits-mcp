@@ -25,6 +25,10 @@
 - Removed admin/consultant gate from Voice & Style card in `account.html` — now visible to all users
 - Updated account route to load `cal_stats` for all users (was admin/consultant only)
 
+### Lookback Button Loading Pulse — `web/templates/brief.html`
+- Brief lookback buttons (Today/7d/30d/90d) now show blue outline pulse animation on click while page reloads
+- Matches nav badge loading behavior; already-active button won't animate
+
 ### Tests
 - 1,103 passing, 1 skipped (pre-existing `plan_images` module errors unchanged)
 
