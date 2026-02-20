@@ -90,7 +90,12 @@ PROMPT_FULL_EXTRACTION = (
     "1. **Title Block** (usually bottom-right):\n"
     "   - Project address, sheet number, sheet name\n"
     "   - Firm/company name, professional stamp (PE/RA number, state)\n"
-    "   - Signature present (yes/no), date, scale, revision info\n\n"
+    "   - Signature present (yes/no), date, scale\n"
+    "   - **Revision block** (if present — a table of rev #, date, description):\n"
+    "     Extract all rows from the revision history table. Each row has:\n"
+    "     - revision_number: the revision identifier (e.g. '1', '2', 'A', 'B')\n"
+    "     - revision_date: date string as printed (e.g. '01/15/2024')\n"
+    "     - description: short description of what changed (e.g. 'Issued for permit')\n\n"
     "2. **Drawing Content**:\n"
     "   - What type of drawing? (floor plan, elevation, section, detail, cover, etc.)\n"
     "   - Key dimensions or areas called out\n"
@@ -106,7 +111,8 @@ PROMPT_FULL_EXTRACTION = (
     '"title_block": {"project_address": null, "sheet_number": null, '
     '"sheet_name": null, "firm_name": null, '
     '"professional_stamp": {"present": false, "type": null, "number": null, "state": null}, '
-    '"signature_present": false, "date": null, "scale": null, "revision": null}, '
+    '"signature_present": false, "date": null, "scale": null, '
+    '"revisions": [{"revision_number": "1", "revision_date": "01/15/2024", "description": "Issued for permit"}]}, '
     '"drawing_content": {"drawing_type": null, "key_dimensions": [], '
     '"occupancy_labels": [], "code_references": [], "construction_type": null}, '
     '"scope_indicators": {"has_new_work": false, "has_demolition": false, '

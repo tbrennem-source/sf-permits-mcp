@@ -377,6 +377,46 @@ def _run_startup_migrations():
         # Submission stage (preliminary, permit, resubmittal)
         cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS submission_stage TEXT")
 
+        # Phase D1: Close Project — archive flag
+        cur.execute(
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS "
+            "is_archived BOOLEAN NOT NULL DEFAULT FALSE"
+        )
+
+        # Phase D2: Document Fingerprinting
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS pdf_hash TEXT")
+        cur.execute(
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS "
+            "pdf_hash_failed BOOLEAN NOT NULL DEFAULT FALSE"
+        )
+        cur.execute(
+            "ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS structural_fingerprint JSONB"
+        )
+
+        # Phase E1: Version Chain data model
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS version_group TEXT")
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS version_number INTEGER")
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS parent_job_id TEXT")
+
+        # Phase E2: Comparison cache
+        cur.execute("ALTER TABLE plan_analysis_jobs ADD COLUMN IF NOT EXISTS comparison_json JSONB")
+
+        # Phase F2: Project Notes — free-text per version group
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS project_notes (
+                note_id         SERIAL PRIMARY KEY,
+                user_id         INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                version_group   TEXT NOT NULL,
+                notes_text      TEXT NOT NULL DEFAULT '',
+                updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(user_id, version_group)
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_project_notes_user_group "
+            "ON project_notes (user_id, version_group)"
+        )
+
         # Voice & style preferences (macro instructions for AI response tone)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS voice_style TEXT")
 
@@ -1642,7 +1682,8 @@ def analysis_history():
     if not user_id:
         return redirect(url_for("auth_login"))
 
-    from web.plan_jobs import get_user_jobs, search_jobs
+    from web.plan_jobs import get_user_jobs, search_jobs, get_analysis_stats
+    from web.plan_notes import get_project_notes
 
     search_q = request.args.get("q", "").strip()
     sort_by = request.args.get("sort", "newest")
@@ -1661,6 +1702,19 @@ def analysis_history():
     # Compute project groups (always computed so flat view can show "1 of N")
     groups = group_jobs_by_project(jobs) if jobs else []
 
+    # Phase F1: stats banner
+    stats = get_analysis_stats(user_id)
+
+    # Phase F2: attach project notes to each group (keyed by version_group)
+    for g in groups:
+        vg = None
+        for j in g.get("jobs", []):
+            vg = j.get("version_group")
+            if vg:
+                break
+        g["_notes"] = get_project_notes(user_id, vg) if vg else ""
+        g["_version_group"] = vg or ""
+
     return render_template(
         "analysis_history.html",
         jobs=jobs,
@@ -1668,7 +1722,178 @@ def analysis_history():
         group_mode=group_mode,
         search_q=search_q,
         sort_by=sort_by,
+        stats=stats,
     )
+
+
+@app.route("/account/analyses/compare")
+def compare_analyses():
+    """Compare two versions of the same analysis (Phase E2).
+
+    Query params:
+      ?a=<job_id>&b=<job_id>   — compare two specific jobs (b must be newer)
+
+    Access control: both jobs must belong to the requesting user.
+    """
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("auth_login"))
+
+    from web.plan_jobs import get_job, get_version_chain
+    from web.plan_images import get_session
+    from web.plan_compare import get_or_compute_comparison
+
+    job_a_id = request.args.get("a", "").strip()
+    job_b_id = request.args.get("b", "").strip()
+
+    if not job_a_id or not job_b_id:
+        abort(400)
+
+    job_a = get_job(job_a_id)
+    job_b = get_job(job_b_id)
+
+    # Both jobs must exist, be completed, and belong to this user
+    for job in (job_a, job_b):
+        if not job:
+            abort(404)
+        if job.get("user_id") != user_id:
+            abort(403)
+        if job.get("status") != "completed":
+            abort(400)
+
+    # Load sessions (page_extractions + page_annotations)
+    session_a = get_session(job_a["session_id"]) if job_a.get("session_id") else None
+    session_b = get_session(job_b["session_id"]) if job_b.get("session_id") else None
+    if not session_a:
+        session_a = {"page_extractions": [], "page_annotations": []}
+    if not session_b:
+        session_b = {"page_extractions": [], "page_annotations": []}
+
+    # Compute or retrieve cached comparison
+    comparison = get_or_compute_comparison(job_a, session_a, job_b, session_b)
+
+    # Build version chain for context (if jobs share a version_group)
+    version_chain = []
+    vg = job_b.get("version_group") or job_a.get("version_group")
+    if vg:
+        try:
+            version_chain = get_version_chain(vg)
+        except Exception:
+            pass
+
+    # Phase F2: load project notes for this version group
+    from web.plan_notes import get_project_notes
+    project_notes = get_project_notes(user_id, vg) if vg else ""
+
+    # Phase F3: page counts for visual comparison tab
+    pages_a = session_a.get("page_count") or len(session_a.get("page_extractions") or [])
+    pages_b = session_b.get("page_count") or len(session_b.get("page_extractions") or [])
+    session_id_a = job_a.get("session_id") or ""
+    session_id_b = job_b.get("session_id") or ""
+
+    # Phase F4: extract revision history from both sessions' page_extractions
+    def _extract_revisions(page_extractions):
+        """Gather revision rows from title_block.revisions across all pages."""
+        revisions = []
+        seen = set()
+        for ext in (page_extractions or []):
+            tb = ext.get("title_block") or {}
+            for rev in (tb.get("revisions") or []):
+                key = (rev.get("revision_number"), rev.get("revision_date"))
+                if key not in seen:
+                    seen.add(key)
+                    revisions.append(rev)
+        return revisions
+
+    revisions_a = _extract_revisions(session_a.get("page_extractions") or [])
+    revisions_b = _extract_revisions(session_b.get("page_extractions") or [])
+
+    return render_template(
+        "analysis_compare.html",
+        job_a=job_a,
+        job_b=job_b,
+        comparison=comparison,
+        version_chain=version_chain,
+        project_notes=project_notes,
+        version_group=vg or "",
+        session_id_a=session_id_a,
+        session_id_b=session_id_b,
+        pages_a=pages_a,
+        pages_b=pages_b,
+        revisions_a=revisions_a,
+        revisions_b=revisions_b,
+    )
+
+
+@app.route("/api/plan-sessions/<session_id>/pages/<int:page_number>/image")
+def get_session_page_image(session_id, page_number):
+    """Return a page image for the visual comparison tab (Phase F3).
+
+    Access control: the session must belong to a job owned by the requesting user.
+    Returns a PNG image (Content-Type: image/png) from base64 stored data.
+    """
+    import base64 as _b64
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    # Verify session belongs to a job owned by this user
+    from src.db import query_one as _qone
+    row = _qone(
+        "SELECT user_id FROM plan_analysis_jobs WHERE session_id = %s LIMIT 1",
+        (session_id,),
+    )
+    if not row or row[0] != user_id:
+        return "", 403
+
+    from web.plan_images import get_page_image
+    img_b64 = get_page_image(session_id, page_number)
+    if not img_b64:
+        return "", 404
+
+    try:
+        img_bytes = _b64.b64decode(img_b64)
+    except Exception:
+        return "", 500
+
+    return Response(img_bytes, mimetype="image/png")
+
+
+@app.route("/api/project-notes/<version_group>", methods=["GET"])
+def get_project_notes_api(version_group):
+    """Return project notes for a version group (JSON)."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    from web.plan_notes import get_project_notes
+    text = get_project_notes(user_id, version_group)
+    return jsonify({"notes_text": text})
+
+
+@app.route("/api/project-notes/<version_group>", methods=["POST"])
+def save_project_notes_api(version_group):
+    """Save project notes for a version group (JSON or form POST).
+
+    Body (JSON or form): { "notes_text": "..." }
+    Returns: 200 {"ok": true} or 400 on error.
+    """
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        notes_text = data.get("notes_text", "")
+    else:
+        notes_text = request.form.get("notes_text", "")
+
+    from web.plan_notes import save_project_notes
+    ok = save_project_notes(user_id, version_group, notes_text)
+    if ok:
+        return jsonify({"ok": True})
+    return jsonify({"error": "save failed"}), 400
 
 
 @app.route("/api/plan-jobs/<job_id>", methods=["DELETE"])
@@ -1706,6 +1931,51 @@ def bulk_delete_plan_jobs():
     job_ids = job_ids[:100]
     deleted = bulk_delete_jobs(job_ids, user_id)
     return jsonify({"deleted": deleted})
+
+
+@app.route("/api/plan-jobs/bulk-close", methods=["POST"])
+def bulk_close_plan_jobs():
+    """Bulk close (archive) plan analysis jobs."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    from web.plan_jobs import close_project
+
+    data = request.get_json(silent=True) or {}
+    job_ids = data.get("job_ids", [])
+    if not job_ids or not isinstance(job_ids, list):
+        return jsonify({"error": "job_ids required"}), 400
+
+    job_ids = job_ids[:100]
+    closed = close_project(job_ids, user_id)
+    return jsonify({"closed": closed})
+
+
+@app.route("/api/plan-jobs/<job_id>/close", methods=["POST"])
+def close_plan_job(job_id):
+    """Close (archive) a single plan analysis job."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    from web.plan_jobs import close_project
+
+    close_project([job_id], user_id)
+    return jsonify({"closed": True})
+
+
+@app.route("/api/plan-jobs/<job_id>/reopen", methods=["POST"])
+def reopen_plan_job(job_id):
+    """Reopen (unarchive) a single plan analysis job."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    from web.plan_jobs import reopen_project
+
+    reopen_project([job_id], user_id)
+    return jsonify({"reopened": True})
 
 
 @app.route("/lookup", methods=["POST"])

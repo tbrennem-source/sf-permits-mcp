@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Compare Analyses — sfpermits.ai</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --accent-hover: #3a7ae0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+            --resolved: #34d399;
+            --new-issue: #f87171;
+            --unchanged: #8b8fa3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        /* ── Nav bar ─────────────────────────────────────────── */
+        .nav-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-logo {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .nav-logo span { color: var(--accent); }
+        .nav-sep { color: var(--text-muted); }
+        .nav-back {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .nav-back:hover { color: var(--accent); }
+
+        /* ── Page ────────────────────────────────────────────── */
+        .page-content { padding: 28px 0 80px; }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+        .page-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .page-sub {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* ── Version header ──────────────────────────────────── */
+        .version-header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .version-card h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .version-card .v-filename {
+            font-weight: 600;
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+        .version-card .v-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .version-arrow {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+        }
+
+        /* ── Summary banner ──────────────────────────────────── */
+        .summary-banner {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .summary-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .chip-resolved {
+            background: rgba(52, 211, 153, 0.1);
+            border-color: rgba(52, 211, 153, 0.3);
+            color: var(--resolved);
+        }
+        .chip-new {
+            background: rgba(248, 113, 113, 0.1);
+            border-color: rgba(248, 113, 113, 0.3);
+            color: var(--new-issue);
+        }
+        .chip-unchanged {
+            background: rgba(139, 143, 163, 0.1);
+            border-color: rgba(139, 143, 163, 0.3);
+            color: var(--unchanged);
+        }
+        .chip-sheets-added {
+            background: rgba(79, 143, 247, 0.1);
+            border-color: rgba(79, 143, 247, 0.3);
+            color: var(--accent);
+        }
+
+        /* ── Tabs ────────────────────────────────────────────── */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-family: inherit;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+        .tab-btn:hover { color: var(--text); }
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Comments tab ────────────────────────────────────── */
+        .comments-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .comments-table thead th {
+            text-align: left;
+            padding: 8px 12px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border);
+        }
+        .comments-table tbody tr {
+            border-bottom: 1px solid var(--border);
+        }
+        .comments-table tbody tr:last-child { border-bottom: none; }
+        .comments-table tbody td {
+            padding: 10px 12px;
+            vertical-align: top;
+        }
+        .comments-table tbody tr:hover td { background: var(--surface-2); }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-resolved {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--resolved);
+        }
+        .badge-new {
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--new-issue);
+        }
+        .badge-unchanged {
+            background: rgba(139, 143, 163, 0.15);
+            color: var(--unchanged);
+        }
+        .badge-high { color: var(--error); }
+        .badge-medium { color: var(--warning); }
+        .badge-low { color: var(--text-muted); }
+
+        .label-text { color: var(--text); }
+        .label-absent { color: var(--text-muted); font-style: italic; }
+        .type-chip {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: var(--surface-2);
+            border-radius: 4px;
+            padding: 1px 5px;
+            margin-left: 4px;
+        }
+
+        /* ── Sheets tab ──────────────────────────────────────── */
+        .sheet-section {
+            margin-bottom: 20px;
+        }
+        .sheet-section h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .sheet-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .sheet-chip {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .sheet-added {
+            background: rgba(79, 143, 247, 0.1);
+            border-color: rgba(79, 143, 247, 0.3);
+            color: var(--accent);
+        }
+        .sheet-removed {
+            background: rgba(248, 113, 113, 0.1);
+            border-color: rgba(248, 113, 113, 0.3);
+            color: var(--new-issue);
+        }
+        .sheet-unchanged {
+            background: var(--surface-2);
+            border-color: var(--border);
+            color: var(--text-muted);
+        }
+        .empty-state {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            padding: 12px 0;
+        }
+
+        /* ── EPR tab ─────────────────────────────────────────── */
+        .epr-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .epr-table thead th {
+            text-align: left;
+            padding: 8px 12px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border);
+        }
+        .epr-table tbody tr {
+            border-bottom: 1px solid var(--border);
+        }
+        .epr-table tbody td {
+            padding: 10px 12px;
+        }
+        .epr-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .status-PASS { background: rgba(52,211,153,0.15); color: var(--success); }
+        .status-FAIL { background: rgba(248,113,113,0.15); color: var(--error); }
+        .status-WARN { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .status-SKIP, .status-INFO, .status-NA { background: var(--surface-2); color: var(--text-muted); }
+
+        /* ── Phase F2: Project Notes ─────────────────────────── */
+        .compare-notes-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .compare-notes-toggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            text-align: left;
+        }
+        .compare-notes-toggle:hover { color: var(--accent); }
+        .compare-notes-body { display: none; margin-top: 10px; }
+        .compare-notes-body.open { display: block; }
+        .notes-textarea-cmp {
+            width: 100%;
+            min-height: 80px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.82rem;
+            font-family: inherit;
+            padding: 8px 10px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .notes-textarea-cmp:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+        .notes-save-btn-cmp {
+            margin-top: 6px;
+            padding: 4px 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .notes-save-btn-cmp:hover { background: var(--accent-hover); }
+
+        /* ── Phase F3: Visual Comparison ─────────────────────── */
+        .visual-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.82rem;
+        }
+        .visual-controls label { color: var(--text-muted); }
+        .visual-controls select, .visual-controls input[type=range] {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 5px;
+            padding: 3px 8px;
+            font-family: inherit;
+            font-size: 0.82rem;
+        }
+        .visual-mode-btn {
+            padding: 4px 12px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: none;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .visual-mode-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        .visual-frame {
+            display: grid;
+            gap: 12px;
+        }
+        .visual-frame.side-by-side {
+            grid-template-columns: 1fr 1fr;
+        }
+        .visual-frame.overlay-mode {
+            grid-template-columns: 1fr;
+        }
+        .visual-col { position: relative; }
+        .visual-col-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+        .visual-img {
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            display: block;
+            background: var(--surface);
+        }
+        .visual-img-placeholder {
+            width: 100%;
+            aspect-ratio: 1 / 1.4;
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+        .overlay-container {
+            position: relative;
+            width: 100%;
+        }
+        .overlay-container .visual-img { position: relative; z-index: 1; }
+        .overlay-container .visual-img-top {
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 2;
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+        }
+        .opacity-label { color: var(--text-muted); font-size: 0.78rem; }
+
+        /* ── Phase F4: Revision table ────────────────────────── */
+        .revision-table-wrap {
+            margin-top: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .revision-table-title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+        .revision-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+        .revision-table th {
+            text-align: left;
+            padding: 6px 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+        .revision-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid rgba(51,55,73,0.5);
+            vertical-align: top;
+        }
+        .revision-table tr:last-child td { border-bottom: none; }
+        .rev-num {
+            font-weight: 600;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+        .rev-date { color: var(--text-muted); white-space: nowrap; }
+
+        /* ── Version chain ───────────────────────────────────── */
+        .version-chain {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 0.82rem;
+        }
+        .vc-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .vc-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+        .vc-dot.current { background: var(--accent); }
+        .vc-label { color: var(--text-muted); }
+        .vc-label.current { color: var(--text); font-weight: 600; }
+        .vc-arrow { color: var(--border); }
+    </style>
+</head>
+<body>
+
+<!-- Nav -->
+<div class="nav-bar">
+    <div class="container">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">sf<span>permits</span>.ai</a>
+            <span class="nav-sep">›</span>
+            <a href="/account/analyses" class="nav-back">Analysis History</a>
+            <span class="nav-sep">›</span>
+            <span class="nav-back" style="color: var(--text);">Compare</span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+<div class="page-content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title">Analysis Comparison</div>
+        <div class="page-sub">
+            {% set addr = job_b.property_address or job_a.property_address %}
+            {% if addr %}{{ addr }}{% else %}{{ job_b.filename }}{% endif %}
+        </div>
+    </div>
+
+    <!-- Version chain timeline (if available) -->
+    {% if version_chain and version_chain|length > 1 %}
+    <div class="version-chain">
+        {% for vc in version_chain %}
+            {% set is_a = (vc.job_id == job_a.job_id) %}
+            {% set is_b = (vc.job_id == job_b.job_id) %}
+            {% set is_current = is_a or is_b %}
+            <div class="vc-item">
+                <div class="vc-dot {% if is_current %}current{% endif %}"></div>
+                <span class="vc-label {% if is_current %}current{% endif %}">
+                    v{{ vc.version_number }}
+                    {% if is_a %}<span style="color:var(--accent);"> (v1)</span>{% endif %}
+                    {% if is_b %}<span style="color:var(--accent);"> (v2)</span>{% endif %}
+                </span>
+            </div>
+            {% if not loop.last %}<span class="vc-arrow">→</span>{% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Phase F4: Revision History from extracted title block data -->
+    {% if revisions_a or revisions_b %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        {% if revisions_a %}
+        <div class="revision-table-wrap">
+            <div class="revision-table-title">V1 Revision History</div>
+            <table class="revision-table">
+                <thead>
+                    <tr>
+                        <th>Rev</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for rev in revisions_a %}
+                    <tr>
+                        <td class="rev-num">{{ rev.revision_number or '—' }}</td>
+                        <td class="rev-date">{{ rev.revision_date or '—' }}</td>
+                        <td>{{ rev.description or '' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div></div>
+        {% endif %}
+        {% if revisions_b %}
+        <div class="revision-table-wrap">
+            <div class="revision-table-title">V2 Revision History</div>
+            <table class="revision-table">
+                <thead>
+                    <tr>
+                        <th>Rev</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for rev in revisions_b %}
+                    <tr>
+                        <td class="rev-num">{{ rev.revision_number or '—' }}</td>
+                        <td class="rev-date">{{ rev.revision_date or '—' }}</td>
+                        <td>{{ rev.description or '' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div></div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Version header -->
+    <div class="version-header">
+        <div class="version-card">
+            <h3>Version 1 (original)</h3>
+            <div class="v-filename">{{ job_a.filename }}</div>
+            <div class="v-meta">
+                {{ job_a.pages_analyzed or '?' }} pages
+                {% if job_a.completed_at %}
+                · {{ job_a.completed_at.strftime('%b %d, %Y') if job_a.completed_at else '' }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="version-arrow">→</div>
+        <div class="version-card" style="text-align:right">
+            <h3>Version 2 (revised)</h3>
+            <div class="v-filename">{{ job_b.filename }}</div>
+            <div class="v-meta">
+                {{ job_b.pages_analyzed or '?' }} pages
+                {% if job_b.completed_at %}
+                · {{ job_b.completed_at.strftime('%b %d, %Y') if job_b.completed_at else '' }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase F2: Project Notes -->
+    {% if version_group %}
+    <div class="compare-notes-wrap" id="cmp-notes-wrap">
+        <button class="compare-notes-toggle" onclick="toggleCmpNotes()">
+            📝 Project Notes
+            {% if project_notes %}
+            <span style="color:var(--text-muted);font-size:0.78rem;font-weight:400;font-style:italic;">
+                — {{ project_notes[:80] }}{% if project_notes|length > 80 %}…{% endif %}
+            </span>
+            {% else %}
+            <span style="color:var(--text-muted);font-size:0.78rem;font-weight:400;"> (none — click to add)</span>
+            {% endif %}
+        </button>
+        <div class="compare-notes-body" id="cmp-notes-body">
+            <textarea class="notes-textarea-cmp"
+                      id="cmp-notes-text"
+                      placeholder="Notes about this project (revision history, decisions, next steps)…">{{ project_notes }}</textarea>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <button class="notes-save-btn-cmp" onclick="saveCmpNotes()">Save Notes</button>
+                <span id="cmp-notes-saved" style="font-size:0.75rem;color:var(--success);display:none;">✓ Saved</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Summary banner -->
+    {% set s = comparison.summary %}
+    <div class="summary-banner">
+        {% if s.resolved > 0 %}
+        <div class="summary-chip chip-resolved">
+            ✓ {{ s.resolved }} resolved
+        </div>
+        {% endif %}
+        {% if s.new > 0 %}
+        <div class="summary-chip chip-new">
+            + {{ s.new }} new
+        </div>
+        {% endif %}
+        <div class="summary-chip chip-unchanged">
+            {{ s.unchanged }} unchanged
+        </div>
+        {% if s.sheets_added > 0 %}
+        <div class="summary-chip chip-sheets-added">
+            {{ s.sheets_added }} sheet{{ 's' if s.sheets_added != 1 else '' }} added
+        </div>
+        {% endif %}
+        {% if s.sheets_removed > 0 %}
+        <div class="summary-chip chip-new">
+            {{ s.sheets_removed }} sheet{{ 's' if s.sheets_removed != 1 else '' }} removed
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('comments', this)">
+            Comments
+            <span style="color:var(--text-muted);font-weight:400;font-size:0.78rem;">
+                ({{ comparison.comment_resolutions|length }})
+            </span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('sheets', this)">
+            Sheets
+        </button>
+        {% if session_id_a or session_id_b %}
+        <button class="tab-btn" onclick="switchTab('visual', this); initVisual()">
+            Visual
+        </button>
+        {% endif %}
+        {% if comparison.epr_changes %}
+        <button class="tab-btn" onclick="switchTab('epr', this)">
+            EPR Changes
+            <span style="color:var(--text-muted);font-weight:400;font-size:0.78rem;">
+                ({{ comparison.epr_changes|length }})
+            </span>
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Tab: Comments -->
+    <div id="tab-comments" class="tab-panel active">
+        {% set resolutions = comparison.comment_resolutions %}
+        {% if resolutions %}
+        <!-- Filter controls -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="tab-btn active" style="border:1px solid var(--border);border-radius:6px;padding:5px 12px;"
+                onclick="filterComments('all', this)">All ({{ resolutions|length }})</button>
+            {% set n_resolved = resolutions|selectattr('status','eq','resolved')|list|length %}
+            {% set n_new = resolutions|selectattr('status','eq','new')|list|length %}
+            {% set n_unchanged = resolutions|selectattr('status','eq','unchanged')|list|length %}
+            {% if n_resolved %}
+            <button class="tab-btn" style="border:1px solid var(--border);border-radius:6px;padding:5px 12px;"
+                onclick="filterComments('resolved', this)">Resolved ({{ n_resolved }})</button>
+            {% endif %}
+            {% if n_new %}
+            <button class="tab-btn" style="border:1px solid var(--border);border-radius:6px;padding:5px 12px;"
+                onclick="filterComments('new', this)">New ({{ n_new }})</button>
+            {% endif %}
+            {% if n_unchanged %}
+            <button class="tab-btn" style="border:1px solid var(--border);border-radius:6px;padding:5px 12px;"
+                onclick="filterComments('unchanged', this)">Unchanged ({{ n_unchanged }})</button>
+            {% endif %}
+        </div>
+        <table class="comments-table">
+            <thead>
+                <tr>
+                    <th>V1 Comment</th>
+                    <th style="width:110px">Status</th>
+                    <th>V2 Comment</th>
+                    <th style="width:60px">Page</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in resolutions %}
+                <tr data-status="{{ r.status }}">
+                    <td>
+                        {% if r.v1_label %}
+                            <span class="label-text">{{ r.v1_label }}</span>
+                            {% if r.v1_type %}<span class="type-chip">{{ r.v1_type }}</span>{% endif %}
+                            {% if r.v1_importance %}
+                            <br><span class="badge-{{ r.v1_importance }}" style="font-size:0.72rem;">{{ r.v1_importance }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="label-absent">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge badge-{{ r.status }}">
+                            {% if r.status == 'resolved' %}✓ Resolved
+                            {% elif r.status == 'new' %}+ New
+                            {% else %}Unchanged{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if r.v2_label %}
+                            <span class="label-text">{{ r.v2_label }}</span>
+                            {% if r.v2_type %}<span class="type-chip">{{ r.v2_type }}</span>{% endif %}
+                            {% if r.v2_importance %}
+                            <br><span class="badge-{{ r.v2_importance }}" style="font-size:0.72rem;">{{ r.v2_importance }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="label-absent">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--text-muted);font-size:0.82rem;">
+                        {% if r.page_number %}p{{ r.page_number }}{% else %}—{% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">No annotations found in either version.</div>
+        {% endif %}
+    </div>
+
+    <!-- Tab: Sheets -->
+    <div id="tab-sheets" class="tab-panel">
+        {% set sd = comparison.sheet_diff %}
+
+        {% if sd.added %}
+        <div class="sheet-section">
+            <h3>Added in V2</h3>
+            <div class="sheet-list">
+                {% for s in sd.added %}
+                <span class="sheet-chip sheet-added">+ {{ s }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if sd.removed %}
+        <div class="sheet-section">
+            <h3>Removed from V1</h3>
+            <div class="sheet-list">
+                {% for s in sd.removed %}
+                <span class="sheet-chip sheet-removed">− {{ s }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if sd.unchanged %}
+        <div class="sheet-section">
+            <h3>Present in Both</h3>
+            <div class="sheet-list">
+                {% for s in sd.unchanged %}
+                <span class="sheet-chip sheet-unchanged">{{ s }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not sd.added and not sd.removed and not sd.unchanged %}
+        <div class="empty-state">No structural fingerprint data available for sheet comparison.</div>
+        {% endif %}
+    </div>
+
+    <!-- Tab: Visual Comparison (Phase F3) -->
+    {% if session_id_a or session_id_b %}
+    <div id="tab-visual" class="tab-panel">
+        <div class="visual-controls">
+            <label for="vis-page-a">V1 Page:</label>
+            <select id="vis-page-a" onchange="loadVisual()">
+                {% for p in range(1, (pages_a or 1) + 1) %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+            <label for="vis-page-b">V2 Page:</label>
+            <select id="vis-page-b" onchange="loadVisual()">
+                {% for p in range(1, (pages_b or 1) + 1) %}
+                <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+            <button class="visual-mode-btn active" id="btn-sidebyside"
+                    onclick="setVisualMode('side-by-side')">Side by Side</button>
+            <button class="visual-mode-btn" id="btn-overlay"
+                    onclick="setVisualMode('overlay-mode')">Overlay</button>
+            <span id="opacity-ctrl" style="display:none;align-items:center;gap:6px;">
+                <span class="opacity-label">V2 Opacity:</span>
+                <input type="range" id="overlay-opacity" min="0" max="100" value="50"
+                       oninput="updateOverlayOpacity(this.value)">
+                <span id="opacity-val" style="font-size:0.78rem;color:var(--text-muted);">50%</span>
+            </span>
+        </div>
+        <div class="visual-frame side-by-side" id="visual-frame">
+            <div class="visual-col">
+                <div class="visual-col-label">V1 — {{ job_a.filename }}</div>
+                <div id="vis-a-wrap">
+                    <div class="visual-img-placeholder" id="vis-a-placeholder">
+                        {% if session_id_a %}Loading…{% else %}No images available{% endif %}
+                    </div>
+                    <img id="vis-a-img" class="visual-img" style="display:none;" alt="V1 page image">
+                </div>
+            </div>
+            <div class="visual-col" id="vis-b-col">
+                <div class="visual-col-label">V2 — {{ job_b.filename }}</div>
+                <div id="vis-b-wrap">
+                    <div class="visual-img-placeholder" id="vis-b-placeholder">
+                        {% if session_id_b %}Loading…{% else %}No images available{% endif %}
+                    </div>
+                    <img id="vis-b-img" class="visual-img" style="display:none;" alt="V2 page image">
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tab: EPR Changes (only rendered if there are changes) -->
+    {% if comparison.epr_changes %}
+    <div id="tab-epr" class="tab-panel">
+        <table class="epr-table">
+            <thead>
+                <tr>
+                    <th>Check ID</th>
+                    <th>V1 Status</th>
+                    <th style="width:60px;text-align:center;">→</th>
+                    <th>V2 Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for chk in comparison.epr_changes %}
+                <tr>
+                    <td style="font-weight:600;">{{ chk.check_id }}</td>
+                    <td><span class="epr-status status-{{ chk.v1_status }}">{{ chk.v1_status }}</span></td>
+                    <td style="text-align:center;color:var(--text-muted);">→</td>
+                    <td><span class="epr-status status-{{ chk.v2_status }}">{{ chk.v2_status }}</span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Footer links -->
+    <div style="margin-top:32px;display:flex;gap:16px;font-size:0.85rem;">
+        <a href="/plan-jobs/{{ job_a.job_id }}/results" style="color:var(--accent);text-decoration:none;">
+            View V1 full analysis →
+        </a>
+        <a href="/plan-jobs/{{ job_b.job_id }}/results" style="color:var(--accent);text-decoration:none;">
+            View V2 full analysis →
+        </a>
+    </div>
+
+</div><!-- /page-content -->
+</div><!-- /container -->
+
+<script>
+// ── Tab switching ─────────────────────────────────────────────
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const panel = document.getElementById('tab-' + name);
+    if (panel) panel.classList.add('active');
+    if (btn) btn.classList.add('active');
+}
+
+function filterComments(status, btn) {
+    const rows = document.querySelectorAll('#tab-comments tbody tr[data-status]');
+    rows.forEach(row => {
+        row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+    });
+    document.querySelectorAll('#tab-comments .tab-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+}
+
+// ── Phase F2: Project Notes ───────────────────────────────────
+function toggleCmpNotes() {
+    const body = document.getElementById('cmp-notes-body');
+    if (body) body.classList.toggle('open');
+}
+
+function saveCmpNotes() {
+    const vg = {{ version_group | tojson }};
+    if (!vg) return;
+    const ta = document.getElementById('cmp-notes-text');
+    if (!ta) return;
+    fetch('/api/project-notes/' + encodeURIComponent(vg), {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({notes_text: ta.value}),
+    }).then(r => {
+        if (r.ok) {
+            const msg = document.getElementById('cmp-notes-saved');
+            if (msg) { msg.style.display = 'inline'; setTimeout(() => msg.style.display = 'none', 2000); }
+        }
+    });
+}
+
+// ── Phase F3: Visual Comparison ──────────────────────────────
+const _sessionA = {{ session_id_a | tojson }};
+const _sessionB = {{ session_id_b | tojson }};
+let _visualMode = 'side-by-side';
+let _visualInited = false;
+
+function initVisual() {
+    if (_visualInited) return;
+    _visualInited = true;
+    loadVisual();
+}
+
+function loadVisual() {
+    const pageA = parseInt(document.getElementById('vis-page-a')?.value || 1, 10);
+    const pageB = parseInt(document.getElementById('vis-page-b')?.value || 1, 10);
+    _loadImage('vis-a-img', 'vis-a-placeholder', _sessionA, pageA);
+    _loadImage('vis-b-img', 'vis-b-placeholder', _sessionB, pageB);
+}
+
+function _loadImage(imgId, placeholderId, sessionId, pageNum) {
+    const img = document.getElementById(imgId);
+    const ph = document.getElementById(placeholderId);
+    if (!img || !sessionId) {
+        if (ph) ph.textContent = 'No images available';
+        return;
+    }
+    if (ph) ph.textContent = 'Loading…';
+    img.style.display = 'none';
+    img.onload = () => { img.style.display = 'block'; if (ph) ph.style.display = 'none'; };
+    img.onerror = () => {
+        img.style.display = 'none';
+        if (ph) { ph.style.display = 'flex'; ph.textContent = 'Image not available for this page'; }
+    };
+    img.src = '/api/plan-sessions/' + encodeURIComponent(sessionId) + '/pages/' + pageNum + '/image';
+}
+
+function setVisualMode(mode) {
+    _visualMode = mode;
+    const frame = document.getElementById('visual-frame');
+    const opacityCtrl = document.getElementById('opacity-ctrl');
+    const bSbs = document.getElementById('btn-sidebyside');
+    const bOv = document.getElementById('btn-overlay');
+
+    if (frame) {
+        frame.className = 'visual-frame ' + mode;
+    }
+    if (mode === 'overlay-mode') {
+        if (opacityCtrl) opacityCtrl.style.display = 'flex';
+        _buildOverlay();
+        if (bSbs) bSbs.classList.remove('active');
+        if (bOv) bOv.classList.add('active');
+    } else {
+        if (opacityCtrl) opacityCtrl.style.display = 'none';
+        _teardownOverlay();
+        if (bSbs) bSbs.classList.add('active');
+        if (bOv) bOv.classList.remove('active');
+    }
+}
+
+function _buildOverlay() {
+    // In overlay mode, stack V2 on top of V1 in V1's column using CSS position
+    const imgA = document.getElementById('vis-a-img');
+    const imgB = document.getElementById('vis-b-img');
+    const wrapA = document.getElementById('vis-a-wrap');
+    const colB = document.getElementById('vis-b-col');
+    if (!imgA || !imgB || !wrapA) return;
+    colB && (colB.style.display = 'none');
+    // Clone B image over A
+    let overlay = document.getElementById('vis-overlay-b');
+    if (!overlay) {
+        overlay = document.createElement('img');
+        overlay.id = 'vis-overlay-b';
+        overlay.className = 'visual-img-top';
+        overlay.alt = 'V2 overlay';
+        overlay.src = imgB.src;
+        overlay.style.opacity = '0.5';
+    }
+    wrapA.style.position = 'relative';
+    wrapA.appendChild(overlay);
+}
+
+function _teardownOverlay() {
+    const colB = document.getElementById('vis-b-col');
+    if (colB) colB.style.display = '';
+    const overlay = document.getElementById('vis-overlay-b');
+    if (overlay) overlay.remove();
+    const wrapA = document.getElementById('vis-a-wrap');
+    if (wrapA) wrapA.style.position = '';
+}
+
+function updateOverlayOpacity(val) {
+    const overlay = document.getElementById('vis-overlay-b');
+    if (overlay) overlay.style.opacity = val / 100;
+    const label = document.getElementById('opacity-val');
+    if (label) label.textContent = val + '%';
+}
+</script>
+</body>
+</html>

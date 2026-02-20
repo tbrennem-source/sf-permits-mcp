@@ -56,6 +56,15 @@ def create_job(
     """
     job_id = secrets.token_urlsafe(16)
 
+    # Phase D2 — compute SHA-256 hash of PDF bytes at upload time (Layer 1)
+    pdf_hash: str | None = None
+    pdf_hash_failed: bool = False
+    if pdf_data:
+        from web.plan_fingerprint import compute_pdf_hash
+        pdf_hash = compute_pdf_hash(pdf_data)
+        if pdf_hash is None:
+            pdf_hash_failed = True
+
     if BACKEND == "postgres":
         import psycopg2
 
@@ -67,8 +76,8 @@ def create_job(
                     "(job_id, user_id, filename, file_size_mb, pdf_data, "
                     "property_address, permit_number, address_source, permit_source, "
                     "project_description, permit_type, is_addendum, quick_check, is_async, "
-                    "analysis_mode, submission_stage) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "analysis_mode, submission_stage, pdf_hash, pdf_hash_failed) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         job_id,
                         user_id,
@@ -86,6 +95,8 @@ def create_job(
                         is_async,
                         analysis_mode,
                         submission_stage,
+                        pdf_hash,
+                        pdf_hash_failed,
                     ),
                 )
             conn.commit()
@@ -97,8 +108,8 @@ def create_job(
             "(job_id, user_id, filename, file_size_mb, pdf_data, "
             "property_address, permit_number, address_source, permit_source, "
             "project_description, permit_type, is_addendum, quick_check, is_async, "
-            "analysis_mode, submission_stage) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "analysis_mode, submission_stage, pdf_hash, pdf_hash_failed) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 job_id,
                 user_id,
@@ -116,12 +127,14 @@ def create_job(
                 is_async,
                 analysis_mode,
                 submission_stage,
+                pdf_hash,
+                pdf_hash_failed,
             ),
         )
 
     logger.info(
         f"Created plan job {job_id}: {filename} ({file_size_mb:.1f} MB, "
-        f"async={is_async}, user={user_id})"
+        f"async={is_async}, user={user_id}, pdf_hash={'ok' if pdf_hash else ('failed' if pdf_hash_failed else 'none')})"
     )
     return job_id
 
@@ -141,7 +154,8 @@ def get_job(job_id: str) -> dict | None:
         "progress_stage, progress_detail, "
         "vision_usage_json, gallery_duration_ms, "
         "analysis_mode, pages_analyzed, "
-        "submission_stage "
+        "submission_stage, "
+        "structural_fingerprint, version_group, version_number, parent_job_id "
         "FROM plan_analysis_jobs WHERE job_id = %s",
         (job_id,),
     )
@@ -177,6 +191,10 @@ def get_job(job_id: str) -> dict | None:
         "analysis_mode": row[25],
         "pages_analyzed": row[26],
         "submission_stage": row[27] if len(row) > 27 else None,
+        "structural_fingerprint": row[28] if len(row) > 28 else None,
+        "version_group": row[29] if len(row) > 29 else None,
+        "version_number": row[30] if len(row) > 30 else None,
+        "parent_job_id": row[31] if len(row) > 31 else None,
     }
 
 
@@ -220,7 +238,12 @@ def update_job_status(job_id: str, status: str, **fields) -> None:
     execute_write(sql, tuple(params))
 
 
-def get_user_jobs(user_id: int, limit: int = 20, order_by: str = "newest") -> list[dict]:
+def get_user_jobs(
+    user_id: int,
+    limit: int = 20,
+    order_by: str = "newest",
+    include_archived: bool = False,
+) -> list[dict]:
     """Get recent jobs for a user with configurable sort order.
 
     Args:
@@ -228,6 +251,7 @@ def get_user_jobs(user_id: int, limit: int = 20, order_by: str = "newest") -> li
         limit: Max results
         order_by: Sort order — one of 'newest', 'oldest', 'address',
                   'filename', 'status'. Defaults to 'newest'.
+        include_archived: If True, include archived/closed jobs. Default False.
 
     Returns:
         List of job dicts (without pdf_data or report_md for efficiency)
@@ -249,17 +273,58 @@ def get_user_jobs(user_id: int, limit: int = 20, order_by: str = "newest") -> li
     }
     order_clause = ORDER_CLAUSES.get(order_by, ORDER_CLAUSES["newest"])
 
-    rows = query(
-        "SELECT job_id, session_id, filename, file_size_mb, status, "
-        "is_async, quick_check, property_address, permit_number, "
-        "created_at, completed_at, error_message, "
-        "analysis_mode, pages_analyzed, started_at "
-        "FROM plan_analysis_jobs "
-        "WHERE user_id = %s "
-        f"{order_clause} "
-        "LIMIT %s",
-        (user_id, limit),
-    )
+    archive_filter = "" if include_archived else "AND is_archived = FALSE "
+
+    try:
+        rows = query(
+            "SELECT job_id, session_id, filename, file_size_mb, status, "
+            "is_async, quick_check, property_address, permit_number, "
+            "created_at, completed_at, error_message, "
+            "analysis_mode, pages_analyzed, started_at, is_archived, "
+            "parent_job_id "
+            "FROM plan_analysis_jobs "
+            f"WHERE user_id = %s {archive_filter}"
+            f"{order_clause} "
+            "LIMIT %s",
+            (user_id, limit),
+        )
+    except Exception:
+        # is_archived column not yet migrated — fall back to pre-D1 query
+        logger.warning("is_archived column missing — falling back to unfiltered query")
+        rows_raw = query(
+            "SELECT job_id, session_id, filename, file_size_mb, status, "
+            "is_async, quick_check, property_address, permit_number, "
+            "created_at, completed_at, error_message, "
+            "analysis_mode, pages_analyzed, started_at "
+            "FROM plan_analysis_jobs "
+            f"WHERE user_id = %s "
+            f"{order_clause} "
+            "LIMIT %s",
+            (user_id, limit),
+        )
+        return [
+            {
+                "job_id": r[0],
+                "session_id": r[1],
+                "filename": r[2],
+                "file_size_mb": r[3],
+                "status": r[4],
+                "is_async": r[5],
+                "quick_check": r[6],
+                "property_address": r[7],
+                "permit_number": r[8],
+                "created_at": r[9],
+                "completed_at": r[10],
+                "error_message": r[11],
+                "analysis_mode": r[12],
+                "pages_analyzed": r[13],
+                "started_at": r[14],
+                "is_archived": False,
+                "parent_job_id": None,
+            }
+            for r in rows_raw
+        ]
+
     return [
         {
             "job_id": r[0],
@@ -277,6 +342,8 @@ def get_user_jobs(user_id: int, limit: int = 20, order_by: str = "newest") -> li
             "analysis_mode": r[12],
             "pages_analyzed": r[13],
             "started_at": r[14],
+            "is_archived": r[15],
+            "parent_job_id": r[16] if len(r) > 16 else None,
         }
         for r in rows
     ]
@@ -459,8 +526,89 @@ def mark_stale_jobs(max_age_minutes: int = 15) -> int:
     return count
 
 
+def close_project(job_ids: list[str], user_id: int) -> int:
+    """Archive (close) one or more jobs belonging to a user.
+
+    Sets is_archived=TRUE.  Idempotent — already-closed jobs are a no-op.
+
+    Args:
+        job_ids: List of job IDs to close
+        user_id: Owner user ID (ensures users can only close their own jobs)
+
+    Returns:
+        Number of rows updated
+    """
+    if not job_ids:
+        return 0
+    placeholders = ", ".join(["%s"] * len(job_ids))
+    execute_write(
+        f"UPDATE plan_analysis_jobs SET is_archived = TRUE "
+        f"WHERE user_id = %s AND job_id IN ({placeholders})",
+        (user_id, *job_ids),
+    )
+    logger.info("Closed %d plan job(s) for user %d", len(job_ids), user_id)
+    return len(job_ids)
+
+
+def reopen_project(job_ids: list[str], user_id: int) -> int:
+    """Re-open (unarchive) one or more jobs belonging to a user.
+
+    Sets is_archived=FALSE.  Idempotent — already-open jobs are a no-op.
+
+    Args:
+        job_ids: List of job IDs to reopen
+        user_id: Owner user ID (ensures users can only reopen their own jobs)
+
+    Returns:
+        Number of rows updated
+    """
+    if not job_ids:
+        return 0
+    placeholders = ", ".join(["%s"] * len(job_ids))
+    execute_write(
+        f"UPDATE plan_analysis_jobs SET is_archived = FALSE "
+        f"WHERE user_id = %s AND job_id IN ({placeholders})",
+        (user_id, *job_ids),
+    )
+    logger.info("Reopened %d plan job(s) for user %d", len(job_ids), user_id)
+    return len(job_ids)
+
+
+def _get_protected_version_groups(days: int) -> set[str]:
+    """Return version_group values that contain any job created within `days` days.
+
+    These groups must not be cleaned up even if some members are older than the
+    threshold.  Returns an empty set if the version_group column does not yet
+    exist (pre-D2 databases).
+    """
+    try:
+        if BACKEND == "postgres":
+            rows = query(
+                "SELECT DISTINCT version_group FROM plan_analysis_jobs "
+                "WHERE version_group IS NOT NULL "
+                "AND created_at >= NOW() - INTERVAL '%s days'",
+                (days,),
+            )
+        else:
+            rows = query(
+                "SELECT DISTINCT version_group FROM plan_analysis_jobs "
+                "WHERE version_group IS NOT NULL "
+                "AND created_at >= CURRENT_TIMESTAMP - INTERVAL '"
+                + str(days)
+                + " days'"
+            )
+        return {r[0] for r in rows if r[0]}
+    except Exception:
+        # Column doesn't exist yet — safe to skip the guard
+        return set()
+
+
 def cleanup_old_jobs(days: int = 30) -> int:
     """Delete jobs older than N days. Returns count deleted.
+
+    Jobs that belong to a version_group where any member was created within
+    `days` days are skipped entirely — closing a project shouldn't prematurely
+    delete shared-group history.
 
     Args:
         days: Age threshold in days (default 30)
@@ -468,34 +616,67 @@ def cleanup_old_jobs(days: int = 30) -> int:
     Returns:
         Number of jobs deleted
     """
+    protected_groups = _get_protected_version_groups(days)
+
     if BACKEND == "postgres":
-        row = query_one(
-            "SELECT COUNT(*) FROM plan_analysis_jobs "
-            "WHERE created_at < NOW() - INTERVAL '%s days'",
-            (days,),
-        )
-        count = row[0] if row else 0
-        if count > 0:
-            execute_write(
-                "DELETE FROM plan_analysis_jobs "
+        if protected_groups:
+            placeholders = ", ".join(["%s"] * len(protected_groups))
+            row = query_one(
+                "SELECT COUNT(*) FROM plan_analysis_jobs "
+                f"WHERE created_at < NOW() - INTERVAL '%s days' "
+                f"AND (version_group IS NULL OR version_group NOT IN ({placeholders}))",
+                (days, *protected_groups),
+            )
+            count = row[0] if row else 0
+            if count > 0:
+                execute_write(
+                    "DELETE FROM plan_analysis_jobs "
+                    f"WHERE created_at < NOW() - INTERVAL '%s days' "
+                    f"AND (version_group IS NULL OR version_group NOT IN ({placeholders}))",
+                    (days, *protected_groups),
+                )
+        else:
+            row = query_one(
+                "SELECT COUNT(*) FROM plan_analysis_jobs "
                 "WHERE created_at < NOW() - INTERVAL '%s days'",
                 (days,),
             )
+            count = row[0] if row else 0
+            if count > 0:
+                execute_write(
+                    "DELETE FROM plan_analysis_jobs "
+                    "WHERE created_at < NOW() - INTERVAL '%s days'",
+                    (days,),
+                )
     else:
-        row = query_one(
-            "SELECT COUNT(*) FROM plan_analysis_jobs "
-            "WHERE created_at < CURRENT_TIMESTAMP - INTERVAL '"
-            + str(days)
-            + " days'"
-        )
-        count = row[0] if row else 0
-        if count > 0:
-            execute_write(
-                "DELETE FROM plan_analysis_jobs "
-                "WHERE created_at < CURRENT_TIMESTAMP - INTERVAL '"
-                + str(days)
-                + " days'"
+        age_expr = f"CURRENT_TIMESTAMP - INTERVAL '{days} days'"
+        if protected_groups:
+            placeholders = ", ".join(["%s" for _ in protected_groups])
+            row = query_one(
+                f"SELECT COUNT(*) FROM plan_analysis_jobs "
+                f"WHERE created_at < {age_expr} "
+                f"AND (version_group IS NULL OR version_group NOT IN ({placeholders}))",
+                tuple(protected_groups),
             )
+            count = row[0] if row else 0
+            if count > 0:
+                execute_write(
+                    f"DELETE FROM plan_analysis_jobs "
+                    f"WHERE created_at < {age_expr} "
+                    f"AND (version_group IS NULL OR version_group NOT IN ({placeholders}))",
+                    tuple(protected_groups),
+                )
+        else:
+            row = query_one(
+                "SELECT COUNT(*) FROM plan_analysis_jobs "
+                f"WHERE created_at < {age_expr}"
+            )
+            count = row[0] if row else 0
+            if count > 0:
+                execute_write(
+                    "DELETE FROM plan_analysis_jobs "
+                    f"WHERE created_at < {age_expr}"
+                )
 
     if count > 0:
         logger.info(f"Cleaned up {count} old plan analysis jobs (>{days}d old)")
@@ -575,6 +756,175 @@ def cancel_job(job_id: str, user_id: int) -> bool:
     )
     logger.info(f"Cancelled plan job {job_id} for user {user_id}")
     return True
+
+
+def assign_version_group(job_id: str, group_id: str) -> None:
+    """Assign a job to a version group and set its version_number.
+
+    The version_number is auto-incremented within the group: it equals
+    1 + the current max version_number for existing group members.
+    If the group has no existing members (this job is the first), version_number = 1.
+
+    Also sets parent_job_id to the most recent prior version in the group
+    (the job with the highest version_number before this assignment).
+
+    Args:
+        job_id: Job to assign
+        group_id: Shared version group identifier (UUID or job_id of first member)
+    """
+    # Find the current max version number and the job_id with that version
+    row = query_one(
+        "SELECT MAX(version_number), MAX(job_id) "  # placeholder for parent lookup
+        "FROM plan_analysis_jobs WHERE version_group = %s AND job_id != %s",
+        (group_id, job_id),
+    )
+    # Get the actual parent — the job with the max version_number in this group
+    parent_row = query_one(
+        "SELECT job_id FROM plan_analysis_jobs "
+        "WHERE version_group = %s AND job_id != %s "
+        "ORDER BY version_number DESC NULLS LAST "
+        "LIMIT 1",
+        (group_id, job_id),
+    )
+    max_version = row[0] if (row and row[0] is not None) else 0
+    next_version = int(max_version) + 1
+    parent_job_id = parent_row[0] if parent_row else None
+
+    execute_write(
+        "UPDATE plan_analysis_jobs "
+        "SET version_group = %s, version_number = %s, parent_job_id = %s "
+        "WHERE job_id = %s",
+        (group_id, next_version, parent_job_id, job_id),
+    )
+    logger.info(
+        "Assigned job %s to version_group=%s as v%d (parent=%s)",
+        job_id,
+        group_id,
+        next_version,
+        parent_job_id,
+    )
+
+
+def get_version_chain(version_group: str) -> list[dict]:
+    """Return all jobs in a version group ordered by version_number ascending.
+
+    Args:
+        version_group: Shared group identifier
+
+    Returns:
+        List of job dicts (job_id, version_number, parent_job_id, filename,
+        status, created_at, completed_at, property_address, permit_number)
+        ordered by version_number ASC.
+    """
+    try:
+        rows = query(
+            "SELECT job_id, version_number, parent_job_id, filename, status, "
+            "created_at, completed_at, property_address, permit_number, "
+            "analysis_mode, pages_analyzed "
+            "FROM plan_analysis_jobs "
+            "WHERE version_group = %s "
+            "ORDER BY version_number ASC NULLS LAST",
+            (version_group,),
+        )
+    except Exception:
+        logger.debug("get_version_chain failed for group %s", version_group, exc_info=True)
+        return []
+
+    return [
+        {
+            "job_id": r[0],
+            "version_number": r[1],
+            "parent_job_id": r[2],
+            "filename": r[3],
+            "status": r[4],
+            "created_at": r[5],
+            "completed_at": r[6],
+            "property_address": r[7],
+            "permit_number": r[8],
+            "analysis_mode": r[9],
+            "pages_analyzed": r[10],
+        }
+        for r in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Phase F1: Analysis Stats Banner
+# ---------------------------------------------------------------------------
+
+
+def get_analysis_stats(user_id: int) -> dict:
+    """Compute stats for the analysis history stats banner.
+
+    Returns:
+        {
+          "monthly_count":   int,   # analyses submitted this calendar month
+          "avg_processing_s": float | None,  # avg seconds from started_at → completed_at
+          "projects_tracked": int,  # distinct version_groups (or distinct addresses)
+        }
+    """
+    try:
+        if BACKEND == "postgres":
+            # Monthly count
+            row_m = query_one(
+                "SELECT COUNT(*) FROM plan_analysis_jobs "
+                "WHERE user_id = %s "
+                "AND created_at >= date_trunc('month', NOW())",
+                (user_id,),
+            )
+            # Avg processing time (seconds)
+            row_avg = query_one(
+                "SELECT AVG(EXTRACT(EPOCH FROM (completed_at - started_at))) "
+                "FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND status = 'completed' "
+                "AND started_at IS NOT NULL AND completed_at IS NOT NULL",
+                (user_id,),
+            )
+            # Projects tracked — distinct version_groups (fall back to distinct addresses)
+            row_p = query_one(
+                "SELECT COUNT(DISTINCT COALESCE(version_group, property_address, filename)) "
+                "FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND is_archived = FALSE",
+                (user_id,),
+            )
+        else:
+            # DuckDB
+            row_m = query_one(
+                "SELECT COUNT(*) FROM plan_analysis_jobs "
+                "WHERE user_id = %s "
+                "AND created_at >= date_trunc('month', CURRENT_TIMESTAMP)",
+                (user_id,),
+            )
+            row_avg = query_one(
+                "SELECT AVG(EPOCH(completed_at) - EPOCH(started_at)) "
+                "FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND status = 'completed' "
+                "AND started_at IS NOT NULL AND completed_at IS NOT NULL",
+                (user_id,),
+            )
+            row_p = query_one(
+                "SELECT COUNT(DISTINCT COALESCE(version_group, property_address, filename)) "
+                "FROM plan_analysis_jobs "
+                "WHERE user_id = %s AND is_archived = FALSE",
+                (user_id,),
+            )
+
+        monthly_count = int(row_m[0]) if (row_m and row_m[0] is not None) else 0
+        avg_s = float(row_avg[0]) if (row_avg and row_avg[0] is not None) else None
+        projects = int(row_p[0]) if (row_p and row_p[0] is not None) else 0
+
+        return {
+            "monthly_count": monthly_count,
+            "avg_processing_s": avg_s,
+            "projects_tracked": projects,
+        }
+    except Exception:
+        logger.debug("get_analysis_stats failed for user %d", user_id, exc_info=True)
+        return {
+            "monthly_count": 0,
+            "avg_processing_s": None,
+            "projects_tracked": 0,
+        }
 
 
 def clear_pdf_data(job_id: str) -> None:

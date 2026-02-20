@@ -322,7 +322,14 @@
                             <span style="color:var(--text-muted);font-size:0.85rem;">&mdash;</span>
                             {% endif %}
                         </div>
-                        <div style="display:flex; gap:6px;">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            {% if job.status == 'completed' and job.parent_job_id %}
+                            <a href="/account/analyses/compare?a={{ job.parent_job_id }}&b={{ job.job_id }}"
+                               style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;border:1px solid var(--border);padding:3px 8px;border-radius:5px;"
+                               title="Compare with previous version">
+                                Compare ↔
+                            </a>
+                            {% endif %}
                             <button class="action-link action-delete"
                                     hx-delete="/api/plan-jobs/{{ job.job_id }}"
                                     hx-target="#job-card-{{ job.job_id }}"
@@ -336,6 +343,35 @@
                 </div>
                 {% endfor %}
             </div>
+
+            {# Phase F2: Project Notes — only shown for groups with a version_group #}
+            {% if group._version_group %}
+            <div class="project-notes-wrap" id="notes-wrap-{{ group._version_group }}">
+                <button class="project-notes-toggle"
+                        onclick="toggleProjectNotes('{{ group._version_group }}')">
+                    📝 Notes
+                    {% if group._notes %}
+                    <span class="project-notes-preview">
+                        — {{ group._notes[:60] }}{% if group._notes|length > 60 %}…{% endif %}
+                    </span>
+                    {% endif %}
+                </button>
+                <div class="project-notes-body" id="notes-body-{{ group._version_group }}">
+                    <textarea class="notes-textarea"
+                              id="notes-text-{{ group._version_group }}"
+                              placeholder="Add notes about this project (revision history, decisions, next steps)…">{{ group._notes }}</textarea>
+                    <div style="display:flex;align-items:center;margin-top:6px;">
+                        <button class="notes-save-btn"
+                                onclick="saveProjectNotes('{{ group._version_group }}')">
+                            Save Notes
+                        </button>
+                        <span class="notes-saved-msg" id="notes-saved-{{ group._version_group }}">
+                            ✓ Saved
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
@@ -355,7 +391,7 @@
 {% endmacro %}
 
 
-{# ── JS for accordion toggle ── #}
+{# ── JS for accordion toggle + project notes ── #}
 {% macro grouping_js() %}
 <script>
 function toggleProjectGroup(header) {
@@ -372,5 +408,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Phase F2: Project Notes
+function toggleProjectNotes(vg) {
+    const body = document.getElementById('notes-body-' + vg);
+    if (body) body.classList.toggle('open');
+}
+
+function saveProjectNotes(vg) {
+    const ta = document.getElementById('notes-text-' + vg);
+    if (!ta) return;
+    const text = ta.value;
+    fetch('/api/project-notes/' + encodeURIComponent(vg), {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({notes_text: text}),
+    }).then(function(r) {
+        if (r.ok) {
+            const msg = document.getElementById('notes-saved-' + vg);
+            if (msg) {
+                msg.style.display = 'inline';
+                setTimeout(function() { msg.style.display = 'none'; }, 2000);
+            }
+        }
+    });
+}
 </script>
 {% endmacro %}
