@@ -198,6 +198,9 @@
         .prop-card.health-at_risk .prop-health-reason { color: var(--error); opacity: 0.8; }
         .prop-card.health-behind .prop-health-reason { color: var(--warning); opacity: 0.85; }
         .prop-card.health-slower .prop-health-reason { color: var(--warning); opacity: 0.7; }
+        .prop-recency { font-size: 0.72rem; margin-bottom: 6px; }
+        .prop-recency.fresh { color: var(--success); }
+        .prop-recency.stale { color: var(--text-muted); }
         .prop-stats { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
         .prop-enforcement { margin-bottom: 8px; }
         .enforcement-badge {
@@ -368,6 +371,16 @@
                         </div>
                         {% if prop.health_reason and prop.worst_health != 'on_track' %}
                         <div class="prop-health-reason">{{ prop.health_reason }}</div>
+                        {% endif %}
+                        {% if prop.days_since_activity is not none %}
+                        <div class="prop-recency {% if prop.days_since_activity <= 7 %}fresh{% elif prop.days_since_activity <= 30 %}stale{% else %}stale{% endif %}">
+                            {% if prop.days_since_activity == 0 %}&#x1f7e2; Activity today
+                            {% elif prop.days_since_activity == 1 %}&#x1f7e2; Activity yesterday
+                            {% elif prop.days_since_activity <= 7 %}&#x1f7e2; Activity {{ prop.days_since_activity }}d ago
+                            {% elif prop.days_since_activity <= 30 %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
+                            {% else %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
+                            {% endif %}
+                        </div>
                         {% endif %}
                         <div class="prop-stats">
                             {{ prop.active_permits }} active of {{ prop.total_permits }} permits

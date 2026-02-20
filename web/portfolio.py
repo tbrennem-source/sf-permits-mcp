@@ -205,6 +205,11 @@ def get_portfolio(user_id: int) -> dict:
 
     properties = list(property_map.values())
 
+    # Compute days_since_activity for recency signal
+    for prop in properties:
+        la = _parse_date(prop.get("latest_activity", ""))
+        prop["days_since_activity"] = (today - la).days if la else None
+
     # Get tags from watch items
     watch_tags = {}
     for w in watches:
@@ -238,6 +243,87 @@ def get_portfolio(user_id: int) -> dict:
                 prop["last_inspection"] = None
         else:
             prop["last_inspection"] = None
+
+    # Get enforcement data (violations + complaints) for each property
+    for prop in properties:
+        if prop["block"] and prop["lot"]:
+            try:
+                vrow = query(
+                    f"SELECT COUNT(*) FROM violations "
+                    f"WHERE block = {_ph()} AND lot = {_ph()} AND LOWER(status) = 'open'",
+                    (prop["block"], prop["lot"]),
+                )
+                prop["open_violations"] = int(vrow[0][0]) if vrow else 0
+            except Exception:
+                prop["open_violations"] = None
+            try:
+                crow = query(
+                    f"SELECT COUNT(*) FROM complaints "
+                    f"WHERE block = {_ph()} AND lot = {_ph()} AND LOWER(status) = 'open'",
+                    (prop["block"], prop["lot"]),
+                )
+                prop["open_complaints"] = int(crow[0][0]) if crow else 0
+            except Exception:
+                prop["open_complaints"] = None
+        else:
+            prop["open_violations"] = None
+            prop["open_complaints"] = None
+
+    # Get routing progress for permits currently in plan check (filed status)
+    # Collect all filed permit numbers across all properties
+    all_filed_permits: list[str] = []
+    prop_by_permit: dict[str, dict] = {}
+    for prop in properties:
+        for pm in prop.get("permits", []):
+            if pm.get("status") == "filed":
+                pn = pm["permit_number"]
+                all_filed_permits.append(pn)
+                prop_by_permit[pn] = prop
+
+    if all_filed_permits:
+        try:
+            from web.routing import get_routing_progress_batch
+            routing_map = get_routing_progress_batch(all_filed_permits)
+        except Exception:
+            routing_map = {}
+
+        # Assign the best-progress routing to each property (pick permit with most stations)
+        prop_routing: dict[int, object] = {}  # id(prop) -> RoutingProgress
+        for pn, progress in routing_map.items():
+            prop = prop_by_permit.get(pn)
+            if prop is None:
+                continue
+            pid = id(prop)
+            existing = prop_routing.get(pid)
+            if existing is None or progress.total_stations > existing.total_stations:
+                prop_routing[pid] = progress
+
+        for prop in properties:
+            rp = prop_routing.get(id(prop))
+            if rp:
+                pending_names = [s.station for s in rp.stations if not s.is_complete]
+                stalled = [
+                    s.station for s in rp.stations
+                    if not s.is_complete and not s.has_hold
+                    and s.arrive_date
+                    and (date.today() - _parse_date(s.arrive_date)).days > 30
+                ]
+                held = [s.station for s in rp.stations if not s.is_complete and s.has_hold]
+                pct = int(rp.completed_stations * 100 / rp.total_stations) if rp.total_stations else 0
+                prop["routing"] = {
+                    "permit_number": rp.permit_number,
+                    "completion_pct": pct,
+                    "total_stations": rp.total_stations,
+                    "completed_stations": rp.completed_stations,
+                    "pending_station_names": pending_names,
+                    "stalled_stations": stalled,
+                    "held_stations": held,
+                }
+            else:
+                prop["routing"] = None
+    else:
+        for prop in properties:
+            prop["routing"] = None
 
     # Summary
     total_active = sum(p["active_count"] for p in properties)
