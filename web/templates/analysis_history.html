@@ -1306,6 +1306,13 @@
             alert('Failed to delete: ' + err.message);
         });
     }
+
+    // Auto-open upload section from URL hash (e.g., /account/analyses#upload)
+    (function() {
+        if (window.location.hash === '#upload') {
+            toggleUploadSection();
+        }
+    })();
     </script>
 </body>
 </html>
