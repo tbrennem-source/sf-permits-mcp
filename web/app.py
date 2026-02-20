@@ -1435,13 +1435,30 @@ def cancel_plan_job(job_id):
 
 @app.route("/plan-jobs/<job_id>/results")
 def plan_job_results(job_id):
-    """View completed async analysis results."""
+    """View completed analysis results (async or quick-check)."""
     from web.plan_jobs import get_job, find_previous_analyses
     from web.plan_images import get_session
 
     job = get_job(job_id)
-    if not job or job["status"] != "completed" or not job["session_id"]:
+    if not job or job["status"] != "completed":
         abort(404)
+
+    # Quick Check jobs have report_md but no session_id (no gallery)
+    if not job["session_id"]:
+        if not job.get("report_md"):
+            abort(404)
+        result_html = md_to_html(job["report_md"])
+        return render_template(
+            "plan_results_page.html",
+            result=result_html,
+            filename=job["filename"],
+            filesize_mb=round(job["file_size_mb"], 1),
+            session_id=None,
+            page_count=0,
+            extractions_json="{}",
+            annotations_json="[]",
+            quick_check=job["quick_check"],
+        )
 
     session_data = get_session(job["session_id"])
     if not session_data:
@@ -1541,17 +1558,28 @@ def _normalize_filename_for_grouping(name: str) -> str:
 def group_jobs_by_project(jobs: list[dict]) -> list[dict]:
     """Group jobs by normalized property_address or filename.
 
+    Two-pass approach: first groups by address or filename, then merges
+    filename-only groups into address groups when they share the same
+    normalized filename (same PDF analyzed with and without vision).
+
     Returns list of dicts: {"key": str, "display_name": str, "jobs": list,
     "count": int, "latest_status": str, "date_range": str}
     """
     from collections import OrderedDict
     groups: OrderedDict[str, dict] = OrderedDict()
 
+    # Track which normalized filenames map to which address groups
+    filename_to_address_key: dict[str, str] = {}
+
     for job in jobs:
         # Try address first, then filename
         if job.get("property_address"):
             key = _normalize_address_for_grouping(job["property_address"])
             display = job["property_address"]
+            # Remember that this filename belongs to an address group
+            norm_fn = _normalize_filename_for_grouping(job["filename"])
+            if norm_fn:
+                filename_to_address_key[norm_fn] = key
         else:
             key = _normalize_filename_for_grouping(job["filename"])
             display = job["filename"]
@@ -1564,6 +1592,23 @@ def group_jobs_by_project(jobs: list[dict]) -> list[dict]:
             groups[key] = {"key": key, "display_name": display, "jobs": [], "count": 0}
         groups[key]["jobs"].append(job)
         groups[key]["count"] += 1
+
+    # Pass 2: merge filename-only groups into address groups for the same file
+    keys_to_remove = []
+    for key, grp in list(groups.items()):
+        # Skip groups that are already address-based
+        if key in filename_to_address_key.values():
+            continue
+        # Check if this filename key maps to an address group
+        if key in filename_to_address_key:
+            addr_key = filename_to_address_key[key]
+            if addr_key in groups and addr_key != key:
+                groups[addr_key]["jobs"].extend(grp["jobs"])
+                groups[addr_key]["count"] += grp["count"]
+                keys_to_remove.append(key)
+
+    for key in keys_to_remove:
+        del groups[key]
 
     # Sort groups by most recent job
     result = list(groups.values())
