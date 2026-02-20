@@ -9,14 +9,16 @@ from src.report_links import ReportLinks
 
 class TestReportLinks:
     def test_permit_url(self):
+        # permit() returns internal search URL (/?q=...) for seamless in-app navigation
         url = ReportLinks.permit("202210144403")
-        assert "PermitNumber=202210144403" in url
-        assert "dbiweb02.sfgov.org" in url
+        assert "202210144403" in url
+        assert url.startswith("/")
 
     def test_complaint_url(self):
+        # complaint() returns internal search URL (/?q=...) for seamless in-app navigation
         url = ReportLinks.complaint("202429366")
-        assert "ComplaintNumber=202429366" in url
-        assert "dbiweb02.sfgov.org" in url
+        assert "202429366" in url
+        assert url.startswith("/")
 
     def test_parcel_url(self):
         url = ReportLinks.parcel("2991", "012")

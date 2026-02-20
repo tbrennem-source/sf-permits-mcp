@@ -2857,6 +2857,23 @@ def watch_tags():
     return "", 204
 
 
+@app.route("/watch/edit", methods=["POST"])
+def watch_edit():
+    """Update label for a watch item. Returns the new label text."""
+    if not g.user:
+        return "Forbidden", 403
+
+    from web.auth import update_watch_label
+
+    watch_id_str = request.form.get("watch_id", "")
+    label = request.form.get("label", "")
+    if not watch_id_str:
+        return "", 400
+
+    update_watch_label(int(watch_id_str), g.user["user_id"], label)
+    return label, 200
+
+
 @app.route("/watch/list")
 @login_required
 def watch_list():
@@ -3370,10 +3387,26 @@ def admin_activity():
         abort(403)
 
     from web.activity import get_recent_activity, get_activity_stats
-    activity = get_recent_activity(limit=100)
+    action_filter = request.args.get("action") or None
+    user_id_filter_str = request.args.get("user_id") or None
+    user_id_filter = int(user_id_filter_str) if user_id_filter_str else None
+    activity = get_recent_activity(limit=100, action_filter=action_filter, user_id_filter=user_id_filter)
     stats = get_activity_stats(hours=24)
+    # Build a minimal users list from activity entries for the filter dropdown
+    seen_ids: set = set()
+    users = []
+    for entry in activity:
+        uid = entry.get("user_id")
+        if uid and uid not in seen_ids:
+            seen_ids.add(uid)
+            users.append({"user_id": uid,
+                          "display_name": entry.get("display_name") or entry.get("email") or str(uid),
+                          "email": entry.get("email") or ""})
     return render_template("admin_activity.html", user=g.user,
-                           activity=activity, stats=stats)
+                           activity=activity, stats=stats,
+                           action_filter=action_filter,
+                           user_id_filter=user_id_filter,
+                           users=users)
 
 
 @app.route("/admin/sources")

@@ -125,10 +125,11 @@ def _make_simple_pdf():
 
 
 def test_index_has_validator(client):
-    """Homepage includes the Plan Set Validator section."""
+    """Homepage includes the plan analysis (AI Vision) section."""
     rv = client.get("/")
     html = rv.data.decode()
-    assert "Plan Set Validator" in html
+    # Section was renamed from 'Plan Set Validator' to 'Analyze Plans (AI Vision)'
+    assert "Analyze Plans" in html or "analyze-plans" in html
     assert "planfile" in html  # file input
 
 

@@ -119,6 +119,13 @@
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
         .empty-state h2 { color: var(--text); margin-bottom: 8px; }
         .empty-state a { color: var(--accent); }
+
+        /* Card expand pulse */
+        @keyframes card-expand-pulse { from { opacity: 1; } to { opacity: 0.5; } }
+        .property-card.expanding { animation: card-expand-pulse 0.35s ease-in-out 2 alternate; }
+
+        /* Timeline loading spinner */
+        .timeline-loading { font-size: 0.78rem; color: var(--text-muted); padding: 8px 0; font-style: italic; }
     </style>
 </head>
 <body>
@@ -167,7 +174,7 @@
             <!-- Property Grid -->
             <div class="property-grid">
                 {% for prop in properties %}
-                <div class="property-card health-{{ prop.worst_health }}" onclick="this.classList.toggle('expanded')">
+                <div class="property-card health-{{ prop.worst_health }}" onclick="toggleCard(this)">
                     <div class="card-header">
                         <div class="card-address">
                             <a href="/report/{{ prop.block }}/{{ prop.lot }}" onclick="event.stopPropagation()">{{ prop.address }}</a>
@@ -276,11 +283,12 @@
                             <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">{{ pm.description }}</div>
                         </div>
                         {% endfor %}
-                        <!-- Inspection timeline (lazy-loaded) -->
+                        <!-- Inspection timeline (lazy-loaded when card is expanded) -->
                         <div id="timeline-{{ prop.block }}-{{ prop.lot }}"
                              hx-get="/portfolio/timeline/{{ prop.block }}/{{ prop.lot }}"
-                             hx-trigger="intersect once"
+                             hx-trigger="revealed"
                              hx-swap="innerHTML">
+                            <div class="timeline-loading">Loading inspection history…</div>
                         </div>
                     </div>
                 </div>
@@ -306,5 +314,18 @@
             {% endif %}
         </div>
     </main>
+    <script>
+    function toggleCard(card) {
+        var isExpanding = !card.classList.contains('expanded');
+        card.classList.toggle('expanded');
+        if (isExpanding) {
+            // Brief pulse to confirm the click registered
+            card.classList.add('expanding');
+            setTimeout(function() { card.classList.remove('expanding'); }, 750);
+            // Nudge HTMX to notice newly visible timeline div
+            htmx.process(card);
+        }
+    }
+    </script>
 </body>
 </html>

@@ -237,11 +237,16 @@ def init_user_schema(conn=None) -> None:
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        # Add columns for existing DuckDB databases
+        # Add columns for existing DuckDB databases (migration for pre-existing DBs)
         for alter_stmt in [
             "ALTER TABLE feedback ADD COLUMN screenshot_data TEXT",
             "ALTER TABLE watch_items ADD COLUMN tags TEXT DEFAULT ''",
             "ALTER TABLE users ADD COLUMN voice_style TEXT",
+            "ALTER TABLE users ADD COLUMN brief_frequency TEXT DEFAULT 'none'",
+            "ALTER TABLE users ADD COLUMN invite_code TEXT",
+            "ALTER TABLE users ADD COLUMN primary_street_number TEXT",
+            "ALTER TABLE users ADD COLUMN primary_street_name TEXT",
+            "ALTER TABLE users ADD COLUMN subscription_tier TEXT DEFAULT 'free'",
         ]:
             try:
                 conn.execute(alter_stmt)

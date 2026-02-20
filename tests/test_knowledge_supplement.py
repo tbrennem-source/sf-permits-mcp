@@ -1753,10 +1753,13 @@ def test_semantic_index_has_s09_concept():
 
 
 def test_semantic_index_total_concepts_updated():
-    """Semantic index should have 92 total concepts (80 original + 6 FS-series + 6 for 2025 code amendments)."""
+    """Semantic index total_concepts matches actual index size."""
     kb = get_knowledge_base()
     total = kb.semantic_index["metadata"]["total_concepts"]
-    assert total == 92
+    concepts = kb.semantic_index.get("concepts", [])
+    # total_concepts in metadata should be consistent with actual concept list length
+    assert total == len(concepts), f"Metadata says {total} but {len(concepts)} concepts found"
+    assert total >= 92, f"Expected at least 92 concepts, got {total}"
 
 
 # ── FS-Series Fire Safety Info Sheets Tests ─────────────────────────
