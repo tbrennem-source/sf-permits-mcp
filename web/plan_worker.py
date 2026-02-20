@@ -159,7 +159,11 @@ def _do_analysis(job_id: str, loop: asyncio.AbstractEventLoop) -> None:
     page_count = len(reader.pages)
 
     # ── Render gallery images at lower DPI (parallel) ──
-    total_render = min(page_count, 50)
+    # Compliance mode: only render analyzed pages (3 max) for speed
+    if analysis_mode == "compliance":
+        total_render = min(page_count, 3)
+    else:
+        total_render = min(page_count, 50)
     update_job_status(
         job_id, "processing",
         progress_stage="rendering",
