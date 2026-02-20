@@ -18,11 +18,13 @@
     }
     .badge-btn:hover { color: var(--text); border-color: var(--text-muted); }
     .badge-loading {
-        background: var(--accent) !important; color: #fff !important;
-        border-color: var(--accent) !important; opacity: 0.7;
-        animation: nav-pulse 0.6s ease-in-out infinite alternate;
+        color: var(--accent) !important;
+        animation: nav-pulse 0.5s ease-in-out infinite alternate;
     }
-    @keyframes nav-pulse { from { opacity: 0.7; } to { opacity: 1; } }
+    @keyframes nav-pulse {
+        from { border-color: rgba(79,143,247,0.3); }
+        to   { border-color: rgba(79,143,247,1); }
+    }
 </style>
 <header>
     <div class="container">
