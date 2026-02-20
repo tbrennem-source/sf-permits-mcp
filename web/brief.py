@@ -91,7 +91,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     team_activity = _get_team_activity(user_id, since)
     expiring = _get_expiring_permits(user_id)
     regulatory_alerts = _get_regulatory_alerts()
-    property_cards = _get_property_snapshot(user_id)
+    property_cards = _get_property_snapshot(user_id, lookback_days)
 
     # Property synopsis for primary address
     property_synopsis = None
@@ -113,6 +113,13 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         1 for p in property_cards
         if p.get("enforcement_total") and p["enforcement_total"] > 0
     )
+    # Count properties with recent activity (uses actual SODA status_date,
+    # not the sparse permit_changes detection log)
+    changed_properties = sum(
+        1 for p in property_cards
+        if p.get("days_since_activity") is not None
+        and p["days_since_activity"] <= lookback_days
+    )
 
     # Data freshness from cron_log
     last_refresh = _get_last_refresh()
@@ -132,7 +139,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "summary": {
             "total_watches": total_watches,
             "total_properties": len(property_cards),
-            "changes_count": len(changes),
+            "changes_count": changed_properties,
             "plan_reviews_count": len(plan_reviews),
             "at_risk_count": at_risk,
             "enforcement_count": enforcement_count,
@@ -844,7 +851,7 @@ def _get_regulatory_alerts() -> list[dict]:
 
 # ── Section 9: Property Snapshot (always visible) ────────────────
 
-def _get_property_snapshot(user_id: int) -> list[dict]:
+def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
     """Build always-visible property cards from user's watch list.
 
     For each watched property (grouped by block/lot or address key):
@@ -853,7 +860,8 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
     - Open violation + complaint counts
     - Routing progress for the primary permit in plan check
 
-    Returns list of property snapshot dicts, sorted by worst_health desc.
+    Returns list of property snapshot dicts, sorted by recently-changed
+    first (within lookback window), then worst_health desc.
     """
     from web.auth import get_watches
 
@@ -1210,11 +1218,14 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
             prop["worst_health"] = "behind"
             prop["health_reason"] += " (active site)"
 
-    # Sort: at_risk first, then behind, then slower, then on_track
+    # Sort: recently-changed properties first, then by worst health desc.
+    # Within each group, highest risk sorts first.
     properties = sorted(
         property_map.values(),
-        key=lambda p: health_order.get(p["worst_health"], 0),
-        reverse=True,
+        key=lambda p: (
+            0 if (p.get("days_since_activity") or 999) <= lookback_days else 1,
+            -health_order.get(p["worst_health"], 0),
+        ),
     )
 
     return properties
