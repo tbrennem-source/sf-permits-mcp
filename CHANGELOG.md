@@ -1,5 +1,36 @@
 # Changelog
 
+## Session 36 — UX Redesign Phase A: Nav + Admin Context (2026-02-20)
+
+### UX Audit
+- Full audit of Brief, Portfolio, and Pipeline features as senior UX/IA review
+- Identified Brief's property_cards section as primary redundancy with Portfolio
+- Confirmed Pipeline is admin-only territory (Amy doesn't use it)
+- Produced spec: `specs/ux-redesign-nav-brief-portfolio-admin.md` in chief brain state
+
+### Nav Redesign (Spec 1) — `web/templates/fragments/nav.html`
+- Removed Pipeline link from main nav (was visible to all users, confusing for Amy)
+- Added admin-only `⚙️ Admin ▾` dropdown with 6 links: Pipeline Health, Data Quality, User Activity, LUCK Sources, Voice Calibration, Regulatory Watch
+- `/admin/ops#pipeline` and `/admin/ops#quality` are intentional dead links (Phase B)
+- Dropdown uses CSS hover + `:focus-within` (no JS dependency)
+- Amy's nav: `Search | Brief | Portfolio | My Analyses | account | Logout`
+- Tim's nav: same + `⚙️ Admin ▾` dropdown before account
+
+### Admin Context Badges — 6 admin templates
+- Added `⚙ Admin` pill badge to `<h1>` in: Activity Feed, Feedback Queue, LUCK Sources, Regulatory Watch, Voice Calibration, Pipeline Bottlenecks
+- Visual signal so Tim knows he's on an admin page
+
+### Tests
+- Updated `test_velocity_dashboard_in_nav` → `test_velocity_dashboard_hidden_from_non_admin` (asserts Pipeline NOT in nav for regular users)
+- Added `test_velocity_dashboard_in_admin_dropdown` (asserts admin dropdown with Pipeline link appears for admin users)
+- 1,103 passing, 0 failures (18 pre-existing errors from missing `src.plan_images` module)
+
+### Already Implemented (confirmed during audit)
+- Brief lookback filter buttons already at top of page (lines 247–251 of brief.html)
+- Data freshness banner already exists (lines 239–244 of brief.html, computed from `cron_log`)
+
+---
+
 ## Session 35 — Pipeline Dashboard, Filters, Reviewer Drill-down (2026-02-20)
 
 ### Morning Brief Fixes
