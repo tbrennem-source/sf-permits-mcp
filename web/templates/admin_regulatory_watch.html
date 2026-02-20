@@ -7,7 +7,6 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Regulatory Watch — sfpermits.ai</title>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-{% endif %}
     <style>
         :root {
             --bg: #0f1117;
@@ -32,86 +31,89 @@
         .back-link:hover { color: var(--text); }
         main { padding: 40px 0 80px; }
         h1 { font-size: 1.5rem; margin-bottom: 8px; }
-        .subtitle { color: var(--text-muted); margin-bottom: 24px; }
-        .filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-        .filter-btn {
+    </style>
+{% endif %}
+    <style>
+        .rw-subtitle { color: var(--text-muted); margin-bottom: 24px; }
+        .rw-filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+        .rw-filter-btn {
             padding: 6px 14px; border-radius: 6px; font-size: 0.8rem;
             text-decoration: none; border: 1px solid var(--border);
             color: var(--text-muted); background: transparent;
         }
-        .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-        .filter-btn:hover { border-color: var(--text-muted); }
-        .watch-item {
+        .rw-filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .rw-filter-btn:hover { border-color: var(--text-muted); }
+        .rw-item {
             background: var(--surface); border: 1px solid var(--border);
             border-radius: 12px; padding: 20px; margin-bottom: 16px;
         }
-        .watch-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
-        .watch-title { font-weight: 600; font-size: 1.05rem; flex: 1; }
-        .badge {
+        .rw-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+        .rw-title { font-weight: 600; font-size: 1.05rem; flex: 1; }
+        .rw-badge {
             font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;
             text-transform: uppercase; font-weight: 600; white-space: nowrap;
         }
-        .impact-high { background: rgba(248,113,113,0.15); color: var(--error); }
-        .impact-moderate { background: rgba(251,191,36,0.15); color: var(--warning); }
-        .impact-low { background: rgba(79,143,247,0.12); color: var(--accent); }
-        .status-monitoring { background: rgba(79,143,247,0.12); color: var(--accent); }
-        .status-passed { background: rgba(251,191,36,0.15); color: var(--warning); }
-        .status-effective { background: rgba(52,211,153,0.15); color: var(--success); }
-        .status-withdrawn { background: rgba(139,143,163,0.15); color: var(--text-muted); }
-        .watch-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
-        .watch-description { margin: 8px 0; font-size: 0.9rem; color: var(--text); }
-        .watch-sections { margin: 8px 0; }
-        .section-tag {
+        .rw-impact-high { background: rgba(248,113,113,0.15); color: var(--error); }
+        .rw-impact-moderate { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .rw-impact-low { background: rgba(79,143,247,0.12); color: var(--accent); }
+        .rw-status-monitoring { background: rgba(79,143,247,0.12); color: var(--accent); }
+        .rw-status-passed { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .rw-status-effective { background: rgba(52,211,153,0.15); color: var(--success); }
+        .rw-status-withdrawn { background: rgba(139,143,163,0.15); color: var(--text-muted); }
+        .rw-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+        .rw-description { margin: 8px 0; font-size: 0.9rem; color: var(--text); }
+        .rw-sections { margin: 8px 0; }
+        .rw-section-tag {
             display: inline-block; font-size: 0.7rem; padding: 1px 6px;
             border-radius: 3px; background: var(--surface-2);
             border: 1px solid var(--border); margin: 2px 2px 2px 0;
             color: var(--text-muted);
         }
-        .watch-notes { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
-        .watch-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
-        .action-btn {
+        .rw-notes { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+        .rw-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
+        .rw-action-btn {
             padding: 4px 12px; border-radius: 6px; font-size: 0.75rem;
             border: 1px solid var(--border); background: none;
             color: var(--text-muted); cursor: pointer;
         }
-        .action-btn:hover { border-color: var(--text); color: var(--text); }
-        .action-btn.danger:hover { border-color: var(--error); color: var(--error); }
-        .create-btn {
+        .rw-action-btn:hover { border-color: var(--text); color: var(--text); }
+        .rw-action-btn.danger:hover { border-color: var(--error); color: var(--error); }
+        .rw-create-btn {
             padding: 8px 20px; border-radius: 8px; font-size: 0.85rem;
             border: none; background: var(--accent); color: #fff;
             cursor: pointer; font-weight: 600;
         }
-        .create-btn:hover { opacity: 0.9; }
-        .form-overlay {
+        .rw-create-btn:hover { opacity: 0.9; }
+        .rw-form-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.6); z-index: 100;
             justify-content: center; align-items: center;
         }
-        .form-overlay.active { display: flex; }
-        .form-card {
+        .rw-form-overlay.active { display: flex; }
+        .rw-form-card {
             background: var(--surface); border: 1px solid var(--border);
             border-radius: 16px; padding: 32px; width: 90%; max-width: 600px;
             max-height: 90vh; overflow-y: auto;
         }
-        .form-card h2 { margin-bottom: 20px; font-size: 1.2rem; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
-        .form-group input, .form-group select, .form-group textarea {
+        .rw-form-card h2 { margin-bottom: 20px; font-size: 1.2rem; }
+        .rw-form-group { margin-bottom: 16px; }
+        .rw-form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+        .rw-form-group input, .rw-form-group select, .rw-form-group textarea {
             width: 100%; padding: 8px 12px; border-radius: 8px;
             border: 1px solid var(--border); background: var(--surface-2);
             color: var(--text); font-size: 0.9rem; font-family: inherit;
         }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
-        .cancel-btn {
+        .rw-form-group textarea { resize: vertical; min-height: 80px; }
+        .rw-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .rw-form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+        .rw-cancel-btn {
             padding: 8px 20px; border-radius: 8px; font-size: 0.85rem;
             border: 1px solid var(--border); background: none;
             color: var(--text-muted); cursor: pointer;
         }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-        a { color: var(--accent); }
-        .watch-url { font-size: 0.8rem; word-break: break-all; }
+        .rw-empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .rw-url { font-size: 0.8rem; word-break: break-all; }
+        .rw-url a { color: var(--accent); }
     </style>
 {% if not fragment %}
 </head>
@@ -126,78 +128,78 @@
     <main>
         <div class="container">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <h1><span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>Regulatory Watch</h1>
-                <button class="create-btn" onclick="document.getElementById('createOverlay').classList.add('active')">+ New Item</button>
+                <h1>{% if not fragment %}<span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>{% endif %}Regulatory Watch</h1>
+                <button class="rw-create-btn" onclick="document.getElementById('rwCreateOverlay').classList.add('active')">+ New Item</button>
             </div>
-            <p class="subtitle">Track pending legislation, code amendments, and DBI bulletins that may affect LUCK (Land Use Consultants Knowledgebase).</p>
+            <p class="rw-subtitle">Track pending legislation, code amendments, and DBI bulletins that may affect LUCK (Land Use Consultants Knowledgebase).</p>
 
             {% set rw_base = '/admin/ops/fragment/regulatory' if fragment else '/admin/regulatory-watch' %}
-            <div class="filters">
-                <a href="{{ rw_base }}" class="filter-btn {% if not current_status %}active{% endif %}"
+            <div class="rw-filters">
+                <a href="{{ rw_base }}" class="rw-filter-btn {% if not current_status %}active{% endif %}"
                    {% if fragment %}hx-get="{{ rw_base }}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>All ({{ items|length }})</a>
-                <a href="{{ rw_base }}?status=monitoring" class="filter-btn {% if current_status == 'monitoring' %}active{% endif %}"
+                <a href="{{ rw_base }}?status=monitoring" class="rw-filter-btn {% if current_status == 'monitoring' %}active{% endif %}"
                    {% if fragment %}hx-get="{{ rw_base }}?status=monitoring" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Monitoring</a>
-                <a href="{{ rw_base }}?status=passed" class="filter-btn {% if current_status == 'passed' %}active{% endif %}"
+                <a href="{{ rw_base }}?status=passed" class="rw-filter-btn {% if current_status == 'passed' %}active{% endif %}"
                    {% if fragment %}hx-get="{{ rw_base }}?status=passed" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Passed</a>
-                <a href="{{ rw_base }}?status=effective" class="filter-btn {% if current_status == 'effective' %}active{% endif %}"
+                <a href="{{ rw_base }}?status=effective" class="rw-filter-btn {% if current_status == 'effective' %}active{% endif %}"
                    {% if fragment %}hx-get="{{ rw_base }}?status=effective" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Effective</a>
-                <a href="{{ rw_base }}?status=withdrawn" class="filter-btn {% if current_status == 'withdrawn' %}active{% endif %}"
+                <a href="{{ rw_base }}?status=withdrawn" class="rw-filter-btn {% if current_status == 'withdrawn' %}active{% endif %}"
                    {% if fragment %}hx-get="{{ rw_base }}?status=withdrawn" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Withdrawn</a>
             </div>
 
             {% if not items %}
-            <div class="empty-state">
+            <div class="rw-empty-state">
                 <p>No regulatory watch items{% if current_status %} with status "{{ current_status }}"{% endif %}.</p>
                 <p style="margin-top:8px;">Click "+ New Item" to start tracking pending legislation.</p>
             </div>
             {% endif %}
 
             {% for item in items %}
-            <div class="watch-item" id="item-{{ item.watch_id }}">
-                <div class="watch-header">
-                    <div class="watch-title">{{ item.title }}</div>
-                    <span class="badge impact-{{ item.impact_level }}">{{ item.impact_level }}</span>
-                    <span class="badge status-{{ item.status }}">{{ item.status }}</span>
+            <div class="rw-item" id="item-{{ item.watch_id }}">
+                <div class="rw-header">
+                    <div class="rw-title">{{ item.title }}</div>
+                    <span class="rw-badge rw-impact-{{ item.impact_level }}">{{ item.impact_level }}</span>
+                    <span class="rw-badge rw-status-{{ item.status }}">{{ item.status }}</span>
                 </div>
-                <div class="watch-meta">
+                <div class="rw-meta">
                     {{ item.source_type | replace('_', ' ') | title }} &mdash; {{ item.source_id }}
                     {% if item.filed_date %} &middot; Filed {{ item.filed_date }}{% endif %}
                     {% if item.effective_date %} &middot; Effective {{ item.effective_date }}{% endif %}
                 </div>
                 {% if item.description %}
-                <div class="watch-description">{{ item.description }}</div>
+                <div class="rw-description">{{ item.description }}</div>
                 {% endif %}
                 {% if item.affected_sections_list %}
-                <div class="watch-sections">
+                <div class="rw-sections">
                     {% for s in item.affected_sections_list %}
-                    <span class="section-tag">{{ s }}</span>
+                    <span class="rw-section-tag">{{ s }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}
                 {% if item.url %}
-                <div class="watch-url"><a href="{{ item.url }}" target="_blank">{{ item.url }}</a></div>
+                <div class="rw-url"><a href="{{ item.url }}" target="_blank">{{ item.url }}</a></div>
                 {% endif %}
                 {% if item.notes %}
-                <div class="watch-notes">{{ item.notes }}</div>
+                <div class="rw-notes">{{ item.notes }}</div>
                 {% endif %}
-                <div class="watch-actions">
+                <div class="rw-actions">
                     <form method="POST" action="/admin/regulatory-watch/{{ item.watch_id }}/update" style="display:inline;">
                         {% if item.status == 'monitoring' %}
-                        <button name="status" value="passed" class="action-btn">Mark Passed</button>
+                        <button name="status" value="passed" class="rw-action-btn">Mark Passed</button>
                         {% endif %}
                         {% if item.status == 'passed' %}
-                        <button name="status" value="effective" class="action-btn">Mark Effective</button>
+                        <button name="status" value="effective" class="rw-action-btn">Mark Effective</button>
                         {% endif %}
                         {% if item.status != 'withdrawn' %}
-                        <button name="status" value="withdrawn" class="action-btn">Withdraw</button>
+                        <button name="status" value="withdrawn" class="rw-action-btn">Withdraw</button>
                         {% endif %}
                         {% if item.status == 'withdrawn' %}
-                        <button name="status" value="monitoring" class="action-btn">Reactivate</button>
+                        <button name="status" value="monitoring" class="rw-action-btn">Reactivate</button>
                         {% endif %}
                     </form>
                     <form method="POST" action="/admin/regulatory-watch/{{ item.watch_id }}/delete" style="display:inline;"
                           onsubmit="return confirm('Delete this watch item?');">
-                        <button class="action-btn danger">Delete</button>
+                        <button class="rw-action-btn danger">Delete</button>
                     </form>
                 </div>
             </div>
@@ -206,20 +208,20 @@
     </main>
 
     <!-- Create form overlay (works in both standalone and fragment mode) -->
-    <div class="form-overlay" id="createOverlay">
-        <div class="form-card">
+    <div class="rw-form-overlay" id="rwCreateOverlay">
+        <div class="rw-form-card">
             <h2>New Watch Item</h2>
             <form method="POST" action="/admin/regulatory-watch/create">
-                <div class="form-group">
+                <div class="rw-form-group">
                     <label>Title *</label>
                     <input type="text" name="title" required placeholder="e.g., Permit Expiration Timeline Revision">
                 </div>
-                <div class="form-group">
+                <div class="rw-form-group">
                     <label>Description</label>
                     <textarea name="description" placeholder="What this legislation does and how it affects permits..."></textarea>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
+                <div class="rw-form-row">
+                    <div class="rw-form-group">
                         <label>Source Type *</label>
                         <select name="source_type" required>
                             <option value="bos_file">Board of Supervisors File</option>
@@ -229,13 +231,13 @@
                             <option value="other">Other</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="rw-form-group">
                         <label>Source ID *</label>
                         <input type="text" name="source_id" required placeholder="e.g., File No. 250811">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
+                <div class="rw-form-row">
+                    <div class="rw-form-group">
                         <label>Impact Level</label>
                         <select name="impact_level">
                             <option value="high">High</option>
@@ -243,7 +245,7 @@
                             <option value="low">Low</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="rw-form-group">
                         <label>Status</label>
                         <select name="status">
                             <option value="monitoring" selected>Monitoring</option>
@@ -252,35 +254,35 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="rw-form-group">
                     <label>Affected Sections (comma-separated)</label>
                     <input type="text" name="affected_sections" placeholder="e.g., 106A.3.4.2.3, 106A.3.7, 106A.4.4">
                 </div>
-                <div class="form-group">
+                <div class="rw-form-group">
                     <label>Semantic Concepts (comma-separated)</label>
                     <input type="text" name="semantic_concepts" placeholder="e.g., permit_expiration, fee_calculation">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
+                <div class="rw-form-row">
+                    <div class="rw-form-group">
                         <label>Filed Date</label>
                         <input type="date" name="filed_date">
                     </div>
-                    <div class="form-group">
+                    <div class="rw-form-group">
                         <label>Effective Date</label>
                         <input type="date" name="effective_date">
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="rw-form-group">
                     <label>URL</label>
                     <input type="url" name="url" placeholder="https://...">
                 </div>
-                <div class="form-group">
+                <div class="rw-form-group">
                     <label>Notes</label>
                     <textarea name="notes" placeholder="Additional context..."></textarea>
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="cancel-btn" onclick="document.getElementById('createOverlay').classList.remove('active')">Cancel</button>
-                    <button type="submit" class="create-btn">Create</button>
+                <div class="rw-form-actions">
+                    <button type="button" class="rw-cancel-btn" onclick="document.getElementById('rwCreateOverlay').classList.remove('active')">Cancel</button>
+                    <button type="submit" class="rw-create-btn">Create</button>
                 </div>
             </form>
         </div>

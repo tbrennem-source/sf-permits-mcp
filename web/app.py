@@ -5009,6 +5009,50 @@ def api_user_points(user_id):
 # Database backup endpoint — pg_dump to local file or stdout
 # ---------------------------------------------------------------------------
 
+@app.route("/cron/seed-regulatory", methods=["POST"])
+def cron_seed_regulatory():
+    """Seed regulatory watch items from JSON array.
+
+    Protected by CRON_SECRET bearer token.
+    POST body: JSON array of items, each with: title, source_type, source_id,
+    and optional: description, status, impact_level, affected_sections,
+    semantic_concepts, url, filed_date, effective_date, notes.
+    """
+    _check_api_auth()
+    import json as _json
+    from web.regulatory_watch import create_watch_item
+
+    items = request.get_json(force=True, silent=True)
+    if not isinstance(items, list):
+        return jsonify({"error": "Expected JSON array of items"}), 400
+
+    created = []
+    for item in items:
+        try:
+            wid = create_watch_item(
+                title=item["title"],
+                source_type=item["source_type"],
+                source_id=item["source_id"],
+                description=item.get("description"),
+                status=item.get("status", "monitoring"),
+                impact_level=item.get("impact_level", "moderate"),
+                affected_sections=item.get("affected_sections"),
+                semantic_concepts=item.get("semantic_concepts"),
+                url=item.get("url"),
+                filed_date=item.get("filed_date"),
+                effective_date=item.get("effective_date"),
+                notes=item.get("notes"),
+            )
+            created.append({"title": item["title"], "watch_id": wid})
+        except Exception as exc:
+            created.append({"title": item.get("title", "?"), "error": str(exc)})
+
+    return jsonify({"created": len([c for c in created if "watch_id" in c]),
+                     "items": created})
+
+
+# ---------------------------------------------------------------------------
+
 @app.route("/cron/backup", methods=["POST"])
 def cron_backup():
     """Run pg_dump and store a timestamped backup.
