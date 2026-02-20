@@ -1,9 +1,11 @@
+{% if not fragment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Approval Pipeline — sfpermits.ai</title>
+{% endif %}
     <style>
         :root {
             --bg: #0f1117; --surface: #1a1d27; --surface-2: #22263a;
@@ -187,9 +189,11 @@
             .filter-divider { display: none; }
         }
     </style>
+{% if not fragment %}
 </head>
 <body>
     {% include 'fragments/nav.html' %}
+{% endif %}
 
     <main>
         <div class="container">
@@ -687,5 +691,7 @@
         if (e.key === 'Escape') closeDrawer();
     });
     </script>
+{% if not fragment %}
 </body>
 </html>
+{% endif %}

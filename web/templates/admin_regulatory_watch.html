@@ -1,3 +1,4 @@
+{% if not fragment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Regulatory Watch — sfpermits.ai</title>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+{% endif %}
     <style>
         :root {
             --bg: #0f1117;
@@ -111,6 +113,7 @@
         a { color: var(--accent); }
         .watch-url { font-size: 0.8rem; word-break: break-all; }
     </style>
+{% if not fragment %}
 </head>
 <body>
     <header>
@@ -119,6 +122,7 @@
             <a href="/" class="back-link">&larr; Home</a>
         </div>
     </header>
+{% endif %}
     <main>
         <div class="container">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -127,12 +131,18 @@
             </div>
             <p class="subtitle">Track pending legislation, code amendments, and DBI bulletins that may affect LUCK (Land Use Consultants Knowledgebase).</p>
 
+            {% set rw_base = '/admin/ops/fragment/regulatory' if fragment else '/admin/regulatory-watch' %}
             <div class="filters">
-                <a href="/admin/regulatory-watch" class="filter-btn {% if not current_status %}active{% endif %}">All ({{ items|length }})</a>
-                <a href="/admin/regulatory-watch?status=monitoring" class="filter-btn {% if current_status == 'monitoring' %}active{% endif %}">Monitoring</a>
-                <a href="/admin/regulatory-watch?status=passed" class="filter-btn {% if current_status == 'passed' %}active{% endif %}">Passed</a>
-                <a href="/admin/regulatory-watch?status=effective" class="filter-btn {% if current_status == 'effective' %}active{% endif %}">Effective</a>
-                <a href="/admin/regulatory-watch?status=withdrawn" class="filter-btn {% if current_status == 'withdrawn' %}active{% endif %}">Withdrawn</a>
+                <a href="{{ rw_base }}" class="filter-btn {% if not current_status %}active{% endif %}"
+                   {% if fragment %}hx-get="{{ rw_base }}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>All ({{ items|length }})</a>
+                <a href="{{ rw_base }}?status=monitoring" class="filter-btn {% if current_status == 'monitoring' %}active{% endif %}"
+                   {% if fragment %}hx-get="{{ rw_base }}?status=monitoring" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Monitoring</a>
+                <a href="{{ rw_base }}?status=passed" class="filter-btn {% if current_status == 'passed' %}active{% endif %}"
+                   {% if fragment %}hx-get="{{ rw_base }}?status=passed" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Passed</a>
+                <a href="{{ rw_base }}?status=effective" class="filter-btn {% if current_status == 'effective' %}active{% endif %}"
+                   {% if fragment %}hx-get="{{ rw_base }}?status=effective" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Effective</a>
+                <a href="{{ rw_base }}?status=withdrawn" class="filter-btn {% if current_status == 'withdrawn' %}active{% endif %}"
+                   {% if fragment %}hx-get="{{ rw_base }}?status=withdrawn" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Withdrawn</a>
             </div>
 
             {% if not items %}
@@ -195,7 +205,7 @@
         </div>
     </main>
 
-    <!-- Create form overlay -->
+    <!-- Create form overlay (works in both standalone and fragment mode) -->
     <div class="form-overlay" id="createOverlay">
         <div class="form-card">
             <h2>New Watch Item</h2>
@@ -275,5 +285,7 @@
             </form>
         </div>
     </div>
+{% if not fragment %}
 </body>
 </html>
+{% endif %}

@@ -1,3 +1,4 @@
+{% if not fragment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Feedback Queue — sfpermits.ai</title>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+{% endif %}
     <style>
         :root {
             --bg: #0f1117;
@@ -63,6 +65,7 @@
         .action-btn.resolve { border-color: var(--success); color: var(--success); }
         .empty { color: var(--text-muted); font-style: italic; padding: 40px 0; text-align: center; }
     </style>
+{% if not fragment %}
 </head>
 <body>
     <header>
@@ -71,6 +74,7 @@
             <a href="/" class="back-link">&larr; Home</a>
         </div>
     </header>
+{% endif %}
     <main>
         <div class="container">
             <h1><span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>Feedback Queue</h1>
@@ -81,12 +85,18 @@
                 {{ counts.get('resolved', 0) }} resolved
             </p>
 
+            {% set fb_base = '/admin/ops/fragment/feedback' if fragment else '/admin/feedback' %}
             <div class="filters">
-                <a href="/admin/feedback" class="filter-btn {{ 'active' if not current_status else '' }}">All</a>
-                <a href="/admin/feedback?status=new" class="filter-btn {{ 'active' if current_status == 'new' else '' }}">New</a>
-                <a href="/admin/feedback?status=reviewed" class="filter-btn {{ 'active' if current_status == 'reviewed' else '' }}">Reviewed</a>
-                <a href="/admin/feedback?status=resolved" class="filter-btn {{ 'active' if current_status == 'resolved' else '' }}">Resolved</a>
-                <a href="/admin/feedback?status=wontfix" class="filter-btn {{ 'active' if current_status == 'wontfix' else '' }}">Won't Fix</a>
+                <a href="{{ fb_base }}" class="filter-btn {{ 'active' if not current_status else '' }}"
+                   {% if fragment %}hx-get="{{ fb_base }}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>All</a>
+                <a href="{{ fb_base }}?status=new" class="filter-btn {{ 'active' if current_status == 'new' else '' }}"
+                   {% if fragment %}hx-get="{{ fb_base }}?status=new" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>New</a>
+                <a href="{{ fb_base }}?status=reviewed" class="filter-btn {{ 'active' if current_status == 'reviewed' else '' }}"
+                   {% if fragment %}hx-get="{{ fb_base }}?status=reviewed" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Reviewed</a>
+                <a href="{{ fb_base }}?status=resolved" class="filter-btn {{ 'active' if current_status == 'resolved' else '' }}"
+                   {% if fragment %}hx-get="{{ fb_base }}?status=resolved" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Resolved</a>
+                <a href="{{ fb_base }}?status=wontfix" class="filter-btn {{ 'active' if current_status == 'wontfix' else '' }}"
+                   {% if fragment %}hx-get="{{ fb_base }}?status=wontfix" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Won't Fix</a>
             </div>
 
             {% if items %}
@@ -159,5 +169,7 @@
             {% endif %}
         </div>
     </main>
+{% if not fragment %}
 </body>
 </html>
+{% endif %}

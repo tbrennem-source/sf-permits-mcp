@@ -1,3 +1,4 @@
+{% if not fragment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>LUCK Sources — sfpermits.ai</title>
+{% endif %}
     <style>
         :root {
             --bg: #0f1117;
@@ -160,6 +162,7 @@
             a[href]:after { content: none; }
         }
     </style>
+{% if not fragment %}
 </head>
 <body>
 
@@ -172,6 +175,7 @@
         </div>
     </div>
 </header>
+{% endif %}
 
 <main>
 <div class="container">
@@ -354,5 +358,7 @@
 </div>
 </main>
 
+{% if not fragment %}
 </body>
 </html>
+{% endif %}

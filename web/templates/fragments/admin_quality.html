@@ -1,0 +1,85 @@
+<style>
+    .dq-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px; margin-bottom: 24px;
+    }
+    .dq-card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 10px; padding: 16px 20px;
+    }
+    .dq-card.green { border-left: 3px solid var(--success); }
+    .dq-card.yellow { border-left: 3px solid var(--warning); }
+    .dq-card.red { border-left: 3px solid var(--error); }
+    .dq-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 6px;
+    }
+    .dq-name { font-weight: 600; font-size: 0.9rem; }
+    .dq-status {
+        font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+        padding: 2px 8px; border-radius: 4px;
+    }
+    .dq-status.green { background: rgba(52,211,153,0.15); color: var(--success); }
+    .dq-status.yellow { background: rgba(251,191,36,0.15); color: var(--warning); }
+    .dq-status.red { background: rgba(248,113,113,0.15); color: var(--error); }
+    .dq-value { font-size: 1.5rem; font-weight: 700; margin: 4px 0; }
+    .dq-unit { font-size: 0.8rem; color: var(--text-muted); }
+    .dq-detail { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; }
+    .dq-category-label {
+        font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;
+        letter-spacing: 0.05em; font-weight: 600; margin-bottom: 10px; margin-top: 24px;
+    }
+    .dq-category-label:first-child { margin-top: 0; }
+    .dq-summary {
+        display: flex; gap: 16px; margin-bottom: 20px; font-size: 0.85rem;
+    }
+    .dq-summary-item { display: flex; align-items: center; gap: 6px; }
+    .dq-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+    }
+    .dq-dot.green { background: var(--success); }
+    .dq-dot.yellow { background: var(--warning); }
+    .dq-dot.red { background: var(--error); }
+</style>
+
+<h2 style="font-size:1.1rem;margin-bottom:4px;color:var(--accent);">Data Quality</h2>
+<p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+    Live checks against the database — {{ checks | length }} checks run
+</p>
+
+{# Summary counts #}
+{% set green_count = checks | selectattr('status', 'equalto', 'green') | list | length %}
+{% set yellow_count = checks | selectattr('status', 'equalto', 'yellow') | list | length %}
+{% set red_count = checks | selectattr('status', 'equalto', 'red') | list | length %}
+
+<div class="dq-summary">
+    <div class="dq-summary-item"><span class="dq-dot green"></span> {{ green_count }} passing</div>
+    <div class="dq-summary-item"><span class="dq-dot yellow"></span> {{ yellow_count }} warning</div>
+    <div class="dq-summary-item"><span class="dq-dot red"></span> {{ red_count }} failing</div>
+</div>
+
+{# Group by category #}
+{% set categories = {'pipeline': 'Pipeline', 'anomaly': 'Data Anomalies', 'completeness': 'Completeness', 'system': 'System'} %}
+{% for cat_key, cat_label in categories.items() %}
+{% set cat_checks = checks | selectattr('category', 'equalto', cat_key) | list %}
+{% if cat_checks %}
+<div class="dq-category-label">{{ cat_label }}</div>
+<div class="dq-grid">
+    {% for check in cat_checks %}
+    <div class="dq-card {{ check.status }}">
+        <div class="dq-header">
+            <span class="dq-name">{{ check.name }}</span>
+            <span class="dq-status {{ check.status }}">
+                {% if check.status == 'green' %}&#10003; OK
+                {% elif check.status == 'yellow' %}&#9888; Warn
+                {% else %}&#10007; Fail{% endif %}
+            </span>
+        </div>
+        <div class="dq-value">{{ check.value }}</div>
+        <div class="dq-unit">{{ check.unit }}</div>
+        <div class="dq-detail">{{ check.detail }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endfor %}

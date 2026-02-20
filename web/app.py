@@ -3417,6 +3417,76 @@ def admin_ops():
     return render_template("admin_ops.html", user=g.user, active_page="admin")
 
 
+@app.route("/admin/ops/fragment/<tab>")
+@login_required
+def admin_ops_fragment(tab):
+    """HTMX fragment endpoints for admin ops hub tabs."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    if tab == "pipeline":
+        from web.velocity_dashboard import get_dashboard_data
+        user_id = g.user["user_id"] if g.user else None
+        data = get_dashboard_data(user_id=user_id)
+        return render_template("velocity_dashboard.html", data=data,
+                               active_page="admin", fragment=True)
+
+    elif tab == "quality":
+        from web.data_quality import run_all_checks
+        checks = run_all_checks()
+        return render_template("fragments/admin_quality.html", checks=checks)
+
+    elif tab == "activity":
+        from web.activity import get_recent_activity, get_activity_stats
+        action_filter = request.args.get("action") or None
+        user_id_filter_str = request.args.get("user_id") or None
+        user_id_filter = int(user_id_filter_str) if user_id_filter_str else None
+        activity = get_recent_activity(limit=100, action_filter=action_filter,
+                                        user_id_filter=user_id_filter)
+        stats = get_activity_stats(hours=24)
+        seen_ids: set = set()
+        users = []
+        for entry in activity:
+            uid = entry.get("user_id")
+            if uid and uid not in seen_ids:
+                seen_ids.add(uid)
+                users.append({"user_id": uid,
+                              "display_name": entry.get("display_name") or entry.get("email") or str(uid),
+                              "email": entry.get("email") or "",
+                              "action_count": sum(1 for a in activity if a.get("user_id") == uid)})
+        return render_template("admin_activity.html", user=g.user,
+                               activity=activity, stats=stats,
+                               action_filter=action_filter,
+                               user_id_filter=user_id_filter,
+                               users=users, fragment=True)
+
+    elif tab == "feedback":
+        from web.activity import get_feedback_queue, get_feedback_counts
+        status_filter = request.args.get("status")
+        items = get_feedback_queue(status=status_filter)
+        counts = get_feedback_counts()
+        return render_template("admin_feedback.html", user=g.user,
+                               items=items, counts=counts,
+                               current_status=status_filter, fragment=True)
+
+    elif tab == "sources":
+        from web.sources import get_source_inventory
+        inventory = get_source_inventory()
+        return render_template("admin_sources.html", user=g.user,
+                               fragment=True, **inventory)
+
+    elif tab == "regulatory":
+        from web.regulatory_watch import list_watch_items
+        status_filter = request.args.get("status")
+        items = list_watch_items(status_filter=status_filter)
+        return render_template("admin_regulatory_watch.html", user=g.user,
+                               items=items, current_status=status_filter,
+                               fragment=True)
+
+    else:
+        abort(404)
+
+
 @app.route("/admin/sources")
 @login_required
 def admin_sources():
