@@ -191,6 +191,13 @@
         .health-text.slower { color: var(--warning); }
         .health-text.behind { color: var(--error); }
         .health-text.at_risk { color: var(--error); }
+        .prop-health-reason {
+            font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;
+            font-style: italic;
+        }
+        .prop-card.health-at_risk .prop-health-reason { color: var(--error); opacity: 0.8; }
+        .prop-card.health-behind .prop-health-reason { color: var(--warning); opacity: 0.85; }
+        .prop-card.health-slower .prop-health-reason { color: var(--warning); opacity: 0.7; }
         .prop-stats { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
         .prop-enforcement { margin-bottom: 8px; }
         .enforcement-badge {
@@ -359,6 +366,9 @@
                                 <span class="health-text {{ prop.worst_health }}">{{ prop.worst_health | replace('_', ' ') }}</span>
                             </span>
                         </div>
+                        {% if prop.health_reason and prop.worst_health != 'on_track' %}
+                        <div class="prop-health-reason">{{ prop.health_reason }}</div>
+                        {% endif %}
                         <div class="prop-stats">
                             {{ prop.active_permits }} active of {{ prop.total_permits }} permits
                             {% if prop.neighborhood %} &middot; {{ prop.neighborhood }}{% endif %}

@@ -77,6 +77,10 @@
 
         .card-stats { display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
         .card-neighborhood { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+        .card-health-reason { font-size: 0.75rem; font-style: italic; margin-bottom: 6px; }
+        .health-at_risk .card-health-reason { color: var(--error); opacity: 0.85; }
+        .health-behind .card-health-reason { color: var(--warning); opacity: 0.85; }
+        .health-slower .card-health-reason { color: var(--warning); opacity: 0.7; }
         .tag-pill { display: inline-block; background: rgba(79, 143, 247, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 4px; }
 
         .permit-list { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; display: none; }
@@ -150,6 +154,9 @@
                             <span class="health-text {{ prop.worst_health }}">{{ prop.worst_health | replace('_', ' ') | title }}</span>
                         </span>
                     </div>
+                    {% if prop.health_reason and prop.worst_health != 'on_track' %}
+                    <div class="card-health-reason">{{ prop.health_reason }}</div>
+                    {% endif %}
                     {% if prop.neighborhood %}
                     <div class="card-neighborhood">{{ prop.neighborhood }}</div>
                     {% endif %}

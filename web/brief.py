@@ -963,6 +963,16 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
             elif days_issued > 365 * 2:
                 health = "behind"
 
+        # Build health reason string for display in brief card
+        health_reason = ""
+        if health != "on_track":
+            if status == "filed" and filed_date:
+                days_filed = (today - filed_date).days
+                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
+            elif status == "issued" and issued_date:
+                days_issued = (today - issued_date).days
+                health_reason = f"{pn} issued {days_issued}d ago (open construction)"
+
         if key not in property_map:
             # Title-case for display: "125 MASON ST" -> "125 Mason St"
             display_addr = addr.title() if addr else f"{block}/{lot}"
@@ -976,6 +986,7 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
                 "total_permits": 0,
                 "active_permits": 0,
                 "worst_health": "on_track",
+                "health_reason": "",
                 "plancheck_permits": [],
                 "open_violations": None,
                 "open_complaints": None,
@@ -1003,6 +1014,7 @@ def _get_property_snapshot(user_id: int) -> list[dict]:
 
         if health_order.get(health, 0) > health_order.get(prop["worst_health"], 0):
             prop["worst_health"] = health
+            prop["health_reason"] = health_reason
 
     # Assign watch labels
     for w in watches:
