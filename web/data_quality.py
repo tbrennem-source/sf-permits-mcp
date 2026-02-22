@@ -30,16 +30,25 @@ def _timed_query(sql: str, params=None) -> list:
     On Postgres, wraps the query with ``SET LOCAL statement_timeout``
     so the DB kills it if it exceeds the limit.  On DuckDB, passes through.
     """
+    import time as _time
     from src.db import BACKEND, get_connection
     if BACKEND != "postgres":
         return _raw_query(sql, params)
 
+    t0 = _time.monotonic()
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(f"SET LOCAL statement_timeout = '{_DQ_QUERY_TIMEOUT_S * 1000}'")
             cur.execute(sql, params)
-            return cur.fetchall()
+            rows = cur.fetchall()
+            elapsed = _time.monotonic() - t0
+            logger.info("_timed_query OK (%.1fs): %s", elapsed, sql[:80])
+            return rows
+    except Exception as exc:
+        elapsed = _time.monotonic() - t0
+        logger.warning("_timed_query FAIL (%.1fs): %s — %s", elapsed, sql[:80], exc)
+        raise
     finally:
         conn.close()
 

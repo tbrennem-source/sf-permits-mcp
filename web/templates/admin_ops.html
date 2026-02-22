@@ -122,6 +122,7 @@
 
     var buttons = document.querySelectorAll('.tab-btn');
     var activeTab = null;
+    var contentLoaded = false;  // track whether ANY content has loaded
 
     // Hash aliases — allow friendly names in URL hash
     var hashAliases = {
@@ -130,12 +131,22 @@
         'watch': 'regulatory'
     };
 
+    // Helper: extract the trigger element from an HTMX event.
+    // HTMX 2.0 may put the element at evt.detail.elt OR
+    // evt.detail.requestConfig.elt depending on the event type.
+    function getTrigger(evt) {
+        var d = evt.detail || {};
+        return d.elt || (d.requestConfig && d.requestConfig.elt) || null;
+    }
+
     function showError(msg) {
+        contentLoaded = true;
         document.getElementById('tab-content').innerHTML =
             '<div class="tab-loading" style="color:var(--error);">' +
             (msg || 'Failed to load tab.') +
             ' <a href="javascript:location.reload()" style="color:var(--accent);">Reload page</a>' +
             '</div>';
+        buttons.forEach(function(b) { b.classList.remove('loading'); });
     }
 
     function activateTab(tabName) {
@@ -156,12 +167,14 @@
             if (this.classList.contains('active')) return;
             buttons.forEach(function(b) { b.classList.remove('active', 'loading'); });
             this.classList.add('loading');
+            contentLoaded = false;
         });
     });
 
     // After HTMX swaps content, mark the tab as active
     document.body.addEventListener('htmx:afterSwap', function(evt) {
-        var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
+        contentLoaded = true;
+        var trigger = getTrigger(evt);
         if (trigger && trigger.dataset && trigger.dataset.tab) {
             activateTab(trigger.dataset.tab);
         }
@@ -169,31 +182,30 @@
 
     // Handle HTTP errors (4xx, 5xx)
     document.body.addEventListener('htmx:responseError', function(evt) {
-        var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
-        if (trigger && trigger.dataset && trigger.dataset.tab) {
-            showError('Tab returned an error.');
-            trigger.classList.remove('loading');
-        }
+        showError('Tab returned an error (HTTP ' + ((evt.detail.xhr && evt.detail.xhr.status) || '?') + ').');
     });
 
-    // Handle network errors and timeouts (connection reset, CORS, 30s timeout)
+    // Handle network errors (connection reset, CORS failures)
     document.body.addEventListener('htmx:sendError', function(evt) {
-        var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
-        if (trigger && trigger.dataset && trigger.dataset.tab) {
-            showError('Request failed — server may be busy.');
-            trigger.classList.remove('loading');
-        }
+        showError('Request failed — server may be busy or unreachable.');
     });
 
+    // Handle client-side timeout (30s)
     document.body.addEventListener('htmx:timeout', function(evt) {
-        var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
-        if (trigger && trigger.dataset && trigger.dataset.tab) {
-            showError('Request timed out (30s).');
-            trigger.classList.remove('loading');
-        }
+        showError('Request timed out (30s). The server may be overloaded.');
     });
 
-    // Load initial tab from hash or default to quality (pipeline is slow)
+    // ── Fallback safety net ──────────────────────────────────────
+    // If nothing has loaded after 35s (HTMX timeout is 30s + 5s grace),
+    // force-show an error.  Catches edge cases where HTMX events don't
+    // fire or the event detail structure doesn't match our handlers.
+    setTimeout(function() {
+        if (!contentLoaded) {
+            showError('Page failed to load. The server did not respond in time.');
+        }
+    }, 35000);
+
+    // Load initial tab from hash or default to quality
     var hash = location.hash.replace('#', '') || 'quality';
     hash = hashAliases[hash] || hash;
     var initialBtn = document.querySelector('.tab-btn[data-tab="' + hash + '"]');

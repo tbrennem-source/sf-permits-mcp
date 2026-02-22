@@ -4093,8 +4093,12 @@ def _render_ops_tab(tab: str):
                                active_page="admin", fragment=True)
 
     elif tab == "quality":
+        import time as _time
+        _t0 = _time.monotonic()
+        app.logger.info("DQ tab: starting run_all_checks()")
         from web.data_quality import run_all_checks
         checks = run_all_checks()
+        app.logger.info("DQ tab: finished in %.1fs with %d results", _time.monotonic() - _t0, len(checks))
         return render_template("fragments/admin_quality.html", checks=checks)
 
     elif tab == "activity":
