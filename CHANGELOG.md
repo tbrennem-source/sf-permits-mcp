@@ -169,6 +169,33 @@ Major UX improvements to the Plan Analysis History page (`/account/analyses`), i
 ### Tests
 1,103 passed, 1 skipped (pre-existing `src.plan_images` module issue in test_plan_images.py/test_plan_ui.py).
 
+## Session 38f — Admin Ops QA Bug Fixes (2026-02-22)
+
+Fixes from Cowork QA of Sessions 38d/38e. 4 of 6 Admin Ops tabs had infinite spinners, hash routing was broken, and severity scoring missed active holds.
+
+### P0: Admin Ops Infinite Spinner Fix — `web/app.py`, `web/templates/admin_ops.html`
+- **Bug**: 4 of 6 Admin Ops tabs (Data Quality, User Activity, Feedback, LUCK Sources) showed infinite "Loading..." spinner. Only Pipeline Health (which had a SIGALRM timeout) and Regulatory Watch loaded.
+- **Root cause 1**: No server-side timeout on 4 tabs — slow DB queries could hang indefinitely until gunicorn killed the worker.
+- **Root cause 2**: Only `htmx:responseError` was handled (HTTP errors). Network-level failures (`htmx:sendError`) and timeouts (`htmx:timeout`) left the spinner running.
+- **Root cause 3**: Initial page load used `htmx.trigger(btn, 'click')` which fired before HTMX finished processing the DOM.
+- **Fix**: All 6 tabs now share a 25s SIGALRM timeout with graceful fallback. Added 30s client-side HTMX timeout (`htmx.config.timeout`), `htmx:sendError` and `htmx:timeout` event handlers. Deferred initial tab load via `setTimeout(fn, 0)`.
+
+### P1: Hash-to-Tab Mapping Fix — `web/templates/admin_ops.html`
+- **Bug**: `/admin/ops#luck` and `/admin/ops#pipeline` showed wrong tabs. `#luck` didn't match any `data-tab` value (button uses `sources`).
+- **Fix**: Added hash aliases (`luck→sources`, `dq→quality`, `watch→regulatory`). The "wrong tab" issue for `#pipeline` was actually the initial-load race (P0 fix).
+
+### P2: Severity Hold Bug — `web/brief.py`
+- **Bug**: 532 Sutter showed ON TRACK despite having a hold at PPC + 3 stalled stations. The hold upgrade only fired when `worst_health < at_risk`, but an expired permit had already set it to `at_risk`. Then post-processing saw "permit expired" and downgraded to `on_track` (≥5 active permits).
+- **Fix**: Active holds now always set the health reason (overwriting expired-permit reason). Post-processing explicitly skips properties with held stations or open enforcement.
+
+### P2: What Changed Timestamps — `web/templates/brief.html`
+- Permit status transition entries now show `change_date` alongside the status badges.
+
+### Tests
+- 1,103 passed, 1 skipped
+
+---
+
 ## Session 38e — Pipeline Timeout + DQ Sort + Activity Detail + Severity Brainstorm (2026-02-20)
 
 ### Pipeline Health Timeout — `web/app.py`
