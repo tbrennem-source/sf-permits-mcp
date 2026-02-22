@@ -41,7 +41,7 @@ async def search_violations(
     if complaint_number:
         conditions.append(f"complaint_number='{_escape(complaint_number)}'")
     if address:
-        conditions.append(f"upper(street_name) LIKE '%{_escape(address.upper())}%'")
+        conditions.append(f"upper(street_name)='{_escape(address.upper())}'")
     if street_number:
         conditions.append(f"street_number='{_escape(street_number)}'")
     if block:

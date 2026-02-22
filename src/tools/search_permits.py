@@ -56,7 +56,7 @@ async def search_permits(
     if date_to:
         conditions.append(f"filed_date <= '{_escape(date_to)}'")
     if address:
-        conditions.append(f"upper(street_name) LIKE '%{_escape(address.upper())}%'")
+        conditions.append(f"upper(street_name)='{_escape(address.upper())}'")
 
     where = " AND ".join(conditions) if conditions else None
     q = description_search  # $q for full-text search

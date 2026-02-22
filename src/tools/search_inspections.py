@@ -51,7 +51,7 @@ async def search_inspections(
     if address:
         # NOTE: inspections dataset uses avs_street_name, NOT street_name
         conditions.append(
-            f"upper(avs_street_name) LIKE '%{_escape(address.upper())}%'"
+            f"upper(avs_street_name)='{_escape(address.upper())}'"
         )
     if block:
         conditions.append(f"block='{_escape(block)}'")

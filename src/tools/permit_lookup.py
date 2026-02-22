@@ -98,26 +98,45 @@ def _lookup_by_address(conn, street_number: str, street_name: str) -> list[dict]
     """
     base_name, suffix = _strip_suffix(street_name)
 
-    # Build patterns for all match scenarios
-    base_pattern = f"%{base_name}%"
-    full_pattern = f"%{street_name}%"
-    # Space-stripped pattern for fuzzy space matching (e.g. "robin hood" → "robinhood")
-    nospace_pattern = f"%{base_name.replace(' ', '')}%"
+    # Exact match on street name to prevent false positives:
+    # "LAKE" should match "LAKE" only, not "BLAKE" or "LAKESHORE".
+    nospace_name = base_name.replace(' ', '')
 
     sql = f"""
         SELECT * FROM permits
         WHERE street_number = {_PH}
           AND (
-            UPPER(street_name) LIKE UPPER({_PH})
-            OR UPPER(street_name) LIKE UPPER({_PH})
-            OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER({_PH})
-            OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') LIKE UPPER({_PH})
+            UPPER(street_name) = UPPER({_PH})
+            OR UPPER(street_name) = UPPER({_PH})
+            OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) = UPPER({_PH})
+            OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') = UPPER({_PH})
           )
         ORDER BY filed_date DESC
         LIMIT 50
     """
-    rows = _exec(conn, sql, [street_number, base_pattern, full_pattern, full_pattern, nospace_pattern])
+    rows = _exec(conn, sql, [street_number, base_name, street_name, street_name, nospace_name])
     return [_row_to_dict(r) for r in rows]
+
+
+def _suggest_street_names(conn, street_number: str, street_name: str) -> list[tuple[str, int]]:
+    """Find similar street names when exact match returns nothing.
+
+    Returns list of (street_name, permit_count) tuples for streets at
+    the given street_number that contain the search term as a substring.
+    """
+    base_name, _ = _strip_suffix(street_name)
+    pattern = f"%{base_name}%"
+    sql = f"""
+        SELECT street_name, COUNT(*) as cnt
+        FROM permits
+        WHERE street_number = {_PH}
+          AND UPPER(street_name) LIKE UPPER({_PH})
+        GROUP BY street_name
+        ORDER BY cnt DESC
+        LIMIT 10
+    """
+    rows = _exec(conn, sql, [street_number, pattern])
+    return [(r[0], r[1]) for r in rows if r[0]]
 
 
 def _lookup_by_block_lot(conn, block: str, lot: str) -> list[dict]:
@@ -679,9 +698,18 @@ async def permit_lookup(
             if not permits:
                 return f"No permit found with number **{permit_number.strip()}**."
         elif has_address:
-            permits = _lookup_by_address(conn, street_number.strip(), street_name.strip())
+            sn = street_number.strip()
+            sname = street_name.strip()
+            permits = _lookup_by_address(conn, sn, sname)
             if not permits:
-                return f"No permits found at **{street_number.strip()} {street_name.strip()}**."
+                # Fallback: suggest similar street names so the user can pick
+                suggestions = _suggest_street_names(conn, sn, sname)
+                if suggestions:
+                    lines = [f"No exact match for **{sn} {sname}**. Did you mean:\n"]
+                    for name, count in suggestions:
+                        lines.append(f"- **{name}** ({count} permits)")
+                    return "\n".join(lines)
+                return f"No permits found at **{sn} {sname}**."
         else:
             permits = _lookup_by_block_lot(conn, block.strip(), lot.strip())
             if not permits:

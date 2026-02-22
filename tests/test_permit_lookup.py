@@ -331,9 +331,12 @@ def test_lookup_by_address():
 
     result = _lookup_by_address(mock_conn, "123", "Main")
     assert len(result) == 1
-    # Verify wildcard wrapping in params
+    # Verify exact match params — no wildcards (prevents "BLAKE" matching "LAKE")
     call_args = mock_conn.execute.call_args
-    assert "%Main%" in call_args[0][1]
+    params = call_args[0][1]
+    assert "Main" in params
+    assert "%Main%" not in params
+    assert "Main%" not in params
 
 
 @patch("src.tools.permit_lookup.BACKEND", "duckdb")
@@ -589,5 +592,26 @@ async def test_permit_lookup_address_no_match(mock_get_conn):
     mock_conn.execute.return_value.fetchall.return_value = []
 
     result = await permit_lookup(street_number="999", street_name="Nowhere")
-    assert "No permits found" in result
-    assert "999 Nowhere" in result
+    assert "No permits found" in result or "No exact match" in result
+    assert "999" in result and "Nowhere" in result
+
+
+@pytest.mark.asyncio
+@patch("src.tools.permit_lookup.get_connection")
+@patch("src.tools.permit_lookup.BACKEND", "duckdb")
+@patch("src.tools.permit_lookup._PH", "?")
+async def test_permit_lookup_address_suggestions(mock_get_conn):
+    """When exact match fails but similar streets exist, show suggestions."""
+    mock_conn = MagicMock()
+    mock_get_conn.return_value = mock_conn
+    # First call (exact match) returns nothing; second call (suggestions) returns options
+    mock_conn.execute.return_value.fetchall.side_effect = [
+        [],                                      # exact match — empty
+        [("BLAKE", 18), ("LAKE MERCED", 7)],     # suggestion query
+    ]
+
+    result = await permit_lookup(street_number="146", street_name="Lake")
+    assert "Did you mean" in result
+    assert "BLAKE" in result
+    assert "LAKE MERCED" in result
+    assert "18 permits" in result
