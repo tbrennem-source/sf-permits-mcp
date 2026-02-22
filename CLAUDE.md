@@ -90,6 +90,13 @@ Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze
 | Postgres | Old DB (removed, pending deletion, volume has 5.6GB data) | Removed |
 | Postgres-CrX7 | Old DB (removed, pending deletion, volume has 1.1GB data) | Removed |
 
+### Other Railway Projects (same account, Pro plan)
+
+| Project | Service | What it is |
+|---|---|---|
+| **fortunate-cooperation** | `chief-mcp-server` | Chief brain state MCP server — manages tasks, goals, notes, specs via git-backed state |
+| **optimistic-mindfulness** | `worker` | Telegram bot |
+
 ### MCP Server (sfpermits-mcp-api)
 
 **MCP URL**: `https://sfpermits-mcp-api-production.up.railway.app/mcp`
@@ -213,3 +220,37 @@ Deployment is handled automatically by Railway via the GitHub integration whenev
 - `railway up` — conflicts with GitHub auto-deploy
 - `railway deploy` — same issue
 - `railway redeploy --yes` — only restarts old image, doesn't rebuild from new code
+
+## QA + Scenario Capture Protocol
+This protocol applies at the close of EVERY feature session. Do not skip it.
+### Step 1: Generate Cowork QA Script
+Write a QA script to `qa-drop/[feature-name]-qa.md`. Rules:
+- Name the file after the feature (e.g., `qa-drop/routing-progress-qa.md`)
+- Script must be self-contained — no setup, no credentials, no prior context needed
+- Structure as numbered steps Cowork can execute sequentially
+- Each step has an explicit PASS/FAIL criterion
+- Cover happy path, empty state, and at least one edge case
+- NO route-specific assertions unless absolutely necessary
+- NO color/style assertions
+- Output format: compact checklist, not prose
+### Step 2: Append Suggested Scenarios
+Append to `scenarios-pending-review.md` in repo root (create if missing).
+Use exactly this format for each scenario:
+## SUGGESTED SCENARIO: [short descriptive name]
+**Source:** [feature or file that prompted this]
+**User:** expediter | homeowner | architect | admin
+**Starting state:** [what's true before the action]
+**Goal:** [what the user is trying to accomplish]
+**Expected outcome:** [success criteria — no routes, no UI specifics, no colors]
+**Edge cases seen in code:** [boundary conditions you noticed — optional]
+**CC confidence:** high | medium | low
+**Status:** PENDING REVIEW
+Guidance:
+- High confidence = core behavior that would break Amy's workflow if missing
+- Medium confidence = important but might be implementation detail
+- Low confidence = noticed in code but unsure if intentional product behavior
+- Aim for 2-5 scenarios per feature session
+- Never modify `scenario-design-guide.md` directly — that file is reviewed externally
+### Step 3: Notify
+After writing both files, output a single summary line:
+`QA READY: qa-drop/[filename] | [N] scenarios appended to scenarios-pending-review.md`
