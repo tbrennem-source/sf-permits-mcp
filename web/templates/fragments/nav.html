@@ -34,20 +34,23 @@
         display: none;
         position: absolute;
         right: 0;
-        top: calc(100% + 6px);
+        top: 100%;
+        padding-top: 6px;       /* invisible bridge covers the hover gap */
+        min-width: 200px;
+        z-index: 1000;
+    }
+    .admin-dropdown-menu-inner {
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 10px;
         padding: 6px 0;
-        min-width: 200px;
-        z-index: 1000;
         box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
     .admin-dropdown:hover .admin-dropdown-menu,
     .admin-dropdown:focus-within .admin-dropdown-menu {
         display: block;
     }
-    .admin-dropdown-menu a {
+    .admin-dropdown-menu-inner a {
         display: block;
         padding: 8px 16px;
         color: var(--text-muted);
@@ -55,7 +58,7 @@
         font-size: 0.75rem;
         white-space: nowrap;
     }
-    .admin-dropdown-menu a:hover {
+    .admin-dropdown-menu-inner a:hover {
         color: var(--text);
         background: var(--surface-2);
     }
@@ -74,12 +77,14 @@
             <div class="admin-dropdown">
                 <span class="badge {% if active_page == 'admin' %}badge-active{% endif %}" tabindex="0">&#9881;&#65039; Admin &#9662;</span>
                 <div class="admin-dropdown-menu">
-                    <a href="/admin/ops#pipeline">Pipeline Health</a>
-                    <a href="/admin/ops#quality">Data Quality</a>
-                    <a href="/admin/ops#activity">User Activity</a>
-                    <a href="/admin/ops#feedback">Feedback</a>
-                    <a href="/admin/ops#sources">LUCK Sources</a>
-                    <a href="/admin/ops#regulatory">Regulatory Watch</a>
+                    <div class="admin-dropdown-menu-inner">
+                        <a href="/admin/ops#pipeline">Pipeline Health</a>
+                        <a href="/admin/ops#quality">Data Quality</a>
+                        <a href="/admin/ops#activity">User Activity</a>
+                        <a href="/admin/ops#feedback">Feedback</a>
+                        <a href="/admin/ops#sources">LUCK Sources</a>
+                        <a href="/admin/ops#regulatory">Regulatory Watch</a>
+                    </div>
                 </div>
             </div>
             {% endif %}

@@ -205,15 +205,19 @@
         }
     }, 35000);
 
-    // Load initial tab from hash or default to quality
+    // Load initial tab from hash or default to quality.
+    // Uses htmx.ajax() directly instead of simulating a button click,
+    // because the inline script runs BEFORE HTMX's DOMContentLoaded
+    // handler processes hx-get attributes on the buttons.  A simulated
+    // .click() would fire before HTMX is listening, causing a no-op.
     var hash = location.hash.replace('#', '') || 'quality';
     hash = hashAliases[hash] || hash;
     var initialBtn = document.querySelector('.tab-btn[data-tab="' + hash + '"]');
     if (!initialBtn) initialBtn = document.querySelector('.tab-btn[data-tab="quality"]');
     if (initialBtn) {
         initialBtn.classList.add('loading');
-        // Defer to next tick so HTMX has finished processing the DOM
-        setTimeout(function() { initialBtn.click(); }, 0);
+        // htmx.ajax bypasses element processing — works immediately
+        htmx.ajax('GET', '/admin/ops/fragment/' + hash, {target: '#tab-content', swap: 'innerHTML'});
     }
 })();
 </script>

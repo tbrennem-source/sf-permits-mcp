@@ -28,8 +28,8 @@ _DQ_QUERY_TIMEOUT_S = 15
 
 def _ph():
     """Return the correct placeholder for the current DB engine."""
-    from src.db import _placeholder
-    return _placeholder()
+    from src.db import BACKEND
+    return "%s" if BACKEND == "postgres" else "?"
 
 
 def _timed_query(sql: str, params=None) -> list:
@@ -394,7 +394,7 @@ def _check_cost_outliers() -> dict:
     rows = _timed_query(
         "SELECT COUNT(*) FROM permits "
         "WHERE (revised_cost > 500000000 OR estimated_cost > 500000000) "
-        "AND permit_type_definition NOT ILIKE '%new construction%'",
+        "AND permit_type_definition NOT ILIKE '%%new construction%%'",
         (),
     )
     count = rows[0][0] if rows else 0
@@ -437,7 +437,7 @@ def _check_orphaned_contacts() -> dict:
 def _check_inspection_null_rate() -> dict:
     """Check what percentage of inspections have null results."""
     rows = _timed_query(
-        "SELECT COUNT(*) FROM inspections WHERE inspection_type_desc IS NULL OR inspection_type_desc = ''",
+        "SELECT COUNT(*) FROM inspections WHERE inspection_description IS NULL OR inspection_description = ''",
         (),
     )
     null_count = rows[0][0] if rows else 0
