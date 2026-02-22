@@ -3795,7 +3795,7 @@ def feedback_submit():
     if screenshot_data:
         if not screenshot_data.startswith("data:image/"):
             screenshot_data = None
-        elif len(screenshot_data) > 2 * 1024 * 1024:
+        elif len(screenshot_data) > 5 * 1024 * 1024:
             screenshot_data = None
 
     user_id = g.user["user_id"] if g.user else None

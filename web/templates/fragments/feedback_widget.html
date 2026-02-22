@@ -115,7 +115,7 @@
     });
 })();
 
-var FB_MAX_BYTES = 2 * 1024 * 1024; // 2MB base64 limit
+var FB_MAX_BYTES = 5 * 1024 * 1024; // 5MB base64 limit
 var _html2canvasLoaded = false;
 
 function _loadHtml2Canvas(callback) {
@@ -206,7 +206,7 @@ function fbHandleFileUpload(input) {
     reader.onload = function(e) {
         var dataUrl = e.target.result;
         if (dataUrl.length > FB_MAX_BYTES) {
-            status.textContent = 'Image too large (max ~1.5MB).';
+            status.textContent = 'Image too large (max ~4MB).';
             status.style.color = 'var(--error, #f87171)';
             return;
         }

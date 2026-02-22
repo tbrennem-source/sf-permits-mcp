@@ -479,17 +479,17 @@ def test_feedback_screenshot_invalid_data_dropped(client):
 
 
 def test_feedback_screenshot_too_large_dropped(client):
-    """Screenshot data exceeding 2MB is silently dropped by the route."""
+    """Screenshot data exceeding 5MB is silently dropped by the route."""
     _login_user(client)
-    # Build a data URL just over the 2MB threshold
+    # Build a data URL just over the 5MB threshold
     # Use a shorter payload to avoid Flask request size issues in tests
-    large_data = "data:image/jpeg;base64," + "A" * (2 * 1024 * 1024 + 100)
+    large_data = "data:image/jpeg;base64," + "A" * (5 * 1024 * 1024 + 100)
     # Test the validation logic directly via the app context
     with app.test_request_context():
         screenshot_data = large_data
         if not screenshot_data.startswith("data:image/"):
             screenshot_data = None
-        elif len(screenshot_data) > 2 * 1024 * 1024:
+        elif len(screenshot_data) > 5 * 1024 * 1024:
             screenshot_data = None
         assert screenshot_data is None, "Oversized screenshot should be rejected"
 

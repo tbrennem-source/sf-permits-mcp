@@ -598,6 +598,12 @@ async def test_permit_lookup_by_address_multiple(mock_get_conn):
     mock_conn.execute.return_value.fetchall.side_effect = [
         # _lookup_by_address
         [permit_row_1, permit_row_2],
+        # parcel merge: _lookup_by_block_lot → _find_historical_lots step 1
+        [("123", "Main")],
+        # parcel merge: _lookup_by_block_lot → _find_historical_lots step 2
+        [("001",)],
+        # parcel merge: _lookup_by_block_lot actual query (same permits, deduped)
+        [permit_row_1, permit_row_2],
         # _get_recent_addenda_activity (called from _summarize_recent_activity)
         [],
         # _get_timeline for first permit

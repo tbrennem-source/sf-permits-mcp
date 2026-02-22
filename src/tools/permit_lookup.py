@@ -791,6 +791,26 @@ async def permit_lookup(
                         lines.append(f"- **{name}** ({count} permits)")
                     return "\n".join(lines)
                 return f"No permits found at **{sn} {sname}**."
+
+            # Merge parcel-level permits: multi-unit buildings may have
+            # permits filed under different street numbers (e.g., 144 vs 146).
+            # Resolve the block/lot from the address results, then pull all
+            # permits at that parcel (including historical lots).
+            first_block = permits[0].get("block")
+            first_lot = permits[0].get("lot")
+            if first_block and first_lot:
+                parcel_permits = _lookup_by_block_lot(conn, first_block, first_lot)
+                # Merge: add any parcel permits not already in the address results
+                seen = {p["permit_number"] for p in permits}
+                for pp in parcel_permits:
+                    if pp["permit_number"] not in seen:
+                        permits.append(pp)
+                        seen.add(pp["permit_number"])
+                # Re-sort by filed_date DESC after merge
+                permits.sort(
+                    key=lambda p: p.get("filed_date") or "",
+                    reverse=True,
+                )
         else:
             permits = _lookup_by_block_lot(conn, block.strip(), lot.strip())
             if not permits:
