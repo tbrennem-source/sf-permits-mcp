@@ -190,6 +190,36 @@ async def test_search_addenda_by_permit():
         mock_conn.close.assert_called_once()
 
 
+@pytest.mark.asyncio
+async def test_search_addenda_date_sanity_filter():
+    """search_addenda should exclude far-future dates by default (no explicit date_to)."""
+    with patch("src.tools.search_addenda.get_connection") as mock_conn_fn:
+        mock_conn = MagicMock()
+        mock_conn_fn.return_value = mock_conn
+        mock_conn.execute.return_value.fetchall.return_value = []
+
+        from src.tools.search_addenda import search_addenda as _sa
+        await _sa(station="BLDG")
+
+        call_args = mock_conn.execute.call_args
+        sql = call_args[0][0]
+        assert "2030-12-31" in sql  # sanity filter applied when no date_to given
+
+    # When date_to is explicitly provided, sanity cap should NOT be added
+    with patch("src.tools.search_addenda.get_connection") as mock_conn_fn2:
+        mock_conn2 = MagicMock()
+        mock_conn_fn2.return_value = mock_conn2
+        mock_conn2.execute.return_value.fetchall.return_value = []
+
+        from src.tools.search_addenda import search_addenda as _sa2
+        await _sa2(station="BLDG", date_to="2210-01-01")
+
+        call_args2 = mock_conn2.execute.call_args
+        sql2 = call_args2[0][0]
+        assert "2030-12-31" not in sql2  # explicit date_to overrides sanity filter
+        assert "2210-01-01" in str(call_args2)
+
+
 # ── Report links tests ───────────────────────────────────────────
 
 

@@ -69,6 +69,11 @@ async def search_addenda(
     if not conditions:
         return "Please provide at least one filter: permit_number, station, reviewer, department, review_result, or date range."
 
+    # Exclude erroneous far-future dates from upstream SODA data (e.g., year 2200+)
+    # Only applied when the caller hasn't set an explicit upper date bound.
+    if not date_to:
+        conditions.append(f"(finish_date IS NULL OR finish_date <= '2030-12-31')")
+
     fetch_limit = min(limit, 200)
     where = " AND ".join(conditions)
 
