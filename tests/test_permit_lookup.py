@@ -18,6 +18,7 @@ from src.tools.permit_lookup import (
     _lookup_by_number,
     _lookup_by_address,
     _lookup_by_block_lot,
+    _find_historical_lots,
     _get_contacts,
     _get_inspections,
     _get_timeline,
@@ -344,10 +345,66 @@ def test_lookup_by_address():
 def test_lookup_by_block_lot():
     mock_conn = MagicMock()
     row = tuple(["P001"] + [None] * 25)
-    mock_conn.execute.return_value.fetchall.return_value = [row]
+    mock_conn.execute.return_value.fetchall.side_effect = [
+        # _find_historical_lots: step 1 — get address from current lot
+        [("123", "MAIN")],
+        # _find_historical_lots: step 2 — find all lots at that address
+        [("001",)],
+        # actual permit query
+        [row],
+    ]
 
     result = _lookup_by_block_lot(mock_conn, "3512", "001")
     assert len(result) == 1
+
+
+@patch("src.tools.permit_lookup.BACKEND", "duckdb")
+@patch("src.tools.permit_lookup._PH", "?")
+def test_find_historical_lots_discovers_old_lot():
+    """When a condo conversion changed the lot number, find both old and new."""
+    mock_conn = MagicMock()
+    mock_conn.execute.return_value.fetchall.side_effect = [
+        # Step 1: address from current lot 069
+        [("146", "LAKE")],
+        # Step 2: all lots at 146 LAKE on block 1355
+        [("017",), ("069",)],
+    ]
+    lots = _find_historical_lots(mock_conn, "1355", "069")
+    assert "069" in lots
+    assert "017" in lots
+    assert len(lots) == 2
+
+
+@patch("src.tools.permit_lookup.BACKEND", "duckdb")
+@patch("src.tools.permit_lookup._PH", "?")
+def test_find_historical_lots_no_address():
+    """When no permits exist for the lot, return just the input lot."""
+    mock_conn = MagicMock()
+    mock_conn.execute.return_value.fetchall.return_value = []
+    lots = _find_historical_lots(mock_conn, "9999", "999")
+    assert lots == ["999"]
+
+
+@patch("src.tools.permit_lookup.BACKEND", "duckdb")
+@patch("src.tools.permit_lookup._PH", "?")
+def test_lookup_by_block_lot_multi_lot():
+    """Block/lot lookup merges permits across historical lot numbers."""
+    mock_conn = MagicMock()
+    old_row = tuple(["P001"] + [None] * 25)
+    new_row = tuple(["P002"] + [None] * 25)
+    mock_conn.execute.return_value.fetchall.side_effect = [
+        # _find_historical_lots: step 1 — get address
+        [("146", "LAKE")],
+        # _find_historical_lots: step 2 — both lots
+        [("017",), ("069",)],
+        # actual permit query (IN clause with both lots)
+        [old_row, new_row],
+    ]
+
+    result = _lookup_by_block_lot(mock_conn, "1355", "069")
+    assert len(result) == 2
+    assert result[0]["permit_number"] == "P001"
+    assert result[1]["permit_number"] == "P002"
 
 
 # ---------------------------------------------------------------------------
@@ -401,8 +458,13 @@ def test_get_timeline_not_found():
 @patch("src.tools.permit_lookup._PH", "?")
 def test_get_related_location():
     mock_conn = MagicMock()
-    mock_conn.execute.return_value.fetchall.return_value = [
-        ("P999", "alterations", "complete", "2023-01-01", 50000.0, "Test"),
+    mock_conn.execute.return_value.fetchall.side_effect = [
+        # _find_historical_lots: step 1 — get address
+        [("123", "MAIN")],
+        # _find_historical_lots: step 2 — single lot
+        [("001",)],
+        # actual related location query
+        [("P999", "alterations", "complete", "2023-01-01", 50000.0, "Test")],
     ]
     result = _get_related_location(mock_conn, "3512", "001", "P001")
     assert len(result) == 1
@@ -483,7 +545,11 @@ async def test_permit_lookup_by_number_found(mock_get_conn):
         [("2024-06-15", "Torres", "Approved", "Rough plumbing")],
         # _get_addenda
         [],
-        # _get_related_location
+        # _get_related_location → _find_historical_lots step 1 (address)
+        [("123", "Main")],
+        # _get_related_location → _find_historical_lots step 2 (lots)
+        [("001",)],
+        # _get_related_location actual query
         [("P999", "alterations", "complete", "2023-01-01", 50000.0, "Bathroom remodel")],
         # _get_related_team
         [("P888", "new construction", "issued", "2024-01-01", 200000.0,
@@ -532,6 +598,8 @@ async def test_permit_lookup_by_address_multiple(mock_get_conn):
     mock_conn.execute.return_value.fetchall.side_effect = [
         # _lookup_by_address
         [permit_row_1, permit_row_2],
+        # _get_recent_addenda_activity (called from _summarize_recent_activity)
+        [],
         # _get_timeline for first permit
         [],
         # _get_contacts for first permit
@@ -540,7 +608,11 @@ async def test_permit_lookup_by_address_multiple(mock_get_conn):
         [],
         # _get_addenda for first permit
         [],
-        # _get_related_location for first permit
+        # _get_related_location → _find_historical_lots step 1 (address)
+        [("123", "Main")],
+        # _get_related_location → _find_historical_lots step 2 (lots)
+        [("001",)],
+        # _get_related_location actual query
         [],
         # _get_related_team for first permit
         [],
@@ -561,7 +633,12 @@ async def test_permit_lookup_by_address_multiple(mock_get_conn):
 async def test_permit_lookup_by_block_lot_not_found(mock_get_conn):
     mock_conn = MagicMock()
     mock_get_conn.return_value = mock_conn
-    mock_conn.execute.return_value.fetchall.return_value = []
+    mock_conn.execute.return_value.fetchall.side_effect = [
+        # _find_historical_lots: step 1 — no address found
+        [],
+        # actual permit query — no results
+        [],
+    ]
 
     result = await permit_lookup(block="9999", lot="999")
     assert "No permits found" in result

@@ -808,19 +808,19 @@ def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] 
     from src.db import query
     from src.tools.permit_lookup import _strip_suffix
     base_name, _suffix = _strip_suffix(street_name)
-    base_pattern = f"%{base_name}%"
-    full_pattern = f"%{street_name}%"
+    nospace_name = base_name.replace(' ', '')
     rows = query(
         "SELECT block, lot FROM permits "
         "WHERE street_number = %s "
         "  AND ("
-        "    UPPER(street_name) LIKE UPPER(%s)"
-        "    OR UPPER(street_name) LIKE UPPER(%s)"
-        "    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) LIKE UPPER(%s)"
+        "    UPPER(street_name) = UPPER(%s)"
+        "    OR UPPER(street_name) = UPPER(%s)"
+        "    OR UPPER(COALESCE(street_name, '') || ' ' || COALESCE(street_suffix, '')) = UPPER(%s)"
+        "    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') = UPPER(%s)"
         "  ) "
         "  AND block IS NOT NULL AND lot IS NOT NULL "
         "LIMIT 1",
-        (street_number, base_pattern, full_pattern, full_pattern),
+        (street_number, base_name, street_name, street_name, nospace_name),
     )
     if rows:
         return (rows[0][0], rows[0][1])

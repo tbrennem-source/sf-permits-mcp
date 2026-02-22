@@ -139,15 +139,80 @@ def _suggest_street_names(conn, street_number: str, street_name: str) -> list[tu
     return [(r[0], r[1]) for r in rows if r[0]]
 
 
-def _lookup_by_block_lot(conn, block: str, lot: str) -> list[dict]:
-    """Match on block + lot (indexed composite)."""
-    sql = f"""
-        SELECT * FROM permits
-        WHERE block = {_PH} AND lot = {_PH}
-        ORDER BY filed_date DESC
-        LIMIT 50
+def _find_historical_lots(conn, block: str, lot: str) -> list[str]:
+    """Find all lot numbers historically associated with a parcel.
+
+    When a property undergoes condo conversion (or lot split/merge), the
+    Assessor assigns new lot numbers.  The street address stays the same,
+    so we can discover old lots by:
+      1. Looking up the street address from the given block/lot.
+      2. Finding all distinct lots on the same block at that address.
+
+    Returns a list of lot numbers (always includes the input lot).
     """
-    rows = _exec(conn, sql, [block, lot])
+    # Step 1: get the street address from the current lot
+    sql = f"""
+        SELECT DISTINCT street_number, street_name
+        FROM permits
+        WHERE block = {_PH} AND lot = {_PH}
+          AND street_number IS NOT NULL
+          AND street_name IS NOT NULL
+        LIMIT 1
+    """
+    addr_row = _exec_one(conn, sql, [block, lot])
+    if not addr_row:
+        return [lot]
+
+    street_number, street_name = addr_row[0], addr_row[1]
+
+    # Step 2: find all lots on the same block at the same address
+    sql = f"""
+        SELECT DISTINCT lot
+        FROM permits
+        WHERE block = {_PH}
+          AND street_number = {_PH}
+          AND UPPER(street_name) = UPPER({_PH})
+          AND lot IS NOT NULL
+    """
+    rows = _exec(conn, sql, [block, street_number, street_name])
+    lots = list({r[0] for r in rows if r[0]})
+
+    # Ensure the input lot is always included
+    if lot not in lots:
+        lots.append(lot)
+
+    return lots
+
+
+def _lookup_by_block_lot(conn, block: str, lot: str) -> list[dict]:
+    """Match on block + lot (indexed composite).
+
+    Automatically discovers historical lot numbers (e.g., from condo
+    conversions) so the result includes permits filed under old lots.
+    """
+    # Discover any historical lot numbers for this parcel
+    lots = _find_historical_lots(conn, block, lot)
+
+    if len(lots) == 1:
+        # Fast path: single lot, no history
+        sql = f"""
+            SELECT * FROM permits
+            WHERE block = {_PH} AND lot = {_PH}
+            ORDER BY filed_date DESC
+            LIMIT 50
+        """
+        rows = _exec(conn, sql, [block, lots[0]])
+    else:
+        # Multiple lots: search all of them
+        placeholders = ", ".join([_PH] * len(lots))
+        sql = f"""
+            SELECT * FROM permits
+            WHERE block = {_PH} AND lot IN ({placeholders})
+            ORDER BY filed_date DESC
+            LIMIT 50
+        """
+        rows = _exec(conn, sql, [block] + lots)
+
     return [_row_to_dict(r) for r in rows]
 
 
@@ -206,17 +271,33 @@ def _get_timeline(conn, permit_number: str) -> dict | None:
 
 
 def _get_related_location(conn, block: str, lot: str, exclude: str) -> list[dict]:
-    """Get other permits at the same parcel."""
-    sql = f"""
-        SELECT permit_number, permit_type_definition, status,
-               filed_date, estimated_cost, description
-        FROM permits
-        WHERE block = {_PH} AND lot = {_PH}
-          AND permit_number != {_PH}
-        ORDER BY filed_date DESC
-        LIMIT 25
-    """
-    rows = _exec(conn, sql, [block, lot, exclude])
+    """Get other permits at the same parcel (including historical lots)."""
+    lots = _find_historical_lots(conn, block, lot)
+
+    if len(lots) == 1:
+        sql = f"""
+            SELECT permit_number, permit_type_definition, status,
+                   filed_date, estimated_cost, description
+            FROM permits
+            WHERE block = {_PH} AND lot = {_PH}
+              AND permit_number != {_PH}
+            ORDER BY filed_date DESC
+            LIMIT 25
+        """
+        rows = _exec(conn, sql, [block, lots[0], exclude])
+    else:
+        placeholders = ", ".join([_PH] * len(lots))
+        sql = f"""
+            SELECT permit_number, permit_type_definition, status,
+                   filed_date, estimated_cost, description
+            FROM permits
+            WHERE block = {_PH} AND lot IN ({placeholders})
+              AND permit_number != {_PH}
+            ORDER BY filed_date DESC
+            LIMIT 25
+        """
+        rows = _exec(conn, sql, [block] + lots + [exclude])
+
     cols = ["permit_number", "type", "status", "filed_date", "cost", "description"]
     return [{cols[i]: r[i] for i in range(len(cols))} for r in rows]
 
