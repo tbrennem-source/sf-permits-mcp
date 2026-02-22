@@ -1,21 +1,29 @@
 """Data quality checks for the Admin Ops hub.
 
-Runs 10 live checks against the database and returns traffic-light
-results (green/yellow/red) for display in the Data Quality tab.
+Runs 10 checks against the database and returns traffic-light results
+(green/yellow/red) for display in the Data Quality tab.
+
+Results are pre-computed by the nightly cron and cached in the
+``dq_cache`` table.  The DQ tab reads cached results for instant
+loading.  Admins can trigger a manual refresh via the UI.
 """
 from __future__ import annotations
 
+import json
 import logging
-from datetime import date, timedelta
+import sys
+import time as _time
+from datetime import date, datetime, timedelta, timezone
 
 from src.db import query as _raw_query
 
 logger = logging.getLogger(__name__)
+if not logger.handlers and not logging.getLogger().handlers:
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO,
+                        format="%(levelname)s %(name)s: %(message)s")
 
-# Per-query timeout (seconds) for DQ checks.  Prevents a single
-# slow analytical query (e.g. orphaned-contacts LEFT JOIN across 1.8M×1.1M)
-# from blocking the entire tab load.
-_DQ_QUERY_TIMEOUT_S = 10
+# Per-query timeout (seconds) for individual DQ checks.
+_DQ_QUERY_TIMEOUT_S = 15
 
 
 def _ph():
@@ -30,7 +38,6 @@ def _timed_query(sql: str, params=None) -> list:
     On Postgres, wraps the query with ``SET LOCAL statement_timeout``
     so the DB kills it if it exceeds the limit.  On DuckDB, passes through.
     """
-    import time as _time
     from src.db import BACKEND, get_connection
     if BACKEND != "postgres":
         return _raw_query(sql, params)
@@ -53,6 +60,99 @@ def _timed_query(sql: str, params=None) -> list:
         conn.close()
 
 
+# ── Cache layer ───────────────────────────────────────────────────
+
+
+def get_cached_checks() -> tuple[list[dict], datetime | None]:
+    """Read the most recent DQ results from the cache.
+
+    Returns (results, refreshed_at).  If the cache is empty,
+    returns ([], None).
+    """
+    try:
+        rows = _raw_query(
+            "SELECT results_json, refreshed_at FROM dq_cache "
+            "ORDER BY refreshed_at DESC LIMIT 1"
+        )
+        if rows and rows[0][0]:
+            results = json.loads(rows[0][0])
+            refreshed_at = rows[0][1]
+            return results, refreshed_at
+    except Exception as exc:
+        logger.warning("dq_cache read failed: %s", exc)
+    return [], None
+
+
+def refresh_dq_cache() -> dict:
+    """Run all DQ checks and store results in the cache table.
+
+    Returns a summary dict with check count and duration.
+    Called by nightly cron and manual admin refresh.
+    """
+    from src.db import BACKEND, get_connection
+
+    t0 = _time.monotonic()
+    logger.info("DQ cache refresh: starting")
+
+    results = run_all_checks()
+    duration = _time.monotonic() - t0
+    logger.info("DQ cache refresh: %d checks in %.1fs", len(results), duration)
+
+    if BACKEND == "postgres":
+        conn = get_connection()
+        try:
+            with conn.cursor() as cur:
+                # Keep only the latest result — delete old entries first
+                cur.execute("DELETE FROM dq_cache")
+                cur.execute(
+                    "INSERT INTO dq_cache (results_json, refreshed_at, duration_secs) "
+                    "VALUES (%s, NOW(), %s)",
+                    (json.dumps(results), round(duration, 1)),
+                )
+                conn.commit()
+        except Exception as exc:
+            logger.error("dq_cache write failed: %s", exc)
+            conn.rollback()
+        finally:
+            conn.close()
+
+    return {"checks": len(results), "duration_secs": round(duration, 1)}
+
+
+def check_bulk_indexes() -> list[dict]:
+    """Diagnostic: verify which bulk-table indexes exist on PostgreSQL.
+
+    Returns a list of dicts with index name and status for display
+    in the DQ tab footer.
+    """
+    from src.db import BACKEND
+    if BACKEND != "postgres":
+        return []
+
+    expected = [
+        "idx_contacts_permit", "idx_permits_number",
+        "idx_permits_block_lot", "idx_inspections_ref",
+        "idx_entities_name", "idx_addenda_app_num",
+    ]
+    try:
+        rows = _raw_query(
+            "SELECT indexname FROM pg_indexes "
+            "WHERE schemaname = 'public' AND indexname = ANY(%s)",
+            (expected,),
+        )
+        existing = {r[0] for r in rows} if rows else set()
+        return [
+            {"name": idx, "exists": idx in existing}
+            for idx in expected
+        ]
+    except Exception as exc:
+        logger.warning("Index check failed: %s", exc)
+        return []
+
+
+# ── Core check runner ─────────────────────────────────────────────
+
+
 def run_all_checks() -> list[dict]:
     """Run all data quality checks and return results.
 
@@ -65,7 +165,7 @@ def run_all_checks() -> list[dict]:
     """
     from src.db import BACKEND
 
-    # Checks that require prod-only tables (cron_log, permit_changes, knowledge_chunks)
+    # Checks that require prod-only tables
     prod_only_checks = [
         _check_cron_status,
         _check_records_fetched,
@@ -96,8 +196,8 @@ def run_all_checks() -> list[dict]:
         except Exception as exc:
             exc_str = str(exc).lower()
             is_timeout = "cancel" in exc_str or "timeout" in exc_str
-            logger.debug("DQ check %s failed%s", check_fn.__name__,
-                         " (timeout)" if is_timeout else "", exc_info=True)
+            logger.warning("DQ check %s failed%s: %s", check_fn.__name__,
+                           " (timeout)" if is_timeout else "", exc)
             results.append({
                 "name": check_fn.__name__.replace("_check_", "").replace("_", " ").title(),
                 "category": "system",
@@ -203,14 +303,9 @@ def _check_permit_changes_detected() -> dict:
 
 
 def _check_rag_chunk_count() -> dict:
-    """Check RAG knowledge_chunks count vs baseline.
-
-    Baseline: ~1,012 official (tier1-4) + ops chunks (variable).
-    Flags both under-count (data loss) AND over-count (duplicate accumulation).
-    """
+    """Check RAG knowledge_chunks count vs baseline."""
     rows = _raw_query("SELECT COUNT(*) FROM knowledge_chunks", ())
     count = rows[0][0] if rows else 0
-    # Check for duplicates by comparing distinct vs total
     dup_rows = _raw_query(
         "SELECT COUNT(*) FROM ("
         "  SELECT DISTINCT source_file, source_section, chunk_index "
@@ -220,7 +315,7 @@ def _check_rag_chunk_count() -> dict:
     )
     distinct = dup_rows[0][0] if dup_rows else count
     duplicates = count - distinct
-    baseline = 1100  # ~1,012 official + ~80-100 ops chunks
+    baseline = 1100
     pct_of_baseline = round(count / max(baseline, 1) * 100)
     if duplicates > 50:
         status = "red"
@@ -257,7 +352,6 @@ def _check_entity_coverage() -> dict:
         ratio = 0
     else:
         ratio = round(entities / contacts * 100, 1)
-    # Expect ~55-60% compression (1.8M contacts -> 1M entities)
     status = "green" if 40 <= ratio <= 70 else ("yellow" if 30 <= ratio <= 80 else "red")
     return {
         "name": "Entity Resolution",
@@ -273,11 +367,7 @@ def _check_entity_coverage() -> dict:
 
 
 def _check_temporal_violations() -> dict:
-    """Count permits where filed_date > issued_date (temporal anomaly).
-
-    Known: SF DBI records filed_date after issued_date for permit amendments
-    and OTC permits.  ~0.2% is normal for this dataset.
-    """
+    """Count permits where filed_date > issued_date (temporal anomaly)."""
     rows = _timed_query(
         "SELECT COUNT(*) FROM permits "
         "WHERE filed_date IS NOT NULL AND issued_date IS NOT NULL "
@@ -288,7 +378,6 @@ def _check_temporal_violations() -> dict:
     total_rows = _timed_query("SELECT COUNT(*) FROM permits", ())
     total = total_rows[0][0] if total_rows else 1
     pct = round(count / max(total, 1) * 100, 2)
-    # <0.5% is normal for SODA data; >1% suggests a load problem
     status = "green" if pct < 0.5 else ("yellow" if pct < 1 else "red")
     return {
         "name": "Temporal Violations",
@@ -323,9 +412,6 @@ def _check_cost_outliers() -> dict:
 def _check_orphaned_contacts() -> dict:
     """Count contacts without matching permits.
 
-    Known: contacts dataset (1.8M) covers a broader date range than the
-    permits dataset (1.1M), so ~40-50% orphan rate is expected.
-
     Uses NOT EXISTS instead of LEFT JOIN for better performance on large tables.
     """
     rows = _timed_query(
@@ -337,8 +423,6 @@ def _check_orphaned_contacts() -> dict:
     total_contacts = _timed_query("SELECT COUNT(*) FROM contacts", ())
     total = total_contacts[0][0] if total_contacts else 1
     pct = round(count / max(total, 1) * 100, 1)
-    # 40-50% is expected (contacts covers broader date range than permits).
-    # >60% suggests a permits table load gap.
     status = "green" if pct < 55 else ("yellow" if pct < 65 else "red")
     return {
         "name": "Orphaned Contacts",

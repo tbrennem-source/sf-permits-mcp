@@ -40,11 +40,57 @@
     .dq-dot.green { background: var(--success); }
     .dq-dot.yellow { background: var(--warning); }
     .dq-dot.red { background: var(--error); }
+    .dq-toolbar {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+    }
+    .dq-meta { font-size: 0.8rem; color: var(--text-muted); }
+    .dq-refresh-btn {
+        font-size: 0.78rem; padding: 5px 14px; border-radius: 6px;
+        border: 1px solid var(--border); background: var(--surface-2);
+        color: var(--text-muted); cursor: pointer; font-family: inherit;
+        transition: all 0.15s;
+    }
+    .dq-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .dq-refresh-btn.htmx-request { opacity: 0.5; pointer-events: none; }
+    .dq-empty {
+        text-align: center; padding: 60px 20px; color: var(--text-muted);
+    }
+    .dq-index-bar {
+        display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;
+        padding-top: 12px; border-top: 1px solid var(--border);
+        font-size: 0.72rem; color: var(--text-muted);
+    }
+    .dq-index-tag {
+        padding: 2px 6px; border-radius: 4px; font-family: monospace;
+    }
+    .dq-index-tag.ok { background: rgba(52,211,153,0.1); color: var(--success); }
+    .dq-index-tag.missing { background: rgba(248,113,113,0.1); color: var(--error); }
 </style>
 
-<h2 style="font-size:1.1rem;margin-bottom:4px;color:var(--accent);">Data Quality</h2>
+<div class="dq-toolbar">
+    <div>
+        <h2 style="font-size:1.1rem;margin-bottom:4px;color:var(--accent);display:inline;">Data Quality</h2>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+        {% if refreshed_at %}
+        <span class="dq-meta">
+            Last refreshed: {{ refreshed_at.strftime('%b %d, %H:%M UTC') if refreshed_at.strftime else refreshed_at }}
+        </span>
+        {% endif %}
+        <button class="dq-refresh-btn"
+                hx-post="/admin/ops/refresh-dq"
+                hx-target="#tab-content"
+                hx-swap="innerHTML"
+                title="Run all checks now (may take 30-60s)">
+            &#8635; Refresh
+        </button>
+    </div>
+</div>
+
+{% if checks %}
 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
-    Live checks against the database — {{ checks | length }} checks run
+    {{ checks | length }} checks cached
 </p>
 
 {# Summary counts #}
@@ -83,3 +129,23 @@
 </div>
 {% endif %}
 {% endfor %}
+
+{% else %}
+<div class="dq-empty">
+    <p style="font-size:1.1rem;margin-bottom:8px;">No cached results yet</p>
+    <p>Click <strong>Refresh</strong> above to run all checks now,<br>
+    or wait for the nightly cron to populate the cache.</p>
+</div>
+{% endif %}
+
+{% if indexes %}
+<div class="dq-index-bar">
+    <span>Bulk indexes:</span>
+    {% for idx in indexes %}
+    <span class="dq-index-tag {{ 'ok' if idx.exists else 'missing' }}"
+          title="{{ 'Index exists' if idx.exists else 'Index MISSING — queries will be slow' }}">
+        {{ idx.name }} {{ '✓' if idx.exists else '✗' }}
+    </span>
+    {% endfor %}
+</div>
+{% endif %}

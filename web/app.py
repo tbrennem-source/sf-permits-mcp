@@ -502,6 +502,16 @@ def _run_startup_migrations():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_app_num ON addenda_changes (application_number)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_station ON addenda_changes (station)")
 
+        # ── DQ cache table ───────────────────────────────────────
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS dq_cache (
+                id              SERIAL PRIMARY KEY,
+                results_json    TEXT NOT NULL,
+                refreshed_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                duration_secs   FLOAT
+            )
+        """)
+
         # ── Bulk table indexes ──────────────────────────────────
         # Mirror the DuckDB indexes (src/db.py _create_indexes) for
         # PostgreSQL.  Critical for DQ checks and brief queries that
@@ -4083,6 +4093,25 @@ def admin_ops_fragment(tab):
     return result
 
 
+@app.route("/admin/ops/refresh-dq", methods=["POST"])
+@login_required
+def admin_ops_refresh_dq():
+    """Manually trigger a DQ cache refresh (admin only).
+
+    Runs all checks synchronously (may take 30-60s on big tables),
+    stores results in dq_cache, then returns the updated DQ fragment.
+    """
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.data_quality import refresh_dq_cache, get_cached_checks, check_bulk_indexes
+    refresh_dq_cache()
+    checks, refreshed_at = get_cached_checks()
+    indexes = check_bulk_indexes()
+    return render_template("fragments/admin_quality.html",
+                           checks=checks, refreshed_at=refreshed_at,
+                           indexes=indexes)
+
+
 def _render_ops_tab(tab: str):
     """Render a single ops tab fragment (called inside SIGALRM guard)."""
     if tab == "pipeline":
@@ -4093,13 +4122,12 @@ def _render_ops_tab(tab: str):
                                active_page="admin", fragment=True)
 
     elif tab == "quality":
-        import time as _time
-        _t0 = _time.monotonic()
-        app.logger.info("DQ tab: starting run_all_checks()")
-        from web.data_quality import run_all_checks
-        checks = run_all_checks()
-        app.logger.info("DQ tab: finished in %.1fs with %d results", _time.monotonic() - _t0, len(checks))
-        return render_template("fragments/admin_quality.html", checks=checks)
+        from web.data_quality import get_cached_checks, check_bulk_indexes
+        checks, refreshed_at = get_cached_checks()
+        indexes = check_bulk_indexes()
+        return render_template("fragments/admin_quality.html",
+                               checks=checks, refreshed_at=refreshed_at,
+                               indexes=indexes)
 
     elif tab == "activity":
         from web.activity import get_recent_activity, get_activity_stats
@@ -5235,6 +5263,16 @@ def cron_nightly():
                 logging.error("Ops chunk ingestion failed (non-fatal): %s", oe)
                 ops_chunks_result = {"error": str(oe)}
 
+        # Refresh DQ cache (non-fatal — runs all checks and caches results)
+        dq_cache_result = {}
+        if not dry_run:
+            try:
+                from web.data_quality import refresh_dq_cache
+                dq_cache_result = refresh_dq_cache()
+            except Exception as dqe:
+                logging.error("DQ cache refresh failed (non-fatal): %s", dqe)
+                dq_cache_result = {"error": str(dqe)}
+
         # Send staleness alert email to admins if warnings detected
         staleness_alert_result = {}
         warnings = result.get("staleness_warnings", [])
@@ -5253,6 +5291,7 @@ def cron_nightly():
                 "velocity": velocity_result,
                 "reviewer_graph": reviewer_result,
                 "ops_chunks": ops_chunks_result,
+                "dq_cache": dq_cache_result,
                 "staleness_alert": staleness_alert_result,
             }, indent=2),
             mimetype="application/json",
@@ -5714,6 +5753,31 @@ def cron_seed_regulatory():
 
     return jsonify({"created": len([c for c in created if "watch_id" in c]),
                      "items": created})
+
+
+@app.route("/cron/refresh-dq", methods=["POST"])
+def cron_refresh_dq():
+    """Refresh the DQ cache externally (CRON_SECRET auth).
+
+    Can be called independently of the nightly cron to populate the
+    DQ cache after a deploy or after bulk data loads.
+    """
+    _check_api_auth()
+    import json as _json
+    from web.data_quality import refresh_dq_cache
+    try:
+        result = refresh_dq_cache()
+        return Response(
+            _json.dumps({"status": "ok", **result}),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        logging.error("DQ cache refresh failed: %s", e)
+        return Response(
+            _json.dumps({"status": "error", "error": str(e)}),
+            status=500,
+            mimetype="application/json",
+        )
 
 
 # ---------------------------------------------------------------------------
