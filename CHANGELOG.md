@@ -169,6 +169,36 @@ Major UX improvements to the Plan Analysis History page (`/account/analyses`), i
 ### Tests
 1,103 passed, 1 skipped (pre-existing `src.plan_images` module issue in test_plan_images.py/test_plan_ui.py).
 
+## Session 38e — Pipeline Timeout + DQ Sort + Activity Detail + Severity Brainstorm (2026-02-20)
+
+### Pipeline Health Timeout — `web/app.py`
+- **Bug**: Pipeline Health tab triggered 6+ heavy SQL queries against 3.9M-row addenda table, taking 30-120s and often timing out (gunicorn kills at 120s).
+- **Fix**: Added 30s SIGALRM timeout guard around Pipeline Health queries. On timeout, returns graceful HTML fallback ("Pipeline Health is loading slowly...") instead of crashing the worker.
+- **Long-term**: Spec written for materialized views (Task #120, `specs/pipeline-health-materialized-views.md`) — nightly pre-compute into 4 summary tables.
+
+### DQ Dashboard: Sort Problems First — `web/data_quality.py`
+- DQ check results now sort red → yellow → green so problems surface at the top.
+- Skip prod-only checks (cron_log, permit_changes, knowledge_chunks) when running on DuckDB — eliminates 5 false "Error" cards in local dev.
+
+### Brief: Specific Permit Activity — `web/brief.py`, `web/templates/brief.html`
+- **Before**: What Changed activity entries showed generic "Activity 3d ago" with no context.
+- **After**: Activity entries now display permit number, status badge (FILED/ISSUED/etc), and permit type description. Users can see *what* changed, not just *that* something changed.
+- Added `latest_permit`, `latest_permit_status`, `latest_permit_type` tracking per property.
+
+### Severity Brainstorm: "Incomplete" Tier (not yet implemented)
+- Identified that BEHIND/AT_RISK labels create noise for permits that are administratively incomplete but not urgent (expired permit on an active site, long plan check with recent activity).
+- Proposed new `incomplete` tier with neutral blue/gray styling — signals "needs admin attention eventually" without alarm.
+- Collapsible rendering to prevent noise: "4 incomplete" summary line vs showing all cards.
+- **Decision pending** — implement or defer.
+
+### Checkmark Dismiss Buttons (decision pending)
+- Brainstormed whether ✓ dismiss buttons on What Changed cards are worth keeping. Currently client-side only (no persistence). Options: persisted reviewed state, acknowledge+snooze, convert to action items, or remove entirely.
+
+### Tests
+- 1,103 passing, 1 skipped
+
+---
+
 ## Session 38d — Regulatory Watch Fix + Severity Busy-Site Dismiss + Demo Seeding (2026-02-20)
 
 ### Regulatory Watch Tab Fix — `web/templates/admin_regulatory_watch.html`, `web/templates/admin_ops.html`
