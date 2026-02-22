@@ -1,5 +1,58 @@
 # Changelog
 
+## Session 38g — DQ Cache, Bulk Indexes, Admin Ops UX Fixes (2026-02-22)
+
+Three rounds of Cowork QA revealed that the Admin Ops DQ tab was unusable — queries on million-row tables hung indefinitely, HTMX error events failed silently, and the initial tab load had a race condition. Redesigned DQ as a cached system and fixed multiple UX issues.
+
+### DQ Cache Architecture — `web/data_quality.py`, `web/app.py`
+- **Problem**: DQ tab ran 10 analytical queries live on every load (1.8M contacts × 1.1M permits). Total query time could exceed 60s, hanging the tab.
+- **Solution**: Pre-compute all checks into a `dq_cache` table. Tab reads cached results instantly.
+- **`dq_cache` table**: stores JSON results + `refreshed_at` timestamp + `duration_secs`.
+- **`refresh_dq_cache()`**: runs all 10 checks, stores results. Called by nightly cron + admin Refresh button.
+- **`get_cached_checks()`**: reads latest cache entry — instant.
+- **`POST /admin/ops/refresh-dq`**: admin UI button triggers live refresh.
+- **`POST /cron/refresh-dq`**: external API endpoint (CRON_SECRET auth).
+- **Nightly cron**: `refresh_dq_cache()` added to nightly pipeline (non-fatal).
+- **Template**: Shows "Last refreshed: ..." timestamp, ⟳ Refresh button, empty state with instructions.
+
+### PostgreSQL Bulk Table Indexes — `web/app.py`
+- **Problem**: Bulk data tables (permits 1.1M, contacts 1.8M, addenda 3.9M, etc.) had ZERO indexes on PostgreSQL prod. DuckDB had indexes via `src/db.py _create_indexes()` but PostgreSQL startup migrations only indexed app tables.
+- **Fix**: Added 18 indexes to startup migration mirroring DuckDB: `contacts.permit_number`, `permits.permit_number`, `permits.block,lot`, `permits.street_number,street_name`, `permits.status_date`, `inspections.reference_number`, `entities.canonical_name`, `relationships.entity_id_a/b`, `addenda.application_number/station/finish_date`, `timeline_stats.permit_number`, and more.
+- **Result**: Orphaned contacts query dropped from 60s+ to 0.4s. Full DQ suite runs in 0.8s.
+
+### DQ Query Hardening — `web/data_quality.py`
+- **`_timed_query()`**: Uses PostgreSQL `SET LOCAL statement_timeout` for per-query timeouts at the DB level. SIGALRM doesn't interrupt psycopg2 C extension calls — DB-level timeout is the only reliable mechanism.
+- **NOT EXISTS**: Orphaned contacts uses `NOT EXISTS` instead of `LEFT JOIN` for better performance.
+- **`_ph()` fix**: Was importing non-existent `_placeholder` from `src.db`. Now uses `BACKEND` check.
+- **Column fix**: `inspection_type_desc` → `inspection_description` (matching actual PostgreSQL schema).
+- **`%` escaping**: `ILIKE '%new construction%'` → `'%%new construction%%'` (psycopg2 interprets bare `%` as format specifiers when params tuple is passed).
+- **Index diagnostic**: `check_bulk_indexes()` queries `pg_indexes` and renders green ✓ / red ✗ tags at bottom of DQ tab.
+
+### Admin Ops Initial Tab Race Condition — `web/templates/admin_ops.html`
+- **Problem**: `setTimeout(fn, 0)` fired BEFORE HTMX's `DOMContentLoaded` handler processed `hx-get` attributes. The simulated `.click()` was a no-op — HTMX wasn't listening yet. Users had to click the tab button twice.
+- **Fix**: Replaced with `htmx.ajax('GET', url, {target, swap})` which makes the request directly through HTMX's API — no element processing needed.
+
+### Admin Dropdown Hover Gap — `web/templates/fragments/nav.html`
+- **Problem**: `top: calc(100% + 6px)` created a 6px gap between the Admin badge and dropdown menu. Mouse loses hover crossing the gap, menu disappears.
+- **Fix**: Outer wrapper uses `padding-top: 6px` as an invisible hover bridge. Inner div (`admin-dropdown-menu-inner`) carries the visible styling.
+
+### HTMX Error Handler Robustness — `web/templates/admin_ops.html`
+- **`getTrigger()` helper**: Checks both `evt.detail.elt` AND `evt.detail.requestConfig.elt` for HTMX 2.0 compatibility.
+- **Simplified error handlers**: All three (`htmx:responseError`, `htmx:sendError`, `htmx:timeout`) call `showError()` unconditionally — no trigger-element guard that could silently fail.
+- **35s fallback timer**: If `contentLoaded` is still false after 35s, force-shows an error. Catches edge cases where HTMX events don't fire at all.
+
+### Self-Hosted HTMX — `web/static/htmx.min.js`, all 14 templates
+- **Problem**: External CDN (`unpkg.com/htmx.org@2.0.4`) caused 60s+ page load blocks when CDN was slow or unreachable.
+- **Fix**: Downloaded htmx.min.js (50KB) to `web/static/`. Replaced CDN reference across all 14 templates.
+
+### Gunicorn Access Logging — `web/Procfile`
+- Added `--access-logfile -` so request-level logs appear in Railway.
+
+### Tests
+- 1,227 passed, 1 skipped
+
+---
+
 ## Session 44 — Analysis History Phases D2, E1, E2, F (2026-02-20)
 
 Full implementation of the deferred Analysis History features from SPEC-analysis-history-phases-d-f.md.

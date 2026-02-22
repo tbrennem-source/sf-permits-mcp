@@ -64,3 +64,51 @@ _Last reviewed: never_
 **Edge cases seen in code:** Enforcement check runs after hold check in the per-property loop. If both hold and enforcement exist, enforcement overwrites the hold reason. Post-processing guards check both `has_holds` and `has_enforcement` independently.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: DQ cache serves instant results; refresh populates fresh data
+**Source:** Session 38g — DQ cache architecture
+**User:** admin
+**Starting state:** Logged in as admin, DQ cache has been populated by nightly cron (or a previous manual refresh)
+**Goal:** Open Data Quality tab and see check results instantly, then trigger a manual refresh to get updated data
+**Expected outcome:** DQ tab loads in <1s from cache, showing "Last refreshed: [timestamp]" and all check cards. Clicking "Refresh" button runs all checks (may take 10-30s), then replaces content with fresh results and updated timestamp. If cache is empty (first deploy), tab shows "No cached results yet" with instructions to click Refresh.
+**Edge cases seen in code:** Two gunicorn workers both running startup migrations can race on `CREATE TABLE IF NOT EXISTS dq_cache`, producing a harmless duplicate-key error. Cache stores a single row (DELETE then INSERT), so stale rows never accumulate. If a check query times out during refresh, it's caught and skipped — remaining checks still run.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Admin dropdown submenu reachable on hover
+**Source:** Session 38g — CSS hover gap fix in nav.html
+**User:** admin
+**Starting state:** Logged in as admin, on any page with the top nav bar
+**Goal:** Hover over "Admin" in the nav bar, then move cursor down to click a submenu item (e.g., "Data Quality")
+**Expected outcome:** Submenu appears on hover over "Admin" and remains visible as the cursor moves from the trigger to the submenu items. Clicking any submenu item navigates to that Admin Ops tab. Submenu disappears only when cursor leaves both the trigger and the menu.
+**Edge cases seen in code:** A visual gap between the trigger element and the dropdown can cause hover loss when the cursor crosses the gap. The fix uses an invisible padding bridge (6px) so the hover target is contiguous. Fast diagonal mouse movements should still keep the menu open.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Admin Ops initial tab loads on first visit without double-click
+**Source:** Session 38g — htmx.ajax() race condition fix
+**User:** admin
+**Starting state:** Not on Admin Ops page; navigating for the first time in session
+**Goal:** Navigate to `/admin/ops` (or via Admin dropdown) and see the default tab content load automatically
+**Expected outcome:** Page loads, default tab (Data Quality or hash-specified tab) content appears without needing to click any tab button. Tab button shows active (blue) state. URL hash updates to reflect the active tab. No infinite spinner unless the server genuinely fails.
+**Edge cases seen in code:** Inline script at bottom of `<body>` runs before HTMX's DOMContentLoaded handler processes `hx-get` attributes on buttons. Using `htmx.ajax()` directly bypasses this race. Hash aliases (`#luck` → sources, `#dq` → quality) resolve before the initial load fires.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: DQ tab shows bulk index health diagnostic
+**Source:** Session 38g — check_bulk_indexes() in data_quality.py
+**User:** admin
+**Starting state:** Logged in as admin, DQ cache populated, on Data Quality tab
+**Goal:** Verify that critical PostgreSQL indexes exist on bulk tables
+**Expected outcome:** Bottom of DQ tab shows a row of index tags — green checkmark for indexes that exist, red ✗ for missing ones. At least 6 key indexes are checked: contacts_permit, permits_number, permits_block_lot, inspections_ref, entities_name, addenda_app_num. Missing indexes indicate a deployment issue.
+**Edge cases seen in code:** `check_bulk_indexes()` queries `pg_indexes` system catalog; on DuckDB (local dev), it returns empty list and the bar doesn't render. Index creation runs at startup but can silently fail if the table doesn't exist yet (e.g., before first ingest).
+**CC confidence:** medium
+**Status:** PENDING REVIEW
