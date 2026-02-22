@@ -1214,8 +1214,9 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
                 "velocity": velocity,
             }
 
-            # Upgrade health if permit has active holds — that's a real action signal
-            if held and health_order.get(prop["worst_health"], 0) < health_order["at_risk"]:
+            # Active holds are a real action signal — always set reason so
+            # post-processing doesn't accidentally downgrade this property.
+            if held:
                 prop["worst_health"] = "at_risk"
                 prop["health_reason"] = f"Hold at {', '.join(held[:2])}"
 
@@ -1253,11 +1254,18 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
     # site with recent activity (≤30d) OR multiple active permits is
     # administrative paperwork — the contractor needs a recommencement
     # application (SFBICC §106A.4.4), not an emergency response.
+    # NEVER downgrade if there are active holds or open enforcement — those
+    # are real action signals regardless of how many permits are active.
     for prop in property_map.values():
         dsa = prop.get("days_since_activity")
+        reason = prop.get("health_reason", "")
+        has_holds = prop.get("routing") and prop["routing"].get("held_stations")
+        has_enforcement = prop.get("enforcement_total") and prop["enforcement_total"] > 0
         if (
             prop["worst_health"] == "at_risk"
-            and "permit expired" in prop.get("health_reason", "")
+            and "permit expired" in reason
+            and not has_holds
+            and not has_enforcement
         ):
             recent_activity = dsa is not None and dsa <= 30
             active = prop.get("active_permits", 0)

@@ -414,12 +414,15 @@
                             {% if c.permit_type %} &middot; {{ c.permit_type }}{% endif %}
                         </span>
                     </div>
-                    <div style="display:flex;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                         {% if c.old_status %}
                         <span class="status-badge status-{{ c.old_status|lower }}">{{ c.old_status }}</span>
                         <span class="status-arrow">&rarr;</span>
                         {% endif %}
                         <span class="status-badge status-{{ c.new_status|lower }}">{{ c.new_status }}</span>
+                        {% if c.change_date %}
+                        <span style="font-size:0.65rem;color:var(--text-muted);">{{ c.change_date }}</span>
+                        {% endif %}
                         <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
                     </div>
                     {% endif %}

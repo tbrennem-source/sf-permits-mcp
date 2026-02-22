@@ -117,10 +117,28 @@
 
 <script>
 (function() {
+    // 30s client-side timeout for all HTMX requests on this page
+    htmx.config.timeout = 30000;
+
     var buttons = document.querySelectorAll('.tab-btn');
     var activeTab = null;
 
-    function activateTab(tabName, triggerLoad) {
+    // Hash aliases — allow friendly names in URL hash
+    var hashAliases = {
+        'luck': 'sources',
+        'dq': 'quality',
+        'watch': 'regulatory'
+    };
+
+    function showError(msg) {
+        document.getElementById('tab-content').innerHTML =
+            '<div class="tab-loading" style="color:var(--error);">' +
+            (msg || 'Failed to load tab.') +
+            ' <a href="javascript:location.reload()" style="color:var(--accent);">Reload page</a>' +
+            '</div>';
+    }
+
+    function activateTab(tabName) {
         if (activeTab === tabName) return;
         activeTab = tabName;
         buttons.forEach(function(btn) {
@@ -136,7 +154,6 @@
     buttons.forEach(function(btn) {
         btn.addEventListener('click', function() {
             if (this.classList.contains('active')) return;
-            // Show loading state on the clicked button
             buttons.forEach(function(b) { b.classList.remove('active', 'loading'); });
             this.classList.add('loading');
         });
@@ -146,28 +163,45 @@
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
         if (trigger && trigger.dataset && trigger.dataset.tab) {
-            activateTab(trigger.dataset.tab, false);
+            activateTab(trigger.dataset.tab);
         }
     });
 
-    // Handle HTMX errors — show message instead of infinite spinner
+    // Handle HTTP errors (4xx, 5xx)
     document.body.addEventListener('htmx:responseError', function(evt) {
         var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
         if (trigger && trigger.dataset && trigger.dataset.tab) {
-            document.getElementById('tab-content').innerHTML =
-                '<div class="tab-loading" style="color:var(--error);">' +
-                'Failed to load tab. <a href="javascript:location.reload()" style="color:var(--accent);">Reload page</a></div>';
+            showError('Tab returned an error.');
+            trigger.classList.remove('loading');
+        }
+    });
+
+    // Handle network errors and timeouts (connection reset, CORS, 30s timeout)
+    document.body.addEventListener('htmx:sendError', function(evt) {
+        var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
+        if (trigger && trigger.dataset && trigger.dataset.tab) {
+            showError('Request failed — server may be busy.');
+            trigger.classList.remove('loading');
+        }
+    });
+
+    document.body.addEventListener('htmx:timeout', function(evt) {
+        var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
+        if (trigger && trigger.dataset && trigger.dataset.tab) {
+            showError('Request timed out (30s).');
             trigger.classList.remove('loading');
         }
     });
 
     // Load initial tab from hash or default to quality (pipeline is slow)
     var hash = location.hash.replace('#', '') || 'quality';
+    hash = hashAliases[hash] || hash;
     var initialBtn = document.querySelector('.tab-btn[data-tab="' + hash + '"]');
     if (!initialBtn) initialBtn = document.querySelector('.tab-btn[data-tab="quality"]');
     if (initialBtn) {
         initialBtn.classList.add('loading');
-        htmx.trigger(initialBtn, 'click');
+        // Defer to next tick so HTMX has finished processing the DOM
+        setTimeout(function() { initialBtn.click(); }, 0);
     }
 })();
 </script>

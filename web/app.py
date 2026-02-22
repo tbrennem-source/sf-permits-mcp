@@ -3417,38 +3417,65 @@ def admin_ops():
     return render_template("admin_ops.html", user=g.user, active_page="admin")
 
 
+def _fragment_timeout_fallback(tab_name: str) -> str:
+    """Graceful fallback when a tab query exceeds 25s."""
+    return (
+        '<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">'
+        f'<p style="font-size:1.1rem;margin-bottom:8px;">{tab_name} is loading slowly</p>'
+        '<p>The query is taking longer than 25 seconds.</p>'
+        '<p style="margin-top:12px;">'
+        '<a href="javascript:location.reload()" style="color:var(--accent);">Retry</a>'
+        '</p></div>'
+    )
+
+
 @app.route("/admin/ops/fragment/<tab>")
 @login_required
 def admin_ops_fragment(tab):
-    """HTMX fragment endpoints for admin ops hub tabs."""
+    """HTMX fragment endpoints for admin ops hub tabs.
+
+    Every tab is wrapped in a 25s SIGALRM timeout so a slow DB query
+    never hangs the HTMX request indefinitely.
+    """
     if not g.user.get("is_admin"):
         abort(403)
 
+    import signal
+
+    class _Timeout(Exception):
+        pass
+
+    def _alarm(signum, frame):
+        raise _Timeout()
+
+    old_handler = signal.signal(signal.SIGALRM, _alarm)
+    signal.alarm(25)
+
+    try:
+        result = _render_ops_tab(tab)
+    except _Timeout:
+        tab_labels = {
+            "pipeline": "Pipeline Health",
+            "quality": "Data Quality",
+            "activity": "User Activity",
+            "feedback": "Feedback",
+            "sources": "LUCK Sources",
+            "regulatory": "Regulatory Watch",
+        }
+        result = _fragment_timeout_fallback(tab_labels.get(tab, tab.title()))
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
+
+    return result
+
+
+def _render_ops_tab(tab: str):
+    """Render a single ops tab fragment (called inside SIGALRM guard)."""
     if tab == "pipeline":
-        import signal
-
-        class _Timeout(Exception):
-            pass
-
-        def _alarm(signum, frame):
-            raise _Timeout()
-
         from web.velocity_dashboard import get_dashboard_data
         user_id = g.user["user_id"] if g.user else None
-        try:
-            old_handler = signal.signal(signal.SIGALRM, _alarm)
-            signal.alarm(30)  # 30s timeout for heavy pipeline queries
-            data = get_dashboard_data(user_id=user_id)
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, old_handler)
-        except _Timeout:
-            signal.signal(signal.SIGALRM, old_handler)
-            return ('<div style="text-align:center;padding:60px 20px;color:var(--text-muted);">'
-                    '<p style="font-size:1.1rem;margin-bottom:8px;">Pipeline Health is loading slowly</p>'
-                    '<p>The 3.9M-row addenda table queries are taking longer than 30s.</p>'
-                    '<p style="margin-top:12px;"><a href="/dashboard/bottlenecks" '
-                    'style="color:var(--accent);">Open full-page Pipeline dashboard &rarr;</a></p>'
-                    '</div>')
+        data = get_dashboard_data(user_id=user_id)
         return render_template("velocity_dashboard.html", data=data,
                                active_page="admin", fragment=True)
 
