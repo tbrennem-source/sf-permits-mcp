@@ -502,6 +502,43 @@ def _run_startup_migrations():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_app_num ON addenda_changes (application_number)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_station ON addenda_changes (station)")
 
+        # ── Bulk table indexes ──────────────────────────────────
+        # Mirror the DuckDB indexes (src/db.py _create_indexes) for
+        # PostgreSQL.  Critical for DQ checks and brief queries that
+        # join across million-row tables.  Uses IF NOT EXISTS so the
+        # slow first-run only happens once per deploy.
+        _bulk_indexes = [
+            # contacts (1.8M rows) — permit_number is the critical join key
+            ("idx_contacts_permit", "contacts", "permit_number"),
+            ("idx_contacts_entity", "contacts", "entity_id"),
+            ("idx_contacts_name", "contacts", "name"),
+            # permits (1.1M rows)
+            ("idx_permits_number", "permits", "permit_number"),
+            ("idx_permits_block_lot", "permits", "block, lot"),
+            ("idx_permits_street", "permits", "street_number, street_name"),
+            ("idx_permits_neighborhood", "permits", "neighborhood"),
+            ("idx_permits_status_date", "permits", "status_date"),
+            # inspections (671K rows)
+            ("idx_inspections_ref", "inspections", "reference_number"),
+            ("idx_inspections_block_lot", "inspections", "block, lot"),
+            # entities (1M rows)
+            ("idx_entities_name", "entities", "canonical_name"),
+            # relationships (576K rows)
+            ("idx_relationships_a", "relationships", "entity_id_a"),
+            ("idx_relationships_b", "relationships", "entity_id_b"),
+            # addenda (3.9M rows)
+            ("idx_addenda_app_num", "addenda", "application_number"),
+            ("idx_addenda_station", "addenda", "station"),
+            ("idx_addenda_finish", "addenda", "finish_date"),
+            # timeline_stats (382K rows)
+            ("idx_ts_permit", "timeline_stats", "permit_number"),
+        ]
+        for idx_name, table, columns in _bulk_indexes:
+            try:
+                cur.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({columns})")
+            except Exception:
+                pass  # table may not exist yet on fresh installs
+
         # ── Admin auto-seed ───────────────────────────────────────
         # If the users table is empty and ADMIN_EMAIL is set, create
         # the admin account automatically so a fresh DB is immediately
