@@ -246,8 +246,8 @@ def get_portfolio(user_id: int) -> dict:
                 prop["worst_health"] = "on_track"
                 prop["health_reason"] = ""
             else:
-                # No recent activity AND no other active permits — gentle nudge
-                prop["worst_health"] = "slower"
+                # No recent activity AND no other active permits — genuinely stale
+                prop["worst_health"] = "at_risk"
                 prop["health_reason"] += " (no recent activity)"
 
     # Get tags from watch items
