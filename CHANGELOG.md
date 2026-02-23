@@ -1,5 +1,22 @@
 # Changelog
 
+## Session 38i — dforge MCP Server Launch (2026-02-22)
+
+### dforge MCP Server — `github.com/tbrennem-source/dforge`
+- **Deployed**: FastMCP streamable-http server on Railway at `https://dforge-mcp-production.up.railway.app/mcp`
+- **9 tools**: `list_templates`, `get_template`, `list_frameworks`, `get_framework`, `run_intake`, `audit_project`, `list_lessons`, `get_lesson`, `portfolio_status`
+- **Content**: 9 project templates (CANON, PRINCIPALS, STATUS, etc.), 3 methodology frameworks (Five Levels, intake interview, project-framework), portfolio dashboard
+- **Package**: switched from `fastmcp>=2.0.0` to `mcp[cli]>=1.26.0` for claude.ai compatibility (same fix as sfpermits)
+- **Auto-deploy**: GitHub → Railway wired, pushes to `main` trigger rebuild
+
+### Protocol Update — `sf-permits-mcp/CLAUDE.md`
+- **Cross-repo routing**: QA scripts for features in other repos go to that repo's `qa-drop/`; scenarios always land in sf-permits `scenarios-pending-review.md`
+- **Step 2 clarified**: "Always here, regardless of which repo the feature lives in"
+
+### QA Artifacts
+- `dforge/qa-drop/dforge-mcp-server-qa.md` — 12-step QA script for dforge MCP server
+- `scenarios-pending-review.md` — 5 new scenarios: MCP connect, get_template, run_intake, audit_project, empty lessons state
+
 ## Session 38h — CHECKCHAT Protocol, dforge Framework, QA Cleanup (2026-02-22)
 
 ### Protocol Formalization — `~/.claude/CLAUDE.md`
