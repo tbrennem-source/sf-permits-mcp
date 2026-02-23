@@ -216,3 +216,51 @@ _Last reviewed: never_
 **Edge cases seen in code:** Space-variant street names (VAN NESS vs VANNESS) should still match; "Did you mean?" suggestions appear for non-matching addresses
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Undo accidental delete within grace period
+**Source:** Session 46 — UX audit fix #14 (soft-delete + undo)
+**User:** expediter
+**Starting state:** User has a completed analysis on the history page
+**Goal:** Accidentally delete an analysis, then undo before 30-second grace period expires
+**Expected outcome:** After clicking Delete, a toast appears with "Undo" button; clicking Undo within 30s restores the job; job reappears in the list
+**Edge cases seen in code:** Bulk delete returns multiple job_ids for undo; grace period timer auto-dismisses toast after 30s; restore fails gracefully if job was already permanently purged
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Retry failed analysis with prefilled metadata
+**Source:** Session 46 — UX audit fix #3 (retry with prefill)
+**User:** expediter
+**Starting state:** User has a failed or stale analysis card visible
+**Goal:** Retry the analysis without re-entering all the metadata (address, permit, stage)
+**Expected outcome:** Clicking "Retry" opens the upload form with address, permit number, submission stage, and project description pre-filled from the original job
+**Edge cases seen in code:** If original job had no address/permit, fields should be empty (not "null"); file must still be re-uploaded manually
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Filter persistence across page reloads
+**Source:** Session 46 — UX audit fix #10 (URL param persistence)
+**User:** expediter
+**Starting state:** User is on the analysis history page with many jobs
+**Goal:** Set a status filter, share the URL with a colleague, and have the same view load
+**Expected outcome:** Clicking a filter chip updates the URL with `?status=...`; reloading the page restores the active filter; sharing the URL loads the filtered view
+**Edge cases seen in code:** Multiple filters (status + mode) should both persist; clearing "All" should remove params
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Compare page shows human-readable labels
+**Source:** Session 46 — UX audit fixes #5a/b, #9, #17
+**User:** expediter
+**Starting state:** User navigates to the comparison page for two versions of the same plan set
+**Goal:** Understand the comparison results without needing to know internal terminology
+**Expected outcome:** Column headers say "Original" / "Resubmittal"; type chips say "Plan Checker Note", "Compliance Issue" etc. (not raw values); version labels show actual version numbers from data; EPR checks show human names with raw ID as secondary text
+**Edge cases seen in code:** Unknown type values fall through to title-cased raw value; EPR check names loaded from tier1 knowledge base
+**CC confidence:** high
+**Status:** PENDING REVIEW
