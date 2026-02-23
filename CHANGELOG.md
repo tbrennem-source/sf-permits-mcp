@@ -1,5 +1,31 @@
 # Changelog
 
+## Session 38h — CHECKCHAT Protocol, dforge Framework, QA Cleanup (2026-02-22)
+
+### Protocol Formalization — `~/.claude/CLAUDE.md`
+- **Black Box Session Protocol**: READ → BUILD → TEST → SCENARIOS → QA (RELAY) → CHECKCHAT. Every session.
+- **CHECKCHAT**: 6-step session close — VERIFY, DOCUMENT, CAPTURE, SHIP, PREP NEXT, BLOCKED ITEMS REPORT.
+- **Failure Escalation Policy**: 3 attempts per FAIL, mark BLOCKED if unresolvable, accumulate for end-of-session report.
+- **RELAY rewrite**: Simplified — CC runs QA directly via browser tools, no Cowork/clipboard dependency.
+
+### dforge Framework — `~/AIprojects/dforge/`
+- **Project Standards Enforcement**: Every onboarded project must have `qa-drop/`, `qa-results/`, `scenarios-pending-review.md`, RELAY active, CHECKCHAT active.
+- **Intake interview**: 17 questions including 4 new QA infrastructure checks.
+- **Maturity diagnostic**: 10 scored dimensions (0–100) including RELAY, Scenarios, CHECKCHAT, Failure Escalation.
+- **Template CLAUDE.md**: New projects auto-get RELAY + CHECKCHAT one-liners.
+
+### Cross-Project Updates
+- `sf-permits-mcp/CLAUDE.md`: Added `## CHECKCHAT: active` one-liner.
+- `chief/CLAUDE.md`: Created with RELAY + CHECKCHAT active.
+- `dforge/CLAUDE.md`: Created with Project Standards Enforcement + RELAY + CHECKCHAT active.
+
+### QA Artifact Cleanup — `sf-permits-mcp/`
+- Removed RELAY header block from `qa-drop/session-38f-admin-ops-severity-qa.md` (protocol is now global, not per-script).
+- Deleted `qa-drop/launcher.html` and `Makefile` + `scripts/gen_qa_launcher.py` (superseded by direct browser QA execution).
+
+### RELAY Execution
+- Ran session-38f QA script: **17/17 PASS** via browser tools. Results in `qa-results/done/`.
+
 ## Session 38g (cont.) — RELAY Protocol, QA Launcher, Cowork QA (2026-02-22)
 
 ### RELAY Protocol — `~/.claude/CLAUDE.md`, `CLAUDE.md`

@@ -258,3 +258,5 @@ After writing both files, output a single summary line:
 
 
 ## RELAY: active (see ~/.claude/CLAUDE.md for protocol)
+
+## CHECKCHAT: active (see ~/.claude/CLAUDE.md for protocol)
