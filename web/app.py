@@ -2790,6 +2790,13 @@ def _ask_address_search(query: str, entities: dict) -> str:
             street_number=street_number,
             street_name=street_name,
         )
+        # Sync badge count with MCP tool's actual permit count (which
+        # includes parcel merge + historical lot discovery)
+        if address_intel:
+            import re
+            _m = re.search(r'Found \*\*(\d+)\*\* permits', result_md)
+            if _m:
+                address_intel["total_permits"] = int(_m.group(1))
     # Extract for backward compat with Quick Actions buttons
     violation_counts = None
     active_businesses = []
@@ -2843,6 +2850,12 @@ def _ask_parcel_search(query: str, entities: dict) -> str:
     violation_counts = None
     if block and lot:
         address_intel = _get_address_intel(block=block, lot=lot)
+        # Sync badge count with MCP tool's actual permit count
+        if address_intel:
+            import re
+            _m = re.search(r'Found \*\*(\d+)\*\* permits', result_md)
+            if _m:
+                address_intel["total_permits"] = int(_m.group(1))
         if address_intel and address_intel["enforcement_total"] is not None:
             violation_counts = {
                 "open_violations": address_intel["open_violations"] or 0,
