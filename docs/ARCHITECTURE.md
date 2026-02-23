@@ -53,7 +53,7 @@ Phase 2 tools (`search_entity`, `entity_network`, `network_anomalies`) query Pos
 
 Phase 2.75 tools (`predict_permits`, `estimate_timeline`, `estimate_fees`, `required_documents`, `revision_risk`) walk a 7-step permit decision tree backed by structured knowledge files (fee tables, routing matrix, OTC criteria, fire/planning code) plus historical statistics.
 
-Phase 3.5 tools (`recommend_consultants`, `permit_lookup`) combine knowledge base consultant data with permit lookups.
+Phase 3.5 tools (`recommend_consultants`, `permit_lookup`) combine knowledge base consultant data with permit lookups. `permit_lookup` uses exact street name matching (with space-variant support), historical lot discovery across condo conversions, and parcel-level merge to return comprehensive results for multi-unit buildings.
 
 Phase 4 tools (`analyze_plans`, `validate_plans`) use the Claude Vision API to analyze architectural drawings and check EPR compliance.
 
@@ -327,7 +327,7 @@ src/
     ├── required_documents.py  # Phase 2.75: Document checklist assembly
     ├── revision_risk.py       # Phase 2.75: Revision probability from cost data
     ├── recommend_consultants.py # Phase 3.5: Land use consultant recommendations
-    ├── permit_lookup.py       # Phase 3.5: Quick permit lookup
+    ├── permit_lookup.py       # Phase 3.5: Quick permit lookup (exact match, historical lots, parcel merge)
     ├── analyze_plans.py       # Phase 4: AI vision plan analysis
     └── validate_plans.py      # Phase 4: EPR compliance checking
 ```

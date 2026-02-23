@@ -25,7 +25,7 @@ MCP server + web application for San Francisco building permit data, entity netw
 | | `required_documents` | Document checklist assembly |
 | | `revision_risk` | Revision probability from cost/code analysis |
 | **3.5 — Facilitation** | `recommend_consultants` | Land use consultant recommendations |
-| | `permit_lookup` | Quick permit lookup by number, address, or parcel with plan review routing |
+| | `permit_lookup` | Quick permit lookup by number, address, or parcel — exact matching, historical lot discovery, parcel-level merge |
 | **4 — Vision** | `analyze_plans` | AI vision analysis of architectural drawings |
 | | `validate_plans` | EPR compliance checking via Claude Vision |
 | **5 — Addenda** | `search_addenda` | Search 3.9M+ plan review routing records by permit, station, reviewer, date |

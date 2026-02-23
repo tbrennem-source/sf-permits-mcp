@@ -137,6 +137,35 @@ Three rounds of Cowork QA revealed that the Admin Ops DQ tab was unusable — qu
 
 ---
 
+## Session 45 — Permit Lookup Search Accuracy (2026-02-21/22)
+
+Four improvements to `permit_lookup` search accuracy plus one UX fix for feedback screenshots.
+
+### Exact Street Name Matching — `src/tools/permit_lookup.py`, `web/app.py`
+- **Bug**: Searching "146 Lake" matched "146 BLAKE" because `_lookup_by_address` used `LIKE '%LAKE%'` substring matching.
+- **Fix**: Switched to exact `=` matching with space-variant support (e.g., `VAN NESS` vs `VANNESS`). All queries in both `permit_lookup.py` and `web/app.py` updated — including `_resolve_block_lot`, `_get_address_intel` (3 queries), `_get_primary_permit_context`, and the block/lot fallback.
+- **"Did you mean?" suggestions**: When exact match returns no results, a `LIKE '%name%'` fallback runs and returns up to 5 suggestions (e.g., "Did you mean: BLAKE ST, LAKE MERCED HILL?").
+
+### Historical Lot Discovery — `src/tools/permit_lookup.py`
+- **Problem**: Condo conversions reassign lot numbers (e.g., Lot 017 → Lot 069 at 146 Lake St). Block/lot searches missed historical permits under the old lot.
+- **New function `_find_historical_lots()`**: Discovers old lot numbers by resolving the street address from the current lot, then finding all distinct lots at the same block + address.
+- **Applied to**: `_lookup_by_block_lot()` uses IN clause for multiple lots; `_get_related_location()` also uses historical lots for related-permit queries.
+
+### Address Search Parcel Merge — `src/tools/permit_lookup.py`
+- **Problem**: Searching "146 Lake" returned 5 permits, but the property report showed 13. Multi-unit buildings have permits filed under different street numbers (e.g., 144 vs 146).
+- **Fix**: After address search returns results, resolves block/lot from the first result, runs `_lookup_by_block_lot()` (which includes historical lots), and merges/deduplicates all parcel-level permits into the response.
+
+### Screenshot Limit Increase — `web/app.py`, `web/templates/fragments/feedback_widget.html`
+- Raised max screenshot size from 2MB to 5MB (client-side JS + server-side validation).
+- Updated error message to reflect new limit.
+
+### Tests
+- 3 new tests: `test_find_historical_lots_discovers_old_lot`, `test_find_historical_lots_no_address`, `test_lookup_by_block_lot_multi_lot`
+- 5 existing tests updated for new mock call patterns
+- Full suite: 1,226 passing, 18 pre-existing errors unchanged
+
+---
+
 ## Session 44 — Analysis History Phases D2, E1, E2, F (2026-02-20)
 
 Full implementation of the deferred Analysis History features from SPEC-analysis-history-phases-d-f.md.
