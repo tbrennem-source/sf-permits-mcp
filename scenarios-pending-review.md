@@ -108,7 +108,7 @@ _Last reviewed: never_
 **User:** admin
 **Starting state:** Logged in as admin, DQ cache populated, on Data Quality tab
 **Goal:** Verify that critical PostgreSQL indexes exist on bulk tables
-**Expected outcome:** Bottom of DQ tab shows a row of index tags — green checkmark for indexes that exist, red ✗ for missing ones. At least 6 key indexes are checked: contacts_permit, permits_number, permits_block_lot, inspections_ref, entities_name, addenda_app_num. Missing indexes indicate a deployment issue.
+**Expected outcome:** Bottom of DQ tab shows a row of index tags — green checkmark for indexes that exist, red X for missing ones. At least 6 key indexes are checked: contacts_permit, permits_number, permits_block_lot, inspections_ref, entities_name, addenda_app_num. Missing indexes indicate a deployment issue.
 **Edge cases seen in code:** `check_bulk_indexes()` queries `pg_indexes` system catalog; on DuckDB (local dev), it returns empty list and the bar doesn't render. Index creation runs at startup but can silently fail if the table doesn't exist yet (e.g., before first ingest).
 **CC confidence:** medium
 **Status:** PENDING REVIEW
@@ -141,6 +141,46 @@ _Last reviewed: never_
 **Starting state:** User has a property with 1 expired permit but 5+ other active permits and activity within 90 days
 **Goal:** See that the expired permit does not trigger a false AT RISK
 **Expected outcome:** Property card shows ON TRACK (green dot) — expired permit dismissed as routine at an active construction site
-**Edge cases seen in code:** `has_other_active = active > 1` is the threshold. With exactly 2 active permits the condition fires. With ≥5 active the dismiss-to-on_track branch fires.
+**Edge cases seen in code:** `has_other_active = active > 1` is the threshold. With exactly 2 active permits the condition fires. With >=5 active the dismiss-to-on_track branch fires.
 **CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Pasted email routes to AI draft response
+**Source:** Intent router Priority 0 (src/tools/intent_router.py)
+**User:** expediter
+**Starting state:** Expediter is on homepage, has received an email from a homeowner asking about permits
+**Goal:** Paste the email into the search box and get an AI-drafted reply
+**Expected outcome:** AI generates a contextual response addressing the homeowner's question, using RAG knowledge base. Does NOT trigger complaint search, address lookup, or project analysis even if email contains those keywords.
+**Edge cases seen in code:** Single-line greeting without substance ("Hi Amy") should NOT trigger draft — falls through to general_question. "draft:" prefix always triggers regardless of length.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Expired permit does not alarm active site
+**Source:** Portfolio health logic (web/portfolio.py, web/brief.py)
+**User:** expediter
+**Starting state:** Expediter watches a property with 1 expired mechanical permit and 1 active permit, last activity 3 days ago
+**Goal:** See accurate health status on portfolio and morning brief
+**Expected outcome:** Property shows ON_TRACK (green), not BEHIND or AT_RISK. No health_reason text about the expired permit. Expediter is not distracted by administrative noise.
+**Edge cases seen in code:** Property with expired permit AND no activity for 90+ days AND no other active permits → SLOWER (gentle nudge). Property with open violations → still AT_RISK regardless of expired permits.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: What Changed shows specific permit details
+**Source:** Morning brief "What Changed" section (web/brief.py)
+**User:** expediter
+**Starting state:** Watched property had a permit status_date update in SODA but nightly change detection didn't log a specific transition
+**Goal:** See what actually changed at the property on the morning brief
+**Expected outcome:** Card shows permit number, permit type, and current status badge instead of generic "Activity Xd ago" with "1 active of 2 permits"
+**Edge cases seen in code:** If permits table query fails or returns no results, falls back to generic activity card. Multiple permits at same address that changed → one card per permit.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Multi-line email with signature detected
+**Source:** Intent router signature detection (src/tools/intent_router.py)
+**User:** expediter
+**Starting state:** Expediter receives a forwarded email with sign-off ("— Karen", "Best regards,", "Sent from my iPhone")
+**Goal:** Paste the full email thread into search box for AI analysis
+**Expected outcome:** Routes to draft_response even without explicit "Hi" greeting, based on signature detection + multi-line structure
+**Edge cases seen in code:** Single dash "- Karen" matches but "-Karen" (no space) does not. "Sent from my iPhone" only matches at line start.
+**CC confidence:** medium
 **Status:** PENDING REVIEW
