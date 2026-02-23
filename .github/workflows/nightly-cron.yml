@@ -1,15 +1,22 @@
 name: Nightly Data Sync & Morning Briefs
 
 on:
-  schedule:
-    # Nightly delta fetch: 3 AM Pacific = 11:00 UTC
-    - cron: '0 11 * * *'
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
 
 jobs:
   nightly-sync:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Only run after scheduled CI (not push/PR CI), and only if CI passed.
+    # workflow_dispatch bypasses this condition for manual triggers.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'schedule')
     steps:
       - name: Trigger nightly data sync
         run: |

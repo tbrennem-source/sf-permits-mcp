@@ -285,7 +285,7 @@ def test_brief_includes_plan_reviews_key():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Requires network access — run manually with pytest -k test_addenda_soda")
+@pytest.mark.network
 async def test_addenda_soda_accessible():
     """Verify the addenda SODA dataset is accessible and has expected fields."""
     from src.soda_client import SODAClient
