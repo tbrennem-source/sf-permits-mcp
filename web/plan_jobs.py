@@ -281,7 +281,7 @@ def get_user_jobs(
             "is_async, quick_check, property_address, permit_number, "
             "created_at, completed_at, error_message, "
             "analysis_mode, pages_analyzed, started_at, is_archived, "
-            "parent_job_id "
+            "parent_job_id, version_group "
             "FROM plan_analysis_jobs "
             f"WHERE user_id = %s {archive_filter}"
             f"{order_clause} "

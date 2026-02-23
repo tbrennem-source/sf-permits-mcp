@@ -267,6 +267,58 @@ _Last reviewed: never_
 
 ---
 
+## SUGGESTED SCENARIO: Project notes visible for pre-existing jobs in grouped view
+**Source:** Session 46 — analysis_grouping.html notes panel NULL version_group fix
+**User:** expediter
+**Starting state:** User has existing plan analysis jobs created before `version_group` column was added; grouped view enabled
+**Goal:** Open notes panel for a project group and save a note
+**Expected outcome:** "📝 Notes" toggle appears on every project group regardless of whether jobs have `version_group` populated. Clicking toggle opens textarea. Typing and saving works. Char counter updates live. Saved confirmation ("✓ Saved") appears briefly after save.
+**Edge cases seen in code:** Groups keyed by group `key` (normalized address/filename) when `version_group` is NULL — notes persist correctly across page reloads using that key. Single-job groups also show the notes panel.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Project notes persist across grouped view reloads
+**Source:** Session 46 — saveProjectNotes() API call
+**User:** expediter
+**Starting state:** User has saved notes on a project group (text was saved via `/api/project-notes/{key}`)
+**Goal:** Reload the grouped view and verify notes are still there
+**Expected outcome:** Notes text reappears in the textarea on reload. Preview truncation (first 60 chars + "…") appears in the "📝 Notes" button label. Character count shows correct length.
+**Edge cases seen in code:** Notes keyed by version_group UUID when available, otherwise by group key (address/filename). Key collision unlikely but possible if two users have same filename.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Notes character counter shows live count
+**Source:** s46-ux-audit-analysis-history-qa.md / analysis_grouping.html
+**User:** expediter
+**Starting state:** User is in grouped view with at least one project group visible
+**Goal:** Add project notes and verify character limit is visible
+**Expected outcome:** When user opens the Notes panel and types, a live counter (e.g., "42 / 4,000") updates with each keystroke. Counter starts at "0 / 4,000" when empty. Counter prevents saving beyond 4,000 characters.
+**Edge cases seen in code:** Counter keyed by version_group UUID — if version_group is missing from the DB query, the panel never renders at all (was the root cause of this session's FAIL).
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Filter chip selection persists on page reload
+**Source:** s46-ux-audit-analysis-history-qa.md / analysis_history.html
+**User:** expediter
+**Starting state:** User is on the Analysis History page with multiple jobs in different states
+**Goal:** Filter to "Completed" jobs, bookmark or share the URL, return to page
+**Expected outcome:** The URL updates to reflect the selected filter (e.g., ?status=completed). On reload, the same filter is active and only completed jobs show.
+**Edge cases seen in code:** Both status and mode filters are persisted. Combining filters (e.g., status=completed&mode=quick) should also persist correctly.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Retry pre-fills upload form with original job data
+**Source:** s46-ux-audit-analysis-history-qa.md / analysis_history.html
+**User:** expediter
+**Starting state:** An analysis job has failed (status = failed or stale)
+**Goal:** Resubmit the same job without re-entering address and permit number
+**Expected outcome:** Clicking "Retry" on a failed/stale job card opens the upload form pre-filled with the original job's address, permit number, and analysis stage. User only needs to upload a new file and submit.
+**Edge cases seen in code:** Pre-fill fetched via /api/plan-jobs/<id>/prefill endpoint. If the job has no address/permit stored, fields may be empty.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
 ## SUGGESTED SCENARIO: CI runs on every PR
 **Source:** .github/workflows/ci.yml
 **User:** admin
