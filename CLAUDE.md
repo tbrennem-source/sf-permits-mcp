@@ -176,12 +176,17 @@ See `docs/BACKUPS.md` for full strategy. Key points:
 
 ## Development
 
+**Always activate the virtual environment first:**
 ```bash
+source .venv/bin/activate
 pip install -e ".[dev]"
 python -m src.server          # MCP server
 python -m web.app             # Web UI
 pytest tests/ -v              # Tests
 ```
+
+> **Note:** The system Python (Homebrew 3.14) does NOT have project dependencies installed.
+> Always run `source .venv/bin/activate` before any `python`, `pytest`, or `pip` command.
 
 Database regeneration (from SODA API):
 ```bash
@@ -321,7 +326,7 @@ This project participates in Tim's standard session protocols. These are defined
 
 **RELAY** — QA loop. After building, CC runs QA scripts from `qa-results/` using browser tools. Loops until all tests PASS or are marked BLOCKED. New QA scripts go to `qa-drop/`.
 
-**CHECKCHAT** — Session close protocol. Six steps: VERIFY (tests pass), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
+**CHECKCHAT** — Session close protocol. Six steps: VERIFY (RELAY gate — check `qa-results/` for unprocessed files, run RELAY if needed; tests pass), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
 
 **Black Box Session Protocol** — Full session lifecycle: READ → BUILD → TEST → SCENARIOS → QA (RELAY) → CHECKCHAT. QA is not optional. Scenarios are not optional. CHECKCHAT is not optional.
 

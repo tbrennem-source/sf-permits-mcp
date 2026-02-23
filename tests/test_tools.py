@@ -7,6 +7,9 @@ They require network access but no authentication (app token optional).
 import pytest
 from src.soda_client import SODAClient
 
+# Mark all tests in this module as network-dependent
+pytestmark = pytest.mark.network
+
 
 @pytest.mark.asyncio
 async def test_building_permits_accessible():

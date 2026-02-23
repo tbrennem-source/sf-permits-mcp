@@ -5,25 +5,125 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '30 10 * * *'  # 2:30 AM Pacific — validate SODA API before nightly import at 3 AM
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint
+        run: ruff check src/ web/ tests/ --select E9,F63,F7,F82 --output-format github
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
-        run: |
-          pip install -e ".[dev,web]"
+        run: pip install -e ".[dev,web]"
 
-      - name: Run tests
+      - name: Run unit tests
+        run: pytest tests/ -v -m "not network"
+
+  network-tests:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev,web]"
+
+      # Attempt 1
+      - name: Run network tests (attempt 1)
+        id: attempt1
+        continue-on-error: true
+        run: pytest tests/ -v -m "network"
+
+      # Attempt 2 — retry after 30s if first attempt failed
+      - name: Wait before retry
+        if: steps.attempt1.outcome == 'failure'
+        run: sleep 30
+
+      - name: Run network tests (attempt 2)
+        id: attempt2
+        if: steps.attempt1.outcome == 'failure'
+        continue-on-error: true
+        run: pytest tests/ -v -m "network"
+
+      # Attempt 3 — final retry after 60s
+      - name: Wait before final retry
+        if: steps.attempt1.outcome == 'failure' && steps.attempt2.outcome == 'failure'
+        run: sleep 60
+
+      - name: Run network tests (attempt 3 — final)
+        id: attempt3
+        if: steps.attempt1.outcome == 'failure' && steps.attempt2.outcome == 'failure'
+        run: pytest tests/ -v -m "network"
+
+      # Set final outcome for downstream consumers
+      - name: Evaluate result
+        if: always()
         run: |
-          pytest tests/ -v \
-            --ignore=tests/test_tools.py \
-            --ignore=tests/test_plan_images.py \
-            --ignore=tests/test_plan_ui.py
+          if [[ "${{ steps.attempt1.outcome }}" == "success" ]]; then
+            echo "Network tests passed on attempt 1"
+          elif [[ "${{ steps.attempt2.outcome }}" == "success" ]]; then
+            echo "Network tests passed on attempt 2 (after retry)"
+          elif [[ "${{ steps.attempt3.outcome }}" == "success" ]]; then
+            echo "Network tests passed on attempt 3 (after 2 retries)"
+          else
+            echo "::error::Network tests failed after 3 attempts"
+            exit 1
+          fi
+
+  # Notify on nightly failure — only runs on schedule, only on failure
+  notify:
+    if: github.event_name == 'schedule' && failure()
+    needs: [lint, unit-tests, network-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram alert
+        if: vars.TELEGRAM_BOT_TOKEN != '' || secrets.TELEGRAM_BOT_TOKEN != ''
+        run: |
+          FAILED_JOBS=""
+          if [[ "${{ needs.lint.result }}" == "failure" ]]; then FAILED_JOBS="lint"; fi
+          if [[ "${{ needs.unit-tests.result }}" == "failure" ]]; then FAILED_JOBS="$FAILED_JOBS unit-tests"; fi
+          if [[ "${{ needs.network-tests.result }}" == "failure" ]]; then FAILED_JOBS="$FAILED_JOBS network-tests"; fi
+
+          MSG="⚠️ *Nightly CI Failed*%0A%0AFailed jobs: ${FAILED_JOBS}%0ANightly data import was SKIPPED.%0A%0A[View run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          curl -s -X POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d parse_mode=Markdown \
+            -d text="$MSG" || echo "Telegram notification failed (secrets may not be configured)"
+
+      - name: Log failure summary
+        run: |
+          echo "::error::Nightly CI failed. Data import will be skipped."
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Unit tests: ${{ needs.unit-tests.result }}"
+          echo "Network tests: ${{ needs.network-tests.result }}"
