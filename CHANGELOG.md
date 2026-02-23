@@ -1,5 +1,23 @@
 # Changelog
 
+## Session 30 — Branch Audit + Developer Onboarding Infrastructure (2026-02-22)
+
+### Branch Cleanup
+- Audited all 13 branches (12 local worktrees + 1 remote-only) — confirmed zero conflicting work, all merged to main via PRs #1–#15
+- Removed 11 stale worktrees, deleted 12 local branches, deleted 14 remote branches
+- Caught and resolved 4 additional hidden remote branches (`angry-tu`, `practical-jepsen`, `zen-swanson`, `tender-knuth`) missed in initial audit; merged `angry-tu`'s DECISIONS.md commit (entries 11+12)
+- Closed 4 stale chief tasks: #20 (bot stability), #41 (dup), #42 (RAG shipped), #57 (regulatory watch shipped)
+
+### Developer Onboarding Infrastructure
+- **`.github/PULL_REQUEST_TEMPLATE.md`** — "show your work" PR template: what changed, how it works, test output paste, 4-item checklist
+- **`docs/ONBOARDING.md`** — new developer guide: local setup, Claude Code workflow, git conventions, project structure, key concepts, safety rules
+- **`CLAUDE.md`** — updated Branch & Merge Workflow: role-based rules (Tim pushes direct, contributors use PRs), link to onboarding doc
+
+### Files Changed
+- `.github/PULL_REQUEST_TEMPLATE.md` — NEW
+- `docs/ONBOARDING.md` — NEW
+- `CLAUDE.md` — branch workflow, test count fix (812 → 1,033+), removed stale branch reference
+
 ## Session 38j — Nightly Chief Sync Phase 3 + 4 (2026-02-22)
 
 ### Phase 3: GitHub Actions Workflow
