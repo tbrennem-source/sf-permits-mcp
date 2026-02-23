@@ -315,3 +315,70 @@ Use Anthropic's Claude Vision API via `src/vision/`:
 
 - **OpenAI Vision:** Evaluated — Claude Vision showed better spatial understanding for architectural plans
 - **Custom CV pipeline:** Rejected — would require significant training data and wouldn't match the quality of foundation model vision
+
+## Decision 11: Annotation Matching Strategy for Plan Version Comparison
+
+**Date:** 2026-02-22
+**Status:** Decided — Token overlap threshold=2 with type-first bucketing and position tiebreak
+
+### Context
+
+The Analysis History revision tracking feature (Phases E/F) needs to detect which annotations in a v2 plan upload correspond to the same physical element as annotations in v1. Claude Vision produces non-deterministic label text across runs — the same stamp might be described as `"PE Stamp: CA #C12345 — John Smith"` in one run and `"Architect Stamp Present — RA License"` in another.
+
+### Decision
+
+Use token overlap (threshold ≥ 2 shared tokens after stopword removal) as the primary matching signal, with three refinements:
+
+1. **Type-first bucketing**: compare v2 annotations only against v1 annotations of the same `type` field. Reduces false positives from unrelated domain terms.
+2. **Position tiebreak**: when multiple candidates pass the token test, prefer the one with smallest Euclidean distance in (x, y). Handles split annotations.
+3. **Stamp special case**: for `type="stamp"`, lower threshold to 1 — the physical element is unique per page, so any shared meaningful token (`stamp`, `pe`, `architect`) is sufficient.
+
+### Rationale
+
+Tested against real-world prod annotation pairs from 13 sessions of the same PDF. Token overlap ≥ 2 catches ~75% of same-concept annotations (code refs, EPR issues, reviewer notes, occupancy labels) with ~95% precision. The 25% miss rate is concentrated in stamps (detail-vs-generic collapse) and abbreviations — both low-frequency in SF permit plan sets.
+
+### Why NOT Semantic Similarity
+
+Annotation labels are short (≤60 chars), structured, and domain-specific. CBC section numbers (`CBC 1020.1`) and AHJ terminology are exactly the vocabulary where token overlap outperforms embeddings. Embeddings conflate related-but-distinct code sections (CBC 1006 vs CBC 1020 — both egress-related but different requirements). Given the current data volume (18 sessions in prod), the cost/latency of embedding calls is not justified.
+
+### Failure Modes (Known)
+
+- **Stamp detail collapse**: `"PE Stamp: CA #C12345"` → `"Stamp present"` — mitigated by stamp special case (threshold=1)
+- **Merge/split**: one v1 annotation covering multiple sheets splits into per-sheet v2 annotations — use type coverage scoring
+- **Type reassignment**: `epr_issue` in v1 becomes `general_note` in v2 — cross-type fallback at threshold ≥ 3
+- **Abbreviations**: `"FEC cabinet"` vs `"fire extinguisher cabinet"` — pre-expand known AHJ abbreviations
+
+## Decision 12: Sheet Number as Fingerprinting Signal for Plan Version Matching
+
+**Date:** 2026-02-22
+**Status:** Decided — Use (page_number, sheet_number) composite key; sheet_number alone is insufficient
+
+### Context
+
+Revision tracking needs to match pages across v1/v2 uploads of the same plan set. Sheet numbers (e.g. `A0.0`, `A2.1`) are extracted by Claude Vision from title blocks during page analysis. The question was whether sheet number extraction is reliable enough to use as a fingerprinting key.
+
+### Findings from Prod Data
+
+Analyzed 18 sessions across 4 distinct PDFs:
+
+- **PrelimPermitSet11.14 (12-page SF plan set)**: 13 sessions, 100% sheet number consistency for every page that was sampled. `A0.0` always appeared on page 1; `A2.0` always on page 7; etc. Format: `X#.#` (Arch-standard) universally.
+- **medeek-foundation-plan.pdf (1-page structural)**: sheet number `3` — plain integer, no title block standard. 100% consistent across 2 sessions.
+- **medeek-dormer-framing.pdf (1-page structural)**: `S1.4` — consistent.
+- **sudbury-sample-permit-drawings.pdf (17-page Canadian forms)**: 0% sheet number extraction — no architectural title blocks present.
+- **test_plan.pdf (synthetic)**: 0% — no title block.
+
+### Decision
+
+Use `(page_number, sheet_number)` as a composite fingerprint key. Primary match on `page_number` (always present), confirm with `sheet_number` when non-null.
+
+### Critical Constraint: A1.1 Collision
+
+In PrelimPermitSet, `A1.1` appears on **both page 6 (FLOOR PLANS) and page 11 (DETAILS)**. Sheet number is not unique within a document. Never use sheet_number as the sole key — always anchor to page_number.
+
+### Fallback for Non-DBI Documents
+
+Sudbury-style forms packages, plugin-generated structural drawings, and synthetic test files produce 0% sheet number coverage. When `sheet_number` is null across all extracted pages, fall back to page_number-only matching with positional annotation heuristics.
+
+### Guard Against Hollow Sessions
+
+One prod session (`oeNQCmMYRT2evqRjO1-F7g`) has 0 extractions despite being linked to the 12-page PrelimPermitSet. Any fingerprinting logic must check `len(extractions) == 0` before attempting to match — never assume a completed session has data.
