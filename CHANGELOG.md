@@ -1,5 +1,12 @@
 # Changelog
 
+## Session 46c — Protocol: Push worktree branch to origin after merge (2026-02-23)
+
+### Protocol Fix
+- **`~/.claude/CLAUDE.md` Step 7 CLEANUP**: added `git push -u origin [branch]` after merging worktree branch to main — without this CC shows "Create PR" because the local branch has commits with no upstream ref, even though the work is already in main
+
+---
+
 ## Session 46b — Protocol: CHECKCHAT Worktree Close-out Fix (2026-02-23)
 
 ### Protocol Fixes
