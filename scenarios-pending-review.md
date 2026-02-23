@@ -124,3 +124,23 @@ _Last reviewed: never_
 **Edge cases seen in code:** Each check in `run_all_checks()` is wrapped in try/except. A failed check produces a result dict with `status: "fail"` and `detail: "Check failed — see logs"`. The cache stores whatever results completed. If ALL checks fail, the tab still renders with 0 passing / 0 warning / N failing.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Expired stalled permit shows AT RISK not SLOWER
+**Source:** web/brief.py + web/portfolio.py severity fix (Session cool-pike)
+**User:** expediter
+**Starting state:** User has a watched property with 1 expired permit, last activity 400+ days ago, no other active permits
+**Goal:** See an accurate risk signal for the stale permit
+**Expected outcome:** Property card shows AT RISK (red dot) with reason "permit expired Xd ago (no recent activity)". Not SLOWER.
+**Edge cases seen in code:** The downgrade block at brief.py:1342 only fires when `worst_health == "at_risk"` AND reason contains "permit expired". If the per-permit health was set to something other than at_risk initially, this post-processing never runs.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Expired permit at active site stays ON TRACK
+**Source:** web/brief.py + web/portfolio.py severity post-processing (Session cool-pike)
+**User:** expediter
+**Starting state:** User has a property with 1 expired permit but 5+ other active permits and activity within 90 days
+**Goal:** See that the expired permit does not trigger a false AT RISK
+**Expected outcome:** Property card shows ON TRACK (green dot) — expired permit dismissed as routine at an active construction site
+**Edge cases seen in code:** `has_other_active = active > 1` is the threshold. With exactly 2 active permits the condition fires. With ≥5 active the dismiss-to-on_track branch fires.
+**CC confidence:** high
+**Status:** PENDING REVIEW

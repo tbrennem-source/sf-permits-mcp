@@ -20,6 +20,7 @@
 ### Infrastructure
 - `CHIEF_GITHUB_TOKEN` secret added to sf-permits-mcp GitHub repo
 - launchd plist reloaded with TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID env vars
+- **Task #194**: Replaced temporary `gho_` OAuth token with fine-grained PAT (`chief-brain-state-nightly-sync`, 90-day expiry, scoped to chief-brain-state repo, Contents read/write). Workflow re-verified: 13s, success.
 
 ## Session 38i — dforge MCP Server Launch (2026-02-22)
 
