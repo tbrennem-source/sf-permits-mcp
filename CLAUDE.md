@@ -257,6 +257,75 @@ After writing both files, output a single summary line:
 `QA READY: qa-drop/[filename] | [N] scenarios appended to scenarios-pending-review.md`
 
 
-## RELAY: active (see ~/.claude/CLAUDE.md for protocol)
+---
 
-## CHECKCHAT: active (see ~/.claude/CLAUDE.md for protocol)
+## 11. Chief Hub Protocol
+
+This project reports into Chief — a git-backed brain-state system that gives the planning layer (Claude.ai) visibility into what's happening across all projects. Chief is the coordination hub; this CLAUDE.md is the project's local instructions.
+
+### Chief Project Path
+
+This project's artifacts live at:
+```
+chief-brain-state/projects/sf-permits-mcp/
+├── STATUS.md              ← project state (synced at session close + nightly)
+├── CLAUDE.md.current      ← latest working CLAUDE.md (nightly sync)
+├── scenarios-pending-review.md  ← CC-suggested scenarios awaiting planning review
+├── qa-results/            ← QA scripts and results from RELAY sessions
+└── specs/                 ← specs that affect planning decisions
+```
+
+**Project slug in Chief:** `sf-permits-mcp` → maps to `projects/sf-permits-mcp/` in chief-brain-state
+
+### What Gets Pushed to Chief
+
+**At session close (CHECKCHAT step 4 — SHIP):**
+- STATUS.md updates (via `chief_write_file`)
+- New scenarios from `scenarios-pending-review.md` (via `chief_write_file`)
+- QA scripts from `qa-drop/` (via `chief_write_file` to `projects/sf-permits-mcp/qa-results/`)
+- Task/goal updates (via `chief_add_task`, `chief_complete_task`, `chief_add_goal`)
+- Session notes (via `chief_add_note`)
+
+**Nightly (automated):**
+- `CLAUDE.md` → pushed as `CLAUDE.md.current`
+- `scenarios-pending-review.md` (if changed)
+- Any new files in `qa-drop/` not yet in Chief
+- `git diff --stat` since last nightly sync → pushed as `nightly-diff.md`
+- STATUS.md / CHANGELOG.md if changed
+
+### What Chief Knows About This Project
+
+The planning layer (Claude.ai with Chief MCP) can read:
+- Current project state without needing repo access
+- Pending scenarios that need review and approval
+- QA results and coverage gaps
+- What changed since last planning session (via nightly diff)
+- Whether RELAY/CHECKCHAT protocols are being followed
+
+### Required Project Artifacts
+
+| Artifact | Purpose | Status |
+|----------|---------|--------|
+| `qa-drop/` | Directory for RELAY QA script output | ✅ exists |
+| `qa-results/` | Directory for completed/reviewed QA scripts | ✅ exists |
+| `scenarios-pending-review.md` | CC appends suggested scenarios here | ✅ exists |
+| `STATUS.md` | Project state — read by Chief nightly | ✅ via Chief |
+
+---
+
+## 12. Session Protocols
+
+This project participates in Tim's standard session protocols. These are defined in `~/.claude/CLAUDE.md` (the global file) and activated per-project by the markers below.
+
+### Protocol Markers
+
+**RELAY** — QA loop. After building, CC runs QA scripts from `qa-results/` using browser tools. Loops until all tests PASS or are marked BLOCKED. New QA scripts go to `qa-drop/`.
+
+**CHECKCHAT** — Session close protocol. Six steps: VERIFY (tests pass), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
+
+**Black Box Session Protocol** — Full session lifecycle: READ → BUILD → TEST → SCENARIOS → QA (RELAY) → CHECKCHAT. QA is not optional. Scenarios are not optional. CHECKCHAT is not optional.
+
+> See `~/.claude/CLAUDE.md` for the full protocol definitions. This section activates them.
+
+## RELAY: active
+## CHECKCHAT: active
