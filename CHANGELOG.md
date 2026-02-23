@@ -1,5 +1,17 @@
 # Changelog
 
+## Session 47 — Protocol Hardening: venv + RELAY gate (2026-02-23)
+
+### Process Fixes
+- **venv instructions**: Added explicit `source .venv/bin/activate` requirement to Development section of CLAUDE.md — agents were hitting "No module named pytest" because system Python 3.14 doesn't have project deps
+- **RELAY gate in CHECKCHAT**: Added validation step to CHECKCHAT VERIFY — now checks `qa-results/` for unprocessed files and requires RELAY to run before CHECKCHAT can proceed. Previously agents could skip RELAY entirely.
+
+### Files Changed
+- `~/.claude/CLAUDE.md` — RELAY gate added to CHECKCHAT `### 1. VERIFY`
+- `CLAUDE.md` (main repo + 3 worktrees) — venv instructions in Development section, RELAY gate mention in CHECKCHAT summary
+
+---
+
 ## Session 30 — Branch Audit + Developer Onboarding Infrastructure (2026-02-22)
 
 ### Branch Cleanup
