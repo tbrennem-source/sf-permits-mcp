@@ -1,5 +1,17 @@
 # Changelog
 
+## Session 46b — Protocol: CHECKCHAT Worktree Close-out Fix (2026-02-23)
+
+### Protocol Fixes
+- **`~/.claude/CLAUDE.md` Step 7 CLEANUP**: added explicit `git status` on worktree branch before merging; clarified merge must run from main repo root
+- **`~/.claude/CLAUDE.md` RELAY preamble**: corrected "tab" → "window" for browser isolation
+- **`CLAUDE.md`**: added "Worktree branch close-out" checklist under Branch & Merge Workflow
+
+### Root Cause
+Step 7 existed but didn't say to commit worktree branch changes before merging — leaving "Commit changes" in the CC UI after an otherwise-clean session.
+
+---
+
 ## Session 48 — Protocol Hardening: venv + RELAY gate (2026-02-23)
 
 ### Process Fixes
