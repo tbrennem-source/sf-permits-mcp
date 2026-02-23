@@ -3,6 +3,25 @@
 <!-- Do not edit scenario-design-guide.md directly -->
 <!-- This file is reviewed and drained each planning session -->
 
+## SUGGESTED SCENARIO: CI catches broken test on PR
+**Source:** .github/workflows/ci.yml
+**User:** architect | admin
+**Starting state:** Developer has pushed a branch with a failing test
+**Goal:** CI blocks merge until tests pass
+**Expected outcome:** PR shows red check, reviewer sees which test failed, merge is blocked
+**Edge cases seen in code:** Tests that timeout (30s limit) appear as failures not skips; orphaned test files (missing modules) cause import errors not test failures
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: CI passes on clean branch
+**Source:** .github/workflows/ci.yml
+**User:** architect | admin
+**Starting state:** Developer has pushed a branch with all tests passing
+**Goal:** CI confirms branch is safe to merge
+**Expected outcome:** PR shows green check within ~3 minutes, 797+ tests reported as passed
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
 _Last reviewed: never_
 
 ---
