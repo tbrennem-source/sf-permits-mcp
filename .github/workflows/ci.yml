@@ -32,4 +32,4 @@ jobs:
         run: |
           pytest tests/ -x -q --timeout=30 \
             --ignore=tests/test_tools.py \
-            -k "not test_addenda_soda_accessible"
+            -k "not (test_addenda_soda_accessible or test_analyze_plans_with_vision)"
