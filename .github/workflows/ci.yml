@@ -42,10 +42,8 @@ jobs:
         run: pytest tests/ -v -m "not network"
 
   network-tests:
-    if: github.event_name == 'schedule'
+    if: ${{ github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1
     steps:
       - uses: actions/checkout@v4
 
@@ -65,28 +63,28 @@ jobs:
 
       # Attempt 2 — retry after 30s if first attempt failed
       - name: Wait before retry
-        if: steps.attempt1.outcome == 'failure'
+        if: ${{ steps.attempt1.outcome == 'failure' }}
         run: sleep 30
 
       - name: Run network tests (attempt 2)
         id: attempt2
-        if: steps.attempt1.outcome == 'failure'
+        if: ${{ steps.attempt1.outcome == 'failure' }}
         continue-on-error: true
         run: pytest tests/ -v -m "network"
 
       # Attempt 3 — final retry after 60s
       - name: Wait before final retry
-        if: steps.attempt1.outcome == 'failure' && steps.attempt2.outcome == 'failure'
+        if: ${{ steps.attempt1.outcome == 'failure' && steps.attempt2.outcome == 'failure' }}
         run: sleep 60
 
-      - name: Run network tests (attempt 3 — final)
+      - name: Run network tests (attempt 3 - final)
         id: attempt3
-        if: steps.attempt1.outcome == 'failure' && steps.attempt2.outcome == 'failure'
+        if: ${{ steps.attempt1.outcome == 'failure' && steps.attempt2.outcome == 'failure' }}
         run: pytest tests/ -v -m "network"
 
       # Set final outcome for downstream consumers
       - name: Evaluate result
-        if: always()
+        if: ${{ always() }}
         run: |
           if [[ "${{ steps.attempt1.outcome }}" == "success" ]]; then
             echo "Network tests passed on attempt 1"
@@ -101,12 +99,12 @@ jobs:
 
   # Notify on nightly failure — only runs on schedule, only on failure
   notify:
-    if: github.event_name == 'schedule' && failure()
+    if: ${{ github.event_name == 'schedule' && failure() }}
     needs: [lint, unit-tests, network-tests]
     runs-on: ubuntu-latest
     steps:
       - name: Send Telegram alert
-        if: vars.TELEGRAM_BOT_TOKEN != '' || secrets.TELEGRAM_BOT_TOKEN != ''
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
         run: |
           FAILED_JOBS=""
           if [[ "${{ needs.lint.result }}" == "failure" ]]; then FAILED_JOBS="lint"; fi
