@@ -102,9 +102,12 @@ jobs:
     if: ${{ github.event_name == 'schedule' && failure() }}
     needs: [lint, unit-tests, network-tests]
     runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
       - name: Send Telegram alert
-        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+        if: ${{ env.TELEGRAM_BOT_TOKEN != '' }}
         run: |
           FAILED_JOBS=""
           if [[ "${{ needs.lint.result }}" == "failure" ]]; then FAILED_JOBS="lint"; fi
@@ -114,8 +117,8 @@ jobs:
           MSG="⚠️ *Nightly CI Failed*%0A%0AFailed jobs: ${FAILED_JOBS}%0ANightly data import was SKIPPED.%0A%0A[View run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
 
           curl -s -X POST \
-            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
             -d parse_mode=Markdown \
             -d text="$MSG" || echo "Telegram notification failed (secrets may not be configured)"
 
