@@ -319,21 +319,32 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: CI runs on every PR
-**Source:** .github/workflows/ci.yml
+## SUGGESTED SCENARIO: CI gates PR merge with lint + unit tests
+**Source:** .github/workflows/ci.yml + branch protection
 **User:** admin
 **Starting state:** A contributor opens a pull request against main
-**Goal:** Verify that all unit tests pass before the PR can be merged
-**Expected outcome:** GitHub Actions CI triggers automatically, runs pytest on Python 3.11, reports pass/fail status on the PR checks tab
-**Edge cases seen in code:** Tests requiring live SODA API (test_tools.py) or missing modules (test_plan_images.py, test_plan_ui.py) are excluded via --ignore flags
+**Goal:** Verify that lint and unit tests pass before the PR can be merged
+**Expected outcome:** GitHub Actions CI triggers automatically, runs ruff lint and 1,227+ unit tests on Python 3.11. Branch protection blocks merge until both `lint` and `unit-tests` checks pass. Network tests are skipped (only run nightly).
+**Edge cases seen in code:** Network-dependent tests use `@pytest.mark.network` and are excluded via `-m "not network"`. Branch protection has `enforce_admins: false` so Tim can bypass if needed.
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: CI excludes network-dependent tests
-**Source:** .github/workflows/ci.yml
+## SUGGESTED SCENARIO: Nightly CI validates SODA API before data import
+**Source:** .github/workflows/ci.yml + nightly-cron.yml
 **User:** admin
-**Starting state:** CI workflow is triggered on a PR
-**Goal:** Ensure tests that require external APIs or missing modules don't cause false failures
-**Expected outcome:** pytest runs with --ignore flags for test_tools.py (SODA API), test_plan_images.py and test_plan_ui.py (missing src.plan_images module); all remaining tests pass
+**Starting state:** It's 2:30 AM Pacific, scheduled CI fires
+**Goal:** Validate SODA API endpoints are reachable before running the nightly data import at 3 AM
+**Expected outcome:** Network tests run with 3 retry attempts (0s/30s/60s backoff). If all 3 fail, CI fails, Telegram alert sent, and nightly-cron.yml does NOT trigger (gated via `workflow_run` with `conclusion == 'success'` condition). If retries succeed, nightly import proceeds normally.
+**Edge cases seen in code:** `workflow_run` trigger only fires on `schedule` events (not push/PR CI). `workflow_dispatch` bypasses the success check for manual triggers.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: CI failure sends Telegram notification
+**Source:** .github/workflows/ci.yml notify job
+**User:** admin
+**Starting state:** Nightly scheduled CI has failed (any of lint, unit-tests, or network-tests)
+**Goal:** Get notified of the failure without having to check GitHub manually
+**Expected outcome:** Telegram message sent with failed job names and link to the GitHub Actions run. Message indicates nightly data import was skipped.
+**Edge cases seen in code:** Telegram secrets may not be configured — `curl || echo` fallback prevents notify job itself from failing. `env.TELEGRAM_BOT_TOKEN != ''` check skips the step gracefully if secrets are missing.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
