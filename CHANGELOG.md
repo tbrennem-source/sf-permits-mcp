@@ -18,6 +18,11 @@ Four improvements to `permit_lookup` search accuracy plus one UX fix for feedbac
 - **Problem**: Searching "146 Lake" returned 5 permits, but the property report showed 13. Multi-unit buildings have permits filed under different street numbers (e.g., 144 vs 146).
 - **Fix**: After address search returns results, resolves block/lot from the first result, runs `_lookup_by_block_lot()` (which includes historical lots), and merges/deduplicates all parcel-level permits into the response.
 
+### Badge-Table Count Sync — `web/app.py`
+- **Bug**: PERMITS badge showed different count than the permit table (badge used address-only query, table used MCP tool with parcel merge + historical lots).
+- **Fix round 1**: Converted 5 remaining `LIKE '%name%'` substring queries to exact `=` matching.
+- **Fix round 2**: Badge now syncs with MCP tool's actual count by parsing the `Found **N** permits` line from the result markdown. Applied to both address and parcel search handlers.
+
 ### Screenshot Limit Increase — `web/app.py`, `web/templates/fragments/feedback_widget.html`
 - Raised max screenshot size from 2MB to 5MB (client-side JS + server-side validation).
 - Updated error message to reflect new limit.

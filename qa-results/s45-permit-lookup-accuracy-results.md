@@ -1,5 +1,5 @@
 # QA Results: Session 45 — Permit Lookup Search Accuracy
-**Date**: 2026-02-22
+**Date**: 2026-02-22 (initial), 2026-02-23 (retest)
 **Tester**: Claude Code (browser automation)
 **Target**: https://sfpermits-ai-production.up.railway.app
 
@@ -11,10 +11,10 @@
 - Confirmed via JS: `hasBlake: false` — no BLAKE on page
 - "Found 11 permits at 146 Lake" — all correct addresses
 
-## Step 2: Parcel Merge — Comprehensive Results
+## Step 2: Parcel Merge — Comprehensive Results + Badge Match
 **Result**: PASS
 - 11 permits displayed in the table (up from 5 before the fix)
-- PERMITS badge shows "13 total" (badge uses broader count, see Step 8)
+- PERMITS badge shows "11 total" — matches table count exactly
 - Permits span from 1992 to 2026, covering both lot 069 and historical lots
 
 ## Step 3: Property Report Loads
@@ -41,32 +41,27 @@
 - Plan Review Routing: 4 steps across 4 stations
 
 ## Step 6: Feedback Screenshot — Large Page Capture
-**Result**: BLOCKED (browser automation conflict)
-- Feedback modal opens correctly via JS click on `#feedback-fab`
-- "Capture Page" button present, html2canvas library lazy-loads from CDN
-- On second attempt, html2canvas loaded successfully (`_html2canvasLoaded: true`)
-- Capture process started (button disabled) but tab got hijacked by extension
-- Root cause: Two Claude in Chrome sessions running simultaneously
-- Code-level verification: 5MB limit correctly set in both client JS and server Python
+**Result**: PASS (retest 2026-02-23)
+- html2canvas loaded from CDN successfully
+- Screenshot captured: 460KB JPEG (well under 5MB limit)
+- Preview thumbnail displayed in feedback modal
+- Status text: "Page captured!"
 
 ## Step 7: Feedback Submit with Screenshot
-**Result**: BLOCKED (same browser automation conflict as Step 6)
-- Could not complete screenshot capture to test submission
-- HTMX form structure verified correct, endpoint `/feedback/submit` exists
+**Result**: PASS (retest 2026-02-23)
+- Submitted feedback with screenshot attached
+- Feedback #4 confirmed in production feedback queue
+- Type: bug, message present, screenshot icon (📷) confirmed
 
-## Step 8: 11 vs 13 Permit Count Discrepancy — FIXED
+## Step 8: Badge vs Table Count Discrepancy — FIXED (two rounds)
 **Result**: BUG FOUND AND FIXED
-- The PERMITS badge (13) came from `_get_address_intel` which used `LIKE '%LAKE%'` — substring matching
-- The permit table (11) came from `permit_lookup` MCP tool which uses exact matching
-- **Root cause**: 5 queries in `web/app.py` still used `LIKE '%name%'` substring matching
-- **Fix applied**: All 5 queries now use exact `=` matching with space-variant support
-- Files fixed:
-  - `_get_address_intel` permit count query (line ~2536)
-  - `_get_address_intel` latest permit type query (line ~2570)
-  - `_get_address_intel` routing progress query (line ~2605)
-  - `_get_primary_permit_context` query (line ~2347)
-  - `_resolve_block_lot` fallback query (line ~2711)
-- All 1,226 tests pass after fix
+- **Round 1** (2026-02-22): Badge showed "13 total" vs table "11 permits"
+  - Root cause: 5 queries in `web/app.py` used `LIKE '%name%'` substring matching
+  - Fix: All 5 queries converted to exact `=` matching with space-variant support
+- **Round 2** (2026-02-23): Badge showed "5 total" vs table "11 permits"
+  - Root cause: `_get_address_intel` used address-only query (returns 5) while MCP tool uses parcel merge + historical lot discovery (returns 11)
+  - Fix: Badge now syncs with MCP tool's actual count by parsing `Found **N** permits` from result markdown
+- Final state: Badge and table both show 11 — verified on production
 
 ---
 
@@ -74,12 +69,12 @@
 | Step | Result |
 |------|--------|
 | 1. Exact match | PASS |
-| 2. Parcel merge | PASS |
+| 2. Parcel merge + badge | PASS |
 | 3. Property report | PASS |
 | 4. Did you mean? | PASS |
 | 5. Permit by number | PASS |
-| 6. Screenshot capture | BLOCKED (browser conflict) |
-| 7. Screenshot submit | BLOCKED (browser conflict) |
-| 8. Count discrepancy | FIXED |
+| 6. Screenshot capture | PASS |
+| 7. Screenshot submit | PASS |
+| 8. Count discrepancy | FIXED (2 rounds) |
 
-**5 PASS, 2 BLOCKED (external), 1 BUG FOUND + FIXED**
+**8 PASS, 0 BLOCKED, 1 BUG FOUND + FIXED (2 rounds)**
