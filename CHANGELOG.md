@@ -1,5 +1,16 @@
 # Changelog
 
+## Session 47 — GitHub Actions CI Workflow (2026-02-23)
+
+### CI Pipeline
+- **New**: `.github/workflows/ci.yml` — runs pytest on every push to `main` and every PR
+- Python 3.11, ubuntu-latest, installs via `pip install -e ".[dev,web]"`
+- Excludes `test_tools.py` (live SODA API), `test_plan_images.py` and `test_plan_ui.py` (orphaned — `src.plan_images` module missing)
+- PR #17 open, CI green: 1211 tests pass in ~3 minutes
+
+### Issues Found
+- `test_plan_images.py` and `test_plan_ui.py` import `src.plan_images` which no longer exists — orphaned tests flagged for cleanup
+
 ## Session 38j — Nightly Chief Sync Phase 3 + 4 (2026-02-22)
 
 ### Phase 3: GitHub Actions Workflow

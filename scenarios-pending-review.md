@@ -264,3 +264,24 @@ _Last reviewed: never_
 **Edge cases seen in code:** Unknown type values fall through to title-cased raw value; EPR check names loaded from tier1 knowledge base
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: CI runs on every PR
+**Source:** .github/workflows/ci.yml
+**User:** admin
+**Starting state:** A contributor opens a pull request against main
+**Goal:** Verify that all unit tests pass before the PR can be merged
+**Expected outcome:** GitHub Actions CI triggers automatically, runs pytest on Python 3.11, reports pass/fail status on the PR checks tab
+**Edge cases seen in code:** Tests requiring live SODA API (test_tools.py) or missing modules (test_plan_images.py, test_plan_ui.py) are excluded via --ignore flags
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: CI excludes network-dependent tests
+**Source:** .github/workflows/ci.yml
+**User:** admin
+**Starting state:** CI workflow is triggered on a PR
+**Goal:** Ensure tests that require external APIs or missing modules don't cause false failures
+**Expected outcome:** pytest runs with --ignore flags for test_tools.py (SODA API), test_plan_images.py and test_plan_ui.py (missing src.plan_images module); all remaining tests pass
+**CC confidence:** medium
+**Status:** PENDING REVIEW
