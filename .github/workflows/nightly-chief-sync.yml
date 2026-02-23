@@ -1,0 +1,122 @@
+name: Nightly Chief Sync
+
+on:
+  schedule:
+    # 3:30 AM Pacific = 11:30 UTC (runs after nightly-cron.yml at 11:00 UTC)
+    - cron: '30 11 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  chief-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout sf-permits-mcp (full history for diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: project
+
+      - name: Checkout chief-brain-state
+        uses: actions/checkout@v4
+        with:
+          repository: tbrennem-source/chief-brain-state
+          token: ${{ secrets.CHIEF_GITHUB_TOKEN }}
+          path: chief
+
+      - name: Generate nightly diff
+        run: |
+          cd project
+          COMMITS=$(git log --oneline --since="24 hours ago" 2>/dev/null || true)
+          DIFF_STAT=$(git diff --stat "HEAD@{24 hours ago}" HEAD 2>/dev/null || true)
+
+          if [ -z "$COMMITS" ] && [ -z "$DIFF_STAT" ]; then
+            echo "No changes in last 24 hours"
+            echo "HAS_DIFF=false" >> "$GITHUB_ENV"
+          else
+            COMMIT_COUNT=$(echo "$COMMITS" | grep -c . || echo 0)
+            FILE_COUNT=$(echo "$DIFF_STAT" | grep '|' | wc -l | tr -d ' ')
+
+            cat > /tmp/nightly-diff.md << 'HEADER'
+          # Nightly Diff — sf-permits-mcp
+          HEADER
+
+            echo "**Generated:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> /tmp/nightly-diff.md
+            echo "**Commits:** $COMMIT_COUNT" >> /tmp/nightly-diff.md
+            echo "**Files changed:** $FILE_COUNT" >> /tmp/nightly-diff.md
+            echo "" >> /tmp/nightly-diff.md
+
+            if [ -n "$COMMITS" ]; then
+              echo "## Commits" >> /tmp/nightly-diff.md
+              echo "$COMMITS" | while IFS= read -r line; do
+                echo "- $line" >> /tmp/nightly-diff.md
+              done
+              echo "" >> /tmp/nightly-diff.md
+            fi
+
+            if [ -n "$DIFF_STAT" ]; then
+              echo "## Files Changed" >> /tmp/nightly-diff.md
+              echo '```' >> /tmp/nightly-diff.md
+              echo "$DIFF_STAT" >> /tmp/nightly-diff.md
+              echo '```' >> /tmp/nightly-diff.md
+              echo "" >> /tmp/nightly-diff.md
+            fi
+
+            echo "HAS_DIFF=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Sync artifacts to chief-brain-state
+        run: |
+          CHIEF_PATH="chief/projects/sf-permits-mcp"
+          mkdir -p "$CHIEF_PATH" "$CHIEF_PATH/qa-results"
+
+          # 1. CLAUDE.md snapshot
+          if [ -f project/CLAUDE.md ]; then
+            cp project/CLAUDE.md "$CHIEF_PATH/CLAUDE.md.current"
+            echo "Synced CLAUDE.md.current"
+          fi
+
+          # 2. Nightly diff
+          if [ "$HAS_DIFF" = "true" ] && [ -f /tmp/nightly-diff.md ]; then
+            cp /tmp/nightly-diff.md "$CHIEF_PATH/nightly-diff.md"
+            echo "Synced nightly-diff.md"
+          fi
+
+          # 3. Scenarios
+          if [ -f project/scenarios-pending-review.md ]; then
+            cp project/scenarios-pending-review.md "$CHIEF_PATH/scenarios-pending-review.md"
+            echo "Synced scenarios-pending-review.md"
+          fi
+
+          # 4. QA scripts from qa-drop/
+          if [ -d project/qa-drop ]; then
+            for f in project/qa-drop/*.md; do
+              [ -f "$f" ] || continue
+              fname=$(basename "$f")
+              [ "$fname" = ".gitkeep" ] && continue
+              cp "$f" "$CHIEF_PATH/qa-results/$fname"
+              echo "Synced qa-results/$fname"
+            done
+          fi
+
+          # 5. STATUS.md, CHANGELOG.md
+          for fname in STATUS.md CHANGELOG.md; do
+            if [ -f "project/$fname" ]; then
+              cp "project/$fname" "$CHIEF_PATH/$fname"
+              echo "Synced $fname"
+            fi
+          done
+
+      - name: Commit and push to chief-brain-state
+        run: |
+          cd chief
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "nightly sync sf-permits-mcp $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push origin main
+            echo "Pushed to chief-brain-state"
+          fi
