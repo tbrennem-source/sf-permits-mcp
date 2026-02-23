@@ -264,3 +264,27 @@ _Last reviewed: never_
 **Edge cases seen in code:** Unknown type values fall through to title-cased raw value; EPR check names loaded from tier1 knowledge base
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Project notes visible for pre-existing jobs in grouped view
+**Source:** Session 46 — analysis_grouping.html notes panel NULL version_group fix
+**User:** expediter
+**Starting state:** User has existing plan analysis jobs created before `version_group` column was added; grouped view enabled
+**Goal:** Open notes panel for a project group and save a note
+**Expected outcome:** "📝 Notes" toggle appears on every project group regardless of whether jobs have `version_group` populated. Clicking toggle opens textarea. Typing and saving works. Char counter updates live. Saved confirmation ("✓ Saved") appears briefly after save.
+**Edge cases seen in code:** Groups keyed by group `key` (normalized address/filename) when `version_group` is NULL — notes persist correctly across page reloads using that key. Single-job groups also show the notes panel.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Project notes persist across grouped view reloads
+**Source:** Session 46 — saveProjectNotes() API call
+**User:** expediter
+**Starting state:** User has saved notes on a project group (text was saved via `/api/project-notes/{key}`)
+**Goal:** Reload the grouped view and verify notes are still there
+**Expected outcome:** Notes text reappears in the textarea on reload. Preview truncation (first 60 chars + "…") appears in the "📝 Notes" button label. Character count shows correct length.
+**Edge cases seen in code:** Notes keyed by version_group UUID when available, otherwise by group key (address/filename). Key collision unlikely but possible if two users have same filename.
+**CC confidence:** medium
+**Status:** PENDING REVIEW

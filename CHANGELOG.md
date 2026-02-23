@@ -155,6 +155,22 @@ Three rounds of Cowork QA revealed that the Admin Ops DQ tab was unusable — qu
 
 ---
 
+## Session 46 — UX Audit: Analysis History Notes Panel Fix (2026-02-23)
+
+RELAY QA run against s46-ux-audit-analysis-history-qa.md — 16 PASS, 4 SKIP, 1 FAIL fixed.
+
+### Fix: Notes panel now renders for all project groups — `web/app.py`, `web/templates/fragments/analysis_grouping.html`
+- **Bug**: `{% if group._version_group %}` blocked notes panel from rendering for all users with pre-existing jobs. The `version_group` column was added via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` but existing rows were never backfilled, so `_version_group` was always `""`.
+- **Fix**: Use group's normalized key (address/filename) as fallback notes identifier — `notes_key = vg or g.get("key", "")`. The panel now renders for all groups regardless of `version_group` population. Notes are correctly keyed by project identity (same file/address = same project).
+- **QA result**: "📝 Notes" toggle visible on both groups in prod (verified in browser).
+
+### QA Results (s46)
+- Part A (Steps 1–8): 6 PASS, 2 SKIP (no failed/stale jobs to test retry/undo)
+- Part B (Steps 9–11): 2 PASS, 1 FAIL → FIXED
+- Part C (Steps 12–21): 8 PASS, 2 SKIP (EPR Changes tab needs EPR comparison data)
+
+---
+
 ## Session 45 — Permit Lookup Search Accuracy (2026-02-21/22)
 
 Four improvements to `permit_lookup` search accuracy plus one UX fix for feedback screenshots.
