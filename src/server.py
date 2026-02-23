@@ -49,6 +49,9 @@ from src.tools.search_addenda import search_addenda
 # Phase 6 tools (operational intelligence)
 from src.tools.list_feedback import list_feedback
 
+# Phase 7 tools (project intelligence)
+from src.tools.project_intel import run_query, read_source, search_source, schema_info, list_tests
+
 # Create MCP server
 mcp = FastMCP(
     "SF Permits",
@@ -116,6 +119,13 @@ mcp.tool()(search_addenda)
 
 # Phase 6 tools (operational intelligence)
 mcp.tool()(list_feedback)
+
+# Phase 7 tools (project intelligence)
+mcp.tool()(run_query)
+mcp.tool()(read_source)
+mcp.tool()(search_source)
+mcp.tool()(schema_info)
+mcp.tool()(list_tests)
 
 
 if __name__ == "__main__":

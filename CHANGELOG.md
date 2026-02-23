@@ -1,5 +1,29 @@
 # Changelog
 
+## Session 49 — Phase 7: Project Intelligence Tools (2026-02-23)
+
+### New Tools (5)
+- **`run_query`** — Read-only SQL against production database. SELECT/WITH only, rejects all write operations (INSERT/UPDATE/DELETE/DROP/ALTER/TRUNCATE/CREATE/GRANT/REVOKE/COPY). 10s statement timeout, LIMIT cap at 1000 rows. Strips SQL comments before validation to prevent bypass.
+- **`read_source`** — Read source files from the repo with line numbers. Path traversal protection, extension whitelist, 500-line cap with line_start/line_end support.
+- **`search_source`** — Grep the codebase for patterns across file types. Async subprocess with 5s timeout, configurable max_results (up to 50).
+- **`schema_info`** — Database schema introspection. Lists all tables with row counts, or describes a specific table's columns/types/indexes. Works on both Postgres and DuckDB backends.
+- **`list_tests`** — Test file inventory with function counts. Optional pattern filter and pytest --collect-only mode.
+
+### Why
+Planning sessions in Claude Chat needed direct analytical access to the database and codebase — previously required CC roundtrips that killed planning momentum. These 5 read-only tools eliminate that bottleneck.
+
+### Files
+- **New**: `src/tools/project_intel.py` — all 5 tools in one module
+- **New**: `tests/test_project_intel.py` — 27 tests covering security, functionality, edge cases
+- **Modified**: `src/server.py` — registered 5 new tools (Phase 7)
+- **Modified**: `src/mcp_http.py` — registered 5 new tools, updated tool count to 27 in instructions + health check
+
+### Test Results
+- 27 new tests, all passing
+- 1,271 total tests passing (0 failures, 1 skipped)
+
+---
+
 ## Session 46c — Protocol: Push worktree branch to origin after merge (2026-02-23)
 
 ### Protocol Fix

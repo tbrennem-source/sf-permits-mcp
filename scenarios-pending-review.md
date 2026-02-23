@@ -358,6 +358,56 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
+## SUGGESTED SCENARIO: Planning layer queries inspection rates via run_query
+**Source:** src/tools/project_intel.py (run_query)
+**User:** admin
+**Starting state:** Planning session in Claude Chat with sfpermits MCP connected
+**Goal:** Query the production database for inspection pass/fail rates by permit type to calibrate severity scoring
+**Expected outcome:** run_query accepts `SELECT permit_type, result, COUNT(*) FROM inspections GROUP BY 1,2`, returns markdown table with row counts and execution time. Query completes within 10s timeout.
+**Edge cases seen in code:** LIMIT auto-appended if missing; user-specified LIMIT capped at 1000; Postgres statement_timeout enforced at 10s; comments stripped before keyword validation
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: run_query blocks SQL injection attempts
+**Source:** src/tools/project_intel.py (run_query security)
+**User:** admin
+**Starting state:** MCP tool invoked with malicious SQL
+**Goal:** Prevent any write operations through run_query
+**Expected outcome:** INSERT/UPDATE/DELETE/DROP/ALTER/TRUNCATE/CREATE/GRANT/REVOKE/COPY all rejected with clear error message. Comment-disguised writes (e.g., `-- SELECT\nDELETE`) also rejected. Column names containing keywords (e.g., `deleted_at`, `update_count`) do NOT trigger false positives.
+**Edge cases seen in code:** _strip_sql_comments removes both `--` and `/* */` before keyword check; regex uses `\b` word boundaries to avoid false positives
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: read_source blocks directory traversal
+**Source:** src/tools/project_intel.py (read_source security)
+**User:** admin
+**Starting state:** MCP tool invoked with path traversal attempt
+**Goal:** Prevent reading files outside the repository
+**Expected outcome:** Absolute paths (`/etc/passwd`) rejected. Relative traversal (`../../../etc/passwd`) rejected. Symlink traversal that resolves outside repo rejected. Only files within repo root served.
+**Edge cases seen in code:** Path resolved with `.resolve()` then checked with `.relative_to(_REPO_ROOT)` — handles symlinks correctly
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: schema_info provides table overview for planning
+**Source:** src/tools/project_intel.py (schema_info)
+**User:** admin
+**Starting state:** Planning session needs to understand database structure
+**Goal:** Get table list with row counts, then drill into specific table columns
+**Expected outcome:** Without args: lists all tables sorted by row count with approximate counts. With table arg: shows columns (name, type, nullable, default), row count, and indexes (Postgres only). Invalid table names rejected.
+**Edge cases seen in code:** DuckDB uses SHOW TABLES + per-table COUNT; Postgres uses information_schema + pg_stat_user_tables; table name sanitized with regex before interpolation
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: list_tests surfaces test coverage for feature area
+**Source:** src/tools/project_intel.py (list_tests)
+**User:** admin
+**Starting state:** Planning session wants to check test coverage before building a feature
+**Goal:** Find all tests related to "brief" or "severity" functionality
+**Expected outcome:** Pattern filter returns matching test files with function counts. Matching function names listed under each file. No unrelated test files appear.
+**Edge cases seen in code:** Pattern matched case-insensitively against both filename and function name; show_status=True delegates to `pytest --collect-only` with 15s timeout
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
 ## SUGGESTED SCENARIO: CI failure sends Telegram notification
 **Source:** .github/workflows/ci.yml notify job
 **User:** admin

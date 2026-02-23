@@ -1,6 +1,6 @@
 """HTTP transport entry point for SF Permits MCP server.
 
-Exposes the same 21 tools as the stdio server, but over Streamable HTTP
+Exposes the same 27 tools as the stdio server, but over Streamable HTTP
 for Claude.ai custom connector access.
 
 Uses mcp[cli] package (same as Chief MCP server — proven claude.ai compatibility).
@@ -43,6 +43,9 @@ from src.tools.permit_lookup import permit_lookup
 from src.tools.search_addenda import search_addenda
 from src.tools.list_feedback import list_feedback
 
+# Phase 7 tools (project intelligence)
+from src.tools.project_intel import run_query, read_source, search_source, schema_info, list_tests
+
 # ── Create MCP server with HTTP transport config ──────────────────
 port = int(os.environ.get("PORT", 8001))
 
@@ -50,9 +53,11 @@ mcp = FastMCP(
     "SF Permits",
     instructions=(
         "SF Permits MCP server — query San Francisco public permitting data. "
-        "21 tools across 6 phases: live SODA API queries, entity network analysis, "
-        "permit decision tools, plan set validation, AI vision analysis, and "
-        "addenda routing search across 3.9M+ records."
+        "27 tools across 7 phases: live SODA API queries, entity network analysis, "
+        "permit decision tools, plan set validation, AI vision analysis, "
+        "addenda routing search across 3.9M+ records, and project intelligence "
+        "tools for read-only database queries, source code reading, codebase search, "
+        "schema introspection, and test inventory."
     ),
     host="0.0.0.0",
     port=port,
@@ -60,7 +65,7 @@ mcp = FastMCP(
     streamable_http_path="/mcp",
 )
 
-# Register all 21 tools
+# Register all 27 tools
 mcp.tool()(search_permits)
 mcp.tool()(get_permit_details)
 mcp.tool()(permit_stats)
@@ -84,6 +89,13 @@ mcp.tool()(permit_lookup)
 mcp.tool()(search_addenda)
 mcp.tool()(list_feedback)
 
+# Phase 7 tools (project intelligence)
+mcp.tool()(run_query)
+mcp.tool()(read_source)
+mcp.tool()(search_source)
+mcp.tool()(schema_info)
+mcp.tool()(list_tests)
+
 # ── Health check endpoint (for Railway) ───────────────────────────
 from starlette.requests import Request as StarletteRequest
 from starlette.responses import JSONResponse
@@ -94,7 +106,7 @@ async def health_check(request: StarletteRequest) -> JSONResponse:
     return JSONResponse({
         "status": "healthy",
         "server": "SF Permits MCP",
-        "tools": 22,
+        "tools": 27,
     })
 
 
