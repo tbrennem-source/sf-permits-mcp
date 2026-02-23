@@ -1,5 +1,20 @@
 # Changelog
 
+## Session 46 — UX Audit Fixes: Analysis History (2026-02-22)
+
+### Bug Fix
+- **`web/plan_jobs.py`**: Added `version_group` to `get_user_jobs()` SELECT query — the column was missing, causing `g["_version_group"]` to always be `""`, which prevented the Notes panel from rendering in grouped view
+
+### QA Results (RELAY)
+- 21-step QA on Analysis History, Grouped View, and Comparison Page
+- 19 PASS, 1 FAIL → fixed (Step 10: notes character counter), 1 SKIP (Step 7: no failed jobs in test data)
+- Fix deployed to prod; verified "📝 Notes" toggle and live "9 / 4,000" counter working on production
+
+### Files Changed
+- `web/plan_jobs.py` — add `version_group` to SELECT in `get_user_jobs()`
+
+---
+
 ## Session 30 — Branch Audit + Developer Onboarding Infrastructure (2026-02-22)
 
 ### Branch Cleanup
