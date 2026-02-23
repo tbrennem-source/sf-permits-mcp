@@ -12,20 +12,40 @@
 
 ---
 
-## Session 47 — GitHub Actions CI (2026-02-23)
+## Session 47 — GitHub Actions CI Pipeline + Test Infrastructure (2026-02-23)
 
-### Infrastructure
-- **GitHub Actions CI workflow** (`.github/workflows/ci.yml`): lint + unit tests on push/PR, nightly network tests with retries, Telegram alerts on failure
-  - Python 3.11, ruff lint (fatal errors only), pytest with `network` marker split
-  - 797+ tests pass in CI; 1,191 pass locally
-- PRs #17, #19
+### CI Pipeline (PRs #17, #18)
+- **New**: `.github/workflows/ci.yml` — 4-job pipeline: lint, unit-tests, network-tests, notify
+- **Lint**: ruff check with fatal-only rules (E9, F63, F7, F82)
+- **Unit tests**: 1,227 tests via `pytest -m "not network"`, pip caching
+- **Network tests**: SODA API tests, nightly-only with 3x retry + backoff (0s/30s/60s)
+- **Telegram alerts**: Nightly CI failures send notification with failed job names + run link
+- **Nightly gate**: `nightly-cron.yml` changed from `schedule` to `workflow_run` trigger — data import only runs if CI passes
+- **Branch protection**: `lint` + `unit-tests` required checks, strict mode, admin bypass
 
-### Issues Found
-- `src/plan_images.py` module referenced by 2 test files but doesn't exist — orphaned tests flagged for cleanup
-- `test_analyze_plans.py` tests take 30s+ each even with full mocks (heavy PDF processing)
+### Orphaned Test Fix
+- **Rewrote `test_plan_images.py`** (11 tests) and **`test_plan_ui.py`** (6 tests) — these were broken from day 1 (imported `src.plan_images` which never existed; actual module is `web.plan_images`)
+- Fixed imports, table names (`plan_sessions` → `plan_analysis_sessions`), function signatures (`page_images` as tuples, `page_count` required), return types
 
----
+### Test Infrastructure
+- **Pytest markers**: Added `network` marker to `test_tools.py` (17 SODA tests) and `test_addenda.py` (1 SODA test)
+- **pyproject.toml**: Registered `network` marker in `[tool.pytest.ini_options]`
+- **Lint fix**: `web/app.py:1920` — `logger.debug()` → `logging.debug()` (undefined name)
 
+### GitHub Infrastructure
+- GitHub secrets: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` added for CI alerts
+- Branch protection updated: required checks `lint` + `unit-tests` (was `test`)
+- PR #19 (simpler CI) closed as superseded by #18
+
+### Files Changed
+- `.github/workflows/ci.yml` — complete rewrite (4 jobs, retries, Telegram)
+- `.github/workflows/nightly-cron.yml` — `workflow_run` trigger instead of `schedule`
+- `tests/test_plan_images.py` — rewritten (11 tests against `web.plan_images`)
+- `tests/test_plan_ui.py` — rewritten (6 Flask endpoint tests)
+- `tests/test_tools.py` — added `pytestmark = pytest.mark.network`
+- `tests/test_addenda.py` — `@pytest.mark.skip` → `@pytest.mark.network`
+- `pyproject.toml` — pytest marker config
+- `web/app.py` — lint fix line 1920
 
 ## Session 46 — UX Audit Fixes: Analysis History (2026-02-22)
 
