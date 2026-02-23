@@ -197,6 +197,17 @@ python -m src.ingest && python -m src.entities && python -m src.graph && python 
 
 Development uses ephemeral Claude Code worktree branches (auto-created under `.claude/worktrees/`).
 
+### IMPORTANT: Worktree branch close-out (CHECKCHAT requirement)
+
+Worktrees live on their own branches (e.g. `claude/sharp-germain`) separate from `main`. **At CHECKCHAT close, always:**
+
+1. Run `git status` from **inside the worktree directory** — not just from the main repo root
+2. Commit any modified files on the worktree branch
+3. From the main repo root, merge the worktree branch into `main`: `git merge claude/<name>`
+4. Push `main`
+
+Skipping this leaves uncommitted changes showing in the CC UI ("Commit changes" badge) even after a session that looks otherwise clean.
+
 ### Who can push to main directly
 - **Tim (repo owner):** Merge to `main` locally and push directly — no PRs needed.
 - **All other contributors (Steven, etc.):** Must open a PR and get Tim's review before merging. See `.github/PULL_REQUEST_TEMPLATE.md` for required QA evidence.
