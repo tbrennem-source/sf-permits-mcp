@@ -1917,7 +1917,7 @@ def compare_analyses():
                     if req.get("id") and req.get("rule"):
                         epr_check_names[req["id"]] = req["rule"]
     except Exception:
-        logger.debug("Failed to load EPR check names", exc_info=True)
+        logging.debug("Failed to load EPR check names", exc_info=True)
 
     return render_template(
         "analysis_compare.html",
