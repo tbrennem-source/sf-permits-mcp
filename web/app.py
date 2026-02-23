@@ -2344,14 +2344,19 @@ def _get_primary_permit_context(street_number: str, street_name: str) -> dict | 
     """Get the most recent permit at an address for Analyze button pre-fill."""
     try:
         from src.db import query
+        ctx_base = street_name.split()[0] if street_name else ""
+        ctx_nospace = ctx_base.replace(' ', '')
         rows = query(
             "SELECT description, permit_type_definition, estimated_cost, "
             "       revised_cost, proposed_use, adu, neighborhood "
             "FROM permits "
             "WHERE street_number = %s "
-            "  AND UPPER(street_name) LIKE UPPER(%s) "
+            "  AND ("
+            "    UPPER(street_name) = UPPER(%s)"
+            "    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') = UPPER(%s)"
+            "  ) "
             "ORDER BY filed_date DESC LIMIT 1",
-            (street_number, f"%{street_name.split()[0]}%"),
+            (street_number, ctx_base, ctx_nospace),
         )
         if not rows:
             return None
@@ -2533,14 +2538,20 @@ def _get_address_intel(
     # ── Section 4: Permit stats (works with address OR block+lot) ──
     try:
         if street_number and street_name:
+            # Exact match on street name (no substring matching)
+            base_name = street_name.split()[0] if street_name else ""
+            nospace_name = base_name.replace(' ', '')
             count_rows = db_query(
                 "SELECT COUNT(*), "
                 "       COUNT(*) FILTER (WHERE UPPER(status) IN "
                 "           ('ISSUED', 'FILED', 'PLANCHECK', 'REINSTATED')) "
                 "FROM permits "
                 "WHERE street_number = %s "
-                "  AND UPPER(street_name) LIKE UPPER(%s)",
-                (street_number, f"%{street_name.split()[0]}%"),
+                "  AND ("
+                "    UPPER(street_name) = UPPER(%s)"
+                "    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') = UPPER(%s)"
+                "  )",
+                (street_number, base_name, nospace_name),
             )
         elif block and lot:
             count_rows = db_query(
@@ -2562,12 +2573,17 @@ def _get_address_intel(
 
     try:
         if street_number and street_name:
+            base_name2 = street_name.split()[0] if street_name else ""
+            nospace_name2 = base_name2.replace(' ', '')
             latest_rows = db_query(
                 "SELECT permit_type_definition FROM permits "
                 "WHERE street_number = %s "
-                "  AND UPPER(street_name) LIKE UPPER(%s) "
+                "  AND ("
+                "    UPPER(street_name) = UPPER(%s)"
+                "    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') = UPPER(%s)"
+                "  ) "
                 "ORDER BY filed_date DESC LIMIT 1",
-                (street_number, f"%{street_name.split()[0]}%"),
+                (street_number, base_name2, nospace_name2),
             )
         elif block and lot:
             latest_rows = db_query(
@@ -2592,13 +2608,18 @@ def _get_address_intel(
         # Find the most recently filed active permit at this address
         primary_pnum = None
         if street_number and street_name:
+            rp_base = street_name.split()[0] if street_name else ""
+            rp_nospace = rp_base.replace(' ', '')
             pn_rows = db_query(
                 "SELECT permit_number FROM permits "
                 "WHERE street_number = %s "
-                "  AND UPPER(street_name) LIKE UPPER(%s) "
+                "  AND ("
+                "    UPPER(street_name) = UPPER(%s)"
+                "    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') = UPPER(%s)"
+                "  ) "
                 "  AND UPPER(status) IN ('FILED', 'PLANCHECK') "
                 "ORDER BY filed_date DESC LIMIT 1",
-                (street_number, f"%{street_name.split()[0]}%"),
+                (street_number, rp_base, rp_nospace),
             )
         elif block and lot:
             pn_rows = db_query(
@@ -2687,13 +2708,17 @@ def _ask_address_search(query: str, entities: dict) -> str:
         # broader query (just street_number + block/lot NOT NULL)
         if not bl:
             base_name, _sfx = _strip_suffix(street_name)
+            fb_nospace = base_name.replace(' ', '')
             rows = db_query(
                 "SELECT block, lot FROM permits "
                 "WHERE street_number = %s "
-                "  AND UPPER(COALESCE(street_name, '')) LIKE UPPER(%s) "
+                "  AND ("
+                "    UPPER(street_name) = UPPER(%s)"
+                "    OR REPLACE(UPPER(COALESCE(street_name, '')), ' ', '') = UPPER(%s)"
+                "  ) "
                 "  AND block IS NOT NULL AND lot IS NOT NULL "
                 "LIMIT 1",
-                (street_number, f"%{base_name[:3]}%"),
+                (street_number, base_name, fb_nospace),
             )
             if rows:
                 bl = (rows[0][0], rows[0][1])
