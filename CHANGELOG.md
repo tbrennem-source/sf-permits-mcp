@@ -1,5 +1,26 @@
 # Changelog
 
+## Session 38j — Nightly Chief Sync Phase 3 + 4 (2026-02-22)
+
+### Phase 3: GitHub Actions Workflow
+- **New**: `.github/workflows/nightly-chief-sync.yml` — runs at 3:30 AM PT (11:30 UTC)
+- Checks out sf-permits-mcp with full history, generates nightly diff
+- Pushes CLAUDE.md, scenarios, QA scripts, STATUS, CHANGELOG to chief-brain-state
+- Works even when Mac is asleep (cloud-based)
+- Uses `CHIEF_GITHUB_TOKEN` secret for push access to chief-brain-state repo
+- Manually triggered and verified: completed in 9s, all artifacts pushed
+
+### Phase 4: Telegram Compliance Alerts
+- **Updated**: `~/scripts/nightly-chief-sync.py` — sends Telegram alert on ERROR-severity compliance failures
+- Errors only, not warnings (no noise)
+- Uses Telegram Bot API via `urllib` (no extra dependencies)
+- Credentials in launchd plist `com.dforge.chief-sync` environment variables
+- Test message sent and delivered successfully
+
+### Infrastructure
+- `CHIEF_GITHUB_TOKEN` secret added to sf-permits-mcp GitHub repo
+- launchd plist reloaded with TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID env vars
+
 ## Session 38i — dforge MCP Server Launch (2026-02-22)
 
 ### dforge MCP Server — `github.com/tbrennem-source/dforge`
