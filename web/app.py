@@ -1796,15 +1796,16 @@ def analysis_history():
     # Phase F1: stats banner
     stats = get_analysis_stats(user_id)
 
-    # Phase F2: attach project notes to each group (keyed by version_group)
+    # Phase F2: attach project notes to each group (keyed by version_group or group key)
     for g in groups:
         vg = None
         for j in g.get("jobs", []):
             vg = j.get("version_group")
             if vg:
                 break
-        g["_notes"] = get_project_notes(user_id, vg) if vg else ""
-        g["_version_group"] = vg or ""
+        notes_key = vg or g.get("key", "")
+        g["_notes"] = get_project_notes(user_id, notes_key) if notes_key else ""
+        g["_version_group"] = notes_key
 
     return render_template(
         "analysis_history.html",

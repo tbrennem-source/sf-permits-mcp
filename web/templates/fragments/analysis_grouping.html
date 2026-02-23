@@ -344,7 +344,7 @@
                 {% endfor %}
             </div>
 
-            {# Phase F2: Project Notes — only shown for groups with a version_group #}
+            {# Phase F2: Project Notes — shown for all groups (keyed by version_group or group key) #}
             {% if group._version_group %}
             <div class="project-notes-wrap" id="notes-wrap-{{ group._version_group }}">
                 <button class="project-notes-toggle"
