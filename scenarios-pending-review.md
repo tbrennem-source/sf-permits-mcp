@@ -112,3 +112,15 @@ _Last reviewed: never_
 **Edge cases seen in code:** `check_bulk_indexes()` queries `pg_indexes` system catalog; on DuckDB (local dev), it returns empty list and the bar doesn't render. Index creation runs at startup but can silently fail if the table doesn't exist yet (e.g., before first ingest).
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: DQ checks degrade gracefully when individual checks error
+**Source:** Session 38g QA — 5 of 10 cached DQ checks showed "Error / Check failed"
+**User:** admin
+**Starting state:** Logged in as admin, DQ cache populated, some checks failing due to missing cron data or query errors
+**Goal:** Open Data Quality tab and see results even when some checks have errors
+**Expected outcome:** Tab loads fully. Passing checks show green OK or yellow WARN with real data. Failing checks show red FAIL badge with "Error — Check failed — see logs" message. Summary line at top correctly counts passing/warning/failing. The tab never crashes or shows a spinner because one check errored.
+**Edge cases seen in code:** Each check in `run_all_checks()` is wrapped in try/except. A failed check produces a result dict with `status: "fail"` and `detail: "Check failed — see logs"`. The cache stores whatever results completed. If ALL checks fail, the tab still renders with 0 passing / 0 warning / N failing.
+**CC confidence:** high
+**Status:** PENDING REVIEW

@@ -1,5 +1,24 @@
 # Changelog
 
+## Session 38g (cont.) — RELAY Protocol, QA Launcher, Cowork QA (2026-02-22)
+
+### RELAY Protocol — `~/.claude/CLAUDE.md`, `CLAUDE.md`
+- **RELAY (QARELAY)**: Universal QA loop — QA scripts include a RELAY header, results saved to `qa-results/`, fix sessions check for pending FAILs, loop until 0 FAILs, move to `done/`.
+- Global protocol lives in `~/.claude/CLAUDE.md` (not project-specific). Project CLAUDE.md has a one-liner pointer: `## RELAY: active`.
+- Results use local disk writes (`cat >`) instead of Chief MCP — tool-agnostic.
+
+### QA Launcher — `Makefile`, `scripts/gen_qa_launcher.py`
+- **`make qa-launcher`**: Generates `qa-drop/launcher.html` with copy-to-clipboard buttons for each QA `.md` script.
+- Dark theme (#1a1a2e), large buttons with hover effects, clipboard API, "✓ Copied!" flash.
+- Standalone Python generator avoids Makefile/shell/Python quoting nightmares.
+
+### QA + Scenario Updates
+- Updated `qa-drop/session-38f-admin-ops-severity-qa.md` with RELAY header (local disk version).
+- Added `qa-results/` and `qa-results/done/` directories (gitignored).
+- Cross-repo QA guidance added to CLAUDE.md: feature in another repo → QA script goes there, scenarios always come here.
+- Cowork QA: 17/17 PASS on session-38f script (Admin Ops tabs, rapid switching, hash routing, severity holds, transition dates). Results in `qa-results/done/`.
+- 1 new pending scenario: DQ checks degrade gracefully when individual checks error.
+
 ## Session 38g — DQ Cache, Bulk Indexes, Admin Ops UX Fixes (2026-02-22)
 
 Three rounds of Cowork QA revealed that the Admin Ops DQ tab was unusable — queries on million-row tables hung indefinitely, HTMX error events failed silently, and the initial tab load had a race condition. Redesigned DQ as a cached system and fixed multiple UX issues.

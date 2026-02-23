@@ -226,6 +226,7 @@ This protocol applies at the close of EVERY feature session. Do not skip it.
 ### Step 1: Generate Cowork QA Script
 Write a QA script to `qa-drop/[feature-name]-qa.md`. Rules:
 - Name the file after the feature (e.g., `qa-drop/routing-progress-qa.md`)
+- **Cross-repo sessions:** If the feature lives in a different repo (e.g., dforge), write the QA script to `qa-drop/` in that repo instead. Same rules apply.
 - Script must be self-contained — no setup, no credentials, no prior context needed
 - Structure as numbered steps Cowork can execute sequentially
 - Each step has an explicit PASS/FAIL criterion
@@ -234,7 +235,7 @@ Write a QA script to `qa-drop/[feature-name]-qa.md`. Rules:
 - NO color/style assertions
 - Output format: compact checklist, not prose
 ### Step 2: Append Suggested Scenarios
-Append to `scenarios-pending-review.md` in repo root (create if missing).
+Append to `scenarios-pending-review.md` in **this repo's root** (create if missing). Always here, regardless of which repo the feature lives in.
 Use exactly this format for each scenario:
 ## SUGGESTED SCENARIO: [short descriptive name]
 **Source:** [feature or file that prompted this]
@@ -254,3 +255,6 @@ Guidance:
 ### Step 3: Notify
 After writing both files, output a single summary line:
 `QA READY: qa-drop/[filename] | [N] scenarios appended to scenarios-pending-review.md`
+
+
+## RELAY: active (see ~/.claude/CLAUDE.md for protocol)
