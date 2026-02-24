@@ -5839,6 +5839,31 @@ def cron_backup():
     return Response(json.dumps(result, indent=2), mimetype="application/json"), status
 
 
+# ---------------------------------------------------------------------------
+# Cron: Signal pipeline (severity v2)
+# ---------------------------------------------------------------------------
+
+@app.route("/cron/signals", methods=["POST"])
+def cron_signals():
+    """Run the nightly signal detection pipeline.
+
+    Truncates permit_signals / property_signals / property_health,
+    re-detects all signals from source tables, aggregates to property level,
+    and computes health tiers.
+
+    Protected by CRON_SECRET bearer token.
+    """
+    _check_api_auth()
+    from src.signals.pipeline import run_signal_pipeline
+    from src.db import get_connection
+    conn = get_connection()
+    try:
+        stats = run_signal_pipeline(conn)
+        return jsonify(stats)
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(debug=True, host="0.0.0.0", port=port)

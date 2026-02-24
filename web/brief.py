@@ -1315,6 +1315,43 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
         la = _parse_date(prop.get("latest_activity", ""))
         prop["days_since_activity"] = (today - la).days if la else None
 
+    # Severity v2: overlay pre-computed property_health if available.
+    # Try property_health table first; fall back to v1 scoring above.
+    try:
+        _v2_health_count = query_one("SELECT COUNT(*) FROM property_health")
+        _v2_available = _v2_health_count and _v2_health_count[0] > 0
+    except Exception:
+        _v2_available = False
+
+    if _v2_available:
+        _V2_TIER_TO_HEALTH = {
+            "high_risk": "at_risk",
+            "at_risk": "at_risk",
+            "behind": "behind",
+            "slower": "slower",
+            "on_track": "on_track",
+        }
+        for prop in property_map.values():
+            bl = f"{prop.get('block', '')}/{prop.get('lot', '')}"
+            if not bl or bl == "/":
+                continue
+            try:
+                row = query_one(
+                    f"SELECT tier, signal_count, at_risk_count FROM property_health WHERE block_lot = {ph}",
+                    (bl,),
+                )
+                if row:
+                    v2_tier, v2_signal_count, v2_at_risk = row
+                    mapped = _V2_TIER_TO_HEALTH.get(v2_tier, "on_track")
+                    if health_order.get(mapped, 0) > health_order.get(prop["worst_health"], 0):
+                        prop["worst_health"] = mapped
+                        prop["health_reason"] = f"v2: {v2_tier} ({v2_signal_count} signals, {v2_at_risk} at-risk)"
+                    prop["v2_tier"] = v2_tier
+                    prop["v2_signal_count"] = v2_signal_count
+                    prop["v2_at_risk_count"] = v2_at_risk
+            except Exception:
+                logger.debug("v2 health lookup failed for %s", bl, exc_info=True)
+
     # Post-process: downgrade expired-permit AT RISK → BEHIND for active sites.
     # Per-permit scoring can't see property-level activity (latest across ALL
     # permits at the address), so we reconcile here.  An expired permit at a

@@ -459,3 +459,55 @@ _Last reviewed: never_
 **Edge cases seen in code:** DB unavailable returns "Database unavailable" message. Empty/whitespace-only inputs return usage message. Block+lot search with no results returns "No permit found".
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: HIGH_RISK compound detection — NOV + stale permit
+**Source:** src/signals/ (Session A — Severity v2)
+**User:** expediter
+**Starting state:** Property has an open NOV and an issued permit 2yr+ old with recent inspections
+**Goal:** Property flagged as HIGH_RISK with both signals surfaced
+**Expected outcome:** property_health shows tier=high_risk, signal_count=2, at_risk_count=2. Both nov and stale_with_activity signals appear in signals table. Morning brief shows AT RISK with v2 reason.
+**Edge cases seen in code:** NOV must be non-closed status; stale_with_activity requires 2+ real inspections within 5yr AND issued 2yr+. If latest inspection is >5yr old, it's stale_no_activity (slower) instead.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Single at-risk signal stays at_risk (not high_risk)
+**Source:** src/signals/aggregator.py (Session A — Severity v2)
+**User:** expediter
+**Starting state:** Property has one open NOV and no other signals
+**Goal:** Property correctly classified as at_risk, not high_risk
+**Expected outcome:** property_health tier=at_risk. Only 1 unique compounding type, so HIGH_RISK does not fire.
+**Edge cases seen in code:** Two signals of the SAME type (e.g., 2 NOVs from different violations) still count as 1 unique compounding type → at_risk, not high_risk.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Complaint alone never triggers at_risk
+**Source:** src/signals/aggregator.py (Session A — Severity v2)
+**User:** homeowner
+**Starting state:** Property has an open complaint but no NOV, no holds, no expired permits
+**Goal:** Property shows as SLOWER, not AT RISK
+**Expected outcome:** property_health tier=slower. Complaint is not in COMPOUNDING_TYPES, so it never compounds to high_risk even when combined with at_risk signals.
+**Edge cases seen in code:** Complaint + NOV at same block_lot → the complaint detector's NOT EXISTS clause means the complaint signal is suppressed. Only the NOV signal fires.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: hold_stalled does not compound into HIGH_RISK
+**Source:** src/signals/aggregator.py (Session A — Severity v2)
+**User:** expediter
+**Starting state:** Property has a non-planning station stall (30d-1yr) and an open NOV
+**Goal:** Property shows at_risk, not high_risk
+**Expected outcome:** hold_stalled has severity=behind and is NOT in COMPOUNDING_TYPES. Combined with NOV (at_risk), the property gets at_risk tier — not high_risk.
+**Edge cases seen in code:** hold_stalled_planning IS in compounding types (station dwell >1yr at PPC/CP-ZOC/CPB). Only hold_stalled (non-planning, 30d-1yr) is excluded.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Nightly signal pipeline is idempotent
+**Source:** src/signals/pipeline.py (Session A — Severity v2)
+**User:** admin
+**Starting state:** Signal pipeline has been run once via /cron/signals
+**Goal:** Run the pipeline again and get the same results
+**Expected outcome:** Pipeline truncates all signal tables before re-detecting. Running twice produces identical property_health rows. No duplicate signals accumulate.
+**Edge cases seen in code:** Pipeline uses DELETE FROM (not TRUNCATE) for DuckDB compatibility. DuckDB doesn't support TRUNCATE. Postgres uses ON CONFLICT for upserts.
+**CC confidence:** high
+**Status:** PENDING REVIEW

@@ -1,5 +1,59 @@
 # Changelog
 
+## Session 52A — Severity v2: Signal Tables + Nightly Pipeline (2026-02-24)
+
+### New Files
+- `src/signals/__init__.py` — Package init with public API exports
+- `src/signals/types.py` — SignalType, Signal, PropertyHealth dataclasses + SIGNAL_CATALOG (13 types)
+- `src/signals/detector.py` — 12 detect_* functions (one per signal type, SQL-based)
+- `src/signals/aggregator.py` — Property-level tier derivation with compound HIGH_RISK logic
+- `src/signals/pipeline.py` — Nightly orchestrator: truncate → detect → aggregate → derive
+- `src/tools/property_health.py` — MCP tool returning pre-computed property health tier + signals
+- `scripts/migrate_signals.py` — Postgres migration: 4 tables (signal_types, permit_signals, property_signals, property_health) + 13 seed rows
+- `tests/test_signals/test_types.py` — 12 tests: catalog validation, dataclass construction
+- `tests/test_signals/test_aggregator.py` — 29 tests: all tier derivation cases from spec
+- `tests/test_signals/test_detector.py` — 42 tests: each detector with synthetic DuckDB fixtures
+- `tests/test_signals/test_pipeline.py` — 12 tests: end-to-end pipeline with idempotency
+- `tests/test_signals/test_property_health_tool.py` — 6 tests: MCP tool responses
+
+### Modified Files
+- `src/server.py` — Registered property_health as 29th MCP tool (Phase 8)
+- `web/app.py` — Added `/cron/signals` endpoint (CRON_SECRET auth)
+- `web/brief.py` — Added v2 property_health table lookup with v1 fallback
+
+### Signal Types (13)
+| Type | Severity | Source |
+|------|----------|--------|
+| hold_comments | at_risk | addenda |
+| hold_stalled_planning | at_risk | addenda |
+| hold_stalled | behind | addenda |
+| nov | at_risk | violations |
+| abatement | at_risk | violations |
+| expired_uninspected | at_risk | permits+inspections |
+| stale_with_activity | at_risk | permits+inspections |
+| expired_minor_activity | behind | permits+inspections |
+| expired_inconclusive | behind | permits |
+| complaint | slower | complaints |
+| expired_otc | slower | permits |
+| stale_no_activity | slower | permits |
+| station_slow | behind | addenda+velocity |
+
+### Health Tier Model (5 tiers)
+- **high_risk**: 2+ distinct COMPOUNDING signal types at at_risk severity
+- **at_risk**: 1+ at_risk signal
+- **behind**: any behind signal
+- **slower**: any slower signal
+- **on_track**: no signals
+
+### Compounding Types (HIGH_RISK triggers)
+hold_comments, hold_stalled_planning, nov, abatement, expired_uninspected, stale_with_activity
+
+### Test Results
+- 101 new tests (12 types + 29 aggregator + 42 detector + 12 pipeline + 6 tool)
+- Total suite: 1,445 passed, 1 skipped, 0 failures
+
+---
+
 ## Session 51 — Severity Scoring v1: Per-Permit Scoring Engine (2026-02-23)
 
 ### New Files

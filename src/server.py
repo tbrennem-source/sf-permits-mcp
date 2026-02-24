@@ -49,6 +49,9 @@ from src.tools.search_addenda import search_addenda
 # Phase 5.5 tools (severity scoring)
 from src.tools.permit_severity import permit_severity
 
+# Phase 8 tools (severity v2 — property-level health)
+from src.tools.property_health import property_health
+
 # Phase 6 tools (operational intelligence)
 from src.tools.list_feedback import list_feedback
 
@@ -122,6 +125,9 @@ mcp.tool()(search_addenda)
 
 # Phase 5.5 tools (severity scoring)
 mcp.tool()(permit_severity)
+
+# Phase 8 tools (severity v2 — property-level health)
+mcp.tool()(property_health)
 
 # Phase 6 tools (operational intelligence)
 mcp.tool()(list_feedback)
