@@ -91,3 +91,81 @@ def test_get_morning_brief_pipeline_health_warn_is_included():
 
     assert result["pipeline_health"]["status"] == "warn"
     assert len(result["pipeline_health"]["issues"]) == 1
+
+
+# ── Email rendering tests (Sprint 53B) ──────────────────────────
+
+@pytest.fixture
+def app():
+    """Create a minimal Flask app context for template rendering."""
+    from web.app import app as flask_app
+    flask_app.config["TESTING"] = True
+    return flask_app
+
+
+def _minimal_brief_data(**overrides):
+    """Return a minimal brief_data dict that render_brief_email accepts."""
+    base = {
+        "lookback_days": 1,
+        "summary": {
+            "total_watches": 0,
+            "changes_count": 0,
+            "at_risk_count": 0,
+            "expiring_count": 0,
+            "inspections_count": 0,
+            "new_filings_count": 0,
+        },
+        "changes": [],
+        "plan_reviews": [],
+        "health": [],
+        "inspections": [],
+        "new_filings": [],
+        "expiring": [],
+        "last_refresh": None,
+        "property_synopsis": None,
+        "property_cards": [],
+    }
+    base.update(overrides)
+    return base
+
+
+def test_pipeline_health_renders_when_warn(app):
+    """Pipeline WARN banner appears in rendered email HTML."""
+    with app.app_context():
+        from web.email_brief import render_brief_email
+
+        user = {"user_id": 1, "email": "test@example.com", "display_name": "Test"}
+        brief_data = _minimal_brief_data(
+            pipeline_health={
+                "status": "warn",
+                "issues": ["Cron stale"],
+                "checks": [],
+            }
+        )
+
+        html = render_brief_email(user, brief_data)
+
+    assert "Pipeline WARN" in html
+    assert "Cron stale" in html
+
+
+def test_pipeline_health_hidden_when_ok(app):
+    """Pipeline alert banner does NOT appear when status is ok."""
+    with app.app_context():
+        from web.email_brief import render_brief_email
+
+        user = {"user_id": 1, "email": "test@example.com", "display_name": "Test"}
+        brief_data = _minimal_brief_data(
+            pipeline_health={
+                "status": "ok",
+                "issues": [],
+                "checks": [],
+            }
+        )
+
+        html = render_brief_email(user, brief_data)
+
+    # The Pipeline alert banner should not be present
+    assert "Pipeline WARN" not in html
+    assert "Pipeline CRITICAL" not in html
+    assert "Pipeline OK" not in html

@@ -121,6 +121,15 @@ def render_brief_email(user: dict, brief_data: dict) -> str:
         f"?uid={user['user_id']}&token={unsubscribe_token}"
     )
 
+    # Pipeline health: prefer brief_data if available, else compute directly
+    pipeline_health = brief_data.get("pipeline_health")
+    if pipeline_health is None:
+        try:
+            from web.pipeline_health import get_pipeline_health_brief
+            pipeline_health = get_pipeline_health_brief()
+        except Exception:
+            pipeline_health = {"status": "unknown", "issues": [], "checks": []}
+
     return render_template(
         "brief_email.html",
         base_url=BASE_URL,
@@ -137,6 +146,7 @@ def render_brief_email(user: dict, brief_data: dict) -> str:
         property_synopsis=brief_data.get("property_synopsis"),
         property_cards=brief_data.get("property_cards", []),
         unsubscribe_url=unsubscribe_url,
+        pipeline_health=pipeline_health,
     )
 
 
