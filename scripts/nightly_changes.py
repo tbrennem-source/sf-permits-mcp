@@ -1088,6 +1088,21 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
                 f"Steps with errors (non-fatal): {', '.join(failed_steps)}"
             )
 
+        # Check data_as_of freshness (catches stale-but-nonzero data)
+        try:
+            max_dao = query_one("SELECT MAX(data_as_of)::date FROM addenda")
+            if max_dao and max_dao[0]:
+                dao_date = max_dao[0]
+                if isinstance(dao_date, str):
+                    dao_date = date.fromisoformat(dao_date[:10])
+                days_old = (date.today() - dao_date).days
+                if days_old > 3:
+                    staleness_warnings.append(
+                        f"Addenda data_as_of is {days_old} days stale (last: {dao_date})"
+                    )
+        except Exception as e:
+            logger.warning("data_as_of freshness check failed: %s", e)
+
         for warning in staleness_warnings:
             logger.warning("STALENESS CHECK: %s (since=%s, lookback=%d)",
                            warning, since_str, actual_lookback)
