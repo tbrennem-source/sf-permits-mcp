@@ -335,7 +335,7 @@ This project participates in Tim's standard session protocols. These are defined
 
 ### Protocol Markers
 
-**RELAY** — QA loop. After building, CC runs QA scripts from `qa-results/` using browser tools. Loops until all tests PASS or are marked BLOCKED. New QA scripts go to `qa-drop/`.
+**RELAY** — QA loop. After building, CC runs QA scripts using **Playwright headless Chromium** for any step involving page navigation or UI rendering. Do NOT substitute pytest or curl for browser verification — launch a real browser, navigate pages, take screenshots to `qa-results/screenshots/`. CLI-only steps (imports, DB queries, pytest) can use Python/bash directly. Loops until all tests PASS or are marked BLOCKED. New QA scripts go to `qa-drop/`.
 
 **CHECKCHAT** — Session close protocol. Six steps: VERIFY (RELAY gate — check `qa-results/` for unprocessed files, run RELAY if needed; tests pass), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
 
@@ -345,3 +345,48 @@ This project participates in Tim's standard session protocols. These are defined
 
 ## RELAY: active
 ## CHECKCHAT: active
+
+---
+
+## Swarm Orchestration Rules
+
+This project uses multi-agent swarm builds. When a swarm orchestrator command is invoked, follow these rules:
+
+### Domain Parallel Patterns
+
+Spawn parallel subagents when work spans independent file domains:
+
+| Domain | Agent | Files Owned |
+|--------|-------|-------------|
+| Auth/Environment | session-a-* | web/auth.py, tests/e2e/ |
+| Cost/Rate Limiting | session-b-* | web/cost_tracking.py, templates/admin_costs.html |
+| Pipeline/Cron | session-c-* | web/pipeline_health.py, scripts/nightly_changes.py |
+| CSS/Migrations | session-d-* | static/, tests/e2e/test_mobile.py, scripts/run_prod_migrations.py |
+
+**Critical rule:** Parallel agents ONLY work when they touch different files. The orchestrator validates file ownership after completion.
+
+### Shared File Protocol (web/app.py)
+
+`web/app.py` is the only file multiple agents may touch. Each agent is restricted to specific sections:
+- Add routes in clearly marked comment blocks: `# === SESSION {LETTER}: {FEATURE} ===`
+- Do NOT modify existing routes owned by other sessions
+- The orchestrator validates section boundaries during merge
+
+### Sequential Dependencies
+
+These must be serial, not parallel:
+- Merge order is always A → B → C → D
+- Session D's migration runner imports scripts from B and C
+- Tests run after each merge step
+
+### Model Routing
+
+- Orchestrator: Opus (strategic reasoning, conflict resolution)
+- Build agents: Sonnet (execution, code generation, testing)
+- Set via: `CLAUDE_CODE_SUBAGENT_MODEL=claude-sonnet-4-5-20250929`
+
+### Black Box Protocol (per agent)
+
+Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA → CHECKCHAT
+
+CHECKCHAT output includes a RELAY HANDOFF section for Desktop CC visual verification.
