@@ -876,6 +876,32 @@ async def permit_lookup(
         inspections = _get_inspections(conn, pnum)
         lines.append(_format_inspections(inspections))
 
+        # 5.25 Severity Score
+        try:
+            from src.severity import PermitInput, score_permit
+            insp_count = len(inspections)
+            permit_input = PermitInput.from_dict(primary, inspection_count=insp_count)
+            sev = score_permit(permit_input)
+            lines.append(f"\n## Severity Score: {sev.score}/100 — {sev.tier}\n")
+            lines.append(f"**Category:** {sev.category} | **Top Driver:** "
+                         f"{sev.top_driver.replace('_', ' ').title()}")
+            lines.append(f"**Explanation:** {sev.explanation}\n")
+            lines.append("| Dimension | Score | Weight |")
+            lines.append("|-----------|-------|--------|")
+            dim_labels = {
+                "inspection_activity": "Inspection Activity",
+                "age_staleness": "Age / Staleness",
+                "expiration_proximity": "Expiration Proximity",
+                "cost_tier": "Cost Tier",
+                "category_risk": "Category Risk",
+            }
+            for name, dim in sev.dimensions.items():
+                label = dim_labels.get(name, name)
+                marker = " **<<**" if name == sev.top_driver else ""
+                lines.append(f"| {label} | {dim['score']:.0f}/100 | {dim['weight']:.0%}{marker} |")
+        except Exception:
+            logger.debug("Severity scoring failed for %s", pnum, exc_info=True)
+
         # 5.5 Plan Review Routing (Addenda)
         lines.append("\n## Plan Review Routing\n")
         try:

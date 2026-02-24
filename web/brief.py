@@ -1074,55 +1074,37 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
         addr = f"{snum} {full_name}".strip().upper()
         key = addr if addr else f"{block}/{lot}"
 
-        # Health calculation — action-signal based, not pure age thresholds.
-        # Filed: AT RISK only if genuinely stalled (no activity 60+d) or active hold/enforcement.
-        #        BEHIND if slow but still moving (>365d filed, activity within 60d).
-        #        SLOWER if moderately slow (>180d filed).
-        # Issued: AT RISK/BEHIND only if approaching Table B expiration.
-        #         Long construction is NORMAL — don't flag it.
-        health = "on_track"
-        health_reason = ""
+        # Health calculation — severity model scores 5 dimensions (0-100),
+        # then maps to 4-tier health for backward compatibility.
+        # Phase 1: inspection_count=0 (brief doesn't batch-fetch per-permit inspections).
         filed_date = _parse_date(filed_str)
         issued_date = _parse_date(issued_str)
-        days_since = (today - status_date).days if status_date else None
 
-        if status == "filed" and filed_date:
-            days_filed = (today - filed_date).days
-            stalled = days_since is not None and days_since > 60
-            if days_filed > 365 and stalled:
-                health = "at_risk"
-                health_reason = f"{pn} filed {days_filed}d ago, no activity in {days_since}d"
-            elif days_filed > 365:
-                health = "behind"
-                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
-            elif days_filed > 180:
-                health = "slower"
-                health_reason = f"{pn} filed {days_filed}d ago (plan check)"
+        from src.severity import PermitInput, score_permit
+        sev_input = PermitInput(
+            permit_number=pn,
+            status=status,
+            permit_type_definition=ptype_def,
+            description="",  # brief doesn't carry description
+            filed_date=filed_date,
+            issued_date=issued_date,
+            status_date=status_date,
+            estimated_cost=float(estimated_cost) if estimated_cost else 0.0,
+            revised_cost=float(revised_cost) if revised_cost else None,
+            inspection_count=0,  # Phase 1: not fetching per-permit inspections in brief
+        )
+        sev_result = score_permit(sev_input, today=today)
 
-        if status == "issued" and issued_date:
-            permit_dict = {
-                "permit_type_definition": ptype_def,
-                "revised_cost": revised_cost,
-                "estimated_cost": estimated_cost,
-            }
-            validity = _validity_days(permit_dict)
-            days_issued = (today - issued_date).days
-            expires_in = validity - days_issued
-            if expires_in <= 0:
-                # Permit expired — AT RISK at per-permit level; may be
-                # downgraded to BEHIND by property-level post-processing
-                # if the property has recent activity across any permit.
-                health = "at_risk"
-                health_reason = f"{pn} permit expired {abs(expires_in)}d ago"
-            elif expires_in <= 30:
-                health = "at_risk"
-                health_reason = f"{pn} expires in {expires_in}d"
-            elif expires_in <= 90:
-                health = "behind"
-                health_reason = f"{pn} expires in {expires_in}d"
-            elif expires_in <= 180:
-                health = "slower"
-                health_reason = f"{pn} expires in {expires_in}d"
+        # Map 5-tier severity → 4-tier health for backward compat
+        _SEVERITY_TO_HEALTH = {
+            "CRITICAL": "at_risk",
+            "HIGH": "behind",
+            "MEDIUM": "slower",
+            "LOW": "on_track",
+            "GREEN": "on_track",
+        }
+        health = _SEVERITY_TO_HEALTH.get(sev_result.tier, "on_track")
+        health_reason = sev_result.explanation if health != "on_track" else ""
 
         if key not in property_map:
             # Title-case for display: "125 MASON ST" -> "125 Mason St"
@@ -1148,11 +1130,18 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
                 "latest_permit_status": "",
                 "latest_permit_type": "",
                 "days_since_activity": None,
+                "severity_score": None,
+                "severity_tier": None,
                 "search_url": f"/?q={addr.replace(' ', '+')}" if addr else f"/?q={block}/{lot}",
             }
 
         prop = property_map[key]
         prop["total_permits"] += 1
+
+        # Track worst severity score across permits at this property
+        if prop["severity_score"] is None or sev_result.score > prop["severity_score"]:
+            prop["severity_score"] = sev_result.score
+            prop["severity_tier"] = sev_result.tier
 
         # Track latest status_date across all permits at this address
         if status_date and str(status_date) > prop["latest_activity"]:

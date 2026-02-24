@@ -1,5 +1,42 @@
 # Changelog
 
+## Session 51 — Severity Scoring v1: Per-Permit Scoring Engine (2026-02-23)
+
+### New Files
+- `src/severity.py` — Core scoring module (pure functions, no DB dependency)
+  - `PermitInput` / `SeverityResult` dataclasses with `from_dict()` convenience methods
+  - `classify_description()` — 12 categories + "general" fallback via keyword matching
+  - `score_permit()` — 5-dimension weighted scoring (0-100 scale)
+  - `score_permits_batch()` — batch wrapper
+- `src/tools/permit_severity.py` — MCP tool wrapper (queries DB for permit + inspection count, formats markdown with score/tier/dimensions/recommendations)
+- `tests/test_severity.py` — 60 unit tests (each dimension, tier boundaries, all 12 categories, PermitInput.from_dict, batch scoring)
+- `tests/test_permit_severity.py` — 13 integration tests (synthetic DuckDB fixtures, DB-unavailable fallback)
+
+### Modified Files
+- `src/server.py` — Registered `permit_severity` as 22nd MCP tool
+- `src/tools/permit_lookup.py` — Added severity score section after inspections (wrapped in try/except, never breaks lookup)
+- `web/brief.py` — Replaced manual if/elif health calculation with severity model; added `severity_score` and `severity_tier` to property card dicts
+
+### Scoring Model
+5 dimensions weighted to 100:
+- **Inspection Activity (25%)** — inspections vs expected for category
+- **Age/Staleness (25%)** — days filed + days since last activity
+- **Expiration Proximity (20%)** — Table B countdown
+- **Cost Tier (15%)** — higher cost = higher impact if abandoned
+- **Category Risk (15%)** — life-safety categories score higher
+
+Tiers: CRITICAL >=80, HIGH >=60, MEDIUM >=40, LOW >=20, GREEN <20
+
+### Data-Driven Constants
+- 12 description categories with keyword lists (seismic_structural, fire_safety, adu, new_construction, kitchen_bath, electrical, plumbing, structural, windows_doors, reroofing, solar, demolition)
+- Expected inspections per category (from 671K inspection analysis)
+- Category risk scores (seismic=100, reroofing=10)
+- Table B expiration tiers reused from brief.py
+
+### Test Results
+- 73 new tests (60 unit + 13 integration)
+- Total suite: 1,344 passed, 1 skipped (pre-existing), 0 failures
+
 ## Session 49 — Phase 7: Project Intelligence Tools (2026-02-23)
 
 ### New Tools (5)

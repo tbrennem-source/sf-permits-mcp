@@ -417,3 +417,45 @@ _Last reviewed: never_
 **Edge cases seen in code:** Telegram secrets may not be configured — `curl || echo` fallback prevents notify job itself from failing. `env.TELEGRAM_BOT_TOKEN != ''` check skips the step gracefully if secrets are missing.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Expired seismic permit scores CRITICAL
+**Source:** src/severity.py (Session 51)
+**User:** expediter
+**Starting state:** Property has a seismic retrofit permit, status=issued, filed 4 years ago, issued 13+ months ago ($50k), zero inspections
+**Goal:** Severity model identifies this as a critical-risk permit
+**Expected outcome:** Severity score >= 80 (CRITICAL tier). Top driver is expiration_proximity or inspection_activity. Explanation mentions the expired permit. permit_lookup output shows "Severity Score: XX/100 — CRITICAL" section.
+**Edge cases seen in code:** $50k permits have 360-day Table B validity; $200k+ have 1080 days. A $200k seismic issued 13 months ago would NOT be expired (1080 days remaining) — tier would be lower.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Fresh low-cost filing scores GREEN
+**Source:** src/severity.py (Session 51)
+**User:** homeowner
+**Starting state:** Homeowner just filed a $5k window replacement permit 5 days ago
+**Goal:** Severity model confirms permit is on track
+**Expected outcome:** Severity score < 20 (GREEN tier). All dimensions score near zero. permit_lookup shows "GREEN" tier. Morning brief shows "on_track" health.
+**Edge cases seen in code:** Filed permits get zero inspection penalty (inspections not expected yet). Category "windows_doors" has risk score of 25 — lowest non-trivial category.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Severity model replaces manual health calculation in brief
+**Source:** web/brief.py (Session 51)
+**User:** expediter
+**Starting state:** User has multiple watched properties with various permit states
+**Goal:** Morning brief property cards use the new severity model for health classification
+**Expected outcome:** Property cards show health status derived from severity tiers: CRITICAL→at_risk, HIGH→behind, MEDIUM→slower, LOW/GREEN→on_track. Cards include severity_score and severity_tier fields. No visible difference in UX — backward compatible with 4-tier health display.
+**Edge cases seen in code:** Brief passes inspection_count=0 (Phase 1 — doesn't batch-fetch per-permit inspections). This means inspection_activity dimension is underweighted in brief context. Post-processing enforcement upgrades and expired-permit downgrades still run after severity scoring.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: permit_severity tool handles missing permit gracefully
+**Source:** src/tools/permit_severity.py (Session 51)
+**User:** expediter
+**Starting state:** User asks to score a permit number that doesn't exist in the database
+**Goal:** Get a clear message, not an error
+**Expected outcome:** Returns "No permit found matching permit number **XXXX**" message. No traceback, no 500 error.
+**Edge cases seen in code:** DB unavailable returns "Database unavailable" message. Empty/whitespace-only inputs return usage message. Block+lot search with no results returns "No permit found".
+**CC confidence:** high
+**Status:** PENDING REVIEW

@@ -46,6 +46,9 @@ from src.tools.permit_lookup import permit_lookup
 # Phase 5 tools (addenda routing)
 from src.tools.search_addenda import search_addenda
 
+# Phase 5.5 tools (severity scoring)
+from src.tools.permit_severity import permit_severity
+
 # Phase 6 tools (operational intelligence)
 from src.tools.list_feedback import list_feedback
 
@@ -116,6 +119,9 @@ mcp.tool()(permit_lookup)
 
 # Phase 5 tools (addenda routing)
 mcp.tool()(search_addenda)
+
+# Phase 5.5 tools (severity scoring)
+mcp.tool()(permit_severity)
 
 # Phase 6 tools (operational intelligence)
 mcp.tool()(list_feedback)
