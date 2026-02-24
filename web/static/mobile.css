@@ -1,0 +1,289 @@
+/*
+ * mobile.css — sfpermits.ai responsive / mobile overrides
+ *
+ * Loaded after inline <style> blocks so these rules win via cascade.
+ * Target: 375px (iPhone SE) and up.
+ *
+ * Issues fixed:
+ *  1. Nav header overflows on small screens — collapse badge labels
+ *  2. Tables lack overflow containers (velocity_dashboard, fragments)
+ *  3. .container side padding collapses to 12px on very small screens
+ *  4. Touch targets below 44px for nav badges and form buttons
+ *  5. Font size drops below 14px in data tables on mobile
+ *  6. .hero-search h1 too large for 375px viewport
+ *  7. .search-box-wrapper stacks incorrectly without min-width guard
+ *  8. Admin dropdown inaccessible on touch (hover-only)
+ *  9. Form inputs use 16px or larger to avoid iOS auto-zoom
+ * 10. Tab overflow in velocity_dashboard wraps awkwardly
+ */
+
+/* ── 1. Global base ──────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+/* ── 2. Navigation — avoid overflow on narrow screens ───────────────────── */
+
+@media (max-width: 640px) {
+    /* Header: wrap if needed; don't overflow viewport */
+    header .container {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    /* Make header-right scrollable horizontally instead of overflowing */
+    .header-right {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px;
+        padding-bottom: 2px;          /* room for scrollbar on some browsers */
+        scrollbar-width: none;        /* Firefox */
+    }
+    .header-right::-webkit-scrollbar { display: none; }
+
+    /* Ensure nav badges meet 44px touch target height */
+    .badge, .badge-btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Keep logo accessible */
+    .logo {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+}
+
+/* ── 3. Admin dropdown — tap-to-toggle on touch devices ────────────────── */
+
+/*
+ * The admin dropdown uses CSS :hover which is unreliable on touchscreens.
+ * We add a .open class toggled by JS (see bottom of this file's companion
+ * <script>). The CSS here just ensures the open state works.
+ */
+@media (max-width: 768px) {
+    .admin-dropdown-menu {
+        /* Already hidden by default; show via .open class */
+        display: none;
+    }
+    .admin-dropdown.open .admin-dropdown-menu {
+        display: block;
+    }
+    .admin-dropdown-menu-inner {
+        /* Full-width on mobile for easier tapping */
+        min-width: 160px;
+    }
+    .admin-dropdown-menu-inner a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* ── 4. Table overflow containers ───────────────────────────────────────── */
+
+/*
+ * Any <table> that is NOT already inside a div with overflow-x:auto gets
+ * one via this rule applied to its parent. We target the known table
+ * containers: .section (velocity_dashboard), .reviewer-panel, .result-card,
+ * and the fragment tables.
+ *
+ * Note: report.html already has explicit overflow-x:auto wrappers inline.
+ */
+@media (max-width: 768px) {
+    /* velocity_dashboard: stalled permits table, station load table */
+    .section {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* reviewer-panel tables (velocity dashboard dynamic tables) */
+    .reviewer-panel {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Generic: any table not already inside an overflow wrapper */
+    .tab-panel table,
+    .section table {
+        min-width: 500px;  /* prevent squashing below readable width */
+    }
+
+    /* search results card tables */
+    .search-result-card {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* report page: data tables already have overflow-x:auto divs inline,
+       but ensure the table font stays readable */
+    table.data-table {
+        font-size: max(0.8rem, 14px);
+    }
+
+    /* velocity_dashboard table cells — minimum font */
+    .section table td,
+    .section table th {
+        font-size: max(0.78rem, 13px);
+        padding: 6px 8px;
+    }
+}
+
+/* ── 5. Form inputs — prevent iOS auto-zoom ─────────────────────────────── */
+
+/*
+ * iOS Safari zooms in when an input has font-size < 16px.
+ * Set 16px min on all inputs, then scale the parent slightly if needed.
+ */
+@media (max-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="search"],
+    input[type="number"],
+    input[type="tel"],
+    textarea,
+    select {
+        font-size: max(1rem, 16px);  /* 16px floor — prevents iOS zoom */
+    }
+
+    /* Search box wrapper: stack on very narrow screens */
+    .search-box-wrapper {
+        flex-wrap: nowrap;  /* keep inline — button stays attached */
+    }
+}
+
+@media (max-width: 480px) {
+    .search-box-wrapper {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .search-box-wrapper input[type="text"] {
+        border-radius: 8px !important;
+    }
+    .search-btn {
+        border-radius: 8px !important;
+        width: 100% !important;
+    }
+}
+
+/* ── 6. Hero search heading ─────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+    .hero-search h1 {
+        font-size: 1.4rem;
+        margin-bottom: 16px;
+    }
+    .hero-search {
+        padding: 28px 0 20px;
+    }
+}
+
+/* ── 7. Buttons — 44px touch target minimum ────────────────────────────── */
+
+@media (max-width: 768px) {
+    .btn,
+    button.btn,
+    a.btn,
+    input[type="submit"],
+    input[type="button"] {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* ── 8. Velocity dashboard tabs — horizontal scroll ────────────────────── */
+
+@media (max-width: 640px) {
+    .tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 2px;
+        scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+        flex-shrink: 0;
+        white-space: nowrap;
+        min-height: 44px;
+    }
+}
+
+/* ── 9. Brief page — property snapshot grid single column ───────────────── */
+
+@media (max-width: 480px) {
+    .property-snapshot-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ── 10. Report page — profile grid ────────────────────────────────────── */
+
+/* Already handled in report.html @media block but ensure container
+   does not overflow on very small screens */
+@media (max-width: 380px) {
+    .profile-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .profile-item:nth-child(even) {
+        padding-left: 0 !important;
+        border-left: none !important;
+    }
+}
+
+/* ── 11. Main content padding on mobile ─────────────────────────────────── */
+
+@media (max-width: 640px) {
+    main {
+        padding-top: 24px;
+        padding-bottom: 48px;
+    }
+}
+
+/* ── 12. Quick action chips — wrap cleanly ──────────────────────────────── */
+
+@media (max-width: 480px) {
+    .quick-actions {
+        gap: 6px;
+    }
+    .quick-actions a,
+    .quick-actions button {
+        font-size: 0.78rem;
+        padding: 6px 10px;
+        min-height: 36px;
+    }
+}
+
+/* ── 13. Admin ops / feedback — avoid horizontal overflow ───────────────── */
+
+@media (max-width: 640px) {
+    .activity-user {
+        min-width: 80px;
+        max-width: 120px;
+    }
+}
+
+/* ── 14. Modal boxes — full-width on mobile ─────────────────────────────── */
+
+@media (max-width: 480px) {
+    .modal-box {
+        width: 95% !important;
+        padding: 16px !important;
+        max-width: none !important;
+    }
+}
