@@ -127,6 +127,22 @@ def inject_brand():
     return {"brand": BRAND_CONFIG}
 
 
+# === SESSION A: ENVIRONMENT ===
+
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
+IS_STAGING = ENVIRONMENT == "staging"
+
+
+@app.context_processor
+def inject_environment():
+    """Make environment flags available in all templates."""
+    return {
+        "is_staging": IS_STAGING,
+        "environment_name": ENVIRONMENT,
+    }
+
+# === END SESSION A: ENVIRONMENT ===
+
 # ---------------------------------------------------------------------------
 # Startup migrations (idempotent, run once per deploy)
 # ---------------------------------------------------------------------------
@@ -771,6 +787,29 @@ def admin_required(f):
     return decorated
 
 
+
+# === SESSION B: COST PROTECTION — lazy import for rate_limited decorator ===
+def _rate_limited_ai(f):
+    """Lazy wrapper: apply rate_limited("ai") without circular import at module load."""
+    from functools import wraps
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        from web.cost_tracking import rate_limited as _rl
+        return _rl("ai")(f)(*args, **kwargs)
+    return wrapper
+
+
+def _rate_limited_plans(f):
+    """Lazy wrapper: apply rate_limited("plans") without circular import at module load."""
+    from functools import wraps
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        from web.cost_tracking import rate_limited as _rl
+        return _rl("plans")(f)(*args, **kwargs)
+    return wrapper
+# === END SESSION B: COST PROTECTION ===
+
+
 def run_async(coro):
     """Run an async function synchronously."""
     try:
@@ -1249,6 +1288,7 @@ def validate():
 
 @app.route("/analyze-plans", methods=["POST"])
 @login_required
+@_rate_limited_plans
 def analyze_plans_route():
     """Upload a PDF plan set for full AI-powered analysis.
 
@@ -2266,6 +2306,7 @@ def lookup():
 # ---------------------------------------------------------------------------
 
 @app.route("/ask", methods=["POST"])
+@_rate_limited_ai
 def ask():
     """Classify a free-text query and route to the appropriate handler."""
     query = request.form.get("q", "").strip() or request.form.get("query", "").strip()
@@ -3191,6 +3232,20 @@ def _synthesize_with_ai(
             ],
         )
         if response.content and response.content[0].type == "text":
+            # SESSION B: log cost
+            try:
+                from web.cost_tracking import log_api_call, ensure_schema
+                ensure_schema()
+                user_id = g.user["user_id"] if (hasattr(g, "user") and g.user) else None
+                log_api_call(
+                    endpoint="/ask",
+                    model="claude-sonnet-4-20250514",
+                    input_tokens=response.usage.input_tokens,
+                    output_tokens=response.usage.output_tokens,
+                    user_id=user_id,
+                )
+            except Exception:
+                pass
             return response.content[0].text
         return None
     except Exception as e:
@@ -3517,6 +3572,51 @@ def auth_stop_impersonate():
         session["email"] = admin_email
 
     return redirect(url_for("account"))
+
+
+# === SESSION A: TEST LOGIN ENDPOINT ===
+
+@app.route("/auth/test-login", methods=["POST"])
+def auth_test_login():
+    """Test-only login endpoint — 404 unless TESTING env var is set.
+
+    Allows automated tests and Desktop CC RELAY sessions to authenticate
+    without magic link emails. NEVER enable TESTING on production.
+
+    Request body (JSON):
+      {"secret": "<TEST_LOGIN_SECRET>", "email": "test-admin@sfpermits.ai"}
+
+    Responses:
+      404 — TESTING not set (endpoint does not exist in prod)
+      403 — wrong or missing secret
+      200 — success, session cookie set
+    """
+    from web.auth import handle_test_login
+
+    payload = request.get_json(silent=True) or {}
+    user, status = handle_test_login(payload)
+
+    if status == 404:
+        abort(404)
+    if status == 403:
+        return jsonify({"error": "forbidden"}), 403
+
+    # Success — create session identical to magic-link flow
+    session.permanent = True
+    session["user_id"] = user["user_id"]
+    session["email"] = user["email"]
+    session["is_admin"] = user["is_admin"]
+    session.pop("impersonating", None)
+    session.pop("admin_user_id", None)
+
+    return jsonify({
+        "ok": True,
+        "user_id": user["user_id"],
+        "email": user["email"],
+        "is_admin": user["is_admin"],
+    }), 200
+
+# === END SESSION A: TEST LOGIN ENDPOINT ===
 
 
 # ---------------------------------------------------------------------------
@@ -4526,6 +4626,36 @@ def admin_voice_calibration_reset_redirect():
     """Redirect old admin POST to new account URL (307 preserves POST)."""
     return redirect("/account/voice-calibration/reset", code=307)
 
+
+
+# === SESSION B: COST PROTECTION ===
+
+@app.route("/admin/costs")
+@login_required
+def admin_costs():
+    """Admin API cost dashboard — today\'s spend, 7-day trend, kill switch."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.cost_tracking import get_cost_summary, ensure_schema
+    ensure_schema()
+    summary = get_cost_summary(days=7)
+    return render_template("admin_costs.html", user=g.user, summary=summary)
+
+
+@app.route("/admin/costs/kill-switch", methods=["POST"])
+@login_required
+def admin_costs_kill_switch():
+    """Toggle the Claude API kill switch (admin only)."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.cost_tracking import set_kill_switch
+    active_str = request.form.get("active", "0")
+    active = active_str.strip() in ("1", "true", "yes")
+    set_kill_switch(active)
+    return redirect(url_for("admin_costs"))
+
+
+# === END SESSION B: COST PROTECTION ===
 
 @app.route("/account/voice-calibration")
 @login_required
@@ -5970,6 +6100,106 @@ def cron_backup():
     result = run_backup()
     status = 200 if result.get("ok") else 500
     return Response(json.dumps(result, indent=2), mimetype="application/json"), status
+
+
+
+# === SESSION C: PIPELINE HEALTH ===
+
+@app.route("/cron/pipeline-health", methods=["GET", "POST"])
+def cron_pipeline_health():
+    """Pipeline health check endpoint.
+
+    GET  — Returns current pipeline health as JSON (no auth required for read).
+    POST — With action=run_nightly: triggers a nightly run (requires CRON_SECRET).
+
+    Protected by CRON_SECRET for POST/write operations.
+    """
+    import json
+
+    if request.method == "POST":
+        # POST requires auth
+        token = request.headers.get("Authorization", "")
+        expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
+        if not os.environ.get("CRON_SECRET") or token != expected:
+            # Also allow admin session for manual re-run from dashboard
+            if not (hasattr(g, "user") and g.user and g.user.get("is_admin")):
+                abort(403)
+
+        action = request.args.get("action", "")
+        if action == "run_nightly":
+            from scripts.nightly_changes import run_nightly
+            lookback = int(request.args.get("lookback", "1"))
+            try:
+                result = run_async(run_nightly(lookback_days=lookback, dry_run=False))
+                return jsonify({"ok": True, "result": {
+                    k: v for k, v in result.items()
+                    if k != "step_results"  # omit verbose step details
+                }})
+            except Exception as e:
+                logging.exception("cron_pipeline_health run_nightly failed")
+                return jsonify({"ok": False, "error": str(e)}), 500
+
+        return jsonify({"ok": False, "error": "unknown action"}), 400
+
+    # GET — return pipeline health (read-only)
+    try:
+        from web.pipeline_health import get_pipeline_health
+        from dataclasses import asdict
+        report = get_pipeline_health()
+        # Convert dataclass to dict
+        report_dict = {
+            "run_at": report.run_at,
+            "overall_status": report.overall_status,
+            "summary_line": report.summary_line,
+            "checks": [
+                {"name": c.name, "status": c.status, "message": c.message}
+                for c in report.checks
+            ],
+            "stuck_jobs_count": len(report.stuck_jobs),
+            "data_freshness": report.data_freshness,
+        }
+        return jsonify({"ok": True, "health": report_dict})
+    except Exception as e:
+        logging.exception("cron_pipeline_health GET failed")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/admin/pipeline")
+@login_required
+def admin_pipeline():
+    """Pipeline health admin dashboard.
+
+    Shows cron job history, data freshness, stuck jobs,
+    and provides a manual re-run button.
+
+    Admin-only.
+    """
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    try:
+        from web.pipeline_health import get_pipeline_health
+        report = get_pipeline_health()
+    except Exception as e:
+        logging.exception("admin_pipeline health check failed")
+        # Render page with error state so admin can still see the route
+        from web.pipeline_health import PipelineHealthReport, HealthCheck
+        report = PipelineHealthReport(
+            run_at=__import__("datetime").datetime.utcnow().isoformat(),
+            overall_status="unknown",
+            checks=[HealthCheck(name="error", status="unknown", message=str(e))],
+            summary_line=f"Health check failed: {e}",
+        )
+
+    return render_template(
+        "admin_pipeline.html",
+        user=g.user,
+        active_page="admin",
+        report=report,
+    )
+
+
+# === END SESSION C: PIPELINE HEALTH ===
 
 
 if __name__ == "__main__":

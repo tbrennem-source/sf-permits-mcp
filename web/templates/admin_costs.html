@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>API Cost Dashboard — sfpermits.ai</title>
+    <script src="/static/htmx.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+            --kill-active: #f87171;
+            --kill-inactive: #34d399;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text); line-height: 1.6;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 8px; }
+        h2 { font-size: 1.1rem; margin-bottom: 12px; color: var(--text-muted); font-weight: 500; }
+        .subtitle { color: var(--text-muted); margin-bottom: 28px; font-size: 0.9rem; }
+
+        /* ── Alert banner ── */
+        .alert-banner {
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;
+            font-size: 0.9rem; border: 1px solid;
+        }
+        .alert-warn {
+            background: rgba(251,191,36,0.1); border-color: var(--warning);
+            color: var(--warning);
+        }
+        .alert-critical {
+            background: rgba(248,113,113,0.15); border-color: var(--error);
+            color: var(--error);
+        }
+        .alert-ok {
+            background: rgba(52,211,153,0.08); border-color: var(--success);
+            color: var(--success);
+        }
+
+        /* ── Kill switch panel ── */
+        .kill-switch-panel {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 20px 24px; margin-bottom: 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; flex-wrap: wrap;
+        }
+        .kill-switch-status {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .kill-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            display: inline-block;
+        }
+        .kill-dot.active { background: var(--kill-active); box-shadow: 0 0 8px var(--kill-active); }
+        .kill-dot.inactive { background: var(--kill-inactive); }
+        .kill-label { font-size: 1rem; font-weight: 600; }
+        .kill-sublabel { font-size: 0.8rem; color: var(--text-muted); }
+
+        .btn {
+            padding: 8px 18px; border-radius: 6px; font-size: 0.85rem;
+            border: 1px solid; cursor: pointer; font-family: inherit;
+            font-weight: 500; transition: all 0.15s;
+        }
+        .btn-danger {
+            background: rgba(248,113,113,0.12); border-color: var(--error);
+            color: var(--error);
+        }
+        .btn-danger:hover { background: rgba(248,113,113,0.25); }
+        .btn-success {
+            background: rgba(52,211,153,0.12); border-color: var(--success);
+            color: var(--success);
+        }
+        .btn-success:hover { background: rgba(52,211,153,0.25); }
+        .btn-neutral {
+            background: var(--surface-2); border-color: var(--border);
+            color: var(--text-muted);
+        }
+        .btn-neutral:hover { border-color: var(--text-muted); color: var(--text); }
+
+        /* ── Stat cards ── */
+        .stat-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px; margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px 20px;
+        }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 1.6rem; font-weight: 700; }
+        .stat-value.warn { color: var(--warning); }
+        .stat-value.critical { color: var(--error); }
+        .stat-value.ok { color: var(--success); }
+        .stat-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* ── Tables ── */
+        .section { margin-bottom: 36px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th {
+            text-align: left; padding: 8px 12px; color: var(--text-muted);
+            border-bottom: 1px solid var(--border); font-weight: 500;
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        td { padding: 9px 12px; border-bottom: 1px solid rgba(51,55,73,0.5); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(79,143,247,0.03); }
+        .table-wrap {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; overflow: hidden;
+        }
+
+        /* ── Threshold row ── */
+        .threshold-row {
+            display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; align-items: center;
+        }
+        .threshold-item {
+            display: flex; gap: 8px; align-items: center; font-size: 0.85rem;
+        }
+        .threshold-badge {
+            padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+        }
+        .badge-warn { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .badge-kill { background: rgba(248,113,113,0.15); color: var(--error); }
+
+        /* ── Daily chart bars ── */
+        .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .bar-date { font-size: 0.75rem; color: var(--text-muted); width: 80px; flex-shrink: 0; }
+        .bar-track { flex: 1; background: var(--surface-2); border-radius: 4px; height: 16px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.3s; }
+        .bar-val { font-size: 0.75rem; color: var(--text-muted); width: 60px; text-align: right; }
+
+        /* ── Action bar ── */
+        .action-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 28px; }
+
+        /* ── Flash message ── */
+        #flash-msg {
+            font-size: 0.85rem; padding: 8px 14px; border-radius: 6px;
+            display: none;
+        }
+        #flash-msg.show { display: inline-block; }
+        #flash-msg.success { background: rgba(52,211,153,0.15); color: var(--success); }
+        #flash-msg.error { background: rgba(248,113,113,0.15); color: var(--error); }
+    </style>
+</head>
+<body>
+    {% include 'fragments/nav.html' %}
+
+    <main>
+        <div class="container">
+            <h1>
+                <span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>API Cost Dashboard
+            </h1>
+            <p class="subtitle">Claude API usage, token spend, and kill switch controls.</p>
+
+            <!-- Alert banner -->
+            {% if summary.kill_switch_active %}
+            <div class="alert-banner alert-critical">
+                <strong>Kill switch is ACTIVE.</strong>
+                AI endpoints are blocked. Today's spend: ${{ "%.4f"|format(summary.today_cost) }}
+                — threshold: ${{ "%.2f"|format(summary.kill_threshold) }}.
+            </div>
+            {% elif summary.today_cost >= summary.warn_threshold %}
+            <div class="alert-banner alert-warn">
+                <strong>Cost warning.</strong>
+                Today's spend ${{ "%.4f"|format(summary.today_cost) }} has reached the
+                warning threshold of ${{ "%.2f"|format(summary.warn_threshold) }}.
+            </div>
+            {% else %}
+            <div class="alert-banner alert-ok">
+                Spend normal. Today: ${{ "%.4f"|format(summary.today_cost) }}
+                of ${{ "%.2f"|format(summary.kill_threshold) }} kill threshold.
+            </div>
+            {% endif %}
+
+            <!-- Kill switch panel -->
+            <div class="kill-switch-panel">
+                <div class="kill-switch-status">
+                    <span class="kill-dot {% if summary.kill_switch_active %}active{% else %}inactive{% endif %}"></span>
+                    <div>
+                        <div class="kill-label">
+                            Kill switch: <strong>{% if summary.kill_switch_active %}ACTIVE{% else %}Inactive{% endif %}</strong>
+                        </div>
+                        <div class="kill-sublabel">
+                            {% if summary.kill_switch_active %}
+                                AI routes (/ask, /analyze, /analyze-plans) are blocked.
+                            {% else %}
+                                AI routes are operational. Auto-activates at ${{ "%.2f"|format(summary.kill_threshold) }}/day.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    {% if summary.kill_switch_active %}
+                    <form action="/admin/costs/kill-switch" method="post" style="display:inline">
+                        <input type="hidden" name="active" value="0">
+                        <button type="submit" class="btn btn-success" id="ks-btn">
+                            Deactivate Kill Switch
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="/admin/costs/kill-switch" method="post" style="display:inline">
+                        <input type="hidden" name="active" value="1">
+                        <button type="submit" class="btn btn-danger" id="ks-btn"
+                            onclick="return confirm('Activate kill switch? This blocks all AI routes.')">
+                            Activate Kill Switch
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Thresholds -->
+            <div class="threshold-row">
+                <span style="font-size:0.8rem;color:var(--text-muted);">Thresholds:</span>
+                <div class="threshold-item">
+                    <span class="threshold-badge badge-warn">WARN</span>
+                    <span>${{ "%.2f"|format(summary.warn_threshold) }}/day</span>
+                </div>
+                <div class="threshold-item">
+                    <span class="threshold-badge badge-kill">KILL</span>
+                    <span>${{ "%.2f"|format(summary.kill_threshold) }}/day (auto)</span>
+                </div>
+                <span style="font-size:0.75rem;color:var(--text-muted);">
+                    Set via COST_WARN_THRESHOLD / COST_KILL_THRESHOLD env vars.
+                </span>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Today's Spend</div>
+                    <div class="stat-value {% if summary.today_cost >= summary.kill_threshold %}critical{% elif summary.today_cost >= summary.warn_threshold %}warn{% else %}ok{% endif %}">
+                        ${{ "%.4f"|format(summary.today_cost) }}
+                    </div>
+                    <div class="stat-sub">USD</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">7-Day Total</div>
+                    <div class="stat-value">
+                        ${{ "%.4f"|format(summary.daily_totals | sum(attribute=1) if summary.daily_totals else 0) }}
+                    </div>
+                    <div class="stat-sub">last 7 days</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Top Endpoint Today</div>
+                    {% if summary.top_endpoints %}
+                    <div class="stat-value" style="font-size:1rem;">{{ summary.top_endpoints[0][0] }}</div>
+                    <div class="stat-sub">${{ "%.4f"|format(summary.top_endpoints[0][1]) }} · {{ summary.top_endpoints[0][2] }} calls</div>
+                    {% else %}
+                    <div class="stat-value" style="font-size:1rem;color:var(--text-muted)">—</div>
+                    {% endif %}
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Kill Threshold</div>
+                    <div class="stat-value" style="font-size:1.2rem;">${{ "%.2f"|format(summary.kill_threshold) }}</div>
+                    <div class="stat-sub">per day</div>
+                </div>
+            </div>
+
+            <!-- 7-Day trend -->
+            <div class="section">
+                <h2>7-Day Cost Trend</h2>
+                {% if summary.daily_totals %}
+                {% set max_cost = summary.daily_totals | map(attribute=1) | max %}
+                {% for date_str, cost in summary.daily_totals %}
+                <div class="bar-row">
+                    <span class="bar-date">{{ date_str }}</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: {{ ((cost / max_cost * 100) if max_cost > 0 else 0) | int }}%"></div>
+                    </div>
+                    <span class="bar-val">${{ "%.4f"|format(cost) }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="color:var(--text-muted);font-size:0.9rem;">No API calls recorded in the last 7 days.</p>
+                {% endif %}
+            </div>
+
+            <!-- Today's endpoints -->
+            {% if summary.top_endpoints %}
+            <div class="section">
+                <h2>Today's Usage by Endpoint</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Cost (USD)</th>
+                                <th>Calls</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for endpoint, cost, calls in summary.top_endpoints %}
+                            <tr>
+                                <td><code style="font-size:0.8rem;">{{ endpoint }}</code></td>
+                                <td>${{ "%.6f"|format(cost) }}</td>
+                                <td>{{ calls }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Today's top users -->
+            {% if summary.top_users %}
+            <div class="section">
+                <h2>Today's Usage by User</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Cost (USD)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_id, cost in summary.top_users %}
+                            <tr>
+                                <td>{{ user_id }}</td>
+                                <td>${{ "%.6f"|format(cost) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if summary.error is defined %}
+            <div class="alert-banner alert-warn" style="margin-top:20px;">
+                <strong>Dashboard error:</strong> {{ summary.error }} — some data may be missing.
+            </div>
+            {% endif %}
+
+            <!-- Back link -->
+            <div style="margin-top:32px;">
+                <a href="/admin/ops" style="color:var(--text-muted);font-size:0.85rem;text-decoration:none;">
+                    &larr; Back to Admin Ops
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

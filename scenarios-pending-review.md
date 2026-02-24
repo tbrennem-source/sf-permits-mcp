@@ -607,3 +607,73 @@ _Last reviewed: never_
 **Expected outcome:** User is 302-redirected to /?q=123+Main+St to use the full conversational search experience
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: TESTING not set — test-login endpoint does not leak
+**Source:** web/auth.py + web/app.py (handle_test_login, auth_test_login)
+**User:** homeowner | architect | any unauthenticated user
+**Starting state:** App running in production (TESTING env var not set)
+**Goal:** Attempt to access /auth/test-login
+**Expected outcome:** HTTP 404 — the endpoint does not exist on production. No information about the endpoint or secret is disclosed in the response body.
+**Edge cases seen in code:** TESTING="" (empty string) also returns 404; TESTING=false also returns 404
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Every page shows yellow staging banner when ENVIRONMENT=staging
+**Source:** web/app.py (inject_environment context processor) + templates/index.html, landing.html, auth_login.html
+**User:** expediter | admin
+**Starting state:** App deployed to Railway staging service with ENVIRONMENT=staging
+**Goal:** Navigate through the app (homepage, login page, main search page)
+**Expected outcome:** A yellow banner reading "STAGING ENVIRONMENT — changes here do not affect production" is visible at the top of every page. Banner is NOT present on production.
+**Edge cases seen in code:** Default value when ENVIRONMENT not set is "production" (no banner)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Desktop CC POSTs correct test secret and gets admin session
+**Source:** web/auth.py (handle_test_login) + web/app.py (auth_test_login route)
+**User:** admin (automated / Desktop CC RELAY)
+**Starting state:** Staging app running with TESTING=true and TEST_LOGIN_SECRET configured
+**Goal:** Authenticate as test-admin@sfpermits.ai without email magic link flow
+**Expected outcome:** POST to /auth/test-login with correct JSON body returns HTTP 200, sets a valid session cookie, and the session is authenticated as test-admin@sfpermits.ai with is_admin=True. Subsequent requests to /account and /admin succeed without redirect.
+**Edge cases seen in code:** User is created if they don't exist yet; admin flag is force-set to True for the default test-admin persona
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Kill switch blocks AI endpoints and returns 503
+**Source:** web/cost_tracking.py (@rate_limited decorator, set_kill_switch) + web/app.py (@_rate_limited_ai on /ask)
+**User:** expediter | homeowner
+**Starting state:** Admin has activated the kill switch (set_kill_switch(True))
+**Goal:** User submits a question via /ask
+**Expected outcome:** HTTP 503 is returned with an error message explaining AI features are temporarily unavailable. Basic permit search and lookup still work. Kill switch does NOT block non-AI routes.
+**Edge cases seen in code:** The kill switch only blocks "ai", "plans", and "analyze" rate types — "lookup" type is not blocked.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin dashboard shows today's Claude API spend
+**Source:** web/cost_tracking.py (get_cost_summary, log_api_call) + templates/admin_costs.html
+**User:** admin
+**Starting state:** One or more AI calls have been made today (logged via log_api_call)
+**Goal:** Admin navigates to /admin/costs
+**Expected outcome:** Dashboard shows today's spend (non-zero), the endpoint breakdown, and the kill switch status. Non-admin users get 403.
+**Edge cases seen in code:** If api_usage table is empty (no calls today), cost shows $0.0000 with empty endpoint list — not an error state.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Cost auto-triggers kill switch when daily spend exceeds threshold
+**Source:** web/cost_tracking.py (_check_cost_thresholds, COST_KILL_THRESHOLD)
+**User:** system (automated)
+**Starting state:** COST_KILL_THRESHOLD set to $20.00/day; daily spend is $19.99
+**Goal:** A new API call is logged that pushes daily spend to $20.01
+**Expected outcome:** Kill switch automatically activates. Subsequent /ask requests return 503. Admin can see kill switch is active on /admin/costs dashboard.
+**Edge cases seen in code:** Kill switch only auto-activates once — subsequent calls while kill switch is already active don't re-trigger the activation logic.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Per-user rate limit is separate from IP rate limit
+**Source:** web/cost_tracking.py (check_rate_limit, _user_rate_buckets, _get_user_key)
+**User:** expediter (logged in)
+**Starting state:** Two different users logged in from the same IP address
+**Goal:** Each user makes 5 AI requests within 60 seconds (RATE_LIMIT_AI=5)
+**Expected outcome:** Both users can make up to 5 requests each before being rate-limited. User A hitting their limit does not affect User B's quota. Rate buckets key on (user_id, rate_type), not IP.
+**Edge cases seen in code:** Anonymous (not logged in) users key on IP address — multiple anonymous users from same IP share a bucket.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
