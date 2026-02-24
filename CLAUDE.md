@@ -352,6 +352,12 @@ This project participates in Tim's standard session protocols. These are defined
 
 This project uses multi-agent swarm builds. When a swarm orchestrator command is invoked, follow these rules:
 
+### QA Protocol Naming
+
+- **termRelay** — Automated QA via headless Playwright in Terminal CC. Runs persona-based browser checks, captures screenshots, reports PASS/FAIL. No human needed.
+- **DeskRelay** — Visual QA escalation via Desktop CC. Only triggered when termRelay finds checks requiring human visual judgment. Typically ≤10 checks per sprint.
+- **CHECKCHAT** — Session completion summary written by each build agent. Includes a "DeskRelay HANDOFF" section listing visual checks for Desktop CC.
+
 ### Domain Parallel Patterns
 
 Spawn parallel subagents when work spans independent file domains:
@@ -387,6 +393,6 @@ These must be serial, not parallel:
 
 ### Black Box Protocol (per agent)
 
-Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA → CHECKCHAT
+Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → CHECKCHAT
 
-CHECKCHAT output includes a RELAY HANDOFF section for Desktop CC visual verification.
+CHECKCHAT output includes a DeskRelay HANDOFF section for Desktop CC visual verification.

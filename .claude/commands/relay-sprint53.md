@@ -1,22 +1,22 @@
 ---
 name: relay-sprint53
-description: "RELAY QA swarm for Sprint 53. Spawn parallel Playwright agents by persona to verify staging deployment. Escalate visual-only checks to Desktop CC."
+description: "termRelay QA swarm for Sprint 53. Spawn parallel Playwright agents by persona to verify staging deployment. Escalate visual-only checks to DeskRelay."
 ---
 
-# Sprint 53 RELAY Orchestrator
+# Sprint 53 termRelay Orchestrator
 
-You are the RELAY QA orchestrator. Verify the Sprint 53 build against staging using parallel headless Playwright agents, one per persona/domain.
+You are the termRelay QA orchestrator. Verify the Sprint 53 build against staging using parallel headless Playwright agents, one per persona/domain.
 
 ## MODEL ROUTING
 
 - You (orchestrator): Opus — strategic reasoning, result synthesis, escalation decisions
-- RELAY agents: Sonnet — Playwright execution, DOM assertions, screenshot capture
+- termRelay agents: Sonnet — Playwright execution, DOM assertions, screenshot capture
 - CC handles routing automatically via `CLAUDE_CODE_SUBAGENT_MODEL` env var and agent frontmatter
 
-## RELAY ARCHITECTURE
+## termRelay ARCHITECTURE
 
 ```
-RELAY Orchestrator (Opus, Terminal CC)
+termRelay Orchestrator (Opus, Terminal CC)
     |
     |--- Agent R1 (Sonnet): Admin persona — admin pages, cost/pipeline dashboards
     |--- Agent R2 (Sonnet): Homeowner persona — public search, reports, plan analysis
@@ -24,7 +24,7 @@ RELAY Orchestrator (Opus, Terminal CC)
     |--- Agent R4 (Sonnet): Mobile regression — 375px/768px viewport sweep
     |
     v
-RELAY-REPORT.md + escalations for Desktop CC (visual-only, if any)
+termRelay-REPORT.md + DeskRelay escalations (visual-only, if any)
 ```
 
 ## BROWSER ISOLATION RULES
@@ -153,12 +153,12 @@ If any fail, STOP and report.
 2. Spawn all 4 agents in parallel
 3. Each agent: launch browser → login → run checks → save screenshots → close browser → return results
 4. Collect all results
-5. Assemble RELAY-REPORT.md
+5. Assemble termRelay-REPORT.md
 
-## RELAY-REPORT.md
+## termRelay-REPORT.md
 
 ```markdown
-# Sprint 53 RELAY Report
+# Sprint 53 termRelay Report
 **Date:** [timestamp]
 **Staging URL:** https://sfpermits-ai-staging.up.railway.app
 **Duration:** [total time]
@@ -183,14 +183,14 @@ If any fail, STOP and report.
 |-------|-------|-----------|-------------|
 | ... | ... | r4-mobile/admin_375.png | Add overflow-x:auto to .table-container |
 
-## Failed Checks — Visual Judgment Needed (ESCALATE TO DESKTOP CC)
+## Failed Checks — Visual Judgment Needed (DeskRelay ESCALATION)
 [Failures requiring human visual assessment]
 | Check | Screenshot | Question |
 |-------|-----------|----------|
 | ... | r2-homeowner/search_results.png | "Does card spacing look right at this density?" |
 
 ## Cross-Browser Note
-This RELAY tested Chromium only. Safari, Firefox, and mobile-native browsers
+This termRelay tested Chromium only. Safari, Firefox, and mobile-native browsers
 are deferred to Sprint 55 (beta testing phase). Tracked as backlog item.
 
 ## Screenshots Index
@@ -207,13 +207,13 @@ If the orchestrator finds auto-fixable failures (CSS issues, missing elements):
 5. Push → Railway redeploys staging
 6. Re-run ONLY the failed checks to verify fix
 
-## ESCALATION TO DESKTOP CC
+## DeskRelay Escalation
 
-Only if RELAY-REPORT.md has "Visual Judgment Needed" items.
+Only if termRelay-REPORT.md has "Visual Judgment Needed" items.
 
 Tim opens Desktop CC:
 ```
-Read qa-results/relay/RELAY-REPORT.md from sf-permits-mcp repo.
+Read qa-results/relay/termRelay-REPORT.md from sf-permits-mcp repo.
 [N] checks need visual judgment. For each:
 - Open the screenshot at the listed path
 - Navigate to the staging URL for the page in question

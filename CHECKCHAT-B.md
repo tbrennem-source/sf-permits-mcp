@@ -7,7 +7,7 @@
 
 ## 1. VERIFY
 
-### RELAY Gate
+### termRelay Gate
 - `qa-results/session-52-swarm-relay-results.md` found and processed — all PASS, moved to `qa-results/done/`.
 - Session 53B QA script written to `qa-drop/session-53b-cost-protection-qa.md`.
 - 39 new tests written and passing.

@@ -9,7 +9,7 @@
 
 ## 1. VERIFY
 
-- **RELAY gate:** No unprocessed files in `qa-results/`. QA script written to `qa-drop/session-53d-mobile-migrations-qa.md`.
+- **termRelay gate:** No unprocessed files in `qa-results/`. QA script written to `qa-drop/session-53d-mobile-migrations-qa.md`.
 - **Tests:** 1,578 passed, 1 skipped (network test). 0 failures. +25 new migration runner tests.
 - **E2E tests:** 19 test cases collected; all skip cleanly when E2E_BASE_URL not set.
 - **No regressions:** Full suite baseline preserved.

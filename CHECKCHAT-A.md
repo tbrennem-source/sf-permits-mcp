@@ -33,7 +33,7 @@
 - `tests/e2e/__init__.py` — E2E package init
 - `tests/e2e/conftest.py` — Playwright fixtures, PERSONAS dict, login_as helper
 - `tests/test_staging_env.py` — 29 unit tests for test-login and staging banner
-- `qa-drop/session-a-staging-qa.md` — QA script for Desktop CC RELAY
+- `qa-drop/session-a-staging-qa.md` — QA script for DeskRelay
 
 ### What Was Built
 
@@ -74,13 +74,13 @@
 **Scenarios appended to `scenarios-pending-review.md`:** 3
 1. "When TESTING is not set, /auth/test-login returns 404 and no information leaks"
 2. "Every page shows yellow banner when ENVIRONMENT=staging"
-3. "When Desktop CC POSTs correct test secret, it gets admin session"
+3. "When DeskRelay POSTs correct test secret, it gets admin session"
 
 ---
 
-## 4. RELAY HANDOFF
+## 4. DeskRelay HANDOFF
 
-For Desktop CC to run RELAY against staging, the following steps must pass:
+For DeskRelay to run RELAY against staging, the following steps must pass:
 
 1. Navigate to staging URL → verify yellow banner visible at top of page
 2. Navigate to `{STAGING_URL}/auth/login` → verify yellow banner present

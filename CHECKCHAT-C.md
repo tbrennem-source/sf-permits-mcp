@@ -9,7 +9,7 @@
 
 ## 1. VERIFY
 
-### RELAY gate
+### termRelay gate
 - `qa-drop/session-53c-pipeline-hardening-qa.md` written — no prior unprocessed files
 - All new tests passing: **68 new tests, 0 failures**
 - Full suite: **1689 passed, 1 skipped, 0 failed** (no regressions; was 1553 before)
@@ -38,7 +38,7 @@ pytest tests/ -q → 1689 passed, 1 skipped
 | `tests/test_diagnose_addenda.py` | 22 tests for diagnose_addenda |
 | `tests/test_brief_pipeline_health.py` | 5 tests for brief pipeline health section |
 | `tests/test_pipeline_routes.py` | 11 tests for /cron/pipeline-health and /admin/pipeline routes |
-| `qa-drop/session-53c-pipeline-hardening-qa.md` | QA script for RELAY |
+| `qa-drop/session-53c-pipeline-hardening-qa.md` | QA script for termRelay |
 
 ### Files modified
 | File | Changes |

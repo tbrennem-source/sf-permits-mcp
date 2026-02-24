@@ -93,10 +93,10 @@ Record: PASS/FAIL + any error output.
 
 ### 4. CHECKCHAT Collection
 Read CHECKCHAT-A.md, CHECKCHAT-B.md, CHECKCHAT-C.md, CHECKCHAT-D.md.
-Extract from each: status, test counts, decisions made, merge notes, RELAY HANDOFF.
+Extract from each: status, test counts, decisions made, merge notes, DeskRelay HANDOFF.
 
-### 5. RELAY Assembly
-Combine all RELAY HANDOFF sections into `qa-drop/sprint53-relay.md`.
+### 5. termRelay Assembly
+Combine all DeskRelay HANDOFF sections into `qa-drop/sprint53-relay.md`.
 Group by persona (Admin checks, Homeowner checks, Expediter checks, Mobile checks).
 
 ## SWARM-REPORT.md
@@ -148,8 +148,8 @@ Write to repo root. Include ALL sections:
 5. Run prod migrations: `python scripts/run_prod_migrations.py`
 6. Set prod env vars: API_COST_WARN_THRESHOLD=25, API_COST_KILL_THRESHOLD=100
 
-## RELAY Handoff
-→ See `qa-drop/sprint53-relay.md` for RELAY swarm check definitions.
+## termRelay Handoff
+→ See `qa-drop/sprint53-relay.md` for termRelay swarm check definitions.
 
 ---
 

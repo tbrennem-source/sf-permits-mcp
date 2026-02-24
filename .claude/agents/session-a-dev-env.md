@@ -34,7 +34,7 @@ You MUST NOT touch:
 
 ## CONTEXT: WHY THIS MATTERS
 
-This session builds the infrastructure that enables Step 2 (Desktop CC RELAY) of the two-step blackbox completion pattern:
+This session builds the infrastructure that enables Step 2 (DeskRelay) of the two-step blackbox completion pattern:
 - **Test login** lets Desktop CC authenticate against staging without magic link emails
 - **Staging banner** prevents confusion between staging and prod
 - **Playwright conftest** gives all future E2E tests a shared login + navigation foundation
@@ -128,7 +128,7 @@ Write QA script to `qa-drop/session-a-staging-qa.md`:
 ### Phase 6: CHECKCHAT
 Write `CHECKCHAT-A.md` with all standard sections plus:
 
-**RELAY HANDOFF** (critical — this enables Desktop CC):
+**DeskRelay HANDOFF** (critical — this enables Desktop CC):
 1. Navigate to staging URL → verify yellow banner visible at top
 2. POST /auth/test-login with test secret → verify 200 + session cookie
 3. Navigate to /account → verify logged in as test-admin
@@ -140,4 +140,4 @@ Write `CHECKCHAT-A.md` with all standard sections plus:
 9. Screenshot: /account page after test-login
 
 ## RETURN TO ORCHESTRATOR
-Return summary: status (COMPLETE/PARTIAL/BLOCKED), test count, files changed count, any blockers. Include the generated TEST_LOGIN_SECRET value so orchestrator can pass it to RELAY script.
+Return summary: status (COMPLETE/PARTIAL/BLOCKED), test count, files changed count, any blockers. Include the generated TEST_LOGIN_SECRET value so orchestrator can pass it to termRelay script.

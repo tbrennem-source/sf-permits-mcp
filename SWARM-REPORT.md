@@ -73,9 +73,9 @@ The 19 new skips are Playwright E2E tests gated on `E2E_BASE_URL` (Agent D) — 
 5. Set prod env vars: `API_COST_WARN_THRESHOLD=25`, `API_COST_KILL_THRESHOLD=100` (optional, defaults are $5/$20)
 6. Verify staging: `curl https://sfpermits-ai-staging.up.railway.app/health`
 
-## RELAY Handoff
+## termRelay Handoff
 
-See `qa-drop/sprint53-relay.md` for RELAY swarm check definitions.
+See `qa-drop/sprint53-relay.md` for termRelay swarm check definitions.
 
 ---
 
