@@ -950,7 +950,7 @@ def public_search():
         return render_template(
             "search_results_public.html",
             query=query_str,
-            error=str(e),
+            error="We couldn't complete your search right now. Please try again.",
             no_results=False,
             result_html="",
         )

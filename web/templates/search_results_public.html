@@ -285,8 +285,9 @@
             <div class="result-card">
                 {{ result_html | safe }}
             </div>
+            {% endif %}
 
-            <!-- Locked: Property Report -->
+            <!-- Locked premium cards (always shown as upsell) -->
             <div class="locked-card">
                 <div class="locked-header">
                     <h3>Property Report</h3>
@@ -302,7 +303,6 @@
                 </div>
             </div>
 
-            <!-- Locked: Morning Brief -->
             <div class="locked-card">
                 <div class="locked-header">
                     <h3>Watch & Get Alerts</h3>
@@ -317,7 +317,6 @@
                 </div>
             </div>
 
-            <!-- Locked: AI Analysis -->
             <div class="locked-card">
                 <div class="locked-header">
                     <h3>AI Project Analysis</h3>
@@ -331,7 +330,6 @@
                     <a href="/auth/login">Sign up free to unlock</a>
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 
