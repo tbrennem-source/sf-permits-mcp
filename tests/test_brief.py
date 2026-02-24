@@ -993,9 +993,11 @@ def test_nav_shows_brief_link_for_logged_in(client):
 
 
 def test_nav_shows_brief_link_for_anonymous(client):
+    """Landing page does not show brief link (premium feature)."""
     rv = client.get("/")
     html = rv.data.decode()
-    assert 'href="/brief"' in html
+    # Anonymous users see landing page which doesn't have nav brief link
+    assert "Building Permit Intelligence" in html
 
 
 # ---------------------------------------------------------------------------

@@ -18,8 +18,26 @@ def client():
     _rate_buckets.clear()
 
 
-def test_index_loads(client):
-    """Homepage renders with form and preset chips."""
+def test_index_loads_landing_page(client):
+    """Homepage renders landing page for unauthenticated users."""
+    rv = client.get("/")
+    assert rv.status_code == 200
+    html = rv.data.decode()
+    assert "sfpermits.ai" in html
+    assert "Building Permit Intelligence" in html
+    assert "/search" in html  # search form action
+
+
+def test_index_loads_app_when_logged_in(client):
+    """Homepage renders full app for authenticated users."""
+    import src.db as db_mod
+    if db_mod.BACKEND == "duckdb":
+        db_mod.init_user_schema()
+    from web.auth import get_or_create_user, create_magic_token
+    user = get_or_create_user("indextest@test.com")
+    token = create_magic_token(user["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
     rv = client.get("/")
     assert rv.status_code == 200
     html = rv.data.decode()
@@ -29,7 +47,15 @@ def test_index_loads(client):
 
 
 def test_index_has_neighborhoods(client):
-    """Neighborhood dropdown is populated."""
+    """Neighborhood dropdown is populated for authenticated users."""
+    import src.db as db_mod
+    if db_mod.BACKEND == "duckdb":
+        db_mod.init_user_schema()
+    from web.auth import get_or_create_user, create_magic_token
+    user = get_or_create_user("hoodtest@test.com")
+    token = create_magic_token(user["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
     rv = client.get("/")
     html = rv.data.decode()
     assert "Noe Valley" in html
@@ -125,7 +151,15 @@ def _make_simple_pdf():
 
 
 def test_index_has_validator(client):
-    """Homepage includes the plan analysis (AI Vision) section."""
+    """Homepage includes the plan analysis (AI Vision) section for logged-in users."""
+    import src.db as db_mod
+    if db_mod.BACKEND == "duckdb":
+        db_mod.init_user_schema()
+    from web.auth import get_or_create_user, create_magic_token
+    user = get_or_create_user("validatortest@test.com")
+    token = create_magic_token(user["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
     rv = client.get("/")
     html = rv.data.decode()
     # Section was renamed from 'Plan Set Validator' to 'Analyze Plans (AI Vision)'
@@ -237,7 +271,15 @@ def test_rate_limit_validate(client):
 
 
 def test_noindex_meta_tag(client):
-    """Beta page has noindex meta tag."""
+    """Beta page has noindex meta tag for authenticated users."""
+    import src.db as db_mod
+    if db_mod.BACKEND == "duckdb":
+        db_mod.init_user_schema()
+    from web.auth import get_or_create_user, create_magic_token
+    user = get_or_create_user("noindextest@test.com")
+    token = create_magic_token(user["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
     rv = client.get("/")
     html = rv.data.decode()
     assert 'name="robots"' in html
@@ -247,7 +289,15 @@ def test_noindex_meta_tag(client):
 # --- Enhanced Input Form tests ---
 
 def test_index_has_personalization(client):
-    """Homepage includes the collapsible personalization section."""
+    """Homepage includes the collapsible personalization section for logged-in users."""
+    import src.db as db_mod
+    if db_mod.BACKEND == "duckdb":
+        db_mod.init_user_schema()
+    from web.auth import get_or_create_user, create_magic_token
+    user = get_or_create_user("personalizetest@test.com")
+    token = create_magic_token(user["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+
     rv = client.get("/")
     html = rv.data.decode()
     assert "personalize-section" in html

@@ -401,13 +401,21 @@ def test_get_cached_comparison_stale_after_reprocess():
 
 @pytest.fixture
 def client(monkeypatch):
-    """Flask test client with rate limiting disabled, user 1 logged in."""
+    """Flask test client with rate limiting disabled, user logged in."""
     from web.app import app as flask_app, _rate_buckets
     flask_app.config["TESTING"] = True
     _rate_buckets.clear()
     with flask_app.test_client() as c:
-        with c.session_transaction() as sess:
-            sess["user_id"] = 1
+        # Create a real user so g.user is populated by _load_user
+        import src.db as db_mod
+        if db_mod.BACKEND == "duckdb":
+            db_mod.init_user_schema()
+        from web.auth import get_or_create_user, create_magic_token
+        user = get_or_create_user("comparison-test@test.com")
+        token = create_magic_token(user["user_id"])
+        c.get(f"/auth/verify/{token}", follow_redirects=True)
+        # Store user_id on client for test access
+        c._test_user_id = user["user_id"]
         yield c
     _rate_buckets.clear()
 
@@ -415,16 +423,17 @@ def client(monkeypatch):
 def test_compare_route_200_with_valid_jobs(client):
     """GET /account/analyses/compare returns 200 for two completed same-user jobs."""
     from web.plan_images import create_session
+    uid = client._test_user_id
 
     # Create both jobs and their sessions
-    job_a_id = _make_job(user_id=1, filename="v1.pdf")
+    job_a_id = _make_job(user_id=uid, filename="v1.pdf")
     sess_a_id = create_session(filename="v1.pdf", page_count=2,
-                                page_extractions=[], page_images=[], user_id=1)
+                                page_extractions=[], page_images=[], user_id=uid)
     _complete_job(job_a_id, structural_fingerprint=json.dumps(_FP_A), session_id=sess_a_id)
 
-    job_b_id = _make_job(user_id=1, filename="v2.pdf")
+    job_b_id = _make_job(user_id=uid, filename="v2.pdf")
     sess_b_id = create_session(filename="v2.pdf", page_count=2,
-                                page_extractions=[], page_images=[], user_id=1)
+                                page_extractions=[], page_images=[], user_id=uid)
     _complete_job(job_b_id, structural_fingerprint=json.dumps(_FP_B), session_id=sess_b_id)
 
     resp = client.get(f"/account/analyses/compare?a={job_a_id}&b={job_b_id}")
@@ -435,10 +444,11 @@ def test_compare_route_200_with_valid_jobs(client):
 
 def test_compare_route_403_cross_user(client):
     """GET /account/analyses/compare returns 403 when a job belongs to another user."""
-    job_a_id = _make_job(user_id=1, filename="v1.pdf")
+    uid = client._test_user_id
+    job_a_id = _make_job(user_id=uid, filename="v1.pdf")
     _complete_job(job_a_id)
 
-    job_b_id = _make_job(user_id=99, filename="v2.pdf")  # different user
+    job_b_id = _make_job(user_id=99999, filename="v2.pdf")  # different user
     _complete_job(job_b_id)
 
     resp = client.get(f"/account/analyses/compare?a={job_a_id}&b={job_b_id}")
@@ -447,7 +457,8 @@ def test_compare_route_403_cross_user(client):
 
 def test_compare_route_400_missing_params(client):
     """GET /account/analyses/compare returns 400 when a or b is missing."""
-    job_id = _make_job(user_id=1)
+    uid = client._test_user_id
+    job_id = _make_job(user_id=uid)
     _complete_job(job_id)
     assert client.get(f"/account/analyses/compare?a={job_id}").status_code == 400
     assert client.get(f"/account/analyses/compare?b={job_id}").status_code == 400
@@ -455,8 +466,9 @@ def test_compare_route_400_missing_params(client):
 
 def test_compare_route_400_job_not_completed(client):
     """GET /account/analyses/compare returns 400 when jobs are not completed."""
-    job_a_id = _make_job(user_id=1, filename="v1.pdf")
-    job_b_id = _make_job(user_id=1, filename="v2.pdf")
+    uid = client._test_user_id
+    job_a_id = _make_job(user_id=uid, filename="v1.pdf")
+    job_b_id = _make_job(user_id=uid, filename="v2.pdf")
     # Neither is marked completed
     resp = client.get(f"/account/analyses/compare?a={job_a_id}&b={job_b_id}")
     assert resp.status_code == 400

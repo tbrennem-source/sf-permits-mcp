@@ -459,3 +459,51 @@ _Last reviewed: never_
 **Edge cases seen in code:** DB unavailable returns "Database unavailable" message. Empty/whitespace-only inputs return usage message. Block+lot search with no results returns "No permit found".
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Anonymous user discovers site via landing page
+**Source:** web/templates/landing.html, web/app.py (index route)
+**User:** homeowner
+**Starting state:** User has no account, visits sfpermits.ai for the first time
+**Goal:** Understand what the tool offers and search for their address
+**Expected outcome:** Landing page renders with hero, search box, feature cards, and stats. Search box submits to /search and returns public permit results.
+**Edge cases seen in code:** Empty query redirects to home; rate limiting applies to /search
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Anonymous user searches address and sees public results
+**Source:** web/app.py (public_search route), web/templates/search_results_public.html
+**User:** homeowner
+**Starting state:** User is on landing page, not logged in
+**Goal:** Look up permit history for their address
+**Expected outcome:** Public results show basic permit data with locked premium feature cards (Property Report, Watch & Alerts, AI Analysis) and sign-up CTAs
+**Edge cases seen in code:** Intent classifier may route query as general knowledge question instead of address lookup; no-results case shows helpful message
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Authenticated user bypasses landing page
+**Source:** web/app.py (index route)
+**User:** expediter | homeowner | architect
+**Starting state:** User is logged in with a session
+**Goal:** Access the full app dashboard
+**Expected outcome:** Home route serves index.html (full app) instead of landing.html; all premium features visible
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Anonymous user tries to access premium feature
+**Source:** web/app.py (@login_required decorator on premium routes)
+**User:** homeowner
+**Starting state:** User has no account, tries to visit /brief, /portfolio, /consultants, or /account/analyses
+**Goal:** Access premium content without logging in
+**Expected outcome:** User is redirected to /auth/login. After signing up and logging in, they can access the feature.
+**Edge cases seen in code:** /health, /search, /, and /auth/* remain public; /report/<block>/<lot> remains public
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Authenticated user searching via /search gets redirected
+**Source:** web/app.py (public_search route)
+**User:** expediter | architect
+**Starting state:** User is logged in and navigates to /search?q=123+Main+St (e.g., from a shared link)
+**Goal:** See full search results, not the limited public view
+**Expected outcome:** User is 302-redirected to /?q=123+Main+St to use the full conversational search experience
+**CC confidence:** medium
+**Status:** PENDING REVIEW

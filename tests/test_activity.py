@@ -388,7 +388,8 @@ def test_account_hides_admin_cards_for_regular_user(client):
 # ---------------------------------------------------------------------------
 
 def test_feedback_widget_on_index(client):
-    """Index page includes feedback widget."""
+    """Index page includes feedback widget for logged-in users."""
+    _login_user(client, email="feedback-widget-index@test.com")
     rv = client.get("/")
     html = rv.data.decode()
     assert "feedback-fab" in html
@@ -531,7 +532,8 @@ def test_admin_feedback_page_shows_screenshot_button(client, monkeypatch):
 
 
 def test_feedback_widget_has_capture_button(client):
-    """Feedback widget includes screenshot capture button."""
+    """Feedback widget includes screenshot capture button for logged-in users."""
+    _login_user(client, email="feedback-capture@test.com")
     rv = client.get("/")
     html = rv.data.decode()
     assert "Capture Page" in html
