@@ -600,23 +600,24 @@ def handle_test_login(request_json: dict) -> tuple[dict | None, int]:
     _ensure_schema()
     user = get_user_by_email(email)
     if not user:
-        # Create with admin=True for test-admin persona
         user = create_user(email)
-        # Force admin flag regardless of ADMIN_EMAIL
-        if BACKEND == "postgres":
-            execute_write(
-                "UPDATE users SET is_admin = TRUE WHERE user_id = %s",
-                (user["user_id"],),
-            )
-        else:
-            conn = get_connection()
-            try:
-                conn.execute(
-                    "UPDATE users SET is_admin = TRUE WHERE user_id = ?",
+        # Only grant admin to test-admin persona, not all test users
+        should_be_admin = "test-admin" in email
+        if should_be_admin:
+            if BACKEND == "postgres":
+                execute_write(
+                    "UPDATE users SET is_admin = TRUE WHERE user_id = %s",
                     (user["user_id"],),
                 )
-            finally:
-                conn.close()
+            else:
+                conn = get_connection()
+                try:
+                    conn.execute(
+                        "UPDATE users SET is_admin = TRUE WHERE user_id = ?",
+                        (user["user_id"],),
+                    )
+                finally:
+                    conn.close()
         user = get_user_by_id(user["user_id"])
 
     return user, 200
