@@ -1,5 +1,23 @@
 # Changelog
 
+## Sprint 53B — Land What's Built (2026-02-24)
+
+Verification sprint — no new features. Made everything Sprint 52+53 shipped work in production.
+
+### Migrations (ran on prod)
+- Created signal tables: signal_types (13 types seeded), permit_signals, property_signals, property_health
+- Created cost tracking tables: api_usage, api_daily_summary
+
+### Observability Fixes
+- **Pipeline health in morning brief email** — Added conditional alert banner (yellow/red) to brief_email.html when pipeline_health status is warn/critical. Called `get_pipeline_health_brief()` in `render_brief_email()`.
+- **data_as_of freshness check** — Added `MAX(data_as_of)` age check to nightly_changes.py staleness warnings. Warns if addenda data is >3 days stale.
+- **GitHub Actions nightly wiring** — Added `/cron/signals` and `/cron/velocity-refresh` calls to nightly-cron.yml between nightly sync and RAG ingest. Added Telegram failure notification step.
+
+### QA
+- 30 checks across 5 QA agents (prod public, prod admin, staging, mobile 375px, safety)
+- 29 PASS, 0 FAIL, 1 SKIP (staging role gating — pre-existing limitation)
+- pytest: 1705 passed, 20 skipped
+
 ## Session 52C — Landing Page + Public Address Lookup (2026-02-23)
 
 ### New Files

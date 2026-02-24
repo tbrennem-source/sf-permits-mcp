@@ -776,3 +776,35 @@ _Last reviewed: never_
 **Expected outcome:** docs/cron-endpoints.md provides exact curl commands, CRON_SECRET auth instructions, recommended schedule table, and future endpoints section
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Stale addenda data triggers morning brief warning
+**Source:** Sprint 53B — FIX-STALENESS + FIX-BRIEF
+**User:** expediter | architect | admin
+**Starting state:** Addenda data_as_of is >3 days old (SODA outage or stale import)
+**Goal:** User receives morning brief with visible pipeline health warning
+**Expected outcome:** Morning brief email shows yellow/red banner above "What Changed" section with message about stale addenda data. Nightly script also logs STALENESS CHECK warning.
+**Edge cases seen in code:** data_as_of can be None if addenda table is empty; far-future dates (2205) in SODA data won't trigger staleness; check runs inside try/except so failures don't crash nightly job
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Nightly cron failure triggers Telegram alert
+**Source:** Sprint 53B — FIX-CRON
+**User:** admin
+**Starting state:** Nightly cron workflow runs on schedule, one or more steps fail (e.g. /cron/nightly returns 500)
+**Goal:** Tim receives Telegram notification within 5 minutes of failure
+**Expected outcome:** Telegram message with "Nightly Cron Failed" text and link to GitHub Actions run. Non-critical step failures (signals, velocity, RAG) emit ::warning but don't trigger Telegram. Only job-level failure triggers alert.
+**Edge cases seen in code:** Telegram secrets may not be configured (step skips gracefully); signals and velocity are non-critical (::warning not ::error)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Signal pipeline runs on prod via nightly cron
+**Source:** Sprint 53B — FIX-CRON + Phase 1 migrations
+**User:** admin
+**Starting state:** Signal tables exist on prod (migrated), nightly cron fires on schedule
+**Goal:** /cron/signals runs, detects permit signals, computes property health tiers
+**Expected outcome:** signal_types seeded (13 rows), permit_signals populated based on current permit data, property_health tiers computed. Pipeline health reports "ok" status.
+**Edge cases seen in code:** Signal pipeline uses DuckDB-style conn.execute() — may need compatibility fix for psycopg2 on Postgres; pipeline truncates tables before each run (full refresh, not incremental)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
