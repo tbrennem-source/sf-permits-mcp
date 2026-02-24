@@ -1,86 +1,92 @@
 #!/usr/bin/env bash
 # =============================================================================
-# setup_staging.sh — Railway Staging Environment Reference Guide
+# setup_staging.sh — Provision sfpermits.ai staging on Railway via CLI
 # =============================================================================
-#
-# SESSION A: STAGING ENVIRONMENT SETUP
-#
-# This script is a REFERENCE GUIDE with comments, not an auto-provisioner.
-# Run the steps manually in the Railway dashboard or via the Railway CLI.
-#
-# Staging URL: https://sfpermits-ai-staging.up.railway.app
+# Requires: railway CLI installed and authenticated (railway login)
+# Run from: ~/AIprojects/sf-permits-mcp
 # =============================================================================
 
 set -euo pipefail
 
-echo "=================================================================="
-echo "  sfpermits.ai — Staging Environment Setup Guide"
-echo "=================================================================="
+PROJECT_DIR="$HOME/AIprojects/sf-permits-mcp"
+SERVICE_NAME="sfpermits-ai-staging"
+REPO="tbrennem-source/sf-permits-mcp"
+PROD_SERVICE="sfpermits-ai"
+
+cd "$PROJECT_DIR"
+
+echo "=== Step 1: Link to Railway project ==="
+railway link 2>/dev/null || true
+
 echo ""
-echo "STEP 1: Create the staging service in Railway"
-echo "  - Go to your Railway project: sfpermits-ai"
-echo "  - Click 'New Service' -> 'GitHub Repo'"
-echo "  - Select: tbrennem-source/sf-permits-mcp"
-echo "  - Set branch: main (or a staging branch if you prefer)"
-echo "  - Name the service: sfpermits-ai-staging"
+echo "=== Step 2: Read prod env vars ==="
+# Link to prod service to read its variables
+railway service link "$PROD_SERVICE"
+
+PROD_VARS_JSON=$(railway variable list --json 2>/dev/null || echo "{}")
+
+# Extract vars we need from prod
+get_var() {
+    echo "$PROD_VARS_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('$1',''))" 2>/dev/null
+}
+
+PROD_DB_URL=$(get_var DATABASE_URL)
+PROD_CRON=$(get_var CRON_SECRET)
+PROD_ANTHROPIC=$(get_var ANTHROPIC_API_KEY)
+PROD_OPENAI=$(get_var OPENAI_API_KEY)
+PROD_ADMIN=$(get_var ADMIN_EMAIL)
+
+echo "  DATABASE_URL: ${PROD_DB_URL:0:30}..."
+echo "  CRON_SECRET: ${PROD_CRON:+set}"
+echo "  ANTHROPIC_API_KEY: ${PROD_ANTHROPIC:+set}"
+echo "  OPENAI_API_KEY: ${PROD_OPENAI:+set}"
+echo "  ADMIN_EMAIL: $PROD_ADMIN"
+
 echo ""
-echo "STEP 2: Connect to pgvector-db"
-echo "  - In the staging service settings, add a reference variable:"
-echo "    DATABASE_URL = \${{pgvector-db.DATABASE_URL}}"
-echo "  - Or use a separate staging DB (recommended for isolation)"
+echo "=== Step 3: Generate secrets ==="
+TEST_SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+FLASK_SECRET=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+echo "  TEST_LOGIN_SECRET: $TEST_SECRET"
+
 echo ""
-echo "STEP 3: Generate TEST_LOGIN_SECRET"
-echo "  Run this command to generate a secure secret:"
+echo "=== Step 4: Create staging service ==="
+railway add \
+    --service "$SERVICE_NAME" \
+    --repo "$REPO" \
+    --variables "ENVIRONMENT=staging" \
+    --variables "TESTING=true" \
+    --variables "TEST_LOGIN_SECRET=$TEST_SECRET" \
+    --variables "FLASK_SECRET_KEY=$FLASK_SECRET"
+
 echo ""
-echo "    python3 -c \"import secrets; print(secrets.token_urlsafe(32))\""
+echo "=== Step 5: Set remaining env vars on staging ==="
+railway service link "$SERVICE_NAME"
+
+# Set vars one at a time (skip-deploys to avoid multiple restarts)
+railway variable set "DATABASE_URL=$PROD_DB_URL" --skip-deploys
+railway variable set "CRON_SECRET=$PROD_CRON" --skip-deploys
+railway variable set "ANTHROPIC_API_KEY=$PROD_ANTHROPIC" --skip-deploys
+railway variable set "OPENAI_API_KEY=$PROD_OPENAI" --skip-deploys
+railway variable set "ADMIN_EMAIL=$PROD_ADMIN"
+
 echo ""
-echo "  Copy the output — you'll need it for RELAY scripts."
-echo ""
-echo "STEP 4: Set required environment variables on sfpermits-ai-staging"
-echo ""
-echo "  REQUIRED (staging-specific):"
-echo "    ENVIRONMENT=staging"
-echo "    TESTING=true"
-echo "    TEST_LOGIN_SECRET=<output from step 3>"
-echo ""
-echo "  REQUIRED (same as production):"
-echo "    DATABASE_URL=<pgvector-db internal URL or staging DB>"
-echo "    FLASK_SECRET_KEY=<generate with: python3 -c \"import secrets; print(secrets.token_hex(32))\">"
-echo "    CRON_SECRET=<same as prod>"
-echo "    ADMIN_EMAIL=<your email>"
-echo "    ANTHROPIC_API_KEY=<same as prod>"
-echo "    OPENAI_API_KEY=<same as prod>"
-echo ""
-echo "  OPTIONAL (same as prod if email needed):"
-echo "    SMTP_HOST=<same as prod>"
-echo "    SMTP_PORT=587"
-echo "    SMTP_FROM=<same as prod>"
-echo "    SMTP_USER=<same as prod>"
-echo "    SMTP_PASS=<same as prod>"
-echo "    BASE_URL=https://sfpermits-ai-staging.up.railway.app"
-echo "    BRAND_NAME=sfpermits.ai [STAGING]"
-echo "    INVITE_CODES=<comma-separated codes if needed>"
-echo ""
-echo "STEP 5: NEVER set these on production:"
-echo "    TESTING       — enables /auth/test-login endpoint"
-echo "    TEST_LOGIN_SECRET — the test login shared secret"
-echo ""
-echo "STEP 6: Verify staging is running"
-echo "  After deploy (~2 min):"
-echo "    curl -s https://sfpermits-ai-staging.up.railway.app/health | python3 -m json.tool"
-echo ""
-echo "STEP 7: Run RELAY QA"
-echo "  Use the QA script: qa-drop/session-a-staging-qa.md"
-echo "  Set E2E_BASE_URL=https://sfpermits-ai-staging.up.railway.app"
-echo "  Set TEST_LOGIN_SECRET=<value from step 3>"
-echo ""
-echo "=================================================================="
-echo "  SECURITY NOTES"
-echo "=================================================================="
-echo ""
-echo "  - TESTING + TEST_LOGIN_SECRET bypass email auth — treat as credentials"
-echo "  - Rotate TEST_LOGIN_SECRET if it leaks"
-echo "  - Staging should use a separate DB from prod if data isolation needed"
-echo "  - The /auth/test-login endpoint returns 404 on prod (TESTING not set)"
+echo "=== Step 6: Generate domain ==="
+railway domain --service "$SERVICE_NAME"
+
 echo ""
 echo "=================================================================="
+echo "  STAGING PROVISIONED"
+echo "=================================================================="
+echo ""
+echo "  TEST_LOGIN_SECRET=$TEST_SECRET"
+echo ""
+echo "  Save this secret — needed for termRelay authentication."
+echo "  Wait ~2 min for deploy, then verify:"
+echo "    curl -s https://<staging-domain>/health | python3 -m json.tool"
+echo ""
+echo "  SECURITY: NEVER set TESTING or TEST_LOGIN_SECRET on production."
+echo "=================================================================="
+
+# Save secret for Task 3
+echo "$TEST_SECRET" > /tmp/test_login_secret.txt
+echo "(Secret also saved to /tmp/test_login_secret.txt)"
