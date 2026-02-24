@@ -6171,9 +6171,18 @@ def cron_pipeline_health():
 def cron_run_migrations():
     """One-time migration runner for signal + cost tracking tables.
 
-    Protected by CRON_SECRET. Safe to re-run (idempotent DDL).
+    Protected by MIGRATION_KEY or CRON_SECRET. Safe to re-run (idempotent DDL).
     """
-    _check_api_auth()
+    # Accept either MIGRATION_KEY or CRON_SECRET for auth
+    mig_key = os.environ.get("MIGRATION_KEY", "")
+    auth_header = request.headers.get("Authorization", "")
+    key_param = request.args.get("key", "")
+    if mig_key and key_param == mig_key:
+        pass  # Authenticated via MIGRATION_KEY query param
+    elif mig_key and auth_header == f"Bearer {mig_key}":
+        pass  # Authenticated via MIGRATION_KEY bearer
+    else:
+        _check_api_auth()  # Fall back to CRON_SECRET
     import json as _json_mig
     results = {}
 
