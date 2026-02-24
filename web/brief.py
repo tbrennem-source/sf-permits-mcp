@@ -171,6 +171,8 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
 
     # Data freshness from cron_log
     last_refresh = _get_last_refresh()
+    # Sprint 53 Session C: pipeline health section
+    pipeline_health = get_pipeline_health_for_brief()
 
     return {
         "changes": changes,
@@ -198,6 +200,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
             "regulatory_count": len(regulatory_alerts),
         },
         "lookback_days": lookback_days,
+        "pipeline_health": pipeline_health,
     }
 
 
@@ -1441,3 +1444,19 @@ def _get_last_refresh() -> dict | None:
         "is_stale": hours_ago > 36,  # Allow some buffer beyond 24h
         "was_catchup": bool(was_catchup),
     }
+
+
+# ── Pipeline health section (Sprint 53 Session C) ────────────────
+
+def get_pipeline_health_for_brief() -> dict:
+    """Return pipeline health summary for inclusion in the morning brief.
+
+    Returns a compact dict with overall status and any active issues.
+    Fails silently — never raises, so brief still renders if health check fails.
+    """
+    try:
+        from web.pipeline_health import get_pipeline_health_brief
+        return get_pipeline_health_brief()
+    except Exception as e:
+        logger.warning("Pipeline health check failed (non-fatal): %s", e)
+        return {"status": "unknown", "issues": [str(e)], "checks": []}

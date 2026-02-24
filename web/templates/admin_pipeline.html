@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Pipeline Health — sfpermits.ai</title>
+    <script src="/static/htmx.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 8px; }
+        h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--text); }
+        .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; display: inline-block; margin-bottom: 20px; }
+        .back-link:hover { color: var(--text); }
+
+        /* Overall status banner */
+        .status-banner {
+            padding: 14px 20px; border-radius: 8px; margin-bottom: 28px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .status-banner.ok { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); }
+        .status-banner.warn { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3); }
+        .status-banner.critical { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); }
+        .status-banner.unknown { background: rgba(139,143,163,0.12); border: 1px solid rgba(139,143,163,0.3); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-dot.ok { background: var(--success); }
+        .status-dot.warn { background: var(--warning); }
+        .status-dot.critical { background: var(--error); }
+        .status-dot.unknown { background: var(--text-muted); }
+        .status-text { font-weight: 600; font-size: 0.95rem; }
+        .status-summary { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+
+        /* Grid of check cards */
+        .checks-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px; margin-bottom: 32px;
+        }
+        .check-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 16px;
+        }
+        .check-card.ok { border-left: 3px solid var(--success); }
+        .check-card.warn { border-left: 3px solid var(--warning); }
+        .check-card.critical { border-left: 3px solid var(--error); }
+        .check-card.unknown { border-left: 3px solid var(--text-muted); }
+        .check-name { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .check-message { font-size: 0.85rem; color: var(--text); }
+        .check-badge {
+            display: inline-block; font-size: 0.7rem; padding: 2px 7px;
+            border-radius: 4px; margin-top: 8px; font-weight: 600; text-transform: uppercase;
+        }
+        .check-badge.ok { background: rgba(52,211,153,0.15); color: var(--success); }
+        .check-badge.warn { background: rgba(251,191,36,0.15); color: var(--warning); }
+        .check-badge.critical { background: rgba(248,113,113,0.15); color: var(--error); }
+        .check-badge.unknown { background: rgba(139,143,163,0.15); color: var(--text-muted); }
+
+        /* Data freshness section */
+        .section { margin-bottom: 32px; }
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .freshness-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .freshness-item {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 6px; padding: 12px;
+        }
+        .freshness-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+        .freshness-value { font-size: 0.9rem; font-weight: 600; }
+        .freshness-value.stale { color: var(--warning); }
+        .freshness-value.ok { color: var(--success); }
+
+        /* Cron history table */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        th {
+            text-align: left; padding: 8px 10px; color: var(--text-muted);
+            border-bottom: 1px solid var(--border); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.72rem;
+        }
+        td { padding: 7px 10px; border-bottom: 1px solid rgba(51,55,73,0.5); }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .badge {
+            display: inline-block; font-size: 0.7rem; padding: 2px 7px;
+            border-radius: 4px; font-weight: 600; text-transform: uppercase;
+        }
+        .badge-success { background: rgba(52,211,153,0.15); color: var(--success); }
+        .badge-failed { background: rgba(248,113,113,0.15); color: var(--error); }
+        .badge-running { background: rgba(79,143,247,0.15); color: var(--accent); }
+        .badge-partial { background: rgba(251,191,36,0.15); color: var(--warning); }
+
+        /* Stuck jobs */
+        .stuck-warning {
+            background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.25);
+            border-radius: 8px; padding: 16px; margin-bottom: 24px;
+        }
+        .stuck-warning h3 { font-size: 0.9rem; color: var(--error); margin-bottom: 8px; }
+
+        /* Action buttons */
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+        .btn {
+            padding: 8px 18px; border-radius: 6px; font-size: 0.85rem;
+            font-family: inherit; cursor: pointer; border: none; font-weight: 500;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: #3a7ae0; }
+        .btn-secondary {
+            background: var(--surface-2); color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { border-color: var(--text-muted); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Run nightly form */
+        .run-form {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px; margin-bottom: 28px;
+        }
+        .run-form h3 { font-size: 0.9rem; margin-bottom: 12px; }
+        .form-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .form-row label { font-size: 0.82rem; color: var(--text-muted); }
+        .form-row input[type=number] {
+            width: 70px; padding: 6px 10px; border-radius: 5px; font-size: 0.85rem;
+            border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+        }
+        #run-result {
+            margin-top: 12px; font-size: 0.82rem; color: var(--text-muted);
+            min-height: 20px;
+        }
+
+        .run-at { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px; }
+        .empty { color: var(--text-muted); font-size: 0.85rem; padding: 20px 0; }
+        .mono { font-family: monospace; font-size: 0.82rem; }
+        .error-cell { color: var(--error); font-size: 0.78rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+{% include "fragments/nav.html" %}
+<main>
+<div class="container">
+
+    <a href="/admin/ops" class="back-link">&#8592; Admin Ops</a>
+
+    <h1>Pipeline Health</h1>
+    <p class="subtitle">Nightly data pipeline monitoring — cron jobs, data freshness, stuck jobs</p>
+    <p class="run-at">Report generated: {{ report.run_at[:19] }}Z</p>
+
+    <!-- Overall status banner -->
+    <div class="status-banner {{ report.overall_status }}">
+        <div class="status-dot {{ report.overall_status }}"></div>
+        <span class="status-text">{{ report.overall_status | upper }}</span>
+        <span class="status-summary">{{ report.summary_line }}</span>
+    </div>
+
+    <!-- Health checks grid -->
+    <div class="section">
+        <h2>Health Checks</h2>
+        <div class="checks-grid">
+            {% for check in report.checks %}
+            <div class="check-card {{ check.status }}">
+                <div class="check-name">{{ check.name | replace('_', ' ') | title }}</div>
+                <div class="check-message">{{ check.message }}</div>
+                <span class="check-badge {{ check.status }}">{{ check.status }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Stuck jobs warning -->
+    {% if report.stuck_jobs %}
+    <div class="stuck-warning">
+        <h3>Stuck Jobs Detected ({{ report.stuck_jobs | length }})</h3>
+        {% for job in report.stuck_jobs %}
+        <div style="font-size:0.82rem; color: var(--text-muted); margin-top: 4px;">
+            log_id={{ job.log_id }} | {{ job.job_type }} | started: {{ job.started_at }}
+        </div>
+        {% endfor %}
+        <p style="font-size:0.8rem; margin-top: 10px; color: var(--text-muted);">
+            These jobs are in 'running' status for >2 hours. They likely crashed without cleanup.
+            Safe to ignore unless causing issues.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Data freshness -->
+    {% if report.data_freshness %}
+    <div class="section">
+        <div class="section-header">
+            <h2>Data Freshness</h2>
+        </div>
+        <div class="freshness-grid">
+            {% if report.data_freshness.get('addenda_max_data_as_of') %}
+            <div class="freshness-item">
+                <div class="freshness-label">Addenda data_as_of</div>
+                <div class="freshness-value {% if report.data_freshness.get('addenda_days_old', 0) > 3 %}stale{% else %}ok{% endif %}">
+                    {{ report.data_freshness.addenda_max_data_as_of }}
+                    {% if report.data_freshness.get('addenda_days_old') %}
+                    ({{ report.data_freshness.addenda_days_old }}d ago)
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% if report.data_freshness.get('addenda_row_count') is not none %}
+            <div class="freshness-item">
+                <div class="freshness-label">Addenda rows</div>
+                <div class="freshness-value {% if report.data_freshness.addenda_row_count < 100000 %}stale{% else %}ok{% endif %}">
+                    {{ "{:,}".format(report.data_freshness.addenda_row_count) }}
+                </div>
+            </div>
+            {% endif %}
+            {% if report.data_freshness.get('permits_max_status_date') %}
+            <div class="freshness-item">
+                <div class="freshness-label">Permits max status_date</div>
+                <div class="freshness-value ok">{{ report.data_freshness.permits_max_status_date }}</div>
+            </div>
+            {% endif %}
+            {% if report.data_freshness.get('inspections_max_date') %}
+            <div class="freshness-item">
+                <div class="freshness-label">Inspections max scheduled_date</div>
+                <div class="freshness-value ok">{{ report.data_freshness.inspections_max_date }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Manual re-run form -->
+    <div class="run-form">
+        <h3>Manual Re-Run</h3>
+        <div class="form-row">
+            <label for="lookback-days">Lookback days:</label>
+            <input type="number" id="lookback-days" value="1" min="1" max="30">
+            <button class="btn btn-primary" id="run-btn" onclick="triggerNightly()">
+                Run Nightly Now
+            </button>
+            <button class="btn btn-secondary" onclick="location.reload()">
+                Refresh Page
+            </button>
+        </div>
+        <div id="run-result"></div>
+    </div>
+
+    <!-- Cron history table -->
+    <div class="section">
+        <h2>Recent Cron History</h2>
+        {% if report.cron_history %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Job</th>
+                        <th>Started</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Lookback</th>
+                        <th>SODA Records</th>
+                        <th>Changes</th>
+                        <th>Catchup</th>
+                        <th>Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in report.cron_history %}
+                    <tr>
+                        <td class="mono">{{ job.log_id }}</td>
+                        <td>{{ job.job_type }}</td>
+                        <td class="mono">{{ (job.started_at or '')[:16] }}</td>
+                        <td>
+                            <span class="badge badge-{{ job.status or 'running' }}">
+                                {{ job.status or 'running' }}
+                            </span>
+                        </td>
+                        <td class="mono">
+                            {% if job.duration_s is not none %}
+                                {{ job.duration_s }}s
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>{{ job.lookback_days if job.lookback_days else '—' }}</td>
+                        <td>{{ "{:,}".format(job.soda_records) if job.soda_records else '—' }}</td>
+                        <td>{{ "{:,}".format(job.changes_inserted) if job.changes_inserted else '—' }}</td>
+                        <td>{{ 'Yes' if job.was_catchup else '' }}</td>
+                        <td class="error-cell" title="{{ job.error_message or '' }}">
+                            {{ job.error_message or '' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty">No cron history found. Has the nightly pipeline run yet?</p>
+        {% endif %}
+    </div>
+
+</div>
+</main>
+
+<script>
+function triggerNightly() {
+    var btn = document.getElementById('run-btn');
+    var resultEl = document.getElementById('run-result');
+    var lookback = document.getElementById('lookback-days').value;
+
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    resultEl.textContent = 'Triggering nightly run...';
+    resultEl.style.color = 'var(--text-muted)';
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = {'Content-Type': 'application/json'};
+
+    fetch('/cron/pipeline-health?action=run_nightly&lookback=' + lookback, {
+        method: 'POST',
+        headers: headers,
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        btn.disabled = false;
+        btn.textContent = 'Run Nightly Now';
+        if (data.ok) {
+            resultEl.style.color = 'var(--success)';
+            resultEl.textContent = 'Success — ' + JSON.stringify(data.result || data);
+        } else {
+            resultEl.style.color = 'var(--error)';
+            resultEl.textContent = 'Error: ' + (data.error || JSON.stringify(data));
+        }
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Run Nightly Now';
+        resultEl.style.color = 'var(--error)';
+        resultEl.textContent = 'Request failed: ' + err;
+    });
+}
+</script>
+</body>
+</html>

@@ -677,3 +677,53 @@ _Last reviewed: never_
 **Edge cases seen in code:** Anonymous (not logged in) users key on IP address — multiple anonymous users from same IP share a bucket.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Pipeline health dashboard shows critical when cron hasn't run
+**Source:** web/pipeline_health.py, /admin/pipeline route
+**User:** admin
+**Starting state:** Nightly cron has not run in 3+ days (Railway cron failure or outage)
+**Goal:** Admin wants to see pipeline status at a glance and trigger a manual re-run
+**Expected outcome:** /admin/pipeline page shows "CRITICAL" banner, lists the last failed run, and the manual run button triggers a fresh nightly job
+**Edge cases seen in code:** No cron_log rows at all (first deploy); stuck jobs from previous crash
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Addenda staleness detected in morning brief
+**Source:** web/brief.py pipeline_health section, web/pipeline_health.py check_data_freshness
+**User:** expediter | admin
+**Starting state:** Addenda data_as_of is >5 days old (sync gap)
+**Goal:** User opens morning brief and sees a data freshness warning
+**Expected outcome:** Brief shows a pipeline health warning indicating addenda data is stale, with the last known data_as_of date
+**Edge cases seen in code:** Pipeline check fails silently — brief still renders without health section
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Stuck cron job swept before next nightly run
+**Source:** scripts/nightly_changes.py sweep_stuck_cron_jobs
+**User:** admin (system-level)
+**Starting state:** Previous nightly run crashed (OOM kill, Railway restart) leaving status='running' in cron_log
+**Goal:** Next nightly run starts cleanly without false "running" state in cron_log
+**Expected outcome:** sweep_stuck_cron_jobs marks old 'running' entry as 'failed' before starting; swept_stuck_jobs count > 0 in result
+**Edge cases seen in code:** Multiple stuck jobs from repeated crashes; query errors during sweep (non-fatal, returns 0)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: SODA fetch retry recovers from transient network error
+**Source:** scripts/nightly_changes.py fetch_with_retry
+**User:** admin (system-level)
+**Starting state:** SODA API returns a connection error on first attempt
+**Goal:** Nightly run completes successfully despite transient error
+**Expected outcome:** fetch_with_retry retries with exponential backoff; second attempt succeeds; result shows attempts=2 in step_results
+**Edge cases seen in code:** All retries exhausted → returns empty list with ok=False but doesn't crash entire run
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Addenda step failure isolated from permit processing
+**Source:** scripts/nightly_changes.py run_nightly step isolation
+**User:** admin (system-level)
+**Starting state:** Addenda SODA endpoint is temporarily unavailable
+**Goal:** Permit changes still get processed even when addenda step fails
+**Expected outcome:** run_nightly logs warning for addenda step, processes permit changes normally, logs success with addenda_inserted=0
+**Edge cases seen in code:** detect_addenda_changes fails (DB error); fetch_recent_addenda fails (network)
+**CC confidence:** high
+**Status:** PENDING REVIEW

@@ -767,15 +767,160 @@ def _upsert_addenda_row(record: dict, soda_pk: str) -> None:
                 conn.close()
 
 
+
+# ── Retry helpers ─────────────────────────────────────────────────
+# Sprint 53 Session C: Added retry logic, step isolation, timeout tracking.
+
+import time as _time
+
+MAX_FETCH_RETRIES = 3
+RETRY_BASE_DELAY_S = 2.0  # seconds — doubles on each retry (exponential backoff)
+STEP_TIMEOUT_S = 300       # 5-minute timeout per pipeline step (informational)
+
+
+async def fetch_with_retry(
+    coro_factory,
+    step_name: str,
+    max_retries: int = MAX_FETCH_RETRIES,
+    base_delay: float = RETRY_BASE_DELAY_S,
+) -> tuple[list[dict], dict]:
+    """Wrap a SODA fetch coroutine with exponential-backoff retry.
+
+    Args:
+        coro_factory: Zero-argument async callable that returns list[dict].
+        step_name: Human-readable name for logging (e.g. 'permits').
+        max_retries: Maximum attempts (first attempt + this many retries).
+        base_delay: Seconds for first retry; doubles each time.
+
+    Returns:
+        (records, step_info) where step_info contains timing + retry metadata.
+    """
+    step_start = _time.monotonic()
+    last_error = None
+    attempts = 0
+
+    for attempt in range(max_retries + 1):
+        attempts += 1
+        try:
+            t0 = _time.monotonic()
+            records = await coro_factory()
+            elapsed = _time.monotonic() - t0
+            total_elapsed = _time.monotonic() - step_start
+
+            if attempt > 0:
+                logger.info(
+                    "Step '%s' succeeded on attempt %d/%d (%.1fs total)",
+                    step_name, attempt + 1, max_retries + 1, total_elapsed,
+                )
+            else:
+                logger.debug("Step '%s' completed in %.1fs", step_name, elapsed)
+
+            if total_elapsed > STEP_TIMEOUT_S:
+                logger.warning(
+                    "Step '%s' took %.1fs > %ds timeout threshold",
+                    step_name, total_elapsed, STEP_TIMEOUT_S,
+                )
+
+            return records, {
+                "step": step_name,
+                "ok": True,
+                "attempts": attempts,
+                "elapsed_s": round(total_elapsed, 2),
+                "timed_out": total_elapsed > STEP_TIMEOUT_S,
+            }
+
+        except Exception as e:
+            last_error = e
+            if attempt < max_retries:
+                delay = base_delay * (2 ** attempt)
+                logger.warning(
+                    "Step '%s' attempt %d/%d failed: %s. Retrying in %.1fs...",
+                    step_name, attempt + 1, max_retries + 1, e, delay,
+                )
+                await asyncio.sleep(delay)
+            else:
+                logger.error(
+                    "Step '%s' failed after %d attempts: %s",
+                    step_name, max_retries + 1, e,
+                )
+
+    total_elapsed = _time.monotonic() - step_start
+    return [], {
+        "step": step_name,
+        "ok": False,
+        "attempts": attempts,
+        "elapsed_s": round(total_elapsed, 2),
+        "timed_out": total_elapsed > STEP_TIMEOUT_S,
+        "error": str(last_error),
+    }
+
+
+def sweep_stuck_cron_jobs(stuck_threshold_minutes: int = 120) -> int:
+    """Mark cron jobs stuck in 'running' state as 'failed'.
+
+    A job is "stuck" if it has been in 'running' status for longer than
+    stuck_threshold_minutes. This happens when the process crashes without
+    cleanup (e.g., Railway restart, OOM kill).
+
+    Returns the number of jobs marked as failed.
+    """
+    ph = _ph()
+    cutoff = (
+        datetime.now(timezone.utc) - timedelta(minutes=stuck_threshold_minutes)
+    ).isoformat()
+
+    try:
+        # Find stuck jobs
+        stuck_rows = query(
+            f"SELECT log_id FROM cron_log "
+            f"WHERE status = 'running' AND started_at < {ph}",
+            (cutoff,),
+        )
+        if not stuck_rows:
+            return 0
+
+        stuck_ids = [r[0] for r in stuck_rows]
+        error_msg = f"Job stuck >{ stuck_threshold_minutes}min — marked failed by sweep_stuck_cron_jobs"
+
+        for log_id in stuck_ids:
+            execute_write(
+                f"UPDATE cron_log SET status = 'failed', "
+                f"completed_at = {ph}, error_message = {ph} "
+                f"WHERE log_id = {ph} AND status = 'running'",
+                (datetime.now(timezone.utc).isoformat(), error_msg, log_id),
+            )
+            logger.info("Swept stuck cron job log_id=%d", log_id)
+
+        logger.warning(
+            "sweep_stuck_cron_jobs: marked %d stuck job(s) as failed",
+            len(stuck_ids),
+        )
+        return len(stuck_ids)
+    except Exception as e:
+        logger.warning("sweep_stuck_cron_jobs failed (non-fatal): %s", e)
+        return 0
+
+
 # ── Main entry point ─────────────────────────────────────────────
 
 async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
     """Main entry point for nightly delta fetch.
 
+    Sprint 53 Session C hardening:
+      - Sweeps stuck cron jobs before starting
+      - Wraps each SODA fetch in fetch_with_retry (exponential backoff)
+      - Step isolation: permit/inspection/addenda failures are independent
+      - Tracks per-step timing and timeout detection in result dict
+
     Auto-detects gaps since last successful run and extends lookback
     to cover missed days (up to MAX_LOOKBACK_DAYS).
     """
     ensure_cron_log_table()
+
+    # Sweep stuck jobs from previous crashed runs (non-fatal)
+    swept = sweep_stuck_cron_jobs()
+    if swept:
+        logger.info("Swept %d stuck cron job(s) before starting", swept)
 
     # Auto catch-up: extend lookback if we missed days
     actual_lookback, was_catchup = _compute_lookback(lookback_days)
@@ -793,58 +938,96 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
         ", CATCH-UP" if was_catchup else "",
     )
 
+    step_results: dict[str, dict] = {}
+
     try:
         client = SODAClient()
         retry_extended = False
+        permit_records: list[dict] = []
+        inspection_records: list[dict] = []
+        addenda_records: list[dict] = []
+
         try:
-            # Fetch permits
-            permit_records = await fetch_recent_permits(client, since_str)
+            # ── Step 1: Fetch permits (with retry) ────────────────────────
+            permit_records, step_results["permits"] = await fetch_with_retry(
+                lambda: fetch_recent_permits(client, since_str),
+                step_name="permits",
+            )
             logger.info("SODA returned %d permit records", len(permit_records))
 
             # Auto-retry: if permits=0 and lookback was short (1-2 days),
             # extend to 3 days to distinguish "quiet day" from "SODA lag"
-            if len(permit_records) == 0 and actual_lookback <= 2:
+            if len(permit_records) == 0 and actual_lookback <= 2 and step_results["permits"]["ok"]:
                 retry_since = (date.today() - timedelta(days=3)).isoformat()
                 logger.info(
                     "Zero permits with %d-day lookback — retrying with 3-day "
                     "window (since=%s) to check for SODA data lag",
                     actual_lookback, retry_since,
                 )
-                permit_records = await fetch_recent_permits(client, retry_since)
+                retry_records, retry_info = await fetch_with_retry(
+                    lambda: fetch_recent_permits(client, retry_since),
+                    step_name="permits_retry",
+                )
+                step_results["permits_retry"] = retry_info
                 logger.info(
                     "Retry with 3-day lookback returned %d permit records",
-                    len(permit_records),
+                    len(retry_records),
                 )
-                if len(permit_records) > 0:
+                if len(retry_records) > 0:
+                    permit_records = retry_records
                     retry_extended = True
                     # Update since_str so change detection uses the wider window
                     since_str = retry_since
                     actual_lookback = 3
 
-            # Fetch inspections (use current since_str, may be extended)
-            inspection_records = await fetch_recent_inspections(client, since_str)
-            logger.info("SODA returned %d inspection records", len(inspection_records))
+            # ── Step 2: Fetch inspections (isolated — failure doesn't kill run) ──
+            try:
+                inspection_records, step_results["inspections"] = await fetch_with_retry(
+                    lambda: fetch_recent_inspections(client, since_str),
+                    step_name="inspections",
+                )
+                logger.info("SODA returned %d inspection records", len(inspection_records))
+            except Exception as e:
+                logger.warning("Inspections step failed (non-fatal): %s", e)
+                step_results["inspections"] = {"step": "inspections", "ok": False, "error": str(e)}
 
-            # Fetch addenda routing
-            addenda_records = await fetch_recent_addenda(client, since_str)
-            logger.info("SODA returned %d addenda records", len(addenda_records))
+            # ── Step 3: Fetch addenda (isolated — failure doesn't kill run) ─────
+            try:
+                addenda_records, step_results["addenda"] = await fetch_with_retry(
+                    lambda: fetch_recent_addenda(client, since_str),
+                    step_name="addenda",
+                )
+                logger.info("SODA returned %d addenda records", len(addenda_records))
+            except Exception as e:
+                logger.warning("Addenda fetch step failed (non-fatal): %s", e)
+                step_results["addenda"] = {"step": "addenda", "ok": False, "error": str(e)}
+
         finally:
             await client.close()
 
         if dry_run:
             logger.info("DRY RUN — previewing changes:")
 
-        # Detect and record permit changes
-        changes_inserted = detect_changes(
-            permit_records, dry_run=dry_run, source=source,
-        )
+        # ── Step 4: Detect and record permit changes ──────────────────────
+        changes_inserted = 0
+        try:
+            changes_inserted = detect_changes(
+                permit_records, dry_run=dry_run, source=source,
+            )
+        except Exception as e:
+            logger.error("detect_changes failed (non-fatal): %s", e)
+            step_results["detect_changes"] = {"ok": False, "error": str(e)}
 
-        # Upsert inspections
+        # ── Step 5: Upsert inspections ───────────────────────────────────
         inspections_updated = 0
         if not dry_run:
-            inspections_updated = upsert_inspections(inspection_records)
+            try:
+                inspections_updated = upsert_inspections(inspection_records)
+            except Exception as e:
+                logger.warning("upsert_inspections failed (non-fatal): %s", e)
+                step_results["upsert_inspections"] = {"ok": False, "error": str(e)}
 
-        # Detect and record addenda routing changes
+        # ── Step 6: Detect and record addenda routing changes ────────────
         addenda_inserted = 0
         try:
             addenda_inserted = detect_addenda_changes(
@@ -852,6 +1035,7 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             )
         except Exception as e:
             logger.warning("Addenda change detection failed (non-fatal): %s", e)
+            step_results["detect_addenda"] = {"ok": False, "error": str(e)}
 
         total_soda = len(permit_records) + len(inspection_records) + len(addenda_records)
 
@@ -894,6 +1078,16 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
                 "ALL sources returned 0 records — SODA may be down or unreachable"
             )
 
+        # Log step failures to staleness warnings
+        failed_steps = [
+            name for name, info in step_results.items()
+            if isinstance(info, dict) and not info.get("ok", True)
+        ]
+        if failed_steps:
+            staleness_warnings.append(
+                f"Steps with errors (non-fatal): {', '.join(failed_steps)}"
+            )
+
         for warning in staleness_warnings:
             logger.warning("STALENESS CHECK: %s (since=%s, lookback=%d)",
                            warning, since_str, actual_lookback)
@@ -920,6 +1114,8 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "addenda_inserted": addenda_inserted,
             "dry_run": dry_run,
             "staleness_warnings": staleness_warnings,
+            "step_results": step_results,
+            "swept_stuck_jobs": swept,
         }
 
     except Exception as e:
