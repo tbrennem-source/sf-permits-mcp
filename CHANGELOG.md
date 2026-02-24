@@ -1,5 +1,26 @@
 # Changelog
 
+## Session 52C — Landing Page + Public Address Lookup (2026-02-23)
+
+### New Files
+- `web/templates/landing.html` — Public landing page with dark theme, hero section, search box, 6 feature cards, and stats footer. Mobile responsive.
+- `web/templates/search_results_public.html` — Public search results page showing basic permit data with locked premium feature cards (Property Report, Watch & Alerts, AI Analysis) and sign-up CTAs.
+- `tests/test_landing.py` — 23 tests covering landing page, public search, authenticated home, feature gating.
+
+### Modified Files
+- `web/app.py` — Home route shows landing.html for unauthenticated users, index.html for authenticated. Added `/search` GET route for public address lookup with intent classification and rate limiting. Added `@login_required` to premium routes: `/analyze-plans`, `/consultants`, `/consultants/search`, `/account/analyses`, `/account/analyses/compare`.
+- `tests/test_web.py` — Updated 5 existing tests to log in before checking authenticated-only content.
+- `tests/test_activity.py` — Updated 2 feedback widget tests to log in first.
+- `tests/test_brief.py` — Updated anonymous nav test for landing page behavior.
+- `tests/test_phase_e2_comparison.py` — Updated fixture to create real user (required by `@login_required`).
+
+### Feature Gating
+| Route | Access |
+|---|---|
+| `/`, `/search`, `/health`, `/auth/*`, `/report/<block>/<lot>` | Public |
+| `/brief`, `/portfolio`, `/account*`, `/consultants*`, `/analyze-plans`, `/account/analyses*` | Requires login |
+| `/admin/*` | Requires admin |
+
 ## Session 52A — Severity v2: Signal Tables + Nightly Pipeline (2026-02-23)
 
 ### New Files

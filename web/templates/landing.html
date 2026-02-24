@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sfpermits.ai — San Francisco Building Permit Intelligence</title>
+    <meta name="description" content="Look up San Francisco building permits by address. Track permit status, inspection history, and compliance data.">
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --accent-hover: #3a7ae0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Header ── */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .header-btn {
+            font-size: 0.85rem;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .header-btn-outline {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+        .header-btn-outline:hover { color: var(--text); border-color: var(--text-muted); }
+        .header-btn-primary {
+            background: var(--accent);
+            border: 1px solid var(--accent);
+            color: #fff;
+        }
+        .header-btn-primary:hover { background: var(--accent-hover); }
+
+        /* ── Hero ── */
+        .hero {
+            text-align: center;
+            padding: 80px 24px 60px;
+        }
+        .hero h1 {
+            font-size: 2.6rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+        .hero h1 .accent { color: var(--accent); }
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 560px;
+            margin: 0 auto 40px;
+        }
+
+        /* ── Search box ── */
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .search-form {
+            display: flex;
+            gap: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .search-form:focus-within {
+            border-color: var(--accent);
+        }
+        .search-form input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.05rem;
+            padding: 16px 20px;
+            outline: none;
+            font-family: inherit;
+            min-width: 0;
+        }
+        .search-form input::placeholder { color: var(--text-muted); }
+        .search-form button {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            padding: 16px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .search-form button:hover { background: var(--accent-hover); }
+        .search-hint {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .search-hint code {
+            background: var(--surface-2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+        }
+
+        /* ── Features ── */
+        .features {
+            padding: 60px 0;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px 24px;
+        }
+        .feature-icon {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+        .feature-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .feature-badge {
+            display: inline-block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+        .feature-badge-free {
+            background: rgba(52, 211, 153, 0.12);
+            color: var(--success);
+        }
+        .feature-badge-premium {
+            background: rgba(79, 143, 247, 0.12);
+            color: var(--accent);
+        }
+
+        /* ── Stats ── */
+        .stats {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 4px;
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 24px 0;
+            text-align: center;
+        }
+        footer p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .hero { padding: 48px 16px 36px; }
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; }
+            .search-form { flex-direction: column; }
+            .search-form input { padding: 14px 16px; }
+            .search-form button {
+                padding: 14px;
+                min-height: 48px;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+            .feature-card { padding: 20px 18px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <div class="header-right">
+                <a href="/auth/login" class="header-btn header-btn-outline">Sign in</a>
+                <a href="/auth/login" class="header-btn header-btn-primary">Get started free</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>San Francisco<br><span class="accent">Building Permit Intelligence</span></h1>
+            <p>Look up any SF address to see permit history, inspection results, and compliance status. Free and instant.</p>
+            <div class="search-box">
+                <form class="search-form" action="/search" method="GET">
+                    <input type="text" name="q" placeholder="Enter an address, permit #, or block/lot..." autocomplete="off" autofocus>
+                    <button type="submit">Search</button>
+                </form>
+                <div class="search-hint">
+                    Try <code>1455 Market St</code> or <code>202301234567</code> or <code>Block 3506 Lot 007</code>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F50D;</div>
+                    <h3>Address Lookup</h3>
+                    <p>Search any SF address to see all building permits, current status, and inspection history.</p>
+                    <span class="feature-badge feature-badge-free">Free</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F4CA;</div>
+                    <h3>Property Reports</h3>
+                    <p>Full property intelligence including violations, complaints, active businesses, and permit timelines.</p>
+                    <span class="feature-badge feature-badge-premium">Sign up free</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F4E8;</div>
+                    <h3>Morning Brief</h3>
+                    <p>Daily email updates when your watched permits change status, get inspected, or hit milestones.</p>
+                    <span class="feature-badge feature-badge-premium">Sign up free</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F4C4;</div>
+                    <h3>Plan Analysis</h3>
+                    <p>Upload plan sets for AI-powered EPR compliance checks and review station routing predictions.</p>
+                    <span class="feature-badge feature-badge-premium">Sign up free</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F465;</div>
+                    <h3>Entity Network</h3>
+                    <p>Discover contractors, architects, and engineers connected to any permit or property.</p>
+                    <span class="feature-badge feature-badge-premium">Sign up free</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#x1F4B0;</div>
+                    <h3>Fee & Timeline Estimates</h3>
+                    <p>AI-powered fee calculations and timeline predictions based on real permit data.</p>
+                    <span class="feature-badge feature-badge-premium">Sign up free</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div>
+                    <div class="stat-value">1.1M+</div>
+                    <div class="stat-label">Permits tracked</div>
+                </div>
+                <div>
+                    <div class="stat-value">3.9M+</div>
+                    <div class="stat-label">Review records</div>
+                </div>
+                <div>
+                    <div class="stat-value">671K+</div>
+                    <div class="stat-label">Inspections</div>
+                </div>
+                <div>
+                    <div class="stat-value">1M+</div>
+                    <div class="stat-label">Entities mapped</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Built on San Francisco open data. <a href="/health">System status</a></p>
+        </div>
+    </footer>
+</body>
+</html>

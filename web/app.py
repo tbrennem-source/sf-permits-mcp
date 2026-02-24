@@ -653,6 +653,10 @@ def _security_filters():
     if ip:
         ip = ip.split(",")[0].strip()  # First IP in chain
 
+    # Rate limit public search (GET)
+    if path == "/search" and _is_rate_limited(ip, RATE_LIMIT_MAX_LOOKUP):
+        return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
+
     if request.method == "POST":
         if path == "/analyze" and _is_rate_limited(ip, RATE_LIMIT_MAX_ANALYZE):
             return '<div class="error">Rate limit exceeded. Please wait a minute.</div>', 429
@@ -689,7 +693,7 @@ _LOG_PATHS = {"/ask", "/analyze", "/validate", "/analyze-plans", "/lookup", "/br
               "/portfolio", "/account", "/auth/send-link", "/auth/verify",
               "/watch/add", "/watch/remove", "/watch/tags", "/feedback/submit",
               "/admin/send-invite", "/account/primary-address",
-              "/account/primary-address/clear"}
+              "/account/primary-address/clear", "/search"}
 
 
 @app.after_request
@@ -722,6 +726,7 @@ def _log_activity(response):
             "/admin/send-invite": "admin_invite",
             "/account/primary-address": "primary_address_set",
             "/account/primary-address/clear": "primary_address_clear",
+            "/search": "public_search",
         }
         action = action_map.get(path, "page_view")
         if path.startswith("/auth/verify/"):
@@ -876,10 +881,14 @@ def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] 
 
 @app.route("/")
 def index():
+    # Unauthenticated users see the public landing page
+    if not g.user:
+        return render_template("landing.html")
+
     # If logged-in user has a primary address, resolve block/lot for report link
     user_report_url = None
     user_report_address = None
-    if g.user and g.user.get("primary_street_number") and g.user.get("primary_street_name"):
+    if g.user.get("primary_street_number") and g.user.get("primary_street_name"):
         try:
             bl = _resolve_block_lot(g.user["primary_street_number"], g.user["primary_street_name"])
             if bl:
@@ -896,6 +905,62 @@ def index():
         user_report_url=user_report_url,
         user_report_address=user_report_address,
         upload_error=upload_error,
+    )
+
+
+@app.route("/search")
+def public_search():
+    """Public address lookup — free for unauthenticated users."""
+    query_str = request.args.get("q", "").strip()
+    if not query_str:
+        return redirect(url_for("index"))
+
+    # Authenticated users go to the full search experience
+    if g.user:
+        return redirect(f"/?q={query_str}")
+
+    # Parse the query to extract address components
+    result = classify_intent(query_str, [n for n in NEIGHBORHOODS if n])
+    intent = result.intent
+    entities = result.entities
+
+    try:
+        if intent == "lookup_permit":
+            permit_num = entities.get("permit_number")
+            result_md = run_async(permit_lookup(permit_number=permit_num))
+        elif intent in ("search_address", "search_parcel"):
+            street_number = entities.get("street_number")
+            street_name = entities.get("street_name")
+            block = entities.get("block")
+            lot = entities.get("lot")
+            result_md = run_async(permit_lookup(
+                street_number=street_number,
+                street_name=street_name,
+                block=block,
+                lot=lot,
+            ))
+        else:
+            # Default: try as an address lookup
+            result_md = run_async(permit_lookup(street_name=query_str))
+
+        result_html = md_to_html(result_md)
+        no_results = result_md.startswith("No permits found")
+    except Exception as e:
+        logging.warning("Public search failed for %r: %s", query_str, e)
+        return render_template(
+            "search_results_public.html",
+            query=query_str,
+            error="We couldn't complete your search right now. Please try again.",
+            no_results=False,
+            result_html="",
+        )
+
+    return render_template(
+        "search_results_public.html",
+        query=query_str,
+        result_html=result_html,
+        no_results=no_results,
+        error=None,
     )
 
 
@@ -1183,6 +1248,7 @@ def validate():
 
 
 @app.route("/analyze-plans", methods=["POST"])
+@login_required
 def analyze_plans_route():
     """Upload a PDF plan set for full AI-powered analysis.
 
@@ -1767,11 +1833,10 @@ def group_jobs_by_project(jobs: list[dict]) -> list[dict]:
 
 
 @app.route("/account/analyses")
+@login_required
 def analysis_history():
     """View past plan analyses for logged-in user."""
     user_id = session.get("user_id")
-    if not user_id:
-        return redirect(url_for("auth_login"))
 
     from web.plan_jobs import get_user_jobs, search_jobs, get_analysis_stats
     from web.plan_notes import get_project_notes
@@ -1819,6 +1884,7 @@ def analysis_history():
 
 
 @app.route("/account/analyses/compare")
+@login_required
 def compare_analyses():
     """Compare two versions of the same analysis (Phase E2).
 
@@ -4593,6 +4659,7 @@ def email_unsubscribe():
 # ---------------------------------------------------------------------------
 
 @app.route("/consultants")
+@login_required
 def consultants_page():
     """Consultant recommendation dashboard.
 
@@ -4651,6 +4718,7 @@ def consultants_page():
 
 
 @app.route("/consultants/search", methods=["POST"])
+@login_required
 def consultants_search():
     """Search for consultants and return HTMX fragment with results."""
     from src.tools.recommend_consultants import recommend_consultants, ScoredConsultant

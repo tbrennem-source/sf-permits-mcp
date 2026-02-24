@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ query }} — sfpermits.ai</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --accent-hover: #3a7ae0;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Header ── */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .header-btn {
+            font-size: 0.85rem;
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .header-btn-outline {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+        .header-btn-outline:hover { color: var(--text); border-color: var(--text-muted); }
+        .header-btn-primary {
+            background: var(--accent);
+            border: 1px solid var(--accent);
+            color: #fff;
+        }
+        .header-btn-primary:hover { background: var(--accent-hover); }
+
+        /* ── Search bar ── */
+        .search-bar {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .search-form {
+            display: flex;
+            gap: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .search-form:focus-within { border-color: var(--accent); }
+        .search-form input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1rem;
+            padding: 12px 16px;
+            outline: none;
+            font-family: inherit;
+            min-width: 0;
+        }
+        .search-form input::placeholder { color: var(--text-muted); }
+        .search-form button {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            padding: 12px 22px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .search-form button:hover { background: var(--accent-hover); }
+
+        /* ── Results ── */
+        .results-section {
+            padding: 24px 0;
+        }
+        .results-heading {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .result-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .result-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        .result-card table td {
+            padding: 6px 12px 6px 0;
+            vertical-align: top;
+        }
+        .result-card table td:first-child {
+            color: var(--text-muted);
+            white-space: nowrap;
+            width: 140px;
+        }
+        .result-card a { color: var(--accent); text-decoration: none; }
+        .result-card a:hover { text-decoration: underline; }
+
+        /* ── Locked premium cards ── */
+        .locked-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .locked-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent 20%, var(--surface) 85%);
+            pointer-events: none;
+        }
+        .locked-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .locked-header h3 {
+            font-size: 1rem;
+        }
+        .locked-badge {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(79, 143, 247, 0.12);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .locked-preview {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+        .locked-cta {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 1;
+        }
+        .locked-cta a {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .locked-cta a:hover { background: var(--accent-hover); }
+
+        /* ── No results ── */
+        .no-results {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-muted);
+        }
+        .no-results h3 {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 24px 0;
+            text-align: center;
+        }
+        footer p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .search-form { flex-direction: column; }
+            .search-form input { padding: 12px 14px; }
+            .search-form button { padding: 12px; min-height: 48px; }
+            .result-card { padding: 18px; }
+            .result-card table td:first-child { width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <div class="header-right">
+                <a href="/auth/login" class="header-btn header-btn-outline">Sign in</a>
+                <a href="/auth/login" class="header-btn header-btn-primary">Get started free</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="search-bar">
+        <div class="container">
+            <form class="search-form" action="/search" method="GET">
+                <input type="text" name="q" value="{{ query }}" placeholder="Enter an address, permit #, or block/lot..." autocomplete="off">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="results-section">
+        <div class="container">
+            {% if error %}
+            <div class="no-results">
+                <h3>Something went wrong</h3>
+                <p>{{ error }}</p>
+            </div>
+            {% elif no_results %}
+            <div class="no-results">
+                <h3>No permits found</h3>
+                <p>No permit records matched "{{ query }}". Try a different address or permit number.</p>
+            </div>
+            {% else %}
+            <div class="results-heading">Showing permits for "{{ query }}"</div>
+
+            <!-- Free: basic permit results -->
+            <div class="result-card">
+                {{ result_html | safe }}
+            </div>
+            {% endif %}
+
+            <!-- Locked premium cards (always shown as upsell) -->
+            <div class="locked-card">
+                <div class="locked-header">
+                    <h3>Property Report</h3>
+                    <span class="locked-badge">Sign up free</span>
+                </div>
+                <div class="locked-preview">
+                    <p>Full property intelligence including violation history, open complaints, enforcement actions, and contractor network...</p>
+                    <p style="margin-top:8px;">&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;</p>
+                    <p>&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;</p>
+                </div>
+                <div class="locked-cta">
+                    <a href="/auth/login">Sign up free to unlock</a>
+                </div>
+            </div>
+
+            <div class="locked-card">
+                <div class="locked-header">
+                    <h3>Watch & Get Alerts</h3>
+                    <span class="locked-badge">Sign up free</span>
+                </div>
+                <div class="locked-preview">
+                    <p>Add this property to your watch list and get daily email updates when permits change status or receive inspections...</p>
+                    <p style="margin-top:8px;">&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;</p>
+                </div>
+                <div class="locked-cta">
+                    <a href="/auth/login">Sign up free to unlock</a>
+                </div>
+            </div>
+
+            <div class="locked-card">
+                <div class="locked-header">
+                    <h3>AI Project Analysis</h3>
+                    <span class="locked-badge">Sign up free</span>
+                </div>
+                <div class="locked-preview">
+                    <p>Get AI-powered fee estimates, timeline predictions, required documents, and revision risk analysis for your project...</p>
+                    <p style="margin-top:8px;">&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;</p>
+                </div>
+                <div class="locked-cta">
+                    <a href="/auth/login">Sign up free to unlock</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Built on San Francisco open data. <a href="/health">System status</a></p>
+        </div>
+    </footer>
+</body>
+</html>
