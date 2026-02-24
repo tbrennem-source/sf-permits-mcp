@@ -727,3 +727,52 @@ _Last reviewed: never_
 **Edge cases seen in code:** detect_addenda_changes fails (DB error); fetch_recent_addenda fails (network)
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Migration runner skips on DuckDB backend
+**Source:** scripts/run_prod_migrations.py
+**User:** admin / developer
+**Starting state:** Dev environment with DuckDB backend (no PostgreSQL connection)
+**Goal:** Run migrations without errors on local dev
+**Expected outcome:** All SQL-file migrations are skipped with "DuckDB mode" reason. signals migration also reports skipped. Exit code 0.
+**Edge cases seen in code:** migrate_signals.py explicitly checks BACKEND != "postgres" and returns ok=True with skipped=True
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Migration runner --only flag targets single migration
+**Source:** scripts/run_prod_migrations.py
+**User:** admin / developer
+**Starting state:** Production Postgres DB — signals tables might not exist yet
+**Goal:** Run only the signals migration without running all other migrations
+**Expected outcome:** Only the signals migration runs; SQL schema migrations and other steps are not touched. Output shows "1 migration(s) to run".
+**Edge cases seen in code:** --only with unknown name returns exit code 2 with helpful error message listing valid names
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Mobile user navigates to landing page without horizontal scroll
+**Source:** web/static/mobile.css, web/templates/*.html
+**User:** homeowner (mobile)
+**Starting state:** User opens sfpermits.ai on iPhone SE (375px viewport)
+**Goal:** Search for a permit address on a phone without needing to scroll sideways
+**Expected outcome:** No horizontal overflow. Nav badges are scrollable. Search box stacks correctly below 480px. All touch targets are >= 44px.
+**Edge cases seen in code:** iOS Safari auto-zooms if input font-size < 16px — mobile.css sets min 16px on all inputs
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Velocity dashboard table scrollable on mobile
+**Source:** web/templates/velocity_dashboard.html, web/static/mobile.css
+**User:** expediter (mobile)
+**Starting state:** User views the velocity dashboard on a 375px phone
+**Goal:** Read the stalled permits table without the whole page overflowing
+**Expected outcome:** Table is contained inside a scrollable .section container. Body does not overflow. Page-level horizontal scroll is absent.
+**Edge cases seen in code:** velocity_dashboard tables do not have explicit overflow-x:auto wrappers (unlike report.html) — mobile.css adds it via .section overflow-x:auto
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin views cron endpoint docs to set up scheduler
+**Source:** docs/cron-endpoints.md
+**User:** admin
+**Starting state:** Admin is setting up Railway cron or cron-job.org for nightly jobs
+**Goal:** Quickly find the correct URL, auth header, and recommended run order for all cron endpoints
+**Expected outcome:** docs/cron-endpoints.md provides exact curl commands, CRON_SECRET auth instructions, recommended schedule table, and future endpoints section
+**CC confidence:** medium
+**Status:** PENDING REVIEW

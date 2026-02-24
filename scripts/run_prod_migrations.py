@@ -1,0 +1,273 @@
+"""Run all production database migrations in order.
+
+Each migration is idempotent — safe to re-run at any time. Migrations are
+applied in strict order: core schema → user tables → activity tables →
+misc columns → signal tables.
+
+Usage:
+    python -m scripts.run_prod_migrations               # full run
+    python -m scripts.run_prod_migrations --dry-run     # show plan only
+    python -m scripts.run_prod_migrations --list        # list migrations
+    python -m scripts.run_prod_migrations --only signals  # one step by name
+
+Exit codes:
+    0 — all migrations succeeded (or no-ops)
+    1 — one or more migrations failed
+    2 — incorrect usage / configuration error
+"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import os
+import sys
+import time
+from pathlib import Path
+from typing import Any, Callable, NamedTuple
+
+# Ensure project root is on sys.path when running as a module
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Migration registry
+# ---------------------------------------------------------------------------
+
+class Migration(NamedTuple):
+    name: str
+    description: str
+    run: Callable[[], dict[str, Any]]
+
+
+def _run_sql_file(sql_path: Path) -> dict[str, Any]:
+    """Execute a .sql file against the active Postgres connection."""
+    from src.db import get_connection, BACKEND  # type: ignore
+
+    if BACKEND != "postgres":
+        return {"ok": True, "skipped": True,
+                "reason": f"DuckDB mode — {sql_path.name} not needed"}
+
+    sql = sql_path.read_text()
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+        conn.commit()
+        return {"ok": True, "file": sql_path.name}
+    except Exception as exc:
+        conn.rollback()
+        logger.error("SQL migration %s failed: %s", sql_path.name, exc)
+        return {"ok": False, "error": str(exc), "file": sql_path.name}
+    finally:
+        conn.close()
+
+
+# ---- individual migration runners ----------------------------------------
+
+def _run_user_tables() -> dict[str, Any]:
+    """Create users, auth_tokens, watch_items tables (add_user_tables.sql)."""
+    return _run_sql_file(Path(__file__).parent / "add_user_tables.sql")
+
+
+def _run_activity_tables() -> dict[str, Any]:
+    """Create activity_log, feedback tables (add_activity_tables.sql)."""
+    return _run_sql_file(Path(__file__).parent / "add_activity_tables.sql")
+
+
+def _run_changes_table() -> dict[str, Any]:
+    """Create permit_changes cron-log table (add_changes_table.sql)."""
+    return _run_sql_file(Path(__file__).parent / "add_changes_table.sql")
+
+
+def _run_brief_email() -> dict[str, Any]:
+    """Add email brief columns to users table (add_brief_email.sql)."""
+    return _run_sql_file(Path(__file__).parent / "add_brief_email.sql")
+
+
+def _run_invite_code() -> dict[str, Any]:
+    """Add invite_code column to users table (add_invite_code.sql)."""
+    return _run_sql_file(Path(__file__).parent / "add_invite_code.sql")
+
+
+def _run_signals() -> dict[str, Any]:
+    """Create signal_types, permit_signals, property_signals, property_health tables."""
+    from scripts.migrate_signals import run_migration  # type: ignore
+    return run_migration()
+
+
+def _run_schema() -> dict[str, Any]:
+    """Create bulk data tables from postgres_schema.sql (permits, contacts, etc.)."""
+    return _run_sql_file(Path(__file__).parent / "postgres_schema.sql")
+
+
+# ---- ordered registry ------------------------------------------------
+
+MIGRATIONS: list[Migration] = [
+    Migration(
+        name="schema",
+        description="Bulk data tables: permits, contacts, entities, relationships, "
+                    "inspections, timeline_stats (postgres_schema.sql)",
+        run=_run_schema,
+    ),
+    Migration(
+        name="user_tables",
+        description="Core user tables: users, auth_tokens, watch_items (add_user_tables.sql)",
+        run=_run_user_tables,
+    ),
+    Migration(
+        name="activity_tables",
+        description="Activity + feedback tables (add_activity_tables.sql)",
+        run=_run_activity_tables,
+    ),
+    Migration(
+        name="changes_table",
+        description="Permit changes + cron_log table (add_changes_table.sql)",
+        run=_run_changes_table,
+    ),
+    Migration(
+        name="brief_email",
+        description="Email brief columns on users (add_brief_email.sql)",
+        run=_run_brief_email,
+    ),
+    Migration(
+        name="invite_code",
+        description="Invite code column on users (add_invite_code.sql)",
+        run=_run_invite_code,
+    ),
+    Migration(
+        name="signals",
+        description="Signal tables: signal_types, permit_signals, property_signals, "
+                    "property_health — seeds 13 signal types (migrate_signals.py)",
+        run=_run_signals,
+    ),
+]
+
+MIGRATION_BY_NAME: dict[str, Migration] = {m.name: m for m in MIGRATIONS}
+
+
+# ---------------------------------------------------------------------------
+# Runner
+# ---------------------------------------------------------------------------
+
+def run_migrations(
+    migrations: list[Migration],
+    *,
+    dry_run: bool = False,
+) -> tuple[int, int]:
+    """Run the given migrations in order.
+
+    Returns (succeeded, failed) counts.
+    """
+    succeeded = 0
+    failed = 0
+
+    for i, mig in enumerate(migrations, start=1):
+        prefix = f"[{i}/{len(migrations)}] {mig.name}"
+        if dry_run:
+            logger.info("DRY-RUN %s — %s", prefix, mig.description)
+            succeeded += 1
+            continue
+
+        logger.info("Running %s — %s", prefix, mig.description)
+        t0 = time.monotonic()
+        try:
+            result = mig.run()
+        except Exception as exc:
+            logger.exception("Unhandled exception in migration %s", mig.name)
+            result = {"ok": False, "error": str(exc)}
+
+        elapsed = time.monotonic() - t0
+
+        if result.get("ok"):
+            if result.get("skipped"):
+                logger.info("  SKIP %s (%.2fs): %s",
+                            mig.name, elapsed, result.get("reason", ""))
+            else:
+                logger.info("  OK   %s (%.2fs): %s",
+                            mig.name, elapsed,
+                            {k: v for k, v in result.items() if k not in ("ok", "skipped")})
+            succeeded += 1
+        else:
+            logger.error("  FAIL %s (%.2fs): %s", mig.name, elapsed,
+                         result.get("error", "unknown error"))
+            failed += 1
+
+    return succeeded, failed
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Run sfpermits.ai production database migrations in order.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__,
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--list",
+        action="store_true",
+        help="Print all migrations and exit (no DB connection required)",
+    )
+    group.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show which migrations would run without executing them",
+    )
+    group.add_argument(
+        "--only",
+        metavar="NAME",
+        help="Run only a single named migration (e.g. --only signals)",
+    )
+    args = parser.parse_args()
+
+    # --list
+    if args.list:
+        print(f"{'#':<3} {'Name':<20} Description")
+        print("-" * 72)
+        for i, m in enumerate(MIGRATIONS, 1):
+            print(f"{i:<3} {m.name:<20} {m.description}")
+        return 0
+
+    # --only
+    if args.only:
+        if args.only not in MIGRATION_BY_NAME:
+            logger.error(
+                "Unknown migration %r. Available: %s",
+                args.only,
+                ", ".join(MIGRATION_BY_NAME),
+            )
+            return 2
+        to_run = [MIGRATION_BY_NAME[args.only]]
+    else:
+        to_run = MIGRATIONS
+
+    # Verify we're not running against a database we can't reach when needed
+    if not args.dry_run:
+        try:
+            from src.db import BACKEND  # type: ignore  # noqa: F401
+        except ImportError as exc:
+            logger.error("Cannot import src.db: %s — is the venv activated?", exc)
+            return 2
+
+    logger.info("sfpermits.ai migration runner — %d migration(s) to run", len(to_run))
+    if args.dry_run:
+        logger.info("DRY-RUN mode — no changes will be made")
+
+    succeeded, failed = run_migrations(to_run, dry_run=args.dry_run)
+
+    logger.info("Done: %d succeeded, %d failed", succeeded, failed)
+    return 0 if failed == 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
