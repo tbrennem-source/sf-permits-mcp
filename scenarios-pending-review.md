@@ -509,3 +509,53 @@ _Last reviewed: never_
 **Edge cases seen in code:** Three fallback levels: v2 station velocity → v1 timeline_stats → knowledge-based ranges. Source citations reflect which data was actually used.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property health lookup by block/lot
+**Source:** src/tools/property_health.py, src/signals/pipeline.py
+**User:** expediter | architect
+**Starting state:** Signal pipeline has run at least once; property_health table populated
+**Goal:** User asks about health status of a specific parcel
+**Expected outcome:** Returns tier label (HIGH RISK/AT RISK/BEHIND/SLOWER/ON TRACK), signal count, individual signal table with type/severity/permit/detail, and recommended actions appropriate to tier.
+**Edge cases seen in code:** Property with no signals returns "No health data" with explanation about nightly pipeline. Address lookup resolves to block/lot via permits table. DB unavailable returns graceful error.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: High-risk compound detection
+**Source:** src/signals/aggregator.py, src/signals/detector.py
+**User:** expediter | admin
+**Starting state:** Property has permits with Issued Comments hold AND open Notice of Violation
+**Goal:** System correctly identifies convergent risk
+**Expected outcome:** Property tier is HIGH_RISK (not just AT_RISK). Signal table shows both independent risk signals. Recommended actions include "Immediate review" and "multiple independent risk factors converging."
+**Edge cases seen in code:** Two at_risk signals from the SAME compounding type = AT_RISK not HIGH_RISK. hold_stalled (behind severity) does NOT compound. complaint (slower) does NOT compound. Need 2+ unique types from COMPOUNDING_TYPES set.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Morning brief v2/v1 health fallback
+**Source:** web/brief.py (property snapshot section)
+**User:** homeowner | expediter
+**Starting state:** User has watched properties; signal pipeline may or may not have run
+**Goal:** Morning brief shows property health cards with correct tier
+**Expected outcome:** If property_health table exists and has data for the property's block/lot, uses pre-computed v2 tier (including high_risk). If table missing or empty, falls back to v1 per-permit severity scoring. No errors either way.
+**Edge cases seen in code:** v2 adds "high_risk" tier that v1 doesn't have. health_order map includes high_risk=4. Synthetic severity_score (0-100) derived from v2 tier for sorting. Mixed v1/v2 properties on same brief if some block/lots are in property_health and others aren't.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Signal pipeline cron endpoint
+**Source:** web/app.py /cron/signals, src/signals/pipeline.py
+**User:** admin
+**Starting state:** Production database with permits, addenda, violations, inspections, complaints tables populated
+**Goal:** Nightly cron triggers signal detection and property health computation
+**Expected outcome:** POST /cron/signals with CRON_SECRET returns JSON with total_signals, properties count, tier_distribution, and per-detector stats. property_health table is refreshed (truncate + rebuild). Idempotent — running twice produces same results.
+**Edge cases seen in code:** Individual detector failures are caught and logged (count=-1) without crashing pipeline. Empty tables produce zero stats. DuckDB sequences for auto-increment IDs. ON CONFLICT upsert without CURRENT_TIMESTAMP in DuckDB.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Detector handles mixed date types
+**Source:** src/signals/detector.py
+**User:** admin
+**Starting state:** Database has dates stored as both strings and date objects (DuckDB returns date objects, Postgres may return strings)
+**Goal:** Detectors format dates correctly in signal detail strings
+**Expected outcome:** All detector detail strings show dates as "YYYY-MM-DD" regardless of whether the DB returns a date object or string. No "object is not subscriptable" errors.
+**Edge cases seen in code:** DuckDB returns datetime.date objects that can't be sliced with [:10]. Fix: wrap in str() before slicing. Affects hold_stalled_planning, hold_stalled, stale_with_activity, stale_no_activity detectors.
+**CC confidence:** high
+**Status:** PENDING REVIEW

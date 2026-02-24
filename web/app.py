@@ -5821,6 +5821,38 @@ def cron_refresh_dq():
 
 # ---------------------------------------------------------------------------
 
+@app.route("/cron/signals", methods=["POST"])
+def cron_signals():
+    """Run the nightly signal detection + property health pipeline.
+
+    Protected by CRON_SECRET bearer token. Detects 13 signal types across
+    permits, violations, complaints, and inspections. Computes property-level
+    health tiers (on_track → high_risk) and persists to property_health table.
+    """
+    _check_api_auth()
+    import json as _json_mod
+    from src.signals.pipeline import run_signal_pipeline
+    from src.db import get_connection
+
+    try:
+        conn = get_connection()
+        try:
+            stats = run_signal_pipeline(conn)
+        finally:
+            conn.close()
+        return Response(
+            _json_mod.dumps({"status": "ok", **stats}),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        logging.getLogger(__name__).exception("signal pipeline failed")
+        return Response(
+            _json_mod.dumps({"status": "error", "error": str(e)}),
+            status=500,
+            mimetype="application/json",
+        )
+
+
 @app.route("/cron/velocity-refresh", methods=["POST"])
 def cron_velocity_refresh():
     """Refresh station velocity v2 baselines from addenda routing data.
@@ -5844,7 +5876,7 @@ def cron_velocity_refresh():
             mimetype="application/json",
         )
     except Exception as e:
-        logger.exception("velocity-refresh failed")
+        logging.getLogger(__name__).exception("velocity-refresh failed")
         return Response(
             _json_mod.dumps({"status": "error", "error": str(e)}),
             status=500,

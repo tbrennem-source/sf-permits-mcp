@@ -1,5 +1,37 @@
 # Changelog
 
+## Session 52A — Severity v2: Signal Tables + Nightly Pipeline (2026-02-23)
+
+### New Files
+- `src/signals/__init__.py` — Signal detection package
+- `src/signals/types.py` — 13 signal types in SIGNAL_CATALOG, COMPOUNDING_TYPES set, Signal/SignalType/PropertyHealth dataclasses
+- `src/signals/detector.py` — 12 SQL-based detectors (hold_comments, hold_stalled_planning, hold_stalled, nov, abatement, expired_uninspected, stale_with_activity, expired_minor_activity, expired_inconclusive, expired_otc, stale_no_activity, complaint)
+- `src/signals/aggregator.py` — Property-level health tier derivation with HIGH_RISK compound logic (2+ unique compounding types at at_risk)
+- `src/signals/pipeline.py` — Nightly pipeline orchestrator: ensure tables → seed types → truncate → detect → aggregate → persist
+- `scripts/migrate_signals.py` — Postgres DDL migration for 4 signal tables + 6 indexes + signal_types seeding
+- `src/tools/property_health.py` — MCP tool for pre-computed property health lookup by block/lot or address
+- `tests/test_signals/` — 139 tests across 6 test modules (types, aggregator, detector, pipeline, property_health tool, cron endpoint)
+
+### Modified Files
+- `src/server.py` — Registered `property_health` MCP tool (tool #22)
+- `web/app.py` — Added `/cron/signals` endpoint (CRON_SECRET auth); fixed `logger` NameError in velocity-refresh error handler
+- `web/brief.py` — v2 signal-based health with v1 per-permit scoring fallback; added `high_risk` tier to health_order
+- `scenarios-pending-review.md` — 5 scenarios appended
+
+### Key Design Decisions
+- **13 signal types** across 4 source datasets (addenda, violations, permits+inspections, complaints)
+- **5-tier health model**: on_track → slower → behind → at_risk → high_risk
+- **HIGH_RISK compound rule**: 2+ unique COMPOUNDING_TYPES at at_risk severity converge on one property
+- **6 compounding types**: hold_comments, hold_stalled_planning, nov, abatement, expired_uninspected, stale_with_activity
+- **hold_stalled (behind) does NOT compound** — it's a monitoring signal, not convergent risk
+- **complaint (slower) does NOT compound** — informational only
+- **DuckDB compatibility**: sequences for auto-increment, no CURRENT_TIMESTAMP in ON CONFLICT, str() wrapping for date objects in detector detail strings
+
+### Bug Fixes
+- Fixed DuckDB `CURRENT_TIMESTAMP` in ON CONFLICT SET clause (BinderException)
+- Fixed `datetime.date` object not subscriptable in detectors (DuckDB returns date objects, not strings)
+- Fixed `logger` NameError in velocity-refresh cron error handler (also from Session B)
+
 ## Session 52B — Station Velocity v2 Data Scrub (2026-02-23)
 
 ### New Files

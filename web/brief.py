@@ -1050,7 +1050,25 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
     # become one card. Track all block/lot pairs for enforcement queries.
     today = date.today()
     property_map: dict[str, dict] = {}
-    health_order = {"on_track": 0, "slower": 1, "behind": 2, "at_risk": 3}
+    health_order = {"on_track": 0, "slower": 1, "behind": 2, "at_risk": 3, "high_risk": 4}
+
+    # v2 signal-based health: try to load pre-computed property_health table.
+    # Falls back to v1 per-permit scoring if table doesn't exist or is empty.
+    v2_health: dict[str, dict] = {}
+    try:
+        v2_rows = query(
+            "SELECT block_lot, tier, signal_count, at_risk_count "
+            "FROM property_health"
+        )
+        for vr in (v2_rows or []):
+            v2_health[vr[0]] = {
+                "tier": vr[1],
+                "signal_count": vr[2],
+                "at_risk_count": vr[3],
+            }
+    except Exception:
+        # Table doesn't exist or query failed — v1 fallback
+        logger.debug("property_health table not available, using v1 scoring", exc_info=True)
 
     for row in rows:
         pn, status = row[0], (row[1] or "").lower()
@@ -1074,37 +1092,44 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
         addr = f"{snum} {full_name}".strip().upper()
         key = addr if addr else f"{block}/{lot}"
 
-        # Health calculation — severity model scores 5 dimensions (0-100),
-        # then maps to 4-tier health for backward compatibility.
-        # Phase 1: inspection_count=0 (brief doesn't batch-fetch per-permit inspections).
+        # Health calculation: v2 signal-based (pre-computed) with v1 fallback.
         filed_date = _parse_date(filed_str)
         issued_date = _parse_date(issued_str)
+        block_lot_key = f"{block}/{lot}" if block and lot else ""
 
-        from src.severity import PermitInput, score_permit
-        sev_input = PermitInput(
-            permit_number=pn,
-            status=status,
-            permit_type_definition=ptype_def,
-            description="",  # brief doesn't carry description
-            filed_date=filed_date,
-            issued_date=issued_date,
-            status_date=status_date,
-            estimated_cost=float(estimated_cost) if estimated_cost else 0.0,
-            revised_cost=float(revised_cost) if revised_cost else None,
-            inspection_count=0,  # Phase 1: not fetching per-permit inspections in brief
-        )
-        sev_result = score_permit(sev_input, today=today)
+        # Try v2 signal-based health first
+        v2_entry = v2_health.get(block_lot_key) if block_lot_key else None
+        if v2_entry:
+            health = v2_entry["tier"]
+            sig_ct = v2_entry["signal_count"]
+            ar_ct = v2_entry["at_risk_count"]
+            health_reason = f"{sig_ct} signal(s), {ar_ct} at-risk" if health != "on_track" else ""
+        else:
+            # v1 fallback: per-permit severity scoring
+            from src.severity import PermitInput, score_permit
+            sev_input = PermitInput(
+                permit_number=pn,
+                status=status,
+                permit_type_definition=ptype_def,
+                description="",  # brief doesn't carry description
+                filed_date=filed_date,
+                issued_date=issued_date,
+                status_date=status_date,
+                estimated_cost=float(estimated_cost) if estimated_cost else 0.0,
+                revised_cost=float(revised_cost) if revised_cost else None,
+                inspection_count=0,
+            )
+            sev_result = score_permit(sev_input, today=today)
 
-        # Map 5-tier severity → 4-tier health for backward compat
-        _SEVERITY_TO_HEALTH = {
-            "CRITICAL": "at_risk",
-            "HIGH": "behind",
-            "MEDIUM": "slower",
-            "LOW": "on_track",
-            "GREEN": "on_track",
-        }
-        health = _SEVERITY_TO_HEALTH.get(sev_result.tier, "on_track")
-        health_reason = sev_result.explanation if health != "on_track" else ""
+            _SEVERITY_TO_HEALTH = {
+                "CRITICAL": "at_risk",
+                "HIGH": "behind",
+                "MEDIUM": "slower",
+                "LOW": "on_track",
+                "GREEN": "on_track",
+            }
+            health = _SEVERITY_TO_HEALTH.get(sev_result.tier, "on_track")
+            health_reason = sev_result.explanation if health != "on_track" else ""
 
         if key not in property_map:
             # Title-case for display: "125 MASON ST" -> "125 Mason St"
@@ -1139,7 +1164,14 @@ def _get_property_snapshot(user_id: int, lookback_days: int = 30) -> list[dict]:
         prop["total_permits"] += 1
 
         # Track worst severity score across permits at this property
-        if prop["severity_score"] is None or sev_result.score > prop["severity_score"]:
+        if v2_entry:
+            # v2: map tier to a synthetic score for sorting (higher = worse)
+            _TIER_SCORE = {"on_track": 0, "slower": 25, "behind": 50, "at_risk": 75, "high_risk": 100}
+            v2_score = _TIER_SCORE.get(health, 0)
+            if prop["severity_score"] is None or v2_score > prop["severity_score"]:
+                prop["severity_score"] = v2_score
+                prop["severity_tier"] = health.upper()
+        elif prop["severity_score"] is None or sev_result.score > prop["severity_score"]:
             prop["severity_score"] = sev_result.score
             prop["severity_tier"] = sev_result.tier
 
