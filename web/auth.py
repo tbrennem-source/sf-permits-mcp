@@ -558,3 +558,65 @@ def get_primary_address(user_id: int) -> dict | None:
     if row and row[0] and row[1]:
         return {"street_number": row[0], "street_name": row[1]}
     return None
+
+
+# === SESSION A: TEST LOGIN ===
+
+# Required env vars for test login (must BOTH be set to enable):
+#   TESTING=true            — activates the endpoint
+#   TEST_LOGIN_SECRET=<str> — shared secret validated on every request
+
+_TESTING_ENABLED = os.environ.get("TESTING", "").lower() in ("1", "true", "yes")
+TEST_LOGIN_SECRET = os.environ.get("TEST_LOGIN_SECRET", "")
+
+# Default email used when none is specified
+TEST_DEFAULT_EMAIL = "test-admin@sfpermits.ai"
+
+
+def handle_test_login(request_json: dict) -> tuple[dict | None, int]:
+    """Process a test-login request.
+
+    Returns (response_dict, status_code).  The caller is responsible for
+    creating the Flask session from the returned user dict.
+
+    Status codes:
+      404 — TESTING not enabled (endpoint does not exist)
+      403 — wrong or missing secret
+      200 — success; response_dict contains the user record
+    """
+    # Reload at call time so tests can monkeypatch os.environ
+    testing_enabled = os.environ.get("TESTING", "").lower() in ("1", "true", "yes")
+    secret_configured = os.environ.get("TEST_LOGIN_SECRET", "")
+
+    if not testing_enabled:
+        return None, 404
+
+    provided_secret = (request_json or {}).get("secret", "")
+    if not secret_configured or provided_secret != secret_configured:
+        return None, 403
+
+    email = (request_json or {}).get("email", TEST_DEFAULT_EMAIL).strip().lower()
+
+    _ensure_schema()
+    user = get_user_by_email(email)
+    if not user:
+        # Create with admin=True for test-admin persona
+        user = create_user(email)
+        # Force admin flag regardless of ADMIN_EMAIL
+        if BACKEND == "postgres":
+            execute_write(
+                "UPDATE users SET is_admin = TRUE WHERE user_id = %s",
+                (user["user_id"],),
+            )
+        else:
+            conn = get_connection()
+            try:
+                conn.execute(
+                    "UPDATE users SET is_admin = TRUE WHERE user_id = ?",
+                    (user["user_id"],),
+                )
+            finally:
+                conn.close()
+        user = get_user_by_id(user["user_id"])
+
+    return user, 200
