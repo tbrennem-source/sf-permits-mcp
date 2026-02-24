@@ -6164,52 +6164,6 @@ def cron_pipeline_health():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
-# === TEMP: ONE-TIME MIGRATION ENDPOINT (Sprint 53B) ===
-# Remove after migrations verified.
-
-@app.route("/cron/run-migrations", methods=["POST"])
-def cron_run_migrations():
-    """One-time migration runner for signal + cost tracking tables.
-
-    Protected by MIGRATION_KEY or CRON_SECRET. Safe to re-run (idempotent DDL).
-    """
-    # Accept either MIGRATION_KEY or CRON_SECRET for auth
-    mig_key = os.environ.get("MIGRATION_KEY", "")
-    auth_header = request.headers.get("Authorization", "")
-    key_param = request.args.get("key", "")
-    if mig_key and key_param == mig_key:
-        pass  # Authenticated via MIGRATION_KEY query param
-    elif mig_key and auth_header == f"Bearer {mig_key}":
-        pass  # Authenticated via MIGRATION_KEY bearer
-    else:
-        _check_api_auth()  # Fall back to CRON_SECRET
-    import json as _json_mig
-    results = {}
-
-    # 1. Signal tables + seed
-    try:
-        from scripts.migrate_signals import run_migration as run_signals
-        results["signals"] = run_signals()
-    except Exception as e:
-        results["signals"] = {"ok": False, "error": str(e)}
-
-    # 2. Cost tracking tables
-    try:
-        from scripts.migrate_cost_tracking import run_migration as run_cost
-        results["cost_tracking"] = run_cost()
-    except Exception as e:
-        results["cost_tracking"] = {"ok": False, "error": str(e)}
-
-    all_ok = all(r.get("ok") for r in results.values())
-    status_code = 200 if all_ok else 500
-    return Response(
-        _json_mig.dumps({"ok": all_ok, "results": results}, indent=2),
-        status=status_code,
-        mimetype="application/json",
-    )
-
-# === END TEMP MIGRATION ENDPOINT ===
-
 
 @app.route("/admin/pipeline")
 @login_required
