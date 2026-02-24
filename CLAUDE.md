@@ -339,7 +339,13 @@ This project participates in Tim's standard session protocols. These are defined
 
 **CHECKCHAT** — Session close protocol. Six steps: VERIFY (RELAY gate — check `qa-results/` for unprocessed files, run RELAY if needed; tests pass), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
 
-**Black Box Session Protocol** — Full session lifecycle: READ → BUILD → TEST → SCENARIOS → QA (RELAY) → CHECKCHAT. QA is not optional. Scenarios are not optional. CHECKCHAT is not optional.
+**Black Box Session Protocol (2 stages):**
+
+**Stage 1 — termCC (Terminal Claude Code):** READ → BUILD → TEST → SCENARIOS → QA (termRelay) → CHECKCHAT. CHECKCHAT output includes a DeskRelay HANDOFF section listing visual checks for Stage 2.
+
+**Stage 2 — DeskCC (Desktop Claude Code):** DeskRelay visual checks → CHECKCHAT. Stage 2 CHECKCHAT is lightweight (commit QA results, note follow-ups, no code changes expected).
+
+Both stages always end with CHECKCHAT. QA is not optional. Scenarios are not optional. CHECKCHAT is not optional.
 
 > See `~/.claude/CLAUDE.md` for the full protocol definitions. This section activates them.
 
@@ -391,8 +397,14 @@ These must be serial, not parallel:
 - Build agents: Sonnet (execution, code generation, testing)
 - Set via: `CLAUDE_CODE_SUBAGENT_MODEL=claude-sonnet-4-5-20250929`
 
-### Black Box Protocol (per agent)
+### Black Box Protocol (2 stages)
 
+**Stage 1 — termCC (Terminal Claude Code):**
 Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → CHECKCHAT
 
-CHECKCHAT output includes a DeskRelay HANDOFF section for Desktop CC visual verification.
+CHECKCHAT output includes a DeskRelay HANDOFF section listing visual checks for Stage 2.
+
+**Stage 2 — DeskCC (Desktop Claude Code):**
+DeskRelay visual checks → CHECKCHAT
+
+Both stages always end with CHECKCHAT. Stage 2 CHECKCHAT is lightweight (commit QA results, note follow-ups, no code changes expected).
