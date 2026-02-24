@@ -459,3 +459,53 @@ _Last reviewed: never_
 **Edge cases seen in code:** DB unavailable returns "Database unavailable" message. Empty/whitespace-only inputs return usage message. Block+lot search with no results returns "No permit found".
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Station velocity v2 shows cleaned percentile ranges
+**Source:** src/station_velocity_v2.py, src/tools/estimate_timeline.py
+**User:** expediter | architect
+**Starting state:** User asks for a timeline estimate with fire_review trigger
+**Goal:** Get station-level velocity data for SFFD showing p25-p75 range
+**Expected outcome:** Timeline estimate includes a "Station-Level Plan Review Velocity" section with SFFD stats showing typical range and median days. Data note mentions post-2018, deduped, excludes administrative.
+**Edge cases seen in code:** If station_velocity_v2 table is empty or missing, falls back to v1 (no station section shown). If trigger maps to multiple stations, all are shown.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Velocity v2 separates initial review from revision cycles
+**Source:** src/station_velocity_v2.py
+**User:** expediter
+**Starting state:** Station velocity data has been computed
+**Goal:** See different timelines for initial plan review vs revision rounds
+**Expected outcome:** estimate_timeline shows initial review velocities by default. Revision cycle data exists in DB separately (metric_type='revision') with typically longer durations.
+**Edge cases seen in code:** Stations with <10 revision records are excluded (MIN_SAMPLES threshold). Some stations have zero revisions (only initial review).
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Velocity refresh cron deduplicates reassignment rows
+**Source:** src/station_velocity_v2.py
+**User:** admin
+**Starting state:** Admin triggers /cron/velocity-refresh
+**Goal:** Velocity baselines use one data point per permit+station+addenda, not inflated by reassignment dupes
+**Expected outcome:** For a permit that was reassigned 5 times at CPB (different reviewers), only the latest finish_date is used. Sample counts reflect unique permit-station pairs.
+**Edge cases seen in code:** ROW_NUMBER() partitions by (application_number, station, addenda_number) with ORDER BY finish_date DESC. If all finish_dates are NULL, row is excluded entirely.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Velocity v2 excludes garbage data
+**Source:** src/station_velocity_v2.py
+**User:** admin
+**Starting state:** Addenda table contains pre-2018 data, Administrative pass-throughs, and >365 day outliers
+**Goal:** Velocity baselines reflect actual plan review work, not administrative routing noise
+**Expected outcome:** Pre-2018 records excluded. "Administrative" and "Not Applicable" review results excluded. Durations > 365 days excluded as outliers. Negative durations (finish < arrive) excluded.
+**Edge cases seen in code:** 90.6% of addenda rows have NULL review_results — these ARE included (they're real routing steps). Date range in raw data spans 1721-2205 (garbage dates) — filtered by 2018+ arrive date.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Estimate timeline degrades gracefully without v2 data
+**Source:** src/tools/estimate_timeline.py
+**User:** expediter | homeowner
+**Starting state:** station_velocity_v2 table doesn't exist (fresh deploy or DuckDB-only)
+**Goal:** User still gets a useful timeline estimate
+**Expected outcome:** Falls back to v1 percentiles from timeline_stats table. If that also fails, shows knowledge-based fallback ranges. No station velocity section shown. No errors.
+**Edge cases seen in code:** Three fallback levels: v2 station velocity → v1 timeline_stats → knowledge-based ranges. Source citations reflect which data was actually used.
+**CC confidence:** high
+**Status:** PENDING REVIEW

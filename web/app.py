@@ -5821,6 +5821,39 @@ def cron_refresh_dq():
 
 # ---------------------------------------------------------------------------
 
+@app.route("/cron/velocity-refresh", methods=["POST"])
+def cron_velocity_refresh():
+    """Refresh station velocity v2 baselines from addenda routing data.
+
+    Protected by CRON_SECRET bearer token. Recomputes p25/p50/p75/p90
+    per station per metric_type (initial/revision) per period (all, 2024-2026, recent_6mo).
+    """
+    _check_api_auth()
+    import json as _json_mod
+    from src.station_velocity_v2 import refresh_velocity_v2
+    from src.db import get_connection
+
+    try:
+        conn = get_connection()
+        try:
+            stats = refresh_velocity_v2(conn)
+        finally:
+            conn.close()
+        return Response(
+            _json_mod.dumps({"status": "ok", **stats}),
+            mimetype="application/json",
+        )
+    except Exception as e:
+        logger.exception("velocity-refresh failed")
+        return Response(
+            _json_mod.dumps({"status": "error", "error": str(e)}),
+            status=500,
+            mimetype="application/json",
+        )
+
+
+# ---------------------------------------------------------------------------
+
 @app.route("/cron/backup", methods=["POST"])
 def cron_backup():
     """Run pg_dump and store a timestamped backup.

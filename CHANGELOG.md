@@ -1,5 +1,44 @@
 # Changelog
 
+## Session 52B — Station Velocity v2 Data Scrub (2026-02-23)
+
+### New Files
+- `src/station_velocity_v2.py` — Cleaned velocity baselines from addenda routing data
+  - Filters: exclude pre-2018, "Not Applicable"/"Administrative" review results, NULL stations
+  - Deduplicates reassignment dupes (ROW_NUMBER per permit+station+addenda_number)
+  - Separates initial review (addenda_number=0) from revision cycles (addenda_number>=1)
+  - Computes p25/p50/p75/p90 per station per metric_type per period (all, 2024-2026, recent_6mo)
+  - `station_velocity_v2` table: Postgres (SERIAL) + DuckDB (sequence) compatible
+  - `refresh_velocity_v2()` — truncate + recompute pipeline
+  - `get_velocity_for_station()` / `get_all_velocities()` — query helpers with period fallback
+- `tests/test_station_velocity_v2.py` — 46 tests covering computation, persistence, query helpers, cron
+- `qa-drop/velocity-scrub-qa.md` — 12-step QA script
+- `qa-results/velocity-scrub-results.md` — 12/12 PASS
+
+### Modified Files
+- `src/tools/estimate_timeline.py` — v2 integration:
+  - Reads station_velocity_v2 for station-level plan review velocity
+  - Shows ranges (p25-p75) in "Station-Level Plan Review Velocity" table
+  - TRIGGER_STATION_MAP maps delay triggers to relevant station codes
+  - Data quality note when v2 data is present
+  - Falls back to v1 if station_velocity_v2 table is missing/empty
+- `web/app.py` — Added `/cron/velocity-refresh` endpoint (CRON_SECRET auth)
+- `scenarios-pending-review.md` — 5 scenarios appended
+
+### Research Findings (from 3.9M addenda rows)
+- 90.6% of rows have NULL review_results (intermediate routing steps — included)
+- "Administrative" (3.7%) and "Not Applicable" (0.3%) are pass-throughs — excluded
+- Reassignment dupes: some permits have 40+ entries at single station — deduped
+- 95% of rows are initial review (addenda_number=0)
+- Pre-2018 data sparse with garbage dates (1721, 2205) — excluded
+- Post-2018 filtered data: 53 initial-review stations, 29 revision-cycle stations
+
+### Key Numbers
+- 255 velocity rows (53 stations x ~5 periods x 2 metric_types, minus below-threshold)
+- 46 new tests (target was 30+)
+- 1390 total tests passing (was 1344)
+- 0 regressions
+
 ## Session 51 — Severity Scoring v1: Per-Permit Scoring Engine (2026-02-23)
 
 ### New Files

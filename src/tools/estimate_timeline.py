@@ -1,4 +1,10 @@
-"""Tool: estimate_timeline — Estimate permit processing timelines from historical data."""
+"""Tool: estimate_timeline — Estimate permit processing timelines from historical data.
+
+v2 integration: reads station-level velocity from station_velocity_v2 table
+(computed from cleaned addenda routing data — deduped, post-2018, excluding
+Administrative/Not Applicable pass-throughs). Falls back to v1 timeline_stats
+if v2 data is unavailable.
+"""
 
 import logging
 
@@ -16,6 +22,15 @@ DELAY_FACTORS = {
     "ceqa": "+3-12 months: CEQA environmental review (if triggered)",
     "multi_agency": "+1-2 weeks per additional reviewing agency",
     "conditional_use": "+3+ months: Planning Commission CU hearing",
+}
+
+# Map trigger keywords to station codes for v2 station velocity lookups
+TRIGGER_STATION_MAP = {
+    "planning_review": ["CP-ZOC", "PPC", "CP-NP"],
+    "dph_review": ["HEALTH", "HEALTH-FD"],
+    "fire_review": ["SFFD", "SFFD-HQ"],
+    "historic": ["HIS"],
+    "multi_agency": ["DPW-BSM", "SFPUC"],
 }
 
 
@@ -189,6 +204,126 @@ def _cost_bracket(estimated_cost: float | None) -> str | None:
     return "over_500k"
 
 
+def _query_station_velocity_v2(conn, stations: list[str] | None = None) -> list[dict]:
+    """Query station_velocity_v2 for station-level plan review timelines.
+
+    Returns list of dicts with station velocity data, preferring recent_6mo
+    and falling back to 'all' period.
+    """
+    ph = "%s" if BACKEND == "postgres" else "?"
+
+    try:
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1 FROM station_velocity_v2 LIMIT 1")
+        else:
+            conn.execute("SELECT 1 FROM station_velocity_v2 LIMIT 1")
+    except Exception:
+        return []
+
+    results = []
+    # Query top stations by median days (initial review, recent_6mo first, fallback to all)
+    for period in ["recent_6mo", "all"]:
+        if stations:
+            placeholders = ", ".join([ph] * len(stations))
+            sql = f"""
+                SELECT station, metric_type, p25_days, p50_days, p75_days, p90_days,
+                       sample_count, period
+                FROM station_velocity_v2
+                WHERE metric_type = 'initial'
+                  AND period = {ph}
+                  AND station IN ({placeholders})
+                ORDER BY p50_days DESC NULLS LAST
+            """
+            params = [period] + stations
+        else:
+            sql = f"""
+                SELECT station, metric_type, p25_days, p50_days, p75_days, p90_days,
+                       sample_count, period
+                FROM station_velocity_v2
+                WHERE metric_type = 'initial'
+                  AND period = {ph}
+                  AND p50_days > 0
+                ORDER BY p50_days DESC NULLS LAST
+                LIMIT 15
+            """
+            params = [period]
+
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(sql, params)
+                    rows = cur.fetchall()
+            else:
+                rows = conn.execute(
+                    sql.replace("%s", "?"), params
+                ).fetchall()
+        except Exception:
+            continue
+
+        for row in rows:
+            station_name = row[0]
+            # Skip if already have this station from a more recent period
+            if any(r["station"] == station_name for r in results):
+                continue
+            results.append({
+                "station": station_name,
+                "metric_type": row[1],
+                "p25_days": float(row[2]) if row[2] is not None else None,
+                "p50_days": float(row[3]) if row[3] is not None else None,
+                "p75_days": float(row[4]) if row[4] is not None else None,
+                "p90_days": float(row[5]) if row[5] is not None else None,
+                "sample_count": row[6],
+                "period": row[7],
+            })
+
+    return results
+
+
+def _format_station_velocity(station_data: list[dict]) -> list[str]:
+    """Format station velocity data as markdown lines."""
+    if not station_data:
+        return []
+
+    lines = ["\n## Station-Level Plan Review Velocity\n"]
+    lines.append("| Station | Typical (p25-p75) | Median | Worst Case (p90) | Samples |")
+    lines.append("|---------|-------------------|--------|------------------|---------|")
+
+    for s in station_data:
+        p25 = s["p25_days"]
+        p50 = s["p50_days"]
+        p75 = s["p75_days"]
+        p90 = s["p90_days"]
+        n = s["sample_count"]
+
+        range_str = f"{_format_days(p25)}–{_format_days(p75)}" if p25 is not None and p75 is not None else "—"
+        median_str = _format_days(p50) if p50 is not None else "—"
+        worst_str = _format_days(p90) if p90 is not None else "—"
+
+        lines.append(f"| {s['station']} | {range_str} | {median_str} | {worst_str} | {n:,} |")
+
+    lines.append(
+        "\n*Station velocity: initial plan review, deduped, post-2018, "
+        "excludes Administrative/Not Applicable pass-throughs*"
+    )
+    return lines
+
+
+def _format_days(d: float | None) -> str:
+    """Format days as human-readable string."""
+    if d is None:
+        return "—"
+    if d < 1:
+        return "<1 day"
+    if d < 7:
+        return f"{d:.0f} days"
+    if d < 30:
+        weeks = d / 7
+        return f"{weeks:.0f} wk"
+    months = d / 30
+    return f"{months:.1f} mo"
+
+
 async def estimate_timeline(
     permit_type: str,
     neighborhood: str | None = None,
@@ -196,10 +331,11 @@ async def estimate_timeline(
     estimated_cost: float | None = None,
     triggers: list[str] | None = None,
 ) -> str:
-    """Estimate permit processing timeline using historical DuckDB data.
+    """Estimate permit processing timeline using historical data + station velocity.
 
     Queries 1.1M+ historical permits to compute percentile-based timeline
     estimates (p25/p50/p75/p90) for filing-to-issuance and issuance-to-completion.
+    Enriches with station-level plan review velocity from cleaned addenda data (v2).
 
     Args:
         permit_type: Type of permit (e.g., 'alterations', 'new_construction', 'demolition', 'otc')
@@ -209,7 +345,7 @@ async def estimate_timeline(
         triggers: Additional delay factors to include (e.g., ['change_of_use', 'historic'])
 
     Returns:
-        Formatted timeline estimate with percentiles, trend, and delay factors.
+        Formatted timeline estimate with percentiles, station velocity, trend, and delay factors.
     """
     bracket = _cost_bracket(estimated_cost)
 
@@ -217,8 +353,10 @@ async def estimate_timeline(
     result = None
     completion = None
     trend = None
+    station_velocity = []
     widened = False
     db_available = False
+    v2_available = False
 
     try:
         conn = get_connection()
@@ -264,6 +402,21 @@ async def estimate_timeline(
 
             # Trend
             trend = _query_trend(conn, neighborhood, review_path)
+
+            # v2 station velocity — look up relevant stations based on triggers
+            relevant_stations = None
+            if triggers:
+                relevant_stations = []
+                for t in triggers:
+                    if t in TRIGGER_STATION_MAP:
+                        relevant_stations.extend(TRIGGER_STATION_MAP[t])
+                if not relevant_stations:
+                    relevant_stations = None
+
+            station_velocity = _query_station_velocity_v2(conn, relevant_stations)
+            if station_velocity:
+                v2_available = True
+
         finally:
             conn.close()
     except Exception as e:
@@ -315,6 +468,9 @@ async def estimate_timeline(
             lines.append("| Total to issuance | 2-6 months typical |")
             lines.append("| Complex projects | 6-12+ months |")
 
+    # Station velocity (v2)
+    lines.extend(_format_station_velocity(station_velocity))
+
     if completion:
         lines.append(f"\n## Issuance to Completion\n")
         lines.append(f"- Typical (p50): {completion['p50_days']} days")
@@ -335,10 +491,20 @@ async def estimate_timeline(
                  "medium" if result and result["sample_size"] >= 10 else "low"
     lines.append(f"\n**Confidence:** {confidence}")
 
+    # Data quality note
+    if v2_available:
+        lines.append(
+            "\n*Station velocity data: cleaned addenda records (post-2018), "
+            "deduped per permit+station, excludes administrative pass-throughs. "
+            "Initial review cycle shown (addenda #0).*"
+        )
+
     # Source citations
     sources = []
     if db_available:
         sources.append("duckdb_permits")
+    if v2_available:
+        sources.append("station_velocity_v2")
     if delay_factors:
         sources.append("routing_matrix")
     if not db_available:
