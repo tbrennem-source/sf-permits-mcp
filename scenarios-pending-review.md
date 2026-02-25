@@ -938,3 +938,32 @@ _Last reviewed: never_
 **Edge cases seen in code:** Original flat fetch caused OOM on 636K rows; batch flush every 50K rows keeps memory bounded; gunicorn worker killed at 120s timeout before fix
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: CRON_SECRET with trailing whitespace still authenticates
+**Source:** web/app.py _check_api_auth() — Sprint 54 post-mortem Amendment A
+**User:** admin
+**Starting state:** Railway CRON_SECRET env var has trailing whitespace (e.g. newline from copy-paste)
+**Goal:** Call any /cron/* endpoint with the visible secret value
+**Expected outcome:** Auth succeeds because _check_api_auth() strips whitespace from both the header and the env var before comparing
+**Edge cases seen in code:** GitHub Actions auto-trims secrets so it always worked; local curl with railway variable list output failed silently with 403; no diagnostic logging existed before this fix
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Failed cron auth logs diagnostic info
+**Source:** web/app.py _check_api_auth() — Sprint 54 post-mortem Amendment A
+**User:** admin
+**Starting state:** A request hits a CRON_SECRET-protected endpoint with an invalid or mismatched token
+**Goal:** Diagnose why auth failed without exposing the secret
+**Expected outcome:** Railway logs show "API auth failed: token_len=X expected_len=Y path=/cron/..." — length mismatch indicates whitespace, same length indicates wrong value
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: All cron endpoints use consolidated auth function
+**Source:** web/app.py — Sprint 54 post-mortem Amendment B
+**User:** admin
+**Starting state:** New cron endpoint is added to app.py
+**Goal:** Auth behavior is consistent across all cron endpoints
+**Expected outcome:** All cron endpoints call _check_api_auth() instead of inline auth; only pipeline-health POST has admin-session fallback (inline with .strip()); a fix to _check_api_auth() automatically applies to all endpoints
+**Edge cases seen in code:** Before fix, 4 endpoints had copy-pasted auth that diverged from _check_api_auth(); a fix to the shared function missed the inline copies
+**CC confidence:** high
+**Status:** PENDING REVIEW
