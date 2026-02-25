@@ -6177,7 +6177,11 @@ class _PgConnWrapper:
                 "records_fetched=EXCLUDED.records_fetched, last_record_count=EXCLUDED.last_record_count",
             )
         else:
+            # Convert to INSERT ... ON CONFLICT DO NOTHING for all other tables.
+            # Ingest functions DELETE first, so duplicates in SODA batches are harmless.
             sql = sql.replace("INSERT OR REPLACE INTO", "INSERT INTO")
+            if "ON CONFLICT" not in sql and "INSERT INTO" in sql:
+                sql += " ON CONFLICT DO NOTHING"
         return sql
 
     def execute(self, sql, params=None):
