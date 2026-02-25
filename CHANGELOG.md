@@ -1,5 +1,43 @@
 # Changelog
 
+## Sprint 56C — Plumbing Inspections + Street Use + Dev Pipeline in Brief/Nightly (2026-02-25)
+
+Plumbing inspection data (SODA `fuas-yurr`) now shares the `inspections` table with building inspections via a `source` discriminator column. Morning brief gains street-use activity and nearby development sections. Nightly change detection expanded to cover street-use permits and the development pipeline.
+
+### Schema Changes
+- `inspections` table gains `source TEXT DEFAULT 'building'` column (DuckDB migration + Postgres ALTER TABLE IF NOT EXISTS)
+- Index `idx_inspections_source` added
+
+### New Ingest Functions (`src/ingest.py`)
+- `normalize_plumbing_inspection()` — maps SODA `fuas-yurr` fields to 17-element tuple with `source='plumbing'`
+- `ingest_plumbing_inspections()` — scoped DELETE (`WHERE source='plumbing'`) before re-insert; ID offset prevents collision with building inspection IDs
+- `DATASETS['plumbing_inspections']` entry added for SODA endpoint `fuas-yurr`
+
+### Morning Brief Enhancements (`web/brief.py`)
+- `_get_street_use_activity()` — queries `street_use_permits` for watched addresses (case-insensitive street name LIKE match); deduplicates by permit_number
+- `get_street_use_activity_for_user()` — fetches address-type watches, calls `_get_street_use_activity`
+- `_get_nearby_development()` — queries `development_pipeline` for watched parcels (block-level match: `block_lot LIKE '{block}%'`); deduplicates by record_id
+- `get_nearby_development_for_user()` — fetches parcel-type watches, calls `_get_nearby_development`
+- `get_morning_brief()` — now includes `street_use_activity`, `nearby_development`, and summary counts
+
+### Nightly Change Detection (`scripts/nightly_changes.py`)
+- `detect_street_use_changes()` — compares recent street-use permits against `permit_changes`; inserts new change records
+- `detect_development_pipeline_changes()` — compares recent dev pipeline records against `permit_changes`; inserts new change records
+- `run_nightly()` — now includes Steps 4c/4d (fetch) and 9/10 (detect) for both datasets
+
+### New Cron Endpoint (`web/app.py` SESSION C block)
+- `POST /cron/ingest-plumbing-inspections` — loads plumbing inspections from SODA `fuas-yurr`
+
+### Nightly YAML (`.github/workflows/nightly-cron.yml`)
+- 7 new steps: ingest-street-use, ingest-development-pipeline, ingest-affordable-housing, ingest-housing-production, ingest-dwelling-completions, ingest-plumbing-inspections
+
+### Tests
+- `tests/test_sprint56c.py` — 55 new tests covering all of the above (all passing)
+- `tests/test_phase2.py` + `tests/test_permit_severity.py` — fixture updated to include `source='building'` as 17th inspections column
+- Full suite: 2039 passed, 20 skipped, 0 errors
+
+---
+
 ## Sprint 55 — Full Dataset Coverage + MCP Tool Enrichment (2026-02-25)
 
 Completed ingestion of all 22 cataloged SODA datasets (7 new tables), seeded 3 reference tables for routing-aware permit prediction, and wired all new data into the MCP tools that users rely on most. Morning brief gains planning context and a compliance calendar. Nightly pipeline expands to monitor planning record changes and boiler permits.
