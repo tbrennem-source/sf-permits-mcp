@@ -30,8 +30,8 @@ from scripts.run_prod_migrations import (
 
 class TestMigrationRegistry:
     def test_migration_count(self):
-        """Ten migrations in the registry (Sprint 55 adds reference_tables + inspections_unique)."""
-        assert len(MIGRATIONS) == 10
+        """Eleven migrations in the registry (Sprint 56D adds shareable_analysis)."""
+        assert len(MIGRATIONS) == 11
 
     def test_all_have_names(self):
         """Every migration has a non-empty name."""
@@ -72,6 +72,7 @@ class TestMigrationRegistry:
             "cron_log_columns",
             "reference_tables",
             "inspections_unique",
+            "shareable_analysis",
         }
         actual = {m.name for m in MIGRATIONS}
         assert expected == actual
@@ -79,12 +80,19 @@ class TestMigrationRegistry:
     def test_reference_tables_before_inspections(self):
         """'reference_tables' runs before 'inspections_unique'."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-2] == "reference_tables"
+        ref_idx = names.index("reference_tables")
+        insp_idx = names.index("inspections_unique")
+        assert ref_idx < insp_idx
 
-    def test_inspections_unique_is_last(self):
-        """'inspections_unique' migration is last in registry."""
+    def test_inspections_unique_before_shareable(self):
+        """'inspections_unique' runs before 'shareable_analysis'."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-1] == "inspections_unique"
+        assert names[-2] == "inspections_unique"
+
+    def test_shareable_analysis_is_last(self):
+        """'shareable_analysis' migration is last in registry (Sprint 56D)."""
+        names = [m.name for m in MIGRATIONS]
+        assert names[-1] == "shareable_analysis"
 
     def test_schema_is_first(self):
         """'schema' migration runs first."""

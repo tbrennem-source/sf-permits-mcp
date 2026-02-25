@@ -29,3 +29,159 @@
 </div>
 {% endif %}
 {% endfor %}
+
+{% if analysis_id %}
+<!-- Share actions bar -->
+<div id="share-bar" style="border-top:1px solid #e5e7eb; padding:16px 0; margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <span style="font-size:0.85rem; color:#6b7280; font-weight:500;">Share this analysis:</span>
+
+    <!-- Email to team -->
+    <button id="share-email-btn"
+            onclick="document.getElementById('share-email-modal').style.display='flex'"
+            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+                   background:#2563eb; color:white; border:none; border-radius:6px;
+                   font-size:0.85rem; font-weight:500; cursor:pointer;">
+        Email to your team
+    </button>
+
+    <!-- Copy share link -->
+    <button id="share-link-btn"
+            onclick="copyShareLink('{{ analysis_id }}')"
+            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+                   background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
+                   border-radius:6px; font-size:0.85rem; cursor:pointer;">
+        Copy share link
+    </button>
+
+    <!-- Copy all text -->
+    <button id="copy-all-btn"
+            onclick="copyAllText()"
+            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+                   background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
+                   border-radius:6px; font-size:0.85rem; cursor:pointer;">
+        Copy all
+    </button>
+</div>
+
+<!-- Email share modal -->
+<div id="share-email-modal"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+            align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:white; border-radius:12px; padding:28px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="margin:0 0 8px 0; font-size:1.1rem; color:#111827;">Email to your team</h3>
+        <p style="margin:0 0 20px 0; font-size:0.875rem; color:#6b7280;">Enter up to 5 email addresses.</p>
+
+        <div id="share-email-error" style="display:none; color:#991b1b; font-size:0.85rem; margin-bottom:12px; padding:8px 12px; background:#fef2f2; border-radius:6px;"></div>
+
+        <div id="email-inputs">
+            <input type="email" placeholder="colleague@example.com"
+                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
+                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
+            <input type="email" placeholder="Add another (optional)"
+                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
+                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
+            <input type="email" placeholder="Add another (optional)"
+                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
+                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:8px;">
+            <button onclick="sendShareEmail('{{ analysis_id }}')"
+                    style="flex:1; padding:11px; background:#2563eb; color:white; border:none;
+                           border-radius:8px; font-size:0.95rem; font-weight:500; cursor:pointer;">
+                Send
+            </button>
+            <button onclick="document.getElementById('share-email-modal').style.display='none'"
+                    style="padding:11px 20px; background:#f3f4f6; color:#374151; border:none;
+                           border-radius:8px; font-size:0.95rem; cursor:pointer;">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyShareLink(analysisId) {
+    const url = window.location.origin + '/analysis/' + analysisId;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('share-link-btn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+    }).catch(() => {
+        prompt('Copy this link:', window.location.origin + '/analysis/' + analysisId);
+    });
+}
+
+function copyAllText() {
+    const panels = document.querySelectorAll('.tab-panel .result-card');
+    let text = '';
+    panels.forEach(p => {
+        text += p.innerText + '\n\n---\n\n';
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+        const btn = document.getElementById('copy-all-btn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+    }).catch(() => {
+        alert('Copy failed. Please select the text manually.');
+    });
+}
+
+async function sendShareEmail(analysisId) {
+    const inputs = document.querySelectorAll('#email-inputs input[type="email"]');
+    const emails = [];
+    inputs.forEach(inp => {
+        const v = inp.value.trim();
+        if (v) emails.push(v);
+    });
+
+    const errEl = document.getElementById('share-email-error');
+    errEl.style.display = 'none';
+
+    if (emails.length === 0) {
+        errEl.textContent = 'Please enter at least one email address.';
+        errEl.style.display = 'block';
+        return;
+    }
+    if (emails.length > 5) {
+        errEl.textContent = 'Maximum 5 recipients allowed.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    // Basic validation
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const em of emails) {
+        if (!emailRe.test(em)) {
+            errEl.textContent = `Invalid email: ${em}`;
+            errEl.style.display = 'block';
+            return;
+        }
+    }
+
+    try {
+        const resp = await fetch('/analysis/' + analysisId + '/share', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({emails}),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            document.getElementById('share-email-modal').style.display = 'none';
+            const btn = document.getElementById('share-email-btn');
+            const orig = btn.textContent;
+            btn.textContent = 'Sent!';
+            setTimeout(() => { btn.textContent = orig; }, 2500);
+        } else {
+            errEl.textContent = data.error || 'Send failed. Please try again.';
+            errEl.style.display = 'block';
+        }
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
+    }
+}
+</script>
+{% endif %}

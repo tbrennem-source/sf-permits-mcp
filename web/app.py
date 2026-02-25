@@ -1181,12 +1181,57 @@ def analyze():
         except Exception as e:
             results["team"] = f'<div class="error">Team lookup error: {e}</div>'
 
+    # D4: Save analysis results to analysis_sessions for sharing
+    analysis_id = None
+    try:
+        import uuid
+        import json as _json
+        from src.db import execute_write as _db_write, BACKEND as _BACKEND, query_one as _qone, get_connection as _get_conn
+        analysis_id = str(uuid.uuid4())
+        user_id = g.user.get("user_id") if g.user else None
+        # Store raw text (pre-rendered) for display on shared page
+        raw_results = {
+            "predict": pred_result if pred_result else "",
+            "fees": fees_result if "fees_result" in dir() else "",
+            "timeline": timeline_result if "timeline_result" in dir() else "",
+            "docs": docs_result if "docs_result" in dir() else "",
+            "risk": risk_result if "risk_result" in dir() else "",
+        }
+        results_json_str = _json.dumps(raw_results)
+        if _BACKEND == "postgres":
+            _db_write(
+                "INSERT INTO analysis_sessions "
+                "(id, user_id, project_description, address, neighborhood, "
+                "estimated_cost, square_footage, results_json) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)",
+                (analysis_id, user_id, description, address, neighborhood,
+                 estimated_cost, square_footage, results_json_str),
+            )
+        else:
+            id_row = _qone("SELECT COALESCE(MAX(CAST(1 AS INTEGER)), 0) FROM analysis_sessions")
+            conn2 = _get_conn()
+            try:
+                conn2.execute(
+                    "INSERT INTO analysis_sessions "
+                    "(id, user_id, project_description, address, neighborhood, "
+                    "estimated_cost, square_footage, results_json) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (analysis_id, user_id, description, address, neighborhood,
+                     estimated_cost, square_footage, results_json_str),
+                )
+            finally:
+                conn2.close()
+    except Exception as _save_err:
+        logging.warning("analysis_sessions save failed (non-fatal): %s", _save_err)
+        analysis_id = None
+
     return render_template(
         "results.html",
         results=results,
         section_order=section_order,
         experience_level=experience_level,
         has_team=bool(team_md),
+        analysis_id=analysis_id,
     )
 
 
@@ -3450,12 +3495,25 @@ def _render_rag_results(query: str, results: list[dict]) -> str:
 def auth_login():
     """Show the login/register page."""
     from web.auth import invite_required
-    return render_template("auth_login.html", invite_required=invite_required())
+    referral_source = request.args.get("referral_source", "")
+    analysis_id = request.args.get("analysis_id", "")
+    return render_template(
+        "auth_login.html",
+        invite_required=invite_required(),
+        referral_source=referral_source,
+        analysis_id=analysis_id,
+    )
 
 
 @app.route("/auth/send-link", methods=["POST"])
 def auth_send_link():
-    """Create user if needed, generate magic link, send/display it."""
+    """Create user if needed, generate magic link, send/display it.
+
+    Three-tier signup logic (Session D):
+    - shared_link: user came via /analysis/<id> — bypass invite code requirement
+    - invited: has valid invite code — standard flow
+    - organic: no code, no shared link — redirect to beta request form
+    """
     from web.auth import (
         get_user_by_email, create_user, create_magic_token, send_magic_link,
         BASE_URL, invite_required, validate_invite_code,
@@ -3470,21 +3528,34 @@ def auth_send_link():
             invite_required=invite_required(),
         ), 400
 
+    # D8: Detect referral source
+    referral_source = request.form.get("referral_source", "").strip()
+    analysis_id_ref = request.form.get("analysis_id", "").strip()
+    is_shared_link = referral_source == "shared_link" and bool(analysis_id_ref)
+
     # Check if existing user (existing users don't need an invite code)
     user = get_user_by_email(email)
 
     if not user:
-        # New user — check invite code if required
+        # New user — determine access path
         invite_code = request.form.get("invite_code", "").strip()
-        if invite_required():
-            if not invite_code or not validate_invite_code(invite_code):
-                return render_template(
-                    "auth_login.html",
-                    message="A valid invite code is required to create an account.",
-                    message_type="error",
-                    invite_required=True,
-                ), 403
-        user = create_user(email, invite_code=invite_code or None)
+
+        if is_shared_link:
+            # Shared-link path: grant full access immediately, no invite code needed
+            user = create_user(email, referral_source="shared_link")
+            # Store analysis_id in session for post-login redirect
+            session["shared_analysis_id"] = analysis_id_ref
+        elif invite_required():
+            if invite_code and validate_invite_code(invite_code):
+                # Valid invite code
+                user = create_user(email, invite_code=invite_code, referral_source="invited")
+            else:
+                # No valid invite code and no shared link → redirect to beta request
+                return redirect(
+                    url_for("beta_request", email=email)
+                )
+        else:
+            user = create_user(email, invite_code=invite_code or None)
 
     token = create_magic_token(user["user_id"])
     sent = send_magic_link(email, token)
@@ -3540,6 +3611,11 @@ def auth_verify(token):
                 session["show_onboarding_banner"] = True
         except Exception:
             pass
+
+    # D8: Redirect shared_link users back to the analysis they came from
+    shared_analysis_id = session.pop("shared_analysis_id", None)
+    if shared_analysis_id:
+        return redirect(url_for("analysis_shared", analysis_id=shared_analysis_id))
 
     return redirect(url_for("index"))
 
@@ -6903,6 +6979,350 @@ def watch_brief_prompt():
 
 
 # === END SESSION E: HOMEOWNER FUNNEL + ONBOARDING ===
+
+
+# === SESSION D: SHAREABLE ANALYSIS + THREE-TIER SIGNUP ===
+
+@app.route("/analysis/<analysis_id>")
+def analysis_shared(analysis_id):
+    """Public shareable analysis page — no auth required.
+
+    Increments view_count. Shows full 5-tool results with CTA to sign up.
+    """
+    from src.db import query_one as _qone, execute_write as _ew, BACKEND as _BE
+    import json as _json
+
+    row = _qone(
+        "SELECT id, user_id, project_description, address, neighborhood, "
+        "estimated_cost, square_footage, results_json, created_at, shared_count, view_count "
+        "FROM analysis_sessions WHERE id = %s",
+        (analysis_id,),
+    )
+    if not row:
+        abort(404)
+
+    # Increment view_count (non-fatal)
+    try:
+        _ew(
+            "UPDATE analysis_sessions SET view_count = COALESCE(view_count, 0) + 1 WHERE id = %s",
+            (analysis_id,),
+        )
+    except Exception:
+        pass
+
+    # Parse results_json → rendered HTML
+    # row indices: 0=id, 1=user_id, 2=project_description, 3=address, 4=neighborhood,
+    #              5=estimated_cost, 6=square_footage, 7=results_json, 8=created_at,
+    #              9=shared_count, 10=view_count
+    results_json_val = row[7]
+    created_at_val = row[8]
+    try:
+        if isinstance(results_json_val, str):
+            raw = _json.loads(results_json_val)
+        elif isinstance(results_json_val, dict):
+            raw = results_json_val
+        else:
+            raw = {}
+    except Exception:
+        raw = {}
+
+    # Render markdown to HTML for display
+    display_results = {}
+    for key, val in raw.items():
+        if val:
+            display_results[key] = md_to_html(val)
+
+    class _Session:
+        def __init__(self):
+            self.id = row[0]
+            self.project_description = row[2] or ""
+            self.address = row[3]
+            self.neighborhood = row[4]
+            self.estimated_cost = row[5]
+            self.created_at = created_at_val
+            self.results = display_results
+
+    sess = _Session()
+
+    # Try to determine referrer role from user record
+    referrer_role = None
+    if row[1]:
+        try:
+            from web.auth import get_user_by_id as _gubi
+            owner = _gubi(row[1])
+            if owner:
+                referrer_role = owner.get("role") or "a permit professional"
+        except Exception:
+            pass
+
+    return render_template(
+        "analysis_shared.html",
+        session=sess,
+        session_id=analysis_id,
+        referrer_role=referrer_role,
+    )
+
+
+@app.route("/analysis/<analysis_id>/share", methods=["POST"])
+@login_required
+def analysis_share_email(analysis_id):
+    """Send analysis share emails to up to 5 recipients.
+
+    POST body: {"emails": ["a@b.com", "c@d.com"]}
+    Returns: {"ok": true} or {"ok": false, "error": "..."}
+    """
+    import json as _json
+    from src.db import query_one as _qone, execute_write as _ew, BACKEND as _BE
+    import smtplib
+    from email.message import EmailMessage
+
+    # Validate owner
+    row = _qone(
+        "SELECT id, user_id, project_description, address, neighborhood, estimated_cost "
+        "FROM analysis_sessions WHERE id = %s",
+        (analysis_id,),
+    )
+    if not row:
+        return jsonify({"ok": False, "error": "Analysis not found"}), 404
+
+    # Only owner can share (or admin)
+    owner_id = row[1]
+    current_uid = g.user.get("user_id") if g.user else None
+    if owner_id and current_uid and owner_id != current_uid and not g.user.get("is_admin"):
+        return jsonify({"ok": False, "error": "Not authorized"}), 403
+
+    data = request.get_json(silent=True) or {}
+    emails = data.get("emails", [])
+
+    # Validate
+    if not emails:
+        return jsonify({"ok": False, "error": "No email addresses provided"}), 400
+    if len(emails) > 5:
+        return jsonify({"ok": False, "error": "Maximum 5 recipients allowed"}), 400
+
+    import re
+    email_re = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+    for em in emails:
+        if not email_re.match(em):
+            return jsonify({"ok": False, "error": f"Invalid email: {em}"}), 400
+
+    # Build share URL
+    from web.auth import BASE_URL, SMTP_HOST, SMTP_PORT, SMTP_FROM, SMTP_USER, SMTP_PASS
+    share_url = f"{BASE_URL}/analysis/{analysis_id}"
+    signup_url = f"{BASE_URL}/auth/login?referral_source=shared_link&analysis_id={analysis_id}"
+
+    sender_name = g.user.get("display_name") if g.user else None
+    sender_email = g.user.get("email") if g.user else "sfpermits.ai"
+
+    project_description = row[2] or ""
+    address = row[3]
+    neighborhood = row[4]
+    estimated_cost = row[5]
+
+    included_sections = ["Permit type prediction", "Fee estimate", "Timeline estimate",
+                         "Required documents checklist", "Revision risk assessment"]
+
+    # Render email template
+    email_html = render_template(
+        "analysis_email.html",
+        sender_name=sender_name,
+        sender_email=sender_email,
+        project_description=project_description,
+        address=address,
+        neighborhood=neighborhood,
+        estimated_cost=estimated_cost,
+        share_url=share_url,
+        signup_url=signup_url,
+        included_sections=included_sections,
+    )
+
+    sent_count = 0
+    errors = []
+
+    if not SMTP_HOST:
+        # Dev mode: log
+        for em in emails:
+            logging.info("[analysis_share_email] dev mode — would send to %s: %s", em, share_url)
+        sent_count = len(emails)
+    else:
+        for em in emails:
+            try:
+                msg = EmailMessage()
+                msg["Subject"] = f"{sender_name or 'Someone'} shared a permit analysis with you"
+                msg["From"] = f"SF Permits AI <{SMTP_FROM}>"
+                msg["To"] = em
+                msg.set_content(
+                    f"{sender_name or 'Someone'} shared a permit analysis with you on sfpermits.ai.\n\n"
+                    f"Project: {project_description[:200]}\n\n"
+                    f"View the full analysis: {share_url}\n\n"
+                    f"--\nsfpermits.ai - San Francisco Building Permit Intelligence"
+                )
+                msg.add_alternative(email_html, subtype="html")
+                with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                    server.starttls()
+                    if SMTP_USER:
+                        server.login(SMTP_USER, SMTP_PASS or "")
+                    server.send_message(msg)
+                sent_count += 1
+            except Exception as e:
+                logging.error("analysis_share_email failed for %s: %s", em, e)
+                errors.append(em)
+
+    # Increment shared_count
+    try:
+        _ew(
+            "UPDATE analysis_sessions SET shared_count = COALESCE(shared_count, 0) + %s WHERE id = %s",
+            (sent_count, analysis_id),
+        )
+    except Exception:
+        pass
+
+    if errors:
+        return jsonify({"ok": False, "error": f"Failed to send to: {', '.join(errors)}"}), 500
+
+    return jsonify({"ok": True, "sent": sent_count})
+
+
+@app.route("/beta-request", methods=["GET", "POST"])
+def beta_request():
+    """Organic signup — 'Request beta access' form.
+
+    GET: Show the form (with optional prefill_email from query string).
+    POST: Accept submission, validate honeypot, apply rate limit, create beta request.
+    """
+    from web.auth import (
+        is_beta_rate_limited, record_beta_request_ip,
+        create_beta_request as _create_req,
+        send_beta_confirmation_email,
+    )
+
+    if request.method == "GET":
+        prefill_email = request.args.get("email", "").strip()
+        return render_template("beta_request.html", prefill_email=prefill_email)
+
+    # POST — process submission
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
+    ip = ip.split(",")[0].strip()
+
+    # Rate limiting
+    if is_beta_rate_limited(ip):
+        return render_template(
+            "beta_request.html",
+            message="Too many requests from your IP. Please try again later.",
+            message_type="error",
+        ), 429
+
+    # Honeypot check
+    honeypot = request.form.get("website", "").strip()
+    if honeypot:
+        # Bot — silently succeed (don't reveal the check)
+        logging.warning("beta_request honeypot triggered from IP %s", ip)
+        return render_template(
+            "beta_request.html",
+            submitted=True,
+            message="Thank you! We'll be in touch soon.",
+        )
+
+    email = request.form.get("email", "").strip().lower()
+    name = request.form.get("name", "").strip() or None
+    reason = request.form.get("reason", "").strip() or None
+
+    if not email or "@" not in email:
+        return render_template(
+            "beta_request.html",
+            message="Please enter a valid email address.",
+            message_type="error",
+        ), 400
+
+    if not reason:
+        return render_template(
+            "beta_request.html",
+            message="Please tell us what brings you to sfpermits.ai.",
+            message_type="error",
+        ), 400
+
+    record_beta_request_ip(ip)
+
+    try:
+        result = _create_req(email=email, name=name, reason=reason, ip=ip)
+        send_beta_confirmation_email(email)
+    except Exception as e:
+        logging.exception("beta_request creation failed")
+        return render_template(
+            "beta_request.html",
+            message="Something went wrong. Please try again.",
+            message_type="error",
+        ), 500
+
+    return render_template(
+        "beta_request.html",
+        submitted=True,
+        message="Thank you! We'll review your request and send you a sign-in link if approved.",
+    )
+
+
+@app.route("/admin/beta-requests")
+@login_required
+def admin_beta_requests():
+    """Admin: view pending beta access requests."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.auth import get_pending_beta_requests
+    requests_list = get_pending_beta_requests()
+    flash_message = request.args.get("msg", "")
+    return render_template(
+        "admin_beta_requests.html",
+        requests=requests_list,
+        flash_message=flash_message,
+        user=g.user,
+    )
+
+
+@app.route("/admin/beta-requests/<int:req_id>/approve", methods=["POST"])
+@login_required
+def admin_approve_beta(req_id):
+    """Admin: approve a beta request and send magic link."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.auth import (
+        approve_beta_request, create_magic_token, send_magic_link
+    )
+    user = approve_beta_request(req_id)
+    if not user:
+        return redirect(url_for("admin_beta_requests", msg="Request not found or already reviewed."))
+
+    # Send magic link
+    token = create_magic_token(user["user_id"])
+    send_magic_link(user["email"], token)
+
+    logging.info("Admin %s approved beta request %d for %s", g.user.get("email"), req_id, user["email"])
+    return redirect(url_for("admin_beta_requests", msg=f"Approved and sent magic link to {user['email']}."))
+
+
+@app.route("/admin/beta-requests/<int:req_id>/deny", methods=["POST"])
+@login_required
+def admin_deny_beta(req_id):
+    """Admin: deny a beta request."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.auth import deny_beta_request
+    deny_beta_request(req_id)
+    return redirect(url_for("admin_beta_requests", msg="Request denied."))
+
+
+# auth/send-link: handle shared_link referral source
+# This supplements the existing /auth/send-link route to support
+# shared_link signups. The existing route is not modified; instead
+# this hook is applied via the auth_send_link override check.
+
+def _get_shared_link_signup_context():
+    """Extract shared_link context from request args."""
+    referral_source = request.args.get("referral_source") or request.form.get("referral_source", "")
+    analysis_id = request.args.get("analysis_id") or request.form.get("analysis_id", "")
+    return referral_source.strip(), analysis_id.strip()
+
+
+# === END SESSION D: SHAREABLE ANALYSIS + THREE-TIER SIGNUP ===
 
 
 if __name__ == "__main__":

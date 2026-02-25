@@ -520,6 +520,68 @@ def init_user_schema(conn=None) -> None:
         except Exception:
             pass
 
+        # Sprint 56D: Analysis Sessions — shareable analysis results
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS analysis_sessions (
+                id TEXT PRIMARY KEY,
+                user_id INTEGER,
+                project_description TEXT NOT NULL,
+                address TEXT,
+                neighborhood TEXT,
+                estimated_cost REAL,
+                square_footage REAL,
+                results_json TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                shared_count INTEGER DEFAULT 0,
+                view_count INTEGER DEFAULT 0
+            )
+        """)
+        for stmt in [
+            "CREATE INDEX IF NOT EXISTS idx_analysis_sessions_user ON analysis_sessions (user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_analysis_sessions_created ON analysis_sessions (created_at)",
+        ]:
+            try:
+                conn.execute(stmt)
+            except Exception:
+                pass
+
+        # Sprint 56D: Users table — three-tier signup columns
+        for alter_stmt in [
+            "ALTER TABLE users ADD COLUMN referral_source TEXT DEFAULT 'invited'",
+            "ALTER TABLE users ADD COLUMN detected_persona TEXT",
+            "ALTER TABLE users ADD COLUMN beta_requested_at TIMESTAMP",
+            "ALTER TABLE users ADD COLUMN beta_approved_at TIMESTAMP",
+        ]:
+            try:
+                conn.execute(alter_stmt)
+            except Exception:
+                pass  # Column already exists
+
+        # Sprint 56D: Beta requests queue (organic signups waiting for approval)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS beta_requests (
+                id INTEGER PRIMARY KEY,
+                email TEXT NOT NULL UNIQUE,
+                name TEXT,
+                reason TEXT,
+                ip TEXT,
+                honeypot_filled BOOLEAN NOT NULL DEFAULT FALSE,
+                status TEXT NOT NULL DEFAULT 'pending',
+                admin_note TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                reviewed_at TIMESTAMP,
+                approved_at TIMESTAMP
+            )
+        """)
+        for stmt in [
+            "CREATE INDEX IF NOT EXISTS idx_beta_requests_email ON beta_requests (email)",
+            "CREATE INDEX IF NOT EXISTS idx_beta_requests_status ON beta_requests (status)",
+        ]:
+            try:
+                conn.execute(stmt)
+            except Exception:
+                pass
+
     finally:
         if close:
             conn.close()

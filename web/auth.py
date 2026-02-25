@@ -64,30 +64,39 @@ def _ensure_schema():
 
 # ── User CRUD ─────────────────────────────────────────────────────
 
-def create_user(email: str, invite_code: str | None = None) -> dict:
+def create_user(
+    email: str,
+    invite_code: str | None = None,
+    referral_source: str = "invited",
+) -> dict:
     """Create a new user. Returns user dict.
 
     Sets is_admin if email matches ADMIN_EMAIL.
     Stores invite_code for cohort tracking.
+    referral_source: 'invited' | 'shared_link' | 'organic'
     """
     _ensure_schema()
     is_admin = bool(ADMIN_EMAIL and email.lower() == ADMIN_EMAIL.lower())
     code = invite_code.strip() if invite_code else None
+    ref_src = referral_source or "invited"
     if BACKEND == "postgres":
         sql = """
-            INSERT INTO users (email, is_admin, invite_code)
-            VALUES (%s, %s, %s)
+            INSERT INTO users (email, is_admin, invite_code, referral_source)
+            VALUES (%s, %s, %s, %s)
             RETURNING user_id
         """
-        user_id = execute_write(sql, (email, is_admin, code), return_id=True)
+        user_id = execute_write(sql, (email, is_admin, code, ref_src), return_id=True)
     else:
         # DuckDB: manual ID assignment
         row = query_one("SELECT COALESCE(MAX(user_id), 0) + 1 FROM users")
         user_id = row[0]
         conn = get_connection()
         try:
-            sql = "INSERT INTO users (user_id, email, is_admin, invite_code) VALUES (?, ?, ?, ?)"
-            conn.execute(sql, (user_id, email, is_admin, code))
+            sql = (
+                "INSERT INTO users (user_id, email, is_admin, invite_code, referral_source) "
+                "VALUES (?, ?, ?, ?, ?)"
+            )
+            conn.execute(sql, (user_id, email, is_admin, code, ref_src))
         finally:
             conn.close()
     return get_user_by_id(user_id)
@@ -101,7 +110,8 @@ def get_user_by_email(email: str) -> dict | None:
         "email_verified, is_admin, is_active, "
         "COALESCE(brief_frequency, 'none'), invite_code, "
         "primary_street_number, primary_street_name, "
-        "COALESCE(subscription_tier, 'free'), voice_style "
+        "COALESCE(subscription_tier, 'free'), voice_style, "
+        "COALESCE(referral_source, 'invited'), detected_persona "
         "FROM users WHERE email = %s",
         (email,),
     )
@@ -116,7 +126,8 @@ def get_user_by_id(user_id: int) -> dict | None:
         "email_verified, is_admin, is_active, "
         "COALESCE(brief_frequency, 'none'), invite_code, "
         "primary_street_number, primary_street_name, "
-        "COALESCE(subscription_tier, 'free'), voice_style "
+        "COALESCE(subscription_tier, 'free'), voice_style, "
+        "COALESCE(referral_source, 'invited'), detected_persona "
         "FROM users WHERE user_id = %s",
         (user_id,),
     )
@@ -128,6 +139,13 @@ def _row_to_user(row) -> dict:
 
     Admin status is derived from BOTH the DB flag and the ADMIN_EMAIL env var,
     so that adding ADMIN_EMAIL after a user already exists still grants admin.
+    Row columns (0-indexed):
+        0: user_id, 1: email, 2: display_name, 3: role, 4: firm_name, 5: entity_id,
+        6: email_verified, 7: is_admin, 8: is_active,
+        9: brief_frequency, 10: invite_code,
+        11: primary_street_number, 12: primary_street_name,
+        13: subscription_tier, 14: voice_style,
+        15: referral_source, 16: detected_persona
     """
     email = row[1]
     db_admin = row[7]
@@ -151,6 +169,8 @@ def _row_to_user(row) -> dict:
         "primary_street_name": row[12] if len(row) > 12 else None,
         "subscription_tier": row[13] if len(row) > 13 else "free",
         "voice_style": row[14] if len(row) > 14 else None,
+        "referral_source": row[15] if len(row) > 15 else "invited",
+        "detected_persona": row[16] if len(row) > 16 else None,
     }
 
 
@@ -558,6 +578,185 @@ def get_primary_address(user_id: int) -> dict | None:
     if row and row[0] and row[1]:
         return {"street_number": row[0], "street_name": row[1]}
     return None
+
+
+# ---------------------------------------------------------------------------
+# Beta request queue (organic signup — three-tier access)
+# ---------------------------------------------------------------------------
+
+# Rate limit: max 3 beta requests per IP per hour
+_BETA_REQUEST_BUCKETS: dict = {}
+_BETA_RATE_LIMIT_MAX = 3
+_BETA_RATE_LIMIT_WINDOW = 3600  # seconds
+
+
+def is_beta_rate_limited(ip: str) -> bool:
+    """Check if an IP has exceeded the beta request rate limit."""
+    import time
+    now = time.time()
+    window_start = now - _BETA_RATE_LIMIT_WINDOW
+    bucket = _BETA_REQUEST_BUCKETS.get(ip, [])
+    # Prune old entries
+    bucket = [t for t in bucket if t > window_start]
+    _BETA_REQUEST_BUCKETS[ip] = bucket
+    return len(bucket) >= _BETA_RATE_LIMIT_MAX
+
+
+def record_beta_request_ip(ip: str) -> None:
+    """Record a beta request for rate limiting."""
+    import time
+    bucket = _BETA_REQUEST_BUCKETS.get(ip, [])
+    bucket.append(time.time())
+    _BETA_REQUEST_BUCKETS[ip] = bucket
+
+
+def create_beta_request(email: str, name: str | None, reason: str | None, ip: str) -> dict:
+    """Create a beta access request. Returns dict with id and status."""
+    _ensure_schema()
+    if BACKEND == "postgres":
+        row = query_one(
+            "SELECT id, status FROM beta_requests WHERE email = %s",
+            (email,),
+        )
+        if row:
+            return {"id": row[0], "status": row[1], "existing": True}
+        req_id = execute_write(
+            "INSERT INTO beta_requests (email, name, reason, ip) "
+            "VALUES (%s, %s, %s, %s) RETURNING id",
+            (email, name, reason, ip),
+            return_id=True,
+        )
+    else:
+        row = query_one(
+            "SELECT id, status FROM beta_requests WHERE email = %s",
+            (email,),
+        )
+        if row:
+            return {"id": row[0], "status": row[1], "existing": True}
+        id_row = query_one("SELECT COALESCE(MAX(id), 0) + 1 FROM beta_requests")
+        req_id = id_row[0]
+        conn = get_connection()
+        try:
+            conn.execute(
+                "INSERT INTO beta_requests (id, email, name, reason, ip) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (req_id, email, name, reason, ip),
+            )
+        finally:
+            conn.close()
+    return {"id": req_id, "status": "pending", "existing": False}
+
+
+def get_pending_beta_requests() -> list[dict]:
+    """Get all pending beta requests for admin queue."""
+    _ensure_schema()
+    rows = query(
+        "SELECT id, email, name, reason, ip, created_at "
+        "FROM beta_requests WHERE status = %s ORDER BY created_at ASC",
+        ("pending",),
+    )
+    return [
+        {
+            "id": r[0], "email": r[1], "name": r[2],
+            "reason": r[3], "ip": r[4], "created_at": r[5],
+        }
+        for r in rows
+    ]
+
+
+def approve_beta_request(req_id: int) -> dict | None:
+    """Approve a beta request, create/activate user, return user dict."""
+    _ensure_schema()
+    row = query_one(
+        "SELECT email, name FROM beta_requests WHERE id = %s AND status = %s",
+        (req_id, "pending"),
+    )
+    if not row:
+        return None
+    email, name = row[0], row[1]
+
+    # Mark request approved
+    execute_write(
+        "UPDATE beta_requests SET status = %s, approved_at = %s WHERE id = %s",
+        ("approved", datetime.now(timezone.utc), req_id),
+    )
+
+    # Create or activate user with shared_link referral source (full access)
+    user = get_user_by_email(email)
+    if not user:
+        user = create_user(email, referral_source="organic")
+    elif not user.get("is_active"):
+        execute_write(
+            "UPDATE users SET is_active = TRUE WHERE user_id = %s",
+            (user["user_id"],),
+        )
+        user = get_user_by_id(user["user_id"])
+
+    # Mark beta_approved_at on user
+    execute_write(
+        "UPDATE users SET beta_approved_at = %s WHERE user_id = %s",
+        (datetime.now(timezone.utc), user["user_id"]),
+    )
+    return user
+
+
+def deny_beta_request(req_id: int) -> bool:
+    """Deny a beta request."""
+    _ensure_schema()
+    execute_write(
+        "UPDATE beta_requests SET status = %s, reviewed_at = %s WHERE id = %s",
+        ("denied", datetime.now(timezone.utc), req_id),
+    )
+    return True
+
+
+def send_beta_confirmation_email(email: str) -> bool:
+    """Send confirmation email to organic beta requester."""
+    if not SMTP_HOST:
+        logger.info("Beta request confirmation for %s (SMTP not configured)", email)
+        return True
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = "Your sfpermits.ai beta request received"
+        msg["From"] = f"SF Permits AI <{SMTP_FROM}>"
+        msg["To"] = email
+        msg.set_content(
+            "Thank you for your interest in sfpermits.ai!\n\n"
+            "We've received your beta access request and will review it shortly.\n"
+            "You'll receive a sign-in link by email when your request is approved.\n\n"
+            "--\nsfpermits.ai - San Francisco Building Permit Intelligence"
+        )
+        msg.add_alternative(
+            """\
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+             max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+  <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #2563eb;">
+    <h1 style="color: #2563eb; margin: 0; font-size: 24px;">sfpermits.ai</h1>
+  </div>
+  <div style="padding: 30px 0;">
+    <h2 style="font-size: 20px;">Beta request received</h2>
+    <p>Thank you for your interest in sfpermits.ai! We've received your request and will review it shortly.</p>
+    <p>You'll receive a sign-in link by email when your request is approved.</p>
+  </div>
+  <div style="border-top: 1px solid #eee; padding-top: 15px; font-size: 12px; color: #999; text-align: center;">
+    <p>sfpermits.ai &mdash; AI-powered permit guidance for San Francisco</p>
+  </div>
+</body>
+</html>""",
+            subtype="html",
+        )
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            if SMTP_USER:
+                server.login(SMTP_USER, SMTP_PASS or "")
+            server.send_message(msg)
+        return True
+    except Exception:
+        logger.exception("Failed to send beta confirmation to %s", email)
+        return False
 
 
 # === SESSION A: TEST LOGIN ===
