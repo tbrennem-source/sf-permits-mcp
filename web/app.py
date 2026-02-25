@@ -7356,6 +7356,81 @@ def cron_ingest_plumbing_inspections():
 # === END SESSION C: PLUMBING INSPECTIONS + BRIEF ===
 
 
+# === SESSION F: REVIEW METRICS INGEST ===
+
+@app.route("/cron/ingest-permit-issuance-metrics", methods=["POST"])
+def cron_ingest_permit_issuance_metrics():
+    """Ingest DBI permit issuance metrics (gzxm-jz5j) from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_permit_issuance_metrics
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    try:
+        count = run_async(ingest_permit_issuance_metrics(conn, SODAClient()))
+        if hasattr(conn, "commit"):
+            conn.commit()
+    except Exception as e:
+        logging.exception("cron_ingest_permit_issuance_metrics failed")
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "permit_issuance_metrics", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-permit-review-metrics", methods=["POST"])
+def cron_ingest_permit_review_metrics():
+    """Ingest DBI permit review metrics (5bat-azvb) from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_permit_review_metrics
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    try:
+        count = run_async(ingest_permit_review_metrics(conn, SODAClient()))
+        if hasattr(conn, "commit"):
+            conn.commit()
+    except Exception as e:
+        logging.exception("cron_ingest_permit_review_metrics failed")
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "permit_review_metrics", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-planning-review-metrics", methods=["POST"])
+def cron_ingest_planning_review_metrics():
+    """Ingest Planning Department review metrics (d4jk-jw33) from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_planning_review_metrics
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    try:
+        count = run_async(ingest_planning_review_metrics(conn, SODAClient()))
+        if hasattr(conn, "commit"):
+            conn.commit()
+    except Exception as e:
+        logging.exception("cron_ingest_planning_review_metrics failed")
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "planning_review_metrics", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+# === END SESSION F: REVIEW METRICS INGEST ===
+
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(debug=True, host="0.0.0.0", port=port)

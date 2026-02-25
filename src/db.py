@@ -1058,6 +1058,107 @@ def init_schema(conn) -> None:
         conn.execute("ALTER TABLE inspections ADD COLUMN source TEXT DEFAULT 'building'")
     except Exception:
         pass  # Column already exists
+    # === SESSION F: REVIEW METRICS INGEST — 3 new metric tables ===
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS permit_issuance_metrics (
+            id                  INTEGER PRIMARY KEY,
+            bpa                 TEXT,
+            addenda_number      INTEGER,
+            bpa_addenda         TEXT,
+            permit_type         TEXT,
+            otc_ih              TEXT,
+            status              TEXT,
+            block               TEXT,
+            lot                 TEXT,
+            street_number       TEXT,
+            street_name         TEXT,
+            street_suffix       TEXT,
+            unit                TEXT,
+            description         TEXT,
+            fire_only_permit    BOOLEAN,
+            filed_date          TEXT,
+            issued_date         TEXT,
+            issued_status       TEXT,
+            issued_year         TEXT,
+            calendar_days       INTEGER,
+            business_days       INTEGER,
+            data_as_of          TEXT,
+            ingested_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS permit_review_metrics (
+            id                  INTEGER PRIMARY KEY,
+            primary_key         TEXT,
+            bpa                 TEXT,
+            addenda_number      INTEGER,
+            bpa_addenda         TEXT,
+            permit_type         TEXT,
+            block               TEXT,
+            lot                 TEXT,
+            street_number       TEXT,
+            street_name         TEXT,
+            street_suffix       TEXT,
+            description         TEXT,
+            fire_only_permit    TEXT,
+            filed_date          TEXT,
+            status              TEXT,
+            department          TEXT,
+            station             TEXT,
+            review_type         TEXT,
+            review_number       INTEGER,
+            review_results      TEXT,
+            arrive_date         TEXT,
+            start_year          TEXT,
+            start_date          TEXT,
+            start_date_source   TEXT,
+            sla_days            INTEGER,
+            due_date            TEXT,
+            finish_date         TEXT,
+            calendar_days       REAL,
+            met_cal_sla         BOOLEAN,
+            data_as_of          TEXT,
+            ingested_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS planning_review_metrics (
+            id                          INTEGER PRIMARY KEY,
+            b1_alt_id                   TEXT,
+            project_stage               TEXT,
+            observation_window_type     TEXT,
+            observation_window_date     TEXT,
+            start_event_type            TEXT,
+            start_event_date            TEXT,
+            end_event_type              TEXT,
+            end_event_date              TEXT,
+            metric_value                REAL,
+            sla_value                   REAL,
+            metric_outcome              TEXT,
+            data_as_of                  TEXT,
+            ingested_at                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    for stmt in [
+        "CREATE INDEX IF NOT EXISTS idx_pim_bpa ON permit_issuance_metrics (bpa)",
+        "CREATE INDEX IF NOT EXISTS idx_pim_otc_ih ON permit_issuance_metrics (otc_ih)",
+        "CREATE INDEX IF NOT EXISTS idx_pim_issued_year ON permit_issuance_metrics (issued_year)",
+        "CREATE INDEX IF NOT EXISTS idx_prm_bpa ON permit_review_metrics (bpa)",
+        "CREATE INDEX IF NOT EXISTS idx_prm_station ON permit_review_metrics (station)",
+        "CREATE INDEX IF NOT EXISTS idx_prm_department ON permit_review_metrics (department)",
+        "CREATE INDEX IF NOT EXISTS idx_prm_met_sla ON permit_review_metrics (met_cal_sla)",
+        "CREATE INDEX IF NOT EXISTS idx_plrm_b1_alt_id ON planning_review_metrics (b1_alt_id)",
+        "CREATE INDEX IF NOT EXISTS idx_plrm_stage ON planning_review_metrics (project_stage)",
+        "CREATE INDEX IF NOT EXISTS idx_plrm_outcome ON planning_review_metrics (metric_outcome)",
+    ]:
+        try:
+            conn.execute(stmt)
+        except Exception:
+            pass
+    # === END SESSION F ===
 
     _create_indexes(conn)
 

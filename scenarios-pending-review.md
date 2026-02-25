@@ -1375,3 +1375,42 @@ _Last reviewed: never_
 **Edge cases seen in code:** G-20-routing.json is the authoritative source — ref_agency_triggers is a fast heuristic; if G-20 says something different, G-20 wins
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Review metrics ingest refreshes with current SLA data
+**Source:** Sprint 56F — src/ingest.py ingest_permit_issuance_metrics / ingest_permit_review_metrics / ingest_planning_review_metrics
+**User:** admin
+**Starting state:** Admin triggers POST /cron/ingest-permit-issuance-metrics with a valid CRON_SECRET token; the permit_issuance_metrics table exists but may be empty or stale
+**Goal:** Load the latest DBI permit issuance timing data from SODA into the database
+**Expected outcome:** Response returns ok=true, rows=N (>0 for production), elapsed_s; permit_issuance_metrics table contains records with bpa, otc_ih, issued_year, calendar_days, and business_days populated; old records are cleared before insert
+**Edge cases seen in code:** calendar_days and business_days can be "N/A" or null — normalize to None; fire_only_permit can be true/false boolean or string "Y"/"N" from SODA
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Station-level SLA compliance visible from review metrics
+**Source:** Sprint 56F — src/ingest.py ingest_permit_review_metrics
+**User:** expediter | architect
+**Starting state:** permit_review_metrics table is populated with DBI plan review data across multiple stations (BLDG, SFFD, DPW-BUF, etc.)
+**Goal:** Understand which review stations frequently miss SLA deadlines
+**Expected outcome:** permit_review_metrics table contains station, department, sla_days, met_cal_sla, and calendar_days columns; a query grouping by station and met_cal_sla shows SLA miss rates per station; stations with high calendar_days can be identified
+**Edge cases seen in code:** met_cal_sla is a boolean; calendar_days is REAL (can exceed 1000 days for old permits); some records have NULL finish_date meaning review is incomplete
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Planning review SLA metrics show over-deadline projects
+**Source:** Sprint 56F — src/ingest.py ingest_planning_review_metrics
+**User:** architect | expediter
+**Starting state:** planning_review_metrics table is populated from the Planning Department review metrics SODA endpoint
+**Goal:** Identify planning projects whose review is currently Over Deadline by stage (completeness check, initial review, resubmission review)
+**Expected outcome:** planning_review_metrics contains b1_alt_id, project_stage, metric_value, sla_value, and metric_outcome; records with metric_outcome = "Over Deadline" can be queried; metric_value > sla_value indicates the overage in days
+**Edge cases seen in code:** metric_value and sla_value come as strings from SODA and are cast to REAL; the same b1_alt_id can appear in multiple rows for different observation windows
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Cron auth blocks unauthorized ingest triggers
+**Source:** Sprint 56F — web/app.py cron endpoints SESSION F block
+**User:** admin
+**Starting state:** The three new cron endpoints are deployed to staging
+**Goal:** Verify that the endpoints reject calls without a valid CRON_SECRET Bearer token
+**Expected outcome:** POST to /cron/ingest-permit-issuance-metrics, /cron/ingest-permit-review-metrics, or /cron/ingest-planning-review-metrics without Authorization header returns 403; with wrong token returns 403; with correct Bearer token returns 200 with ok=true
+**Edge cases seen in code:** _check_api_auth() calls abort(403) — no JSON body returned on failure; CRON_SECRET is read from env with .strip() to avoid whitespace issues
+**CC confidence:** high
+**Status:** PENDING REVIEW
