@@ -1,0 +1,367 @@
+{
+  "metadata": {
+    "title": "Trade Permits: Electrical, Plumbing, and Boiler/HVAC in San Francisco",
+    "source_url": "https://www.sf.gov/departments/department-building-inspection",
+    "source_type": "DBI policy reference, SFBC Chapters 13E/13B/13C",
+    "date_scraped": "2026-02-25",
+    "authority": "SF Department of Building Inspection",
+    "notes": [
+      "Trade permits are separate permit types from building permits — each trade has its own permit number",
+      "Trade permits can be pulled independently or bundled with a building permit",
+      "Electrical permits are governed by the SF Electrical Code (SFEC) — California Electrical Code + local amendments",
+      "Plumbing permits are governed by the SF Plumbing Code (SFPC) — California Plumbing Code + local amendments",
+      "Mechanical permits cover HVAC, ducting, exhaust, and fuel gas systems",
+      "All trade permit fees are separate from building permit fees — see fee-tables.json Table 1A-C and 1A-E"
+    ]
+  },
+
+  "electrical_permits": {
+    "description": "Required for any new electrical work, panel upgrades, wiring changes, EV charger installation, or solar systems.",
+    "governing_code": "SF Electrical Code (SFEC) — California Electrical Code with local amendments",
+    "permit_types": [
+      {
+        "id": "ELEC-01",
+        "name": "Electrical Alteration Permit",
+        "description": "Standard permit for changes to existing electrical systems — adding circuits, outlets, panel work",
+        "triggers": [
+          "Adding or moving circuits",
+          "Panel upgrade or replacement",
+          "Service entrance work",
+          "New subpanel installation",
+          "Rewiring or replacing wiring"
+        ],
+        "review_path": "OTC or in-house depending on scope",
+        "typical_timeline_days": "1-5 (OTC), 10-30 (in-house)"
+      },
+      {
+        "id": "ELEC-02",
+        "name": "EV Charger Permit",
+        "description": "Permit for electric vehicle charging station installation — residential or commercial",
+        "triggers": [
+          "Installing Level 2 or DC Fast Charger",
+          "New dedicated circuit for EV charging",
+          "Panel upgrade to support EV load"
+        ],
+        "review_path": "OTC for residential single charger, in-house for multi-unit or commercial",
+        "typical_timeline_days": "1-3 (OTC residential)"
+      },
+      {
+        "id": "ELEC-03",
+        "name": "Solar PV Permit",
+        "description": "Photovoltaic system installation on residential or commercial buildings",
+        "triggers": [
+          "Rooftop solar panel installation",
+          "Battery storage system (Powerwall, etc.)",
+          "Grid interconnection"
+        ],
+        "review_path": "OTC for standard residential systems",
+        "typical_timeline_days": "1-3 (OTC residential)",
+        "notes": "Must coordinate with PG&E for interconnection; DBI permit covers structural and electrical"
+      },
+      {
+        "id": "ELEC-04",
+        "name": "New Construction Electrical",
+        "description": "Full electrical rough and finish for new buildings",
+        "triggers": ["New building construction", "Building addition with new service"],
+        "review_path": "In-house (always)",
+        "typical_timeline_days": "30-90"
+      },
+      {
+        "id": "ELEC-05",
+        "name": "Fire Alarm System Permit",
+        "description": "Installation or modification of fire alarm/detection systems",
+        "triggers": [
+          "New fire alarm system",
+          "Alarm panel replacement",
+          "Addition of smoke detectors beyond code minimum",
+          "Change of use requiring upgraded alarm"
+        ],
+        "review_path": "In-house, SFFD review required",
+        "typical_timeline_days": "15-45",
+        "agencies": ["DBI", "SFFD"]
+      }
+    ],
+    "fee_reference": {
+      "table": "1A-E",
+      "categories": [
+        "Residential single-family: flat fee by scope",
+        "Commercial: per-circuit or per-panel basis",
+        "EV charger residential: ~$196 flat",
+        "Solar: based on system kW capacity"
+      ],
+      "notes": "Small Business Month (May): pedestrian-level lighting electrical permits fee waived"
+    },
+    "inspection_requirements": [
+      {
+        "id": "ELEC-INS-01",
+        "stage": "Rough-in",
+        "description": "Inspection of wiring before walls are closed — verifies conduit, wire gauge, junction boxes, grounding"
+      },
+      {
+        "id": "ELEC-INS-02",
+        "stage": "Service",
+        "description": "Inspection of electrical service entrance and main panel before energizing"
+      },
+      {
+        "id": "ELEC-INS-03",
+        "stage": "Final",
+        "description": "Final inspection after all devices, fixtures, and covers installed — before Certificate of Occupancy"
+      }
+    ],
+    "commonly_bundled_with": [
+      "Kitchen remodel building permit (panel upgrade, new circuits for appliances)",
+      "Bathroom remodel building permit (GFCI outlets, exhaust fan)",
+      "ADU permit (separate service or subpanel)",
+      "Commercial tenant improvement (complete new electrical layout)"
+    ]
+  },
+
+  "plumbing_permits": {
+    "description": "Required for any work on water supply, drain/waste/vent (DWV), gas lines, or fixtures.",
+    "governing_code": "SF Plumbing Code (SFPC) — California Plumbing Code with local amendments",
+    "permit_types": [
+      {
+        "id": "PLMB-01",
+        "name": "Plumbing Alteration Permit",
+        "description": "Standard permit for plumbing changes — moving fixtures, replacing water heater, adding hose bibs",
+        "triggers": [
+          "Moving or adding plumbing fixtures",
+          "Water heater replacement",
+          "Sewer lateral repair or replacement",
+          "Installing new gas appliances",
+          "Rerouting drain or supply lines"
+        ],
+        "review_path": "OTC for simple residential, in-house for complex or commercial",
+        "typical_timeline_days": "1-3 (OTC simple)"
+      },
+      {
+        "id": "PLMB-02",
+        "name": "Sewer Lateral Permit",
+        "description": "Permit for repair or replacement of the building sewer lateral from building to main",
+        "triggers": [
+          "Broken or collapsed sewer lateral",
+          "Root intrusion requiring replacement",
+          "Pre-sale SSIP (Sewer System Improvement Program) compliance"
+        ],
+        "review_path": "OTC",
+        "typical_timeline_days": "1-2",
+        "agencies": ["DBI", "SF Public Works (SFPUC)"],
+        "notes": "Sidewalk and street restoration may require separate encroachment permit from DPW"
+      },
+      {
+        "id": "PLMB-03",
+        "name": "Backflow Prevention Permit",
+        "description": "Required for commercial properties with backflow prevention devices",
+        "triggers": [
+          "New commercial construction",
+          "Change of use to food service or medical",
+          "Installation of irrigation systems"
+        ],
+        "review_path": "OTC for standard devices",
+        "typical_timeline_days": "1-2",
+        "agencies": ["DBI", "SFPUC"]
+      },
+      {
+        "id": "PLMB-04",
+        "name": "Gas Piping Permit",
+        "description": "Permit for natural gas piping work — new lines, rerouting, appliance connections",
+        "triggers": [
+          "Adding gas line for range, dryer, or fireplace",
+          "Converting from electric to gas appliances",
+          "Extending gas service to ADU"
+        ],
+        "review_path": "OTC for simple residential",
+        "typical_timeline_days": "1-3"
+      },
+      {
+        "id": "PLMB-05",
+        "name": "Grease Interceptor Permit",
+        "description": "Required for commercial kitchens — grease trap installation or replacement",
+        "triggers": [
+          "New restaurant or food service establishment",
+          "Change of use to food service",
+          "Existing interceptor replacement or sizing upgrade"
+        ],
+        "review_path": "In-house",
+        "typical_timeline_days": "15-30",
+        "agencies": ["DBI", "DPH", "SFPUC"]
+      }
+    ],
+    "fee_reference": {
+      "table": "1A-C",
+      "categories": [
+        "1P Residential single: $276 flat (includes all fixtures)",
+        "1P Multi-unit: per-unit fees",
+        "Sewer lateral: fixed fee by pipe size",
+        "Commercial: per-fixture basis"
+      ]
+    },
+    "inspection_requirements": [
+      {
+        "id": "PLMB-INS-01",
+        "stage": "Rough-in",
+        "description": "Inspection of drain, waste, vent (DWV) and supply lines before walls are closed"
+      },
+      {
+        "id": "PLMB-INS-02",
+        "stage": "Gas pressure test",
+        "description": "Pressure test of gas piping system before connecting appliances"
+      },
+      {
+        "id": "PLMB-INS-03",
+        "stage": "Final",
+        "description": "Final inspection after all fixtures connected and operational"
+      }
+    ],
+    "commonly_bundled_with": [
+      "Kitchen remodel (sink relocation, dishwasher, disposal)",
+      "Bathroom remodel (toilet, tub, shower relocation)",
+      "ADU permit (full separate plumbing system)",
+      "Restaurant tenant improvement (grease interceptor, commercial sink, hand-washing stations)"
+    ]
+  },
+
+  "mechanical_permits": {
+    "description": "Required for HVAC systems, ventilation, exhaust fans (commercial-grade), boilers, and fuel gas systems.",
+    "governing_code": "SF Mechanical Code (SFMC) — California Mechanical Code with local amendments",
+    "permit_types": [
+      {
+        "id": "MECH-01",
+        "name": "HVAC Permit",
+        "description": "Heating, ventilation, and air conditioning system installation or replacement",
+        "triggers": [
+          "New furnace or air handler installation",
+          "Central AC system installation",
+          "Heat pump system installation",
+          "Ductwork replacement or addition",
+          "Mini-split (ductless) system installation"
+        ],
+        "review_path": "OTC for replacement in-kind, in-house for new systems or complex commercial",
+        "typical_timeline_days": "1-5 (OTC), 10-30 (in-house)"
+      },
+      {
+        "id": "MECH-02",
+        "name": "Boiler Permit",
+        "description": "Low-pressure and high-pressure boiler installation, replacement, or major repair",
+        "triggers": [
+          "New boiler installation",
+          "Boiler replacement",
+          "Major repair to existing boiler"
+        ],
+        "review_path": "In-house — requires special inspection",
+        "typical_timeline_days": "15-45",
+        "agencies": ["DBI", "Boiler inspection section"],
+        "notes": "Operating engineers license required for high-pressure boilers; annual boiler inspection required"
+      },
+      {
+        "id": "MECH-03",
+        "name": "Commercial Exhaust Permit",
+        "description": "Commercial kitchen exhaust systems, Type I/II hoods, makeup air",
+        "triggers": [
+          "New commercial kitchen installation",
+          "Change of use to restaurant",
+          "Type I or Type II hood installation",
+          "Grease duct replacement"
+        ],
+        "review_path": "In-house",
+        "typical_timeline_days": "15-30",
+        "agencies": ["DBI", "SFFD (fire suppression in hood)"]
+      },
+      {
+        "id": "MECH-04",
+        "name": "Refrigeration Permit",
+        "description": "Commercial refrigeration systems — walk-in coolers, condensing units, ammonia systems",
+        "triggers": [
+          "New commercial refrigeration installation",
+          "Walk-in cooler or freezer installation"
+        ],
+        "review_path": "OTC or in-house depending on scope",
+        "typical_timeline_days": "1-15"
+      }
+    ],
+    "fee_reference": {
+      "table": "1A-C",
+      "categories": [
+        "Mechanical work: typically bundled with plumbing fees in 1A-C",
+        "Boiler: separate fee schedule by BTU rating"
+      ]
+    },
+    "inspection_requirements": [
+      {
+        "id": "MECH-INS-01",
+        "stage": "Rough-in",
+        "description": "Inspection of ductwork, piping, and equipment before concealment"
+      },
+      {
+        "id": "MECH-INS-02",
+        "stage": "Final",
+        "description": "Final inspection after system is operational — includes test and balance for commercial systems"
+      }
+    ]
+  },
+
+  "trade_permit_relationships": {
+    "description": "How trade permits relate to building permits and each other",
+    "key_rules": [
+      {
+        "rule": "Trade permits can be pulled independently of building permits",
+        "explanation": "A licensed electrician can pull an electrical permit directly without an accompanying building permit for simple work like adding an outlet or replacing a panel"
+      },
+      {
+        "rule": "Building permits often trigger trade permit requirements",
+        "explanation": "When a building permit involves plumbing or electrical work, separate trade permits are typically required in addition to the building permit"
+      },
+      {
+        "rule": "Trade permits have their own inspection sequence",
+        "explanation": "Each trade permit has rough-in and final inspections independent of building permit inspections, but final CO requires all trade permits to be finaled"
+      },
+      {
+        "rule": "Subcontractors must be licensed for their trade",
+        "explanation": "Only licensed electrical, plumbing, or mechanical contractors can pull trade permits; general contractors cannot pull trade permits"
+      },
+      {
+        "rule": "Trade permits expire independently",
+        "explanation": "Trade permits have their own expiration dates — typically 180 days from issuance with extensions available"
+      }
+    ],
+    "bundling_by_project_type": {
+      "kitchen_remodel": {
+        "building": "Form 3 or 8 — layout changes or OTC no-plan for in-kind",
+        "electrical": "Panel circuit for new appliances, under-cabinet lighting",
+        "plumbing": "If moving sink or adding dishwasher"
+      },
+      "adu_addition": {
+        "building": "Form 1/2 — in-house review",
+        "electrical": "New subpanel or service upgrade, full residential wiring",
+        "plumbing": "Full separate plumbing system — supply, DWV, gas",
+        "mechanical": "Heating system for ADU space"
+      },
+      "restaurant_ti": {
+        "building": "Form 1/2 — change of use, in-house",
+        "electrical": "Commercial panels, 3-phase if needed, exhaust hood controls",
+        "plumbing": "Grease interceptor, hand-washing stations, mop sink",
+        "mechanical": "Type I exhaust hood, makeup air unit, refrigeration"
+      },
+      "bathroom_remodel": {
+        "building": "Form 3 or 8 — OTC if layout changes",
+        "electrical": "GFCI outlets, exhaust fan circuit",
+        "plumbing": "If relocating toilet, tub, or shower"
+      }
+    }
+  },
+
+  "key_distinctions_from_building_permits": {
+    "fee_structure": "Trade permit fees are in Tables 1A-C (plumbing/mechanical) and 1A-E (electrical) — separate from building permit fees in 1A-A",
+    "licensing": "Trade permits require licensed contractors; building permits may be owner-builder",
+    "review_stations": "Trade permits route to ELEC, MECH-E, or PLMB stations in plan review — not to the main BLDG station",
+    "inspection_sequence": "Trade inspections (rough-in, final) are scheduled separately from structural/building inspections",
+    "scope": "Trade permits cover only the specific trade work; building permit covers structural, architectural, and life safety"
+  },
+
+  "related_urls": {
+    "electrical_permits": "https://www.sf.gov/departments/department-building-inspection/electrical-inspection",
+    "plumbing_permits": "https://www.sf.gov/departments/department-building-inspection/plumbing-inspection",
+    "mechanical_permits": "https://www.sf.gov/departments/department-building-inspection/mechanical-inspection",
+    "fee_schedule": "https://www.sf.gov/reports/san-francisco-building-permit-fee-schedules"
+  }
+}

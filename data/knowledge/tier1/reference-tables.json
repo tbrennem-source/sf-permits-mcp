@@ -1,0 +1,351 @@
+{
+  "metadata": {
+    "title": "Reference Tables: Zoning Routing, Permit Forms, and Agency Triggers",
+    "source_type": "Internal system documentation — describes database reference tables powering prediction tools",
+    "date_created": "2026-02-25",
+    "authority": "SF Permits AI internal knowledge",
+    "notes": [
+      "These reference tables are seeded by scripts/seed_reference_tables.py",
+      "They live in both DuckDB (local dev) and PostgreSQL (production)",
+      "They power the predict_permits, required_documents, and estimate_timeline tools",
+      "Data in these tables is derived from G-20 routing matrix, permit forms taxonomy, and policy knowledge"
+    ]
+  },
+
+  "ref_zoning_routing": {
+    "description": "Maps SF zoning codes to agency routing requirements for plan review",
+    "purpose": "When a project address has a known zoning code, this table determines which agencies are required reviewers without having to parse the full G-20 routing matrix",
+    "table_schema": {
+      "zoning_code": "SF Planning Code zoning district code (e.g., RH-1, C-3-O, PDR-1-G)",
+      "zoning_category": "Human-readable category (e.g., 'Single-Family Residential', 'Downtown Core')",
+      "planning_review_required": "Boolean — does Planning Department always review in this zone?",
+      "fire_review_required": "Boolean — does SFFD always review in this zone?",
+      "health_review_required": "Boolean — does DPH always review in this zone?",
+      "historic_district": "Boolean — is this zoning typically in a historic conservation district?",
+      "height_limit": "Text description of typical height limit (informational, not definitive)",
+      "notes": "Free text for caveats or special conditions"
+    },
+    "key_zoning_codes": {
+      "residential": [
+        {
+          "code": "RH-1",
+          "category": "Single-Family Residential",
+          "planning_required": false,
+          "fire_required": false,
+          "notes": "Most common single-family zone; ADUs permitted by state law"
+        },
+        {
+          "code": "RH-2",
+          "category": "Two-Family Residential",
+          "planning_required": false,
+          "fire_required": false,
+          "notes": "Two dwelling units per lot; duplex standard"
+        },
+        {
+          "code": "RH-3",
+          "category": "Three-Family Residential",
+          "planning_required": false,
+          "fire_required": false,
+          "notes": "Up to 3 units; common in inner neighborhoods"
+        },
+        {
+          "code": "RM-1",
+          "category": "Low-Density Multi-Family Residential",
+          "planning_required": false,
+          "fire_required": true,
+          "notes": "Up to approximately 1 unit per 800 sq ft of lot area"
+        },
+        {
+          "code": "RM-4",
+          "category": "High-Density Multi-Family Residential",
+          "planning_required": true,
+          "fire_required": true,
+          "notes": "Highest residential density; large apartment buildings"
+        },
+        {
+          "code": "RC-4",
+          "category": "High-Density Residential-Commercial Combined",
+          "planning_required": true,
+          "fire_required": true,
+          "notes": "Mixed residential and commercial; downtown-adjacent areas"
+        }
+      ],
+      "commercial": [
+        {
+          "code": "NC-1",
+          "category": "Neighborhood Commercial Cluster",
+          "planning_required": true,
+          "fire_required": false,
+          "notes": "Small clusters of neighborhood-serving retail"
+        },
+        {
+          "code": "NC-2",
+          "category": "Small-Scale Neighborhood Commercial",
+          "planning_required": true,
+          "fire_required": false,
+          "notes": "Main corridor retail; formula retail controls apply"
+        },
+        {
+          "code": "C-3-O",
+          "category": "Downtown Commercial-Office",
+          "planning_required": true,
+          "fire_required": true,
+          "historic_district": true,
+          "notes": "Downtown core; Section 309 review; Article 11 conservation district"
+        },
+        {
+          "code": "PDR-1-G",
+          "category": "Production, Distribution, Repair — General",
+          "planning_required": true,
+          "fire_required": false,
+          "notes": "Industrial/maker space; SoMa; restrictions on residential conversion"
+        }
+      ]
+    },
+    "usage_in_predict_permits": "When predict_permits receives an address with known zoning, it first checks ref_zoning_routing to build the initial agency list before applying G-20 routing rules"
+  },
+
+  "ref_permit_forms": {
+    "description": "Maps project types to the correct DBI permit form and review path",
+    "purpose": "Quick lookup for which Form to use for common project types — supplements the more detailed permit-forms-taxonomy.json with normalized project_type keys for programmatic access",
+    "table_schema": {
+      "id": "Unique integer identifier",
+      "project_type": "Normalized project type key (e.g., 'kitchen_remodel', 'adu', 'new_construction')",
+      "permit_form": "DBI form number (e.g., 'Form 3/8', 'Form 1/2', 'Form 6')",
+      "review_path": "Either 'otc' or 'in_house'",
+      "notes": "Caveats, edge cases, or conditions that change the form/path selection"
+    },
+    "common_mappings": [
+      {
+        "project_type": "kitchen_remodel",
+        "permit_form": "Form 3/8",
+        "review_path": "otc",
+        "notes": "With plans if layout changes; no-plan OTC if in-kind"
+      },
+      {
+        "project_type": "bathroom_remodel",
+        "permit_form": "Form 3/8",
+        "review_path": "otc",
+        "notes": "With plans if layout changes; no-plan OTC if in-kind"
+      },
+      {
+        "project_type": "residential_interior_remodel",
+        "permit_form": "Form 3/8",
+        "review_path": "otc",
+        "notes": "OTC with plans if changing floor plan; in-house if structural"
+      },
+      {
+        "project_type": "new_construction",
+        "permit_form": "Form 1/2",
+        "review_path": "in_house",
+        "notes": "Always in-house; Form 1 for new building, Form 2 for addition"
+      },
+      {
+        "project_type": "adu",
+        "permit_form": "Form 1/2",
+        "review_path": "in_house",
+        "notes": "All ADU types require in-house review per DBI policy"
+      },
+      {
+        "project_type": "restaurant",
+        "permit_form": "Form 1/2",
+        "review_path": "in_house",
+        "notes": "Change of use to restaurant always requires in-house; DPH, SFFD routing"
+      },
+      {
+        "project_type": "demolition",
+        "permit_form": "Form 6",
+        "review_path": "in_house",
+        "notes": "Form 6 is the demolition permit form; Planning review required"
+      },
+      {
+        "project_type": "commercial_ti",
+        "permit_form": "Form 3/8",
+        "review_path": "otc",
+        "notes": "Single-story non-structural TI can be OTC; structural or multi-story is in-house"
+      },
+      {
+        "project_type": "sign_permit",
+        "permit_form": "Form 3/8",
+        "review_path": "otc",
+        "notes": "OTC with plans; Planning routing if in certain districts"
+      },
+      {
+        "project_type": "seismic_retrofit",
+        "permit_form": "Form 3/8",
+        "review_path": "otc",
+        "notes": "Brace and bolt (S-09 compliant) is OTC; mandatory soft-story may be in-house"
+      }
+    ],
+    "form_reference": {
+      "Form_1": "New Building — large new construction",
+      "Form_2": "Grading, Excavation, Fill, Revetment — also used for additions",
+      "Form_3": "Alterations, Repair, Demolition — most residential and commercial alterations",
+      "Form_4": "Boiler — boiler and pressure vessel work",
+      "Form_5": "Electrical — electrical permit application",
+      "Form_6": "Demolition",
+      "Form_7": "Mechanical — HVAC, plumbing mechanical",
+      "Form_8": "No Plans Required — OTC without plans (simple repairs, in-kind replacement)"
+    },
+    "usage_in_tools": "The predict_permits and required_documents tools use ref_permit_forms to quickly determine form and path before doing more detailed knowledge base lookups"
+  },
+
+  "ref_agency_triggers": {
+    "description": "Maps project keywords and conditions to the agencies that must review the permit",
+    "purpose": "When a project description contains certain keywords or scope elements, this table identifies which additional agencies must be added to the review routing",
+    "table_schema": {
+      "id": "Unique integer identifier",
+      "trigger_keyword": "The word or phrase in the project description that triggers agency routing (e.g., 'restaurant', 'sprinkler', 'historic')",
+      "agency": "The agency name to add to routing (e.g., 'Planning', 'SFFD (Fire)', 'DPH (Public Health)')",
+      "reason": "Human-readable explanation of why this agency is triggered",
+      "adds_weeks": "Estimated additional weeks added to review timeline by this agency routing (integer)"
+    },
+    "key_triggers": {
+      "planning_triggers": [
+        {
+          "keyword": "change of use",
+          "agency": "Planning",
+          "reason": "Change of use requires planning zoning compliance review",
+          "adds_weeks": 4
+        },
+        {
+          "keyword": "new construction",
+          "agency": "Planning",
+          "reason": "All new construction requires planning review",
+          "adds_weeks": 6
+        },
+        {
+          "keyword": "demolition",
+          "agency": "Planning",
+          "reason": "Demolition requires planning review for residential unit loss (Section 317)",
+          "adds_weeks": 4
+        },
+        {
+          "keyword": "adu",
+          "agency": "Planning",
+          "reason": "ADU projects require planning zoning compliance",
+          "adds_weeks": 2
+        },
+        {
+          "keyword": "historic",
+          "agency": "Planning",
+          "reason": "Historic resource review required — potential COA from HPC",
+          "adds_weeks": 8
+        }
+      ],
+      "fire_triggers": [
+        {
+          "keyword": "sprinkler",
+          "agency": "SFFD (Fire)",
+          "reason": "Fire sprinkler system requires SFFD plan review and inspection",
+          "adds_weeks": 3
+        },
+        {
+          "keyword": "fire alarm",
+          "agency": "SFFD (Fire)",
+          "reason": "Fire alarm system requires SFFD review",
+          "adds_weeks": 3
+        },
+        {
+          "keyword": "restaurant",
+          "agency": "SFFD (Fire)",
+          "reason": "Commercial kitchen requires SFFD fire code compliance review",
+          "adds_weeks": 3
+        },
+        {
+          "keyword": "high rise",
+          "agency": "SFFD (Fire)",
+          "reason": "High-rise buildings (75+ ft) require full SFFD review",
+          "adds_weeks": 6
+        },
+        {
+          "keyword": "assembly",
+          "agency": "SFFD (Fire)",
+          "reason": "Assembly occupancy (A group) requires SFFD review",
+          "adds_weeks": 4
+        }
+      ],
+      "health_triggers": [
+        {
+          "keyword": "restaurant",
+          "agency": "DPH (Public Health)",
+          "reason": "Food service establishment requires DPH plan review and environmental health permit",
+          "adds_weeks": 4
+        },
+        {
+          "keyword": "food service",
+          "agency": "DPH (Public Health)",
+          "reason": "Any food preparation or service area triggers DPH review",
+          "adds_weeks": 4
+        },
+        {
+          "keyword": "childcare",
+          "agency": "DPH (Public Health)",
+          "reason": "Childcare facilities require DPH licensing and plan review",
+          "adds_weeks": 4
+        },
+        {
+          "keyword": "medical",
+          "agency": "DPH (Public Health)",
+          "reason": "Medical offices and clinics require DPH review for hazardous waste and infection control",
+          "adds_weeks": 3
+        }
+      ],
+      "structural_triggers": [
+        {
+          "keyword": "foundation",
+          "agency": "DBI (Building)",
+          "reason": "Foundation work requires structural engineering review at DBI",
+          "adds_weeks": 4
+        },
+        {
+          "keyword": "seismic",
+          "agency": "DBI (Building)",
+          "reason": "Seismic upgrade requires structural plan review",
+          "adds_weeks": 3
+        },
+        {
+          "keyword": "shoring",
+          "agency": "DBI (Building)",
+          "reason": "Shoring and excavation support require special structural review",
+          "adds_weeks": 4
+        }
+      ]
+    },
+    "usage_in_predict_permits": "The predict_permits tool scans the project description for trigger keywords, looks them up in ref_agency_triggers, and builds the agency routing list and timeline estimate",
+    "overlap_with_g20": "ref_agency_triggers provides quick keyword lookup; the G-20-routing.json provides the authoritative routing matrix for all 154 project type entries. They are complementary — G-20 is definitive, ref_agency_triggers is a fast heuristic"
+  },
+
+  "how_tables_power_prediction_tools": {
+    "predict_permits_workflow": [
+      "1. Parse project description to extract scope keywords (context_parser.py)",
+      "2. Match keywords against ref_agency_triggers to build initial agency list",
+      "3. Look up address zoning in ref_zoning_routing if address provided",
+      "4. Cross-reference with G-20-routing.json for authoritative agency requirements",
+      "5. Look up project_type in ref_permit_forms to determine form and OTC/in-house path",
+      "6. Apply knowledge base concepts from semantic-index.json for additional requirements",
+      "7. Return structured prediction with permits, routing, requirements, confidence"
+    ],
+    "required_documents_workflow": [
+      "1. Receive permit_forms and review_path from predict_permits output",
+      "2. Use permit form to determine base document list from completeness-checklist.json",
+      "3. Use agency_routing list to add agency-specific requirements",
+      "4. Apply project_type triggers for specialized document needs (EPR, Title 24, etc.)",
+      "5. Return categorized checklist of required documents"
+    ],
+    "estimate_timeline_workflow": [
+      "1. Determine permit_type from ref_permit_forms lookup",
+      "2. Sum adds_weeks values from all triggered agencies in ref_agency_triggers",
+      "3. Add base processing time from historical timeline statistics",
+      "4. Apply neighborhood-specific velocity adjustments from station_velocity data",
+      "5. Return percentile estimates (p25/p50/p75/p90)"
+    ]
+  },
+
+  "data_maintenance": {
+    "seeding": "scripts/seed_reference_tables.py — populates all 3 tables from hardcoded Python constants",
+    "frequency": "Tables are seeded once at deployment; updates require re-running seed script via /cron/seed-references endpoint",
+    "idempotency": "Seed script uses UPSERT (INSERT OR REPLACE in DuckDB, INSERT ... ON CONFLICT in PostgreSQL) — safe to re-run",
+    "source_of_truth": "These tables are derived from knowledge files, not the other way around. If policy changes, update the knowledge JSON first, then update the seed constants"
+  }
+}

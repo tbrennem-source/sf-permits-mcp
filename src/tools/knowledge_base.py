@@ -103,6 +103,12 @@ class KnowledgeBase:
         self.floodplain_soft_story = _load_json(tier1 / "floodplain-soft-story.json")
         self.sf_2025_code_amendments = _load_json(tier1 / "sf-2025-code-amendments.json")
 
+        # Sprint 56B — Trade permits, street use, housing, reference tables knowledge
+        self.trade_permits = _load_json(tier1 / "trade-permits.json")
+        self.street_use_permits = _load_json(tier1 / "street-use-permits.json")
+        self.housing_development = _load_json(tier1 / "housing-development.json")
+        self.reference_tables_knowledge = _load_json(tier1 / "reference-tables.json")
+
         # Build keyword index from semantic index
         self._keyword_index = self._build_keyword_index()
 

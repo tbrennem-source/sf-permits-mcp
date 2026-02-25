@@ -1,0 +1,235 @@
+{
+  "metadata": {
+    "title": "Street Use Permits in San Francisco",
+    "source_url": "https://www.sf.gov/topics/street-use-permits",
+    "source_type": "sf.gov official, SFMTA, DPW/BSM policy",
+    "date_scraped": "2026-02-25",
+    "authority": "SF Department of Public Works (DPW) Bureau of Street-Use and Mapping (BSM), SFMTA",
+    "notes": [
+      "Street use permits are required whenever work or staging impacts the public right-of-way",
+      "DPW/BSM handles most street use permits; SFMTA handles curb zones and transit impacts",
+      "Street use permits are in addition to any building permits — they are separate applications",
+      "Failure to obtain street use permits can result in stop-work orders on adjacent building work",
+      "Bonds or insurance are typically required for excavation permits"
+    ]
+  },
+
+  "jurisdiction": {
+    "dpw_bsm": {
+      "name": "DPW Bureau of Street-Use and Mapping (BSM)",
+      "handles": [
+        "Excavation permits",
+        "Construction staging (concrete pourback, crane pads)",
+        "Temporary construction fences in right-of-way",
+        "Sidewalk repair and replacement",
+        "Curb cut (driveway) permits",
+        "Street closures for construction"
+      ],
+      "contact": "BSM Counter, 49 South Van Ness Ave",
+      "url": "https://www.sf.gov/departments/public-works/street-use-mapping"
+    },
+    "sfmta": {
+      "name": "San Francisco Municipal Transportation Agency",
+      "handles": [
+        "Temporary No Parking permits",
+        "Lane closure permits",
+        "Parking meter hood requests",
+        "Construction zone permits impacting bus stops or Muni",
+        "Parklet permits (shared with DPW)"
+      ],
+      "url": "https://www.sfmta.com/permits-and-construction",
+      "notes": "SFMTA coordinates with DPW for permits impacting both parking and public works"
+    }
+  },
+
+  "permit_types": [
+    {
+      "id": "SU-01",
+      "name": "Excavation Permit",
+      "description": "Required for any excavation in the public right-of-way — trenching for utilities, sewer laterals, underground vaults",
+      "when_needed": [
+        "Sewer lateral replacement requiring street or sidewalk cut",
+        "Water service connection from main to building",
+        "Utility installation or upgrade",
+        "Underground vault or cistern installation in sidewalk"
+      ],
+      "jurisdiction": "DPW/BSM",
+      "typical_fee": "$500-$5,000 depending on trench length and location",
+      "duration": "90 days standard, extensions available",
+      "requirements": [
+        "Underground Service Alert (USA/811) notification required 2 business days before excavation",
+        "Performance bond or cash deposit required",
+        "Pavement restoration plan",
+        "Traffic control plan if street closure involved",
+        "Backfill compaction report after completion"
+      ],
+      "restoration": "DPW requires pavement patching/restoration within 30 days of permit expiration; sidewalk must be restored to match existing",
+      "related_permits": ["PLMB-02 (Sewer Lateral)", "PLMB-01 (Water Service)"]
+    },
+    {
+      "id": "SU-02",
+      "name": "Construction Occupancy (Staging) Permit",
+      "description": "Temporary occupancy of the sidewalk or parking lane for construction equipment, materials, or scaffolding",
+      "when_needed": [
+        "Construction scaffolding over public sidewalk",
+        "Dumpster, storage container, or construction trailer in parking lane",
+        "Concrete pump truck or cement mixer staging",
+        "Temporary fencing enclosing sidewalk during demolition or construction",
+        "Crane pad in street or sidewalk"
+      ],
+      "jurisdiction": "DPW/BSM (primary), SFMTA (parking meter hoods)",
+      "typical_fee": "$50-$300/day for sidewalk staging; meter hood fees separate",
+      "duration": "Project duration — typically 30-90 days with renewals",
+      "requirements": [
+        "Pedestrian access maintained (5-ft minimum clear path or protected walkway)",
+        "Insurance certificate required ($1M liability minimum)",
+        "Temporary pedestrian walkway specs if sidewalk closed",
+        "Night lighting required if staging extends after sunset",
+        "Height restriction may apply under Muni overhead wires"
+      ],
+      "related_permits": ["Building permit (parent)", "SFMTA meter hood permit"]
+    },
+    {
+      "id": "SU-03",
+      "name": "Sidewalk Repair Permit",
+      "description": "Required for any work in the sidewalk zone — replacement, extension, or new paving",
+      "when_needed": [
+        "Damaged sidewalk replacement (owner responsibility under SF Public Works Code)",
+        "Sidewalk widening or narrowing",
+        "New sidewalk where none existed",
+        "Tree grate or planting area modification"
+      ],
+      "jurisdiction": "DPW/BSM",
+      "typical_fee": "$200-$500 depending on area",
+      "duration": "30-60 days",
+      "owner_liability": "Property owners are responsible for sidewalk maintenance and repair — DPW can order repairs and bill owner",
+      "standards": "Sidewalks must meet DPW standard specifications: concrete mix, thickness, scoring pattern, ADA ramps at corners"
+    },
+    {
+      "id": "SU-04",
+      "name": "Curb Cut (Driveway) Permit",
+      "description": "Permission to create, modify, or remove a driveway opening in the curb",
+      "when_needed": [
+        "New garage or parking area requiring curb cut",
+        "Widening existing driveway",
+        "Converting parking to other use (curb cut must be filled)",
+        "ADU with parking requirement"
+      ],
+      "jurisdiction": "DPW/BSM (issues permit), Planning (reviews driveway locations on certain streets)",
+      "typical_fee": "$300-$800",
+      "duration": "90 days",
+      "requirements": [
+        "Minimum 18-ft setback from corner required",
+        "Not permitted on certain transit or bicycle priority streets",
+        "Planning review required on hills and certain neighborhoods"
+      ],
+      "related_permits": ["Building permit (new garage or ADU)", "Planning approval on restricted streets"]
+    },
+    {
+      "id": "SU-05",
+      "name": "Street Closure Permit",
+      "description": "Temporary closure of one or more traffic lanes or full street closure for construction or events",
+      "when_needed": [
+        "Major demolition requiring lane closure",
+        "Tower crane erection over street",
+        "Large concrete pour requiring pump truck in street",
+        "Moving large equipment that cannot fit on sidewalk"
+      ],
+      "jurisdiction": "DPW/BSM (traffic engineering section), SFMTA (transit coordination)",
+      "typical_fee": "$500-$2,000 plus SFMTA costs",
+      "duration": "Per event (hours to days)",
+      "requirements": [
+        "Traffic Control Plan (TCP) prepared by licensed traffic engineer",
+        "SFMTA approval if Muni route affected",
+        "Police Department notification",
+        "Signage and barricade plan",
+        "Notice to adjacent businesses and residents",
+        "Minimum 48-hour notice to DPW"
+      ]
+    },
+    {
+      "id": "SU-06",
+      "name": "Parklet Permit",
+      "description": "Conversion of on-street parking spaces to public outdoor seating or plaza (semi-permanent)",
+      "when_needed": [
+        "Restaurant or cafe seeking outdoor seating in former parking spaces",
+        "Community organization creating neighborhood plaza"
+      ],
+      "jurisdiction": "DPW/BSM (primary), Planning (design review), SFMTA (parking removal)",
+      "typical_fee": "$2,500-$10,000 one-time application; ongoing annual fees",
+      "duration": "Renewable annually",
+      "requirements": [
+        "Design must meet DPW Parklet Guidelines",
+        "ADA accessibility compliance",
+        "Community outreach notification",
+        "Planning Department design review",
+        "SFMTA approval for parking removal"
+      ]
+    },
+    {
+      "id": "SU-07",
+      "name": "Encroachment Permit",
+      "description": "Permanent or semi-permanent structure in the public right-of-way (stairs, stoops, planters, awnings)",
+      "when_needed": [
+        "Steps or stoop that extends into sidewalk",
+        "Awning or canopy over sidewalk",
+        "Planter box in sidewalk zone",
+        "Bay window or building element overhanging sidewalk",
+        "Outdoor dining area on sidewalk (non-parklet)"
+      ],
+      "jurisdiction": "DPW/BSM",
+      "typical_fee": "$500-$2,000 one-time",
+      "duration": "Permanent (revocable license)",
+      "requirements": [
+        "Revocable encroachment agreement with DPW",
+        "Insurance required for larger structures",
+        "Must not obstruct fire hydrants, utility boxes, or ADA paths"
+      ]
+    }
+  ],
+
+  "relationship_to_building_permits": {
+    "when_both_required": [
+      "Any project requiring a construction dumpster or materials in the parking lane or sidewalk",
+      "Projects requiring scaffolding over public right-of-way",
+      "Sewer lateral work that cuts the street or sidewalk",
+      "New construction or major remodel with delivery and staging needs",
+      "Excavation for foundation work near property line"
+    ],
+    "sequence": "Building permits and street use permits are applied for separately but must coordinate on timeline. Building permit is typically filed first; street use permits are applied for as construction timing is known.",
+    "note": "A stop-work order on the street use permit (e.g., for unpermitted sidewalk occupation) can halt all associated construction work"
+  },
+
+  "duration_limits_and_renewals": {
+    "standard_duration": "Most street use permits are issued for 30-90 days",
+    "renewals": "Available upon request with fee — most permits can be renewed if construction is ongoing",
+    "expiration_consequence": "Failure to renew can result in fines; unrestore sidewalk/street triggers DPW emergency restoration at owner expense",
+    "long_term_construction": "Projects over 6 months should plan for quarterly renewals of staging and excavation permits"
+  },
+
+  "common_mistakes": [
+    {
+      "mistake": "Starting excavation before USA/811 clearance",
+      "consequence": "Risk of hitting underground utilities; criminal liability; DPW stop-work"
+    },
+    {
+      "mistake": "Placing dumpster without SFMTA meter hood permit",
+      "consequence": "Meter citation, dumpster removal by city at owner expense"
+    },
+    {
+      "mistake": "Not maintaining 5-ft pedestrian clearance when sidewalk is staging area",
+      "consequence": "DPW stop-work order; ADA violation"
+    },
+    {
+      "mistake": "Failing to restore sidewalk after sewer lateral work",
+      "consequence": "DPW issues Notice of Violation; emergency restoration billed to property owner"
+    }
+  ],
+
+  "related_urls": {
+    "dpw_permits": "https://www.sf.gov/departments/public-works/permits",
+    "sfmta_construction_permits": "https://www.sfmta.com/permits-and-construction",
+    "parklet_program": "https://www.sf.gov/topics/parklets",
+    "usa_811": "https://www.usanorth811.org/"
+  }
+}
