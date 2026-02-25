@@ -83,7 +83,7 @@ Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze
 
 | Service | Role | Status |
 |---|---|---|
-| **sfpermits-ai** | Flask web app (auto-deploys from `main` branch) | Active |
+| **sfpermits-ai** | Flask web app (prod deploys from `prod` branch, staging from `main`) | Active |
 | **sfpermits-mcp-api** | MCP server over Streamable HTTP (`Dockerfile.mcp`) | Active |
 | **pgvector-db** | PostgreSQL + pgvector — user data, RAG embeddings, permit changes | Active, primary DB |
 | **pgVector-Railway** | pgvector instance (appears unused, has empty volume) | Active |
@@ -119,9 +119,23 @@ The app's `DATABASE_URL` points to `pgvector-db.railway.internal:5432` — **onl
 - RAG: `knowledge_chunks` (pgvector embeddings, ~1,012 chunks)
 - Bulk data: `contacts` (1.8M), `entities` (1M), `relationships` (576K), `permits` (1.1M), `inspections` (671K), `timeline_stats` (382K)
 
+### Two-Branch Model (Sprint 54+)
+
+| Branch | Purpose | Railway trigger |
+|--------|---------|----------------|
+| `main` | Staging — all builds land here first | Auto-deploys staging (if configured) |
+| `prod` | Production — promoted from main after QA | Auto-deploys `sfpermits-ai` production service |
+
+**Promotion ceremony** (after staging QA passes):
+```bash
+git checkout prod && git merge main && git push origin prod
+```
+
+**NEVER** push directly to `prod` — always merge from `main` after verification.
+
 ### Deploying to Production
 
-GitHub auto-deploy is connected: pushes to `main` on `tbrennem-source/sf-permits-mcp` automatically trigger a Railway build and deploy. After merging and pushing:
+GitHub auto-deploy is connected: pushes to `prod` on `tbrennem-source/sf-permits-mcp` trigger a Railway build and deploy for the production service. Pushes to `main` deploy to staging (same URL until separate staging service is configured). After promoting and pushing:
 
 ```bash
 # Verify deploy succeeded (give it ~2 min to build):

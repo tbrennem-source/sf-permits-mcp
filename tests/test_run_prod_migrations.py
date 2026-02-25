@@ -30,8 +30,8 @@ from scripts.run_prod_migrations import (
 
 class TestMigrationRegistry:
     def test_migration_count(self):
-        """Seven migrations in the registry."""
-        assert len(MIGRATIONS) == 7
+        """Eight migrations in the registry."""
+        assert len(MIGRATIONS) == 8
 
     def test_all_have_names(self):
         """Every migration has a non-empty name."""
@@ -69,16 +69,15 @@ class TestMigrationRegistry:
             "brief_email",
             "invite_code",
             "signals",
+            "cron_log_columns",
         }
         actual = {m.name for m in MIGRATIONS}
         assert expected == actual
 
-    def test_signals_is_last(self):
-        """'signals' migration runs after all SQL file migrations."""
+    def test_cron_log_columns_is_last(self):
+        """'cron_log_columns' migration runs after signals."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-1] == "signals", (
-            "signals migration should be last (depends on schema being set up)"
-        )
+        assert names[-1] == "cron_log_columns"
 
     def test_schema_is_first(self):
         """'schema' migration runs first."""

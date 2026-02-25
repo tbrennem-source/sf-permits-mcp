@@ -6084,6 +6084,23 @@ def cron_velocity_refresh():
 
 # ---------------------------------------------------------------------------
 
+@app.route("/cron/migrate", methods=["POST"])
+def cron_migrate():
+    """Run all database migrations.
+
+    Protected by CRON_SECRET bearer token. Designed to be called after
+    deploy to apply any pending schema changes.
+
+    Returns JSON with per-migration results.
+    """
+    _check_api_auth()
+    from scripts.run_prod_migrations import run_all_migrations
+
+    result = run_all_migrations()
+    status = 200 if result.get("ok") else 500
+    return Response(json.dumps(result, indent=2), mimetype="application/json"), status
+
+
 @app.route("/cron/backup", methods=["POST"])
 def cron_backup():
     """Run pg_dump and store a timestamped backup.

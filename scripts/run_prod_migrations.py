@@ -107,6 +107,30 @@ def _run_schema() -> dict[str, Any]:
     return _run_sql_file(Path(__file__).parent / "postgres_schema.sql")
 
 
+def _run_cron_log_columns() -> dict[str, Any]:
+    """Add duration_seconds and records_processed columns to cron_log."""
+    from src.db import get_connection, BACKEND  # type: ignore
+
+    if BACKEND != "postgres":
+        return {"ok": True, "skipped": True, "reason": "DuckDB mode — not needed"}
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                ALTER TABLE cron_log ADD COLUMN IF NOT EXISTS duration_seconds FLOAT;
+                ALTER TABLE cron_log ADD COLUMN IF NOT EXISTS records_processed INTEGER;
+            """)
+        conn.commit()
+        return {"ok": True, "columns_added": ["duration_seconds", "records_processed"]}
+    except Exception as exc:
+        conn.rollback()
+        logger.error("cron_log column migration failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+    finally:
+        conn.close()
+
+
 # ---- ordered registry ------------------------------------------------
 
 MIGRATIONS: list[Migration] = [
@@ -146,6 +170,11 @@ MIGRATIONS: list[Migration] = [
         description="Signal tables: signal_types, permit_signals, property_signals, "
                     "property_health — seeds 13 signal types (migrate_signals.py)",
         run=_run_signals,
+    ),
+    Migration(
+        name="cron_log_columns",
+        description="Add duration_seconds and records_processed columns to cron_log",
+        run=lambda: _run_cron_log_columns(),
     ),
 ]
 
@@ -205,6 +234,34 @@ def run_migrations(
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+def run_all_migrations() -> dict:
+    """Run all migrations programmatically. Returns a results dict for the /cron/migrate endpoint."""
+    results = []
+    for mig in MIGRATIONS:
+        t0 = time.monotonic()
+        try:
+            result = mig.run()
+        except Exception as exc:
+            result = {"ok": False, "error": str(exc)}
+        elapsed = round(time.monotonic() - t0, 2)
+        results.append({
+            "name": mig.name,
+            "ok": result.get("ok", False),
+            "skipped": result.get("skipped", False),
+            "elapsed_seconds": elapsed,
+            **({k: v for k, v in result.items() if k not in ("ok", "skipped")}),
+        })
+    succeeded = sum(1 for r in results if r["ok"])
+    failed = sum(1 for r in results if not r["ok"])
+    return {
+        "ok": failed == 0,
+        "succeeded": succeeded,
+        "failed": failed,
+        "total": len(MIGRATIONS),
+        "results": results,
+    }
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
