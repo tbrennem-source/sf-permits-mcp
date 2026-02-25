@@ -143,6 +143,9 @@ CREATE TABLE IF NOT EXISTS inspections (
 
 CREATE INDEX IF NOT EXISTS idx_inspections_ref ON inspections(reference_number);
 CREATE INDEX IF NOT EXISTS idx_inspections_inspector ON inspections(inspector);
+-- Natural-key UNIQUE index (applied after dedup via _run_inspections_unique migration)
+CREATE UNIQUE INDEX IF NOT EXISTS uk_inspections_natural
+    ON inspections(reference_number, scheduled_date, COALESCE(inspection_description, ''));
 
 -- Addenda (3.9M records — permit review routing steps)
 CREATE TABLE IF NOT EXISTS addenda (

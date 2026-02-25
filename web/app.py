@@ -5420,6 +5420,17 @@ def cron_nightly():
     """
     _check_api_auth()
 
+    # === SESSION E: Stuck cron auto-close ===
+    # Auto-close stuck cron jobs (>4 hours in 'running' state)
+    try:
+        from src.db import execute_write
+        execute_write(
+            "UPDATE cron_log SET status = 'failed', error = 'auto-closed: stuck >4 hours' "
+            "WHERE status = 'running' AND started_at < NOW() - INTERVAL '4 hours'"
+        )
+    except Exception:
+        pass  # Don't let cleanup failure block nightly
+
     from scripts.nightly_changes import run_nightly
     import json
 
