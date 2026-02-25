@@ -5,7 +5,7 @@
     "created_date": "2026-02-14",
     "purpose": "When a query mentions a concept (or any of its aliases), this index tells the system exactly which files and JSON paths contain the authoritative answer. Eliminates the 'which file do I search?' problem.",
     "usage": "1. Tokenize user query. 2. Match tokens against concept aliases. 3. Retrieve all authoritative_sources for matched concepts. 4. Load those specific JSON paths. 5. Synthesize answer.",
-    "total_concepts": 101
+    "total_concepts": 114
   },
 
   "concepts": {
@@ -1322,6 +1322,188 @@
       ],
       "data_freshness": "G-20 is static; addenda data is nightly",
       "related_concepts": ["plan_review_velocity", "routing_completion", "inhouse_review"]
+    },
+
+    "electrical_permit": {
+      "canonical_name": "Electrical Permit",
+      "aliases": ["electrical permit", "electrical work", "wiring permit", "panel upgrade", "electrical inspection", "EV charger permit", "solar permit", "electrical circuit", "electrical alteration", "rewiring", "service upgrade", "subpanel", "ELEC station"],
+      "description": "Permits for electrical work — adding circuits, panel upgrades, EV charger installation, solar PV systems, fire alarm systems. Governed by SF Electrical Code. Fees in Table 1A-E. Separate from building permit.",
+      "authoritative_sources": [
+        {"file": "tier1/trade-permits.json", "path": "electrical_permits", "role": "Electrical permit types, triggers, timelines, inspection requirements"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_E", "role": "Electrical permit fee schedule"},
+        {"file": "tier1/trade-permits.json", "path": "trade_permit_relationships", "role": "How electrical permits combine with building permits"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["plumbing_permit", "mechanical_permit", "fee_calculation", "inspections"]
+    },
+
+    "plumbing_permit": {
+      "canonical_name": "Plumbing Permit",
+      "aliases": ["plumbing permit", "plumbing work", "drain permit", "sewer lateral", "water heater permit", "gas line permit", "plumbing inspection", "DWV", "drain waste vent", "plumbing alteration", "grease trap", "backflow prevention", "plumbing rough-in", "PLMB station"],
+      "description": "Permits for plumbing work — fixture moves, sewer lateral replacement, water heater, gas piping, grease interceptors. Governed by SF Plumbing Code. Fees in Table 1A-C. Separate from building permit.",
+      "authoritative_sources": [
+        {"file": "tier1/trade-permits.json", "path": "plumbing_permits", "role": "Plumbing permit types, triggers, timelines, inspection requirements"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_C", "role": "Plumbing and mechanical fee schedule"},
+        {"file": "tier1/trade-permits.json", "path": "trade_permit_relationships.bundling_by_project_type", "role": "Which building projects trigger plumbing permits"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["electrical_permit", "mechanical_permit", "fee_calculation", "inspections"]
+    },
+
+    "mechanical_permit": {
+      "canonical_name": "Mechanical Permit",
+      "aliases": ["mechanical permit", "HVAC permit", "boiler permit", "furnace permit", "air conditioning permit", "heat pump permit", "ductwork permit", "commercial exhaust permit", "Type I hood", "Type II hood", "refrigeration permit", "MECH-E station"],
+      "description": "Permits for mechanical systems — HVAC installation, boiler replacement, commercial kitchen exhaust, refrigeration. Governed by SF Mechanical Code. Fees in Table 1A-C. Separate from building permit.",
+      "authoritative_sources": [
+        {"file": "tier1/trade-permits.json", "path": "mechanical_permits", "role": "Mechanical permit types, triggers, timelines, inspection requirements"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_C", "role": "Plumbing and mechanical fee schedule"},
+        {"file": "tier1/trade-permits.json", "path": "trade_permit_relationships", "role": "How mechanical permits combine with building permits"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["plumbing_permit", "electrical_permit", "fee_calculation", "restaurant"]
+    },
+
+    "street_use_permit": {
+      "canonical_name": "Street Use / Encroachment Permit",
+      "aliases": ["street use permit", "sidewalk permit", "excavation permit", "street excavation", "construction staging", "curb cut", "driveway permit", "parklet", "encroachment permit", "lane closure", "street closure", "DPW permit", "BSM permit", "right of way", "public right-of-way", "construction occupancy", "staging permit", "meter hood", "sidewalk excavation", "trench permit"],
+      "description": "Permits for work or staging in the public right-of-way — excavation, construction scaffolding, dumpster placement, curb cuts, parklets. Issued by DPW/BSM. Separate from building permit; required simultaneously for projects impacting the sidewalk or street.",
+      "authoritative_sources": [
+        {"file": "tier1/street-use-permits.json", "path": "permit_types", "role": "7 street use permit types with requirements and fees"},
+        {"file": "tier1/street-use-permits.json", "path": "relationship_to_building_permits", "role": "When street use permits are required alongside building permits"},
+        {"file": "tier1/street-use-permits.json", "path": "jurisdiction", "role": "DPW/BSM vs SFMTA jurisdiction split"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["dpw_streets", "sewer_lateral", "construction_staging"]
+    },
+
+    "construction_staging": {
+      "canonical_name": "Construction Staging and Sidewalk Occupancy",
+      "aliases": ["construction staging", "sidewalk closure", "scaffolding permit", "dumpster permit", "construction fence", "temporary construction", "material storage", "crane permit", "pedestrian walkway", "temporary occupancy"],
+      "description": "Temporary occupancy of sidewalk or parking lane for construction materials, scaffolding, dumpsters, or cranes. Requires DPW/BSM construction occupancy permit and SFMTA meter hood permits for parking spaces.",
+      "authoritative_sources": [
+        {"file": "tier1/street-use-permits.json", "path": "permit_types[SU-02]", "role": "Construction Occupancy permit requirements and fees"},
+        {"file": "tier1/street-use-permits.json", "path": "common_mistakes", "role": "Common violations and consequences"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["street_use_permit", "dpw_streets"]
+    },
+
+    "sewer_lateral": {
+      "canonical_name": "Sewer Lateral Permit",
+      "aliases": ["sewer lateral", "sewer line", "lateral replacement", "SSIP", "sewer permit", "sewer repair", "private sewer lateral", "root intrusion"],
+      "description": "Permit for repair or replacement of the building sewer lateral from building to city main. Requires both DBI plumbing permit and DPW excavation permit if sidewalk or street is cut. SSIP compliance may be required for property sales.",
+      "authoritative_sources": [
+        {"file": "tier1/trade-permits.json", "path": "plumbing_permits[PLMB-02]", "role": "Sewer lateral permit type details"},
+        {"file": "tier1/street-use-permits.json", "path": "permit_types[SU-01]", "role": "Excavation permit required if street or sidewalk cut"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["plumbing_permit", "street_use_permit", "excavation"]
+    },
+
+    "adu": {
+      "canonical_name": "Accessory Dwelling Unit (ADU)",
+      "aliases": ["ADU", "accessory dwelling unit", "granny unit", "in-law unit", "backyard cottage", "secondary unit", "attached ADU", "detached ADU", "garage conversion ADU", "JADU", "junior ADU", "ADU legalization", "second unit"],
+      "description": "Secondary dwelling units on residential properties. State law (AB 68, AB 881, SB 13, AB 2221, AB 976) has significantly expanded ADU rights beyond local SF rules. Most ADUs are ministerially approved — no discretionary review. Requires in-house building permit review.",
+      "authoritative_sources": [
+        {"file": "tier1/housing-development.json", "path": "adu_programs", "role": "5 ADU types with permit path, timeline, cost, and state law protections"},
+        {"file": "tier1/adu-programs.json", "path": null, "role": "Detailed ADU program information from sf.gov"},
+        {"file": "tier1/otc-criteria.json", "path": "not_otc_requires_inhouse", "role": "ADU/unit legalization requires in-house review (IH-12, IH-19)"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["housing_development", "residential_remodel", "inhouse_review", "inclusionary_housing"]
+    },
+
+    "housing_development": {
+      "canonical_name": "Housing Development",
+      "aliases": ["housing development", "new housing", "residential project", "apartment building", "multi-family development", "housing pipeline", "dwelling unit", "residential units", "housing production", "inclusionary housing", "affordable housing", "BMR units", "below market rate", "density bonus", "HOME-SF"],
+      "description": "New or expanded residential housing in SF — from ADUs to large apartment buildings. Includes inclusionary housing requirements (10+ units), density bonus programs, and housing pipeline tracking. Planning entitlement required for most multi-unit projects.",
+      "authoritative_sources": [
+        {"file": "tier1/housing-development.json", "path": "inclusionary_housing", "role": "Inclusionary housing requirements: 21-25% affordable for 10+ unit projects"},
+        {"file": "tier1/housing-development.json", "path": "density_bonus_programs", "role": "State density bonus law + SF local HOME-SF and AHBP programs"},
+        {"file": "tier1/housing-development.json", "path": "development_pipeline", "role": "6-stage pipeline tracking: pre-app to completed"},
+        {"file": "tier1/housing-development.json", "path": "permit_process_for_housing", "role": "Permit path for new construction, unit addition, ADU"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["adu", "inclusionary_housing", "planning_review", "conditional_use"]
+    },
+
+    "inclusionary_housing": {
+      "canonical_name": "Inclusionary / Affordable Housing Requirements",
+      "aliases": ["inclusionary housing", "affordable housing requirement", "BMR requirement", "below market rate", "AMI", "area median income", "affordability requirement", "on-site affordable", "off-site affordable", "affordable housing fee", "MOHCD", "inclusionary"],
+      "description": "SF requires 21-25% affordable units in new residential projects of 10+ units. Options: on-site affordable units, off-site affordable units (33% rate), or in-lieu fee. Administered by Mayor's Office of Housing and Community Development (MOHCD).",
+      "authoritative_sources": [
+        {"file": "tier1/housing-development.json", "path": "inclusionary_housing", "role": "Full inclusionary housing rules: thresholds, percentages, AMI targets, administration"},
+        {"file": "tier1/housing-development.json", "path": "inclusionary_housing.requirement_options", "role": "Three compliance options: on-site, off-site, in-lieu fee"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["housing_development", "density_bonus", "planning_review"]
+    },
+
+    "density_bonus": {
+      "canonical_name": "Density Bonus Programs",
+      "aliases": ["density bonus", "state density bonus", "HOME-SF", "affordable housing bonus", "AHBP", "bonus units", "density incentive", "65915", "Government Code 65915", "density concession", "incentive request"],
+      "description": "State law (Govt Code Section 65915) requires SF to grant density bonuses for projects providing affordable units — up to 50% bonus at 24% very-low income. SF local programs include HOME-SF and AHBP for additional height bonuses.",
+      "authoritative_sources": [
+        {"file": "tier1/housing-development.json", "path": "density_bonus_programs", "role": "State density bonus tiers (5%-24% affordable = 22.5%-50% bonus) + SF local programs"},
+        {"file": "tier1/housing-development.json", "path": "density_bonus_programs.sf_local_programs", "role": "HOME-SF and AHBP local bonus programs"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["housing_development", "inclusionary_housing", "planning_review"]
+    },
+
+    "plumbing_inspection": {
+      "canonical_name": "Plumbing and Trade Inspections",
+      "aliases": ["plumbing inspection", "rough-in inspection", "DWV inspection", "gas pressure test", "final plumbing inspection", "electrical rough-in", "electrical inspection", "trade inspection", "HVAC inspection", "mechanical inspection", "plumbing final"],
+      "description": "Trade-specific inspection sequences required for electrical, plumbing, and mechanical permits. Each trade has rough-in inspection (before walls close) and final inspection (system operational). Trade inspections are scheduled separately from building inspections.",
+      "authoritative_sources": [
+        {"file": "tier1/trade-permits.json", "path": "plumbing_permits.inspection_requirements", "role": "Plumbing inspection sequence: rough-in, gas pressure test, final"},
+        {"file": "tier1/trade-permits.json", "path": "electrical_permits.inspection_requirements", "role": "Electrical inspection sequence: rough-in, service, final"},
+        {"file": "tier1/trade-permits.json", "path": "mechanical_permits.inspection_requirements", "role": "Mechanical inspection sequence: rough-in, final"},
+        {"file": "tier1/inspections-process.json", "path": null, "role": "General DBI inspection process and scheduling"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["inspections", "plumbing_permit", "electrical_permit", "mechanical_permit"]
+    },
+
+    "reference_tables": {
+      "canonical_name": "Reference Tables (Zoning Routing, Permit Forms, Agency Triggers)",
+      "aliases": ["reference tables", "ref_zoning_routing", "ref_permit_forms", "ref_agency_triggers", "zoning routing table", "permit forms table", "agency triggers table", "prediction tables", "routing lookup", "form lookup", "trigger keywords"],
+      "description": "Three database reference tables powering the predict_permits, required_documents, and estimate_timeline tools. ref_zoning_routing maps zoning codes to agency requirements; ref_permit_forms maps project types to DBI forms; ref_agency_triggers maps keywords to agency routing triggers.",
+      "authoritative_sources": [
+        {"file": "tier1/reference-tables.json", "path": "ref_zoning_routing", "role": "What the zoning routing table contains and how it's used"},
+        {"file": "tier1/reference-tables.json", "path": "ref_permit_forms", "role": "What the permit forms table contains and common form mappings"},
+        {"file": "tier1/reference-tables.json", "path": "ref_agency_triggers", "role": "What the agency triggers table contains and key trigger keywords"},
+        {"file": "tier1/reference-tables.json", "path": "how_tables_power_prediction_tools", "role": "How all 3 tables integrate in predict_permits, required_documents, estimate_timeline"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["agency_routing", "permit_forms", "planning_review"]
+    },
+
+    "review_metrics": {
+      "canonical_name": "Plan Review Performance Metrics",
+      "aliases": ["review metrics", "plan check performance", "approval rate", "rejection rate", "first-time approval", "review statistics", "DBI performance", "plan review efficiency", "station performance", "review dashboard", "permit velocity"],
+      "description": "Aggregate statistics on plan review performance — approval rates by station, average review duration, correction frequencies, first-time approval rates. Derived from addenda data (3.9M records).",
+      "authoritative_sources": [
+        {"type": "live_query", "table": "addenda", "query_pattern": "review_result distribution per station (Approved vs Issued Comments vs Administrative)", "role": "Station-level approval vs correction rates"},
+        {"file": "tier1/reference-tables.json", "path": "ref_agency_triggers.key_triggers", "role": "Which agencies add most delay (adds_weeks field)"},
+        {"type": "live_query", "table": "timeline_stats", "query_pattern": "p50/p75/p90 filing-to-issuance by permit type and neighborhood", "role": "Percentile-based timeline benchmarks"}
+      ],
+      "data_freshness": "nightly",
+      "related_concepts": ["plan_review_velocity", "station_bottleneck", "revision_cadence", "inhouse_review"]
+    },
+
+    "permit_bundling": {
+      "canonical_name": "Permit Bundling (Building + Trade Permits)",
+      "aliases": ["permit bundling", "combined permits", "building and electrical", "building and plumbing", "trade permits with building", "multiple permits", "kitchen permits", "adu permits", "restaurant permits", "what permits do I need"],
+      "description": "Building projects often require multiple permits: a building permit plus separate trade permits for electrical, plumbing, and mechanical work. Each trade permit has its own application, fee, inspection sequence, and expiration.",
+      "authoritative_sources": [
+        {"file": "tier1/trade-permits.json", "path": "trade_permit_relationships.bundling_by_project_type", "role": "Which building projects require which trade permits"},
+        {"file": "tier1/trade-permits.json", "path": "key_distinctions_from_building_permits", "role": "How trade permits differ from building permits"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_C", "role": "Plumbing/mechanical fees"},
+        {"file": "tier1/fee-tables.json", "path": "table_1A_E", "role": "Electrical fees"}
+      ],
+      "decision_tree_step": null,
+      "related_concepts": ["electrical_permit", "plumbing_permit", "mechanical_permit", "fee_calculation"]
     }
   }
 }

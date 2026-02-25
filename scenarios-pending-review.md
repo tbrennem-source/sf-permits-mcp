@@ -1326,3 +1326,52 @@ _Last reviewed: never_
 **Edge cases seen in code:** Category 1 used for residential projects; Category 2 for nonresidential; no sq ft provided returns a range instead of precise fee
 **CC confidence:** high
 **Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Trade permit bundling guidance for kitchen remodel
+**Source:** Sprint 56B — data/knowledge/tier1/trade-permits.json
+**User:** homeowner
+**Starting state:** User is planning a kitchen remodel that involves moving the sink and adding a new circuit for an appliance
+**Goal:** Understand which permits are needed for the project beyond the building permit
+**Expected outcome:** System correctly identifies that a plumbing permit (sink relocation) and electrical permit (new circuit) are required in addition to the building permit; explains each permit is separate with its own application, fee (Table 1A-C for plumbing, 1A-E for electrical), and inspection sequence; specifies that licensed contractors must pull the trade permits
+**Edge cases seen in code:** In-kind kitchen replacement (no layout change) is OTC without plans and may not require trade permits; only layout-changing work requires separate trade permits
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Street use permit requirement for construction staging
+**Source:** Sprint 56B — data/knowledge/tier1/street-use-permits.json
+**User:** expediter | architect
+**Starting state:** A contractor is about to start a major residential remodel and plans to place a construction dumpster in the parking lane
+**Goal:** Understand the street use permits needed before construction begins
+**Expected outcome:** System identifies need for a DPW/BSM Construction Occupancy permit (SU-02) for the dumpster, plus an SFMTA meter hood permit for the parking meter; explains pedestrian clearance requirements (5-ft minimum); notes fines if unpermitted; links to DPW permit office at 49 South Van Ness
+**Edge cases seen in code:** If sewer lateral work is also needed, a separate DPW Excavation permit (SU-01) is required with USA/811 notification 2 business days before digging
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: ADU program selection guidance
+**Source:** Sprint 56B — data/knowledge/tier1/housing-development.json
+**User:** homeowner
+**Starting state:** Homeowner has a single-family home with a detached garage and wants to add a unit
+**Goal:** Understand the ADU options available and which permit path to take
+**Expected outcome:** System explains garage conversion ADU (ADU-04) as the likely best option — no replacement parking required, existing non-conforming setbacks allowed; mentions that state law guarantees ministerial approval within 60 days; specifies in-house building permit review required; notes no impact fees for ADUs under 750 sq ft
+**Edge cases seen in code:** If the owner also wants to add a JADU inside the main house (ADU-03), both can be built simultaneously — SF allows one attached ADU + one JADU + one detached ADU on single-family lots per state law
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Inclusionary housing threshold for 10-unit development
+**Source:** Sprint 56B — data/knowledge/tier1/housing-development.json
+**User:** architect | expediter
+**Starting state:** Developer is planning a 12-unit residential building in an NC-2 zoning district
+**Goal:** Understand the affordable housing requirements that will apply to the project
+**Expected outcome:** System correctly identifies that 10+ unit threshold triggers inclusionary housing (SF Admin Code); explains the 21% on-site affordable unit requirement (or 25% in RH/RM zones); describes the three compliance options (on-site units, 33% off-site, in-lieu fee); notes that MOHCD administers the lottery for affordable units; Planning approval (CU likely required for 12 units in NC-2) is the first step
+**Edge cases seen in code:** Projects of exactly 10 units are the threshold — the 21% rate of 10 units = 2.1, rounded up to 3 affordable units; developer may also apply for state density bonus to get additional units in exchange for more affordable units
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Reference tables powering permit prediction
+**Source:** Sprint 56B — data/knowledge/tier1/reference-tables.json
+**User:** expediter | architect
+**Starting state:** User queries predict_permits with a project description that mentions "restaurant conversion with sprinkler system"
+**Goal:** Understand how the prediction tool determines agency routing
+**Expected outcome:** System explains that "restaurant" triggers DPH review (+4 weeks) and SFFD review (+3 weeks) via ref_agency_triggers; "sprinkler" independently adds SFFD routing; the C-3-O zoning code (if applicable) adds Planning review via ref_zoning_routing; result is Form 1/2 in-house review with Planning, SFFD, and DPH routing; total timeline estimate includes base in-house time plus agency delay weeks
+**Edge cases seen in code:** G-20-routing.json is the authoritative source — ref_agency_triggers is a fast heuristic; if G-20 says something different, G-20 wins
+**CC confidence:** medium
+**Status:** PENDING REVIEW

@@ -1,0 +1,276 @@
+{
+  "metadata": {
+    "title": "Housing Development in San Francisco: ADU, Inclusionary, Pipeline, and Density Bonus",
+    "source_url": "https://www.sf.gov/topics/housing",
+    "source_type": "SF Planning Code, SF Administrative Code, State Law (HCD), sf.gov",
+    "date_scraped": "2026-02-25",
+    "authority": "SF Planning Department, SF Department of Building Inspection, CA HCD",
+    "notes": [
+      "SF housing rules are a layered combination of local Planning Code + State law overrides",
+      "State ADU law (AB 68, AB 881, SB 13, AB 2221, AB 976) has significantly expanded ADU rights beyond local rules",
+      "Inclusionary housing rules apply to new residential projects of 10+ units",
+      "Density Bonus Law is state-mandated (Govt Code Section 65915) — SF must comply",
+      "Housing development pipeline data comes from Planning Dept quarterly reports"
+    ]
+  },
+
+  "adu_programs": {
+    "description": "Accessory Dwelling Units — secondary dwelling units on residential properties",
+    "program_types": [
+      {
+        "id": "ADU-01",
+        "name": "Attached ADU",
+        "description": "ADU added to main structure — room addition, above garage, dormer conversion",
+        "state_law_protections": [
+          "Cannot be denied solely based on non-conforming setbacks if within existing footprint",
+          "Cannot require replacement parking",
+          "Ministerial approval required — no discretionary review"
+        ],
+        "permit_path": "Building permit required — in-house review (Form 1/2)",
+        "typical_timeline_months": "3-6",
+        "typical_cost_range": "$50,000-$200,000"
+      },
+      {
+        "id": "ADU-02",
+        "name": "Detached ADU",
+        "description": "Standalone structure in backyard or replacing accessory structure",
+        "state_law_protections": [
+          "One detached ADU per lot regardless of lot size in single-family zones",
+          "Up to 800 sq ft allowed (state law minimum)",
+          "4-ft rear and side setbacks only",
+          "16-ft height limit (single story) or 18-ft (within 1/2 mile of transit)"
+        ],
+        "permit_path": "Building permit — in-house review",
+        "typical_timeline_months": "4-8",
+        "typical_cost_range": "$150,000-$400,000"
+      },
+      {
+        "id": "ADU-03",
+        "name": "Junior ADU (JADU)",
+        "description": "ADU of 500 sq ft or less created entirely within existing single-family home",
+        "eligibility": "Single-family homes only; owner-occupancy required (with limited exceptions)",
+        "features": [
+          "Shared bathroom allowed with main unit",
+          "Efficiency kitchen allowed (no full kitchen required)",
+          "Owner must occupy either JADU or main unit"
+        ],
+        "permit_path": "Building permit — typically OTC eligible",
+        "typical_timeline_months": "1-3"
+      },
+      {
+        "id": "ADU-04",
+        "name": "Garage Conversion ADU",
+        "description": "Converting existing garage or parking structure to ADU",
+        "state_law_protections": [
+          "Cannot require replacement parking",
+          "Ministerial approval — no design review or discretionary process",
+          "Existing non-conforming setbacks are permitted to remain"
+        ],
+        "permit_path": "Building permit — in-house review",
+        "typical_timeline_months": "3-5"
+      },
+      {
+        "id": "ADU-05",
+        "name": "ADU Legalization",
+        "description": "Legalizing an existing unpermitted unit as an ADU",
+        "special_rules": [
+          "Plan Review Fee waived for legalizing units constructed without permits (Ord. 92-20)",
+          "Fee waiver applied between 1/1/2020 and 12/31/2024 — check current status",
+          "Must meet current life safety standards (smoke detectors, egress windows, CO detectors)"
+        ],
+        "permit_path": "Building permit — in-house review required",
+        "typical_timeline_months": "3-9"
+      }
+    ],
+    "state_preemption_rules": {
+      "description": "State law significantly limits what SF can require or deny for ADUs",
+      "key_limits": [
+        "Cannot require owner-occupancy for ADUs (only JADUs)",
+        "Cannot require more than ministerial review for most ADUs",
+        "Cannot require replacement parking",
+        "Must approve ADUs ministerially within 60 days of complete application",
+        "Cannot use design standards to effectively prohibit ADUs"
+      ],
+      "fee_limits": [
+        "No impact fees for ADUs under 750 sq ft",
+        "Impact fees for ADUs 750+ sq ft must be proportional to main unit"
+      ]
+    },
+    "sf_adu_bonus_programs": {
+      "adu_by_right": "Most ADU projects in SF are approved ministerially — no Planning Commission hearing required",
+      "affordable_adu": "100% affordable ADU projects may qualify for additional density",
+      "seismic_retrofit_bonus": "Properties completing mandatory seismic retrofit may receive bonus ADU allowance"
+    }
+  },
+
+  "inclusionary_housing": {
+    "description": "Requirements for affordable housing units in new market-rate residential developments",
+    "applicability": {
+      "threshold": "Projects of 10 or more residential units",
+      "smaller_projects": "Projects of 1-9 units are exempt from inclusionary requirements"
+    },
+    "requirement_options": {
+      "on_site_affordable": {
+        "percentage_required": "21-25% of units depending on project size and location",
+        "ami_targets": [
+          "55% AMI for very low income units",
+          "80% AMI for low income units",
+          "120% AMI for moderate income units (some programs)"
+        ],
+        "typical_percentage_by_size": {
+          "10-24_units": "21%",
+          "25_or_more_units": "25% (RH and RM zones) or 21% (C and PDR zones)"
+        }
+      },
+      "off_site_affordable": {
+        "percentage_required": "33% of total units (1.5x the on-site rate)",
+        "requirements": [
+          "Off-site units must be comparable to market-rate units in size",
+          "Must be within 1 mile of the development site",
+          "Must meet same income targeting as on-site option"
+        ]
+      },
+      "affordable_housing_fee": {
+        "description": "Payment of per-square-foot fee in lieu of providing units",
+        "eligibility": "Only available for projects under 25 units in most districts",
+        "fee_calculation": "Per-square-foot fee set annually by Planning — varies by district and unit size"
+      }
+    },
+    "ami_definition": {
+      "ami": "Area Median Income — set annually by HUD for the SF metro area",
+      "2025_sf_ami_4_person_household": "Approximately $140,000 (verify with current HUD data)",
+      "note": "AMI limits vary by household size — 1-person household AMI is lower than 4-person"
+    },
+    "administration": {
+      "mayor_office_of_housing": "Mayor's Office of Housing and Community Development (MOHCD) administers the Affordable Housing Fund",
+      "lottery_process": "Affordable units are marketed and leased through MOHCD lottery program",
+      "monitoring": "Owners of affordable units must record deed restrictions and submit annual reports to MOHCD"
+    }
+  },
+
+  "density_bonus_programs": {
+    "description": "State and local programs allowing developers to exceed base density in exchange for affordable units",
+    "state_density_bonus": {
+      "authority": "California Government Code Section 65915 — state law that SF must comply with",
+      "how_it_works": [
+        "Projects providing minimum percentage of affordable units receive density bonus (units above base zoning)",
+        "Bonus tiers: 5% very-low income units = 22.5% density bonus, scaling up to 50% bonus at 24% very-low income",
+        "Additional incentives and concessions reduce development standards (height, setbacks, parking)"
+      ],
+      "bonus_tiers": [
+        {"affordable_percentage": "5% very-low income", "density_bonus": "22.5%"},
+        {"affordable_percentage": "10% very-low income", "density_bonus": "32.5%"},
+        {"affordable_percentage": "15% very-low income", "density_bonus": "42.5%"},
+        {"affordable_percentage": "24% very-low income", "density_bonus": "50% (maximum)"},
+        {"affordable_percentage": "10% low income", "density_bonus": "20%"},
+        {"affordable_percentage": "100% affordable", "density_bonus": "Up to unlimited in some zones"}
+      ],
+      "incentives_and_concessions": "Developer may request up to 3 incentives (e.g., height increase, setback reduction, parking reduction) — city must grant unless it finds specific adverse impact"
+    },
+    "sf_local_programs": {
+      "home_sf": {
+        "name": "HOME-SF",
+        "description": "Local density bonus program predating state law; now operates in tandem with state density bonus",
+        "benefit": "Additional stories above height limit in exchange for higher affordability percentage"
+      },
+      "affordable_housing_bonus_program": {
+        "name": "Affordable Housing Bonus Program (AHBP)",
+        "description": "State-required program — allows up to 5 additional stories above height limit for 100% affordable projects or mixed-income projects with higher affordable percentage"
+      }
+    }
+  },
+
+  "development_pipeline": {
+    "description": "SF Planning Department tracks all housing projects in the development pipeline",
+    "tracking_stages": [
+      {
+        "stage": "Pre-application",
+        "description": "Developer has filed preliminary application or PRE application — no permit yet"
+      },
+      {
+        "stage": "Planning entitlement",
+        "description": "Project awaiting or has received Planning Commission approval (CU, large project authorization, etc.)"
+      },
+      {
+        "stage": "Building permit filed",
+        "description": "Building permit application submitted to DBI — under review"
+      },
+      {
+        "stage": "Building permit issued",
+        "description": "Building permit approved and issued — construction may begin"
+      },
+      {
+        "stage": "Under construction",
+        "description": "Active construction underway — tracked via inspection records"
+      },
+      {
+        "stage": "Completed",
+        "description": "Certificate of Occupancy issued — units available"
+      }
+    ],
+    "data_sources": [
+      "SF Planning Department Quarterly Pipeline Report",
+      "DBI building permit data (SODA dataset)",
+      "Certificate of Occupancy issuances"
+    ],
+    "reporting": "Planning Dept publishes quarterly pipeline updates; annual housing inventory report tracks net new units added"
+  },
+
+  "dwelling_unit_completions": {
+    "description": "Tracking of newly completed housing units in SF",
+    "reporting_entity": "SF Planning Department (annual Housing Inventory Report)",
+    "key_metrics": [
+      "Net new units (additions minus demolitions)",
+      "Units by type (single-family, multi-family, ADU)",
+      "Units by affordability (market-rate, affordable, very-affordable)",
+      "Units by neighborhood"
+    ],
+    "recent_context": "SF has struggled to meet state RHNA (Regional Housing Needs Assessment) goals. ADU completions have accelerated significantly post-2019 state law changes.",
+    "rhna_goals": {
+      "description": "Regional Housing Needs Assessment — state-mandated housing production goals by income level",
+      "sf_sixth_cycle": "SF must plan for approximately 82,000 new units by 2031 across income categories"
+    }
+  },
+
+  "unit_types_and_definitions": {
+    "single_family": "One dwelling unit on a lot — RH-1 zoning",
+    "two_family": "Two dwelling units on a lot — RH-2 zoning",
+    "multi_family": "Three or more dwelling units — various RM, RC, C zoning",
+    "adu": "Accessory dwelling unit — secondary unit on property with primary dwelling",
+    "jadu": "Junior ADU — up to 500 sq ft within existing structure of single-family home",
+    "affordable_unit": "Unit deed-restricted to rent/sell below market rate to income-qualifying households",
+    "bmr": "Below Market Rate — SF term for affordable housing units in market-rate developments",
+    "sro": "Single Room Occupancy hotel — protected housing type in SF, demolition or conversion requires replacement"
+  },
+
+  "permit_process_for_housing": {
+    "new_construction": {
+      "planning_entitlement": "Required for most multi-unit projects — CU, Section 309, or large project authorization depending on size and zoning",
+      "permit_form": "Form 1 (New Building) or Form 2 (Addition)",
+      "review_path": "In-house — always",
+      "key_agencies": ["DBI", "Planning", "SFFD", "DPH (if food service or childcare)", "SFPUC"],
+      "typical_timeline_months": "12-36 depending on size and entitlement complexity"
+    },
+    "unit_addition": {
+      "description": "Adding a new unit to existing building (legalization or new construction)",
+      "permit_form": "Form 1 or 2 depending on scope",
+      "review_path": "In-house — always (IH-11 in otc-criteria.json)",
+      "planning_review": "Required — likely triggers Section 317 residential unit demolition/merger review"
+    },
+    "adu": {
+      "description": "See adu_programs section above",
+      "permit_form": "Form 1 or 2",
+      "review_path": "In-house — IH-12 in otc-criteria.json"
+    }
+  },
+
+  "related_urls": {
+    "sf_planning_housing": "https://www.sf.gov/topics/housing",
+    "adu_programs": "https://www.sf.gov/topics/accessory-dwelling-units",
+    "inclusionary_housing": "https://www.sf.gov/topics/below-market-rate-housing",
+    "density_bonus": "https://www.sf.gov/topics/affordable-housing-bonus-program",
+    "mohcd": "https://www.sf.gov/departments/mayors-office-housing-and-community-development",
+    "planning_pipeline": "https://www.sf.gov/reports/housing-inventory",
+    "rhna": "https://www.abag.ca.gov/our-work/housing/rhna"
+  }
+}
