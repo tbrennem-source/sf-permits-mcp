@@ -84,7 +84,7 @@ Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze
 | Service | Role | Branch | URL | Status |
 |---|---|---|---|---|
 | **sfpermits-ai** | Flask web app (production) | `prod` | sfpermits-ai-production.up.railway.app | Active |
-| **sfpermits-ai-staging** | Flask web app (staging) | `main` | sfpermits-ai-staging-produc... | Active |
+| **sfpermits-ai-staging** | Flask web app (staging) | `main` | sfpermits-ai-staging-production.up.railway.app | Active |
 | **sfpermits-mcp-api** | MCP server over Streamable HTTP (`Dockerfile.mcp`) | `main` | sfpermits-mcp-api-production.up.railway.app | Active |
 | **sf-permits-mcp** | (verify purpose) | | | Active |
 | **fantastic-mindfulness** | (verify purpose) | | | Active |
@@ -136,11 +136,15 @@ git checkout prod && git merge main && git push origin prod
 
 ### Deploying to Production
 
-GitHub auto-deploy is connected: pushes to `prod` on `tbrennem-source/sf-permits-mcp` trigger a Railway build and deploy for the production service. Pushes to `main` deploy to staging (same URL until separate staging service is configured). After promoting and pushing:
+GitHub auto-deploy is connected:
+- Pushes to `main` → deploy **sfpermits-ai-staging** (staging)
+- Pushes to `prod` → deploy **sfpermits-ai** (production)
 
 ```bash
-# Verify deploy succeeded (give it ~2 min to build):
-railway deployment list                 # Check status shows SUCCESS
+# Verify staging:
+curl -s https://sfpermits-ai-staging-production.up.railway.app/health | python3 -m json.tool
+
+# Verify production:
 curl -s https://sfpermits-ai-production.up.railway.app/health | python3 -m json.tool
 ```
 
