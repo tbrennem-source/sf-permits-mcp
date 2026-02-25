@@ -57,6 +57,14 @@ DATASETS = {
         "endpoint_id": "g8m3-pdis",
         "name": "Registered Business Locations",
     },
+    "electrical_permits": {
+        "endpoint_id": "ftty-kx6y",
+        "name": "Electrical Permits",
+    },
+    "plumbing_permits": {
+        "endpoint_id": "a6aw-rudh",
+        "name": "Plumbing Permits",
+    },
 }
 
 PAGE_SIZE = 10_000
@@ -256,6 +264,88 @@ def _normalize_permit(record: dict) -> tuple:
         record.get("block"),
         record.get("lot"),
         record.get("adu"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_electrical_permit(record: dict) -> tuple:
+    """Normalize an electrical permit record to the shared permits table schema.
+
+    Electrical permits (ftty-kx6y) have a reduced field set compared to building
+    permits.  Missing fields (cost, use, units, neighborhood, adu, etc.) are set
+    to NULL so the record fits the existing permits table without schema changes.
+
+    Field name differences vs building permits:
+      - application_creation_date  (no equivalent in permits table — dropped)
+      - zip_code                   → zipcode
+    """
+    return (
+        record.get("permit_number", ""),
+        "electrical",               # permit_type
+        "Electrical Permit",        # permit_type_definition (human-readable constant)
+        record.get("status"),
+        None,                       # status_date (not in electrical dataset)
+        record.get("description"),
+        record.get("filed_date"),
+        record.get("issued_date"),
+        None,                       # approved_date (not in electrical dataset)
+        record.get("completed_date"),
+        None,                       # estimated_cost
+        None,                       # revised_cost
+        None,                       # existing_use
+        None,                       # proposed_use
+        None,                       # existing_units
+        None,                       # proposed_units
+        record.get("street_number"),
+        record.get("street_name"),
+        record.get("street_suffix"),
+        record.get("zip_code"),     # electrical uses zip_code (not zipcode)
+        None,                       # neighborhood (not in electrical dataset)
+        None,                       # supervisor_district (not in electrical dataset)
+        record.get("block"),
+        record.get("lot"),
+        None,                       # adu (not in electrical dataset)
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_plumbing_permit(record: dict) -> tuple:
+    """Normalize a plumbing permit record to the shared permits table schema.
+
+    Plumbing permits (a6aw-rudh) have a reduced field set compared to building
+    permits.  Missing fields are set to NULL.
+
+    Field name differences vs building permits:
+      - application_date  (no equivalent in permits table — dropped)
+      - parcel_number     (not in permits table — dropped)
+      - unit              (not in permits table — dropped)
+    """
+    return (
+        record.get("permit_number", ""),
+        "plumbing",                 # permit_type
+        "Plumbing Permit",          # permit_type_definition (human-readable constant)
+        record.get("status"),
+        None,                       # status_date (not in plumbing dataset)
+        record.get("description"),
+        record.get("filed_date"),
+        record.get("issued_date"),
+        None,                       # approved_date (not in plumbing dataset)
+        record.get("completed_date"),
+        None,                       # estimated_cost
+        None,                       # revised_cost
+        None,                       # existing_use
+        None,                       # proposed_use
+        None,                       # existing_units
+        None,                       # proposed_units
+        record.get("street_number"),
+        record.get("street_name"),
+        record.get("street_suffix"),
+        record.get("zipcode"),
+        None,                       # neighborhood (not in plumbing dataset)
+        None,                       # supervisor_district (not in plumbing dataset)
+        record.get("block"),
+        record.get("lot"),
+        None,                       # adu (not in plumbing dataset)
         record.get("data_as_of"),
     )
 
@@ -593,6 +683,72 @@ async def ingest_permits(conn, client: SODAClient) -> int:
     return len(batch)
 
 
+async def ingest_electrical_permits(conn, client: SODAClient) -> int:
+    """Ingest electrical permits (ftty-kx6y) into the shared permits table.
+
+    Electrical permit records are inserted alongside building permits.  The
+    permits table uses permit_number as PRIMARY KEY with INSERT OR REPLACE so
+    re-ingestion is safe.  Fields not present in the electrical dataset are
+    stored as NULL.
+    """
+    print("\n=== Ingesting Electrical Permits ===")
+
+    records = await _fetch_all_pages(client, "ftty-kx6y", "Electrical Permits")
+
+    batch = [_normalize_electrical_permit(r) for r in records]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO permits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} electrical permit records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        [
+            "ftty-kx6y",
+            "Electrical Permits",
+            datetime.now(timezone.utc).isoformat(),
+            len(records),
+            len(records),
+        ],
+    )
+    return len(batch)
+
+
+async def ingest_plumbing_permits(conn, client: SODAClient) -> int:
+    """Ingest plumbing permits (a6aw-rudh) into the shared permits table.
+
+    Plumbing permit records are inserted alongside building permits.  The
+    permits table uses permit_number as PRIMARY KEY with INSERT OR REPLACE so
+    re-ingestion is safe.  Fields not present in the plumbing dataset are
+    stored as NULL.
+    """
+    print("\n=== Ingesting Plumbing Permits ===")
+
+    records = await _fetch_all_pages(client, "a6aw-rudh", "Plumbing Permits")
+
+    batch = [_normalize_plumbing_permit(r) for r in records]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO permits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} plumbing permit records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        [
+            "a6aw-rudh",
+            "Plumbing Permits",
+            datetime.now(timezone.utc).isoformat(),
+            len(records),
+            len(records),
+        ],
+    )
+    return len(batch)
+
+
 async def ingest_inspections(conn, client: SODAClient) -> int:
     """Ingest building inspections into inspections table."""
     print("\n=== Ingesting Building Inspections ===")
@@ -896,6 +1052,8 @@ async def run_ingestion(
     violations: bool = True,
     complaints: bool = True,
     businesses: bool = True,
+    electrical_permits: bool = True,
+    plumbing_permits: bool = True,
     db_path: str | None = None,
 ) -> dict:
     """Run the full ingestion pipeline.
@@ -923,6 +1081,10 @@ async def run_ingestion(
             results["contacts"] = await ingest_contacts(conn, client)
         if permits:
             results["permits"] = await ingest_permits(conn, client)
+        if electrical_permits:
+            results["electrical_permits"] = await ingest_electrical_permits(conn, client)
+        if plumbing_permits:
+            results["plumbing_permits"] = await ingest_plumbing_permits(conn, client)
         if inspections:
             results["inspections"] = await ingest_inspections(conn, client)
     finally:
@@ -952,13 +1114,15 @@ def main():
     parser.add_argument("--violations", action="store_true", help="Only ingest violations")
     parser.add_argument("--complaints", action="store_true", help="Only ingest complaints")
     parser.add_argument("--businesses", action="store_true", help="Only ingest businesses")
+    parser.add_argument("--electrical-permits", action="store_true", help="Only ingest electrical permits")
+    parser.add_argument("--plumbing-permits", action="store_true", help="Only ingest plumbing permits")
     parser.add_argument("--db", type=str, help="Custom database path")
     args = parser.parse_args()
 
     # If no specific flag, ingest everything
     do_all = not (args.contacts or args.permits or args.inspections
                   or args.addenda or args.violations or args.complaints
-                  or args.businesses)
+                  or args.businesses or args.electrical_permits or args.plumbing_permits)
 
     asyncio.run(
         run_ingestion(
@@ -969,6 +1133,8 @@ def main():
             violations=do_all or args.violations,
             complaints=do_all or args.complaints,
             businesses=do_all or args.businesses,
+            electrical_permits=do_all or args.electrical_permits,
+            plumbing_permits=do_all or args.plumbing_permits,
             db_path=args.db,
         )
     )

@@ -16,6 +16,7 @@ import json
 import logging
 from collections import defaultdict
 
+from src.db import BACKEND
 from src.signals.types import Signal, SIGNAL_CATALOG
 from src.signals.detector import ALL_DETECTORS
 from src.signals.aggregator import compute_property_health
@@ -23,8 +24,39 @@ from src.signals.aggregator import compute_property_health
 logger = logging.getLogger(__name__)
 
 
+def _pg_execute(conn, sql: str, params=None) -> None:
+    """Execute SQL on either DuckDB or Postgres connection."""
+    if BACKEND == "postgres":
+        # Convert ? placeholders to %s for psycopg2
+        sql = sql.replace("?", "%s")
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+        conn.commit()
+    else:
+        if params:
+            conn.execute(sql, params)
+        else:
+            conn.execute(sql)
+
+
+def _pg_fetchall(conn, sql: str, params=None) -> list:
+    """Execute SQL and return rows on either backend."""
+    if BACKEND == "postgres":
+        sql = sql.replace("?", "%s")
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+            return cur.fetchall()
+    else:
+        if params:
+            return conn.execute(sql, params).fetchall()
+        return conn.execute(sql).fetchall()
+
+
 def _ensure_signal_tables(conn) -> None:
-    """Create signal tables if they don't exist (DuckDB)."""
+    """Create signal tables if they don't exist (DuckDB only — Postgres uses migrations)."""
+    if BACKEND == "postgres":
+        return  # Tables created by scripts/migrate_signals.py
+
     conn.execute("""
         CREATE TABLE IF NOT EXISTS signal_types (
             signal_type VARCHAR(50) PRIMARY KEY,
@@ -78,9 +110,10 @@ def _ensure_signal_tables(conn) -> None:
 
 def _seed_signal_types(conn) -> None:
     """Seed the signal_types table from the catalog."""
-    conn.execute("DELETE FROM signal_types")
+    _pg_execute(conn, "DELETE FROM signal_types")
     for st in SIGNAL_CATALOG.values():
-        conn.execute(
+        _pg_execute(
+            conn,
             """INSERT INTO signal_types
                (signal_type, default_severity, source_dataset, actionable, description)
                VALUES (?, ?, ?, ?, ?)""",
@@ -93,7 +126,7 @@ def _truncate_signals(conn) -> None:
     """Truncate computed signal tables before refresh."""
     for table in ("permit_signals", "property_signals", "property_health"):
         try:
-            conn.execute(f"DELETE FROM {table}")
+            _pg_execute(conn, f"DELETE FROM {table}")
         except Exception:
             pass
 
@@ -136,7 +169,8 @@ def run_signal_pipeline(conn) -> dict:
     permit_signal_count = 0
     for s in all_signals:
         if s.permit_number:
-            conn.execute(
+            _pg_execute(
+                conn,
                 """INSERT INTO permit_signals
                    (permit_number, signal_type, severity, detail)
                    VALUES (?, ?, ?, ?)""",
@@ -153,7 +187,8 @@ def run_signal_pipeline(conn) -> dict:
     property_signal_count = 0
     for block_lot, signals in by_property.items():
         for s in signals:
-            conn.execute(
+            _pg_execute(
+                conn,
                 """INSERT INTO property_signals
                    (block_lot, signal_type, severity, detail, source_permit)
                    VALUES (?, ?, ?, ?, ?)""",
@@ -173,7 +208,8 @@ def run_signal_pipeline(conn) -> dict:
             for s in signals
         ])
 
-        conn.execute(
+        _pg_execute(
+            conn,
             """INSERT INTO property_health
                (block_lot, tier, signal_count, at_risk_count, signals_json)
                VALUES (?, ?, ?, ?, ?)

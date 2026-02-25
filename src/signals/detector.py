@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 from datetime import date, timedelta
 
+from src.db import BACKEND
 from src.signals.types import Signal, SIGNAL_CATALOG
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,12 @@ PLANNING_STATIONS = ("PPC", "CP-ZOC", "CPB")
 
 
 def _execute(conn, sql: str, params=None) -> list:
-    """Execute SQL and return all rows. Works with DuckDB connections."""
+    """Execute SQL and return all rows. Works with DuckDB and Postgres."""
+    if BACKEND == "postgres":
+        sql = sql.replace("?", "%s")
+        with conn.cursor() as cur:
+            cur.execute(sql, params or ())
+            return cur.fetchall()
     if params:
         return conn.execute(sql, params).fetchall()
     return conn.execute(sql).fetchall()

@@ -1,0 +1,961 @@
+{
+  "generated_at": "2026-02-25T00:39:26.087686+00:00",
+  "total_routes": 103,
+  "routes": [
+    {
+      "path": "/robots.txt",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "robots"
+    },
+    {
+      "path": "/health",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "health"
+    },
+    {
+      "path": "/",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "landing.html",
+      "function_name": "index"
+    },
+    {
+      "path": "/search",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "public_search"
+    },
+    {
+      "path": "/analyze",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "analyze"
+    },
+    {
+      "path": "/validate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "validate"
+    },
+    {
+      "path": "/analyze-plans",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "analyze_plans_route"
+    },
+    {
+      "path": "/plan-images/<session_id>/<int:page_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "plan_image"
+    },
+    {
+      "path": "/plan-session/<session_id>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "plan_session"
+    },
+    {
+      "path": "/plan-images/<session_id>/download-all",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "download_all_pages"
+    },
+    {
+      "path": "/plan-analysis/<session_id>/email",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "email_analysis"
+    },
+    {
+      "path": "/plan-jobs/<job_id>/status",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "analyze_plans_failed.html",
+      "function_name": "plan_job_status"
+    },
+    {
+      "path": "/plan-jobs/<job_id>/cancel",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "cancel_plan_job"
+    },
+    {
+      "path": "/plan-jobs/<job_id>/results",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "plan_job_results"
+    },
+    {
+      "path": "/account/analyses",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "analysis_history"
+    },
+    {
+      "path": "/account/analyses/compare",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "compare_analyses"
+    },
+    {
+      "path": "/api/plan-sessions/<session_id>/pages/<int:page_number>/image",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "get_session_page_image"
+    },
+    {
+      "path": "/api/project-notes/<version_group>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "get_project_notes_api"
+    },
+    {
+      "path": "/api/project-notes/<version_group>",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "save_project_notes_api"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>",
+      "methods": [
+        "DELETE"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "delete_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/restore",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "restore_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/prefill",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "prefill_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/bulk-delete",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "bulk_delete_plan_jobs"
+    },
+    {
+      "path": "/api/plan-jobs/bulk-close",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "bulk_close_plan_jobs"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/close",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "close_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/reopen",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "reopen_plan_job"
+    },
+    {
+      "path": "/lookup",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "lookup"
+    },
+    {
+      "path": "/ask",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "search_reveal.html",
+      "function_name": "ask"
+    },
+    {
+      "path": "/auth/login",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "auth_login.html",
+      "function_name": "auth_login"
+    },
+    {
+      "path": "/auth/send-link",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_send_link"
+    },
+    {
+      "path": "/auth/verify/<token>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_verify"
+    },
+    {
+      "path": "/auth/logout",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_logout"
+    },
+    {
+      "path": "/auth/impersonate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "auth_impersonate"
+    },
+    {
+      "path": "/auth/stop-impersonate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_stop_impersonate"
+    },
+    {
+      "path": "/auth/test-login",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_test_login"
+    },
+    {
+      "path": "/watch/add",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "fragments/login_prompt.html",
+      "function_name": "watch_add"
+    },
+    {
+      "path": "/watch/remove",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "watch_remove"
+    },
+    {
+      "path": "/watch/tags",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "fragments/tag_editor.html",
+      "function_name": "watch_tags"
+    },
+    {
+      "path": "/watch/edit",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "watch_edit"
+    },
+    {
+      "path": "/watch/list",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "account.html",
+      "function_name": "watch_list"
+    },
+    {
+      "path": "/account",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "account.html",
+      "function_name": "account"
+    },
+    {
+      "path": "/account/primary-address",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_set_primary_address"
+    },
+    {
+      "path": "/account/primary-address/clear",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_clear_primary_address"
+    },
+    {
+      "path": "/brief",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "brief.html",
+      "function_name": "brief"
+    },
+    {
+      "path": "/dashboard/bottlenecks",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "velocity_dashboard"
+    },
+    {
+      "path": "/dashboard/bottlenecks/station/<path:station>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "velocity_station_detail"
+    },
+    {
+      "path": "/portfolio",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "portfolio.html",
+      "function_name": "portfolio"
+    },
+    {
+      "path": "/account/brief-frequency",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_brief_frequency"
+    },
+    {
+      "path": "/account/voice-style",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_voice_style"
+    },
+    {
+      "path": "/admin/send-invite",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_send_invite"
+    },
+    {
+      "path": "/feedback/submit",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "feedback_submit"
+    },
+    {
+      "path": "/feedback/draft-edit",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "feedback_draft_edit"
+    },
+    {
+      "path": "/feedback/draft-good",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "feedback_draft_good"
+    },
+    {
+      "path": "/admin/feedback",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": "admin_feedback.html",
+      "function_name": "admin_feedback"
+    },
+    {
+      "path": "/admin/feedback/update",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_feedback_update"
+    },
+    {
+      "path": "/admin/feedback/<int:feedback_id>/screenshot",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_feedback_screenshot"
+    },
+    {
+      "path": "/admin/activity",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": "admin_activity.html",
+      "function_name": "admin_activity"
+    },
+    {
+      "path": "/admin/ops",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": "admin_ops.html",
+      "function_name": "admin_ops"
+    },
+    {
+      "path": "/admin/ops/fragment/<tab>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_ops_fragment"
+    },
+    {
+      "path": "/admin/ops/refresh-dq",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": "fragments/admin_quality.html",
+      "function_name": "admin_ops_refresh_dq"
+    },
+    {
+      "path": "/admin/sources",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": "admin_sources.html",
+      "function_name": "admin_sources"
+    },
+    {
+      "path": "/admin/regulatory-watch",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": "admin_regulatory_watch.html",
+      "function_name": "admin_regulatory_watch"
+    },
+    {
+      "path": "/admin/regulatory-watch/create",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_regulatory_watch_create"
+    },
+    {
+      "path": "/admin/regulatory-watch/<int:watch_id>/update",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_regulatory_watch_update"
+    },
+    {
+      "path": "/admin/regulatory-watch/<int:watch_id>/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_regulatory_watch_delete"
+    },
+    {
+      "path": "/admin/knowledge/quiz",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_knowledge_quiz"
+    },
+    {
+      "path": "/admin/knowledge/quiz/submit",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_knowledge_quiz_submit"
+    },
+    {
+      "path": "/admin/knowledge/add-note",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_add_note"
+    },
+    {
+      "path": "/admin/voice-calibration",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_voice_calibration_redirect"
+    },
+    {
+      "path": "/admin/voice-calibration/save",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_voice_calibration_save_redirect"
+    },
+    {
+      "path": "/admin/voice-calibration/reset",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_voice_calibration_reset_redirect"
+    },
+    {
+      "path": "/admin/costs",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": "admin_costs.html",
+      "function_name": "admin_costs"
+    },
+    {
+      "path": "/admin/costs/kill-switch",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_costs_kill_switch"
+    },
+    {
+      "path": "/account/voice-calibration",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "voice_calibration.html",
+      "function_name": "account_voice_calibration"
+    },
+    {
+      "path": "/account/voice-calibration/save",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_voice_calibration_save"
+    },
+    {
+      "path": "/account/voice-calibration/reset",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_voice_calibration_reset"
+    },
+    {
+      "path": "/email/unsubscribe",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "email_unsubscribe"
+    },
+    {
+      "path": "/consultants",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "consultants.html",
+      "function_name": "consultants_page"
+    },
+    {
+      "path": "/consultants/search",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "consultants_search"
+    },
+    {
+      "path": "/expediters",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "expediters_redirect"
+    },
+    {
+      "path": "/expediters/search",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "expediters_search_redirect"
+    },
+    {
+      "path": "/report/<block>/<lot>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "property_report"
+    },
+    {
+      "path": "/report/<block>/<lot>/share",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "property_report_share"
+    },
+    {
+      "path": "/portfolio/timeline/<block>/<lot>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "fragments/inspection_timeline.html",
+      "function_name": "portfolio_timeline"
+    },
+    {
+      "path": "/portfolio/discover",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": "fragments/discover_results.html",
+      "function_name": "portfolio_discover"
+    },
+    {
+      "path": "/portfolio/import",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": "fragments/import_confirmation.html",
+      "function_name": "portfolio_import"
+    },
+    {
+      "path": "/cron/status",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_status"
+    },
+    {
+      "path": "/cron/nightly",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_nightly"
+    },
+    {
+      "path": "/cron/send-briefs",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_send_briefs"
+    },
+    {
+      "path": "/cron/rag-ingest",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_rag_ingest"
+    },
+    {
+      "path": "/cron/migrate-schema",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_migrate_schema"
+    },
+    {
+      "path": "/cron/migrate-data",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_migrate_data"
+    },
+    {
+      "path": "/api/feedback",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_feedback"
+    },
+    {
+      "path": "/api/feedback/<int:feedback_id>/screenshot",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_feedback_screenshot"
+    },
+    {
+      "path": "/api/feedback/<int:feedback_id>",
+      "methods": [
+        "PATCH"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_feedback_update"
+    },
+    {
+      "path": "/api/points/<int:user_id>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_user_points"
+    },
+    {
+      "path": "/cron/seed-regulatory",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_seed_regulatory"
+    },
+    {
+      "path": "/cron/refresh-dq",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_refresh_dq"
+    },
+    {
+      "path": "/cron/signals",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_signals"
+    },
+    {
+      "path": "/cron/velocity-refresh",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_velocity_refresh"
+    },
+    {
+      "path": "/cron/backup",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_backup"
+    },
+    {
+      "path": "/cron/pipeline-health",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_pipeline_health"
+    },
+    {
+      "path": "/admin/pipeline",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_pipeline"
+    }
+  ],
+  "user_journeys": {
+    "property_research": [
+      "/",
+      "/search",
+      "/report/<block>/<lot>"
+    ],
+    "morning_brief": [
+      "/brief",
+      "/brief/email-preview"
+    ],
+    "admin_ops": [
+      "/admin/dashboard",
+      "/admin/feedback",
+      "/admin/costs"
+    ],
+    "plan_analysis": [
+      "/analyze-plans",
+      "/account/analyses",
+      "/account/analyses/compare"
+    ]
+  },
+  "auth_summary": {
+    "public": 33,
+    "auth": 21,
+    "admin": 23,
+    "cron": 26
+  }
+}
