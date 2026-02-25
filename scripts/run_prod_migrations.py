@@ -220,6 +220,67 @@ def _run_reference_tables() -> dict[str, Any]:
     }
 
 
+def _run_inspections_unique() -> dict[str, Any]:
+    """Add UNIQUE constraint on inspections natural key after dedup.
+
+    Steps:
+    1. Skip if DuckDB (Postgres only)
+    2. Deduplicate rows by (reference_number, scheduled_date, inspection_description),
+       keeping the row with the lowest id
+    3. Create UNIQUE index on the natural key using COALESCE for NULLable description
+    """
+    from src.db import get_connection, BACKEND  # type: ignore
+
+    if BACKEND != "postgres":
+        return {"ok": True, "skipped": True, "reason": "DuckDB mode — not needed"}
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            # Count duplicates before dedup
+            cur.execute("""
+                SELECT COUNT(*) FROM inspections
+                WHERE id NOT IN (
+                    SELECT MIN(id)
+                    FROM inspections
+                    GROUP BY reference_number, scheduled_date,
+                             COALESCE(inspection_description, '')
+                )
+            """)
+            dup_count = cur.fetchone()[0]
+
+            if dup_count > 0:
+                logger.info("Deduplicating %d duplicate inspection rows...", dup_count)
+                cur.execute("""
+                    DELETE FROM inspections
+                    WHERE id NOT IN (
+                        SELECT MIN(id)
+                        FROM inspections
+                        GROUP BY reference_number, scheduled_date,
+                                 COALESCE(inspection_description, '')
+                    )
+                """)
+
+            # Create UNIQUE index (idempotent — IF NOT EXISTS)
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS uk_inspections_natural
+                ON inspections(reference_number, scheduled_date,
+                               COALESCE(inspection_description, ''))
+            """)
+
+        conn.commit()
+        return {
+            "ok": True,
+            "duplicates_removed": dup_count,
+            "index": "uk_inspections_natural",
+        }
+    except Exception as exc:
+        conn.rollback()
+        logger.error("inspections_unique migration failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+    finally:
+        conn.close()
+
 # ---- ordered registry ------------------------------------------------
 
 MIGRATIONS: list[Migration] = [
@@ -269,6 +330,11 @@ MIGRATIONS: list[Migration] = [
         name="reference_tables",
         description="Reference tables for predict_permits: zoning routing, permit forms, agency triggers",
         run=_run_reference_tables,
+    ),
+    Migration(
+        name="inspections_unique",
+        description="Add UNIQUE constraint on inspections natural key after dedup",
+        run=_run_inspections_unique,
     ),
 ]
 
