@@ -967,3 +967,43 @@ _Last reviewed: never_
 **Edge cases seen in code:** Before fix, 4 endpoints had copy-pasted auth that diverged from _check_api_auth(); a fix to the shared function missed the inline copies
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Full dataset coverage — 22 SODA datasets all ingestible
+**Source:** src/ingest.py — Sprint 55A
+**User:** admin
+**Starting state:** All 22 SODA datasets cataloged; previously 5 lacked ingest capability
+**Goal:** Admin triggers a full ingest run and all 22 datasets complete successfully
+**Expected outcome:** All 22 tables populated, ingest_log has 22 rows with recent timestamps, no dataset returns 0 records
+**Edge cases seen in code:** development_pipeline uses bpa_no as primary key with fallback to case_no for records without BPA; dwelling_completions lacks data_as_of field in SODA response
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Street-use permits streaming ingest under memory pressure
+**Source:** src/ingest.py ingest_street_use_permits()
+**User:** admin
+**Starting state:** ~1.2M street-use permit records in SODA; Railway container has ~512MB RAM
+**Goal:** Admin triggers /cron/ingest-street-use and all records load without OOM
+**Expected outcome:** All records ingested in batches of 50K, total count reported correctly in response JSON, elapsed time reasonable
+**Edge cases seen in code:** STREET_USE_BATCH_FLUSH=50K mirrors tax_rolls pattern; unique_identifier used as PK to handle permit_number duplicates across different CNNs
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Affordable housing pipeline supports entitlement research
+**Source:** src/ingest.py _normalize_affordable_housing()
+**User:** expediter | architect
+**Starting state:** Affordable housing table populated with ~194 projects
+**Goal:** Expediter looks up whether a specific planning case number has affordable housing requirements attached
+**Expected outcome:** Record found by planning_case_number, shows total_project_units, affordable_units, affordable_percent, construction_status
+**Edge cases seen in code:** SODA field uses 'mohcd_affordable_units' not 'affordable_units'; 'plannning_approval_address' has a typo in SODA (3 n's)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: New cron endpoints reject requests without auth token
+**Source:** web/app.py — 7 new cron endpoints
+**User:** admin
+**Starting state:** 7 new cron endpoints deployed: electrical, plumbing, street-use, development-pipeline, affordable-housing, housing-production, dwelling-completions
+**Goal:** Unauthenticated caller (e.g. accidental browser visit) cannot trigger ingest
+**Expected outcome:** All 7 endpoints return HTTP 403 without Authorization header; with wrong token also 403; with correct CRON_SECRET returns 200 or triggers ingest
+**Edge cases seen in code:** _check_api_auth() uses .strip() on both header and env var to prevent trailing whitespace mismatch (learned from Sprint 54 CRON_SECRET postmortem)
+**CC confidence:** high
+**Status:** PENDING REVIEW
