@@ -565,6 +565,9 @@ def _run_startup_migrations():
             # timeline_stats (382K rows)
             ("idx_ts_permit", "timeline_stats", "permit_number"),
         ]
+        # Set lock_timeout so we don't block forever if a zombie transaction
+        # holds locks (e.g. from a timed-out /cron/migrate call)
+        cur.execute("SET lock_timeout = '15s'")
         for idx_name, table, columns in _bulk_indexes:
             try:
                 cur.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({columns})")
