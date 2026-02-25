@@ -291,6 +291,120 @@ CREATE INDEX IF NOT EXISTS idx_ts_neighborhood ON timeline_stats(neighborhood);
 CREATE INDEX IF NOT EXISTS idx_ts_cost_bracket ON timeline_stats(cost_bracket);
 CREATE INDEX IF NOT EXISTS idx_ts_permit_type ON timeline_stats(permit_type_definition);
 
+-- Boiler Permits (~152K records)
+CREATE TABLE IF NOT EXISTS boiler_permits (
+    permit_number   TEXT PRIMARY KEY,
+    block           TEXT,
+    lot             TEXT,
+    status          TEXT,
+    boiler_type     TEXT,
+    boiler_serial_number TEXT,
+    model           TEXT,
+    description     TEXT,
+    application_date TEXT,
+    expiration_date TEXT,
+    street_number   TEXT,
+    street_name     TEXT,
+    street_suffix   TEXT,
+    zip_code        TEXT,
+    neighborhood    TEXT,
+    supervisor_district TEXT,
+    data_as_of      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_boiler_block_lot ON boiler_permits(block, lot);
+CREATE INDEX IF NOT EXISTS idx_boiler_status ON boiler_permits(status);
+
+-- Fire Permits (~84K records)
+CREATE TABLE IF NOT EXISTS fire_permits (
+    permit_number   TEXT PRIMARY KEY,
+    permit_type     TEXT,
+    permit_type_description TEXT,
+    permit_status   TEXT,
+    permit_address  TEXT,
+    permit_holder   TEXT,
+    dba_name        TEXT,
+    application_date TEXT,
+    date_approved   TEXT,
+    expiration_date TEXT,
+    permit_fee      DOUBLE PRECISION,
+    posting_fee     DOUBLE PRECISION,
+    referral_fee    DOUBLE PRECISION,
+    conditions      TEXT,
+    battalion       TEXT,
+    fire_prevention_district TEXT,
+    night_assembly_permit TEXT,
+    data_as_of      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_fire_status ON fire_permits(permit_status);
+CREATE INDEX IF NOT EXISTS idx_fire_holder ON fire_permits(permit_holder);
+CREATE INDEX IF NOT EXISTS idx_fire_address ON fire_permits USING gin(permit_address gin_trgm_ops);
+
+-- Planning Records (~282K records — projects + non-projects merged)
+CREATE TABLE IF NOT EXISTS planning_records (
+    record_id       TEXT PRIMARY KEY,
+    record_type     TEXT,
+    record_status   TEXT,
+    block           TEXT,
+    lot             TEXT,
+    address         TEXT,
+    project_name    TEXT,
+    description     TEXT,
+    applicant       TEXT,
+    applicant_org   TEXT,
+    assigned_planner TEXT,
+    open_date       TEXT,
+    environmental_doc_type TEXT,
+    is_project      BOOLEAN DEFAULT TRUE,
+    units_existing  INTEGER,
+    units_proposed  INTEGER,
+    units_net       DOUBLE PRECISION,
+    affordable_units INTEGER,
+    child_id        TEXT,
+    parent_id       TEXT,
+    data_as_of      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_planning_block_lot ON planning_records(block, lot);
+CREATE INDEX IF NOT EXISTS idx_planning_type ON planning_records(record_type);
+CREATE INDEX IF NOT EXISTS idx_planning_status ON planning_records(record_status);
+CREATE INDEX IF NOT EXISTS idx_planning_planner ON planning_records(assigned_planner);
+
+-- Tax Rolls (~600K records — latest 3 years)
+CREATE TABLE IF NOT EXISTS tax_rolls (
+    block           TEXT,
+    lot             TEXT,
+    tax_year        TEXT,
+    property_location TEXT,
+    parcel_number   TEXT,
+    zoning_code     TEXT,
+    use_code        TEXT,
+    use_definition  TEXT,
+    property_class_code TEXT,
+    property_class_code_definition TEXT,
+    number_of_stories DOUBLE PRECISION,
+    number_of_units INTEGER,
+    number_of_rooms INTEGER,
+    number_of_bedrooms INTEGER,
+    number_of_bathrooms DOUBLE PRECISION,
+    lot_area        DOUBLE PRECISION,
+    property_area   DOUBLE PRECISION,
+    assessed_land_value DOUBLE PRECISION,
+    assessed_improvement_value DOUBLE PRECISION,
+    assessed_personal_property DOUBLE PRECISION,
+    assessed_fixtures DOUBLE PRECISION,
+    current_sales_date TEXT,
+    neighborhood    TEXT,
+    supervisor_district TEXT,
+    data_as_of      TEXT,
+    PRIMARY KEY (block, lot, tax_year)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tax_zoning ON tax_rolls(zoning_code);
+CREATE INDEX IF NOT EXISTS idx_tax_block_lot ON tax_rolls(block, lot);
+CREATE INDEX IF NOT EXISTS idx_tax_neighborhood ON tax_rolls(neighborhood);
+
 -- ============================================================
 -- Materialized views (Step 3 — for the 5 decision tools)
 -- ============================================================

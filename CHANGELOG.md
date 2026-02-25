@@ -1,5 +1,38 @@
 # Changelog
 
+## Sprint 54C — Data Ingest Expansion (2026-02-24)
+
+Added 4 new SODA datasets (~718K records) unlocking planning entitlement data, zoning codes, fire permit signals, and complete DBI 4-permit coverage.
+
+### New Datasets
+- **Boiler Permits** (`5dp4-gtxk`, ~152K records) — completes 4-permit DBI coverage (building + electrical + plumbing + boiler)
+- **Fire Permits** (`893e-xam6`, ~84K records) — SFFD routing signal for severity scoring and timeline estimates
+- **Planning Records** (`qvu5-m3a2` + `y673-d69b`, ~282K records) — projects and non-projects merged into single table with `is_project` flag
+- **Tax Rolls** (`wv5m-vpq2`, ~600K records, 3-year filter) — zoning codes, assessed values, property characteristics
+
+### Schema Changes
+- 4 new tables in both DuckDB (`src/db.py`) and PostgreSQL (`scripts/postgres_schema.sql`)
+- Composite PK on tax_rolls (block, lot, tax_year)
+- 13 new indexes across all 4 tables
+- Fire permits: trigram index on `permit_address` for future address matching
+
+### Ingest Pipeline
+- 4 new normalize functions, 4 new ingest functions in `src/ingest.py`
+- Planning records: fetches both endpoints sequentially, merges with `is_project` boolean
+- Tax rolls: filtered to `closed_roll_year >= 2022` (~600K vs 3.7M total)
+- Fire permits: fee fields parsed as float, no block/lot (address parsing is follow-up)
+
+### Cron Endpoints
+- `POST /cron/ingest-boiler` — ingest boiler permits
+- `POST /cron/ingest-fire` — ingest fire permits
+- `POST /cron/ingest-planning` — ingest planning records (both endpoints)
+- `POST /cron/ingest-tax-rolls` — ingest tax rolls (3-year filter)
+- `POST /cron/cross-ref-check` — cross-reference verification queries with match rates
+
+### Tests
+- 27 new tests in `tests/test_ingest_expansion.py`
+- Full suite: 1696 passed, 20 skipped, 0 failures
+
 ## Sprint 54B — Enforcement Hooks + Protocol Bootstrap (2026-02-24)
 
 Black Box Protocol enforcement so agents cannot self-certify QA or descope items silently. Built after Sprint 54A's agent skipped Playwright entirely and rushed CHECKCHAT without evidence.

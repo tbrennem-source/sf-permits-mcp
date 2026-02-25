@@ -65,6 +65,26 @@ DATASETS = {
         "endpoint_id": "a6aw-rudh",
         "name": "Plumbing Permits",
     },
+    "boiler_permits": {
+        "endpoint_id": "5dp4-gtxk",
+        "name": "Boiler Permits",
+    },
+    "fire_permits": {
+        "endpoint_id": "893e-xam6",
+        "name": "Fire Permits",
+    },
+    "planning_projects": {
+        "endpoint_id": "qvu5-m3a2",
+        "name": "Planning Projects",
+    },
+    "planning_non_projects": {
+        "endpoint_id": "y673-d69b",
+        "name": "Planning Non-Projects",
+    },
+    "tax_rolls": {
+        "endpoint_id": "wv5m-vpq2",
+        "name": "Tax Rolls (Secured Property)",
+    },
 }
 
 PAGE_SIZE = 10_000
@@ -480,6 +500,178 @@ def _normalize_business(record: dict, row_id: int) -> tuple:
         record.get("location_end_date"),
         record.get("parking_tax"),
         record.get("transient_occupancy_tax"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_boiler_permit(record: dict) -> tuple:
+    """Normalize a boiler permit record."""
+    return (
+        record.get("permit_number", ""),
+        record.get("block"),
+        record.get("lot"),
+        record.get("status"),
+        record.get("boiler_type"),
+        record.get("boiler_serial_number"),
+        record.get("model"),
+        record.get("description"),
+        record.get("application_date"),
+        record.get("expiration_date"),
+        record.get("street_number"),
+        record.get("street_name"),
+        record.get("street_suffix"),
+        record.get("zip_code"),
+        record.get("neighborhood"),
+        record.get("supervisor_district"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_fire_permit(record: dict) -> tuple:
+    """Normalize a fire permit record."""
+    def _parse_fee(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    return (
+        record.get("permit_number", ""),
+        record.get("permit_type"),
+        record.get("permit_type_description"),
+        record.get("permit_status"),
+        record.get("permit_address"),
+        record.get("permit_holder"),
+        record.get("dba_name"),
+        record.get("application_date"),
+        record.get("date_approved"),
+        record.get("expiration_date"),
+        _parse_fee(record.get("permit_fee")),
+        _parse_fee(record.get("posting_fee")),
+        _parse_fee(record.get("referral_fee")),
+        record.get("conditions"),
+        record.get("battalion"),
+        record.get("fire_prevention_district"),
+        record.get("night_assembly_permit"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_planning_project(record: dict) -> tuple:
+    """Normalize a planning project record (is_project=True)."""
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    def _parse_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    return (
+        record.get("record_id", ""),
+        record.get("record_type"),
+        record.get("record_status"),
+        record.get("block"),
+        record.get("lot"),
+        record.get("address"),
+        record.get("project_name"),
+        record.get("description"),
+        record.get("applicant"),
+        record.get("applicant_org"),
+        record.get("assigned_planner"),
+        record.get("open_date"),
+        record.get("environmental_doc_type"),
+        True,  # is_project
+        _parse_int(record.get("units_existing")),
+        _parse_int(record.get("units_proposed")),
+        _parse_float(record.get("units_net")),
+        _parse_int(record.get("affordable_units")),
+        record.get("child_id"),
+        None,  # parent_id (projects don't have this)
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_planning_non_project(record: dict) -> tuple:
+    """Normalize a planning non-project record (is_project=False)."""
+    return (
+        record.get("record_id", ""),
+        record.get("record_type"),
+        record.get("record_status"),
+        record.get("block"),
+        record.get("lot"),
+        record.get("address"),
+        None,  # project_name
+        record.get("description"),
+        record.get("applicant"),
+        None,  # applicant_org
+        record.get("assigned_planner"),
+        record.get("open_date"),
+        None,  # environmental_doc_type
+        False,  # is_project
+        None,  # units_existing
+        None,  # units_proposed
+        None,  # units_net
+        None,  # affordable_units
+        None,  # child_id
+        record.get("parent_id"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_tax_roll(record: dict) -> tuple:
+    """Normalize a tax roll record."""
+    def _parse_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    return (
+        record.get("block"),
+        record.get("lot"),
+        record.get("closed_roll_year"),
+        record.get("property_location"),
+        record.get("parcel_number"),
+        record.get("zoning_code"),
+        record.get("use_code"),
+        record.get("use_definition"),
+        record.get("property_class_code"),
+        record.get("property_class_code_definition"),
+        _parse_float(record.get("number_of_stories")),
+        _parse_int(record.get("number_of_units")),
+        _parse_int(record.get("number_of_rooms")),
+        _parse_int(record.get("number_of_bedrooms")),
+        _parse_float(record.get("number_of_bathrooms")),
+        _parse_float(record.get("lot_area")),
+        _parse_float(record.get("property_area")),
+        _parse_float(record.get("assessed_land_value")),
+        _parse_float(record.get("assessed_improvement_value")),
+        _parse_float(record.get("assessed_personal_property")),
+        _parse_float(record.get("assessed_fixtures")),
+        record.get("current_sales_date"),
+        record.get("neighborhood"),
+        record.get("supervisor_district"),
         record.get("data_as_of"),
     )
 
@@ -944,6 +1136,123 @@ async def ingest_businesses(conn, client: SODAClient) -> int:
     return len(batch)
 
 
+async def ingest_boiler_permits(conn, client: SODAClient) -> int:
+    """Ingest boiler permits into boiler_permits table."""
+    print("\n=== Ingesting Boiler Permits ===")
+    conn.execute("DELETE FROM boiler_permits")
+
+    records = await _fetch_all_pages(client, "5dp4-gtxk", "Boiler Permits")
+
+    batch = [_normalize_boiler_permit(r) for r in records]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO boiler_permits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} boiler permit records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["5dp4-gtxk", "Boiler Permits", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_fire_permits(conn, client: SODAClient) -> int:
+    """Ingest fire permits into fire_permits table."""
+    print("\n=== Ingesting Fire Permits ===")
+    conn.execute("DELETE FROM fire_permits")
+
+    records = await _fetch_all_pages(client, "893e-xam6", "Fire Permits")
+
+    batch = [_normalize_fire_permit(r) for r in records]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO fire_permits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} fire permit records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["893e-xam6", "Fire Permits", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_planning_records(conn, client: SODAClient) -> int:
+    """Ingest planning records (projects + non-projects) into planning_records table."""
+    print("\n=== Ingesting Planning Records ===")
+    conn.execute("DELETE FROM planning_records")
+
+    total = 0
+
+    # Projects
+    print("\n[1/2] Planning Projects (qvu5-m3a2)")
+    projects = await _fetch_all_pages(client, "qvu5-m3a2", "Planning Projects")
+    batch = [_normalize_planning_project(r) for r in projects]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO planning_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        total += len(batch)
+        print(f"  Loaded {len(batch):,} planning project records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["qvu5-m3a2", "Planning Projects", datetime.now(timezone.utc).isoformat(), len(projects), len(projects)],
+    )
+
+    # Non-projects
+    print("\n[2/2] Planning Non-Projects (y673-d69b)")
+    non_projects = await _fetch_all_pages(client, "y673-d69b", "Planning Non-Projects")
+    batch = [_normalize_planning_non_project(r) for r in non_projects]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO planning_records VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        total += len(batch)
+        print(f"  Loaded {len(batch):,} planning non-project records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["y673-d69b", "Planning Non-Projects", datetime.now(timezone.utc).isoformat(), len(non_projects), len(non_projects)],
+    )
+
+    print(f"\n  Total planning records loaded: {total:,}")
+    return total
+
+
+TAX_ROLL_YEAR_FILTER = "closed_roll_year >= '2022'"
+
+
+async def ingest_tax_rolls(conn, client: SODAClient) -> int:
+    """Ingest tax rolls (latest 3 years) into tax_rolls table."""
+    print("\n=== Ingesting Tax Rolls (3-year filter) ===")
+    conn.execute("DELETE FROM tax_rolls")
+
+    records = await _fetch_all_pages(
+        client, "wv5m-vpq2", "Tax Rolls",
+        where=TAX_ROLL_YEAR_FILTER,
+    )
+
+    batch = [_normalize_tax_roll(r) for r in records]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO tax_rolls VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} tax roll records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["wv5m-vpq2", "Tax Rolls", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
 def _extract_addenda_contacts(conn, start_row_id: int) -> int:
     """Extract plan_checked_by from addenda as contacts for entity resolution."""
     print("\n  Extracting addenda contacts (plan_checked_by)...")
@@ -1054,6 +1363,10 @@ async def run_ingestion(
     businesses: bool = True,
     electrical_permits: bool = True,
     plumbing_permits: bool = True,
+    boiler: bool = True,
+    fire: bool = True,
+    planning: bool = True,
+    tax_rolls: bool = True,
     db_path: str | None = None,
 ) -> dict:
     """Run the full ingestion pipeline.
@@ -1087,6 +1400,14 @@ async def run_ingestion(
             results["plumbing_permits"] = await ingest_plumbing_permits(conn, client)
         if inspections:
             results["inspections"] = await ingest_inspections(conn, client)
+        if boiler:
+            results["boiler_permits"] = await ingest_boiler_permits(conn, client)
+        if fire:
+            results["fire_permits"] = await ingest_fire_permits(conn, client)
+        if planning:
+            results["planning_records"] = await ingest_planning_records(conn, client)
+        if tax_rolls:
+            results["tax_rolls"] = await ingest_tax_rolls(conn, client)
     finally:
         await client.close()
 
@@ -1116,13 +1437,19 @@ def main():
     parser.add_argument("--businesses", action="store_true", help="Only ingest businesses")
     parser.add_argument("--electrical-permits", action="store_true", help="Only ingest electrical permits")
     parser.add_argument("--plumbing-permits", action="store_true", help="Only ingest plumbing permits")
+    parser.add_argument("--boiler", action="store_true", help="Only ingest boiler permits")
+    parser.add_argument("--fire", action="store_true", help="Only ingest fire permits")
+    parser.add_argument("--planning", action="store_true", help="Only ingest planning records")
+    parser.add_argument("--tax-rolls", action="store_true", help="Only ingest tax rolls")
     parser.add_argument("--db", type=str, help="Custom database path")
     args = parser.parse_args()
 
     # If no specific flag, ingest everything
     do_all = not (args.contacts or args.permits or args.inspections
                   or args.addenda or args.violations or args.complaints
-                  or args.businesses or args.electrical_permits or args.plumbing_permits)
+                  or args.businesses or args.electrical_permits or args.plumbing_permits
+                  or args.boiler or args.fire
+                  or args.planning or args.tax_rolls)
 
     asyncio.run(
         run_ingestion(
@@ -1135,6 +1462,10 @@ def main():
             businesses=do_all or args.businesses,
             electrical_permits=do_all or args.electrical_permits,
             plumbing_permits=do_all or args.plumbing_permits,
+            boiler=do_all or args.boiler,
+            fire=do_all or args.fire,
+            planning=do_all or args.planning,
+            tax_rolls=do_all or args.tax_rolls,
             db_path=args.db,
         )
     )
