@@ -3,6 +3,17 @@
 <!-- Do not edit scenario-design-guide.md directly -->
 <!-- This file is reviewed and drained each planning session -->
 <!-- Sprint 56 session: 23 scenarios added by 6 parallel agents (A-F) on 2026-02-25 -->
+<!-- Sprint 56 orchestrator: +1 scenario for PgConnWrapper cursor bug discovered during deploy -->
+
+## SUGGESTED SCENARIO: Plumbing inspection data persists after ingest
+**Source:** Sprint 56 — PgConnWrapper cursor fix
+**User:** admin
+**Starting state:** inspections table has building inspections only (source='building')
+**Goal:** Ingest plumbing inspections so both sources coexist in the shared table
+**Expected outcome:** After /cron/ingest-plumbing-inspections, SELECT source, COUNT(*) FROM inspections GROUP BY source returns both 'building' and 'plumbing' rows with correct counts
+**Edge cases seen in code:** _PgConnWrapper.execute() returning closed cursor causes fetchone() to fail silently; start_id falls back to 1; ON CONFLICT DO NOTHING drops all rows
+**CC confidence:** high
+**Status:** PENDING REVIEW
 
 ## SUGGESTED SCENARIO: CI catches broken test on PR
 **Source:** .github/workflows/ci.yml
