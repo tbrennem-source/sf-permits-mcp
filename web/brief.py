@@ -174,6 +174,11 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     # Sprint 53 Session C: pipeline health section
     pipeline_health = get_pipeline_health_for_brief()
 
+    # Sprint 55 Session D: planning context, compliance calendar, data quality
+    planning_context = _get_planning_context(user_id)
+    compliance_calendar = _get_compliance_calendar(user_id)
+    data_quality = _get_data_quality()
+
     return {
         "changes": changes,
         "plan_reviews": plan_reviews,
@@ -186,6 +191,9 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "property_cards": property_cards,
         "property_synopsis": property_synopsis,
         "last_refresh": last_refresh,
+        "planning_context": planning_context,
+        "compliance_calendar": compliance_calendar,
+        "data_quality": data_quality,
         "summary": {
             "total_watches": total_watches,
             "total_properties": len(property_cards),
@@ -198,6 +206,8 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
             "team_count": len(team_activity),
             "expiring_count": len(expiring),
             "regulatory_count": len(regulatory_alerts),
+            "planning_context_count": len(planning_context),
+            "compliance_calendar_count": len(compliance_calendar),
         },
         "lookback_days": lookback_days,
         "pipeline_health": pipeline_health,
@@ -1460,3 +1470,301 @@ def get_pipeline_health_for_brief() -> dict:
     except Exception as e:
         logger.warning("Pipeline health check failed (non-fatal): %s", e)
         return {"status": "unknown", "issues": [str(e)], "checks": []}
+
+
+# ── Section 11: Planning & Zoning Context ────────────────────────
+
+def _get_planning_context(user_id: int) -> list[dict]:
+    """Get active planning entitlements and zoning for watched parcels.
+
+    For each parcel watch (block + lot), queries:
+    - planning_records for active entitlements
+    - tax_rolls for current zoning_code
+
+    Returns a list of dicts, one per watched parcel with active records.
+    Fails silently — never raises, so brief still renders if query fails.
+    """
+    ph = _ph()
+
+    # Fetch parcel watches for this user
+    try:
+        watch_rows = query(
+            f"SELECT block, lot, label FROM watch_items "
+            f"WHERE user_id = {ph} AND watch_type = 'parcel' AND is_active = TRUE",
+            (user_id,),
+        )
+    except Exception:
+        logger.debug("Planning context: watch_items query failed", exc_info=True)
+        return []
+
+    if not watch_rows:
+        return []
+
+    results = []
+    for row in watch_rows:
+        block, lot, label = row[0], row[1], row[2] if len(row) > 2 else None
+        if not block or not lot:
+            continue
+
+        block_lot_key = f"{block}-{lot}"
+
+        # Query active planning records for this parcel
+        try:
+            planning_rows = query(
+                f"SELECT record_id, record_type, description, open_date, status "
+                f"FROM planning_records "
+                f"WHERE block = {ph} AND lot = {ph} "
+                f"  AND COALESCE(status, '') NOT IN ('withdrawn', 'closed') "
+                f"ORDER BY open_date DESC "
+                f"LIMIT 10",
+                (block, lot),
+            )
+        except Exception:
+            logger.debug(
+                "Planning context: planning_records query failed for %s", block_lot_key,
+                exc_info=True,
+            )
+            planning_rows = []
+
+        # Query zoning code from most recent tax roll entry
+        zoning_code = None
+        try:
+            tax_row = query_one(
+                f"SELECT zoning_code FROM tax_rolls "
+                f"WHERE block = {ph} AND lot = {ph} "
+                f"ORDER BY tax_year DESC LIMIT 1",
+                (block, lot),
+            )
+            if tax_row:
+                zoning_code = tax_row[0]
+        except Exception:
+            logger.debug(
+                "Planning context: tax_rolls query failed for %s", block_lot_key,
+                exc_info=True,
+            )
+
+        # Only include parcels that have active planning records or zoning info
+        if not planning_rows and not zoning_code:
+            continue
+
+        planning_records = [
+            {
+                "record_id": r[0],
+                "record_type": r[1],
+                "description": (r[2] or "")[:120],
+                "open_date": r[3],
+                "status": r[4],
+            }
+            for r in planning_rows
+        ]
+
+        results.append({
+            "block_lot": block_lot_key,
+            "block": block,
+            "lot": lot,
+            "label": label,
+            "zoning_code": zoning_code,
+            "planning_records": planning_records,
+        })
+
+    return results
+
+
+# ── Section 12: Compliance Calendar ──────────────────────────────
+
+COMPLIANCE_WARNING_DAYS = 90  # Warn this many days before expiration
+
+
+def _get_compliance_calendar(user_id: int) -> list[dict]:
+    """Get boiler permits approaching expiration for watched parcels.
+
+    For each parcel watch (block + lot), queries boiler_permits for permits
+    expiring within COMPLIANCE_WARNING_DAYS days.
+
+    Returns a list of dicts sorted by days_until ascending (soonest first).
+    Fails silently — never raises, so brief still renders if query fails.
+    """
+    ph = _ph()
+
+    # Fetch parcel watches for this user
+    try:
+        watch_rows = query(
+            f"SELECT block, lot FROM watch_items "
+            f"WHERE user_id = {ph} AND watch_type = 'parcel' AND is_active = TRUE",
+            (user_id,),
+        )
+    except Exception:
+        logger.debug("Compliance calendar: watch_items query failed", exc_info=True)
+        return []
+
+    if not watch_rows:
+        return []
+
+    today = date.today()
+    cutoff = today + timedelta(days=COMPLIANCE_WARNING_DAYS)
+    results = []
+
+    for row in watch_rows:
+        block, lot = row[0], row[1]
+        if not block or not lot:
+            continue
+
+        try:
+            boiler_rows = query(
+                f"SELECT permit_number, boiler_type, expiration_date "
+                f"FROM boiler_permits "
+                f"WHERE block = {ph} AND lot = {ph} "
+                f"  AND expiration_date IS NOT NULL",
+                (block, lot),
+            )
+        except Exception:
+            logger.debug(
+                "Compliance calendar: boiler_permits query failed for %s-%s", block, lot,
+                exc_info=True,
+            )
+            continue
+
+        for brow in boiler_rows:
+            permit_number, boiler_type, expiration_date = brow[0], brow[1], brow[2]
+            exp = _parse_date(expiration_date)
+            if not exp:
+                continue
+            if exp > cutoff:
+                continue  # Not expiring soon enough
+
+            days_until = (exp - today).days
+            results.append({
+                "permit_number": permit_number,
+                "boiler_type": boiler_type,
+                "expiration_date": expiration_date,
+                "days_until": days_until,
+                "block": block,
+                "lot": lot,
+                "is_expired": days_until < 0,
+            })
+
+    # Sort: expired first, then soonest to expire
+    results.sort(key=lambda x: x["days_until"])
+    return results
+
+
+# ── Section 13: Data Quality Footer ──────────────────────────────
+
+DATA_QUALITY_WARN_THRESHOLD = 5.0  # Warn if match rate below this percent
+
+
+def _get_data_quality() -> dict:
+    """Compute cross-reference match rates for the morning brief footer.
+
+    Runs the same queries as /cron/cross-ref-check to show data health.
+    Returns a dict with match percentages and a warnings list.
+    Fails silently — returns empty dict on error.
+    """
+    try:
+        conn = get_connection()
+        results: dict = {}
+        try:
+            if BACKEND == "postgres":
+                conn.autocommit = True
+                cur = conn.cursor()
+
+                cur.execute("""
+                    SELECT COUNT(DISTINCT pr.record_id)
+                    FROM planning_records pr
+                    JOIN permits p ON pr.block = p.block AND pr.lot = p.lot
+                """)
+                planning_matched = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM planning_records")
+                total_planning = cur.fetchone()[0]
+
+                cur.execute("""
+                    SELECT COUNT(DISTINCT tr.block || '-' || tr.lot)
+                    FROM tax_rolls tr
+                    JOIN permits p ON tr.block = p.block AND tr.lot = p.lot
+                    WHERE p.status IN ('issued', 'complete', 'filed', 'approved')
+                """)
+                tax_matched = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM tax_rolls")
+                total_tax = cur.fetchone()[0]
+
+                cur.execute("""
+                    SELECT COUNT(DISTINCT bp.permit_number)
+                    FROM boiler_permits bp
+                    JOIN permits p ON bp.block = p.block AND bp.lot = p.lot
+                """)
+                boiler_matched = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM boiler_permits")
+                total_boiler = cur.fetchone()[0]
+                cur.close()
+            else:
+                planning_matched = conn.execute("""
+                    SELECT COUNT(DISTINCT pr.record_id)
+                    FROM planning_records pr
+                    JOIN permits p ON pr.block = p.block AND pr.lot = p.lot
+                """).fetchone()[0]
+                total_planning = conn.execute(
+                    "SELECT COUNT(*) FROM planning_records"
+                ).fetchone()[0]
+                tax_matched = conn.execute("""
+                    SELECT COUNT(DISTINCT tr.block || '-' || tr.lot)
+                    FROM tax_rolls tr
+                    JOIN permits p ON tr.block = p.block AND tr.lot = p.lot
+                    WHERE p.status IN ('issued', 'complete', 'filed', 'approved')
+                """).fetchone()[0]
+                total_tax = conn.execute(
+                    "SELECT COUNT(*) FROM tax_rolls"
+                ).fetchone()[0]
+                boiler_matched = conn.execute("""
+                    SELECT COUNT(DISTINCT bp.permit_number)
+                    FROM boiler_permits bp
+                    JOIN permits p ON bp.block = p.block AND bp.lot = p.lot
+                """).fetchone()[0]
+                total_boiler = conn.execute(
+                    "SELECT COUNT(*) FROM boiler_permits"
+                ).fetchone()[0]
+        finally:
+            conn.close()
+
+        def _pct(matched: int, total: int) -> float:
+            return round(matched * 100 / total, 1) if total > 0 else 0.0
+
+        planning_pct = _pct(planning_matched, total_planning)
+        tax_pct = _pct(tax_matched, total_tax)
+        boiler_pct = _pct(boiler_matched, total_boiler)
+
+        warnings = []
+        if planning_pct < DATA_QUALITY_WARN_THRESHOLD and total_planning > 0:
+            warnings.append(
+                f"Planning match rate low: {planning_pct}% "
+                f"({planning_matched}/{total_planning})"
+            )
+        if tax_pct < DATA_QUALITY_WARN_THRESHOLD and total_tax > 0:
+            warnings.append(
+                f"Tax roll match rate low: {tax_pct}% "
+                f"({tax_matched}/{total_tax})"
+            )
+        if boiler_pct < DATA_QUALITY_WARN_THRESHOLD and total_boiler > 0:
+            warnings.append(
+                f"Boiler match rate low: {boiler_pct}% "
+                f"({boiler_matched}/{total_boiler})"
+            )
+
+        for w in warnings:
+            logger.warning("DATA QUALITY: %s", w)
+
+        return {
+            "planning_match_pct": planning_pct,
+            "planning_matched": planning_matched,
+            "total_planning": total_planning,
+            "tax_match_pct": tax_pct,
+            "tax_matched": tax_matched,
+            "total_tax_rolls": total_tax,
+            "boiler_match_pct": boiler_pct,
+            "boiler_matched": boiler_matched,
+            "total_boiler": total_boiler,
+            "warnings": warnings,
+        }
+
+    except Exception as e:
+        logger.debug("Data quality check failed (non-fatal): %s", e, exc_info=True)
+        return {}

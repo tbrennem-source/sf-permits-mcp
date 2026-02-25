@@ -35,6 +35,9 @@ logger = logging.getLogger(__name__)
 BUILDING_PERMITS_ENDPOINT = "i98e-djp9"
 INSPECTIONS_ENDPOINT = "vckc-dh2h"
 ADDENDA_ENDPOINT = "87xy-gk8d"
+PLANNING_PROJECTS_ENDPOINT = "qvu5-m3a2"
+PLANNING_NON_PROJECTS_ENDPOINT = "y673-d69b"
+BOILER_ENDPOINT = "5dp4-gtxk"
 PAGE_SIZE = 10_000
 MAX_LOOKBACK_DAYS = 30
 
@@ -901,6 +904,233 @@ def sweep_stuck_cron_jobs(stuck_threshold_minutes: int = 120) -> int:
         return 0
 
 
+# ── Planning monitoring ───────────────────────────────────────────
+
+async def fetch_recent_planning(client: SODAClient, since_date: str) -> list[dict]:
+    """Fetch planning records opened since `since_date` from SODA API.
+
+    Queries both the projects and non-projects planning endpoints.
+    """
+    all_records: list[dict] = []
+    for endpoint_id in (PLANNING_PROJECTS_ENDPOINT, PLANNING_NON_PROJECTS_ENDPOINT):
+        offset = 0
+        while True:
+            try:
+                records = await client.query(
+                    endpoint_id=endpoint_id,
+                    where=f"open_date > '{since_date}T00:00:00.000'",
+                    order="open_date DESC",
+                    limit=PAGE_SIZE,
+                    offset=offset,
+                )
+            except Exception as e:
+                logger.warning("Planning fetch from %s failed: %s", endpoint_id, e)
+                break
+            if not records:
+                break
+            all_records.extend(records)
+            if len(records) < PAGE_SIZE:
+                break
+            offset += PAGE_SIZE
+    return all_records
+
+
+def detect_planning_changes(soda_records: list[dict], dry_run: bool = False,
+                             source: str = "nightly") -> int:
+    """Compare SODA planning records against DB and insert status changes.
+
+    Detects new planning records and status changes on existing records.
+    Inserts into permit_changes with change_type='planning_status_change'.
+
+    Returns the number of changes inserted.
+    """
+    ph = _ph()
+    today = date.today()
+    inserted = 0
+
+    for record in soda_records:
+        record_id = record.get("record_id") or record.get("case_no")
+        if not record_id:
+            continue
+
+        new_status = (record.get("status") or "").strip()
+        open_date = record.get("open_date")
+        block = (record.get("block") or "").strip() or None
+        lot = (record.get("lot") or "").strip() or None
+        record_type = (record.get("record_type") or "").strip() or None
+        description = (record.get("description") or "")[:500]
+
+        # Check if we already have this record in planning_records
+        try:
+            existing = query_one(
+                f"SELECT status FROM planning_records WHERE record_id = {ph}",
+                (record_id,),
+            )
+        except Exception:
+            existing = None
+
+        if existing is None:
+            change_type = "planning_status_change"
+            old_status = None
+        else:
+            old_status = existing[0]
+            if old_status == new_status:
+                continue
+            change_type = "planning_status_change"
+
+        if dry_run:
+            action = "NEW" if old_status is None else f"{old_status} -> {new_status}"
+            logger.info("  Planning %s: %s (%s)", record_id, action, record_type)
+            inserted += 1
+            continue
+
+        # Insert into permit_changes (reuse table, distinct change_type)
+        try:
+            if BACKEND == "postgres":
+                execute_write(
+                    "INSERT INTO permit_changes "
+                    "(permit_number, change_date, old_status, new_status, "
+                    "old_status_date, new_status_date, change_type, is_new_permit, "
+                    "source, permit_type, block, lot) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (record_id, today, old_status, new_status,
+                     None, open_date, change_type, old_status is None,
+                     source, record_type, block, lot),
+                )
+            else:
+                id_row = query("SELECT COALESCE(MAX(change_id), 0) FROM permit_changes")
+                new_id = (id_row[0][0] if id_row else 0) + 1
+                conn = get_connection()
+                try:
+                    conn.execute(
+                        "INSERT INTO permit_changes "
+                        "(change_id, permit_number, change_date, old_status, new_status, "
+                        "old_status_date, new_status_date, change_type, is_new_permit, "
+                        "source, permit_type, block, lot) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (new_id, record_id, today, old_status, new_status,
+                         None, open_date, change_type, old_status is None,
+                         source, record_type, block, lot),
+                    )
+                finally:
+                    conn.close()
+            inserted += 1
+        except Exception as e:
+            logger.warning("Failed to insert planning change for %s: %s", record_id, e)
+
+    return inserted
+
+
+# ── Boiler monitoring ─────────────────────────────────────────────
+
+async def fetch_recent_boiler_permits(client: SODAClient, since_date: str) -> list[dict]:
+    """Fetch boiler permit records updated since `since_date` from SODA API."""
+    all_records: list[dict] = []
+    offset = 0
+    while True:
+        try:
+            records = await client.query(
+                endpoint_id=BOILER_ENDPOINT,
+                where=f"issue_date > '{since_date}T00:00:00.000'",
+                order="issue_date DESC",
+                limit=PAGE_SIZE,
+                offset=offset,
+            )
+        except Exception as e:
+            logger.warning("Boiler permits fetch failed: %s", e)
+            break
+        if not records:
+            break
+        all_records.extend(records)
+        if len(records) < PAGE_SIZE:
+            break
+        offset += PAGE_SIZE
+    return all_records
+
+
+def detect_boiler_changes(soda_records: list[dict], dry_run: bool = False,
+                           source: str = "nightly") -> int:
+    """Detect new and changed boiler permits and insert into permit_changes.
+
+    Uses change_type='boiler_change' to distinguish from building permit changes.
+
+    Returns the number of changes inserted.
+    """
+    ph = _ph()
+    today = date.today()
+    inserted = 0
+
+    for record in soda_records:
+        permit_number = record.get("permit_number") or record.get("boiler_permit_number")
+        if not permit_number:
+            continue
+
+        new_status = (record.get("status") or "").strip()
+        issue_date = record.get("issue_date")
+        block = (record.get("block") or "").strip() or None
+        lot = (record.get("lot") or "").strip() or None
+        boiler_type = (record.get("boiler_type") or "").strip() or None
+
+        # Check if we already have this boiler permit in boiler_permits table
+        try:
+            existing = query_one(
+                f"SELECT status FROM boiler_permits WHERE permit_number = {ph}",
+                (permit_number,),
+            )
+        except Exception:
+            existing = None
+
+        if existing is None:
+            change_type = "boiler_change"
+            old_status = None
+        else:
+            old_status = existing[0]
+            if old_status == new_status:
+                continue
+            change_type = "boiler_change"
+
+        if dry_run:
+            action = "NEW" if old_status is None else f"{old_status} -> {new_status}"
+            logger.info("  Boiler %s: %s (%s)", permit_number, action, boiler_type)
+            inserted += 1
+            continue
+
+        try:
+            if BACKEND == "postgres":
+                execute_write(
+                    "INSERT INTO permit_changes "
+                    "(permit_number, change_date, old_status, new_status, "
+                    "old_status_date, new_status_date, change_type, is_new_permit, "
+                    "source, permit_type, block, lot) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (permit_number, today, old_status, new_status,
+                     None, issue_date, change_type, old_status is None,
+                     source, boiler_type, block, lot),
+                )
+            else:
+                id_row = query("SELECT COALESCE(MAX(change_id), 0) FROM permit_changes")
+                new_id = (id_row[0][0] if id_row else 0) + 1
+                conn = get_connection()
+                try:
+                    conn.execute(
+                        "INSERT INTO permit_changes "
+                        "(change_id, permit_number, change_date, old_status, new_status, "
+                        "old_status_date, new_status_date, change_type, is_new_permit, "
+                        "source, permit_type, block, lot) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (new_id, permit_number, today, old_status, new_status,
+                         None, issue_date, change_type, old_status is None,
+                         source, boiler_type, block, lot),
+                    )
+                finally:
+                    conn.close()
+            inserted += 1
+        except Exception as e:
+            logger.warning("Failed to insert boiler change for %s: %s", permit_number, e)
+
+    return inserted
+
+
 # ── Main entry point ─────────────────────────────────────────────
 
 async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
@@ -946,6 +1176,8 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
         permit_records: list[dict] = []
         inspection_records: list[dict] = []
         addenda_records: list[dict] = []
+        planning_records: list[dict] = []
+        boiler_records: list[dict] = []
 
         try:
             # ── Step 1: Fetch permits (with retry) ────────────────────────
@@ -1002,6 +1234,28 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
                 logger.warning("Addenda fetch step failed (non-fatal): %s", e)
                 step_results["addenda"] = {"step": "addenda", "ok": False, "error": str(e)}
 
+            # ── Step 4a: Fetch planning records (isolated) ────────────────────
+            try:
+                planning_records, step_results["planning"] = await fetch_with_retry(
+                    lambda: fetch_recent_planning(client, since_str),
+                    step_name="planning",
+                )
+                logger.info("SODA returned %d planning records", len(planning_records))
+            except Exception as e:
+                logger.warning("Planning fetch step failed (non-fatal): %s", e)
+                step_results["planning"] = {"step": "planning", "ok": False, "error": str(e)}
+
+            # ── Step 4b: Fetch boiler permits (isolated) ──────────────────────
+            try:
+                boiler_records, step_results["boiler"] = await fetch_with_retry(
+                    lambda: fetch_recent_boiler_permits(client, since_str),
+                    step_name="boiler",
+                )
+                logger.info("SODA returned %d boiler permit records", len(boiler_records))
+            except Exception as e:
+                logger.warning("Boiler permits fetch step failed (non-fatal): %s", e)
+                step_results["boiler"] = {"step": "boiler", "ok": False, "error": str(e)}
+
         finally:
             await client.close()
 
@@ -1037,14 +1291,40 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             logger.warning("Addenda change detection failed (non-fatal): %s", e)
             step_results["detect_addenda"] = {"ok": False, "error": str(e)}
 
-        total_soda = len(permit_records) + len(inspection_records) + len(addenda_records)
+        # ── Step 7: Detect planning status changes ────────────────────
+        planning_changes_inserted = 0
+        try:
+            planning_changes_inserted = detect_planning_changes(
+                planning_records, dry_run=dry_run, source=source,
+            )
+        except Exception as e:
+            logger.warning("Planning change detection failed (non-fatal): %s", e)
+            step_results["detect_planning"] = {"ok": False, "error": str(e)}
+
+        # ── Step 8: Detect boiler permit changes ──────────────────────
+        boiler_changes_inserted = 0
+        try:
+            boiler_changes_inserted = detect_boiler_changes(
+                boiler_records, dry_run=dry_run, source=source,
+            )
+        except Exception as e:
+            logger.warning("Boiler change detection failed (non-fatal): %s", e)
+            step_results["detect_boiler"] = {"ok": False, "error": str(e)}
+
+        total_soda = (
+            len(permit_records) + len(inspection_records) + len(addenda_records)
+            + len(planning_records) + len(boiler_records)
+        )
 
         logger.info(
-            "%s: %d permit changes, %d inspections, %d addenda changes %s from %d SODA records",
+            "%s: %d permit changes, %d inspections, %d addenda changes, "
+            "%d planning changes, %d boiler changes %s from %d SODA records",
             "DRY RUN" if dry_run else "DONE",
             changes_inserted,
             inspections_updated,
             addenda_inserted,
+            planning_changes_inserted,
+            boiler_changes_inserted,
             "detected" if dry_run else "inserted",
             total_soda,
         )
@@ -1124,9 +1404,13 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "soda_permits": len(permit_records),
             "soda_inspections": len(inspection_records),
             "soda_addenda": len(addenda_records),
+            "soda_planning": len(planning_records),
+            "soda_boiler": len(boiler_records),
             "changes_inserted": changes_inserted,
             "inspections_updated": inspections_updated,
             "addenda_inserted": addenda_inserted,
+            "planning_changes_inserted": planning_changes_inserted,
+            "boiler_changes_inserted": boiler_changes_inserted,
             "dry_run": dry_run,
             "staleness_warnings": staleness_warnings,
             "step_results": step_results,

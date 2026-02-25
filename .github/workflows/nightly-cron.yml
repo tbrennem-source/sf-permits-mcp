@@ -35,6 +35,18 @@ jobs:
       - name: Wait for nightly sync processing
         run: sleep 30
 
+      - name: Refresh electrical permits
+        run: |
+          echo "Ingesting electrical permits at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-electrical" || echo "WARNING: electrical ingest failed"
+
+      - name: Refresh plumbing permits
+        run: |
+          echo "Ingesting plumbing permits at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-plumbing" || echo "WARNING: plumbing ingest failed"
+
       - name: Run signal detection pipeline
         run: |
           echo "Triggering signal pipeline at $(date -u)..."
