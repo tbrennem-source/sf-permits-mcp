@@ -105,6 +105,18 @@ DATASETS = {
         "endpoint_id": "j67f-aayr",
         "name": "Dwelling Unit Completions",
     },
+    "permit_issuance_metrics": {
+        "endpoint_id": "gzxm-jz5j",
+        "name": "DBI Permit Issuance Metrics",
+    },
+    "permit_review_metrics": {
+        "endpoint_id": "5bat-azvb",
+        "name": "DBI Permit Review Metrics",
+    },
+    "planning_review_metrics": {
+        "endpoint_id": "d4jk-jw33",
+        "name": "Planning Department Review Metrics",
+    },
 }
 
 PAGE_SIZE = 10_000
@@ -1808,6 +1820,265 @@ async def ingest_dwelling_completions(conn, client: SODAClient) -> int:
         ["j67f-aayr", "Dwelling Unit Completions", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
     )
     return len(batch)
+
+
+# === SESSION F: REVIEW METRICS INGEST ===
+
+def _normalize_permit_issuance_metric(record: dict) -> dict:
+    """Map a SODA permit issuance metrics record (gzxm-jz5j) to the table schema.
+
+    Key fields from SODA:
+      bpa, addenda, bpa_addenda, permit_type, otc_ih, status,
+      block, lot, street_number, street_name, street_suffix,
+      unit, description, fire_only_permit,
+      filed_date, issued_date, issued_status, issued_year,
+      calendar_days, business_days, data_as_of, data_loaded_at
+    """
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    def _parse_bool(val):
+        if val is None:
+            return None
+        if isinstance(val, bool):
+            return val
+        return str(val).lower() in ("true", "1", "yes")
+
+    return {
+        "bpa": record.get("bpa"),
+        "addenda_number": _parse_int(record.get("addenda")),
+        "bpa_addenda": record.get("bpa_addenda"),
+        "permit_type": record.get("permit_type"),
+        "otc_ih": record.get("otc_ih"),
+        "status": record.get("status"),
+        "block": record.get("block"),
+        "lot": record.get("lot"),
+        "street_number": record.get("street_number"),
+        "street_name": record.get("street_name"),
+        "street_suffix": record.get("street_suffix"),
+        "unit": record.get("unit"),
+        "description": record.get("description"),
+        "fire_only_permit": _parse_bool(record.get("fire_only_permit")),
+        "filed_date": record.get("filed_date"),
+        "issued_date": record.get("issued_date"),
+        "issued_status": record.get("issued_status"),
+        "issued_year": record.get("issued_year"),
+        "calendar_days": _parse_int(record.get("calendar_days")),
+        "business_days": _parse_int(record.get("business_days")),
+        "data_as_of": record.get("data_as_of"),
+    }
+
+
+def _normalize_permit_review_metric(record: dict) -> dict:
+    """Map a SODA permit review metrics record (5bat-azvb) to the table schema.
+
+    Key fields from SODA:
+      primary_key, bpa, addenda, bpa_addenda, permit_type,
+      block, lot, street_number, street_name, street_suffix,
+      description, fire_only_permit,
+      filed_date, status, department, station,
+      review_type, review_number, review_results,
+      arrive_date, start_year, start_date, start_date_source,
+      sla_days, due_date, finish_date, calendar_days, met_cal_sla,
+      data_as_of, data_loaded_at
+    """
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    def _parse_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    def _parse_bool(val):
+        if val is None:
+            return None
+        if isinstance(val, bool):
+            return val
+        return str(val).lower() in ("true", "1", "yes")
+
+    return {
+        "primary_key": record.get("primary_key"),
+        "bpa": record.get("bpa"),
+        "addenda_number": _parse_int(record.get("addenda")),
+        "bpa_addenda": record.get("bpa_addenda"),
+        "permit_type": record.get("permit_type"),
+        "block": record.get("block"),
+        "lot": record.get("lot"),
+        "street_number": record.get("street_number"),
+        "street_name": record.get("street_name"),
+        "street_suffix": record.get("street_suffix"),
+        "description": record.get("description"),
+        "fire_only_permit": record.get("fire_only_permit"),
+        "filed_date": record.get("filed_date"),
+        "status": record.get("status"),
+        "department": record.get("department"),
+        "station": record.get("station"),
+        "review_type": record.get("review_type"),
+        "review_number": _parse_int(record.get("review_number")),
+        "review_results": record.get("review_results"),
+        "arrive_date": record.get("arrive_date"),
+        "start_year": record.get("start_year"),
+        "start_date": record.get("start_date"),
+        "start_date_source": record.get("start_date_source"),
+        "sla_days": _parse_int(record.get("sla_days")),
+        "due_date": record.get("due_date"),
+        "finish_date": record.get("finish_date"),
+        "calendar_days": _parse_float(record.get("calendar_days")),
+        "met_cal_sla": _parse_bool(record.get("met_cal_sla")),
+        "data_as_of": record.get("data_as_of"),
+    }
+
+
+def _normalize_planning_review_metric(record: dict) -> dict:
+    """Map a SODA planning review metrics record (d4jk-jw33) to the table schema.
+
+    Key fields from SODA:
+      b1_alt_id, project_stage, observation_window_type,
+      observation_window_date, start_event_type, start_event_date,
+      end_event_type, end_event_date, metric_value, sla_value,
+      metric_outcome, data_as_of, data_loaded_at
+    """
+    def _parse_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    return {
+        "b1_alt_id": record.get("b1_alt_id"),
+        "project_stage": record.get("project_stage"),
+        "observation_window_type": record.get("observation_window_type"),
+        "observation_window_date": record.get("observation_window_date"),
+        "start_event_type": record.get("start_event_type"),
+        "start_event_date": record.get("start_event_date"),
+        "end_event_type": record.get("end_event_type"),
+        "end_event_date": record.get("end_event_date"),
+        "metric_value": _parse_float(record.get("metric_value")),
+        "sla_value": _parse_float(record.get("sla_value")),
+        "metric_outcome": record.get("metric_outcome"),
+        "data_as_of": record.get("data_as_of"),
+    }
+
+
+async def ingest_permit_issuance_metrics(conn, client: SODAClient) -> int:
+    """Ingest DBI permit issuance metrics (gzxm-jz5j) into permit_issuance_metrics table."""
+    print("\n=== Ingesting DBI Permit Issuance Metrics ===")
+    conn.execute("DELETE FROM permit_issuance_metrics")
+
+    records = await _fetch_all_pages(client, "gzxm-jz5j", "DBI Permit Issuance Metrics")
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        norm = _normalize_permit_issuance_metric(r)
+        batch.append((
+            i, norm["bpa"], norm["addenda_number"], norm["bpa_addenda"],
+            norm["permit_type"], norm["otc_ih"], norm["status"],
+            norm["block"], norm["lot"], norm["street_number"],
+            norm["street_name"], norm["street_suffix"], norm["unit"],
+            norm["description"], norm["fire_only_permit"],
+            norm["filed_date"], norm["issued_date"], norm["issued_status"],
+            norm["issued_year"], norm["calendar_days"], norm["business_days"],
+            norm["data_as_of"],
+        ))
+    if batch:
+        conn.executemany(
+            "INSERT INTO permit_issuance_metrics VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} permit issuance metric records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["gzxm-jz5j", "DBI Permit Issuance Metrics", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_permit_review_metrics(conn, client: SODAClient) -> int:
+    """Ingest DBI permit review metrics (5bat-azvb) into permit_review_metrics table."""
+    print("\n=== Ingesting DBI Permit Review Metrics ===")
+    conn.execute("DELETE FROM permit_review_metrics")
+
+    records = await _fetch_all_pages(client, "5bat-azvb", "DBI Permit Review Metrics")
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        norm = _normalize_permit_review_metric(r)
+        batch.append((
+            i, norm["primary_key"], norm["bpa"], norm["addenda_number"],
+            norm["bpa_addenda"], norm["permit_type"],
+            norm["block"], norm["lot"], norm["street_number"],
+            norm["street_name"], norm["street_suffix"], norm["description"],
+            norm["fire_only_permit"], norm["filed_date"], norm["status"],
+            norm["department"], norm["station"], norm["review_type"],
+            norm["review_number"], norm["review_results"], norm["arrive_date"],
+            norm["start_year"], norm["start_date"], norm["start_date_source"],
+            norm["sla_days"], norm["due_date"], norm["finish_date"],
+            norm["calendar_days"], norm["met_cal_sla"], norm["data_as_of"],
+        ))
+    if batch:
+        conn.executemany(
+            "INSERT INTO permit_review_metrics VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} permit review metric records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["5bat-azvb", "DBI Permit Review Metrics", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_planning_review_metrics(conn, client: SODAClient) -> int:
+    """Ingest Planning Department review metrics (d4jk-jw33) into planning_review_metrics table."""
+    print("\n=== Ingesting Planning Department Review Metrics ===")
+    conn.execute("DELETE FROM planning_review_metrics")
+
+    records = await _fetch_all_pages(client, "d4jk-jw33", "Planning Department Review Metrics")
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        norm = _normalize_planning_review_metric(r)
+        batch.append((
+            i, norm["b1_alt_id"], norm["project_stage"],
+            norm["observation_window_type"], norm["observation_window_date"],
+            norm["start_event_type"], norm["start_event_date"],
+            norm["end_event_type"], norm["end_event_date"],
+            norm["metric_value"], norm["sla_value"],
+            norm["metric_outcome"], norm["data_as_of"],
+        ))
+    if batch:
+        conn.executemany(
+            "INSERT INTO planning_review_metrics VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} planning review metric records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["d4jk-jw33", "Planning Department Review Metrics", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+# === END SESSION F: REVIEW METRICS INGEST ===
 
 
 async def run_ingestion(

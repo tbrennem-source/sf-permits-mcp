@@ -573,3 +573,103 @@ CREATE TABLE IF NOT EXISTS ref_agency_triggers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ref_triggers_keyword ON ref_agency_triggers(trigger_keyword);
+
+-- ============================================================
+-- Sprint 56F: Review Metrics tables
+-- ============================================================
+
+-- DBI Permit Issuance Metrics (gzxm-jz5j)
+-- Tracks OTC vs in-house issuance timing per permit
+CREATE TABLE IF NOT EXISTS permit_issuance_metrics (
+    id                  SERIAL PRIMARY KEY,
+    bpa                 TEXT,
+    addenda_number      INTEGER,
+    bpa_addenda         TEXT,
+    permit_type         TEXT,
+    otc_ih              TEXT,
+    status              TEXT,
+    block               TEXT,
+    lot                 TEXT,
+    street_number       TEXT,
+    street_name         TEXT,
+    street_suffix       TEXT,
+    unit                TEXT,
+    description         TEXT,
+    fire_only_permit    BOOLEAN,
+    filed_date          TEXT,
+    issued_date         TEXT,
+    issued_status       TEXT,
+    issued_year         TEXT,
+    calendar_days       INTEGER,
+    business_days       INTEGER,
+    data_as_of          TEXT,
+    ingested_at         TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pim_bpa ON permit_issuance_metrics(bpa);
+CREATE INDEX IF NOT EXISTS idx_pim_otc_ih ON permit_issuance_metrics(otc_ih);
+CREATE INDEX IF NOT EXISTS idx_pim_issued_year ON permit_issuance_metrics(issued_year);
+
+-- DBI Permit Review Metrics (5bat-azvb)
+-- Tracks per-station review timing, SLA compliance, and routing results
+CREATE TABLE IF NOT EXISTS permit_review_metrics (
+    id                  SERIAL PRIMARY KEY,
+    primary_key         TEXT,
+    bpa                 TEXT,
+    addenda_number      INTEGER,
+    bpa_addenda         TEXT,
+    permit_type         TEXT,
+    block               TEXT,
+    lot                 TEXT,
+    street_number       TEXT,
+    street_name         TEXT,
+    street_suffix       TEXT,
+    description         TEXT,
+    fire_only_permit    TEXT,
+    filed_date          TEXT,
+    status              TEXT,
+    department          TEXT,
+    station             TEXT,
+    review_type         TEXT,
+    review_number       INTEGER,
+    review_results      TEXT,
+    arrive_date         TEXT,
+    start_year          TEXT,
+    start_date          TEXT,
+    start_date_source   TEXT,
+    sla_days            INTEGER,
+    due_date            TEXT,
+    finish_date         TEXT,
+    calendar_days       DOUBLE PRECISION,
+    met_cal_sla         BOOLEAN,
+    data_as_of          TEXT,
+    ingested_at         TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_prm_bpa ON permit_review_metrics(bpa);
+CREATE INDEX IF NOT EXISTS idx_prm_station ON permit_review_metrics(station);
+CREATE INDEX IF NOT EXISTS idx_prm_department ON permit_review_metrics(department);
+CREATE INDEX IF NOT EXISTS idx_prm_met_sla ON permit_review_metrics(met_cal_sla);
+
+-- Planning Department Review Metrics (d4jk-jw33)
+-- Tracks planning review cycle times against SLA targets per project stage
+CREATE TABLE IF NOT EXISTS planning_review_metrics (
+    id                          SERIAL PRIMARY KEY,
+    b1_alt_id                   TEXT,
+    project_stage               TEXT,
+    observation_window_type     TEXT,
+    observation_window_date     TEXT,
+    start_event_type            TEXT,
+    start_event_date            TEXT,
+    end_event_type              TEXT,
+    end_event_date              TEXT,
+    metric_value                DOUBLE PRECISION,
+    sla_value                   DOUBLE PRECISION,
+    metric_outcome              TEXT,
+    data_as_of                  TEXT,
+    ingested_at                 TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_plrm_b1_alt_id ON planning_review_metrics(b1_alt_id);
+CREATE INDEX IF NOT EXISTS idx_plrm_stage ON planning_review_metrics(project_stage);
+CREATE INDEX IF NOT EXISTS idx_plrm_outcome ON planning_review_metrics(metric_outcome);
