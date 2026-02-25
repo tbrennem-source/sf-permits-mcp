@@ -1226,31 +1226,90 @@ async def ingest_planning_records(conn, client: SODAClient) -> int:
 
 
 TAX_ROLL_YEAR_FILTER = "closed_roll_year >= '2022'"
+TAX_ROLL_BATCH_FLUSH = 50_000  # Flush to DB every 50K rows to limit memory
 
 
 async def ingest_tax_rolls(conn, client: SODAClient) -> int:
-    """Ingest tax rolls (latest 3 years) into tax_rolls table."""
+    """Ingest tax rolls (latest 3 years) into tax_rolls table.
+
+    Uses streaming pagination with periodic batch flushes to avoid OOM
+    on memory-constrained Railway containers (~600K rows).
+    """
     print("\n=== Ingesting Tax Rolls (3-year filter) ===")
     conn.execute("DELETE FROM tax_rolls")
 
-    records = await _fetch_all_pages(
-        client, "wv5m-vpq2", "Tax Rolls",
-        where=TAX_ROLL_YEAR_FILTER,
-    )
+    endpoint_id = "wv5m-vpq2"
+    total_count = await client.count(endpoint_id, where=TAX_ROLL_YEAR_FILTER)
+    print(f"  Tax Rolls: {total_count:,} total records to fetch")
 
-    batch = [_normalize_tax_roll(r) for r in records]
+    total = 0
+    offset = 0
+    start = time.time()
+    max_retries = 3
+    batch = []
+
+    while True:
+        page = None
+        for attempt in range(max_retries):
+            try:
+                page = await client.query(
+                    endpoint_id=endpoint_id,
+                    where=TAX_ROLL_YEAR_FILTER,
+                    limit=PAGE_SIZE,
+                    offset=offset,
+                    order=":id",
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait = 2 ** (attempt + 1)
+                    print(f"  Retry {attempt + 1}/{max_retries}: {e}. Waiting {wait}s...", flush=True)
+                    await asyncio.sleep(wait)
+                else:
+                    raise
+        if not page:
+            break
+
+        for r in page:
+            batch.append(_normalize_tax_roll(r))
+
+        offset += len(page)
+        elapsed = time.time() - start
+        rate = offset / elapsed if elapsed > 0 else 0
+        pct = offset * 100 // total_count if total_count else 0
+        print(
+            f"  Fetched {offset:,}/{total_count:,} ({pct}%) — "
+            f"{rate:,.0f} rec/s — {elapsed:.1f}s",
+            flush=True,
+        )
+
+        # Flush batch to DB periodically to limit memory
+        if len(batch) >= TAX_ROLL_BATCH_FLUSH:
+            conn.executemany(
+                "INSERT OR REPLACE INTO tax_rolls VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                batch,
+            )
+            total += len(batch)
+            batch = []
+
+        if len(page) < PAGE_SIZE:
+            break
+
+    # Flush remaining
     if batch:
         conn.executemany(
             "INSERT OR REPLACE INTO tax_rolls VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             batch,
         )
-        print(f"  Loaded {len(batch):,} tax roll records")
+        total += len(batch)
 
     conn.execute(
         "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
-        ["wv5m-vpq2", "Tax Rolls", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+        ["wv5m-vpq2", "Tax Rolls", datetime.now(timezone.utc).isoformat(), total, total],
     )
-    return len(batch)
+    elapsed = time.time() - start
+    print(f"  Loaded {total:,} tax roll records in {elapsed:.1f}s")
+    return total
 
 
 def _extract_addenda_contacts(conn, start_row_id: int) -> int:
