@@ -30,8 +30,8 @@ from scripts.run_prod_migrations import (
 
 class TestMigrationRegistry:
     def test_migration_count(self):
-        """Ten migrations in the registry (Sprint 55 adds reference_tables + inspections_unique)."""
-        assert len(MIGRATIONS) == 10
+        """Eleven migrations in the registry (Sprint 57.0 adds neighborhood_backfill)."""
+        assert len(MIGRATIONS) == 11
 
     def test_all_have_names(self):
         """Every migration has a non-empty name."""
@@ -72,6 +72,7 @@ class TestMigrationRegistry:
             "cron_log_columns",
             "reference_tables",
             "inspections_unique",
+            "neighborhood_backfill",
         }
         actual = {m.name for m in MIGRATIONS}
         assert expected == actual
@@ -79,12 +80,21 @@ class TestMigrationRegistry:
     def test_reference_tables_before_inspections(self):
         """'reference_tables' runs before 'inspections_unique'."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-2] == "reference_tables"
+        idx_ref = names.index("reference_tables")
+        idx_insp = names.index("inspections_unique")
+        assert idx_ref < idx_insp
 
-    def test_inspections_unique_is_last(self):
-        """'inspections_unique' migration is last in registry."""
+    def test_inspections_unique_before_neighborhood_backfill(self):
+        """'inspections_unique' runs before 'neighborhood_backfill'."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-1] == "inspections_unique"
+        idx_insp = names.index("inspections_unique")
+        idx_backfill = names.index("neighborhood_backfill")
+        assert idx_insp < idx_backfill
+
+    def test_neighborhood_backfill_is_last(self):
+        """'neighborhood_backfill' migration is last in registry."""
+        names = [m.name for m in MIGRATIONS]
+        assert names[-1] == "neighborhood_backfill"
 
     def test_schema_is_first(self):
         """'schema' migration runs first."""

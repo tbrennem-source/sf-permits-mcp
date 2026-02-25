@@ -1137,3 +1137,43 @@ _Last reviewed: never_
 **Edge cases seen in code:** JOIN is on block/lot — planning records with NULL block/lot are excluded; some parcels have multiple open planning cases
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Entity resolution consolidates trade contractors across permit types
+**Source:** Sprint 57.0 — entity resolution improvements (entities.py)
+**User:** expediter | architect
+**Starting state:** An electrical contractor appears on both building permits (as a contact) and electrical permits with the same license number but formatted differently (e.g., "0012345" vs "12345")
+**Goal:** Search for the contractor via search_entity and see a single consolidated entity with permits from both building and electrical sources
+**Expected outcome:** Entity has contact_count > 1, source_datasets includes both "building" and "electrical", license_number is normalized, resolution_method shows "license_number" or "cross_source_name"
+**Edge cases seen in code:** Leading zeros on CSLB numbers; prefix normalization C-10/c10/C10; cross-source matching requires same permit_number AND same normalized name
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Timeline estimate excludes trade permits from in-house aggregates
+**Source:** Sprint 57.0 — trade permit filter on estimate_timeline.py
+**User:** homeowner | architect
+**Starting state:** A homeowner asks for timeline estimate for a kitchen remodel (in-house review)
+**Goal:** Get an accurate timeline estimate that reflects building permit review times, not contaminated by fast-tracked electrical/plumbing permits
+**Expected outcome:** Timeline estimate uses only non-trade permits filed in the last year; electrical and plumbing permits are excluded from the aggregate; sample size reflects building-type permits only
+**Edge cases seen in code:** If excluding trade permits drops sample below 10, query widens (drops neighborhood, cost bracket filters); recency filter (1 year) may further reduce sample size in less active neighborhoods
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Velocity refresh writes two rolling periods for trend comparison
+**Source:** Sprint 57.0 — two-period velocity in station_velocity_v2.py
+**User:** admin
+**Starting state:** Cron triggers /cron/velocity-refresh on prod
+**Goal:** Velocity data is refreshed with both a 90-day "current" window and a 365-day "baseline" window
+**Expected outcome:** station_velocity_v2 table has rows with period='current' (90-day) and period='baseline' (365-day); stations with fewer than 30 reviews in 90 days get widened to 180 days; estimate_timeline can compare current vs baseline for trend arrows
+**Edge cases seen in code:** Station widening replaces period label with 'current' even though the actual window is 180 days; MIN_CURRENT_SAMPLES=30 threshold; some stations may only appear in baseline
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Multi-role entity shows all observed roles
+**Source:** Sprint 57.0 — multi-role entity tracking (entities.py Step 6)
+**User:** expediter
+**Starting state:** A professional appears as "contractor" on electrical permits and "consultant" on building permits
+**Goal:** When viewing entity details, see all roles this person has held across different permit types
+**Expected outcome:** Entity has entity_type set to most common role (MODE), but roles field lists all observed roles comma-separated; recommend_consultants results can leverage this for cross-discipline recommendations
+**Edge cases seen in code:** Roles column only populated for entities with 2+ distinct roles; single-role entities have NULL roles field; ALTER TABLE adds column if not exists (safe re-run)
+**CC confidence:** medium
+**Status:** PENDING REVIEW

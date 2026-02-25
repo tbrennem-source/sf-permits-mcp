@@ -1,5 +1,34 @@
 # Changelog
 
+## Sprint 57.0 — Data Foundation (2026-02-25)
+
+Data pipeline improvements running parallel with Sprint 56 DeskRelay. No visual changes. Branch stays open until Sprint 56 prod promotion.
+
+### Entity Resolution Improvements (Agent 1)
+
+- **License normalization**: `_normalize_license()` strips leading zeros ("0012345" → "12345"), normalizes type prefixes ("C-10" / "c10" → "C10")
+- **Cross-source name matching** (new Step 2.5): Matches contacts with same normalized name on same permit across different sources (building/electrical/plumbing)
+- **Name normalization**: `_normalize_name()` for consistent fuzzy matching — UPPER, strip punctuation, collapse whitespace
+- **Lower fuzzy threshold for trades**: 0.67 (was 0.75) for contacts with trade roles (electrical, plumbing, mechanical, contractor, engineer)
+- **Multi-role entity tracking** (new Step 6): Populates `roles` column with all observed roles; 356 entities enriched
+
+### Data Pipeline (Agent 2)
+
+- **Neighborhood backfill**: 782,323 trade permits backfilled via block/lot join (850K NULL → 68K remaining). Migration registered in `run_prod_migrations.py` for prod replay.
+- **Two-period velocity**: `station_velocity_v2` now computes `current` (rolling 90-day) and `baseline` (rolling 365-day) periods. Stations with < 30 reviews in 90-day window auto-widen to 180 days.
+- **Trade permit filter**: `estimate_timeline` fallback excludes Electrical/Plumbing permits and applies 1-year recency filter to prevent contaminated aggregates.
+
+### Test Coverage
+
+- 100 new tests (65 entity resolution + 34 data foundation + 1 migration registry)
+- Total: 2,065 passed (was 1,965 baseline, worktree pre-merge)
+
+### Entity Resolution Findings
+
+Per-source entity counts match the number of distinct identifiers in the data (license numbers for trade, pts_agent_id for building). The spec's consolidation targets (electrical < 12K, plumbing < 14K) assumed data overlap that doesn't exist — each distinct CSLB license IS a distinct entity with ~24-30 permits. The code improvements are structurally correct and extensible; the data simply doesn't have the overlap needed for dramatic consolidation.
+
+---
+
 ## Sprint 55 — Full Dataset Coverage + MCP Tool Enrichment (2026-02-25)
 
 Completed ingestion of all 22 cataloged SODA datasets (7 new tables), seeded 3 reference tables for routing-aware permit prediction, and wired all new data into the MCP tools that users rely on most. Morning brief gains planning context and a compliance calendar. Nightly pipeline expands to monitor planning record changes and boiler permits.

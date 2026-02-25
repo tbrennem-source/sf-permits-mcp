@@ -95,6 +95,14 @@ def _query_timeline(conn, review_path: str | None, neighborhood: str | None,
     # Use %s for Postgres, ? for DuckDB
     ph = "%s" if BACKEND == "postgres" else "?"
 
+    # Always exclude trade permits — their NULL neighborhoods skew aggregates
+    conditions.append(
+        "permit_type_definition NOT IN ('Electrical Permit', 'Plumbing Permit')"
+    )
+
+    # Recency filter — avoid ancient data skewing estimates
+    conditions.append("issued >= CURRENT_DATE - INTERVAL '1 year'")
+
     if review_path:
         conditions.append(f"review_path = {ph}")
         params.append(review_path)
