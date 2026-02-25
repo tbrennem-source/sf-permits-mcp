@@ -691,6 +691,108 @@ def init_schema(conn) -> None:
     """)
 
     conn.execute("""
+        CREATE TABLE IF NOT EXISTS boiler_permits (
+            permit_number TEXT PRIMARY KEY,
+            block TEXT,
+            lot TEXT,
+            status TEXT,
+            boiler_type TEXT,
+            boiler_serial_number TEXT,
+            model TEXT,
+            description TEXT,
+            application_date TEXT,
+            expiration_date TEXT,
+            street_number TEXT,
+            street_name TEXT,
+            street_suffix TEXT,
+            zip_code TEXT,
+            neighborhood TEXT,
+            supervisor_district TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS fire_permits (
+            permit_number TEXT PRIMARY KEY,
+            permit_type TEXT,
+            permit_type_description TEXT,
+            permit_status TEXT,
+            permit_address TEXT,
+            permit_holder TEXT,
+            dba_name TEXT,
+            application_date TEXT,
+            date_approved TEXT,
+            expiration_date TEXT,
+            permit_fee DOUBLE,
+            posting_fee DOUBLE,
+            referral_fee DOUBLE,
+            conditions TEXT,
+            battalion TEXT,
+            fire_prevention_district TEXT,
+            night_assembly_permit TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS planning_records (
+            record_id TEXT PRIMARY KEY,
+            record_type TEXT,
+            record_status TEXT,
+            block TEXT,
+            lot TEXT,
+            address TEXT,
+            project_name TEXT,
+            description TEXT,
+            applicant TEXT,
+            applicant_org TEXT,
+            assigned_planner TEXT,
+            open_date TEXT,
+            environmental_doc_type TEXT,
+            is_project BOOLEAN DEFAULT TRUE,
+            units_existing INTEGER,
+            units_proposed INTEGER,
+            units_net DOUBLE,
+            affordable_units INTEGER,
+            child_id TEXT,
+            parent_id TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS tax_rolls (
+            block TEXT,
+            lot TEXT,
+            tax_year TEXT,
+            property_location TEXT,
+            parcel_number TEXT,
+            zoning_code TEXT,
+            use_code TEXT,
+            use_definition TEXT,
+            property_class_code TEXT,
+            property_class_code_definition TEXT,
+            number_of_stories DOUBLE,
+            number_of_units INTEGER,
+            number_of_rooms INTEGER,
+            number_of_bedrooms INTEGER,
+            number_of_bathrooms DOUBLE,
+            lot_area DOUBLE,
+            property_area DOUBLE,
+            assessed_land_value DOUBLE,
+            assessed_improvement_value DOUBLE,
+            assessed_personal_property DOUBLE,
+            assessed_fixtures DOUBLE,
+            current_sales_date TEXT,
+            neighborhood TEXT,
+            supervisor_district TEXT,
+            data_as_of TEXT,
+            PRIMARY KEY (block, lot, tax_year)
+        )
+    """)
+
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS ingest_log (
             dataset_id TEXT PRIMARY KEY,
             dataset_name TEXT,
@@ -749,6 +851,21 @@ def _create_indexes(conn) -> None:
         ("idx_businesses_dba", "businesses", "dba_name"),
         ("idx_businesses_zip", "businesses", "business_zip"),
         ("idx_businesses_cert", "businesses", "certificate_number"),
+        # Boiler permit indexes
+        ("idx_boiler_block_lot", "boiler_permits", "block, lot"),
+        ("idx_boiler_status", "boiler_permits", "status"),
+        # Fire permit indexes
+        ("idx_fire_status", "fire_permits", "permit_status"),
+        ("idx_fire_holder", "fire_permits", "permit_holder"),
+        # Planning record indexes
+        ("idx_planning_block_lot", "planning_records", "block, lot"),
+        ("idx_planning_type", "planning_records", "record_type"),
+        ("idx_planning_status", "planning_records", "record_status"),
+        ("idx_planning_planner", "planning_records", "assigned_planner"),
+        # Tax roll indexes
+        ("idx_tax_zoning", "tax_rolls", "zoning_code"),
+        ("idx_tax_block_lot", "tax_rolls", "block, lot"),
+        ("idx_tax_neighborhood", "tax_rolls", "neighborhood"),
     ]
     for idx_name, table, columns in indexes:
         try:

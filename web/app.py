@@ -6120,6 +6120,179 @@ def cron_backup():
 
 
 
+# === SPRINT 54C: DATA INGEST EXPANSION ===
+
+@app.route("/cron/ingest-boiler", methods=["POST"])
+def cron_ingest_boiler():
+    """Ingest boiler permits from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_boiler_permits
+    from src.soda_client import SODAClient
+    from src.db import get_connection, init_schema
+    import time
+
+    start = time.time()
+    conn = get_connection()
+    init_schema(conn)
+    client = SODAClient()
+    try:
+        count = run_async(ingest_boiler_permits(conn, client))
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "boiler_permits", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-fire", methods=["POST"])
+def cron_ingest_fire():
+    """Ingest fire permits from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_fire_permits
+    from src.soda_client import SODAClient
+    from src.db import get_connection, init_schema
+    import time
+
+    start = time.time()
+    conn = get_connection()
+    init_schema(conn)
+    client = SODAClient()
+    try:
+        count = run_async(ingest_fire_permits(conn, client))
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "fire_permits", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-planning", methods=["POST"])
+def cron_ingest_planning():
+    """Ingest planning records (projects + non-projects) from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_planning_records
+    from src.soda_client import SODAClient
+    from src.db import get_connection, init_schema
+    import time
+
+    start = time.time()
+    conn = get_connection()
+    init_schema(conn)
+    client = SODAClient()
+    try:
+        count = run_async(ingest_planning_records(conn, client))
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "planning_records", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-tax-rolls", methods=["POST"])
+def cron_ingest_tax_rolls():
+    """Ingest tax rolls (latest 3 years) from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_tax_rolls
+    from src.soda_client import SODAClient
+    from src.db import get_connection, init_schema
+    import time
+
+    start = time.time()
+    conn = get_connection()
+    init_schema(conn)
+    client = SODAClient()
+    try:
+        count = run_async(ingest_tax_rolls(conn, client))
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "tax_rolls", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/cross-ref-check", methods=["POST"])
+def cron_cross_ref_check():
+    """Run cross-reference verification queries. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.db import get_connection, BACKEND
+
+    conn = get_connection()
+    results = {}
+    try:
+        if BACKEND == "postgres":
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                # Planning → Building permits match
+                cur.execute("""
+                    SELECT COUNT(DISTINCT pr.record_id)
+                    FROM planning_records pr
+                    JOIN permits p ON pr.block = p.block AND pr.lot = p.lot
+                """)
+                results["planning_to_permits"] = cur.fetchone()[0]
+
+                # Tax rolls → Active permits match
+                cur.execute("""
+                    SELECT COUNT(DISTINCT tr.block || '-' || tr.lot)
+                    FROM tax_rolls tr
+                    JOIN permits p ON tr.block = p.block AND tr.lot = p.lot
+                    WHERE p.status IN ('issued', 'complete', 'filed', 'approved')
+                """)
+                results["tax_to_active_permits"] = cur.fetchone()[0]
+
+                # Boiler → Building permits match
+                cur.execute("""
+                    SELECT COUNT(DISTINCT bp.permit_number)
+                    FROM boiler_permits bp
+                    JOIN permits p ON bp.block = p.block AND bp.lot = p.lot
+                """)
+                results["boiler_to_permits"] = cur.fetchone()[0]
+
+                # Total counts for context
+                cur.execute("SELECT COUNT(*) FROM planning_records")
+                results["total_planning"] = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM tax_rolls")
+                results["total_tax_rolls"] = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM boiler_permits")
+                results["total_boiler"] = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM permits")
+                results["total_permits"] = cur.fetchone()[0]
+        else:
+            results["planning_to_permits"] = conn.execute("""
+                SELECT COUNT(DISTINCT pr.record_id)
+                FROM planning_records pr
+                JOIN permits p ON pr.block = p.block AND pr.lot = p.lot
+            """).fetchone()[0]
+            results["tax_to_active_permits"] = conn.execute("""
+                SELECT COUNT(DISTINCT tr.block || '-' || tr.lot)
+                FROM tax_rolls tr
+                JOIN permits p ON tr.block = p.block AND tr.lot = p.lot
+                WHERE p.status IN ('issued', 'complete', 'filed', 'approved')
+            """).fetchone()[0]
+            results["boiler_to_permits"] = conn.execute("""
+                SELECT COUNT(DISTINCT bp.permit_number)
+                FROM boiler_permits bp
+                JOIN permits p ON bp.block = p.block AND bp.lot = p.lot
+            """).fetchone()[0]
+            results["total_planning"] = conn.execute("SELECT COUNT(*) FROM planning_records").fetchone()[0]
+            results["total_tax_rolls"] = conn.execute("SELECT COUNT(*) FROM tax_rolls").fetchone()[0]
+            results["total_boiler"] = conn.execute("SELECT COUNT(*) FROM boiler_permits").fetchone()[0]
+            results["total_permits"] = conn.execute("SELECT COUNT(*) FROM permits").fetchone()[0]
+    finally:
+        conn.close()
+
+    # Compute match rates
+    for key, total_key in [
+        ("planning_to_permits", "total_planning"),
+        ("tax_to_active_permits", "total_tax_rolls"),
+        ("boiler_to_permits", "total_boiler"),
+    ]:
+        total = results.get(total_key, 0)
+        matched = results.get(key, 0)
+        results[f"{key}_pct"] = round(matched * 100 / total, 1) if total > 0 else 0
+
+    return jsonify({"ok": True, "cross_refs": results})
+
+
 # === SESSION C: PIPELINE HEALTH ===
 
 @app.route("/cron/pipeline-health", methods=["GET", "POST"])
