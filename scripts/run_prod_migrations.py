@@ -232,7 +232,7 @@ def _run_shareable_analysis() -> dict[str, Any]:
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS analysis_sessions (
                         id TEXT PRIMARY KEY,
-                        user_id INTEGER REFERENCES users(id),
+                        user_id INTEGER REFERENCES users(user_id),
                         project_description TEXT NOT NULL,
                         address TEXT,
                         neighborhood TEXT,
