@@ -131,6 +131,95 @@ def _run_cron_log_columns() -> dict[str, Any]:
         conn.close()
 
 
+def _run_reference_tables() -> dict[str, Any]:
+    """Create reference tables for predict_permits and seed with initial data."""
+    from src.db import get_connection, BACKEND  # type: ignore
+
+    conn = get_connection()
+    try:
+        # Create tables (idempotent)
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS ref_zoning_routing (
+                        zoning_code TEXT PRIMARY KEY,
+                        zoning_category TEXT,
+                        planning_review_required BOOLEAN DEFAULT FALSE,
+                        fire_review_required BOOLEAN DEFAULT FALSE,
+                        health_review_required BOOLEAN DEFAULT FALSE,
+                        historic_district BOOLEAN DEFAULT FALSE,
+                        height_limit TEXT,
+                        notes TEXT
+                    );
+                    CREATE TABLE IF NOT EXISTS ref_permit_forms (
+                        id SERIAL PRIMARY KEY,
+                        project_type TEXT NOT NULL,
+                        permit_form TEXT NOT NULL,
+                        review_path TEXT,
+                        notes TEXT
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_ref_forms_type ON ref_permit_forms(project_type);
+                    CREATE TABLE IF NOT EXISTS ref_agency_triggers (
+                        id SERIAL PRIMARY KEY,
+                        trigger_keyword TEXT NOT NULL,
+                        agency TEXT NOT NULL,
+                        reason TEXT,
+                        adds_weeks INTEGER
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_ref_triggers_keyword ON ref_agency_triggers(trigger_keyword);
+                """)
+            conn.commit()
+        else:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS ref_zoning_routing (
+                    zoning_code TEXT PRIMARY KEY,
+                    zoning_category TEXT,
+                    planning_review_required BOOLEAN DEFAULT FALSE,
+                    fire_review_required BOOLEAN DEFAULT FALSE,
+                    health_review_required BOOLEAN DEFAULT FALSE,
+                    historic_district BOOLEAN DEFAULT FALSE,
+                    height_limit TEXT,
+                    notes TEXT
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS ref_permit_forms (
+                    id INTEGER PRIMARY KEY,
+                    project_type TEXT NOT NULL,
+                    permit_form TEXT NOT NULL,
+                    review_path TEXT,
+                    notes TEXT
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS ref_agency_triggers (
+                    id INTEGER PRIMARY KEY,
+                    trigger_keyword TEXT NOT NULL,
+                    agency TEXT NOT NULL,
+                    reason TEXT,
+                    adds_weeks INTEGER
+                )
+            """)
+    except Exception as exc:
+        logger.error("reference_tables table creation failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+    finally:
+        conn.close()
+
+    # Seed with initial data
+    from scripts.seed_reference_tables import seed_reference_tables  # type: ignore
+    result = seed_reference_tables()
+    if not result.get("ok"):
+        return result
+    return {
+        "ok": True,
+        "tables_created": ["ref_zoning_routing", "ref_permit_forms", "ref_agency_triggers"],
+        "ref_zoning_routing": result["ref_zoning_routing"],
+        "ref_permit_forms": result["ref_permit_forms"],
+        "ref_agency_triggers": result["ref_agency_triggers"],
+    }
+
+
 # ---- ordered registry ------------------------------------------------
 
 MIGRATIONS: list[Migration] = [
@@ -175,6 +264,11 @@ MIGRATIONS: list[Migration] = [
         name="cron_log_columns",
         description="Add duration_seconds and records_processed columns to cron_log",
         run=lambda: _run_cron_log_columns(),
+    ),
+    Migration(
+        name="reference_tables",
+        description="Reference tables for predict_permits: zoning routing, permit forms, agency triggers",
+        run=_run_reference_tables,
     ),
 ]
 

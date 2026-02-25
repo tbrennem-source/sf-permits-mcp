@@ -435,6 +435,46 @@ def init_user_schema(conn=None) -> None:
             except Exception:
                 pass  # Column already exists
 
+        # Reference tables for predict_permits (Sprint 55B)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS ref_zoning_routing (
+                zoning_code TEXT PRIMARY KEY,
+                zoning_category TEXT,
+                planning_review_required BOOLEAN DEFAULT FALSE,
+                fire_review_required BOOLEAN DEFAULT FALSE,
+                health_review_required BOOLEAN DEFAULT FALSE,
+                historic_district BOOLEAN DEFAULT FALSE,
+                height_limit TEXT,
+                notes TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS ref_permit_forms (
+                id INTEGER PRIMARY KEY,
+                project_type TEXT NOT NULL,
+                permit_form TEXT NOT NULL,
+                review_path TEXT,
+                notes TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS ref_agency_triggers (
+                id INTEGER PRIMARY KEY,
+                trigger_keyword TEXT NOT NULL,
+                agency TEXT NOT NULL,
+                reason TEXT,
+                adds_weeks INTEGER
+            )
+        """)
+        for stmt in [
+            "CREATE INDEX IF NOT EXISTS idx_ref_forms_type ON ref_permit_forms (project_type)",
+            "CREATE INDEX IF NOT EXISTS idx_ref_triggers_keyword ON ref_agency_triggers (trigger_keyword)",
+        ]:
+            try:
+                conn.execute(stmt)
+            except Exception:
+                pass
+
         # Voice calibration — per-scenario style preferences
         conn.execute("""
             CREATE TABLE IF NOT EXISTS voice_calibrations (
@@ -909,6 +949,46 @@ def init_schema(conn) -> None:
             data_as_of                  TEXT
         )
     """)
+
+    # Reference tables for predict_permits (Sprint 55B)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ref_zoning_routing (
+            zoning_code TEXT PRIMARY KEY,
+            zoning_category TEXT,
+            planning_review_required BOOLEAN DEFAULT FALSE,
+            fire_review_required BOOLEAN DEFAULT FALSE,
+            health_review_required BOOLEAN DEFAULT FALSE,
+            historic_district BOOLEAN DEFAULT FALSE,
+            height_limit TEXT,
+            notes TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ref_permit_forms (
+            id INTEGER PRIMARY KEY,
+            project_type TEXT NOT NULL,
+            permit_form TEXT NOT NULL,
+            review_path TEXT,
+            notes TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ref_agency_triggers (
+            id INTEGER PRIMARY KEY,
+            trigger_keyword TEXT NOT NULL,
+            agency TEXT NOT NULL,
+            reason TEXT,
+            adds_weeks INTEGER
+        )
+    """)
+    for stmt in [
+        "CREATE INDEX IF NOT EXISTS idx_ref_forms_type ON ref_permit_forms (project_type)",
+        "CREATE INDEX IF NOT EXISTS idx_ref_triggers_keyword ON ref_agency_triggers (trigger_keyword)",
+    ]:
+        try:
+            conn.execute(stmt)
+        except Exception:
+            pass
 
     _create_indexes(conn)
 

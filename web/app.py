@@ -6115,6 +6115,28 @@ def cron_backup():
     return Response(json.dumps(result, indent=2), mimetype="application/json"), status
 
 
+# === SESSION B: REFERENCE TABLES ===
+
+
+@app.route("/cron/seed-references", methods=["POST"])
+def cron_seed_references():
+    """Seed predict_permits reference tables from hardcoded rules.
+
+    Protected by CRON_SECRET bearer token. Idempotent — safe to re-run
+    after deploys to refresh reference data without data loss.
+
+    Returns JSON with row counts for each table:
+      - ref_zoning_routing
+      - ref_permit_forms
+      - ref_agency_triggers
+    """
+    _check_api_auth()
+    from scripts.seed_reference_tables import seed_reference_tables
+
+    result = seed_reference_tables()
+    status = 200 if result.get("ok") else 500
+    return jsonify(result), status
+
 
 # === SPRINT 54C: DATA INGEST EXPANSION ===
 
