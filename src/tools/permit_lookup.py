@@ -344,6 +344,96 @@ def _get_related_team(conn, permit_number: str) -> list[dict]:
     return [{cols[i]: r[i] for i in range(len(cols))} for r in rows]
 
 
+def _get_planning_records(conn, block: str | None, lot: str | None) -> list[dict]:
+    """Get planning entitlements for this parcel (from planning_records table)."""
+    if not block or not lot:
+        return []
+    try:
+        rows = _exec(conn, f"""
+            SELECT record_id, record_type, record_status, description,
+                   assigned_planner, open_date, is_project
+            FROM planning_records
+            WHERE block = {_PH} AND lot = {_PH}
+            ORDER BY open_date DESC
+            LIMIT 10
+        """, [block, lot])
+        return [
+            {
+                "record_id": r[0],
+                "record_type": r[1],
+                "record_status": r[2],
+                "description": r[3],
+                "assigned_planner": r[4],
+                "open_date": r[5],
+                "is_project": r[6],
+            }
+            for r in rows
+        ]
+    except Exception:
+        logger.debug("planning_records query failed", exc_info=True)
+        return []
+
+
+def _get_boiler_permits(conn, block: str | None, lot: str | None) -> list[dict]:
+    """Get boiler permits for this parcel (from boiler_permits table)."""
+    if not block or not lot:
+        return []
+    try:
+        rows = _exec(conn, f"""
+            SELECT permit_number, boiler_type, status, expiration_date, description
+            FROM boiler_permits
+            WHERE block = {_PH} AND lot = {_PH}
+            ORDER BY expiration_date DESC NULLS LAST
+            LIMIT 10
+        """, [block, lot])
+        return [
+            {
+                "permit_number": r[0],
+                "boiler_type": r[1],
+                "status": r[2],
+                "expiration_date": r[3],
+                "description": r[4],
+            }
+            for r in rows
+        ]
+    except Exception:
+        logger.debug("boiler_permits query failed", exc_info=True)
+        return []
+
+
+def _get_dev_pipeline(conn, block: str | None, lot: str | None) -> list[dict]:
+    """Get development pipeline entries for this parcel (from development_pipeline table)."""
+    if not block or not lot:
+        return []
+    try:
+        # development_pipeline stores block_lot in various formats — try both
+        block_lot_dash = f"{block}-{lot}"
+        block_lot_slash = f"{block}/{lot}"
+        block_lot_plain = f"{block}{lot}"
+        rows = _exec(conn, f"""
+            SELECT record_id, name_address, current_status, proposed_units,
+                   net_pipeline_units, zoning_district
+            FROM development_pipeline
+            WHERE block_lot IN ({_PH}, {_PH}, {_PH})
+            ORDER BY record_id DESC
+            LIMIT 10
+        """, [block_lot_dash, block_lot_slash, block_lot_plain])
+        return [
+            {
+                "record_id": r[0],
+                "name_address": r[1],
+                "current_status": r[2],
+                "proposed_units": r[3],
+                "net_pipeline_units": r[4],
+                "zoning_district": r[5],
+            }
+            for r in rows
+        ]
+    except Exception:
+        logger.debug("development_pipeline query failed (table may not exist yet)", exc_info=True)
+        return []
+
+
 def _get_addenda(conn, permit_number: str) -> list[dict]:
     """Get addenda routing steps for a permit, ordered by addenda then step."""
     sql = f"""
@@ -572,6 +662,66 @@ def _format_addenda(addenda: list[dict]) -> str:
     if len(addenda) > 50:
         lines.append(f"\n*Showing 50 of {len(addenda)} routing steps.*")
 
+    return "\n".join(lines)
+
+
+def _format_planning_records(records: list[dict]) -> str:
+    """Format planning entitlements as markdown."""
+    if not records:
+        return ""
+    lines = [
+        "| Record ID | Type | Status | Open Date | Planner | Description |",
+        "|-----------|------|--------|-----------|---------|-------------|",
+    ]
+    for r in records[:10]:
+        rid = r.get("record_id") or "—"
+        rtype = (r.get("record_type") or "—")[:30]
+        status = r.get("record_status") or "—"
+        opened = str(r.get("open_date") or "—")[:10]
+        planner = r.get("assigned_planner") or "—"
+        desc = (r.get("description") or "—")[:60]
+        if len(r.get("description") or "") > 60:
+            desc += "..."
+        lines.append(f"| {rid} | {rtype} | {status} | {opened} | {planner} | {desc} |")
+    return "\n".join(lines)
+
+
+def _format_boiler_permits(boilers: list[dict]) -> str:
+    """Format boiler permits as markdown."""
+    if not boilers:
+        return ""
+    lines = [
+        "| Permit # | Type | Status | Expiration | Description |",
+        "|----------|------|--------|------------|-------------|",
+    ]
+    for b in boilers[:10]:
+        pnum = b.get("permit_number") or "—"
+        btype = (b.get("boiler_type") or "—")[:30]
+        status = b.get("status") or "—"
+        exp = str(b.get("expiration_date") or "—")[:10]
+        desc = (b.get("description") or "—")[:60]
+        if len(b.get("description") or "") > 60:
+            desc += "..."
+        lines.append(f"| {pnum} | {btype} | {status} | {exp} | {desc} |")
+    return "\n".join(lines)
+
+
+def _format_dev_pipeline(pipeline: list[dict]) -> str:
+    """Format development pipeline entries as markdown."""
+    if not pipeline:
+        return ""
+    lines = [
+        "| Record ID | Address / Name | Status | Proposed Units | Net Units | Zoning |",
+        "|-----------|---------------|--------|---------------|-----------|--------|",
+    ]
+    for p in pipeline[:10]:
+        rid = p.get("record_id") or "—"
+        name = (p.get("name_address") or "—")[:40]
+        status = (p.get("current_status") or "—")[:30]
+        proposed = p.get("proposed_units") or "—"
+        net = p.get("net_pipeline_units") or "—"
+        zoning = p.get("zoning_district") or "—"
+        lines.append(f"| {rid} | {name} | {status} | {proposed} | {net} | {zoning} |")
     return "\n".join(lines)
 
 
@@ -928,6 +1078,24 @@ async def permit_lookup(
             logger.warning("Related team query failed: %s", e)
 
         lines.append(_format_related(location_permits, team_permits, p_block, p_lot))
+
+        # 7. Planning records (entitlements)
+        planning_records = _get_planning_records(conn, p_block, p_lot)
+        if planning_records:
+            lines.append("\n## Planning Records (Entitlements)\n")
+            lines.append(_format_planning_records(planning_records))
+
+        # 8. Boiler permits
+        boiler_permits = _get_boiler_permits(conn, p_block, p_lot)
+        if boiler_permits:
+            lines.append("\n## Boiler Permits\n")
+            lines.append(_format_boiler_permits(boiler_permits))
+
+        # 9. Development pipeline
+        dev_pipeline = _get_dev_pipeline(conn, p_block, p_lot)
+        if dev_pipeline:
+            lines.append("\n## Development Pipeline\n")
+            lines.append(_format_dev_pipeline(dev_pipeline))
 
         # Source citation
         lines.append(f"\n---\n*Source: sfpermits.ai local database ({BACKEND}) — 1.1M permits, 1.8M contacts, 671K inspections*")
