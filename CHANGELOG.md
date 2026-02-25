@@ -1,5 +1,47 @@
 # Changelog
 
+## Sprint 56 — Chang Family Loop + Infrastructure Close-Out (2026-02-25)
+
+6-agent parallel build implementing the homeowner viral loop, shareable analysis, three-tier signup, and data platform close-out. 2,304 tests passing (was 1,984). Target: 53+ tables, 18.4M+ rows.
+
+### Sprint 56A — Wire Reference Tables + Fix Predictions
+- `predict_permits`: wired `ref_permit_forms` and `ref_agency_triggers` queries with graceful fallback to hardcoded values
+- `predict_permits`: surfaces `historic_district` flag from `ref_zoning_routing`
+- `estimate_timeline`: filters out electrical/plumbing/mechanical trade permits from in-house timeline estimates (857K records excluded)
+- `estimate_fees`: Table 1A-E electrical fee calculation implemented (was placeholder)
+- `estimate_fees`: plumbing fee coverage expanded from 3 to 10+ project types
+- `recommend_consultants`: optional `entity_type` parameter for trade contractor support
+- 48 new tests
+
+### Sprint 56B — Tier1 Knowledge + Semantic Index
+- 4 new tier1 JSON files: `trade-permits.json`, `street-use-permits.json`, `housing-development.json`, `reference-tables.json`
+- 14 new semantic concepts in `semantic-index.json` (total: 114)
+- Knowledge base registered in `src/tools/knowledge_base.py`
+- 72 new tests
+
+### Sprint 56E — Homeowner Funnel + Brenneman Teaser + Onboarding
+- Landing page: "Planning a project?" textarea + neighborhood dropdown → `/analyze-preview`
+- Landing page: "Got a violation?" CTA → search with `?context=violation` param
+- `/analyze-preview`: unauthenticated preview running 2 of 5 tools (predict + timeline)
+- Kitchen/bath fork: side-by-side OTC vs In-House comparison
+- Locked cards for fees/docs/risk with signup CTAs
+- Post-signup onboarding: dismissable welcome banner
+- Empty states for brief and portfolio pages
+- Tiered watch prompts: 1 watch → soft prompt, 3+ watches → strong prompt
+- 32 new tests
+
+### Sprint 56F — DBI + Planning Review Metrics Ingest
+- 3 new tables: `permit_issuance_metrics` (gzxm-jz5j), `permit_review_metrics` (5bat-azvb), `planning_review_metrics` (d4jk-jw33)
+- 3 normalize + 3 ingest functions
+- 3 new cron endpoints with auth
+- 58 new tests
+
+### Infrastructure
+- Fixed `analysis_sessions` FK: `REFERENCES users(user_id)` (was `users(id)`)
+- DEPLOYMENT_MANIFEST.yaml updated with Sprint 56 ingest runbook entries
+
+---
+
 ## Sprint 56D — Shareable Analysis + Email Flow + Three-Tier Signup (2026-02-25)
 
 Implements the P0 viral mechanism: analysis results are now shareable via UUID URLs, users can email results to teammates, and organic traffic is funneled to a beta request queue with honeypot protection and IP rate limiting.
