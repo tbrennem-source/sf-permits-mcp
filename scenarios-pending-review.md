@@ -967,3 +967,43 @@ _Last reviewed: never_
 **Edge cases seen in code:** Before fix, 4 endpoints had copy-pasted auth that diverged from _check_api_auth(); a fix to the shared function missed the inline copies
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: predict_permits zoning code routing lookup
+**Source:** scripts/seed_reference_tables.py, src/tools/predict_permits.py
+**User:** expediter | architect
+**Starting state:** ref_zoning_routing table seeded with SF zoning codes
+**Goal:** User asks which agencies must review a permit for a parcel with known zoning code (e.g. RC-4)
+**Expected outcome:** Tool correctly identifies that RC-4 requires Planning + SFFD review and surfaces this alongside the permit prediction; RH-1 (single-family) does not require mandatory planning review for interior alterations
+**Edge cases seen in code:** Historic district flag (HCD code) should trigger Planning preservation review; zoning codes with suffixes like RH-1(D) must match exactly
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: cron seed-references endpoint re-seeds without data loss
+**Source:** web/app.py /cron/seed-references, scripts/seed_reference_tables.py
+**User:** admin
+**Starting state:** Reference tables already seeded from a previous deploy
+**Goal:** Admin re-runs seed endpoint after a code update to refresh reference data
+**Expected outcome:** Endpoint returns 200 with row counts for all 3 tables; row counts remain the same (no duplicates); idempotent behavior confirmed
+**Edge cases seen in code:** DuckDB uses INSERT OR REPLACE; Postgres uses ON CONFLICT DO UPDATE; form/trigger tables use DELETE + re-insert for simplicity
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: migration registry includes reference_tables as last step
+**Source:** scripts/run_prod_migrations.py
+**User:** admin
+**Starting state:** Production database has run all prior migrations
+**Goal:** Deploy triggers run_prod_migrations which creates and seeds the 3 reference tables
+**Expected outcome:** Migration completes with ok=True; tables created; row counts returned; re-running migration is safe (idempotent)
+**Edge cases seen in code:** Migration skips table creation in DuckDB mode if tables already exist (CREATE TABLE IF NOT EXISTS); seed step runs in both backends
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: restaurant project triggers all required agencies
+**Source:** scripts/seed_reference_tables.py ref_agency_triggers
+**User:** expediter | architect
+**Starting state:** ref_agency_triggers seeded; user describes a restaurant change of use project
+**Goal:** predict_permits correctly identifies all routing agencies for a restaurant project
+**Expected outcome:** Result includes DBI, Planning, SFFD (Fire), DPH (Public Health), DBI Mechanical/Electrical, and conditionally SFPUC + DPW/BSM; all backed by queryable trigger table entries
+**Edge cases seen in code:** restaurant keyword appears in triggers for 5 different agencies; DPH must approve before permit issuance per G-20 Rule C
+**CC confidence:** high
+**Status:** PENDING REVIEW
