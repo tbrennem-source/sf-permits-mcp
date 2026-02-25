@@ -6992,12 +6992,15 @@ def analysis_shared(analysis_id):
     from src.db import query_one as _qone, execute_write as _ew, BACKEND as _BE
     import json as _json
 
-    row = _qone(
-        "SELECT id, user_id, project_description, address, neighborhood, "
-        "estimated_cost, square_footage, results_json, created_at, shared_count, view_count "
-        "FROM analysis_sessions WHERE id = %s",
-        (analysis_id,),
-    )
+    try:
+        row = _qone(
+            "SELECT id, user_id, project_description, address, neighborhood, "
+            "estimated_cost, square_footage, results_json, created_at, shared_count, view_count "
+            "FROM analysis_sessions WHERE id = %s",
+            (analysis_id,),
+        )
+    except Exception:
+        abort(404)
     if not row:
         abort(404)
 
@@ -7077,11 +7080,14 @@ def analysis_share_email(analysis_id):
     from email.message import EmailMessage
 
     # Validate owner
-    row = _qone(
-        "SELECT id, user_id, project_description, address, neighborhood, estimated_cost "
-        "FROM analysis_sessions WHERE id = %s",
-        (analysis_id,),
-    )
+    try:
+        row = _qone(
+            "SELECT id, user_id, project_description, address, neighborhood, estimated_cost "
+            "FROM analysis_sessions WHERE id = %s",
+            (analysis_id,),
+        )
+    except Exception:
+        return jsonify({"ok": False, "error": "Analysis not found"}), 404
     if not row:
         return jsonify({"ok": False, "error": "Analysis not found"}), 404
 
