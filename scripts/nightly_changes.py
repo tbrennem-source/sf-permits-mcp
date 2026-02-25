@@ -38,6 +38,8 @@ ADDENDA_ENDPOINT = "87xy-gk8d"
 PLANNING_PROJECTS_ENDPOINT = "qvu5-m3a2"
 PLANNING_NON_PROJECTS_ENDPOINT = "y673-d69b"
 BOILER_ENDPOINT = "5dp4-gtxk"
+STREET_USE_ENDPOINT = "b6tj-gt35"
+DEVELOPMENT_PIPELINE_ENDPOINT = "6jgi-cpb4"
 PAGE_SIZE = 10_000
 MAX_LOOKBACK_DAYS = 30
 
@@ -1131,6 +1133,235 @@ def detect_boiler_changes(soda_records: list[dict], dry_run: bool = False,
     return inserted
 
 
+# ── Street-use monitoring ─────────────────────────────────────────
+
+async def fetch_recent_street_use(client: SODAClient, since_date: str) -> list[dict]:
+    """Fetch street-use permits approved since `since_date` from SODA API."""
+    all_records: list[dict] = []
+    offset = 0
+    while True:
+        try:
+            records = await client.query(
+                endpoint_id=STREET_USE_ENDPOINT,
+                where=f"approved_date > '{since_date}T00:00:00.000'",
+                order="approved_date DESC",
+                limit=PAGE_SIZE,
+                offset=offset,
+            )
+        except Exception as e:
+            logger.warning("Street-use permits fetch failed: %s", e)
+            break
+        if not records:
+            break
+        all_records.extend(records)
+        if len(records) < PAGE_SIZE:
+            break
+        offset += PAGE_SIZE
+    return all_records
+
+
+def detect_street_use_changes(soda_records: list[dict], dry_run: bool = False,
+                               source: str = "nightly") -> int:
+    """Detect new and changed street-use permits and insert into permit_changes.
+
+    Uses change_type='street_use_change' to distinguish from building permit changes.
+
+    Returns the number of changes inserted.
+    """
+    ph = _ph()
+    today = date.today()
+    inserted = 0
+
+    for record in soda_records:
+        permit_number = record.get("permit_number")
+        if not permit_number:
+            continue
+
+        new_status = (record.get("status") or "").strip()
+        approved_date = record.get("approved_date")
+        expiration_date = record.get("expiration_date")
+        street_name = (record.get("street_name") or "").strip() or None
+        neighborhood = (record.get("neighborhood") or "").strip() or None
+        permit_purpose = (record.get("permit_purpose") or "").strip() or None
+
+        # Check if we already have this permit in street_use_permits table
+        try:
+            existing = query_one(
+                f"SELECT status FROM street_use_permits WHERE permit_number = {ph}",
+                (permit_number,),
+            )
+        except Exception:
+            existing = None
+
+        if existing is None:
+            change_type = "street_use_change"
+            old_status = None
+        else:
+            old_status = existing[0]
+            if old_status == new_status:
+                continue
+            change_type = "street_use_change"
+
+        if dry_run:
+            action = "NEW" if old_status is None else f"{old_status} -> {new_status}"
+            logger.info("  Street-use %s: %s (%s)", permit_number, action, permit_purpose)
+            inserted += 1
+            continue
+
+        try:
+            if BACKEND == "postgres":
+                execute_write(
+                    "INSERT INTO permit_changes "
+                    "(permit_number, change_date, old_status, new_status, "
+                    "old_status_date, new_status_date, change_type, is_new_permit, "
+                    "source, permit_type, street_name, neighborhood) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (permit_number, today, old_status, new_status,
+                     None, approved_date, change_type, old_status is None,
+                     source, permit_purpose, street_name, neighborhood),
+                )
+            else:
+                id_row = query("SELECT COALESCE(MAX(change_id), 0) FROM permit_changes")
+                new_id = (id_row[0][0] if id_row else 0) + 1
+                conn = get_connection()
+                try:
+                    conn.execute(
+                        "INSERT INTO permit_changes "
+                        "(change_id, permit_number, change_date, old_status, new_status, "
+                        "old_status_date, new_status_date, change_type, is_new_permit, "
+                        "source, permit_type, street_name, neighborhood) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (new_id, permit_number, today, old_status, new_status,
+                         None, approved_date, change_type, old_status is None,
+                         source, permit_purpose, street_name, neighborhood),
+                    )
+                finally:
+                    conn.close()
+            inserted += 1
+        except Exception as e:
+            logger.warning("Failed to insert street-use change for %s: %s", permit_number, e)
+
+    return inserted
+
+
+# ── Development pipeline monitoring ──────────────────────────────
+
+async def fetch_recent_development_pipeline(client: SODAClient, since_date: str) -> list[dict]:
+    """Fetch development pipeline records approved since `since_date` from SODA API."""
+    all_records: list[dict] = []
+    offset = 0
+    while True:
+        try:
+            records = await client.query(
+                endpoint_id=DEVELOPMENT_PIPELINE_ENDPOINT,
+                where=f"approved_date_planning > '{since_date}T00:00:00.000'",
+                order="approved_date_planning DESC",
+                limit=PAGE_SIZE,
+                offset=offset,
+            )
+        except Exception as e:
+            logger.warning("Development pipeline fetch failed: %s", e)
+            break
+        if not records:
+            break
+        all_records.extend(records)
+        if len(records) < PAGE_SIZE:
+            break
+        offset += PAGE_SIZE
+    return all_records
+
+
+def detect_development_pipeline_changes(soda_records: list[dict], dry_run: bool = False,
+                                         source: str = "nightly") -> int:
+    """Detect new and changed development pipeline records, insert into permit_changes.
+
+    Uses change_type='dev_pipeline_change' to distinguish from other change types.
+
+    Returns the number of changes inserted.
+    """
+    ph = _ph()
+    today = date.today()
+    inserted = 0
+
+    for record in soda_records:
+        record_id = record.get("record_id")
+        if not record_id:
+            continue
+
+        new_status = (record.get("current_status") or "").strip()
+        approved_date = record.get("approved_date_planning")
+        neighborhood = (record.get("neighborhood") or "").strip() or None
+        block_lot = (record.get("block_lot") or "").strip() or None
+        description = ((record.get("description_planning") or
+                        record.get("description_dbi") or "")[:200]).strip() or None
+
+        # Parse block/lot from block_lot field (e.g. "1234/005")
+        block_val = lot_val = None
+        if block_lot and "/" in block_lot:
+            parts = block_lot.split("/", 1)
+            block_val = parts[0].strip() or None
+            lot_val = parts[1].strip() or None
+
+        # Check if we already have this record in development_pipeline table
+        try:
+            existing = query_one(
+                f"SELECT current_status FROM development_pipeline WHERE record_id = {ph}",
+                (record_id,),
+            )
+        except Exception:
+            existing = None
+
+        if existing is None:
+            change_type = "dev_pipeline_change"
+            old_status = None
+        else:
+            old_status = existing[0]
+            if old_status == new_status:
+                continue
+            change_type = "dev_pipeline_change"
+
+        if dry_run:
+            action = "NEW" if old_status is None else f"{old_status} -> {new_status}"
+            logger.info("  Dev pipeline %s: %s", record_id, action)
+            inserted += 1
+            continue
+
+        try:
+            if BACKEND == "postgres":
+                execute_write(
+                    "INSERT INTO permit_changes "
+                    "(permit_number, change_date, old_status, new_status, "
+                    "old_status_date, new_status_date, change_type, is_new_permit, "
+                    "source, permit_type, neighborhood, block, lot) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (record_id, today, old_status, new_status,
+                     None, approved_date, change_type, old_status is None,
+                     source, description, neighborhood, block_val, lot_val),
+                )
+            else:
+                id_row = query("SELECT COALESCE(MAX(change_id), 0) FROM permit_changes")
+                new_id = (id_row[0][0] if id_row else 0) + 1
+                conn = get_connection()
+                try:
+                    conn.execute(
+                        "INSERT INTO permit_changes "
+                        "(change_id, permit_number, change_date, old_status, new_status, "
+                        "old_status_date, new_status_date, change_type, is_new_permit, "
+                        "source, permit_type, neighborhood, block, lot) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        (new_id, record_id, today, old_status, new_status,
+                         None, approved_date, change_type, old_status is None,
+                         source, description, neighborhood, block_val, lot_val),
+                    )
+                finally:
+                    conn.close()
+            inserted += 1
+        except Exception as e:
+            logger.warning("Failed to insert dev pipeline change for %s: %s", record_id, e)
+
+    return inserted
+
+
 # ── Main entry point ─────────────────────────────────────────────
 
 async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
@@ -1178,6 +1409,8 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
         addenda_records: list[dict] = []
         planning_records: list[dict] = []
         boiler_records: list[dict] = []
+        street_use_records: list[dict] = []
+        dev_pipeline_records: list[dict] = []
 
         try:
             # ── Step 1: Fetch permits (with retry) ────────────────────────
@@ -1256,6 +1489,28 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
                 logger.warning("Boiler permits fetch step failed (non-fatal): %s", e)
                 step_results["boiler"] = {"step": "boiler", "ok": False, "error": str(e)}
 
+            # ── Step 4c: Fetch street-use permits (isolated) ───────────────────
+            try:
+                street_use_records, step_results["street_use"] = await fetch_with_retry(
+                    lambda: fetch_recent_street_use(client, since_str),
+                    step_name="street_use",
+                )
+                logger.info("SODA returned %d street-use permit records", len(street_use_records))
+            except Exception as e:
+                logger.warning("Street-use permits fetch step failed (non-fatal): %s", e)
+                step_results["street_use"] = {"step": "street_use", "ok": False, "error": str(e)}
+
+            # ── Step 4d: Fetch development pipeline (isolated) ────────────────
+            try:
+                dev_pipeline_records, step_results["dev_pipeline"] = await fetch_with_retry(
+                    lambda: fetch_recent_development_pipeline(client, since_str),
+                    step_name="dev_pipeline",
+                )
+                logger.info("SODA returned %d development pipeline records", len(dev_pipeline_records))
+            except Exception as e:
+                logger.warning("Development pipeline fetch step failed (non-fatal): %s", e)
+                step_results["dev_pipeline"] = {"step": "dev_pipeline", "ok": False, "error": str(e)}
+
         finally:
             await client.close()
 
@@ -1311,20 +1566,44 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             logger.warning("Boiler change detection failed (non-fatal): %s", e)
             step_results["detect_boiler"] = {"ok": False, "error": str(e)}
 
+        # ── Step 9: Detect street-use permit changes ───────────────────
+        street_use_changes_inserted = 0
+        try:
+            street_use_changes_inserted = detect_street_use_changes(
+                street_use_records, dry_run=dry_run, source=source,
+            )
+        except Exception as e:
+            logger.warning("Street-use change detection failed (non-fatal): %s", e)
+            step_results["detect_street_use"] = {"ok": False, "error": str(e)}
+
+        # ── Step 10: Detect development pipeline changes ──────────────
+        dev_pipeline_changes_inserted = 0
+        try:
+            dev_pipeline_changes_inserted = detect_development_pipeline_changes(
+                dev_pipeline_records, dry_run=dry_run, source=source,
+            )
+        except Exception as e:
+            logger.warning("Dev pipeline change detection failed (non-fatal): %s", e)
+            step_results["detect_dev_pipeline"] = {"ok": False, "error": str(e)}
+
         total_soda = (
             len(permit_records) + len(inspection_records) + len(addenda_records)
             + len(planning_records) + len(boiler_records)
+            + len(street_use_records) + len(dev_pipeline_records)
         )
 
         logger.info(
             "%s: %d permit changes, %d inspections, %d addenda changes, "
-            "%d planning changes, %d boiler changes %s from %d SODA records",
+            "%d planning changes, %d boiler changes, %d street-use changes, "
+            "%d dev pipeline changes %s from %d SODA records",
             "DRY RUN" if dry_run else "DONE",
             changes_inserted,
             inspections_updated,
             addenda_inserted,
             planning_changes_inserted,
             boiler_changes_inserted,
+            street_use_changes_inserted,
+            dev_pipeline_changes_inserted,
             "detected" if dry_run else "inserted",
             total_soda,
         )
@@ -1406,11 +1685,15 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "soda_addenda": len(addenda_records),
             "soda_planning": len(planning_records),
             "soda_boiler": len(boiler_records),
+            "soda_street_use": len(street_use_records),
+            "soda_dev_pipeline": len(dev_pipeline_records),
             "changes_inserted": changes_inserted,
             "inspections_updated": inspections_updated,
             "addenda_inserted": addenda_inserted,
             "planning_changes_inserted": planning_changes_inserted,
             "boiler_changes_inserted": boiler_changes_inserted,
+            "street_use_changes_inserted": street_use_changes_inserted,
+            "dev_pipeline_changes_inserted": dev_pipeline_changes_inserted,
             "dry_run": dry_run,
             "staleness_warnings": staleness_warnings,
             "step_results": step_results,

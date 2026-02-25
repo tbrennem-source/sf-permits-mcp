@@ -634,7 +634,8 @@ def init_schema(conn) -> None:
             neighborhood TEXT,
             supervisor_district TEXT,
             zipcode TEXT,
-            data_as_of TEXT
+            data_as_of TEXT,
+            source TEXT DEFAULT 'building'
         )
     """)
 
@@ -990,6 +991,12 @@ def init_schema(conn) -> None:
         except Exception:
             pass
 
+    # Add source column to existing inspections tables (migration for pre-existing DBs)
+    try:
+        conn.execute("ALTER TABLE inspections ADD COLUMN source TEXT DEFAULT 'building'")
+    except Exception:
+        pass  # Column already exists
+
     _create_indexes(conn)
 
 
@@ -1007,6 +1014,7 @@ def _create_indexes(conn) -> None:
         ("idx_inspections_ref", "inspections", "reference_number"),
         ("idx_inspections_inspector", "inspections", "inspector"),
         ("idx_inspections_block_lot", "inspections", "block, lot"),
+        ("idx_inspections_source", "inspections", "source"),
         ("idx_permits_neighborhood", "permits", "neighborhood"),
         ("idx_permits_block_lot", "permits", "block, lot"),
         ("idx_permits_street", "permits", "street_number, street_name"),
