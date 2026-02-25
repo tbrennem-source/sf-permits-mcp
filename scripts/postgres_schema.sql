@@ -405,6 +405,127 @@ CREATE INDEX IF NOT EXISTS idx_tax_zoning ON tax_rolls(zoning_code);
 CREATE INDEX IF NOT EXISTS idx_tax_block_lot ON tax_rolls(block, lot);
 CREATE INDEX IF NOT EXISTS idx_tax_neighborhood ON tax_rolls(neighborhood);
 
+-- Street-Use Permits (~1.2M records)
+CREATE TABLE IF NOT EXISTS street_use_permits (
+    permit_number       TEXT PRIMARY KEY,
+    permit_type         TEXT,
+    permit_purpose      TEXT,
+    status              TEXT,
+    agent               TEXT,
+    agent_phone         TEXT,
+    contact             TEXT,
+    street_name         TEXT,
+    cross_street_1      TEXT,
+    cross_street_2      TEXT,
+    plan_checker        TEXT,
+    approved_date       TEXT,
+    expiration_date     TEXT,
+    neighborhood        TEXT,
+    supervisor_district TEXT,
+    latitude            DOUBLE PRECISION,
+    longitude           DOUBLE PRECISION,
+    cnn                 TEXT,
+    data_as_of          TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_street_use_status ON street_use_permits(status);
+CREATE INDEX IF NOT EXISTS idx_street_use_street ON street_use_permits(street_name);
+CREATE INDEX IF NOT EXISTS idx_street_use_neighborhood ON street_use_permits(neighborhood);
+
+-- SF Development Pipeline (~2K records)
+CREATE TABLE IF NOT EXISTS development_pipeline (
+    record_id               TEXT PRIMARY KEY,
+    bpa_no                  TEXT,
+    case_no                 TEXT,
+    name_address            TEXT,
+    current_status          TEXT,
+    description_dbi         TEXT,
+    description_planning    TEXT,
+    contact                 TEXT,
+    sponsor                 TEXT,
+    planner                 TEXT,
+    proposed_units          INTEGER,
+    existing_units          INTEGER,
+    net_pipeline_units      INTEGER,
+    affordable_units        INTEGER,
+    zoning_district         TEXT,
+    height_district         TEXT,
+    neighborhood            TEXT,
+    planning_district       TEXT,
+    approved_date_planning  TEXT,
+    block_lot               TEXT,
+    latitude                DOUBLE PRECISION,
+    longitude               DOUBLE PRECISION,
+    data_as_of              TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_dev_pipeline_bpa ON development_pipeline(bpa_no);
+CREATE INDEX IF NOT EXISTS idx_dev_pipeline_case ON development_pipeline(case_no);
+CREATE INDEX IF NOT EXISTS idx_dev_pipeline_block_lot ON development_pipeline(block_lot);
+CREATE INDEX IF NOT EXISTS idx_dev_pipeline_status ON development_pipeline(current_status);
+
+-- Affordable Housing Pipeline (~194 records)
+CREATE TABLE IF NOT EXISTS affordable_housing (
+    project_id              TEXT PRIMARY KEY,
+    project_name            TEXT,
+    project_lead_sponsor    TEXT,
+    planning_case_number    TEXT,
+    address                 TEXT,
+    total_project_units     INTEGER,
+    affordable_units        INTEGER,
+    affordable_percent      DOUBLE PRECISION,
+    construction_status     TEXT,
+    housing_tenure          TEXT,
+    housing_program         TEXT,
+    supervisor_district     TEXT,
+    neighborhood            TEXT,
+    latitude                DOUBLE PRECISION,
+    longitude               DOUBLE PRECISION,
+    data_as_of              TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_affordable_status ON affordable_housing(construction_status);
+CREATE INDEX IF NOT EXISTS idx_affordable_case ON affordable_housing(planning_case_number);
+
+-- Housing Production (~5.8K records)
+CREATE TABLE IF NOT EXISTS housing_production (
+    id                      INTEGER PRIMARY KEY,
+    bpa                     TEXT,
+    address                 TEXT,
+    block_lot               TEXT,
+    description             TEXT,
+    permit_type             TEXT,
+    issued_date             TEXT,
+    first_completion_date   TEXT,
+    latest_completion_date  TEXT,
+    proposed_units          INTEGER,
+    net_units               INTEGER,
+    net_units_completed     INTEGER,
+    market_rate             INTEGER,
+    affordable_units        INTEGER,
+    zoning_district         TEXT,
+    neighborhood            TEXT,
+    supervisor_district     TEXT,
+    data_as_of              TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_housing_prod_bpa ON housing_production(bpa);
+CREATE INDEX IF NOT EXISTS idx_housing_prod_block_lot ON housing_production(block_lot);
+
+-- Dwelling Unit Completions (~2.4K records)
+CREATE TABLE IF NOT EXISTS dwelling_completions (
+    id                          INTEGER PRIMARY KEY,
+    building_address            TEXT,
+    building_permit_application TEXT,
+    date_issued                 TEXT,
+    document_type               TEXT,
+    number_of_units_certified   INTEGER,
+    data_as_of                  TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_dwelling_permit ON dwelling_completions(building_permit_application);
+CREATE INDEX IF NOT EXISTS idx_dwelling_doc_type ON dwelling_completions(document_type);
+
 -- ============================================================
 -- Materialized views (Step 3 — for the 5 decision tools)
 -- ============================================================

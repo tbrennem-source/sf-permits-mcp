@@ -85,6 +85,26 @@ DATASETS = {
         "endpoint_id": "wv5m-vpq2",
         "name": "Tax Rolls (Secured Property)",
     },
+    "street_use_permits": {
+        "endpoint_id": "b6tj-gt35",
+        "name": "Street-Use Permits",
+    },
+    "development_pipeline": {
+        "endpoint_id": "6jgi-cpb4",
+        "name": "SF Development Pipeline",
+    },
+    "affordable_housing": {
+        "endpoint_id": "aaxw-2cb8",
+        "name": "Affordable Housing Pipeline",
+    },
+    "housing_production": {
+        "endpoint_id": "xdht-4php",
+        "name": "Housing Production",
+    },
+    "dwelling_completions": {
+        "endpoint_id": "j67f-aayr",
+        "name": "Dwelling Unit Completions",
+    },
 }
 
 PAGE_SIZE = 10_000
@@ -676,6 +696,208 @@ def _normalize_tax_roll(record: dict) -> tuple:
     )
 
 
+def _normalize_street_use_permit(record: dict) -> tuple:
+    """Normalize a street-use permit record.
+
+    SODA endpoint b6tj-gt35. Key field differences vs building permits:
+      - streetname (not street_name)
+      - agentphone (not agent_phone)
+      - planchecker (not plan_checker)
+      - permit_zipcode (different name)
+      - analysis_neighborhood → neighborhood
+      - unique_identifier as primary key (permit_number may be duplicate across CNN)
+    """
+    def _parse_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    return (
+        record.get("unique_identifier") or record.get("permit_number", ""),
+        record.get("permit_type"),
+        record.get("permit_purpose"),
+        record.get("status"),
+        record.get("agent"),
+        record.get("agentphone"),
+        record.get("contact"),
+        record.get("streetname"),
+        record.get("cross_street_1"),
+        record.get("cross_street_2"),
+        record.get("planchecker"),
+        record.get("approved_date"),
+        record.get("expiration_date"),
+        record.get("analysis_neighborhood"),
+        record.get("supervisor_district"),
+        _parse_float(record.get("latitude")),
+        _parse_float(record.get("longitude")),
+        record.get("cnn"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_development_pipeline(record: dict) -> tuple:
+    """Normalize a development pipeline record.
+
+    SODA endpoint 6jgi-cpb4. Key fields:
+      - blklot → block_lot (combined)
+      - nameaddr → name_address
+      - nhood37 → neighborhood
+      - pipeline_affordable_units → affordable_units
+    """
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    def _parse_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    # Use bpa_no as primary key when available, else case_no, else generated
+    record_id = record.get("bpa_no") or record.get("case_no") or record.get("blklot", "")
+
+    return (
+        record_id,
+        record.get("bpa_no"),
+        record.get("case_no"),
+        record.get("nameaddr"),
+        record.get("current_status"),
+        record.get("description_dbi"),
+        record.get("description_planning"),
+        record.get("contact"),
+        record.get("sponsor"),
+        record.get("planner"),
+        _parse_int(record.get("proposed_units")),
+        _parse_int(record.get("existing_units")),
+        _parse_int(record.get("net_pipeline_units")),
+        _parse_int(record.get("pipeline_affordable_units")),
+        record.get("zoning_district"),
+        record.get("height_district"),
+        record.get("nhood37"),
+        record.get("planning_district"),
+        record.get("approved_date_planning"),
+        record.get("blklot"),
+        _parse_float(record.get("latitude")),
+        _parse_float(record.get("longitude")),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_affordable_housing(record: dict) -> tuple:
+    """Normalize an affordable housing pipeline record.
+
+    SODA endpoint aaxw-2cb8. Key fields:
+      - city_analysis_neighborhood → neighborhood
+      - mohcd_affordable_units → affordable_units
+      - project_status (not construction_status alone)
+    """
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    def _parse_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    return (
+        record.get("project_id", ""),
+        record.get("project_name"),
+        record.get("project_lead_sponsor"),
+        record.get("planning_case_number"),
+        record.get("plannning_approval_address"),
+        _parse_int(record.get("total_project_units")),
+        _parse_int(record.get("mohcd_affordable_units")),
+        _parse_float(record.get("affordable_percent")),
+        record.get("construction_status"),
+        record.get("housing_tenure"),
+        record.get("general_housing_program"),
+        record.get("supervisor_district"),
+        record.get("city_analysis_neighborhood"),
+        _parse_float(record.get("latitude")),
+        _parse_float(record.get("longitude")),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_housing_production(record: dict, row_id: int) -> tuple:
+    """Normalize a housing production record.
+
+    SODA endpoint xdht-4php. Key fields:
+      - blocklot → block_lot
+      - analysis_neighborhood → neighborhood
+    """
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    return (
+        row_id,
+        record.get("bpa"),
+        record.get("address"),
+        record.get("blocklot"),
+        record.get("description"),
+        record.get("permit_type"),
+        record.get("issued_date"),
+        record.get("first_completion_date"),
+        record.get("latest_completion_date"),
+        _parse_int(record.get("proposed_units") or record.get("pts_proposed_units")),
+        _parse_int(record.get("net_units")),
+        _parse_int(record.get("net_units_completed")),
+        _parse_int(record.get("market_rate")),
+        _parse_int(record.get("affordable_units")),
+        record.get("zoning_district"),
+        record.get("analysis_neighborhood"),
+        record.get("supervisor_district"),
+        record.get("data_as_of"),
+    )
+
+
+def _normalize_dwelling_completion(record: dict, row_id: int) -> tuple:
+    """Normalize a dwelling unit completion record.
+
+    SODA endpoint j67f-aayr. Simple schema.
+    """
+    def _parse_int(val):
+        if val is None:
+            return None
+        try:
+            return int(float(val))
+        except (ValueError, TypeError):
+            return None
+
+    return (
+        row_id,
+        record.get("building_address"),
+        record.get("building_permit_application"),
+        record.get("date_issued"),
+        record.get("document_type"),
+        _parse_int(record.get("number_of_units_certified")),
+        record.get("data_as_of"),
+    )
+
+
 async def _fetch_all_pages(
     client: SODAClient,
     endpoint_id: str,
@@ -1227,6 +1449,7 @@ async def ingest_planning_records(conn, client: SODAClient) -> int:
 
 TAX_ROLL_YEAR_FILTER = "closed_roll_year >= '2022'"
 TAX_ROLL_BATCH_FLUSH = 50_000  # Flush to DB every 50K rows to limit memory
+STREET_USE_BATCH_FLUSH = 50_000  # Street-use permits ~1.2M rows — flush periodically
 
 
 async def ingest_tax_rolls(conn, client: SODAClient) -> int:
@@ -1412,6 +1635,180 @@ def _extract_business_contacts(conn, start_row_id: int) -> int:
     return len(batch)
 
 
+async def ingest_street_use_permits(conn, client: SODAClient) -> int:
+    """Ingest street-use permits (~1.2M records) into street_use_permits table.
+
+    Uses streaming pagination with periodic batch flushes to avoid OOM
+    on memory-constrained Railway containers.
+    """
+    print("\n=== Ingesting Street-Use Permits ===")
+    conn.execute("DELETE FROM street_use_permits")
+
+    endpoint_id = "b6tj-gt35"
+    total_count = await client.count(endpoint_id)
+    print(f"  Street-Use Permits: {total_count:,} total records to fetch")
+
+    total = 0
+    offset = 0
+    start = time.time()
+    max_retries = 3
+    batch = []
+
+    while True:
+        page = None
+        for attempt in range(max_retries):
+            try:
+                page = await client.query(
+                    endpoint_id=endpoint_id,
+                    limit=PAGE_SIZE,
+                    offset=offset,
+                    order=":id",
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait = 2 ** (attempt + 1)
+                    print(f"  Retry {attempt + 1}/{max_retries}: {e}. Waiting {wait}s...", flush=True)
+                    await asyncio.sleep(wait)
+                else:
+                    raise
+        if not page:
+            break
+
+        for r in page:
+            batch.append(_normalize_street_use_permit(r))
+
+        offset += len(page)
+        elapsed = time.time() - start
+        rate = offset / elapsed if elapsed > 0 else 0
+        pct = offset * 100 // total_count if total_count else 0
+        print(
+            f"  Fetched {offset:,}/{total_count:,} ({pct}%) — "
+            f"{rate:,.0f} rec/s — {elapsed:.1f}s",
+            flush=True,
+        )
+
+        # Flush batch to DB periodically to limit memory
+        if len(batch) >= STREET_USE_BATCH_FLUSH:
+            conn.executemany(
+                "INSERT OR REPLACE INTO street_use_permits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                batch,
+            )
+            total += len(batch)
+            batch = []
+
+        if len(page) < PAGE_SIZE:
+            break
+
+    # Flush remaining
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO street_use_permits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        total += len(batch)
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["b6tj-gt35", "Street-Use Permits", datetime.now(timezone.utc).isoformat(), total, total],
+    )
+    elapsed = time.time() - start
+    print(f"  Loaded {total:,} street-use permit records in {elapsed:.1f}s")
+    return total
+
+
+async def ingest_development_pipeline(conn, client: SODAClient) -> int:
+    """Ingest SF Development Pipeline (~2K records) into development_pipeline table."""
+    print("\n=== Ingesting SF Development Pipeline ===")
+    conn.execute("DELETE FROM development_pipeline")
+
+    records = await _fetch_all_pages(client, "6jgi-cpb4", "SF Development Pipeline")
+
+    batch = [_normalize_development_pipeline(r) for r in records]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO development_pipeline VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} development pipeline records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["6jgi-cpb4", "SF Development Pipeline", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_affordable_housing(conn, client: SODAClient) -> int:
+    """Ingest Affordable Housing Pipeline (~194 records) into affordable_housing table."""
+    print("\n=== Ingesting Affordable Housing Pipeline ===")
+    conn.execute("DELETE FROM affordable_housing")
+
+    records = await _fetch_all_pages(client, "aaxw-2cb8", "Affordable Housing Pipeline")
+
+    batch = [_normalize_affordable_housing(r) for r in records]
+    if batch:
+        conn.executemany(
+            "INSERT OR REPLACE INTO affordable_housing VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} affordable housing records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["aaxw-2cb8", "Affordable Housing Pipeline", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_housing_production(conn, client: SODAClient) -> int:
+    """Ingest Housing Production (~5.8K records) into housing_production table."""
+    print("\n=== Ingesting Housing Production ===")
+    conn.execute("DELETE FROM housing_production")
+
+    records = await _fetch_all_pages(client, "xdht-4php", "Housing Production")
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        batch.append(_normalize_housing_production(r, i))
+    if batch:
+        conn.executemany(
+            "INSERT INTO housing_production VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} housing production records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["xdht-4php", "Housing Production", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
+async def ingest_dwelling_completions(conn, client: SODAClient) -> int:
+    """Ingest Dwelling Unit Completions (~2.4K records) into dwelling_completions table."""
+    print("\n=== Ingesting Dwelling Unit Completions ===")
+    conn.execute("DELETE FROM dwelling_completions")
+
+    records = await _fetch_all_pages(client, "j67f-aayr", "Dwelling Unit Completions")
+
+    batch = []
+    for i, r in enumerate(records, 1):
+        batch.append(_normalize_dwelling_completion(r, i))
+    if batch:
+        conn.executemany(
+            "INSERT INTO dwelling_completions VALUES (?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} dwelling completion records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        ["j67f-aayr", "Dwelling Unit Completions", datetime.now(timezone.utc).isoformat(), len(records), len(records)],
+    )
+    return len(batch)
+
+
 async def run_ingestion(
     contacts: bool = True,
     permits: bool = True,
@@ -1426,6 +1823,11 @@ async def run_ingestion(
     fire: bool = True,
     planning: bool = True,
     tax_rolls: bool = True,
+    street_use: bool = True,
+    development_pipeline: bool = True,
+    affordable_housing: bool = True,
+    housing_production: bool = True,
+    dwelling_completions: bool = True,
     db_path: str | None = None,
 ) -> dict:
     """Run the full ingestion pipeline.
@@ -1467,6 +1869,16 @@ async def run_ingestion(
             results["planning_records"] = await ingest_planning_records(conn, client)
         if tax_rolls:
             results["tax_rolls"] = await ingest_tax_rolls(conn, client)
+        if street_use:
+            results["street_use_permits"] = await ingest_street_use_permits(conn, client)
+        if development_pipeline:
+            results["development_pipeline"] = await ingest_development_pipeline(conn, client)
+        if affordable_housing:
+            results["affordable_housing"] = await ingest_affordable_housing(conn, client)
+        if housing_production:
+            results["housing_production"] = await ingest_housing_production(conn, client)
+        if dwelling_completions:
+            results["dwelling_completions"] = await ingest_dwelling_completions(conn, client)
     finally:
         await client.close()
 
@@ -1500,6 +1912,11 @@ def main():
     parser.add_argument("--fire", action="store_true", help="Only ingest fire permits")
     parser.add_argument("--planning", action="store_true", help="Only ingest planning records")
     parser.add_argument("--tax-rolls", action="store_true", help="Only ingest tax rolls")
+    parser.add_argument("--street-use", action="store_true", help="Only ingest street-use permits")
+    parser.add_argument("--development-pipeline", action="store_true", help="Only ingest SF development pipeline")
+    parser.add_argument("--affordable-housing", action="store_true", help="Only ingest affordable housing pipeline")
+    parser.add_argument("--housing-production", action="store_true", help="Only ingest housing production")
+    parser.add_argument("--dwelling-completions", action="store_true", help="Only ingest dwelling unit completions")
     parser.add_argument("--db", type=str, help="Custom database path")
     args = parser.parse_args()
 
@@ -1508,7 +1925,10 @@ def main():
                   or args.addenda or args.violations or args.complaints
                   or args.businesses or args.electrical_permits or args.plumbing_permits
                   or args.boiler or args.fire
-                  or args.planning or args.tax_rolls)
+                  or args.planning or args.tax_rolls
+                  or args.street_use or args.development_pipeline
+                  or args.affordable_housing or args.housing_production
+                  or args.dwelling_completions)
 
     asyncio.run(
         run_ingestion(
@@ -1525,6 +1945,11 @@ def main():
             fire=do_all or args.fire,
             planning=do_all or args.planning,
             tax_rolls=do_all or args.tax_rolls,
+            street_use=do_all or args.street_use,
+            development_pipeline=do_all or args.development_pipeline,
+            affordable_housing=do_all or args.affordable_housing,
+            housing_production=do_all or args.housing_production,
+            dwelling_completions=do_all or args.dwelling_completions,
             db_path=args.db,
         )
     )

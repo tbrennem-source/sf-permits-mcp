@@ -6261,6 +6261,157 @@ def cron_ingest_tax_rolls():
     return jsonify({"ok": True, "table": "tax_rolls", "rows": count, "elapsed_s": round(elapsed, 1)})
 
 
+# === SESSION A: TRADE PERMIT + NEW DATASET ENDPOINTS ===
+
+@app.route("/cron/ingest-electrical", methods=["POST"])
+def cron_ingest_electrical():
+    """Ingest electrical permits from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_electrical_permits
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_electrical_permits(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "permits", "permit_type": "electrical", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-plumbing", methods=["POST"])
+def cron_ingest_plumbing():
+    """Ingest plumbing permits from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_plumbing_permits
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_plumbing_permits(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "permits", "permit_type": "plumbing", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-street-use", methods=["POST"])
+def cron_ingest_street_use():
+    """Ingest street-use permits (~1.2M rows) from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_street_use_permits
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_street_use_permits(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "street_use_permits", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-development-pipeline", methods=["POST"])
+def cron_ingest_development_pipeline():
+    """Ingest SF Development Pipeline from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_development_pipeline
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_development_pipeline(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "development_pipeline", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-affordable-housing", methods=["POST"])
+def cron_ingest_affordable_housing():
+    """Ingest Affordable Housing Pipeline from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_affordable_housing
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_affordable_housing(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "affordable_housing", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-housing-production", methods=["POST"])
+def cron_ingest_housing_production():
+    """Ingest Housing Production from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_housing_production
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_housing_production(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "housing_production", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+
+@app.route("/cron/ingest-dwelling-completions", methods=["POST"])
+def cron_ingest_dwelling_completions():
+    """Ingest Dwelling Unit Completions from SODA API. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_dwelling_completions
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_dwelling_completions(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({"ok": True, "table": "dwelling_completions", "rows": count, "elapsed_s": round(elapsed, 1)})
+
+# === END SESSION A: TRADE PERMIT + NEW DATASET ENDPOINTS ===
+
+
 @app.route("/cron/cross-ref-check", methods=["POST"])
 def cron_cross_ref_check():
     """Run cross-reference verification queries. CRON_SECRET auth."""
