@@ -5418,10 +5418,7 @@ def cron_nightly():
     Protected by CRON_SECRET bearer token. Designed to be called by
     Railway cron or external scheduler (e.g., cron-job.org) daily ~3am PT.
     """
-    token = request.headers.get("Authorization", "")
-    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
-    if not os.environ.get("CRON_SECRET") or token != expected:
-        abort(403)
+    _check_api_auth()
 
     from scripts.nightly_changes import run_nightly
     import json
@@ -5553,10 +5550,7 @@ def cron_send_briefs():
     Query params:
       - frequency: 'daily' (default) or 'weekly'
     """
-    token = request.headers.get("Authorization", "")
-    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
-    if not os.environ.get("CRON_SECRET") or token != expected:
-        abort(403)
+    _check_api_auth()
 
     from web.email_brief import send_briefs
     import json
@@ -5604,10 +5598,7 @@ def cron_rag_ingest():
       - tier: 'tier1', 'tier2', 'tier3', 'tier4', 'ops', or 'all' (default: all)
       - clear: '0' to skip clearing (default: true for tier1-4, ops self-manages)
     """
-    token = request.headers.get("Authorization", "")
-    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
-    if not os.environ.get("CRON_SECRET") or token != expected:
-        abort(403)
+    _check_api_auth()
 
     import json as json_mod
     tier = request.args.get("tier", "all")
@@ -5811,9 +5802,14 @@ def cron_migrate_data():
 
 def _check_api_auth():
     """Verify CRON_SECRET bearer token. Aborts 403 if invalid."""
-    token = request.headers.get("Authorization", "")
-    expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
-    if not os.environ.get("CRON_SECRET") or token != expected:
+    token = request.headers.get("Authorization", "").strip()
+    secret = os.environ.get("CRON_SECRET", "").strip()
+    expected = f"Bearer {secret}"
+    if not secret or token != expected:
+        logging.warning(
+            "API auth failed: token_len=%d expected_len=%d path=%s",
+            len(token), len(expected), request.path,
+        )
         abort(403)
 
 
@@ -6362,13 +6358,14 @@ def cron_pipeline_health():
     import json
 
     if request.method == "POST":
-        # POST requires auth
-        token = request.headers.get("Authorization", "")
-        expected = f"Bearer {os.environ.get('CRON_SECRET', '')}"
-        if not os.environ.get("CRON_SECRET") or token != expected:
-            # Also allow admin session for manual re-run from dashboard
-            if not (hasattr(g, "user") and g.user and g.user.get("is_admin")):
-                abort(403)
+        # POST requires CRON_SECRET auth, or admin session for dashboard re-run
+        token = request.headers.get("Authorization", "").strip()
+        secret = os.environ.get("CRON_SECRET", "").strip()
+        expected = f"Bearer {secret}"
+        token_ok = secret and token == expected
+        admin_ok = hasattr(g, "user") and g.user and g.user.get("is_admin")
+        if not token_ok and not admin_ok:
+            abort(403)
 
         action = request.args.get("action", "")
         if action == "run_nightly":
