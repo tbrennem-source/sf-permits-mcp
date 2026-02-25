@@ -6120,6 +6120,23 @@ def cron_backup():
 
 
 
+# === TEMP: STUCK JOB CLEANUP (remove after use) ===
+@app.route("/cron/cleanup-stuck", methods=["POST"])
+def cron_cleanup_stuck():
+    """One-time cleanup of stuck cron jobs. Remove after use."""
+    mig_key = os.environ.get("MIGRATION_KEY", "")
+    key_param = request.args.get("key", "")
+    if not mig_key or key_param != mig_key:
+        abort(403)
+    from src.db import execute_write
+    execute_write(
+        "UPDATE cron_log SET status = 'failed_stale', "
+        "completed_at = NOW(), error_message = 'Marked stale by Sprint 53B cleanup' "
+        "WHERE log_id IN (4, 14) AND status = 'running'"
+    )
+    return Response('{"ok": true, "updated": [4, 14]}', mimetype="application/json")
+# === END TEMP ===
+
 # === SESSION C: PIPELINE HEALTH ===
 
 @app.route("/cron/pipeline-health", methods=["GET", "POST"])
