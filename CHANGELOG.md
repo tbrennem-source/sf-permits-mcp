@@ -1,5 +1,48 @@
 # Changelog
 
+## Sprint 56D — Shareable Analysis + Email Flow + Three-Tier Signup (2026-02-25)
+
+Implements the P0 viral mechanism: analysis results are now shareable via UUID URLs, users can email results to teammates, and organic traffic is funneled to a beta request queue with honeypot protection and IP rate limiting.
+
+### New Tables (D1, D2, D3)
+- `analysis_sessions` — stores 5-tool analyze results as JSON with UUID primary key, user_id, view_count, shared_count
+- `beta_requests` — organic signup queue with email, reason, honeypot flag, IP, status (pending/approved/denied)
+- `users` table gains: `referral_source`, `detected_persona`, `beta_requested_at`, `beta_approved_at` columns
+
+### Shareable Analysis Pages (D4, D5)
+- `/analyze` route now saves results to `analysis_sessions` after the 5-tool run; returns `analysis_id` to frontend
+- `GET /analysis/<id>` — public shareable page, no auth required; increments view_count; shows full tab layout; CTA links to signup with `referral_source=shared_link&analysis_id=<id>`
+- `GET /analysis/unknown-id` → 404 (not 500)
+
+### Share Bar + Email Sending (D6, D7)
+- `results.html` gains a share bar (shown only when `analysis_id` is set): Email to team, Copy share link, Copy all
+- Email modal: up to 5 comma-separated recipients, sends via SMTP (dev mode: logs link)
+- `POST /analysis/<id>/share` — authenticated endpoint; validates max 5 recipients; increments `shared_count`; returns `{"ok": true, "sent": N}`
+- Returns 400 if >5 recipients, 401/302 if not authenticated
+
+### Three-Tier Signup (D8)
+- `auth_send_link`: `shared_link` referral bypasses invite code check; `organic` path (no invite, no shared_link) redirects to `/beta-request` with 302
+- `auth_verify`: stores `shared_analysis_id` in session, redirects back to the shared analysis after login
+- `/beta-request` GET: renders form with email, reason, honeypot `website` field
+- `/beta-request` POST: honeypot detection (silent success, no DB write); IP rate limiting (3 req/hr per IP → 429); creates `beta_requests` row on valid submission
+- `/admin/beta-requests`: admin-only queue showing pending requests with Approve/Deny buttons
+
+### Migration
+- `run_prod_migrations.py` gains `shareable_analysis` migration (CREATE TABLE analysis_sessions + beta_requests; ALTER TABLE users ADD COLUMN IF NOT EXISTS for 4 new columns)
+- `postgres_schema.sql` updated with both new tables
+
+### Tests
+- `tests/test_sprint56d_shareable.py` — 54 new tests covering all of the above
+- `tests/test_auth.py` — updated 2 tests for new 302 redirect behavior (organic signup → beta-request)
+- `tests/test_run_prod_migrations.py` — updated for migration count (11) and name
+- Full suite: 2126 passed, 20 skipped (serial run; DuckDB lock contention in parallel run is pre-existing)
+
+### QA
+- `qa-drop/run-sprint56d-qa.py` — 5 Playwright headless checks: beta request form, share page 404, share bar in results, auth login with referral_source param, organic send-link no 500
+- `qa-results/sprint56d-results.md` — 5/5 PASS
+
+---
+
 ## Sprint 56C — Plumbing Inspections + Street Use + Dev Pipeline in Brief/Nightly (2026-02-25)
 
 Plumbing inspection data (SODA `fuas-yurr`) now shares the `inspections` table with building inspections via a `source` discriminator column. Morning brief gains street-use activity and nearby development sections. Nightly change detection expanded to cover street-use permits and the development pipeline.
