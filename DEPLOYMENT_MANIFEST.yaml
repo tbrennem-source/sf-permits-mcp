@@ -40,11 +40,87 @@ health_assertions:
 extra_staging_checks:
   - "POST /auth/test-login and verify admin dashboard loads"
   - "Search for '75 robin hood dr' and verify property results appear"
+  - "Visit /analyze-preview with kitchen remodel description and verify teaser output"
+  - "Share an analysis and verify /analysis/<id> loads without login"
+  - "Verify 'Got a violation?' CTA on landing page links to search with ?context=violation"
+  - "Verify violation context reorders results (violations/complaints first)"
+  - "Test three-tier signup: shared_link auto-registration, organic beta request form"
+  - "Verify morning brief includes street_use_activity and nearby_development sections"
 
 extra_prod_checks:
   - "Search for '75 robin hood dr' and verify property results appear"
   - "Click a permit number and verify detail page loads"
   - "Check /health and verify all expected tables have row counts > 0"
+  - "Verify /analyze-preview teaser works (predict + timeline only)"
+  - "Verify /analysis/<id> shared link loads"
+  - "Verify 'Got a violation?' CTA routes correctly"
 
-# Post-promotion commands (uncomment per sprint as needed)
-post_promotion_commands: []
+# Post-promotion commands
+post_promotion_commands:
+  - "POST /cron/migrate — run schema migrations"
+  - "POST /cron/seed-references — seed ref tables"
+  - "POST /cron/signals — run property health signals"
+
+# Stateful Deployment: Ingest Runbook
+# Declares datasets that need cron ingest after deploy.
+# Ordered by size (smallest first) for staged verification.
+# Used by the Stateful Deployment Protocol in BLACKBOX_PROTOCOL.md.
+ingest_runbook:
+  # Tier 1: Small (<10K rows) — run first, catch SQL bugs cheap
+  - endpoint: /cron/ingest-affordable-housing
+    estimated_rows: 200
+    tier: 1
+  - endpoint: /cron/ingest-development-pipeline
+    estimated_rows: 2100
+    tier: 1
+  - endpoint: /cron/ingest-dwelling-completions
+    estimated_rows: 2400
+    tier: 1
+  - endpoint: /cron/ingest-housing-production
+    estimated_rows: 5800
+    tier: 1
+  # Tier 2: Medium (10K-100K) — run after Tier 1 passes
+  - endpoint: /cron/ingest-boiler
+    estimated_rows: 30000
+    tier: 2
+  - endpoint: /cron/ingest-fire
+    estimated_rows: 84000
+    tier: 2
+  # Tier 3: Large (>100K) — monitor, check timeout budget
+  - endpoint: /cron/ingest-electrical
+    estimated_rows: 344000
+    tier: 3
+    timeout_budget_note: "~2 min at batch rate, well within 600s"
+  - endpoint: /cron/ingest-plumbing
+    estimated_rows: 513000
+    tier: 3
+    timeout_budget_note: "~3 min at batch rate, within 600s"
+  - endpoint: /cron/ingest-street-use
+    estimated_rows: 1200000
+    tier: 3
+    timeout_budget_note: "~8 min streaming with batch commits, needs 600s timeout"
+  # Sprint 56: Review metrics (new tables)
+  - endpoint: /cron/ingest-planning-review-metrics
+    estimated_rows: 69000
+    tier: 2
+    note: "Sprint 56F — planning review metrics (d4jk-jw33)"
+  - endpoint: /cron/ingest-permit-issuance-metrics
+    estimated_rows: 138000
+    tier: 2
+    note: "Sprint 56F — DBI permit issuance metrics (gzxm-jz5j)"
+  - endpoint: /cron/ingest-permit-review-metrics
+    estimated_rows: 439000
+    tier: 3
+    note: "Sprint 56F — DBI permit review metrics (5bat-azvb)"
+    timeout_budget_note: "~3 min at batch rate, within 600s"
+  # Sprint 56: Plumbing inspections (shared inspections table)
+  - endpoint: /cron/ingest-plumbing-inspections
+    estimated_rows: 399000
+    tier: 3
+    note: "Sprint 56C — plumbing inspections into shared inspections table with source=plumbing"
+    timeout_budget_note: "~3 min at batch rate, within 600s"
+  # Reference data (seed, not ingest)
+  - endpoint: /cron/seed-references
+    estimated_rows: 94
+    tier: 1
+    note: "Seeds ref_zoning_routing, ref_permit_forms, ref_agency_triggers"

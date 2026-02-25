@@ -1,7 +1,7 @@
 # BLACKBOX_PROTOCOL.md — Autonomous Build Session Protocol
 
 **Owner:** dforge
-**Version:** 1.1
+**Version:** 1.2
 **Last Updated:** 2026-02-25
 
 ---
@@ -294,6 +294,172 @@ Lightweight CHECKCHAT: commit, push, update Chief.
 
 ---
 
+## Stateful Deployment Protocol
+
+**Added:** v1.2, Sprint 55 post-mortem
+**Trigger:** Any sprint that adds schema changes, cron endpoints, or data ingest pipelines
+
+### The Problem This Solves
+
+Code deploying successfully does NOT mean the system is ready. When a sprint adds database tables, migrations, or ingest pipelines, the system requires post-deploy operations before it's functional. The base protocol (push → deploy → DeskRelay visual checks) skips this entirely, leaving DeskRelay to discover missing tables, broken auth, and failed ingest — issues it can document but cannot fix.
+
+### When This Protocol Activates
+
+CC must run the Stateful Deployment Protocol when ANY of these are true:
+- Sprint modifies `postgres_schema.sql` or adds tables
+- Sprint adds or modifies `run_prod_migrations.py` entries
+- Sprint adds new `/cron/ingest-*` endpoints
+- Sprint modifies `_PgConnWrapper` or SQL translation logic
+- Deployment manifest has `ingest_runbook` entries for this sprint
+
+### Phase Order
+
+Run these steps AFTER tests pass and code is pushed, BEFORE writing CHECKCHAT.
+
+```
+TEST (pass) → PUSH → DEPLOY VERIFY → SCHEMA GATE → AUTH SMOKE → STAGED INGEST → CHECKCHAT
+```
+
+#### Step 1: Deploy Verification
+
+Confirm the push triggered a staging build.
+
+```bash
+# Check Railway deployment list
+railway service link {staging_service}
+railway deployment list | head -5
+```
+
+**Expected:** A deployment with status BUILDING or SUCCESS timestamped after your push.
+
+**If no deployment appears within 3 minutes:**
+1. Push an empty commit: `git commit --allow-empty -m "chore: trigger staging redeploy" && git push`
+2. Wait 30s, check again
+3. If still nothing after 2 attempts, flag as BLOCKED — do not proceed
+
+**Wait for SUCCESS status before continuing.** Check with:
+```bash
+railway deployment list | head -3
+# Look for SUCCESS, not BUILDING
+```
+
+#### Step 2: Schema Gate
+
+Verify all new tables exist on staging.
+
+```bash
+curl -s {staging_url}/health | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+tables = d.get('tables', {})
+for name in {expected_new_tables}:
+    count = tables.get(name, 'MISSING')
+    status = 'OK' if count != 'MISSING' else 'FAIL'
+    print(f'{status}: {name} = {count}')
+"
+```
+
+**If any table is MISSING:**
+- Check Railway logs: `railway logs -n 30`
+- Look for SQL errors during startup (schema.sql runs at import time)
+- Common cause: DDL that fails on existing data (UNIQUE constraints, NOT NULL on populated columns)
+- Fix the schema, push, wait for redeploy, re-run this gate
+- **Max 3 fix-redeploy cycles.** After 3, mark BLOCKED.
+
+#### Step 3: Auth Smoke Test
+
+Verify cron endpoints accept the auth token.
+
+```bash
+# Get the ACTUAL secret value (Railway CLI may wrap long values across lines)
+railway variables list | grep -A1 CRON_SECRET
+
+# Verify length matches what the app expects
+# (64 chars for this project — check _check_api_auth if unsure)
+
+# Hit a lightweight endpoint
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Authorization: Bearer {full_secret}" \
+  {staging_url}/health
+```
+
+**If 403:**
+1. Check logs: `railway logs -n 5` — look for `API auth failed: token_len=X expected_len=Y`
+2. If token_len < expected_len: the secret is truncated. Use `od -c` or `wc -c` on the Railway CLI output to get the full value.
+3. If token_len > expected_len: trailing whitespace. Verify `.strip()` is applied in `_check_api_auth()`.
+4. **Do not proceed to ingest until auth works.** All ingest endpoints use the same auth.
+
+#### Step 4: Staged Ingest Runbook
+
+Run ingest endpoints in size order — smallest first. This catches SQL bugs on cheap datasets before committing to multi-minute large ingests.
+
+**Read the manifest's `ingest_runbook`** (or the sprint spec) for dataset ordering. If no runbook exists, sort by estimated row count ascending.
+
+**Tier 1 — Small datasets (<10K rows):**
+Run all small datasets sequentially. Verify each returns `"ok": true` and rows appear in /health.
+
+```bash
+curl -s -X POST -H "Authorization: Bearer {secret}" \
+  "{staging_url}/cron/ingest-{dataset}" | python3 -m json.tool
+```
+
+**If any Tier 1 ingest fails:**
+- Check logs for SQL errors (ON CONFLICT, type mismatches, column count)
+- Fix, push, wait for redeploy, re-run from Step 1
+- **These failures indicate systemic issues** (e.g., missing ON CONFLICT handling) that will affect all datasets
+
+**Tier 2 — Medium datasets (10K-100K rows):**
+Run sequentially after Tier 1 passes. Same verification.
+
+**Tier 3 — Large datasets (>100K rows):**
+Before running:
+1. Check timeout budget: `estimated_rows / batch_rate` vs gunicorn timeout
+2. Verify the ingest function commits per-batch (not one big transaction)
+3. If timeout budget is tight, flag for DeskRelay (runs as post-promotion command with monitoring)
+
+Run in background and monitor:
+```bash
+# Start ingest
+curl -s -X POST -H "Authorization: Bearer {secret}" \
+  "{staging_url}/cron/ingest-{dataset}" &
+
+# Monitor progress via logs (if streaming)
+railway logs -n 5  # Check periodically for batch flush messages
+```
+
+**If a large ingest times out:**
+1. Check /health — did partial data land? (Incremental commits should preserve batches)
+2. If zero rows: the function isn't committing per-batch. Fix and redeploy.
+3. If partial rows: re-running the endpoint should be safe if it does DELETE-then-INSERT or ON CONFLICT
+4. Consider bumping gunicorn timeout if within safe limits
+
+**Max 3 fix-redeploy cycles across all tiers.** After 3, mark remaining ingests as BLOCKED for DeskRelay.
+
+### Fix-Redeploy Loop
+
+When a staging issue requires a code fix:
+
+```
+DIAGNOSE (read logs) → FIX (edit code) → TEST (pytest locally) → PUSH → WAIT (deploy) → RE-VERIFY
+```
+
+**Rules:**
+- Each cycle must include a local test run. Do not push untested fixes.
+- Each cycle gets its own commit with a descriptive message.
+- Max 3 cycles total (across all steps). After 3, BLOCKED.
+- Document each cycle in the CHECKCHAT output so DeskRelay knows what was fixed.
+
+### What Goes in the DeskRelay Prompt
+
+After the Stateful Deployment Protocol completes (or reaches BLOCKED), include in the DeskRelay prompt:
+
+1. **Schema status:** Which tables exist, which are MISSING
+2. **Ingest status:** Which datasets loaded, row counts, which are pending/BLOCKED
+3. **Fix history:** What was broken, what was fixed (so DeskRelay doesn't re-investigate)
+4. **Remaining ingest commands:** Exact curl commands for any BLOCKED large datasets that DeskRelay should run on prod after promotion
+
+---
+
 ## Enforcement Rules
 
 These rules exist because CC has historically violated them. They are the teeth.
@@ -368,5 +534,6 @@ chief_project_slug: sf-permits-mcp
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-02-25 | v1.2 — Stateful Deployment Protocol | Sprint 55 post-mortem: 5 bugs escaped to staging because protocol assumed deploy = ready. New section handles schema gates, auth smoke tests, staged ingest runbooks, and fix-redeploy loops. |
 | 2026-02-25 | v1.1 — Single DeskRelay file for all topologies | Sequential steps (staging → promote → prod) belong in one file. Two-branch no longer generates 2 separate files. |
 | 2026-02-25 | v1.0 — Initial protocol | Sprint 54 post-mortem: CC skipped staging verification, generated single DeskRelay for two-branch topology, wrote prod URLs from memory instead of manifest |

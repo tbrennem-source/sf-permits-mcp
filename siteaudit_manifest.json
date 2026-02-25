@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-25T00:47:55.147480+00:00",
-  "total_routes": 104,
+  "generated_at": "2026-02-25T17:11:17.900385+00:00",
+  "total_routes": 117,
   "routes": [
     {
       "path": "/robots.txt",
@@ -921,6 +921,123 @@
       "function_name": "cron_backup"
     },
     {
+      "path": "/cron/seed-references",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_seed_references"
+    },
+    {
+      "path": "/cron/ingest-boiler",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_boiler"
+    },
+    {
+      "path": "/cron/ingest-fire",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_fire"
+    },
+    {
+      "path": "/cron/ingest-planning",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_planning"
+    },
+    {
+      "path": "/cron/ingest-tax-rolls",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_tax_rolls"
+    },
+    {
+      "path": "/cron/ingest-electrical",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_electrical"
+    },
+    {
+      "path": "/cron/ingest-plumbing",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_plumbing"
+    },
+    {
+      "path": "/cron/ingest-street-use",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_street_use"
+    },
+    {
+      "path": "/cron/ingest-development-pipeline",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_development_pipeline"
+    },
+    {
+      "path": "/cron/ingest-affordable-housing",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_affordable_housing"
+    },
+    {
+      "path": "/cron/ingest-housing-production",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_housing_production"
+    },
+    {
+      "path": "/cron/ingest-dwelling-completions",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_dwelling_completions"
+    },
+    {
+      "path": "/cron/cross-ref-check",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_cross_ref_check"
+    },
+    {
       "path": "/cron/pipeline-health",
       "methods": [
         "GET",
@@ -965,6 +1082,6 @@
     "public": 33,
     "auth": 21,
     "admin": 23,
-    "cron": 27
+    "cron": 40
   }
 }
