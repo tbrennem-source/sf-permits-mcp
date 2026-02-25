@@ -87,6 +87,7 @@ async def recommend_consultants(
     has_active_complaint: bool = False,
     needs_planning_coordination: bool = False,
     limit: int = 5,
+    entity_type: str | None = None,
 ) -> str:
     """Recommend top land use consultants for a project based on scoring criteria.
 
@@ -99,17 +100,42 @@ async def recommend_consultants(
         has_active_complaint: Whether property has active complaints (enables +10 bonus)
         needs_planning_coordination: Whether project needs planning dept coordination (+10 bonus)
         limit: Number of recommendations (default 5, max 20)
+        entity_type: Optional entity type filter. Defaults to 'consultant'.
+            Supported values: 'consultant', 'contractor', 'architect', 'engineer',
+            'electrician', 'plumber', 'owner', 'agent', 'designer'.
+            Trade types ('electrician', 'plumber') will search for matching
+            contractor entities in the database.
 
     Returns:
         Formatted ranked list of recommended consultants with scores.
     """
     limit = min(max(1, limit), 20)
 
+    # Normalize entity_type: map trade names to DB entity types
+    # A7: Support contractor/trade types in addition to 'consultant'
+    _TRADE_TYPE_MAP = {
+        "electrician": "contractor",
+        "plumber": "contractor",
+        "electrical": "contractor",
+        "plumbing": "contractor",
+    }
+    # Supported DB entity types (as stored in entities.entity_type)
+    _VALID_ENTITY_TYPES = {
+        "consultant", "contractor", "architect", "engineer",
+        "owner", "agent", "designer",
+    }
+    if entity_type:
+        entity_type_normalized = _TRADE_TYPE_MAP.get(entity_type.lower(), entity_type.lower())
+        if entity_type_normalized not in _VALID_ENTITY_TYPES:
+            entity_type_normalized = "consultant"  # Graceful fallback
+    else:
+        entity_type_normalized = "consultant"  # Default
+
     conn = get_connection()
     try:
-        # Step 1: Get all consultants with minimum activity
+        # Step 1: Get all entities of the requested type with minimum activity
         ph = "?" if BACKEND == "duckdb" else "%s"
-        consultants = _query_consultants(conn, min_permits=20)
+        consultants = _query_consultants(conn, min_permits=20, entity_type=entity_type_normalized)
 
         if not consultants:
             return "No consultants found in the database with sufficient activity."
@@ -263,20 +289,27 @@ async def recommend_consultants(
     scored.sort(key=lambda x: x.score, reverse=True)
     top = scored[:limit]
 
-    return _format_recommendations(top, neighborhood, has_active_complaint, needs_planning_coordination)
+    return _format_recommendations(
+        top, neighborhood, has_active_complaint, needs_planning_coordination,
+        entity_type=entity_type_normalized,
+    )
 
 
-def _query_consultants(conn, min_permits: int = 20) -> list[dict]:
-    """Query entities table for active land use consultants."""
+def _query_consultants(conn, min_permits: int = 20, entity_type: str = "consultant") -> list[dict]:
+    """Query entities table for active professionals of the specified type.
+
+    A7: Now accepts entity_type parameter to support consultant, contractor,
+    architect, engineer, etc. Defaults to 'consultant' for backward compatibility.
+    """
     if BACKEND == "duckdb":
         rows = conn.execute(
             "SELECT entity_id, canonical_name, canonical_firm, permit_count "
             "FROM entities "
-            "WHERE entity_type = 'consultant' "
+            "WHERE entity_type = ? "
             "AND permit_count >= ? "
             "ORDER BY permit_count DESC "
             "LIMIT 200",
-            (min_permits,),
+            (entity_type, min_permits),
         ).fetchall()
         return [
             {"entity_id": r[0], "canonical_name": r[1], "canonical_firm": r[2], "permit_count": r[3]}
@@ -288,11 +321,11 @@ def _query_consultants(conn, min_permits: int = 20) -> list[dict]:
         rows = query(
             "SELECT entity_id, canonical_name, canonical_firm, permit_count "
             "FROM entities "
-            "WHERE entity_type = 'consultant' "
+            "WHERE entity_type = %s "
             "AND permit_count >= %s "
             "ORDER BY permit_count DESC "
             "LIMIT 200",
-            (min_permits,),
+            (entity_type, min_permits),
         )
         return [
             {"entity_id": r[0], "canonical_name": r[1], "canonical_firm": r[2], "permit_count": r[3]}
@@ -348,13 +381,17 @@ def _format_recommendations(
     neighborhood: str | None,
     has_active_complaint: bool,
     needs_planning_coordination: bool,
+    entity_type: str = "consultant",
 ) -> str:
     """Format scored consultants as readable markdown."""
+    entity_label = entity_type.title() + "s"
     if not scored:
-        return "No qualified consultants found matching your criteria."
+        return f"No qualified {entity_label.lower()} found matching your criteria."
 
-    lines = [f"# Top {len(scored)} Recommended Consultants\n"]
+    lines = [f"# Top {len(scored)} Recommended {entity_label}\n"]
 
+    if entity_type != "consultant":
+        lines.append(f"**Entity type:** {entity_type}")
     if neighborhood:
         lines.append(f"**Target neighborhood:** {neighborhood}")
     if has_active_complaint:

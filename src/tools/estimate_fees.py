@@ -201,18 +201,207 @@ def _calculate_sffd_fees(valuation: float, project_type: str | None, fire_code: 
     return result
 
 
+def _calculate_electrical_fee(
+    project_type: str | None,
+    square_footage: float | None,
+    fee_tables: dict,
+    outlet_count: int | None = None,
+) -> dict | None:
+    """Calculate electrical permit fee from Table 1A-E.
+
+    A5: Implements real calculation based on Table 1A-E fee schedule.
+
+    Uses category_1 (residential up to 10,000 sq ft) or category_2
+    (nonresidential / residential over 10,000 sq ft) based on project type
+    and square footage. Falls back to an informational note if no data available.
+
+    Args:
+        project_type: Project classification (e.g., 'restaurant', 'adu', 'new_construction')
+        square_footage: Optional project area in sq ft (affects category selection)
+        fee_tables: Knowledge base fee tables dict
+        outlet_count: Optional outlet/device count for category_1 tiering
+
+    Returns:
+        Dict with 'estimate', 'category', 'fee', 'details', or None if not applicable.
+    """
+    table_1ae = fee_tables.get("table_1A_E", {})
+    if not table_1ae:
+        return None
+
+    # Determine which category applies
+    # Residential projects (adu, seismic on residential, general_alteration on residential)
+    # use category_1 unless building > 10,000 sq ft.
+    # Commercial / nonresidential use category_2.
+    nonresidential_types = {"restaurant", "commercial_ti", "new_construction", "change_of_use",
+                             "adaptive_reuse"}
+    is_nonresidential = project_type in nonresidential_types
+    is_large_residential = square_footage and square_footage > 10000
+
+    if is_nonresidential or is_large_residential:
+        cat = table_1ae.get("category_2", {})
+        cat_name = "Category 2 (Nonresidential / Large Residential)"
+        tiers = cat.get("tiers", [])
+
+        # Select tier based on square footage
+        if square_footage:
+            selected_tier = None
+            for tier in tiers:
+                desc = tier.get("description", "").lower()
+                # Parse sq ft ranges from tier description
+                if "up to 2,500" in desc and square_footage <= 2500:
+                    selected_tier = tier
+                    break
+                elif "2,501 to 5,000" in desc and 2501 <= square_footage <= 5000:
+                    selected_tier = tier
+                    break
+                elif "5,001 to 10,000" in desc and 5001 <= square_footage <= 10000:
+                    selected_tier = tier
+                    break
+                elif "10,001 to 30,000" in desc and 10001 <= square_footage <= 30000:
+                    selected_tier = tier
+                    break
+                elif "30,001 to 50,000" in desc and 30001 <= square_footage <= 50000:
+                    selected_tier = tier
+                    break
+                elif "50,001 to 100,000" in desc and 50001 <= square_footage <= 100000:
+                    selected_tier = tier
+                    break
+                elif "100,001 to 500,000" in desc and 100001 <= square_footage <= 500000:
+                    selected_tier = tier
+                    break
+                elif "500,001 to 1,000,000" in desc and 500001 <= square_footage <= 1000000:
+                    selected_tier = tier
+                    break
+                elif "more than 1,000,000" in desc and square_footage > 1000000:
+                    selected_tier = tier
+                    break
+
+            if selected_tier:
+                fee = selected_tier["fee"]
+                return {
+                    "estimate": f"${fee:,}",
+                    "fee": fee,
+                    "category": cat_name,
+                    "tier": selected_tier["description"],
+                    "details": [{"category": "2", "description": selected_tier["description"], "fee": fee}],
+                    "note": "Includes Category 3 & 4 for new/major remodel (marked with *)",
+                }
+
+        # No sq ft provided — return range for nonresidential
+        if tiers:
+            low = tiers[0]["fee"]
+            high = tiers[-1]["fee"]
+            return {
+                "estimate": f"${low:,}–${high:,}",
+                "category": cat_name,
+                "details": tiers[:3],  # Show first 3 tiers as examples
+                "note": "Provide square footage for a precise tier estimate",
+            }
+
+    else:
+        # Residential category_1
+        cat = table_1ae.get("category_1", {})
+        cat_name = "Category 1 (Residential up to 10,000 sq ft)"
+        tiers = cat.get("tiers", [])
+
+        # Select tier based on outlet count or project type hints
+        if outlet_count is not None:
+            for tier in tiers:
+                desc = tier.get("description", "").lower()
+                if "up to 10" in desc and outlet_count <= 10:
+                    fee = tier["fee"]
+                    return {
+                        "estimate": f"${fee:,}",
+                        "fee": fee,
+                        "category": cat_name,
+                        "tier": tier["description"],
+                        "details": [{"category": "1", "description": tier["description"], "fee": fee}],
+                    }
+                elif "11 to 20" in desc and 11 <= outlet_count <= 20:
+                    fee = tier["fee"]
+                    return {
+                        "estimate": f"${fee:,}",
+                        "fee": fee,
+                        "category": cat_name,
+                        "tier": tier["description"],
+                        "details": [{"category": "1", "description": tier["description"], "fee": fee}],
+                    }
+                elif "up to 40" in desc and 21 <= outlet_count <= 40:
+                    fee = tier["fee"]
+                    return {
+                        "estimate": f"${fee:,}",
+                        "fee": fee,
+                        "category": cat_name,
+                        "tier": tier["description"],
+                        "details": [{"category": "1", "description": tier["description"], "fee": fee}],
+                    }
+                elif "more than 40" in desc and outlet_count > 40:
+                    fee = tier["fee"]
+                    return {
+                        "estimate": f"${fee:,}",
+                        "fee": fee,
+                        "category": cat_name,
+                        "tier": tier["description"],
+                        "details": [{"category": "1", "description": tier["description"], "fee": fee}],
+                    }
+
+        # No outlet count — apply sq ft heuristic or return typical residential tier
+        if square_footage and square_footage >= 5000:
+            # Large residential building tier
+            for tier in tiers:
+                if "5,000 to 10,000" in tier.get("description", ""):
+                    fee = tier["fee"]
+                    return {
+                        "estimate": f"${fee:,}",
+                        "fee": fee,
+                        "category": cat_name,
+                        "tier": tier["description"],
+                        "details": [{"category": "1", "description": tier["description"], "fee": fee}],
+                    }
+
+        # Default: return range across category 1
+        if tiers:
+            low = tiers[0]["fee"]
+            high = tiers[-1]["fee"]
+            return {
+                "estimate": f"${low:,}–${high:,}",
+                "category": cat_name,
+                "details": tiers,
+                "note": "Range depends on outlet/device count. Provide outlet count for precise estimate.",
+            }
+
+    return None
+
+
 def _calculate_plumbing_fee(project_type: str | None, fee_tables: dict) -> dict | None:
-    """Look up plumbing fee from Table 1A-C based on project type."""
+    """Look up plumbing fee from Table 1A-C based on project type.
+
+    A6: Expanded to cover 5+ project types (previously only 3).
+    Covers: restaurant, adu, new_construction, commercial_ti, multifamily, seismic,
+            general_alteration (single residential), fire_sprinkler, office.
+    """
     table_1ac = fee_tables.get("table_1A_C", {})
     categories = table_1ac.get("categories", [])
     if not categories:
         return None
 
-    # Map project type to fee category
+    # A6: Expanded category map — was only restaurant/adu/new_construction
+    # Now covers 10+ project types mapped to the correct Table 1A-C codes
     category_map = {
+        # Original 3
         "restaurant": ["6PA", "6PB"],
         "adu": ["2PA", "2PB"],
         "new_construction": ["1P"],
+        # A6 additions
+        "commercial_ti": ["5P/5M"],       # Office, mercantile & retail — per tenant/floor
+        "multifamily": ["3PA", "3PB", "3PC"],  # 7-36+ dwelling units
+        "low_rise_multifamily": ["2PA", "2PB"],  # Up to 6 units
+        "seismic": ["1P"],                 # Residential fixture work during seismic
+        "general_alteration": ["1P"],      # Single residential unit kitchen/bath work
+        "bathroom_remodel": ["1P"],        # Single residential unit plumbing
+        "kitchen_remodel": ["1P"],         # Single residential unit plumbing
+        "boiler": ["8"],                   # New boiler installations
+        "fire_sprinkler": ["4PA", "4PB"],  # Fire sprinkler systems
     }
 
     target_cats = category_map.get(project_type, [])
@@ -233,7 +422,7 @@ def _calculate_plumbing_fee(project_type: str | None, fee_tables: dict) -> dict 
         else:
             low = min(f["fee"] for f in fees)
             high = max(f["fee"] for f in fees)
-            return {"estimate": f"${low:,}-${high:,}", "details": fees}
+            return {"estimate": f"${low:,}–${high:,}", "details": fees}
     return None
 
 
@@ -329,17 +518,23 @@ async def estimate_fees(
     if project_type in fire_triggers:
         sffd_fees = _calculate_sffd_fees(estimated_construction_cost, project_type, kb.fire_code)
 
-    # Plumbing fees (from fee-tables.json Table 1A-C)
+    # Plumbing fees (from fee-tables.json Table 1A-C) — A6: expanded coverage
     plumbing_fees = _calculate_plumbing_fee(project_type, fee_tables)
+
+    # A5: Electrical fees (from fee-tables.json Table 1A-E)
+    electrical_triggers = ["restaurant", "commercial_ti", "new_construction", "adu",
+                           "adaptive_reuse", "change_of_use", "general_alteration",
+                           "kitchen_remodel", "bathroom_remodel"]
+    electrical_fees = None
+    if project_type in electrical_triggers or not project_type:
+        electrical_fees = _calculate_electrical_fee(project_type, square_footage, fee_tables)
 
     # Additional fees based on project type
     additional_fees = []
     if plumbing_fees:
-        additional_fees.append({"fee": f"Plumbing permit", "estimate": plumbing_fees["estimate"]})
+        additional_fees.append({"fee": "Plumbing permit", "estimate": plumbing_fees["estimate"]})
     if project_type == "restaurant":
         additional_fees.append({"fee": "DPH health permit", "estimate": "varies by facility type"})
-    if project_type == "adu":
-        additional_fees.append({"fee": "Electrical permit", "estimate": "per Table 1A-E Category 1 tiers"})
     if project_type in ("new_construction", "commercial_ti"):
         additional_fees.append({"fee": "School Impact Fee (SFUSD)", "estimate": "varies by floor area increase"})
 
@@ -381,6 +576,9 @@ async def estimate_fees(
     total_dbi = 0.0
     if "error" not in building_fee:
         total_dbi = building_fee["total_building_fee"] + surcharges["total_surcharges"]
+    # Add electrical fee to total if a precise single fee was calculated
+    if electrical_fees and electrical_fees.get("fee"):
+        total_dbi += electrical_fees["fee"]
 
     # Format output
     lines = ["# Fee Estimate\n"]
@@ -413,6 +611,28 @@ async def estimate_fees(
         for op in sffd_fees.get("operational_permits", []):
             lines.append(f"| {op['permit']} | ${op['fee']:,.2f} |")
         lines.append(f"| **Total SFFD Fees** | **${sffd_fees['total_sffd']:,.2f}** |")
+
+    # A5: Electrical permit fee section
+    if electrical_fees:
+        lines.append(f"\n## Electrical Permit Fee (Table 1A-E)\n")
+        lines.append(f"| Fee Component | Amount |")
+        lines.append(f"|--------------|--------|")
+        lines.append(f"| Electrical Permit ({electrical_fees.get('category', 'Table 1A-E')}) | {electrical_fees['estimate']} |")
+        if electrical_fees.get("tier"):
+            lines.append(f"\n*Tier: {electrical_fees['tier']}*")
+        if electrical_fees.get("note"):
+            lines.append(f"*{electrical_fees['note']}*")
+
+    if plumbing_fees:
+        lines.append(f"\n## Plumbing/Mechanical Permit Fee (Table 1A-C)\n")
+        lines.append(f"| Fee Component | Amount |")
+        lines.append(f"|--------------|--------|")
+        for detail in plumbing_fees.get("details", []):
+            lines.append(f"| {detail['category']} — {detail['description'][:60]} | ${detail['fee']:,} |")
+        if len(plumbing_fees.get("details", [])) > 1:
+            lines.append(f"| **Plumbing Permit Range** | **{plumbing_fees['estimate']}** |")
+        else:
+            lines.append(f"| **Plumbing Permit Total** | **{plumbing_fees['estimate']}** |")
 
     if additional_fees:
         lines.append(f"\n## Additional Fees (estimated)\n")
@@ -456,6 +676,8 @@ async def estimate_fees(
         sources.append("ada_accessibility")
     if stat_data:
         sources.append("duckdb_permits")
+    if electrical_fees:
+        sources.append("fee_tables")  # Table 1A-E is in fee_tables
     lines.append(format_sources(sources))
 
     return "\n".join(lines)
