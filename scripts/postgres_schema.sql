@@ -411,3 +411,41 @@ CREATE INDEX IF NOT EXISTS idx_tax_neighborhood ON tax_rolls(neighborhood);
 
 -- These will be created AFTER data is loaded.
 -- See scripts/create_materialized_views.sql
+
+-- ============================================================
+-- Reference tables for predict_permits (Sprint 55B)
+-- ============================================================
+
+-- Zoning code → agency routing requirements
+CREATE TABLE IF NOT EXISTS ref_zoning_routing (
+    zoning_code TEXT PRIMARY KEY,
+    zoning_category TEXT,
+    planning_review_required BOOLEAN DEFAULT FALSE,
+    fire_review_required BOOLEAN DEFAULT FALSE,
+    health_review_required BOOLEAN DEFAULT FALSE,
+    historic_district BOOLEAN DEFAULT FALSE,
+    height_limit TEXT,
+    notes TEXT
+);
+
+-- Project type → required permit forms
+CREATE TABLE IF NOT EXISTS ref_permit_forms (
+    id SERIAL PRIMARY KEY,
+    project_type TEXT NOT NULL,
+    permit_form TEXT NOT NULL,
+    review_path TEXT,
+    notes TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_ref_forms_type ON ref_permit_forms(project_type);
+
+-- Trigger keyword → agency routing
+CREATE TABLE IF NOT EXISTS ref_agency_triggers (
+    id SERIAL PRIMARY KEY,
+    trigger_keyword TEXT NOT NULL,
+    agency TEXT NOT NULL,
+    reason TEXT,
+    adds_weeks INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_ref_triggers_keyword ON ref_agency_triggers(trigger_keyword);
