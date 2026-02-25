@@ -1137,3 +1137,53 @@ _Last reviewed: never_
 **Edge cases seen in code:** JOIN is on block/lot — planning records with NULL block/lot are excluded; some parcels have multiple open planning cases
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Share analysis with team via email
+**Source:** Sprint 56D — web/app.py analysis_share_email route, templates/analysis_email.html
+**User:** expediter | architect
+**Starting state:** User has just completed a 5-tool permit analysis; is authenticated
+**Goal:** Share the analysis results with 2-3 colleagues by email
+**Expected outcome:** System sends email to each recipient with project summary, list of included sections, and a link to the public shared analysis page; shared_count increments by the number of recipients sent; recipient receives email with "View Full Analysis" CTA button linking to /analysis/<id>
+**Edge cases seen in code:** Max 5 recipients enforced server-side; invalid email format rejected; unauthenticated user cannot trigger share endpoint; SMTP not configured → dev mode logs links but still returns ok:true
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Shared analysis page visible without login
+**Source:** Sprint 56D — web/app.py analysis_shared route, templates/analysis_shared.html
+**User:** homeowner (recipient, no account)
+**Starting state:** Recipient received share email and clicks "View Full Analysis" link; has no sfpermits.ai account
+**Goal:** View the analysis results shared by a colleague
+**Expected outcome:** Page renders with full 5-tool analysis results in tab layout; project description and metadata visible; CTA at bottom offers free signup via shared_link referral path with no invite code required; view_count increments on every page load
+**Edge cases seen in code:** Invalid analysis ID returns 404; results_json parsed gracefully even if some keys missing; analysis created by anonymous user (null user_id) still renders correctly
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Organic visitor requests beta access
+**Source:** Sprint 56D — web/app.py beta_request route, templates/beta_request.html
+**User:** homeowner (organic, no invite code)
+**Starting state:** Visitor arrives at /auth/login with no invite code and no shared analysis link; tries to create account
+**Goal:** Get access to sfpermits.ai without an invite code
+**Expected outcome:** Redirected to beta request form; fills out email, name, and reason; receives confirmation email; admin sees request in /admin/beta-requests queue; Tim approves, user receives magic link with full access
+**Edge cases seen in code:** IP rate limit triggers 429 after 3 requests/hour; honeypot field (hidden `website` field) silently succeeds but creates no DB record; duplicate email reuses existing request; valid invite code bypasses beta request path
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Shared-link signup grants immediate access
+**Source:** Sprint 56D — web/auth.py create_user with referral_source, web/app.py auth_send_link
+**User:** homeowner (shared_link recipient)
+**Starting state:** Recipient views shared analysis page; clicks "Try sfpermits.ai free" CTA; no invite code or prior account
+**Goal:** Create an account and access the platform immediately
+**Expected outcome:** Signup form pre-populated with referral_source=shared_link and analysis_id; no invite code required; account created with referral_source='shared_link' stored in users table; after magic link verification, user is redirected back to the original shared analysis
+**Edge cases seen in code:** analysis_id stored in Flask session during signup so verify route can redirect back; existing users still get magic link (no invite check for existing users); INVITE_CODES must be set for the bypass to matter
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin approves beta request and sends magic link
+**Source:** Sprint 56D — web/auth.py approve_beta_request, web/app.py admin_approve_beta
+**User:** admin
+**Starting state:** Tim logs in to admin; sees pending beta requests at /admin/beta-requests
+**Goal:** Review and approve a qualified requester
+**Expected outcome:** Admin clicks "Approve + Send Link"; user record created with referral_source='organic' and beta_approved_at timestamp; magic link sent to requester's email; admin sees flash confirmation with the approved email address; request removed from pending queue
+**Edge cases seen in code:** Approving same request twice is safe (user already exists, just re-sends link); deny updates status to 'denied' without creating user; GET /admin/beta-requests requires admin role (403 for non-admin)
+**CC confidence:** high
+**Status:** PENDING REVIEW

@@ -449,24 +449,29 @@ def test_invite_code_not_required_by_default(client):
 
 
 def test_invite_code_required_blocks_new_user(client, monkeypatch):
-    """When invite codes are set, new users must provide one."""
+    """When invite codes are set, new users without code or shared_link are redirected
+    to the beta request form (Sprint 56D three-tier signup)."""
     import web.auth as auth_mod
     monkeypatch.setattr(auth_mod, "INVITE_CODES", {"disco-penguin-7f3a", "turbo-walrus-a1b2"})
     rv = client.post("/auth/send-link", data={"email": "blocked@example.com"})
-    assert rv.status_code == 403
-    html = rv.data.decode()
-    assert "invite code" in html.lower()
+    # Sprint 56D: redirect to beta-request form instead of 403
+    assert rv.status_code == 302
+    location = rv.headers.get("Location", "")
+    assert "beta-request" in location or "beta_request" in location
 
 
 def test_invite_code_required_bad_code(client, monkeypatch):
-    """Wrong invite code is rejected."""
+    """Wrong invite code redirects to beta request form (Sprint 56D three-tier signup)."""
     import web.auth as auth_mod
     monkeypatch.setattr(auth_mod, "INVITE_CODES", {"disco-penguin-7f3a"})
     rv = client.post("/auth/send-link", data={
         "email": "wrong@example.com",
         "invite_code": "bad-code-0000",
     })
-    assert rv.status_code == 403
+    # Sprint 56D: redirect to beta-request instead of 403
+    assert rv.status_code == 302
+    location = rv.headers.get("Location", "")
+    assert "beta-request" in location or "beta_request" in location
 
 
 def test_invite_code_required_valid_code(client, monkeypatch):

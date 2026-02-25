@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permit Analysis — sfpermits.ai</title>
+    <meta name="description" content="AI-powered permit analysis for {{ session.project_description[:100] }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .shared-banner {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            color: #1e40af;
+        }
+        .shared-meta {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+        .shared-meta h2 {
+            font-size: 1.1rem;
+            margin: 0 0 8px 0;
+            color: #111827;
+        }
+        .shared-meta .meta-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        .shared-meta .meta-row span strong {
+            color: #374151;
+        }
+        .shared-cta {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin: 32px 0;
+            text-align: center;
+            color: white;
+        }
+        .shared-cta h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.25rem;
+        }
+        .shared-cta p {
+            margin: 0 0 20px 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        .shared-cta .cta-btn {
+            display: inline-block;
+            background: white;
+            color: #1e40af;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: transform 0.1s;
+        }
+        .shared-cta .cta-btn:hover {
+            transform: translateY(-1px);
+        }
+        .shared-role-text {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-top: 12px;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .results-tabs { margin-bottom: 16px; }
+        .tab { cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header style="display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:2px solid #2563eb; margin-bottom:24px;">
+        <a href="/" style="text-decoration:none;">
+            <span style="font-size:1.4rem; font-weight:800; color:#2563eb; letter-spacing:-0.5px;">sfpermits.ai</span>
+        </a>
+        <a href="/auth/login?referral_source=shared_link&analysis_id={{ session_id }}" class="btn btn-primary" style="font-size:0.9rem;">Sign up free</a>
+    </header>
+
+    <div class="shared-banner">
+        This analysis was shared with you from sfpermits.ai — AI-powered permit guidance for San Francisco.
+    </div>
+
+    <div class="shared-meta">
+        <h2>{{ session.project_description[:120] }}{% if session.project_description|length > 120 %}...{% endif %}</h2>
+        <div class="meta-row">
+            {% if session.address %}
+            <span><strong>Address:</strong> {{ session.address }}</span>
+            {% endif %}
+            {% if session.neighborhood %}
+            <span><strong>Neighborhood:</strong> {{ session.neighborhood }}</span>
+            {% endif %}
+            {% if session.estimated_cost %}
+            <span><strong>Est. Cost:</strong> ${{ "{:,.0f}".format(session.estimated_cost) }}</span>
+            {% endif %}
+            <span><strong>Analyzed:</strong> {{ session.created_at.strftime('%B %d, %Y') if session.created_at else 'recently' }}</span>
+        </div>
+    </div>
+
+    <!-- Analysis results tabs (reuse results.html tab logic) -->
+    {% set results = session.results %}
+    {% set TAB_META = {
+        "predict": {"label": "Permits", "panel": "panel-predict"},
+        "fees": {"label": "Fees", "panel": "panel-fees"},
+        "timeline": {"label": "Timeline", "panel": "panel-timeline"},
+        "docs": {"label": "Documents", "panel": "panel-docs"},
+        "risk": {"label": "Revision Risk", "panel": "panel-risk"},
+        "team": {"label": "Your Team", "panel": "panel-team"},
+    } %}
+    {% set order = ["predict", "timeline", "fees", "docs", "risk"] %}
+
+    <div class="results-tabs">
+    {% for key in order %}
+        {% if results.get(key) %}
+        <button class="tab{% if loop.first %} active{% endif %}" data-panel="{{ TAB_META[key].panel }}">{{ TAB_META[key].label }}</button>
+        {% endif %}
+    {% endfor %}
+    </div>
+
+    {% for key in order %}
+    {% if results.get(key) %}
+    <div id="{{ TAB_META[key].panel }}" class="tab-panel{% if loop.first %} active{% endif %}">
+        <div class="result-card">
+            {{ results[key] | safe }}
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <!-- CTA -->
+    <div class="shared-cta">
+        <h3>Run your own permit analysis</h3>
+        {% if referrer_role %}
+        <p>{{ referrer_role }} used sfpermits.ai to research this project. See what it can do for yours.</p>
+        {% else %}
+        <p>Get instant permit guidance, fee estimates, and timeline predictions for any San Francisco project.</p>
+        {% endif %}
+        <a href="/auth/login?referral_source=shared_link&analysis_id={{ session_id }}" class="cta-btn">
+            Try sfpermits.ai free
+        </a>
+        <div class="shared-role-text">No invite code needed — shared analysis grants immediate access.</div>
+    </div>
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const panel = btn.dataset.panel;
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(panel)?.classList.add('active');
+    });
+});
+</script>
+</body>
+</html>

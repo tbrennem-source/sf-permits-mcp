@@ -573,3 +573,44 @@ CREATE TABLE IF NOT EXISTS ref_agency_triggers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ref_triggers_keyword ON ref_agency_triggers(trigger_keyword);
+
+-- ============================================================
+-- Sprint 56D: Shareable Analysis + Three-Tier Signup
+-- ============================================================
+
+-- Analysis sessions (results from the /analyze 5-tool workflow, shareable)
+-- NOTE: results_json uses JSONB on Postgres for indexing; TEXT on DuckDB
+CREATE TABLE IF NOT EXISTS analysis_sessions (
+    id TEXT PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    project_description TEXT NOT NULL,
+    address TEXT,
+    neighborhood TEXT,
+    estimated_cost DOUBLE PRECISION,
+    square_footage DOUBLE PRECISION,
+    results_json JSONB NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    shared_count INTEGER DEFAULT 0,
+    view_count INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_analysis_sessions_user ON analysis_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_analysis_sessions_created ON analysis_sessions(created_at);
+
+-- Beta requests queue (organic signups waiting for Tim's approval)
+CREATE TABLE IF NOT EXISTS beta_requests (
+    id SERIAL PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT,
+    reason TEXT,
+    ip TEXT,
+    honeypot_filled BOOLEAN NOT NULL DEFAULT FALSE,
+    status TEXT NOT NULL DEFAULT 'pending',
+    admin_note TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    reviewed_at TIMESTAMPTZ,
+    approved_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_beta_requests_email ON beta_requests(email);
+CREATE INDEX IF NOT EXISTS idx_beta_requests_status ON beta_requests(status);

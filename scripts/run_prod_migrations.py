@@ -220,6 +220,79 @@ def _run_reference_tables() -> dict[str, Any]:
     }
 
 
+def _run_shareable_analysis() -> dict[str, Any]:
+    """Sprint 56D: analysis_sessions table, beta_requests table, users columns for three-tier signup."""
+    from src.db import get_connection, BACKEND  # type: ignore
+
+    conn = get_connection()
+    try:
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                # analysis_sessions table
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS analysis_sessions (
+                        id TEXT PRIMARY KEY,
+                        user_id INTEGER REFERENCES users(id),
+                        project_description TEXT NOT NULL,
+                        address TEXT,
+                        neighborhood TEXT,
+                        estimated_cost DOUBLE PRECISION,
+                        square_footage DOUBLE PRECISION,
+                        results_json JSONB NOT NULL,
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        shared_count INTEGER DEFAULT 0,
+                        view_count INTEGER DEFAULT 0
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_analysis_sessions_user ON analysis_sessions(user_id);
+                    CREATE INDEX IF NOT EXISTS idx_analysis_sessions_created ON analysis_sessions(created_at);
+                """)
+                # beta_requests table
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS beta_requests (
+                        id SERIAL PRIMARY KEY,
+                        email TEXT NOT NULL UNIQUE,
+                        name TEXT,
+                        reason TEXT,
+                        ip TEXT,
+                        honeypot_filled BOOLEAN NOT NULL DEFAULT FALSE,
+                        status TEXT NOT NULL DEFAULT 'pending',
+                        admin_note TEXT,
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        reviewed_at TIMESTAMPTZ,
+                        approved_at TIMESTAMPTZ
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_beta_requests_email ON beta_requests(email);
+                    CREATE INDEX IF NOT EXISTS idx_beta_requests_status ON beta_requests(status);
+                """)
+                # users table: three-tier signup columns
+                cur.execute("""
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_source TEXT DEFAULT 'invited';
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS detected_persona TEXT;
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_requested_at TIMESTAMPTZ;
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_approved_at TIMESTAMPTZ;
+                """)
+            conn.commit()
+        else:
+            # DuckDB — handled in init_user_schema via ALTER TABLE IF NOT EXISTS
+            pass
+        return {
+            "ok": True,
+            "tables_created": ["analysis_sessions", "beta_requests"],
+            "columns_added": ["users.referral_source", "users.detected_persona",
+                              "users.beta_requested_at", "users.beta_approved_at"],
+        }
+    except Exception as exc:
+        if BACKEND == "postgres":
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        logger.error("shareable_analysis migration failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+    finally:
+        conn.close()
+
+
 def _run_inspections_unique() -> dict[str, Any]:
     """Add UNIQUE constraint on inspections natural key after dedup.
 
@@ -335,6 +408,11 @@ MIGRATIONS: list[Migration] = [
         name="inspections_unique",
         description="Add UNIQUE constraint on inspections natural key after dedup",
         run=_run_inspections_unique,
+    ),
+    Migration(
+        name="shareable_analysis",
+        description="Sprint 56D: analysis_sessions table, beta_requests table, users three-tier columns",
+        run=_run_shareable_analysis,
     ),
 ]
 
