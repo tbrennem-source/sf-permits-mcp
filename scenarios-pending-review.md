@@ -1137,3 +1137,53 @@ _Last reviewed: never_
 **Edge cases seen in code:** JOIN is on block/lot — planning records with NULL block/lot are excluded; some parcels have multiple open planning cases
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: predict_permits uses DB permit forms when seeded
+**Source:** Sprint 56A — A1 ref_permit_forms wiring
+**User:** expediter
+**Starting state:** ref_permit_forms table is populated with seed data including new_construction → Form 1/2
+**Goal:** Predict required permits for a new construction project
+**Expected outcome:** Prediction returns "Form 1/2" sourced from the database; when DB is empty the tool gracefully falls back to hardcoded Form 1/2 logic with same result
+**Edge cases seen in code:** DB query uses IN clause across all detected project_types — first row returned is used; unknown project types return no DB rows and trigger fallback
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: predict_permits agency routing from DB triggers
+**Source:** Sprint 56A — A2 ref_agency_triggers wiring
+**User:** expediter
+**Starting state:** ref_agency_triggers table is seeded with restaurant → DPH (Public Health), restaurant → Planning triggers
+**Goal:** Predict agency routing for a restaurant conversion project
+**Expected outcome:** Agency routing includes Planning, DPH (Public Health), SFFD (Fire) all sourced from DB; if DB triggers are empty the hardcoded agency logic produces the same agencies
+**Edge cases seen in code:** DBI (Building) is always prepended before DB triggers; DB triggers short-circuit the hardcoded fallback path when len(agencies) > 1
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: predict_permits surfaces historic district flag
+**Source:** Sprint 56A — A3 ref_zoning_routing historic_district
+**User:** architect
+**Starting state:** Property is in a zoning code with historic_district=True in ref_zoning_routing (e.g., HCD designation)
+**Goal:** Predict permits for exterior work at a historic conservation district property
+**Expected outcome:** Zoning Context section shows "Historic District: Yes" with note about Article 10/11; if the property has no zoning record or historic_district=False, the flag is not shown
+**Edge cases seen in code:** Zoning lookup requires address → block/lot → tax_rolls → ref_zoning_routing chain; any step failing gracefully suppresses the section
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: estimate_timeline excludes trade permits from in-house estimates
+**Source:** Sprint 56A — A4 timeline trade permit filtering
+**User:** expediter
+**Starting state:** timeline_stats table contains a mix of building permits (avg 45-day issuance) and electrical/plumbing trade permits (avg 2-day issuance)
+**Goal:** Get a timeline estimate for in-house alteration review
+**Expected outcome:** p50 timeline reflects building permit reality (~30-60 days), NOT contaminated by fast trade permits; output does not reference electrical or plumbing permit data
+**Edge cases seen in code:** Filter applies at both CREATE TABLE (DuckDB local) and WHERE clause (both backends); mechanical permits also filtered
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: estimate_fees returns electrical fee from Table 1A-E
+**Source:** Sprint 56A — A5 electrical fee calculation
+**User:** expediter
+**Starting state:** User knows project type (restaurant) and square footage (2,000 sq ft)
+**Goal:** Get an electrical permit fee estimate for a restaurant buildout
+**Expected outcome:** Fee estimate includes an "Electrical Permit Fee (Table 1A-E)" section showing Category 2 tier for the given square footage; output includes dollar amount; section is absent for projects that don't typically need electrical permits
+**Edge cases seen in code:** Category 1 used for residential projects; Category 2 for nonresidential; no sq ft provided returns a range instead of precise fee
+**CC confidence:** high
+**Status:** PENDING REVIEW

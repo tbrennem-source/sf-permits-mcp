@@ -57,6 +57,8 @@ def _ensure_timeline_stats(conn) -> None:
         raise RuntimeError("timeline_stats table missing in Postgres")
 
     # DuckDB: create from permits
+    # A4: Exclude electrical, plumbing, and mechanical trade permits to prevent
+    # contamination of building permit timeline statistics.
     conn.execute("""
         CREATE TABLE timeline_stats AS
         SELECT
@@ -84,12 +86,20 @@ def _ensure_timeline_stats(conn) -> None:
             AND filed_date::DATE < issued_date::DATE
             AND DATE_DIFF('day', filed_date::DATE, issued_date::DATE) BETWEEN 1 AND 1000
             AND estimated_cost > 0
+            AND permit_type_definition NOT ILIKE '%electrical%'
+            AND permit_type_definition NOT ILIKE '%plumbing%'
+            AND permit_type_definition NOT ILIKE '%mechanical%'
     """)
 
 
 def _query_timeline(conn, review_path: str | None, neighborhood: str | None,
                     cost_bracket: str | None, permit_type: str | None) -> dict | None:
-    """Query timeline percentiles with progressive widening."""
+    """Query timeline percentiles with progressive widening.
+
+    A4: Excludes electrical and plumbing trade permits from in-house timeline
+    estimates. These 857K+ trade permits would otherwise skew the distribution
+    toward much shorter timelines that don't reflect building permit reality.
+    """
     conditions = ["1=1"]
     params = []
     # Use %s for Postgres, ? for DuckDB
@@ -107,6 +117,15 @@ def _query_timeline(conn, review_path: str | None, neighborhood: str | None,
     if permit_type:
         conditions.append(f"permit_type_definition ILIKE {ph}")
         params.append(f"%{permit_type}%")
+
+    # A4: Filter out electrical and plumbing trade permits to avoid contamination
+    # of building permit timeline estimates. Trade permits have very different
+    # processing patterns (much faster) and would skew in-house estimates low.
+    conditions.append(
+        f"permit_type_definition NOT ILIKE '%electrical%'"
+        f" AND permit_type_definition NOT ILIKE '%plumbing%'"
+        f" AND permit_type_definition NOT ILIKE '%mechanical%'"
+    )
 
     where = " AND ".join(conditions)
     sql = f"""

@@ -1,7 +1,10 @@
 """Tool: predict_permits — Predict required permits, forms, routing, and review path."""
 
 import json
+import logging
 from src.tools.knowledge_base import get_knowledge_base, format_sources
+
+logger = logging.getLogger(__name__)
 
 # Project type keywords mapped from semantic index concepts
 # These map to special_project_types in the decision tree
@@ -35,6 +38,85 @@ PROJECT_TYPE_KEYWORDS = {
 }
 
 
+def _query_ref_permit_forms(project_types: list[str]) -> dict | None:
+    """Query ref_permit_forms table for form/review_path by project type.
+
+    Returns a dict with 'form', 'review_path', 'notes' if found, or None.
+    Falls back gracefully if the table is empty or the query fails.
+    """
+    if not project_types:
+        return None
+    try:
+        from src.db import get_connection, BACKEND
+        conn = get_connection()
+        try:
+            ph = "%s" if BACKEND == "postgres" else "?"
+            placeholders = ", ".join([ph] * len(project_types))
+            sql = (
+                f"SELECT project_type, permit_form, review_path, notes"
+                f" FROM ref_permit_forms"
+                f" WHERE project_type IN ({placeholders})"
+                f" ORDER BY id LIMIT 5"
+            )
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(sql, project_types)
+                    rows = cur.fetchall()
+            else:
+                rows = conn.execute(sql, project_types).fetchall()
+
+            if not rows:
+                return None
+            # Return first matching row (most specific project type)
+            r = rows[0]
+            return {"form": r[1], "review_path": r[2], "notes": r[3] or ""}
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.debug("ref_permit_forms query failed (using hardcoded): %s", exc)
+        return None
+
+
+def _query_ref_agency_triggers(project_types: list[str]) -> list[dict] | None:
+    """Query ref_agency_triggers table for agency routing by project type keywords.
+
+    Returns a list of dicts with 'agency', 'reason', 'adds_weeks' if found, or None.
+    Falls back gracefully if the table is empty or the query fails.
+    """
+    if not project_types:
+        return None
+    try:
+        from src.db import get_connection, BACKEND
+        conn = get_connection()
+        try:
+            ph = "%s" if BACKEND == "postgres" else "?"
+            placeholders = ", ".join([ph] * len(project_types))
+            sql = (
+                f"SELECT trigger_keyword, agency, reason, adds_weeks"
+                f" FROM ref_agency_triggers"
+                f" WHERE trigger_keyword IN ({placeholders})"
+                f" ORDER BY agency"
+            )
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(sql, project_types)
+                    rows = cur.fetchall()
+            else:
+                rows = conn.execute(sql, project_types).fetchall()
+
+            if not rows:
+                return None
+            return [
+                {"trigger": r[0], "agency": r[1], "reason": r[2] or "", "adds_weeks": r[3] or 0}
+                for r in rows
+            ]
+        finally:
+            conn.close()
+    except Exception as exc:
+        logger.debug("ref_agency_triggers query failed (using hardcoded): %s", exc)
+        return None
+
+
 def _extract_project_types(description: str, scope_override: list[str] | None) -> list[str]:
     """Extract project type categories from description text."""
     if scope_override:
@@ -52,10 +134,23 @@ def _extract_project_types(description: str, scope_override: list[str] | None) -
     return matched
 
 
-def _determine_form(project_types: list[str], kb) -> dict:
-    """Determine which permit form is needed."""
+def _determine_form(project_types: list[str], kb, db_form: dict | None = None) -> dict:
+    """Determine which permit form is needed.
+
+    Uses DB-backed ref_permit_forms data when available, falls back to hardcoded logic.
+    """
+    # Use DB result if available
+    if db_form:
+        form_name = db_form.get("form", "Form 3/8")
+        notes = db_form.get("notes", "")
+        return {
+            "form": form_name,
+            "reason": f"Based on project type (ref_permit_forms)",
+            "notes": notes,
+            "source": "db",
+        }
+
     dt = kb.decision_tree.get("steps", {}).get("step_2_which_form", {})
-    logic = dt.get("decision_logic", [])
 
     if "new_construction" in project_types:
         return {"form": "Form 1/2", "reason": "New construction", "notes": "Mark Form 1 (non-wood) or Form 2 (wood frame)"}
@@ -123,12 +218,32 @@ def _determine_review_path(project_types: list[str], estimated_cost: float | Non
     return {"path": "likely_in_house", "reason": "Default to in-house for unclassified scope", "confidence": "low"}
 
 
-def _determine_agency_routing(project_types: list[str], kb) -> list[dict]:
-    """Determine which agencies must review the permit."""
+def _determine_agency_routing(project_types: list[str], kb, db_triggers: list[dict] | None = None) -> list[dict]:
+    """Determine which agencies must review the permit.
+
+    Uses DB-backed ref_agency_triggers data when available to supplement hardcoded logic.
+    """
     agencies = []
 
     # Almost everything goes to BLDG
     agencies.append({"agency": "DBI (Building)", "required": True, "reason": "All permitted work"})
+
+    # If DB triggers are available, use them to add agencies not already in the list
+    if db_triggers:
+        seen_agencies = {"DBI (Building)"}
+        for trigger in db_triggers:
+            agency_name = trigger["agency"]
+            if agency_name not in seen_agencies and agency_name != "DBI (Building)":
+                agencies.append({
+                    "agency": agency_name,
+                    "required": True,
+                    "reason": trigger["reason"] or f"Triggered by {trigger['trigger']}",
+                    "source": "db",
+                })
+                seen_agencies.add(agency_name)
+        # If we got DB results, return early (DB is authoritative when populated)
+        if len(agencies) > 1:
+            return agencies
 
     # Planning triggers
     planning_triggers = ["change_of_use", "new_construction", "demolition", "adu",
@@ -385,14 +500,21 @@ async def predict_permits(
     # Also match semantic index concepts for richer context
     concepts = kb.match_concepts(project_description)
 
-    # Walk decision tree
-    form = _determine_form(project_types, kb)
+    # A1: Query ref_permit_forms from DB (fall back to hardcoded if empty/fails)
+    db_form = _query_ref_permit_forms(project_types)
+
+    # A2: Query ref_agency_triggers from DB (fall back to hardcoded if empty/fails)
+    db_triggers = _query_ref_agency_triggers(project_types)
+
+    # Walk decision tree (DB data supplements/overrides hardcoded when available)
+    form = _determine_form(project_types, kb, db_form=db_form)
     review_path = _determine_review_path(project_types, estimated_cost, kb)
-    agency_routing = _determine_agency_routing(project_types, kb)
+    agency_routing = _determine_agency_routing(project_types, kb, db_triggers=db_triggers)
     special_requirements = _determine_special_requirements(project_types, estimated_cost, kb)
 
     # Database-backed zoning routing (supplements knowledge base)
     zoning_info = None
+    historic_district_flag = False
     if address:
         try:
             from src.db import get_connection, BACKEND
@@ -424,11 +546,13 @@ async def predict_permits(
                                 )
                                 zr = cur.fetchone()
                                 if zr:
+                                    # A3: include historic_district flag
                                     cur.execute(
                                         f"SELECT zoning_code, zoning_category,"
                                         f"       planning_review_required,"
                                         f"       fire_review_required,"
-                                        f"       health_review_required"
+                                        f"       health_review_required,"
+                                        f"       historic_district"
                                         f" FROM ref_zoning_routing"
                                         f" WHERE zoning_code = {_ph}",
                                         [zr[0]],
@@ -450,11 +574,13 @@ async def predict_permits(
                                 [bl[0], bl[1]],
                             ).fetchone()
                             if zr:
+                                # A3: include historic_district flag
                                 zoning_info = conn.execute(
                                     f"SELECT zoning_code, zoning_category,"
                                     f"       planning_review_required,"
                                     f"       fire_review_required,"
-                                    f"       health_review_required"
+                                    f"       health_review_required,"
+                                    f"       historic_district"
                                     f" FROM ref_zoning_routing"
                                     f" WHERE zoning_code = {_ph}",
                                     [zr[0]],
@@ -463,6 +589,10 @@ async def predict_permits(
                 conn.close()
         except Exception:
             pass  # Graceful fallback — zoning_info stays None
+
+    # A3: Extract historic_district flag from zoning info if available
+    if zoning_info and len(zoning_info) >= 6:
+        historic_district_flag = bool(zoning_info[5])
 
     # Build result
     result = {
@@ -527,7 +657,12 @@ async def predict_permits(
 
     # Zoning context (from database lookup)
     if zoning_info:
-        zoning_code, zoning_category, planning_req, fire_req, health_req = zoning_info
+        # A3: unpack 6-column result (added historic_district)
+        if len(zoning_info) >= 6:
+            zoning_code, zoning_category, planning_req, fire_req, health_req, historic_dist = zoning_info
+        else:
+            zoning_code, zoning_category, planning_req, fire_req, health_req = zoning_info
+            historic_dist = False
         lines.append(f"\n## Zoning Context\n")
         lines.append(f"*Resolved from local tax records and reference tables.*\n")
         if zoning_code:
@@ -540,6 +675,8 @@ async def predict_permits(
             lines.append(f"- **Fire Review:** Required (confirmed by zoning code)")
         if health_req:
             lines.append(f"- **Health Review:** Required (confirmed by zoning code)")
+        if historic_dist:
+            lines.append(f"- **Historic District:** Yes — all exterior work triggers Planning Preservation review (Article 10/11)")
 
     if special_requirements:
         lines.append(f"\n## Special Requirements\n")
