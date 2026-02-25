@@ -156,6 +156,24 @@ def _run_startup_migrations():
         conn.autocommit = True
         cur = conn.cursor()
 
+        # Kill zombie transactions (e.g. from timed-out /cron/migrate calls)
+        # that hold locks and block DDL. Only targets idle-in-transaction
+        # sessions older than 5 minutes — safe for normal operations.
+        try:
+            cur.execute("""
+                SELECT pg_terminate_backend(pid)
+                FROM pg_stat_activity
+                WHERE datname = current_database()
+                  AND pid != pg_backend_pid()
+                  AND state = 'idle in transaction'
+                  AND NOW() - xact_start > interval '5 minutes'
+            """)
+        except Exception:
+            pass
+
+        # Prevent indefinite blocking on DDL locks
+        cur.execute("SET lock_timeout = '30s'")
+
         # ── Base tables (needed for fresh Postgres, idempotent) ──────
         cur.execute("""
             CREATE TABLE IF NOT EXISTS users (
