@@ -4,6 +4,11 @@
 
 6-agent parallel build implementing the homeowner viral loop, shareable analysis, three-tier signup, and data platform close-out. 2,304 tests passing (was 1,984). Target: 53+ tables, 18.4M+ rows.
 
+### Sprint 56 QA Fix — /analysis/<id> 500 → 404
+- `web/app.py`: `analysis_shared()` and `analysis_share_email()` now catch DB exceptions (e.g. missing `analysis_sessions` table) and return 404 instead of propagating a 500
+- Root cause: `analysis_sessions` table not yet created on staging; unguarded `query_one()` let psycopg2 `UndefinedTable` error surface as 500
+- Fix: wrap both `query_one()` calls in `try/except Exception: abort(404)` blocks
+
 ### Sprint 56A — Wire Reference Tables + Fix Predictions
 - `predict_permits`: wired `ref_permit_forms` and `ref_agency_triggers` queries with graceful fallback to hardcoded values
 - `predict_permits`: surfaces `historic_district` flag from `ref_zoning_routing`
