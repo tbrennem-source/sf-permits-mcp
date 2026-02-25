@@ -849,8 +849,6 @@ _Last reviewed: never_
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
----
-
 ## SUGGESTED SCENARIO: CHECKCHAT blocked without QA screenshots
 **Source:** Sprint 54B enforcement hooks — stop-checkchat.sh
 **User:** admin
@@ -888,5 +886,55 @@ _Last reviewed: never_
 **Goal:** Main agent cannot self-certify QA — Playwright must run in subagents
 **Expected outcome:** PreToolUse hook on Bash detects Playwright patterns (playwright, chromium.launch, page.goto, page.screenshot, page.click, sync_playwright) and blocks with exit 2. Agent must use Task tool to spawn QA subagent. Subagents are allowed through via CLAUDE_SUBAGENT env var or nested worktree detection.
 **Edge cases seen in code:** Pattern matching is case-insensitive for blocked patterns; allowed patterns override blocked (so "grep playwright" passes); "expect(page" blocked to prevent assertion commands in main agent
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Planning record enriches property report
+**Source:** Sprint 54C — planning_records table + block/lot join
+**User:** expediter
+**Starting state:** A property at block/lot 3512/001 has both a building permit and a CUA planning record
+**Goal:** When looking up the property, see planning entitlement data alongside building permits
+**Expected outcome:** Property lookup returns planning records joined via block/lot, showing record_type, record_status, and assigned_planner
+**Edge cases seen in code:** Some planning records have NULL block/lot; projects vs non-projects have different field completeness
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Fire permit signal available for property
+**Source:** Sprint 54C — fire_permits table
+**User:** expediter
+**Starting state:** A property has had fire permits issued (stored by permit_address, no block/lot)
+**Goal:** Fire permit data is queryable and accessible for properties that have fire permits
+**Expected outcome:** Fire permits are searchable by permit_address text; fire signal data lands in the database for future severity scoring integration
+**Edge cases seen in code:** No block/lot on fire permits — cross-referencing requires address parsing (follow-up); permit_address is free-text ("1 Citywide", "123 MAIN ST")
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Block/lot join between boiler and building permits produces matches
+**Source:** Sprint 54C — boiler_permits table + cross-ref check
+**User:** expediter
+**Starting state:** Boiler permits and building permits both exist for the same parcel
+**Goal:** Cross-reference boiler and building permits to get complete DBI 4-permit coverage
+**Expected outcome:** Block/lot join between boiler_permits and permits produces >95% match rate, confirming data quality
+**Edge cases seen in code:** 97.8% match rate observed — 2.2% of boiler permits have block/lot values that don't match any building permit
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Tax roll zoning code available for property context
+**Source:** Sprint 54C — tax_rolls table
+**User:** expediter
+**Starting state:** A property has tax roll data with zoning_code, assessed values, and physical characteristics
+**Goal:** Look up zoning code and property characteristics to determine permit routing requirements
+**Expected outcome:** Tax roll query returns zoning_code, number_of_units, lot_area, assessed values for the latest tax year
+**Edge cases seen in code:** Composite PK (block, lot, tax_year) — must filter to latest year; 3-year filter means only 2022+ data available
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Bulk SODA ingest handles memory-constrained environments
+**Source:** Sprint 54C — streaming batch flush for tax_rolls + gunicorn timeout
+**User:** admin
+**Starting state:** Railway container has limited memory; tax rolls dataset is 636K rows
+**Goal:** Ingest all 4 new datasets via cron endpoints without OOM
+**Expected outcome:** All ingest endpoints complete successfully; tax rolls uses streaming pagination with 50K-row batch flushes; gunicorn timeout increased to 600s for long-running ingests
+**Edge cases seen in code:** Original flat fetch caused OOM on 636K rows; batch flush every 50K rows keeps memory bounded; gunicorn worker killed at 120s timeout before fix
 **CC confidence:** high
 **Status:** PENDING REVIEW
