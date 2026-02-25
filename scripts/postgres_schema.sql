@@ -138,11 +138,16 @@ CREATE TABLE IF NOT EXISTS inspections (
     neighborhood    TEXT,
     supervisor_district TEXT,
     zipcode         TEXT,
-    data_as_of      TEXT
+    data_as_of      TEXT,
+    source          TEXT DEFAULT 'building'
 );
+
+-- Migration: add source column to existing inspections table
+ALTER TABLE inspections ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'building';
 
 CREATE INDEX IF NOT EXISTS idx_inspections_ref ON inspections(reference_number);
 CREATE INDEX IF NOT EXISTS idx_inspections_inspector ON inspections(inspector);
+CREATE INDEX IF NOT EXISTS idx_inspections_source ON inspections(source);
 -- NOTE: uk_inspections_natural UNIQUE index is applied by the inspections_unique
 -- migration (run_prod_migrations.py) which deduplicates first. Do NOT add it here
 -- because this file runs as one transaction and will fail on existing duplicates.

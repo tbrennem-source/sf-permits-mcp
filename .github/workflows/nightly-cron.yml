@@ -47,6 +47,42 @@ jobs:
           curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.BASE_URL }}/cron/ingest-plumbing" || echo "WARNING: plumbing ingest failed"
 
+      - name: Refresh street-use permits
+        run: |
+          echo "Ingesting street-use permits at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-street-use" || echo "WARNING: street-use ingest failed"
+
+      - name: Refresh development pipeline
+        run: |
+          echo "Ingesting development pipeline at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-development-pipeline" || echo "WARNING: development pipeline ingest failed"
+
+      - name: Refresh affordable housing pipeline
+        run: |
+          echo "Ingesting affordable housing at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-affordable-housing" || echo "WARNING: affordable housing ingest failed"
+
+      - name: Refresh housing production
+        run: |
+          echo "Ingesting housing production at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-housing-production" || echo "WARNING: housing production ingest failed"
+
+      - name: Refresh dwelling completions
+        run: |
+          echo "Ingesting dwelling completions at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-dwelling-completions" || echo "WARNING: dwelling completions ingest failed"
+
+      - name: Refresh plumbing inspections
+        run: |
+          echo "Ingesting plumbing inspections at $(date -u)..."
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BASE_URL }}/cron/ingest-plumbing-inspections" || echo "WARNING: plumbing inspections ingest failed"
+
       - name: Run signal detection pipeline
         run: |
           echo "Triggering signal pipeline at $(date -u)..."

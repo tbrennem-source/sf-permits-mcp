@@ -41,6 +41,10 @@ DATASETS = {
         "endpoint_id": "vckc-dh2h",
         "name": "Building Inspections",
     },
+    "plumbing_inspections": {
+        "endpoint_id": "fuas-yurr",
+        "name": "Plumbing Inspections",
+    },
     "addenda": {
         "endpoint_id": "87xy-gk8d",
         "name": "Building Permit Addenda with Routing",
@@ -430,8 +434,14 @@ def _normalize_addenda(record: dict, row_id: int) -> tuple:
     )
 
 
-def _normalize_inspection(record: dict, row_id: int) -> tuple:
-    """Normalize a building inspection record."""
+def _normalize_inspection(record: dict, row_id: int, source: str = "building") -> tuple:
+    """Normalize a building or plumbing inspection record.
+
+    Args:
+        record: Raw SODA record dict.
+        row_id: Integer primary key.
+        source: 'building' or 'plumbing' — identifies the inspection dataset.
+    """
     return (
         row_id,
         record.get("reference_number"),
@@ -449,7 +459,21 @@ def _normalize_inspection(record: dict, row_id: int) -> tuple:
         record.get("supervisor_district"),
         record.get("zip_code"),
         record.get("data_as_of"),
+        source,
     )
+
+
+def normalize_plumbing_inspection(record: dict, row_id: int) -> tuple:
+    """Normalize a plumbing inspection record (fuas-yurr) to inspections schema.
+
+    Plumbing inspections share field names with building inspections (vckc-dh2h):
+    reference_number, reference_number_type, inspector, scheduled_date,
+    block, lot, avs_street_name, avs_street_sfx, analysis_neighborhood,
+    supervisor_district, zip_code.
+
+    Note: plumbing inspections have no 'result' field in the SODA dataset.
+    """
+    return _normalize_inspection(record, row_id, source="plumbing")
 
 
 def _normalize_violation(record: dict, row_id: int) -> tuple:
@@ -1164,10 +1188,10 @@ async def ingest_plumbing_permits(conn, client: SODAClient) -> int:
 
 
 async def ingest_inspections(conn, client: SODAClient) -> int:
-    """Ingest building inspections into inspections table."""
+    """Ingest building inspections into inspections table (source='building')."""
     print("\n=== Ingesting Building Inspections ===")
 
-    conn.execute("DELETE FROM inspections")
+    conn.execute("DELETE FROM inspections WHERE source = 'building' OR source IS NULL")
 
     records = await _fetch_all_pages(
         client, "vckc-dh2h", "Building Inspections"
@@ -1175,10 +1199,10 @@ async def ingest_inspections(conn, client: SODAClient) -> int:
 
     batch = []
     for i, r in enumerate(records, 1):
-        batch.append(_normalize_inspection(r, i))
+        batch.append(_normalize_inspection(r, i, source="building"))
     if batch:
         conn.executemany(
-            "INSERT INTO inspections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO inspections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             batch,
         )
         print(f"  Loaded {len(batch):,} inspection records")
@@ -1188,6 +1212,50 @@ async def ingest_inspections(conn, client: SODAClient) -> int:
         [
             "vckc-dh2h",
             "Building Inspections",
+            datetime.now(timezone.utc).isoformat(),
+            len(records),
+            len(records),
+        ],
+    )
+    return len(batch)
+
+
+async def ingest_plumbing_inspections(conn, client: SODAClient) -> int:
+    """Ingest plumbing inspections (fuas-yurr) into the shared inspections table.
+
+    Uses source='plumbing' to distinguish from building inspections.
+    Replaces all plumbing rows on each run (same pattern as building inspections).
+    """
+    print("\n=== Ingesting Plumbing Inspections ===")
+
+    conn.execute("DELETE FROM inspections WHERE source = 'plumbing'")
+
+    records = await _fetch_all_pages(
+        client, "fuas-yurr", "Plumbing Inspections"
+    )
+
+    # Start IDs after any existing building inspection rows to avoid collision
+    try:
+        max_id_row = conn.execute("SELECT COALESCE(MAX(id), 0) FROM inspections").fetchone()
+        start_id = (max_id_row[0] if max_id_row else 0) + 1
+    except Exception:
+        start_id = 1
+
+    batch = []
+    for i, r in enumerate(records, start_id):
+        batch.append(normalize_plumbing_inspection(r, i))
+    if batch:
+        conn.executemany(
+            "INSERT INTO inspections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            batch,
+        )
+        print(f"  Loaded {len(batch):,} plumbing inspection records")
+
+    conn.execute(
+        "INSERT OR REPLACE INTO ingest_log VALUES (?, ?, ?, ?, ?)",
+        [
+            "fuas-yurr",
+            "Plumbing Inspections",
             datetime.now(timezone.utc).isoformat(),
             len(records),
             len(records),
@@ -1814,6 +1882,7 @@ async def run_ingestion(
     contacts: bool = True,
     permits: bool = True,
     inspections: bool = True,
+    plumbing_inspections: bool = True,
     addenda: bool = True,
     violations: bool = True,
     complaints: bool = True,
@@ -1862,6 +1931,8 @@ async def run_ingestion(
             results["plumbing_permits"] = await ingest_plumbing_permits(conn, client)
         if inspections:
             results["inspections"] = await ingest_inspections(conn, client)
+        if plumbing_inspections:
+            results["plumbing_inspections"] = await ingest_plumbing_inspections(conn, client)
         if boiler:
             results["boiler_permits"] = await ingest_boiler_permits(conn, client)
         if fire:

@@ -179,6 +179,10 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     compliance_calendar = _get_compliance_calendar(user_id)
     data_quality = _get_data_quality()
 
+    # Sprint 56 Session C: street use activity + nearby development
+    street_use_activity = get_street_use_activity_for_user(user_id)
+    nearby_development = get_nearby_development_for_user(user_id)
+
     return {
         "changes": changes,
         "plan_reviews": plan_reviews,
@@ -194,6 +198,8 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "planning_context": planning_context,
         "compliance_calendar": compliance_calendar,
         "data_quality": data_quality,
+        "street_use_activity": street_use_activity,
+        "nearby_development": nearby_development,
         "summary": {
             "total_watches": total_watches,
             "total_properties": len(property_cards),
@@ -208,6 +214,8 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
             "regulatory_count": len(regulatory_alerts),
             "planning_context_count": len(planning_context),
             "compliance_calendar_count": len(compliance_calendar),
+            "street_use_count": len(street_use_activity),
+            "nearby_development_count": len(nearby_development),
         },
         "lookback_days": lookback_days,
         "pipeline_health": pipeline_health,
@@ -1768,3 +1776,201 @@ def _get_data_quality() -> dict:
     except Exception as e:
         logger.debug("Data quality check failed (non-fatal): %s", e, exc_info=True)
         return {}
+
+
+# ── Section 14: Street Use Activity ──────────────────────────────
+
+def _get_street_use_activity(conn, watched_addresses: list[tuple[str, str]]) -> list[dict]:
+    """Get recent street-use permits at watched addresses.
+
+    Queries the street_use_permits table for any active or recently approved
+    permits matching watched street names.
+
+    Args:
+        conn: Database connection.
+        watched_addresses: List of (street_number, street_name) tuples.
+
+    Returns:
+        List of dicts with street-use permit info sorted by approved_date desc.
+        Returns empty list on error or when no matches found.
+    """
+    if not watched_addresses:
+        return []
+
+    ph = "%s" if BACKEND == "postgres" else "?"
+
+    results: list[dict] = []
+    try:
+        for street_number, street_name in watched_addresses:
+            rows = query(
+                f"SELECT permit_number, permit_type, permit_purpose, status, "
+                f"agent, street_name, cross_street_1, cross_street_2, "
+                f"approved_date, expiration_date, neighborhood "
+                f"FROM street_use_permits "
+                f"WHERE UPPER(street_name) LIKE UPPER({ph}) "
+                f"  AND COALESCE(status, '') NOT IN ('expired', 'cancelled') "
+                f"ORDER BY approved_date DESC "
+                f"LIMIT 10",
+                (f"%{street_name.strip()}%",),
+            )
+            for r in rows:
+                results.append({
+                    "permit_number": r[0],
+                    "permit_type": r[1],
+                    "permit_purpose": r[2],
+                    "status": r[3],
+                    "agent": r[4],
+                    "street_name": r[5],
+                    "cross_street_1": r[6],
+                    "cross_street_2": r[7],
+                    "approved_date": r[8],
+                    "expiration_date": r[9],
+                    "neighborhood": r[10],
+                    "watched_address": f"{street_number} {street_name}",
+                })
+    except Exception:
+        logger.debug("Street use activity query failed (non-fatal)", exc_info=True)
+        return []
+
+    # Deduplicate by permit_number
+    seen: set[str] = set()
+    unique = []
+    for item in results:
+        key = item["permit_number"]
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+
+    return unique
+
+
+def get_street_use_activity_for_user(user_id: int) -> list[dict]:
+    """Get street-use permits at addresses watched by a user.
+
+    Fetches address-type watches for the user and queries street_use_permits
+    for matching street names.
+
+    Returns empty list on error or when no watched addresses.
+    """
+    ph = _ph()
+
+    try:
+        watch_rows = query(
+            f"SELECT street_number, street_name FROM watch_items "
+            f"WHERE user_id = {ph} AND watch_type = 'address' "
+            f"  AND is_active = TRUE AND street_name IS NOT NULL",
+            (user_id,),
+        )
+    except Exception:
+        logger.debug("Street use activity: watch_items query failed", exc_info=True)
+        return []
+
+    if not watch_rows:
+        return []
+
+    watched_addresses = [(r[0] or "", r[1] or "") for r in watch_rows if r[1]]
+
+    conn = get_connection()
+    try:
+        return _get_street_use_activity(conn, watched_addresses)
+    finally:
+        conn.close()
+
+
+# ── Section 15: Nearby Development ───────────────────────────────
+
+def _get_nearby_development(conn, watched_parcels: list[tuple[str, str]]) -> list[dict]:
+    """Get development pipeline projects near watched parcels.
+
+    Queries the development_pipeline table for active projects at the same
+    block (block-level proximity) as watched parcels.
+
+    Args:
+        conn: Database connection.
+        watched_parcels: List of (block, lot) tuples.
+
+    Returns:
+        List of dicts with development pipeline project info.
+        Returns empty list on error or when no matches found.
+    """
+    if not watched_parcels:
+        return []
+
+    ph = "%s" if BACKEND == "postgres" else "?"
+
+    results: list[dict] = []
+    seen_records: set[str] = set()
+
+    try:
+        for block, lot in watched_parcels:
+            if not block:
+                continue
+            rows = query(
+                f"SELECT record_id, name_address, current_status, "
+                f"proposed_units, net_pipeline_units, affordable_units, "
+                f"neighborhood, block_lot, description_planning, description_dbi, "
+                f"approved_date_planning "
+                f"FROM development_pipeline "
+                f"WHERE block_lot LIKE {ph} "
+                f"  AND COALESCE(current_status, '') NOT IN ('withdrawn', 'cancelled') "
+                f"ORDER BY approved_date_planning DESC "
+                f"LIMIT 10",
+                (f"{block}%",),
+            )
+            for r in rows:
+                rec_id = r[0] or ""
+                if rec_id in seen_records:
+                    continue
+                seen_records.add(rec_id)
+                description = (r[8] or r[9] or "")[:150]
+                results.append({
+                    "record_id": rec_id,
+                    "name_address": r[1],
+                    "current_status": r[2],
+                    "proposed_units": r[3],
+                    "net_pipeline_units": r[4],
+                    "affordable_units": r[5],
+                    "neighborhood": r[6],
+                    "block_lot": r[7],
+                    "description": description,
+                    "approved_date_planning": r[10],
+                    "watched_parcel": f"{block}/{lot}",
+                })
+    except Exception:
+        logger.debug("Nearby development query failed (non-fatal)", exc_info=True)
+        return []
+
+    return results
+
+
+def get_nearby_development_for_user(user_id: int) -> list[dict]:
+    """Get development pipeline projects near parcels watched by a user.
+
+    Fetches parcel-type watches for the user and queries development_pipeline
+    for nearby projects using block-level matching.
+
+    Returns empty list on error or when no watched parcels.
+    """
+    ph = _ph()
+
+    try:
+        watch_rows = query(
+            f"SELECT block, lot FROM watch_items "
+            f"WHERE user_id = {ph} AND watch_type = 'parcel' "
+            f"  AND is_active = TRUE AND block IS NOT NULL AND lot IS NOT NULL",
+            (user_id,),
+        )
+    except Exception:
+        logger.debug("Nearby development: watch_items query failed", exc_info=True)
+        return []
+
+    if not watch_rows:
+        return []
+
+    watched_parcels = [(r[0] or "", r[1] or "") for r in watch_rows]
+
+    conn = get_connection()
+    try:
+        return _get_nearby_development(conn, watched_parcels)
+    finally:
+        conn.close()

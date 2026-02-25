@@ -7325,6 +7325,37 @@ def _get_shared_link_signup_context():
 # === END SESSION D: SHAREABLE ANALYSIS + THREE-TIER SIGNUP ===
 
 
+# === SESSION C: PLUMBING INSPECTIONS + BRIEF ===
+
+@app.route("/cron/ingest-plumbing-inspections", methods=["POST"])
+def cron_ingest_plumbing_inspections():
+    """Ingest plumbing inspections (fuas-yurr) into shared inspections table. CRON_SECRET auth."""
+    _check_api_auth()
+    from src.ingest import ingest_plumbing_inspections
+    from src.soda_client import SODAClient
+    import time
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_plumbing_inspections(conn, client))
+        conn.commit()
+    finally:
+        run_async(client.close())
+        conn.close()
+    elapsed = time.time() - start
+    return jsonify({
+        "ok": True,
+        "table": "inspections",
+        "source": "plumbing",
+        "rows": count,
+        "elapsed_s": round(elapsed, 1),
+    })
+
+# === END SESSION C: PLUMBING INSPECTIONS + BRIEF ===
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(debug=True, host="0.0.0.0", port=port)

@@ -1237,3 +1237,43 @@ _Last reviewed: never_
 **Edge cases seen in code:** Approving same request twice is safe (user already exists, just re-sends link); deny updates status to 'denied' without creating user; GET /admin/beta-requests requires admin role (403 for non-admin)
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: morning brief includes street-use activity near watched address
+**Source:** Sprint 56C — web/brief.py _get_street_use_activity
+**User:** expediter | homeowner
+**Starting state:** User has a watched address on a named street; there are active street-use permits near that street in the database
+**Goal:** User's morning brief shows recent street-use permit activity (scaffolding, crane, utility work) near their watched properties
+**Expected outcome:** Brief includes a "street use activity" section listing permit type, applicant, and date for any street-use permits with matching street name; empty section if no activity; deduplicates on permit_number
+**Edge cases seen in code:** Matching is case-insensitive LIKE on street_name; user with no address watches gets empty list; permits without street_name are excluded
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: morning brief includes nearby development projects
+**Source:** Sprint 56C — web/brief.py _get_nearby_development
+**User:** expediter | homeowner
+**Starting state:** User has a watched parcel (block/lot); there are active development pipeline records on the same block in the database
+**Goal:** User's morning brief shows nearby development projects (large residential, commercial, mixed-use) at the block level
+**Expected outcome:** Brief includes a "nearby development" section listing project name/address, current status, and number of units; deduplicates on record_id; empty if no development on the block
+**Edge cases seen in code:** Match uses block_lot LIKE '{block}%' — all lots on same block are returned; user with no parcel watches gets empty list; development records without block_lot are excluded
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: plumbing inspections ingest populates inspections table with source discriminator
+**Source:** Sprint 56C — src/ingest.py ingest_plumbing_inspections
+**User:** admin
+**Starting state:** Inspections table has building inspection rows (source='building'); plumbing endpoint is available
+**Goal:** Admin triggers /cron/ingest-plumbing-inspections to load plumbing inspection history
+**Expected outcome:** Plumbing rows appear in inspections table with source='plumbing'; existing building rows (source='building') are not deleted; re-running the endpoint replaces only plumbing rows
+**Edge cases seen in code:** IDs are offset by MAX(existing_id) to prevent collision with building inspection IDs; DELETE is scoped to source='plumbing' only
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: nightly change detection picks up new street-use permits
+**Source:** Sprint 56C — scripts/nightly_changes.py detect_street_use_changes
+**User:** admin
+**Starting state:** Street-use permits table has rows; a new permit was added since last nightly run (issued_date within 48h)
+**Goal:** Nightly pipeline detects the new street-use permit and writes a change record to permit_changes
+**Expected outcome:** permit_changes table gains a row with dataset='street_use_permits' and the new permit number; existing rows are not duplicated; change_type reflects the new permit status
+**Edge cases seen in code:** Comparison is by permit_number against existing permit_changes rows; only permits with issued_date within 48h are considered "recent"
+**CC confidence:** medium
+**Status:** PENDING REVIEW

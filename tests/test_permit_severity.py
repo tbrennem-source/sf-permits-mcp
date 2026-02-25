@@ -81,15 +81,15 @@ def severity_db(tmp_path):
         (1, "SEV003", "PERMIT", "SMITH J", str(today - timedelta(days=20)),
          "approved", "Rough plumbing",
          "3700", "020", "300", "CASTRO", "ST", "Castro/Upper Market", "8", "94114",
-         str(today)),
+         str(today), "building"),
         (2, "SEV003", "PERMIT", "JONES K", str(today - timedelta(days=10)),
          "approved", "Rough electrical",
          "3700", "020", "300", "CASTRO", "ST", "Castro/Upper Market", "8", "94114",
-         str(today)),
+         str(today), "building"),
     ]
 
     conn.executemany(
-        "INSERT INTO inspections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO inspections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         inspections,
     )
 

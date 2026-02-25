@@ -100,20 +100,20 @@ def db_path(tmp_path):
     inspections = [
         (1, "P001", "permit", "R Santos", "2024-03-01", "approved",
          "Final inspection", "3512", "001", "123", "MAIN", "ST",
-         "Mission", "9", "94110", "2024-03-01"),
+         "Mission", "9", "94110", "2024-03-01", "building"),
         (2, "P002", "permit", "R Santos", "2024-04-01", "approved",
          "Rough inspection", "3512", "002", "456", "OAK", "AVE",
-         "Mission", "9", "94110", "2024-04-01"),
+         "Mission", "9", "94110", "2024-04-01", "building"),
         (3, "P003", "permit", "J Smith", "2024-05-01", "approved",
          "Electrical inspection", "3600", "010", "789", "ELM", "ST",
-         "SoMa", "6", "94110", "2024-05-01"),
+         "SoMa", "6", "94110", "2024-05-01", "building"),
         (4, "P004", "permit", "J Smith", "2024-06-01", "disapproved",
          "Plumbing rough", "0200", "005", "999", "PINE", "ST",
-         "Nob Hill", "3", "94102", "2024-06-01"),
+         "Nob Hill", "3", "94102", "2024-06-01", "building"),
     ]
 
     conn.executemany(
-        "INSERT INTO inspections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO inspections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         inspections,
     )
 
