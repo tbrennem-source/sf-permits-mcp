@@ -6280,9 +6280,9 @@ class _PgConnWrapper:
 
     def execute(self, sql, params=None):
         sql = self._translate_sql(sql)
-        with self._conn.cursor() as cur:
-            cur.execute(sql, params)
-            return cur
+        cur = self._conn.cursor()
+        cur.execute(sql, params)
+        return cur
 
     def executemany(self, sql, batch):
         sql = self._translate_sql(sql)
