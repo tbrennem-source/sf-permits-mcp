@@ -808,3 +808,93 @@ _Last reviewed: never_
 **Edge cases seen in code:** Signal pipeline uses DuckDB-style conn.execute() — may need compatibility fix for psycopg2 on Postgres; pipeline truncates tables before each run (full refresh, not incremental)
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin runs /cron/migrate after deploy
+**Source:** Amendment C — /cron/migrate endpoint
+**User:** admin
+**Starting state:** New code deployed to production with pending schema changes
+**Goal:** Run all database migrations via HTTP endpoint instead of manual CLI
+**Expected outcome:** All 8 migrations execute, response JSON shows each migration's ok/skipped status, idempotent re-runs produce no errors
+**Edge cases seen in code:** DuckDB backend skips all migrations (returns skipped=true), migration runner catches per-migration exceptions without halting
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Test-login correctly assigns admin based on email pattern
+**Source:** Amendment D — handle_test_login fix
+**User:** admin
+**Starting state:** Test user exists in database with incorrect is_admin flag
+**Goal:** Test-login endpoint always sets correct admin status regardless of whether user already exists
+**Expected outcome:** "test-admin" in email -> is_admin=true; any other email -> is_admin=false; applies to both new and existing users
+**Edge cases seen in code:** Race condition if two test-logins fire simultaneously for same email; DuckDB vs Postgres placeholder difference handled by dual backend pattern
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Signal pipeline runs on Postgres without placeholder errors
+**Source:** Q3 — Signal Pipeline Postgres Fix
+**User:** admin
+**Starting state:** Signal pipeline configured, Postgres backend active, permits/addenda/violations tables populated
+**Goal:** /cron/signals completes successfully on Postgres production database
+**Expected outcome:** All 12 detectors run, signals inserted with %s placeholders, property health tiers computed, no placeholder errors
+**Edge cases seen in code:** _ensure_signal_tables() correctly skips on Postgres; _pg_execute() commits after each statement; detector._execute() handles None params with empty tuple
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Route manifest accurately reflects all app routes
+**Source:** Q1 — Route Manifest Generator
+**User:** admin
+**Starting state:** web/app.py has 100+ routes with various auth levels
+**Goal:** Generate a complete, accurate route manifest for QA automation
+**Expected outcome:** siteaudit_manifest.json contains all routes with correct auth_level classification, template references, and 4 user journeys
+**Edge cases seen in code:** Admin routes detected by path prefix OR body guard pattern; multi-decorator routes correctly classified; routes with dynamic segments preserved
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Planning record enriches property report
+**Source:** Sprint 54C — planning_records table + block/lot join
+**User:** expediter
+**Starting state:** A property at block/lot 3512/001 has both a building permit and a CUA planning record
+**Goal:** When looking up the property, see planning entitlement data alongside building permits
+**Expected outcome:** Property lookup returns planning records joined via block/lot, showing record_type, record_status, and assigned_planner
+**Edge cases seen in code:** Some planning records have NULL block/lot; projects vs non-projects have different field completeness
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Fire permit signal available for property
+**Source:** Sprint 54C — fire_permits table
+**User:** expediter
+**Starting state:** A property has had fire permits issued (stored by permit_address, no block/lot)
+**Goal:** Fire permit data is queryable and accessible for properties that have fire permits
+**Expected outcome:** Fire permits are searchable by permit_address text; fire signal data lands in the database for future severity scoring integration
+**Edge cases seen in code:** No block/lot on fire permits — cross-referencing requires address parsing (follow-up); permit_address is free-text ("1 Citywide", "123 MAIN ST")
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Block/lot join between boiler and building permits produces matches
+**Source:** Sprint 54C — boiler_permits table + cross-ref check
+**User:** expediter
+**Starting state:** Boiler permits and building permits both exist for the same parcel
+**Goal:** Cross-reference boiler and building permits to get complete DBI 4-permit coverage
+**Expected outcome:** Block/lot join between boiler_permits and permits produces >95% match rate, confirming data quality
+**Edge cases seen in code:** 97.8% match rate observed — 2.2% of boiler permits have block/lot values that don't match any building permit
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Tax roll zoning code available for property context
+**Source:** Sprint 54C — tax_rolls table
+**User:** expediter
+**Starting state:** A property has tax roll data with zoning_code, assessed values, and physical characteristics
+**Goal:** Look up zoning code and property characteristics to determine permit routing requirements
+**Expected outcome:** Tax roll query returns zoning_code, number_of_units, lot_area, assessed values for the latest tax year
+**Edge cases seen in code:** Composite PK (block, lot, tax_year) — must filter to latest year; 3-year filter means only 2022+ data available
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Bulk SODA ingest handles memory-constrained environments
+**Source:** Sprint 54C — streaming batch flush for tax_rolls + gunicorn timeout
+**User:** admin
+**Starting state:** Railway container has limited memory; tax rolls dataset is 636K rows
+**Goal:** Ingest all 4 new datasets via cron endpoints without OOM
+**Expected outcome:** All ingest endpoints complete successfully; tax rolls uses streaming pagination with 50K-row batch flushes; gunicorn timeout increased to 600s for long-running ingests
+**Edge cases seen in code:** Original flat fetch caused OOM on 636K rows; batch flush every 50K rows keeps memory bounded; gunicorn worker killed at 120s timeout before fix
+**CC confidence:** high
+**Status:** PENDING REVIEW
