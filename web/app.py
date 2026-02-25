@@ -465,6 +465,12 @@ def _run_startup_migrations():
             "ON project_notes (user_id, version_group)"
         )
 
+        # Three-tier signup columns (Sprint 56D — shareable analysis)
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_source TEXT DEFAULT 'invited'")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS detected_persona TEXT")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_requested_at TIMESTAMPTZ")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_approved_at TIMESTAMPTZ")
+
         # Voice & style preferences (macro instructions for AI response tone)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS voice_style TEXT")
 
