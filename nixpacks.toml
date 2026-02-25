@@ -5,7 +5,7 @@ nixPkgs = ["python311", "poppler_utils"]
 cmds = ["pip install -r web/requirements.txt"]
 
 [start]
-cmd = "cd web && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 300"
+cmd = "cd web && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 600"
 
 [variables]
 PYTHONPATH = "/app"

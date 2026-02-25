@@ -1694,6 +1694,7 @@ async def ingest_street_use_permits(conn, client: SODAClient) -> int:
                 "INSERT OR REPLACE INTO street_use_permits VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 batch,
             )
+            conn.commit()  # Commit each batch so partial data survives timeouts
             total += len(batch)
             batch = []
 
