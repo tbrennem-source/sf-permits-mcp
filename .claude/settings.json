@@ -1,0 +1,57 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "NotebookEdit(*)",
+      "mcp__*",
+      "mcp__claude_ai_sfpermits__*",
+      "mcp__claude_ai_Chief__*",
+      "mcp__claude_ai_dforge__*",
+      "mcp__claude_ai_Indeed__*"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/stop-checkchat.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-playwright.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/detect-descope.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

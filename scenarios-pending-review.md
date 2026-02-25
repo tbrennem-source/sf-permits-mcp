@@ -848,3 +848,45 @@ _Last reviewed: never_
 **Edge cases seen in code:** Admin routes detected by path prefix OR body guard pattern; multi-decorator routes correctly classified; routes with dynamic segments preserved
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: CHECKCHAT blocked without QA screenshots
+**Source:** Sprint 54B enforcement hooks — stop-checkchat.sh
+**User:** admin
+**Starting state:** Agent has built a feature and is attempting to close session with CHECKCHAT
+**Goal:** Session cannot close without Playwright QA evidence
+**Expected outcome:** Stop hook detects `## CHECKCHAT` header, checks qa-results/screenshots/ for PNG files with valid magic bytes, blocks with exit 2 and specific failure messages if no screenshots exist. Agent gets one retry (stop_hook_active bypass).
+**Edge cases seen in code:** DeskCC sessions (contain "DeskRelay" but not "BUILD") skip screenshot requirement; stop_hook_active=true provides infinite loop escape; temp file (.stop_hook_fired) is backup loop prevention
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Descoped item blocked without user approval
+**Source:** Sprint 54B enforcement hooks — plan-accountability.sh
+**User:** admin
+**Starting state:** Agent has descoped a plan item and is writing CHECKCHAT report
+**Goal:** Descoped items require documented user approval before session can close
+**Expected outcome:** Plan accountability hook scans CHECKCHAT message for descoping language ("descoped", "deferred", "out of scope", "dropped", "removed from scope", "moved to sprint"). Each match must have approval evidence within 2 lines ("user approved", "per user", "tim approved", "tim confirmed"). BLOCKED items must have 3-attempt documentation. Missing evidence blocks CHECKCHAT.
+**Edge cases seen in code:** Context window of 2 lines for approval evidence; multiple descoped items each need individual approval; BLOCKED items need different evidence format (attempt counts)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Normal development unaffected by enforcement hooks
+**Source:** Sprint 54B enforcement hooks — block-playwright.sh
+**User:** admin
+**Starting state:** Developer is working on code in a Claude Code session (not during CHECKCHAT)
+**Goal:** Hooks do not interfere with normal git, pytest, python, curl commands
+**Expected outcome:** Non-CHECKCHAT Stop events pass through (exit 0). Non-Playwright Bash commands pass through (git, pytest, curl, pip all allowed). Write operations outside qa-results/ are not scanned for descope language. Only Playwright execution commands (chromium.launch, page.goto, etc.) are blocked in the main agent — pytest is allowed even if it internally uses Playwright.
+**Edge cases seen in code:** Allowed patterns checked before blocked patterns in block-playwright.sh; subagent bypass via CLAUDE_SUBAGENT=true or nested worktree CWD detection; pip install playwright is explicitly allowed
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Build/Verify separation enforced
+**Source:** Sprint 54B enforcement hooks — block-playwright.sh
+**User:** admin
+**Starting state:** Main agent attempts to run Playwright directly (not in a QA subagent)
+**Goal:** Main agent cannot self-certify QA — Playwright must run in subagents
+**Expected outcome:** PreToolUse hook on Bash detects Playwright patterns (playwright, chromium.launch, page.goto, page.screenshot, page.click, sync_playwright) and blocks with exit 2. Agent must use Task tool to spawn QA subagent. Subagents are allowed through via CLAUDE_SUBAGENT env var or nested worktree detection.
+**Edge cases seen in code:** Pattern matching is case-insensitive for blocked patterns; allowed patterns override blocked (so "grep playwright" passes); "expect(page" blocked to prevent assertion commands in main agent
+**CC confidence:** high
+**Status:** PENDING REVIEW

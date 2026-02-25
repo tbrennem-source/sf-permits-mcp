@@ -1,5 +1,34 @@
 # Changelog
 
+## Sprint 54B — Enforcement Hooks + Protocol Bootstrap (2026-02-24)
+
+Black Box Protocol enforcement so agents cannot self-certify QA or descope items silently. Built after Sprint 54A's agent skipped Playwright entirely and rushed CHECKCHAT without evidence.
+
+### Protocol Files
+- **BLACKBOX_PROTOCOL.md** — Full autonomous session protocol: READ → BUILD → TEST → SCENARIOS → QA → CHECKCHAT. DeskRelay prompt generation rules for single-branch and two-branch topologies.
+- **DEPLOYMENT_MANIFEST.yaml** — Machine-readable deployment config: topology, URLs, promotion command, health assertions, extra verification steps.
+
+### Enforcement Hooks (`.claude/hooks/`)
+- **stop-checkchat.sh** (Stop hook) — Blocks CHECKCHAT without screenshots, QA results, scenarios, and plan accountability. Uses exit code 2 per hooks API. Infinite loop prevention via `stop_hook_active` + temp file guard. DeskCC detection skips screenshot requirement.
+- **plan-accountability.sh** — Audits CHECKCHAT for descoped items without user approval and BLOCKED items without 3-attempt documentation.
+- **block-playwright.sh** (PreToolUse:Bash) — Forces Playwright into QA subagents. Blocks `chromium.launch`, `page.goto`, etc. in main agent. Subagent bypass via `CLAUDE_SUBAGENT=true` or nested worktree CWD. Explicitly allows pytest, pip install, git, curl.
+- **detect-descope.sh** (PostToolUse:Write) — Soft warning when descoping language appears in QA results or CHECKCHAT files.
+
+### Bug Fixes (from initial hook implementation)
+- Fixed `exit 1` → `exit 2` in stop-checkchat.sh (exit 1 means "proceed", exit 2 means "block" in Claude Code hooks API)
+- Fixed `json.load(sys)` → `json.load(sys.stdin)` in all hooks (sys is the module, not stdin)
+- Fixed `input` → `tool_input` field name in block-playwright.sh and detect-descope.sh (hooks API uses `tool_input`)
+
+### Documentation
+- Added CLAUDE.md Section 13: Enforcement Hooks
+- Added CLAUDE.md Black Box Protocol and Deployment Manifest references to Section 12
+- 4 scenarios appended to scenarios-pending-review.md
+
+### QA
+- Staging verification via 3 Playwright QA subagents (public, auth, admin)
+- pytest: 1757 passed, 20 skipped (no regressions)
+- Hook unit tests: 8 manual tests, all passing
+
 ## Sprint 54 — QA Infrastructure + Amendments (2026-02-24)
 
 Reusable QA infrastructure so future sprints need only 2 prompts (termCC + DeskCC). Plus 7 amendments from Sprint 53 post-mortem.

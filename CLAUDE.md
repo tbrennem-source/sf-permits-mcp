@@ -367,7 +367,11 @@ This project participates in Tim's standard session protocols. These are defined
 Both stages always end with CHECKCHAT. QA is not optional. Scenarios are not optional. CHECKCHAT is not optional.
 
 > See `~/.claude/CLAUDE.md` for the full protocol definitions. This section activates them.
+> See `BLACKBOX_PROTOCOL.md` for the full Black Box session structure and DeskRelay prompt generation rules.
+> See `DEPLOYMENT_MANIFEST.yaml` for all URLs, topology, and deployment commands.
 
+## Black Box Protocol: active
+## Deployment Manifest: DEPLOYMENT_MANIFEST.yaml
 ## RELAY: active
 ## CHECKCHAT: active
 
@@ -427,3 +431,41 @@ CHECKCHAT output includes a DeskRelay HANDOFF section listing visual checks for 
 DeskRelay visual checks → CHECKCHAT
 
 Both stages always end with CHECKCHAT. Stage 2 CHECKCHAT is lightweight (commit QA results, note follow-ups, no code changes expected).
+
+---
+
+## 13. Enforcement Hooks
+
+Four hooks in `.claude/hooks/` enforce Black Box Protocol compliance. They are configured in `.claude/settings.json`.
+
+**Do NOT disable or modify hooks without Tim's explicit approval.**
+
+### Hook Summary
+
+| Hook | Event | Purpose | Exit Code |
+|------|-------|---------|-----------|
+| `stop-checkchat.sh` | Stop | Blocks CHECKCHAT without screenshots, QA results, and scenarios | 2 = block |
+| `plan-accountability.sh` | (called by stop hook) | Audits descoped/blocked items for evidence | 1 = fail |
+| `block-playwright.sh` | PreToolUse:Bash | Forces Playwright execution into QA subagents | 2 = block |
+| `detect-descope.sh` | PostToolUse:Write | Warns on descoping language in QA/CHECKCHAT files | 0 (warning only) |
+
+### How They Work
+
+**CHECKCHAT Pre-flight Gate (stop-checkchat.sh):** When the agent writes `## CHECKCHAT` (H2 header), the Stop hook checks for:
+1. PNG screenshots in `qa-results/screenshots/` (verified with `file` magic bytes)
+2. A results file matching `qa-results/*-results.md` with PASS/FAIL lines
+3. Changes to `scenarios-pending-review.md` (via `git diff`)
+4. Plan accountability (no undocumented descopes or unsubstantiated BLOCKED items)
+
+Missing evidence → exit 2 (blocks the stop). Agent gets one retry (`stop_hook_active` bypass).
+
+**Build/Verify Separation (block-playwright.sh):** Detects Playwright execution commands (`chromium.launch`, `page.goto`, `page.screenshot`, etc.) in Bash calls and blocks them in the main agent. QA subagents are allowed through via `CLAUDE_SUBAGENT=true` or nested worktree CWD detection. `pytest`, `pip install`, and other safe commands are explicitly allowed.
+
+**Descope Warning (detect-descope.sh):** Soft warning when writing files to `qa-results/` or CHECKCHAT content containing descoping language. Warns via stderr but does not block.
+
+### Claude Code Hooks API Reference
+
+- **Exit 0:** Action proceeds
+- **Exit 2:** Action blocked — reason written to stderr is shown to the agent
+- **Any other exit code:** Action proceeds, stderr logged but not shown
+- All hooks receive JSON on stdin. Key fields: `last_assistant_message` (Stop), `tool_input` (PreToolUse/PostToolUse)

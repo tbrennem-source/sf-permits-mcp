@@ -1,0 +1,50 @@
+# DEPLOYMENT_MANIFEST.yaml — sfpermits.ai
+# Machine-readable deployment configuration for Black Box Protocol
+# CC reads this file. CC does not improvise deployment steps.
+
+topology: two-branch
+repo_path: /Users/timbrenneman/AIprojects/sf-permits-mcp
+
+# Environments
+staging_url: https://sfpermits-ai-staging-production.up.railway.app
+prod_url: https://sfpermits-ai-production.up.railway.app
+health_endpoint: /health
+
+# Branches
+staging_branch: main
+prod_branch: prod
+
+# Promotion
+promotion_command: "git checkout prod && git merge main && git push origin prod"
+deploy_wait_seconds: 120
+
+# Testing
+test_command: pytest tests/ -v
+test_query: "robin hood"
+
+# Auth
+auth_secret_env: CRON_SECRET
+
+# Chief integration
+chief_project_slug: sf-permits-mcp
+
+# Health assertions
+health_assertions:
+  - field: "tables"
+    condition: "exists"
+  - field: "status"
+    condition: "equals"
+    value: "ok"
+
+# Extra verification steps
+extra_staging_checks:
+  - "POST /auth/test-login and verify admin dashboard loads"
+  - "Search for '75 robin hood dr' and verify property results appear"
+
+extra_prod_checks:
+  - "Search for '75 robin hood dr' and verify property results appear"
+  - "Click a permit number and verify detail page loads"
+  - "Check /health and verify all expected tables have row counts > 0"
+
+# Post-promotion commands (uncomment per sprint as needed)
+post_promotion_commands: []
