@@ -2,6 +2,7 @@
 <!-- CC appends suggested scenarios here after each feature session -->
 <!-- Do not edit scenario-design-guide.md directly -->
 <!-- This file is reviewed and drained each planning session -->
+<!-- Sprint 57.0: 6 scenarios added (entity resolution, timeline filter, velocity periods, multi-role, neighborhood backfill) -->
 
 ## SUGGESTED SCENARIO: CI catches broken test on PR
 **Source:** .github/workflows/ci.yml
