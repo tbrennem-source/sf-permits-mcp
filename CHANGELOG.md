@@ -1,5 +1,30 @@
 # Changelog
 
+## Sprint 54 — QA Infrastructure + Amendments (2026-02-24)
+
+Reusable QA infrastructure so future sprints need only 2 prompts (termCC + DeskCC). Plus 7 amendments from Sprint 53 post-mortem.
+
+### Phase 0: Two-Branch Model (Amendment H)
+- Created `prod` branch from main HEAD, pushed to origin
+- Updated CLAUDE.md with two-branch documentation and promotion ceremony
+- Railway prod service needs dashboard config to deploy from `prod` branch
+
+### Phase 1: Infrastructure Fixes
+- **Amendment C:** `/cron/migrate` endpoint — CRON_SECRET-gated, calls `run_all_migrations()`
+- **Amendment D:** `handle_test_login()` now always syncs `is_admin` based on email pattern (not just on user creation)
+- **Amendment E:** Added `cron_log_columns` migration (#8) — `duration_seconds FLOAT`, `records_processed INTEGER`
+- **Amendment G:** Archived Sprint 53/53B reports to `reports/sprint53/` and `reports/sprint53b/`
+
+### Phase 2: Build Swarm (4 parallel agents)
+- **Q1 — Route Manifest Generator:** `scripts/discover_routes.py` parses all 104 routes from `web/app.py` into `siteaudit_manifest.json` with auth levels, templates, 4 user journeys. 31 tests.
+- **Q2 — QA Agent Definitions:** 15 reusable agent files in `.claude/agents/` — 5 technical QA agents, 4 active personas, 2 deferred persona stubs, 4 DeskCC agents. Deleted 4 Sprint 53 session agents.
+- **Q3 — Signal Pipeline Postgres Fix:** `pipeline.py` + `detector.py` now detect backend and use `%s` for Postgres. `_ensure_signal_tables()` skips on Postgres (uses migration script). 25 tests.
+- **Q4 — Data Ingest Expansion:** Added `electrical_permits` (ftty-kx6y, 343K records) and `plumbing_permits` (a6aw-rudh, 512K records) with field mapping normalizers. 32 tests.
+
+### QA
+- 10 checks: 9 PASS, 1 SKIP (test-login credential verification deferred to DeskRelay)
+- pytest: 1793 passed, 20 skipped (+88 new tests)
+
 ## Sprint 53B — Land What's Built (2026-02-24)
 
 Verification sprint — no new features. Made everything Sprint 52+53 shipped work in production.

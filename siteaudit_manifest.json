@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-25T00:39:26.087686+00:00",
-  "total_routes": 103,
+  "generated_at": "2026-02-25T00:47:55.147480+00:00",
+  "total_routes": 104,
   "routes": [
     {
       "path": "/robots.txt",
@@ -903,6 +903,15 @@
       "function_name": "cron_velocity_refresh"
     },
     {
+      "path": "/cron/migrate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_migrate"
+    },
+    {
       "path": "/cron/backup",
       "methods": [
         "POST"
@@ -956,6 +965,6 @@
     "public": 33,
     "auth": 21,
     "admin": 23,
-    "cron": 26
+    "cron": 27
   }
 }

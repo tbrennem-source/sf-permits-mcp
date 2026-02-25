@@ -808,3 +808,43 @@ _Last reviewed: never_
 **Edge cases seen in code:** Signal pipeline uses DuckDB-style conn.execute() — may need compatibility fix for psycopg2 on Postgres; pipeline truncates tables before each run (full refresh, not incremental)
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin runs /cron/migrate after deploy
+**Source:** Amendment C — /cron/migrate endpoint
+**User:** admin
+**Starting state:** New code deployed to production with pending schema changes
+**Goal:** Run all database migrations via HTTP endpoint instead of manual CLI
+**Expected outcome:** All 8 migrations execute, response JSON shows each migration's ok/skipped status, idempotent re-runs produce no errors
+**Edge cases seen in code:** DuckDB backend skips all migrations (returns skipped=true), migration runner catches per-migration exceptions without halting
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Test-login correctly assigns admin based on email pattern
+**Source:** Amendment D — handle_test_login fix
+**User:** admin
+**Starting state:** Test user exists in database with incorrect is_admin flag
+**Goal:** Test-login endpoint always sets correct admin status regardless of whether user already exists
+**Expected outcome:** "test-admin" in email -> is_admin=true; any other email -> is_admin=false; applies to both new and existing users
+**Edge cases seen in code:** Race condition if two test-logins fire simultaneously for same email; DuckDB vs Postgres placeholder difference handled by dual backend pattern
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Signal pipeline runs on Postgres without placeholder errors
+**Source:** Q3 — Signal Pipeline Postgres Fix
+**User:** admin
+**Starting state:** Signal pipeline configured, Postgres backend active, permits/addenda/violations tables populated
+**Goal:** /cron/signals completes successfully on Postgres production database
+**Expected outcome:** All 12 detectors run, signals inserted with %s placeholders, property health tiers computed, no placeholder errors
+**Edge cases seen in code:** _ensure_signal_tables() correctly skips on Postgres; _pg_execute() commits after each statement; detector._execute() handles None params with empty tuple
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Route manifest accurately reflects all app routes
+**Source:** Q1 — Route Manifest Generator
+**User:** admin
+**Starting state:** web/app.py has 100+ routes with various auth levels
+**Goal:** Generate a complete, accurate route manifest for QA automation
+**Expected outcome:** siteaudit_manifest.json contains all routes with correct auth_level classification, template references, and 4 user journeys
+**Edge cases seen in code:** Admin routes detected by path prefix OR body guard pattern; multi-decorator routes correctly classified; routes with dynamic segments preserved
+**CC confidence:** medium
+**Status:** PENDING REVIEW
