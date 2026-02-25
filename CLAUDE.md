@@ -81,14 +81,15 @@ Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze
 
 ### Services
 
-| Service | Role | Status |
-|---|---|---|
-| **sfpermits-ai** | Flask web app (prod deploys from `prod` branch, staging from `main`) | Active |
-| **sfpermits-mcp-api** | MCP server over Streamable HTTP (`Dockerfile.mcp`) | Active |
-| **pgvector-db** | PostgreSQL + pgvector — user data, RAG embeddings, permit changes | Active, primary DB |
-| **pgVector-Railway** | pgvector instance (appears unused, has empty volume) | Active |
-| Postgres | Old DB (removed, pending deletion, volume has 5.6GB data) | Removed |
-| Postgres-CrX7 | Old DB (removed, pending deletion, volume has 1.1GB data) | Removed |
+| Service | Role | Branch | URL | Status |
+|---|---|---|---|---|
+| **sfpermits-ai** | Flask web app (production) | `prod` | sfpermits-ai-production.up.railway.app | Active |
+| **sfpermits-ai-staging** | Flask web app (staging) | `main` | sfpermits-ai-staging-produc... | Active |
+| **sfpermits-mcp-api** | MCP server over Streamable HTTP (`Dockerfile.mcp`) | `main` | sfpermits-mcp-api-production.up.railway.app | Active |
+| **sf-permits-mcp** | (verify purpose) | | | Active |
+| **fantastic-mindfulness** | (verify purpose) | | | Active |
+| **pgvector-db** | PostgreSQL + pgvector — user data, RAG embeddings, permit changes | — | internal only | Active, primary DB |
+| **pgVector-Railway** | pgvector instance (appears unused, has empty volume) | — | — | Active |
 
 ### Other Railway Projects (same account, Pro plan)
 
