@@ -149,6 +149,108 @@
             font-size: 0.78rem;
         }
 
+        /* ── Homeowner Funnel ── */
+        .homeowner-section {
+            padding: 48px 0;
+            border-top: 1px solid var(--border);
+        }
+        .homeowner-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .homeowner-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        .homeowner-card.primary {
+            border-color: var(--accent);
+            background: rgba(79, 143, 247, 0.04);
+        }
+        .homeowner-card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .homeowner-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .project-form textarea {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 14px 16px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 12px;
+        }
+        .project-form textarea:focus { border-color: var(--accent); }
+        .project-form textarea::placeholder { color: var(--text-muted); }
+        .project-form select {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.88rem;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+            outline: none;
+        }
+        .project-form select:focus { border-color: var(--accent); color: var(--text); }
+        .project-form button {
+            width: 100%;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .project-form button:hover { background: var(--accent-hover); }
+        .violation-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .violation-icon { font-size: 2.5rem; margin-bottom: 16px; }
+        .violation-cta {
+            display: inline-block;
+            background: none;
+            border: 2px solid var(--error);
+            border-radius: 10px;
+            color: var(--error);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 12px 20px;
+            text-decoration: none;
+            text-align: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .violation-cta:hover {
+            background: var(--error);
+            color: #fff;
+        }
+        @media (max-width: 768px) {
+            .homeowner-grid { grid-template-columns: 1fr; }
+            .homeowner-card { padding: 24px 20px; }
+        }
+
         /* ── Features ── */
         .features {
             padding: 60px 0;
@@ -289,6 +391,54 @@
             </div>
         </div>
     </section>
+
+    <!-- SESSION E: HOMEOWNER FUNNEL -->
+    <section class="homeowner-section">
+        <div class="container">
+            <div class="homeowner-grid">
+                <!-- Planning a project? -->
+                <div class="homeowner-card primary">
+                    <h2>Planning a project?</h2>
+                    <p>Describe your remodel and get an instant permit preview — what you'll need, OTC vs. in-house review, and how long it takes.</p>
+                    <form class="project-form" action="/analyze-preview" method="POST">
+                        <textarea name="description" rows="3" placeholder="e.g. Kitchen remodel in the Mission, moving the sink and adding an island..." required></textarea>
+                        <select name="neighborhood">
+                            <option value="">Neighborhood (optional)</option>
+                            <option value="Mission">Mission</option>
+                            <option value="Noe Valley">Noe Valley</option>
+                            <option value="Castro/Upper Market">Castro / Upper Market</option>
+                            <option value="Bernal Heights">Bernal Heights</option>
+                            <option value="Pacific Heights">Pacific Heights</option>
+                            <option value="Richmond">Richmond</option>
+                            <option value="Sunset">Sunset</option>
+                            <option value="SoMa">SoMa</option>
+                            <option value="Potrero Hill">Potrero Hill</option>
+                            <option value="Haight Ashbury">Haight Ashbury</option>
+                            <option value="Marina">Marina</option>
+                            <option value="North Beach">North Beach</option>
+                            <option value="Chinatown">Chinatown</option>
+                            <option value="Tenderloin">Tenderloin</option>
+                            <option value="Bayview Hunters Point">Bayview / Hunters Point</option>
+                            <option value="Excelsior">Excelsior</option>
+                            <option value="Glen Park">Glen Park</option>
+                            <option value="Visitacion Valley">Visitacion Valley</option>
+                            <option value="Outer Sunset">Outer Sunset</option>
+                        </select>
+                        <button type="submit">Get free permit preview &rarr;</button>
+                    </form>
+                </div>
+
+                <!-- Got a violation? -->
+                <div class="homeowner-card violation-card">
+                    <div class="violation-icon">&#x26A0;&#xFE0F;</div>
+                    <h2>Got a Notice of Violation?</h2>
+                    <p>Look up your property to see open complaints, enforcement actions, and what steps come next.</p>
+                    <a href="/search?context=violation" class="violation-cta">Look up your property &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END SESSION E: HOMEOWNER FUNNEL -->
 
     <section class="features">
         <div class="container">

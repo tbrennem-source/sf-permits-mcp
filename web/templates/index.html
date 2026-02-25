@@ -926,6 +926,24 @@
 
     <main>
         <div class="container">
+            {# SESSION E: First-login onboarding banner #}
+            {% if session.get('show_onboarding_banner') and not session.get('onboarding_dismissed') %}
+            <div id="onboarding-banner"
+                 style="background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.3); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                <div>
+                    <strong style="color: var(--success);">Welcome to sfpermits.ai!</strong>
+                    <span style="color: var(--text-muted); font-size: 0.9rem; margin-left: 8px;">Start by searching an address or describing your project.</span>
+                </div>
+                <button
+                    hx-post="/onboarding/dismiss"
+                    hx-target="#onboarding-banner"
+                    hx-swap="outerHTML"
+                    style="background: none; border: 1px solid rgba(52,211,153,0.4); border-radius: 6px; color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 0.8rem; padding: 6px 12px;">
+                    Dismiss
+                </button>
+            </div>
+            {% endif %}
+
             <!-- Hero search box -->
             <div class="hero-search">
                 <h1>What do you need to know about SF permits?</h1>

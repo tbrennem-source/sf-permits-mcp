@@ -341,14 +341,14 @@
             {% endif %}
 
             {% if brief.summary.total_watches == 0 and not brief.property_synopsis %}
-            <!-- Onboarding: no watches yet -->
-            <div class="section onboarding">
-                <h2>Your morning brief is ready to go</h2>
+            <!-- SESSION E: Empty state — no watches yet -->
+            <div class="section onboarding" id="brief-empty-state">
+                <h2>No morning brief yet</h2>
                 <p>
-                    Start watching permits, addresses, or neighborhoods and you'll see
-                    status changes, inspection results, and health alerts right here every morning.
+                    Add your first property watch to start receiving daily permit status updates,
+                    inspection results, and enforcement alerts.
                 </p>
-                <a href="/" class="btn">Search permits to start watching</a>
+                <a href="/search" class="btn">Search for a property &rarr;</a>
             </div>
             {% elif brief.summary.total_watches > 0 or brief.property_synopsis %}
 

@@ -994,12 +994,16 @@ def public_search():
             result_html="",
         )
 
+    # E3: Check for violation context
+    violation_context = request.args.get("context") == "violation"
+
     return render_template(
         "search_results_public.html",
         query=query_str,
         result_html=result_html,
         no_results=no_results,
         error=None,
+        violation_context=violation_context,
     )
 
 
@@ -3522,6 +3526,20 @@ def auth_verify(token):
     session["is_admin"] = user["is_admin"]
     session.pop("impersonating", None)
     session.pop("admin_user_id", None)
+
+    # SESSION E: First-login detection — set flag if user just created their account
+    # email_verified was False before verify_magic_token flipped it to True,
+    # so if it's now True but was previously unverified, this is first login.
+    # We use a simpler proxy: check if there are no watches yet.
+    # We use a session flag cleared on dismiss.
+    if not session.get("onboarding_dismissed"):
+        try:
+            from web.auth import get_watches
+            watches = get_watches(user["user_id"])
+            if not watches:
+                session["show_onboarding_banner"] = True
+        except Exception:
+            pass
 
     return redirect(url_for("index"))
 
@@ -6631,6 +6649,260 @@ def admin_pipeline():
 
 
 # === END SESSION C: PIPELINE HEALTH ===
+
+
+# === SESSION E: HOMEOWNER FUNNEL + ONBOARDING ===
+
+
+# SF neighborhoods list for the preview form
+_SF_NEIGHBORHOODS = [
+    "Mission", "Noe Valley", "Castro/Upper Market", "Bernal Heights",
+    "Pacific Heights", "Richmond", "Sunset", "SoMa", "Potrero Hill",
+    "Haight Ashbury", "Marina", "North Beach", "Chinatown", "Tenderloin",
+    "Bayview Hunters Point", "Excelsior", "Glen Park", "Visitacion Valley",
+    "Outer Sunset",
+]
+
+# Kitchen/bath trigger words — used to detect layout-decision fork
+_KITCHEN_BATH_KEYWORDS = [
+    "kitchen", "bath", "bathroom", "remodel", "renovate", "renovation",
+    "sink", "toilet", "shower", "plumbing", "range", "cooktop", "island",
+]
+
+
+def _detect_kitchen_bath(description: str) -> bool:
+    """Return True if the project description looks like a kitchen or bath remodel."""
+    desc_lower = description.lower()
+    return any(kw in desc_lower for kw in _KITCHEN_BATH_KEYWORDS)
+
+
+def _parse_preview_predict(pred_md: str) -> dict:
+    """Extract structured data from predict_permits markdown output."""
+    text = pred_md.lower()
+    is_otc = "otc" in text and "in-house" not in text[:text.find("otc") + 20] if "otc" in text else False
+    # More reliable: check explicit path descriptions
+    if "over-the-counter" in text or "over the counter" in text:
+        is_otc = True
+    if "in-house review" in text or "in-house" in text:
+        is_otc = False
+
+    # Extract form
+    form = None
+    if "form 3/8" in text or "form 3" in text:
+        form = "Form 3/8"
+    elif "form 8" in text:
+        form = "Form 8"
+    elif "form 1/2" in text or "form 1" in text:
+        form = "Form 1/2"
+    elif "form 6" in text:
+        form = "Form 6"
+
+    # Extract review reason (first line after "Review Path" or just take first sentence)
+    review_reason = ""
+    lines = pred_md.split("\n")
+    for line in lines:
+        stripped = line.strip().lstrip("#- ").strip()
+        if stripped and len(stripped) > 20 and "review" in stripped.lower():
+            review_reason = stripped[:200]
+            break
+    if not review_reason:
+        # Take the first substantive non-header line
+        for line in lines:
+            stripped = line.strip().lstrip("#- *").strip()
+            if stripped and len(stripped) > 30:
+                review_reason = stripped[:200]
+                break
+
+    # Extract project type
+    project_type = "general alteration"
+    ptype_map = {
+        "kitchen": "kitchen remodel", "bath": "bathroom remodel",
+        "adu": "ADU", "restaurant": "restaurant", "solar": "solar installation",
+        "seismic": "seismic retrofit", "new construction": "new construction",
+        "demolition": "demolition",
+    }
+    for kw, label in ptype_map.items():
+        if kw in text:
+            project_type = label
+            break
+
+    return {
+        "is_otc": is_otc,
+        "review_reason": review_reason or ("OTC — simple scope" if is_otc else "In-house review required"),
+        "form": form,
+        "project_type": project_type,
+        "raw": pred_md,
+    }
+
+
+def _parse_preview_timeline(tl_md: str) -> dict:
+    """Extract structured data from estimate_timeline markdown output."""
+    import re
+    text = tl_md
+
+    # Look for p50 (median) estimate — typical format "P50: X weeks" or "X weeks"
+    p50_display = "See full analysis"
+    detail = ""
+    range_str = ""
+
+    # Try to extract weeks/months/days patterns
+    week_match = re.search(r"p50[:\s]+(\d+)\s*(day|week|month)", text, re.IGNORECASE)
+    if not week_match:
+        week_match = re.search(r"median[:\s]+(\d+)\s*(day|week|month)", text, re.IGNORECASE)
+
+    if week_match:
+        num = int(week_match.group(1))
+        unit = week_match.group(2).lower()
+        p50_display = f"{num} {unit}{'s' if num != 1 else ''}"
+    else:
+        # Look for range like "3–6 weeks" or "2-3 months"
+        range_match = re.search(r"(\d+)\s*[–\-]\s*(\d+)\s*(day|week|month)", text, re.IGNORECASE)
+        if range_match:
+            lo, hi = range_match.group(1), range_match.group(2)
+            unit = range_match.group(3).lower()
+            p50_display = f"{lo}–{hi} {unit}s"
+
+    # Extract a detail sentence
+    lines = tl_md.split("\n")
+    for line in lines:
+        stripped = line.strip().lstrip("#- *").strip()
+        if stripped and len(stripped) > 30 and not stripped.startswith("P"):
+            detail = stripped[:200]
+            break
+
+    # Try to get P25/P75 range
+    p25_match = re.search(r"p25[:\s]+(\d+)\s*(day|week|month)", text, re.IGNORECASE)
+    p75_match = re.search(r"p75[:\s]+(\d+)\s*(day|week|month)", text, re.IGNORECASE)
+    if p25_match and p75_match:
+        range_str = f"{p25_match.group(1)} {p25_match.group(2)}s – {p75_match.group(1)} {p75_match.group(2)}s"
+
+    return {
+        "p50_display": p50_display,
+        "detail": detail or "Based on historical SF permit data",
+        "range": range_str,
+        "raw": tl_md,
+    }
+
+
+@app.route("/analyze-preview", methods=["POST"])
+def analyze_preview():
+    """Unauthenticated permit preview — runs predict_permits + estimate_timeline only.
+
+    No login required. Shows 2 of 5 tools; fees/docs/risk are locked cards.
+    """
+    description = request.form.get("description", "").strip()
+    neighborhood = request.form.get("neighborhood", "").strip() or None
+
+    if not description:
+        return redirect(url_for("index"))
+
+    # Rate limit: 10 per minute per IP (same as /analyze)
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    if ip:
+        ip = ip.split(",")[0].strip()
+    if _is_rate_limited(ip, RATE_LIMIT_MAX_ANALYZE):
+        return render_template(
+            "analyze_preview.html",
+            description=description,
+            neighborhood=neighborhood,
+            predict=None,
+            timeline=None,
+            fork=False,
+            error="Too many requests. Please wait a minute and try again.",
+        ), 429
+
+    predict_data = None
+    timeline_data = None
+    error = None
+    fork = _detect_kitchen_bath(description)
+
+    try:
+        pred_md = run_async(predict_permits(
+            project_description=description,
+            address=None,
+            estimated_cost=None,
+            square_footage=None,
+        ))
+        predict_data = _parse_preview_predict(pred_md)
+    except Exception as e:
+        logging.warning("analyze_preview predict failed: %s", e)
+        error = "Could not generate permit prediction. Please try again."
+
+    try:
+        # Determine permit_type and review_path from prediction
+        _permit_type = "alterations"
+        _review_path = None
+        if predict_data:
+            if predict_data["is_otc"]:
+                _review_path = "otc"
+            if "new construction" in predict_data.get("project_type", ""):
+                _permit_type = "new_construction"
+
+        tl_md = run_async(estimate_timeline(
+            permit_type=_permit_type,
+            neighborhood=neighborhood,
+            review_path=_review_path,
+        ))
+        timeline_data = _parse_preview_timeline(tl_md)
+    except Exception as e:
+        logging.warning("analyze_preview timeline failed: %s", e)
+        if not error:
+            error = "Could not generate timeline estimate."
+
+    return render_template(
+        "analyze_preview.html",
+        description=description,
+        neighborhood=neighborhood,
+        predict=predict_data,
+        timeline=timeline_data,
+        fork=fork,
+        error=error,
+    )
+
+
+# E3: Violation-context search — handled via ?context=violation on /search
+# The public_search route already passes context to the template;
+# the template shows violations/complaints first when context=violation.
+# We intercept here to inject the context flag into the template.
+
+# Monkey-patch the public_search route to support context=violation
+# (We cannot re-register the route, so we augment via before_request)
+@app.before_request
+def _inject_violation_context():
+    """When context=violation, set flag for template to prioritize enforcement."""
+    g.violation_context = request.args.get("context") == "violation"
+
+
+# E4: First-login welcome banner dismiss
+@app.route("/onboarding/dismiss", methods=["POST"])
+def onboarding_dismiss():
+    """Dismiss the first-login welcome banner. HTMX endpoint.
+
+    Returns empty string — hx-swap='outerHTML' removes the banner div.
+    """
+    session.pop("show_onboarding_banner", None)
+    session["onboarding_dismissed"] = True
+    return ""  # Empty response removes the banner via hx-swap="outerHTML"
+
+
+# E6: Watch count for brief prompt
+@app.route("/watch/brief-prompt")
+@login_required
+def watch_brief_prompt():
+    """Return watch-count-aware brief prompt fragment. Called after watch add."""
+    from web.auth import get_watches
+    watches = get_watches(g.user["user_id"])
+    count = len([w for w in watches if w.get("is_active", True)])
+    brief_freq = g.user.get("brief_frequency", "none")
+    already_enabled = brief_freq and brief_freq != "none"
+    return render_template(
+        "fragments/brief_prompt.html",
+        watch_count=count,
+        already_enabled=already_enabled,
+    )
+
+
+# === END SESSION E: HOMEOWNER FUNNEL + ONBOARDING ===
 
 
 if __name__ == "__main__":

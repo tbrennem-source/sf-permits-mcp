@@ -8,3 +8,8 @@
         &#10005;
     </button>
 </span>
+{# SESSION E: Lazy-load brief prompt after watch is added #}
+<div hx-get="/watch/brief-prompt"
+     hx-trigger="load"
+     hx-swap="outerHTML">
+</div>

@@ -1,0 +1,23 @@
+{# SESSION E: Watch-count-aware brief prompt fragment
+   Rendered by /watch/brief-prompt after a watch is added.
+   watch_count: int — total active watches
+   already_enabled: bool — whether brief_frequency != 'none'
+#}
+{% if not already_enabled %}
+  {% if watch_count >= 3 %}
+  <div id="brief-prompt" style="background: rgba(79,143,247,0.1); border: 1px solid rgba(79,143,247,0.35); border-radius: 10px; padding: 14px 18px; margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <div>
+      <strong>You're tracking {{ watch_count }} properties.</strong>
+      <span style="color: var(--text-muted); font-size: 0.88rem; display: block; margin-top: 2px;">Morning brief summarizes all of them — one email, everything that changed.</span>
+    </div>
+    <a href="/account#brief-settings" style="background: var(--accent); color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+      Enable brief &rarr;
+    </a>
+  </div>
+  {% elif watch_count == 1 %}
+  <div id="brief-prompt" style="background: rgba(79,143,247,0.07); border: 1px solid rgba(79,143,247,0.25); border-radius: 10px; padding: 12px 16px; margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <span style="color: var(--text-muted); font-size: 0.88rem;">Want daily updates? <strong style="color: var(--text);">Enable your morning brief</strong> to get emailed when this permit changes.</span>
+    <a href="/account#brief-settings" style="color: var(--accent); font-size: 0.85rem; font-weight: 600; text-decoration: none; white-space: nowrap;">Enable &rarr;</a>
+  </div>
+  {% endif %}
+{% endif %}

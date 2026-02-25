@@ -1137,3 +1137,53 @@ _Last reviewed: never_
 **Edge cases seen in code:** JOIN is on block/lot — planning records with NULL block/lot are excluded; some parcels have multiple open planning cases
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Homeowner gets instant permit preview without signing up
+**Source:** web/app.py — /analyze-preview route, templates/landing.html
+**User:** homeowner
+**Starting state:** Unauthenticated user visits landing page with a remodel project in mind
+**Goal:** Understand what permits are needed and how long it will take before committing to sign up
+**Expected outcome:** User fills in project description, submits, sees review path (OTC vs in-house) and timeline estimate; three additional cards (fees, documents, risk) are shown locked with "Sign up free to unlock" CTA; no login required
+**Edge cases seen in code:** Empty description redirects back to home; rate limit applies (10/min per IP); neighborhood is optional
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Kitchen remodel sees layout decision fork
+**Source:** web/app.py — _detect_kitchen_bath(), analyze_preview route
+**User:** homeowner
+**Starting state:** Unauthenticated user on the preview page describes a kitchen remodel
+**Goal:** Understand how fixture layout choice affects permit path and timeline
+**Expected outcome:** Page shows a side-by-side fork comparison: "Keep existing layout → OTC, ~3-4 weeks" vs "Change layout → In-house, ~3-6 months"; decision is clearly tied to whether plumbing/gas lines move
+**Edge cases seen in code:** Detection is keyword-based (kitchen, bath, sink, toilet, shower, etc.); non-kitchen projects do not show the fork
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property owner with a Notice of Violation looks up their address
+**Source:** web/app.py — public_search route, templates/search_results_public.html
+**User:** homeowner
+**Starting state:** Unauthenticated user received a NOV and arrives at the landing page via "Got a Notice of Violation?" CTA
+**Goal:** Look up their property to see enforcement data
+**Expected outcome:** Search results page shows a "Violation Lookup Mode" banner at the top; enforcement-related data is visibly highlighted; upsell to sign up for full complaint history and remediation steps
+**Edge cases seen in code:** context=violation is a GET param; authenticated users are redirected to full search before template renders
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: New user sees welcome banner on first login
+**Source:** web/app.py — auth_verify route, templates/index.html
+**User:** homeowner | expediter
+**Starting state:** User has just verified their magic link for the first time and has no watches yet
+**Goal:** Understand where to start
+**Expected outcome:** A dismissable welcome banner appears at the top of the home page saying "Welcome to sfpermits.ai! Start by searching an address or describing your project."; clicking Dismiss removes the banner permanently for this session
+**Edge cases seen in code:** Banner only shows when show_onboarding_banner is in session AND onboarding_dismissed is not set; users with existing watches don't see it
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: User with 3+ watches gets brief enable prompt after adding a watch
+**Source:** web/app.py — watch_add route, watch_brief_prompt, templates/fragments/brief_prompt.html
+**User:** expediter | homeowner
+**Starting state:** User has 2 watches and adds a third; brief_frequency is 'none'
+**Goal:** Get reminded to enable the morning brief now that they have multiple properties tracked
+**Expected outcome:** After watch is confirmed, a stronger prompt appears: "You're tracking 3 properties. Morning brief summarizes all of them." with an "Enable brief" link to account settings; users who already have brief enabled never see the prompt
+**Edge cases seen in code:** Prompt is lazy-loaded via HTMX after watch confirmation; 1-watch shows soft prompt, 3+ shows strong prompt; prompt absent when already_enabled=True
+**CC confidence:** medium
+**Status:** PENDING REVIEW
