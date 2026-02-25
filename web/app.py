@@ -6122,21 +6122,79 @@ def cron_backup():
 
 # === SPRINT 54C: DATA INGEST EXPANSION ===
 
+
+class _PgConnWrapper:
+    """Thin wrapper making psycopg2 connections usable by DuckDB-style ingest code.
+
+    Translates conn.execute(sql, params) and conn.executemany(sql, batch)
+    into cursor-based calls, and converts ? placeholders to %s for Postgres.
+    """
+
+    def __init__(self, pg_conn):
+        self._conn = pg_conn
+        self._conn.autocommit = False
+
+    @staticmethod
+    def _translate_sql(sql):
+        """Convert DuckDB SQL to Postgres-compatible SQL."""
+        sql = sql.replace("?", "%s")
+        # INSERT OR REPLACE INTO ingest_log → INSERT ... ON CONFLICT (PK) DO UPDATE
+        if "INSERT OR REPLACE INTO ingest_log" in sql:
+            sql = sql.replace(
+                "INSERT OR REPLACE INTO ingest_log VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO ingest_log VALUES (%s, %s, %s, %s, %s) "
+                "ON CONFLICT (dataset_id) DO UPDATE SET "
+                "dataset_name=EXCLUDED.dataset_name, last_fetched=EXCLUDED.last_fetched, "
+                "records_fetched=EXCLUDED.records_fetched, last_record_count=EXCLUDED.last_record_count",
+            )
+        else:
+            sql = sql.replace("INSERT OR REPLACE INTO", "INSERT INTO")
+        return sql
+
+    def execute(self, sql, params=None):
+        sql = self._translate_sql(sql)
+        with self._conn.cursor() as cur:
+            cur.execute(sql, params)
+            return cur
+
+    def executemany(self, sql, batch):
+        sql = self._translate_sql(sql)
+        import psycopg2.extras
+        with self._conn.cursor() as cur:
+            psycopg2.extras.execute_batch(cur, sql, batch, page_size=5000)
+
+    def commit(self):
+        self._conn.commit()
+
+    def close(self):
+        self._conn.close()
+
+
+def _get_ingest_conn():
+    """Get a connection suitable for SODA ingest (works on both DuckDB and Postgres)."""
+    from src.db import get_connection, BACKEND, init_schema
+    conn = get_connection()
+    if BACKEND == "postgres":
+        return _PgConnWrapper(conn)
+    else:
+        init_schema(conn)
+        return conn
+
+
 @app.route("/cron/ingest-boiler", methods=["POST"])
 def cron_ingest_boiler():
     """Ingest boiler permits from SODA API. CRON_SECRET auth."""
     _check_api_auth()
     from src.ingest import ingest_boiler_permits
     from src.soda_client import SODAClient
-    from src.db import get_connection, init_schema
     import time
 
     start = time.time()
-    conn = get_connection()
-    init_schema(conn)
+    conn = _get_ingest_conn()
     client = SODAClient()
     try:
         count = run_async(ingest_boiler_permits(conn, client))
+        conn.commit()
     finally:
         run_async(client.close())
         conn.close()
@@ -6150,15 +6208,14 @@ def cron_ingest_fire():
     _check_api_auth()
     from src.ingest import ingest_fire_permits
     from src.soda_client import SODAClient
-    from src.db import get_connection, init_schema
     import time
 
     start = time.time()
-    conn = get_connection()
-    init_schema(conn)
+    conn = _get_ingest_conn()
     client = SODAClient()
     try:
         count = run_async(ingest_fire_permits(conn, client))
+        conn.commit()
     finally:
         run_async(client.close())
         conn.close()
@@ -6172,15 +6229,14 @@ def cron_ingest_planning():
     _check_api_auth()
     from src.ingest import ingest_planning_records
     from src.soda_client import SODAClient
-    from src.db import get_connection, init_schema
     import time
 
     start = time.time()
-    conn = get_connection()
-    init_schema(conn)
+    conn = _get_ingest_conn()
     client = SODAClient()
     try:
         count = run_async(ingest_planning_records(conn, client))
+        conn.commit()
     finally:
         run_async(client.close())
         conn.close()
@@ -6194,15 +6250,14 @@ def cron_ingest_tax_rolls():
     _check_api_auth()
     from src.ingest import ingest_tax_rolls
     from src.soda_client import SODAClient
-    from src.db import get_connection, init_schema
     import time
 
     start = time.time()
-    conn = get_connection()
-    init_schema(conn)
+    conn = _get_ingest_conn()
     client = SODAClient()
     try:
         count = run_async(ingest_tax_rolls(conn, client))
+        conn.commit()
     finally:
         run_async(client.close())
         conn.close()
