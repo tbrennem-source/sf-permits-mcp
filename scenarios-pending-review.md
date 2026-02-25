@@ -1177,3 +1177,13 @@ _Last reviewed: never_
 **Edge cases seen in code:** Roles column only populated for entities with 2+ distinct roles; single-role entities have NULL roles field; ALTER TABLE adds column if not exists (safe re-run)
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Neighborhood backfill enables trade permit timeline estimates by neighborhood
+**Source:** Sprint 57.0 — neighborhood backfill migration (run_prod_migrations.py)
+**User:** homeowner | architect
+**Starting state:** A homeowner searches for timeline estimates in a specific neighborhood; trade permits previously had NULL neighborhoods and were excluded from neighborhood-filtered queries
+**Goal:** Get timeline estimates that reflect the full permit history for a neighborhood, including the 782K trade permits that now have neighborhood data
+**Expected outcome:** estimate_timeline for a specific neighborhood includes trade permit data in its sample; sample sizes increase for neighborhoods with high trade activity; neighborhood filter no longer drops trade permits from results
+**Edge cases seen in code:** Self-join backfill uses MODE(neighborhood) when a block/lot appears in multiple neighborhoods; 68K permits remain with NULL neighborhood (no block/lot match); prod uses tax_rolls table instead of self-join
+**CC confidence:** high
+**Status:** PENDING REVIEW

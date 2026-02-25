@@ -58,6 +58,34 @@ The spec's consolidation targets were not achievable with the current data:
 
 ---
 
+## BLOCKED Items — 3-Attempt Documentation
+
+### BLOCKED: Electrical entity count target (< 12,000)
+
+**Attempt 1 — License normalization:** Added `_normalize_license()` to strip leading zeros and normalize prefixes (C-10→C10). Found 192 licenses with leading zeros. Result: 14,180 → 14,179 entities (1 entity merged). The 14,181 distinct CSLB license numbers are the hard floor.
+
+**Attempt 2 — Cross-source name matching (Step 2.5):** Added matching for same name + same permit across sources. Result: 0 new matches. All cross-source contacts were already resolved by license_number in Step 2 (12,779 licenses appear across multiple sources and are already merged).
+
+**Attempt 3 — Fuzzy name matching with lower threshold:** Reduced trade contact fuzzy threshold from 0.75 to 0.67 and applied name normalization (UPPER, strip punctuation). Result: 18 fuzzy entities created from 27 remaining contacts. The 14,179 electrical entities with distinct license numbers are not reachable by fuzzy matching — they ARE different contractors.
+
+**Why blocked:** 14,181 distinct CSLB license numbers = 14,179 entities. Each license IS a distinct contractor. Merging different licenses would create false positives. The 24x contact-to-entity ratio (339,926 contacts → 14,179 entities) shows consolidation IS working — each contractor has ~24 permits.
+
+### BLOCKED: Plumbing entity count target (< 14,000)
+
+Same 3 attempts as electrical. 16,733 distinct license numbers = entity floor. 30x dedup ratio (502,534 → 16,925) confirms correct behavior.
+
+### BLOCKED: Architect singleton rate target (< 90%)
+
+**Attempt 1 — License normalization:** Architects have 0 license numbers in contacts data. No data to normalize.
+
+**Attempt 2 — Cross-source matching:** Architects appear only in `building` source. No cross-source data to match.
+
+**Attempt 3 — Fuzzy name matching:** All 94,795 architect contacts have unique pts_agent_ids (row-level identifiers assigned in Step 1 before fuzzy matching). By Step 4, all architects are already resolved. The MAX_BLOCK_SIZE=500 limit on fuzzy matching also caps the block size for common name prefixes.
+
+**Why blocked:** pts_agent_id is a per-row identifier in the DBI building contacts data export — not a person identifier. Each of the 1,004,592 building contacts (including architects) gets its own unique pts_agent_id. Without external data (e.g., architect license lookup from California Architects Board), there is no identifier to merge on.
+
+---
+
 ## Screenshots
 
 CLI-only sprint — no browser checks needed. Screenshots directory created at qa-results/screenshots/sprint57.0/ for compliance.
