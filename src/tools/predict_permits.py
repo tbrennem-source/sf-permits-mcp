@@ -391,6 +391,79 @@ async def predict_permits(
     agency_routing = _determine_agency_routing(project_types, kb)
     special_requirements = _determine_special_requirements(project_types, estimated_cost, kb)
 
+    # Database-backed zoning routing (supplements knowledge base)
+    zoning_info = None
+    if address:
+        try:
+            from src.db import get_connection, BACKEND
+            conn = get_connection()
+            try:
+                _ph = "%s" if BACKEND == "postgres" else "?"
+                # Parse address into street number + name
+                addr_parts = address.strip().split()
+                street_num = addr_parts[0] if addr_parts else None
+                street_name_part = addr_parts[1] if len(addr_parts) > 1 else None
+
+                if street_num and street_name_part:
+                    if BACKEND == "postgres":
+                        with conn.cursor() as cur:
+                            cur.execute(
+                                f"SELECT block, lot FROM permits"
+                                f" WHERE street_number = {_ph}"
+                                f"   AND UPPER(street_name) LIKE UPPER({_ph})"
+                                f" LIMIT 1",
+                                [street_num, f"%{street_name_part}%"],
+                            )
+                            bl = cur.fetchone()
+                            if bl:
+                                cur.execute(
+                                    f"SELECT zoning_code FROM tax_rolls"
+                                    f" WHERE block = {_ph} AND lot = {_ph}"
+                                    f" ORDER BY tax_year DESC LIMIT 1",
+                                    [bl[0], bl[1]],
+                                )
+                                zr = cur.fetchone()
+                                if zr:
+                                    cur.execute(
+                                        f"SELECT zoning_code, zoning_category,"
+                                        f"       planning_review_required,"
+                                        f"       fire_review_required,"
+                                        f"       health_review_required"
+                                        f" FROM ref_zoning_routing"
+                                        f" WHERE zoning_code = {_ph}",
+                                        [zr[0]],
+                                    )
+                                    zoning_info = cur.fetchone()
+                    else:
+                        bl = conn.execute(
+                            f"SELECT block, lot FROM permits"
+                            f" WHERE street_number = {_ph}"
+                            f"   AND UPPER(street_name) LIKE UPPER({_ph})"
+                            f" LIMIT 1",
+                            [street_num, f"%{street_name_part}%"],
+                        ).fetchone()
+                        if bl:
+                            zr = conn.execute(
+                                f"SELECT zoning_code FROM tax_rolls"
+                                f" WHERE block = {_ph} AND lot = {_ph}"
+                                f" ORDER BY tax_year DESC LIMIT 1",
+                                [bl[0], bl[1]],
+                            ).fetchone()
+                            if zr:
+                                zoning_info = conn.execute(
+                                    f"SELECT zoning_code, zoning_category,"
+                                    f"       planning_review_required,"
+                                    f"       fire_review_required,"
+                                    f"       health_review_required"
+                                    f" FROM ref_zoning_routing"
+                                    f" WHERE zoning_code = {_ph}",
+                                    [zr[0]],
+                                ).fetchone()
+            finally:
+                conn.close()
+        except Exception:
+            pass  # Graceful fallback — zoning_info stays None
+
     # Build result
     result = {
         "project_description": project_description,
@@ -451,6 +524,22 @@ async def predict_permits(
     for a in agency_routing:
         status = "Required" if a.get("required") else "Conditional"
         lines.append(f"- **{a['agency']}** ({status}): {a['reason']}")
+
+    # Zoning context (from database lookup)
+    if zoning_info:
+        zoning_code, zoning_category, planning_req, fire_req, health_req = zoning_info
+        lines.append(f"\n## Zoning Context\n")
+        lines.append(f"*Resolved from local tax records and reference tables.*\n")
+        if zoning_code:
+            lines.append(f"- **Zoning Code:** {zoning_code}")
+        if zoning_category:
+            lines.append(f"- **Category:** {zoning_category}")
+        if planning_req:
+            lines.append(f"- **Planning Review:** Required (confirmed by zoning code)")
+        if fire_req:
+            lines.append(f"- **Fire Review:** Required (confirmed by zoning code)")
+        if health_req:
+            lines.append(f"- **Health Review:** Required (confirmed by zoning code)")
 
     if special_requirements:
         lines.append(f"\n## Special Requirements\n")
