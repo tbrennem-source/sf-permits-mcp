@@ -1,5 +1,75 @@
 # Changelog
 
+## Sprint 55 — Full Dataset Coverage + MCP Tool Enrichment (2026-02-25)
+
+Completed ingestion of all 22 cataloged SODA datasets (7 new tables), seeded 3 reference tables for routing-aware permit prediction, and wired all new data into the MCP tools that users rely on most. Morning brief gains planning context and a compliance calendar. Nightly pipeline expands to monitor planning record changes and boiler permits.
+
+### New Datasets Ingested (Agents A + D)
+
+- **Electrical Permits** (`ftty-kx6y`, ~343K records) — written to existing `permits` table via existing normalize/ingest functions
+- **Plumbing Permits** (`a6aw-rudh`, ~512K records) — written to existing `permits` table via existing normalize/ingest functions
+- **Street Use Permits** (`b6tj-gt35`, ~1.2M records) — new `street_use_permits` table; streaming batch flush (50K rows) to prevent OOM
+- **Development Pipeline** (`7yuu-jeji`, ~7K records) — new `development_pipeline` table; `bpa_no` primary key with `case_no` fallback
+- **Affordable Housing** (`ajayi-4sr4`, ~194 records) — new `affordable_housing` table; handles SODA field name typos
+- **Housing Production** (`fwyv-28sb`, ~10K records) — new `housing_production` table
+- **Dwelling Completions** (`7nkg-hber`, ~1K records) — new `dwelling_completions` table; no `data_as_of` field in SODA response
+
+### New Cron Endpoints (Agent A)
+
+- `POST /cron/ingest-electrical` — electrical permits into permits table
+- `POST /cron/ingest-plumbing` — plumbing permits into permits table
+- `POST /cron/ingest-street-use` — street use permits (streaming, 1.2M rows)
+- `POST /cron/ingest-development-pipeline` — development pipeline records
+- `POST /cron/ingest-affordable-housing` — affordable housing records
+- `POST /cron/ingest-housing-production` — housing production data
+- `POST /cron/ingest-dwelling-completions` — dwelling completion statistics
+
+### Reference Tables (Agent B)
+
+- **`ref_zoning_routing`** — 29 SF zoning codes mapped to required review agencies (e.g. RC-4 → Planning + SFFD; RH-1 → DBI only for interior work)
+- **`ref_permit_forms`** — 28 project types mapped to required permit forms and estimated fees
+- **`ref_agency_triggers`** — 38 routing keywords triggering specific agency review (e.g. "restaurant" → DBI + Planning + SFFD + DPH + DBI Mechanical/Electrical)
+- Seed script: `scripts/seed_reference_tables.py` (idempotent — uses INSERT OR REPLACE / ON CONFLICT DO UPDATE)
+- Migration entry + `POST /cron/seed-references` endpoint
+
+### MCP Tools Enriched (Agent C)
+
+- **`permit_lookup`** — now surfaces planning records (CUA, variances, conditional uses) for the queried parcel; also shows boiler permits and development pipeline entries
+- **`property_lookup`** — local `tax_rolls` DB fallback skips SODA API when local data exists (faster, no network dependency)
+- **`predict_permits`** — `ref_zoning_routing` lookup adds zoning-aware agency routing when a parcel's zoning code is known
+
+### Morning Brief Enriched (Agent D)
+
+- **`_get_planning_context()`** — queries planning records for all watched parcels; surfaces recent CUA/variance filings and assigned planners
+- **`_get_compliance_calendar()`** — identifies boiler permits expiring within 90 days; surfaces renewal deadlines proactively
+- **`_get_data_quality()`** — cross-reference match rates (boiler↔permits, planning↔permits) reported in morning brief for data health visibility
+
+### Nightly Pipeline Expanded (Agent D + E)
+
+- **Planning monitoring** — fetches latest planning record updates from SODA and writes changes to `permit_changes` table
+- **Boiler monitoring** — fetches boiler permit updates from SODA and writes changes to `permit_changes` table
+- **Electrical/plumbing refresh** — added to `nightly-cron.yml` GitHub Actions steps
+- **Stuck cron auto-close** — open `cron_log` entries from prior sessions are closed at the start of every `/cron/nightly` run (prevents phantom "running" entries)
+- **Inspections UNIQUE constraint** — migration ensures `(permit_number, sequence)` uniqueness in the inspections table
+
+### Signal Pipeline (Agent E)
+
+- Signal pipeline verified working; no new code needed — existing pipeline handles all new datasets correctly
+
+### Schema Changes
+
+- 5 new tables: `street_use_permits`, `development_pipeline`, `affordable_housing`, `housing_production`, `dwelling_completions`
+- 3 new ref tables: `ref_zoning_routing`, `ref_permit_forms`, `ref_agency_triggers`
+- Electrical and plumbing permits flow into existing `permits` table (existing schema, no DDL changes)
+- Inspections UNIQUE constraint migration added to prevent duplicate rows
+
+### Tests
+
+- 81 new tests (Agent A), 21 new tests (Agent B), 30 new tests (Agent D), 17 new tests (Agent E), 30 new tests (Agent C)
+- **Total: 1964 passed, 20 skipped** (was 1820 at sprint start — +144 new tests)
+
+---
+
 ## Sprint 54C — Data Ingest Expansion (2026-02-24)
 
 Added 4 new SODA datasets (~718K records) unlocking planning entitlement data, zoning codes, fire permit signals, and complete DBI 4-permit coverage.

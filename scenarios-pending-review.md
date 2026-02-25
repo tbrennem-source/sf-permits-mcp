@@ -1047,3 +1047,93 @@ _Last reviewed: never_
 **Edge cases seen in code:** restaurant keyword appears in triggers for 5 different agencies; DPH must approve before permit issuance per G-20 Rule C
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Electrical permit surfaces in permit search results
+**Source:** Sprint 55A — electrical/plumbing ingest into permits table
+**User:** expediter
+**Starting state:** Electrical permits from SODA (`ftty-kx6y`) have been ingested into the permits table
+**Goal:** Search for electrical permits at a known address and see trade permits alongside building permits
+**Expected outcome:** permit_lookup and search_permits return electrical permits with permit_type_definition indicating "electrical"; results appear in the same permit table results as building permits without any special filter required
+**Edge cases seen in code:** Electrical permits use the same permits table — no separate endpoint; permit_type_definition differentiates trade type
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Plumbing permit surfaces in permit search results
+**Source:** Sprint 55A — plumbing ingest into permits table
+**User:** expediter
+**Starting state:** Plumbing permits from SODA (`a6aw-rudh`) have been ingested into the permits table
+**Goal:** Search for plumbing permits at a known address and confirm trade permits appear
+**Expected outcome:** search_permits returns plumbing permits with permit_type_definition indicating "plumbing"; all 512K plumbing records are queryable through the same permit search interface
+**Edge cases seen in code:** Same permits table as building and electrical — no schema distinction, only permit_type_definition differs
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property lookup returns instant local tax data without SODA call
+**Source:** Sprint 55C — property_lookup local tax_rolls DB fallback
+**User:** expediter | homeowner
+**Starting state:** tax_rolls table is populated for a known block/lot (e.g., 3512/001); SODA API is unreachable
+**Goal:** Look up property characteristics (zoning code, lot area, assessed value) for a parcel
+**Expected outcome:** property_lookup returns zoning_code, number_of_units, lot_area, and assessed values from local tax_rolls DB; response is instant (no SODA round-trip); response includes "source: local" or equivalent indicator
+**Edge cases seen in code:** Fallback only triggers when local data exists; missing block/lot causes SODA fallback; composite PK (block, lot, tax_year) requires latest-year filter
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Morning brief shows planning context for watched parcels
+**Source:** Sprint 55D — _get_planning_context() in web/brief.py
+**User:** admin
+**Starting state:** User has watch items for one or more parcels; planning_records table has CUA or variance records for those block/lots
+**Goal:** Open morning brief and see active planning entitlements alongside building permit activity
+**Expected outcome:** Morning brief includes a planning_context section showing record_type, record_status, assigned_planner for each watched parcel that has a planning record; parcels without planning records do not appear in this section
+**Edge cases seen in code:** Some planning records have NULL block/lot — those cannot be joined to watch items; projects vs non-projects have different field completeness
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Compliance calendar surfaces expiring boiler permits in morning brief
+**Source:** Sprint 55D — _get_compliance_calendar() in web/brief.py
+**User:** admin
+**Starting state:** boiler_permits table has records with expiration dates within 90 days of today; user has watched parcels that include those addresses
+**Goal:** Morning brief proactively surfaces boiler permit renewals needed within the next 90 days
+**Expected outcome:** Morning brief compliance_calendar section lists property address, permit number, expiration date, and days remaining for each expiring boiler permit; items are sorted by days remaining (soonest first)
+**Edge cases seen in code:** 90-day window is the threshold; boiler permits do not have block/lot — address matching is required; parcels without expiring boilers do not appear in this section
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Morning brief data quality section shows cross-reference match rates
+**Source:** Sprint 55D — _get_data_quality() in web/brief.py
+**User:** admin
+**Starting state:** boiler_permits, planning_records, and permits tables are all populated
+**Goal:** Admin checks morning brief to see if the database cross-reference health is acceptable
+**Expected outcome:** Morning brief data_quality section shows boiler↔permits match rate and planning↔permits match rate as percentages; rates below 5% trigger a warning indicator; rates above 5% show green/ok status
+**Edge cases seen in code:** Match rates computed via block/lot join; new ingest can temporarily lower rates before full load completes
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Nightly detects planning record status change for watched parcel
+**Source:** Sprint 55D — planning monitoring in scripts/nightly_changes.py
+**User:** admin
+**Starting state:** A planning record for a watched parcel changes status from "filed" to "approved" in SODA
+**Goal:** Next morning brief email includes notification of the planning status change
+**Expected outcome:** Nightly cron fetches latest planning records from SODA, compares to stored state, writes a row to permit_changes with change_type "planning_status_change", field_name "record_status", old_value "filed", new_value "approved"; morning brief includes the change
+**Edge cases seen in code:** Planning records use planning_case_number as the stable identifier; some status fields may be null in SODA responses (handled as empty string)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Reference table seed is idempotent on repeated calls
+**Source:** Sprint 55B — scripts/seed_reference_tables.py + /cron/seed-references
+**User:** admin
+**Starting state:** ref_zoning_routing, ref_permit_forms, and ref_agency_triggers tables are already seeded from a prior deploy
+**Goal:** Admin re-runs /cron/seed-references after a code update to pick up any new entries
+**Expected outcome:** Endpoint returns 200 with row counts (29, 28, 38); row counts are identical to prior run (no duplicates created); DuckDB uses INSERT OR REPLACE, Postgres uses ON CONFLICT DO UPDATE — both are safe to re-run
+**Edge cases seen in code:** ref_permit_forms and ref_agency_triggers use DELETE + re-insert for simplicity; idempotency guaranteed by unique key constraints
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: permit_lookup returns planning records for a parcel
+**Source:** Sprint 55C — permit_lookup enriched with planning_records join
+**User:** expediter | architect
+**Starting state:** A parcel has both building permits and active planning records (e.g., a CUA conditional use authorization) in the database
+**Goal:** Run permit_lookup for a known block/lot and see planning entitlements alongside building permit history
+**Expected outcome:** permit_lookup response includes a planning_records section showing record_type, record_status, assigned_planner, and case number; building permit results appear in the same response; no duplicate calls needed
+**Edge cases seen in code:** JOIN is on block/lot — planning records with NULL block/lot are excluded; some parcels have multiple open planning cases
+**CC confidence:** high
+**Status:** PENDING REVIEW
