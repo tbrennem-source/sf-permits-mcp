@@ -489,3 +489,63 @@ class TestPoolConfig:
             )
 
         db._pool = None
+
+
+# ═══════════════════════════════════════════════════════════════════
+# 10. Slow query logging (Sprint 66-B)
+# ═══════════════════════════════════════════════════════════════════
+
+class TestSlowQueryLogging:
+    def test_slow_query_threshold_exists(self):
+        """SLOW_QUERY_THRESHOLD_SECS is defined."""
+        from src.db import SLOW_QUERY_THRESHOLD_SECS
+        assert SLOW_QUERY_THRESHOLD_SECS == 5.0
+
+    def test_slow_query_logs_warning(self, monkeypatch, tmp_path):
+        """Queries slower than threshold trigger a warning log."""
+        import src.db as db
+
+        monkeypatch.setattr(db, "BACKEND", "duckdb")
+        monkeypatch.setattr(db, "SLOW_QUERY_THRESHOLD_SECS", 0.0)  # trigger on any query
+
+        db_file = str(tmp_path / "slow_test.duckdb")
+        import duckdb
+        test_conn = duckdb.connect(db_file)
+        test_conn.execute("CREATE TABLE test_t (id INTEGER)")
+        test_conn.close()
+
+        monkeypatch.setattr(db, "_DUCKDB_PATH", db_file)
+
+        with patch.object(db.logger, "warning") as mock_warn:
+            db.query("SELECT 1")
+            assert mock_warn.call_count >= 1
+            log_msg = str(mock_warn.call_args_list[0])
+            assert "Slow query" in log_msg
+
+    def test_fast_query_no_warning(self, monkeypatch, tmp_path):
+        """Queries faster than threshold do not trigger a warning."""
+        import src.db as db
+
+        monkeypatch.setattr(db, "BACKEND", "duckdb")
+        monkeypatch.setattr(db, "SLOW_QUERY_THRESHOLD_SECS", 999.0)
+
+        db_file = str(tmp_path / "fast_test.duckdb")
+        import duckdb
+        test_conn = duckdb.connect(db_file)
+        test_conn.execute("CREATE TABLE test_t (id INTEGER)")
+        test_conn.close()
+
+        monkeypatch.setattr(db, "_DUCKDB_PATH", db_file)
+
+        with patch.object(db.logger, "warning") as mock_warn:
+            db.query("SELECT 1")
+            assert mock_warn.call_count == 0
+
+    def test_log_slow_query_skips_explain_on_duckdb(self):
+        """_log_slow_query skips EXPLAIN ANALYZE on DuckDB backend."""
+        import src.db as db
+
+        mock_conn = MagicMock()
+        with patch.object(db, "BACKEND", "duckdb"):
+            db._log_slow_query(mock_conn, "SELECT 1", 6.0)
+            mock_conn.cursor.assert_not_called()

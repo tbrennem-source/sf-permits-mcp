@@ -141,6 +141,27 @@ def get_connection(db_path: str | None = None):
         return conn
 
 
+SLOW_QUERY_THRESHOLD_SECS = 5.0
+
+
+def _log_slow_query(conn, sql: str, duration: float):
+    """Log slow queries with EXPLAIN ANALYZE output (PostgreSQL only)."""
+    logger.warning(
+        "Slow query detected (%.1fs): %s",
+        duration,
+        sql[:200],
+    )
+    if BACKEND == "postgres":
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"EXPLAIN ANALYZE {sql}")
+                plan = cur.fetchall()
+                plan_text = "\n".join(row[0] for row in plan)
+                logger.warning("EXPLAIN ANALYZE output:\n%s", plan_text)
+        except Exception:
+            logger.debug("Could not run EXPLAIN ANALYZE for slow query", exc_info=True)
+
+
 def query(sql: str, params=None) -> list:
     """Execute a SELECT and return all rows as a list of tuples.
 
@@ -150,20 +171,27 @@ def query(sql: str, params=None) -> list:
 
     Callers should use %s style — this function auto-converts for DuckDB.
     """
+    import time
     conn = get_connection()
     try:
         if BACKEND == "duckdb" and params:
             # Convert %s → ? for DuckDB
             sql = sql.replace("%s", "?")
+        t0 = time.monotonic()
         if BACKEND == "postgres":
             import psycopg2.extras
             with conn.cursor() as cur:
                 cur.execute(sql, params)
-                return cur.fetchall()
+                result = cur.fetchall()
         else:
             if params:
-                return conn.execute(sql, params).fetchall()
-            return conn.execute(sql).fetchall()
+                result = conn.execute(sql, params).fetchall()
+            else:
+                result = conn.execute(sql).fetchall()
+        elapsed = time.monotonic() - t0
+        if elapsed >= SLOW_QUERY_THRESHOLD_SECS:
+            _log_slow_query(conn, sql, elapsed)
+        return result
     finally:
         conn.close()
 
