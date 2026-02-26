@@ -6,9 +6,14 @@ Flask server. Covers anonymous, authenticated, and admin flows.
 Each test cites a scenario ID from scenario-design-guide.md and captures
 a screenshot to qa-results/screenshots/e2e/.
 
-Run:
+Run (standalone — recommended):
     pytest tests/e2e/test_scenarios.py -v
-    pytest tests/e2e/test_scenarios.py -v -k anonymous   # just anonymous tests
+    pytest tests/e2e/test_scenarios.py -v -k anonymous
+
+NOTE: Playwright tests are skipped in the full test suite to avoid asyncio
+event loop conflicts with pytest-asyncio. Run them separately or set
+E2E_PLAYWRIGHT=1 to include them in the full suite (Python 3.13+ may
+have event loop issues).
 """
 
 from __future__ import annotations
@@ -22,6 +27,28 @@ import pytest
 
 # Ensure project root importable
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
+
+# ---------------------------------------------------------------------------
+# Skip Playwright tests in full suite to avoid asyncio event loop conflict
+# with pytest-asyncio. Run them standalone:
+#   pytest tests/e2e/test_scenarios.py -v
+# Or include in full suite by setting E2E_PLAYWRIGHT=1
+# ---------------------------------------------------------------------------
+_playwright_targeted = any(
+    "test_scenarios" in arg or "e2e" == os.path.basename(arg.rstrip("/"))
+    for arg in sys.argv
+)
+_playwright_enabled = (
+    os.environ.get("E2E_PLAYWRIGHT", "")
+    or os.environ.get("E2E_BASE_URL", "")
+    or _playwright_targeted
+)
+
+pytestmark = pytest.mark.skipif(
+    not _playwright_enabled,
+    reason="Playwright tests skipped in full suite (asyncio conflict). "
+           "Run: pytest tests/e2e/test_scenarios.py -v",
+)
 
 SCREENSHOT_DIR = Path("qa-results/screenshots/e2e")
 

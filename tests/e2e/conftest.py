@@ -23,7 +23,6 @@ from __future__ import annotations
 import os
 import socket
 import sys
-import threading
 import time
 import urllib.request
 from pathlib import Path
@@ -132,31 +131,42 @@ def live_server() -> str:
     """Start a live Flask server for Playwright tests.
 
     If E2E_BASE_URL is set, uses that external server instead.
-    Otherwise starts Flask in a background thread on a random port.
+    Otherwise starts Flask in a **subprocess** on a random port to
+    avoid polluting the pytest process with Flask server side effects.
+
+    For auth tests, set TESTING=1 and TEST_LOGIN_SECRET in the env:
+        TESTING=1 TEST_LOGIN_SECRET=xxx pytest tests/e2e/test_scenarios.py -v
     """
+    import subprocess as _sp
+    import signal
+
     ext_url = os.environ.get("E2E_BASE_URL")
     if ext_url:
         yield ext_url
         return
 
-    # Enable test-login for the embedded server
-    os.environ.setdefault("TESTING", "1")
-    os.environ.setdefault("TEST_LOGIN_SECRET", "e2e-test-secret-local")
-
-    # Import Flask app (adds project root to sys.path)
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
-    from web.app import app as flask_app
-    flask_app.config["TESTING"] = True
-
     port = _find_free_port()
-    thread = threading.Thread(
-        target=flask_app.run,
-        kwargs={"port": port, "use_reloader": False, "threaded": True},
-        daemon=True,
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    # Build env for the subprocess — inherit caller's env
+    env = os.environ.copy()
+    env["FLASK_RUN_PORT"] = str(port)
+    # Ensure TESTING and TEST_LOGIN_SECRET propagate if set by caller
+    env.setdefault("TESTING", "1")
+    env.setdefault("TEST_LOGIN_SECRET", "e2e-test-secret-local")
+
+    # Start Flask in a subprocess
+    proc = _sp.Popen(
+        [sys.executable, "-c",
+         f"import sys; sys.path.insert(0, '{project_root}'); "
+         f"from web.app import app; "
+         f"app.config['TESTING'] = True; "
+         f"app.run(port={port}, use_reloader=False, threaded=True)"],
+        cwd=project_root,
+        env=env,
+        stdout=_sp.DEVNULL,
+        stderr=_sp.DEVNULL,
     )
-    thread.start()
 
     url = f"http://localhost:{port}"
     # Wait up to 15s for server readiness
@@ -167,9 +177,17 @@ def live_server() -> str:
         except Exception:
             time.sleep(0.5)
     else:
+        proc.kill()
         raise RuntimeError(f"Live server failed to start on {url}")
 
     yield url
+
+    # Cleanup
+    proc.send_signal(signal.SIGTERM)
+    try:
+        proc.wait(timeout=5)
+    except _sp.TimeoutExpired:
+        proc.kill()
 
 
 @pytest.fixture(scope="session")
@@ -183,14 +201,11 @@ def base_url(live_server) -> str:
 
 @pytest.fixture(scope="session")
 def test_login_secret() -> str:
-    """TEST_LOGIN_SECRET for /auth/test-login endpoint."""
-    secret = os.environ.get("TEST_LOGIN_SECRET", "")
-    if not secret:
-        # live_server sets a default; only skip if explicitly testing against
-        # an external server with no secret configured
-        if E2E_AVAILABLE:
-            pytest.skip("TEST_LOGIN_SECRET not set — cannot authenticate")
-    return secret
+    """TEST_LOGIN_SECRET for /auth/test-login endpoint.
+
+    Returns empty string if not set — auth fixtures will skip gracefully.
+    """
+    return os.environ.get("TEST_LOGIN_SECRET", "")
 
 
 # ---------------------------------------------------------------------------
@@ -233,6 +248,8 @@ def login_as(page, base_url: str, secret: str, email: str) -> dict:
     """POST to /auth/test-login and authenticate the Playwright page.
 
     Returns the JSON response from the login endpoint.
+    Raises RuntimeError if login fails, or pytest.skip if endpoint is 404
+    (TESTING env var not set on the server).
     """
     import json as _json
 
@@ -241,6 +258,10 @@ def login_as(page, base_url: str, secret: str, email: str) -> dict:
         data=_json.dumps({"secret": secret, "email": email}),
         headers={"Content-Type": "application/json"},
     )
+    if response.status == 404:
+        pytest.skip(
+            "test-login returned 404 — set TESTING=1 env var to enable auth tests"
+        )
     if response.status != 200:
         raise RuntimeError(
             f"test-login failed: HTTP {response.status} for {email}\n"
