@@ -861,12 +861,13 @@ async def fetch_with_retry(
     }
 
 
-def sweep_stuck_cron_jobs(stuck_threshold_minutes: int = 120) -> int:
+def sweep_stuck_cron_jobs(stuck_threshold_minutes: int = 15) -> int:
     """Mark cron jobs stuck in 'running' state as 'failed'.
 
     A job is "stuck" if it has been in 'running' status for longer than
-    stuck_threshold_minutes. This happens when the process crashes without
-    cleanup (e.g., Railway restart, OOM kill).
+    stuck_threshold_minutes. Normal nightly completes in 13-40 seconds.
+    15 minutes is generous — anything beyond that is dead (worker killed,
+    SODA hung, process crashed).
 
     Returns the number of jobs marked as failed.
     """

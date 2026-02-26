@@ -6072,12 +6072,17 @@ def cron_nightly():
     _check_api_auth()
 
     # === SESSION E: Stuck cron auto-close ===
-    # Auto-close stuck cron jobs (>4 hours in 'running' state)
+    # Auto-close stuck cron jobs (>15 minutes in 'running' state).
+    # Normal nightly completes in 13-40 seconds. Anything running >15 min
+    # is dead (worker killed, process crashed, SODA hung). Previous
+    # threshold was 4 hours — far too long for a sub-minute pipeline.
     try:
         from src.db import execute_write
         execute_write(
-            "UPDATE cron_log SET status = 'failed', error = 'auto-closed: stuck >4 hours' "
-            "WHERE status = 'running' AND started_at < NOW() - INTERVAL '4 hours'"
+            "UPDATE cron_log SET status = 'failed', "
+            "completed_at = NOW(), "
+            "error_message = 'auto-closed: stuck >15 min (worker likely killed)' "
+            "WHERE status = 'running' AND started_at < NOW() - INTERVAL '15 minutes'"
         )
     except Exception:
         pass  # Don't let cleanup failure block nightly
