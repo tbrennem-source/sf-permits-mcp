@@ -21,11 +21,11 @@ from pathlib import Path
 # Patterns
 # ---------------------------------------------------------------------------
 
-# Matches:  @app.route("/path")  or  @app.route("/path", methods=["GET","POST"])
+# Matches:  @app.route("/path")  or  @bp.route("/path", methods=["GET","POST"])
 # The methods group may span the same line or a short continuation — we handle
 # multi-line separately in the block-level parser.
 ROUTE_RE = re.compile(
-    r'@app\.route\(\s*["\']([^"\']+)["\']'
+    r'@(?:app|bp)\.route\(\s*["\']([^"\']+)["\']'
     r'(?:[^)]*?methods\s*=\s*\[([^\]]+)\])?'
 )
 
@@ -139,7 +139,7 @@ def parse_app(app_path: Path) -> list[dict]:
     lines = app_path.read_text(encoding="utf-8").splitlines()
     n = len(lines)
 
-    # Find the line indices of every @app.route
+    # Find the line indices of every @app.route or @bp.route
     route_starts = [i for i, ln in enumerate(lines) if ROUTE_RE.search(ln)]
 
     routes: list[dict] = []
@@ -239,8 +239,22 @@ def main() -> None:
     if not app_path.exists():
         raise FileNotFoundError(f"app.py not found at {app_path}")
 
-    print(f"Parsing {app_path} ...")
-    routes = parse_app(app_path)
+    # Scan app.py + all Blueprint route files (web/routes_*.py)
+    route_files = [app_path]
+    web_dir = app_path.parent
+    for bp_file in sorted(web_dir.glob("routes_*.py")):
+        route_files.append(bp_file)
+    # Also scan web/projects.py (projects Blueprint)
+    projects_file = web_dir / "projects.py"
+    if projects_file.exists():
+        route_files.append(projects_file)
+
+    all_routes: list[dict] = []
+    for rf in route_files:
+        print(f"Parsing {rf.name} ...")
+        all_routes.extend(parse_app(rf))
+
+    routes = all_routes
     manifest = build_manifest(routes)
 
     output_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

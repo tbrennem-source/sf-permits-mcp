@@ -310,8 +310,9 @@ class TestCronIntegration:
 
     def test_velocity_refresh_includes_transitions_key(self):
         """Cron /cron/velocity-refresh response body includes transitions key."""
-        # Read app.py source and verify SESSION B marker is present
-        source = read_source("web/app.py")
+        # Read routes_cron.py source and verify SESSION B marker is present
+        # (moved from app.py during Blueprint refactor)
+        source = read_source("web/routes_cron.py")
         assert "# === SESSION B: Station transitions refresh ===" in source
         assert "# === END SESSION B ===" in source
         assert "refresh_station_transitions" in source
@@ -319,7 +320,7 @@ class TestCronIntegration:
 
     def test_velocity_refresh_transitions_error_key_on_failure(self):
         """Cron function stores transitions_error in stats when refresh_station_transitions raises."""
-        source = read_source("web/app.py")
+        source = read_source("web/routes_cron.py")
         assert "transitions_error" in source
 
     def test_station_predictor_module_importable(self):

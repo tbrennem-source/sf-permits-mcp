@@ -149,20 +149,20 @@ def test_get_recent_activity_offset_default_zero():
 
 def test_app_py_activity_route_has_offset():
     """The admin_activity route in app.py must read the offset query param."""
-    app_src = (REPO_ROOT / "web" / "app.py").read_text(encoding="utf-8")
+    app_src = (REPO_ROOT / "web" / "routes_admin.py").read_text(encoding="utf-8")
     # Check that offset = int(request.args.get("offset", 0)) is present in admin_activity
     assert 'request.args.get("offset"' in app_src or "request.args.get('offset'" in app_src, \
         "app.py admin_activity route missing offset query param read"
 
 
 def test_app_py_activity_route_passes_limit_to_template():
-    app_src = (REPO_ROOT / "web" / "app.py").read_text(encoding="utf-8")
+    app_src = (REPO_ROOT / "web" / "routes_admin.py").read_text(encoding="utf-8")
     # Both routes should pass limit= to render_template
     assert "limit=limit" in app_src, \
         "app.py missing limit=limit in render_template call for activity"
 
 
 def test_app_py_activity_route_passes_offset_to_template():
-    app_src = (REPO_ROOT / "web" / "app.py").read_text(encoding="utf-8")
+    app_src = (REPO_ROOT / "web" / "routes_admin.py").read_text(encoding="utf-8")
     assert "offset=offset" in app_src, \
         "app.py missing offset=offset in render_template call for activity"

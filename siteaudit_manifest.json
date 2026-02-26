@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-26T12:17:47.816364+00:00",
+  "generated_at": "2026-02-26T15:49:22.790012+00:00",
   "total_routes": 141,
   "routes": [
     {
@@ -19,474 +19,6 @@
       "auth_level": "public",
       "template": null,
       "function_name": "health"
-    },
-    {
-      "path": "/",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": "landing.html",
-      "function_name": "index"
-    },
-    {
-      "path": "/search",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "public_search"
-    },
-    {
-      "path": "/analyze",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "analyze"
-    },
-    {
-      "path": "/validate",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "validate"
-    },
-    {
-      "path": "/analyze-plans",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "analyze_plans_route"
-    },
-    {
-      "path": "/plan-images/<session_id>/<int:page_number>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "plan_image"
-    },
-    {
-      "path": "/plan-session/<session_id>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "plan_session"
-    },
-    {
-      "path": "/plan-images/<session_id>/download-all",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "download_all_pages"
-    },
-    {
-      "path": "/plan-analysis/<session_id>/email",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "email_analysis"
-    },
-    {
-      "path": "/plan-jobs/<job_id>/status",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": "analyze_plans_failed.html",
-      "function_name": "plan_job_status"
-    },
-    {
-      "path": "/plan-jobs/<job_id>/cancel",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "cancel_plan_job"
-    },
-    {
-      "path": "/plan-jobs/<job_id>/results",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "plan_job_results"
-    },
-    {
-      "path": "/account/analyses",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "analysis_history"
-    },
-    {
-      "path": "/account/analyses/compare",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "compare_analyses"
-    },
-    {
-      "path": "/api/plan-sessions/<session_id>/pages/<int:page_number>/image",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "get_session_page_image"
-    },
-    {
-      "path": "/api/project-notes/<version_group>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "get_project_notes_api"
-    },
-    {
-      "path": "/api/project-notes/<version_group>",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "save_project_notes_api"
-    },
-    {
-      "path": "/api/plan-jobs/<job_id>",
-      "methods": [
-        "DELETE"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "delete_plan_job"
-    },
-    {
-      "path": "/api/plan-jobs/<job_id>/restore",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "restore_plan_job"
-    },
-    {
-      "path": "/api/plan-jobs/<job_id>/prefill",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "prefill_plan_job"
-    },
-    {
-      "path": "/api/plan-jobs/bulk-delete",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "bulk_delete_plan_jobs"
-    },
-    {
-      "path": "/api/plan-jobs/bulk-close",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "bulk_close_plan_jobs"
-    },
-    {
-      "path": "/api/plan-jobs/<job_id>/close",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "close_plan_job"
-    },
-    {
-      "path": "/api/plan-jobs/<job_id>/reopen",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "reopen_plan_job"
-    },
-    {
-      "path": "/lookup",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "lookup"
-    },
-    {
-      "path": "/ask",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": "search_reveal.html",
-      "function_name": "ask"
-    },
-    {
-      "path": "/auth/login",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "auth_login"
-    },
-    {
-      "path": "/auth/send-link",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "auth_send_link"
-    },
-    {
-      "path": "/auth/verify/<token>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "auth_verify"
-    },
-    {
-      "path": "/auth/logout",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "auth_logout"
-    },
-    {
-      "path": "/auth/impersonate",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "admin",
-      "template": null,
-      "function_name": "auth_impersonate"
-    },
-    {
-      "path": "/auth/stop-impersonate",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "auth_stop_impersonate"
-    },
-    {
-      "path": "/auth/test-login",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "auth_test_login"
-    },
-    {
-      "path": "/watch/add",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": "fragments/login_prompt.html",
-      "function_name": "watch_add"
-    },
-    {
-      "path": "/watch/remove",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "watch_remove"
-    },
-    {
-      "path": "/watch/tags",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": "fragments/tag_editor.html",
-      "function_name": "watch_tags"
-    },
-    {
-      "path": "/watch/edit",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "watch_edit"
-    },
-    {
-      "path": "/watch/list",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": "account.html",
-      "function_name": "watch_list"
-    },
-    {
-      "path": "/account",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": "account.html",
-      "function_name": "account"
-    },
-    {
-      "path": "/account/fragment/settings",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "account_fragment_settings"
-    },
-    {
-      "path": "/account/fragment/admin",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "admin",
-      "template": null,
-      "function_name": "account_fragment_admin"
-    },
-    {
-      "path": "/account/primary-address",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "account_set_primary_address"
-    },
-    {
-      "path": "/account/primary-address/clear",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "account_clear_primary_address"
-    },
-    {
-      "path": "/brief",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": "brief.html",
-      "function_name": "brief"
-    },
-    {
-      "path": "/dashboard/bottlenecks",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "velocity_dashboard"
-    },
-    {
-      "path": "/dashboard/bottlenecks/station/<path:station>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "velocity_station_detail"
-    },
-    {
-      "path": "/api/similar-projects",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "api_similar_projects"
-    },
-    {
-      "path": "/api/activity/track",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "api_activity_track"
-    },
-    {
-      "path": "/portfolio",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": "portfolio.html",
-      "function_name": "portfolio"
-    },
-    {
-      "path": "/account/brief-frequency",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "account_brief_frequency"
-    },
-    {
-      "path": "/account/voice-style",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "account_voice_style"
-    },
-    {
-      "path": "/account/notify-permit-changes",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "account_notify_permit_changes"
     },
     {
       "path": "/admin/send-invite",
@@ -705,6 +237,411 @@
       "function_name": "admin_costs_kill_switch"
     },
     {
+      "path": "/admin/pipeline",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_pipeline"
+    },
+    {
+      "path": "/admin/beta-requests",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_beta_requests"
+    },
+    {
+      "path": "/admin/beta-requests/<int:req_id>/approve",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_approve_beta"
+    },
+    {
+      "path": "/admin/beta-requests/<int:req_id>/deny",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_deny_beta"
+    },
+    {
+      "path": "/admin/qa",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": "admin_qa.html",
+      "function_name": "admin_qa"
+    },
+    {
+      "path": "/admin/qa/<run_name>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_qa_detail"
+    },
+    {
+      "path": "/admin/qa/<run_name>/video",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_qa_video"
+    },
+    {
+      "path": "/admin/qa/<run_name>/screenshot/<filename>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_qa_screenshot"
+    },
+    {
+      "path": "/api/plan-sessions/<session_id>/pages/<int:page_number>/image",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "get_session_page_image"
+    },
+    {
+      "path": "/api/project-notes/<version_group>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "get_project_notes_api"
+    },
+    {
+      "path": "/api/project-notes/<version_group>",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "save_project_notes_api"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>",
+      "methods": [
+        "DELETE"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "delete_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/restore",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "restore_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/prefill",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "prefill_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/bulk-delete",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "bulk_delete_plan_jobs"
+    },
+    {
+      "path": "/api/plan-jobs/bulk-close",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "bulk_close_plan_jobs"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/close",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "close_plan_job"
+    },
+    {
+      "path": "/api/plan-jobs/<job_id>/reopen",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "reopen_plan_job"
+    },
+    {
+      "path": "/api/similar-projects",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_similar_projects"
+    },
+    {
+      "path": "/api/activity/track",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_activity_track"
+    },
+    {
+      "path": "/api/feedback",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_feedback"
+    },
+    {
+      "path": "/api/feedback/<int:feedback_id>/screenshot",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_feedback_screenshot"
+    },
+    {
+      "path": "/api/feedback/<int:feedback_id>",
+      "methods": [
+        "PATCH"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_feedback_update"
+    },
+    {
+      "path": "/api/points/<int:user_id>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_user_points"
+    },
+    {
+      "path": "/auth/login",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_login"
+    },
+    {
+      "path": "/auth/send-link",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_send_link"
+    },
+    {
+      "path": "/auth/verify/<token>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_verify"
+    },
+    {
+      "path": "/auth/logout",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_logout"
+    },
+    {
+      "path": "/auth/test-login",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_test_login"
+    },
+    {
+      "path": "/auth/impersonate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "auth_impersonate"
+    },
+    {
+      "path": "/auth/stop-impersonate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "auth_stop_impersonate"
+    },
+    {
+      "path": "/watch/add",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "fragments/login_prompt.html",
+      "function_name": "watch_add"
+    },
+    {
+      "path": "/watch/remove",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "watch_remove"
+    },
+    {
+      "path": "/watch/tags",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "fragments/tag_editor.html",
+      "function_name": "watch_tags"
+    },
+    {
+      "path": "/watch/edit",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "watch_edit"
+    },
+    {
+      "path": "/watch/list",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "account.html",
+      "function_name": "watch_list"
+    },
+    {
+      "path": "/watch/brief-prompt",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "watch_brief_prompt"
+    },
+    {
+      "path": "/account",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "account.html",
+      "function_name": "account"
+    },
+    {
+      "path": "/account/fragment/settings",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_fragment_settings"
+    },
+    {
+      "path": "/account/fragment/admin",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "account_fragment_admin"
+    },
+    {
+      "path": "/account/primary-address",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_set_primary_address"
+    },
+    {
+      "path": "/account/primary-address/clear",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_clear_primary_address"
+    },
+    {
+      "path": "/account/brief-frequency",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_brief_frequency"
+    },
+    {
+      "path": "/account/voice-style",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_voice_style"
+    },
+    {
+      "path": "/account/notify-permit-changes",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_notify_permit_changes"
+    },
+    {
       "path": "/account/voice-calibration",
       "methods": [
         "GET"
@@ -741,85 +678,13 @@
       "function_name": "email_unsubscribe"
     },
     {
-      "path": "/consultants",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": "consultants.html",
-      "function_name": "consultants_page"
-    },
-    {
-      "path": "/consultants/search",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "consultants_search"
-    },
-    {
-      "path": "/expediters",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "expediters_redirect"
-    },
-    {
-      "path": "/expediters/search",
+      "path": "/onboarding/dismiss",
       "methods": [
         "POST"
       ],
       "auth_level": "public",
       "template": null,
-      "function_name": "expediters_search_redirect"
-    },
-    {
-      "path": "/report/<block>/<lot>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "property_report"
-    },
-    {
-      "path": "/report/<block>/<lot>/share",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "property_report_share"
-    },
-    {
-      "path": "/portfolio/timeline/<block>/<lot>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": "fragments/inspection_timeline.html",
-      "function_name": "portfolio_timeline"
-    },
-    {
-      "path": "/portfolio/discover",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": "fragments/discover_results.html",
-      "function_name": "portfolio_discover"
-    },
-    {
-      "path": "/portfolio/import",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": "fragments/import_confirmation.html",
-      "function_name": "portfolio_import"
+      "function_name": "onboarding_dismiss"
     },
     {
       "path": "/cron/status",
@@ -874,42 +739,6 @@
       "auth_level": "cron",
       "template": null,
       "function_name": "cron_migrate_data"
-    },
-    {
-      "path": "/api/feedback",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "api_feedback"
-    },
-    {
-      "path": "/api/feedback/<int:feedback_id>/screenshot",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "api_feedback_screenshot"
-    },
-    {
-      "path": "/api/feedback/<int:feedback_id>",
-      "methods": [
-        "PATCH"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "api_feedback_update"
-    },
-    {
-      "path": "/api/points/<int:user_id>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "cron",
-      "template": null,
-      "function_name": "api_user_points"
     },
     {
       "path": "/cron/seed-regulatory",
@@ -1093,97 +922,6 @@
       "function_name": "cron_pipeline_health"
     },
     {
-      "path": "/admin/pipeline",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "admin",
-      "template": null,
-      "function_name": "admin_pipeline"
-    },
-    {
-      "path": "/analyze-preview",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "analyze_preview"
-    },
-    {
-      "path": "/onboarding/dismiss",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "onboarding_dismiss"
-    },
-    {
-      "path": "/watch/brief-prompt",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "watch_brief_prompt"
-    },
-    {
-      "path": "/analysis/<analysis_id>",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "public",
-      "template": null,
-      "function_name": "analysis_shared"
-    },
-    {
-      "path": "/analysis/<analysis_id>/share",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "auth",
-      "template": null,
-      "function_name": "analysis_share_email"
-    },
-    {
-      "path": "/beta-request",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth_level": "public",
-      "template": "beta_request.html",
-      "function_name": "beta_request"
-    },
-    {
-      "path": "/admin/beta-requests",
-      "methods": [
-        "GET"
-      ],
-      "auth_level": "admin",
-      "template": null,
-      "function_name": "admin_beta_requests"
-    },
-    {
-      "path": "/admin/beta-requests/<int:req_id>/approve",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "admin",
-      "template": null,
-      "function_name": "admin_approve_beta"
-    },
-    {
-      "path": "/admin/beta-requests/<int:req_id>/deny",
-      "methods": [
-        "POST"
-      ],
-      "auth_level": "admin",
-      "template": null,
-      "function_name": "admin_deny_beta"
-    },
-    {
       "path": "/cron/ingest-plumbing-inspections",
       "methods": [
         "POST"
@@ -1220,6 +958,43 @@
       "function_name": "cron_ingest_planning_review_metrics"
     },
     {
+      "path": "/brief",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "brief.html",
+      "function_name": "brief"
+    },
+    {
+      "path": "/dashboard/bottlenecks",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "velocity_dashboard"
+    },
+    {
+      "path": "/dashboard/bottlenecks/station/<path:station>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "velocity_station_detail"
+    },
+    {
+      "path": "/beta-request",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "beta_request.html",
+      "function_name": "beta_request"
+    },
+    {
       "path": "/sitemap.xml",
       "methods": [
         "GET"
@@ -1238,40 +1013,265 @@
       "function_name": "adu_landing"
     },
     {
-      "path": "/admin/qa",
+      "path": "/consultants",
       "methods": [
         "GET"
       ],
-      "auth_level": "admin",
-      "template": "admin_qa.html",
-      "function_name": "admin_qa"
+      "auth_level": "auth",
+      "template": "consultants.html",
+      "function_name": "consultants_page"
     },
     {
-      "path": "/admin/qa/<run_name>",
+      "path": "/consultants/search",
       "methods": [
-        "GET"
+        "POST"
       ],
-      "auth_level": "admin",
+      "auth_level": "auth",
       "template": null,
-      "function_name": "admin_qa_detail"
+      "function_name": "consultants_search"
     },
     {
-      "path": "/admin/qa/<run_name>/video",
+      "path": "/expediters",
       "methods": [
         "GET"
       ],
-      "auth_level": "admin",
+      "auth_level": "public",
       "template": null,
-      "function_name": "admin_qa_video"
+      "function_name": "expediters_redirect"
     },
     {
-      "path": "/admin/qa/<run_name>/screenshot/<filename>",
+      "path": "/expediters/search",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "expediters_search_redirect"
+    },
+    {
+      "path": "/report/<block>/<lot>",
       "methods": [
         "GET"
       ],
-      "auth_level": "admin",
+      "auth_level": "public",
       "template": null,
-      "function_name": "admin_qa_screenshot"
+      "function_name": "property_report"
+    },
+    {
+      "path": "/report/<block>/<lot>/share",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "property_report_share"
+    },
+    {
+      "path": "/portfolio",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "portfolio.html",
+      "function_name": "portfolio"
+    },
+    {
+      "path": "/portfolio/timeline/<block>/<lot>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "fragments/inspection_timeline.html",
+      "function_name": "portfolio_timeline"
+    },
+    {
+      "path": "/portfolio/discover",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": "fragments/discover_results.html",
+      "function_name": "portfolio_discover"
+    },
+    {
+      "path": "/portfolio/import",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": "fragments/import_confirmation.html",
+      "function_name": "portfolio_import"
+    },
+    {
+      "path": "/",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "landing.html",
+      "function_name": "index"
+    },
+    {
+      "path": "/search",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "public_search"
+    },
+    {
+      "path": "/analyze",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "analyze"
+    },
+    {
+      "path": "/validate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "validate"
+    },
+    {
+      "path": "/analyze-plans",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "analyze_plans_route"
+    },
+    {
+      "path": "/plan-images/<session_id>/<int:page_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "plan_image"
+    },
+    {
+      "path": "/plan-session/<session_id>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "plan_session"
+    },
+    {
+      "path": "/plan-images/<session_id>/download-all",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "download_all_pages"
+    },
+    {
+      "path": "/plan-analysis/<session_id>/email",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "email_analysis"
+    },
+    {
+      "path": "/plan-jobs/<job_id>/status",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "analyze_plans_failed.html",
+      "function_name": "plan_job_status"
+    },
+    {
+      "path": "/plan-jobs/<job_id>/cancel",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "cancel_plan_job"
+    },
+    {
+      "path": "/plan-jobs/<job_id>/results",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "plan_job_results"
+    },
+    {
+      "path": "/account/analyses",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "analysis_history"
+    },
+    {
+      "path": "/account/analyses/compare",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "compare_analyses"
+    },
+    {
+      "path": "/analyze-preview",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "analyze_preview"
+    },
+    {
+      "path": "/analysis/<analysis_id>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "analysis_shared"
+    },
+    {
+      "path": "/analysis/<analysis_id>/share",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "analysis_share_email"
+    },
+    {
+      "path": "/lookup",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "lookup"
+    },
+    {
+      "path": "/ask",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "search_reveal.html",
+      "function_name": "ask"
     }
   ],
   "user_journeys": {

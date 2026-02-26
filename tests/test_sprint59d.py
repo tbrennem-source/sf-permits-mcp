@@ -70,7 +70,7 @@ def _patch_permit_lookup(monkeypatch, return_value="No permits found for this ad
 
     # Patch both possible module keys to be safe
     for mod_key in list(sys.modules.keys()):
-        if mod_key in ("app", "web.app"):
+        if mod_key in ("app", "web.app", "web.routes_public"):
             monkeypatch.setattr(sys.modules[mod_key], "permit_lookup", fake_permit_lookup)
 
 

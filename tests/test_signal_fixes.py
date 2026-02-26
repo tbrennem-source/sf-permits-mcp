@@ -359,15 +359,15 @@ class TestStuckCronAutoClose:
             conn.close()
 
     def test_nightly_route_has_stuck_job_autoclose(self):
-        """web/app.py cron_nightly function contains stuck job auto-close code."""
+        """routes_cron.py cron_nightly function contains stuck job auto-close code."""
         import os
-        app_path = os.path.join(
-            os.path.dirname(__file__), "..", "web", "app.py"
+        cron_path = os.path.join(
+            os.path.dirname(__file__), "..", "web", "routes_cron.py"
         )
-        with open(app_path) as f:
+        with open(cron_path) as f:
             content = f.read()
         assert "auto-closed: stuck" in content or "stuck >4 hours" in content, (
-            "web/app.py should contain stuck job auto-close logic in cron_nightly"
+            "web/routes_cron.py should contain stuck job auto-close logic in cron_nightly"
         )
 
     def test_stuck_job_only_affects_running_status(self):

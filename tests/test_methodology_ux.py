@@ -90,15 +90,15 @@ def mock_tools():
     async def mock_risk(**kw):
         return ("# Revision Risk Assessment\n**Risk Level:** MODERATE", risk_meta)
 
-    with patch("web.app.predict_permits", side_effect=mock_predict), \
-         patch("web.app.estimate_fees", side_effect=mock_fees), \
-         patch("web.app.estimate_timeline", side_effect=mock_timeline), \
-         patch("web.app.required_documents", side_effect=mock_docs), \
-         patch("web.app.revision_risk", side_effect=mock_risk), \
-         patch("web.app.generate_team_profile", return_value=""), \
-         patch("web.app.extract_triggers", return_value=[]), \
-         patch("web.app.enhance_description", side_effect=lambda d, *a, **kw: d), \
-         patch("web.app.reorder_sections", return_value=None):
+    with patch("web.routes_public.predict_permits", side_effect=mock_predict), \
+         patch("web.routes_public.estimate_fees", side_effect=mock_fees), \
+         patch("web.routes_public.estimate_timeline", side_effect=mock_timeline), \
+         patch("web.routes_public.required_documents", side_effect=mock_docs), \
+         patch("web.routes_public.revision_risk", side_effect=mock_risk), \
+         patch("web.routes_public.generate_team_profile", return_value=""), \
+         patch("web.routes_public.extract_triggers", return_value=[]), \
+         patch("web.routes_public.enhance_description", side_effect=lambda d, *a, **kw: d), \
+         patch("web.routes_public.reorder_sections", return_value=None):
         yield {
             "predict": predict_meta,
             "fees": fees_meta,
