@@ -172,6 +172,8 @@ def run_all_checks() -> list[dict]:
         _check_permit_changes_detected,
         _check_rag_chunk_count,
         _check_entity_coverage,
+        _check_addenda_freshness,
+        _check_station_velocity_freshness,
     ]
     # Checks that work on both backends
     universal_checks = [
@@ -303,7 +305,12 @@ def _check_permit_changes_detected() -> dict:
 
 
 def _check_rag_chunk_count() -> dict:
-    """Check RAG knowledge_chunks count vs baseline."""
+    """Check RAG knowledge_chunks count vs dynamic baseline.
+
+    Uses the current count as baseline — flags drops from the previous
+    cached value rather than comparing against a hardcoded number.
+    Still detects duplicates independently.
+    """
     rows = _raw_query("SELECT COUNT(*) FROM knowledge_chunks", ())
     count = rows[0][0] if rows else 0
     dup_rows = _raw_query(
@@ -315,28 +322,52 @@ def _check_rag_chunk_count() -> dict:
     )
     distinct = dup_rows[0][0] if dup_rows else count
     duplicates = count - distinct
-    baseline = 1100
+
+    # Dynamic baseline: use the last cached count if available
+    baseline = count  # self-referencing baseline (current is healthy)
+    try:
+        cached_rows = _raw_query(
+            "SELECT results_json FROM dq_cache ORDER BY refreshed_at DESC LIMIT 1", ()
+        )
+        if cached_rows and cached_rows[0][0]:
+            import json as _json
+            prev_results = _json.loads(cached_rows[0][0])
+            for r in prev_results:
+                if r.get("name") == "RAG Chunks":
+                    prev_val = r.get("value", "0").replace(",", "")
+                    baseline = int(prev_val) if prev_val.isdigit() else count
+                    break
+    except Exception:
+        pass  # Use current count as baseline if cache unavailable
+
+    if baseline == 0:
+        baseline = count or 1
+
     pct_of_baseline = round(count / max(baseline, 1) * 100)
+
     if duplicates > 50:
         status = "red"
         detail = f"{count:,} chunks but only {distinct:,} unique — {duplicates:,} duplicates detected!"
+    elif count == 0:
+        status = "red"
+        detail = "No RAG chunks found — RAG pipeline may have failed"
     elif pct_of_baseline < 70:
         status = "red"
-        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline {baseline:,}) — data loss?"
+        detail = f"{count:,} chunks ({pct_of_baseline}% of previous {baseline:,}) — data loss?"
     elif pct_of_baseline < 90:
         status = "yellow"
-        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline {baseline:,})"
+        detail = f"{count:,} chunks ({pct_of_baseline}% of previous {baseline:,})"
     elif pct_of_baseline > 200:
         status = "yellow"
-        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline) — possible accumulation"
+        detail = f"{count:,} chunks ({pct_of_baseline}% of previous) — possible accumulation"
     else:
         status = "green"
-        detail = f"{count:,} chunks ({pct_of_baseline}% of baseline {baseline:,})"
+        detail = f"{count:,} chunks (stable vs previous {baseline:,})"
     return {
         "name": "RAG Chunks",
         "category": "completeness",
         "value": f"{count:,}",
-        "unit": f"({distinct:,} unique)" if duplicates > 0 else f"(baseline: {baseline:,})",
+        "unit": f"({distinct:,} unique)" if duplicates > 0 else "",
         "status": status,
         "detail": detail,
     }
@@ -410,27 +441,29 @@ def _check_cost_outliers() -> dict:
 
 
 def _check_orphaned_contacts() -> dict:
-    """Count contacts without matching permits.
+    """Count contacts without a resolved entity.
 
-    Uses NOT EXISTS instead of LEFT JOIN for better performance on large tables.
+    Measures entity resolution coverage: contacts whose entity_id
+    does not appear in the entities table.  Green < 5%, yellow 5-10%,
+    red > 10%.
     """
     rows = _timed_query(
         "SELECT COUNT(*) FROM contacts c "
-        "WHERE NOT EXISTS (SELECT 1 FROM permits p WHERE p.permit_number = c.permit_number)",
+        "WHERE NOT EXISTS (SELECT 1 FROM entities e WHERE e.entity_id = c.entity_id)",
         (),
     )
     count = rows[0][0] if rows else 0
     total_contacts = _timed_query("SELECT COUNT(*) FROM contacts", ())
     total = total_contacts[0][0] if total_contacts else 1
     pct = round(count / max(total, 1) * 100, 1)
-    status = "green" if pct < 55 else ("yellow" if pct < 65 else "red")
+    status = "green" if pct < 5 else ("yellow" if pct <= 10 else "red")
     return {
-        "name": "Orphaned Contacts",
-        "category": "anomaly",
+        "name": "Unresolved Contacts",
+        "category": "completeness",
         "value": f"{pct}%",
         "unit": f"({count:,} of {total:,})",
         "status": status,
-        "detail": f"{count:,} contacts reference permits not in permits table ({pct}%)",
+        "detail": f"{count:,} contacts without resolved entity ({pct}%)",
     }
 
 
@@ -482,4 +515,99 @@ def _check_data_freshness() -> dict:
         "unit": f"{days_old}d old",
         "status": status,
         "detail": f"Most recent permit status_date: {max_date} ({days_old} days old)",
+    }
+
+
+# ── Pipeline freshness checks (prod-only) ────────────────────────
+
+
+def _check_addenda_freshness() -> dict:
+    """Check age of most recent addenda routing finish_date.
+
+    Green <= 30d, yellow 30-60d, red > 60d.
+    """
+    try:
+        rows = _raw_query(
+            "SELECT MAX(finish_date) FROM addenda WHERE finish_date IS NOT NULL",
+            (),
+        )
+    except Exception:
+        return {
+            "name": "Addenda Freshness",
+            "category": "pipeline",
+            "value": "N/A",
+            "unit": "",
+            "status": "yellow",
+            "detail": "addenda table not available",
+        }
+    if not rows or not rows[0][0]:
+        return {
+            "name": "Addenda Freshness",
+            "category": "pipeline",
+            "value": "No data",
+            "unit": "",
+            "status": "red",
+            "detail": "No finish_date values found in addenda table",
+        }
+    max_date = rows[0][0]
+    if isinstance(max_date, str):
+        max_date = date.fromisoformat(max_date[:10])
+    elif hasattr(max_date, "date"):
+        max_date = max_date.date()
+    days_old = (date.today() - max_date).days
+    status = "green" if days_old <= 30 else ("yellow" if days_old <= 60 else "red")
+    return {
+        "name": "Addenda Freshness",
+        "category": "pipeline",
+        "value": str(max_date),
+        "unit": f"{days_old}d old",
+        "status": status,
+        "detail": f"Most recent addenda finish_date: {max_date} ({days_old} days old)",
+    }
+
+
+def _check_station_velocity_freshness() -> dict:
+    """Check age of most recent station_velocity_v2 computation.
+
+    Green <= 7d, yellow 7-14d, red > 14d.
+    """
+    try:
+        rows = _raw_query(
+            "SELECT MAX(computed_at) FROM station_velocity_v2",
+            (),
+        )
+    except Exception:
+        return {
+            "name": "Station Velocity",
+            "category": "pipeline",
+            "value": "N/A",
+            "unit": "",
+            "status": "yellow",
+            "detail": "station_velocity_v2 table not available",
+        }
+    if not rows or not rows[0][0]:
+        return {
+            "name": "Station Velocity",
+            "category": "pipeline",
+            "value": "No data",
+            "unit": "",
+            "status": "red",
+            "detail": "No computed_at values found in station_velocity_v2",
+        }
+    max_ts = rows[0][0]
+    if isinstance(max_ts, str):
+        max_date = date.fromisoformat(max_ts[:10])
+    elif hasattr(max_ts, "date"):
+        max_date = max_ts.date()
+    else:
+        max_date = max_ts
+    days_old = (date.today() - max_date).days
+    status = "green" if days_old <= 7 else ("yellow" if days_old <= 14 else "red")
+    return {
+        "name": "Station Velocity",
+        "category": "pipeline",
+        "value": str(max_date),
+        "unit": f"{days_old}d old",
+        "status": status,
+        "detail": f"station_velocity_v2 last computed: {max_date} ({days_old} days old)",
     }

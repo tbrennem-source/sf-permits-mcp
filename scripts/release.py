@@ -38,6 +38,12 @@ def run_release_migrations():
     conn.autocommit = True
     cur = conn.cursor()
 
+    # NOTE: No advisory lock needed here — Railway's releaseCommand runs
+    # exactly once before any gunicorn workers start, so there's no
+    # concurrent DDL risk.  web/app.py's _run_startup_migrations() uses
+    # pg_try_advisory_lock(20260226) because multiple workers race on
+    # startup.
+
     # -- Base tables (needed for fresh Postgres, idempotent) ----------------
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -395,6 +401,56 @@ def run_release_migrations():
     cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_date ON addenda_changes (change_date)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_app_num ON addenda_changes (application_number)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_ac_station ON addenda_changes (station)")
+
+    # Projects + project_members tables (Sprint 61B: Team Seed)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS projects (
+            id TEXT PRIMARY KEY, name TEXT, address TEXT, block TEXT, lot TEXT,
+            neighborhood TEXT, created_by INTEGER REFERENCES users(user_id),
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_projects_parcel ON projects(block, lot)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS project_members (
+            project_id TEXT REFERENCES projects(id), user_id INTEGER REFERENCES users(user_id),
+            role TEXT DEFAULT 'member', invited_by INTEGER REFERENCES users(user_id),
+            joined_at TIMESTAMPTZ DEFAULT NOW(), PRIMARY KEY (project_id, user_id)
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_pm_user ON project_members(user_id)")
+
+    # PIM cache table (property intelligence module)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pim_cache (
+            block           TEXT NOT NULL,
+            lot             TEXT NOT NULL,
+            response_json   JSONB,
+            fetched_at      TIMESTAMPTZ DEFAULT NOW(),
+            PRIMARY KEY (block, lot)
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_pim_cache_fetched ON pim_cache (fetched_at)")
+
+    # Analysis sessions table (shared plan analysis results)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS analysis_sessions (
+            id TEXT PRIMARY KEY,
+            user_id INTEGER REFERENCES users(user_id),
+            project_description TEXT NOT NULL,
+            address TEXT,
+            neighborhood TEXT,
+            estimated_cost DOUBLE PRECISION,
+            square_footage DOUBLE PRECISION,
+            results_json JSONB NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            shared_count INTEGER DEFAULT 0,
+            view_count INTEGER DEFAULT 0
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_analysis_sessions_user ON analysis_sessions(user_id)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_analysis_sessions_created ON analysis_sessions(created_at)")
+    cur.execute("ALTER TABLE analysis_sessions ADD COLUMN IF NOT EXISTS project_id TEXT REFERENCES projects(id)")
 
     # DQ cache table
     cur.execute("""

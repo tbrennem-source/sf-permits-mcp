@@ -183,6 +183,9 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     street_use_activity = get_street_use_activity_for_user(user_id)
     nearby_development = get_nearby_development_for_user(user_id)
 
+    # Sprint 64: change velocity breakdown
+    change_velocity = _get_change_velocity(since)
+
     return {
         "changes": changes,
         "plan_reviews": plan_reviews,
@@ -200,6 +203,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "data_quality": data_quality,
         "street_use_activity": street_use_activity,
         "nearby_development": nearby_development,
+        "change_velocity": change_velocity,
         "summary": {
             "total_watches": total_watches,
             "total_properties": len(property_cards),
@@ -1475,13 +1479,56 @@ def _get_last_refresh() -> dict | None:
     delta = now - ts
     hours_ago = delta.total_seconds() / 3600
 
-    return {
+    result = {
         "last_success": ts.strftime("%b %d, %Y at %I:%M %p UTC"),
         "last_success_date": ts.strftime("%b %d"),
         "hours_ago": round(hours_ago, 1),
         "is_stale": hours_ago > 36,  # Allow some buffer beyond 24h
         "was_catchup": bool(was_catchup),
     }
+
+    # Enrich with nightly pipeline stats (non-fatal)
+    try:
+        from datetime import datetime as _dt, timezone as _tz
+        cutoff = _dt.now(_tz.utc) - timedelta(hours=24)
+        cutoff_str = cutoff.strftime("%Y-%m-%d %H:%M:%S")
+        ph = _ph()
+        changes_row = query_one(
+            f"SELECT COUNT(*) FROM permit_changes WHERE detected_at >= {ph}",
+            (cutoff_str,),
+        )
+        result["changes_detected"] = changes_row[0] if changes_row else 0
+
+        insp_row = query_one(
+            "SELECT inspections_updated FROM cron_log "
+            "WHERE job_type = 'nightly' AND status = 'success' "
+            "ORDER BY started_at DESC LIMIT 1"
+        )
+        result["inspections_updated"] = insp_row[0] if insp_row and insp_row[0] else 0
+    except Exception:
+        pass  # Non-fatal — basic last_refresh still returned
+
+    return result
+
+
+# ── Change velocity breakdown (Sprint 64) ────────────────────────
+
+def _get_change_velocity(since: date) -> dict:
+    """Count permit_changes grouped by change_type since *since*.
+
+    Returns a dict like ``{"status_change": 5, "new_permit": 3, ...}``.
+    Fails silently — returns empty dict on error.
+    """
+    ph = _ph()
+    try:
+        rows = query(
+            f"SELECT change_type, COUNT(*) FROM permit_changes "
+            f"WHERE detected_at >= {ph} GROUP BY change_type",
+            (str(since),),
+        )
+        return {r[0]: r[1] for r in rows} if rows else {}
+    except Exception:
+        return {}
 
 
 # ── Pipeline health section (Sprint 53 Session C) ────────────────
