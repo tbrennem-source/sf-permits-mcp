@@ -1660,3 +1660,43 @@ _Last reviewed: never_
 **Edge cases seen in code:** Some queries return "Please provide..." from permit_lookup instead of "No permits found", bypassing the guidance card. Edge case documented for follow-up.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Similar projects validate timeline estimate
+**Source:** Sprint 60 Agent A
+**User:** homeowner
+**Starting state:** User has submitted a project for analysis
+**Goal:** See how their project compares to completed similar projects
+**Expected outcome:** "Similar Projects" tab shows 3-5 completed permits with actual timelines, user can see their estimate is within the historical range
+**Edge cases seen in code:** No similar projects found (rare neighborhood + type combo); progressive widening falls back to district-level match
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Station path prediction in morning brief
+**Source:** Sprint 60 Agent B
+**User:** expediter
+**Starting state:** User has a watched permit currently in BLDG review
+**Goal:** Know what station comes next and how long it will take
+**Expected outcome:** Brief shows "Predicted next: SFFD (~4 days)" with estimated remaining days
+**Edge cases seen in code:** Permit at a rare station with no transition data; cycle prevention in prediction path
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Cost of delay informs budget planning
+**Source:** Sprint 60 Agent C
+**User:** homeowner
+**Starting state:** User is renting during renovation, paying $5,000/mo
+**Goal:** Understand financial impact of permit delays
+**Expected outcome:** Timeline section shows carrying cost scenarios ($17K typical, $23K conservative) and delay risk
+**Edge cases seen in code:** Zero carrying cost (field left empty — no cost section shown); no timeline data available
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Congestion signal warns of slow station
+**Source:** Sprint 60 Agent D
+**User:** architect
+**Starting state:** Architect checking velocity dashboard before submitting
+**Goal:** See if any review stations are currently backlogged
+**Expected outcome:** Station card shows "Congested (1.4x normal)" with queue depth
+**Edge cases seen in code:** Station with < 3 pending permits always shows "normal"; no baseline data on DuckDB
+**CC confidence:** medium
+**Status:** PENDING REVIEW

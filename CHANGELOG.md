@@ -1,5 +1,49 @@
 # Changelog
 
+## Sprint 60 — Permit Intelligence Layer (2026-02-26)
+
+4-agent parallel swarm adding intelligence features: historical project comparison, station path prediction, cost of delay analysis, and congestion monitoring.
+
+### Agent A: "Projects Like Yours" — Historical Comparison
+- **New MCP tool**: `similar_projects()` finds 5 completed permits matching user's project profile
+- **Progressive widening**: type + neighborhood + cost 50% → cost 100% → supervisor district
+- **Routing enrichment**: Each match includes station routing path from addenda table
+- **HTMX lazy-loaded tab**: "Similar Projects" tab in `/analyze` results, loads on tab click
+- **API route**: `GET /api/similar-projects` returns HTMX fragment
+- **Methodology dict**: Full Sprint 58 contract (model, formula, data sources, confidence)
+- 17 new tests
+
+### Agent B: Station Path Predictor + Brief Integration
+- **Transition matrix**: `station_transitions` table computed from 3.9M addenda records using LEAD() window function
+- **Path prediction**: `predict_remaining_path()` uses greedy most-probable-path algorithm, stops at terminal stations or P < 0.1
+- **Morning brief**: "Predicted next: SFFD (~4 days) · Est. 12 days remaining" for active watched permits
+- **Cron integration**: `refresh_station_transitions()` runs alongside velocity-refresh
+- 20 new tests
+
+### Agent C: Cost of Delay Calculator
+- **New parameter**: `monthly_carrying_cost` on `estimate_timeline()` (default None — backward compatible)
+- **Financial impact**: Shows p50/p75/p90 carrying cost scenarios in markdown and methodology card
+- **Delay risk**: "If review takes 142 days instead of 106, that's $5,910 more"
+- **Form field**: Optional "Monthly Carrying Cost ($)" in `/analyze` form
+- **Results overlay**: Styled cost impact section in Timeline methodology card
+- 15 new tests
+
+### Agent D: Station Congestion Signal
+- **New table**: `station_congestion` with queue depths, baseline averages, ratios, labels
+- **Congestion labels**: normal (< 1.15), busy (1.15-1.5), congested (> 1.5), clearing (< 0.7)
+- **Low-queue guard**: Stations with < 3 pending always labeled "normal"
+- **Velocity dashboard**: Color-coded congestion indicators on station cards
+- **Cron integration**: `refresh_station_congestion()` runs alongside velocity-refresh
+- 17 new tests
+
+### Sprint Totals
+- 69 new tests (2806 → 2875)
+- 16 files changed, 2,407 lines added
+- 2 new tables: `station_transitions`, `station_congestion`
+- 2 new Python modules: `similar_projects.py`, `station_predictor.py`
+- 1 new MCP tool registered
+- 1 new template fragment
+
 ## Sprint 59 — UX Polish Swarm (2026-02-25)
 
 4-agent parallel swarm fixing 6 pages flagged at UX score 2.0-2.75. Targeting 3.5+ post-fix.
