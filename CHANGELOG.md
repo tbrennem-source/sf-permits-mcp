@@ -1,5 +1,29 @@
 # Changelog
 
+## Sprint 63 — Deadlock Postmortem & Fix (2026-02-26)
+
+Postmortem on Sprints 59-62. Fixed Sprint 61B Team Seed migration deadlock that prevented `projects` and `project_members` tables from being created on prod/staging.
+
+### Root Cause (two bugs)
+1. **No advisory lock on startup DDL**: Multiple gunicorn workers raced to CREATE TABLE simultaneously, causing Postgres catalog lock contention.
+2. **`_PooledConnection.__setattr__` missing**: Wrapper class used `__getattr__` for reads but had no `__setattr__`. Setting `conn.autocommit = True` created an attribute on the wrapper instead of the underlying psycopg2 connection. All DDL ran inside an implicit transaction that aborted on the first failed ALTER TABLE.
+
+### Fixes
+- **`pg_try_advisory_lock(20260226)`** serializes startup migrations across workers
+- **`_PooledConnection.__setattr__`** properly delegates property assignments to underlying connection
+- **`EXPECTED_TABLES` health check**: `/health` reports `missing_expected_tables` and degrades status if any are absent
+- **Autocommit set on underlying connection**: `conn._conn.autocommit = True` bypasses wrapper
+
+### Protocol Amendment
+- CHECKCHAT Section 6: BLOCKED items now classified as **BLOCKED-FIXABLE** (must fix before close) or **BLOCKED-EXTERNAL** (can defer)
+- Failure Escalation Policy updated to match
+
+### Results
+- Staging + prod: 59 tables (was 56), `projects` + `project_members` created
+- Chief task #283 resolved
+- 2 dforge lessons + 1 retrospective written
+- 3,093 tests passing, 0 regressions
+
 ## Sprint 62 — Activity Intelligence + Launch Hardening (2026-02-26)
 
 4-agent parallel swarm adding analytics engine, client-side tracking, security hardening, and feature gating. Resolves 10 Chief tasks.

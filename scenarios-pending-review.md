@@ -1905,3 +1905,26 @@ _Last reviewed: never_
 **Edge cases seen in code:** Token is HMAC-SHA256[:32] of "user_id:email" using SECRET_KEY. Invalid/mismatched token is ignored silently. Route validates token before updating DB.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+<!-- Sprint 63 session: 2 scenarios added on 2026-02-26 -->
+<!-- Session focus: Deadlock postmortem & fix -->
+
+## SUGGESTED SCENARIO: Health check reports missing expected tables
+**Source:** Sprint 63 — EXPECTED_TABLES health check
+**User:** admin
+**Starting state:** App deployed with a migration that silently failed
+**Goal:** Detect that expected tables are missing before users hit errors
+**Expected outcome:** /health returns status "degraded" with missing_expected_tables array listing the missing table names. Monitoring alerts fire on non-"ok" status.
+**Edge cases seen in code:** Empty database (fresh deploy) should create all tables. Partial failure (some tables created, some not) reported accurately.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Concurrent worker startup with advisory lock
+**Source:** Sprint 63 — pg_advisory_lock on _run_startup_migrations
+**User:** admin
+**Starting state:** App restarting with 4 gunicorn workers, new tables needed
+**Goal:** Exactly one worker runs DDL, others skip safely
+**Expected outcome:** One worker acquires advisory lock and runs all CREATE TABLE statements. Other workers log "Another worker is running migrations — skipping" and proceed to serve requests. All expected tables exist after startup.
+**Edge cases seen in code:** Lock-holder crashes mid-migration — advisory lock released on connection close, next deploy retries. All workers fail to get lock (shouldn't happen with pg_try_advisory_lock).
+**CC confidence:** high
+**Status:** PENDING REVIEW
