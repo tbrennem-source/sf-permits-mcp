@@ -1,18 +1,19 @@
 """Playwright E2E test fixtures for sfpermits.ai.
 
-SESSION A: Staging environment + test-login infrastructure.
+Provides two test modes:
 
-These fixtures are used by all E2E tests that run against a live server
-(staging or local dev). Tests are gated by E2E_BASE_URL env var so they
-are skipped in CI unless explicitly configured.
+1. **Local live_server** (default): Starts Flask in a background thread.
+   Playwright tests run against it automatically. No env vars required for
+   anonymous tests; set TEST_LOGIN_SECRET for authenticated tests.
+
+2. **External server**: Set E2E_BASE_URL and TEST_LOGIN_SECRET to test
+   against staging or production.
+
+Usage (local — auto-starts Flask):
+    pytest tests/e2e/ -v
 
 Usage (against staging):
     E2E_BASE_URL=https://sfpermits-ai-staging.up.railway.app \
-    TEST_LOGIN_SECRET=<secret> \
-    pytest tests/e2e/ -v
-
-Usage (against local dev):
-    E2E_BASE_URL=http://localhost:5001 \
     TEST_LOGIN_SECRET=<secret> \
     pytest tests/e2e/ -v
 """
@@ -20,10 +21,17 @@ Usage (against local dev):
 from __future__ import annotations
 
 import os
+import socket
+import sys
+import threading
+import time
+import urllib.request
+from pathlib import Path
+
 import pytest
 
 # ---------------------------------------------------------------------------
-# E2E gate — skip all E2E tests unless E2E_BASE_URL is configured
+# E2E gate — legacy skip marker for tests needing external server
 # ---------------------------------------------------------------------------
 
 E2E_AVAILABLE = bool(os.environ.get("E2E_BASE_URL"))
@@ -32,6 +40,16 @@ skip_if_no_e2e = pytest.mark.skipif(
     not E2E_AVAILABLE,
     reason="E2E_BASE_URL not set — skipping live-server test",
 )
+
+# Screenshot output directory
+SCREENSHOT_DIR = Path("qa-results/screenshots/e2e")
+
+
+def _find_free_port() -> int:
+    """Find an available TCP port."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("", 0))
+        return s.getsockname()[1]
 
 # ---------------------------------------------------------------------------
 # Test personas
@@ -110,25 +128,68 @@ PERSONAS: dict[str, dict[str, str]] = {
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="session")
-def base_url() -> str:
+def live_server() -> str:
+    """Start a live Flask server for Playwright tests.
+
+    If E2E_BASE_URL is set, uses that external server instead.
+    Otherwise starts Flask in a background thread on a random port.
+    """
+    ext_url = os.environ.get("E2E_BASE_URL")
+    if ext_url:
+        yield ext_url
+        return
+
+    # Enable test-login for the embedded server
+    os.environ.setdefault("TESTING", "1")
+    os.environ.setdefault("TEST_LOGIN_SECRET", "e2e-test-secret-local")
+
+    # Import Flask app (adds project root to sys.path)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    from web.app import app as flask_app
+    flask_app.config["TESTING"] = True
+
+    port = _find_free_port()
+    thread = threading.Thread(
+        target=flask_app.run,
+        kwargs={"port": port, "use_reloader": False, "threaded": True},
+        daemon=True,
+    )
+    thread.start()
+
+    url = f"http://localhost:{port}"
+    # Wait up to 15s for server readiness
+    for _ in range(30):
+        try:
+            urllib.request.urlopen(f"{url}/health", timeout=1)
+            break
+        except Exception:
+            time.sleep(0.5)
+    else:
+        raise RuntimeError(f"Live server failed to start on {url}")
+
+    yield url
+
+
+@pytest.fixture(scope="session")
+def base_url(live_server) -> str:
     """Base URL of the server under test.
 
-    Reads E2E_BASE_URL env var.  Default: http://localhost:5001.
-    Override on command line:
-        pytest tests/e2e/ --base-url https://sfpermits-ai-staging.up.railway.app
+    Delegates to live_server (which auto-starts Flask or uses E2E_BASE_URL).
     """
-    return os.environ.get("E2E_BASE_URL", "http://localhost:5001")
+    return live_server
 
 
 @pytest.fixture(scope="session")
 def test_login_secret() -> str:
-    """TEST_LOGIN_SECRET shared secret for /auth/test-login endpoint.
-
-    Must match the TEST_LOGIN_SECRET env var configured on the server.
-    """
+    """TEST_LOGIN_SECRET for /auth/test-login endpoint."""
     secret = os.environ.get("TEST_LOGIN_SECRET", "")
-    if not secret and E2E_AVAILABLE:
-        pytest.skip("TEST_LOGIN_SECRET not set — cannot authenticate for E2E test")
+    if not secret:
+        # live_server sets a default; only skip if explicitly testing against
+        # an external server with no secret configured
+        if E2E_AVAILABLE:
+            pytest.skip("TEST_LOGIN_SECRET not set — cannot authenticate")
     return secret
 
 
@@ -145,20 +206,36 @@ def browser_context_args():
     }
 
 
+@pytest.fixture(scope="session")
+def pw_browser():
+    """Launch Playwright headless Chromium (session-scoped)."""
+    from playwright.sync_api import sync_playwright
+    pw = sync_playwright().start()
+    browser = pw.chromium.launch(headless=True)
+    yield browser
+    browser.close()
+    pw.stop()
+
+
+@pytest.fixture
+def page(pw_browser, browser_context_args, live_server):
+    """Fresh Playwright page for each test. Connected to live_server."""
+    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    context = pw_browser.new_context(**browser_context_args)
+    pg = context.new_page()
+    pg._base_url = live_server  # stash for convenience
+    yield pg
+    pg.close()
+    context.close()
+
+
 def login_as(page, base_url: str, secret: str, email: str) -> dict:
     """POST to /auth/test-login and authenticate the Playwright page.
 
-    Makes a direct API call to /auth/test-login with the test secret,
-    then navigates the page to capture the session cookie.
-
     Returns the JSON response from the login endpoint.
-
-    Raises:
-        RuntimeError: if the login fails (non-200 response)
     """
     import json as _json
 
-    # Use page.request to POST with JSON body
     response = page.request.post(
         f"{base_url}/auth/test-login",
         data=_json.dumps({"secret": secret, "email": email}),
@@ -173,36 +250,58 @@ def login_as(page, base_url: str, secret: str, email: str) -> dict:
 
 
 @pytest.fixture
-def authenticated_page(page, base_url, test_login_secret):
-    """Playwright page pre-authenticated as the default admin persona.
+def auth_page(pw_browser, browser_context_args, live_server, test_login_secret):
+    """Factory: auth_page("admin") returns a Playwright page logged in as that persona.
 
-    Skipped automatically if E2E_BASE_URL is not configured.
-    Yields the page after successful test-login.
+    Usage:
+        def test_something(auth_page):
+            pg = auth_page("expediter")
+            pg.goto(f"{pg._base_url}/account")
     """
-    if not E2E_AVAILABLE:
-        pytest.skip("E2E_BASE_URL not set — skipping live-server test")
-    login_as(
-        page,
-        base_url,
-        test_login_secret,
-        PERSONAS["admin"]["email"],
-    )
+    pages = []
+    contexts = []
+
+    def _make(persona_key: str = "admin"):
+        if not test_login_secret:
+            pytest.skip("TEST_LOGIN_SECRET not set — cannot authenticate")
+        persona = PERSONAS[persona_key]
+        ctx = pw_browser.new_context(**browser_context_args)
+        pg = ctx.new_page()
+        login_as(pg, live_server, test_login_secret, persona["email"])
+        pg._base_url = live_server
+        pages.append(pg)
+        contexts.append(ctx)
+        return pg
+
+    yield _make
+
+    for pg in pages:
+        try:
+            pg.close()
+        except Exception:
+            pass
+    for ctx in contexts:
+        try:
+            ctx.close()
+        except Exception:
+            pass
+
+
+@pytest.fixture
+def authenticated_page(page, base_url, test_login_secret):
+    """Playwright page pre-authenticated as the default admin persona."""
+    if not test_login_secret:
+        pytest.skip("TEST_LOGIN_SECRET not set — cannot authenticate")
+    login_as(page, base_url, test_login_secret, PERSONAS["admin"]["email"])
     yield page
 
 
 @pytest.fixture
 def make_authenticated_page(page, base_url, test_login_secret):
-    """Factory fixture: returns a function to authenticate as any persona.
-
-    Usage:
-        def test_something(make_authenticated_page):
-            pg = make_authenticated_page("expediter")
-            pg.goto("/account")
-            ...
-    """
+    """Factory fixture: returns a function to authenticate as any persona."""
     def _make(persona_key: str = "admin"):
-        if not E2E_AVAILABLE:
-            pytest.skip("E2E_BASE_URL not set — skipping live-server test")
+        if not test_login_secret:
+            pytest.skip("TEST_LOGIN_SECRET not set — cannot authenticate")
         persona = PERSONAS[persona_key]
         login_as(page, base_url, test_login_secret, persona["email"])
         return page
