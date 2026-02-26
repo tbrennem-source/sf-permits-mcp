@@ -15,7 +15,7 @@
        onmouseout="this.style.opacity='1'">
         View Results &rarr;
     </a>
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // Auto-redirect to results after a brief pause
         setTimeout(function() {
             window.location.href = "/plan-jobs/{{ job.job_id }}/results";

@@ -310,3 +310,89 @@
         padding: 16px;
     }
 }
+
+/* ── 17. Admin costs — table overflow fix ──────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .kill-switch-panel {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+    .bar-date {
+        width: 60px;
+        font-size: 0.7rem;
+    }
+    .threshold-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+/* ── 18. Feedback items — mobile layout ────────────────────────────────────── */
+
+@media (max-width: 640px) {
+    .feedback-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .feedback-actions {
+        flex-wrap: wrap;
+    }
+    .feedback-item {
+        padding: 14px;
+    }
+}
+
+/* ── 19. Regulatory watch — form and item layout ───────────────────────────── */
+
+@media (max-width: 640px) {
+    .rw-form-row {
+        grid-template-columns: 1fr;
+    }
+    .rw-header {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .rw-actions {
+        flex-wrap: wrap;
+    }
+    .rw-form-card {
+        width: 95%;
+        padding: 20px;
+    }
+}
+
+/* ── 20. Velocity heatmap — scrollable container ───────────────────────────── */
+
+@media (max-width: 768px) {
+    .heatmap-grid {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .dept-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .dept-grid {
+        grid-template-columns: 1fr;
+    }
+    .filter-bar .fbtn {
+        min-height: 44px;
+        padding: 8px 12px;
+    }
+}

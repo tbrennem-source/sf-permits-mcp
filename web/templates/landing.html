@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sfpermits.ai — San Francisco Building Permit Intelligence</title>
     <meta name="description" content="Free SF building permit lookup. See permit history, get timeline and fee estimates, and share project analysis with your contractor.">
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -357,6 +357,7 @@
             .feature-card { padding: 20px 18px; }
         }
     </style>
+    <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/mobile.css">
 </head>
 <body>
@@ -440,6 +441,24 @@
     </section>
     <!-- END SESSION E: HOMEOWNER FUNNEL -->
 
+    <!-- CTA Banner — what authenticated users get -->
+    <section class="cta-section" style="padding:40px 0;text-align:center;background:rgba(79,143,247,0.03);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+        <div class="container">
+            <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:8px;">Get more from your permit data</h2>
+            <p style="color:var(--text-muted);font-size:0.95rem;max-width:540px;margin:0 auto 24px;">
+                Create a free account to unlock property reports, morning briefs, plan analysis, and your personal portfolio tracker.
+            </p>
+            <a href="/auth/login" class="header-btn header-btn-primary" style="font-size:1rem;padding:14px 32px;border-radius:10px;display:inline-block;text-decoration:none;">
+                Create free account &rarr;
+            </a>
+            <div style="display:flex;justify-content:center;gap:24px;margin-top:20px;flex-wrap:wrap;">
+                <span style="font-size:0.8rem;color:var(--text-muted);">&#10003; No credit card</span>
+                <span style="font-size:0.8rem;color:var(--text-muted);">&#10003; Watch up to 25 properties</span>
+                <span style="font-size:0.8rem;color:var(--text-muted);">&#10003; Daily email briefs</span>
+            </div>
+        </div>
+    </section>
+
     <section class="features">
         <div class="container">
             <div class="features-grid">
@@ -511,6 +530,6 @@
             <p>Built on San Francisco open data. <a href="/health">System status</a></p>
         </div>
     </footer>
-    <script src="/static/activity-tracker.js" defer></script>
+    <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
 </body>
 </html>

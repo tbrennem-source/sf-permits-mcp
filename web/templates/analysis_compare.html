@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Compare Analyses — sfpermits.ai</title>
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -981,7 +981,7 @@
 </div><!-- /page-content -->
 </div><!-- /container -->
 
-<script>
+<script nonce="{{ csp_nonce }}">
 // ── Tab switching ─────────────────────────────────────────────
 function switchTab(name, btn) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));

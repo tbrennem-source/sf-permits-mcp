@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Activity Feed — sfpermits.ai</title>
 {% endif %}
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -236,7 +236,7 @@
 
     {% if not fragment %}{% include 'fragments/feedback_widget.html' %}{% endif %}
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
     function filterByUser(userId) {
         var url = '/admin/ops/fragment/activity';
         var params = [];

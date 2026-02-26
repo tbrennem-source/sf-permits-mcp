@@ -147,7 +147,7 @@
     </form>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 function copyCode(btn, code) {
     navigator.clipboard.writeText(code).then(function() {
         var orig = btn.innerHTML;

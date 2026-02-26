@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>QA Run: {{ run.run_name }} — sfpermits.ai</title>
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -158,7 +158,7 @@
             </div>
         </div>
     </main>
-    <script>
+    <script nonce="{{ csp_nonce }}">
     function seekTo(seconds) {
         var video = document.querySelector('video');
         if (video) {

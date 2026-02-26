@@ -16,7 +16,7 @@
     <meta name="twitter:description" content="Permits needed, timeline estimate, fee breakdown. Powered by sfpermits.ai">
     <meta name="twitter:image" content="https://sfpermits.ai/static/og-card.png">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
+    <style nonce="{{ csp_nonce }}">
         .shared-banner {
             background: #eff6ff;
             border: 1px solid #bfdbfe;
@@ -300,7 +300,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 {% if project_id %}
 function joinProject() {
     const btn = document.getElementById('join-btn');

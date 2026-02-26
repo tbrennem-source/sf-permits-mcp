@@ -1,4 +1,4 @@
-<style>
+<style nonce="{{ csp_nonce }}">
 /* === Sprint 58C: Methodology Cards === */
 .methodology-card { margin-top: 8px; }
 .methodology-card summary { cursor: pointer; color: #888; font-size: 0.85em; user-select: none; list-style: none; display: flex; align-items: center; gap: 4px; }
@@ -301,7 +301,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 function copyShareLink(analysisId) {
     const url = window.location.origin + '/analysis/' + analysisId;
     navigator.clipboard.writeText(url).then(() => {
@@ -389,7 +389,7 @@ async function sendShareEmail(analysisId) {
 
 {# === Sprint 58C: Methodology toggle script === #}
 {% if methodology %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function() {
     var toggle = document.getElementById('show-methodology');
     if (!toggle) return;

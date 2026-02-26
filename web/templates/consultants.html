@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Find a Consultant — sfpermits.ai</title>
-    <script src="/static/htmx.min.js"></script>
-    <style>
+    <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -319,7 +319,7 @@
                 </form>
             </div>
             {% if prefill and prefill.block and prefill.lot %}
-            <script>
+            <script nonce="{{ csp_nonce }}">
             // Auto-submit when arriving from property report with context
             document.addEventListener('DOMContentLoaded', function() {
                 var form = document.getElementById('consultant-form');
@@ -409,7 +409,7 @@
         </div>
     </main>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
     // Pre-fill form fields from query parameters (e.g., from Property Report links)
     (function() {
         var params = new URLSearchParams(window.location.search);

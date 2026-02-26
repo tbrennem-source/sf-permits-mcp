@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Feedback Queue — sfpermits.ai</title>
-    <script src="/static/htmx.min.js"></script>
+    <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
 {% endif %}
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;

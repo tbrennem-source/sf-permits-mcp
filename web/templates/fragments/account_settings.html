@@ -263,7 +263,7 @@
     {% endif %}
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 /* Watch list search/filter */
 function filterWatches(query) {
     var q = query.toLowerCase().trim();
