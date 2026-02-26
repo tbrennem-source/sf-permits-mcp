@@ -1,0 +1,187 @@
+<style>
+    .intel-section-label {
+        font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;
+        letter-spacing: 0.06em; font-weight: 600; margin-bottom: 10px; margin-top: 28px;
+    }
+    .intel-section-label:first-child { margin-top: 0; }
+    .intel-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px; margin-bottom: 8px;
+    }
+    .intel-card {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: 10px; padding: 16px 20px;
+    }
+    .intel-card-title {
+        font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;
+    }
+    .intel-value {
+        font-size: 1.8rem; font-weight: 700; line-height: 1.1; color: var(--text);
+    }
+    .intel-value.accent { color: var(--accent); }
+    .intel-value.warn { color: var(--warning); }
+    .intel-value.success { color: var(--success); }
+    .intel-unit {
+        font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;
+    }
+    .intel-sub {
+        font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;
+        padding-top: 8px; border-top: 1px solid var(--border);
+    }
+    /* Funnel bar */
+    .funnel-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem;
+    }
+    .funnel-row:last-child { border-bottom: none; }
+    .funnel-name { width: 80px; color: var(--text-muted); }
+    .funnel-bar-wrap { flex: 1; background: var(--border); border-radius: 3px; height: 6px; }
+    .funnel-bar { height: 6px; border-radius: 3px; background: var(--accent); min-width: 2px; }
+    .funnel-count { width: 50px; text-align: right; color: var(--text); font-weight: 600; }
+    .funnel-pct { width: 46px; text-align: right; color: var(--text-muted); }
+    /* Top queries table */
+    .intel-table {
+        width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 4px;
+    }
+    .intel-table th {
+        color: var(--text-muted); font-weight: 500; text-align: left;
+        padding: 4px 6px; border-bottom: 1px solid var(--border);
+    }
+    .intel-table td {
+        padding: 4px 6px; border-bottom: 1px solid var(--border);
+        color: var(--text); vertical-align: middle;
+    }
+    .intel-table tr:last-child td { border-bottom: none; }
+    .intel-table td.mono { font-family: monospace; }
+    .intel-empty {
+        padding: 24px 0; text-align: center; color: var(--text-muted); font-size: 0.85rem;
+    }
+</style>
+
+<h2 style="font-size:1.1rem;margin-bottom:16px;color:var(--accent);">Activity Intelligence</h2>
+<p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;">
+    Behavioral analytics from activity_log. Last {{ bounce.hours }}h / {{ funnel.days }}d / {{ refinements.hours }}h / {{ feedback_pages.days }}d / {{ time_to_action.days }}d windows.
+</p>
+
+{# ─── Bounce Rate ─── #}
+<div class="intel-section-label">Bounce Rate <span style="font-size:0.7rem;font-weight:400;">(search with no follow-up in 60s, last {{ bounce.hours }}h)</span></div>
+<div class="intel-grid">
+    <div class="intel-card">
+        <div class="intel-card-title">Bounce Rate</div>
+        <div class="intel-value {% if bounce.bounce_rate > 70 %}warn{% elif bounce.bounce_rate < 40 %}success{% else %}accent{% endif %}">
+            {{ bounce.bounce_rate }}%
+        </div>
+        <div class="intel-unit">of {{ bounce.total_searches }} searches</div>
+        <div class="intel-sub">{{ bounce.bounced }} bounced / {{ bounce.total_searches - bounce.bounced }} continued</div>
+    </div>
+    <div class="intel-card">
+        <div class="intel-card-title">Total Searches</div>
+        <div class="intel-value">{{ bounce.total_searches }}</div>
+        <div class="intel-unit">last {{ bounce.hours }}h</div>
+    </div>
+</div>
+
+{# ─── Feature Funnel ─── #}
+<div class="intel-section-label">Feature Funnel <span style="font-size:0.7rem;font-weight:400;">(unique users, last {{ funnel.days }}d)</span></div>
+<div class="intel-card" style="margin-bottom:8px;">
+    {% if funnel.stages and funnel.stages[0].count > 0 %}
+    {% for stage in funnel.stages %}
+    <div class="funnel-row">
+        <span class="funnel-name">{{ stage.name }}</span>
+        <div class="funnel-bar-wrap">
+            <div class="funnel-bar" style="width: {{ stage.pct_of_search }}%;"></div>
+        </div>
+        <span class="funnel-count">{{ stage.count }}</span>
+        <span class="funnel-pct">{{ stage.pct_of_search }}%</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="intel-empty">No funnel data for this period.</div>
+    {% endif %}
+</div>
+
+{# ─── Query Refinements ─── #}
+<div class="intel-section-label">Query Refinements <span style="font-size:0.7rem;font-weight:400;">(same user, 2+ searches, last {{ refinements.hours }}h)</span></div>
+<div class="intel-grid">
+    <div class="intel-card">
+        <div class="intel-card-title">Refinement Sessions</div>
+        <div class="intel-value accent">{{ refinements.refinement_sessions }}</div>
+        <div class="intel-unit">users who searched 2+ times</div>
+    </div>
+    <div class="intel-card">
+        <div class="intel-card-title">Avg Refinements / Session</div>
+        <div class="intel-value">{{ refinements.avg_refinements_per_session }}</div>
+        <div class="intel-unit">searches per refining user</div>
+    </div>
+</div>
+{% if refinements.top_refined_queries %}
+<div class="intel-card" style="margin-bottom:8px;margin-top:8px;">
+    <div class="intel-card-title" style="margin-bottom:8px;">Top Refined Queries</div>
+    <table class="intel-table">
+        <thead>
+            <tr><th>Query</th><th style="text-align:right;">Refinements</th></tr>
+        </thead>
+        <tbody>
+        {% for q in refinements.top_refined_queries[:8] %}
+            <tr>
+                <td class="mono">{{ q.query }}</td>
+                <td style="text-align:right;">{{ q.count }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{# ─── Feedback by Page ─── #}
+<div class="intel-section-label">Feedback by Page <span style="font-size:0.7rem;font-weight:400;">(last {{ feedback_pages.days }}d)</span></div>
+{% if feedback_pages.pages %}
+<div class="intel-card" style="margin-bottom:8px;">
+    <table class="intel-table">
+        <thead>
+            <tr>
+                <th>Path</th>
+                <th style="text-align:right;">Visits</th>
+                <th style="text-align:right;">Feedback</th>
+                <th style="text-align:right;">Ratio</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for page in feedback_pages.pages[:12] %}
+            <tr>
+                <td class="mono">{{ page.path }}</td>
+                <td style="text-align:right;">{{ page.visits }}</td>
+                <td style="text-align:right;">{{ page.feedback_count }}</td>
+                <td style="text-align:right;color:{% if page.ratio > 5 %}var(--warning){% else %}var(--text-muted){% endif %};">
+                    {{ page.ratio }}%
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="intel-card" style="margin-bottom:8px;">
+    <div class="intel-empty">No feedback data for this period.</div>
+</div>
+{% endif %}
+
+{# ─── Time to First Action ─── #}
+<div class="intel-section-label">Time to First Action <span style="font-size:0.7rem;font-weight:400;">(first page view → first search/analyze, last {{ time_to_action.days }}d)</span></div>
+<div class="intel-grid">
+    <div class="intel-card">
+        <div class="intel-card-title">Average</div>
+        <div class="intel-value accent">{{ time_to_action.avg_seconds }}s</div>
+        <div class="intel-unit">mean time to first action</div>
+    </div>
+    <div class="intel-card">
+        <div class="intel-card-title">Median</div>
+        <div class="intel-value">{{ time_to_action.median_seconds }}s</div>
+        <div class="intel-unit">p50 time to first action</div>
+    </div>
+    <div class="intel-card">
+        <div class="intel-card-title">Sample Size</div>
+        <div class="intel-value">{{ time_to_action.sample_size }}</div>
+        <div class="intel-unit">unique sessions analyzed</div>
+    </div>
+</div>
