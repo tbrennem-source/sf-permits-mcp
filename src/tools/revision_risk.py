@@ -177,7 +177,8 @@ async def revision_risk(
     neighborhood: str | None = None,
     project_type: str | None = None,
     review_path: str | None = None,
-) -> str:
+    return_structured: bool = False,
+) -> str | tuple[str, dict]:
     """Estimate revision probability and impact from permit data patterns.
 
     Analyzes historical permit data to predict:
@@ -191,9 +192,11 @@ async def revision_risk(
         neighborhood: Optional SF neighborhood name
         project_type: Optional specific type (e.g., 'restaurant', 'adu', 'seismic')
         review_path: Optional 'otc' or 'in_house'
+        return_structured: If True, returns (markdown_str, methodology_dict) tuple
 
     Returns:
         Formatted revision risk assessment with data-backed probabilities.
+        If return_structured=True, returns (str, dict) tuple.
     """
     # Try DuckDB for statistical data — gracefully degrade if unavailable
     stats = None
@@ -341,6 +344,16 @@ async def revision_risk(
                  "medium" if stats else "low"
     lines.append(f"\n**Confidence:** {confidence}")
 
+    # Coverage disclaimer
+    coverage_gaps = ["Based on cost revision proxy. Actual revision reasons vary by project type."]
+    if not db_available:
+        coverage_gaps.append("Historical permit database not available for statistical analysis")
+    if widened:
+        coverage_gaps.append("Query widened beyond specified filters for sufficient sample size")
+    lines.append(f"\n## Data Coverage\n")
+    for gap in coverage_gaps:
+        lines.append(f"- {gap}")
+
     # Source citations
     sources = []
     if db_available:
@@ -355,4 +368,42 @@ async def revision_risk(
         sources.append("epr_requirements")
     lines.append(format_sources(sources))
 
-    return "\n".join(lines)
+    md_output = "\n".join(lines)
+
+    if return_structured:
+        from datetime import date
+        formula_steps = []
+        if stats:
+            rate = stats["revision_proxy_rate"] or 0
+            formula_steps.append(f"Revision rate: {rate:.1%}")
+            if stats["avg_cost_increase_pct"]:
+                formula_steps.append(f"Avg cost increase: {stats['avg_cost_increase_pct']:.1f}%")
+            if stats["avg_days_with_change"] and stats["avg_days_no_change"]:
+                delta = stats["avg_days_with_change"] - stats["avg_days_no_change"]
+                formula_steps.append(f"Timeline penalty: +{delta} days")
+
+        data_sources = []
+        if db_available:
+            data_sources.append("1.1M+ historical permits (revised_cost proxy)")
+        if correction_data:
+            data_sources.append("Title-24/ADA correction frequency data")
+        if correction_workflow:
+            data_sources.append("EPR resubmittal workflow")
+
+        risk_level = "HIGH" if stats and (stats["revision_proxy_rate"] or 0) > 0.20 else \
+                     "MODERATE" if stats and (stats["revision_proxy_rate"] or 0) > 0.10 else "LOW"
+        headline = f"{risk_level} risk" if stats else "See assessment"
+
+        methodology = {
+            "tool": "revision_risk",
+            "headline": headline,
+            "formula_steps": formula_steps,
+            "data_sources": data_sources,
+            "sample_size": stats["total_permits"] if stats else 0,
+            "data_freshness": date.today().isoformat(),
+            "confidence": confidence,
+            "coverage_gaps": coverage_gaps,
+        }
+        return md_output, methodology
+
+    return md_output

@@ -262,7 +262,8 @@ async def required_documents(
     agency_routing: list[str] | None = None,
     project_type: str | None = None,
     triggers: list[str] | None = None,
-) -> str:
+    return_structured: bool = False,
+) -> str | tuple[str, dict]:
     """Generate a document checklist for permit submission.
 
     Assembles required documents based on permit form, review path,
@@ -274,9 +275,11 @@ async def required_documents(
         agency_routing: Agencies reviewing (e.g., ['Planning', 'SFFD (Fire)', 'DPH (Public Health)'])
         project_type: Specific type (e.g., 'restaurant', 'adu', 'seismic')
         triggers: Additional triggers (e.g., ['change_of_use', 'ada', 'historic'])
+        return_structured: If True, returns (markdown_str, methodology_dict) tuple
 
     Returns:
         Formatted document checklist with categories and EPR requirements.
+        If return_structured=True, returns (str, dict) tuple.
     """
     kb = get_knowledge_base()
 
@@ -425,6 +428,14 @@ async def required_documents(
     confidence = kb.get_step_confidence(5)
     lines.append(f"\n**Confidence:** {confidence}")
 
+    # Coverage disclaimer
+    coverage_gaps = ["Based on standard DBI requirements. Agency-specific forms may vary."]
+    if not agency_routing:
+        coverage_gaps.append("No agency routing provided — agency-specific documents may be incomplete")
+    lines.append(f"\n## Data Coverage\n")
+    for gap in coverage_gaps:
+        lines.append(f"- {gap}")
+
     # Build source citations
     sources = ["completeness_checklist", "epr_requirements", "forms_taxonomy"]
     if project_type == "restaurant" or "restaurant" in all_triggers:
@@ -443,4 +454,34 @@ async def required_documents(
         sources.append("inhouse_review")
     lines.append(format_sources(sources))
 
-    return "\n".join(lines)
+    md_output = "\n".join(lines)
+
+    if return_structured:
+        from datetime import date
+        total_docs = len(initial_docs) + len(agency_docs) + len(trigger_docs)
+        formula_steps = [
+            f"Base documents: {len(initial_docs)} (from {', '.join(permit_forms)})",
+            f"Agency documents: {len(agency_docs)}",
+            f"Project-specific: {len(trigger_docs)}",
+            f"Total: {total_docs} documents",
+        ]
+
+        data_sources = ["DBI completeness checklist", "EPR submission requirements"]
+        if project_type == "restaurant" or "restaurant" in all_triggers:
+            data_sources.append("DPH food facility guide")
+        if is_commercial:
+            data_sources.append("ADA/CBC 11B accessibility requirements")
+
+        methodology = {
+            "tool": "required_documents",
+            "headline": f"{total_docs} documents required",
+            "formula_steps": formula_steps,
+            "data_sources": data_sources,
+            "sample_size": 0,
+            "data_freshness": date.today().isoformat(),
+            "confidence": confidence,
+            "coverage_gaps": coverage_gaps,
+        }
+        return md_output, methodology
+
+    return md_output

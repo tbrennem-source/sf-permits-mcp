@@ -1,5 +1,51 @@
 # Changelog
 
+## Sprint 57 — Data Sharpening + Methodology Transparency (2026-02-25)
+
+Every calculated number in the UI now links to its reasoning. Users never wonder "where did this number come from?"
+
+### Methodology Metadata — Dual Return Pattern (Agent A)
+- **`return_structured` param**: All 5 decision tools (`estimate_fees`, `estimate_timeline`, `predict_permits`, `required_documents`, `revision_risk`) support `return_structured=True` returning `(str, dict)` tuple
+- **Backward compatible**: Default `return_structured=False` returns plain `str` — MCP server and all existing callers unaffected
+- **Methodology dict shape**: `tool`, `headline`, `formula_steps`, `data_sources`, `sample_size`, `data_freshness`, `confidence`, `coverage_gaps`
+
+### Coverage Disclaimers (Agent A)
+- **All 5 tools** append "Data Coverage" section to markdown output listing specific limitations
+- `estimate_fees`: "Planning fees not included. Electrical fees estimated from Table 1A-E."
+- `estimate_timeline`: "Limited data for this combination (N permits)" when sample < 20
+- `predict_permits`: "Zoning-specific routing unavailable" when no address provided
+- `required_documents`: "Based on standard DBI requirements. Agency-specific forms may vary."
+- `revision_risk`: "Based on cost revision proxy. Actual revision reasons vary by project type."
+
+### Cost Revision Risk in Fee Estimates (Agent A)
+- **5 cost brackets** with hardcoded revision rates from historical data analysis:
+  - Under $5K: 21.7% rate, 4.8x avg increase
+  - $5K–$25K: 20.8%, +33%
+  - $25K–$100K: 28.6%, +23%
+  - $100K–$500K: 28.5%, +17%
+  - Over $500K: 19.8%, -32% (cost decreases common)
+- Budget ceiling recommendation appended to fee estimate output
+
+### Pipeline Verification (Agent C)
+- **32 tests** validating cron infrastructure, route registration, inspections data constants, and street-use SQL matching
+- Confirmed plumbing inspections dataset (fuas-yurr) ingested alongside building inspections (vckc-dh2h)
+- All 10 cron routes verified as registered in Flask app
+
+### Methodology Cards in UI (Agent D)
+- **`/analyze` route** calls all 5 tools with `return_structured=True`, passes `methodology` dict to template
+- **`results.html`**: `<details class="methodology-card">` per tool section — collapsed by default, shows formula steps, data sources, coverage gaps
+- **`analysis_shared.html`**: Same methodology cards for shared analysis pages
+- Inline CSS: border-left accent, muted sources text, italic amber coverage gaps
+
+### QA Video Capture Infrastructure (pre-req)
+- `tests/e2e/relay_helpers.py`: Playwright video recording + step markers
+- `tests/e2e/test_video_recording.py`: E2E validation test for video pipeline
+- `web/templates/admin_qa.html` + `admin_qa_detail.html`: Admin QA replay pages with video playback and timeline
+
+### Test Coverage
+- 83 new tests (39 methodology + 32 pipeline + 12 methodology UX)
+- Total: 2,465 passed, 0 failed (worktree, pre-merge)
+
 ## Sprint 57.5 — Infrastructure Scaling (2026-02-25)
 
 Third outage from startup migrations + health check blocking all 2 sync workers. This sprint makes the app handle 400+ concurrent connections, deploy without downtime, and isolates cron from web traffic.

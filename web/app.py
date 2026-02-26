@@ -1161,16 +1161,21 @@ def analyze():
     section_order = reorder_sections(priorities) if priorities else None
 
     results = {}
+    # === SPRINT 57D: METHODOLOGY ===
+    methodology = {}
 
     # 1. Predict Permits (primary — drives inputs for other tools)
     try:
-        pred_result = run_async(predict_permits(
+        pred_raw = run_async(predict_permits(
             project_description=enriched_description,
             address=address,
             estimated_cost=estimated_cost,
             square_footage=square_footage,
+            return_structured=True,
         ))
+        pred_result, pred_meta = pred_raw
         results["predict"] = md_to_html(pred_result)
+        methodology["predict"] = pred_meta
     except Exception as e:
         results["predict"] = f'<div class="error">Prediction error: {e}</div>'
         pred_result = ""
@@ -1226,14 +1231,17 @@ def analyze():
     # 2. Estimate Fees
     if estimated_cost:
         try:
-            fees_result = run_async(estimate_fees(
+            fees_raw = run_async(estimate_fees(
                 permit_type=permit_type,
                 estimated_construction_cost=estimated_cost,
                 square_footage=square_footage,
                 neighborhood=neighborhood,
                 project_type=project_type,
+                return_structured=True,
             ))
-            results["fees"] = md_to_html(fees_result)
+            fees_md, fees_meta = fees_raw
+            results["fees"] = md_to_html(fees_md)
+            methodology["fees"] = fees_meta
         except Exception as e:
             results["fees"] = f'<div class="error">Fee estimation error: {e}</div>'
     else:
@@ -1241,42 +1249,51 @@ def analyze():
 
     # 3. Estimate Timeline
     try:
-        timeline_result = run_async(estimate_timeline(
+        timeline_raw = run_async(estimate_timeline(
             permit_type=permit_type,
             neighborhood=neighborhood,
             review_path=review_path,
             estimated_cost=estimated_cost,
             triggers=triggers or None,
+            return_structured=True,
         ))
+        timeline_md, timeline_meta = timeline_raw
         # Add target date buffer calculation if provided
         if target_date:
-            timeline_result = _add_target_date_context(timeline_result, target_date)
-        results["timeline"] = md_to_html(timeline_result)
+            timeline_md = _add_target_date_context(timeline_md, target_date)
+        results["timeline"] = md_to_html(timeline_md)
+        methodology["timeline"] = timeline_meta
     except Exception as e:
         results["timeline"] = f'<div class="error">Timeline error: {e}</div>'
 
     # 4. Required Documents
     try:
-        docs_result = run_async(required_documents(
+        docs_raw = run_async(required_documents(
             permit_forms=permit_forms,
             review_path=review_path,
             agency_routing=agency_routing or None,
             project_type=project_type,
             triggers=triggers or None,
+            return_structured=True,
         ))
-        results["docs"] = md_to_html(docs_result)
+        docs_md, docs_meta = docs_raw
+        results["docs"] = md_to_html(docs_md)
+        methodology["docs"] = docs_meta
     except Exception as e:
         results["docs"] = f'<div class="error">Documents error: {e}</div>'
 
     # 5. Revision Risk
     try:
-        risk_result = run_async(revision_risk(
+        risk_raw = run_async(revision_risk(
             permit_type=permit_type,
             neighborhood=neighborhood,
             project_type=project_type,
             review_path=review_path,
+            return_structured=True,
         ))
-        results["risk"] = md_to_html(risk_result)
+        risk_md, risk_meta = risk_raw
+        results["risk"] = md_to_html(risk_md)
+        methodology["risk"] = risk_meta
     except Exception as e:
         results["risk"] = f'<div class="error">Risk assessment error: {e}</div>'
 
@@ -1341,6 +1358,7 @@ def analyze():
     return render_template(
         "results.html",
         results=results,
+        methodology=methodology,
         section_order=section_order,
         experience_level=experience_level,
         has_team=bool(team_md),

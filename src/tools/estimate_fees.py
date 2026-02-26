@@ -474,13 +474,31 @@ def _query_fee_stats(conn, permit_type: str, neighborhood: str | None,
     return None
 
 
+COST_REVISION_BRACKETS = [
+    {"label": "Under $5K", "min": 0, "max": 5000, "rate": 0.217, "multiplier": "4.8x avg increase"},
+    {"label": "$5K–$25K", "min": 5000, "max": 25000, "rate": 0.208, "multiplier": "+33% avg increase"},
+    {"label": "$25K–$100K", "min": 25000, "max": 100000, "rate": 0.286, "multiplier": "+23% avg increase"},
+    {"label": "$100K–$500K", "min": 100000, "max": 500000, "rate": 0.285, "multiplier": "+17% avg increase"},
+    {"label": "Over $500K", "min": 500000, "max": float("inf"), "rate": 0.198, "multiplier": "-32% avg (cost decreases common)"},
+]
+
+
+def _get_cost_revision_bracket(cost: float) -> dict | None:
+    """Find the cost revision bracket for a given construction cost."""
+    for bracket in COST_REVISION_BRACKETS:
+        if bracket["min"] <= cost < bracket["max"]:
+            return bracket
+    return COST_REVISION_BRACKETS[-1]  # Over $500K
+
+
 async def estimate_fees(
     permit_type: str,
     estimated_construction_cost: float,
     square_footage: float | None = None,
     neighborhood: str | None = None,
     project_type: str | None = None,
-) -> str:
+    return_structured: bool = False,
+) -> str | tuple[str, dict]:
     """Estimate permit fees using the DBI fee schedule + historical data.
 
     Combines formula-based fee calculation from Table 1A-A through 1A-S
@@ -492,9 +510,11 @@ async def estimate_fees(
         square_footage: Optional project area for per-sqft analysis
         neighborhood: Optional SF neighborhood for statistical comparison
         project_type: Optional specific type (e.g., 'restaurant', 'adu') for additional fees
+        return_structured: If True, returns (markdown_str, methodology_dict) tuple
 
     Returns:
         Formatted fee estimate with formula breakdown and statistical context.
+        If return_structured=True, returns (str, dict) tuple.
     """
     kb = get_knowledge_base()
     fee_tables = kb.fee_tables
@@ -659,6 +679,15 @@ async def estimate_fees(
         lines.append(f"*{ada_analysis['note']}*")
         lines.append("- Submit DA-02 Disabled Access Compliance Checklist with permit application")
 
+    # Cost Revision Risk section
+    revision_bracket = _get_cost_revision_bracket(estimated_construction_cost)
+    if revision_bracket:
+        budget_ceiling = estimated_construction_cost * (1 + revision_bracket["rate"])
+        lines.append(f"\n## Cost Revision Risk\n")
+        lines.append(f"Cost revision probability: ~{revision_bracket['rate']:.0%} for projects in the {revision_bracket['label']} range.")
+        lines.append(f"Historical pattern: {revision_bracket['multiplier']}.")
+        lines.append(f"Budget recommendation: plan for ${budget_ceiling:,.0f} as your ceiling.")
+
     lines.append(f"\n## Notes\n")
     lines.append("- Fee schedule effective 9/1/2025 (Ord. 126-25)")
     lines.append("- DBI may adjust valuation per DBI Cost Schedule")
@@ -667,6 +696,14 @@ async def estimate_fees(
 
     confidence = "high" if "error" not in building_fee else "low"
     lines.append(f"\n**Confidence:** {confidence}")
+
+    # Coverage disclaimer
+    coverage_gaps = ["Planning fees not included", "Electrical fees estimated from Table 1A-E"]
+    if not sffd_fees:
+        coverage_gaps.append("SFFD fees not calculated (project type may not trigger fire review)")
+    lines.append(f"\n## Data Coverage\n")
+    for gap in coverage_gaps:
+        lines.append(f"- {gap}")
 
     # Build source citations
     sources = ["fee_tables"]
@@ -680,4 +717,37 @@ async def estimate_fees(
         sources.append("fee_tables")  # Table 1A-E is in fee_tables
     lines.append(format_sources(sources))
 
-    return "\n".join(lines)
+    md_output = "\n".join(lines)
+
+    if return_structured:
+        from datetime import date
+        # Build formula steps
+        formula_steps = []
+        if "error" not in building_fee:
+            formula_steps.append(f"Plan Review Fee: ${building_fee['plan_review_fee']:,.2f}")
+            formula_steps.append(f"Permit Issuance Fee: ${building_fee['permit_issuance_fee']:,.2f}")
+            formula_steps.append(f"CBSC Fee: ${surcharges['cbsc_fee']:,.2f}")
+            formula_steps.append(f"SMIP Fee: ${surcharges['smip_fee']:,.2f}")
+            formula_steps.append(f"Total DBI: ${total_dbi:,.2f}")
+
+        data_sources = ["DBI Table 1A-A fee schedule", "1.1M permit records"]
+        if sffd_fees:
+            data_sources.append("SFFD Table 107-B/107-C")
+        if electrical_fees:
+            data_sources.append("DBI Table 1A-E electrical fees")
+        if plumbing_fees:
+            data_sources.append("DBI Table 1A-C plumbing fees")
+
+        methodology = {
+            "tool": "estimate_fees",
+            "headline": f"${total_dbi:,.0f}" if total_dbi > 0 else "See breakdown",
+            "formula_steps": formula_steps,
+            "data_sources": data_sources,
+            "sample_size": stat_data["sample_size"] if stat_data else 0,
+            "data_freshness": date.today().isoformat(),
+            "confidence": confidence,
+            "coverage_gaps": coverage_gaps,
+        }
+        return md_output, methodology
+
+    return md_output

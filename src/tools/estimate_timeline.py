@@ -357,7 +357,8 @@ async def estimate_timeline(
     review_path: str | None = None,
     estimated_cost: float | None = None,
     triggers: list[str] | None = None,
-) -> str:
+    return_structured: bool = False,
+) -> str | tuple[str, dict]:
     """Estimate permit processing timeline using historical data + station velocity.
 
     Queries 1.1M+ historical permits to compute percentile-based timeline
@@ -370,9 +371,11 @@ async def estimate_timeline(
         review_path: 'otc' or 'in_house' — if not provided, will estimate both
         estimated_cost: Construction cost for cost bracket matching
         triggers: Additional delay factors to include (e.g., ['change_of_use', 'historic'])
+        return_structured: If True, returns (markdown_str, methodology_dict) tuple
 
     Returns:
         Formatted timeline estimate with percentiles, station velocity, trend, and delay factors.
+        If return_structured=True, returns (str, dict) tuple.
     """
     bracket = _cost_bracket(estimated_cost)
 
@@ -526,6 +529,22 @@ async def estimate_timeline(
             "Initial review cycle shown (addenda #0).*"
         )
 
+    # Coverage disclaimer
+    sample_size = result["sample_size"] if result else 0
+    coverage_gaps = []
+    if sample_size > 0 and sample_size < 20:
+        coverage_gaps.append(f"Limited data for this combination ({sample_size} permits)")
+    if widened:
+        coverage_gaps.append("Query widened beyond specified filters for sufficient sample size")
+    if not db_available:
+        coverage_gaps.append("Historical permit database not available — using knowledge-based estimates")
+    if not v2_available:
+        coverage_gaps.append("Station velocity data not available")
+    if coverage_gaps:
+        lines.append(f"\n## Data Coverage\n")
+        for gap in coverage_gaps:
+            lines.append(f"- {gap}")
+
     # Source citations
     sources = []
     if db_available:
@@ -538,4 +557,39 @@ async def estimate_timeline(
         sources.append("inhouse_review")
     lines.append(format_sources(sources))
 
-    return "\n".join(lines)
+    md_output = "\n".join(lines)
+
+    if return_structured:
+        from datetime import date
+        formula_steps = []
+        if result:
+            formula_steps.append(f"p25 (optimistic): {result['p25_days']} days")
+            formula_steps.append(f"p50 (typical): {result['p50_days']} days")
+            formula_steps.append(f"p75 (conservative): {result['p75_days']} days")
+            formula_steps.append(f"p90 (worst case): {result['p90_days']} days")
+
+        data_sources = []
+        if db_available:
+            data_sources.append("1.1M+ historical permits (timeline_stats)")
+        if v2_available:
+            data_sources.append("3.9M addenda routing records (station_velocity_v2)")
+        if delay_factors:
+            data_sources.append("Agency routing knowledge base")
+        if not db_available:
+            data_sources.append("DBI knowledge base estimates")
+
+        headline = f"{result['p50_days']} days typical" if result else "See ranges"
+
+        methodology = {
+            "tool": "estimate_timeline",
+            "headline": headline,
+            "formula_steps": formula_steps,
+            "data_sources": data_sources,
+            "sample_size": sample_size,
+            "data_freshness": date.today().isoformat(),
+            "confidence": confidence,
+            "coverage_gaps": coverage_gaps,
+        }
+        return md_output, methodology
+
+    return md_output

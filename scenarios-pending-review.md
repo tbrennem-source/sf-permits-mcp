@@ -1519,3 +1519,45 @@ _Last reviewed: never_
 **Edge cases seen in code:** submit_task is fire-and-forget (no error surfacing to user); dev mode (no SMTP_HOST) still logs immediately; plan_worker emails use sync=True since already in background thread
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+<!-- Sprint 57: 4 scenarios added (methodology transparency, dual return, coverage disclaimers, revision probability) -->
+
+## SUGGESTED SCENARIO: Methodology card reveals calculation details
+**Source:** Sprint 57 — methodology transparency
+**User:** expediter | architect
+**Starting state:** User submits a project for analysis via /analyze
+**Goal:** Understand where each number came from
+**Expected outcome:** Each tool section (fees, timeline, permits, documents, risk) has a collapsible "How we calculated this" card showing formula steps, data sources, and coverage gaps. Cards are collapsed by default.
+**Edge cases seen in code:** methodology dict may be empty if tool throws exception; cards gracefully absent when no methodology data
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Fee estimate shows cost revision risk
+**Source:** Sprint 57 — estimate_fees revision probability
+**User:** expediter | homeowner
+**Starting state:** User requests a fee estimate with construction cost
+**Goal:** Understand the risk of cost changes during permit review
+**Expected outcome:** Fee estimate includes a "Cost Revision Risk" section with probability percentage for the cost bracket, historical pattern, and a budget ceiling recommendation
+**Edge cases seen in code:** Five cost brackets with different rates (21.7% to 28.6%); Over $500K bracket shows -32% (cost decreases common)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Tool backward compatibility preserved
+**Source:** Sprint 57 — dual return pattern
+**User:** admin
+**Starting state:** MCP server calls tools without return_structured parameter
+**Goal:** Existing MCP callers continue to work unchanged
+**Expected outcome:** All 5 tools return plain string when called without return_structured=True. No breaking change for MCP server or any existing caller.
+**Edge cases seen in code:** Default param value is False; MCP server.py does not pass return_structured
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Coverage disclaimers clarify data limitations
+**Source:** Sprint 57 — coverage disclaimers
+**User:** expediter | architect
+**Starting state:** User views tool output from any of the 5 analysis tools
+**Goal:** Know what data limitations apply to each result
+**Expected outcome:** Each tool output includes a "Data Coverage" section listing specific gaps (e.g., "Planning fees not included", "Limited data for this combination")
+**Edge cases seen in code:** estimate_timeline disclaimer triggers when sample < 20; predict_permits shows "Zoning-specific routing unavailable" when no address provided
+**CC confidence:** high
+**Status:** PENDING REVIEW
