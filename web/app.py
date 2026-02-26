@@ -552,6 +552,22 @@ def _run_startup_migrations():
             )
         """)
 
+        # === SESSION A: Sprint 61A — PIM ArcGIS cache ===
+        # 30-day TTL cache for SF Planning GIS parcel data (zoning, historic, etc.)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS pim_cache (
+                block           TEXT NOT NULL,
+                lot             TEXT NOT NULL,
+                response_json   JSONB,
+                fetched_at      TIMESTAMPTZ DEFAULT NOW(),
+                PRIMARY KEY (block, lot)
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_pim_cache_fetched ON pim_cache (fetched_at)"
+        )
+        # === END SESSION A ===
+
         # ── Bulk table indexes ──────────────────────────────────
         # Mirror the DuckDB indexes (src/db.py _create_indexes) for
         # PostgreSQL.  Critical for DQ checks and brief queries that

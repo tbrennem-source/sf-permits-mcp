@@ -64,6 +64,47 @@ def _format_tax_roll_local(row: tuple) -> str:
     return "\n".join(lines)
 
 
+def _format_pim_enrichment(pim_data: dict, block: str, lot: str) -> str:
+    """Format PIM ArcGIS data as an additive markdown section.
+
+    Returns empty string if no useful data is present.
+    Sprint 61A: additive enrichment — does not modify existing tax_rolls output.
+    """
+    lines = ["### Planning Data (SF Planning GIS — PIM)\n"]
+    lines.append(f"*Block {block} / Lot {lot} — authoritative parcel data from SF Planning.*\n")
+
+    has_data = False
+    zoning_code = pim_data.get("ZONING_CODE")
+    if zoning_code:
+        lines.append(f"- **Zoning Code:** {zoning_code}")
+        has_data = True
+    zoning_cat = pim_data.get("ZONING_CATEGORY")
+    if zoning_cat:
+        lines.append(f"- **Zoning Category:** {zoning_cat}")
+        has_data = True
+    height_dist = pim_data.get("HEIGHT_DIST")
+    if height_dist:
+        lines.append(f"- **Height District:** {height_dist}")
+        has_data = True
+    special_use = pim_data.get("SPECIAL_USE_DIST")
+    if special_use:
+        lines.append(f"- **Special Use District:** {special_use}")
+        has_data = True
+    historic = pim_data.get("HISTORIC_DISTRICT")
+    if historic:
+        lines.append(f"- **Historic District:** {historic}")
+        has_data = True
+    landmark = pim_data.get("LANDMARK")
+    if landmark:
+        lines.append(f"- **Landmark:** {landmark}")
+        has_data = True
+
+    if not has_data:
+        return ""
+
+    return "\n".join(lines)
+
+
 async def property_lookup(
     address: str | None = None,
     block: str | None = None,
@@ -111,7 +152,18 @@ async def property_lookup(
                     row = conn.execute(base_sql, params).fetchone()
 
                 if row:
-                    return _format_tax_roll_local(row)
+                    base_output = _format_tax_roll_local(row)
+                    # === Sprint 61A: Enrich with PIM data (additive) ===
+                    try:
+                        from src.pim_client import query_pim_cached
+                        pim_data = await query_pim_cached(block, lot)
+                        if pim_data:
+                            pim_section = _format_pim_enrichment(pim_data, block, lot)
+                            if pim_section:
+                                base_output = base_output + "\n\n" + pim_section
+                    except Exception as pim_exc:
+                        logger.debug("PIM enrichment failed (non-fatal): %s", pim_exc)
+                    return base_output
             finally:
                 conn.close()
         except Exception:

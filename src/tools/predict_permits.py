@@ -518,6 +518,8 @@ async def predict_permits(
     # Database-backed zoning routing (supplements knowledge base)
     zoning_info = None
     historic_district_flag = False
+    pim_block = None
+    pim_lot = None
     if address:
         try:
             from src.db import get_connection, BACKEND
@@ -541,6 +543,7 @@ async def predict_permits(
                             )
                             bl = cur.fetchone()
                             if bl:
+                                pim_block, pim_lot = bl[0], bl[1]
                                 cur.execute(
                                     f"SELECT zoning_code FROM tax_rolls"
                                     f" WHERE block = {_ph} AND lot = {_ph}"
@@ -570,6 +573,7 @@ async def predict_permits(
                             [street_num, f"%{street_name_part}%"],
                         ).fetchone()
                         if bl:
+                            pim_block, pim_lot = bl[0], bl[1]
                             zr = conn.execute(
                                 f"SELECT zoning_code FROM tax_rolls"
                                 f" WHERE block = {_ph} AND lot = {_ph}"
@@ -596,6 +600,41 @@ async def predict_permits(
     # A3: Extract historic_district flag from zoning info if available
     if zoning_info and len(zoning_info) >= 6:
         historic_district_flag = bool(zoning_info[5])
+
+    # === Sprint 61A: PIM ArcGIS integration ===
+    # Query PIM as PRIMARY zoning/historic source when block/lot is known.
+    # PIM is authoritative — use it for display and routing when available.
+    # Fallback to ref_zoning_routing (already populated above) when PIM is down.
+    pim_data = None
+    pim_used = False
+    pim_zoning_code = None
+    pim_historic_district = None
+    pim_coverage_gap = None
+
+    if pim_block and pim_lot:
+        try:
+            from src.pim_client import query_pim_cached, get_pim_coverage_gap_note
+            pim_data = await query_pim_cached(pim_block, pim_lot)
+            if pim_data:
+                pim_zoning_code = pim_data.get("ZONING_CODE")
+                pim_historic_district = pim_data.get("HISTORIC_DISTRICT")
+                pim_used = True
+
+                # Override historic_district_flag with authoritative PIM value
+                if pim_historic_district:
+                    historic_district_flag = True
+                    # Ensure "historic" is in project_types for routing
+                    if "historic" not in project_types:
+                        project_types = list(project_types) + ["historic"]
+
+                # Check if PIM zoning code is in ref_zoning_routing
+                if pim_zoning_code and not zoning_info:
+                    # PIM has zoning but ref table doesn't — note coverage gap
+                    pim_coverage_gap = get_pim_coverage_gap_note(pim_zoning_code)
+        except Exception as exc:
+            logger.debug("PIM query failed in predict_permits (fallback to ref): %s", exc)
+            pim_data = None
+            pim_used = False
 
     # Build result
     result = {
@@ -658,9 +697,46 @@ async def predict_permits(
         status = "Required" if a.get("required") else "Conditional"
         lines.append(f"- **{a['agency']}** ({status}): {a['reason']}")
 
-    # Zoning context (from database lookup)
-    if zoning_info:
-        # A3: unpack 6-column result (added historic_district)
+    # Zoning context — PIM is PRIMARY source; ref_zoning_routing is fallback
+    if pim_used and pim_data:
+        lines.append(f"\n## Zoning Context\n")
+        lines.append(f"*Source: SF Planning GIS (PIM ArcGIS API) — authoritative parcel data.*\n")
+        if pim_zoning_code:
+            lines.append(f"- **Zoning Code:** {pim_zoning_code}")
+        zoning_cat = pim_data.get("ZONING_CATEGORY")
+        if zoning_cat:
+            lines.append(f"- **Category:** {zoning_cat}")
+        height_dist = pim_data.get("HEIGHT_DIST")
+        if height_dist:
+            lines.append(f"- **Height District:** {height_dist}")
+        special_use = pim_data.get("SPECIAL_USE_DIST")
+        if special_use:
+            lines.append(f"- **Special Use District:** {special_use}")
+        landmark = pim_data.get("LANDMARK")
+        if landmark:
+            lines.append(f"- **Landmark:** {landmark}")
+        if pim_historic_district:
+            lines.append(
+                f"- **Historic District:** {pim_historic_district}"
+                f" — all exterior work triggers Planning Preservation review (Article 10/11)"
+            )
+        # If PIM zoning code isn't in ref table, note the coverage gap
+        if pim_coverage_gap:
+            lines.append(f"- **Note:** {pim_coverage_gap}")
+        # Supplement with ref_zoning_routing routing flags when available
+        if zoning_info:
+            if len(zoning_info) >= 6:
+                _, _, planning_req, fire_req, health_req, _ = zoning_info
+            else:
+                _, _, planning_req, fire_req, health_req = zoning_info[:5]
+            if planning_req:
+                lines.append(f"- **Planning Review:** Required (confirmed by zoning code)")
+            if fire_req:
+                lines.append(f"- **Fire Review:** Required (confirmed by zoning code)")
+            if health_req:
+                lines.append(f"- **Health Review:** Required (confirmed by zoning code)")
+    elif zoning_info:
+        # Fallback: ref_zoning_routing when PIM unavailable
         if len(zoning_info) >= 6:
             zoning_code, zoning_category, planning_req, fire_req, health_req, historic_dist = zoning_info
         else:
@@ -697,8 +773,10 @@ async def predict_permits(
 
     # Coverage disclaimer
     coverage_gaps = []
-    if not zoning_info:
+    if not zoning_info and not pim_used:
         coverage_gaps.append("Zoning-specific routing unavailable. General routing rules applied.")
+    if pim_coverage_gap:
+        coverage_gaps.append(pim_coverage_gap)
     if not address:
         coverage_gaps.append("No address provided — cannot verify zoning or historic status")
     if "general_alteration" in project_types:
@@ -738,6 +816,8 @@ async def predict_permits(
     ]
 
     data_sources_list = ["SF permit decision tree (86-concept semantic index)"]
+    if pim_used:
+        data_sources_list.append("SF Planning GIS (PIM ArcGIS API) — authoritative zoning/historic")
     if zoning_info:
         data_sources_list.append("Local tax records + zoning routing table")
     if db_form:
@@ -751,6 +831,20 @@ async def predict_permits(
         for pt in project_types
     ]
 
+    # Sprint 61A: PIM enrichment fields for methodology
+    pim_enrichment = None
+    if pim_used and pim_data:
+        pim_enrichment = {
+            "block": pim_block,
+            "lot": pim_lot,
+            "zoning_code": pim_zoning_code,
+            "zoning_category": pim_data.get("ZONING_CATEGORY"),
+            "historic_district": pim_historic_district,
+            "height_dist": pim_data.get("HEIGHT_DIST"),
+            "special_use_dist": pim_data.get("SPECIAL_USE_DIST"),
+            "landmark": pim_data.get("LANDMARK"),
+        }
+
     methodology_dict: dict = {
         "methodology": {
             "model": "Decision-tree permit classification",
@@ -759,12 +853,17 @@ async def predict_permits(
                 f"{form['form']} / {review_path['path']} / "
                 f"{len(agency_routing)} agencies"
             ),
-            "data_source": "SF DBI permit decision tree + 86-concept knowledge index",
+            "data_source": (
+                "SF Planning GIS (PIM ArcGIS API)"
+                if pim_used
+                else "SF DBI permit decision tree + 86-concept knowledge index"
+            ),
             "recency": "Knowledge base: current as of ingestion date",
             "sample_size": 0,
             "data_freshness": today_iso,
             "confidence": review_path.get("confidence", "medium"),
             "coverage_gaps": coverage_gaps,
+            "pim_data": pim_enrichment,
         },
         # Tool-specific keys
         "triggers_matched": triggers_matched,
