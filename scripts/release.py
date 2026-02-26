@@ -490,6 +490,32 @@ def run_release_migrations():
         except Exception:
             pass  # table may not exist yet on fresh installs
 
+    # Permit Prep tables (QS3-A)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS prep_checklists (
+            checklist_id SERIAL PRIMARY KEY,
+            permit_number TEXT NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES users(user_id),
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_prep_checklists_user ON prep_checklists(user_id)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_prep_checklists_permit ON prep_checklists(permit_number)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS prep_items (
+            item_id SERIAL PRIMARY KEY,
+            checklist_id INTEGER NOT NULL REFERENCES prep_checklists(checklist_id),
+            document_name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'required',
+            source TEXT NOT NULL DEFAULT 'predicted',
+            notes TEXT,
+            due_date TEXT
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_prep_items_checklist ON prep_items(checklist_id)")
+
     # Admin auto-seed
     admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
     if admin_email:
