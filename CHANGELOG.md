@@ -43,6 +43,42 @@
 - 4 pre-existing test failures fixed
 - 10 Chief tasks resolved: #123, #124, #136, #224-229, #279
 
+## Sprint 61 — Team Loop + Authoritative Data + Notifications (2026-02-26)
+
+4-agent parallel swarm. Agent B self-merged; A, C, D merged by orchestrator.
+
+### Agent A: PIM ArcGIS Integration
+- **New module**: `src/pim_client.py` — async httpx client for SF Planning PIM ArcGIS REST API
+- Queries zoning code, category, historic district, height district, special use district, landmark per parcel
+- 30-day TTL cache in `pim_cache` table (JSONB on Postgres, TEXT on DuckDB)
+- `predict_permits` uses PIM as PRIMARY zoning source (falls back to keyword matching)
+- `property_lookup` adds "Planning Data (SF Planning GIS — PIM)" section
+- Coverage gap note for unknown zoning codes (not hard failure)
+
+### Agent B: Team Seed (self-merged)
+- `projects` + `project_members` tables with migration
+- Auto-create project on first analysis with address/block/lot
+- Dedup by (user_id, block, lot) — re-analysis links to existing project
+- `/project/<id>` detail page, `/projects` list page
+- Join project from shared analysis page (join banner + HTMX)
+
+### Agent C: Scenario Landing Pages
+- WIP stub only — empty commit, no code shipped
+
+### Agent D: Notification Push
+- `notify_permit_changes` + `notify_email` columns on users table (migration)
+- `web/email_notifications.py` — individual + digest email delivery
+- Individual: up to 10 emails per user per run; 11+ triggers digest
+- HMAC-signed one-click unsubscribe links in email footer
+- Account settings toggle for notification opt-in/out
+- Integrated into nightly pipeline (step 11, non-fatal)
+- 5 scenarios captured
+
+### Sprint Totals
+- 14 migrations (12 + sprint61b_teams + sprint61d_notify_columns)
+- 3,093 tests passing
+- Agent C deferred (empty stub)
+
 ## Sprint 60 — Permit Intelligence Layer (2026-02-26)
 
 4-agent parallel swarm adding intelligence features: historical project comparison, station path prediction, cost of delay analysis, and congestion monitoring.
