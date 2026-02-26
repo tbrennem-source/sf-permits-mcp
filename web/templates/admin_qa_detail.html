@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>QA Run: {{ run.run_name }} — sfpermits.ai</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        main { padding: 40px 0 80px; }
+
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        h1 { font-size: 1.3rem; margin-bottom: 4px; }
+
+        .run-summary {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+        }
+        .run-summary .stat-pass { color: var(--success); }
+        .run-summary .stat-fail { color: var(--error); }
+        .run-summary .stat-blocked { color: var(--warning); }
+
+        .video-container {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .video-container video {
+            width: 100%;
+            display: block;
+        }
+        .no-video {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .timeline-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+        }
+
+        .qa-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .qa-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.1s;
+            font-size: 0.85rem;
+        }
+        .qa-step:hover { background: var(--surface-2); }
+
+        .qa-step.fail {
+            background: rgba(248, 113, 113, 0.08);
+            border-left: 3px solid var(--error);
+        }
+        .qa-step.blocked {
+            background: rgba(251, 191, 36, 0.08);
+            border-left: 3px solid var(--warning);
+        }
+        .qa-step.pass {
+            border-left: 3px solid transparent;
+        }
+
+        .qa-step-icon { font-size: 1rem; flex-shrink: 0; width: 20px; text-align: center; }
+        .qa-step-time { color: var(--text-muted); font-size: 0.75rem; font-family: monospace; min-width: 50px; }
+        .qa-step-name { flex: 1; }
+        .qa-step-note { color: var(--text-muted); font-size: 0.75rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .qa-fail-screenshot {
+            margin: 4px 0 8px 45px;
+            border: 2px solid var(--error);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .qa-fail-screenshot img {
+            width: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    {% include 'fragments/nav.html' %}
+    <main>
+        <div class="container">
+            <a href="/admin/qa" class="back-link">&larr; All QA Runs</a>
+            <h1>{{ run.run_name }}</h1>
+            <div class="run-summary">
+                {{ run.started_at_fmt }} &middot;
+                {{ run.duration_seconds }}s &middot;
+                {{ run.total_steps }} steps:
+                <span class="stat-pass">{{ run.passed }} passed</span>,
+                <span class="stat-fail">{{ run.failed }} failed</span>
+                {% if run.blocked > 0 %}, <span class="stat-blocked">{{ run.blocked }} blocked</span>{% endif %}
+            </div>
+
+            <div class="video-container">
+                {% if run.video_file %}
+                <video controls preload="metadata">
+                    <source src="/admin/qa/{{ run.run_name }}/video" type="video/webm">
+                    Your browser does not support WebM video.
+                </video>
+                {% else %}
+                <div class="no-video">No video recording found for this run.</div>
+                {% endif %}
+            </div>
+
+            <div class="timeline-label">Step Timeline</div>
+            <div class="qa-timeline">
+                {% for step in run.steps %}
+                <div class="qa-step {{ step.result|lower }}" onclick="seekTo({{ step.elapsed_seconds }})">
+                    <span class="qa-step-icon">{% if step.result == 'PASS' %}&#9989;{% elif step.result == 'FAIL' %}&#10060;{% else %}&#9889;{% endif %}</span>
+                    <span class="qa-step-time">{{ step.elapsed_seconds }}s</span>
+                    <span class="qa-step-name">{{ step.step }}</span>
+                    {% if step.note %}<span class="qa-step-note" title="{{ step.note }}">{{ step.note }}</span>{% endif %}
+                </div>
+                {% if step.screenshot %}
+                <div class="qa-fail-screenshot">
+                    <img src="/admin/qa/{{ run.run_name }}/screenshot/{{ step.screenshot }}" alt="Failure: {{ step.step }}" loading="lazy">
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+    <script>
+    function seekTo(seconds) {
+        var video = document.querySelector('video');
+        if (video) {
+            video.currentTime = seconds;
+            video.play();
+        }
+    }
+    </script>
+</body>
+</html>
