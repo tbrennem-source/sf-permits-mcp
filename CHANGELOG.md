@@ -106,6 +106,30 @@ Three new public content pages that establish credibility and transparency for s
 - 31 new tests in `tests/test_sprint69_s3.py`
 - 4 scenarios appended to `scenarios-pending-review.md`
 
+## Sprint 69-S2 — Search Intelligence + Anonymous Demo Path (2026-02-26)
+
+Adds property intelligence preview to public search results, giving anonymous visitors a taste of the platform's depth before signup.
+
+### Search Intelligence Panel
+- **`/lookup/intel-preview` endpoint**: New HTMX POST endpoint returns intelligence fragment for a property (block/lot). Includes routing progress, entity connections, complaint/violation counts. 2-second timeout with graceful degradation. No auth required.
+- **`_gather_intel()` function**: Queries local DB for active permit routing progress (stations cleared/total), top entities (architect, contractor, engineer from contacts table), and SODA API for complaint/violation counts. Never raises — returns degraded data on any error.
+- **`fragments/intel_preview.html`**: HTMX fragment showing plan review progress bars, key players with SF permit counts, enforcement activity summary, and signup CTA. Gated content (velocity, full network, severity) links to login.
+
+### Obsidian Design Rewrite
+- **`search_results_public.html`**: Full rewrite with Obsidian design tokens (JetBrains Mono + IBM Plex Sans, dark theme, gradient accents). Two-column desktop layout (60/40 results + intel). Mobile: single column with expandable intel toggle.
+- **Google Fonts**: JetBrains Mono and IBM Plex Sans loaded via preconnect + stylesheet.
+- **HTMX progressive enhancement**: Intel panel loads asynchronously after initial results render. Loading spinner visible during fetch.
+
+### Backend Enhancements
+- **`/lookup` endpoint**: Now resolves and passes block/lot to template for intel HTMX call.
+- **`/search` route**: Updated to pass resolved block/lot to search results template.
+- **CSP nonce**: Added nonce to HTMX script tag (fixed CSP test regression).
+
+### Tests
+- 27 new tests in `tests/test_sprint69_s2.py` covering search, lookup, intel preview, template structure, and `_gather_intel` unit tests.
+- 5 new scenarios appended to `scenarios-pending-review.md`.
+- **3333 tests passing** (up from 3306).
+
 ## Sprint 64 — Reliability + Monitoring (2026-02-26)
 
 Hardens the reliability layer after Sprint 63 deadlock fix: syncs DDL across migration paths, overhauls data quality checks, enriches morning brief with pipeline stats, and integrates signals/velocity into the nightly pipeline.

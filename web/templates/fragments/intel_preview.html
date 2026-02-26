@@ -1,0 +1,108 @@
+{# Intel Preview Panel — HTMX fragment (Sprint 69-S2)
+   Loaded asynchronously after search results render.
+   Shows routing progress, timeline estimate, entity connections,
+   complaint/violation summary, and signup CTA. #}
+
+{% if not intel or not intel.has_intelligence %}
+<div class="intel-panel intel-empty-state">
+    <div class="intel-section">
+        <p class="intel-muted">No intelligence data available for this property.</p>
+    </div>
+</div>
+{% else %}
+<div class="intel-panel">
+
+    {# ── Routing Progress ── #}
+    {% if intel.routing %}
+    <div class="intel-section">
+        <h4 class="intel-heading">
+            <span class="intel-icon">&#x2699;&#xFE0F;</span>
+            Plan Review Progress
+        </h4>
+        {% for r in intel.routing %}
+        <div class="routing-item">
+            <div class="routing-header">
+                <span class="routing-permit">#{{ r.permit_number }}</span>
+                <span class="routing-status status-{{ r.status|lower }}">{{ r.status }}</span>
+            </div>
+            {% if r.description %}
+            <p class="routing-desc">{{ r.description }}</p>
+            {% endif %}
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: {{ (r.stations_cleared / r.stations_total * 100) if r.stations_total > 0 else 0 }}%"
+                     data-cleared="{{ r.stations_cleared }}" data-total="{{ r.stations_total }}"></div>
+            </div>
+            <p class="routing-meta">
+                {{ r.stations_cleared }} of {{ r.stations_total }} stations cleared
+                {% if r.current_station and r.current_station != 'Complete' %}
+                &mdash; currently at <strong>{{ r.current_station }}</strong>
+                {% endif %}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Timeline Estimate ── #}
+    {% if intel.routing %}
+    <div class="intel-section">
+        <h4 class="intel-heading">
+            <span class="intel-icon">&#x23F1;&#xFE0F;</span>
+            Timeline Estimate
+        </h4>
+        <p class="intel-value">Based on current station progress and historical data</p>
+        <a href="/auth/login" class="intel-link">Sign up free to see detailed breakdown</a>
+    </div>
+    {% endif %}
+
+    {# ── Entity Connections ── #}
+    {% if intel.top_entities %}
+    <div class="intel-section">
+        <h4 class="intel-heading">
+            <span class="intel-icon">&#x1F465;</span>
+            Key Players
+        </h4>
+        {% for e in intel.top_entities %}
+        <div class="entity-row">
+            <span class="entity-role">{{ e.role }}</span>
+            <span class="entity-name">{{ e.name }}</span>
+            <span class="entity-count">({{ e.permit_count }} SF permits)</span>
+        </div>
+        {% endfor %}
+        <a href="/auth/login" class="intel-link">See full network analysis</a>
+    </div>
+    {% endif %}
+
+    {# ── Complaint / Violation Summary ── #}
+    {% if intel.complaints_count > 0 or intel.violations_count > 0 %}
+    <div class="intel-section">
+        <h4 class="intel-heading">
+            <span class="intel-icon">&#x26A0;&#xFE0F;</span>
+            Enforcement Activity
+        </h4>
+        <div class="enforcement-stats">
+            {% if intel.complaints_count > 0 %}
+            <div class="enforcement-stat">
+                <span class="stat-dot dot-amber"></span>
+                <span>{{ intel.complaints_count }} complaint{{ 's' if intel.complaints_count != 1 else '' }}</span>
+            </div>
+            {% endif %}
+            {% if intel.violations_count > 0 %}
+            <div class="enforcement-stat">
+                <span class="stat-dot dot-red"></span>
+                <span>{{ intel.violations_count }} violation{{ 's' if intel.violations_count != 1 else '' }}</span>
+            </div>
+            {% endif %}
+        </div>
+        <a href="/auth/login" class="intel-link">See full descriptions and resolution history</a>
+    </div>
+    {% endif %}
+
+    {# ── CTA ── #}
+    <div class="intel-cta">
+        <a href="/auth/login" class="intel-cta-btn">Sign up free for full intelligence</a>
+        <p class="intel-cta-sub">Severity scoring, morning briefs, and watch alerts</p>
+    </div>
+
+</div>
+{% endif %}
