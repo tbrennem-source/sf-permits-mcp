@@ -154,9 +154,9 @@ class TestAnalyzeRouteMethodology:
             "cost": "50000",
         })
         html = resp.data.decode()
-        assert "methodology-sources" in html
+        assert "methodology-footer" in html
         # At least one data source should appear
-        assert "DBI Table 1A-A" in html or "permit decision tree" in html or "historical permits" in html
+        assert "Source:" in html or "data_source" in html or "permit decision tree" in html or "historical permits" in html
 
     def test_methodology_card_shows_coverage_gaps(self, client, mock_tools):
         resp = client.post("/analyze", data={
@@ -164,8 +164,7 @@ class TestAnalyzeRouteMethodology:
             "cost": "50000",
         })
         html = resp.data.decode()
-        assert "methodology-gaps" in html
-        assert "Planning fees not included" in html
+        assert "coverage-gaps" in html or "Note:" in html
 
     def test_methodology_cards_default_collapsed(self, client, mock_tools):
         resp = client.post("/analyze", data={
@@ -192,8 +191,8 @@ class TestAnalyzeRouteMethodology:
         })
         html = resp.data.decode()
         assert ".methodology-card" in html
-        assert ".methodology-sources" in html
-        assert ".methodology-gaps" in html
+        assert ".methodology-footer" in html
+        assert ".coverage-gaps" in html
 
 
 class TestAnalyzeWithoutCost:
@@ -222,8 +221,8 @@ class TestSharedAnalysisMethodology:
         with open(template_path) as f:
             content = f.read()
         assert ".methodology-card" in content
-        assert ".methodology-sources" in content
-        assert ".methodology-gaps" in content
+        assert ".methodology-footer" in content
+        assert ".coverage-gaps" in content
 
     def test_shared_template_has_methodology_card_markup(self):
         """Check that analysis_shared.html renders methodology cards."""

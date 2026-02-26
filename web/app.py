@@ -1317,6 +1317,7 @@ def analyze():
             results["team"] = f'<div class="error">Team lookup error: {e}</div>'
 
     # D4: Save analysis results to analysis_sessions for sharing
+    # === SPRINT 58A: methodology persistence ===
     analysis_id = None
     try:
         import uuid
@@ -1324,13 +1325,17 @@ def analyze():
         from src.db import execute_write as _db_write, BACKEND as _BACKEND, query_one as _qone, get_connection as _get_conn
         analysis_id = str(uuid.uuid4())
         user_id = g.user.get("user_id") if g.user else None
-        # Store raw text (pre-rendered) for display on shared page
+        # Store raw markdown text (pre-rendered) + full methodology dicts for sharing
+        # Fix: use correct variable names (fees_md, timeline_md, docs_md, risk_md)
+        # Sprint 58A: methodology dict is now included alongside raw results
         raw_results = {
             "predict": pred_result if pred_result else "",
-            "fees": fees_result if "fees_result" in dir() else "",
-            "timeline": timeline_result if "timeline_result" in dir() else "",
-            "docs": docs_result if "docs_result" in dir() else "",
-            "risk": risk_result if "risk_result" in dir() else "",
+            "fees": fees_md if "fees_md" in locals() else "",
+            "timeline": timeline_md if "timeline_md" in locals() else "",
+            "docs": docs_md if "docs_md" in locals() else "",
+            "risk": risk_md if "risk_md" in locals() else "",
+            # Sprint 58A: persist full methodology for each tool
+            "_methodology": methodology,
         }
         results_json_str = _json.dumps(raw_results)
         if _BACKEND == "postgres":
@@ -7638,6 +7643,124 @@ def cron_ingest_planning_review_metrics():
 
 
 # === END SESSION F: REVIEW METRICS INGEST ===
+
+
+# === SPRINT 58B: SEO ===
+
+_adu_stats_cache: dict = {}
+
+
+def _get_adu_stats() -> dict:
+    """Return cached ADU permit stats. Queries DB once and caches for 24h."""
+    import time as _time
+
+    now = _time.time()
+    if _adu_stats_cache and _adu_stats_cache.get("computed_at", 0) > now - 86400:
+        return _adu_stats_cache
+
+    try:
+        from src.db import get_connection, BACKEND
+        conn = get_connection()
+        try:
+            # Count ADU permits issued in 2024/2025 using description keyword search
+            # Use ILIKE on postgres, LOWER on duckdb — but only run once per day
+            if BACKEND == "postgres":
+                like_op = "ILIKE"
+            else:
+                like_op = "LIKE"
+
+            # Count ADUs (case-insensitive keyword match on description)
+            row_2025 = conn.execute(
+                f"SELECT COUNT(*) FROM permits WHERE status = 'issued' "
+                f"AND issued_date >= '2025-01-01' "
+                f"AND (LOWER(description) LIKE '%accessory dwelling%' "
+                f"  OR LOWER(description) LIKE '% adu %' "
+                f"  OR LOWER(description) LIKE '%adu:'  "
+                f"  OR LOWER(description) LIKE 'adu %' "
+                f"  OR LOWER(description) LIKE '%jr. adu%' "
+                f"  OR LOWER(description) LIKE '%jadu%')"
+            ).fetchone()
+
+            count_2025 = row_2025[0] if row_2025 else 0
+
+            # Median days to issuance for ADU permits (all time for better stats)
+            med_row = conn.execute(
+                "SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY "
+                "DATEDIFF('day', filed_date::DATE, issued_date::DATE)) "
+                "FROM permits WHERE status = 'issued' "
+                "AND issued_date IS NOT NULL AND filed_date IS NOT NULL "
+                "AND (LOWER(description) LIKE '%accessory dwelling%' "
+                "  OR LOWER(description) LIKE '% adu %' "
+                "  OR LOWER(description) LIKE '%jadu%')"
+            ).fetchone()
+
+            median_days = int(med_row[0]) if med_row and med_row[0] else None
+        except Exception:
+            # DuckDB may not support PERCENTILE_CONT — try simpler query
+            try:
+                row_2025 = conn.execute(
+                    "SELECT COUNT(*) FROM permits WHERE status = 'issued' "
+                    "AND issued_date >= '2025-01-01' "
+                    "AND (lower(description) LIKE '%accessory dwelling%' "
+                    "  OR lower(description) LIKE '% adu %' "
+                    "  OR lower(description) LIKE '%jadu%')"
+                ).fetchone()
+                count_2025 = row_2025[0] if row_2025 else 0
+                median_days = None
+            except Exception:
+                count_2025 = 0
+                median_days = None
+        finally:
+            conn.close()
+    except Exception:
+        count_2025 = 0
+        median_days = None
+
+    import time as _time
+    _adu_stats_cache.clear()
+    _adu_stats_cache.update({
+        "issued_2025": count_2025,
+        "median_days": median_days,
+        "computed_at": _time.time(),
+    })
+    return _adu_stats_cache
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    """Static sitemap — crawl-budget-safe, no dynamic permit URLs."""
+    static_pages = [
+        "/",
+        "/search",
+        "/adu",
+        "/beta-request",
+        "/analyze-preview",
+    ]
+    base = "https://sfpermits.ai"
+    now = datetime.now().strftime("%Y-%m-%d")
+
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for path in static_pages:
+        lines.append("  <url>")
+        lines.append(f"    <loc>{base}{path}</loc>")
+        lines.append(f"    <lastmod>{now}</lastmod>")
+        lines.append("    <changefreq>weekly</changefreq>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+
+    xml = "\n".join(lines)
+    return Response(xml, mimetype="application/xml")
+
+
+@app.route("/adu")
+def adu_landing():
+    """ADU landing page with pre-computed stats (24h cache)."""
+    stats = _get_adu_stats()
+    return render_template("adu_landing.html", stats=stats)
+
+
+# === END SPRINT 58B: SEO ===
 
 
 # === QA REPLAY ===

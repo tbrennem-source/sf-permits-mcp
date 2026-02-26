@@ -43,6 +43,8 @@ def client(monkeypatch):
     """Flask test client."""
     import web.auth as auth_mod
     monkeypatch.setattr(auth_mod, "_schema_initialized", False)
+    monkeypatch.setenv("CRON_WORKER", "1")
+    monkeypatch.setenv("CRON_SECRET", "correct-secret")
 
     from web.app import app
     app.config["TESTING"] = True

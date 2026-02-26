@@ -456,32 +456,60 @@ async def required_documents(
 
     md_output = "\n".join(lines)
 
+    # === Sprint 58A: Full methodology dict on ALL returns ===
+    from datetime import date as _date
+    today_iso = _date.today().isoformat()
+
+    total_docs = len(initial_docs) + len(agency_docs) + len(trigger_docs)
+    formula_steps = [
+        f"Base documents: {len(initial_docs)} (from {', '.join(permit_forms)})",
+        f"Agency documents: {len(agency_docs)}",
+        f"Project-specific: {len(trigger_docs)}",
+        f"Compliance documents: {len(compliance_docs)}",
+        f"Total: {total_docs} documents",
+    ]
+
+    data_sources_list: list[str] = ["DBI completeness checklist", "EPR submission requirements (post-2024)"]
+    if project_type == "restaurant" or "restaurant" in all_triggers:
+        data_sources_list.append("DPH food facility guide (G-25)")
+    if is_commercial:
+        data_sources_list.append("ADA/CBC 11B accessibility requirements (DA-02)")
+    if "seismic" in all_triggers:
+        data_sources_list.append("Seismic retrofit guide (S-09/G-01)")
+
+    methodology_dict: dict = {
+        "methodology": {
+            "model": "Rule-based document assembly from DBI checklists",
+            "formula": (
+                f"{len(permit_forms)} form(s) × base docs"
+                + (f" + {len(agency_routing or [])} agency doc sets" if agency_routing else "")
+                + (f" + {len(all_triggers)} trigger sets" if all_triggers else "")
+                + f" = {total_docs} total documents"
+            ),
+            "data_source": "DBI completeness checklist + EPR requirements + knowledge base tier1",
+            "recency": "Current as of EPR mandate (January 2024)",
+            "sample_size": 0,
+            "data_freshness": today_iso,
+            "confidence": confidence,
+            "coverage_gaps": coverage_gaps,
+        },
+        # Tool-specific keys: (common keys only, no additional tool-specific)
+    }
+
     if return_structured:
-        from datetime import date
-        total_docs = len(initial_docs) + len(agency_docs) + len(trigger_docs)
-        formula_steps = [
-            f"Base documents: {len(initial_docs)} (from {', '.join(permit_forms)})",
-            f"Agency documents: {len(agency_docs)}",
-            f"Project-specific: {len(trigger_docs)}",
-            f"Total: {total_docs} documents",
-        ]
-
-        data_sources = ["DBI completeness checklist", "EPR submission requirements"]
-        if project_type == "restaurant" or "restaurant" in all_triggers:
-            data_sources.append("DPH food facility guide")
-        if is_commercial:
-            data_sources.append("ADA/CBC 11B accessibility requirements")
-
-        methodology = {
+        # Legacy structured return (backward compat with web/app.py Sprint 57D)
+        legacy_meta = {
             "tool": "required_documents",
             "headline": f"{total_docs} documents required",
             "formula_steps": formula_steps,
-            "data_sources": data_sources,
+            "data_sources": data_sources_list,
             "sample_size": 0,
-            "data_freshness": date.today().isoformat(),
+            "data_freshness": today_iso,
             "confidence": confidence,
             "coverage_gaps": coverage_gaps,
+            # Sprint 58A: include full methodology
+            "methodology": methodology_dict["methodology"],
         }
-        return md_output, methodology
+        return md_output, legacy_meta
 
     return md_output

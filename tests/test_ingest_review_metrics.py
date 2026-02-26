@@ -38,6 +38,7 @@ def client(monkeypatch):
     monkeypatch.setattr(auth_mod, "_schema_initialized", False)
     db_mod.init_user_schema()
     monkeypatch.setenv("CRON_SECRET", "testsecret")
+    monkeypatch.setenv("CRON_WORKER", "1")
 
     from web.app import app
     app.config["TESTING"] = True

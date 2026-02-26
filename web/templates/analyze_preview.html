@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permit Preview — sfpermits.ai</title>
+    <meta name="description" content="Find out what permits you need for your San Francisco project. Free instant preview — no signup required.">
     <style>
         :root {
             --bg: #0f1117;
@@ -170,6 +171,16 @@
         }
         .locked-cta a:hover { background: var(--accent-hover); }
 
+        /* === Sprint 58C: Lightweight methodology footer === */
+        .methodology-micro {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.8;
+        }
+
         /* CTA bar */
         .signup-cta {
             background: linear-gradient(135deg, rgba(79,143,247,0.12), rgba(79,143,247,0.04));
@@ -257,6 +268,10 @@
                     Form: <strong style="color: var(--text);">{{ predict.form }}</strong>
                 </div>
                 {% endif %}
+                {# Sprint 58C: lightweight methodology micro-footer #}
+                <div class="methodology-micro">
+                    Decision-tree permit classification &middot; SF DBI permit decision tree + 86-concept knowledge index
+                </div>
             </div>
             {% endif %}
 
@@ -270,6 +285,10 @@
                     Range: {{ timeline.range }}
                 </div>
                 {% endif %}
+                {# Sprint 58C: lightweight methodology micro-footer #}
+                <div class="methodology-micro">
+                    Historical permit statistics &middot; 1.1M+ historical permits (timeline_stats)
+                </div>
             </div>
             {% endif %}
         </div>

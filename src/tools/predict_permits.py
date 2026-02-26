@@ -726,29 +726,65 @@ async def predict_permits(
 
     md_output = "\n".join(lines)
 
+    # === Sprint 58A: Full methodology dict on ALL returns ===
+    from datetime import date as _date
+    today_iso = _date.today().isoformat()
+
+    formula_steps = [
+        f"Form: {form['form']} ({form['reason']})",
+        f"Review Path: {review_path['path']} ({review_path['confidence']} confidence)",
+        f"Agencies: {len(agency_routing)} routing",
+        f"Requirements: {len(special_requirements)} items",
+    ]
+
+    data_sources_list = ["SF permit decision tree (86-concept semantic index)"]
+    if zoning_info:
+        data_sources_list.append("Local tax records + zoning routing table")
+    if db_form:
+        data_sources_list.append("ref_permit_forms (DB-backed form selection)")
+    if db_triggers:
+        data_sources_list.append("ref_agency_triggers (DB-backed agency routing)")
+
+    # Triggers matched for methodology
+    triggers_matched = [
+        {"trigger": pt, "form": form.get("form", "Form 3/8"), "path": review_path.get("path", "in_house")}
+        for pt in project_types
+    ]
+
+    methodology_dict: dict = {
+        "methodology": {
+            "model": "Decision-tree permit classification",
+            "formula": (
+                f"Project types {project_types} → "
+                f"{form['form']} / {review_path['path']} / "
+                f"{len(agency_routing)} agencies"
+            ),
+            "data_source": "SF DBI permit decision tree + 86-concept knowledge index",
+            "recency": "Knowledge base: current as of ingestion date",
+            "sample_size": 0,
+            "data_freshness": today_iso,
+            "confidence": review_path.get("confidence", "medium"),
+            "coverage_gaps": coverage_gaps,
+        },
+        # Tool-specific keys
+        "triggers_matched": triggers_matched,
+    }
+
     if return_structured:
-        from datetime import date
-        formula_steps = [
-            f"Form: {form['form']} ({form['reason']})",
-            f"Review Path: {review_path['path']} ({review_path['confidence']} confidence)",
-            f"Agencies: {len(agency_routing)} routing",
-            f"Requirements: {len(special_requirements)} items",
-        ]
-
-        data_sources = ["SF permit decision tree", "86-concept semantic index"]
-        if zoning_info:
-            data_sources.append("Local tax records + zoning routing table")
-
-        methodology = {
+        # Legacy structured return (backward compat with web/app.py Sprint 57D)
+        legacy_meta = {
             "tool": "predict_permits",
             "headline": f"{form['form']} — {review_path['path']}",
             "formula_steps": formula_steps,
-            "data_sources": data_sources,
+            "data_sources": data_sources_list,
             "sample_size": 0,
-            "data_freshness": date.today().isoformat(),
+            "data_freshness": today_iso,
             "confidence": review_path.get("confidence", "medium"),
             "coverage_gaps": coverage_gaps,
+            # Sprint 58A: include full methodology + triggers_matched
+            "methodology": methodology_dict["methodology"],
+            "triggers_matched": triggers_matched,
         }
-        return md_output, methodology
+        return md_output, legacy_meta
 
     return md_output
