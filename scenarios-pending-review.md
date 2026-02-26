@@ -186,3 +186,53 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** No block/lot resolved (toggle button hidden), viewport resize between mobile and desktop (JS media query handler switches display)
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: User creates Permit Prep checklist for an existing permit and sees categorized document requirements
+**Source:** web/permit_prep.py, web/routes_property.py
+**User:** expediter | architect
+**Starting state:** User is logged in. A permit exists in the database.
+**Goal:** Generate a document checklist to track what's needed for permit submission.
+**Expected outcome:** User navigates to /prep/<permit_number>. System calls predict_permits and required_documents to generate a categorized checklist. Items are grouped into Required Plans, Application Forms, Supplemental Documents, and Agency-Specific. All items start with "Required" status. Progress bar shows 0% addressed.
+**Edge cases seen in code:** Permit not found in DB (falls back to "general alterations" description), tool failure (falls back to 3 minimal items), duplicate checklist creation (returns existing)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: User toggles document status from Required to Submitted and progress bar updates
+**Source:** web/routes_api.py PATCH /api/prep/item/<id>, web/templates/fragments/prep_item.html
+**User:** expediter | architect
+**Starting state:** User has an active Permit Prep checklist with items in "Required" status.
+**Goal:** Track that a document has been submitted.
+**Expected outcome:** User clicks "Submitted" radio button on an item. HTMX PATCH request updates the item status in-place. The item card updates to show blue "Submitted" styling. Progress bar updates to reflect the new count.
+**Edge cases seen in code:** Invalid status value rejected, wrong user ownership rejected (returns 404), concurrent updates on same item
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Preview Mode shows predicted checklist for a permit without saving
+**Source:** web/permit_prep.py preview_checklist(), /api/prep/preview/<permit>
+**User:** homeowner | architect
+**Starting state:** User is logged in but has not yet created a checklist for this permit.
+**Goal:** See what documents would be required before committing to a checklist.
+**Expected outcome:** GET /api/prep/preview/<permit> returns a JSON response with is_preview=true, items grouped by category, and prediction metadata (form, review path, agencies). No checklist row is created in the database. User can then decide to create a real checklist.
+**Edge cases seen in code:** Permit not in database (uses fallback description), prediction tool timeout
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Morning brief shows permits with incomplete checklists
+**Source:** web/brief.py _get_prep_summary()
+**User:** expediter
+**Starting state:** User has one or more Permit Prep checklists with items still in "Required" status.
+**Goal:** See at a glance which permits need attention during the morning brief.
+**Expected outcome:** Morning brief data includes prep_summary with a list of checklists showing permit_number, total_items, completed_items, and missing_required counts. Permits with missing items are highlighted.
+**Edge cases seen in code:** prep_checklists table doesn't exist yet (returns empty list gracefully), user has no checklists (returns empty list)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Anonymous user clicking Prep Checklist is redirected to login then back to /prep
+**Source:** web/routes_property.py /prep/<permit>, web/helpers.py login_required
+**User:** homeowner
+**Starting state:** User is not logged in. Viewing public search results.
+**Goal:** Access a Permit Prep checklist for a specific permit.
+**Expected outcome:** User clicks "Prep Checklist" button on search results. Since /prep requires authentication, they are redirected to /auth/login. After logging in, they should be able to navigate to /prep/<permit_number> to see their checklist.
+**Edge cases seen in code:** login_required redirects to auth.auth_login (no next parameter currently — user must manually navigate back)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
