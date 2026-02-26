@@ -216,3 +216,23 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Pipeline summary is read-only with no auth. Step timing survives exceptions — _timed_step catches errors and still records elapsed. The main SODA fetch has its own cron_log tracking.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: PostHog tracks page views for anonymous visitors without blocking page load
+**Source:** QS3-D PostHog integration (web/helpers.py, web/app.py, landing.html)
+**User:** homeowner | new visitor
+**Starting state:** POSTHOG_API_KEY env var is set on production. Anonymous visitor loads the landing page.
+**Goal:** Analytics tracking captures page views and search events without degrading page load performance.
+**Expected outcome:** PostHog JS loads asynchronously (async attribute). Server-side after_request hook fires posthog_track() for page views and search events. If POSTHOG_API_KEY is not set, both JS snippet and server hook are complete no-ops — zero overhead. Page renders identically with or without PostHog configured.
+**Edge cases seen in code:** PostHog capture fails silently (exception swallowed), /static/ and /health paths excluded from tracking, anonymous users tracked as "anonymous" distinct_id
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Feature flag permit_prep_enabled gates Permit Prep feature rollout
+**Source:** QS3-D PostHog feature flags (web/helpers.py, web/app.py)
+**User:** admin | expediter
+**Starting state:** POSTHOG_API_KEY is set. PostHog dashboard has permit_prep_enabled flag configured for specific user IDs.
+**Goal:** Permit Prep features are only visible to users whose PostHog feature flags include permit_prep_enabled=True.
+**Expected outcome:** g.posthog_flags is populated in before_request for authenticated users (populated from PostHog API). Anonymous users always get empty flags dict. Templates can check g.posthog_flags.get("permit_prep_enabled") to conditionally render Permit Prep UI. If PostHog is not configured, flags are always empty — features default to hidden.
+**Edge cases seen in code:** PostHog get_all_flags() returns None (coerced to {}), PostHog API timeout (swallowed, returns {}), flag key not in dict (template uses .get() with default)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
