@@ -1,0 +1,231 @@
+{
+  "metadata": {
+    "title": "Commercial Tenant Improvement Permit Submission Checklist",
+    "source": "SF DBI permit processing requirements, sf.gov commercial TI guidelines",
+    "date_structured": "2026-02-26",
+    "authority": "SF Department of Building Inspection",
+    "scope": "Commercial tenant improvement projects — office, retail, restaurant, assembly",
+    "notes": [
+      "Complements the residential pre-plan check checklist (completeness-checklist.json)",
+      "Commercial TI projects have additional agency routing triggers not present in residential",
+      "Restaurant/food service TIs require DPH review in addition to standard DBI review",
+      "Projects in historic districts require additional HPC review documentation"
+    ]
+  },
+  "required_forms": {
+    "primary": {
+      "form": "Form 3 or Form 8",
+      "selection_logic": "Form 8 for OTC-eligible commercial TI; Form 3 for in-house review",
+      "notes": "Most commercial TIs use Form 3 unless scope is minor (paint, flooring, fixtures only)"
+    },
+    "supplemental_forms": [
+      {
+        "form": "Form 6",
+        "when_required": "Change of use or occupancy classification change",
+        "example": "Office to restaurant, retail to assembly"
+      },
+      {
+        "form": "GS-1 through GS-6",
+        "when_required": "Green building compliance",
+        "selection": "GS-1 for new commercial, GS-5 for alterations; see green-building-requirements.json"
+      },
+      {
+        "form": "Fire Sprinkler Application",
+        "when_required": "Any modification to fire sprinkler system"
+      },
+      {
+        "form": "Fire Alarm Application",
+        "when_required": "New or modified fire alarm system"
+      }
+    ]
+  },
+  "plan_set_requirements": {
+    "cover_sheet": {
+      "required": true,
+      "contents": [
+        "Project address",
+        "Block and lot",
+        "Scope of work description",
+        "Applicable building codes",
+        "Sheet index",
+        "Owner and architect information",
+        "Construction type and occupancy classification"
+      ]
+    },
+    "site_plan": {
+      "required": true,
+      "scale": "1/8\" = 1'-0\" minimum",
+      "must_show": [
+        "Property lines",
+        "Building footprint",
+        "Means of egress from tenant space to public way",
+        "ADA accessible route from public way to tenant space",
+        "Adjacent streets"
+      ]
+    },
+    "floor_plans": {
+      "required": true,
+      "scale": "1/4\" = 1'-0\" minimum",
+      "must_show": [
+        "Existing and proposed layout (demo plan + new work plan)",
+        "Room dimensions and uses",
+        "Door swings and hardware schedule",
+        "Fixture locations (plumbing, electrical)",
+        "Exit paths with travel distances",
+        "Fire-rated assemblies and their ratings",
+        "ADA clearances at doors, corridors, restrooms",
+        "Occupant load calculation per room"
+      ]
+    },
+    "reflected_ceiling_plan": {
+      "required": "When modifying ceiling, lighting, or HVAC",
+      "must_show": [
+        "Lighting layout with fixture schedule",
+        "Sprinkler head locations",
+        "HVAC diffuser locations",
+        "Exit signs and emergency lighting",
+        "Ceiling heights"
+      ]
+    },
+    "electrical_plans": {
+      "required": "When modifying electrical systems",
+      "must_show": [
+        "Panel schedule with circuit loading",
+        "Outlet and switch locations",
+        "Emergency and exit lighting",
+        "Title 24 lighting compliance documentation"
+      ]
+    },
+    "mechanical_plans": {
+      "required": "When modifying HVAC systems",
+      "must_show": [
+        "Equipment schedule with capacity",
+        "Duct layout and sizes",
+        "Ventilation calculations per CBC Chapter 4",
+        "Kitchen hood exhaust (if food service)"
+      ]
+    },
+    "plumbing_plans": {
+      "required": "When modifying plumbing",
+      "must_show": [
+        "Fixture locations and counts",
+        "Water supply and waste connections",
+        "Grease trap (if food service)",
+        "ADA-compliant fixture details"
+      ]
+    },
+    "structural_plans": {
+      "required": "When modifying structure or adding significant loads",
+      "must_show": [
+        "Structural calculations signed by licensed engineer",
+        "Connection details",
+        "Load path for new equipment (e.g., rooftop HVAC)"
+      ]
+    }
+  },
+  "agency_routing_triggers": {
+    "planning_department": {
+      "triggers": [
+        "Change of use (Section 311 notification required)",
+        "Formula retail (chain store) in neighborhood commercial district",
+        "New signage requiring Planning approval",
+        "Projects in Article 10/11 historic districts",
+        "Conditional Use authorization required"
+      ],
+      "typical_delay": "2-8 weeks depending on trigger"
+    },
+    "sffd_fire_department": {
+      "triggers": [
+        "Assembly occupancy (A-1, A-2, A-3) — any occupant load",
+        "Kitchen hood / Type I exhaust system",
+        "Fire alarm or sprinkler modification",
+        "High-rise building (75+ feet)",
+        "Change from B to A or M occupancy",
+        "Occupant load exceeding 49"
+      ],
+      "typical_delay": "1-3 weeks"
+    },
+    "dph_public_health": {
+      "triggers": [
+        "Food service establishment (new or remodel)",
+        "Medical/dental office",
+        "Hazardous materials handling",
+        "Body art establishment"
+      ],
+      "typical_delay": "2-4 weeks"
+    },
+    "dpw_public_works": {
+      "triggers": [
+        "Sidewalk occupancy (cafe seating, canopy)",
+        "New curb cut or driveway",
+        "Street tree removal"
+      ],
+      "typical_delay": "1-3 weeks"
+    },
+    "accessibility_review": {
+      "triggers": [
+        "All commercial TIs require ADA/CBC Chapter 11B compliance review",
+        "Path of travel upgrades may be required for alterations > $195,348 (2024 threshold)",
+        "Restroom modifications trigger full ADA restroom compliance"
+      ],
+      "typical_delay": "Included in plan check cycle"
+    }
+  },
+  "common_rejection_reasons": [
+    {
+      "reason": "Insufficient occupant load calculation",
+      "description": "Floor plans must show occupant load per room using CBC Table 1004.5 factors. Total building occupant load determines exit requirements.",
+      "fix": "Add occupant load table to plans showing: room, area, load factor, calculated load"
+    },
+    {
+      "reason": "Missing or incorrect exit analysis",
+      "description": "Travel distance, exit width, and number of exits must be shown on plans and comply with CBC Chapter 10.",
+      "fix": "Mark exit paths on floor plans with distances. Verify exit width >= occupant load / 0.2 per inch"
+    },
+    {
+      "reason": "ADA path of travel deficiencies",
+      "description": "Projects over the path-of-travel threshold must upgrade accessible route, restrooms, drinking fountains, telephones, and signage to current standards.",
+      "fix": "Show compliant 36\" min corridors, 60\" turning radius, lever hardware, compliant restroom layout"
+    },
+    {
+      "reason": "Missing fire-rated assembly details",
+      "description": "Demising walls, corridor walls, and shaft enclosures must show fire rating. UL assembly numbers required.",
+      "fix": "Provide UL assembly number and detail for each rated wall/floor/ceiling assembly"
+    },
+    {
+      "reason": "Ventilation calculations missing",
+      "description": "Mechanical plans must show outdoor air rates per CBC Chapter 4 / ASHRAE 62.1.",
+      "fix": "Add ventilation schedule showing cfm per person and per area for each occupied space"
+    },
+    {
+      "reason": "Title 24 energy compliance not included",
+      "description": "Lighting power density and HVAC efficiency must meet current Title 24 Part 6.",
+      "fix": "Include Certificate of Compliance (CF-1R for lighting, CF-1R-MFM for mechanical)"
+    },
+    {
+      "reason": "Missing change of use documentation",
+      "description": "When occupancy classification changes, full CBC compliance for new occupancy is required.",
+      "fix": "Provide existing and proposed occupancy on cover sheet, address all applicable code sections for new occupancy"
+    },
+    {
+      "reason": "Incomplete kitchen exhaust / grease interceptor",
+      "description": "Commercial kitchen projects need Type I hood calculations and grease interceptor sizing.",
+      "fix": "Show hood cfm calculation per CMC, grease interceptor size per plumbing code, SFFD suppression system"
+    }
+  ],
+  "otc_eligibility": {
+    "eligible_scopes": [
+      "Cosmetic changes only (paint, flooring, ceiling tiles — no layout change)",
+      "Like-for-like fixture replacement",
+      "Adding outlets or lights to existing circuits (no panel modification)"
+    ],
+    "not_eligible": [
+      "Any change of use or occupancy",
+      "Moving or adding walls (even non-rated)",
+      "Modifying fire sprinkler or alarm systems",
+      "Adding or relocating plumbing fixtures",
+      "Kitchen exhaust modifications",
+      "Work requiring structural modifications"
+    ]
+  }
+}

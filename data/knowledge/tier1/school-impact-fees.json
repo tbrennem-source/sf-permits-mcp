@@ -1,0 +1,157 @@
+{
+  "metadata": {
+    "title": "School Impact Fees — SFUSD Developer Impact Fee Schedule",
+    "source": "California Government Code Section 65995, SFUSD Board Resolution, SF DBI Info Sheet G-11",
+    "date_structured": "2026-02-26",
+    "authority": "San Francisco Unified School District (SFUSD) / SF Department of Building Inspection",
+    "gap_resolved": "GAP-11",
+    "notes": [
+      "School impact fees are assessed by DBI at permit issuance based on building permit application data",
+      "Fee rates are set by SFUSD and updated periodically per state CPI adjustments",
+      "Fees are paid to the State Allocation Board (SAB) fund, not directly to SFUSD",
+      "These fees apply citywide — no neighborhood-specific variations",
+      "DBI collects the fees on behalf of SFUSD as part of the permit issuance process"
+    ]
+  },
+  "fee_schedule": {
+    "effective_date": "2024-01-01",
+    "authority": "SFUSD Board Resolution, per Government Code Section 65995(b)(3)",
+    "rates": {
+      "residential": {
+        "rate_per_sqft": 4.79,
+        "unit": "dollars per square foot of assessable space",
+        "applies_to": "New residential construction, additions creating new living space",
+        "maximum_per_state_law": "State cap per Gov Code 65995(b)(3) — adjusted biennially"
+      },
+      "commercial_industrial": {
+        "rate_per_sqft": 0.78,
+        "unit": "dollars per square foot of chargeable covered and enclosed space",
+        "applies_to": "New commercial, retail, office, and industrial construction",
+        "maximum_per_state_law": "State cap per Gov Code 65995(b)(3) — adjusted biennially"
+      }
+    },
+    "assessable_area": {
+      "definition": "All covered and enclosed space measured from exterior wall faces, excluding parking structures used exclusively for parking",
+      "includes": [
+        "Living areas",
+        "Bedrooms",
+        "Kitchens and bathrooms",
+        "Hallways and corridors within the unit",
+        "Storage rooms",
+        "Garages converted to living space"
+      ],
+      "excludes": [
+        "Parking garages (if used exclusively for vehicle parking)",
+        "Uncovered outdoor areas",
+        "Unenclosed porches and balconies"
+      ]
+    }
+  },
+  "exemptions": {
+    "full_exemptions": [
+      {
+        "type": "Replacement of destroyed structure",
+        "condition": "Structure destroyed by fire, flood, earthquake, or other disaster within prior 5 years",
+        "code_reference": "Gov Code 65995(a)",
+        "notes": "Replacement must not exceed original square footage"
+      },
+      {
+        "type": "Affordable housing",
+        "condition": "100% affordable housing projects with deed restriction",
+        "code_reference": "Gov Code 65995.5(a)",
+        "notes": "Must have recorded affordability covenant; mixed-income projects: only affordable units exempt"
+      },
+      {
+        "type": "Senior housing",
+        "condition": "Housing exclusively for seniors (62+) with recorded age restriction",
+        "code_reference": "Gov Code 65995.5(b)"
+      },
+      {
+        "type": "Government buildings",
+        "condition": "Federal, state, or local government-owned facilities",
+        "code_reference": "Gov Code 65995(a)"
+      },
+      {
+        "type": "Churches and religious facilities",
+        "condition": "Places of worship and their accessory structures",
+        "code_reference": "Gov Code 65995(a)"
+      }
+    ],
+    "partial_exemptions": [
+      {
+        "type": "Reconstruction / remodel",
+        "condition": "Work that does not create net new assessable square footage",
+        "notes": "Interior remodels that don't add area are exempt. Additions are assessed only on the new area."
+      },
+      {
+        "type": "ADU / JADU",
+        "condition": "Accessory dwelling units may qualify for reduced or waived fees per AB 2011 / SB 13",
+        "notes": "ADUs under 750 sqft are generally exempt from school impact fees per state law"
+      }
+    ]
+  },
+  "calculation_method": {
+    "steps": [
+      {
+        "step": 1,
+        "action": "Determine assessable new square footage from building permit application",
+        "notes": "Net new area = proposed area - existing area (for additions/alterations)"
+      },
+      {
+        "step": 2,
+        "action": "Classify project as residential or commercial/industrial",
+        "notes": "Mixed-use: each portion assessed at its respective rate"
+      },
+      {
+        "step": 3,
+        "action": "Multiply net new square footage by applicable rate",
+        "formula": "Fee = Net New SF x Rate per SF"
+      },
+      {
+        "step": 4,
+        "action": "Apply any applicable exemptions",
+        "notes": "Exemptions require documentation (deed restrictions, age restrictions, etc.)"
+      },
+      {
+        "step": 5,
+        "action": "Fee is collected by DBI at permit issuance",
+        "notes": "Fee must be paid before permit is issued. Cannot be deferred."
+      }
+    ],
+    "examples": [
+      {
+        "project": "New 3-bedroom house, 2,000 sqft",
+        "calculation": "2,000 x $4.79 = $9,580",
+        "type": "residential"
+      },
+      {
+        "project": "500 sqft addition to existing house",
+        "calculation": "500 x $4.79 = $2,395",
+        "type": "residential"
+      },
+      {
+        "project": "New 5,000 sqft retail space",
+        "calculation": "5,000 x $0.78 = $3,900",
+        "type": "commercial"
+      },
+      {
+        "project": "Interior remodel of existing 3,000 sqft office (no area change)",
+        "calculation": "0 sqft net new x $0.78 = $0 (exempt — no new area)",
+        "type": "commercial"
+      }
+    ]
+  },
+  "payment_process": {
+    "when_paid": "At permit issuance, before permit is released",
+    "payable_to": "San Francisco Unified School District",
+    "collected_by": "SF Department of Building Inspection",
+    "appeals": "Disputes go to SFUSD Board; state law limits fee challenges to 90 days after levy",
+    "refunds": "If permit expires without construction, applicant may request refund from SFUSD"
+  },
+  "state_law_context": {
+    "enabling_legislation": "California Government Code Section 65995 et seq.",
+    "leroy_greene_act": "SB 50 (1998) caps school fees at state-set maximums; local districts cannot exceed these",
+    "biennial_adjustment": "State Controller adjusts maximum fee rates every 2 years based on CPI",
+    "preemption": "State fee caps preempt any local ordinance attempting higher school fees"
+  }
+}

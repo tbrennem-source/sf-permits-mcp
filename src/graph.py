@@ -187,6 +187,118 @@ def build_graph(db_path: str | None = None) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Build: reviewer-entity interaction edges
+# ---------------------------------------------------------------------------
+
+def build_reviewer_edges(db_path: str | None = None) -> dict:
+    """Build edges between reviewers and architects/consultants from addenda data.
+
+    When a reviewer (plan_checked_by from addenda) reviews a permit, and an
+    architect/consultant is on that same permit, create an edge between them.
+    Uses a dedicated edge_type='reviewer_interaction' to distinguish from
+    standard co-occurrence edges.
+
+    Returns stats dict with counts.
+    """
+    start = time.time()
+    conn = get_connection(db_path)
+
+    # Check if addenda table exists
+    try:
+        conn.execute("SELECT 1 FROM addenda LIMIT 1")
+    except Exception:
+        conn.close()
+        return {"reviewer_edges": 0, "elapsed_seconds": 0, "note": "addenda table not found"}
+
+    print("=== Building Reviewer-Entity Interaction Edges ===")
+
+    # Find distinct reviewers and their permit numbers
+    reviewer_permits = conn.execute("""
+        SELECT DISTINCT plan_checked_by, application_number
+        FROM addenda
+        WHERE plan_checked_by IS NOT NULL
+          AND TRIM(plan_checked_by) != ''
+          AND application_number IS NOT NULL
+    """).fetchall()
+
+    if not reviewer_permits:
+        conn.close()
+        print("  No reviewer data found in addenda")
+        return {"reviewer_edges": 0, "elapsed_seconds": round(time.time() - start, 1)}
+
+    print(f"  Found {len(reviewer_permits):,} reviewer-permit pairs")
+
+    # Build a mapping of permit_number -> list of entity_ids (architects/consultants)
+    # We only care about entities with roles that indicate they're professionals
+    professional_roles = ('architect', 'engineer', 'consultant', 'designer', 'agent')
+    role_conditions = " OR ".join(f"LOWER(c.role) LIKE '%{r}%'" for r in professional_roles)
+
+    permit_entities = conn.execute(f"""
+        SELECT DISTINCT c.permit_number, c.entity_id
+        FROM contacts c
+        WHERE c.entity_id IS NOT NULL
+          AND c.permit_number IS NOT NULL
+          AND ({role_conditions})
+    """).fetchall()
+
+    permit_to_entities: dict[str, set[int]] = {}
+    for pnum, eid in permit_entities:
+        permit_to_entities.setdefault(pnum, set()).add(eid)
+
+    # Build a mapping of reviewer name -> set of entity_ids they interacted with
+    reviewer_entity_pairs: dict[tuple[str, int], int] = {}  # (reviewer, entity_id) -> count
+
+    for reviewer, permit_num in reviewer_permits:
+        entities = permit_to_entities.get(permit_num, set())
+        for eid in entities:
+            key = (reviewer, eid)
+            reviewer_entity_pairs[key] = reviewer_entity_pairs.get(key, 0) + 1
+
+    if not reviewer_entity_pairs:
+        conn.close()
+        print("  No reviewer-entity interactions found")
+        return {"reviewer_edges": 0, "elapsed_seconds": round(time.time() - start, 1)}
+
+    print(f"  Found {len(reviewer_entity_pairs):,} reviewer-entity interaction pairs")
+
+    # Store the reviewer interaction data in a new table
+    conn.execute("DROP TABLE IF EXISTS reviewer_interactions")
+    conn.execute("""
+        CREATE TABLE reviewer_interactions (
+            reviewer_name TEXT NOT NULL,
+            entity_id INTEGER NOT NULL,
+            interaction_count INTEGER DEFAULT 1,
+            edge_type TEXT DEFAULT 'reviewer_interaction'
+        )
+    """)
+
+    batch = [
+        (reviewer, eid, count, 'reviewer_interaction')
+        for (reviewer, eid), count in reviewer_entity_pairs.items()
+    ]
+    conn.executemany(
+        "INSERT INTO reviewer_interactions VALUES (?, ?, ?, ?)",
+        batch,
+    )
+
+    elapsed = time.time() - start
+    stats = {
+        "reviewer_edges": len(batch),
+        "unique_reviewers": len({r for r, _ in reviewer_entity_pairs.keys()}),
+        "unique_entities": len({e for _, e in reviewer_entity_pairs.keys()}),
+        "elapsed_seconds": round(elapsed, 1),
+    }
+
+    print(f"  Reviewer interaction edges: {stats['reviewer_edges']:,}")
+    print(f"  Unique reviewers:           {stats['unique_reviewers']:,}")
+    print(f"  Unique entities:            {stats['unique_entities']:,}")
+    print(f"  Time: {elapsed:.1f}s")
+
+    conn.close()
+    return stats
+
+
+# ---------------------------------------------------------------------------
 # Query: 1-hop neighbors
 # ---------------------------------------------------------------------------
 

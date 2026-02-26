@@ -25,6 +25,9 @@ Last updated: 2026-02-17
 | fire-code | Fire Code Key Sections | tier1/fire-code-key-sections.json | 37K | Structured - 13 SFFD triggers, sprinkler/alarm rules, assembly thresholds, high-rise reqs |
 | fire-safety-info-sheets | DBI FS-Series Fire Safety Info Sheets | tier1/fire-safety-info-sheets.json | ~30K | Structured - 7 info sheets (FS-01/03/04/05/06/07/12), sprinkler rules, deck fire, PFP, ADU exemption |
 | semantic-index | Semantic Concept-to-Source Mapping | tier1/semantic-index.json | ~90K | Structured - 86 concepts, ~817 aliases, cross-cutting search layer, 10/10 stress test |
+| commercial-checklist | Commercial TI Permit Submission Checklist | tier1/commercial-completeness-checklist.json | ~12K | Structured - forms, plan set requirements, agency routing triggers, 8 common rejection reasons |
+| school-impact-fees | SFUSD School Impact Fee Schedule | tier1/school-impact-fees.json | ~8K | Structured - fee rates, exemptions, calculation method, payment process (GAP-11 resolved) |
+| special-inspections | Special Inspection Requirements | tier1/special-inspection-requirements.json | ~14K | Structured - 9 inspection types, certifications, SSI form, SF-specific requirements (GAP-13 resolved) |
 
 *Note: File naming has systematic offset from sf.gov index page. See document-mapping.json for correct mapping.
 

@@ -1527,6 +1527,143 @@ async def ingest_planning_records(conn, client: SODAClient) -> int:
     return total
 
 
+def extract_planning_contacts(conn) -> int:
+    """Extract contacts from planning_records into the contacts table.
+
+    Queries the planning_records table for applicant, applicant_org, and
+    assigned_planner columns. Transforms them into the standard contacts
+    format and inserts into a planning_contacts staging table, then copies
+    to the main contacts table with source='planning'.
+
+    Returns the number of contacts inserted.
+    """
+    print("\n=== Extracting Planning Contacts ===")
+
+    # Create staging table
+    conn.execute("DROP TABLE IF EXISTS planning_contacts")
+    conn.execute("""
+        CREATE TABLE planning_contacts (
+            id INTEGER,
+            source TEXT DEFAULT 'planning',
+            permit_number TEXT,
+            role TEXT,
+            name TEXT,
+            first_name TEXT,
+            last_name TEXT,
+            firm_name TEXT,
+            pts_agent_id TEXT,
+            license_number TEXT,
+            sf_business_license TEXT,
+            phone TEXT,
+            address TEXT,
+            city TEXT,
+            state TEXT,
+            zipcode TEXT,
+            is_applicant TEXT,
+            from_date TEXT,
+            entity_id INTEGER,
+            data_as_of TEXT
+        )
+    """)
+
+    # Get the next available contact ID
+    max_id_row = conn.execute("SELECT COALESCE(MAX(id), 0) FROM contacts").fetchone()
+    next_id = max_id_row[0] + 1
+
+    # Extract applicants (person + org)
+    applicant_rows = conn.execute("""
+        SELECT record_id, applicant, applicant_org, block, lot, open_date, data_as_of
+        FROM planning_records
+        WHERE applicant IS NOT NULL
+          AND TRIM(applicant) != ''
+    """).fetchall()
+
+    staging_rows = []
+    contact_id = next_id
+
+    for row in applicant_rows:
+        record_id, applicant, applicant_org, block, lot, open_date, data_as_of = row
+        # Use record_id as permit_number for cross-referencing
+        staging_rows.append((
+            contact_id,       # id
+            'planning',       # source
+            record_id,        # permit_number (planning record ID)
+            'applicant',      # role
+            applicant,        # name
+            None,             # first_name
+            None,             # last_name
+            applicant_org,    # firm_name
+            None,             # pts_agent_id
+            None,             # license_number
+            None,             # sf_business_license
+            None,             # phone
+            None,             # address
+            None,             # city
+            None,             # state
+            None,             # zipcode
+            'Y',              # is_applicant
+            open_date,        # from_date
+            None,             # entity_id
+            data_as_of,       # data_as_of
+        ))
+        contact_id += 1
+
+    # Extract assigned planners
+    planner_rows = conn.execute("""
+        SELECT record_id, assigned_planner, block, lot, open_date, data_as_of
+        FROM planning_records
+        WHERE assigned_planner IS NOT NULL
+          AND TRIM(assigned_planner) != ''
+    """).fetchall()
+
+    for row in planner_rows:
+        record_id, planner, block, lot, open_date, data_as_of = row
+        staging_rows.append((
+            contact_id,       # id
+            'planning',       # source
+            record_id,        # permit_number
+            'planner',        # role
+            planner,          # name
+            None,             # first_name
+            None,             # last_name
+            None,             # firm_name (planners are city employees)
+            None,             # pts_agent_id
+            None,             # license_number
+            None,             # sf_business_license
+            None,             # phone
+            None,             # address
+            None,             # city
+            None,             # state
+            None,             # zipcode
+            None,             # is_applicant
+            open_date,        # from_date
+            None,             # entity_id
+            data_as_of,       # data_as_of
+        ))
+        contact_id += 1
+
+    if staging_rows:
+        conn.executemany(
+            "INSERT INTO planning_contacts VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            staging_rows,
+        )
+        print(f"  Staging: {len(staging_rows):,} planning contacts")
+
+        # Copy from staging to main contacts table
+        conn.execute("""
+            INSERT INTO contacts
+            SELECT * FROM planning_contacts
+        """)
+        print(f"  Inserted {len(staging_rows):,} planning contacts into main contacts table")
+    else:
+        print("  No planning contacts found to extract")
+
+    # Clean up staging table
+    conn.execute("DROP TABLE IF EXISTS planning_contacts")
+
+    return len(staging_rows)
+
+
 TAX_ROLL_YEAR_FILTER = "closed_roll_year >= '2022'"
 TAX_ROLL_BATCH_FLUSH = 50_000  # Flush to DB every 50K rows to limit memory
 STREET_USE_BATCH_FLUSH = 50_000  # Street-use permits ~1.2M rows — flush periodically
