@@ -25,14 +25,20 @@ CATEGORY_LABELS = {
 
 
 def _categorize_document(doc_name: str) -> str:
-    """Assign a category based on document name heuristics."""
+    """Assign a category based on document name heuristics.
+
+    Agency-specific keywords are checked first since they may contain
+    generic terms like 'permit' or 'plan' that would match other categories.
+    """
     lower = doc_name.lower()
+    # Check agency first — agency docs often contain generic terms like "permit"
+    if any(kw in lower for kw in ["dph", "sffd", "sfpuc", "dpw", "planning department",
+                                   "fire suppression", "fire flow"]):
+        return "agency"
     if any(kw in lower for kw in ["plan", "drawing", "layout", "survey", "plot"]):
         return "plans"
     if any(kw in lower for kw in ["form", "application", "permit", "affidavit", "checklist", "certificate"]):
         return "forms"
-    if any(kw in lower for kw in ["dph", "sffd", "sfpuc", "dpw", "planning department", "fire"]):
-        return "agency"
     return "supplemental"
 
 
@@ -153,11 +159,16 @@ def create_checklist(permit_number: str, user_id: int, conn=None) -> int:
             )
             checklist_id = row[0]
         else:
+            # DuckDB: insert then get max id for this user+permit
             execute_write(
                 "INSERT INTO prep_checklists (permit_number, user_id) VALUES (?, ?)",
                 (permit_number, user_id),
             )
-            row = query_one("SELECT last_insert_rowid()")
+            row = query_one(
+                "SELECT MAX(checklist_id) FROM prep_checklists "
+                "WHERE permit_number = ? AND user_id = ?",
+                (permit_number, user_id),
+            )
             checklist_id = row[0]
 
         # Insert items
@@ -243,6 +254,7 @@ def get_checklist(permit_number: str, user_id: int, conn=None) -> dict | None:
             addressed += 1
 
     checklist["items"] = items
+    checklist["all_items"] = items  # alias for Jinja2 (avoids dict.items conflict)
     checklist["items_by_category"] = by_category
     checklist["progress"] = {
         "total": total,
