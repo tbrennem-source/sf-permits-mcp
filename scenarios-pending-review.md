@@ -1520,7 +1520,7 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-<!-- Sprint 57: 4 scenarios added (methodology transparency, dual return, coverage disclaimers, revision probability) -->
+<!-- Sprint 57 session close: 4 scenarios added (methodology transparency, dual return, coverage disclaimers, revision probability) on 2026-02-25 -->
 
 ## SUGGESTED SCENARIO: Methodology card reveals calculation details
 **Source:** Sprint 57 — methodology transparency
