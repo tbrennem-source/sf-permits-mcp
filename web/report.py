@@ -704,8 +704,14 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
         for permit in permits:
             pnum = permit.get("permit_number", "")
             if pnum:
-                permit["contacts"] = _get_contacts(conn, pnum)
-                permit["inspections"] = _get_inspections(conn, pnum)
+                try:
+                    permit["contacts"] = _get_contacts(conn, pnum)
+                except Exception:
+                    permit["contacts"] = []
+                try:
+                    permit["inspections"] = _get_inspections(conn, pnum)
+                except Exception:
+                    permit["inspections"] = []
                 permit["link"] = ReportLinks.permit(pnum)
 
         # Enrich active permits with routing progress

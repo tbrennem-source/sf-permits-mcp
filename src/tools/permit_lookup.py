@@ -85,23 +85,31 @@ def _lookup_by_address(conn, street_number: str, street_name: str) -> list[dict]
     """Match on street_number + street_name (indexed).
 
     Handles three DB storage patterns:
-      1. street_name="MARKET", street_suffix="ST"  (suffix in separate column)
-      2. street_name="MARKET ST", street_suffix=NULL  (suffix merged into name)
-      3. street_name="16TH", street_suffix="AVE"  (numbered streets)
+      1. street_name="Market", street_suffix="St"  (suffix in separate column)
+      2. street_name="Market St", street_suffix=NULL  (suffix merged into name)
+      3. street_name="16th", street_suffix="Ave"  (numbered streets)
 
-    The user may provide "Market St" or just "Market" — we search for the
-    base name AND the full name+suffix against both column layouts.
-
-    Also handles space-variant matches:
-      "robin hood" matches "ROBINHOOD" and vice versa by comparing
-      space-stripped versions of both the input and the stored name.
+    Uses a two-pass strategy:
+      Pass 1 (fast): direct equality on street_name — uses idx_permits_street index.
+      Pass 2 (slow): UPPER() fallback for case-insensitive + space-variant matching.
     """
     base_name, suffix = _strip_suffix(street_name)
 
-    # Exact match on street name to prevent false positives:
-    # "LAKE" should match "LAKE" only, not "BLAKE" or "LAKESHORE".
-    nospace_name = base_name.replace(' ', '')
+    # --- Pass 1: Fast indexed lookup (direct equality, title-case) ---
+    # Try multiple forms that match the B-tree index on (street_number, street_name)
+    sql = f"""
+        SELECT * FROM permits
+        WHERE street_number = {_PH}
+          AND street_name IN ({_PH}, {_PH})
+        ORDER BY filed_date DESC
+        LIMIT 50
+    """
+    rows = _exec(conn, sql, [street_number, base_name, street_name])
+    if rows:
+        return [_row_to_dict(r) for r in rows]
 
+    # --- Pass 2: Slower case-insensitive + variant matching ---
+    nospace_name = base_name.replace(' ', '')
     sql = f"""
         SELECT * FROM permits
         WHERE street_number = {_PH}
@@ -166,15 +174,26 @@ def _find_historical_lots(conn, block: str, lot: str) -> list[str]:
     street_number, street_name = addr_row[0], addr_row[1]
 
     # Step 2: find all lots on the same block at the same address
+    # Try direct equality first (indexed), fall back to case-insensitive
     sql = f"""
         SELECT DISTINCT lot
         FROM permits
         WHERE block = {_PH}
           AND street_number = {_PH}
-          AND UPPER(street_name) = UPPER({_PH})
+          AND street_name = {_PH}
           AND lot IS NOT NULL
     """
     rows = _exec(conn, sql, [block, street_number, street_name])
+    if not rows:
+        sql = f"""
+            SELECT DISTINCT lot
+            FROM permits
+            WHERE block = {_PH}
+              AND street_number = {_PH}
+              AND UPPER(street_name) = UPPER({_PH})
+              AND lot IS NOT NULL
+        """
+        rows = _exec(conn, sql, [block, street_number, street_name])
     lots = list({r[0] for r in rows if r[0]})
 
     # Ensure the input lot is always included
@@ -842,7 +861,10 @@ def _format_related(location_permits: list[dict], team_permits: list[dict],
                 ptype = (p.get("type") or "")[:40]
                 status = p.get("status") or "—"
                 filed = p.get("filed_date") or "—"
-                cost = f"${p['cost']:,.0f}" if p.get("cost") else "—"
+                try:
+                    cost = f"${float(p['cost']):,.0f}" if p.get("cost") else "—"
+                except (ValueError, TypeError):
+                    cost = "—"
                 lines.append(f"| {pnum} | {ptype} | {status} | {filed} | {cost} |")
             if len(location_permits) > 20:
                 lines.append(f"\n*Showing 20 of {len(location_permits)}.*")
@@ -1018,13 +1040,23 @@ async def permit_lookup(
 
         # 4. Team
         lines.append("\n## Project Team\n")
-        contacts = _get_contacts(conn, pnum)
-        lines.append(_format_contacts(contacts))
+        try:
+            contacts = _get_contacts(conn, pnum)
+            lines.append(_format_contacts(contacts))
+        except Exception as e:
+            contacts = []
+            logger.warning("Contacts query failed for %s: %s", pnum, e)
+            lines.append("*Contact data temporarily unavailable.*")
 
         # 5. Inspections
         lines.append("\n## Inspection History\n")
-        inspections = _get_inspections(conn, pnum)
-        lines.append(_format_inspections(inspections))
+        try:
+            inspections = _get_inspections(conn, pnum)
+            lines.append(_format_inspections(inspections))
+        except Exception as e:
+            inspections = []
+            logger.warning("Inspections query failed for %s: %s", pnum, e)
+            lines.append("*Inspection data temporarily unavailable.*")
 
         # 5.25 Severity Score
         try:
@@ -1068,7 +1100,10 @@ async def permit_lookup(
         p_lot = primary.get("lot")
         location_permits = []
         if p_block and p_lot:
-            location_permits = _get_related_location(conn, p_block, p_lot, pnum)
+            try:
+                location_permits = _get_related_location(conn, p_block, p_lot, pnum)
+            except Exception as e:
+                logger.warning("Related location query failed for %s: %s", pnum, e)
 
         # Related by team
         team_permits = []
