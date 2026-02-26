@@ -555,8 +555,12 @@ def _run_startup_migrations():
         # ── Bulk table indexes ──────────────────────────────────
         # Mirror the DuckDB indexes (src/db.py _create_indexes) for
         # PostgreSQL.  Critical for DQ checks and brief queries that
-        # join across million-row tables.  Uses IF NOT EXISTS so the
-        # slow first-run only happens once per deploy.
+        # join across million-row tables.
+        #
+        # OPTIMIZATION: Check if indexes already exist before attempting
+        # CREATE INDEX.  On redeployments (99% of startups), all indexes
+        # exist and we skip the expensive DDL entirely.  Only a fresh DB
+        # or new index additions trigger actual index creation.
         _bulk_indexes = [
             # contacts (1.8M rows) — permit_number is the critical join key
             ("idx_contacts_permit", "contacts", "permit_number"),
@@ -583,14 +587,34 @@ def _run_startup_migrations():
             # timeline_stats (382K rows)
             ("idx_ts_permit", "timeline_stats", "permit_number"),
         ]
-        # Set lock_timeout so we don't block forever if a zombie transaction
-        # holds locks (e.g. from a timed-out /cron/migrate call)
-        cur.execute("SET lock_timeout = '15s'")
-        for idx_name, table, columns in _bulk_indexes:
-            try:
-                cur.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({columns})")
-            except Exception:
-                pass  # table may not exist yet on fresh installs
+
+        # Check which indexes already exist — skip CREATE for those
+        cur.execute("""
+            SELECT indexname FROM pg_indexes
+            WHERE schemaname = 'public'
+        """)
+        existing_indexes = {row[0] for row in cur.fetchall()}
+
+        missing_indexes = [
+            (name, table, cols) for name, table, cols in _bulk_indexes
+            if name not in existing_indexes
+        ]
+
+        if missing_indexes:
+            logging.getLogger(__name__).info(
+                "Creating %d missing bulk indexes (of %d total)...",
+                len(missing_indexes), len(_bulk_indexes),
+            )
+            cur.execute("SET lock_timeout = '15s'")
+            for idx_name, table, columns in missing_indexes:
+                try:
+                    cur.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {table} ({columns})")
+                except Exception:
+                    pass  # table may not exist yet on fresh installs
+        else:
+            logging.getLogger(__name__).info(
+                "All %d bulk indexes exist — skipping creation", len(_bulk_indexes)
+            )
 
         # ── Admin auto-seed ───────────────────────────────────────
         # If the users table is empty and ADMIN_EMAIL is set, create
