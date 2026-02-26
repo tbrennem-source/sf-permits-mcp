@@ -1222,7 +1222,7 @@ _EXPECTED_SCHEMA = {
     "prep_checklists": ["checklist_id", "permit_number", "user_id", "created_at"],
     "prep_items": ["item_id", "checklist_id", "document_name", "category", "status"],
     "api_usage": ["id", "user_id", "endpoint", "cost_usd", "called_at"],
-    "activity_log": ["id", "user_id", "action", "created_at"],
+    "activity_log": ["log_id", "user_id", "action", "created_at"],
     "watch_items": ["watch_id", "user_id", "watch_type"],
     "permit_changes": ["change_id", "permit_number", "change_type"],
 }
