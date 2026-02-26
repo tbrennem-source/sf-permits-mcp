@@ -493,6 +493,19 @@ def account_fragment_admin():
 
 
 # ---------------------------------------------------------------------------
+# Permit Prep dashboard (QS3-A)
+# ---------------------------------------------------------------------------
+
+@bp.route("/account/prep")
+@login_required
+def account_prep():
+    """User's Permit Prep dashboard — lists all active checklists."""
+    from web.permit_prep import get_user_checklists
+    checklists = get_user_checklists(g.user["user_id"])
+    return render_template("account_prep.html", checklists=checklists)
+
+
+# ---------------------------------------------------------------------------
 # Primary address
 # ---------------------------------------------------------------------------
 

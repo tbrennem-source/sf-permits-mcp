@@ -186,6 +186,9 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     # Sprint 64: change velocity breakdown
     change_velocity = _get_change_velocity(since)
 
+    # QS3-A: Permit Prep summary
+    prep_summary = _get_prep_summary(user_id)
+
     return {
         "changes": changes,
         "plan_reviews": plan_reviews,
@@ -204,6 +207,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "street_use_activity": street_use_activity,
         "nearby_development": nearby_development,
         "change_velocity": change_velocity,
+        "prep_summary": prep_summary,
         "summary": {
             "total_watches": total_watches,
             "total_properties": len(property_cards),
@@ -2041,3 +2045,57 @@ def get_nearby_development_for_user(user_id: int) -> list[dict]:
         return _get_nearby_development(conn, watched_parcels)
     finally:
         conn.close()
+
+
+# ── QS3-A: Permit Prep Summary ───────────────────────────────────
+
+def _get_prep_summary(user_id: int) -> list[dict]:
+    """Return prep checklists for this user with progress counts.
+
+    Used in the morning brief to highlight permits with incomplete checklists.
+    """
+    ph = _ph()
+    try:
+        rows = query(
+            f"SELECT pc.checklist_id, pc.permit_number, pc.updated_at "
+            f"FROM prep_checklists pc WHERE pc.user_id = {ph} "
+            f"ORDER BY pc.updated_at DESC LIMIT 10",
+            (user_id,),
+        )
+    except Exception:
+        return []  # Table may not exist yet
+
+    if not rows:
+        return []
+
+    result = []
+    for r in rows:
+        checklist_id = r[0]
+        try:
+            item_rows = query(
+                f"SELECT status, COUNT(*) FROM prep_items "
+                f"WHERE checklist_id = {ph} GROUP BY status",
+                (checklist_id,),
+            )
+        except Exception:
+            item_rows = []
+
+        total = 0
+        completed = 0
+        missing = 0
+        for ir in (item_rows or []):
+            count = ir[1]
+            total += count
+            if ir[0] in ("submitted", "verified", "waived", "n_a"):
+                completed += count
+            if ir[0] == "required":
+                missing += count
+
+        result.append({
+            "permit_number": r[1],
+            "total_items": total,
+            "completed_items": completed,
+            "missing_required": missing,
+        })
+
+    return result
