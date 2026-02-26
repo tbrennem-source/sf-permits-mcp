@@ -113,6 +113,39 @@
             </table>
             {% endif %}
 
+            {# === SESSION C: Cost of Delay overlay === #}
+            {% if m.cost_impact %}
+            <div style="margin-top:12px;padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:6px;">
+                <strong style="color:#fbbf24;font-size:0.9em;">Financial Impact of Delay</strong>
+                <div style="margin-top:6px;font-size:0.85em;color:var(--text-muted, #b0c4de);">
+                    Monthly: ${{ "{:,.0f}".format(m.cost_impact.monthly_carrying_cost|float) }} ·
+                    Weekly: ${{ "{:,.0f}".format(m.cost_impact.weekly_cost|float) }}
+                </div>
+                {% if m.cost_impact.scenarios %}
+                <table style="width:100%;margin-top:8px;font-size:0.85em;border-collapse:collapse;">
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                        <th style="text-align:left;padding:4px 8px;color:#888;">Scenario</th>
+                        <th style="text-align:right;padding:4px 8px;color:#888;">Days</th>
+                        <th style="text-align:right;padding:4px 8px;color:#888;">Carrying Cost</th>
+                    </tr>
+                    {% for s in m.cost_impact.scenarios %}
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <td style="padding:4px 8px;">{{ s.label }}</td>
+                        <td style="text-align:right;padding:4px 8px;">{{ s.days }}</td>
+                        <td style="text-align:right;padding:4px 8px;font-weight:600;">${{ "{:,}".format(s.carrying_cost|int) }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% endif %}
+                {% if m.cost_impact.delay_cost is defined and m.cost_impact.delay_cost %}
+                <div style="margin-top:8px;font-size:0.85em;color:#fbbf24;">
+                    Delay risk: +${{ "{:,}".format(m.cost_impact.delay_cost|int) }} if review takes {{ m.cost_impact.delay_days|int }} extra days
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            {# === END SESSION C === #}
+
             {# triggers matched — predict_permits only #}
             {% if m.triggers_matched %}
             <div class="triggers-matched">

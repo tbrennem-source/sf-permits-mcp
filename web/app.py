@@ -1135,6 +1135,11 @@ def analyze():
     cost_str = request.form.get("cost", "").strip()
     sqft_str = request.form.get("sqft", "").strip()
 
+    # === SESSION C: Cost of Delay ===
+    carrying_cost_str = request.form.get("carrying_cost", "").strip()
+    monthly_carrying_cost = float(carrying_cost_str) if carrying_cost_str else None
+    # === END SESSION C ===
+
     if not description:
         return '<div class="error">Please enter a project description.</div>', 400
 
@@ -1261,6 +1266,7 @@ def analyze():
             estimated_cost=estimated_cost,
             triggers=triggers or None,
             return_structured=True,
+            monthly_carrying_cost=monthly_carrying_cost,  # SESSION C
         ))
         timeline_md, timeline_meta = timeline_raw
         # Add target date buffer calculation if provided

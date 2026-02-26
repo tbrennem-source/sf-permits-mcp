@@ -1064,6 +1064,15 @@
                             placeholder="e.g., 1200" min="0">
                     </div>
 
+                    {# === SESSION C: Cost of Delay === #}
+                    <div>
+                        <label for="carrying_cost">Monthly Carrying Cost ($) <span style="font-size:0.8em;color:var(--text-muted, #888);">(optional)</span></label>
+                        <input type="number" id="carrying_cost" name="carrying_cost"
+                            placeholder="e.g., 5000" min="0" step="100">
+                        <small style="color:var(--text-muted, #888);font-size:0.75rem;">Rent, mortgage, storage during construction</small>
+                    </div>
+                    {# === END SESSION C === #}
+
                     <!-- Personalization toggle -->
                     <div class="full-width">
                         <button type="button" class="personalize-toggle" onclick="togglePersonalize()">

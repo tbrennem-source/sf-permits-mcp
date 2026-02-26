@@ -489,6 +489,7 @@ async def estimate_timeline(
     estimated_cost: float | None = None,
     triggers: list[str] | None = None,
     return_structured: bool = False,
+    monthly_carrying_cost: float | None = None,
 ) -> str | tuple[str, dict]:
     """Estimate permit processing timeline using historical data + station velocity.
 
@@ -505,6 +506,8 @@ async def estimate_timeline(
         estimated_cost: Construction cost for cost bracket matching
         triggers: Additional delay factors to include (e.g., ['change_of_use', 'historic'])
         return_structured: If True, returns (markdown_str, methodology_dict) tuple
+        monthly_carrying_cost: Optional monthly carrying cost (rent, mortgage, storage)
+            to compute financial impact of permit delay
 
     Returns:
         Formatted timeline estimate with percentiles, station velocity, trend, and delay factors.
@@ -701,6 +704,55 @@ async def estimate_timeline(
             "Initial review cycle shown (addenda #0). Trend arrows: ±15% vs 365-day baseline.*"
         )
 
+    # === Sprint 60C: Cost of Delay ===
+    cost_impact = None
+    if monthly_carrying_cost and monthly_carrying_cost > 0 and primary_result:
+        daily_cost = monthly_carrying_cost / 30.44
+        weekly_cost = monthly_carrying_cost / 4.33
+        p50_days = primary_result.get("p50_days")
+        p75_days = primary_result.get("p75_days")
+        p90_days = primary_result.get("p90_days")
+
+        if p50_days:
+            cost_impact = {
+                "monthly_carrying_cost": monthly_carrying_cost,
+                "daily_cost": round(daily_cost, 2),
+                "weekly_cost": round(weekly_cost, 2),
+                "scenarios": [],
+            }
+
+            for label, days_key, days_val in [
+                ("Typical (p50)", "p50_days", p50_days),
+                ("Conservative (p75)", "p75_days", p75_days),
+                ("Worst Case (p90)", "p90_days", p90_days),
+            ]:
+                if days_val:
+                    carry = round(days_val * daily_cost)
+                    cost_impact["scenarios"].append({
+                        "label": label,
+                        "days": round(days_val),
+                        "carrying_cost": carry,
+                    })
+
+            # Delay cost: difference between p75 and p50
+            if p50_days and p75_days:
+                delay_days = round(p75_days - p50_days)
+                delay_cost = round(delay_days * daily_cost)
+                cost_impact["delay_cost"] = delay_cost
+                cost_impact["delay_days"] = delay_days
+
+            # Add to markdown output
+            lines.append(f"\n## Financial Impact of Delay\n")
+            lines.append(f"Monthly carrying cost: ${monthly_carrying_cost:,.0f} · Weekly: ${weekly_cost:,.0f}\n")
+            lines.append("| Scenario | Days | Carrying Cost |")
+            lines.append("|----------|------|---------------|")
+            for s in cost_impact["scenarios"]:
+                lines.append(f"| {s['label']} | {s['days']} | ${s['carrying_cost']:,} |")
+
+            if cost_impact.get("delay_cost"):
+                lines.append(f"\nIf review takes {cost_impact.get('delay_days', 0) + (p50_days or 0):.0f} days instead of {p50_days:.0f}, that's ${cost_impact['delay_cost']:,} more.")
+    # === END Sprint 60C ===
+
     # Coverage gaps
     sample_size = primary_result["sample_size"] if primary_result else 0
     coverage_gaps: list[str] = []
@@ -795,6 +847,10 @@ async def estimate_timeline(
         "fallback_note": fallback_note if fallback_note else "",
     }
 
+    # Sprint 60C: cost impact in methodology
+    if cost_impact:
+        methodology["cost_impact"] = cost_impact
+
     if return_structured:
         # Legacy structured return format (for backward compat with web/app.py)
         formula_steps = []
@@ -832,6 +888,8 @@ async def estimate_timeline(
             "stations": stations_meta,
             "fallback_note": fallback_note,
         }
+        if cost_impact:
+            legacy_meta["cost_impact"] = cost_impact
         return md_output, legacy_meta
 
     return md_output
