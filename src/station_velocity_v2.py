@@ -61,6 +61,7 @@ class StationVelocity:
     p90_days: float | None = None
     sample_count: int = 0
     period: str = "all"
+    neighborhood: str | None = None
 
 
 def _ph() -> str:
@@ -540,6 +541,390 @@ def get_all_velocities(
         ]
     except Exception:
         logger.debug("get_all_velocities failed", exc_info=True)
+        return []
+    finally:
+        if close:
+            conn.close()
+
+
+# ── Neighborhood-stratified velocity (Sprint 66) ─────────────────
+
+
+def _neighborhood_date_diff_expr() -> str:
+    """Return the SQL expression for days between arrive and finish_date with table alias."""
+    if BACKEND == "postgres":
+        return "EXTRACT(EPOCH FROM (a.finish_date::TIMESTAMP - a.arrive::TIMESTAMP)) / 86400.0"
+    else:
+        return "DATEDIFF('day', a.arrive::DATE, a.finish_date::DATE)"
+
+
+def _compute_neighborhood_velocities_for_period(
+    conn,
+    period_clause: str,
+    period_params: list,
+    period_label: str,
+) -> list[StationVelocity]:
+    """Compute velocity rows stratified by (station, neighborhood) for a single period.
+
+    Joins addenda with permits to get neighborhood data.
+    Only publishes baselines where sample count >= MIN_SAMPLES.
+    """
+    results = []
+    diff_expr = _neighborhood_date_diff_expr()
+    # Prefix bare 'arrive' references in period_clause with table alias
+    aliased_period_clause = period_clause.replace("arrive::", "a.arrive::")
+
+    for metric_type, addenda_filter in [
+        ("initial", "a.addenda_number = 0"),
+        ("revision", "a.addenda_number > 0"),
+    ]:
+        sql = f"""
+            WITH filtered AS (
+                SELECT a.application_number, a.station, a.addenda_number,
+                       a.arrive, a.finish_date, p.neighborhood,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY a.application_number, a.station, a.addenda_number
+                           ORDER BY a.finish_date DESC NULLS LAST
+                       ) as rn
+                FROM addenda a
+                JOIN permits p ON a.application_number = p.permit_number
+                WHERE a.station IS NOT NULL
+                  AND a.arrive IS NOT NULL
+                  AND a.finish_date IS NOT NULL
+                  AND p.neighborhood IS NOT NULL
+                  AND p.neighborhood != ''
+                  AND {aliased_period_clause}
+                  AND a.arrive::DATE <= CURRENT_DATE
+                  AND {addenda_filter}
+                  AND (a.review_results IS NULL
+                       OR a.review_results NOT IN ('Not Applicable', 'Administrative'))
+            ),
+            durations AS (
+                SELECT station, neighborhood, {diff_expr} AS days_in
+                FROM filtered a
+                WHERE rn = 1
+                  AND {diff_expr} BETWEEN 0 AND 365
+            )
+            SELECT
+                station, neighborhood,
+                COUNT(*) as n,
+                PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY days_in) as p25,
+                PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY days_in) as p50,
+                PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY days_in) as p75,
+                PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY days_in) as p90
+            FROM durations
+            GROUP BY station, neighborhood
+            HAVING COUNT(*) >= {MIN_SAMPLES}
+            ORDER BY station, neighborhood
+        """
+
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(sql, period_params)
+                    rows = cur.fetchall()
+            else:
+                sql_duck = sql.replace("%s", "?")
+                rows = conn.execute(sql_duck, period_params).fetchall()
+        except Exception:
+            logger.warning(
+                "_compute_neighborhood_velocities failed for period=%s metric=%s",
+                period_label, metric_type, exc_info=True,
+            )
+            continue
+
+        for row in rows:
+            results.append(StationVelocity(
+                station=row[0],
+                metric_type=metric_type,
+                p25_days=round(float(row[3]), 1) if row[3] is not None else None,
+                p50_days=round(float(row[4]), 1) if row[4] is not None else None,
+                p75_days=round(float(row[5]), 1) if row[5] is not None else None,
+                p90_days=round(float(row[6]), 1) if row[6] is not None else None,
+                sample_count=row[2],
+                period=period_label,
+                neighborhood=row[1],
+            ))
+
+    return results
+
+
+def compute_neighborhood_velocity(
+    conn=None,
+    mode: str = 'cron',
+) -> list[StationVelocity]:
+    """Compute per-(station, neighborhood) velocity baselines from addenda + permits.
+
+    Only publishes baselines where sample count >= MIN_SAMPLES.
+
+    Args:
+        conn: Optional DB connection; opened and closed internally if None.
+        mode: 'cron' (default) — current + baseline rolling periods.
+              'all' — original PERIODS list.
+
+    Returns a list of StationVelocity objects with neighborhood set.
+    """
+    close = False
+    if conn is None:
+        conn = get_connection()
+        close = True
+
+    results = []
+
+    try:
+        if mode == 'cron':
+            for period_label, days in VELOCITY_PERIODS.items():
+                period_clause, period_params = _rolling_period_filter(days)
+                results.extend(
+                    _compute_neighborhood_velocities_for_period(
+                        conn, period_clause, period_params, period_label
+                    )
+                )
+        else:
+            for period in PERIODS:
+                period_clause, period_params = _period_filter(period)
+                results.extend(
+                    _compute_neighborhood_velocities_for_period(
+                        conn, period_clause, period_params, period
+                    )
+                )
+    finally:
+        if close:
+            conn.close()
+
+    return results
+
+
+# ── Persistence (neighborhood table) ─────────────────────────────
+
+
+def ensure_neighborhood_velocity_table(conn=None) -> None:
+    """Create station_velocity_v2_neighborhood table if it doesn't exist."""
+    close = False
+    if conn is None:
+        conn = get_connection()
+        close = True
+
+    try:
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS station_velocity_v2_neighborhood (
+                        id SERIAL PRIMARY KEY,
+                        station VARCHAR(30) NOT NULL,
+                        neighborhood VARCHAR(80) NOT NULL,
+                        metric_type VARCHAR(20) NOT NULL,
+                        p25_days FLOAT,
+                        p50_days FLOAT,
+                        p75_days FLOAT,
+                        p90_days FLOAT,
+                        sample_count INTEGER NOT NULL,
+                        period VARCHAR(20) NOT NULL,
+                        updated_at TIMESTAMP DEFAULT NOW(),
+                        UNIQUE(station, neighborhood, metric_type, period)
+                    )
+                """)
+                cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_sv2n_station_neighborhood
+                    ON station_velocity_v2_neighborhood(station, neighborhood)
+                """)
+                conn.commit()
+        else:
+            conn.execute("""
+                CREATE SEQUENCE IF NOT EXISTS seq_sv2n_id START 1
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS station_velocity_v2_neighborhood (
+                    id INTEGER DEFAULT nextval('seq_sv2n_id') PRIMARY KEY,
+                    station VARCHAR(30) NOT NULL,
+                    neighborhood VARCHAR(80) NOT NULL,
+                    metric_type VARCHAR(20) NOT NULL,
+                    p25_days FLOAT,
+                    p50_days FLOAT,
+                    p75_days FLOAT,
+                    p90_days FLOAT,
+                    sample_count INTEGER NOT NULL,
+                    period VARCHAR(20) NOT NULL,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(station, neighborhood, metric_type, period)
+                )
+            """)
+    finally:
+        if close:
+            conn.close()
+
+
+def refresh_neighborhood_velocity(conn=None) -> dict:
+    """Full refresh: truncate and recompute neighborhood-stratified velocities.
+
+    Returns stats dict for logging.
+    """
+    close = False
+    if conn is None:
+        conn = get_connection()
+        close = True
+
+    try:
+        ensure_neighborhood_velocity_table(conn)
+
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute("TRUNCATE TABLE station_velocity_v2_neighborhood")
+            conn.commit()
+        else:
+            try:
+                conn.execute("DELETE FROM station_velocity_v2_neighborhood")
+            except Exception:
+                pass
+
+        velocities = compute_neighborhood_velocity(conn, mode='cron')
+
+        inserted = 0
+        for v in velocities:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """INSERT INTO station_velocity_v2_neighborhood
+                           (station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+                            p90_days, sample_count, period)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                           ON CONFLICT (station, neighborhood, metric_type, period)
+                           DO UPDATE SET
+                               p25_days = EXCLUDED.p25_days,
+                               p50_days = EXCLUDED.p50_days,
+                               p75_days = EXCLUDED.p75_days,
+                               p90_days = EXCLUDED.p90_days,
+                               sample_count = EXCLUDED.sample_count,
+                               updated_at = NOW()
+                        """,
+                        (v.station, v.neighborhood, v.metric_type, v.p25_days,
+                         v.p50_days, v.p75_days, v.p90_days, v.sample_count, v.period),
+                    )
+                inserted += 1
+            else:
+                conn.execute(
+                    """INSERT INTO station_velocity_v2_neighborhood
+                       (station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+                        p90_days, sample_count, period)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT (station, neighborhood, metric_type, period)
+                       DO UPDATE SET
+                           p25_days = EXCLUDED.p25_days,
+                           p50_days = EXCLUDED.p50_days,
+                           p75_days = EXCLUDED.p75_days,
+                           p90_days = EXCLUDED.p90_days,
+                           sample_count = EXCLUDED.sample_count
+                    """,
+                    (v.station, v.neighborhood, v.metric_type, v.p25_days,
+                     v.p50_days, v.p75_days, v.p90_days, v.sample_count, v.period),
+                )
+                inserted += 1
+
+        if BACKEND == "postgres":
+            conn.commit()
+
+        neighborhoods = len(set((v.station, v.neighborhood) for v in velocities))
+        logger.info(
+            "neighborhood velocity refresh: %d rows inserted, %d station-neighborhood combos",
+            inserted, neighborhoods,
+        )
+        return {
+            "rows_inserted": inserted,
+            "station_neighborhood_combos": neighborhoods,
+        }
+    finally:
+        if close:
+            conn.close()
+
+
+def get_neighborhood_velocity(
+    stations: list[str],
+    neighborhood: str,
+    metric_type: str = "initial",
+    conn=None,
+) -> list[StationVelocity]:
+    """Look up pre-computed neighborhood-stratified velocity for given stations.
+
+    Returns list of StationVelocity with neighborhood set, preferring 'current' period.
+    Returns empty list if no neighborhood data exists.
+    """
+    if not stations or not neighborhood:
+        return []
+
+    close = False
+    if conn is None:
+        conn = get_connection()
+        close = True
+
+    try:
+        # Check table exists
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1 FROM station_velocity_v2_neighborhood LIMIT 1")
+            else:
+                conn.execute("SELECT 1 FROM station_velocity_v2_neighborhood LIMIT 1")
+        except Exception:
+            return []
+
+        if BACKEND == "postgres":
+            sql = """
+                SELECT station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+                       p90_days, sample_count, period
+                FROM station_velocity_v2_neighborhood
+                WHERE metric_type = %s
+                  AND neighborhood = %s
+                  AND period IN ('current', 'baseline')
+                  AND station = ANY(%s)
+                ORDER BY
+                  station,
+                  CASE period WHEN 'current' THEN 0 ELSE 1 END
+            """
+            params = [metric_type, neighborhood, stations]
+        else:
+            placeholders = ", ".join(["?"] * len(stations))
+            sql = f"""
+                SELECT station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+                       p90_days, sample_count, period
+                FROM station_velocity_v2_neighborhood
+                WHERE metric_type = ?
+                  AND neighborhood = ?
+                  AND period IN ('current', 'baseline')
+                  AND station IN ({placeholders})
+                ORDER BY
+                  station,
+                  CASE period WHEN 'current' THEN 0 ELSE 1 END
+            """
+            params = [metric_type, neighborhood] + stations
+
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+        else:
+            rows = conn.execute(sql, params).fetchall()
+
+        # Deduplicate: keep 'current' period if available
+        seen: dict[str, StationVelocity] = {}
+        for row in rows:
+            station_name = row[0]
+            period = row[8]
+            if station_name not in seen or period == "current":
+                seen[station_name] = StationVelocity(
+                    station=row[0],
+                    metric_type=row[2],
+                    p25_days=float(row[3]) if row[3] is not None else None,
+                    p50_days=float(row[4]) if row[4] is not None else None,
+                    p75_days=float(row[5]) if row[5] is not None else None,
+                    p90_days=float(row[6]) if row[6] is not None else None,
+                    sample_count=row[7],
+                    period=period,
+                    neighborhood=row[1],
+                )
+
+        return list(seen.values())
+    except Exception:
+        logger.debug("get_neighborhood_velocity failed", exc_info=True)
         return []
     finally:
         if close:

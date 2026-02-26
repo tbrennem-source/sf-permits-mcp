@@ -247,14 +247,19 @@ def _cost_bracket(estimated_cost: float | None) -> str | None:
     return "over_500k"
 
 
-def _query_station_velocity_v2(conn, stations: list[str] | None = None) -> list[dict]:
+def _query_station_velocity_v2(conn, stations: list[str] | None = None,
+                               neighborhood: str | None = None) -> list[dict]:
     """Query station_velocity_v2 for station-level plan review timelines.
 
     Sprint 58A: Uses a single WHERE station = ANY(%s) / WHERE station IN (...)
     query for both current and baseline periods simultaneously, then deduplicates
     preferring 'current' over 'baseline'.
 
-    Returns list of dicts with station velocity data.
+    Sprint 66: Tries neighborhood-stratified data first when neighborhood is
+    provided. Falls back to station-only if no neighborhood-specific data exists.
+
+    Returns list of dicts with station velocity data. Each dict includes
+    "neighborhood_specific": True when neighborhood data was used.
     """
     ph = "%s" if BACKEND == "postgres" else "?"
 
@@ -266,6 +271,12 @@ def _query_station_velocity_v2(conn, stations: list[str] | None = None) -> list[
             conn.execute("SELECT 1 FROM station_velocity_v2 LIMIT 1")
     except Exception:
         return []
+
+    # Sprint 66: Try neighborhood-stratified data first
+    if neighborhood and stations:
+        neighborhood_results = _query_neighborhood_velocity(conn, stations, neighborhood)
+        if neighborhood_results:
+            return neighborhood_results
 
     # Sprint 58A: Single query for both periods — most efficient
     if stations:
@@ -337,6 +348,87 @@ def _query_station_velocity_v2(conn, stations: list[str] | None = None) -> list[
                 "sample_count": row[6],
                 "period": period,
                 "updated_at": str(row[8]) if row[8] else None,
+                "neighborhood_specific": False,
+            }
+
+    return list(seen.values())
+
+
+def _query_neighborhood_velocity(conn, stations: list[str],
+                                 neighborhood: str) -> list[dict]:
+    """Query neighborhood-stratified velocity data.
+
+    Returns list of dicts if neighborhood data covers at least one station,
+    otherwise returns empty list to trigger fallback to station-only.
+    """
+    try:
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1 FROM station_velocity_v2_neighborhood LIMIT 1")
+        else:
+            conn.execute("SELECT 1 FROM station_velocity_v2_neighborhood LIMIT 1")
+    except Exception:
+        return []
+
+    if BACKEND == "postgres":
+        sql = """
+            SELECT station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+                   p90_days, sample_count, period
+            FROM station_velocity_v2_neighborhood
+            WHERE metric_type = 'initial'
+              AND neighborhood = %s
+              AND period IN ('current', 'baseline')
+              AND station = ANY(%s)
+            ORDER BY
+              station,
+              CASE period WHEN 'current' THEN 0 ELSE 1 END
+        """
+        params = [neighborhood, stations]
+    else:
+        placeholders = ", ".join(["?"] * len(stations))
+        sql = f"""
+            SELECT station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+                   p90_days, sample_count, period
+            FROM station_velocity_v2_neighborhood
+            WHERE metric_type = 'initial'
+              AND neighborhood = ?
+              AND period IN ('current', 'baseline')
+              AND station IN ({placeholders})
+            ORDER BY
+              station,
+              CASE period WHEN 'current' THEN 0 ELSE 1 END
+        """
+        params = [neighborhood] + stations
+
+    try:
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+        else:
+            rows = conn.execute(sql, params).fetchall()
+    except Exception:
+        return []
+
+    if not rows:
+        return []
+
+    # Deduplicate: keep 'current' period if available
+    seen: dict[str, dict] = {}
+    for row in rows:
+        station_name = row[0]
+        period = row[8]
+        if station_name not in seen or period == "current":
+            seen[station_name] = {
+                "station": station_name,
+                "metric_type": row[2],
+                "p25_days": float(row[3]) if row[3] is not None else None,
+                "p50_days": float(row[4]) if row[4] is not None else None,
+                "p75_days": float(row[5]) if row[5] is not None else None,
+                "p90_days": float(row[6]) if row[6] is not None else None,
+                "sample_count": row[7],
+                "period": period,
+                "neighborhood_specific": True,
             }
 
     return list(seen.values())
@@ -691,7 +783,8 @@ async def estimate_timeline(
             db_available = True
 
             # === Sprint 58A: PRIMARY MODEL — Station Sum ===
-            station_velocity = _query_station_velocity_v2(conn, relevant_stations)
+            # Sprint 66: Pass neighborhood for stratified lookup with fallback
+            station_velocity = _query_station_velocity_v2(conn, relevant_stations, neighborhood)
 
             if station_velocity:
                 v2_available = True
@@ -771,10 +864,20 @@ async def estimate_timeline(
     if estimated_cost:
         lines.append(f"**Cost Bracket:** {bracket}")
 
+    # Sprint 66: Check if any station used neighborhood-specific data
+    neighborhood_specific = any(
+        s.get("neighborhood_specific") for s in station_velocity
+    ) if station_velocity else False
+
     if using_station_sum:
         # Primary model: station-sum output
-        lines.append(f"\n## Plan Review Timeline (Station-Sum Model)\n")
-        lines.append("*Sum of sequential station review times — each station reviews in parallel or series.*\n")
+        if neighborhood_specific:
+            lines.append(f"\n## Plan Review Timeline (Station-Sum Model — Neighborhood-specific)\n")
+            lines.append(f"*Neighborhood-specific velocity data for {neighborhood}. "
+                         "Sum of sequential station review times.*\n")
+        else:
+            lines.append(f"\n## Plan Review Timeline (Station-Sum Model)\n")
+            lines.append("*Sum of sequential station review times — each station reviews in parallel or series.*\n")
         lines.append(f"| Percentile | Days |")
         lines.append(f"|-----------|------|")
         lines.append(f"| 25th (optimistic) | {primary_result['p25_days']} |")
@@ -998,6 +1101,7 @@ async def estimate_timeline(
         # Tool-specific keys
         "stations": stations_meta,
         "fallback_note": fallback_note if fallback_note else "",
+        "neighborhood_specific": neighborhood_specific,
     }
 
     # Sprint 60C: cost impact in methodology

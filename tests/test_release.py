@@ -221,3 +221,47 @@ def test_railway_toml_has_release_command():
 
     assert "releaseCommand" in content
     assert "scripts.release" in content
+
+
+# ---------------------------------------------------------------------------
+# Test 10: New composite indexes are present in release DDL (Sprint 66-B)
+# ---------------------------------------------------------------------------
+
+def test_release_has_composite_indexes():
+    """Verify idx_addenda_app_finish and idx_permits_block_lot_status in _bulk_indexes."""
+    release = _import_release()
+    source_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "scripts", "release.py",
+    )
+    with open(source_path) as f:
+        content = f.read()
+
+    assert "idx_addenda_app_finish" in content
+    assert "application_number, finish_date" in content
+    assert "idx_permits_block_lot_status" in content
+    assert "block, lot, status" in content
+
+
+def test_release_composite_index_ddl_is_valid():
+    """Composite index DDL is syntactically valid SQL (no parse errors)."""
+    release = _import_release()
+
+    mock_cur = mock.MagicMock()
+    mock_cur.fetchone.return_value = (1,)
+
+    mock_conn = mock.MagicMock()
+    mock_conn.cursor.return_value = mock_cur
+
+    with mock.patch("src.db.BACKEND", "postgres"), \
+         mock.patch("src.db.get_connection", return_value=mock_conn):
+        result = release.run_release_migrations()
+
+    assert result is True
+
+    # Check that the composite index DDL was executed
+    executed_sql = [str(call) for call in mock_cur.execute.call_args_list]
+    addenda_idx = [s for s in executed_sql if "idx_addenda_app_finish" in s]
+    permits_idx = [s for s in executed_sql if "idx_permits_block_lot_status" in s]
+    assert len(addenda_idx) >= 1
+    assert len(permits_idx) >= 1

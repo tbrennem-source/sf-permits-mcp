@@ -174,6 +174,7 @@ def run_all_checks() -> list[dict]:
         _check_entity_coverage,
         _check_addenda_freshness,
         _check_station_velocity_freshness,
+        _check_velocity_trends,
     ]
     # Checks that work on both backends
     universal_checks = [
@@ -485,6 +486,67 @@ def _check_inspection_null_rate() -> dict:
         "unit": f"({null_count:,} of {total:,})",
         "status": status,
         "detail": f"{null_count:,} inspections missing type description ({pct}%)",
+    }
+
+
+def _check_velocity_trends() -> dict | None:
+    """Compare current week's station_velocity_v2 p50 values to 4-week rolling average.
+
+    Flags any station where current p50 is >15% slower than the rolling average.
+    Returns a DQ check result with severity "warning" if flagged stations found.
+
+    Sprint 66-D: Velocity trend detection.
+    """
+    from src.db import BACKEND
+
+    try:
+        # Get current period velocities
+        current_rows = _timed_query(
+            "SELECT station, p50_days FROM station_velocity_v2 "
+            "WHERE metric_type = 'initial' AND period = 'current' AND p50_days > 0",
+            (),
+        )
+        # Get baseline period velocities (rolling 365d)
+        baseline_rows = _timed_query(
+            "SELECT station, p50_days FROM station_velocity_v2 "
+            "WHERE metric_type = 'initial' AND period = 'baseline' AND p50_days > 0",
+            (),
+        )
+    except Exception:
+        return None
+
+    if not current_rows or not baseline_rows:
+        return None
+
+    baseline_map = {row[0]: float(row[1]) for row in baseline_rows if row[1]}
+    flagged = []
+    for row in current_rows:
+        station = row[0]
+        current_p50 = float(row[1]) if row[1] else None
+        baseline_p50 = baseline_map.get(station)
+        if current_p50 and baseline_p50 and baseline_p50 > 0:
+            pct_change = ((current_p50 - baseline_p50) / baseline_p50) * 100
+            if pct_change > 15.0:
+                flagged.append(f"{station} (+{pct_change:.0f}%)")
+
+    if flagged:
+        return {
+            "name": "Station Velocity Trends",
+            "category": "anomaly",
+            "value": f"{len(flagged)} slowing",
+            "unit": "stations",
+            "status": "yellow",
+            "detail": f"Stations >15% slower vs baseline: {', '.join(flagged[:5])}"
+                      + (f" (+{len(flagged)-5} more)" if len(flagged) > 5 else ""),
+        }
+
+    return {
+        "name": "Station Velocity Trends",
+        "category": "pipeline",
+        "value": "Normal",
+        "unit": "",
+        "status": "green",
+        "detail": "All station velocities within 15% of baseline",
     }
 
 

@@ -480,6 +480,8 @@ def run_release_migrations():
         ("idx_addenda_app_num", "addenda", "application_number"),
         ("idx_addenda_station", "addenda", "station"),
         ("idx_addenda_finish", "addenda", "finish_date"),
+        ("idx_addenda_app_finish", "addenda", "application_number, finish_date"),
+        ("idx_permits_block_lot_status", "permits", "block, lot, status"),
         ("idx_ts_permit", "timeline_stats", "permit_number"),
     ]
     for idx_name, table, columns in _bulk_indexes:
