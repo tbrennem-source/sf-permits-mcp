@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permit Analysis — sfpermits.ai</title>
     <meta name="description" content="AI-powered permit analysis for {{ session.project_description[:100] }}">
+    <meta property="og:title" content="Project Analysis: {{ (session.project_description or 'SF Permit Analysis')[:60] }}">
+    <meta property="og:description" content="Permits needed, timeline estimate, fee breakdown. Powered by sfpermits.ai">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://sfpermits.ai/analysis/{{ session.id }}">
+    <meta property="og:image" content="https://sfpermits.ai/static/og-card.png">
+    <meta property="og:site_name" content="sfpermits.ai">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Project Analysis: {{ (session.project_description or 'SF Permit Analysis')[:60] }}">
+    <meta name="twitter:description" content="Permits needed, timeline estimate, fee breakdown. Powered by sfpermits.ai">
+    <meta name="twitter:image" content="https://sfpermits.ai/static/og-card.png">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .shared-banner {

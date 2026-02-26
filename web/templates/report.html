@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Property Report — {{ report.address }} — sfpermits.ai</title>
+    <meta property="og:title" content="Property Report: {{ report.address }}">
+    <meta property="og:description" content="SF building permit history, complaints, violations, and risk assessment for {{ report.address }}. Powered by sfpermits.ai">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://sfpermits.ai/report/{{ report.block }}/{{ report.lot }}">
+    <meta property="og:image" content="https://sfpermits.ai/static/og-card.png">
+    <meta property="og:site_name" content="sfpermits.ai">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Property Report: {{ report.address }}">
+    <meta name="twitter:description" content="SF building permit history, complaints, violations, and risk assessment. Powered by sfpermits.ai">
+    <meta name="twitter:image" content="https://sfpermits.ai/static/og-card.png">
     <script src="/static/htmx.min.js"></script>
     <style>
         :root {
