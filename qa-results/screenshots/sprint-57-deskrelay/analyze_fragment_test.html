@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Methodology Test</title>
+</head><body style="font-family: sans-serif; padding: 20px; max-width: 900px; margin: 0 auto;">
+<style>
+.methodology-card { background: #f8f9fa; border-left: 3px solid #2563eb; padding: 12px 16px; margin-top: 8px; font-size: 0.9em; border-radius: 0 6px 6px 0; }
+.methodology-card summary { cursor: pointer; color: #6b7280; font-size: 0.85em; font-weight: 500; }
+.methodology-card ul { margin: 8px 0; padding-left: 20px; }
+.methodology-card li { margin-bottom: 4px; font-size: 0.85em; }
+.methodology-sources { font-size: 0.8em; color: #888; margin-top: 8px; }
+.methodology-gaps { font-size: 0.8em; color: #b45309; font-style: italic; margin-top: 4px; }
+</style>
+
+
+
+
+
+<div class="results-tabs">
+
+    
+    <button class="tab active" data-panel="panel-predict">Permits</button>
+    
+
+    
+    <button class="tab" data-panel="panel-timeline">Timeline</button>
+    
+
+    
+    <button class="tab" data-panel="panel-fees">Fees</button>
+    
+
+    
+    <button class="tab" data-panel="panel-docs">Documents</button>
+    
+
+    
+    <button class="tab" data-panel="panel-risk">Revision Risk</button>
+    
+
+</div>
+
+
+
+<div id="panel-predict" class="tab-panel active">
+    <div class="result-card">
+        <h1>Permit Prediction</h1>
+<p><strong>Project:</strong> Kitchen remodel in existing home<br />
+<strong>Estimated Cost:</strong> $75,000</p>
+<p><strong>Detected Project Types:</strong> commercial_ti<br />
+<strong>Matched Concepts:</strong> kitchen_remodel, disability_access, commercial_ti</p>
+<h2>Permit Form</h2>
+<p><strong>Form:</strong> Form 3/8<br />
+<strong>Reason:</strong> Based on project type (ref_permit_forms)<br />
+<strong>Notes:</strong> Commercial TI — single-story non-structural may be OTC; otherwise in-house</p>
+<h2>Review Path</h2>
+<p><strong>Path:</strong> likely_in_house<br />
+<strong>Reason:</strong> Scope likely exceeds OTC one-hour review threshold<br />
+<strong>Confidence:</strong> medium</p>
+<h2>Agency Routing</h2>
+<ul>
+<li><strong>DBI (Building)</strong> (Required): All permitted work</li>
+<li><strong>DBI Mechanical/Electrical</strong> (Required): Commercial TI with HVAC, electrical, or kitchen systems</li>
+</ul>
+<h2>Special Requirements</h2>
+<ul>
+<li><strong>ADA path-of-travel (20% rule):</strong> Construction cost $75,000 below threshold $203,611 — accessibility upgrades limited to 20% ($15,000)</li>
+<li><strong>DA-02 Checklist required:</strong> Disabled Access Upgrade Compliance Checklist Package required for all commercial alterations</li>
+<li><strong>Plan signature — verify G-01 Status I exempt or Status III required:</strong> Non-highrise single-floor TI ≤$400,000 with non-structural scope may qualify for exempt status (G-01). Otherwise CA-licensed architect or engineer required.</li>
+<li><strong>Title-24 energy compliance (nonresidential alteration):</strong> NRCC required if altering HVAC, lighting, or envelope. NRCI sub-forms at inspection per DBI M-04 checklist. NRCA acceptance testing for systems &gt;54,000 BTU/hr (MCH-04-A economizer, LTI-02-A daylighting, etc.).</li>
+<li><strong>Title-24 Final Compliance Affidavit (M-06):</strong> Prior to final inspection, email affidavit to dbi.energyinspections@sfgov.org. Must list all certificate form codes. Allow 10 business days for review. HERS items require certified HERS Rater; NRCA items require certified ATT.</li>
+</ul>
+<h2>Confidence Summary</h2>
+<ul>
+<li>overall: medium</li>
+<li>form_selection: high</li>
+<li>review_path: high</li>
+<li>agency_routing: high</li>
+<li>documents: high</li>
+</ul>
+<h2>Gaps / Caveats</h2>
+<ul>
+<li>No address provided — cannot check zoning, historic status, or neighborhood-specific rules</li>
+</ul>
+<h2>Data Coverage</h2>
+<ul>
+<li>Zoning-specific routing unavailable. General routing rules applied.</li>
+<li>No address provided — cannot verify zoning or historic status</li>
+</ul>
+<hr />
+<h2>Sources</h2>
+<ul>
+<li><a href="https://sf.gov/departments/building-inspection/permits">DBI Decision Tree (7-step permit pathway)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI OTC Permit Criteria (55 project type classifications)</a></li>
+<li><a href="https://sf.gov/departments/building-inspection/permits">DBI Permit Forms Taxonomy</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Info Sheet G-20: Routing Matrix</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Info Sheets DA-02, DA-12, DA-13 (CBC 11B Accessibility)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Info Sheet G-01: Signature on Plans (4 status categories)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Title-24 Energy Compliance (M-03, M-04, M-06, M-08)</a></li>
+</ul>
+    </div>
+    
+    <details class="methodology-card">
+        <summary>How we calculated this</summary>
+        
+        <ul>
+            <li>Form: Form 3/8 (Based on project type (ref_permit_forms))</li><li>Review Path: likely_in_house (medium confidence)</li><li>Agencies: 2 routing</li><li>Requirements: 5 items</li>
+        </ul>
+        
+        <p class="methodology-sources">Sources: SF permit decision tree, 86-concept semantic index</p>
+        
+        <p class="methodology-gaps">Note: Zoning-specific routing unavailable. General routing rules applied.. No address provided — cannot verify zoning or historic status</p>
+        
+    </details>
+    
+</div>
+
+
+
+<div id="panel-timeline" class="tab-panel">
+    <div class="result-card">
+        <h1>Timeline Estimate</h1>
+<p><strong>Permit Type:</strong> alterations<br />
+<strong>Review Path:</strong> otc<br />
+<strong>Cost Bracket:</strong> 50k_150k</p>
+<h2>Estimated Timeline Ranges</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plan review (OTC)</td>
+<td>Same day to 1 week</td>
+</tr>
+<tr>
+<td>Permit issuance</td>
+<td>Immediate upon approval</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Confidence:</strong> low</p>
+<h2>Data Coverage</h2>
+<ul>
+<li>Station velocity data not available</li>
+</ul>
+<hr />
+<h2>Sources</h2>
+<ul>
+<li><a href="https://data.sfgov.org/Housing-and-Buildings/Building-Permits/i98e-djp9">SF Open Data — Building Permits (1.1M+ records via SODA API)</a></li>
+</ul>
+    </div>
+    
+    <details class="methodology-card">
+        <summary>How we calculated this</summary>
+        
+        <p class="methodology-sources">Sources: 1.1M+ historical permits (timeline_stats)</p>
+        
+        <p class="methodology-gaps">Note: Station velocity data not available</p>
+        
+    </details>
+    
+</div>
+
+
+
+<div id="panel-fees" class="tab-panel">
+    <div class="result-card">
+        <h1>Fee Estimate</h1>
+<p><strong>Construction Valuation:</strong> $75,000<br />
+<strong>Permit Category:</strong> alterations</p>
+<h2>DBI Building Permit Fees (Table 1A-A)</h2>
+<table>
+<thead>
+<tr>
+<th>Fee Component</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plan Review Fee</td>
+<td>$2,067.75</td>
+</tr>
+<tr>
+<td>Permit Issuance Fee</td>
+<td>$699.00</td>
+</tr>
+<tr>
+<td>CBSC Fee</td>
+<td>$3.00</td>
+</tr>
+<tr>
+<td>SMIP Fee</td>
+<td>$9.75</td>
+</tr>
+<tr>
+<td><strong>Total DBI Fees</strong></td>
+<td><strong>$2,779.50</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>Fee tier: $50,001 to $200,000</em></p>
+<h2>SFFD Fees (Table 107-B / 107-C)</h2>
+<table>
+<thead>
+<tr>
+<th>Fee Component</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SFFD Plan Review (Table 107-B)</td>
+<td>$1,045.04</td>
+</tr>
+<tr>
+<td>SFFD Field Inspection (Table 107-C)</td>
+<td>$408.00</td>
+</tr>
+<tr>
+<td><strong>Total SFFD Fees</strong></td>
+<td><strong>$1,453.04</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>Electrical Permit Fee (Table 1A-E)</h2>
+<table>
+<thead>
+<tr>
+<th>Fee Component</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Electrical Permit (Category 2 (Nonresidential / Large Residential))</td>
+<td>$410–$113,993</td>
+</tr>
+<tr>
+<td><em>Provide square footage for a precise tier estimate</em></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>Plumbing/Mechanical Permit Fee (Table 1A-C)</h2>
+<table>
+<thead>
+<tr>
+<th>Fee Component</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5P/5M — Office, mercantile &amp; retail buildings: New or Tenant Improve</td>
+<td>$582</td>
+</tr>
+<tr>
+<td><strong>Plumbing Permit Total</strong></td>
+<td><strong>$582</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>Additional Fees (estimated)</h2>
+<ul>
+<li>Plumbing permit: $582</li>
+<li>School Impact Fee (SFUSD): varies by floor area increase</li>
+</ul>
+<h2>Statistical Context (DuckDB)</h2>
+<p>Similar permits (125,712 in database):<br />
+- 25th percentile cost: $49,000<br />
+- Median cost: $62,908<br />
+- 75th percentile cost: $91,000</p>
+<h2>ADA/Accessibility Cost Impact</h2>
+<p><strong>Valuation Threshold:</strong> $203,611<br />
+<strong>Status:</strong> Below threshold — Path-of-travel compliance limited to 20% of construction cost<br />
+<strong>Maximum Accessibility Spend:</strong> $15,000.00<br />
+<em>Budget up to $15,000 for accessibility upgrades (20% of $75,000)</em><br />
+- Submit DA-02 Disabled Access Compliance Checklist with permit application</p>
+<h2>Cost Revision Risk</h2>
+<p>Cost revision probability: ~29% for projects in the $25K–$100K range.<br />
+Historical pattern: +23% avg increase.<br />
+Budget recommendation: plan for $96,450 as your ceiling.</p>
+<h2>Notes</h2>
+<ul>
+<li>Fee schedule effective 9/1/2025 (Ord. 126-25)</li>
+<li>DBI may adjust valuation per DBI Cost Schedule</li>
+<li>Additional agency fees (Planning, SFFD, DPH, DPW) not included in DBI total</li>
+<li>Fees subject to periodic update — verify against current DBI schedule</li>
+</ul>
+<p><strong>Confidence:</strong> high</p>
+<h2>Data Coverage</h2>
+<ul>
+<li>Planning fees not included</li>
+<li>Electrical fees estimated from Table 1A-E</li>
+</ul>
+<hr />
+<h2>Sources</h2>
+<ul>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Fee Schedule G-13 (Tables 1A-A through 1A-S, eff. 9/1/2025)</a></li>
+<li><a href="https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_fire/0-0-0-2">SF Fire Code — Tables 107-B, 107-C (SFFD fees)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Info Sheets DA-02, DA-12, DA-13 (CBC 11B Accessibility)</a></li>
+<li><a href="https://data.sfgov.org/Housing-and-Buildings/Building-Permits/i98e-djp9">SF Open Data — Building Permits (1.1M+ records via SODA API)</a></li>
+</ul>
+    </div>
+    
+    <details class="methodology-card">
+        <summary>How we calculated this</summary>
+        
+        <ul>
+            <li>Plan Review Fee: $2,067.75</li><li>Permit Issuance Fee: $699.00</li><li>CBSC Fee: $3.00</li><li>SMIP Fee: $9.75</li><li>Total DBI: $2,779.50</li>
+        </ul>
+        
+        <p class="methodology-sources">Sources: DBI Table 1A-A fee schedule, 1.1M permit records, SFFD Table 107-B/107-C, DBI Table 1A-E electrical fees, DBI Table 1A-C plumbing fees</p>
+        
+        <p class="methodology-gaps">Note: Planning fees not included. Electrical fees estimated from Table 1A-E</p>
+        
+    </details>
+    
+</div>
+
+
+
+<div id="panel-docs" class="tab-panel">
+    <div class="result-card">
+        <h1>Required Documents Checklist</h1>
+<p><strong>Forms:</strong> Form 3/8<br />
+<strong>Review Path:</strong> otc<br />
+<strong>Project Type:</strong> commercial_ti</p>
+<h2>Initial Filing Documents</h2>
+<ol>
+<li>[ ] Building Permit Application (Form 3/8)</li>
+<li>[ ] Construction plans (PDF for EPR)</li>
+<li>[ ] Permit Applicant Disclosure and Certification form</li>
+<li>[ ] Title 24 Energy compliance forms</li>
+<li>[ ] San Francisco Green Building form (GS1-GS6)</li>
+<li>[ ] Construction cost estimate worksheet</li>
+</ol>
+<h2>Project-Specific Requirements</h2>
+<ol>
+<li>[ ] DA-02 Disabled Access Upgrade Compliance Checklist Package (required for ALL commercial alterations)</li>
+<li>[ ] ADA path-of-travel documentation</li>
+<li>[ ] NRCC energy compliance (if altering HVAC or lighting)</li>
+<li>[ ] NRCC — Nonresidential Certificate of Compliance (if altering HVAC, lighting, or envelope)</li>
+<li>[ ] NRCI/NRCA sub-forms at inspection — specific forms depend on scope (see M-04 checklist)</li>
+<li>[ ] Existing conditions documentation for Title-24 baseline (T24-C02 — #1 alteration correction)</li>
+<li>[ ] Title-24 CEC Final Compliance Affidavit (M-06) — email to dbi.energyinspections@sfgov.org prior to final inspection</li>
+<li>[ ] DA-02 Form A: Building description (use, occupancy, total SF, alteration SF, year built)</li>
+<li>[ ] DA-02 Form B: Compliance path selection (full compliance vs 20% disproportionate cost)</li>
+<li>[ ] DA-02 Form C: CBC 11B checklist — entrance, restrooms, signage, counters, path of travel</li>
+<li>[ ] Plans signed by CA-licensed architect or engineer — OR exempt if single-floor non-highrise TI ≤$400,000 (G-01 Status I/III)</li>
+</ol>
+<h2>Electronic Plan Review (EPR) Requirements</h2>
+<p><em>All plans must be submitted electronically as of January 1, 2024</em></p>
+<ul>
+<li>Vector-based PDF required: CAD-produced vector lines, not scanned images. Non-compliant = rejection.</li>
+<li>TrueType/OpenType fonts: Searchable text required. SHX fonts need OCR post-processing.</li>
+<li>Single consolidated PDF: One PDF per document type. No individual sheet files.</li>
+<li>Full 1:1 scale: Print at 100% scale from authoring software.</li>
+<li>Minimum 22" x 34" sheets: ANSI D or Arch D minimum. Signage permits: 11x17. Supplements: 8.5x11.</li>
+<li>File size &lt; 250MB: Per upload. Site permit addenda: 350MB limit.</li>
+<li>PDF unlocked: No encryption, passwords, or security restrictions.</li>
+<li>No digital certificate signatures: Use scanned graphic signatures. DocuSign/Adobe Sign certificates lock the PDF.</li>
+<li>Back Check page: DBI standardized Back Check page appended to plan set.</li>
+</ul>
+<h2>Pre-Submission Checklist</h2>
+<ul>
+<li>[ ] Vector-based lines (no scanned/raster drawings) [EPR-001]</li>
+<li>[ ] TrueType/OpenType fonts for searchable text [EPR-002]</li>
+<li>[ ] All sheets in single consolidated PDF [EPR-003]</li>
+<li>[ ] Full 1:1 scale output (not 'scale to fit') [EPR-004]</li>
+<li>[ ] Minimum sheet size 22" x 34" for drawings [EPR-005]</li>
+<li>[ ] File size under 250MB per upload [EPR-006]</li>
+<li>[ ] Bookmarks for each sheet (recommended) [EPR-007]</li>
+<li>[ ] PDF unlocked — no encryption or passwords [EPR-009]</li>
+<li>[ ] No certificate-type digital signatures [EPR-010]</li>
+<li>[ ] 8.5" x 11" blank area on cover sheet [EPR-012]</li>
+<li>[ ] Project address on every sheet [EPR-013]</li>
+<li>[ ] Sheet numbers on every sheet [EPR-014]</li>
+<li>[ ] Design professional signature/stamp on every sheet [EPR-018]</li>
+<li>[ ] Flatten PDF after adding graphic signatures [EPR-019]</li>
+<li>[ ] Back Check page appended [EPR-021]</li>
+</ul>
+<h2>File Naming Convention</h2>
+<p>Format: <code>[Number Prefix]-[Document type]-[Revision Number] [Street address]_[Type/Count of Addenda]</code></p>
+<ul>
+<li><code>1-</code> Plans/Drawings (e.g., <code>1-Plans-R0 123 Main St</code>)</li>
+<li><code>2-</code> Calculations (e.g., <code>2-Calculations-R0 123 Main St</code>)</li>
+<li><code>3-</code> Reports/Studies (e.g., <code>3-Reports-R0 123 Main St</code>)</li>
+<li><code>4-</code> Specifications (e.g., <code>4-Specifications-R0 123 Main St</code>)</li>
+<li><code>5-</code> Other Documents (e.g., <code>5-Other-R0 123 Main St</code>)</li>
+<li><code>6-</code> Addenda (e.g., <code>6-Addenda-R1 123 Main St_Addendum1</code>)</li>
+</ul>
+<h2>Sheet Numbering Convention</h2>
+<ul>
+<li><code>G</code> — General</li>
+<li><code>A</code> — Architectural</li>
+<li><code>S</code> — Structural</li>
+<li><code>M</code> — Mechanical</li>
+<li><code>E</code> — Electrical</li>
+<li><code>P</code> — Plumbing</li>
+<li><code>T</code> — Title-24 Energy</li>
+<li><code>L</code> — Landscape (if applicable)</li>
+</ul>
+<h2>Pro Tips</h2>
+<ul>
+<li>All plans reviewed at counter in ~1 hour per station</li>
+<li>Have licensed professional available by phone during OTC review</li>
+</ul>
+<p><strong>Confidence:</strong> high</p>
+<h2>Data Coverage</h2>
+<ul>
+<li>Based on standard DBI requirements. Agency-specific forms may vary.</li>
+</ul>
+<hr />
+<h2>Sources</h2>
+<ul>
+<li><a href="https://sf.gov/departments/building-inspection/permits">DBI 13-Section Completeness Checklist</a></li>
+<li><a href="https://sf.gov/departments/building-inspection/permits">DBI Electronic Plan Review (EPR) Requirements</a></li>
+<li><a href="https://sf.gov/departments/building-inspection/permits">DBI Permit Forms Taxonomy</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Info Sheets DA-02, DA-12, DA-13 (CBC 11B Accessibility)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Title-24 Energy Compliance (M-03, M-04, M-06, M-08)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Info Sheet G-01: Signature on Plans (4 status categories)</a></li>
+</ul>
+    </div>
+    
+    <details class="methodology-card">
+        <summary>How we calculated this</summary>
+        
+        <ul>
+            <li>Base documents: 6 (from Form 3/8)</li><li>Agency documents: 0</li><li>Project-specific: 11</li><li>Total: 17 documents</li>
+        </ul>
+        
+        <p class="methodology-sources">Sources: DBI completeness checklist, EPR submission requirements, ADA/CBC 11B accessibility requirements</p>
+        
+        <p class="methodology-gaps">Note: Based on standard DBI requirements. Agency-specific forms may vary.</p>
+        
+    </details>
+    
+</div>
+
+
+
+<div id="panel-risk" class="tab-panel">
+    <div class="result-card">
+        <h1>Revision Risk Assessment</h1>
+<p><strong>Permit Type:</strong> alterations<br />
+<strong>Project Type:</strong> commercial_ti<br />
+<strong>Review Path:</strong> otc</p>
+<h2>Revision Probability</h2>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>Revision Rate:</strong> 28.1% of permits had cost increases during review<br />
+<strong>Sample Size:</strong> 167,232 permits analyzed</p>
+<h2>Cost Impact</h2>
+<ul>
+<li>Average cost increase when revisions occur: <strong>228336.7%</strong></li>
+<li>Permits with cost increase: 47,034</li>
+</ul>
+<h2>Timeline Impact</h2>
+<ul>
+<li>Average days to issuance (no revisions): 36</li>
+<li>Average days to issuance (with revisions): 49</li>
+<li><strong>Revision penalty: +13 days on average</strong></li>
+<li>90th percentile (worst case): 97 days</li>
+</ul>
+<h2>Common Revision Triggers</h2>
+<ol>
+<li>Disabled access compliance checklist incomplete</li>
+<li>ADA path-of-travel calculations missing</li>
+<li>HVAC load calculations not provided</li>
+<li>Fire separation between tenants not addressed</li>
+</ol>
+<h2>Top Correction Categories (citywide data)</h2>
+<ul>
+<li><strong>Title-24 Energy Compliance</strong> (~45% of commercial alterations): Missing or incorrect energy forms. Submit CF1R/NRCC with initial application. (T24-C01)</li>
+<li><strong>ADA/Accessibility (CBC 11B)</strong> (~38% of commercial alterations): Missing DA-02 checklist or path-of-travel documentation. (ADA-C01)</li>
+</ul>
+<h2>EPR Resubmittal Process</h2>
+<p><em>When corrections are required during plan review:</em></p>
+<ul>
+<li><strong>EPR-023:</strong> Download marked-up plans from Bluebeam Studio session<br />
+  ⚠️ Common mistake: Only reviewing comments from one reviewer — multiple agencies comment simultaneously</li>
+<li><strong>EPR-024:</strong> Address ALL plan check comments<br />
+  ⚠️ Common mistake: Missing comments from agencies that review later in the cycle (e.g., DPH, SFFD)</li>
+<li><strong>EPR-025:</strong> Add revision clouds on ALL changed items<br />
+  ⚠️ Common mistake: Submitting corrected sheets without revision clouds — reviewer cannot find what changed</li>
+<li><strong>EPR-026:</strong> Upload only changed sheets for corrections<br />
+  ⚠️ Common mistake: Uploading the full plan set for a correction response — slows review and confuses version tracking</li>
+</ul>
+<h2>DA-02 Common Deficiency Areas</h2>
+<ul>
+<li><strong>Site Arrival:</strong> Insufficient accessible parking (1 per 25 spaces first 100, then 1 per 50)</li>
+<li><strong>Exterior Route:</strong> Excessive cross-slope on exterior walkways (max 1:48)</li>
+<li><strong>Entrance/Exit:</strong> Door hardware requiring tight grasping or twisting — must be lever or push/pull type</li>
+<li><strong>Interior Route:</strong> Protruding wall-mounted objects (fire extinguishers, signage) not detected</li>
+<li><strong>Vertical Access:</strong> Elevator does not meet CBC 11B-407 requirements for call buttons and cab size</li>
+<li><strong>Restrooms:</strong> Toilet centerline not 16-18 inches from side wall — most common restroom correction</li>
+<li><strong>Special Occupancy Features:</strong> Service counter too high — must provide 36" max height section at least 36" wide</li>
+<li><strong>Signage:</strong> Tactile room signs not at correct height (48-60 inches above floor) or missing braille</li>
+</ul>
+<h2>Mitigation Strategies</h2>
+<ul>
+<li>Engage licensed professional experienced with SF DBI requirements</li>
+<li>Use the completeness checklist (tier1/completeness-checklist.json) before submission</li>
+<li>Include a Back Check page in all plan sets</li>
+<li>Ensure Title-24 energy compliance is complete before submission</li>
+<li>Verify plan description matches permit application exactly</li>
+<li>Consider CASp (Certified Access Specialist) inspection — reduces ADA correction rate from ~38% to ~10%</li>
+<li>Submit DA-02 checklist with initial application (most common ADA correction is missing DA-02)</li>
+</ul>
+<h2>Questions for Expert Review</h2>
+<ul>
+<li>What are the most common plan check correction items for this project type?</li>
+<li>Are there specific reviewers known for particular requirements?</li>
+<li>What pre-submission meetings (if any) could reduce revision rounds?</li>
+</ul>
+<p><strong>Confidence:</strong> high</p>
+<h2>Data Coverage</h2>
+<ul>
+<li>Based on cost revision proxy. Actual revision reasons vary by project type.</li>
+</ul>
+<hr />
+<h2>Sources</h2>
+<ul>
+<li><a href="https://data.sfgov.org/Housing-and-Buildings/Building-Permits/i98e-djp9">SF Open Data — Building Permits (1.1M+ records via SODA API)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Title-24 Energy Compliance (M-03, M-04, M-06, M-08)</a></li>
+<li><a href="https://sf.gov/resource/2022/information-sheets-dbi">DBI Info Sheets DA-02, DA-12, DA-13 (CBC 11B Accessibility)</a></li>
+<li><a href="https://sf.gov/departments/building-inspection/permits">DBI Electronic Plan Review (EPR) Requirements</a></li>
+</ul>
+    </div>
+    
+    <details class="methodology-card">
+        <summary>How we calculated this</summary>
+        
+        <ul>
+            <li>Revision rate: 28.1%</li><li>Avg cost increase: 228336.7%</li><li>Timeline penalty: +13 days</li>
+        </ul>
+        
+        <p class="methodology-sources">Sources: 1.1M+ historical permits (revised_cost proxy), Title-24/ADA correction frequency data, EPR resubmittal workflow</p>
+        
+        <p class="methodology-gaps">Note: Based on cost revision proxy. Actual revision reasons vary by project type.</p>
+        
+    </details>
+    
+</div>
+
+
+
+
+<!-- Share actions bar -->
+<div id="share-bar" style="border-top:1px solid #e5e7eb; padding:16px 0; margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <span style="font-size:0.85rem; color:#6b7280; font-weight:500;">Share this analysis:</span>
+
+    <!-- Email to team -->
+    <button id="share-email-btn"
+            onclick="document.getElementById('share-email-modal').style.display='flex'"
+            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+                   background:#2563eb; color:white; border:none; border-radius:6px;
+                   font-size:0.85rem; font-weight:500; cursor:pointer;">
+        Email to your team
+    </button>
+
+    <!-- Copy share link -->
+    <button id="share-link-btn"
+            onclick="copyShareLink('4b0c2c1e-4c54-4554-ab82-539b58366541')"
+            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+                   background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
+                   border-radius:6px; font-size:0.85rem; cursor:pointer;">
+        Copy share link
+    </button>
+
+    <!-- Copy all text -->
+    <button id="copy-all-btn"
+            onclick="copyAllText()"
+            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+                   background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
+                   border-radius:6px; font-size:0.85rem; cursor:pointer;">
+        Copy all
+    </button>
+</div>
+
+<!-- Email share modal -->
+<div id="share-email-modal"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+            align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:white; border-radius:12px; padding:28px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="margin:0 0 8px 0; font-size:1.1rem; color:#111827;">Email to your team</h3>
+        <p style="margin:0 0 20px 0; font-size:0.875rem; color:#6b7280;">Enter up to 5 email addresses.</p>
+
+        <div id="share-email-error" style="display:none; color:#991b1b; font-size:0.85rem; margin-bottom:12px; padding:8px 12px; background:#fef2f2; border-radius:6px;"></div>
+
+        <div id="email-inputs">
+            <input type="email" placeholder="colleague@example.com"
+                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
+                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
+            <input type="email" placeholder="Add another (optional)"
+                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
+                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
+            <input type="email" placeholder="Add another (optional)"
+                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
+                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:8px;">
+            <button onclick="sendShareEmail('4b0c2c1e-4c54-4554-ab82-539b58366541')"
+                    style="flex:1; padding:11px; background:#2563eb; color:white; border:none;
+                           border-radius:8px; font-size:0.95rem; font-weight:500; cursor:pointer;">
+                Send
+            </button>
+            <button onclick="document.getElementById('share-email-modal').style.display='none'"
+                    style="padding:11px 20px; background:#f3f4f6; color:#374151; border:none;
+                           border-radius:8px; font-size:0.95rem; cursor:pointer;">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyShareLink(analysisId) {
+    const url = window.location.origin + '/analysis/' + analysisId;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('share-link-btn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+    }).catch(() => {
+        prompt('Copy this link:', window.location.origin + '/analysis/' + analysisId);
+    });
+}
+
+function copyAllText() {
+    const panels = document.querySelectorAll('.tab-panel .result-card');
+    let text = '';
+    panels.forEach(p => {
+        text += p.innerText + '\n\n---\n\n';
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+        const btn = document.getElementById('copy-all-btn');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+    }).catch(() => {
+        alert('Copy failed. Please select the text manually.');
+    });
+}
+
+async function sendShareEmail(analysisId) {
+    const inputs = document.querySelectorAll('#email-inputs input[type="email"]');
+    const emails = [];
+    inputs.forEach(inp => {
+        const v = inp.value.trim();
+        if (v) emails.push(v);
+    });
+
+    const errEl = document.getElementById('share-email-error');
+    errEl.style.display = 'none';
+
+    if (emails.length === 0) {
+        errEl.textContent = 'Please enter at least one email address.';
+        errEl.style.display = 'block';
+        return;
+    }
+    if (emails.length > 5) {
+        errEl.textContent = 'Maximum 5 recipients allowed.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    // Basic validation
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const em of emails) {
+        if (!emailRe.test(em)) {
+            errEl.textContent = `Invalid email: ${em}`;
+            errEl.style.display = 'block';
+            return;
+        }
+    }
+
+    try {
+        const resp = await fetch('/analysis/' + analysisId + '/share', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({emails}),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            document.getElementById('share-email-modal').style.display = 'none';
+            const btn = document.getElementById('share-email-btn');
+            const orig = btn.textContent;
+            btn.textContent = 'Sent!';
+            setTimeout(() => { btn.textContent = orig; }, 2500);
+        } else {
+            errEl.textContent = data.error || 'Send failed. Please try again.';
+            errEl.style.display = 'block';
+        }
+    } catch (e) {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'block';
+    }
+}
+</script>
+
+</body></html>
