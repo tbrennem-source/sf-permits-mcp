@@ -1,0 +1,11 @@
+{# Prep checklist category section — renders items for a single category.
+   Used for HTMX partial reload of a category group. #}
+<div class="prep-category" id="prep-cat-{{ category_key }}">
+    <h3 class="prep-category-heading">{{ category_label }}</h3>
+    {% for item in items %}
+    {% include "fragments/prep_item.html" %}
+    {% endfor %}
+    {% if not items %}
+    <p class="prep-empty">No items in this category.</p>
+    {% endif %}
+</div>

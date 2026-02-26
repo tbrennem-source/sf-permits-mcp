@@ -599,6 +599,11 @@
                     <div class="permit-results-content">
                         {{ result_html | safe }}
                     </div>
+                    {% if permit_number %}
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04);">
+                        <a href="/prep/{{ permit_number }}" class="btn btn-ghost" style="font-size: 0.8rem;">Prep Checklist</a>
+                    </div>
+                    {% endif %}
                 </div>
 
                 {# ── Mobile: expandable intel toggle ── #}

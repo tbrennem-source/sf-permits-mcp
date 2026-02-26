@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Permit Prep — sfpermits.ai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style nonce="{{ csp_nonce }}">
+        :root {
+            --bg-deep: #0B0F19;
+            --bg-surface: #131825;
+            --bg-elevated: #1A2035;
+            --text-primary: #E8ECF4;
+            --text-secondary: #8B95A8;
+            --text-tertiary: #5A6478;
+            --text-muted: #5A6478;
+            --signal-green: #34D399;
+            --signal-amber: #FBBF24;
+            --signal-red: #F87171;
+            --signal-cyan: #22D3EE;
+            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
+            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+            --card-radius: 12px;
+            --card-border: 1px solid rgba(255,255,255, 0.06);
+            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
+            --border: rgba(255,255,255, 0.06);
+            --surface: #131825;
+            --surface-2: #1A2035;
+            --accent: #4f8ff7;
+            --text: #E8ECF4;
+            --success: #34D399;
+            --error: #F87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+        .page-header {
+            padding: 32px 0 24px;
+            border-bottom: var(--card-border);
+        }
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .page-header p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .checklist-grid {
+            display: grid;
+            gap: 12px;
+            padding: 24px 0;
+        }
+
+        .checklist-card {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s;
+        }
+        .checklist-card:hover { border-color: rgba(255,255,255, 0.12); }
+
+        .checklist-info { flex: 1; }
+        .checklist-permit {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: var(--signal-cyan);
+            margin-bottom: 4px;
+        }
+        .checklist-progress-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .checklist-bar {
+            height: 6px;
+            background: rgba(255,255,255, 0.06);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .checklist-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--gradient-accent);
+        }
+        .checklist-percent {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-width: 48px;
+            text-align: right;
+        }
+        .checklist-percent.complete { color: var(--signal-green); }
+        .checklist-percent.partial { color: var(--signal-amber); }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .empty-state a {
+            display: inline-block;
+            margin-top: 16px;
+            background: var(--gradient-accent);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer {
+            border-top: var(--card-border);
+            padding: 24px 0;
+            text-align: center;
+        }
+        footer p { font-size: 0.78rem; color: var(--text-tertiary); }
+        footer a { color: var(--signal-cyan); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 16px; }
+            .checklist-card { padding: 16px; }
+        }
+    </style>
+    <link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+    {% include "fragments/nav.html" %}
+
+    <div class="container">
+        <div class="page-header">
+            <h1>My Permit Prep</h1>
+            <p>Track document checklists for your permit submissions</p>
+        </div>
+
+        <div class="checklist-grid">
+            {% if checklists %}
+            {% for cl in checklists %}
+            <a href="/prep/{{ cl.permit_number }}" class="checklist-card">
+                <div class="checklist-info">
+                    <div class="checklist-permit">#{{ cl.permit_number }}</div>
+                    <div class="checklist-progress-text">
+                        {{ cl.completed_items }} of {{ cl.total_items }} items addressed
+                        {% if cl.missing_required > 0 %}
+                        &mdash; {{ cl.missing_required }} still needed
+                        {% endif %}
+                    </div>
+                    <div class="checklist-bar">
+                        <div class="checklist-bar-fill" style="width: {{ cl.percent }}%"></div>
+                    </div>
+                </div>
+                <div class="checklist-percent {% if cl.percent == 100 %}complete{% else %}partial{% endif %}">{{ cl.percent }}%</div>
+            </a>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <h3>No checklists yet</h3>
+                <p>Search for a permit to start your first Prep Checklist.</p>
+                <a href="/">Search permits</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Built on San Francisco open data &mdash; <a href="/health">System status</a></p>
+        </div>
+    </footer>
+</body>
+</html>

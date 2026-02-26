@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permit Prep — {{ checklist.permit_number }} — sfpermits.ai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style nonce="{{ csp_nonce }}">
+        /* ── Obsidian Design Tokens ── */
+        :root {
+            --bg-deep: #0B0F19;
+            --bg-surface: #131825;
+            --bg-elevated: #1A2035;
+            --bg-glass: rgba(255,255,255, 0.04);
+            --text-primary: #E8ECF4;
+            --text-secondary: #8B95A8;
+            --text-tertiary: #5A6478;
+            --text-muted: #5A6478;
+            --signal-green: #34D399;
+            --signal-amber: #FBBF24;
+            --signal-red: #F87171;
+            --signal-blue: #60A5FA;
+            --signal-cyan: #22D3EE;
+            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
+            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+            --card-radius: 12px;
+            --card-border: 1px solid rgba(255,255,255, 0.06);
+            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
+            --border: rgba(255,255,255, 0.06);
+            --surface: #131825;
+            --surface-2: #1A2035;
+            --accent: #4f8ff7;
+            --text: #E8ECF4;
+            --success: #34D399;
+            --error: #F87171;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+        /* ── Page Header ── */
+        .prep-page-header {
+            padding: 32px 0 24px;
+            border-bottom: var(--card-border);
+        }
+        .prep-page-header h1 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .prep-page-header .permit-ref {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            color: var(--signal-cyan);
+        }
+
+        /* ── Progress Bar ── */
+        .prep-progress {
+            padding: 20px 0;
+        }
+        .prep-progress-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .prep-progress-count {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .prep-progress-bar {
+            height: 8px;
+            background: rgba(255,255,255, 0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .prep-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--gradient-accent);
+            transition: width 0.5s ease;
+        }
+        .prep-progress-remaining {
+            font-size: 0.8rem;
+            color: var(--signal-amber);
+            margin-top: 6px;
+        }
+        .prep-progress-complete {
+            font-size: 0.8rem;
+            color: var(--signal-green);
+            margin-top: 6px;
+        }
+
+        /* ── Category Sections ── */
+        .prep-category {
+            margin-bottom: 32px;
+        }
+        .prep-category-heading {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255, 0.04);
+        }
+        .prep-empty {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        /* ── Individual Item ── */
+        .prep-item {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            padding: 16px 20px;
+            margin-bottom: 8px;
+            transition: border-color 0.15s;
+        }
+        .prep-item:hover { border-color: rgba(255,255,255, 0.12); }
+        .prep-item[data-status="verified"] { border-left: 3px solid var(--signal-green); }
+        .prep-item[data-status="submitted"] { border-left: 3px solid var(--signal-blue); }
+        .prep-item[data-status="waived"],
+        .prep-item[data-status="n_a"] { border-left: 3px solid var(--text-tertiary); opacity: 0.7; }
+
+        .prep-item-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .prep-item-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            flex: 1;
+            min-width: 200px;
+        }
+        .prep-source-badge {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(34,211,238, 0.1);
+            color: var(--signal-cyan);
+        }
+        .prep-source-manual {
+            background: rgba(251,191,36, 0.1);
+            color: var(--signal-amber);
+        }
+
+        /* ── Status Radio Group ── */
+        .prep-status-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .prep-radio {
+            cursor: pointer;
+        }
+        .prep-radio input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .prep-radio-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255, 0.08);
+            background: var(--bg-elevated);
+            color: var(--text-tertiary);
+            transition: all 0.15s ease;
+            min-height: 32px;
+            line-height: 20px;
+        }
+        .prep-radio-label:hover {
+            border-color: rgba(255,255,255, 0.15);
+            color: var(--text-secondary);
+        }
+        .prep-radio-active .prep-radio-label {
+            border-color: transparent;
+        }
+        .prep-radio-active .prep-radio-required {
+            background: rgba(248,113,113, 0.15);
+            color: var(--signal-red);
+            border-color: rgba(248,113,113, 0.3);
+        }
+        .prep-radio-active .prep-radio-submitted {
+            background: rgba(96,165,250, 0.15);
+            color: var(--signal-blue);
+            border-color: rgba(96,165,250, 0.3);
+        }
+        .prep-radio-active .prep-radio-verified {
+            background: rgba(52,211,153, 0.15);
+            color: var(--signal-green);
+            border-color: rgba(52,211,153, 0.3);
+        }
+        .prep-radio-active .prep-radio-waived {
+            background: rgba(255,255,255, 0.06);
+            color: var(--text-secondary);
+            border-color: rgba(255,255,255, 0.1);
+        }
+        .prep-radio-active .prep-radio-n_a {
+            background: rgba(255,255,255, 0.06);
+            color: var(--text-tertiary);
+            border-color: rgba(255,255,255, 0.1);
+        }
+
+        /* ── Summary Card ── */
+        .prep-summary-card {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin: 24px 0;
+        }
+        .prep-summary-card h3 {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--signal-amber);
+            margin-bottom: 10px;
+        }
+        .prep-summary-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .prep-summary-card li {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 4px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+        .prep-summary-card li::before {
+            content: "\25CB";
+            position: absolute;
+            left: 0;
+            color: var(--signal-red);
+        }
+
+        /* ── Actions Bar ── */
+        .prep-actions {
+            display: flex;
+            gap: 12px;
+            padding: 16px 0 32px;
+            flex-wrap: wrap;
+        }
+        .prep-btn {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255, 0.1);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .prep-btn:hover { border-color: rgba(255,255,255, 0.2); color: var(--text-primary); }
+        .prep-btn-accent {
+            background: var(--gradient-accent);
+            border: none;
+            color: #fff;
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: var(--card-border);
+            padding: 24px 0;
+            text-align: center;
+        }
+        footer p { font-size: 0.78rem; color: var(--text-tertiary); }
+        footer a { color: var(--signal-cyan); text-decoration: none; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .container { padding: 0 16px; }
+            .prep-item { padding: 14px 16px; }
+            .prep-item-name { min-width: 0; }
+            .prep-status-group { gap: 4px; }
+            .prep-radio-label { padding: 8px 12px; min-height: 48px; line-height: 32px; font-size: 0.8rem; }
+        }
+
+        /* ── Print ── */
+        @media print {
+            body { background: white; color: black; }
+            header, footer, .prep-actions { display: none; }
+            .prep-item { border: 1px solid #ccc; break-inside: avoid; }
+            .prep-radio-label { border: 1px solid #ccc; }
+            .prep-progress-bar { border: 1px solid #ccc; }
+            .prep-progress-fill { background: #333; }
+            .prep-source-badge { border: 1px solid #999; color: #666; background: #f5f5f5; }
+        }
+    </style>
+    <link rel="stylesheet" href="/static/mobile.css">
+    <script nonce="{{ csp_nonce }}" src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+</head>
+<body class="prep-page">
+    {% include "fragments/nav.html" %}
+
+    <div class="container">
+        <div class="prep-page-header">
+            <h1>Permit Prep Checklist</h1>
+            <span class="permit-ref">Permit #{{ checklist.permit_number }}</span>
+        </div>
+
+        {# ── Progress Bar ── #}
+        {% include "fragments/prep_progress.html" %}
+
+        {# ── What's Still Needed ── #}
+        {% set required_items = checklist.items | selectattr('status', 'equalto', 'required') | list %}
+        {% if required_items %}
+        <div class="prep-summary-card">
+            <h3>Still Needed</h3>
+            <ul>
+                {% for item in required_items %}
+                <li>{{ item.document_name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {# ── Categorized Items ── #}
+        {% set cat_labels = {'plans': 'Required Plans', 'forms': 'Application Forms', 'supplemental': 'Supplemental Documents', 'agency': 'Agency-Specific'} %}
+        {% for cat_key in ['plans', 'forms', 'supplemental', 'agency'] %}
+        {% set items = checklist.items_by_category.get(cat_key, []) %}
+        {% if items %}
+        <div class="prep-category" id="prep-cat-{{ cat_key }}">
+            <h3 class="prep-category-heading">{{ cat_labels[cat_key] }}</h3>
+            {% for item in items %}
+            {% include "fragments/prep_item.html" %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        {# ── Actions ── #}
+        <div class="prep-actions">
+            <button class="prep-btn" onclick="window.print()">Print Checklist</button>
+            <a href="/account/prep" class="prep-btn">All Checklists</a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Built on San Francisco open data &mdash; <a href="/health">System status</a></p>
+        </div>
+    </footer>
+    <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
+</body>
+</html>

@@ -88,6 +88,9 @@
             {% else %}
             <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access My Analyses">My Analyses <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
             {% endif %}
+            {% if g.user %}
+            <a href="/account/prep" class="badge {% if active_page == 'prep' %}badge-active{% endif %}">Permit Prep</a>
+            {% endif %}
             {% if g.user and g.user.is_admin %}
             <div class="admin-dropdown">
                 <span class="badge {% if active_page == 'admin' %}badge-active{% endif %}" tabindex="0">&#9881;&#65039; Admin &#9662;</span>

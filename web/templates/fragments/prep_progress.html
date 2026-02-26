@@ -1,0 +1,14 @@
+{# Prep progress bar — rendered after item status changes via HTMX #}
+<div class="prep-progress" id="prep-progress">
+    <div class="prep-progress-text">
+        <span class="prep-progress-count">{{ progress.addressed }} of {{ progress.total }}</span> items addressed
+    </div>
+    <div class="prep-progress-bar">
+        <div class="prep-progress-fill" style="width: {{ progress.percent }}%"></div>
+    </div>
+    {% if progress.remaining > 0 %}
+    <p class="prep-progress-remaining">{{ progress.remaining }} item{{ 's' if progress.remaining != 1 else '' }} still needed</p>
+    {% else %}
+    <p class="prep-progress-complete">All items addressed</p>
+    {% endif %}
+</div>

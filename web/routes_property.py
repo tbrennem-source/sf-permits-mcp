@@ -19,6 +19,46 @@ bp = Blueprint("property", __name__)
 
 
 # ---------------------------------------------------------------------------
+# Permit Prep (QS3-A)
+# ---------------------------------------------------------------------------
+
+@bp.route("/prep/<permit_number>")
+@login_required
+def permit_prep(permit_number):
+    """Permit Prep checklist page.
+
+    If checklist exists for this user+permit, render it.
+    Otherwise auto-create one.
+    """
+    from web.permit_prep import get_checklist, create_checklist
+
+    user_id = g.user["user_id"]
+    checklist = get_checklist(permit_number, user_id)
+
+    if not checklist:
+        try:
+            create_checklist(permit_number, user_id)
+            checklist = get_checklist(permit_number, user_id)
+        except Exception as e:
+            logging.error("Failed to create prep checklist: %s", e)
+            return render_template(
+                "permit_prep.html",
+                checklist=None,
+                error=f"Failed to generate checklist: {e}",
+                progress={"total": 0, "addressed": 0, "remaining": 0, "percent": 0},
+            ), 500
+
+    if not checklist:
+        abort(500)
+
+    return render_template(
+        "permit_prep.html",
+        checklist=checklist,
+        progress=checklist["progress"],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Rate limit constants
 # ---------------------------------------------------------------------------
 RATE_LIMIT_MAX_REPORT = 10  # /report views per window

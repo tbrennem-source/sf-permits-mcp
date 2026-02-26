@@ -18,6 +18,95 @@ bp = Blueprint("api", __name__)
 
 
 # ---------------------------------------------------------------------------
+# Permit Prep API (QS3-A)
+# ---------------------------------------------------------------------------
+
+@bp.route("/api/prep/create", methods=["POST"])
+def api_prep_create():
+    """Create a Permit Prep checklist for a permit. Requires auth."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+    permit_number = data.get("permit_number", "").strip()
+    if not permit_number:
+        # Also try form data
+        permit_number = request.form.get("permit_number", "").strip()
+    if not permit_number:
+        return jsonify({"error": "permit_number required"}), 400
+
+    from web.permit_prep import create_checklist, get_checklist
+    try:
+        checklist_id = create_checklist(permit_number, user_id)
+        checklist = get_checklist(permit_number, user_id)
+        return jsonify({
+            "checklist_id": checklist_id,
+            "permit_number": permit_number,
+            "total_items": checklist["progress"]["total"] if checklist else 0,
+        }), 201
+    except Exception as e:
+        logging.exception("Failed to create prep checklist for %s", permit_number)
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/api/prep/<permit_number>")
+def api_prep_get(permit_number):
+    """Get Permit Prep checklist JSON. Requires auth."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    from web.permit_prep import get_checklist
+    checklist = get_checklist(permit_number, user_id)
+    if not checklist:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(checklist)
+
+
+@bp.route("/api/prep/item/<int:item_id>", methods=["PATCH"])
+def api_prep_item_update(item_id):
+    """Update a prep item status. HTMX-friendly: returns updated item fragment."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return "", 401
+
+    data = request.get_json(silent=True) or {}
+    new_status = data.get("status", "").strip()
+    if not new_status:
+        new_status = request.form.get("status", "").strip()
+    if not new_status:
+        return jsonify({"error": "status required"}), 400
+
+    from web.permit_prep import update_item_status
+    result = update_item_status(item_id, new_status, user_id)
+    if not result:
+        return jsonify({"error": "not found or invalid status"}), 404
+
+    # If HTMX request, return HTML fragment
+    if request.headers.get("HX-Request"):
+        return render_template("fragments/prep_item.html", item=result)
+
+    return jsonify(result)
+
+
+@bp.route("/api/prep/preview/<permit_number>")
+def api_prep_preview(permit_number):
+    """Preview predicted checklist without saving. Requires auth."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    from web.permit_prep import preview_checklist
+    try:
+        preview = preview_checklist(permit_number)
+        return jsonify(preview)
+    except Exception as e:
+        logging.exception("Failed to preview prep for %s", permit_number)
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
 # Public stats endpoint (cached, rate-limited)
 # ---------------------------------------------------------------------------
 

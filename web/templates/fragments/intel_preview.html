@@ -98,6 +98,20 @@
     </div>
     {% endif %}
 
+    {# ── Permit Prep Link ── #}
+    {% if intel.routing %}
+    <div class="intel-section">
+        <h4 class="intel-heading">
+            <span class="intel-icon">&#x1F4CB;</span>
+            Permit Prep
+        </h4>
+        <p class="intel-value">Track required documents for submission</p>
+        {% for r in intel.routing[:1] %}
+        <a href="/prep/{{ r.permit_number }}" class="intel-link">Start Prep Checklist</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {# ── CTA ── #}
     <div class="intel-cta">
         <a href="/auth/login" class="intel-cta-btn">Sign up free for full intelligence</a>

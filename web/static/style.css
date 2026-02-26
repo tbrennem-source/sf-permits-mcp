@@ -114,6 +114,14 @@ body.user-pro .tier-upgrade-nudge {
     display: none;
 }
 
+/* ── Permit Prep print styles ─────────────────────────────────────────────── */
+@media print {
+    .prep-page { background: white; color: black; }
+    .prep-page header, .prep-page footer, .prep-page .prep-actions { display: none; }
+    .prep-page .prep-item { border: 1px solid #ccc; }
+    .prep-page .prep-radio-label { border: 1px solid #ccc; }
+}
+
 /* ── 3. Tab Navigation Enhancements ────────────────────────────────────────── */
 
 /*
