@@ -1,12 +1,15 @@
-"""Search & lookup routes — /lookup and /ask endpoints.
+"""Search & lookup routes — /lookup, /lookup/intel-preview, and /ask endpoints.
 
 Extracted from web/app.py during Sprint 64 Blueprint refactor.
+Sprint 69-S2: Added intelligence preview endpoint and intel gathering.
 """
 
 import json
 import logging
 import os
 import re
+import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 from flask import Blueprint, g, render_template, request
 
@@ -27,6 +30,205 @@ from web.helpers import (
 )
 
 bp = Blueprint("search", __name__)
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Intelligence gathering for property preview (Sprint 69-S2)
+# ---------------------------------------------------------------------------
+
+def _gather_intel(block: str, lot: str) -> dict:
+    """Gather property intelligence data from local DB + SODA.
+
+    Returns a dict with routing progress, complaint/violation counts,
+    top entities, and a has_intelligence flag. Never raises — returns
+    degraded data on any error.
+    """
+    intel = {
+        "routing": [],
+        "complaints_count": 0,
+        "violations_count": 0,
+        "top_entities": [],
+        "has_intelligence": False,
+        "timeout": False,
+    }
+
+    start = time.monotonic()
+    deadline = 2.0  # seconds
+
+    try:
+        from src.db import get_connection, BACKEND
+        _ph = "%s" if BACKEND == "postgres" else "?"
+
+        conn = get_connection()
+        try:
+            # 1. Routing progress for active permits at this parcel
+            active_sql = f"""
+                SELECT permit_number, status, permit_type, description
+                FROM permits
+                WHERE block = {_ph} AND lot = {_ph}
+                  AND status IN ('issued', 'filed', 'approved', 'plancheck')
+                ORDER BY filed_date DESC
+                LIMIT 10
+            """
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(active_sql, [block, lot])
+                    active_permits = cur.fetchall()
+            else:
+                active_permits = conn.execute(active_sql, [block, lot]).fetchall()
+
+            for ap in active_permits:
+                pnum = ap[0]
+                if time.monotonic() - start > deadline:
+                    intel["timeout"] = True
+                    break
+
+                # Count routing stations for this permit
+                routing_sql = f"""
+                    SELECT station, review_results
+                    FROM addenda
+                    WHERE application_number = {_ph}
+                    ORDER BY step
+                """
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(routing_sql, [pnum])
+                        stations = cur.fetchall()
+                else:
+                    stations = conn.execute(routing_sql, [pnum]).fetchall()
+
+                if stations:
+                    cleared = sum(1 for s in stations if s[1] and s[1].strip().lower() not in ('', 'pending', 'in review'))
+                    total = len(stations)
+                    current = next((s[0] for s in stations if not s[1] or s[1].strip().lower() in ('', 'pending', 'in review')), None)
+                    intel["routing"].append({
+                        "permit_number": pnum,
+                        "status": ap[1],
+                        "permit_type": ap[2],
+                        "description": (ap[3] or "")[:100],
+                        "stations_cleared": cleared,
+                        "stations_total": total,
+                        "current_station": current or "Complete",
+                    })
+
+            # 2. Top entities (architect, contractor, owner) from contacts
+            if time.monotonic() - start <= deadline:
+                entity_sql = f"""
+                    SELECT
+                        COALESCE(applicant_name, ''),
+                        COALESCE(contractor_name, ''),
+                        COALESCE(engineer_name, '')
+                    FROM contacts
+                    WHERE block = {_ph} AND lot = {_ph}
+                    LIMIT 50
+                """
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(entity_sql, [block, lot])
+                        contact_rows = cur.fetchall()
+                else:
+                    contact_rows = conn.execute(entity_sql, [block, lot]).fetchall()
+
+                # Count entity appearances
+                entity_counts = {}
+                for row in contact_rows:
+                    for i, role in enumerate(["Applicant", "Contractor", "Engineer"]):
+                        name = row[i].strip() if row[i] else ""
+                        if name and name.upper() not in ("N/A", "NA", "NONE", ""):
+                            key = (name, role)
+                            entity_counts[key] = entity_counts.get(key, 0) + 1
+
+                # Top 3 by frequency
+                sorted_entities = sorted(entity_counts.items(), key=lambda x: x[1], reverse=True)
+                intel["top_entities"] = [
+                    {"name": k[0], "role": k[1], "permit_count": v}
+                    for (k, v) in sorted_entities[:3]
+                ]
+
+            # 3. Complaint + violation counts via SODA (or skip if near timeout)
+            if time.monotonic() - start <= deadline - 0.5:
+                try:
+                    complaints_md = run_async(search_complaints(block=block, lot=lot, limit=1))
+                    if complaints_md and "found" in complaints_md.lower():
+                        import re as _re
+                        m = _re.search(r'Found\s+\*?\*?(\d+)', complaints_md)
+                        if m:
+                            intel["complaints_count"] = int(m.group(1))
+                except Exception:
+                    pass
+
+            if time.monotonic() - start <= deadline - 0.5:
+                try:
+                    violations_md = run_async(search_violations(block=block, lot=lot, limit=1))
+                    if violations_md and "found" in violations_md.lower():
+                        import re as _re
+                        m = _re.search(r'Found\s+\*?\*?(\d+)', violations_md)
+                        if m:
+                            intel["violations_count"] = int(m.group(1))
+                except Exception:
+                    pass
+
+            intel["has_intelligence"] = bool(
+                intel["routing"] or intel["top_entities"]
+                or intel["complaints_count"] or intel["violations_count"]
+            )
+
+        finally:
+            conn.close()
+
+    except Exception as e:
+        logger.warning("Intel gathering failed for %s/%s: %s", block, lot, e)
+
+    if time.monotonic() - start > deadline:
+        intel["timeout"] = True
+
+    return intel
+
+
+# ---------------------------------------------------------------------------
+# HTMX endpoint: intelligence preview panel (Sprint 69-S2)
+# ---------------------------------------------------------------------------
+
+@bp.route("/lookup/intel-preview", methods=["POST"])
+def lookup_intel_preview():
+    """HTMX fragment: intelligence preview panel for a property."""
+    block = request.form.get("block", "").strip() or None
+    lot = request.form.get("lot", "").strip() or None
+    street_number = request.form.get("street_number", "").strip() or None
+    street_name = request.form.get("street_name", "").strip() or None
+
+    # Resolve block/lot from address if needed
+    if not block or not lot:
+        if street_number and street_name:
+            bl = _resolve_block_lot(street_number, street_name)
+            if bl:
+                block, lot = bl[0], bl[1]
+
+    if not block or not lot:
+        return '<div class="intel-empty">No property data available.</div>'
+
+    intel = _gather_intel(block, lot)
+
+    if intel.get("timeout") and not intel.get("has_intelligence"):
+        # Return a spinner that auto-retries once
+        return (
+            '<div class="intel-loading" '
+            'hx-post="/lookup/intel-preview" '
+            'hx-trigger="load delay:2s" '
+            f'hx-vals=\'{{"block": "{block}", "lot": "{lot}"}}\' '
+            'hx-swap="outerHTML">'
+            '<div class="intel-spinner"></div>'
+            '<p>Loading property intelligence...</p>'
+            '</div>'
+        )
+
+    return render_template(
+        "fragments/intel_preview.html",
+        intel=intel,
+        block=block,
+        lot=lot,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -84,8 +286,16 @@ def lookup():
     elif lookup_mode == "parcel" and block and lot:
         street_address = f"Block {block}, Lot {lot}"
 
-    # Could extract permit_type from result_md if needed in future
-    # For now, leave as None and buttons will use default
+    # Resolve block/lot for intel preview HTMX call
+    resolved_block = block
+    resolved_lot = lot
+    if lookup_mode == "address" and street_number and street_name:
+        try:
+            bl = _resolve_block_lot(street_number, street_name)
+            if bl:
+                resolved_block, resolved_lot = bl[0], bl[1]
+        except Exception:
+            pass
 
     return render_template(
         "lookup_results.html",
@@ -93,6 +303,8 @@ def lookup():
         report_url=report_url,
         street_address=street_address,
         permit_type=permit_type,
+        block=resolved_block,
+        lot=resolved_lot,
     )
 
 

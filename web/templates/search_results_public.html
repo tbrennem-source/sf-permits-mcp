@@ -4,41 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ query }} — sfpermits.ai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style nonce="{{ csp_nonce }}">
+        /* ── Obsidian Design Tokens ── */
         :root {
-            --bg: #0f1117;
-            --surface: #1a1d27;
-            --surface-2: #252834;
-            --border: #333749;
-            --text: #e4e6eb;
-            --text-muted: #8b8fa3;
-            --accent: #4f8ff7;
-            --accent-hover: #3a7ae0;
-            --success: #34d399;
-            --warning: #fbbf24;
-            --error: #f87171;
+            --bg-deep: #0B0F19;
+            --bg-surface: #131825;
+            --bg-elevated: #1A2035;
+            --bg-glass: rgba(255,255,255, 0.04);
+            --text-primary: #E8ECF4;
+            --text-secondary: #8B95A8;
+            --text-tertiary: #5A6478;
+            --signal-green: #34D399;
+            --signal-amber: #FBBF24;
+            --signal-red: #F87171;
+            --signal-blue: #60A5FA;
+            --signal-cyan: #22D3EE;
+            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
+            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+            --card-radius: 12px;
+            --card-border: 1px solid rgba(255,255,255, 0.06);
+            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1280px;
             margin: 0 auto;
             padding: 0 24px;
         }
 
         /* ── Header ── */
         header {
-            border-bottom: 1px solid var(--border);
-            padding: 20px 0;
+            border-bottom: var(--card-border);
+            padding: 16px 0;
+            background: var(--bg-surface);
         }
         header .container {
             display: flex;
@@ -46,163 +58,294 @@
             justify-content: space-between;
         }
         .logo {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--accent);
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-decoration: none;
         }
-        .logo span { color: var(--text-muted); font-weight: 400; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .header-btn {
+        .logo-suffix {
+            -webkit-text-fill-color: var(--text-tertiary);
+        }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .btn {
+            font-family: var(--font-body);
             font-size: 0.85rem;
             padding: 8px 18px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            font-family: inherit;
             cursor: pointer;
+            transition: all 0.15s ease;
         }
-        .header-btn-outline {
+        .btn-ghost {
             background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255, 0.1);
+            color: var(--text-secondary);
         }
-        .header-btn-outline:hover { color: var(--text); border-color: var(--text-muted); }
-        .header-btn-primary {
-            background: var(--accent);
-            border: 1px solid var(--accent);
+        .btn-ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255, 0.2); }
+        .btn-accent {
+            background: var(--gradient-accent);
+            border: none;
             color: #fff;
         }
-        .header-btn-primary:hover { background: var(--accent-hover); }
+        .btn-accent:hover { opacity: 0.9; }
 
-        /* ── Search bar ── */
-        .search-bar {
+        /* ── Search Bar ── */
+        .search-section {
             padding: 20px 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: var(--card-border);
+            background: var(--bg-deep);
         }
         .search-form {
             display: flex;
             gap: 0;
-            background: var(--surface);
-            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255, 0.08);
             border-radius: 10px;
             overflow: hidden;
             transition: border-color 0.2s;
         }
-        .search-form:focus-within { border-color: var(--accent); }
-        .search-form input {
+        .search-form:focus-within { border-color: var(--signal-cyan); }
+        .search-form input[type="text"] {
             flex: 1;
             background: none;
             border: none;
-            color: var(--text);
+            color: var(--text-primary);
+            font-family: var(--font-body);
             font-size: 1rem;
-            padding: 12px 16px;
+            padding: 14px 18px;
             outline: none;
-            font-family: inherit;
             min-width: 0;
         }
-        .search-form input::placeholder { color: var(--text-muted); }
+        .search-form input::placeholder { color: var(--text-tertiary); }
         .search-form button {
-            background: var(--accent);
+            background: var(--gradient-accent);
             border: none;
             color: #fff;
-            padding: 12px 22px;
+            padding: 14px 24px;
+            font-family: var(--font-body);
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            font-family: inherit;
             white-space: nowrap;
         }
-        .search-form button:hover { background: var(--accent-hover); }
+        .search-form button:hover { opacity: 0.9; }
 
-        /* ── Results ── */
-        .results-section {
+        /* ── Two-column Layout ── */
+        .results-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
             padding: 24px 0;
         }
-        .results-heading {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 16px;
+        @media (min-width: 1024px) {
+            .results-layout {
+                grid-template-columns: 3fr 2fr;
+            }
+            .intel-column {
+                position: sticky;
+                top: 24px;
+                align-self: start;
+            }
         }
-        .result-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 16px;
-        }
-        .result-card h3 {
-            font-size: 1rem;
-            margin-bottom: 8px;
-        }
-        .result-card table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.88rem;
-        }
-        .result-card table td {
-            padding: 6px 12px 6px 0;
-            vertical-align: top;
-        }
-        .result-card table td:first-child {
-            color: var(--text-muted);
-            white-space: nowrap;
-            width: 140px;
-        }
-        .result-card a { color: var(--accent); text-decoration: none; }
-        .result-card a:hover { text-decoration: underline; }
 
-        /* ── Locked premium cards ── */
-        .locked-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 16px;
-            position: relative;
-            overflow: hidden;
-        }
-        .locked-card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, transparent 20%, var(--surface) 85%);
-            pointer-events: none;
-        }
-        .locked-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .locked-header h3 {
-            font-size: 1rem;
-        }
-        .locked-badge {
-            font-size: 0.65rem;
+        /* ── Results Column ── */
+        .results-heading {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+        }
+
+        /* ── Permit Cards ── */
+        .permit-card {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin-bottom: 12px;
+            box-shadow: var(--card-shadow);
+            transition: border-color 0.15s;
+        }
+        .permit-card:hover { border-color: rgba(255,255,255, 0.12); }
+        .permit-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-dot.green { background: var(--signal-green); }
+        .status-dot.amber { background: var(--signal-amber); }
+        .status-dot.red { background: var(--signal-red); }
+        .status-dot.blue { background: var(--signal-blue); }
+        .permit-type-badge {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
             padding: 3px 8px;
             border-radius: 4px;
-            background: rgba(79, 143, 247, 0.12);
-            color: var(--accent);
+            background: rgba(96, 165, 250, 0.12);
+            color: var(--signal-blue);
+            font-weight: 500;
+        }
+
+        /* ── Permit card result HTML override ── */
+        .permit-results-content { font-size: 0.9rem; }
+        .permit-results-content h1 { font-size: 1.1rem; margin-bottom: 12px; font-family: var(--font-display); }
+        .permit-results-content h2 { font-size: 1rem; margin: 16px 0 8px; color: var(--text-secondary); }
+        .permit-results-content h3 { font-size: 0.9rem; margin: 12px 0 6px; color: var(--text-secondary); }
+        .permit-results-content table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .permit-results-content th { text-align: left; padding: 6px 10px; color: var(--text-tertiary); font-weight: 500; border-bottom: 1px solid rgba(255,255,255, 0.06); }
+        .permit-results-content td { padding: 6px 10px; vertical-align: top; }
+        .permit-results-content a { color: var(--signal-cyan); text-decoration: none; }
+        .permit-results-content a:hover { text-decoration: underline; }
+        .permit-results-content strong { color: var(--text-primary); }
+        .permit-results-content hr { border: none; border-top: 1px solid rgba(255,255,255, 0.06); margin: 16px 0; }
+        .permit-results-content p { margin-bottom: 8px; }
+        .permit-results-content ul, .permit-results-content ol { margin-left: 20px; margin-bottom: 8px; }
+
+        /* ── Intel Panel Styles (used in fragment) ── */
+        .intel-panel {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+        }
+        .intel-section {
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255,255,255, 0.04);
+        }
+        .intel-section:first-child { padding-top: 0; }
+        .intel-section:last-of-type { border-bottom: none; }
+        .intel-heading {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .intel-icon { font-size: 0.9rem; }
+        .intel-value { font-size: 0.88rem; color: var(--text-secondary); }
+        .intel-link {
+            font-size: 0.8rem;
+            color: var(--signal-cyan);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .intel-link:hover { text-decoration: underline; }
+        .intel-muted { color: var(--text-tertiary); font-size: 0.85rem; }
+
+        /* Routing progress */
+        .routing-item { margin-bottom: 12px; }
+        .routing-item:last-child { margin-bottom: 0; }
+        .routing-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .routing-permit {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .routing-status {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 6px;
+            border-radius: 3px;
             font-weight: 600;
         }
-        .locked-preview {
-            color: var(--text-muted);
-            font-size: 0.88rem;
+        .routing-status.status-issued { background: rgba(52,211,153,0.15); color: var(--signal-green); }
+        .routing-status.status-filed { background: rgba(251,191,36,0.15); color: var(--signal-amber); }
+        .routing-status.status-approved { background: rgba(96,165,250,0.15); color: var(--signal-blue); }
+        .routing-status.status-plancheck { background: rgba(251,191,36,0.15); color: var(--signal-amber); }
+        .routing-desc {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
-        .locked-cta {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
+        .progress-bar-container {
+            height: 4px;
+            background: rgba(255,255,255, 0.06);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 2px;
+            background: var(--gradient-accent);
+            transition: width 0.5s ease;
+        }
+        .routing-meta {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Entities */
+        .entity-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+        .entity-role {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            min-width: 80px;
+        }
+        .entity-name { color: var(--text-primary); font-weight: 500; }
+        .entity-count { color: var(--text-tertiary); font-size: 0.8rem; }
+
+        /* Enforcement */
+        .enforcement-stats { display: flex; flex-direction: column; gap: 6px; }
+        .enforcement-stat { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+        .stat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .stat-dot.dot-amber { background: var(--signal-amber); }
+        .stat-dot.dot-red { background: var(--signal-red); }
+
+        /* CTA */
+        .intel-cta {
+            padding-top: 16px;
             text-align: center;
-            z-index: 1;
         }
-        .locked-cta a {
+        .intel-cta-btn {
             display: inline-block;
-            background: var(--accent);
+            background: var(--gradient-accent);
             color: #fff;
             padding: 10px 24px;
             border-radius: 8px;
@@ -210,179 +353,315 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
-        .locked-cta a:hover { background: var(--accent-hover); }
+        .intel-cta-btn:hover { opacity: 0.9; }
+        .intel-cta-sub {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 6px;
+        }
 
-        /* ── No results ── */
+        /* Intel loading/empty */
+        .intel-loading {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+        }
+        .intel-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top-color: var(--signal-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .intel-empty-state { padding: 16px; }
+
+        /* ── Violation Context Banner ── */
+        .violation-banner {
+            background: rgba(248,113,113,0.08);
+            border: 1px solid rgba(248,113,113,0.25);
+            border-radius: var(--card-radius);
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .violation-banner-icon { font-size: 1.2rem; }
+        .violation-banner strong { color: var(--signal-red); }
+        .violation-banner span { color: var(--text-secondary); font-size: 0.85rem; }
+        .violation-banner a { color: var(--signal-cyan); text-decoration: none; }
+
+        /* ── No Results ── */
         .no-results {
             text-align: center;
-            padding: 40px 0;
-            color: var(--text-muted);
+            padding: 48px 20px;
         }
         .no-results h3 {
+            font-family: var(--font-display);
             font-size: 1.1rem;
-            color: var(--text);
+            color: var(--text-primary);
             margin-bottom: 8px;
+        }
+        .no-results p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        .guidance-card {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .guidance-card h3 {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        .guidance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .guidance-label {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+        .guidance-link {
+            color: var(--signal-cyan);
+            text-decoration: none;
+            font-size: 0.88rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .guidance-link:hover { text-decoration: underline; }
+
+        /* ── Prep Checklist Button (disabled placeholder) ── */
+        .btn-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* ── Mobile Intel Toggle ── */
+        .mobile-intel-toggle {
+            display: none;
+        }
+        @media (max-width: 1023px) {
+            .mobile-intel-toggle {
+                display: block;
+                width: 100%;
+                background: var(--bg-surface);
+                border: var(--card-border);
+                border-radius: var(--card-radius);
+                padding: 14px 18px;
+                color: var(--text-secondary);
+                font-family: var(--font-body);
+                font-size: 0.9rem;
+                font-weight: 500;
+                cursor: pointer;
+                text-align: left;
+                margin-bottom: 16px;
+            }
+            .mobile-intel-toggle:hover { border-color: rgba(255,255,255, 0.12); }
+            .mobile-intel-toggle::after {
+                content: '\\25BC';
+                float: right;
+                font-size: 0.7rem;
+                transition: transform 0.2s;
+            }
+            .mobile-intel-toggle.open::after {
+                transform: rotate(180deg);
+            }
+            .intel-column {
+                display: none;
+            }
+            .intel-column.open {
+                display: block;
+            }
+        }
+        @media (min-width: 1024px) {
+            .mobile-intel-toggle { display: none; }
         }
 
         /* ── Footer ── */
         footer {
-            border-top: 1px solid var(--border);
+            border-top: var(--card-border);
             padding: 24px 0;
             text-align: center;
         }
         footer p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
         }
-        footer a { color: var(--accent); text-decoration: none; }
+        footer a { color: var(--signal-cyan); text-decoration: none; }
 
-        /* ── Mobile ── */
+        /* ── Mobile Responsive ── */
         @media (max-width: 768px) {
+            .container { padding: 0 16px; }
             .search-form { flex-direction: column; }
-            .search-form input { padding: 12px 14px; }
-            .search-form button { padding: 12px; min-height: 48px; }
-            .result-card { padding: 18px; }
-            .result-card table td:first-child { width: auto; }
+            .search-form input[type="text"] { padding: 14px; }
+            .search-form button { padding: 14px; min-height: 48px; }
+            .permit-card { padding: 16px; }
+            .header-actions { gap: 6px; }
+            .btn { padding: 7px 14px; font-size: 0.8rem; }
+            .entity-row { flex-wrap: wrap; }
+            .entity-role { min-width: auto; }
         }
     </style>
     <link rel="stylesheet" href="/static/mobile.css">
+    <script nonce="{{ csp_nonce }}" src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
 </head>
 <body>
     <header>
         <div class="container">
-            <a href="/" class="logo">sfpermits<span>.ai</span></a>
-            <div class="header-right">
-                <a href="/auth/login" class="header-btn header-btn-outline">Sign in</a>
-                <a href="/auth/login" class="header-btn header-btn-primary">Get started free</a>
+            <a href="/" class="logo">sfpermits<span class="logo-suffix">.ai</span></a>
+            <div class="header-actions">
+                <a href="/auth/login" class="btn btn-ghost">Sign in</a>
+                <a href="/auth/login" class="btn btn-accent">Get started free</a>
             </div>
         </div>
     </header>
 
-    <div class="search-bar">
+    <div class="search-section">
         <div class="container">
             <form class="search-form" action="/search" method="GET">
-                <input type="text" name="q" value="{{ query }}" placeholder="Enter an address, permit #, or block/lot..." autocomplete="off">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search by address, permit #, or block/lot..." autocomplete="off">
                 <button type="submit">Search</button>
             </form>
         </div>
     </div>
 
-    <div class="results-section">
-        <div class="container">
-            {% if violation_context %}
-            <!-- E3: Violation context banner -->
-            <div style="background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 1.3rem;">&#x26A0;&#xFE0F;</span>
-                <div>
-                    <strong style="color: #f87171;">Violation Lookup Mode</strong>
-                    <span style="color: var(--text-muted); font-size: 0.88rem; margin-left: 8px;">Showing enforcement data first. <a href="/auth/login" style="color: var(--accent);">Sign up free</a> to see full complaint history and remediation steps.</span>
-                </div>
-            </div>
-            {% endif %}
-            {% if error %}
-            <div class="no-results">
-                <h3>Something went wrong</h3>
-                <p>{{ error }}</p>
-            </div>
-            {% elif no_results %}
-            <div class="no-results">
-                <h3>No permits found</h3>
-                <p>No permit records matched "{{ query }}".</p>
-            </div>
-
-            <!-- Search guidance card -->
-            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px;">
-                <h3 style="font-size: 1rem; margin-bottom: 16px; color: var(--text);">
-                    {% if nl_query %}How to use sfpermits.ai{% else %}Try searching by{% endif %}
-                </h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                    <div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Street Address</div>
-                        <a href="/search?q=614+6th+Ave" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">614 6th Ave</a><br>
-                        <a href="/search?q=75+Robin+Hood+Dr" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">75 Robin Hood Dr</a>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Permit Number</div>
-                        <a href="/search?q=202401015555" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">202401015555</a>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Block / Lot</div>
-                        <a href="/search?q=3512/001" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">3512/001</a>
-                    </div>
-                </div>
-                {% if nl_query %}
-                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
-                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 12px;">
-                        sfpermits.ai searches San Francisco building permit records. For general permit questions, sign up for free to access AI-powered project analysis.
-                    </p>
-                </div>
-                {% endif %}
-                <div style="margin-top: 16px; text-align: center;">
-                    <a href="/auth/login" style="display: inline-block; background: var(--accent); color: #fff; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-                        Sign up free for full access
-                    </a>
-                </div>
-            </div>
-            {% else %}
-            <div class="results-heading">Showing permits for "{{ query }}"</div>
-
-            <!-- Free: basic permit results -->
-            <div class="result-card">
-                {{ result_html | safe }}
-            </div>
-            {% endif %}
-
-            <!-- Locked premium cards (always shown as upsell) -->
-            <div class="locked-card">
-                <div class="locked-header">
-                    <h3>Property Report</h3>
-                    <span class="locked-badge">Sign up free</span>
-                </div>
-                <div class="locked-preview">
-                    <p>Full property intelligence including violation history, open complaints, enforcement actions, and contractor network...</p>
-                    <p style="margin-top:8px;">&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;</p>
-                    <p>&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;</p>
-                </div>
-                <div class="locked-cta">
-                    <a href="/auth/login">Sign up free to unlock</a>
-                </div>
-            </div>
-
-            <div class="locked-card">
-                <div class="locked-header">
-                    <h3>Watch & Get Alerts</h3>
-                    <span class="locked-badge">Sign up free</span>
-                </div>
-                <div class="locked-preview">
-                    <p>Add this property to your watch list and get daily email updates when permits change status or receive inspections...</p>
-                    <p style="margin-top:8px;">&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;</p>
-                </div>
-                <div class="locked-cta">
-                    <a href="/auth/login">Sign up free to unlock</a>
-                </div>
-            </div>
-
-            <div class="locked-card">
-                <div class="locked-header">
-                    <h3>AI Project Analysis</h3>
-                    <span class="locked-badge">Sign up free</span>
-                </div>
-                <div class="locked-preview">
-                    <p>Get AI-powered fee estimates, timeline predictions, required documents, and revision risk analysis for your project...</p>
-                    <p style="margin-top:8px;">&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588; &#x2588;&#x2588;&#x2588;</p>
-                </div>
-                <div class="locked-cta">
-                    <a href="/auth/login">Sign up free to unlock</a>
-                </div>
+    <div class="container">
+        {% if violation_context %}
+        <div class="violation-banner" style="margin-top: 20px;">
+            <span class="violation-banner-icon">&#x26A0;&#xFE0F;</span>
+            <div>
+                <strong>Violation Lookup Mode</strong>
+                <span>Showing enforcement data first. <a href="/auth/login">Sign up free</a> for full history.</span>
             </div>
         </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="no-results">
+            <h3>Something went wrong</h3>
+            <p>{{ error }}</p>
+        </div>
+
+        {% elif no_results %}
+        <div class="no-results">
+            <h3>No permits found</h3>
+            <p>No permit records matched "{{ query }}".</p>
+        </div>
+
+        <div class="guidance-card">
+            <h3>{% if nl_query %}How to use sfpermits.ai{% else %}Try searching by{% endif %}</h3>
+            <div class="guidance-grid">
+                <div>
+                    <div class="guidance-label">Street Address</div>
+                    <a href="/search?q=614+6th+Ave" class="guidance-link">614 6th Ave</a>
+                    <a href="/search?q=75+Robin+Hood+Dr" class="guidance-link">75 Robin Hood Dr</a>
+                </div>
+                <div>
+                    <div class="guidance-label">Permit Number</div>
+                    <a href="/search?q=202401015555" class="guidance-link">202401015555</a>
+                </div>
+                <div>
+                    <div class="guidance-label">Block / Lot</div>
+                    <a href="/search?q=3512/001" class="guidance-link">3512/001</a>
+                </div>
+            </div>
+            {% if nl_query %}
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04);">
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    sfpermits.ai searches SF building permit records. Sign up free to access AI-powered project analysis.
+                </p>
+            </div>
+            {% endif %}
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="/auth/login" class="intel-cta-btn">Sign up free for full access</a>
+            </div>
+        </div>
+
+        {% else %}
+        {# ── Results + Intel two-column layout ── #}
+        <div class="results-layout">
+            <div class="results-column">
+                <div class="results-heading">Showing permits for "{{ query }}"</div>
+                <div class="permit-card">
+                    <div class="permit-results-content">
+                        {{ result_html | safe }}
+                    </div>
+                </div>
+
+                {# ── Mobile: expandable intel toggle ── #}
+                {% if block and lot %}
+                <button class="mobile-intel-toggle" onclick="this.classList.toggle('open'); document.getElementById('mobile-intel').classList.toggle('open');">
+                    View property intelligence
+                </button>
+                <div id="mobile-intel" class="intel-column">
+                    <div class="intel-loading"
+                         hx-post="/lookup/intel-preview"
+                         hx-trigger="intersect once"
+                         hx-vals='{"block": "{{ block }}", "lot": "{{ lot }}"}'
+                         hx-swap="outerHTML">
+                        <div class="intel-spinner"></div>
+                        <p>Loading intelligence...</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ── Desktop: sticky intel sidebar ── #}
+            {% if block and lot %}
+            <div class="intel-column desktop-intel">
+                <div class="intel-loading"
+                     id="intel-preview-desktop"
+                     hx-post="/lookup/intel-preview"
+                     hx-trigger="load"
+                     hx-vals='{"block": "{{ block }}", "lot": "{{ lot }}"}'
+                     hx-swap="outerHTML">
+                    <div class="intel-spinner"></div>
+                    <p>Loading property intelligence...</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 
     <footer>
         <div class="container">
-            <p>Built on San Francisco open data. <a href="/health">System status</a></p>
+            <p>Built on San Francisco open data &mdash; <a href="/health">System status</a></p>
         </div>
     </footer>
     <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
+    <script nonce="{{ csp_nonce }}">
+        // Hide desktop intel on mobile, show mobile version
+        (function() {
+            var mq = window.matchMedia('(min-width: 1024px)');
+            function handleResize(e) {
+                var desktopIntel = document.querySelector('.desktop-intel');
+                var mobileToggle = document.querySelector('.mobile-intel-toggle');
+                if (!desktopIntel) return;
+                if (e.matches) {
+                    desktopIntel.style.display = '';
+                    if (mobileToggle) mobileToggle.style.display = 'none';
+                } else {
+                    desktopIntel.style.display = 'none';
+                    if (mobileToggle) mobileToggle.style.display = '';
+                }
+            }
+            mq.addEventListener('change', handleResize);
+            handleResize(mq);
+        })();
+    </script>
 </body>
 </html>

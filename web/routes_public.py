@@ -97,6 +97,12 @@ def public_search():
     # === SESSION D: NL query detection for search guidance ===
     nl_query = intent in ("general_question", "analyze_project")
 
+    # Track block/lot for intel preview HTMX panel
+    resolved_block = None
+    resolved_lot = None
+    search_street_number = None
+    search_street_name = None
+
     try:
         if intent == "lookup_permit":
             permit_num = entities.get("permit_number")
@@ -106,6 +112,10 @@ def public_search():
             street_name = entities.get("street_name")
             block = entities.get("block")
             lot = entities.get("lot")
+            search_street_number = street_number
+            search_street_name = street_name
+            resolved_block = block
+            resolved_lot = lot
             result_md = run_async(permit_lookup(
                 street_number=street_number,
                 street_name=street_name,
@@ -126,8 +136,17 @@ def public_search():
             error="We couldn't complete your search right now. Please try again.",
             no_results=False,
             result_html="",
-            nl_query=False,  # === SESSION D ===
+            nl_query=False,
         )
+
+    # Resolve block/lot from address for intel preview
+    if not resolved_block and search_street_number and search_street_name:
+        try:
+            bl = _resolve_block_lot(search_street_number, search_street_name)
+            if bl:
+                resolved_block, resolved_lot = bl[0], bl[1]
+        except Exception:
+            pass
 
     # E3: Check for violation context
     violation_context = request.args.get("context") == "violation"
@@ -139,7 +158,9 @@ def public_search():
         no_results=no_results,
         error=None,
         violation_context=violation_context,
-        nl_query=nl_query,  # === SESSION D ===
+        nl_query=nl_query,
+        block=resolved_block,
+        lot=resolved_lot,
     )
 
 
