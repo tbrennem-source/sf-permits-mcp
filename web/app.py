@@ -1069,24 +1069,35 @@ def health():
                             "WHERE job_type = 'heartbeat'"
                         )
                         row = cur.fetchone()
-                        if row and row[0]:
-                            from datetime import datetime, timezone
-                            last_hb = row[0]
-                            if last_hb.tzinfo is None:
-                                last_hb = last_hb.replace(tzinfo=timezone.utc)
-                            age_minutes = round(
-                                (datetime.now(timezone.utc) - last_hb).total_seconds() / 60, 1
-                            )
-                            info["cron_heartbeat_age_minutes"] = age_minutes
-                            if age_minutes > 120:
-                                info["cron_heartbeat_status"] = "CRITICAL"
-                            elif age_minutes > 30:
-                                info["cron_heartbeat_status"] = "WARNING"
-                            else:
-                                info["cron_heartbeat_status"] = "OK"
-                        else:
-                            info["cron_heartbeat_age_minutes"] = None
-                            info["cron_heartbeat_status"] = "NO_DATA"
+                else:
+                    try:
+                        row = conn.execute(
+                            "SELECT MAX(completed_at) FROM cron_log "
+                            "WHERE job_type = 'heartbeat'"
+                        ).fetchone()
+                    except Exception:
+                        row = None  # cron_log may not exist in DuckDB
+
+                if row and row[0]:
+                    from datetime import datetime, timezone
+                    last_hb = row[0]
+                    if hasattr(last_hb, 'tzinfo') and last_hb.tzinfo is None:
+                        last_hb = last_hb.replace(tzinfo=timezone.utc)
+                    elif isinstance(last_hb, str):
+                        last_hb = datetime.fromisoformat(last_hb).replace(tzinfo=timezone.utc)
+                    age_minutes = round(
+                        (datetime.now(timezone.utc) - last_hb).total_seconds() / 60, 1
+                    )
+                    info["cron_heartbeat_age_minutes"] = age_minutes
+                    if age_minutes > 120:
+                        info["cron_heartbeat_status"] = "CRITICAL"
+                    elif age_minutes > 30:
+                        info["cron_heartbeat_status"] = "WARNING"
+                    else:
+                        info["cron_heartbeat_status"] = "OK"
+                else:
+                    info["cron_heartbeat_age_minutes"] = None
+                    info["cron_heartbeat_status"] = "NO_DATA"
             except Exception:
                 info["cron_heartbeat_age_minutes"] = None
                 info["cron_heartbeat_status"] = "ERROR"

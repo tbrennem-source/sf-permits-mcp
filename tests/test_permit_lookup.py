@@ -474,12 +474,30 @@ def test_get_related_location():
 @patch("src.tools.permit_lookup.BACKEND", "duckdb")
 @patch("src.tools.permit_lookup._PH", "?")
 def test_get_related_team():
+    """Test _get_related_team — relationships-based approach with fallback."""
     mock_conn = MagicMock()
-    mock_conn.execute.return_value.fetchall.return_value = [
-        ("P888", "new construction", "issued", "2024-01-01", 200000.0,
-         "New bldg", "John Smith", "Contractor"),
-    ]
-    result = _get_related_team(mock_conn, "P001")
+
+    # Mock _exec: step 1 returns entity_ids, step 2 returns relationships,
+    # step 3 returns entity details, step 4 returns permits
+    call_count = [0]
+    def mock_exec(conn, sql, params=None):
+        call_count[0] += 1
+        if call_count[0] == 1:
+            # Step 1: entity_ids from contacts
+            return [(101,)]
+        elif call_count[0] == 2:
+            # Step 2: relationships
+            return [(101, 201, 1, "P888", "Mission")]
+        elif call_count[0] == 3:
+            # Step 3: entity details for connected entity 201
+            return [(201, "John Smith", "Smith Co", 10)]
+        elif call_count[0] == 4:
+            # Step 4: permit details
+            return [("P888", "new construction", "issued", "2024-01-01", 200000.0, "New bldg")]
+        return []
+
+    with patch("src.tools.permit_lookup._exec", side_effect=mock_exec):
+        result = _get_related_team(mock_conn, "P001")
     assert len(result) == 1
     assert result[0]["shared_entity"] == "John Smith"
 
@@ -551,9 +569,14 @@ async def test_permit_lookup_by_number_found(mock_get_conn):
         [("001",)],
         # _get_related_location actual query
         [("P999", "alterations", "complete", "2023-01-01", 50000.0, "Bathroom remodel")],
-        # _get_related_team
-        [("P888", "new construction", "issued", "2024-01-01", 200000.0,
-          "New bldg", "John Smith", "Contractor")],
+        # _get_related_team (QS3-B): step 1 — entity_ids from contacts
+        [(101,)],
+        # _get_related_team (QS3-B): step 2 — relationships
+        [(101, 201, 1, "P888", "Mission")],
+        # _get_related_team (QS3-B): step 3 — entity details
+        [(201, "John Smith", "Smith Co", 10)],
+        # _get_related_team (QS3-B): step 4 — permit details
+        [("P888", "new construction", "issued", "2024-01-01", 200000.0, "New bldg")],
     ]
 
     result = await permit_lookup(permit_number="202301015555")

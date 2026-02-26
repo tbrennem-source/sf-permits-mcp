@@ -161,12 +161,66 @@ def cron_heartbeat():
     """
     _check_api_auth()
     try:
-        from src.db import execute_write
-        execute_write(
-            "INSERT INTO cron_log (job_type, status, started_at, completed_at) "
-            "VALUES (%s, %s, NOW(), NOW())",
-            ("heartbeat", "completed"),
-        )
+        from src.db import execute_write, BACKEND, get_connection
+        if BACKEND == "duckdb":
+            # Ensure cron_log table exists in DuckDB (with AUTOINCREMENT PK)
+            conn = get_connection()
+            try:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS cron_log (
+                        log_id INTEGER PRIMARY KEY DEFAULT(nextval('cron_log_seq')),
+                        job_type TEXT NOT NULL,
+                        started_at TIMESTAMP NOT NULL,
+                        completed_at TIMESTAMP,
+                        status TEXT NOT NULL DEFAULT 'running',
+                        lookback_days INTEGER,
+                        soda_records INTEGER,
+                        changes_inserted INTEGER,
+                        inspections_updated INTEGER,
+                        error_message TEXT,
+                        was_catchup BOOLEAN DEFAULT FALSE
+                    )
+                """)
+            except Exception:
+                # Table may already exist without sequence — try simpler schema
+                try:
+                    conn.execute("""
+                        CREATE TABLE IF NOT EXISTS cron_log (
+                            log_id INTEGER,
+                            job_type TEXT NOT NULL,
+                            started_at TIMESTAMP NOT NULL,
+                            completed_at TIMESTAMP,
+                            status TEXT NOT NULL DEFAULT 'running',
+                            lookback_days INTEGER,
+                            soda_records INTEGER,
+                            changes_inserted INTEGER,
+                            inspections_updated INTEGER,
+                            error_message TEXT,
+                            was_catchup BOOLEAN DEFAULT FALSE
+                        )
+                    """)
+                except Exception:
+                    pass  # Table already exists
+            finally:
+                conn.close()
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc).isoformat()
+            # Use subquery to generate next ID for DuckDB
+            conn2 = get_connection()
+            try:
+                conn2.execute(
+                    "INSERT INTO cron_log (log_id, job_type, status, started_at, completed_at) "
+                    "VALUES ((SELECT COALESCE(MAX(log_id), 0) + 1 FROM cron_log), ?, ?, ?, ?)",
+                    ("heartbeat", "completed", now, now),
+                )
+            finally:
+                conn2.close()
+        else:
+            execute_write(
+                "INSERT INTO cron_log (job_type, status, started_at, completed_at) "
+                "VALUES (%s, %s, NOW(), NOW())",
+                ("heartbeat", "completed"),
+            )
         return jsonify({"status": "ok", "job_type": "heartbeat"})
     except Exception as e:
         logging.error("Heartbeat write failed: %s", e)

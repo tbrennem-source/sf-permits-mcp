@@ -257,10 +257,12 @@ class CircuitBreaker:
 
     def get_status(self) -> dict:
         """Return status dict for /health endpoint."""
-        now = _time.monotonic()
         status = {}
         # Report on all categories that have any state
         all_cats = set(self._failures.keys()) | set(self._open_until.keys())
+        if not all_cats:
+            return status
+        now = _time.monotonic()
         for cat in sorted(all_cats):
             deadline = self._open_until.get(cat)
             if deadline is not None and now < deadline:
