@@ -229,7 +229,9 @@ def init_user_schema(conn=None) -> None:
                 primary_street_number TEXT,
                 primary_street_name TEXT,
                 subscription_tier TEXT NOT NULL DEFAULT 'free',
-                voice_style TEXT
+                voice_style TEXT,
+                notify_permit_changes BOOLEAN NOT NULL DEFAULT FALSE,
+                notify_email TEXT
             )
         """)
         conn.execute("""
@@ -327,6 +329,8 @@ def init_user_schema(conn=None) -> None:
             "ALTER TABLE users ADD COLUMN primary_street_number TEXT",
             "ALTER TABLE users ADD COLUMN primary_street_name TEXT",
             "ALTER TABLE users ADD COLUMN subscription_tier TEXT DEFAULT 'free'",
+            "ALTER TABLE users ADD COLUMN notify_permit_changes BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE users ADD COLUMN notify_email TEXT",
         ]:
             try:
                 conn.execute(alter_stmt)

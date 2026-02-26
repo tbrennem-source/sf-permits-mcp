@@ -1666,6 +1666,72 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             logger.warning("STALENESS CHECK: %s (since=%s, lookback=%d)",
                            warning, since_str, actual_lookback)
 
+        # ── Step 11: Send permit change notifications ─────────────────
+        notifications_sent = 0
+        if not dry_run and (changes_inserted > 0):
+            try:
+                from web.email_notifications import send_permit_notifications
+
+                # Query today's changes from permit_changes to build notification payloads
+                ph_local = _ph()
+                today_str = date.today().isoformat()
+                # Postgres uses ::date cast; DuckDB uses CAST syntax
+                if BACKEND == "postgres":
+                    cast_expr = f"{ph_local}::date"
+                else:
+                    cast_expr = f"CAST({ph_local} AS DATE)"
+                today_changes_rows = query(
+                    f"SELECT permit_number, change_date, old_status, new_status, "
+                    f"  old_status_date, new_status_date, change_type, is_new_permit, "
+                    f"  source, permit_type, street_number, street_name, "
+                    f"  neighborhood, block, lot "
+                    f"FROM permit_changes "
+                    f"WHERE change_date >= {cast_expr} "
+                    f"ORDER BY change_id DESC",
+                    (today_str,),
+                ) or []
+
+                today_changes = [
+                    {
+                        "permit_number": r[0],
+                        "change_date": r[1],
+                        "old_status": r[2],
+                        "new_status": r[3],
+                        "old_status_date": r[4],
+                        "new_status_date": r[5],
+                        "change_type": r[6],
+                        "is_new_permit": r[7],
+                        "source": r[8],
+                        "permit_type": r[9],
+                        "street_number": r[10],
+                        "street_name": r[11],
+                        "neighborhood": r[12],
+                        "block": r[13],
+                        "lot": r[14],
+                    }
+                    for r in today_changes_rows
+                ]
+
+                if today_changes:
+                    try:
+                        from web.app import app as flask_app  # type: ignore
+                    except Exception:
+                        flask_app = None
+
+                    notif_stats = send_permit_notifications(today_changes, app=flask_app)
+                    notifications_sent = notif_stats.get("emails_sent", 0)
+                    logger.info(
+                        "Permit notifications: %d emails sent to %d users "
+                        "(%d individual, %d digest)",
+                        notif_stats.get("emails_sent", 0),
+                        notif_stats.get("users_notified", 0),
+                        notif_stats.get("individual_sent", 0),
+                        notif_stats.get("digests_sent", 0),
+                    )
+            except Exception as e:
+                logger.warning("Permit notifications failed (non-fatal): %s", e)
+                step_results["notifications"] = {"ok": False, "error": str(e)}
+
         # Log success
         if not dry_run:
             _log_cron_finish(
@@ -1698,6 +1764,7 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "staleness_warnings": staleness_warnings,
             "step_results": step_results,
             "swept_stuck_jobs": swept,
+            "notifications_sent": notifications_sent,
         }
 
     except Exception as e:
