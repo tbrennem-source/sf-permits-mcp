@@ -901,12 +901,15 @@ NEIGHBORHOODS = [
 
 @app.route("/health")
 def health():
-    """Health check endpoint — database connectivity and table row counts.
+    """Health check endpoint — database connectivity and table list.
 
-    Public (no auth). Used by Claude sessions to verify prod DB state
-    without needing Railway CLI or direct database access.
+    Public (no auth). Used by Railway health checks and Claude sessions.
+
+    Fast mode (default): lists tables without counting rows (~50ms).
+    Full mode (?full=1): counts rows per table (~30-60s on cold cache).
     """
     from src.db import get_connection, BACKEND, DATABASE_URL
+    full = request.args.get("full") == "1"
     info = {"status": "ok", "backend": BACKEND, "has_db_url": bool(DATABASE_URL), "tables": {}}
     try:
         conn = get_connection()
@@ -914,16 +917,31 @@ def health():
             if BACKEND == "postgres":
                 conn.autocommit = True
                 with conn.cursor() as cur:
-                    cur.execute(
-                        "SELECT table_name FROM information_schema.tables "
-                        "WHERE table_schema = 'public' ORDER BY table_name"
-                    )
-                    for (table_name,) in cur.fetchall():
-                        try:
-                            cur.execute(f'SELECT COUNT(*) FROM "{table_name}"')
-                            info["tables"][table_name] = cur.fetchone()[0]
-                        except Exception:
-                            info["tables"][table_name] = "error"
+                    if full:
+                        # Full mode: actual COUNT(*) per table (slow on large tables)
+                        cur.execute("SET statement_timeout = '30s'")
+                        cur.execute(
+                            "SELECT table_name FROM information_schema.tables "
+                            "WHERE table_schema = 'public' ORDER BY table_name"
+                        )
+                        for (table_name,) in cur.fetchall():
+                            try:
+                                cur.execute(f'SELECT COUNT(*) FROM "{table_name}"')
+                                info["tables"][table_name] = cur.fetchone()[0]
+                            except Exception:
+                                info["tables"][table_name] = "error"
+                    else:
+                        # Fast mode: use pg_stat estimates (instant, no seq scans)
+                        cur.execute("""
+                            SELECT relname, GREATEST(reltuples::BIGINT, 0)
+                            FROM pg_class
+                            WHERE relnamespace = 'public'::regnamespace
+                              AND relkind = 'r'
+                            ORDER BY relname
+                        """)
+                        for table_name, est_rows in cur.fetchall():
+                            info["tables"][table_name] = est_rows
+                        info["row_counts"] = "estimated"
             else:
                 tables = conn.execute(
                     "SELECT table_name FROM information_schema.tables "
@@ -934,6 +952,7 @@ def health():
                         f"SELECT COUNT(*) FROM {table_name}"
                     ).fetchone()[0]
             info["db_connected"] = True
+            info["table_count"] = len(info["tables"])
         finally:
             conn.close()
     except Exception as e:
