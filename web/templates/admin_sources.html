@@ -23,13 +23,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
         .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
-        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
-        header .container { display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
-        .logo span { color: var(--text-muted); font-weight: 400; }
-        .header-actions { display: flex; gap: 12px; align-items: center; }
-        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
-        .back-link:hover { color: var(--text); }
         .print-btn {
             padding: 6px 14px; border-radius: 6px; font-size: 0.8rem;
             border: 1px solid var(--accent); color: var(--accent);
@@ -131,6 +124,23 @@
         .gap-detail { font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; }
         .gap-amy { font-size: 0.85rem; color: var(--warning); margin-top: 4px; font-style: italic; }
 
+        /* Mobile responsive */
+        @media (max-width: 640px) {
+            .lifecycle-row {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .lifecycle-stage {
+                width: 100%;
+            }
+            .source-header {
+                flex-wrap: wrap;
+            }
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         /* Print styles — clean, light, no dark theme */
         @media print {
             :root {
@@ -147,7 +157,7 @@
             body { background: #fff; color: #111; font-size: 10pt; }
             .container { max-width: 100%; padding: 0; }
             header { border-bottom: 2px solid #111; padding: 10px 0; }
-            .print-btn, .back-link { display: none; }
+            .print-btn { display: none; }
             main { padding: 10px 0; }
             h1 { font-size: 16pt; }
             h2 { font-size: 13pt; page-break-after: avoid; }
@@ -167,21 +177,17 @@
 </head>
 <body>
 
-<header>
-    <div class="container">
-        <a href="/" class="logo">sfpermits<span>.ai</span></a>
-        <div class="header-actions">
-            <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
-            <a href="/" class="back-link">&larr; Home</a>
-        </div>
-    </div>
-</header>
+{% set active_page = 'admin' %}
+{% include 'fragments/nav.html' %}
 {% endif %}
 
 <main>
 <div class="container">
 
-    <h1><span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>LUCK Source Inventory</h1>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+        <h1><span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>LUCK Source Inventory</h1>
+        <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+    </div>
     <p class="subtitle">Comprehensive list of all data sources powering sfpermits.ai — for review with Amy</p>
     <p class="generated">Auto-generated from {{ stats.total_files }} tier1 JSON files on {{ stats.generated_at }}</p>
 
