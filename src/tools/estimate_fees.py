@@ -719,35 +719,91 @@ async def estimate_fees(
 
     md_output = "\n".join(lines)
 
+    # === Sprint 58A: Full methodology dict on ALL returns ===
+    from datetime import date as _date
+    today_iso = _date.today().isoformat()
+
+    # Build formula steps
+    formula_steps: list[str] = []
+    if "error" not in building_fee:
+        formula_steps.append(f"Plan Review Fee (Table 1A-A): ${building_fee['plan_review_fee']:,.2f}")
+        formula_steps.append(f"Permit Issuance Fee (Table 1A-A): ${building_fee['permit_issuance_fee']:,.2f}")
+        formula_steps.append(f"CBSC Surcharge: ${surcharges['cbsc_fee']:,.2f}")
+        formula_steps.append(f"SMIP Surcharge: ${surcharges['smip_fee']:,.2f}")
+        if sffd_fees and sffd_fees.get("total_sffd", 0) > 0:
+            formula_steps.append(f"SFFD Fees (Table 107-B/C): ${sffd_fees['total_sffd']:,.2f}")
+        if electrical_fees and electrical_fees.get("fee"):
+            formula_steps.append(f"Electrical Fee (Table 1A-E): ${electrical_fees['fee']:,.2f}")
+        formula_steps.append(f"Total DBI Fees: ${total_dbi:,.2f}")
+
+    data_sources_list: list[str] = ["DBI Table 1A-A fee schedule (Ord. 126-25, eff. 9/1/2025)"]
+    if sffd_fees:
+        data_sources_list.append("SFFD Table 107-B/107-C fire review fees")
+    if electrical_fees:
+        data_sources_list.append("DBI Table 1A-E electrical permit fees")
+    if plumbing_fees:
+        data_sources_list.append("DBI Table 1A-C plumbing permit fees")
+    if stat_data:
+        data_sources_list.append(f"1.1M permit records (statistical comparison)")
+
+    # Revision context — budget ceiling calculation (Sprint 58A requirement)
+    revision_bracket = _get_cost_revision_bracket(estimated_construction_cost)
+    if revision_bracket:
+        revised_cost_ceiling = estimated_construction_cost * (1 + revision_bracket["rate"])
+        budget_ceiling = revised_cost_ceiling + total_dbi
+        revision_context: dict = {
+            "revision_rate": revision_bracket["rate"],
+            "avg_increase_pct": float(revision_bracket["multiplier"].split("%")[0].lstrip("+").split("x")[0].strip())
+            if "%" in revision_bracket["multiplier"] or "x" in revision_bracket["multiplier"]
+            else 0.23,
+            "sample_size": 23754,  # from COST_REVISION_BRACKETS analysis
+            "budget_ceiling": round(budget_ceiling, 2),
+            "note": (
+                f"{revision_bracket['rate']:.0%} of projects in the {revision_bracket['label']} range "
+                f"see cost revisions ({revision_bracket['multiplier']}). "
+                f"Budget ceiling = revised construction cost ${revised_cost_ceiling:,.0f} + "
+                f"fees ${total_dbi:,.2f} = ${budget_ceiling:,.0f}"
+            ),
+        }
+    else:
+        revision_context = {}
+
+    methodology_dict: dict = {
+        "methodology": {
+            "model": "DBI fee schedule formula + statistical comparison",
+            "formula": (
+                f"Table 1A-A base fee + surcharges"
+                + (f" + SFFD Table 107-B/C" if sffd_fees else "")
+                + (f" + electrical Table 1A-E" if electrical_fees else "")
+                + f" = ${total_dbi:,.2f} total DBI"
+            ),
+            "data_source": "DBI Table 1A-A through 1A-S (Ord. 126-25)",
+            "recency": "Fee schedule effective 9/1/2025",
+            "sample_size": stat_data["sample_size"] if stat_data else 0,
+            "data_freshness": today_iso,
+            "confidence": confidence,
+            "coverage_gaps": coverage_gaps,
+        },
+        # Tool-specific keys
+        "formula_steps": formula_steps,
+        "revision_context": revision_context,
+    }
+
     if return_structured:
-        from datetime import date
-        # Build formula steps
-        formula_steps = []
-        if "error" not in building_fee:
-            formula_steps.append(f"Plan Review Fee: ${building_fee['plan_review_fee']:,.2f}")
-            formula_steps.append(f"Permit Issuance Fee: ${building_fee['permit_issuance_fee']:,.2f}")
-            formula_steps.append(f"CBSC Fee: ${surcharges['cbsc_fee']:,.2f}")
-            formula_steps.append(f"SMIP Fee: ${surcharges['smip_fee']:,.2f}")
-            formula_steps.append(f"Total DBI: ${total_dbi:,.2f}")
-
-        data_sources = ["DBI Table 1A-A fee schedule", "1.1M permit records"]
-        if sffd_fees:
-            data_sources.append("SFFD Table 107-B/107-C")
-        if electrical_fees:
-            data_sources.append("DBI Table 1A-E electrical fees")
-        if plumbing_fees:
-            data_sources.append("DBI Table 1A-C plumbing fees")
-
-        methodology = {
+        # Legacy structured return (backward compat with web/app.py Sprint 57D)
+        legacy_meta = {
             "tool": "estimate_fees",
             "headline": f"${total_dbi:,.0f}" if total_dbi > 0 else "See breakdown",
             "formula_steps": formula_steps,
-            "data_sources": data_sources,
+            "data_sources": data_sources_list,
             "sample_size": stat_data["sample_size"] if stat_data else 0,
-            "data_freshness": date.today().isoformat(),
+            "data_freshness": today_iso,
             "confidence": confidence,
             "coverage_gaps": coverage_gaps,
+            # Sprint 58A: include full methodology + revision_context
+            "methodology": methodology_dict["methodology"],
+            "revision_context": revision_context,
         }
-        return md_output, methodology
+        return md_output, legacy_meta
 
     return md_output

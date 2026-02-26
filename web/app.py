@@ -1312,6 +1312,7 @@ def analyze():
             results["team"] = f'<div class="error">Team lookup error: {e}</div>'
 
     # D4: Save analysis results to analysis_sessions for sharing
+    # === SPRINT 58A: methodology persistence ===
     analysis_id = None
     try:
         import uuid
@@ -1319,13 +1320,17 @@ def analyze():
         from src.db import execute_write as _db_write, BACKEND as _BACKEND, query_one as _qone, get_connection as _get_conn
         analysis_id = str(uuid.uuid4())
         user_id = g.user.get("user_id") if g.user else None
-        # Store raw text (pre-rendered) for display on shared page
+        # Store raw markdown text (pre-rendered) + full methodology dicts for sharing
+        # Fix: use correct variable names (fees_md, timeline_md, docs_md, risk_md)
+        # Sprint 58A: methodology dict is now included alongside raw results
         raw_results = {
             "predict": pred_result if pred_result else "",
-            "fees": fees_result if "fees_result" in dir() else "",
-            "timeline": timeline_result if "timeline_result" in dir() else "",
-            "docs": docs_result if "docs_result" in dir() else "",
-            "risk": risk_result if "risk_result" in dir() else "",
+            "fees": fees_md if "fees_md" in locals() else "",
+            "timeline": timeline_md if "timeline_md" in locals() else "",
+            "docs": docs_md if "docs_md" in locals() else "",
+            "risk": risk_md if "risk_md" in locals() else "",
+            # Sprint 58A: persist full methodology for each tool
+            "_methodology": methodology,
         }
         results_json_str = _json.dumps(raw_results)
         if _BACKEND == "postgres":

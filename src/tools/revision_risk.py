@@ -370,40 +370,78 @@ async def revision_risk(
 
     md_output = "\n".join(lines)
 
+    # === Sprint 58A: Full methodology dict on ALL returns ===
+    from datetime import date as _date
+    today_iso = _date.today().isoformat()
+
+    formula_steps: list[str] = []
+    if stats:
+        rate = stats["revision_proxy_rate"] or 0
+        formula_steps.append(f"Revision proxy rate: {rate:.1%} (permits with revised_cost > estimated_cost)")
+        if stats["avg_cost_increase_pct"]:
+            formula_steps.append(f"Avg cost increase when revised: {stats['avg_cost_increase_pct']:.1f}%")
+        if stats["avg_days_with_change"] and stats["avg_days_no_change"]:
+            delta = stats["avg_days_with_change"] - stats["avg_days_no_change"]
+            formula_steps.append(f"Timeline penalty (revisions): +{delta} days vs no-change baseline")
+    else:
+        formula_steps.append("Knowledge-based assessment (DB unavailable)")
+
+    data_sources_list: list[str] = []
+    if db_available:
+        data_sources_list.append("1.1M+ historical permits (revised_cost as revision proxy)")
+    if correction_data:
+        data_sources_list.append("Title-24/ADA correction frequency data (citywide)")
+    if correction_workflow:
+        data_sources_list.append("EPR resubmittal workflow guide")
+
+    risk_level = "HIGH" if stats and (stats["revision_proxy_rate"] or 0) > 0.20 else \
+                 "MODERATE" if stats and (stats["revision_proxy_rate"] or 0) > 0.10 else "LOW"
+    headline = f"{risk_level} risk" if stats else "See assessment"
+
+    # Correction categories for methodology
+    correction_categories = [
+        {
+            "category": c["category"],
+            "rate": c["rate"],
+            "detail": c["detail"],
+        }
+        for c in correction_data
+    ]
+
+    methodology_dict: dict = {
+        "methodology": {
+            "model": "Revised-cost proxy analysis on historical permits",
+            "formula": (
+                f"COUNT(revised_cost > estimated_cost) / COUNT(*) "
+                + (f"= {stats['revision_proxy_rate']:.1%}" if stats and stats.get("revision_proxy_rate") else "= unavailable")
+                + f" ({stats['total_permits']:,} permits)" if stats else " (DB unavailable)"
+            ),
+            "data_source": "permits table (revised_cost vs estimated_cost columns)",
+            "recency": "All filed permits with issued_date (no recency filter — full historical)",
+            "sample_size": stats["total_permits"] if stats else 0,
+            "data_freshness": today_iso,
+            "confidence": confidence,
+            "coverage_gaps": coverage_gaps,
+        },
+        # Tool-specific keys
+        "correction_categories": correction_categories,
+    }
+
     if return_structured:
-        from datetime import date
-        formula_steps = []
-        if stats:
-            rate = stats["revision_proxy_rate"] or 0
-            formula_steps.append(f"Revision rate: {rate:.1%}")
-            if stats["avg_cost_increase_pct"]:
-                formula_steps.append(f"Avg cost increase: {stats['avg_cost_increase_pct']:.1f}%")
-            if stats["avg_days_with_change"] and stats["avg_days_no_change"]:
-                delta = stats["avg_days_with_change"] - stats["avg_days_no_change"]
-                formula_steps.append(f"Timeline penalty: +{delta} days")
-
-        data_sources = []
-        if db_available:
-            data_sources.append("1.1M+ historical permits (revised_cost proxy)")
-        if correction_data:
-            data_sources.append("Title-24/ADA correction frequency data")
-        if correction_workflow:
-            data_sources.append("EPR resubmittal workflow")
-
-        risk_level = "HIGH" if stats and (stats["revision_proxy_rate"] or 0) > 0.20 else \
-                     "MODERATE" if stats and (stats["revision_proxy_rate"] or 0) > 0.10 else "LOW"
-        headline = f"{risk_level} risk" if stats else "See assessment"
-
-        methodology = {
+        # Legacy structured return (backward compat with web/app.py Sprint 57D)
+        legacy_meta = {
             "tool": "revision_risk",
             "headline": headline,
             "formula_steps": formula_steps,
-            "data_sources": data_sources,
+            "data_sources": data_sources_list,
             "sample_size": stats["total_permits"] if stats else 0,
-            "data_freshness": date.today().isoformat(),
+            "data_freshness": today_iso,
             "confidence": confidence,
             "coverage_gaps": coverage_gaps,
+            # Sprint 58A: include full methodology + correction_categories
+            "methodology": methodology_dict["methodology"],
+            "correction_categories": correction_categories,
         }
-        return md_output, methodology
+        return md_output, legacy_meta
 
     return md_output
