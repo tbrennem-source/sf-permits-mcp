@@ -287,3 +287,26 @@
         max-width: none !important;
     }
 }
+
+/* ── 15. Activity rows — single column on mobile ──────────────────────────── */
+
+@media (max-width: 480px) {
+    .activity-row {
+        flex-wrap: wrap;
+    }
+    .activity-time,
+    .activity-user,
+    .activity-detail {
+        width: 100%;
+    }
+}
+
+/* ── 16. Reviewer panel — constrain on mobile ──────────────────────────────── */
+
+@media (max-width: 480px) {
+    .reviewer-panel {
+        max-width: 95vw;
+        margin: 8px;
+        padding: 16px;
+    }
+}

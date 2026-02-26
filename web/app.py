@@ -4438,11 +4438,14 @@ def admin_activity():
     if not g.user.get("is_admin"):
         abort(403)
 
+    # === SESSION B: offset pagination ===
     from web.activity import get_recent_activity, get_activity_stats
     action_filter = request.args.get("action") or None
     user_id_filter_str = request.args.get("user_id") or None
     user_id_filter = int(user_id_filter_str) if user_id_filter_str else None
-    activity = get_recent_activity(limit=100, action_filter=action_filter, user_id_filter=user_id_filter)
+    limit = 100
+    offset = int(request.args.get("offset", 0))
+    activity = get_recent_activity(limit=limit, offset=offset, action_filter=action_filter, user_id_filter=user_id_filter)
     stats = get_activity_stats(hours=24)
     # Build a minimal users list from activity entries for the filter dropdown
     seen_ids: set = set()
@@ -4458,7 +4461,9 @@ def admin_activity():
                            activity=activity, stats=stats,
                            action_filter=action_filter,
                            user_id_filter=user_id_filter,
-                           users=users)
+                           users=users,
+                           limit=limit,
+                           offset=offset)
 
 
 @app.route("/admin/ops")
@@ -4560,11 +4565,14 @@ def _render_ops_tab(tab: str):
                                indexes=indexes)
 
     elif tab == "activity":
+        # === SESSION B: offset pagination ===
         from web.activity import get_recent_activity, get_activity_stats
         action_filter = request.args.get("action") or None
         user_id_filter_str = request.args.get("user_id") or None
         user_id_filter = int(user_id_filter_str) if user_id_filter_str else None
-        activity = get_recent_activity(limit=100, action_filter=action_filter,
+        limit = 100
+        offset = int(request.args.get("offset", 0))
+        activity = get_recent_activity(limit=limit, offset=offset, action_filter=action_filter,
                                         user_id_filter=user_id_filter)
         stats = get_activity_stats(hours=24)
         seen_ids: set = set()
@@ -4581,7 +4589,9 @@ def _render_ops_tab(tab: str):
                                activity=activity, stats=stats,
                                action_filter=action_filter,
                                user_id_filter=user_id_filter,
-                               users=users, fragment=True)
+                               users=users, fragment=True,
+                               limit=limit,
+                               offset=offset)
 
     elif tab == "feedback":
         from web.activity import get_feedback_queue, get_feedback_counts

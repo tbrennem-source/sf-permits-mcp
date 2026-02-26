@@ -91,6 +91,36 @@
         .activity-detail { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .empty { color: var(--text-muted); font-style: italic; padding: 40px 0; text-align: center; }
         .result-count { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px; }
+
+        @media (max-width: 480px) {
+            .activity-row {
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 12px;
+            }
+            .activity-time {
+                width: 100%;
+                min-width: unset;
+            }
+            .activity-action {
+                min-width: unset;
+            }
+            .activity-user {
+                min-width: unset;
+                max-width: none;
+                width: 100%;
+            }
+            .activity-detail {
+                width: 100%;
+                white-space: normal;
+            }
+            .stats-row {
+                flex-direction: column;
+            }
+            .stat-card {
+                min-width: unset;
+            }
+        }
     </style>
 {% if not fragment %}
     <link rel="stylesheet" href="/static/mobile.css">
@@ -182,6 +212,24 @@
             </div>
             {% else %}
             <p class="empty">No activity recorded{% if action_filter or user_id_filter %} matching these filters{% endif %}.</p>
+            {% endif %}
+
+            {# ===== Pagination ===== #}
+            {% if activity|length >= limit %}
+            <div style="display:flex;justify-content:center;gap:16px;margin-top:20px;">
+                {% if offset > 0 %}
+                <a href="{{ base_url }}?offset={{ [offset - limit, 0]|max }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
+                   class="clear-btn"
+                   {% if fragment %}hx-get="{{ base_url }}?offset={{ [offset - limit, 0]|max }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
+                    &larr; Newer
+                </a>
+                {% endif %}
+                <a href="{{ base_url }}?offset={{ offset + limit }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
+                   class="clear-btn"
+                   {% if fragment %}hx-get="{{ base_url }}?offset={{ offset + limit }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
+                    Older &rarr;
+                </a>
+            </div>
             {% endif %}
         </div>
     </main>

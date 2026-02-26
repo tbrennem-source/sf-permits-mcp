@@ -188,6 +188,27 @@
             .filter-bar { flex-direction: column; align-items: flex-start; }
             .filter-divider { display: none; }
         }
+
+        @media (max-width: 480px) {
+            .reviewer-panel {
+                max-width: 95vw;
+                padding: 16px;
+            }
+            .reviewer-panel table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .summary-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .heatmap-grid {
+                grid-template-columns: 1fr;
+            }
+            .station-card {
+                padding: 12px;
+            }
+        }
     </style>
 {% if not fragment %}
     <link rel="stylesheet" href="/static/mobile.css">
