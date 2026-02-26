@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>QA Replays — sfpermits.ai</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
+
+        .run-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .run-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s;
+        }
+        .run-card:hover { border-color: var(--accent); }
+
+        .run-status {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            width: 36px;
+            text-align: center;
+        }
+
+        .run-info { flex: 1; min-width: 0; }
+        .run-name { font-weight: 600; font-size: 0.95rem; }
+        .run-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        .run-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        .stat-pass { color: var(--success); }
+        .stat-fail { color: var(--error); }
+        .stat-blocked { color: var(--warning); }
+
+        .step-bar {
+            display: flex;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+            background: var(--surface-2);
+        }
+        .step-bar-pass { background: var(--success); }
+        .step-bar-fail { background: var(--error); }
+        .step-bar-blocked { background: var(--warning); }
+
+        .run-arrow {
+            color: var(--text-muted);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state p { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    {% include 'fragments/nav.html' %}
+    <main>
+        <div class="container">
+            <h1>QA Replays</h1>
+            <p class="subtitle">Video recordings from RELAY QA sessions with step-by-step pass/fail markers.</p>
+
+            {% if runs %}
+            <div class="run-list">
+                {% for run in runs %}
+                <a href="/admin/qa/{{ run.run_name }}" class="run-card">
+                    <div class="run-status">
+                        {% if run.failed > 0 %}
+                        <span title="Has failures">&#10060;</span>
+                        {% elif run.blocked > 0 %}
+                        <span title="Has blocked steps">&#9889;</span>
+                        {% else %}
+                        <span title="All passed">&#9989;</span>
+                        {% endif %}
+                    </div>
+                    <div class="run-info">
+                        <div class="run-name">{{ run.run_name }}</div>
+                        <div class="run-meta">
+                            {{ run.started_at_fmt }} &middot; {{ run.duration_seconds }}s
+                        </div>
+                        {% if run.total_steps > 0 %}
+                        <div class="step-bar">
+                            {% if run.passed > 0 %}<div class="step-bar-pass" style="width: {{ (run.passed / run.total_steps * 100)|round }}%"></div>{% endif %}
+                            {% if run.failed > 0 %}<div class="step-bar-fail" style="width: {{ (run.failed / run.total_steps * 100)|round }}%"></div>{% endif %}
+                            {% if run.blocked > 0 %}<div class="step-bar-blocked" style="width: {{ (run.blocked / run.total_steps * 100)|round }}%"></div>{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="run-stats">
+                        <span class="stat-pass">{{ run.passed }}P</span>
+                        <span class="stat-fail">{{ run.failed }}F</span>
+                        {% if run.blocked > 0 %}<span class="stat-blocked">{{ run.blocked }}B</span>{% endif %}
+                    </div>
+                    <div class="run-arrow">&rarr;</div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No QA runs recorded yet.</p>
+                <p>Video recording activates during RELAY QA sessions.</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>
