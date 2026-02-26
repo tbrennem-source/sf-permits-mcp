@@ -78,12 +78,30 @@
         .tab-panel.active { display: block; }
         .results-tabs { margin-bottom: 16px; }
         .tab { cursor: pointer; }
-        .methodology-card { background: #f8f9fa; border-left: 3px solid #2563eb; padding: 12px 16px; margin-top: 8px; font-size: 0.9em; border-radius: 0 6px 6px 0; }
-        .methodology-card summary { cursor: pointer; color: #6b7280; font-size: 0.85em; font-weight: 500; }
-        .methodology-card ul { margin: 8px 0; padding-left: 20px; }
-        .methodology-card li { margin-bottom: 4px; font-size: 0.85em; }
-        .methodology-sources { font-size: 0.8em; color: #888; margin-top: 8px; }
-        .methodology-gaps { font-size: 0.8em; color: #b45309; font-style: italic; margin-top: 4px; }
+        /* === Sprint 58C: Methodology Cards (shared page — no toggle) === */
+        .methodology-card { margin-top: 8px; }
+        .methodology-card summary { cursor: pointer; color: #6b7280; font-size: 0.85em; font-weight: 500; user-select: none; list-style: none; display: flex; align-items: center; gap: 4px; }
+        .methodology-card summary:hover { color: #374151; }
+        .methodology-card summary::before { content: "ⓘ"; }
+        .methodology-body { background: #f8f9fa; border-left: 3px solid #2563eb; padding: 12px 16px; margin-top: 6px; font-size: 0.9em; line-height: 1.6; border-radius: 0 4px 4px 0; }
+        .methodology-model { font-weight: 600; color: #1e40af; margin-bottom: 6px; font-size: 0.95em; }
+        .formula-steps { margin: 8px 0; }
+        .formula-steps .step { padding: 2px 0; color: #374151; font-family: monospace; font-size: 0.85em; }
+        .station-breakdown { width: 100%; margin: 8px 0; font-size: 0.9em; border-collapse: collapse; }
+        .station-breakdown th { text-align: left; color: #6b7280; padding: 4px 8px; border-bottom: 1px solid #e5e7eb; }
+        .station-breakdown td { padding: 4px 8px; border-bottom: 1px solid #f3f4f6; }
+        .triggers-matched { margin-top: 8px; }
+        .triggers-matched div { font-size: 0.85em; color: #374151; padding: 2px 0; }
+        .correction-cats { margin-top: 8px; }
+        .correction-cats div { font-size: 0.85em; color: #374151; padding: 2px 0; }
+        .coverage-gaps { color: #b45309; font-size: 0.85em; font-style: italic; margin-top: 8px; }
+        .fallback-note { color: #6b7280; font-style: italic; font-size: 0.85em; margin-top: 6px; }
+        .revision-context { margin-top: 8px; padding: 8px; background: rgba(180, 83, 9, 0.06); border-radius: 4px; font-size: 0.85em; }
+        .methodology-footer { color: #9ca3af; font-size: 0.8em; margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 6px; }
+        @media print {
+            .methodology-card .methodology-body { display: block !important; }
+            .methodology-card:not([open]) .methodology-body { display: block !important; }
+        }
     </style>
 </head>
 <body>
@@ -135,24 +153,121 @@
     {% endfor %}
     </div>
 
+    {# Map tab keys to anchor IDs for deep-linking from email #}
+    {% set SHARED_ANCHOR_MAP = {
+        "predict": "method-permits",
+        "fees": "method-fees",
+        "timeline": "method-timeline",
+        "docs": "method-documents",
+        "risk": "method-risk",
+    } %}
+
     {% for key in order %}
     {% if results.get(key) %}
     <div id="{{ TAB_META[key].panel }}" class="tab-panel{% if loop.first %} active{% endif %}">
         <div class="result-card">
             {{ results[key] | safe }}
         </div>
-        {% if methodology is defined and methodology.get(key) %}
-        <details class="methodology-card">
+        {# === Sprint 58C: Methodology Card (no toggle on shared page) === #}
+        {% set m = (methodology.get(key) if methodology is defined and methodology else None) %}
+        {% if m %}
+        <details class="methodology-card" id="{{ SHARED_ANCHOR_MAP.get(key, 'method-' ~ key) }}">
             <summary>How we calculated this</summary>
-            {% if methodology[key].formula_steps %}
-            <ul>
-                {% for step in methodology[key].formula_steps %}<li>{{ step }}</li>{% endfor %}
-            </ul>
-            {% endif %}
-            <p class="methodology-sources">Sources: {{ methodology[key].data_sources | join(', ') }}</p>
-            {% if methodology[key].coverage_gaps %}
-            <p class="methodology-gaps">Note: {{ methodology[key].coverage_gaps | join('. ') }}</p>
-            {% endif %}
+            <div class="methodology-body">
+                {# model name #}
+                {% set model_name = (m.methodology.model if m.methodology is defined and m.methodology is mapping else None) or m.get('tool', '') %}
+                {% if model_name %}
+                <p class="methodology-model">{{ model_name }}</p>
+                {% endif %}
+
+                {# formula steps #}
+                {% if m.formula_steps %}
+                <div class="formula-steps">
+                    {% for step in m.formula_steps %}
+                    <div class="step">{{ step }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# station breakdown — timeline only #}
+                {% if m.stations %}
+                <table class="station-breakdown">
+                    <tr><th>Station</th><th>Median</th><th>Reviews</th><th>Trend</th></tr>
+                    {% for s in m.stations %}
+                    <tr>
+                        <td>{{ s.name if s.name is defined else s.get('station_code', '—') }}</td>
+                        <td>~{{ (s.p50_days | round(0) | int) if s.p50_days is defined else '—' }} days</td>
+                        <td>{{ s.sample_count if s.sample_count is defined else s.get('sample_count', '—') }}</td>
+                        <td>{{ s.trend if s.trend is defined else s.get('trend', '—') }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% endif %}
+
+                {# triggers matched — predict_permits only #}
+                {% if m.triggers_matched %}
+                <div class="triggers-matched">
+                    <strong>Project types identified:</strong>
+                    {% for t in m.triggers_matched %}
+                    <div>{{ t.trigger if t.trigger is defined else t.get('trigger', '—') }}
+                        {% if t.form is defined and t.form %} &rarr; {{ t.form }}{% endif %}
+                        {% if t.path is defined and t.path %} ({{ t.path }}){% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# correction categories — revision_risk only #}
+                {% if m.correction_categories %}
+                <div class="correction-cats">
+                    <strong>Common correction types:</strong>
+                    {% for c in m.correction_categories %}
+                    <div>{{ c.category if c.category is defined else c.get('category', '—') }}
+                        {% if c.rate is defined and c.rate %}: {{ (c.rate * 100) | round(0) | int }}%{% endif %}
+                        {% if c.detail is defined and c.detail %} &mdash; {{ c.detail }}{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# revision context — estimate_fees only #}
+                {% if m.revision_context and m.revision_context.revision_rate is defined %}
+                <div class="revision-context">
+                    <strong>Budget risk:</strong>
+                    {{ (m.revision_context.revision_rate * 100) | round(0) | int }}% of similar projects see cost revisions.
+                    {% if m.revision_context.budget_ceiling is defined and m.revision_context.budget_ceiling %}
+                    Budget ceiling: ${{ "{:,.0f}".format(m.revision_context.budget_ceiling | round(0) | int) }}.
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {# coverage gaps (only when non-empty) #}
+                {% if m.coverage_gaps %}
+                <div class="coverage-gaps">
+                    <strong>Note:</strong>
+                    {% for gap in m.coverage_gaps %}
+                    <span>{{ gap }}</span>{% if not loop.last %} &middot; {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# fallback note — timeline only #}
+                {% if m.fallback_note %}
+                <div class="fallback-note">{{ m.fallback_note }}</div>
+                {% endif %}
+
+                {# footer #}
+                <div class="methodology-footer">
+                    {% if m.methodology is defined and m.methodology is mapping and m.methodology.data_source is defined %}
+                    Source: {{ m.methodology.data_source }}
+                    {% elif m.data_sources %}
+                    Source: {{ m.data_sources | join(', ') }}
+                    {% endif %}
+                    {% if m.sample_size %} &middot; {{ "{:,}".format(m.sample_size) }} records{% endif %}
+                    {% if m.data_freshness %} &middot; Last updated: {{ m.data_freshness }}{% endif %}
+                    {% if m.confidence %} &middot; Confidence: {{ m.confidence }}{% endif %}
+                </div>
+            </div>
         </details>
         {% endif %}
     </div>
