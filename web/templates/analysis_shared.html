@@ -233,7 +233,7 @@
                     <strong>Common correction types:</strong>
                     {% for c in m.correction_categories %}
                     <div>{{ c.category if c.category is defined else c.get('category', '—') }}
-                        {% if c.rate is defined and c.rate %}: {{ (c.rate * 100) | round(0) | int }}%{% endif %}
+                        {% if c.rate is defined and c.rate %}: {{ (c.rate | float * 100) | round(0) | int }}%{% endif %}
                         {% if c.detail is defined and c.detail %} &mdash; {{ c.detail }}{% endif %}
                     </div>
                     {% endfor %}
@@ -244,7 +244,7 @@
                 {% if m.revision_context and m.revision_context.revision_rate is defined %}
                 <div class="revision-context">
                     <strong>Budget risk:</strong>
-                    {{ (m.revision_context.revision_rate * 100) | round(0) | int }}% of similar projects see cost revisions.
+                    {{ (m.revision_context.revision_rate | float * 100) | round(0) | int }}% of similar projects see cost revisions.
                     {% if m.revision_context.budget_ceiling is defined and m.revision_context.budget_ceiling %}
                     Budget ceiling: ${{ "{:,.0f}".format(m.revision_context.budget_ceiling | round(0) | int) }}.
                     {% endif %}
