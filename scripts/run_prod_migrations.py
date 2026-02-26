@@ -393,6 +393,47 @@ def _run_neighborhood_backfill() -> dict[str, Any]:
         conn.close()
 
 
+def _run_sprint61b_teams() -> dict[str, Any]:
+    """Sprint 61B: projects + project_members tables + project_id on analysis_sessions."""
+    import psycopg2
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS projects ("
+                "id TEXT PRIMARY KEY, name TEXT, address TEXT, block TEXT, lot TEXT, "
+                "neighborhood TEXT, created_by INTEGER REFERENCES users(id), "
+                "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)"
+            )
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS project_members ("
+                "project_id TEXT NOT NULL REFERENCES projects(id), "
+                "user_id INTEGER NOT NULL REFERENCES users(id), "
+                "role TEXT DEFAULT 'member', invited_by INTEGER REFERENCES users(id), "
+                "joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                "PRIMARY KEY (project_id, user_id))"
+            )
+            for stmt in [
+                "ALTER TABLE analysis_sessions ADD COLUMN IF NOT EXISTS project_id TEXT REFERENCES projects(id)",
+                "CREATE INDEX IF NOT EXISTS idx_projects_created_by ON projects (created_by)",
+                "CREATE INDEX IF NOT EXISTS idx_projects_parcel ON projects (block, lot)",
+                "CREATE INDEX IF NOT EXISTS idx_pm_user ON project_members (user_id)",
+                "CREATE INDEX IF NOT EXISTS idx_analysis_project ON analysis_sessions (project_id)",
+            ]:
+                try:
+                    cur.execute(stmt)
+                except Exception:
+                    pass
+            conn.commit()
+        return {"status": "ok", "message": "Sprint 61B tables created"}
+    except Exception as exc:
+        conn.rollback()
+        logger.error("sprint61b_teams migration failed: %s", exc)
+        return {"status": "error", "message": str(exc)}
+    finally:
+        conn.close()
+
+
 # ---- ordered registry ------------------------------------------------
 
 MIGRATIONS: list[Migration] = [
@@ -457,6 +498,11 @@ MIGRATIONS: list[Migration] = [
         name="neighborhood_backfill",
         description="Backfill NULL neighborhoods on trade permits from tax_rolls (block+lot join)",
         run=_run_neighborhood_backfill,
+    ),
+    Migration(
+        name="sprint61b_teams",
+        description="Sprint 61B: projects + project_members tables + project_id on analysis_sessions",
+        run=_run_sprint61b_teams,
     ),
 ]
 

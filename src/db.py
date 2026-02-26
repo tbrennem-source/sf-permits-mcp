@@ -662,6 +662,32 @@ def init_user_schema(conn=None) -> None:
             except Exception:
                 pass
 
+        # Sprint 61B: Projects + project_members (team seed)
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS projects ("
+            "id TEXT PRIMARY KEY, name TEXT, address TEXT, block TEXT, lot TEXT, "
+            "neighborhood TEXT, created_by INTEGER, "
+            "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)"
+        )
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS project_members ("
+            "project_id TEXT NOT NULL, user_id INTEGER NOT NULL, "
+            "role TEXT DEFAULT 'member', invited_by INTEGER, "
+            "joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+            "PRIMARY KEY (project_id, user_id))"
+        )
+        for _s61b in [
+            "CREATE INDEX IF NOT EXISTS idx_projects_created_by ON projects (created_by)",
+            "CREATE INDEX IF NOT EXISTS idx_projects_parcel ON projects (block, lot)",
+            "CREATE INDEX IF NOT EXISTS idx_pm_user ON project_members (user_id)",
+            "ALTER TABLE analysis_sessions ADD COLUMN project_id TEXT",
+            "CREATE INDEX IF NOT EXISTS idx_analysis_project ON analysis_sessions (project_id)",
+        ]:
+            try:
+                conn.execute(_s61b)
+            except Exception:
+                pass  # Column/index already exists
+
     finally:
         if close:
             conn.close()

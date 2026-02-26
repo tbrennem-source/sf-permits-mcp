@@ -695,6 +695,31 @@ CREATE INDEX IF NOT EXISTS idx_prm_station ON permit_review_metrics(station);
 CREATE INDEX IF NOT EXISTS idx_prm_department ON permit_review_metrics(department);
 CREATE INDEX IF NOT EXISTS idx_prm_met_sla ON permit_review_metrics(met_cal_sla);
 
+-- Sprint 61B: Projects + project_members (team seed)
+CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    address TEXT,
+    block TEXT,
+    lot TEXT,
+    neighborhood TEXT,
+    created_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS project_members (
+    project_id TEXT NOT NULL REFERENCES projects(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    role TEXT DEFAULT 'member',
+    invited_by INTEGER REFERENCES users(id),
+    joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (project_id, user_id)
+);
+ALTER TABLE analysis_sessions ADD COLUMN IF NOT EXISTS project_id TEXT REFERENCES projects(id);
+CREATE INDEX IF NOT EXISTS idx_projects_created_by ON projects (created_by);
+CREATE INDEX IF NOT EXISTS idx_projects_parcel ON projects (block, lot);
+CREATE INDEX IF NOT EXISTS idx_pm_user ON project_members (user_id);
+CREATE INDEX IF NOT EXISTS idx_analysis_project ON analysis_sessions (project_id);
+
 -- Planning Department Review Metrics (d4jk-jw33)
 -- Tracks planning review cycle times against SLA targets per project stage
 CREATE TABLE IF NOT EXISTS planning_review_metrics (

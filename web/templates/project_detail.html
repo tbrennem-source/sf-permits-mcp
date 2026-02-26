@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} — sfpermits.ai</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .project-detail-header {
+            margin-bottom: 28px;
+        }
+        .project-detail-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 6px 0;
+        }
+        .project-detail-address {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .back-link {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { color: var(--text); }
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+        .section-card h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 16px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .member-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .member-row:last-child { border-bottom: none; }
+        .member-name {
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .member-email {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .role-owner { background: rgba(37, 99, 235, 0.1); color: var(--accent); }
+        .role-admin { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+        .role-member { background: var(--surface-2); color: var(--text-muted); }
+        .analysis-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .analysis-row:last-child { border-bottom: none; }
+        .analysis-row a {
+            font-size: 0.9rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .analysis-row a:hover { text-decoration: underline; }
+        .analysis-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .invite-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .invite-form input[type="email"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .invite-form button {
+            padding: 8px 18px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .invite-feedback {
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        .invite-feedback.ok { color: #166534; }
+        .invite-feedback.err { color: #991b1b; }
+        .empty-list {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            padding: 8px 0;
+        }
+    </style>
+</head>
+<body>
+{% include "fragments/nav.html" %}
+<div class="container" style="max-width: 900px; margin: 0 auto; padding: 32px 16px;">
+    <a href="/projects" class="back-link">&larr; All Projects</a>
+
+    <div class="project-detail-header">
+        <h1>{{ project.name }}</h1>
+        <div class="project-detail-address">
+            {% if project.address %}{{ project.address }}{% endif %}
+            {% if project.neighborhood %} &middot; {{ project.neighborhood }}{% endif %}
+            {% if project.block and project.lot %} &middot; Block {{ project.block }}, Lot {{ project.lot }}{% endif %}
+        </div>
+    </div>
+
+    <!-- Members -->
+    <div class="section-card">
+        <h2>Members ({{ members | length }})</h2>
+        {% if members %}
+        {% for m in members %}
+        <div class="member-row">
+            <div>
+                <div class="member-name">{{ m.display_name }}</div>
+                <div class="member-email">{{ m.email }}</div>
+            </div>
+            <span class="role-badge role-{{ m.role or 'member' }}">{{ (m.role or 'member') | capitalize }}</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-list">No members yet.</div>
+        {% endif %}
+
+        {% if my_role in ('owner', 'admin') or (g.user and g.user.is_admin) %}
+        <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px;">Invite a collaborator</div>
+            <div class="invite-form">
+                <input type="email" id="invite-email" placeholder="colleague@firm.com">
+                <button onclick="sendInvite()">Send Invite</button>
+            </div>
+            <div id="invite-feedback" class="invite-feedback" style="display:none;"></div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Analyses -->
+    <div class="section-card">
+        <h2>Analyses ({{ analyses | length }})</h2>
+        {% if analyses %}
+        {% for a in analyses %}
+        <div class="analysis-row">
+            <a href="/analysis/{{ a.id }}">{{ a.description or a.address or 'Untitled Analysis' }}</a>
+            <span class="analysis-meta">{{ a.created_at.strftime('%b %d, %Y') if a.created_at else '' }}</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-list">No analyses linked to this project yet.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function sendInvite() {
+    const email = document.getElementById('invite-email').value.trim();
+    const feedback = document.getElementById('invite-feedback');
+    if (!email) { return; }
+    const projectId = {{ project.id | tojson }};
+    fetch('/project/' + projectId + '/invite', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: email}),
+    })
+    .then(r => r.json())
+    .then(d => {
+        feedback.style.display = 'block';
+        if (d.ok) {
+            feedback.className = 'invite-feedback ok';
+            feedback.textContent = d.message || 'Invite sent!';
+            document.getElementById('invite-email').value = '';
+        } else {
+            feedback.className = 'invite-feedback err';
+            feedback.textContent = d.error || 'Could not send invite.';
+        }
+    })
+    .catch(() => {
+        feedback.style.display = 'block';
+        feedback.className = 'invite-feedback err';
+        feedback.textContent = 'Network error. Please try again.';
+    });
+}
+</script>
+</body>
+</html>

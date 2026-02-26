@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects — sfpermits.ai</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .projects-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .projects-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .project-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            display: block;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .project-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 12px rgba(37, 99, 235, 0.1);
+        }
+        .project-card-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 6px 0;
+        }
+        .project-card-address {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0 0 12px 0;
+        }
+        .project-card-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .role-owner { background: rgba(37, 99, 235, 0.1); color: var(--accent); }
+        .role-admin { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+        .role-member { background: var(--surface-2); color: var(--text-muted); }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        .empty-state a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+{% include "fragments/nav.html" %}
+<div class="container" style="max-width: 900px; margin: 0 auto; padding: 32px 16px;">
+    <div class="projects-header">
+        <h1>Projects</h1>
+    </div>
+
+    {% if projects %}
+    <div class="projects-grid">
+        {% for proj in projects %}
+        <a class="project-card" href="/project/{{ proj.id }}">
+            <p class="project-card-name">{{ proj.name }}</p>
+            {% if proj.address %}
+            <p class="project-card-address">{{ proj.address }}{% if proj.neighborhood %} &middot; {{ proj.neighborhood }}{% endif %}</p>
+            {% elif proj.neighborhood %}
+            <p class="project-card-address">{{ proj.neighborhood }}</p>
+            {% endif %}
+            <div class="project-card-meta">
+                <span class="role-badge role-{{ proj.role or 'member' }}">{{ (proj.role or 'member') | capitalize }}</span>
+                {% if proj.created_at %}
+                <span>Created {{ proj.created_at.strftime('%b %d, %Y') if proj.created_at else '' }}</span>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No projects yet.</p>
+        <p>Projects are created automatically when you run an analysis with an address.<br>
+        <a href="/">Run an analysis</a> to get started.</p>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
