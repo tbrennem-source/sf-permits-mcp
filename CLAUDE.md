@@ -32,7 +32,7 @@ src/                    # MCP server code
   graph.py              # Co-occurrence graph (SQL self-join)
   validate.py           # Anomaly detection queries
   report_links.py       # External links for property reports
-  tools/                # 21 tool implementations (8 SODA, 3 Entity, 5 Knowledge, 2 Facilitation, 2 Vision, 1 Addenda)
+  tools/                # 29 tool implementations (8 SODA, 3 Entity, 5 Knowledge, 2 Facilitation, 2 Vision, 1 Addenda, 2 Severity, 6 Intel)
   vision/               # AI vision modules (Claude Vision API)
     client.py           # Anthropic Vision API wrapper
     pdf_to_images.py    # PDF-to-base64 image conversion
@@ -53,26 +53,28 @@ data/knowledge/         # 4-tier knowledge base (gitignored tier4)
   tier4/                # Full code corpus (Planning Code 12.6MB + BICC 3.6MB)
 scripts/                # CLI tools
   feedback_triage.py    # 3-tier feedback classification + auto-resolve
-tests/                  # 1,075+ tests
+tests/                  # 3,300+ tests
 datasets/               # SODA dataset catalog (22 datasets, 13.3M records)
 docs/                   # Architecture, decisions, contact data analysis
 ```
 
 ## Key Numbers
 
-- **21 tools**: 8 SODA API (Phase 1), 3 Entity/Network (Phase 2), 5 Knowledge (Phase 2.75), 2 Facilitation (Phase 3.5), 2 Vision (Phase 4), 1 Addenda (Phase 5)
+- **29 tools**: 8 SODA API (Phase 1), 3 Entity/Network (Phase 2), 5 Knowledge (Phase 2.75), 2 Facilitation (Phase 3.5), 2 Vision (Phase 4), 1 Addenda (Phase 5), 2 Severity/Health (Phase 6), 6 Project Intelligence (Phase 7)
 - **22 SODA datasets**, 13.3M records cataloged
 - **DuckDB**: 1.8M contacts -> 1M entities -> 576K relationship edges
-- **PostgreSQL (prod)**: 5.6M rows, 2.05 GB on Railway
-- **Knowledge base**: 40 tier1 JSON files, 86 semantic concepts, ~817 aliases
+- **PostgreSQL (prod)**: 5.6M rows, 2.05 GB on Railway, 59 tables
+- **Knowledge base**: 47 tier1 JSON files, 86 semantic concepts, ~817 aliases
 - **RAG**: 1,035 chunks, hybrid retrieval (pgvector)
 - **Voice calibration**: 15 scenarios, 7 audiences, 8 situations
-- **Tests**: 1,075+ passing
+- **Routes**: 142 (across app.py + Blueprint route files)
+- **Tests**: 3,300+ passing
+- **Scenarios**: 73 approved in scenario-design-guide.md
 - **Live**: https://sfpermits-ai-production.up.railway.app
 
 ## Current State
 
-Phases 1 through 3.5 complete. Phase 4 partial: AI Vision plan analysis (analyze_plans tool, vision EPR checks, annotation legend, lasso zoom, minimap) deployed. Phase 5: Building Permit Addenda + Routing ingestion (3.9M rows), nightly change detection, search_addenda MCP tool, plan review routing in permit_lookup, and Plan Review Activity in morning brief — all deployed. RAG fully built + nightly refresh configured. Voice calibration Phase A deployed (templates, CRUD, admin UI, quick-action modifiers). Regulatory watch system deployed.
+Phases 1-7 substantially complete. Phase 4: AI Vision plan analysis deployed. Phase 5: Addenda + Routing (3.9M rows) deployed. Phase 6: Severity scoring v2 + property health signals deployed. Phase 7: Project Intelligence tools (run_query, read_source, search_source, schema_info, list_tests, similar_projects) deployed. RAG fully built + nightly refresh. Voice calibration Phase A deployed. Regulatory watch system deployed. Activity intelligence + client-side tracking deployed (Sprint 62). Deadlock postmortem fixes deployed (Sprint 63). Reliability + monitoring hardening deployed (Sprint 64). Blueprint route refactor complete — routes in web/routes_*.py, app.py slim (~1,050 lines). Sprint 68-A: Scenario governance — 102 scenarios reviewed, 73 in design guide.
 
 ## Railway Production Infrastructure
 
