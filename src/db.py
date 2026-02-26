@@ -98,6 +98,14 @@ class _PooledConnection:
     def __getattr__(self, name):
         return getattr(self._conn, name)
 
+    def __setattr__(self, name, value):
+        # Allow our own internal attributes to be set normally
+        if name in ("_conn", "_pool"):
+            super().__setattr__(name, value)
+        else:
+            # Delegate to the underlying psycopg2 connection (e.g., autocommit)
+            setattr(self._conn, name, value)
+
 
 def get_connection(db_path: str | None = None):
     """Get a database connection (Postgres or DuckDB).
