@@ -781,6 +781,7 @@ import time as _time
 MAX_FETCH_RETRIES = 3
 RETRY_BASE_DELAY_S = 2.0  # seconds — doubles on each retry (exponential backoff)
 STEP_TIMEOUT_S = 300       # 5-minute timeout per pipeline step (informational)
+PIPELINE_TIMEOUT_S = 480   # 8-minute hard timeout on all SODA fetches combined
 
 
 async def fetch_with_retry(
@@ -1383,6 +1384,22 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
     if swept:
         logger.info("Swept %d stuck cron job(s) before starting", swept)
 
+    # Concurrency guard: skip if another job is already running.
+    # This prevents double-runs if a manual trigger overlaps with the
+    # scheduled cron, or if the previous run is still in progress.
+    running_rows = query(
+        "SELECT log_id FROM cron_log WHERE status = 'running' LIMIT 1"
+    )
+    if running_rows:
+        logger.warning(
+            "Skipping nightly — job %d is still running", running_rows[0][0]
+        )
+        return {
+            "status": "skipped",
+            "reason": f"job {running_rows[0][0]} still running",
+            "swept_stuck_jobs": swept,
+        }
+
     # Auto catch-up: extend lookback if we missed days
     actual_lookback, was_catchup = _compute_lookback(lookback_days)
     source = "backfill" if was_catchup else "nightly"
@@ -1767,6 +1784,14 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
             "notifications_sent": notifications_sent,
         }
 
+    except asyncio.TimeoutError:
+        logger.error("Nightly run timed out after %ds", PIPELINE_TIMEOUT_S)
+        _log_cron_finish(log_id, "failed", error_message=f"Pipeline timeout after {PIPELINE_TIMEOUT_S}s")
+        return {
+            "status": "timeout",
+            "error": f"Pipeline timeout after {PIPELINE_TIMEOUT_S}s",
+            "swept_stuck_jobs": swept,
+        }
     except Exception as e:
         logger.exception("Nightly run failed")
         _log_cron_finish(log_id, "failed", error_message=str(e))

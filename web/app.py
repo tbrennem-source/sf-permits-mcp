@@ -6094,7 +6094,23 @@ def cron_nightly():
     dry_run = request.args.get("dry_run", "").lower() in ("1", "true", "yes")
 
     try:
-        result = run_async(run_nightly(lookback_days=lookback_days, dry_run=dry_run))
+        # Hard timeout on SODA pipeline (480s) to prevent orphaned cron_log
+        # rows when the worker is killed by gunicorn (600s timeout).
+        import asyncio as _asyncio
+        result = run_async(
+            _asyncio.wait_for(
+                run_nightly(lookback_days=lookback_days, dry_run=dry_run),
+                timeout=480,
+            )
+        )
+
+        # If run_nightly returned a "skipped" status (concurrency guard),
+        # return immediately without running post-processing steps.
+        if isinstance(result, dict) and result.get("status") == "skipped":
+            return Response(
+                json.dumps(result, indent=2),
+                mimetype="application/json",
+            )
 
         # Append feedback triage (non-fatal — failure doesn't fail nightly)
         triage_result = {}
@@ -6203,6 +6219,29 @@ def cron_nightly():
                 "dq_cache": dq_cache_result,
                 "staleness_alert": staleness_alert_result,
             }, indent=2),
+            mimetype="application/json",
+        )
+    except asyncio.TimeoutError:
+        logging.error("Nightly cron timed out after 480s — marking cron_log as failed")
+        # Best-effort cleanup of orphaned cron_log row
+        try:
+            from src.db import get_connection as _gc
+            _c = _gc()
+            _c.autocommit = True if not hasattr(_c, '_conn') else False
+            if hasattr(_c, '_conn'):
+                _c._conn.autocommit = True
+            with _c.cursor() as _cur:
+                _cur.execute(
+                    "UPDATE cron_log SET status = 'failed', completed_at = NOW(), "
+                    "error_message = 'Pipeline timeout (480s)' "
+                    "WHERE status = 'running'"
+                )
+            _c.close()
+        except Exception:
+            pass
+        return Response(
+            json.dumps({"status": "timeout", "error": "Pipeline timeout (480s)"}, indent=2),
+            status=504,
             mimetype="application/json",
         )
     except Exception as e:
