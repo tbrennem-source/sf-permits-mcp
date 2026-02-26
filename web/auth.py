@@ -111,7 +111,8 @@ def get_user_by_email(email: str) -> dict | None:
         "COALESCE(brief_frequency, 'none'), invite_code, "
         "primary_street_number, primary_street_name, "
         "COALESCE(subscription_tier, 'free'), voice_style, "
-        "COALESCE(referral_source, 'invited'), detected_persona "
+        "COALESCE(referral_source, 'invited'), detected_persona, "
+        "COALESCE(notify_permit_changes, FALSE), notify_email "
         "FROM users WHERE email = %s",
         (email,),
     )
@@ -127,7 +128,8 @@ def get_user_by_id(user_id: int) -> dict | None:
         "COALESCE(brief_frequency, 'none'), invite_code, "
         "primary_street_number, primary_street_name, "
         "COALESCE(subscription_tier, 'free'), voice_style, "
-        "COALESCE(referral_source, 'invited'), detected_persona "
+        "COALESCE(referral_source, 'invited'), detected_persona, "
+        "COALESCE(notify_permit_changes, FALSE), notify_email "
         "FROM users WHERE user_id = %s",
         (user_id,),
     )
@@ -145,7 +147,8 @@ def _row_to_user(row) -> dict:
         9: brief_frequency, 10: invite_code,
         11: primary_street_number, 12: primary_street_name,
         13: subscription_tier, 14: voice_style,
-        15: referral_source, 16: detected_persona
+        15: referral_source, 16: detected_persona,
+        17: notify_permit_changes, 18: notify_email
     """
     email = row[1]
     db_admin = row[7]
@@ -171,6 +174,8 @@ def _row_to_user(row) -> dict:
         "voice_style": row[14] if len(row) > 14 else None,
         "referral_source": row[15] if len(row) > 15 else "invited",
         "detected_persona": row[16] if len(row) > 16 else None,
+        "notify_permit_changes": bool(row[17]) if len(row) > 17 else False,
+        "notify_email": row[18] if len(row) > 18 else None,
     }
 
 

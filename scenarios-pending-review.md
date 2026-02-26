@@ -1853,3 +1853,55 @@ _Last reviewed: never_
 **Edge cases seen in code:** gate_context injected via @app.context_processor; FeatureTier.PREMIUM reserved but unused; unknown features default to AUTHENTICATED tier
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+<!-- Sprint 61D: 5 scenarios added by Agent D (email notifications) on 2026-02-25 -->
+
+## SUGGESTED SCENARIO: user receives individual email when watched permit changes status
+**Source:** web/email_notifications.py — send_permit_notifications, _send_individual_notification
+**User:** expediter
+**Starting state:** User has notify_permit_changes=True, watches a permit by block/lot, and nightly cron detects a status change on that permit
+**Goal:** Be notified when a watched permit status changes
+**Expected outcome:** User receives one email per change (up to 10), containing permit address, old→new status, date, and link to turn off notifications
+**Edge cases seen in code:** If SMTP fails, error is counted and pipeline continues without raising. Dev mode (no SMTP_HOST) skips sending and returns True.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: user receives digest email when more than 10 watched permits change
+**Source:** web/email_notifications.py — MAX_INDIVIDUAL_EMAILS threshold
+**User:** expediter
+**Starting state:** User watches 15+ permits, nightly cron detects changes on all of them
+**Goal:** Get a summary rather than 15+ individual emails
+**Expected outcome:** User receives exactly 1 digest email with a table showing all changes (permit, address, change, date), not 15 individual emails
+**Edge cases seen in code:** Threshold is MAX_INDIVIDUAL_EMAILS=10. If exactly 10 changes, individual emails are sent. If 11+, digest is triggered.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: user opts out of permit notifications from account page
+**Source:** web/templates/fragments/account_settings.html, web/app.py — /account/notify-permit-changes route
+**User:** expediter
+**Starting state:** User has notify_permit_changes=True (opted in)
+**Goal:** Stop receiving permit change emails
+**Expected outcome:** User unchecks the "Email me when watched permits change status" checkbox, clicks Save, and receives confirmation. Subsequent nightly runs skip this user.
+**Edge cases seen in code:** Checkbox state persists via DB UPDATE. HTMX response shows "Off — permit change alerts disabled." Pre-migration rows default to False.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: nightly pipeline sends notifications after change detection
+**Source:** scripts/nightly_changes.py — Step 11 integration
+**User:** admin
+**Starting state:** Nightly cron runs, detects new permit_changes rows for today
+**Goal:** Ensure emails are sent automatically after change detection without manual intervention
+**Expected outcome:** After detect steps complete, send_permit_notifications is called with today's changes. Stats ("notifications_sent") are included in the cron log. A SMTP failure in notification step does not abort the cron job.
+**Edge cases seen in code:** Wrapped in try/except — failure is non-fatal, logged to step_results["notifications"]. DuckDB vs Postgres cast syntax handled conditionally.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: one-click unsubscribe from notification email footer
+**Source:** web/app.py — unsubscribe_notifications query param handling, web/email_notifications.py — generate_unsubscribe_token
+**User:** expediter
+**Starting state:** User receives a permit change notification email
+**Goal:** Quickly opt out without logging in
+**Expected outcome:** Email footer contains a link with a signed HMAC token. Clicking the link sets notify_permit_changes=False in the DB. Token is user-specific and deterministic (no DB storage needed).
+**Edge cases seen in code:** Token is HMAC-SHA256[:32] of "user_id:email" using SECRET_KEY. Invalid/mismatched token is ignored silently. Route validates token before updating DB.
+**CC confidence:** medium
+**Status:** PENDING REVIEW

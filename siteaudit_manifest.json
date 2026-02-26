@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-26T04:39:28.339662+00:00",
-  "total_routes": 136,
+  "generated_at": "2026-02-26T12:17:47.816364+00:00",
+  "total_routes": 141,
   "routes": [
     {
       "path": "/robots.txt",
@@ -372,6 +372,24 @@
       "function_name": "account"
     },
     {
+      "path": "/account/fragment/settings",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_fragment_settings"
+    },
+    {
+      "path": "/account/fragment/admin",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "account_fragment_admin"
+    },
+    {
       "path": "/account/primary-address",
       "methods": [
         "POST"
@@ -417,6 +435,24 @@
       "function_name": "velocity_station_detail"
     },
     {
+      "path": "/api/similar-projects",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_similar_projects"
+    },
+    {
+      "path": "/api/activity/track",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_activity_track"
+    },
+    {
       "path": "/portfolio",
       "methods": [
         "GET"
@@ -442,6 +478,15 @@
       "auth_level": "auth",
       "template": null,
       "function_name": "account_voice_style"
+    },
+    {
+      "path": "/account/notify-permit-changes",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "account_notify_permit_changes"
     },
     {
       "path": "/admin/send-invite",
@@ -1252,8 +1297,8 @@
   },
   "auth_summary": {
     "public": 39,
-    "auth": 23,
-    "admin": 30,
-    "cron": 44
+    "auth": 25,
+    "admin": 31,
+    "cron": 46
   }
 }

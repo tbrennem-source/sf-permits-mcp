@@ -434,6 +434,45 @@ def _run_sprint61b_teams() -> dict[str, Any]:
         conn.close()
 
 
+def _run_sprint61d_notify_columns() -> dict[str, Any]:
+    """Sprint 61D: Add notify_permit_changes and notify_email columns to users."""
+    from src.db import get_connection, BACKEND  # type: ignore
+
+    conn = get_connection()
+    try:
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute("""
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_permit_changes BOOLEAN DEFAULT FALSE;
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_email TEXT;
+                """)
+            conn.commit()
+        else:
+            # DuckDB — attempt each column separately (no IF NOT EXISTS for ALTER)
+            try:
+                conn.execute("ALTER TABLE users ADD COLUMN notify_permit_changes BOOLEAN DEFAULT FALSE")
+            except Exception:
+                pass  # Column already exists
+            try:
+                conn.execute("ALTER TABLE users ADD COLUMN notify_email TEXT")
+            except Exception:
+                pass  # Column already exists
+        return {
+            "ok": True,
+            "columns_added": ["users.notify_permit_changes", "users.notify_email"],
+        }
+    except Exception as exc:
+        if BACKEND == "postgres":
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        logger.error("sprint61d_notify_columns migration failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+    finally:
+        conn.close()
+
+
 # ---- ordered registry ------------------------------------------------
 
 MIGRATIONS: list[Migration] = [
@@ -503,6 +542,11 @@ MIGRATIONS: list[Migration] = [
         name="sprint61b_teams",
         description="Sprint 61B: projects + project_members tables + project_id on analysis_sessions",
         run=_run_sprint61b_teams,
+    ),
+    Migration(
+        name="sprint61d_notify_columns",
+        description="Sprint 61D: notify_permit_changes + notify_email columns on users",
+        run=_run_sprint61d_notify_columns,
     ),
 ]
 

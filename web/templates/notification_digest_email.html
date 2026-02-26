@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ count }} permit updates — sfpermits.ai</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f6fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f6fa;padding:32px 16px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:#1e3a5f;padding:24px 32px;text-align:center;">
+                            <a href="{{ base_url }}" style="text-decoration:none;">
+                                <span style="color:#ffffff;font-size:1.3rem;font-weight:700;letter-spacing:-0.5px;">sfpermits.ai</span>
+                            </a>
+                            <p style="color:#93b8d4;margin:4px 0 0;font-size:0.8rem;">San Francisco Building Permit Intelligence</p>
+                        </td>
+                    </tr>
+
+                    <!-- Eyebrow label -->
+                    <tr>
+                        <td style="padding:24px 32px 0;text-align:center;">
+                            <span style="display:inline-block;background:#e8f0fe;color:#1e3a5f;font-size:0.75rem;font-weight:600;letter-spacing:0.5px;padding:4px 12px;border-radius:20px;text-transform:uppercase;">Permit Update Digest</span>
+                        </td>
+                    </tr>
+
+                    <!-- Heading -->
+                    <tr>
+                        <td style="padding:20px 32px 8px;">
+                            <h1 style="margin:0 0 8px;font-size:1.3rem;color:#111827;line-height:1.3;">
+                                {{ count }} permit updates at your watched addresses
+                            </h1>
+                            <p style="margin:0 0 20px;font-size:0.9rem;color:#6b7280;">
+                                Here's a summary of all the changes detected overnight.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Changes table -->
+                    <tr>
+                        <td style="padding:0 32px 24px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-size:0.875rem;">
+                                <!-- Table header -->
+                                <thead>
+                                    <tr style="background:#f3f4f6;">
+                                        <th style="padding:8px 12px;text-align:left;color:#6b7280;font-weight:600;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.3px;border-bottom:2px solid #e5e7eb;">Permit</th>
+                                        <th style="padding:8px 12px;text-align:left;color:#6b7280;font-weight:600;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.3px;border-bottom:2px solid #e5e7eb;">Address</th>
+                                        <th style="padding:8px 12px;text-align:left;color:#6b7280;font-weight:600;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.3px;border-bottom:2px solid #e5e7eb;">Change</th>
+                                        <th style="padding:8px 12px;text-align:left;color:#6b7280;font-weight:600;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.3px;border-bottom:2px solid #e5e7eb;">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in rows %}
+                                    <tr style="border-bottom:1px solid #f3f4f6;">
+                                        <td style="padding:10px 12px;color:#2563eb;white-space:nowrap;">
+                                            {% if row.permit_url %}
+                                            <a href="{{ row.permit_url }}" style="color:#2563eb;text-decoration:none;font-weight:500;">{{ row.permit_number or '—' }}</a>
+                                            {% else %}
+                                            {{ row.permit_number or '—' }}
+                                            {% endif %}
+                                        </td>
+                                        <td style="padding:10px 12px;color:#111827;">{{ row.address }}</td>
+                                        <td style="padding:10px 12px;color:#374151;">{{ row.status_text }}</td>
+                                        <td style="padding:10px 12px;color:#6b7280;white-space:nowrap;">{{ row.date_text }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- CTA -->
+                    <tr>
+                        <td style="padding:0 32px 28px;text-align:center;">
+                            <a href="{{ brief_url }}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:0.9rem;font-weight:600;">
+                                View Your Morning Brief
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Divider + footer -->
+                    <tr>
+                        <td style="padding:0 32px 24px;">
+                            <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 20px;">
+                            <p style="margin:0;font-size:0.8rem;color:#9ca3af;text-align:center;line-height:1.8;">
+                                You're receiving this because you're watching these addresses on sfpermits.ai.<br>
+                                <a href="{{ account_url }}" style="color:#6b7280;text-decoration:underline;">Manage notification preferences</a>
+                                &nbsp;&middot;&nbsp;
+                                <a href="{{ account_url }}?unsubscribe_notifications=1&uid={{ user_id }}&token={{ unsubscribe_token }}" style="color:#6b7280;text-decoration:underline;">Turn off permit alerts</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

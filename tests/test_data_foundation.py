@@ -643,10 +643,10 @@ class TestIntegration:
         )
 
     def test_full_migration_count_updated(self):
-        """MIGRATIONS list now has 13 entries (10 original + shareable_analysis + neighborhood_backfill + sprint61b_teams)."""
+        """MIGRATIONS list now has 14 entries (12 + sprint61b_teams + sprint61d_notify_columns)."""
         from scripts.run_prod_migrations import MIGRATIONS
-        assert len(MIGRATIONS) == 13, (
-            f"Expected 13 migrations after adding sprint61b_teams, got {len(MIGRATIONS)}"
+        assert len(MIGRATIONS) == 14, (
+            f"Expected 14 migrations, got {len(MIGRATIONS)}"
         )
 
     def test_velocity_periods_flow_through_refresh(self, duck_velocity):

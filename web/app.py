@@ -4098,6 +4098,27 @@ def account():
     """User account page with watch list."""
     from web.auth import get_watches, INVITE_CODES
     from web.activity import get_user_points, get_points_history
+    from src.db import execute_write
+
+    # One-click unsubscribe from permit change notifications (linked from emails)
+    if request.args.get("unsubscribe_notifications") == "1":
+        try:
+            from web.email_notifications import generate_unsubscribe_token
+            uid_param = request.args.get("uid", "")
+            token_param = request.args.get("token", "")
+            if uid_param and token_param:
+                uid_int = int(uid_param)
+                expected = generate_unsubscribe_token(uid_int, g.user["email"])
+                import hmac as _hmac
+                if uid_int == g.user["user_id"] and _hmac.compare_digest(token_param, expected):
+                    execute_write(
+                        "UPDATE users SET notify_permit_changes = FALSE WHERE user_id = %s",
+                        (g.user["user_id"],),
+                    )
+                    g.user["notify_permit_changes"] = False
+        except Exception:
+            pass  # Non-fatal — just continue to account page
+
     watches = get_watches(g.user["user_id"])
     # Sort codes so the dropdown is consistent
     invite_codes = sorted(INVITE_CODES) if g.user.get("is_admin") else []
@@ -4445,6 +4466,29 @@ def account_voice_style():
     if voice_style:
         return '<span style="color:var(--success);">Saved — I\'ll use this style in future responses.</span>'
     return '<span style="color:var(--text-muted);">Cleared — using default style.</span>'
+
+
+# === SESSION D: notification push ===
+
+@app.route("/account/notify-permit-changes", methods=["POST"])
+@login_required
+def account_notify_permit_changes():
+    """Toggle permit change email notifications for the current user."""
+    from src.db import execute_write
+
+    # Checkbox: present = True, absent = False
+    notify = request.form.get("notify_permit_changes") == "1"
+
+    execute_write(
+        "UPDATE users SET notify_permit_changes = %s WHERE user_id = %s",
+        (notify, g.user["user_id"]),
+    )
+
+    if notify:
+        return '<span style="color:var(--success);">On — you\'ll get emails when watched permits change.</span>'
+    return '<span style="color:var(--text-muted);">Off — permit change alerts disabled.</span>'
+
+# === END SESSION D ===
 
 
 # ---------------------------------------------------------------------------
