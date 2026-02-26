@@ -1373,6 +1373,10 @@ def analyze():
         experience_level=experience_level,
         has_team=bool(team_md),
         analysis_id=analysis_id,
+        # SESSION A: params for similar projects lazy load
+        analyze_permit_type=permit_type,
+        analyze_neighborhood=neighborhood or "",
+        analyze_cost=estimated_cost or "",
     )
 
 
@@ -4138,6 +4142,41 @@ def velocity_station_detail(station: str):
     station = station.upper().strip()
     reviewers = get_reviewer_stats(station)
     return jsonify({"station": station, "reviewers": reviewers})
+
+
+# === SESSION A: SIMILAR PROJECTS ===
+@app.route("/api/similar-projects")
+def api_similar_projects():
+    """Lazy-loaded similar projects for /analyze results page."""
+    from src.tools.similar_projects import similar_projects as _similar_projects
+
+    permit_type = request.args.get("permit_type", "alterations")
+    neighborhood = request.args.get("neighborhood", "")
+    cost_str = request.args.get("cost", "")
+    analysis_id = request.args.get("analysis_id", "")
+
+    estimated_cost = float(cost_str) if cost_str else None
+
+    try:
+        result_md, meta = run_async(_similar_projects(
+            permit_type=permit_type,
+            neighborhood=neighborhood or None,
+            estimated_cost=estimated_cost,
+            return_structured=True,
+        ))
+        projects = meta.get("projects", [])
+    except Exception as e:
+        logging.warning("similar_projects failed: %s", e)
+        projects = []
+        meta = {}
+
+    return render_template(
+        "fragments/similar_projects.html",
+        projects=projects,
+        methodology=meta,
+        analysis_id=analysis_id,
+    )
+# === END SESSION A ===
 
 
 # ---------------------------------------------------------------------------

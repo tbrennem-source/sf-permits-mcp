@@ -35,6 +35,7 @@
     "docs": {"label": "Documents", "panel": "panel-docs"},
     "risk": {"label": "Revision Risk", "panel": "panel-risk"},
     "team": {"label": "Your Team", "panel": "panel-team"},
+    "similar": {"label": "Similar Projects", "panel": "panel-similar"},
 } %}
 
 {# Map tab keys to anchor IDs for methodology cards #}
@@ -66,6 +67,8 @@
     <button class="tab{% if loop.first %} active{% endif %}" data-panel="{{ TAB_META[key].panel }}">{{ TAB_META[key].label }}</button>
     {% endif %}
 {% endfor %}
+{# === SESSION A: Similar Projects Tab Button (lazy-loaded via HTMX) === #}
+<button class="tab" data-panel="panel-similar">Similar Projects</button>
 </div>
 
 {% for key in order %}
@@ -179,6 +182,21 @@
 </div>
 {% endif %}
 {% endfor %}
+
+{# === SESSION A: Similar Projects Tab Panel (lazy-loaded via HTMX) === #}
+<div id="panel-similar" class="tab-panel">
+    <div class="result-card">
+        <div id="similar-content"
+             hx-get="/api/similar-projects?permit_type={{ (analyze_permit_type or '')|urlencode }}&neighborhood={{ (analyze_neighborhood or '')|urlencode }}&cost={{ analyze_cost or '' }}{% if analysis_id %}&analysis_id={{ analysis_id }}{% endif %}"
+             hx-trigger="intersect once"
+             hx-swap="innerHTML">
+            <div style="text-align:center;padding:20px;color:var(--text-muted, #888);">
+                Loading similar projects...
+            </div>
+        </div>
+    </div>
+</div>
+{# === END SESSION A === #}
 
 {% if analysis_id %}
 <!-- Share actions bar -->

@@ -58,6 +58,9 @@ from src.tools.list_feedback import list_feedback
 # Phase 7 tools (project intelligence)
 from src.tools.project_intel import run_query, read_source, search_source, schema_info, list_tests
 
+# Phase 8 tools (permit intelligence)
+from src.tools.similar_projects import similar_projects
+
 # Create MCP server
 mcp = FastMCP(
     "SF Permits",
@@ -138,6 +141,9 @@ mcp.tool()(read_source)
 mcp.tool()(search_source)
 mcp.tool()(schema_info)
 mcp.tool()(list_tests)
+
+# Phase 8 tools (permit intelligence)
+mcp.tool()(similar_projects)
 
 
 if __name__ == "__main__":

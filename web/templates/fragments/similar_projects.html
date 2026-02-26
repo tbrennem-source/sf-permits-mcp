@@ -1,0 +1,98 @@
+{% if projects %}
+<div style="margin-bottom:12px;">
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        {{ projects|length }} similar completed project{{ 's' if projects|length != 1 else '' }} found
+    </p>
+
+    {% for p in projects[:3] %}
+    <div style="background:var(--surface, #1a1d27);border:1px solid var(--border, #333);border-radius:8px;padding:14px 16px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+            <strong style="font-size:0.9rem;">{{ p.address or p.permit_number }}</strong>
+            <span style="color:var(--text-muted);font-size:0.8rem;">{{ p.permit_number }}</span>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);">
+            {% if p.days_to_issuance %}
+            <span>{{ p.days_to_issuance }} days to issuance</span>
+            {% endif %}
+            {% if p.days_to_completion %}
+             &middot; <span>{{ p.days_to_completion }} days to completion</span>
+            {% endif %}
+        </div>
+        {% if p.cost_change_pct is defined and p.cost_change_pct is not none %}
+        <div style="font-size:0.8rem;margin-top:4px;color:{{ '#f59e0b' if p.cost_change_pct > 0 else 'var(--success, #22c55e)' }};">
+            Cost {{ 'increased' if p.cost_change_pct > 0 else 'decreased' }}: {{ p.cost_change_pct|abs|round(1) }}%
+        </div>
+        {% endif %}
+        {% if p.routing_path %}
+        <div style="font-size:0.75rem;margin-top:4px;color:var(--text-muted);">
+            Route: {{ p.routing_path|join(' &rarr; ') }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if projects|length > 3 %}
+    <details style="margin-top:4px;">
+        <summary style="cursor:pointer;color:var(--accent, #4f8ff7);font-size:0.85rem;">
+            Show {{ projects|length - 3 }} more
+        </summary>
+        {% for p in projects[3:] %}
+        <div style="background:var(--surface, #1a1d27);border:1px solid var(--border, #333);border-radius:8px;padding:14px 16px;margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                <strong style="font-size:0.9rem;">{{ p.address or p.permit_number }}</strong>
+                <span style="color:var(--text-muted);font-size:0.8rem;">{{ p.permit_number }}</span>
+            </div>
+            <div style="font-size:0.85rem;color:var(--text-muted);">
+                {% if p.days_to_issuance %}
+                <span>{{ p.days_to_issuance }} days to issuance</span>
+                {% endif %}
+                {% if p.days_to_completion %}
+                 &middot; <span>{{ p.days_to_completion }} days to completion</span>
+                {% endif %}
+            </div>
+            {% if p.cost_change_pct is defined and p.cost_change_pct is not none %}
+            <div style="font-size:0.8rem;margin-top:4px;color:{{ '#f59e0b' if p.cost_change_pct > 0 else 'var(--success, #22c55e)' }};">
+                Cost {{ 'increased' if p.cost_change_pct > 0 else 'decreased' }}: {{ p.cost_change_pct|abs|round(1) }}%
+            </div>
+            {% endif %}
+            {% if p.routing_path %}
+            <div style="font-size:0.75rem;margin-top:4px;color:var(--text-muted);">
+                Route: {{ p.routing_path|join(' &rarr; ') }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </details>
+    {% endif %}
+</div>
+
+{# Methodology card (Sprint 58 pattern) #}
+{% if methodology %}
+<details class="methodology-card" id="method-similar">
+    <summary>How we found these</summary>
+    <div class="methodology-body">
+        {% if methodology.methodology is defined and methodology.methodology is mapping %}
+        <p class="methodology-model">{{ methodology.methodology.model }}</p>
+        {% endif %}
+        {% if methodology.formula_steps %}
+        <div class="formula-steps">
+            {% for step in methodology.formula_steps %}
+            <div class="step">{{ step }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="methodology-footer">
+            {% if methodology.data_sources %}Source: {{ methodology.data_sources|join(', ') }}{% endif %}
+            {% if methodology.sample_size %} &middot; {{ "{:,}".format(methodology.sample_size) }} records searched{% endif %}
+            {% if methodology.confidence %} &middot; Confidence: {{ methodology.confidence }}{% endif %}
+        </div>
+    </div>
+</details>
+{% endif %}
+
+{% else %}
+<div style="padding:20px;text-align:center;color:var(--text-muted, #888);">
+    <p>No similar completed projects found for this combination.</p>
+    <p style="font-size:0.85rem;margin-top:8px;">Try broadening your search criteria.</p>
+</div>
+{% endif %}
