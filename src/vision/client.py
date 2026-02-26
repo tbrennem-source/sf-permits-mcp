@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "claude-sonnet-4-20250514"
 DEFAULT_MAX_TOKENS = 2048
+VISION_TIMEOUT_SECS = 30.0
 
 # Anthropic pricing per million tokens (claude-sonnet-4, as of 2025-05)
 _INPUT_COST_PER_MTOK = 3.00
@@ -120,6 +121,7 @@ async def analyze_image(
     system_prompt: str | None = None,
     model: str | None = None,
     max_tokens: int = DEFAULT_MAX_TOKENS,
+    timeout: float | None = None,
 ) -> VisionResult:
     """Send a single image to Claude Vision for analysis.
 
@@ -129,9 +131,12 @@ async def analyze_image(
         system_prompt: Optional system prompt for context.
         model: Model name override.
         max_tokens: Max response tokens.
+        timeout: API call timeout in seconds. Defaults to VISION_TIMEOUT_SECS.
 
     Returns:
         VisionResult with success status and text response.
+        On timeout, returns VisionResult with success=False and
+        error="Vision API timeout" for graceful degradation.
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -140,6 +145,8 @@ async def analyze_image(
             text="",
             error="ANTHROPIC_API_KEY not configured",
         )
+
+    effective_timeout = timeout if timeout is not None else VISION_TIMEOUT_SECS
 
     try:
         import anthropic
@@ -175,7 +182,7 @@ async def analyze_image(
             kwargs["system"] = system_prompt
 
         t0 = time.perf_counter()
-        response = await client.messages.create(timeout=120.0, **kwargs)
+        response = await client.messages.create(timeout=effective_timeout, **kwargs)
         duration_ms = int((time.perf_counter() - t0) * 1000)
         logger.info(
             "[vision] call=%s model=%s duration_ms=%d in_tok=%d out_tok=%d",
@@ -195,11 +202,25 @@ async def analyze_image(
             duration_ms=duration_ms,
         )
     except Exception as e:
+        error_str = str(e)
+        # Detect timeout errors from httpx/anthropic
+        is_timeout = any(kw in error_str.lower() for kw in ("timeout", "timed out", "deadline"))
+        if is_timeout:
+            logger.warning(
+                "Vision API timeout after %.0fs: %s",
+                effective_timeout,
+                prompt[:40].replace("\n", " "),
+            )
+            return VisionResult(
+                success=False,
+                text="",
+                error="Vision API timeout",
+            )
         logger.error("Vision API call failed: %s", e)
         return VisionResult(
             success=False,
             text="",
-            error=str(e),
+            error=error_str,
         )
 
 

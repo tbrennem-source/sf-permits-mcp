@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 # At 150 DPI, a 34"x22" Arch D sheet → ~5100x3300 px.
 DEFAULT_DPI = 150
 
+# Higher DPI for browser display / gallery views where detail matters.
+BROWSER_DPI = 300
+
 # Claude Vision auto-resizes to max 1568px on longest edge, so we
 # pre-downsample to avoid sending unnecessarily large images.
 MAX_DIMENSION = 1568

@@ -17,6 +17,7 @@ from src.vision.client import (
     VisionUsageSummary,
     DEFAULT_MODEL,
     DEFAULT_MAX_TOKENS,
+    VISION_TIMEOUT_SECS,
 )
 
 
@@ -307,3 +308,88 @@ def test_usage_summary_empty():
     d = usage.to_dict()
     assert d["total_calls"] == 0
     assert d["calls"] == []
+
+
+# ── Timeout handling (Sprint 66-C) ──────────────────────────────────────
+
+
+def test_vision_timeout_constant():
+    """VISION_TIMEOUT_SECS is defined at 30 seconds."""
+    assert VISION_TIMEOUT_SECS == 30.0
+
+
+@pytest.mark.asyncio
+async def test_analyze_image_timeout_returns_graceful_failure(mock_anthropic):
+    """Timeout errors return a specific 'Vision API timeout' error."""
+    mock_mod, mock_client = mock_anthropic
+    mock_client.messages.create = AsyncMock(
+        side_effect=Exception("Request timed out after 30.0 seconds")
+    )
+
+    with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
+        result = await analyze_image("base64data", "test prompt")
+
+    assert result.success is False
+    assert result.error == "Vision API timeout"
+
+
+@pytest.mark.asyncio
+async def test_analyze_image_custom_timeout(mock_anthropic):
+    """Custom timeout is passed to the API call."""
+    mock_mod, mock_client = mock_anthropic
+
+    mock_response = MagicMock()
+    mock_response.content = [MagicMock(text="ok")]
+    mock_response.usage = MagicMock(input_tokens=100, output_tokens=50)
+    mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+    with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
+        result = await analyze_image("base64data", "test prompt", timeout=60.0)
+
+    assert result.success is True
+    # Verify the timeout was passed to the API
+    call_kwargs = mock_client.messages.create.call_args
+    assert call_kwargs.kwargs.get("timeout") == 60.0
+
+
+@pytest.mark.asyncio
+async def test_analyze_image_default_timeout(mock_anthropic):
+    """Default timeout uses VISION_TIMEOUT_SECS."""
+    mock_mod, mock_client = mock_anthropic
+
+    mock_response = MagicMock()
+    mock_response.content = [MagicMock(text="ok")]
+    mock_response.usage = MagicMock(input_tokens=100, output_tokens=50)
+    mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+    with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
+        result = await analyze_image("base64data", "test prompt")
+
+    call_kwargs = mock_client.messages.create.call_args
+    assert call_kwargs.kwargs.get("timeout") == VISION_TIMEOUT_SECS
+
+
+@pytest.mark.asyncio
+async def test_analyze_image_non_timeout_error_preserved(mock_anthropic):
+    """Non-timeout errors still include the original error message."""
+    mock_mod, mock_client = mock_anthropic
+    mock_client.messages.create = AsyncMock(
+        side_effect=Exception("API rate limit exceeded")
+    )
+
+    with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
+        result = await analyze_image("base64data", "test prompt")
+
+    assert result.success is False
+    assert "API rate limit exceeded" in result.error
+    assert result.error != "Vision API timeout"
+
+
+# ── PDF DPI constants (Sprint 66-C) ────────────────────────────────────
+
+
+def test_browser_dpi_constant():
+    """BROWSER_DPI is defined for high-resolution browser display."""
+    from src.vision.pdf_to_images import BROWSER_DPI, DEFAULT_DPI
+    assert BROWSER_DPI == 300
+    assert BROWSER_DPI > DEFAULT_DPI
