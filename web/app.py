@@ -764,9 +764,18 @@ from src.tools.team_lookup import generate_team_profile  # noqa: E402, F401
 # ---------------------------------------------------------------------------
 
 ROBOTS_TXT = """\
-# Beta period — hidden from all crawlers
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /cron/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /demo
+Disallow: /account
+Disallow: /brief
+Disallow: /projects
+
+Sitemap: https://sfpermits-ai-production.up.railway.app/sitemap.xml
 """
 
 _BLOCKED_PATHS = {

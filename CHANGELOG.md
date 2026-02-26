@@ -31,6 +31,46 @@
 - Fixed `test_landing.py::test_landing_has_feature_cards` assertion (card name change)
 - Total: 3,340 passing
 
+## Sprint 69 Session 4 — Portfolio Artifacts + PWA + Showcase Polish (2026-02-26)
+
+Portfolio showcase documents, PWA infrastructure, and robots.txt enhancement for SEO readiness.
+
+### Task 1: Portfolio Brief (`docs/portfolio-brief.md`)
+- Comprehensive 1,054-word portfolio document with verified codebase numbers
+- Covers: technical architecture, data pipeline, dforge methodology, skill demonstrations
+- All numbers verified from codebase: 3,327 tests, 29 tools, 142 routes, 59 tables, 21 sprints
+
+### Task 2: LinkedIn Update (`docs/linkedin-update.md`)
+- Headline, About (4 paragraphs), and Experience entry with specific accomplishments
+- Focused on AI-native methodology thesis and concrete numbers
+
+### Task 3: dforge Public README (`docs/dforge-public-readme.md`)
+- Public-facing README covering: 5 Levels, Black Box Protocol, Behavioral Scenarios, governance docs
+- Inventory of 12 templates, 3 frameworks, 16 lessons learned
+- Getting started section with MCP tool commands
+
+### Task 4: Model Release Probes (`docs/model-release-probes.md`)
+- 14 domain-specific probes across 6 categories
+- Categories: Permit Prediction (3), Vision Analysis (2), Multi-Source Synthesis (3), Entity Reasoning (2), Specification Quality (2), Domain Knowledge (2)
+- Each probe has: prompt text, expected capability, "what better looks like", baseline notes
+- Scoring rubric: Accuracy, Completeness, Synthesis, Domain Depth (1-5 each)
+
+### Task 5: PWA Manifest + Icons
+- `web/static/manifest.json` with correct theme_color (#22D3EE), display: standalone
+- Placeholder icon PNGs at 192x192 and 512x512
+- Note: `<link rel="manifest">` tag needs to be added to templates after Session 1 merge
+
+### Task 6: robots.txt Enhancement
+- Updated from "Disallow: /" (beta) to Allow + targeted Disallow directives
+- Disallows: /admin/, /cron/, /api/, /auth/, /demo, /account, /brief, /projects
+- Added Sitemap reference
+
+### Results
+- 30 new tests in `tests/test_sprint69_s4.py` (3,327 → 3,337 passing)
+- 4 scenarios appended to scenarios-pending-review.md
+- 7 Playwright screenshots captured
+- 0 regressions
+
 ## Sprint 64 — Reliability + Monitoring (2026-02-26)
 
 Hardens the reliability layer after Sprint 63 deadlock fix: syncs DDL across migration paths, overhauls data quality checks, enriches morning brief with pipeline stats, and integrates signals/velocity into the nightly pipeline.
