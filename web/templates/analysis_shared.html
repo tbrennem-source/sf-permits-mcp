@@ -326,7 +326,6 @@ document.querySelectorAll('.tab').forEach(btn => {
         document.getElementById(panel)?.classList.add('active');
     });
 });
-{% if project_id %}function joinProject(){var pid={{ project_id|tojson }};var btn=document.getElementById('join-btn');if(btn){btn.disabled=true;btn.textContent='Joining...';}fetch('/project/'+pid+'/join',{method:'POST',headers:{'Content-Type':'application/json'}}).then(function(r){return r.json();}).then(function(d){var b=document.getElementById('join-banner');if(d.ok){if(b){b.innerHTML='Joined! <a href="/project/'+pid+'" style="color:#166534;font-weight:600;">View project</a>';}}else{if(btn){btn.disabled=false;btn.textContent='Join this project';}}}).catch(function(){if(btn){btn.disabled=false;btn.textContent='Join this project';}});}{% endif %}
 </script>
 </body>
 </html>
