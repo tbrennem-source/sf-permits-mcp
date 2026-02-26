@@ -490,6 +490,14 @@
                             Waiting on: {{ pr.routing_pending_stations | join(', ') }}
                         </div>
                         {% endif %}
+                        {# Sprint 60B: Station path prediction #}
+                        {% if pr.predicted_next %}
+                        <div style="font-size:0.75rem;color:var(--accent, #4f8ff7);margin-top:3px;font-weight:500;">
+                            Predicted next: {{ pr.predicted_next }}
+                            {% if pr.predicted_next_days %} (~{{ pr.predicted_next_days }} days){% endif %}
+                            {% if pr.predicted_remaining_days %} · Est. {{ pr.predicted_remaining_days }} days remaining{% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>

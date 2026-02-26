@@ -756,6 +756,7 @@ def _enrich_plan_reviews_with_routing(reviews: list[dict]) -> None:
 
     # Station velocity cache
     velocity_cache: dict[str, str | None] = {}
+    prediction_cache: dict = {}
 
     for pr in reviews:
         rp = routing_map.get(pr["permit_number"])
@@ -778,6 +779,25 @@ def _enrich_plan_reviews_with_routing(reviews: list[dict]) -> None:
                 velocity_cache[station] = None
 
         pr["station_typical_label"] = velocity_cache.get(station)
+
+        # Sprint 60B: Station path prediction
+        if station and station not in prediction_cache:
+            try:
+                from src.tools.station_predictor import predict_total_remaining_days
+                prediction = predict_total_remaining_days(station)
+                prediction_cache[station] = prediction
+            except Exception:
+                prediction_cache[station] = None
+
+        pred = prediction_cache.get(station)
+        if pred:
+            pr["predicted_next"] = pred.get("next_station")
+            pr["predicted_next_days"] = round(pred["next_p50_days"]) if pred.get("next_p50_days") else None
+            pr["predicted_remaining_days"] = pred.get("p50_remaining_days")
+        else:
+            pr["predicted_next"] = None
+            pr["predicted_next_days"] = None
+            pr["predicted_remaining_days"] = None
 
 
 def _rows_to_plan_reviews(rows: list[tuple]) -> list[dict]:
