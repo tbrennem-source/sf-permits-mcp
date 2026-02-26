@@ -285,3 +285,195 @@ def _compute_baseline_live(station: str, lookback_days: int = 90) -> StationBase
         avg_days=float(rows[0][1]) if rows[0][1] is not None else None,
         median_days=float(rows[0][2]) if rows[0][2] is not None else None,
     )
+
+
+# === Sprint 60D: Station Congestion Signal ===
+
+def ensure_station_congestion_table() -> None:
+    """Create station_congestion table if it doesn't exist."""
+    if BACKEND == "postgres":
+        execute_write("""
+            CREATE TABLE IF NOT EXISTS station_congestion (
+                station VARCHAR(30) PRIMARY KEY,
+                current_queue INTEGER NOT NULL DEFAULT 0,
+                baseline_queue_avg FLOAT,
+                congestion_ratio FLOAT,
+                congestion_label VARCHAR(20),
+                computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+
+
+def _compute_current_queue() -> dict[str, int]:
+    """Count permits currently pending at each station (arrived but not finished)."""
+    try:
+        rows = query(
+            "SELECT station, COUNT(*) as pending "
+            "FROM addenda "
+            "WHERE station IS NOT NULL "
+            "  AND arrive IS NOT NULL "
+            "  AND finish_date IS NULL "
+            "GROUP BY station "
+            "ORDER BY pending DESC"
+        )
+        return {r[0]: r[1] for r in rows}
+    except Exception:
+        logger.debug("_compute_current_queue failed", exc_info=True)
+        return {}
+
+
+def _compute_baseline_queue() -> dict[str, float]:
+    """Compute historical average queue depth per station.
+
+    Takes 4 quarterly snapshots over the past year and averages them.
+    Each snapshot counts permits that had arrived but not finished at that point in time.
+    """
+    if BACKEND != "postgres":
+        return {}
+
+    # Use 4 quarterly snapshots: -3mo, -6mo, -9mo, -12mo
+    # For each snapshot date, count permits where arrive <= snapshot_date AND
+    # (finish_date IS NULL OR finish_date > snapshot_date)
+    sql = """
+        WITH snapshots AS (
+            SELECT CURRENT_DATE - INTERVAL '3 months' AS snap_date
+            UNION ALL SELECT CURRENT_DATE - INTERVAL '6 months'
+            UNION ALL SELECT CURRENT_DATE - INTERVAL '9 months'
+            UNION ALL SELECT CURRENT_DATE - INTERVAL '12 months'
+        ),
+        queue_at_snapshot AS (
+            SELECT
+                s.snap_date,
+                a.station,
+                COUNT(*) AS pending
+            FROM snapshots s
+            CROSS JOIN addenda a
+            WHERE a.station IS NOT NULL
+              AND a.arrive IS NOT NULL
+              AND CAST(a.arrive AS DATE) <= s.snap_date
+              AND (a.finish_date IS NULL OR CAST(a.finish_date AS DATE) > s.snap_date)
+            GROUP BY s.snap_date, a.station
+        )
+        SELECT station, AVG(pending) AS avg_pending
+        FROM queue_at_snapshot
+        GROUP BY station
+        HAVING AVG(pending) >= 1
+    """
+    try:
+        rows = query(sql)
+        return {r[0]: float(r[1]) for r in rows}
+    except Exception:
+        logger.debug("_compute_baseline_queue failed", exc_info=True)
+        return {}
+
+
+def _congestion_label(ratio: float | None, current_queue: int) -> str:
+    """Compute congestion label from ratio.
+
+    Rules:
+    - Low queue stations (< 3 pending) always labeled 'normal'
+    - ratio > 1.5 → 'congested'
+    - ratio > 1.15 → 'busy'
+    - ratio < 0.7 → 'clearing'
+    - else → 'normal'
+    """
+    if current_queue < 3:
+        return "normal"
+    if ratio is None:
+        return "normal"
+    if ratio > 1.5:
+        return "congested"
+    if ratio > 1.15:
+        return "busy"
+    if ratio < 0.7:
+        return "clearing"
+    return "normal"
+
+
+def refresh_station_congestion() -> dict:
+    """Refresh station congestion data.
+
+    Current queue: computed live from addenda (arrived, not finished).
+    Baseline: pre-computed from 4 quarterly snapshots.
+
+    Returns dict with stats for logging.
+    """
+    ensure_station_congestion_table()
+
+    if BACKEND != "postgres":
+        logger.info("Station congestion refresh skipped (DuckDB)")
+        return {"congestion_stations": 0}
+
+    current = _compute_current_queue()
+    baseline = _compute_baseline_queue()
+
+    if not current:
+        return {"congestion_stations": 0}
+
+    count = 0
+    for station, queue in current.items():
+        base = baseline.get(station)
+        ratio = queue / base if base and base > 0 else None
+        label = _congestion_label(ratio, queue)
+
+        try:
+            execute_write(
+                "INSERT INTO station_congestion "
+                "(station, current_queue, baseline_queue_avg, congestion_ratio, congestion_label, computed_at) "
+                "VALUES (%s, %s, %s, %s, %s, NOW()) "
+                "ON CONFLICT (station) DO UPDATE SET "
+                "current_queue = EXCLUDED.current_queue, "
+                "baseline_queue_avg = EXCLUDED.baseline_queue_avg, "
+                "congestion_ratio = EXCLUDED.congestion_ratio, "
+                "congestion_label = EXCLUDED.congestion_label, "
+                "computed_at = NOW()",
+                (station, queue, base, ratio, label),
+            )
+            count += 1
+        except Exception:
+            logger.debug("congestion upsert failed for %s", station, exc_info=True)
+
+    return {"congestion_stations": count}
+
+
+def get_station_congestion() -> dict[str, dict]:
+    """Get congestion data for all stations.
+
+    Returns dict keyed by station:
+    {
+        "BLDG": {"current_queue": 45, "baseline_avg": 30.5, "ratio": 1.47, "label": "busy"},
+        ...
+    }
+    """
+    if BACKEND != "postgres":
+        # DuckDB: compute live
+        current = _compute_current_queue()
+        return {
+            station: {
+                "current_queue": queue,
+                "baseline_avg": None,
+                "ratio": None,
+                "label": "normal",
+            }
+            for station, queue in current.items()
+        }
+
+    try:
+        rows = query(
+            "SELECT station, current_queue, baseline_queue_avg, "
+            "congestion_ratio, congestion_label "
+            "FROM station_congestion "
+            "ORDER BY current_queue DESC"
+        )
+        return {
+            r[0]: {
+                "current_queue": r[1],
+                "baseline_avg": float(r[2]) if r[2] is not None else None,
+                "ratio": float(r[3]) if r[3] is not None else None,
+                "label": r[4] or "normal",
+            }
+            for r in rows
+        }
+    except Exception:
+        logger.debug("get_station_congestion failed", exc_info=True)
+        return {}

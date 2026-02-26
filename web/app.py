@@ -4133,6 +4133,13 @@ def velocity_dashboard():
     from web.velocity_dashboard import get_dashboard_data
     user_id = g.user["user_id"] if g.user else None
     data = get_dashboard_data(user_id=user_id)
+    # === SESSION D: Congestion Signal ===
+    try:
+        from web.station_velocity import get_station_congestion
+        data["congestion"] = get_station_congestion()
+    except Exception:
+        data["congestion"] = {}
+    # === END SESSION D ===
     return render_template(
         "velocity_dashboard.html",
         data=data,
@@ -5835,6 +5842,18 @@ def cron_nightly():
                 logging.error("Station velocity refresh failed (non-fatal): %s", ve)
                 velocity_result = {"error": str(ve)}
 
+        # === SESSION D: Station congestion refresh ===
+        congestion_result = {}
+        if not dry_run:
+            try:
+                from web.station_velocity import refresh_station_congestion
+                cong_stats = refresh_station_congestion()
+                congestion_result = {"congestion_stations": cong_stats.get("congestion_stations", 0)}
+            except Exception as cong_e:
+                logging.getLogger(__name__).warning("congestion refresh failed: %s", cong_e)
+                congestion_result = {"error": str(cong_e)}
+        # === END SESSION D ===
+
         # Refresh reviewer-entity interaction graph (non-fatal)
         reviewer_result = {}
         if not dry_run:
@@ -5882,6 +5901,7 @@ def cron_nightly():
                 "triage": triage_result,
                 "cleanup": cleanup_result,
                 "velocity": velocity_result,
+                "congestion": congestion_result,
                 "reviewer_graph": reviewer_result,
                 "ops_chunks": ops_chunks_result,
                 "dq_cache": dq_cache_result,
