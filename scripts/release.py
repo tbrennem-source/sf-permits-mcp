@@ -490,6 +490,22 @@ def run_release_migrations():
         except Exception:
             pass  # table may not exist yet on fresh installs
 
+    # API usage tracking table
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS api_usage (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER,
+            endpoint TEXT,
+            model TEXT,
+            input_tokens INTEGER,
+            output_tokens INTEGER,
+            cost_usd DOUBLE PRECISION,
+            called_at TIMESTAMP DEFAULT NOW(),
+            extra JSONB
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_api_usage_user_date ON api_usage(user_id, called_at)")
+
     # Admin auto-seed
     admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
     if admin_email:
