@@ -1612,7 +1612,7 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-<!-- Sprint 59: 5 scenarios added (account tabs, mobile activity, admin sources nav, voice cal nav, search guidance) -->
+<!-- Sprint 59: 5 scenarios added (account tabs, mobile activity, admin sources nav, voice cal nav, search guidance) — session 2026-02-25 -->
 
 ## SUGGESTED SCENARIO: Admin user switches between Settings and Admin tabs on account page
 **Source:** Sprint 59A — Account tab split
