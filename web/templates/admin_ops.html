@@ -103,6 +103,10 @@
                         hx-get="/admin/ops/fragment/regulatory"
                         hx-target="#tab-content"
                         hx-swap="innerHTML">Regulatory Watch</button>
+                <button class="tab-btn" data-tab="intel"
+                        hx-get="/admin/ops/fragment/intel"
+                        hx-target="#tab-content"
+                        hx-swap="innerHTML">Intelligence</button>
             </div>
 
             <div id="tab-content">
@@ -129,7 +133,8 @@
     var hashAliases = {
         'luck': 'sources',
         'dq': 'quality',
-        'watch': 'regulatory'
+        'watch': 'regulatory',
+        'intelligence': 'intel'
     };
 
     // Helper: extract the trigger element from an HTMX event.

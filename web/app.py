@@ -4683,6 +4683,7 @@ def admin_ops_fragment(tab):
             "feedback": "Feedback",
             "sources": "LUCK Sources",
             "regulatory": "Regulatory Watch",
+            "intel": "Intelligence",
         }
         result = _fragment_timeout_fallback(tab_labels.get(tab, tab.title()))
     finally:
@@ -4779,6 +4780,24 @@ def _render_ops_tab(tab: str):
         return render_template("admin_regulatory_watch.html", user=g.user,
                                items=items, current_status=status_filter,
                                fragment=True)
+
+    # === SESSION A: Activity Intelligence ===
+    elif tab == "intel":
+        from web.activity_intel import (
+            get_bounce_rate, get_feature_funnel, get_query_refinements,
+            get_feedback_by_page, get_time_to_first_action
+        )
+        bounce = get_bounce_rate()
+        funnel = get_feature_funnel()
+        refinements = get_query_refinements()
+        feedback_pages = get_feedback_by_page()
+        time_to_action = get_time_to_first_action()
+        return render_template("fragments/admin_intel.html",
+                               bounce=bounce, funnel=funnel,
+                               refinements=refinements,
+                               feedback_pages=feedback_pages,
+                               time_to_action=time_to_action)
+    # === END SESSION A ===
 
     else:
         abort(404)
