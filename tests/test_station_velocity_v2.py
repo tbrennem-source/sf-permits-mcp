@@ -698,6 +698,276 @@ def test_cost_bracket():
 # ── Cron endpoint test ───────────────────────────────────────────────
 
 
+# ── Neighborhood-stratified velocity tests (Sprint 66) ────────────
+
+
+@pytest.fixture
+def duck_conn_with_permits():
+    """In-memory DuckDB with addenda + permits tables for neighborhood tests."""
+    conn = duckdb.connect(":memory:")
+
+    conn.execute("""
+        CREATE TABLE addenda (
+            id INTEGER PRIMARY KEY,
+            primary_key TEXT,
+            application_number TEXT NOT NULL,
+            addenda_number INTEGER,
+            step INTEGER,
+            station TEXT,
+            arrive TEXT,
+            assign_date TEXT,
+            start_date TEXT,
+            finish_date TEXT,
+            approved_date TEXT,
+            plan_checked_by TEXT,
+            review_results TEXT,
+            hold_description TEXT,
+            addenda_status TEXT,
+            department TEXT,
+            title TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    conn.execute("""
+        CREATE TABLE permits (
+            permit_number TEXT PRIMARY KEY,
+            permit_type TEXT,
+            permit_type_definition TEXT,
+            status TEXT,
+            status_date TEXT,
+            description TEXT,
+            filed_date TEXT,
+            issued_date TEXT,
+            approved_date TEXT,
+            completed_date TEXT,
+            estimated_cost DOUBLE,
+            revised_cost DOUBLE,
+            existing_use TEXT,
+            proposed_use TEXT,
+            existing_units INTEGER,
+            proposed_units INTEGER,
+            street_number TEXT,
+            street_name TEXT,
+            street_suffix TEXT,
+            zipcode TEXT,
+            neighborhood TEXT,
+            supervisor_district TEXT,
+            block TEXT,
+            lot TEXT,
+            adu TEXT,
+            data_as_of TEXT
+        )
+    """)
+
+    from src.station_velocity_v2 import ensure_velocity_v2_table, ensure_neighborhood_velocity_table
+    ensure_velocity_v2_table(conn)
+    ensure_neighborhood_velocity_table(conn)
+
+    yield conn
+    conn.close()
+
+
+def _bulk_addenda_with_permits(conn, station: str, neighborhood: str,
+                               count: int, arrive_base: str = "2024-06-01",
+                               days_range: tuple[int, int] = (1, 30),
+                               addenda_number: int = 0, id_start: int = 1):
+    """Insert addenda rows with matching permit rows for neighborhood tests."""
+    from datetime import datetime
+    base = datetime.strptime(arrive_base, "%Y-%m-%d")
+    low, high = days_range
+    for i in range(count):
+        days = low + (i % (high - low + 1)) if high > low else low
+        arrive = (base + timedelta(days=i)).strftime("%Y-%m-%d")
+        finish = (base + timedelta(days=i + days)).strftime("%Y-%m-%d")
+        permit_num = f"PERMIT{id_start + i:06d}"
+
+        conn.execute(
+            """INSERT INTO addenda
+               (id, application_number, addenda_number, station, arrive,
+                start_date, finish_date, plan_checked_by, review_results, department)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (id_start + i, permit_num, addenda_number, station, arrive,
+             arrive, finish, f"REVIEWER{i % 3}", None, "DBI"),
+        )
+        # Insert matching permit with neighborhood (ignore dupes)
+        try:
+            conn.execute(
+                """INSERT INTO permits (permit_number, neighborhood)
+                   VALUES (?, ?)""",
+                (permit_num, neighborhood),
+            )
+        except Exception:
+            pass  # duplicate permit_number OK
+
+
+def test_compute_neighborhood_velocity_empty(duck_conn_with_permits):
+    """Empty tables return empty results."""
+    from src.station_velocity_v2 import compute_neighborhood_velocity
+    results = compute_neighborhood_velocity(duck_conn_with_permits, mode='all')
+    assert results == []
+
+
+def test_compute_neighborhood_velocity_basic(duck_conn_with_permits):
+    """Basic neighborhood velocity computation works."""
+    _bulk_addenda_with_permits(
+        duck_conn_with_permits, "BLDG", "Mission", count=15,
+        arrive_base="2024-01-01", days_range=(5, 15), id_start=1,
+    )
+    from src.station_velocity_v2 import compute_neighborhood_velocity
+    results = compute_neighborhood_velocity(duck_conn_with_permits, mode='all')
+    initial = [r for r in results if r.metric_type == "initial"]
+    assert len(initial) >= 1
+    assert initial[0].station == "BLDG"
+    assert initial[0].neighborhood == "Mission"
+    assert initial[0].sample_count == 15
+
+
+def test_compute_neighborhood_velocity_below_min_samples(duck_conn_with_permits):
+    """Neighborhoods with fewer than MIN_SAMPLES are excluded."""
+    _bulk_addenda_with_permits(
+        duck_conn_with_permits, "BLDG", "Mission", count=5,
+        arrive_base="2024-01-01", days_range=(5, 15), id_start=1,
+    )
+    from src.station_velocity_v2 import compute_neighborhood_velocity
+    results = compute_neighborhood_velocity(duck_conn_with_permits, mode='all')
+    assert len(results) == 0
+
+
+def test_compute_neighborhood_velocity_multiple_neighborhoods(duck_conn_with_permits):
+    """Multiple neighborhoods computed separately."""
+    _bulk_addenda_with_permits(
+        duck_conn_with_permits, "BLDG", "Mission", count=15,
+        arrive_base="2024-01-01", days_range=(3, 7), id_start=1,
+    )
+    _bulk_addenda_with_permits(
+        duck_conn_with_permits, "BLDG", "SoMa", count=15,
+        arrive_base="2024-01-01", days_range=(20, 35), id_start=200,
+    )
+    from src.station_velocity_v2 import compute_neighborhood_velocity
+    results = compute_neighborhood_velocity(duck_conn_with_permits, mode='all')
+    neighborhoods = {(r.station, r.neighborhood) for r in results if r.metric_type == "initial"}
+    assert ("BLDG", "Mission") in neighborhoods
+    assert ("BLDG", "SoMa") in neighborhoods
+
+
+def test_ensure_neighborhood_velocity_table(duck_conn_with_permits):
+    """Neighborhood table creation is idempotent."""
+    from src.station_velocity_v2 import ensure_neighborhood_velocity_table
+    conn = duck_conn_with_permits
+    conn.execute("DROP TABLE IF EXISTS station_velocity_v2_neighborhood")
+    ensure_neighborhood_velocity_table(conn)
+    ensure_neighborhood_velocity_table(conn)  # second call should not error
+    result = conn.execute("SELECT COUNT(*) FROM station_velocity_v2_neighborhood").fetchone()
+    assert result[0] == 0
+
+
+def test_refresh_neighborhood_velocity(duck_conn_with_permits):
+    """Refresh inserts neighborhood velocity rows."""
+    recent_base = (date.today() - timedelta(days=20)).strftime("%Y-%m-%d")
+    _bulk_addenda_with_permits(
+        duck_conn_with_permits, "BLDG", "Mission", count=20,
+        arrive_base=recent_base, days_range=(3, 10), id_start=1,
+    )
+    from src.station_velocity_v2 import refresh_neighborhood_velocity
+    stats = refresh_neighborhood_velocity(duck_conn_with_permits)
+    assert stats["rows_inserted"] > 0
+
+
+def test_get_neighborhood_velocity_found(duck_conn_with_permits):
+    """Query returns neighborhood-specific velocity data."""
+    conn = duck_conn_with_permits
+    conn.execute(
+        """INSERT INTO station_velocity_v2_neighborhood
+           (id, station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+            p90_days, sample_count, period)
+           VALUES (1, 'BLDG', 'Mission', 'initial', 2.0, 5.0, 10.0, 20.0, 50, 'current')"""
+    )
+    from src.station_velocity_v2 import get_neighborhood_velocity
+    results = get_neighborhood_velocity(["BLDG"], "Mission", conn=conn)
+    assert len(results) == 1
+    assert results[0].station == "BLDG"
+    assert results[0].neighborhood == "Mission"
+    assert results[0].p50_days == 5.0
+
+
+def test_get_neighborhood_velocity_not_found(duck_conn_with_permits):
+    """Query returns empty when no neighborhood data exists."""
+    from src.station_velocity_v2 import get_neighborhood_velocity
+    results = get_neighborhood_velocity(["BLDG"], "Nonexistent", conn=duck_conn_with_permits)
+    assert results == []
+
+
+def test_get_neighborhood_velocity_empty_inputs():
+    """Empty stations or neighborhood returns empty list."""
+    from src.station_velocity_v2 import get_neighborhood_velocity
+    assert get_neighborhood_velocity([], "Mission") == []
+    assert get_neighborhood_velocity(["BLDG"], "") == []
+    assert get_neighborhood_velocity(["BLDG"], None) == []
+
+
+# ── estimate_timeline neighborhood fallback tests (Sprint 66) ─────
+
+
+def test_query_station_velocity_v2_neighborhood_fallback(duck_conn_with_permits):
+    """_query_station_velocity_v2 falls back to station-only when no neighborhood data."""
+    conn = duck_conn_with_permits
+    # Insert station-only data (no neighborhood table data)
+    conn.execute(
+        """INSERT INTO station_velocity_v2
+           (id, station, metric_type, p25_days, p50_days, p75_days,
+            p90_days, sample_count, period)
+           VALUES (1, 'BLDG', 'initial', 1.0, 3.0, 7.0, 14.0, 100, 'current')"""
+    )
+    from src.tools.estimate_timeline import _query_station_velocity_v2
+    results = _query_station_velocity_v2(conn, stations=["BLDG"], neighborhood="Mission")
+    assert len(results) == 1
+    assert results[0]["station"] == "BLDG"
+    assert results[0]["neighborhood_specific"] is False
+
+
+def test_query_station_velocity_v2_uses_neighborhood(duck_conn_with_permits):
+    """_query_station_velocity_v2 uses neighborhood data when available."""
+    conn = duck_conn_with_permits
+    # Insert both station-only and neighborhood data
+    conn.execute(
+        """INSERT INTO station_velocity_v2
+           (id, station, metric_type, p25_days, p50_days, p75_days,
+            p90_days, sample_count, period)
+           VALUES (1, 'BLDG', 'initial', 1.0, 3.0, 7.0, 14.0, 100, 'current')"""
+    )
+    conn.execute(
+        """INSERT INTO station_velocity_v2_neighborhood
+           (id, station, neighborhood, metric_type, p25_days, p50_days, p75_days,
+            p90_days, sample_count, period)
+           VALUES (1, 'BLDG', 'Mission', 'initial', 2.0, 5.0, 10.0, 20.0, 50, 'current')"""
+    )
+    from src.tools.estimate_timeline import _query_station_velocity_v2
+    results = _query_station_velocity_v2(conn, stations=["BLDG"], neighborhood="Mission")
+    assert len(results) == 1
+    assert results[0]["station"] == "BLDG"
+    assert results[0]["neighborhood_specific"] is True
+    assert results[0]["p50_days"] == 5.0  # neighborhood-specific value
+
+
+def test_query_station_velocity_v2_no_neighborhood_param(duck_conn_with_permits):
+    """Without neighborhood param, uses station-only data."""
+    conn = duck_conn_with_permits
+    conn.execute(
+        """INSERT INTO station_velocity_v2
+           (id, station, metric_type, p25_days, p50_days, p75_days,
+            p90_days, sample_count, period)
+           VALUES (1, 'BLDG', 'initial', 1.0, 3.0, 7.0, 14.0, 100, 'current')"""
+    )
+    from src.tools.estimate_timeline import _query_station_velocity_v2
+    results = _query_station_velocity_v2(conn, stations=["BLDG"])
+    assert len(results) == 1
+    assert results[0]["neighborhood_specific"] is False
+
+
+# ── Cron endpoint tests ───────────────────────────────────────────
+
+
 def test_cron_velocity_refresh_blocked_on_web_worker():
     """Cron endpoint blocked on web workers by cron guard."""
     from web.app import app
