@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo — sfpermits.ai Property Intelligence</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style nonce="{{ csp_nonce }}">
+        :root {
+            --bg-deep: #0B0F19;
+            --bg-surface: #131825;
+            --bg-elevated: #1A2035;
+            --bg-glass: rgba(255,255,255, 0.04);
+            --text-primary: #E8ECF4;
+            --text-secondary: #8B95A8;
+            --text-tertiary: #5A6478;
+            --signal-green: #34D399;
+            --signal-amber: #FBBF24;
+            --signal-red: #F87171;
+            --signal-blue: #60A5FA;
+            --signal-cyan: #22D3EE;
+            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
+            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+            --card-radius: 12px;
+            --card-border: 1px solid rgba(255,255,255, 0.06);
+            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        header {
+            border-bottom: var(--card-border);
+            padding: 14px 0;
+            background: var(--bg-surface);
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--signal-cyan);
+            text-decoration: none;
+        }
+        .logo span { color: var(--text-tertiary); font-weight: 400; }
+        .demo-badge {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--signal-amber);
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 4px;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .hero {
+            padding: 32px 0 24px;
+            border-bottom: var(--card-border);
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .hero .address {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        /* Annotation callouts */
+        .callout {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--signal-cyan);
+            background: rgba(34, 211, 238, 0.08);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            border-radius: 4px;
+            padding: 4px 8px;
+            display: inline-block;
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        /* Grid layout */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 24px;
+        }
+        .demo-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+        }
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--signal-cyan);
+            margin-bottom: 12px;
+        }
+
+        .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .stat-pill {
+            background: var(--bg-elevated);
+            border: var(--card-border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+        .stat-pill .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--signal-cyan);
+        }
+        .stat-pill .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        /* Permit table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+        .data-table th {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255,255,255, 0.08);
+        }
+        .data-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255,255,255, 0.04);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+        .data-table tr:hover td { background: var(--bg-glass); }
+        .data-table .highlight {
+            color: var(--signal-cyan);
+            font-family: var(--font-display);
+            font-weight: 500;
+        }
+
+        /* Status badges */
+        .badge {
+            font-family: var(--font-display);
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .badge-issued { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
+        .badge-filed { background: rgba(96, 165, 250, 0.15); color: var(--signal-blue); }
+        .badge-complete { background: rgba(139, 149, 168, 0.15); color: var(--text-secondary); }
+        .badge-expired { background: rgba(248, 113, 113, 0.15); color: var(--signal-red); }
+
+        /* Progress bars for routing */
+        .routing-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .routing-station {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            min-width: 80px;
+        }
+        .routing-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .routing-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .routing-bar-fill.complete { background: var(--signal-green); }
+        .routing-bar-fill.in-progress { background: var(--signal-amber); }
+        .routing-bar-fill.pending { background: var(--text-tertiary); width: 10%; }
+        .routing-status {
+            font-family: var(--font-display);
+            font-size: 0.68rem;
+            color: var(--text-tertiary);
+            min-width: 70px;
+            text-align: right;
+        }
+
+        /* Entity network */
+        .entity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255, 0.04);
+        }
+        .entity-item:last-child { border-bottom: none; }
+        .entity-name {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+        .entity-role {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+        }
+        .entity-permits {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--signal-cyan);
+        }
+
+        /* Violation/complaint items */
+        .alert-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+        }
+        .alert-item.violation {
+            background: rgba(248, 113, 113, 0.08);
+            border-left: 3px solid var(--signal-red);
+        }
+        .alert-item.complaint {
+            background: rgba(251, 191, 36, 0.08);
+            border-left: 3px solid var(--signal-amber);
+        }
+        .alert-item .alert-label {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .alert-item.violation .alert-label { color: var(--signal-red); }
+        .alert-item.complaint .alert-label { color: var(--signal-amber); }
+        .alert-item .alert-text { color: var(--text-secondary); margin-top: 2px; }
+
+        /* Timeline estimate */
+        .timeline-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .timeline-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            min-width: 30px;
+        }
+        .timeline-bar-bg {
+            flex: 1;
+            height: 20px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .timeline-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-family: var(--font-display);
+            font-size: 0.68rem;
+            color: rgba(255,255,255, 0.9);
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            border-top: var(--card-border);
+            padding: 24px 0;
+            margin-top: 32px;
+        }
+        footer p {
+            color: var(--text-tertiary);
+            font-size: 0.78rem;
+            text-align: center;
+        }
+        footer a { color: var(--signal-cyan); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .demo-grid { grid-template-columns: 1fr; }
+            .hero .address { font-size: 1.4rem; }
+        }
+
+        /* Density override */
+        {% if density_max %}
+        .card { padding: 14px; }
+        .demo-grid { gap: 12px; }
+        .data-table { font-size: 0.78rem; }
+        .data-table th, .data-table td { padding: 6px 8px; }
+        {% endif %}
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <span class="demo-badge">Live Demo</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="hero">
+            <h1>Property Intelligence</h1>
+            <div class="address">{{ demo_address }}</div>
+            <div class="subtitle">San Francisco, CA &mdash; Block {{ block }}, Lot {{ lot }} &mdash; {{ neighborhood }}</div>
+        </div>
+
+        <!-- Summary stats -->
+        <div class="stat-row" style="margin-top: 20px;">
+            <div class="stat-pill">
+                <div class="stat-value">{{ permits|length }}</div>
+                <div class="stat-label">permits found</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-value">{{ complaints|length }}</div>
+                <div class="stat-label">complaints</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-value">{{ violations|length }}</div>
+                <div class="stat-label">violations</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-value">{{ entities|length }}</div>
+                <div class="stat-label">entities</div>
+            </div>
+        </div>
+
+        <div class="demo-grid">
+            <!-- ── Permit History ── -->
+            <div class="card full-width">
+                <span class="callout">Queried from 1.1M building permits via SODA API (dataset i98e-djp9)</span>
+                <div class="card-title">Permit History</div>
+                {% if permits %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Permit #</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Filed</th>
+                            <th>Cost</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in permits[:15] %}
+                        <tr>
+                            <td class="highlight">{{ p.permit_number }}</td>
+                            <td>{{ p.permit_type or 'N/A' }}</td>
+                            <td>
+                                <span class="badge {% if p.status == 'issued' %}badge-issued{% elif p.status == 'filed' %}badge-filed{% elif p.status == 'complete' %}badge-complete{% elif p.status == 'expired' %}badge-expired{% endif %}">
+                                    {{ p.status or 'unknown' }}
+                                </span>
+                            </td>
+                            <td>{{ p.filed_date or 'N/A' }}</td>
+                            <td>{{ p.cost_display or 'N/A' }}</td>
+                            <td>{{ p.description_short }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if permits|length > 15 %}
+                <p style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 8px;">
+                    Showing 15 of {{ permits|length }} permits
+                </p>
+                {% endif %}
+                {% else %}
+                <div class="empty-state">No permit data available</div>
+                {% endif %}
+            </div>
+
+            <!-- ── Routing Progress ── -->
+            <div class="card">
+                <span class="callout">Real routing data from DBI's addenda system (3.9M records)</span>
+                <div class="card-title">Routing Progress</div>
+                {% if routing %}
+                {% for r in routing[:8] %}
+                <div class="routing-item">
+                    <div class="routing-station">{{ r.station }}</div>
+                    <div class="routing-bar-bg">
+                        <div class="routing-bar-fill {{ r.bar_class }}" style="width: {{ r.pct }}%"></div>
+                    </div>
+                    <div class="routing-status">{{ r.result }}</div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">No active routing</div>
+                {% endif %}
+            </div>
+
+            <!-- ── Timeline Estimate ── -->
+            <div class="card">
+                <span class="callout">Station-sum model from station_velocity_v2 (p50 values)</span>
+                <div class="card-title">Timeline Estimate</div>
+                {% if timeline %}
+                <div class="timeline-row">
+                    <div class="timeline-label">p25</div>
+                    <div class="timeline-bar-bg">
+                        <div class="timeline-bar-fill" style="width: {{ timeline.p25_pct }}%; background: var(--signal-green);">{{ timeline.p25 }}d</div>
+                    </div>
+                </div>
+                <div class="timeline-row">
+                    <div class="timeline-label">p50</div>
+                    <div class="timeline-bar-bg">
+                        <div class="timeline-bar-fill" style="width: {{ timeline.p50_pct }}%; background: var(--signal-blue);">{{ timeline.p50 }}d</div>
+                    </div>
+                </div>
+                <div class="timeline-row">
+                    <div class="timeline-label">p75</div>
+                    <div class="timeline-bar-bg">
+                        <div class="timeline-bar-fill" style="width: {{ timeline.p75_pct }}%; background: var(--signal-amber);">{{ timeline.p75 }}d</div>
+                    </div>
+                </div>
+                <div class="timeline-row">
+                    <div class="timeline-label">p90</div>
+                    <div class="timeline-bar-bg">
+                        <div class="timeline-bar-fill" style="width: {{ timeline.p90_pct }}%; background: var(--signal-red);">{{ timeline.p90 }}d</div>
+                    </div>
+                </div>
+                <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 8px;">
+                    Based on {{ timeline.sample_size }} historical permits &mdash; {{ timeline.confidence }} confidence
+                </p>
+                {% else %}
+                <div class="empty-state">Timeline estimate unavailable</div>
+                {% endif %}
+            </div>
+
+            <!-- ── Entity Network ── -->
+            <div class="card">
+                <span class="callout">Entity resolution: 1.8M contacts resolved to 1M entities</span>
+                <div class="card-title">Connected Entities</div>
+                {% if entities %}
+                {% for e in entities[:10] %}
+                <div class="entity-item">
+                    <div>
+                        <div class="entity-name">{{ e.name }}</div>
+                        <div class="entity-role">{{ e.role }}</div>
+                    </div>
+                    <div class="entity-permits">{{ e.permit_count }} permits</div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">No entities found</div>
+                {% endif %}
+            </div>
+
+            <!-- ── Complaints & Violations ── -->
+            <div class="card">
+                <span class="callout">DBI complaint + violation databases cross-referenced</span>
+                <div class="card-title">Complaints &amp; Violations</div>
+                {% if violations or complaints %}
+                {% for v in violations[:3] %}
+                <div class="alert-item violation">
+                    <div class="alert-label">Violation</div>
+                    <div class="alert-text">{{ v.description_short }} ({{ v.status }})</div>
+                </div>
+                {% endfor %}
+                {% for c in complaints[:3] %}
+                <div class="alert-item complaint">
+                    <div class="alert-label">Complaint</div>
+                    <div class="alert-text">{{ c.description_short }} ({{ c.status }})</div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">No complaints or violations on record</div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>
+                sfpermits.ai &mdash; Live property intelligence demo
+                &middot; <a href="/methodology">Methodology</a>
+                &middot; <a href="/about-data">About the Data</a>
+                &middot; <a href="/">Home</a>
+            </p>
+            <p style="margin-top: 6px;">
+                All data from City and County of San Francisco open data. Not affiliated with or endorsed by SF DBI.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Methodology — How sfpermits.ai Works</title>
+    <meta name="description" content="How sfpermits.ai calculates permit timelines, fees, revision risk, and entity resolution from 22 government data sources. Full methodology with confidence intervals.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style nonce="{{ csp_nonce }}">
+        :root {
+            --bg-deep: #0B0F19;
+            --bg-surface: #131825;
+            --bg-elevated: #1A2035;
+            --bg-glass: rgba(255,255,255, 0.04);
+            --text-primary: #E8ECF4;
+            --text-secondary: #8B95A8;
+            --text-tertiary: #5A6478;
+            --signal-green: #34D399;
+            --signal-amber: #FBBF24;
+            --signal-red: #F87171;
+            --signal-blue: #60A5FA;
+            --signal-cyan: #22D3EE;
+            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
+            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+            --card-radius: 12px;
+            --card-border: 1px solid rgba(255,255,255, 0.06);
+            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Header ── */
+        header {
+            border-bottom: var(--card-border);
+            padding: 18px 0;
+            background: var(--bg-surface);
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--signal-cyan);
+            text-decoration: none;
+        }
+        .logo span { color: var(--text-tertiary); font-weight: 400; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text-primary); }
+
+        /* ── Hero ── */
+        .hero {
+            padding: 64px 0 40px;
+            border-bottom: var(--card-border);
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.2;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 720px;
+            line-height: 1.7;
+        }
+
+        /* ── Section headings ── */
+        .section {
+            padding: 48px 0 24px;
+        }
+        .section h2 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--signal-cyan);
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+        .section h2 .num {
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+        .section h3 {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 24px 0 8px;
+        }
+        .section p, .section li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .section p { margin-bottom: 12px; }
+        .section ul, .section ol {
+            margin: 8px 0 16px 20px;
+        }
+        .section li { margin-bottom: 6px; }
+
+        /* ── Tables ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px;
+            font-size: 0.85rem;
+        }
+        .data-table th {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255, 0.08);
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255, 0.04);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+        .data-table tr:hover td {
+            background: var(--bg-glass);
+        }
+        .data-table .highlight {
+            color: var(--signal-cyan);
+            font-family: var(--font-display);
+            font-weight: 500;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            margin: 16px 0;
+        }
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--signal-cyan);
+            margin-bottom: 12px;
+        }
+
+        /* ── Flowchart (desktop) / list (mobile) ── */
+        .flowchart {
+            display: flex;
+            gap: 0;
+            align-items: center;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 24px 0;
+        }
+        .flow-step {
+            background: var(--bg-elevated);
+            border: var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+            min-width: 150px;
+            max-width: 180px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .flow-step .step-num {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--signal-cyan);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .flow-step .step-label {
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .flow-step .step-detail {
+            font-size: 0.72rem;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+        .flow-arrow {
+            color: var(--signal-cyan);
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            padding: 0 4px;
+        }
+        .flow-list {
+            display: none;
+        }
+
+        /* ── Worked example ── */
+        .example-box {
+            background: var(--bg-elevated);
+            border-left: 3px solid var(--signal-cyan);
+            border-radius: 0 8px 8px 0;
+            padding: 20px 24px;
+            margin: 16px 0;
+        }
+        .example-box .example-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--signal-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+        .example-box p, .example-box li {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* ── Stat pills ── */
+        .stat-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+        .stat-pill {
+            background: var(--bg-elevated);
+            border: var(--card-border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+        }
+        .stat-pill .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--signal-cyan);
+        }
+        .stat-pill .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        /* ── Limitations callout ── */
+        .limitations-card {
+            background: rgba(248, 113, 113, 0.06);
+            border: 1px solid rgba(248, 113, 113, 0.15);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            margin: 16px 0;
+        }
+        .limitations-card h3 {
+            color: var(--signal-amber);
+        }
+        .limitations-card li {
+            color: var(--text-secondary);
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: var(--card-border);
+            padding: 32px 0;
+            margin-top: 48px;
+        }
+        footer p {
+            color: var(--text-tertiary);
+            font-size: 0.82rem;
+            text-align: center;
+        }
+        footer a {
+            color: var(--signal-cyan);
+            text-decoration: none;
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.6rem; }
+            .hero p { font-size: 0.95rem; }
+            .section h2 { font-size: 1.1rem; }
+            .stat-row { gap: 8px; }
+            .stat-pill { flex: 1; min-width: 120px; }
+            .stat-pill .stat-value { font-size: 1.1rem; }
+            .data-table { font-size: 0.78rem; display: block; overflow-x: auto; }
+            .flowchart { display: none; }
+            .flow-list { display: block; }
+            .nav-links { gap: 12px; }
+            .nav-links a { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <nav class="nav-links">
+                <a href="/about-data">Data</a>
+                <a href="/search">Search</a>
+                <a href="/">Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- HERO                                                              -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="hero">
+            <h1>How It Works</h1>
+            <p>
+                sfpermits.ai provides building permit intelligence backed by 22 government data sources,
+                transparent methodology, and confidence intervals on every estimate. We show you exactly
+                how we calculate everything &mdash; timelines, fees, revision risk, and entity relationships
+                &mdash; so you can evaluate the quality of our predictions yourself. No black boxes.
+            </p>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-pill"><div class="stat-value">18.4M</div><div class="stat-label">total records</div></div>
+            <div class="stat-pill"><div class="stat-value">22</div><div class="stat-label">data sources</div></div>
+            <div class="stat-pill"><div class="stat-value">1M</div><div class="stat-label">resolved entities</div></div>
+            <div class="stat-pill"><div class="stat-value">3,300+</div><div class="stat-label">automated tests</div></div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 1. DATA PROVENANCE                                                -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="data-provenance">
+            <h2><span class="num">01 //</span> Data Provenance</h2>
+            <p>
+                Every number sfpermits.ai shows traces back to a specific government dataset. We ingest data from
+                the San Francisco Department of Building Inspection (DBI), Planning Department, Fire Department,
+                Department of Public Health, and the Assessor-Recorder, among others. Each dataset is accessed via
+                the city's Socrata Open Data API (SODA), which provides programmatic, real-time access to municipal records.
+            </p>
+            <p>
+                Our nightly pipeline detects changes across all datasets and updates our local database within hours of
+                new government filings. Here is the complete inventory of primary data sources:
+            </p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Agency</th>
+                        <th>Records</th>
+                        <th>SODA Endpoint</th>
+                        <th>What We Use It For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="highlight">Building Permits</td>
+                        <td>DBI</td>
+                        <td>1.1M</td>
+                        <td><code>i98e-djp9</code></td>
+                        <td>Permit history, filing dates, costs, status tracking, timeline analysis</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Building Inspections</td>
+                        <td>DBI</td>
+                        <td>671K</td>
+                        <td><code>p4e4-a72a</code></td>
+                        <td>Inspection results, scheduling patterns, pass/fail rates</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Plan Review Routing</td>
+                        <td>DBI</td>
+                        <td>3.9M</td>
+                        <td><code>3pee-9qhc</code></td>
+                        <td>Addenda records, station velocity, routing progress, reviewer assignments</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Building Complaints</td>
+                        <td>DBI</td>
+                        <td>~65K</td>
+                        <td><code>gm2e-bten</code></td>
+                        <td>Property complaint history, resolution patterns</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Notices of Violation</td>
+                        <td>DBI</td>
+                        <td>~23K</td>
+                        <td><code>nbtm-fbw5</code></td>
+                        <td>Code violations, enforcement actions, compliance status</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Electrical Permits</td>
+                        <td>DBI</td>
+                        <td>~280K</td>
+                        <td><code>bvde-dwf4</code></td>
+                        <td>Electrical work scope, trade contractor tracking</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Plumbing Permits</td>
+                        <td>DBI</td>
+                        <td>~180K</td>
+                        <td><code>89kp-m4y6</code></td>
+                        <td>Plumbing work scope, cross-permit correlation</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Boiler Permits</td>
+                        <td>DBI</td>
+                        <td>~12K</td>
+                        <td><code>bv8q-wput</code></td>
+                        <td>Boiler installation and inspection records</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Fire Permits</td>
+                        <td>SFFD</td>
+                        <td>~45K</td>
+                        <td><code>893e-7z69</code></td>
+                        <td>Fire safety permits, cross-referencing with building permits</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Planning Entitlements</td>
+                        <td>Planning</td>
+                        <td>~85K</td>
+                        <td><code>eia9-citp</code></td>
+                        <td>Planning review records, conditional use, variance filings</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Tax Roll / Property Data</td>
+                        <td>Assessor</td>
+                        <td>~210K</td>
+                        <td><code>wv5m-vpq2</code></td>
+                        <td>Property characteristics, assessed values, ownership, zoning</td>
+                    </tr>
+                    <tr>
+                        <td class="highlight">Business Registrations</td>
+                        <td>Treasurer</td>
+                        <td>~250K</td>
+                        <td><code>g8m3-pdis</code></td>
+                        <td>Business entity cross-reference, location data</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>
+                All data is ingested into a PostgreSQL database with pgvector extensions for semantic search.
+                The local database is the source of truth for all calculations; live SODA API calls supplement
+                results when the most recent data is needed. Each tool response includes source citations
+                identifying exactly which datasets contributed to the answer.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 2. ENTITY RESOLUTION                                             -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="entity-resolution">
+            <h2><span class="num">02 //</span> Entity Resolution</h2>
+            <p>
+                Permit data references people and companies inconsistently. The same architect might appear as
+                "SMITH, JOHN" on one permit, "John Smith" on another, and "J SMITH AIA" on a third. A contractor's
+                license number might be recorded as "C-10", "c10", or "0000C10". To produce accurate portfolio views
+                and network analysis, we run a multi-step entity resolution cascade that deduplicates 1.8 million
+                contact records into approximately 1 million canonical entities.
+            </p>
+
+            <div class="stat-row">
+                <div class="stat-pill"><div class="stat-value">1.8M</div><div class="stat-label">raw contacts</div></div>
+                <div class="stat-pill"><div class="stat-value">1M</div><div class="stat-label">resolved entities</div></div>
+                <div class="stat-pill"><div class="stat-value">576K</div><div class="stat-label">relationship edges</div></div>
+            </div>
+
+            <h3>The 5-Step Cascade</h3>
+            <p>
+                Entity resolution runs as a priority cascade. Each step resolves a subset of contacts, and
+                unresolved contacts flow to the next step. Higher-confidence methods run first, so a contact
+                matched by license number in Step 2 won't be re-matched by fuzzy name in Step 4.
+            </p>
+
+            <!-- Desktop: CSS flowchart -->
+            <div class="flowchart">
+                <div class="flow-step">
+                    <div class="step-num">Step 1</div>
+                    <div class="step-label">PTS Agent ID</div>
+                    <div class="step-detail">High confidence. DBI's internal agent identifier.</div>
+                </div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step">
+                    <div class="step-num">Step 2</div>
+                    <div class="step-label">License Number</div>
+                    <div class="step-detail">Normalized matching: C-10 = c10 = C10. Strips leading zeros.</div>
+                </div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step">
+                    <div class="step-num">Step 2.5</div>
+                    <div class="step-label">Cross-Source Name</div>
+                    <div class="step-detail">Same normalized name on same permit across data sources.</div>
+                </div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step">
+                    <div class="step-num">Step 3</div>
+                    <div class="step-label">Business License</div>
+                    <div class="step-detail">SF business license number matching.</div>
+                </div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step">
+                    <div class="step-num">Step 4</div>
+                    <div class="step-label">Fuzzy Name Match</div>
+                    <div class="step-detail">Token-set Jaccard similarity. LAST FIRST reordering.</div>
+                </div>
+            </div>
+
+            <!-- Mobile: numbered list -->
+            <ol class="flow-list">
+                <li><strong>PTS Agent ID</strong> (high confidence) &mdash; DBI assigns internal agent identifiers to building contacts. When present, this is the most reliable match key. Contacts sharing the same PTS agent ID are grouped into a single entity.</li>
+                <li><strong>License Number</strong> (medium confidence) &mdash; Contractor license numbers are normalized before matching: type prefixes are standardized (C-10 becomes C10), leading zeros are stripped, and casing is unified. This catches variants like "0012345" and "12345" as the same license.</li>
+                <li><strong>Cross-Source Name Match</strong> (medium confidence) &mdash; When the same normalized name appears on the same permit number across different data sources (e.g., building permits and inspections), those contacts are merged. This step runs before fuzzy matching to reduce false positives.</li>
+                <li><strong>SF Business License</strong> (medium confidence) &mdash; Business license numbers from the Treasurer's registration data provide another matching key. Contacts with matching business licenses are grouped.</li>
+                <li><strong>Fuzzy Name Match</strong> (low confidence) &mdash; Remaining unresolved contacts are compared using token-set Jaccard similarity. Names are uppercased, punctuation stripped, and "LAST FIRST" patterns reordered to "FIRST LAST" for consistent comparison. The similarity threshold is tuned to minimize false merges while catching common variations.</li>
+            </ol>
+
+            <h3>Name Normalization</h3>
+            <p>
+                Before fuzzy matching, names go through a normalization pipeline: uppercase conversion, punctuation
+                removal (commas, periods, dashes, apostrophes), whitespace collapse, and LAST FIRST detection.
+                DBI data frequently records names as "SMITH JOHN" (last-first order), which our normalizer
+                detects and reorders for consistent token-based comparison. The token-set Jaccard similarity
+                metric computes <code>|intersection| / |union|</code> of the word tokens, making it
+                order-independent and robust to middle initials or suffixes.
+            </p>
+
+            <h3>Entity Profiles</h3>
+            <p>
+                After resolution, each entity gets a canonical profile with: canonical name (longest observed variant),
+                canonical firm, primary role (most frequent role across contacts), license numbers, contact count,
+                permit count, and source datasets. The <code>roles</code> column tracks all distinct roles an entity
+                has held (e.g., an architect who also acts as a permit agent).
+            </p>
+
+            <h3>Relationship Graph</h3>
+            <p>
+                Once entities are resolved, we build a co-occurrence graph by self-joining the contacts table
+                on <code>permit_number</code>. Two entities that appear on the same permit get a relationship edge.
+                The weight of each edge is the number of shared permits. This produces 576,000+ edges connecting
+                entities across the network, enabling queries like "show me everyone who has worked with contractor X"
+                or "find all projects where architect Y and engineer Z collaborated."
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 3. TIMELINE ESTIMATION                                            -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="timeline-estimation">
+            <h2><span class="num">03 //</span> Timeline Estimation</h2>
+            <p>
+                Our timeline estimation uses a <strong>station-sum model</strong> as the primary method, with an
+                aggregate percentile model as fallback. The station-sum approach is more accurate because it models
+                how permits actually flow through DBI's review pipeline: sequentially through specific review stations,
+                each with its own throughput characteristics.
+            </p>
+
+            <h3>Station-Sum Model (Primary)</h3>
+            <p>
+                San Francisco's Department of Building Inspection routes permits through specific review stations.
+                A simple residential alteration might go through BLDG (building code review) only. A restaurant
+                conversion might route through BLDG, CP-ZOC (planning zoning), SFFD-HQ (fire department), and
+                HEALTH (public health). Each station has measurable throughput.
+            </p>
+            <p>
+                We compute station velocity from 3.9 million addenda routing records. For each station, we calculate
+                how long it takes to complete review, measured as the duration between when a permit arrives at the
+                station and when the reviewer marks it complete. This gives us percentile distributions (p25, p50, p75, p90)
+                for each station.
+            </p>
+            <p>
+                To estimate a permit's total timeline, we:
+            </p>
+            <ol>
+                <li>Determine which stations the permit will route through (based on permit type and project triggers)</li>
+                <li>Look up each station's p50 (median) review duration from a rolling 90-day window</li>
+                <li>Sum the station medians for a sequential estimate</li>
+                <li>Report p25/p50/p75/p90 for the combined timeline</li>
+            </ol>
+
+            <h3>Data Scrub Filters</h3>
+            <p>
+                Raw routing data requires careful cleaning to produce reliable velocity numbers. We apply these filters:
+            </p>
+            <ul>
+                <li><strong>Exclude pre-2018 data</strong> &mdash; Earlier records are sparse and inconsistently formatted</li>
+                <li><strong>Exclude pass-through results</strong> &mdash; "Not Applicable" and "Administrative" results are routing artifacts, not real reviews</li>
+                <li><strong>Deduplicate reassignment records</strong> &mdash; When a permit is reassigned at the same station, we keep only the latest finish date</li>
+                <li><strong>Separate initial vs. revision reviews</strong> &mdash; Addenda number 0 is the initial review; addenda 1+ are revision cycles (tracked separately)</li>
+                <li><strong>Exclude outliers</strong> &mdash; Durations under 0 or over 365 days are dropped as data artifacts</li>
+            </ul>
+
+            <h3>Neighborhood Stratification</h3>
+            <p>
+                When a neighborhood is specified, we first try neighborhood-specific velocity data. Some neighborhoods
+                have consistently different review times due to project complexity, historical district overlays, or
+                reviewer assignment patterns. If we have at least 10 samples for a given station-neighborhood combination,
+                we use the localized data. Otherwise, we fall back to city-wide station baselines.
+            </p>
+
+            <h3>Trend Detection</h3>
+            <p>
+                Each station's current 90-day p50 is compared against its 365-day baseline. If the current median is
+                more than 15% higher than the baseline, we flag it as "slower" with an upward trend arrow. More than
+                15% faster gets a downward arrow. This helps users understand whether current conditions at a particular
+                station are typical or unusual.
+            </p>
+
+            <h3>Delay Factors</h3>
+            <p>
+                Certain project characteristics trigger additional delay estimates beyond the base station routing:
+            </p>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Trigger</th>
+                        <th>Estimated Impact</th>
+                        <th>Related Stations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Change of Use</td>
+                        <td>+30 days minimum</td>
+                        <td>Section 311 neighborhood notification</td>
+                    </tr>
+                    <tr>
+                        <td>Planning Review</td>
+                        <td>+2&ndash;6 weeks</td>
+                        <td>CP-ZOC</td>
+                    </tr>
+                    <tr>
+                        <td>DPH Review</td>
+                        <td>+2&ndash;4 weeks</td>
+                        <td>HEALTH, HEALTH-FD</td>
+                    </tr>
+                    <tr>
+                        <td>Fire Review</td>
+                        <td>+1&ndash;3 weeks</td>
+                        <td>SFFD, SFFD-HQ</td>
+                    </tr>
+                    <tr>
+                        <td>Historic Preservation</td>
+                        <td>+4&ndash;12 weeks</td>
+                        <td>HIS</td>
+                    </tr>
+                    <tr>
+                        <td>CEQA Environmental</td>
+                        <td>+3&ndash;12 months</td>
+                        <td>Environmental review</td>
+                    </tr>
+                    <tr>
+                        <td>Conditional Use</td>
+                        <td>+3+ months</td>
+                        <td>Planning Commission hearing</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="example-box">
+                <div class="example-label">Worked Example</div>
+                <p><strong>Project:</strong> Alterations permit in the Mission for a kitchen/bathroom remodel ($85K estimated cost)</p>
+                <p><strong>Stations:</strong> BLDG (building code review)</p>
+                <p><strong>Station p50:</strong> BLDG = ~42 days</p>
+                <p><strong>Estimated timeline:</strong> p50 = 42 days, p75 = 68 days, p90 = 105 days</p>
+                <p>If the project also triggers Planning review (e.g., because of a facade change), add CP-ZOC station with its own p50 (~28 days), bringing the combined p50 to approximately 70 days.</p>
+            </div>
+
+            <h3>Aggregate Model (Fallback)</h3>
+            <p>
+                When station velocity data is unavailable (e.g., for unusual permit types or very new stations), we
+                fall back to aggregate percentile statistics computed from 1.1 million historical permits. This model
+                uses a 1-year recency window and excludes trade permits (electrical, plumbing, mechanical). It progressively
+                widens filters if the initial query returns fewer than 10 matching permits.
+            </p>
+
+            <h3>Confidence Levels</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Level</th><th>Criteria</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="highlight">High</td><td>Station-sum model with &ge;100 total routing records</td></tr>
+                    <tr><td class="highlight">Medium</td><td>Station-sum &lt;100 samples, or aggregate model with &ge;10 permits</td></tr>
+                    <tr><td class="highlight">Low</td><td>Knowledge-based estimates (no DB data), or &lt;10 permits</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 4. FEE ESTIMATION                                                 -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="fee-estimation">
+            <h2><span class="num">04 //</span> Fee Estimation</h2>
+            <p>
+                Permit fee estimation combines <strong>formula-based calculation</strong> from the DBI fee schedule
+                with <strong>statistical comparison</strong> against historical permits. The formula approach gives
+                you the official fee-schedule amount; the statistical comparison tells you how your project's
+                cost compares to similar projects in the database.
+            </p>
+
+            <h3>DBI Table 1A-A: Building Permit Fees</h3>
+            <p>
+                The primary fee calculation uses Table 1A-A from the San Francisco Building Inspection Commission Code
+                (BICC), effective September 1, 2025 (Ordinance 126-25). The table defines fees as a function of
+                construction valuation, with separate schedules for three permit categories:
+            </p>
+            <ul>
+                <li><strong>New Construction</strong> &mdash; The highest fee tier</li>
+                <li><strong>Alterations</strong> &mdash; The most common category for remodels and renovations</li>
+                <li><strong>No Plans (OTC)</strong> &mdash; Lower fees for simpler projects</li>
+            </ul>
+            <p>
+                For each category, the fee has two components: a <strong>plan review fee</strong> (charged when plans
+                are submitted for review) and a <strong>permit issuance fee</strong> (charged when the permit is issued).
+                Both are calculated as a base fee plus an incremental amount per $1,000 of construction valuation
+                above the tier threshold.
+            </p>
+
+            <h3>Surcharges</h3>
+            <p>
+                Two state-mandated surcharges are added on top of the base building fee:
+            </p>
+            <ul>
+                <li><strong>CBSC Fee</strong> (California Building Standards Commission): $4 per $100,000 in valuation</li>
+                <li><strong>SMIP Fee</strong> (Strong Motion Instrumentation Program): 0.013% of valuation for residential buildings (3 stories or less)</li>
+            </ul>
+
+            <h3>Additional Fees by Project Type</h3>
+            <p>
+                Depending on the project, additional fee components may apply:
+            </p>
+            <ul>
+                <li><strong>SFFD Fees</strong> (Table 107-B/107-C) &mdash; Fire department plan review and field inspection fees, triggered for restaurants, new construction, commercial tenant improvements, and change-of-use projects</li>
+                <li><strong>Electrical Fees</strong> (Table 1A-E) &mdash; Tiered by square footage for commercial projects, by outlet count for residential</li>
+                <li><strong>Plumbing Fees</strong> (Table 1A-C) &mdash; Varies by project type with 20 fee categories mapped to specific Table 1A-C codes</li>
+                <li><strong>DPH Health Permit</strong> &mdash; Required for food-service establishments</li>
+                <li><strong>School Impact Fee</strong> (SFUSD) &mdash; $4.79/sq ft residential, $0.78/sq ft commercial (2024 rates)</li>
+            </ul>
+
+            <h3>Statistical Comparison</h3>
+            <p>
+                After computing the formula-based fee, we query our database of 1.1 million historical permits
+                to find similar projects (same permit type, similar valuation range, optionally same neighborhood).
+                We report percentile statistics (p25, p50, p75) for the estimated costs of these comparable permits.
+                This provides a reality check: if the formula says $5,000 but similar permits in your neighborhood
+                averaged $8,000, there may be additional fees or cost revisions you should budget for.
+            </p>
+
+            <h3>ADA/Accessibility Cost Impact</h3>
+            <p>
+                For commercial projects, we calculate whether the construction valuation exceeds the ADA
+                valuation threshold ($203,611 as of the current code cycle). Projects above this threshold
+                require full path-of-travel compliance under CBC 11B. Projects below the threshold are limited
+                to 20% of construction cost for accessibility upgrades.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 5. AI PLAN ANALYSIS                                               -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="plan-analysis">
+            <h2><span class="num">05 //</span> AI Plan Analysis</h2>
+            <p>
+                sfpermits.ai can analyze uploaded PDF plan sets for compliance with DBI's Electronic Plan Review (EPR)
+                requirements. This is <strong>augmented intelligence, not automated approval</strong> &mdash; the tool
+                identifies potential issues before submission so architects and expediters can fix them proactively,
+                rather than discovering problems weeks into the review process.
+            </p>
+
+            <h3>Metadata EPR Checks</h3>
+            <p>
+                The first layer of analysis uses PDF metadata inspection (via pypdf) to verify technical requirements
+                that DBI enforces for electronic plan submissions:
+            </p>
+            <ul>
+                <li><strong>EPR-001: File Size</strong> &mdash; Maximum 250MB (350MB for site permit addenda)</li>
+                <li><strong>EPR-002: Encryption</strong> &mdash; PDF must not be password-protected or encrypted</li>
+                <li><strong>EPR-004: Page Dimensions</strong> &mdash; Must not exceed 36" &times; 48" (ANSI E / Arch E)</li>
+                <li><strong>EPR-005: Embedded Fonts</strong> &mdash; All fonts must be embedded (not referenced)</li>
+                <li><strong>EPR-006: Layers</strong> &mdash; Detects PDF layers/OCGs that may cause rendering issues</li>
+                <li><strong>EPR-020: Filename Convention</strong> &mdash; Checks for DBI naming format compliance</li>
+            </ul>
+
+            <h3>AI Vision Checks</h3>
+            <p>
+                The second layer uses Claude Vision (Anthropic's multimodal AI) to analyze sampled pages from the plan
+                set. This catches issues that metadata inspection cannot detect:
+            </p>
+            <ul>
+                <li><strong>Title Block Verification</strong> &mdash; Checks that each sheet has a title block containing project address, sheet number, sheet title, and professional stamps/signatures</li>
+                <li><strong>Address Consistency</strong> &mdash; Verifies the same address appears across all sampled sheets</li>
+                <li><strong>Professional Stamps</strong> &mdash; Detects architect/engineer stamps and signature blocks (required for permit submission)</li>
+                <li><strong>Blank Area Detection</strong> &mdash; Identifies sheets with excessive white space that may indicate missing content or rendering failures</li>
+                <li><strong>Dense Hatching</strong> &mdash; Flags areas of extremely dense cross-hatching that can cause EPR rendering problems</li>
+                <li><strong>Sheet Index Extraction</strong> &mdash; Reads the cover page to extract a sheet index and compare against actual page count</li>
+            </ul>
+
+            <h3>Page Sampling Strategy</h3>
+            <p>
+                For plan sets with many pages, we sample strategically rather than analyzing every page. The sampling
+                covers the cover page (always), the first interior sheet, the middle of the set, the second-to-last
+                page, and (for sets with 10+ pages) the one-third mark. This provides coverage across the plan set
+                while keeping analysis time and cost proportional.
+            </p>
+
+            <h3>Completeness Assessment</h3>
+            <p>
+                When project details are provided (description, permit type, address), the analysis includes a
+                completeness assessment that checks whether the plan set contains the sheets typically required for
+                that project type. For example, a restaurant tenant improvement should include architectural plans,
+                mechanical plans, equipment layout, and DPH equipment schedule. Missing required sheets are flagged
+                as warnings.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 6. REVISION RISK                                                  -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="revision-risk">
+            <h2><span class="num">06 //</span> Revision Risk</h2>
+            <p>
+                Plan revisions are the single largest source of permit delays. Our revision risk tool estimates the
+                probability that a permit will require corrections during review, how long those corrections typically
+                add, and what the most common correction items are for your project type.
+            </p>
+
+            <h3>How We Measure Revision Risk</h3>
+            <p>
+                We use <strong>cost revision as a proxy indicator</strong>. When a permit's <code>revised_cost</code>
+                exceeds its <code>estimated_cost</code> in the historical data, it strongly correlates with scope changes
+                or corrections that occurred during plan review. We compute:
+            </p>
+            <ul>
+                <li><strong>Revision proxy rate</strong>: <code>COUNT(revised_cost &gt; estimated_cost) / COUNT(*)</code></li>
+                <li><strong>Average cost increase</strong>: the mean percentage increase when revisions occur</li>
+                <li><strong>Timeline penalty</strong>: the difference in average days-to-issuance between permits with and without cost changes</li>
+            </ul>
+
+            <h3>Risk Classification</h3>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Level</th><th>Criteria</th><th>Typical Impact</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="highlight">HIGH</td><td>Revision rate &gt; 20%</td><td>Budget +60&ndash;120 extra days</td></tr>
+                    <tr><td class="highlight">MODERATE</td><td>Revision rate 10&ndash;20%</td><td>Budget +30&ndash;60 extra days</td></tr>
+                    <tr><td class="highlight">LOW</td><td>Revision rate &lt; 10%</td><td>Minimal additional time</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Common Correction Categories</h3>
+            <p>
+                We maintain correction frequency data from citywide compliance patterns. The top categories are:
+            </p>
+            <ul>
+                <li><strong>Title-24 Energy Compliance</strong> (~45% of commercial alterations) &mdash; Missing or incorrect CF1R/NRCC energy forms</li>
+                <li><strong>ADA/Accessibility (CBC 11B)</strong> (~38% of commercial alterations) &mdash; Missing DA-02 checklist or path-of-travel documentation</li>
+                <li><strong>DPH Equipment Schedule</strong> (#1 restaurant correction) &mdash; Equipment schedule not cross-referenced to layout, or missing exhaust data sheets</li>
+            </ul>
+
+            <h3>Mitigation Strategies</h3>
+            <p>
+                The tool provides project-type-specific mitigation strategies. For example, commercial projects
+                are advised to consider a CASp (Certified Access Specialist) inspection, which has been shown to
+                reduce the ADA correction rate from approximately 38% to approximately 10%. Restaurant projects
+                are advised to submit a numbered equipment schedule cross-referenced to the floor plan with the
+                initial submittal, because this is the most common DPH correction item.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 7. PERMIT PREDICTION                                              -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="permit-prediction">
+            <h2><span class="num">07 //</span> Permit Prediction</h2>
+            <p>
+                The permit prediction tool walks a decision tree derived from DBI's published criteria to determine
+                which permits, forms, and agency reviews your project will likely need. It analyzes a natural-language
+                project description and maps it to specific outcomes.
+            </p>
+            <p>
+                The prediction covers:
+            </p>
+            <ul>
+                <li><strong>Required permit types</strong> &mdash; Building, electrical, plumbing, mechanical, fire</li>
+                <li><strong>Application forms</strong> &mdash; Form 1 (new construction), Form 2 (residential alterations), Form 3 (commercial alterations), Form 8 (OTC), etc.</li>
+                <li><strong>Review path</strong> &mdash; Over-the-counter (OTC) vs. in-house review, based on 12 no-plan OTC types, 24 with-plan OTC types, and 19 in-house-only types from DBI's published criteria</li>
+                <li><strong>Agency routing</strong> &mdash; Which city agencies must review (Planning, Fire, DPH, DPW, etc.), derived from the 154-entry G-20 routing table</li>
+                <li><strong>Special requirements</strong> &mdash; Section 311 notification, historic review, CEQA, conditional use triggers</li>
+            </ul>
+            <p>
+                Each prediction includes a confidence level. Straightforward projects (like a simple kitchen remodel)
+                get high confidence. Projects with ambiguous scope or multiple possible paths get medium or low
+                confidence with explanatory notes about what additional information would improve the prediction.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 8. LIMITATIONS & KNOWN GAPS                                       -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="limitations">
+            <h2><span class="num">08 //</span> Limitations &amp; Known Gaps</h2>
+            <p>
+                Transparency requires acknowledging what we don't do well. Every estimate has uncertainty,
+                and we believe showing our limitations builds more trust than hiding them.
+            </p>
+
+            <div class="limitations-card">
+                <h3>Data Freshness</h3>
+                <ul>
+                    <li>Planning Department data typically lags 2&ndash;4 weeks behind real-time filings. Our nightly pipeline picks up changes within hours of SODA API publication, but the agency's publication schedule introduces the primary delay.</li>
+                    <li>Trade permit integration (electrical, plumbing, boiler, fire) is newer and has less historical depth than building permits, which have data back to the 1980s.</li>
+                    <li>Property tax roll data updates annually, so mid-year ownership changes may not be reflected.</li>
+                </ul>
+            </div>
+
+            <div class="limitations-card">
+                <h3>Statistical Limitations</h3>
+                <ul>
+                    <li>All estimates are statistical, not guarantees. A p50 timeline of 42 days means that half of similar permits took longer and half took shorter. Your project's actual timeline depends on factors we cannot observe (plan quality, reviewer workload, applicant responsiveness).</li>
+                    <li>The station-sum model assumes sequential review, but some stations may review in parallel, making the estimate conservative (longer than reality).</li>
+                    <li>The 90-day rolling window for station velocity may miss seasonal patterns (e.g., holiday slowdowns, year-end rushes).</li>
+                    <li>Self-reported construction cost data on permit applications is often inaccurate, which affects cost bracket matching and fee estimation.</li>
+                </ul>
+            </div>
+
+            <div class="limitations-card">
+                <h3>Entity Resolution Accuracy</h3>
+                <ul>
+                    <li>We estimate 85&ndash;90% accuracy in entity resolution. Some entities are over-merged (two different people with the same name combined into one entity) and some are under-merged (the same person appearing as two entities due to name variations we couldn't match).</li>
+                    <li>Entity resolution runs on DuckDB locally and is not yet integrated with the production PostgreSQL database for real-time updates.</li>
+                </ul>
+            </div>
+
+            <div class="limitations-card">
+                <h3>Coverage Gaps</h3>
+                <ul>
+                    <li>Planning fees are not included in fee estimates (DBI fees only). Planning Department fees vary by entitlement type and are published separately.</li>
+                    <li>OCII (Office of Community Investment and Infrastructure) routing is documented but rarely tested against real project data.</li>
+                    <li>Permit revision/amendment process (post-issuance changes) is partially documented but lacks a dedicated prediction model.</li>
+                    <li>Pre-2018 data is excluded from timeline estimation due to quality issues, limiting historical trend analysis.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>
+                sfpermits.ai &mdash; San Francisco Building Permit Intelligence
+                &middot; <a href="/about-data">About the Data</a>
+                &middot; <a href="/">Home</a>
+            </p>
+            <p style="margin-top: 8px;">
+                Built on open data from the City and County of San Francisco.
+                Not affiliated with or endorsed by SF DBI.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
