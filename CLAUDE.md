@@ -2,7 +2,7 @@
 
 ## Quick Orientation
 
-This is a Python/FastMCP MCP server providing San Francisco building permit data, entity network analysis, AI-powered permit guidance, and AI vision plan analysis via 21 tools + a Flask web UI.
+This is a Python/FastMCP MCP server providing San Francisco building permit data, entity network analysis, AI-powered permit guidance, and AI vision plan analysis via 30 tools + a Flask web UI.
 
 **Start here to understand the project:**
 1. `README.md` — tools, architecture, setup, project phases
@@ -11,7 +11,7 @@ This is a Python/FastMCP MCP server providing San Francisco building permit data
 4. `CHANGELOG.md` — what was built in each phase (reverse chronological)
 
 **Knowledge base documentation (for understanding the curated permitting data):**
-5. `data/knowledge/SOURCES.md` — complete inventory of all 21 tier1 JSON files, tier2 raw text, tier3 admin bulletins, tier4 code corpus
+5. `data/knowledge/SOURCES.md` — complete inventory of all 47 tier1 JSON files, tier2 raw text, tier3 admin bulletins, tier4 code corpus
 6. `data/knowledge/GAPS.md` — known gaps, resolved gaps, Amy interview questions
 7. `data/knowledge/INGESTION_LOG.md` — chronological log of all 8 ingestion sessions
 
@@ -21,60 +21,79 @@ This is a Python/FastMCP MCP server providing San Francisco building permit data
 ## Project Structure
 
 ```
-src/                    # MCP server code
-  server.py             # FastMCP entry point, registers 21 tools
+src/                    # MCP server code (62 files, ~24K lines)
+  server.py             # FastMCP entry point, registers 30 tools
   soda_client.py        # Async SODA API client (httpx)
   formatters.py         # Response formatting for Claude
-  db.py                 # DuckDB + PostgreSQL dual-mode connections, points_ledger table
+  db.py                 # DuckDB + PostgreSQL dual-mode connections, pool mgmt
   knowledge.py          # KnowledgeBase singleton, semantic index
   ingest.py             # SODA -> DuckDB pipeline
   entities.py           # 5-step entity resolution cascade
   graph.py              # Co-occurrence graph (SQL self-join)
   validate.py           # Anomaly detection queries
   report_links.py       # External links for property reports
-  tools/                # 29 tool implementations (8 SODA, 3 Entity, 5 Knowledge, 2 Facilitation, 2 Vision, 1 Addenda, 2 Severity, 6 Intel)
+  severity.py           # Permit severity scoring v2
+  station_velocity_v2.py # Station-sum timeline model
+  signals/              # Health signal aggregation
+  tools/                # 30 tool implementations (33 files)
   vision/               # AI vision modules (Claude Vision API)
     client.py           # Anthropic Vision API wrapper
     pdf_to_images.py    # PDF-to-base64 image conversion
     prompts.py          # EPR check prompts for architectural drawings
     epr_checks.py       # Vision-based EPR compliance checker
-web/                    # Flask + HTMX web UI (deployed on Railway)
-  app.py                # Routes, tool orchestration, cron endpoints
+web/                    # Flask + HTMX web UI (44 files, ~25K lines)
+  app.py                # Flask app factory, middleware, startup (1,061 lines)
+  routes_public.py      # Public search, landing, demo (1,783 lines)
+  routes_search.py      # Authenticated search + tools (1,452 lines)
+  routes_cron.py        # Cron endpoints, nightly jobs (1,414 lines)
+  routes_admin.py       # Admin dashboard, feedback, ops (996 lines)
+  routes_auth.py        # Magic-link auth, account mgmt (744 lines)
+  routes_property.py    # Property reports, plan analysis (570 lines)
+  routes_api.py         # JSON API endpoints (557 lines)
+  routes_misc.py        # Health, static pages, misc (511 lines)
+  auth.py               # Auth helpers, user management
+  brief.py              # Morning brief data assembly
+  report.py             # Property report generation
+  helpers.py            # run_async, md_to_html, shared utils
   activity.py           # Feedback, bounty points, admin users
   email_brief.py        # Morning brief email delivery
   email_triage.py       # Nightly triage report email delivery
-  auth.py               # Magic-link auth, user management
-  brief.py              # Morning brief data assembly
   regulatory_watch.py   # Regulatory watch CRUD + query helpers
+  cost_tracking.py      # API cost tracking + rate limiting
+  pipeline_health.py    # Permit pipeline monitoring
+  intelligence.py       # Activity intelligence
+  templates/            # 77 Jinja2 templates
+  static/               # CSS, JS, PWA manifest, icons
 data/knowledge/         # 4-tier knowledge base (gitignored tier4)
-  tier1/                # 39 structured JSON files — loaded at startup
+  tier1/                # 47 structured JSON files — loaded at startup
   tier2/                # Raw text info sheets
   tier3/                # Administrative bulletins
   tier4/                # Full code corpus (Planning Code 12.6MB + BICC 3.6MB)
-scripts/                # CLI tools
-  feedback_triage.py    # 3-tier feedback classification + auto-resolve
-tests/                  # 3,300+ tests
+scripts/                # CLI tools (29 files)
+tests/                  # 3,455 tests (127 files, ~46K lines)
 datasets/               # SODA dataset catalog (22 datasets, 13.3M records)
 docs/                   # Architecture, decisions, contact data analysis
 ```
 
+> **Blueprint refactor complete (Sprint 69).** Routes extracted from monolithic `app.py` (~8K lines) into 8 Blueprint files. `app.py` is now 1,061 lines — just app factory, middleware, and startup.
+
 ## Key Numbers
 
-- **29 tools**: 8 SODA API (Phase 1), 3 Entity/Network (Phase 2), 5 Knowledge (Phase 2.75), 2 Facilitation (Phase 3.5), 2 Vision (Phase 4), 1 Addenda (Phase 5), 2 Severity/Health (Phase 6), 6 Project Intelligence (Phase 7)
+- **30 tools**: 8 SODA API (Phase 1), 3 Entity/Network (Phase 2), 5 Knowledge (Phase 2.75), 2 Facilitation (Phase 3.5), 2 Vision (Phase 4), 1 Addenda (Phase 5), 2 Severity/Health (Phase 6), 6 Project Intelligence (Phase 7), 1 Similar Projects
 - **22 SODA datasets**, 13.3M records cataloged
 - **DuckDB**: 1.8M contacts -> 1M entities -> 576K relationship edges
 - **PostgreSQL (prod)**: 5.6M rows, 2.05 GB on Railway, 59 tables
 - **Knowledge base**: 47 tier1 JSON files, 86 semantic concepts, ~817 aliases
 - **RAG**: 1,035 chunks, hybrid retrieval (pgvector)
 - **Voice calibration**: 15 scenarios, 7 audiences, 8 situations
-- **Routes**: 142 (across app.py + Blueprint route files)
-- **Tests**: 3,300+ passing
+- **Routes**: 153 (across 8 Blueprint files + app.py)
+- **Tests**: 3,455 collected, 3,428 passing, 20 skipped
 - **Scenarios**: 73 approved in scenario-design-guide.md
 - **Live**: https://sfpermits-ai-production.up.railway.app
 
 ## Current State
 
-Phases 1-7 substantially complete. Phase 4: AI Vision plan analysis deployed. Phase 5: Addenda + Routing (3.9M rows) deployed. Phase 6: Severity scoring v2 + property health signals deployed. Phase 7: Project Intelligence tools (run_query, read_source, search_source, schema_info, list_tests, similar_projects) deployed. RAG fully built + nightly refresh. Voice calibration Phase A deployed. Regulatory watch system deployed. Activity intelligence + client-side tracking deployed (Sprint 62). Deadlock postmortem fixes deployed (Sprint 63). Reliability + monitoring hardening deployed (Sprint 64). Blueprint route refactor complete — routes in web/routes_*.py, app.py slim (~1,050 lines). Sprint 68-A: Scenario governance — 102 scenarios reviewed, 73 in design guide.
+Phases 1-7 substantially complete. Blueprint route refactor complete (Sprint 69) — routes extracted from monolithic `app.py` into 8 Blueprint files (`routes_public.py`, `routes_search.py`, `routes_cron.py`, `routes_admin.py`, `routes_auth.py`, `routes_property.py`, `routes_api.py`, `routes_misc.py`); `app.py` reduced from ~8K to 1,061 lines. Sprint 69 delivered: redesigned landing page, search intelligence with anonymous demo path, /methodology + /about-data + /demo content pages, portfolio/PWA support. Sprint 69 Hotfix: address search resilience — graceful degradation on query timeouts. Sprint 68-A: Scenario governance — 102 scenarios reviewed, 73 in design guide.
 
 ## Railway Production Infrastructure
 
@@ -105,7 +124,7 @@ Phases 1-7 substantially complete. Phase 4: AI Vision plan analysis deployed. Ph
 **MCP URL**: `https://sfpermits-mcp-api-production.up.railway.app/mcp`
 **Health**: `https://sfpermits-mcp-api-production.up.railway.app/health`
 
-Separate Railway service that exposes the same 22 MCP tools over Streamable HTTP for claude.ai integration. Uses `Dockerfile.mcp` and `src/mcp_http.py`. Requires the same env vars as the main Flask app (`DATABASE_URL`, `ANTHROPIC_API_KEY`, etc.).
+Separate Railway service that exposes the same 30 MCP tools over Streamable HTTP for claude.ai integration. Uses `Dockerfile.mcp` and `src/mcp_http.py`. Requires the same env vars as the main Flask app (`DATABASE_URL`, `ANTHROPIC_API_KEY`, etc.).
 
 **Connect from claude.ai**: Settings → Integrations → Add MCP server → paste the MCP URL above.
 
@@ -402,19 +421,28 @@ Spawn parallel subagents when work spans independent file domains:
 
 **Critical rule:** Parallel agents ONLY work when they touch different files. The orchestrator validates file ownership after completion.
 
-### Shared File Protocol (web/app.py)
+### Session Bootstrap (MANDATORY for all sprint prompts)
 
-`web/app.py` is the only file multiple agents may touch. Each agent is restricted to specific sections:
-- Add routes in clearly marked comment blocks: `# === SESSION {LETTER}: {FEATURE} ===`
-- Do NOT modify existing routes owned by other sessions
-- The orchestrator validates section boundaries during merge
+Every sprint prompt MUST include a Session Bootstrap preamble that handles both fresh launches and session reuse:
+```
+## SETUP — Session Bootstrap
+1. cd /Users/timbrenneman/AIprojects/sf-permits-mcp  # escape any old worktree
+2. git checkout main && git pull origin main          # get latest code
+3. EnterWorktree with name `sprint-NN-agent`          # create fresh worktree
+```
+This allows agents to be pasted into CC sessions reused from previous sprints. Without it, sessions whose CWD is a deleted worktree are permanently broken.
+
+### Pre-Flight: Codebase Audit
+
+Before writing sprint prompts, audit the actual code — not stale specs. Verify each assigned task creates something that DOES NOT ALREADY EXIST. Stale specs produce empty sprints.
+
+### Shared File Protocol
+
+When multiple agents must touch the same file, prefer function-level interface contracts over section-comment protocols. Specify: which agent owns which function, who adds vs modifies, who merges first.
 
 ### Sequential Dependencies
 
-These must be serial, not parallel:
-- Merge order is always A → B → C → D
-- Session D's migration runner imports scripts from B and C
-- Tests run after each merge step
+Merge order follows the dependency graph: infrastructure first, features second, UX/tests last. Run full test suite between each merge step.
 
 ### Model Routing
 
@@ -422,12 +450,14 @@ These must be serial, not parallel:
 - Build agents: Sonnet (execution, code generation, testing)
 - Set via: `CLAUDE_CODE_SUBAGENT_MODEL=claude-sonnet-4-5-20250929`
 
-### Black Box Protocol (2 stages)
+### Black Box Protocol (v1.2)
 
 **Stage 1 — termCC (Terminal Claude Code):**
-Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → CHECKCHAT
+Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → VISUAL REVIEW → CHECKCHAT
 
-CHECKCHAT output includes a DeskRelay HANDOFF section listing visual checks for Stage 2.
+**Visual Review (Phase 6.5):** After Playwright screenshots, run automated visual scoring. Use `scripts/visual_qa.py` (preferred) or send screenshots to Claude Vision. Score each page 1-5. ≥3.0 = PASS. ≤2.0 = escalate to DeskRelay. This is standard, not optional.
+
+CHECKCHAT output includes visual scores and a DeskRelay HANDOFF section for any pages scoring ≤2.0.
 
 **Stage 2 — DeskCC (Desktop Claude Code):**
 DeskRelay visual checks → CHECKCHAT
