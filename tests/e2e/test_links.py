@@ -1,19 +1,16 @@
-"""Sprint 67-C: Dead link spider using Flask test client.
+"""Dead link spider — crawls internal links and verifies none return 404/500.
 
-Crawls from / and follows all internal links, verifying each returns
-a successful response (200 or 302). Caps at 100 pages to prevent
-infinite crawl.
-
-Does NOT follow:
-- External links (different host)
-- Links to static assets (CSS, JS, images)
-- Links with # anchors only
-- POST-only endpoints
+Extended from Sprint 67-C:
+- Page cap: 200 (up from 100)
+- Authenticated admin crawl covers /admin/* pages
+- Response time tracking: flags pages >5s
+- Separates internal vs external links (does not follow external)
+- Summary output at end of crawl
 """
 
 import os
 import sys
-import re
+import time
 from urllib.parse import urljoin, urlparse
 from html.parser import HTMLParser
 
@@ -74,11 +71,35 @@ def _login(client, email="spider-test@test.com"):
     return user
 
 
+def _login_admin(client, email="spider-admin@test.com"):
+    """Login helper for admin crawling."""
+    import src.db as db_mod
+    if db_mod.BACKEND == "duckdb":
+        db_mod.init_user_schema()
+    from web.auth import get_or_create_user, create_magic_token
+    user = get_or_create_user(email)
+    conn = db_mod.get_connection()
+    try:
+        conn.execute(
+            "UPDATE users SET is_admin = TRUE WHERE user_id = ?",
+            [user["user_id"]],
+        )
+        if hasattr(conn, "commit"):
+            conn.commit()
+    except Exception:
+        pass
+    finally:
+        if hasattr(db_mod, "release_connection"):
+            db_mod.release_connection(conn)
+    token = create_magic_token(user["user_id"])
+    client.get(f"/auth/verify/{token}", follow_redirects=True)
+    return user
+
+
 # ---------------------------------------------------------------------------
 # Skip patterns
 # ---------------------------------------------------------------------------
 
-# Paths to skip crawling (auth-only, external, or known-heavy)
 SKIP_PREFIXES = (
     "/static/",
     "/auth/logout",
@@ -95,40 +116,93 @@ SKIP_PREFIXES = (
     "/dashboard/bottlenecks/station/",  # JSON-only endpoint
     "/email/",            # email endpoints
     "/onboarding/",       # POST-only
+    "/api/",              # JSON API endpoints
+    "/project/",          # requires valid project_id
 )
 
 SKIP_EXTENSIONS = (".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".xml", ".json")
 
 
+def _is_external(url: str) -> bool:
+    """Check if URL is external (different host)."""
+    parsed = urlparse(url)
+    if parsed.scheme and parsed.scheme not in ("", "http", "https"):
+        return True
+    if parsed.netloc and parsed.netloc not in ("", "localhost", "localhost:5001"):
+        return True
+    if url.startswith("mailto:") or url.startswith("javascript:") or url.startswith("tel:"):
+        return True
+    return False
+
+
 def should_crawl(url: str) -> bool:
     """Return True if this URL should be visited by the spider."""
+    if _is_external(url):
+        return False
+
     parsed = urlparse(url)
-
-    # Skip external links
-    if parsed.scheme and parsed.scheme not in ("", "http", "https"):
-        return False
-    if parsed.netloc and parsed.netloc not in ("", "localhost", "localhost:5001"):
-        return False
-
     path = parsed.path
 
-    # Skip anchor-only links
     if not path or path == "#":
         return False
-
-    # Skip static assets
     if any(path.lower().endswith(ext) for ext in SKIP_EXTENSIONS):
         return False
-
-    # Skip known skip prefixes
     if any(path.startswith(prefix) for prefix in SKIP_PREFIXES):
         return False
 
-    # Skip mailto and javascript links
-    if url.startswith("mailto:") or url.startswith("javascript:"):
-        return False
-
     return True
+
+
+# ---------------------------------------------------------------------------
+# Spider core
+# ---------------------------------------------------------------------------
+
+def _crawl(client, seeds: list[str], max_pages: int = 200):
+    """Crawl pages starting from seeds. Returns (visited, errors, external, slow)."""
+    visited: set[str] = set()
+    to_visit: list[str] = list(seeds)
+    errors: list[tuple[str, int, str]] = []       # (url, status, referrer)
+    external_links: set[str] = set()
+    slow_pages: list[tuple[str, float]] = []       # (url, seconds)
+
+    while to_visit and len(visited) < max_pages:
+        url = to_visit.pop(0)
+        path = urlparse(url).path or url
+
+        if path in visited:
+            continue
+        visited.add(path)
+
+        start_time = time.time()
+        rv = client.get(url, follow_redirects=True)
+        elapsed = time.time() - start_time
+
+        if elapsed > 5.0:
+            slow_pages.append((url, elapsed))
+
+        if rv.status_code in (404, 500, 502, 503):
+            errors.append((url, rv.status_code, "spider"))
+            continue
+
+        content_type = rv.content_type or ""
+        if "html" not in content_type:
+            continue
+
+        html = rv.data.decode("utf-8", errors="replace")
+        links = extract_links(html)
+
+        for link in links:
+            if _is_external(link):
+                external_links.add(link)
+                continue
+
+            resolved = urljoin(url, link)
+            resolved_path = urlparse(resolved).path
+
+            if should_crawl(resolved) and resolved_path not in visited:
+                to_visit.append(resolved_path)
+
+    return visited, errors, external_links, slow_pages
 
 
 # ---------------------------------------------------------------------------
@@ -138,43 +212,23 @@ def should_crawl(url: str) -> bool:
 class TestDeadLinkSpider:
     """Crawl internal links and verify none return 404/500."""
 
-    MAX_PAGES = 100
+    MAX_PAGES = 200
 
     def test_no_dead_links_anonymous(self, client):
         """Crawl from / as anonymous user. No 404s or 500s."""
-        visited: set[str] = set()
-        to_visit: list[str] = ["/"]
-        errors: list[tuple[str, int, str]] = []  # (url, status, referrer)
+        visited, errors, external, slow = _crawl(
+            client, ["/"], max_pages=self.MAX_PAGES,
+        )
 
-        while to_visit and len(visited) < self.MAX_PAGES:
-            url = to_visit.pop(0)
-            path = urlparse(url).path or url
-
-            if path in visited:
-                continue
-            visited.add(path)
-
-            rv = client.get(url, follow_redirects=True)
-
-            if rv.status_code in (404, 500, 502, 503):
-                errors.append((url, rv.status_code, "spider"))
-                continue
-
-            # Only parse HTML responses for more links
-            content_type = rv.content_type or ""
-            if "html" not in content_type:
-                continue
-
-            html = rv.data.decode("utf-8", errors="replace")
-            links = extract_links(html)
-
-            for link in links:
-                # Resolve relative URLs
-                resolved = urljoin(url, link)
-                resolved_path = urlparse(resolved).path
-
-                if should_crawl(resolved) and resolved_path not in visited:
-                    to_visit.append(resolved_path)
+        # Print summary
+        print(f"\n--- Anonymous Spider Summary ---")
+        print(f"Pages crawled: {len(visited)}")
+        print(f"External links found: {len(external)}")
+        print(f"Slow pages (>5s): {len(slow)}")
+        if slow:
+            for url, secs in slow:
+                print(f"  {secs:.1f}s {url}")
+        print(f"Broken links: {len(errors)}")
 
         assert len(visited) > 1, "Spider should have visited at least 2 pages"
 
@@ -191,52 +245,88 @@ class TestDeadLinkSpider:
         """Crawl from / as authenticated user. No 404s or 500s."""
         _login(client)
 
-        visited: set[str] = set()
-        to_visit: list[str] = ["/", "/account", "/portfolio"]
-        errors: list[tuple[str, int]] = []
+        visited, errors, external, slow = _crawl(
+            client,
+            ["/", "/account", "/portfolio", "/brief"],
+            max_pages=self.MAX_PAGES,
+        )
 
-        while to_visit and len(visited) < self.MAX_PAGES:
-            url = to_visit.pop(0)
-            path = urlparse(url).path or url
-
-            if path in visited:
-                continue
-            visited.add(path)
-
-            rv = client.get(url, follow_redirects=True)
-
-            if rv.status_code in (404, 500, 502, 503):
-                errors.append((url, rv.status_code))
-                continue
-
-            content_type = rv.content_type or ""
-            if "html" not in content_type:
-                continue
-
-            html = rv.data.decode("utf-8", errors="replace")
-            links = extract_links(html)
-
-            for link in links:
-                resolved = urljoin(url, link)
-                resolved_path = urlparse(resolved).path
-
-                if should_crawl(resolved) and resolved_path not in visited:
-                    to_visit.append(resolved_path)
+        print(f"\n--- Authenticated Spider Summary ---")
+        print(f"Pages crawled: {len(visited)}")
+        print(f"External links found: {len(external)}")
+        print(f"Slow pages (>5s): {len(slow)}")
+        if slow:
+            for url, secs in slow:
+                print(f"  {secs:.1f}s {url}")
+        print(f"Broken links: {len(errors)}")
 
         assert len(visited) > 3, "Authenticated spider should visit at least 4 pages"
 
         if errors:
             error_summary = "\n".join(
-                f"  {status} {url}" for url, status in errors
+                f"  {status} {url}" for url, status, _ in errors
             )
             pytest.fail(
                 f"Dead links found ({len(errors)}):\n{error_summary}\n"
                 f"Visited {len(visited)} pages total."
             )
 
+    def test_no_dead_links_admin(self, client):
+        """Crawl /admin/* as admin user. No 404s or 500s."""
+        _login_admin(client)
+
+        admin_seeds = [
+            "/admin/ops",
+            "/admin/feedback",
+            "/admin/pipeline",
+            "/admin/costs",
+            "/admin/beta-requests",
+            "/admin/activity",
+            "/admin/sources",
+            "/admin/regulatory-watch",
+        ]
+
+        visited, errors, external, slow = _crawl(
+            client, admin_seeds, max_pages=self.MAX_PAGES,
+        )
+
+        print(f"\n--- Admin Spider Summary ---")
+        print(f"Pages crawled: {len(visited)}")
+        print(f"External links found: {len(external)}")
+        print(f"Slow pages (>5s): {len(slow)}")
+        if slow:
+            for url, secs in slow:
+                print(f"  {secs:.1f}s {url}")
+        print(f"Broken links: {len(errors)}")
+
+        assert len(visited) > 1, "Admin spider should visit at least 2 pages"
+
+        if errors:
+            error_summary = "\n".join(
+                f"  {status} {url}" for url, status, _ in errors
+            )
+            pytest.fail(
+                f"Dead links found ({len(errors)}):\n{error_summary}\n"
+                f"Visited {len(visited)} pages total."
+            )
+
+    def test_no_slow_pages(self, client):
+        """No page should take >5 seconds to respond."""
+        visited, errors, external, slow = _crawl(
+            client, ["/"], max_pages=50,
+        )
+
+        if slow:
+            slow_summary = "\n".join(
+                f"  {secs:.1f}s {url}" for url, secs in slow
+            )
+            pytest.fail(
+                f"Slow pages found ({len(slow)}):\n{slow_summary}"
+            )
+
 
 class TestSpiderCoverage:
-    """Verify the spider found expected pages."""
+    """Verify the spider finds expected pages."""
 
     def test_spider_visits_login(self, client):
         """Spider should reach /auth/login from landing page."""
@@ -253,3 +343,13 @@ class TestSpiderCoverage:
         rv = client.get("/")
         html = rv.data.decode()
         assert "/search" in html
+
+    def test_spider_visits_methodology(self, client):
+        """Landing page should link to methodology."""
+        rv = client.get("/")
+        html = rv.data.decode()
+        links = extract_links(html)
+        paths = [urlparse(l).path for l in links]
+        assert "/methodology" in paths, (
+            f"/methodology not linked from landing page."
+        )
