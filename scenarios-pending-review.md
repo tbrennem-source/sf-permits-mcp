@@ -1928,3 +1928,45 @@ _Last reviewed: never_
 **Edge cases seen in code:** Lock-holder crashes mid-migration — advisory lock released on connection close, next deploy retries. All workers fail to get lock (shouldn't happen with pg_try_advisory_lock).
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+<!-- Sprint 64 session: 4 scenarios added on 2026-02-26 -->
+
+## SUGGESTED SCENARIO: DQ addenda freshness turns yellow after 30 days
+**Source:** web/data_quality.py _check_addenda_freshness
+**User:** admin
+**Starting state:** Addenda table last updated 35 days ago
+**Goal:** Admin sees a yellow warning on Data Quality tab indicating addenda data is aging
+**Expected outcome:** Addenda Freshness check shows "yellow" status with days-old count. Admin can decide whether to trigger a manual addenda refresh.
+**Edge cases seen in code:** Table doesn't exist (returns N/A yellow), no finish_date values (returns red)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Nightly pipeline runs signals without blocking on failure
+**Source:** web/app.py cron_nightly, src/signals/pipeline.py
+**User:** admin
+**Starting state:** Nightly cron runs, signals pipeline encounters a database error
+**Goal:** Nightly pipeline completes successfully despite signal pipeline failure
+**Expected outcome:** Response JSON includes `"signals": {"error": "..."}` but HTTP status is 200 and all other sub-tasks (DQ cache, velocity, triage) still execute
+**Edge cases seen in code:** Velocity v2 also fails independently — both captured in separate error keys
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Morning brief shows change velocity breakdown
+**Source:** web/brief.py _get_change_velocity
+**User:** expediter
+**Starting state:** User has active watches, nightly detected 10 permit changes (5 status_change, 3 new_permit, 2 cost_revision)
+**Goal:** Morning brief data includes a breakdown of what types of changes occurred
+**Expected outcome:** Brief dict contains `change_velocity: {"status_change": 5, "new_permit": 3, "cost_revision": 2}`. Template/email can render this as "5 status changes, 3 new permits, 2 cost revisions".
+**Edge cases seen in code:** Empty dict if no changes or table doesn't exist
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Release migrations match startup migrations
+**Source:** scripts/release.py, web/app.py _run_startup_migrations
+**User:** admin
+**Starting state:** Fresh Postgres database with no tables
+**Goal:** Both release.py and app.py startup create identical schemas
+**Expected outcome:** Running release.py followed by app.py startup produces no errors and all EXPECTED_TABLES exist. No missing tables in /health endpoint.
+**Edge cases seen in code:** release.py runs once (Railway releaseCommand), app.py runs per-worker with advisory lock. Order: release.py first, then workers. Tables created by release.py are skipped by app.py (IF NOT EXISTS).
+**CC confidence:** high
+**Status:** PENDING REVIEW

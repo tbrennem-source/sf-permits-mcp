@@ -119,6 +119,7 @@ EXPECTED_TABLES = [
     "cron_log", "beta_requests", "projects", "project_members",
     "voice_calibrations", "plan_analysis_sessions", "plan_analysis_images",
     "plan_analysis_jobs", "project_notes", "analysis_sessions",
+    "pim_cache", "dq_cache",
 ]
 
 

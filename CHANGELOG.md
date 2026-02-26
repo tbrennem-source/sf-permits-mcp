@@ -1,5 +1,40 @@
 # Changelog
 
+## Sprint 64 — Reliability + Monitoring (2026-02-26)
+
+Hardens the reliability layer after Sprint 63 deadlock fix: syncs DDL across migration paths, overhauls data quality checks, enriches morning brief with pipeline stats, and integrates signals/velocity into the nightly pipeline.
+
+### Task 64-A: Migration Hardening + Cron Cleanup
+- **`scripts/release.py` schema sync**: Added `projects`, `project_members`, `pim_cache`, `analysis_sessions` tables (were in `web/app.py` but missing from release migrations)
+- **`EXPECTED_TABLES` complete**: Added `pim_cache` and `dq_cache` to health check list
+- **Stuck job threshold tightened**: 15 min → 10 min for cron auto-close (normal pipeline completes in 13-40s)
+- **Advisory lock documentation**: Added code comment to `release.py` explaining why no lock is needed (Railway releaseCommand runs once, pre-startup)
+
+### Task 64-B: DQ Check Overhaul
+- **Orphaned contacts → Unresolved contacts**: Rewritten to measure entity resolution coverage (contacts without matching entity_id in entities table). Thresholds: green < 5%, yellow 5-10%, red > 10%
+- **Dynamic RAG baseline**: Replaced hardcoded `baseline = 1100` with previous cached count. Flags >30% drop as red, >10% as yellow
+- **New check: Addenda Freshness**: Most recent `addenda.finish_date` — green ≤ 30d, yellow 30-60d, red > 60d
+- **New check: Station Velocity**: Most recent `station_velocity_v2.computed_at` — green ≤ 7d, yellow 7-14d, red > 14d
+- 18 new tests in `tests/test_data_quality.py`
+
+### Task 64-C: Morning Brief + Pipeline Alerting
+- **Pipeline stats in `_get_last_refresh()`**: Returns `changes_detected` (24h permit_changes count) and `inspections_updated` from last cron run
+- **Change velocity breakdown**: New `_get_change_velocity()` helper groups permit_changes by change_type (status_change, new_permit, cost_revision, etc.)
+- **`change_velocity` dict added to brief return**: Available for template rendering and email enrichment
+- 7 new tests in `tests/test_sprint64_brief.py`
+
+### Task 64-D: Cron Pipeline Hardening
+- **Signals pipeline in nightly**: `run_signal_pipeline()` runs after DQ cache refresh (non-fatal)
+- **Velocity v2 + station transitions in nightly**: `refresh_velocity_v2()` + `refresh_station_transitions()` run after signals (non-fatal)
+- Both include error capture — failures logged but don't fail nightly
+- Response JSON includes `signals` and `velocity_v2` keys for monitoring
+- 5 new tests in `tests/test_sprint64_cron.py`
+
+### Results
+- 3,123 tests passing (+30 new), 0 regressions
+- 12 DQ checks (was 10), including 2 new pipeline freshness checks
+- Nightly pipeline: 12 sub-tasks (was 9), now includes signals + velocity v2 + transitions
+
 ## Sprint 63 — Deadlock Postmortem & Fix (2026-02-26)
 
 Postmortem on Sprints 59-62. Fixed Sprint 61B Team Seed migration deadlock that prevented `projects` and `project_members` tables from being created on prod/staging.

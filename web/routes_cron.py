@@ -162,17 +162,17 @@ def cron_nightly():
     _check_api_auth()
 
     # === SESSION E: Stuck cron auto-close ===
-    # Auto-close stuck cron jobs (>15 minutes in 'running' state).
-    # Normal nightly completes in 13-40 seconds. Anything running >15 min
+    # Auto-close stuck cron jobs (>10 minutes in 'running' state).
+    # Normal nightly completes in 13-40 seconds. Anything running >10 min
     # is dead (worker killed, process crashed, SODA hung). Previous
-    # threshold was 4 hours — far too long for a sub-minute pipeline.
+    # threshold was 15 min — tightened in Sprint 64 for faster recovery.
     try:
         from src.db import execute_write
         execute_write(
             "UPDATE cron_log SET status = 'failed', "
             "completed_at = NOW(), "
-            "error_message = 'auto-closed: stuck >15 min (worker likely killed)' "
-            "WHERE status = 'running' AND started_at < NOW() - INTERVAL '15 minutes'"
+            "error_message = 'auto-closed: stuck >10 min (worker likely killed)' "
+            "WHERE status = 'running' AND started_at < NOW() - INTERVAL '10 minutes'"
         )
     except Exception:
         pass  # Don't let cleanup failure block nightly
@@ -291,6 +291,44 @@ def cron_nightly():
                 logging.error("DQ cache refresh failed (non-fatal): %s", dqe)
                 dq_cache_result = {"error": str(dqe)}
 
+        # === Sprint 64: Signals pipeline (non-fatal) ===
+        signals_result = {}
+        if not dry_run:
+            try:
+                from src.signals.pipeline import run_signal_pipeline
+                from src.db import get_connection as _sig_gc
+                _sig_conn = _sig_gc()
+                try:
+                    signals_result = run_signal_pipeline(_sig_conn)
+                finally:
+                    _sig_conn.close()
+            except Exception as sig_e:
+                logging.error("Signal pipeline failed (non-fatal): %s", sig_e)
+                signals_result = {"error": str(sig_e)}
+
+        # === Sprint 64: Station velocity v2 refresh (non-fatal) ===
+        velocity_v2_result = {}
+        if not dry_run:
+            try:
+                from src.station_velocity_v2 import refresh_velocity_v2
+                from src.db import get_connection as _v2_gc
+                _v2_conn = _v2_gc()
+                try:
+                    velocity_v2_result = refresh_velocity_v2(_v2_conn)
+                finally:
+                    _v2_conn.close()
+                # Also refresh station transitions
+                try:
+                    from src.tools.station_predictor import refresh_station_transitions
+                    trans_stats = refresh_station_transitions()
+                    velocity_v2_result["transitions"] = trans_stats.get("transitions", 0)
+                except Exception as tr_e:
+                    logging.warning("Station transitions refresh failed: %s", tr_e)
+                    velocity_v2_result["transitions_error"] = str(tr_e)
+            except Exception as v2_e:
+                logging.error("Velocity v2 refresh failed (non-fatal): %s", v2_e)
+                velocity_v2_result = {"error": str(v2_e)}
+
         # Send staleness alert email to admins if warnings detected
         staleness_alert_result = {}
         warnings = result.get("staleness_warnings", [])
@@ -311,6 +349,8 @@ def cron_nightly():
                 "reviewer_graph": reviewer_result,
                 "ops_chunks": ops_chunks_result,
                 "dq_cache": dq_cache_result,
+                "signals": signals_result,
+                "velocity_v2": velocity_v2_result,
                 "staleness_alert": staleness_alert_result,
             }, indent=2),
             mimetype="application/json",
