@@ -28,7 +28,7 @@
         .logo span { color: var(--text-muted); font-weight: 400; }
         .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
         .back-link:hover { color: var(--text); }
-        main { padding: 40px 0 80px; }
+        main { padding: 40px 0 120px; }
         h1 { font-size: 1.5rem; margin-bottom: 4px; }
         .subtitle { color: var(--text-muted); margin-bottom: 8px; font-size: 0.95rem; }
         .progress-bar {
@@ -145,6 +145,52 @@
             font-size: 0.72rem; font-weight: 600; color: var(--success);
             text-transform: uppercase; margin-bottom: 4px;
         }
+
+        /* Jump navigation */
+        .jump-nav {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        .jump-pill {
+            font-size: 0.78rem;
+            padding: 5px 14px;
+            border-radius: 16px;
+            background: var(--surface-2);
+            color: var(--text-muted);
+            text-decoration: none;
+            border: 1px solid var(--border);
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+        .jump-pill:hover {
+            color: var(--text);
+            border-color: var(--text-muted);
+        }
+        .jump-pill.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* Fixed footer */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 10px 0;
+            z-index: 100;
+        }
     </style>
     <link rel="stylesheet" href="/static/mobile.css">
 </head>
@@ -173,10 +219,21 @@
                 {% endif %}
             </div>
 
+            <div class="jump-nav" id="jump-nav">
+                {% for aud in audiences %}
+                {% if grouped.get(aud.key, []) %}
+                <a href="#aud-{{ aud.key }}" class="jump-pill">{{ aud.label }}</a>
+                {% endif %}
+                {% endfor %}
+                {% if grouped.get("general", []) %}
+                <a href="#aud-general" class="jump-pill">General</a>
+                {% endif %}
+            </div>
+
             {% for aud in audiences %}
             {% set aud_cals = grouped.get(aud.key, []) %}
             {% if aud_cals %}
-            <details class="audience-group" {% if loop.first %}open{% endif %}>
+            <details class="audience-group" id="aud-{{ aud.key }}" {% if loop.first %}open{% endif %}>
                 <summary>
                     {{ aud.label }}
                     <span class="audience-count">
@@ -247,7 +304,7 @@
             {# General / cross-audience scenarios #}
             {% set general_cals = grouped.get("general", []) %}
             {% if general_cals %}
-            <details class="audience-group">
+            <details class="audience-group" id="aud-general">
                 <summary>
                     General
                     <span class="audience-count">
@@ -315,5 +372,38 @@
 
         </div>
     </main>
+
+    <div class="fixed-footer">
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
+            <a href="/account" style="color:var(--accent);text-decoration:none;font-size:0.85rem;">&larr; Back to Account</a>
+            <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" style="color:var(--text-muted);text-decoration:none;font-size:0.82rem;">Back to top</a>
+        </div>
+    </div>
+
+    <script>
+    // Highlight active jump pill on scroll
+    (function() {
+        var pills = document.querySelectorAll('.jump-pill');
+        var groups = [];
+        pills.forEach(function(pill) {
+            var target = document.querySelector(pill.getAttribute('href'));
+            if (target) groups.push({pill: pill, el: target});
+        });
+        if (!groups.length) return;
+
+        function updateActive() {
+            var scrollTop = window.scrollY + 80;
+            var active = groups[0];
+            for (var i = 0; i < groups.length; i++) {
+                if (groups[i].el.offsetTop <= scrollTop) active = groups[i];
+            }
+            pills.forEach(function(p) { p.classList.remove('active'); });
+            if (active) active.pill.classList.add('active');
+        }
+
+        window.addEventListener('scroll', updateActive, {passive: true});
+        updateActive();
+    })();
+    </script>
 </body>
 </html>
