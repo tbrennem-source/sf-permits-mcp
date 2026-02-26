@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-26T02:18:40.734290+00:00",
-  "total_routes": 121,
+  "generated_at": "2026-02-26T03:43:07.862731+00:00",
+  "total_routes": 134,
   "routes": [
     {
       "path": "/robots.txt",
@@ -260,7 +260,7 @@
         "GET"
       ],
       "auth_level": "public",
-      "template": "auth_login.html",
+      "template": null,
       "function_name": "auth_login"
     },
     {
@@ -1057,6 +1057,124 @@
       "function_name": "admin_pipeline"
     },
     {
+      "path": "/analyze-preview",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "analyze_preview"
+    },
+    {
+      "path": "/onboarding/dismiss",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "onboarding_dismiss"
+    },
+    {
+      "path": "/watch/brief-prompt",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "watch_brief_prompt"
+    },
+    {
+      "path": "/analysis/<analysis_id>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "analysis_shared"
+    },
+    {
+      "path": "/analysis/<analysis_id>/share",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "analysis_share_email"
+    },
+    {
+      "path": "/beta-request",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "beta_request.html",
+      "function_name": "beta_request"
+    },
+    {
+      "path": "/admin/beta-requests",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_beta_requests"
+    },
+    {
+      "path": "/admin/beta-requests/<int:req_id>/approve",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_approve_beta"
+    },
+    {
+      "path": "/admin/beta-requests/<int:req_id>/deny",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_deny_beta"
+    },
+    {
+      "path": "/cron/ingest-plumbing-inspections",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_plumbing_inspections"
+    },
+    {
+      "path": "/cron/ingest-permit-issuance-metrics",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_permit_issuance_metrics"
+    },
+    {
+      "path": "/cron/ingest-permit-review-metrics",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_permit_review_metrics"
+    },
+    {
+      "path": "/cron/ingest-planning-review-metrics",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_planning_review_metrics"
+    },
+    {
       "path": "/admin/qa",
       "methods": [
         "GET"
@@ -1115,9 +1233,9 @@
     ]
   },
   "auth_summary": {
-    "public": 33,
-    "auth": 21,
-    "admin": 27,
-    "cron": 40
+    "public": 37,
+    "auth": 23,
+    "admin": 30,
+    "cron": 44
   }
 }

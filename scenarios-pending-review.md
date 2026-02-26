@@ -1520,7 +1520,7 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-<!-- Sprint 57: 4 scenarios added (methodology transparency, dual return, coverage disclaimers, revision probability) -->
+<!-- Sprint 57 session close: 4 scenarios added (methodology transparency, dual return, coverage disclaimers, revision probability) on 2026-02-25 -->
 
 ## SUGGESTED SCENARIO: Methodology card reveals calculation details
 **Source:** Sprint 57 — methodology transparency
@@ -1561,3 +1561,4 @@ _Last reviewed: never_
 **Edge cases seen in code:** estimate_timeline disclaimer triggers when sample < 20; predict_permits shows "Zoning-specific routing unavailable" when no address provided
 **CC confidence:** high
 **Status:** PENDING REVIEW
+<!-- Sprint 57 CHECKCHAT: 4 scenarios verified, video capture QA complete, session closed 2026-02-25 -->
