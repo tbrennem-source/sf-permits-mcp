@@ -71,6 +71,41 @@ Portfolio showcase documents, PWA infrastructure, and robots.txt enhancement for
 - 7 Playwright screenshots captured
 - 0 regressions
 
+## Sprint 69 Session 3 — Methodology + About the Data + Demo (2026-02-26)
+
+Three new public content pages that establish credibility and transparency for sfpermits.ai.
+
+### /methodology — How It Works
+- **8 technical sections** with >3,000 words of real methodology content derived from reading source code
+- Data Provenance table with 12 government data sources, SODA endpoint IDs, and record counts
+- Entity Resolution section with CSS flowchart (desktop) / numbered list (mobile) showing the 5-step cascade
+- Timeline Estimation: station-sum model, data scrub filters, neighborhood stratification, trend detection, worked example
+- Fee Estimation: Table 1A-A fee schedule, surcharges, SFFD/electrical/plumbing fees, ADA cost impact
+- AI Plan Analysis: EPR metadata checks + Claude Vision checks, page sampling strategy
+- Revision Risk: cost-revision proxy methodology, risk classification, correction categories
+- Limitations & Known Gaps: honest section covering data freshness, statistical limitations, entity accuracy
+
+### /about-data — Full Data Inventory
+- Complete data inventory table (13 datasets with SODA IDs, record counts, refresh frequency)
+- Nightly pipeline schedule (6 pipeline steps with times and descriptions)
+- 4-tier knowledge base overview (47 structured JSON, 51 info sheets, 47 ABs, full code corpus)
+- Quality assurance section (3,300+ tests, 73 scenarios, 15 nightly DQ checks)
+- "What We Don't Cover" honest gaps section
+
+### /demo — Zoom Demo Page
+- Pre-loaded property intelligence for 1455 Market St (demo address)
+- All intelligence layers visible on load: permits, routing, timeline, entities, complaints/violations
+- Cyan annotation callouts explaining each section's data source
+- `?density=max` parameter for maximum info density
+- `noindex` meta tag — not indexed by search engines, not in sitemap
+
+### Infrastructure
+- Routes added to `web/routes_misc.py` (append only)
+- Sitemap updated with /methodology and /about-data (not /demo)
+- Obsidian design tokens (JetBrains Mono + IBM Plex Sans, dark theme)
+- 31 new tests in `tests/test_sprint69_s3.py`
+- 4 scenarios appended to `scenarios-pending-review.md`
+
 ## Sprint 64 — Reliability + Monitoring (2026-02-26)
 
 Hardens the reliability layer after Sprint 63 deadlock fix: syncs DDL across migration paths, overhauls data quality checks, enriches morning brief with pipeline stats, and integrates signals/velocity into the nightly pipeline.

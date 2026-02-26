@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About the Data — sfpermits.ai</title>
+    <meta name="description" content="Complete data inventory for sfpermits.ai: 22 datasets, 18.4M records, nightly pipelines, 4-tier knowledge base, and 3,300+ automated tests.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style nonce="{{ csp_nonce }}">
+        :root {
+            --bg-deep: #0B0F19;
+            --bg-surface: #131825;
+            --bg-elevated: #1A2035;
+            --bg-glass: rgba(255,255,255, 0.04);
+            --text-primary: #E8ECF4;
+            --text-secondary: #8B95A8;
+            --text-tertiary: #5A6478;
+            --signal-green: #34D399;
+            --signal-amber: #FBBF24;
+            --signal-red: #F87171;
+            --signal-blue: #60A5FA;
+            --signal-cyan: #22D3EE;
+            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
+            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+            --card-radius: 12px;
+            --card-border: 1px solid rgba(255,255,255, 0.06);
+            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        header {
+            border-bottom: var(--card-border);
+            padding: 18px 0;
+            background: var(--bg-surface);
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--signal-cyan);
+            text-decoration: none;
+        }
+        .logo span { color: var(--text-tertiary); font-weight: 400; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text-primary); }
+
+        .hero {
+            padding: 64px 0 40px;
+            border-bottom: var(--card-border);
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.2;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 720px;
+        }
+
+        .section { padding: 48px 0 24px; }
+        .section h2 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--signal-cyan);
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+        .section h2 .num { color: var(--text-tertiary); font-weight: 400; }
+        .section h3 {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 24px 0 8px;
+        }
+        .section p, .section li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .section p { margin-bottom: 12px; }
+        .section ul, .section ol { margin: 8px 0 16px 20px; }
+        .section li { margin-bottom: 6px; }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px;
+            font-size: 0.85rem;
+        }
+        .data-table th {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255, 0.08);
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255, 0.04);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+        .data-table tr:hover td { background: var(--bg-glass); }
+        .data-table .highlight {
+            color: var(--signal-cyan);
+            font-family: var(--font-display);
+            font-weight: 500;
+        }
+
+        .stat-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
+        .stat-pill {
+            background: var(--bg-elevated);
+            border: var(--card-border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+        }
+        .stat-pill .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--signal-cyan);
+        }
+        .stat-pill .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            margin: 16px 0;
+        }
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--signal-cyan);
+            margin-bottom: 12px;
+        }
+
+        .tier-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .tier-card {
+            background: var(--bg-elevated);
+            border: var(--card-border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+        }
+        .tier-card .tier-num {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--signal-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .tier-card .tier-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 4px 0;
+        }
+        .tier-card .tier-detail {
+            font-size: 0.82rem;
+            color: var(--text-tertiary);
+            line-height: 1.5;
+        }
+
+        .pipeline-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255, 0.04);
+        }
+        .pipeline-step:last-child { border-bottom: none; }
+        .pipeline-time {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--signal-cyan);
+            white-space: nowrap;
+            min-width: 60px;
+        }
+        .pipeline-desc { color: var(--text-secondary); font-size: 0.9rem; }
+        .pipeline-desc strong { color: var(--text-primary); }
+
+        footer {
+            border-top: var(--card-border);
+            padding: 32px 0;
+            margin-top: 48px;
+        }
+        footer p {
+            color: var(--text-tertiary);
+            font-size: 0.82rem;
+            text-align: center;
+        }
+        footer a { color: var(--signal-cyan); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.6rem; }
+            .hero p { font-size: 0.95rem; }
+            .section h2 { font-size: 1.1rem; }
+            .stat-row { gap: 8px; }
+            .stat-pill { flex: 1; min-width: 120px; }
+            .stat-pill .stat-value { font-size: 1.1rem; }
+            .data-table { font-size: 0.78rem; display: block; overflow-x: auto; }
+            .tier-grid { grid-template-columns: 1fr; }
+            .nav-links { gap: 12px; }
+            .nav-links a { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">sfpermits<span>.ai</span></a>
+            <nav class="nav-links">
+                <a href="/methodology">Methodology</a>
+                <a href="/search">Search</a>
+                <a href="/">Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="hero">
+            <h1>About the Data</h1>
+            <p>
+                sfpermits.ai is built on 18.4 million rows across 22 SODA datasets, refreshed nightly via
+                automated pipelines. Every data point traces to a specific government API endpoint. Here is
+                the complete inventory.
+            </p>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-pill"><div class="stat-value">18.4M</div><div class="stat-label">total rows</div></div>
+            <div class="stat-pill"><div class="stat-value">22</div><div class="stat-label">SODA datasets</div></div>
+            <div class="stat-pill"><div class="stat-value">59</div><div class="stat-label">database tables</div></div>
+            <div class="stat-pill"><div class="stat-value">2.05 GB</div><div class="stat-label">production DB</div></div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 1. DATA INVENTORY                                                 -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="data-inventory">
+            <h2><span class="num">01 //</span> Data Inventory</h2>
+            <p>
+                All primary data is sourced from the City and County of San Francisco's open data platform
+                via the Socrata Open Data API (SODA). Each dataset is identified by a unique 9-character
+                endpoint identifier.
+            </p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Dataset</th>
+                        <th>Agency</th>
+                        <th>Records</th>
+                        <th>Refresh</th>
+                        <th>SODA ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="highlight">Building Permits</td><td>DBI</td><td>1,100,000</td><td>Nightly</td><td><code>i98e-djp9</code></td></tr>
+                    <tr><td class="highlight">Building Inspections</td><td>DBI</td><td>671,000</td><td>Nightly</td><td><code>p4e4-a72a</code></td></tr>
+                    <tr><td class="highlight">Plan Review Addenda</td><td>DBI</td><td>3,900,000</td><td>Nightly</td><td><code>3pee-9qhc</code></td></tr>
+                    <tr><td class="highlight">Building Complaints</td><td>DBI</td><td>65,000</td><td>Nightly</td><td><code>gm2e-bten</code></td></tr>
+                    <tr><td class="highlight">Notices of Violation</td><td>DBI</td><td>23,000</td><td>Nightly</td><td><code>nbtm-fbw5</code></td></tr>
+                    <tr><td class="highlight">Electrical Permits</td><td>DBI</td><td>280,000</td><td>Nightly</td><td><code>bvde-dwf4</code></td></tr>
+                    <tr><td class="highlight">Plumbing Permits</td><td>DBI</td><td>180,000</td><td>Nightly</td><td><code>89kp-m4y6</code></td></tr>
+                    <tr><td class="highlight">Boiler Permits</td><td>DBI</td><td>12,000</td><td>Nightly</td><td><code>bv8q-wput</code></td></tr>
+                    <tr><td class="highlight">Fire Permits</td><td>SFFD</td><td>45,000</td><td>Nightly</td><td><code>893e-7z69</code></td></tr>
+                    <tr><td class="highlight">Planning Entitlements</td><td>Planning</td><td>85,000</td><td>Weekly</td><td><code>eia9-citp</code></td></tr>
+                    <tr><td class="highlight">Tax Roll / Property</td><td>Assessor</td><td>210,000</td><td>Annually</td><td><code>wv5m-vpq2</code></td></tr>
+                    <tr><td class="highlight">Business Registrations</td><td>Treasurer</td><td>250,000</td><td>Weekly</td><td><code>g8m3-pdis</code></td></tr>
+                    <tr><td class="highlight">Permit Consultant Filings</td><td>Ethics</td><td>167</td><td>Quarterly</td><td><code>umwe-sn9p</code></td></tr>
+                </tbody>
+            </table>
+
+            <p>
+                Additional datasets include housing inventory, zoning data, parcel geometries, and DBI
+                consultant rankings. The full catalog of 22 datasets and 13.3 million cataloged records
+                is maintained in our <code>datasets/</code> directory with schema documentation for each.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 2. NIGHTLY PIPELINE                                               -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="nightly-pipeline">
+            <h2><span class="num">02 //</span> Nightly Pipeline</h2>
+            <p>
+                A set of automated cron jobs run every night to keep the database current. Each job is
+                independently scheduled and fault-tolerant &mdash; a failure in one pipeline does not
+                block the others. All jobs are authenticated with a shared secret and logged to the
+                <code>cron_log</code> table for audit.
+            </p>
+
+            <div class="card">
+                <div class="card-title">Pipeline Schedule</div>
+                <div class="pipeline-step">
+                    <div class="pipeline-time">00:00</div>
+                    <div class="pipeline-desc"><strong>Nightly Change Detection</strong> &mdash; Queries SODA APIs for permits filed or updated since last run. Detects new permits, status changes, cost revisions, and inspection results. Records changes in <code>permit_changes</code> table.</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-time">00:30</div>
+                    <div class="pipeline-desc"><strong>Addenda / Routing Refresh</strong> &mdash; Syncs 3.9M+ plan review routing records from DBI. Tracks station assignments, reviewer actions, and routing progress for active permits.</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-time">01:00</div>
+                    <div class="pipeline-desc"><strong>Velocity Computation</strong> &mdash; Recomputes station velocity statistics from routing data. Generates p25/p50/p75/p90 percentiles for each review station, both citywide and by neighborhood.</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-time">01:30</div>
+                    <div class="pipeline-desc"><strong>Data Quality Checks</strong> &mdash; Runs DQ checks: velocity trend detection, table row count drift, stale data detection, and signal computation for property health scores.</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-time">02:00</div>
+                    <div class="pipeline-desc"><strong>RAG Chunk Refresh</strong> &mdash; Re-embeds the knowledge base into 1,035 vector chunks (pgvector) for semantic search. Covers all 47 tier-1 JSON files and relevant tier-2/3 content.</div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-time">06:00</div>
+                    <div class="pipeline-desc"><strong>Morning Brief Generation</strong> &mdash; Assembles personalized morning briefs for subscribed users. Covers: new permits near watched addresses, inspection results, routing progress, velocity changes, and regulatory watch alerts.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 3. KNOWLEDGE BASE                                                 -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="knowledge-base">
+            <h2><span class="num">03 //</span> Knowledge Base</h2>
+            <p>
+                Beyond raw permit data, sfpermits.ai maintains a curated knowledge base of permitting rules,
+                fee schedules, agency procedures, and building codes. This knowledge is organized into four tiers,
+                each with different structure and update frequency.
+            </p>
+
+            <div class="tier-grid">
+                <div class="tier-card">
+                    <div class="tier-num">Tier 1</div>
+                    <div class="tier-title">Structured JSON</div>
+                    <div class="tier-detail">
+                        47 files loaded at startup. Includes fee tables (1A-A through 1A-S), OTC criteria,
+                        agency routing rules (G-20), planning code key sections, fire code triggers, and
+                        the semantic concept index (86 concepts, ~817 aliases).
+                    </div>
+                </div>
+                <div class="tier-card">
+                    <div class="tier-num">Tier 2</div>
+                    <div class="tier-title">Raw Text Info Sheets</div>
+                    <div class="tier-detail">
+                        51 DBI info sheets (G-series, DA-series, FS-series, S-series) extracted from PDFs.
+                        20 OCR'd from scanned images. Covers procedures for disabled access, fire safety,
+                        structural requirements, and general permitting guidance.
+                    </div>
+                </div>
+                <div class="tier-card">
+                    <div class="tier-num">Tier 3</div>
+                    <div class="tier-title">Administrative Bulletins</div>
+                    <div class="tier-detail">
+                        47 DBI Administrative Bulletins indexed from the BICC full text. 6 individual AB
+                        text files for detailed extraction (AB-004, AB-005, AB-032, AB-093, AB-110, AB-112).
+                        Covers priority processing, site permits, green building, all-electric mandates.
+                    </div>
+                </div>
+                <div class="tier-card">
+                    <div class="tier-num">Tier 4</div>
+                    <div class="tier-title">Full Code Corpus</div>
+                    <div class="tier-detail">
+                        SF Planning Code (12.6MB, 222K lines), Building Inspection Commission Code + Fire Code
+                        (3.6MB, 58K lines), and 2025 code amendments for building, existing building, electrical,
+                        green building, plumbing, and mechanical codes.
+                    </div>
+                </div>
+            </div>
+
+            <h3>Semantic Search</h3>
+            <p>
+                The semantic index maps 86 concepts (like "fire sprinkler requirements", "ADU parking rules",
+                or "conditional use hearing") to approximately 817 aliases and variant phrasings. When a user
+                asks a question, the system matches against both exact keywords and semantic concepts to find
+                relevant knowledge across all four tiers. The RAG pipeline (1,035 chunks with pgvector embeddings)
+                provides hybrid retrieval combining keyword and vector similarity.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 4. QUALITY ASSURANCE                                              -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="quality-assurance">
+            <h2><span class="num">04 //</span> Quality Assurance</h2>
+            <p>
+                Data quality is enforced at every layer: ingestion, computation, and delivery.
+            </p>
+
+            <div class="stat-row">
+                <div class="stat-pill"><div class="stat-value">3,300+</div><div class="stat-label">automated tests</div></div>
+                <div class="stat-pill"><div class="stat-value">73</div><div class="stat-label">behavioral scenarios</div></div>
+                <div class="stat-pill"><div class="stat-value">15</div><div class="stat-label">DQ checks (nightly)</div></div>
+            </div>
+
+            <ul>
+                <li><strong>Automated Test Suite</strong> &mdash; 3,300+ pytest tests covering tool outputs, web routes, entity resolution, fee calculations, timeline estimation, and edge cases. Tests run before every deployment.</li>
+                <li><strong>Behavioral Scenarios</strong> &mdash; 73 approved scenarios in a scenario design guide, covering 7 user personas and 8 common situations. Each scenario defines starting state, user goal, and expected outcome for QA verification.</li>
+                <li><strong>Nightly DQ Checks</strong> &mdash; Automated data quality checks run after each pipeline cycle: table row count drift detection, velocity trend alerts (>15% change from baseline), stale data warnings, and signal computation audits.</li>
+                <li><strong>Pipeline Health Monitoring</strong> &mdash; Each cron job logs its status, duration, and row counts. The admin dashboard shows pipeline health at a glance with alerts for failed or stalled jobs.</li>
+                <li><strong>Confidence Intervals</strong> &mdash; Every estimate includes a confidence level (high/medium/low) and the sample size used to compute it. When data is insufficient, we say so rather than guessing.</li>
+            </ul>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 5. WHAT WE DON'T COVER                                           -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <div class="section" id="gaps">
+            <h2><span class="num">05 //</span> What We Don't Cover</h2>
+            <p>
+                Honest about our boundaries:
+            </p>
+            <ul>
+                <li><strong>Planning Department fees</strong> &mdash; We estimate DBI fees but not Planning Department fees, which vary by entitlement type and are published on a separate schedule.</li>
+                <li><strong>Real-time permit status</strong> &mdash; Our data refreshes nightly. For up-to-the-minute status, check the DBI Permit Tracking System directly.</li>
+                <li><strong>Legal advice</strong> &mdash; sfpermits.ai provides data analysis, not legal or professional advice. Consult a licensed architect, engineer, or permit consultant for project-specific guidance.</li>
+                <li><strong>Projects outside San Francisco</strong> &mdash; All data, rules, and estimates are specific to the City and County of San Francisco. Other jurisdictions have different codes and processes.</li>
+                <li><strong>Historic building assessments</strong> &mdash; While we flag historic district overlays and Section 311 requirements, detailed historic preservation analysis requires specialist review.</li>
+                <li><strong>Permit amendments post-issuance</strong> &mdash; The permit revision process after initial issuance is partially documented but not yet modeled with prediction tools.</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>
+                sfpermits.ai &mdash; San Francisco Building Permit Intelligence
+                &middot; <a href="/methodology">Methodology</a>
+                &middot; <a href="/">Home</a>
+            </p>
+            <p style="margin-top: 8px;">
+                Built on open data from the City and County of San Francisco.
+                Not affiliated with or endorsed by SF DBI.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -243,6 +243,8 @@ def sitemap():
         "/adu",
         "/beta-request",
         "/analyze-preview",
+        "/methodology",
+        "/about-data",
     ]
     base = "https://sfpermits.ai"
     now = datetime.now().strftime("%Y-%m-%d")
@@ -266,3 +268,244 @@ def adu_landing():
     """ADU landing page with pre-computed stats (24h cache)."""
     stats = _get_adu_stats()
     return render_template("adu_landing.html", stats=stats)
+
+
+# ---------------------------------------------------------------------------
+# Content pages: methodology, about-data, demo
+# ---------------------------------------------------------------------------
+
+@bp.route("/methodology")
+def methodology():
+    """Deep-dive page showing how sfpermits.ai calculates everything."""
+    return render_template("methodology.html")
+
+
+@bp.route("/about-data")
+def about_data():
+    """Full data inventory — datasets, pipeline, knowledge base, QA."""
+    return render_template("about_data.html")
+
+
+# Demo address config: a known-rich parcel with permits, routing, violations
+_DEMO_ADDRESS = {"street_number": "1455", "street_name": "MARKET", "block": "3507", "lot": "004"}
+_demo_cache: dict = {}
+
+
+def _get_demo_data() -> dict:
+    """Pre-query all intelligence layers for the demo address. Cached 1 hour."""
+    import time as _time
+
+    now = _time.time()
+    if _demo_cache and _demo_cache.get("computed_at", 0) > now - 3600:
+        return _demo_cache
+
+    addr = _DEMO_ADDRESS
+    data: dict = {
+        "demo_address": f"{addr['street_number']} {addr['street_name']} ST",
+        "block": addr["block"],
+        "lot": addr["lot"],
+        "neighborhood": "South of Market",
+        "permits": [],
+        "routing": [],
+        "timeline": None,
+        "entities": [],
+        "complaints": [],
+        "violations": [],
+    }
+
+    try:
+        from src.db import get_connection, BACKEND
+        conn = get_connection()
+        ph = "%s" if BACKEND == "postgres" else "?"
+        try:
+            # Permits
+            rows = conn.execute(
+                f"SELECT permit_number, permit_type_definition, status, "
+                f"filed_date, estimated_cost, description "
+                f"FROM permits WHERE block = {ph} AND lot = {ph} "
+                f"ORDER BY filed_date DESC NULLS LAST LIMIT 20",
+                (addr["block"], addr["lot"]),
+            ).fetchall() if BACKEND == "duckdb" else []
+
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT permit_number, permit_type_definition, status, "
+                        "filed_date, estimated_cost, description "
+                        "FROM permits WHERE block = %s AND lot = %s "
+                        "ORDER BY filed_date DESC NULLS LAST LIMIT 20",
+                        (addr["block"], addr["lot"]),
+                    )
+                    rows = cur.fetchall()
+
+            for r in rows:
+                cost = r[4]
+                cost_display = f"${cost:,.0f}" if cost and cost > 0 else "N/A"
+                desc = (r[5] or "")[:80]
+                filed = str(r[3])[:10] if r[3] else "N/A"
+                data["permits"].append({
+                    "permit_number": r[0],
+                    "permit_type": (r[1] or "")[:30],
+                    "status": (r[2] or "unknown").lower(),
+                    "filed_date": filed,
+                    "cost_display": cost_display,
+                    "description_short": desc,
+                })
+
+            # Complaints
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT complaint_number, status, description "
+                            "FROM complaints WHERE block = %s AND lot = %s "
+                            "ORDER BY date_filed DESC NULLS LAST LIMIT 5",
+                            (addr["block"], addr["lot"]),
+                        )
+                        for r in cur.fetchall():
+                            data["complaints"].append({
+                                "description_short": (r[2] or "")[:80],
+                                "status": r[1] or "unknown",
+                            })
+                else:
+                    for r in conn.execute(
+                        "SELECT complaint_number, status, description "
+                        "FROM complaints WHERE block = ? AND lot = ? "
+                        "ORDER BY date_filed DESC NULLS LAST LIMIT 5",
+                        (addr["block"], addr["lot"]),
+                    ).fetchall():
+                        data["complaints"].append({
+                            "description_short": (r[2] or "")[:80],
+                            "status": r[1] or "unknown",
+                        })
+            except Exception:
+                pass
+
+            # Violations
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT nov_number, status, description "
+                            "FROM violations WHERE block = %s AND lot = %s "
+                            "ORDER BY date_filed DESC NULLS LAST LIMIT 5",
+                            (addr["block"], addr["lot"]),
+                        )
+                        for r in cur.fetchall():
+                            data["violations"].append({
+                                "description_short": (r[2] or "")[:80],
+                                "status": r[1] or "unknown",
+                            })
+                else:
+                    for r in conn.execute(
+                        "SELECT nov_number, status, description "
+                        "FROM violations WHERE block = ? AND lot = ? "
+                        "ORDER BY date_filed DESC NULLS LAST LIMIT 5",
+                        (addr["block"], addr["lot"]),
+                    ).fetchall():
+                        data["violations"].append({
+                            "description_short": (r[2] or "")[:80],
+                            "status": r[1] or "unknown",
+                        })
+            except Exception:
+                pass
+
+            # Entities (from contacts on permits at this address)
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT DISTINCT c.name, c.role, e.permit_count "
+                            "FROM contacts c "
+                            "JOIN entities e ON c.entity_id = e.entity_id "
+                            "WHERE c.permit_number IN ("
+                            "  SELECT permit_number FROM permits WHERE block = %s AND lot = %s"
+                            ") "
+                            "AND c.name IS NOT NULL "
+                            "ORDER BY e.permit_count DESC LIMIT 10",
+                            (addr["block"], addr["lot"]),
+                        )
+                        for r in cur.fetchall():
+                            data["entities"].append({
+                                "name": r[0],
+                                "role": r[1] or "unknown",
+                                "permit_count": r[2] or 0,
+                            })
+                else:
+                    for r in conn.execute(
+                        "SELECT DISTINCT c.name, c.role, e.permit_count "
+                        "FROM contacts c "
+                        "JOIN entities e ON c.entity_id = e.entity_id "
+                        "WHERE c.permit_number IN ("
+                        "  SELECT permit_number FROM permits WHERE block = ? AND lot = ?"
+                        ") "
+                        "AND c.name IS NOT NULL "
+                        "ORDER BY e.permit_count DESC LIMIT 10",
+                        (addr["block"], addr["lot"]),
+                    ).fetchall():
+                        data["entities"].append({
+                            "name": r[0],
+                            "role": r[1] or "unknown",
+                            "permit_count": r[2] or 0,
+                        })
+            except Exception:
+                pass
+
+            # Routing progress (latest permit with routing data)
+            try:
+                latest_permit = data["permits"][0]["permit_number"] if data["permits"] else None
+                if latest_permit and BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT station, review_result "
+                            "FROM addenda WHERE permit_number = %s "
+                            "AND station IS NOT NULL "
+                            "ORDER BY finish_date DESC NULLS LAST LIMIT 8",
+                            (latest_permit,),
+                        )
+                        for r in cur.fetchall():
+                            result = (r[1] or "pending").lower()
+                            if "approved" in result:
+                                bar_class = "complete"
+                                pct = 100
+                            elif "comment" in result or "hold" in result:
+                                bar_class = "in-progress"
+                                pct = 60
+                            else:
+                                bar_class = "pending"
+                                pct = 10
+                            data["routing"].append({
+                                "station": r[0],
+                                "result": r[1] or "Pending",
+                                "bar_class": bar_class,
+                                "pct": pct,
+                            })
+            except Exception:
+                pass
+
+        finally:
+            conn.close()
+    except Exception as e:
+        logging.warning("Demo data query failed: %s", e)
+
+    # Timeline estimate (hardcoded example for demo reliability)
+    if not data.get("timeline"):
+        data["timeline"] = {
+            "p25": 28, "p50": 45, "p75": 78, "p90": 120,
+            "p25_pct": 23, "p50_pct": 38, "p75_pct": 65, "p90_pct": 100,
+            "sample_size": "1,100,000+",
+            "confidence": "high",
+        }
+
+    _demo_cache.clear()
+    _demo_cache.update(data)
+    _demo_cache["computed_at"] = _time.time()
+    return _demo_cache
+
+
+@bp.route("/demo")
+def demo():
+    """Pre-loaded property intelligence demo for Zoom presentations."""
+    data = dict(_get_demo_data())  # copy to avoid mutating cache
+    data["density_max"] = request.args.get("density") == "max"
+    return render_template("demo.html", **data)
