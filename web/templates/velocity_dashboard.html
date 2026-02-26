@@ -347,6 +347,27 @@
                         {% endif %}
                     </div>
                     <div class="station-dept">{{ s.dept }}</div>
+                    {# === SESSION D: Congestion Signal === #}
+                    {% if data.congestion and s.station in data.congestion %}
+                    {% set cg = data.congestion[s.station] %}
+                    {% if cg.label != 'normal' %}
+                    <div class="station-congestion {{ cg.label }}" style="font-size:0.72rem;margin-top:4px;padding:2px 6px;border-radius:4px;display:inline-block;
+                        {% if cg.label == 'congested' %}background:rgba(239,68,68,0.15);color:#f87171;
+                        {% elif cg.label == 'busy' %}background:rgba(245,158,11,0.15);color:#fbbf24;
+                        {% elif cg.label == 'clearing' %}background:rgba(34,197,94,0.15);color:#4ade80;
+                        {% endif %}">
+                        {% if cg.label == 'congested' %}&#9888;{% elif cg.label == 'busy' %}&#9203;{% elif cg.label == 'clearing' %}&#10003;{% endif %}
+                        {{ cg.label | capitalize }}
+                        {% if cg.ratio %}({{ cg.ratio | round(1) }}x normal){% endif %}
+                        &middot; {{ cg.current_queue }} pending
+                    </div>
+                    {% elif cg.current_queue and cg.current_queue > 0 %}
+                    <div style="font-size:0.7rem;margin-top:3px;color:var(--text-muted);">
+                        {{ cg.current_queue }} pending
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    {# === END SESSION D === #}
                     <div class="station-drill-hint">Click for reviewer breakdown →</div>
                 </div>
                 {% endfor %}
