@@ -67,13 +67,15 @@ def log_activity(
         logger.debug("Activity log write failed (non-fatal)", exc_info=True)
 
 
-def get_recent_activity(limit: int = 50, action_filter: str | None = None,
+def get_recent_activity(limit: int = 50, offset: int = 0,
+                        action_filter: str | None = None,
                         user_id_filter: int | None = None) -> list[dict]:
     """Get recent activity log entries (admin view).
 
     Optional filters:
       action_filter: only return entries matching this action type
       user_id_filter: only return entries for this user
+      offset: number of rows to skip (for pagination)
     """
     _ensure_schema()
     conditions: list[str] = []
@@ -86,6 +88,7 @@ def get_recent_activity(limit: int = 50, action_filter: str | None = None,
         params.append(user_id_filter)
     where = ("WHERE " + " AND ".join(conditions) + " ") if conditions else ""
     params.append(limit)
+    params.append(offset)
     rows = query(
         f"SELECT a.log_id, a.user_id, a.action, a.detail, a.path, a.created_at, "
         f"u.email "
@@ -93,7 +96,7 @@ def get_recent_activity(limit: int = 50, action_filter: str | None = None,
         f"LEFT JOIN users u ON a.user_id = u.user_id "
         f"{where}"
         f"ORDER BY a.created_at DESC "
-        f"LIMIT %s",
+        f"LIMIT %s OFFSET %s",
         tuple(params),
     )
     results = []
