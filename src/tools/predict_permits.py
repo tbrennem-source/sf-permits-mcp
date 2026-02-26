@@ -472,7 +472,8 @@ async def predict_permits(
     estimated_cost: float | None = None,
     square_footage: float | None = None,
     scope_keywords: list[str] | None = None,
-) -> str:
+    return_structured: bool = False,
+) -> str | tuple[str, dict]:
     """Predict required permits, forms, review path, and agency routing for a project.
 
     Walks the SF permit decision tree based on project description to predict:
@@ -488,9 +489,11 @@ async def predict_permits(
         estimated_cost: Optional construction cost estimate
         square_footage: Optional project area in square feet
         scope_keywords: Optional explicit project type keywords to override auto-extraction
+        return_structured: If True, returns (markdown_str, methodology_dict) tuple
 
     Returns:
         Formatted prediction with permits, routing, requirements, and confidence.
+        If return_structured=True, returns (str, dict) tuple.
     """
     kb = get_knowledge_base()
 
@@ -692,6 +695,19 @@ async def predict_permits(
         for g in result["gaps"]:
             lines.append(f"- {g}")
 
+    # Coverage disclaimer
+    coverage_gaps = []
+    if not zoning_info:
+        coverage_gaps.append("Zoning-specific routing unavailable. General routing rules applied.")
+    if not address:
+        coverage_gaps.append("No address provided — cannot verify zoning or historic status")
+    if "general_alteration" in project_types:
+        coverage_gaps.append("Project type could not be classified specifically")
+    if coverage_gaps:
+        lines.append(f"\n## Data Coverage\n")
+        for gap in coverage_gaps:
+            lines.append(f"- {gap}")
+
     # Build source citations based on which knowledge was used
     sources = ["decision_tree", "otc_criteria", "forms_taxonomy", "routing_matrix"]
     if "restaurant" in project_types:
@@ -708,4 +724,31 @@ async def predict_permits(
         sources.append("planning_code")
     lines.append(format_sources(sources))
 
-    return "\n".join(lines)
+    md_output = "\n".join(lines)
+
+    if return_structured:
+        from datetime import date
+        formula_steps = [
+            f"Form: {form['form']} ({form['reason']})",
+            f"Review Path: {review_path['path']} ({review_path['confidence']} confidence)",
+            f"Agencies: {len(agency_routing)} routing",
+            f"Requirements: {len(special_requirements)} items",
+        ]
+
+        data_sources = ["SF permit decision tree", "86-concept semantic index"]
+        if zoning_info:
+            data_sources.append("Local tax records + zoning routing table")
+
+        methodology = {
+            "tool": "predict_permits",
+            "headline": f"{form['form']} — {review_path['path']}",
+            "formula_steps": formula_steps,
+            "data_sources": data_sources,
+            "sample_size": 0,
+            "data_freshness": date.today().isoformat(),
+            "confidence": review_path.get("confidence", "medium"),
+            "coverage_gaps": coverage_gaps,
+        }
+        return md_output, methodology
+
+    return md_output

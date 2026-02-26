@@ -1,36 +1,50 @@
 # Changelog
 
-## Visual QA Pipeline Phase 1 (2026-02-25)
+## Sprint 57 — Data Sharpening + Methodology Transparency (2026-02-25)
 
-Replaces DeskCC (manual visual QA) with automated visual regression in termRelay. All headless, all Playwright, ~3-5 minutes per run.
+Every calculated number in the UI now links to its reasoning. Users never wonder "where did this number come from?"
 
-### scripts/visual_qa.py
-- **Page matrix**: 21 pages × 3 viewports (mobile 390×844, tablet 768×1024, desktop 1440×900)
-- **Golden comparison**: Pillow pixel-diff with 1% threshold, 30 per-pixel RGB tolerance
-- **Auto-baseline**: Missing goldens auto-captured on first run
-- **Retry logic**: 3 attempts per page with backoff, domcontentloaded wait strategy
-- **Video recording**: Playwright record_video_dir, one .webm per viewport
-- **Filmstrips**: Horizontal PNG strips (400px height, 4px gaps) for quick visual scan
-- **Markers JSON**: Compatible with /admin/qa replay UI
-- **Journey recording**: 4 scripted user flows with --journeys flag, --guided mode for interactive breakpoints
-- **Auth**: TEST_LOGIN_SECRET via JSON POST to /auth/test-login
-- **CLI**: --url, --sprint, --capture-goldens, --update-goldens, --viewport, --pages, --threshold, --journeys, --guided
+### Methodology Metadata — Dual Return Pattern (Agent A)
+- **`return_structured` param**: All 5 decision tools (`estimate_fees`, `estimate_timeline`, `predict_permits`, `required_documents`, `revision_risk`) support `return_structured=True` returning `(str, dict)` tuple
+- **Backward compatible**: Default `return_structured=False` returns plain `str` — MCP server and all existing callers unaffected
+- **Methodology dict shape**: `tool`, `headline`, `formula_steps`, `data_sources`, `sample_size`, `data_freshness`, `confidence`, `coverage_gaps`
 
-### tests/test_visual_qa.py
-- 11 unit tests: identical/different/missing images, size mismatch, anti-aliasing tolerance, custom threshold, diff image verification, filmstrip generation
+### Coverage Disclaimers (Agent A)
+- **All 5 tools** append "Data Coverage" section to markdown output listing specific limitations
+- `estimate_fees`: "Planning fees not included. Electrical fees estimated from Table 1A-E."
+- `estimate_timeline`: "Limited data for this combination (N permits)" when sample < 20
+- `predict_permits`: "Zoning-specific routing unavailable" when no address provided
+- `required_documents`: "Based on standard DBI requirements. Agency-specific forms may vary."
+- `revision_risk`: "Based on cost revision proxy. Actual revision reasons vary by project type."
 
-### termRelay Script Template
-- `qa-drop/sprint57-termrelay.md`: staging visual QA → promotion → prod visual QA → staging↔prod divergence check
-- Replaces per-sprint DeskRelay requirement; DeskRelay becomes escalation-only (UX score ≤ 2.0)
+### Cost Revision Risk in Fee Estimates (Agent A)
+- **5 cost brackets** with hardcoded revision rates from historical data analysis:
+  - Under $5K: 21.7% rate, 4.8x avg increase
+  - $5K–$25K: 20.8%, +33%
+  - $25K–$100K: 28.6%, +23%
+  - $100K–$500K: 28.5%, +17%
+  - Over $500K: 19.8%, -32% (cost decreases common)
+- Budget ceiling recommendation appended to fee estimate output
 
-### First Run Results (Sprint 57)
-- Staging: 60/63 pages captured (brief timeout — known slow page)
-- UX evaluation: 3.29/5.0 avg, 8 pages flagged, no blockers
-- Prod: 15/15 public pages, 0 FAIL
-- Divergence: 0.00% diff — staging = prod pixel-identical
-- Chief tasks #266-273 created for UX improvements
+### Pipeline Verification (Agent C)
+- **32 tests** validating cron infrastructure, route registration, inspections data constants, and street-use SQL matching
+- Confirmed plumbing inspections dataset (fuas-yurr) ingested alongside building inspections (vckc-dh2h)
+- All 10 cron routes verified as registered in Flask app
 
----
+### Methodology Cards in UI (Agent D)
+- **`/analyze` route** calls all 5 tools with `return_structured=True`, passes `methodology` dict to template
+- **`results.html`**: `<details class="methodology-card">` per tool section — collapsed by default, shows formula steps, data sources, coverage gaps
+- **`analysis_shared.html`**: Same methodology cards for shared analysis pages
+- Inline CSS: border-left accent, muted sources text, italic amber coverage gaps
+
+### QA Video Capture Infrastructure (pre-req)
+- `tests/e2e/relay_helpers.py`: Playwright video recording + step markers
+- `tests/e2e/test_video_recording.py`: E2E validation test for video pipeline
+- `web/templates/admin_qa.html` + `admin_qa_detail.html`: Admin QA replay pages with video playback and timeline
+
+### Test Coverage
+- 83 new tests (39 methodology + 32 pipeline + 12 methodology UX)
+- Total: 2,465 passed, 0 failed (worktree, pre-merge)
 
 ## Sprint 57.5 — Infrastructure Scaling (2026-02-25)
 

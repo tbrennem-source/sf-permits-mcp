@@ -1520,44 +1520,44 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-<!-- Visual QA Pipeline Phase 1 session: 4 scenarios added on 2026-02-25 (CHECKCHAT close) -->
+<!-- Sprint 57: 4 scenarios added (methodology transparency, dual return, coverage disclaimers, revision probability) -->
 
-## SUGGESTED SCENARIO: Visual regression catches unintended CSS change
-**Source:** scripts/visual_qa.py — compare_screenshots()
-**User:** admin
-**Starting state:** Golden baselines exist from previous sprint
-**Goal:** Detect that a CSS change in the current sprint altered a page's appearance beyond threshold
-**Expected outcome:** visual_qa.py reports FAIL with diff percentage and saves a diff image highlighting changed pixels in hot pink; filmstrip shows the affected page alongside passing pages for quick comparison
-**Edge cases seen in code:** Anti-aliasing tolerance (30px) prevents false positives from font rendering differences; size mismatch triggers golden resize rather than immediate fail
+## SUGGESTED SCENARIO: Methodology card reveals calculation details
+**Source:** Sprint 57 — methodology transparency
+**User:** expediter | architect
+**Starting state:** User submits a project for analysis via /analyze
+**Goal:** Understand where each number came from
+**Expected outcome:** Each tool section (fees, timeline, permits, documents, risk) has a collapsible "How we calculated this" card showing formula steps, data sources, and coverage gaps. Cards are collapsed by default.
+**Edge cases seen in code:** methodology dict may be empty if tool throws exception; cards gracefully absent when no methodology data
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Staging and prod divergence detected after promotion
-**Source:** qa-drop/sprint57-termrelay.md — Part 5 divergence check
-**User:** admin
-**Starting state:** Staging goldens captured, code promoted to prod, prod screenshots taken
-**Goal:** Verify staging and prod render identically for the same code
-**Expected outcome:** Divergence check shows 0% diff on all public pages; staging banner difference is expected and within tolerance; any layout difference triggers a FAIL and Chief task creation
-**Edge cases seen in code:** Prod lacks TESTING env var so auth/admin pages can't be compared — divergence check limited to public pages only
+## SUGGESTED SCENARIO: Fee estimate shows cost revision risk
+**Source:** Sprint 57 — estimate_fees revision probability
+**User:** expediter | homeowner
+**Starting state:** User requests a fee estimate with construction cost
+**Goal:** Understand the risk of cost changes during permit review
+**Expected outcome:** Fee estimate includes a "Cost Revision Risk" section with probability percentage for the cost bracket, historical pattern, and a budget ceiling recommendation
+**Edge cases seen in code:** Five cost brackets with different rates (21.7% to 28.6%); Over $500K bracket shows -32% (cost decreases common)
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: UX evaluation flags page below threshold for DeskRelay escalation
-**Source:** qa-ux-designer agent evaluation workflow
+## SUGGESTED SCENARIO: Tool backward compatibility preserved
+**Source:** Sprint 57 — dual return pattern
 **User:** admin
-**Starting state:** Golden screenshots captured, qa-ux-designer agent launched
-**Goal:** Identify pages with poor UX scores that need human visual review
-**Expected outcome:** Agent scores each page 1-5 on layout/readability/navigation/responsiveness; pages scoring ≤ 2.0 on any dimension are flagged DESKRELAY; results written to qa-results/ with per-persona notes
-**Edge cases seen in code:** Brief page may be missing from goldens due to timeout — agent should note the gap rather than skip silently
-**CC confidence:** medium
+**Starting state:** MCP server calls tools without return_structured parameter
+**Goal:** Existing MCP callers continue to work unchanged
+**Expected outcome:** All 5 tools return plain string when called without return_structured=True. No breaking change for MCP server or any existing caller.
+**Edge cases seen in code:** Default param value is False; MCP server.py does not pass return_structured
+**CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: First-run golden capture establishes baselines without failures
-**Source:** scripts/visual_qa.py — run_visual_qa() with --capture-goldens
-**User:** admin
-**Starting state:** No goldens directory exists, fresh project or new sprint
-**Goal:** Capture baseline screenshots for all pages without any comparison failures
-**Expected outcome:** All captured pages report status "new_baseline"; goldens directory populated; filmstrips generated; markers JSON written for admin UI; exit code 0
-**Edge cases seen in code:** Auth pages skipped gracefully when TEST_LOGIN_SECRET not set (status="pass" with "skipped" message, not "fail"); staging server throttling under 63 rapid requests triggers retry with backoff
+## SUGGESTED SCENARIO: Coverage disclaimers clarify data limitations
+**Source:** Sprint 57 — coverage disclaimers
+**User:** expediter | architect
+**Starting state:** User views tool output from any of the 5 analysis tools
+**Goal:** Know what data limitations apply to each result
+**Expected outcome:** Each tool output includes a "Data Coverage" section listing specific gaps (e.g., "Planning fees not included", "Limited data for this combination")
+**Edge cases seen in code:** estimate_timeline disclaimer triggers when sample < 20; predict_permits shows "Zoning-specific routing unavailable" when no address provided
 **CC confidence:** high
 **Status:** PENDING REVIEW
