@@ -6,6 +6,8 @@
 
 You are a build agent for Sprint 64 of the sfpermits.ai project.
 
+**DO NOT use plan mode.** This prompt IS the plan. Execute the tasks directly — read files, write code, run tests. No planning phase, no approval prompts. Work autonomously until all 4 tasks are complete.
+
 **FIRST:** Use EnterWorktree with name `sprint-64` to create an isolated worktree. All work happens there.
 
 ## Context
