@@ -68,10 +68,25 @@
         <a href="/" class="logo">sfpermits<span>.ai</span></a>
         <div class="header-right">
             <a href="/" class="badge {% if active_page == 'search' %}badge-active{% endif %}">Search</a>
+            {% if gate.can_brief %}
             <a href="/brief" class="badge {% if active_page == 'brief' %}badge-active{% endif %}">Brief</a>
+            {% else %}
+            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access Morning Brief">Brief <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
+            {% endif %}
+            {% if gate.can_portfolio %}
             <a href="/portfolio" class="badge {% if active_page == 'portfolio' %}badge-active{% endif %}">Portfolio</a>
-            {% if g.user %}<a href="/projects" class="badge {% if active_page == 'projects' %}badge-active{% endif %}">Projects</a>
+            {% else %}
+            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access Portfolio">Portfolio <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
+            {% endif %}
+            {% if gate.can_projects %}
+            <a href="/projects" class="badge {% if active_page == 'projects' %}badge-active{% endif %}">Projects</a>
+            {% else %}
+            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access Projects">Projects <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
+            {% endif %}
+            {% if gate.can_analyses %}
             <a href="/account/analyses" class="badge {% if active_page == 'analyses' %}badge-active{% endif %}">My Analyses</a>
+            {% else %}
+            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access My Analyses">My Analyses <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
             {% endif %}
             {% if g.user and g.user.is_admin %}
             <div class="admin-dropdown">

@@ -30,8 +30,8 @@ from scripts.run_prod_migrations import (
 
 class TestMigrationRegistry:
     def test_migration_count(self):
-        """Twelve migrations in the registry (Sprint 56D + Sprint 57.0)."""
-        assert len(MIGRATIONS) == 12
+        """Thirteen migrations in the registry (Sprint 56D + Sprint 57.0 + Sprint 61B)."""
+        assert len(MIGRATIONS) == 13
 
     def test_all_have_names(self):
         """Every migration has a non-empty name."""
@@ -74,6 +74,7 @@ class TestMigrationRegistry:
             "inspections_unique",
             "shareable_analysis",
             "neighborhood_backfill",
+            "sprint61b_teams",
         }
         actual = {m.name for m in MIGRATIONS}
         assert expected == actual
@@ -100,9 +101,9 @@ class TestMigrationRegistry:
         assert share_idx < backfill_idx
 
     def test_neighborhood_backfill_is_last(self):
-        """'neighborhood_backfill' migration is last in registry."""
+        """'sprint61b_teams' migration is last in registry (after neighborhood_backfill)."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-1] == "neighborhood_backfill"
+        assert names[-1] == "sprint61b_teams"
 
     def test_schema_is_first(self):
         """'schema' migration runs first."""
