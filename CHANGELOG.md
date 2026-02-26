@@ -1,5 +1,37 @@
 # Changelog
 
+## QS3-A — Permit Prep Phase 1 (2026-02-26)
+
+### Data Model
+- **`web/permit_prep.py` (NEW)**: Core module with `create_checklist()`, `get_checklist()`, `update_item_status()`, `get_user_checklists()`, `preview_checklist()`
+- **`scripts/release.py`**: Added `prep_checklists` and `prep_items` DDL with indexes
+- Checklist generation seeds from `predict_permits` + `required_documents` tool output
+- Documents auto-categorized into 4 groups: plans, forms, supplemental, agency
+
+### API Endpoints
+- **POST `/api/prep/create`**: Create checklist (auth required, 201 response)
+- **GET `/api/prep/<permit>`**: Return checklist JSON with items and progress
+- **PATCH `/api/prep/item/<id>`**: Update item status (HTMX-friendly: returns HTML fragment)
+- **GET `/api/prep/preview/<permit>`**: Preview predicted checklist without saving
+
+### UI
+- **`web/templates/permit_prep.html` (NEW)**: Full-page Obsidian-themed checklist with progress bar, categorized sections, radio-button status toggles, print stylesheet
+- **`web/templates/fragments/prep_item.html` (NEW)**: HTMX item fragment for in-place status updates
+- **`web/templates/fragments/prep_checklist.html` (NEW)**: Category section fragment
+- **`web/templates/fragments/prep_progress.html` (NEW)**: Progress bar fragment
+- **`web/templates/account_prep.html` (NEW)**: Dashboard listing all user checklists with progress bars
+
+### Integration Points
+- **Nav**: "Permit Prep" badge added for authenticated users
+- **Search results**: "Prep Checklist" button on permit cards (links to /prep)
+- **Intel preview**: "Permit Prep" section with link to start checklist
+- **Morning brief**: `_get_prep_summary()` added — returns checklists with progress counts
+- **Route**: `/prep/<permit>` (auto-creates checklist on first visit)
+- **Route**: `/account/prep` (lists all user checklists)
+
+### Tests
+- **`tests/test_qs3_a_permit_prep.py` (NEW)**: 50 tests covering data model, API, routes, integration, categorization
+
 ## Sprint 69 — Session 1: Design System + Landing Rewrite (2026-02-26)
 
 ### Obsidian Intelligence Design System
