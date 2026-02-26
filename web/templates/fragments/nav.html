@@ -70,7 +70,7 @@
             <a href="/" class="badge {% if active_page == 'search' %}badge-active{% endif %}">Search</a>
             <a href="/brief" class="badge {% if active_page == 'brief' %}badge-active{% endif %}">Brief</a>
             <a href="/portfolio" class="badge {% if active_page == 'portfolio' %}badge-active{% endif %}">Portfolio</a>
-            {% if g.user %}
+            {% if g.user %}<a href="/projects" class="badge {% if active_page == 'projects' %}badge-active{% endif %}">Projects</a>
             <a href="/account/analyses" class="badge {% if active_page == 'analyses' %}badge-active{% endif %}">My Analyses</a>
             {% endif %}
             {% if g.user and g.user.is_admin %}

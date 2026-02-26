@@ -489,6 +489,25 @@ def _run_startup_migrations():
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_requested_at TIMESTAMPTZ")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_approved_at TIMESTAMPTZ")
 
+        # Sprint 61B: Projects + project_members (team seed)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS projects (
+                id TEXT PRIMARY KEY, name TEXT, address TEXT, block TEXT, lot TEXT,
+                neighborhood TEXT, created_by INTEGER REFERENCES users(user_id),
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_projects_parcel ON projects(block, lot)")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS project_members (
+                project_id TEXT REFERENCES projects(id), user_id INTEGER REFERENCES users(user_id),
+                role TEXT DEFAULT 'member', invited_by INTEGER REFERENCES users(user_id),
+                joined_at TIMESTAMPTZ DEFAULT NOW(), PRIMARY KEY (project_id, user_id)
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_pm_user ON project_members(user_id)")
+        cur.execute("ALTER TABLE analysis_sessions ADD COLUMN IF NOT EXISTS project_id TEXT REFERENCES projects(id)")
+
         # Voice & style preferences (macro instructions for AI response tone)
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS voice_style TEXT")
 
@@ -649,6 +668,16 @@ try:
     recover_stale_jobs()
 except Exception as e:
     logging.getLogger(__name__).warning("Stale job recovery failed (non-fatal): %s", e)
+
+# === SESSION B: Sprint 61B — Projects Blueprint ===
+from web.projects import (  # noqa: E402
+    projects_bp,
+    _create_project,
+    _get_or_create_project,
+    _auto_join_project,
+)
+app.register_blueprint(projects_bp)
+# === END SESSION B: Sprint 61B ===
 
 
 # ---------------------------------------------------------------------------
@@ -1324,6 +1353,7 @@ def analyze():
 
     # D4: Save analysis results to analysis_sessions for sharing
     # === SPRINT 58A: methodology persistence ===
+    # === SPRINT 61B: project auto-create ===
     analysis_id = None
     try:
         import uuid
@@ -1331,6 +1361,15 @@ def analyze():
         from src.db import execute_write as _db_write, BACKEND as _BACKEND, query_one as _qone, get_connection as _get_conn
         analysis_id = str(uuid.uuid4())
         user_id = g.user.get("user_id") if g.user else None
+        # Sprint 61B: resolve block/lot for parcel dedup; create/link project
+        _block = request.form.get("block", "").strip() or None
+        _lot = request.form.get("lot", "").strip() or None
+        _project_id = None
+        if user_id and (address or _block or _lot):
+            try:
+                _project_id = _get_or_create_project(address, _block, _lot, neighborhood, user_id)
+            except Exception as _pe:
+                logging.warning("project auto-create failed (non-fatal): %s", _pe)
         # Store raw markdown text (pre-rendered) + full methodology dicts for sharing
         # Fix: use correct variable names (fees_md, timeline_md, docs_md, risk_md)
         # Sprint 58A: methodology dict is now included alongside raw results
@@ -1348,10 +1387,10 @@ def analyze():
             _db_write(
                 "INSERT INTO analysis_sessions "
                 "(id, user_id, project_description, address, neighborhood, "
-                "estimated_cost, square_footage, results_json) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)",
+                "estimated_cost, square_footage, results_json, project_id) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)",
                 (analysis_id, user_id, description, address, neighborhood,
-                 estimated_cost, square_footage, results_json_str),
+                 estimated_cost, square_footage, results_json_str, _project_id),
             )
         else:
             id_row = _qone("SELECT COALESCE(MAX(CAST(1 AS INTEGER)), 0) FROM analysis_sessions")
@@ -1360,10 +1399,10 @@ def analyze():
                 conn2.execute(
                     "INSERT INTO analysis_sessions "
                     "(id, user_id, project_description, address, neighborhood, "
-                    "estimated_cost, square_footage, results_json) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    "estimated_cost, square_footage, results_json, project_id) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (analysis_id, user_id, description, address, neighborhood,
-                     estimated_cost, square_footage, results_json_str),
+                     estimated_cost, square_footage, results_json_str, _project_id),
                 )
             finally:
                 conn2.close()
@@ -3764,8 +3803,13 @@ def auth_verify(token):
             pass
 
     # D8: Redirect shared_link users back to the analysis they came from
+    # Sprint 61B: auto-join project on signup via shared link
     shared_analysis_id = session.pop("shared_analysis_id", None)
     if shared_analysis_id:
+        try:
+            _auto_join_project(user["user_id"], shared_analysis_id)
+        except Exception as _aje:
+            logging.warning("auto_join_project failed (non-fatal): %s", _aje)
         return redirect(url_for("analysis_shared", analysis_id=shared_analysis_id))
 
     return redirect(url_for("index"))
@@ -7280,7 +7324,8 @@ def analysis_shared(analysis_id):
     try:
         row = _qone(
             "SELECT id, user_id, project_description, address, neighborhood, "
-            "estimated_cost, square_footage, results_json, created_at, shared_count, view_count "
+            "estimated_cost, square_footage, results_json, created_at, shared_count, view_count, "
+            "project_id "
             "FROM analysis_sessions WHERE id = %s",
             (analysis_id,),
         )
@@ -7301,9 +7346,10 @@ def analysis_shared(analysis_id):
     # Parse results_json → rendered HTML
     # row indices: 0=id, 1=user_id, 2=project_description, 3=address, 4=neighborhood,
     #              5=estimated_cost, 6=square_footage, 7=results_json, 8=created_at,
-    #              9=shared_count, 10=view_count
+    #              9=shared_count, 10=view_count, 11=project_id
     results_json_val = row[7]
     created_at_val = row[8]
+    _session_project_id = row[11] if len(row) > 11 else None
     try:
         if isinstance(results_json_val, str):
             raw = _json.loads(results_json_val)
@@ -7343,11 +7389,25 @@ def analysis_shared(analysis_id):
         except Exception:
             pass
 
+    # Sprint 61B: check if current user is a member of the linked project
+    _is_project_member = False
+    if _session_project_id and g.user:
+        try:
+            _mem = _qone(
+                "SELECT 1 FROM project_members WHERE project_id = %s AND user_id = %s",
+                (_session_project_id, g.user["user_id"]),
+            )
+            _is_project_member = bool(_mem)
+        except Exception:
+            pass
+
     return render_template(
         "analysis_shared.html",
         session=sess,
         session_id=analysis_id,
         referrer_role=referrer_role,
+        project_id=_session_project_id,
+        is_project_member=_is_project_member,
     )
 
 
