@@ -1,0 +1,225 @@
+{
+  "metadata": {
+    "title": "Special Inspection Requirements — Types, Triggers, and Qualified Inspectors",
+    "source": "SF Building Inspection Commission Code (SFBICC) Section 1701-1706, CBC Chapter 17, AB-046",
+    "date_structured": "2026-02-26",
+    "authority": "SF Department of Building Inspection",
+    "gap_resolved": "GAP-13",
+    "notes": [
+      "Special inspections are required in addition to regular DBI inspections for specific construction activities",
+      "Special inspectors must be approved by DBI and are hired/paid by the building owner",
+      "Special inspection reports must be filed with DBI before final inspection approval",
+      "Failure to obtain required special inspections can result in stop-work order and permit revocation",
+      "Statement of Special Inspections (SSI) form required at plan check for projects requiring special inspections"
+    ]
+  },
+  "when_required": {
+    "general_triggers": [
+      "Structural steel construction (all welded or bolted connections)",
+      "Cast-in-place concrete (footings, slabs, walls, columns, beams)",
+      "Masonry construction (all types)",
+      "Wood construction with engineered connections (hold-downs, shear walls)",
+      "Soils and foundations (deep foundations, ground improvement)",
+      "Sprayed fire-resistive materials (fireproofing)",
+      "Seismic-force-resisting systems",
+      "Smoke control systems",
+      "Exterior insulation and finish systems (EIFS)",
+      "Special moment frames and braced frames"
+    ],
+    "cost_threshold": "Generally required for projects with structural work regardless of cost",
+    "exemptions": [
+      "Work of a minor nature per Building Official determination",
+      "Construction using conventional light-frame wood per CBC Section 2308 (some inspections still required)",
+      "Projects where the Building Official determines special inspection is not needed based on scope"
+    ]
+  },
+  "inspection_types": {
+    "structural_steel": {
+      "category": "Structural Steel",
+      "cbc_section": "1705.2",
+      "activities_requiring_inspection": [
+        "Welding (all types: complete joint penetration, partial, fillet)",
+        "High-strength bolt installation (pretensioned and slip-critical)",
+        "Steel fabrication shop operations (when required by engineer of record)",
+        "Steel erection and connection assembly",
+        "Metal deck attachment"
+      ],
+      "qualified_inspector": "AWS Certified Welding Inspector (CWI) for welding; ICC Special Inspector for bolting",
+      "frequency": "Continuous for welding of primary structural members; periodic for bolting",
+      "documentation": "Daily inspection reports, NDT (ultrasonic, radiographic) test results for CJP welds"
+    },
+    "concrete": {
+      "category": "Concrete Construction",
+      "cbc_section": "1705.3",
+      "activities_requiring_inspection": [
+        "Reinforcing steel placement (size, spacing, cover, lap splices, ties)",
+        "Concrete placement (slump testing, air content, temperature)",
+        "Prestressed concrete operations (stressing, grouting)",
+        "Post-installed anchors (adhesive and mechanical)",
+        "Shotcrete placement"
+      ],
+      "qualified_inspector": "ACI Concrete Field Testing Technician Level I or ICC Special Inspector",
+      "frequency": "Continuous during concrete placement; periodic for reinforcement inspection",
+      "documentation": "Concrete mix design approval, cylinder break reports (7-day and 28-day), rebar inspection reports"
+    },
+    "masonry": {
+      "category": "Masonry Construction",
+      "cbc_section": "1705.4",
+      "activities_requiring_inspection": [
+        "Mortar and grout proportioning and mixing",
+        "Placement of masonry units",
+        "Reinforcement placement and grouting",
+        "Prestressed masonry",
+        "Masonry veneer anchoring"
+      ],
+      "qualified_inspector": "ICC Special Inspector — Structural Masonry",
+      "frequency": "Continuous for grouting operations; periodic for unit placement",
+      "documentation": "Mortar/grout compressive strength test results, prism test results"
+    },
+    "wood_construction": {
+      "category": "Wood Construction",
+      "cbc_section": "1705.5",
+      "activities_requiring_inspection": [
+        "High-load diaphragm nailing patterns",
+        "Metal connector hardware installation (hold-downs, straps, ties)",
+        "Engineered wood products installation (glulam, LVL, I-joists)",
+        "Cross-laminated timber (CLT) connections",
+        "Wood shear wall construction"
+      ],
+      "qualified_inspector": "ICC Special Inspector — Structural Wood",
+      "frequency": "Periodic — typically at critical connection points before concealment",
+      "documentation": "Connection verification reports, nail pattern verification"
+    },
+    "soils_and_foundations": {
+      "category": "Soils and Foundations",
+      "cbc_section": "1705.6",
+      "activities_requiring_inspection": [
+        "Soil verification during excavation (bearing capacity confirmation)",
+        "Pile driving (blow counts, penetration depths)",
+        "Drilled shaft / caisson installation",
+        "Grade beam and mat foundation placement",
+        "Soil compaction testing for fill",
+        "Ground improvement (soil nails, micropiles, jet grouting)"
+      ],
+      "qualified_inspector": "Licensed Geotechnical Engineer or Certified Soils Special Inspector",
+      "frequency": "Continuous during pile driving; periodic during excavation and fill",
+      "documentation": "Geotechnical reports, pile driving logs, compaction test results, bearing verification"
+    },
+    "welding": {
+      "category": "Welding (Non-Structural)",
+      "cbc_section": "1705.2.1",
+      "activities_requiring_inspection": [
+        "Reinforcing bar welding (tack welds prohibited without engineering approval)",
+        "Metal stud welding to structural elements",
+        "Seismic brace welding"
+      ],
+      "qualified_inspector": "AWS CWI (Certified Welding Inspector)",
+      "frequency": "Continuous during welding operations",
+      "documentation": "Welder certifications (WPS/PQR), daily welding inspection reports"
+    },
+    "fire_resistant_materials": {
+      "category": "Sprayed Fire-Resistive Materials (SFRM)",
+      "cbc_section": "1705.14",
+      "activities_requiring_inspection": [
+        "Surface preparation before application",
+        "Application thickness verification",
+        "Density and bond strength testing",
+        "Patching after damage from other trades"
+      ],
+      "qualified_inspector": "ICC Special Inspector — Spray-Applied Fireproofing",
+      "frequency": "Periodic — at start of each application area and random sampling",
+      "documentation": "Thickness measurements, adhesion/cohesion test results, manufacturer compliance"
+    },
+    "smoke_control": {
+      "category": "Smoke Control Systems",
+      "cbc_section": "1705.18",
+      "activities_requiring_inspection": [
+        "Smoke control system installation verification",
+        "Commissioning and functional testing",
+        "Interface with fire alarm system"
+      ],
+      "qualified_inspector": "Qualified mechanical engineer or ICC-certified special inspector",
+      "frequency": "At system commissioning",
+      "documentation": "Commissioning report, test results, system documentation for Fire Department"
+    },
+    "seismic_systems": {
+      "category": "Seismic-Force-Resisting Systems",
+      "cbc_section": "1705.13",
+      "activities_requiring_inspection": [
+        "Special moment frame connections",
+        "Buckling-restrained brace installation",
+        "Base isolator installation",
+        "Damper device installation and testing",
+        "Designated seismic system anchorage"
+      ],
+      "qualified_inspector": "Varies by system — typically structural steel or concrete special inspector",
+      "frequency": "Continuous for critical connections; periodic for anchorage",
+      "documentation": "Connection inspection reports, device certification, test results"
+    }
+  },
+  "who_can_perform": {
+    "approval_authority": "SF Department of Building Inspection (Building Official)",
+    "requirements": [
+      "Must be approved by DBI prior to performing inspections",
+      "Must hold relevant ICC certification or professional license",
+      "Must demonstrate competency in the specific type of inspection",
+      "Must be independent of the contractor performing the work (conflict of interest prohibition)"
+    ],
+    "common_certifications": [
+      {
+        "certification": "AWS CWI (Certified Welding Inspector)",
+        "covers": "Structural steel welding, rebar welding"
+      },
+      {
+        "certification": "ICC Structural Steel and Bolting Special Inspector",
+        "covers": "Structural steel connections, high-strength bolting"
+      },
+      {
+        "certification": "ICC Reinforced Concrete Special Inspector",
+        "covers": "Concrete placement, reinforcement, post-installed anchors"
+      },
+      {
+        "certification": "ICC Structural Masonry Special Inspector",
+        "covers": "Masonry construction, grouting"
+      },
+      {
+        "certification": "ICC Structural Wood Special Inspector",
+        "covers": "Wood connections, shear walls, engineered wood"
+      },
+      {
+        "certification": "ACI Concrete Field Testing Technician",
+        "covers": "Concrete sampling and testing (cylinders, slump, air)"
+      },
+      {
+        "certification": "Licensed Geotechnical Engineer (California PE)",
+        "covers": "Soils verification, foundation inspection, pile driving"
+      }
+    ],
+    "hiring": "Owner is responsible for hiring and paying special inspectors. Cost is not part of permit fees.",
+    "liability": "Special inspector is liable for the accuracy of their inspections and reports"
+  },
+  "statement_of_special_inspections": {
+    "form": "Statement of Special Inspections (SSI)",
+    "when_required": "Must be submitted at plan check for all projects requiring special inspections",
+    "prepared_by": "Registered Design Professional (architect or engineer of record)",
+    "contents": [
+      "List of all required special inspections by type",
+      "Identification of qualified special inspection agencies",
+      "Schedule of inspections (when in construction sequence)",
+      "Reference to applicable code sections",
+      "Signature of registered design professional"
+    ],
+    "final_report": {
+      "title": "Final Report of Special Inspections",
+      "when_submitted": "Before final inspection by DBI",
+      "must_state": "All required special inspections have been completed and all work was found to be in compliance",
+      "signed_by": "Special inspector(s) and registered design professional"
+    }
+  },
+  "sf_specific_requirements": {
+    "seismic_retrofit": "Soft-story retrofit (AB-083) and UMB retrofit programs have specific special inspection requirements defined in the retrofit standards",
+    "high_rise": "High-rise buildings (75+ ft) have enhanced special inspection requirements per SFBC amendments",
+    "historic_buildings": "Work on Article 10/11 buildings may require additional inspection coordination with historic preservation staff",
+    "ab_046": "AB-046 provides DBI-specific guidance on special inspection administration and reporting requirements"
+  }
+}

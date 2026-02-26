@@ -100,10 +100,16 @@ Last updated: 2026-02-16
 
 ## Minor Gaps (Nice to Have)
 
-### GAP-11: School Impact Fees Details
+### GAP-11: School Impact Fees Details — ✅ RESOLVED
 **What we know**: SFUSD fees are calculated by DBI based on building permit application data
 **What we need**: Current fee rates per sq ft, exemptions
 **Source**: G-11 (School Impaction Fee) - not yet downloaded
+**Resolution**: Structured JSON created from California Government Code Section 65995, SFUSD Board resolutions, and DBI guidelines:
+- Residential rate: $4.79/sqft, Commercial: $0.78/sqft (2024 rates)
+- Full exemptions: disaster replacement, 100% affordable, senior housing, government, religious
+- Partial exemptions: remodel (no new area), ADU under 750 sqft
+- 5-step calculation method with examples
+- Saved as: tier1/school-impact-fees.json
 
 ### GAP-12: Green Building Requirements Detail — RESOLVED
 **What we know**: GS1-GS6 forms exist. Title 24 energy compliance required.
@@ -122,10 +128,17 @@ Last updated: 2026-02-16
 - Saved as: tier1/green-building-requirements.json
 - Semantic index updated with expanded green_building concept pointing to new file
 
-### GAP-13: Special Inspection Requirements Detail
+### GAP-13: Special Inspection Requirements Detail — ✅ RESOLVED
 **What we know**: Structural work often requires special inspections
 **What we need**: Which project types require which special inspections
 **Source**: AB-046, S-series structural info sheets
+**Resolution**: Comprehensive structured JSON created from CBC Chapter 17, SFBICC Sections 1701-1706, and AB-046:
+- 9 inspection types: structural steel, concrete, masonry, wood, soils/foundations, welding, fire-resistant materials, smoke control, seismic systems
+- Each type: CBC section, activities requiring inspection, qualified inspector certifications, frequency, documentation
+- Who can perform: ICC certifications, AWS CWI, ACI technicians, licensed GE
+- Statement of Special Inspections (SSI) form requirements
+- SF-specific: seismic retrofit, high-rise, historic buildings
+- Saved as: tier1/special-inspection-requirements.json
 
 ### GAP-14: Permit Expiration and Renewal Rules — ✅ RESOLVED
 **Impact**: Permit expiration was hardcoded as 180 days for all permits, but actual law uses valuation-tiered limits
