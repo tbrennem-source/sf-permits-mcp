@@ -287,7 +287,41 @@
             {% elif no_results %}
             <div class="no-results">
                 <h3>No permits found</h3>
-                <p>No permit records matched "{{ query }}". Try a different address or permit number.</p>
+                <p>No permit records matched "{{ query }}".</p>
+            </div>
+
+            <!-- Search guidance card -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px;">
+                <h3 style="font-size: 1rem; margin-bottom: 16px; color: var(--text);">
+                    {% if nl_query %}How to use sfpermits.ai{% else %}Try searching by{% endif %}
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Street Address</div>
+                        <a href="/search?q=614+6th+Ave" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">614 6th Ave</a><br>
+                        <a href="/search?q=75+Robin+Hood+Dr" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">75 Robin Hood Dr</a>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Permit Number</div>
+                        <a href="/search?q=202401015555" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">202401015555</a>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Block / Lot</div>
+                        <a href="/search?q=3512/001" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">3512/001</a>
+                    </div>
+                </div>
+                {% if nl_query %}
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 12px;">
+                        sfpermits.ai searches San Francisco building permit records. For general permit questions, sign up for free to access AI-powered project analysis.
+                    </p>
+                </div>
+                {% endif %}
+                <div style="margin-top: 16px; text-align: center;">
+                    <a href="/auth/login" style="display: inline-block; background: var(--accent); color: #fff; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                        Sign up free for full access
+                    </a>
+                </div>
             </div>
             {% else %}
             <div class="results-heading">Showing permits for "{{ query }}"</div>

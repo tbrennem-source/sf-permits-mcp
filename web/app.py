@@ -1076,6 +1076,9 @@ def public_search():
     intent = result.intent
     entities = result.entities
 
+    # === SESSION D: NL query detection for search guidance ===
+    nl_query = intent in ("general_question", "analyze_project")
+
     try:
         if intent == "lookup_permit":
             permit_num = entities.get("permit_number")
@@ -1105,6 +1108,7 @@ def public_search():
             error="We couldn't complete your search right now. Please try again.",
             no_results=False,
             result_html="",
+            nl_query=False,  # === SESSION D ===
         )
 
     # E3: Check for violation context
@@ -1117,6 +1121,7 @@ def public_search():
         no_results=no_results,
         error=None,
         violation_context=violation_context,
+        nl_query=nl_query,  # === SESSION D ===
     )
 
 
