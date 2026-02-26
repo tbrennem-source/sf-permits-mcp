@@ -6499,6 +6499,16 @@ def cron_velocity_refresh():
             stats["transitions_error"] = str(e)
         # === END SESSION B ===
 
+        # === SESSION D: Station congestion refresh ===
+        try:
+            from web.station_velocity import refresh_station_congestion
+            cong_stats = refresh_station_congestion()
+            stats["congestion"] = cong_stats.get("congestion_stations", 0)
+        except Exception as e:
+            logging.getLogger(__name__).warning("congestion refresh failed: %s", e)
+            stats["congestion_error"] = str(e)
+        # === END SESSION D ===
+
         return Response(
             _json_mod.dumps({"status": "ok", **stats}),
             mimetype="application/json",

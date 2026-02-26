@@ -6,6 +6,7 @@
 <!-- Sprint 56 orchestrator: +1 scenario for PgConnWrapper cursor bug discovered during deploy -->
 <!-- Sprint 57.0: 6 scenarios added (entity resolution, timeline filter, velocity periods, multi-role, neighborhood backfill) -->
 <!-- Sprint 60: 4 scenarios added (similar projects, station prediction, cost of delay, congestion signal) -->
+<!-- Sprint 61B: 5 scenarios added (projects auto-create, dedup by parcel, auto-join on signup, join banner, non-member access control) -->
 
 ## SUGGESTED SCENARIO: Plumbing inspection data persists after ingest
 **Source:** Sprint 56 — PgConnWrapper cursor fix
