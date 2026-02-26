@@ -1060,6 +1060,22 @@ def _resolve_block_lot(street_number: str, street_name: str) -> tuple[str, str] 
     return None
 
 
+# === SESSION B: No-results detection ===
+def _is_no_results(result_md: str) -> bool:
+    """Detect both 'No permits found' AND 'Please provide a permit number' as empty results."""
+    if not result_md:
+        return True
+    lower = result_md.lower()
+    return any(phrase in lower for phrase in [
+        "no permits found",
+        "no matching permits",
+        "please provide a permit number",
+        "no results",
+        "0 permits found",
+    ])
+# === END SESSION B ===
+
+
 @app.route("/")
 def index():
     # Unauthenticated users see the public landing page
@@ -1128,7 +1144,7 @@ def public_search():
             result_md = run_async(permit_lookup(street_name=query_str))
 
         result_html = md_to_html(result_md)
-        no_results = result_md.startswith("No permits found")
+        no_results = _is_no_results(result_md)
     except Exception as e:
         logging.warning("Public search failed for %r: %s", query_str, e)
         return render_template(
@@ -3124,7 +3140,7 @@ def _ask_address_search(query: str, entities: dict) -> str:
         logging.warning("Block/lot resolution failed for %s %s: %s",
                         street_number, street_name, e)
     # Detect no-results to show helpful next-step CTAs
-    no_results = result_md.startswith("No permits found")
+    no_results = _is_no_results(result_md)
     street_address = f"{street_number} {street_name}" if street_number and street_name else None
     # Enrich Quick Actions with live context
     project_context = None
@@ -4234,6 +4250,42 @@ def api_similar_projects():
         analysis_id=analysis_id,
     )
 # === END SESSION A ===
+
+
+# === SESSION B: Client-side activity tracking ===
+@app.route("/api/activity/track", methods=["POST"])
+def api_activity_track():
+    """Receive batched client-side events and write to activity_log."""
+    try:
+        data = request.get_json(silent=True)
+        if not data or not isinstance(data.get("events"), list):
+            return jsonify({"ok": False, "error": "invalid payload"}), 400
+
+        events = data["events"][:50]  # Cap at 50 events per batch
+
+        from web.activity import log_activity
+        user_id = g.user["user_id"] if g.user else None
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+        if ip:
+            ip = ip.split(",")[0].strip()
+
+        for evt in events:
+            event_type = evt.get("event", "unknown")
+            event_data = evt.get("data", {})
+            session_id = evt.get("session_id", "")
+            event_data["client_session"] = session_id
+            log_activity(
+                user_id=user_id,
+                action=f"client_{event_type}",
+                detail=event_data,
+                path=event_data.get("path", request.path),
+                ip=ip,
+            )
+
+        return jsonify({"ok": True, "count": len(events)})
+    except Exception:
+        return jsonify({"ok": False}), 500
+# === END SESSION B ===
 
 
 # ---------------------------------------------------------------------------
