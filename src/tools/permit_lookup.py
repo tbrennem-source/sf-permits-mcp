@@ -3,7 +3,7 @@
 import logging
 from datetime import date, timedelta
 
-from src.db import get_connection, BACKEND
+from src.db import get_connection, BACKEND, circuit_breaker
 
 logger = logging.getLogger(__name__)
 
@@ -322,7 +322,123 @@ def _get_related_location(conn, block: str, lot: str, exclude: str) -> list[dict
 
 
 def _get_related_team(conn, permit_number: str) -> list[dict]:
-    """Get permits sharing team members (via entity_id joins)."""
+    """Get permits sharing team members via pre-computed relationships table.
+
+    Approach (QS3-B): O(E) where E = entities on the permit (typically 3-5).
+    Before: O(N²) self-join across contacts × contacts × permits × entities.
+    Now: 1) get entity_ids from contacts, 2) query relationships table,
+         3) fetch entity details + recent permits for connected entities.
+    Falls back to old self-join if relationships table doesn't exist (DuckDB dev).
+    """
+    import time as _time
+    t0 = _time.monotonic()
+
+    # Try the fast relationships-based approach first
+    try:
+        # Step 1: Get entity_ids on this permit
+        entity_rows = _exec(conn, f"""
+            SELECT DISTINCT entity_id FROM contacts
+            WHERE permit_number = {_PH} AND entity_id IS NOT NULL
+        """, [permit_number])
+        entity_ids = [r[0] for r in entity_rows]
+
+        if not entity_ids:
+            logger.debug("_get_related_team: no entities for permit %s", permit_number)
+            return []
+
+        # Step 2: Query relationships for each entity (both directions)
+        placeholders = ", ".join([_PH] * len(entity_ids))
+        rel_rows = _exec(conn, f"""
+            SELECT entity_id_a, entity_id_b, shared_permits, permit_numbers, neighborhoods
+            FROM relationships
+            WHERE entity_id_a IN ({placeholders}) OR entity_id_b IN ({placeholders})
+        """, entity_ids + entity_ids)
+
+        if not rel_rows:
+            elapsed = _time.monotonic() - t0
+            logger.debug("_get_related_team (relationships): 0 results in %.2fs", elapsed)
+            return []
+
+        # Collect connected entity IDs (exclude the ones on this permit)
+        connected_ids = set()
+        entity_id_set = set(entity_ids)
+        for r in rel_rows:
+            if r[0] not in entity_id_set:
+                connected_ids.add(r[0])
+            if r[1] not in entity_id_set:
+                connected_ids.add(r[1])
+
+        if not connected_ids:
+            return []
+
+        # Step 3: Get entity details for connected entities
+        conn_placeholders = ", ".join([_PH] * len(connected_ids))
+        conn_ids_list = list(connected_ids)
+        ent_rows = _exec(conn, f"""
+            SELECT entity_id, canonical_name, canonical_firm, permit_count
+            FROM entities WHERE entity_id IN ({conn_placeholders})
+        """, conn_ids_list)
+        entity_map = {r[0]: {"name": r[1], "firm": r[2], "count": r[3]} for r in ent_rows}
+
+        # Step 4: Collect permit numbers from relationships and get recent ones
+        all_permit_nums = set()
+        for r in rel_rows:
+            pnums_str = r[3]  # permit_numbers column (comma-separated or array)
+            if pnums_str:
+                if isinstance(pnums_str, list):
+                    all_permit_nums.update(pnums_str)
+                else:
+                    all_permit_nums.update(str(pnums_str).split(","))
+        all_permit_nums.discard(permit_number)
+        all_permit_nums.discard("")
+
+        if not all_permit_nums:
+            return []
+
+        # Limit to 50 permit numbers for the query
+        pnum_list = list(all_permit_nums)[:50]
+        pnum_placeholders = ", ".join([_PH] * len(pnum_list))
+        permit_rows = _exec(conn, f"""
+            SELECT permit_number, permit_type_definition, status,
+                   filed_date, estimated_cost, description
+            FROM permits
+            WHERE permit_number IN ({pnum_placeholders})
+            ORDER BY filed_date DESC
+            LIMIT 25
+        """, pnum_list)
+
+        # Build result — match permits to the entity that connects them
+        results = []
+        for pr in permit_rows:
+            # Find which connected entity links to this permit
+            shared_name = None
+            shared_role = None
+            for r in rel_rows:
+                pnums = r[3]
+                pnum_set = set(pnums) if isinstance(pnums, list) else set(str(pnums).split(","))
+                if pr[0] in pnum_set:
+                    eid = r[1] if r[0] in entity_id_set else r[0]
+                    ent = entity_map.get(eid, {})
+                    shared_name = ent.get("name")
+                    break
+            results.append({
+                "permit_number": pr[0], "type": pr[1], "status": pr[2],
+                "filed_date": pr[3], "cost": pr[4], "description": pr[5],
+                "shared_entity": shared_name, "shared_role": shared_role,
+            })
+
+        elapsed = _time.monotonic() - t0
+        logger.debug("_get_related_team (relationships): %d results in %.2fs", len(results), elapsed)
+        return results
+
+    except Exception as e:
+        # Relationships table might not exist (DuckDB dev) — fall back to self-join
+        if "relationships" in str(e).lower() or "Catalog Error" in str(e) or "does not exist" in str(e).lower():
+            logger.warning("_get_related_team: relationships table not available, falling back to self-join: %s", e)
+        else:
+            logger.warning("_get_related_team: relationships query failed, falling back: %s", e)
+
+    # Fallback: original O(N²) self-join approach
     sql = f"""
         SELECT DISTINCT ON (p.permit_number)
                p.permit_number, p.permit_type_definition, p.status,
@@ -338,7 +454,6 @@ def _get_related_team(conn, permit_number: str) -> list[dict]:
         ORDER BY p.permit_number, p.filed_date DESC
         LIMIT 25
     """
-    # DuckDB doesn't support DISTINCT ON — use a different approach
     if BACKEND == "duckdb":
         sql = f"""
             SELECT p.permit_number, p.permit_type_definition, p.status,
@@ -358,6 +473,8 @@ def _get_related_team(conn, permit_number: str) -> list[dict]:
             LIMIT 25
         """
     rows = _exec(conn, sql, [permit_number, permit_number])
+    elapsed = _time.monotonic() - t0
+    logger.debug("_get_related_team (self-join fallback): %d results in %.2fs", len(rows), elapsed)
     cols = ["permit_number", "type", "status", "filed_date", "cost",
             "description", "shared_entity", "shared_role"]
     return [{cols[i]: r[i] for i in range(len(cols))} for r in rows]
@@ -1040,23 +1157,35 @@ async def permit_lookup(
 
         # 4. Team
         lines.append("\n## Project Team\n")
-        try:
-            contacts = _get_contacts(conn, pnum)
-            lines.append(_format_contacts(contacts))
-        except Exception as e:
+        if circuit_breaker.is_open("contacts"):
             contacts = []
-            logger.warning("Contacts query failed for %s: %s", pnum, e)
-            lines.append("*Contact data temporarily unavailable.*")
+            lines.append("*Contact data temporarily unavailable (circuit breaker open).*")
+        else:
+            try:
+                contacts = _get_contacts(conn, pnum)
+                lines.append(_format_contacts(contacts))
+                circuit_breaker.record_success("contacts")
+            except Exception as e:
+                contacts = []
+                circuit_breaker.record_failure("contacts")
+                logger.warning("Contacts query failed for %s: %s", pnum, e)
+                lines.append("*Contact data temporarily unavailable.*")
 
         # 5. Inspections
         lines.append("\n## Inspection History\n")
-        try:
-            inspections = _get_inspections(conn, pnum)
-            lines.append(_format_inspections(inspections))
-        except Exception as e:
+        if circuit_breaker.is_open("inspections"):
             inspections = []
-            logger.warning("Inspections query failed for %s: %s", pnum, e)
-            lines.append("*Inspection data temporarily unavailable.*")
+            lines.append("*Inspection data temporarily unavailable (circuit breaker open).*")
+        else:
+            try:
+                inspections = _get_inspections(conn, pnum)
+                lines.append(_format_inspections(inspections))
+                circuit_breaker.record_success("inspections")
+            except Exception as e:
+                inspections = []
+                circuit_breaker.record_failure("inspections")
+                logger.warning("Inspections query failed for %s: %s", pnum, e)
+                lines.append("*Inspection data temporarily unavailable.*")
 
         # 5.25 Severity Score
         try:
@@ -1086,11 +1215,16 @@ async def permit_lookup(
 
         # 5.5 Plan Review Routing (Addenda)
         lines.append("\n## Plan Review Routing\n")
-        try:
-            addenda_rows = _get_addenda(conn, pnum)
-            lines.append(_format_addenda(addenda_rows))
-        except Exception:
-            lines.append("*Plan review routing data not available.*")
+        if circuit_breaker.is_open("addenda"):
+            lines.append("*Plan review routing data temporarily unavailable (circuit breaker open).*")
+        else:
+            try:
+                addenda_rows = _get_addenda(conn, pnum)
+                lines.append(_format_addenda(addenda_rows))
+                circuit_breaker.record_success("addenda")
+            except Exception:
+                circuit_breaker.record_failure("addenda")
+                lines.append("*Plan review routing data not available.*")
 
         # 6. Related permits
         lines.append("\n## Related Permits\n")
@@ -1107,24 +1241,33 @@ async def permit_lookup(
 
         # Related by team
         team_permits = []
-        try:
-            team_permits = _get_related_team(conn, pnum)
-        except Exception as e:
-            logger.warning("Related team query failed: %s", e)
+        if circuit_breaker.is_open("related_team"):
+            logger.info("Skipping related team lookup — circuit breaker open")
+        else:
+            try:
+                team_permits = _get_related_team(conn, pnum)
+                circuit_breaker.record_success("related_team")
+            except Exception as e:
+                circuit_breaker.record_failure("related_team")
+                logger.warning("Related team query failed: %s", e)
 
         lines.append(_format_related(location_permits, team_permits, p_block, p_lot))
 
         # 7. Planning records (entitlements)
-        planning_records = _get_planning_records(conn, p_block, p_lot)
-        if planning_records:
-            lines.append("\n## Planning Records (Entitlements)\n")
-            lines.append(_format_planning_records(planning_records))
+        if not circuit_breaker.is_open("planning_records"):
+            planning_records = _get_planning_records(conn, p_block, p_lot)
+            if planning_records:
+                circuit_breaker.record_success("planning_records")
+                lines.append("\n## Planning Records (Entitlements)\n")
+                lines.append(_format_planning_records(planning_records))
 
         # 8. Boiler permits
-        boiler_permits = _get_boiler_permits(conn, p_block, p_lot)
-        if boiler_permits:
-            lines.append("\n## Boiler Permits\n")
-            lines.append(_format_boiler_permits(boiler_permits))
+        if not circuit_breaker.is_open("boiler_permits"):
+            boiler_permits = _get_boiler_permits(conn, p_block, p_lot)
+            if boiler_permits:
+                circuit_breaker.record_success("boiler_permits")
+                lines.append("\n## Boiler Permits\n")
+                lines.append(_format_boiler_permits(boiler_permits))
 
         # 9. Development pipeline
         dev_pipeline = _get_dev_pipeline(conn, p_block, p_lot)

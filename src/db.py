@@ -202,6 +202,84 @@ def query_one(sql: str, params=None):
     return rows[0] if rows else None
 
 
+# ── Circuit Breaker ────────────────────────────────────────────────
+
+import time as _time
+
+
+class CircuitBreaker:
+    """Per-category query circuit breaker.
+
+    Tracks failures per category. After max_failures within window_seconds,
+    the circuit "opens" and auto-skips queries for cooldown_seconds.
+    """
+
+    def __init__(self, max_failures=3, window_seconds=120, cooldown_seconds=300):
+        self.max_failures = max_failures
+        self.window_seconds = window_seconds
+        self.cooldown_seconds = cooldown_seconds
+        self._failures: dict[str, list[float]] = {}  # category -> list of timestamps
+        self._open_until: dict[str, float] = {}  # category -> timestamp when circuit closes
+
+    def is_open(self, category: str) -> bool:
+        """Return True if circuit is open (should skip queries)."""
+        deadline = self._open_until.get(category)
+        if deadline is None:
+            return False
+        if _time.monotonic() >= deadline:
+            # Cooldown expired — close the circuit
+            del self._open_until[category]
+            self._failures.pop(category, None)
+            return False
+        return True
+
+    def record_failure(self, category: str):
+        """Record a failure. Opens circuit if threshold exceeded."""
+        now = _time.monotonic()
+        # Prune old failures outside the window
+        failures = self._failures.get(category, [])
+        cutoff = now - self.window_seconds
+        failures = [t for t in failures if t > cutoff]
+        failures.append(now)
+        self._failures[category] = failures
+
+        if len(failures) >= self.max_failures:
+            self._open_until[category] = now + self.cooldown_seconds
+            logger.warning(
+                "Circuit breaker OPEN for '%s' (%d failures in %ds, cooldown %ds)",
+                category, len(failures), self.window_seconds, self.cooldown_seconds,
+            )
+
+    def record_success(self, category: str):
+        """Record success. Resets failure count for category."""
+        self._failures.pop(category, None)
+        self._open_until.pop(category, None)
+
+    def get_status(self) -> dict:
+        """Return status dict for /health endpoint."""
+        status = {}
+        # Report on all categories that have any state
+        all_cats = set(self._failures.keys()) | set(self._open_until.keys())
+        if not all_cats:
+            return status
+        now = _time.monotonic()
+        for cat in sorted(all_cats):
+            deadline = self._open_until.get(cat)
+            if deadline is not None and now < deadline:
+                remaining = int(deadline - now)
+                failures = len(self._failures.get(cat, []))
+                mins = remaining // 60
+                secs = remaining % 60
+                status[cat] = f"open ({failures} failures, reopens in {mins}m{secs:02d}s)"
+            else:
+                status[cat] = "closed"
+        return status
+
+
+# Module-level singleton
+circuit_breaker = CircuitBreaker()
+
+
 # ── Write helpers ──────────────────────────────────────────────────
 
 def execute_write(sql: str, params=None, return_id: bool = False):

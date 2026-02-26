@@ -152,6 +152,123 @@ def _send_staleness_alert(warnings: list[str], nightly_result: dict) -> dict:
 # Cron endpoints — protected by bearer token
 # ---------------------------------------------------------------------------
 
+@bp.route("/cron/heartbeat", methods=["POST"])
+def cron_heartbeat():
+    """Write heartbeat timestamp to cron_log.
+
+    Protected by CRON_SECRET bearer token. Designed to be called every 5-15
+    minutes by an external scheduler to confirm the cron worker is alive.
+    """
+    _check_api_auth()
+    try:
+        from src.db import execute_write, BACKEND, get_connection
+        if BACKEND == "duckdb":
+            # Ensure cron_log table exists in DuckDB (with AUTOINCREMENT PK)
+            conn = get_connection()
+            try:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS cron_log (
+                        log_id INTEGER PRIMARY KEY DEFAULT(nextval('cron_log_seq')),
+                        job_type TEXT NOT NULL,
+                        started_at TIMESTAMP NOT NULL,
+                        completed_at TIMESTAMP,
+                        status TEXT NOT NULL DEFAULT 'running',
+                        lookback_days INTEGER,
+                        soda_records INTEGER,
+                        changes_inserted INTEGER,
+                        inspections_updated INTEGER,
+                        error_message TEXT,
+                        was_catchup BOOLEAN DEFAULT FALSE
+                    )
+                """)
+            except Exception:
+                # Table may already exist without sequence — try simpler schema
+                try:
+                    conn.execute("""
+                        CREATE TABLE IF NOT EXISTS cron_log (
+                            log_id INTEGER,
+                            job_type TEXT NOT NULL,
+                            started_at TIMESTAMP NOT NULL,
+                            completed_at TIMESTAMP,
+                            status TEXT NOT NULL DEFAULT 'running',
+                            lookback_days INTEGER,
+                            soda_records INTEGER,
+                            changes_inserted INTEGER,
+                            inspections_updated INTEGER,
+                            error_message TEXT,
+                            was_catchup BOOLEAN DEFAULT FALSE
+                        )
+                    """)
+                except Exception:
+                    pass  # Table already exists
+            finally:
+                conn.close()
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc).isoformat()
+            # Use subquery to generate next ID for DuckDB
+            conn2 = get_connection()
+            try:
+                conn2.execute(
+                    "INSERT INTO cron_log (log_id, job_type, status, started_at, completed_at) "
+                    "VALUES ((SELECT COALESCE(MAX(log_id), 0) + 1 FROM cron_log), ?, ?, ?, ?)",
+                    ("heartbeat", "completed", now, now),
+                )
+            finally:
+                conn2.close()
+        else:
+            execute_write(
+                "INSERT INTO cron_log (job_type, status, started_at, completed_at) "
+                "VALUES (%s, %s, NOW(), NOW())",
+                ("heartbeat", "completed"),
+            )
+        return jsonify({"status": "ok", "job_type": "heartbeat"})
+    except Exception as e:
+        logging.error("Heartbeat write failed: %s", e)
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+@bp.route("/cron/pipeline-summary")
+def pipeline_summary():
+    """Return last nightly pipeline step timings.
+
+    Read-only, no auth required. Returns JSON with the most recent
+    nightly pipeline step entries from cron_log.
+    """
+    from src.db import query
+    try:
+        rows = query(
+            "SELECT job_type, started_at, completed_at, status, error_message "
+            "FROM cron_log "
+            "WHERE job_type LIKE 'nightly%%' OR job_type = 'heartbeat' "
+            "ORDER BY started_at DESC "
+            "LIMIT 30"
+        )
+        steps = []
+        for r in rows:
+            started = r[1]
+            completed = r[2]
+            elapsed = None
+            if started and completed:
+                try:
+                    from datetime import datetime
+                    s = started if isinstance(started, datetime) else datetime.fromisoformat(str(started))
+                    c = completed if isinstance(completed, datetime) else datetime.fromisoformat(str(completed))
+                    elapsed = round((c - s).total_seconds(), 2)
+                except Exception:
+                    pass
+            steps.append({
+                "job_type": r[0],
+                "started_at": str(r[1]) if r[1] else None,
+                "completed_at": str(r[2]) if r[2] else None,
+                "status": r[3],
+                "error_message": r[4],
+                "elapsed_seconds": elapsed,
+            })
+        return jsonify({"ok": True, "steps": steps, "total": len(steps)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e), "steps": []})
+
+
 @bp.route("/cron/nightly", methods=["POST"])
 def cron_nightly():
     """Nightly delta fetch — detect permit changes via SODA API.
@@ -206,138 +323,136 @@ def cron_nightly():
                 mimetype="application/json",
             )
 
+        # === QS3-B: Pipeline step timing ===
+        step_timings = {}
+
+        def _timed_step(name, fn):
+            """Run a pipeline step with timing. Returns result dict."""
+            t0 = time.monotonic()
+            try:
+                r = fn()
+                elapsed = round(time.monotonic() - t0, 2)
+                step_timings[name] = {"elapsed_seconds": elapsed, "status": "ok"}
+                return r
+            except Exception as exc:
+                elapsed = round(time.monotonic() - t0, 2)
+                step_timings[name] = {"elapsed_seconds": elapsed, "status": "error", "error": str(exc)}
+                logging.error("Pipeline step '%s' failed (non-fatal, %.1fs): %s", name, elapsed, exc)
+                return {"error": str(exc)}
+        # === END QS3-B timing helper ===
+
         # Append feedback triage (non-fatal — failure doesn't fail nightly)
         triage_result = {}
         if not dry_run:
-            try:
+            def _run_triage():
                 from scripts.feedback_triage import run_triage, ADMIN_EMAILS
                 from web.activity import get_admin_users
                 ADMIN_EMAILS.update(
                     a["email"].lower() for a in get_admin_users() if a.get("email")
                 )
                 host = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "localhost:5001")
-                triage_result = run_triage(host, os.environ.get("CRON_SECRET", ""))
-            except Exception as te:
-                logging.error("Feedback triage failed (non-fatal): %s", te)
-                triage_result = {"error": str(te)}
+                return run_triage(host, os.environ.get("CRON_SECRET", ""))
+            triage_result = _timed_step("triage", _run_triage)
 
         # Cleanup expired plan analysis sessions (non-fatal)
         cleanup_result = {}
         if not dry_run:
-            try:
+            def _run_cleanup():
                 from web.plan_images import cleanup_expired
                 from web.plan_jobs import cleanup_old_jobs
                 sessions_deleted = cleanup_expired(hours=24)
                 jobs_deleted = cleanup_old_jobs(days=30)
-                count = sessions_deleted + jobs_deleted
-                cleanup_result = {
+                return {
                     "plan_sessions_deleted": sessions_deleted,
                     "plan_jobs_deleted": jobs_deleted,
                 }
-            except Exception as ce:
-                logging.error("Plan session cleanup failed (non-fatal): %s", ce)
-                cleanup_result = {"error": str(ce)}
+            cleanup_result = _timed_step("cleanup", _run_cleanup)
 
         # Refresh station velocity baselines (non-fatal)
         velocity_result = {}
         if not dry_run:
-            try:
+            def _run_velocity():
                 from web.station_velocity import refresh_station_velocity
-                velocity_result = refresh_station_velocity()
-            except Exception as ve:
-                logging.error("Station velocity refresh failed (non-fatal): %s", ve)
-                velocity_result = {"error": str(ve)}
+                return refresh_station_velocity()
+            velocity_result = _timed_step("velocity", _run_velocity)
 
         # === SESSION D: Station congestion refresh ===
         congestion_result = {}
         if not dry_run:
-            try:
+            def _run_congestion():
                 from web.station_velocity import refresh_station_congestion
                 cong_stats = refresh_station_congestion()
-                congestion_result = {"congestion_stations": cong_stats.get("congestion_stations", 0)}
-            except Exception as cong_e:
-                logging.getLogger(__name__).warning("congestion refresh failed: %s", cong_e)
-                congestion_result = {"error": str(cong_e)}
+                return {"congestion_stations": cong_stats.get("congestion_stations", 0)}
+            congestion_result = _timed_step("congestion", _run_congestion)
         # === END SESSION D ===
 
         # Refresh reviewer-entity interaction graph (non-fatal)
         reviewer_result = {}
         if not dry_run:
-            try:
+            def _run_reviewer():
                 from web.reviewer_graph import refresh_reviewer_interactions
-                reviewer_result = refresh_reviewer_interactions()
-            except Exception as re_:
-                logging.error("Reviewer graph refresh failed (non-fatal): %s", re_)
-                reviewer_result = {"error": str(re_)}
+                return refresh_reviewer_interactions()
+            reviewer_result = _timed_step("reviewer_graph", _run_reviewer)
 
         # Refresh operational knowledge chunks (non-fatal, runs after velocity)
         ops_chunks_result = {}
         if not dry_run:
-            try:
+            def _run_ops_chunks():
                 from web.ops_chunks import ingest_ops_chunks
                 count = ingest_ops_chunks()
-                ops_chunks_result = {"chunks": count}
-            except Exception as oe:
-                logging.error("Ops chunk ingestion failed (non-fatal): %s", oe)
-                ops_chunks_result = {"error": str(oe)}
+                return {"chunks": count}
+            ops_chunks_result = _timed_step("ops_chunks", _run_ops_chunks)
 
         # Refresh DQ cache (non-fatal — runs all checks and caches results)
         dq_cache_result = {}
         if not dry_run:
-            try:
+            def _run_dq_cache():
                 from web.data_quality import refresh_dq_cache
-                dq_cache_result = refresh_dq_cache()
-            except Exception as dqe:
-                logging.error("DQ cache refresh failed (non-fatal): %s", dqe)
-                dq_cache_result = {"error": str(dqe)}
+                return refresh_dq_cache()
+            dq_cache_result = _timed_step("dq_cache", _run_dq_cache)
 
         # === Sprint 64: Signals pipeline (non-fatal) ===
         signals_result = {}
         if not dry_run:
-            try:
+            def _run_signals():
                 from src.signals.pipeline import run_signal_pipeline
                 from src.db import get_connection as _sig_gc
                 _sig_conn = _sig_gc()
                 try:
-                    signals_result = run_signal_pipeline(_sig_conn)
+                    return run_signal_pipeline(_sig_conn)
                 finally:
                     _sig_conn.close()
-            except Exception as sig_e:
-                logging.error("Signal pipeline failed (non-fatal): %s", sig_e)
-                signals_result = {"error": str(sig_e)}
+            signals_result = _timed_step("signals", _run_signals)
 
         # === Sprint 64: Station velocity v2 refresh (non-fatal) ===
         velocity_v2_result = {}
         if not dry_run:
-            try:
+            def _run_velocity_v2():
                 from src.station_velocity_v2 import refresh_velocity_v2
                 from src.db import get_connection as _v2_gc
                 _v2_conn = _v2_gc()
                 try:
-                    velocity_v2_result = refresh_velocity_v2(_v2_conn)
+                    v2_res = refresh_velocity_v2(_v2_conn)
                 finally:
                     _v2_conn.close()
                 # Also refresh station transitions
                 try:
                     from src.tools.station_predictor import refresh_station_transitions
                     trans_stats = refresh_station_transitions()
-                    velocity_v2_result["transitions"] = trans_stats.get("transitions", 0)
+                    v2_res["transitions"] = trans_stats.get("transitions", 0)
                 except Exception as tr_e:
                     logging.warning("Station transitions refresh failed: %s", tr_e)
-                    velocity_v2_result["transitions_error"] = str(tr_e)
-            except Exception as v2_e:
-                logging.error("Velocity v2 refresh failed (non-fatal): %s", v2_e)
-                velocity_v2_result = {"error": str(v2_e)}
+                    v2_res["transitions_error"] = str(tr_e)
+                return v2_res
+            velocity_v2_result = _timed_step("velocity_v2", _run_velocity_v2)
 
         # Send staleness alert email to admins if warnings detected
         staleness_alert_result = {}
         warnings = result.get("staleness_warnings", [])
         if warnings and not dry_run:
-            try:
-                staleness_alert_result = _send_staleness_alert(warnings, result)
-            except Exception as se:
-                logging.error("Staleness alert email failed (non-fatal): %s", se)
-                staleness_alert_result = {"error": str(se)}
+            def _run_staleness_alert():
+                return _send_staleness_alert(warnings, result)
+            staleness_alert_result = _timed_step("staleness_alert", _run_staleness_alert)
 
         return Response(
             json.dumps({
@@ -352,6 +467,7 @@ def cron_nightly():
                 "signals": signals_result,
                 "velocity_v2": velocity_v2_result,
                 "staleness_alert": staleness_alert_result,
+                "step_timings": step_timings,
             }, indent=2),
             mimetype="application/json",
         )

@@ -1110,6 +1110,57 @@ def health():
             if missing:
                 info["missing_expected_tables"] = missing
                 info["status"] = "degraded"
+
+            # === QS3-B: HEALTH ENHANCEMENT ===
+            # Add circuit breaker status
+            try:
+                from src.db import circuit_breaker
+                info["circuit_breakers"] = circuit_breaker.get_status()
+            except Exception:
+                info["circuit_breakers"] = {"error": "unavailable"}
+
+            # Add cron heartbeat age
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT MAX(completed_at) FROM cron_log "
+                            "WHERE job_type = 'heartbeat'"
+                        )
+                        row = cur.fetchone()
+                else:
+                    try:
+                        row = conn.execute(
+                            "SELECT MAX(completed_at) FROM cron_log "
+                            "WHERE job_type = 'heartbeat'"
+                        ).fetchone()
+                    except Exception:
+                        row = None  # cron_log may not exist in DuckDB
+
+                if row and row[0]:
+                    from datetime import datetime, timezone
+                    last_hb = row[0]
+                    if hasattr(last_hb, 'tzinfo') and last_hb.tzinfo is None:
+                        last_hb = last_hb.replace(tzinfo=timezone.utc)
+                    elif isinstance(last_hb, str):
+                        last_hb = datetime.fromisoformat(last_hb).replace(tzinfo=timezone.utc)
+                    age_minutes = round(
+                        (datetime.now(timezone.utc) - last_hb).total_seconds() / 60, 1
+                    )
+                    info["cron_heartbeat_age_minutes"] = age_minutes
+                    if age_minutes > 120:
+                        info["cron_heartbeat_status"] = "CRITICAL"
+                    elif age_minutes > 30:
+                        info["cron_heartbeat_status"] = "WARNING"
+                    else:
+                        info["cron_heartbeat_status"] = "OK"
+                else:
+                    info["cron_heartbeat_age_minutes"] = None
+                    info["cron_heartbeat_status"] = "NO_DATA"
+            except Exception:
+                info["cron_heartbeat_age_minutes"] = None
+                info["cron_heartbeat_status"] = "ERROR"
+            # === END QS3-B ===
         finally:
             conn.close()
     except Exception as e:

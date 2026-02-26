@@ -187,22 +187,32 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: PostHog tracks page views for anonymous visitors without blocking page load
-**Source:** QS3-D PostHog integration (web/helpers.py, web/app.py, landing.html)
-**User:** homeowner | new visitor
-**Starting state:** POSTHOG_API_KEY env var is set on production. Anonymous visitor loads the landing page.
-**Goal:** Analytics tracking captures page views and search events without degrading page load performance.
-**Expected outcome:** PostHog JS loads asynchronously (async attribute). Server-side after_request hook fires posthog_track() for page views and search events. If POSTHOG_API_KEY is not set, both JS snippet and server hook are complete no-ops — zero overhead. Page renders identically with or without PostHog configured.
-**Edge cases seen in code:** PostHog capture fails silently (exception swallowed), /static/ and /health paths excluded from tracking, anonymous users tracked as "anonymous" distinct_id
+## SUGGESTED SCENARIO: Circuit breaker auto-skips enrichment queries after repeated timeouts
+**Source:** QS3-B — CircuitBreaker in src/db.py + permit_lookup.py integration
+**User:** expediter | architect
+**Starting state:** Three consecutive permit lookups have timed out on the inspections query (database under heavy load)
+**Goal:** Subsequent permit lookups should remain fast and responsive despite the degraded database
+**Expected outcome:** After 3 failures within 2 minutes, the circuit breaker opens for the "inspections" category. Subsequent permit lookups skip the inspections query entirely and show "temporarily unavailable (circuit breaker open)" instead. After 5 minutes cooldown, the circuit breaker closes and the next lookup retries the inspections query. Successful query resets the failure count.
+**Edge cases seen in code:** Different enrichment categories (contacts, addenda, related_team, planning_records, boiler_permits) have independent circuit breakers. A circuit breaker opening for one category does not affect others.
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Feature flag permit_prep_enabled gates Permit Prep feature rollout
-**Source:** QS3-D PostHog feature flags (web/helpers.py, web/app.py)
-**User:** admin | expediter
-**Starting state:** POSTHOG_API_KEY is set. PostHog dashboard has permit_prep_enabled flag configured for specific user IDs.
-**Goal:** Permit Prep features are only visible to users whose PostHog feature flags include permit_prep_enabled=True.
-**Expected outcome:** g.posthog_flags is populated in before_request for authenticated users (populated from PostHog API). Anonymous users always get empty flags dict. Templates can check g.posthog_flags.get("permit_prep_enabled") to conditionally render Permit Prep UI. If PostHog is not configured, flags are always empty — features default to hidden.
-**Edge cases seen in code:** PostHog get_all_flags() returns None (coerced to {}), PostHog API timeout (swallowed, returns {}), flag key not in dict (template uses .get() with default)
-**CC confidence:** medium
+## SUGGESTED SCENARIO: Health endpoint shows circuit breaker states and cron heartbeat age
+**Source:** QS3-B — /health enhancement in web/app.py
+**User:** admin
+**Starting state:** Admin monitoring the health endpoint, cron heartbeat running every 15 minutes
+**Goal:** Quickly assess system health including circuit breaker states and cron worker liveness
+**Expected outcome:** GET /health returns JSON with "circuit_breakers" dict showing each category as "closed" or "open (N failures, reopens in Xm)". Also includes "cron_heartbeat_age_minutes" (float) and "cron_heartbeat_status" (OK/WARNING/CRITICAL). Heartbeat age > 30 min = WARNING, > 120 min = CRITICAL, no data = NO_DATA.
+**Edge cases seen in code:** In DuckDB dev mode, heartbeat query gracefully falls back when cron_log table doesn't exist (returns NO_DATA). Circuit breaker status is empty dict when no failures have been recorded.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Pipeline summary shows elapsed time per nightly step
+**Source:** QS3-B — _timed_step wrapper + GET /cron/pipeline-summary
+**User:** admin
+**Starting state:** Nightly pipeline has completed its most recent run
+**Goal:** Review which pipeline steps are slow or erroring to diagnose operational issues
+**Expected outcome:** GET /cron/pipeline-summary returns JSON with per-step entries including job_type, elapsed_seconds, status (ok/error), and timestamps. The nightly pipeline response includes a "step_timings" dict with elapsed seconds for each post-processing step. Steps that error still record their elapsed time.
+**Edge cases seen in code:** Pipeline summary is read-only with no auth. Step timing survives exceptions — _timed_step catches errors and still records elapsed. The main SODA fetch has its own cron_log tracking.
+**CC confidence:** high
 **Status:** PENDING REVIEW

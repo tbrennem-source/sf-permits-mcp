@@ -1,29 +1,29 @@
 # Changelog
 
-## QS3-D — PostHog Analytics + Revenue Polish (2026-02-26)
+## QS3-B: Operational Hardening (2026-02-26)
 
-### PostHog Integration (D-1)
-- **`web/helpers.py`**: PostHog helper functions — `posthog_enabled()`, `posthog_track()`, `posthog_get_flags()`. Complete no-op if `POSTHOG_API_KEY` env var not set. Zero overhead.
-- **`web/app.py`**: after_request hook tracks page views, search, analyze, lookup, signup events. before_request hook loads feature flags into `g.posthog_flags`.
-- **`web/app.py`**: Context processor injects `posthog_key` and `posthog_host` into all templates.
-- **Templates**: Async PostHog JS snippet in `landing.html` and `index.html` — loads only when `posthog_key` is set.
-- **`pyproject.toml`**: Added `posthog>=3.0.0` dependency.
+### Graph-Based Related Team Lookup (B-1)
+- **`src/tools/permit_lookup.py` (_get_related_team)**: Replaced O(N²) 4-table self-join with pre-computed `relationships` table lookup — O(E) where E = entities on the permit (typically 3-5)
+- Falls back to original self-join when `relationships` table doesn't exist (DuckDB dev environments)
+- Query time logged for comparison
 
-### PWA + Manifest Polish (D-3)
-- **`landing.html` + `index.html`**: Added `<link rel="manifest">`, `<meta name="theme-color">`, `<meta name="apple-mobile-web-app-capable">`, `<link rel="apple-touch-icon">`.
-- PWA icons (icon-192.png, icon-512.png) already existed from Sprint 69-S4.
+### Circuit Breaker Pattern (B-2)
+- **`src/db.py` (CircuitBreaker class)**: Per-category query circuit breaker — tracks failures within a time window, auto-opens after 3 failures in 2 minutes, cooldown for 5 minutes
+- **Categories:** contacts, inspections, addenda, related_team, planning_records, boiler_permits
+- **Integration in `permit_lookup.py`**: Each enrichment function checks `circuit_breaker.is_open()` before querying, records success/failure after
 
-### Charis Beta Invite (D-2)
-- **`docs/charis-invite.md`**: Invite code `friends-gridcare`, message draft, staging test instructions.
+### Cron Heartbeat + Health Enhancement (B-3)
+- **`web/routes_cron.py` (POST /cron/heartbeat)**: Writes heartbeat timestamp to cron_log, protected by CRON_SECRET
+- **`web/app.py` (/health)**: Now includes `circuit_breakers` status dict and `cron_heartbeat_age_minutes` with OK/WARNING/CRITICAL classification (>30min=WARNING, >120min=CRITICAL)
+- Works in both Postgres (production) and DuckDB (dev) modes
 
-### api_usage DDL (D-4)
-- **`scripts/release.py`**: Added `api_usage` table + index for cost tracking.
-- Sitemap verified: `/demo` excluded, base URL correct (`https://sfpermits.ai`).
+### Pipeline Step Timing (B-4)
+- **`web/routes_cron.py` (nightly pipeline)**: Each post-processing step wrapped with `_timed_step` to record per-step elapsed seconds
+- **`web/routes_cron.py` (GET /cron/pipeline-summary)**: Returns recent pipeline step timings as JSON (read-only, no auth)
+- Nightly response now includes `step_timings` dict in addition to per-step results
 
 ### Tests
-- 26 new tests in `tests/test_qs3_d_analytics.py` (PostHog helpers, hooks, templates, DDL, sitemap, invite doc)
-- 9/9 QA checks PASS (Playwright browser + grep)
-- Visual review: 4.0/5 avg across 1440px, 768px, 375px viewports
+- 39 new tests in `tests/test_qs3_b_ops_hardening.py` — CircuitBreaker (13), related team (3), health endpoint (3), heartbeat (3), pipeline summary (3), circuit breaker integration (7), heartbeat age classification (5), timed step (2)
 
 ## Sprint 69 — Session 1: Design System + Landing Rewrite (2026-02-26)
 
