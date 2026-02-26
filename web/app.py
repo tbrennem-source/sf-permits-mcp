@@ -98,6 +98,18 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
 IS_STAGING = ENVIRONMENT == "staging"
 
 
+# === QS3-D: POSTHOG CONTEXT ===
+@app.context_processor
+def inject_posthog():
+    """Make PostHog key/host available in templates (empty string if not set)."""
+    from web.helpers import _POSTHOG_KEY, _POSTHOG_HOST
+    return {
+        "posthog_key": _POSTHOG_KEY or "",
+        "posthog_host": _POSTHOG_HOST,
+    }
+# === END QS3-D ===
+
+
 @app.context_processor
 def inject_environment():
     """Make environment flags available in all templates."""
@@ -917,6 +929,18 @@ def _inject_violation_context():
     g.violation_context = request.args.get("context") == "violation"
 
 
+# === QS3-D: POSTHOG FLAGS ===
+@app.before_request
+def _posthog_load_flags():
+    """Load PostHog feature flags into g.posthog_flags."""
+    from web.helpers import posthog_get_flags
+    if g.user:
+        g.posthog_flags = posthog_get_flags(str(g.user["user_id"]))
+    else:
+        g.posthog_flags = {}
+# === END QS3-D ===
+
+
 # ---------------------------------------------------------------------------
 # After-request hooks
 # ---------------------------------------------------------------------------
@@ -972,6 +996,41 @@ def _log_activity(response):
     except Exception:
         pass
     return response
+
+
+# === QS3-D: POSTHOG TRACKING ===
+@app.after_request
+def _posthog_track_request(response):
+    """Track page views and feature usage. No-op without POSTHOG_API_KEY."""
+    from web.helpers import posthog_enabled, posthog_track
+    if not posthog_enabled():
+        return response
+    if response.status_code >= 400:
+        return response
+    if request.path.startswith(("/static/", "/health", "/cron/", "/api/csp-report")):
+        return response
+
+    user_id = str(g.user["user_id"]) if g.user else "anonymous"
+    properties = {
+        "path": request.path,
+        "method": request.method,
+        "status": response.status_code,
+    }
+
+    if request.path == "/search":
+        properties["query"] = request.args.get("q", "")
+        posthog_track("search", properties, user_id)
+    elif request.path.startswith("/analyze"):
+        posthog_track("analyze", properties, user_id)
+    elif request.path == "/lookup":
+        posthog_track("lookup", properties, user_id)
+    elif request.path == "/auth/send-link":
+        posthog_track("signup_attempt", properties, user_id)
+    else:
+        posthog_track("page_view", properties, user_id)
+
+    return response
+# === END QS3-D ===
 
 
 @app.after_request

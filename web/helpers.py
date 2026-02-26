@@ -14,6 +14,49 @@ from flask import g, abort, redirect, url_for, session
 
 
 # ---------------------------------------------------------------------------
+# PostHog analytics (no-op without POSTHOG_API_KEY)
+# ---------------------------------------------------------------------------
+
+_POSTHOG_KEY = os.environ.get("POSTHOG_API_KEY")
+_POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com")
+
+
+def posthog_enabled() -> bool:
+    return bool(_POSTHOG_KEY)
+
+
+def posthog_track(event: str, properties: dict = None, user_id: str = None):
+    """Track server-side event. No-op if POSTHOG_API_KEY not set."""
+    if not _POSTHOG_KEY:
+        return
+    try:
+        import posthog
+        posthog.api_key = _POSTHOG_KEY
+        posthog.host = _POSTHOG_HOST
+        posthog.capture(
+            distinct_id=user_id or "anonymous",
+            event=event,
+            properties=properties or {},
+        )
+    except Exception:
+        pass  # Never let analytics break the app
+
+
+def posthog_get_flags(user_id: str) -> dict:
+    """Get feature flags for a user. Returns {} if PostHog not configured."""
+    if not _POSTHOG_KEY:
+        return {}
+    try:
+        import posthog
+        posthog.api_key = _POSTHOG_KEY
+        posthog.host = _POSTHOG_HOST
+        flags = posthog.get_all_flags(user_id)
+        return flags or {}
+    except Exception:
+        return {}
+
+
+# ---------------------------------------------------------------------------
 # Brand / white-label config (env-overridable)
 # ---------------------------------------------------------------------------
 BRAND_CONFIG = {
