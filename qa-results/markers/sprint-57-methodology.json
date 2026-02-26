@@ -1,0 +1,103 @@
+{
+  "run_name": "sprint-57-methodology",
+  "started_at": "2026-02-25T20:06:19.192047",
+  "steps": [
+    {
+      "step": "landing-page-loads",
+      "timestamp": "2026-02-25T20:06:19.931015",
+      "elapsed_seconds": 0.7,
+      "result": "PASS",
+      "note": "Title: 'sfpermits.ai \u2014 San Francisco Building Permit Intelligence'",
+      "screenshot": null
+    },
+    {
+      "step": "search-form-present",
+      "timestamp": "2026-02-25T20:06:19.941043",
+      "elapsed_seconds": 0.7,
+      "result": "PASS",
+      "note": "Looking for input[name='q'] on landing page",
+      "screenshot": null
+    },
+    {
+      "step": "project-form-present",
+      "timestamp": "2026-02-25T20:06:19.946756",
+      "elapsed_seconds": 0.8,
+      "result": "PASS",
+      "note": "Looking for textarea[name='description'] on landing page",
+      "screenshot": null
+    },
+    {
+      "step": "analyze-preview-returns-results",
+      "timestamp": "2026-02-25T20:06:20.579963",
+      "elapsed_seconds": 1.4,
+      "result": "PASS",
+      "note": "Page has 13124 chars, 'permit' in content: True",
+      "screenshot": null
+    },
+    {
+      "step": "methodology-cards-present",
+      "timestamp": "2026-02-25T20:06:20.580103",
+      "elapsed_seconds": 1.4,
+      "result": "FAIL",
+      "note": "Found 0 methodology-card references in HTML",
+      "screenshot": "04-FAIL-methodology-cards-present.png"
+    },
+    {
+      "step": "methodology-styles-embedded",
+      "timestamp": "2026-02-25T20:06:20.641550",
+      "elapsed_seconds": 1.4,
+      "result": "FAIL",
+      "note": "Checking for .methodology-card CSS rule in page",
+      "screenshot": "05-FAIL-methodology-styles-embedded.png"
+    },
+    {
+      "step": "methodology-details-collapsible",
+      "timestamp": "2026-02-25T20:06:20.690900",
+      "elapsed_seconds": 1.5,
+      "result": "FAIL",
+      "note": "Looking for <details class='methodology-card'> (collapsed by default)",
+      "screenshot": "06-FAIL-methodology-details-collapsible.png"
+    },
+    {
+      "step": "methodology-gaps-present",
+      "timestamp": "2026-02-25T20:06:20.748406",
+      "elapsed_seconds": 1.6,
+      "result": "FAIL",
+      "note": "Looking for methodology-gaps class (coverage disclaimers)",
+      "screenshot": "07-FAIL-methodology-gaps-present.png"
+    },
+    {
+      "step": "health-endpoint-ok",
+      "timestamp": "2026-02-25T20:06:21.366400",
+      "elapsed_seconds": 2.2,
+      "result": "PASS",
+      "note": "Checking /health returns status: ok",
+      "screenshot": null
+    },
+    {
+      "step": "search-returns-results",
+      "timestamp": "2026-02-25T20:06:21.997499",
+      "elapsed_seconds": 2.8,
+      "result": "PASS",
+      "note": "URL: https://sfpermits-ai-production.up.railway.app/search?q=kitchen+remodel, content length: 10928",
+      "screenshot": null
+    },
+    {
+      "step": "full-flow-complete",
+      "timestamp": "2026-02-25T20:06:22.670636",
+      "elapsed_seconds": 3.5,
+      "result": "PASS",
+      "note": "Video captured: landing -> analyze-preview -> health -> search -> landing",
+      "screenshot": null
+    }
+  ],
+  "video_dir": "qa-results/videos/sprint-57-methodology",
+  "screenshot_dir": "qa-results/screenshots/sprint-57-methodology",
+  "completed_at": "2026-02-25T20:06:22.730084",
+  "total_steps": 11,
+  "passed": 7,
+  "failed": 4,
+  "blocked": 0,
+  "duration_seconds": 3.5,
+  "video_file": "4ae7ff5475f4ec5cc74613ac2b0986f8.webm"
+}
