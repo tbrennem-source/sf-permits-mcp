@@ -3,7 +3,7 @@
 import logging
 from datetime import date, timedelta
 
-from src.db import get_connection, BACKEND
+from src.db import get_connection, BACKEND, circuit_breaker
 
 logger = logging.getLogger(__name__)
 
@@ -1157,23 +1157,35 @@ async def permit_lookup(
 
         # 4. Team
         lines.append("\n## Project Team\n")
-        try:
-            contacts = _get_contacts(conn, pnum)
-            lines.append(_format_contacts(contacts))
-        except Exception as e:
+        if circuit_breaker.is_open("contacts"):
             contacts = []
-            logger.warning("Contacts query failed for %s: %s", pnum, e)
-            lines.append("*Contact data temporarily unavailable.*")
+            lines.append("*Contact data temporarily unavailable (circuit breaker open).*")
+        else:
+            try:
+                contacts = _get_contacts(conn, pnum)
+                lines.append(_format_contacts(contacts))
+                circuit_breaker.record_success("contacts")
+            except Exception as e:
+                contacts = []
+                circuit_breaker.record_failure("contacts")
+                logger.warning("Contacts query failed for %s: %s", pnum, e)
+                lines.append("*Contact data temporarily unavailable.*")
 
         # 5. Inspections
         lines.append("\n## Inspection History\n")
-        try:
-            inspections = _get_inspections(conn, pnum)
-            lines.append(_format_inspections(inspections))
-        except Exception as e:
+        if circuit_breaker.is_open("inspections"):
             inspections = []
-            logger.warning("Inspections query failed for %s: %s", pnum, e)
-            lines.append("*Inspection data temporarily unavailable.*")
+            lines.append("*Inspection data temporarily unavailable (circuit breaker open).*")
+        else:
+            try:
+                inspections = _get_inspections(conn, pnum)
+                lines.append(_format_inspections(inspections))
+                circuit_breaker.record_success("inspections")
+            except Exception as e:
+                inspections = []
+                circuit_breaker.record_failure("inspections")
+                logger.warning("Inspections query failed for %s: %s", pnum, e)
+                lines.append("*Inspection data temporarily unavailable.*")
 
         # 5.25 Severity Score
         try:
@@ -1203,11 +1215,16 @@ async def permit_lookup(
 
         # 5.5 Plan Review Routing (Addenda)
         lines.append("\n## Plan Review Routing\n")
-        try:
-            addenda_rows = _get_addenda(conn, pnum)
-            lines.append(_format_addenda(addenda_rows))
-        except Exception:
-            lines.append("*Plan review routing data not available.*")
+        if circuit_breaker.is_open("addenda"):
+            lines.append("*Plan review routing data temporarily unavailable (circuit breaker open).*")
+        else:
+            try:
+                addenda_rows = _get_addenda(conn, pnum)
+                lines.append(_format_addenda(addenda_rows))
+                circuit_breaker.record_success("addenda")
+            except Exception:
+                circuit_breaker.record_failure("addenda")
+                lines.append("*Plan review routing data not available.*")
 
         # 6. Related permits
         lines.append("\n## Related Permits\n")
@@ -1224,24 +1241,33 @@ async def permit_lookup(
 
         # Related by team
         team_permits = []
-        try:
-            team_permits = _get_related_team(conn, pnum)
-        except Exception as e:
-            logger.warning("Related team query failed: %s", e)
+        if circuit_breaker.is_open("related_team"):
+            logger.info("Skipping related team lookup — circuit breaker open")
+        else:
+            try:
+                team_permits = _get_related_team(conn, pnum)
+                circuit_breaker.record_success("related_team")
+            except Exception as e:
+                circuit_breaker.record_failure("related_team")
+                logger.warning("Related team query failed: %s", e)
 
         lines.append(_format_related(location_permits, team_permits, p_block, p_lot))
 
         # 7. Planning records (entitlements)
-        planning_records = _get_planning_records(conn, p_block, p_lot)
-        if planning_records:
-            lines.append("\n## Planning Records (Entitlements)\n")
-            lines.append(_format_planning_records(planning_records))
+        if not circuit_breaker.is_open("planning_records"):
+            planning_records = _get_planning_records(conn, p_block, p_lot)
+            if planning_records:
+                circuit_breaker.record_success("planning_records")
+                lines.append("\n## Planning Records (Entitlements)\n")
+                lines.append(_format_planning_records(planning_records))
 
         # 8. Boiler permits
-        boiler_permits = _get_boiler_permits(conn, p_block, p_lot)
-        if boiler_permits:
-            lines.append("\n## Boiler Permits\n")
-            lines.append(_format_boiler_permits(boiler_permits))
+        if not circuit_breaker.is_open("boiler_permits"):
+            boiler_permits = _get_boiler_permits(conn, p_block, p_lot)
+            if boiler_permits:
+                circuit_breaker.record_success("boiler_permits")
+                lines.append("\n## Boiler Permits\n")
+                lines.append(_format_boiler_permits(boiler_permits))
 
         # 9. Development pipeline
         dev_pipeline = _get_dev_pipeline(conn, p_block, p_lot)
