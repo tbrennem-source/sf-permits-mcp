@@ -1,5 +1,30 @@
 # Changelog
 
+## QS3-B: Operational Hardening (2026-02-26)
+
+### Graph-Based Related Team Lookup (B-1)
+- **`src/tools/permit_lookup.py` (_get_related_team)**: Replaced O(N²) 4-table self-join with pre-computed `relationships` table lookup — O(E) where E = entities on the permit (typically 3-5)
+- Falls back to original self-join when `relationships` table doesn't exist (DuckDB dev environments)
+- Query time logged for comparison
+
+### Circuit Breaker Pattern (B-2)
+- **`src/db.py` (CircuitBreaker class)**: Per-category query circuit breaker — tracks failures within a time window, auto-opens after 3 failures in 2 minutes, cooldown for 5 minutes
+- **Categories:** contacts, inspections, addenda, related_team, planning_records, boiler_permits
+- **Integration in `permit_lookup.py`**: Each enrichment function checks `circuit_breaker.is_open()` before querying, records success/failure after
+
+### Cron Heartbeat + Health Enhancement (B-3)
+- **`web/routes_cron.py` (POST /cron/heartbeat)**: Writes heartbeat timestamp to cron_log, protected by CRON_SECRET
+- **`web/app.py` (/health)**: Now includes `circuit_breakers` status dict and `cron_heartbeat_age_minutes` with OK/WARNING/CRITICAL classification (>30min=WARNING, >120min=CRITICAL)
+- Works in both Postgres (production) and DuckDB (dev) modes
+
+### Pipeline Step Timing (B-4)
+- **`web/routes_cron.py` (nightly pipeline)**: Each post-processing step wrapped with `_timed_step` to record per-step elapsed seconds
+- **`web/routes_cron.py` (GET /cron/pipeline-summary)**: Returns recent pipeline step timings as JSON (read-only, no auth)
+- Nightly response now includes `step_timings` dict in addition to per-step results
+
+### Tests
+- 39 new tests in `tests/test_qs3_b_ops_hardening.py` — CircuitBreaker (13), related team (3), health endpoint (3), heartbeat (3), pipeline summary (3), circuit breaker integration (7), heartbeat age classification (5), timed step (2)
+
 ## Sprint 69 — Session 1: Design System + Landing Rewrite (2026-02-26)
 
 ### Obsidian Intelligence Design System
