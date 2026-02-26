@@ -270,6 +270,7 @@
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
     </style>
+    <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/mobile.css">
 </head>
 <body>
@@ -291,18 +292,19 @@
             <p class="subtitle">{{ user.email }}</p>
 
             {% if user.is_admin %}
-            <!-- Admin users: tab bar with server-side rendered panels -->
-            <div class="tab-bar" id="tab-bar">
+            <!-- Admin users: tab bar with visual separator between Settings and Admin -->
+            <div class="tab-bar tab-bar-divided" id="tab-bar">
                 <button class="tab-btn active" data-tab="settings"
                         hx-get="/account/fragment/settings"
                         hx-target="#tab-content-settings"
                         hx-swap="innerHTML"
                         onclick="switchTab('settings')">Settings</button>
+                <span class="tab-divider"></span>
                 <button class="tab-btn" data-tab="admin"
                         hx-get="/account/fragment/admin"
                         hx-target="#tab-content-admin"
                         hx-swap="innerHTML"
-                        onclick="switchTab('admin')">Admin</button>
+                        onclick="switchTab('admin')">Admin<span class="tab-admin-badge">Admin</span></button>
             </div>
             <!-- Settings tab: pre-rendered server-side -->
             <div id="tab-content-settings" class="tab-panel active">

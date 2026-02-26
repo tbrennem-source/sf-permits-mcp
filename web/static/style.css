@@ -1,0 +1,147 @@
+/*
+ * style.css — sfpermits.ai shared utility classes
+ *
+ * Loaded after inline <style> blocks. Contains reusable utility classes
+ * that are shared across multiple templates.
+ *
+ * Sections:
+ *  1. Progressive disclosure — collapsible panels
+ *  2. Tier visibility — show/hide based on user tier
+ *  3. Tab navigation enhancements — visual hierarchy for tabs
+ */
+
+/* ── 1. Progressive Disclosure ─────────────────────────────────────────────── */
+
+/*
+ * .disclosure-panel — collapsed by default, toggled by a sibling trigger.
+ * Usage:
+ *   <button onclick="this.nextElementSibling.classList.toggle('disclosure-open')">
+ *     Show details
+ *   </button>
+ *   <div class="disclosure-panel">Content here...</div>
+ */
+.disclosure-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.disclosure-panel.disclosure-open {
+    max-height: 2000px;  /* large enough for most content */
+    opacity: 1;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+/* Trigger button styling */
+.disclosure-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--accent, #4f8ff7);
+    font-size: 0.85rem;
+    font-family: inherit;
+    padding: 4px 0;
+}
+
+.disclosure-trigger::after {
+    content: "▶";
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+    display: inline-block;
+}
+
+.disclosure-trigger.disclosure-active::after {
+    transform: rotate(90deg);
+}
+
+/* ── 2. Tier Visibility ────────────────────────────────────────────────────── */
+
+/*
+ * .tier-free — visible to all users (no gating)
+ * .tier-pro  — hidden by default, shown when body has .user-pro class
+ *
+ * Usage:
+ *   <body class="user-pro">
+ *     <div class="tier-free">Always visible</div>
+ *     <div class="tier-pro">Pro users only</div>
+ *   </body>
+ */
+.tier-free {
+    /* Always visible — no special rules needed, but class acts as documentation */
+}
+
+.tier-pro {
+    display: none;
+}
+
+body.user-pro .tier-pro {
+    display: block;
+}
+
+/* Inline variant for spans etc. */
+body.user-pro span.tier-pro,
+body.user-pro a.tier-pro {
+    display: inline;
+}
+
+/* Upgrade nudge — shown to free users in place of pro content */
+.tier-upgrade-nudge {
+    background: rgba(79, 143, 247, 0.06);
+    border: 1px solid rgba(79, 143, 247, 0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--text-muted, #8b8fa3);
+}
+
+.tier-upgrade-nudge a {
+    color: var(--accent, #4f8ff7);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+body.user-pro .tier-upgrade-nudge {
+    display: none;
+}
+
+/* ── 3. Tab Navigation Enhancements ────────────────────────────────────────── */
+
+/*
+ * .tab-bar-divided — tab bar with visual separator between groups.
+ * Used on account page to separate Settings from Admin.
+ */
+.tab-bar-divided {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.tab-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border, #333749);
+    margin: 0 8px;
+    flex-shrink: 0;
+}
+
+/* Admin tab badge */
+.tab-admin-badge {
+    font-size: 0.6rem;
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--error, #f87171);
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
