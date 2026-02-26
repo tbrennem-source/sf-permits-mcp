@@ -17,6 +17,34 @@ bp = Blueprint("api", __name__)
 
 
 # ---------------------------------------------------------------------------
+# CSP violation reporting (public — browsers send reports automatically)
+# ---------------------------------------------------------------------------
+
+@bp.route("/api/csp-report", methods=["POST"])
+def csp_report():
+    """Receive CSP violation reports from browsers.
+
+    Browsers send these automatically when Content-Security-Policy-Report-Only
+    detects a violation. No auth required — the browser initiates the POST.
+
+    Logs the violation for analysis. Returns 204 No Content.
+    """
+    try:
+        data = request.get_json(silent=True, force=True)
+        if data:
+            report = data.get("csp-report", data)
+            logging.getLogger("csp").info(
+                "CSP violation: %s on %s (blocked: %s)",
+                report.get("violated-directive", "?"),
+                report.get("document-uri", "?"),
+                report.get("blocked-uri", "?"),
+            )
+    except Exception:
+        pass  # Fire and forget — never fail on a CSP report
+    return Response(status=204)
+
+
+# ---------------------------------------------------------------------------
 # API auth helper
 # ---------------------------------------------------------------------------
 

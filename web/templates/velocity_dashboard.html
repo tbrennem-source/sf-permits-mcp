@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Approval Pipeline — sfpermits.ai</title>
 {% endif %}
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117; --surface: #1a1d27; --surface-2: #22263a;
             --border: rgba(255,255,255,0.08); --text: #e8eaf6;
@@ -523,7 +523,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
     // ── Filter state ─────────────────────────────────────────────────────────
     let currentView = 'all';    // 'all' | 'portfolio'
     let currentDept = 'all';

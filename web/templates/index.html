@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow"><!-- Remove after beta -->
     <title>sfpermits.ai — SF Permit Analysis</title>
-    <script src="/static/htmx.min.js"></script>
-    <style>
+    <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -1326,7 +1326,7 @@
                 </div>
             </div>
 
-            <script>
+            <script nonce="{{ csp_nonce }}">
             // Force loading indicator for analyze-plans file upload
             (function() {
                 // Run immediately when script executes, don't wait for DOMContentLoaded
@@ -1528,7 +1528,7 @@
         </div>
     </footer>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         const PRESETS = {
             kitchen: {
                 description: "Gut renovation of residential kitchen in Noe Valley, removing a non-bearing wall, relocating gas line, new electrical panel. Budget $85K.",
@@ -1939,6 +1939,6 @@
         })();
     </script>
     {% include 'fragments/feedback_widget.html' %}
-    <script src="/static/activity-tracker.js" defer></script>
+    <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
 </body>
 </html>

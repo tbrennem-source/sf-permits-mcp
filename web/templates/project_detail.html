@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ project.name }} — sfpermits.ai</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
+    <style nonce="{{ csp_nonce }}">
         .project-detail-header {
             margin-bottom: 28px;
         }
@@ -184,7 +184,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 function sendInvite() {
     const email = document.getElementById('invite-email').value.trim();
     const feedback = document.getElementById('invite-feedback');

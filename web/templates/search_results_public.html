@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ query }} — sfpermits.ai</title>
-    <style>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -383,6 +383,6 @@
             <p>Built on San Francisco open data. <a href="/health">System status</a></p>
         </div>
     </footer>
-    <script src="/static/activity-tracker.js" defer></script>
+    <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
 </body>
 </html>

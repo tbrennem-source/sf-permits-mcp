@@ -22,9 +22,14 @@ def add_security_headers(response):
     CSP uses 'unsafe-inline' for script-src and style-src because:
     - HTMX requires inline event handlers
     - Many templates use inline styles
-    - Future sprint can migrate to nonce-based CSP
+
+    Additionally sends a CSP-Report-Only header with nonce-based policy.
+    This logs violations without blocking anything, allowing gradual
+    migration to nonce-based CSP.
     """
-    # Content Security Policy
+    from flask import g
+
+    # Content Security Policy (enforced — keeps unsafe-inline as fallback)
     csp = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline'; "
@@ -37,6 +42,25 @@ def add_security_headers(response):
         "form-action 'self'"
     )
     response.headers["Content-Security-Policy"] = csp
+
+    # CSP Report-Only — nonce-based policy for monitoring violations
+    # Keeps 'unsafe-inline' as fallback so nothing breaks.
+    # Violations are logged to /api/csp-report for analysis.
+    nonce = getattr(g, "csp_nonce", "")
+    if nonce:
+        csp_ro = (
+            f"default-src 'self'; "
+            f"script-src 'self' 'nonce-{nonce}' 'unsafe-inline'; "
+            f"style-src 'self' 'nonce-{nonce}' 'unsafe-inline'; "
+            f"img-src 'self' data: blob:; "
+            f"font-src 'self'; "
+            f"connect-src 'self'; "
+            f"frame-ancestors 'none'; "
+            f"base-uri 'self'; "
+            f"form-action 'self'; "
+            f"report-uri /api/csp-report"
+        )
+        response.headers["Content-Security-Policy-Report-Only"] = csp_ro
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

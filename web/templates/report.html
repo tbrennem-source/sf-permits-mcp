@@ -15,8 +15,8 @@
     <meta name="twitter:title" content="Property Report: {{ report.address }}">
     <meta name="twitter:description" content="SF building permit history, complaints, violations, and risk assessment. Powered by sfpermits.ai">
     <meta name="twitter:image" content="https://sfpermits.ai/static/og-card.png">
-    <script src="/static/htmx.min.js"></script>
-    <style>
+    <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
+    <style nonce="{{ csp_nonce }}">
         :root {
             --bg: #0f1117;
             --surface: #1a1d27;
@@ -939,7 +939,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         function togglePermitDetails(id) {
             var el = document.getElementById(id);
             if (el) el.classList.toggle('open');

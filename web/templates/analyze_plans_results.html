@@ -1,4 +1,4 @@
-<style>
+<style nonce="{{ csp_nonce }}">
     /* Visual UI Styles for Plan Analysis Results */
 
     /* Bulk Actions Toolbar */
@@ -1434,7 +1434,7 @@
 </div>
 
 {% if session_id %}
-<script>
+<script nonce="{{ csp_nonce }}">
     // ===========================
     // State Management
     // ===========================
@@ -2166,7 +2166,7 @@
             <html>
             <head>
                 <title>Print Page ${currentPage + 1}</title>
-                <style>
+                <style nonce="{{ csp_nonce }}">
                     body { margin: 0; padding: 0; }
                     img { max-width: 100%; height: auto; }
                 </style>
@@ -2639,7 +2639,7 @@
 {% endif %}
 
 {# Report status filter JS — runs for both Quick Check (no session_id) and async results #}
-<script>
+<script nonce="{{ csp_nonce }}">
 // ===========================
 // Report Status Filters
 // ===========================

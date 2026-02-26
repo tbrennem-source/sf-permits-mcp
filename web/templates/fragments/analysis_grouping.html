@@ -30,7 +30,7 @@
 
 {# ── CSS for grouping UI ── #}
 {% macro grouping_css() %}
-<style>
+<style nonce="{{ csp_nonce }}">
     /* View options bar */
     .ah-view-options {
         display: flex;
@@ -399,7 +399,7 @@
 
 {# ── JS for accordion toggle + project notes ── #}
 {% macro grouping_js() %}
-<script>
+<script nonce="{{ csp_nonce }}">
 function toggleProjectGroup(header) {
     const group = header.closest('.ah-project-group');
     group.classList.toggle('ah-expanded');

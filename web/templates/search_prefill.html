@@ -1,4 +1,4 @@
 <div class="result-card">
     <p>I'll set up the analysis form for you &mdash; review the details and click <strong>Analyze Project</strong> when ready.</p>
 </div>
-<script>prefillAnalyze({{ prefill_json | safe }});</script>
+<script nonce="{{ csp_nonce }}">prefillAnalyze({{ prefill_json | safe }});</script>

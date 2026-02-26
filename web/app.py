@@ -883,6 +883,19 @@ def _daily_limit_check():
 
 
 @app.before_request
+def _generate_csp_nonce():
+    """Generate a per-request CSP nonce for script/style tags."""
+    import secrets
+    g.csp_nonce = secrets.token_hex(16)
+
+
+@app.context_processor
+def inject_csp_nonce():
+    """Make csp_nonce available in all templates."""
+    return {"csp_nonce": getattr(g, "csp_nonce", "")}
+
+
+@app.before_request
 def _start_timer():
     """Record request start time for slow-request detection."""
     g._request_start = time.monotonic()
