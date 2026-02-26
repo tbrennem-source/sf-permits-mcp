@@ -179,7 +179,14 @@ def _run_startup_migrations():
     logger = logging.getLogger(__name__)
     try:
         conn = get_connection()
-        conn.autocommit = True
+        # Set autocommit on the UNDERLYING psycopg2 connection, not the
+        # _PooledConnection wrapper (wrapper's __getattr__ only handles reads,
+        # not __setattr__). Without this, DDL runs inside an implicit
+        # transaction and a single failed ALTER TABLE aborts the entire chain.
+        if hasattr(conn, '_conn'):
+            conn._conn.autocommit = True
+        else:
+            conn.autocommit = True
         cur = conn.cursor()
 
         # Serialize migrations across workers. advisory_lock key 20260226
