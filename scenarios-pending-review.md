@@ -1702,3 +1702,53 @@ _Last reviewed: never_
 **Edge cases seen in code:** Station with < 3 pending permits always shows "normal"; no baseline data on DuckDB
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Project auto-created on first analysis with address
+**Source:** Sprint 61B — web/projects.py _get_or_create_project
+**User:** expediter | architect
+**Starting state:** User runs an analysis with a street address and block/lot for the first time
+**Goal:** Analysis is automatically linked to a project without any extra steps
+**Expected outcome:** A project appears in /projects list with the analysis address as name; the analysis is linked to the project; user is set as project owner
+**Edge cases seen in code:** Analysis with no address, block, AND lot all null → no project created; only address without block/lot → project created but no dedup key
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Second analysis on same parcel deduplicates to existing project
+**Source:** Sprint 61B — web/projects.py _get_or_create_project dedup logic
+**User:** expediter (different user or same user)
+**Starting state:** A project exists for block 3512, lot 001; a second user runs an analysis for the same parcel
+**Goal:** Both analyses are grouped under the same project
+**Expected outcome:** Only one project exists for the parcel; the second user is added as a member; their analysis is linked to the existing project
+**Edge cases seen in code:** Dedup only triggers when BOTH block AND lot are present; address-only analyses create separate projects even at the same address
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Auto-join project on shared-link signup
+**Source:** Sprint 61B — web/app.py auth_verify + _auto_join_project
+**User:** homeowner (recipient, no account)
+**Starting state:** Recipient clicks shared analysis link; analysis is linked to a project; recipient has no account
+**Goal:** Recipient signs up via magic link and becomes a project member automatically
+**Expected outcome:** After email verification, user is added to the project as a member without any extra click; /projects shows the project; the shared analysis page shows "Part of a project" link
+**Edge cases seen in code:** analysis_id missing from session → no join (graceful); analysis has no project_id → no join; user already a member → idempotent (no duplicate row)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Join banner visible on shared analysis for non-member
+**Source:** Sprint 61B — web/templates/analysis_shared.html
+**User:** expediter (logged in, not a project member)
+**Starting state:** Logged-in user views a shared analysis that is linked to a project; user is not a member of that project
+**Goal:** Discover and join the project from the shared analysis page
+**Expected outcome:** Join banner appears above the results tabs; clicking "Join Project" calls /project/<id>/join, returns ok:true, banner updates to "Joined! View project" link without page reload
+**Edge cases seen in code:** Anonymous users see no banner; members see "Part of a project" link instead of join button; join is idempotent
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Non-member cannot access project detail page
+**Source:** Sprint 61B — web/projects.py GET /project/<id>
+**User:** expediter (logged in, not a project member)
+**Starting state:** Logged-in user navigates directly to /project/<id> for a project they are not a member of
+**Goal:** Access control prevents unauthorized project viewing
+**Expected outcome:** 403 response; project members and admins can access; anonymous users are redirected to login
+**Edge cases seen in code:** Site admins (is_admin=True) bypass member check; missing project returns 404 not 403
+**CC confidence:** high
+**Status:** PENDING REVIEW
