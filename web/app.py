@@ -127,6 +127,15 @@ def inject_brand():
     return {"brand": BRAND_CONFIG}
 
 
+# === SESSION D: Feature gating context ===
+@app.context_processor
+def _inject_gate():
+    """Inject feature gate context into all templates."""
+    from web.feature_gate import gate_context
+    return {"gate": gate_context(getattr(g, 'user', None))}
+# === END SESSION D ===
+
+
 # === SESSION A: ENVIRONMENT ===
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
