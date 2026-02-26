@@ -1,5 +1,39 @@
 # Changelog
 
+## Sprint 59 — UX Polish Swarm (2026-02-25)
+
+4-agent parallel swarm fixing 6 pages flagged at UX score 2.0-2.75. Targeting 3.5+ post-fix.
+
+### Agent A: Account Page Tab Split
+- **HTMX tab bar**: Account page refactored from 741-line monolith to ~230-line tab shell + 2 fragments
+- **Non-admin**: Settings content rendered inline (no extra request, no tab bar)
+- **Admin**: "Settings" | "Admin" tabs with hash-based persistence (`#settings` / `#admin`)
+- **Fragment routes**: `GET /account/fragment/settings`, `GET /account/fragment/admin` (403 for non-admin)
+- 25 new tests
+
+### Agent B: Mobile Responsive (Bottlenecks + Activity)
+- **Bottlenecks**: Reviewer modal `max-width: 95vw` at 480px, inner table `overflow-x: auto`, single-column heatmap
+- **Activity**: `flex-wrap: wrap` stacking at 480px, each row element goes full-width
+- **Pagination**: Offset-based prev/next on activity feed (HTMX-aware for fragment mode)
+- **mobile.css**: Sections 15-16 (activity rows, reviewer panel)
+- 19 new tests
+
+### Agent C: Admin Sources Nav + Voice Cal Nav
+- **Admin Sources**: Replaced custom header with standard `fragments/nav.html` include, Admin badge active state, mobile layout (lifecycle rows flex-wrap, stats grid 2-col at 640px)
+- **Voice Cal**: Sticky jump-nav pill bar below progress bar, audience group `id` attributes for anchor linking, fixed "Back to Account" footer with scroll-to-top, scroll-driven active pill highlighting
+- 17 new tests
+
+### Agent D: Protocol Update + Search NL Guidance
+- **BLACKBOX_PROTOCOL.md**: Added "Stage 2 Escalation Criteria" — DeskRelay mandatory for visual changes, optional for backend/docs
+- **Search guidance card**: No-results block enhanced with format examples (address, permit #, block/lot) + signup CTA
+- **NL detection**: `nl_query` flag passed to template for `general_question` / `analyze_project` intents
+- 15 new tests
+
+### Totals
+- 76 new tests (2,667 total passing)
+- 0 regressions
+- 16 files changed, ~1,900 lines added
+
 ## Sprint 58 — Methodology Transparency + Trust Infrastructure (2026-02-26)
 
 Station-based timeline becomes the primary model. Every calculated number gets a methodology card. SEO foundation for organic acquisition.

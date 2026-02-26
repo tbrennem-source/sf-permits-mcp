@@ -1611,3 +1611,52 @@ _Last reviewed: never_
 **Expected outcome:** Page shows current ADU permit count, median processing time, common ADU types, and a CTA to run a full analysis. Stats are cached (not queried per-request).
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+<!-- Sprint 59: 5 scenarios added (account tabs, mobile activity, admin sources nav, voice cal nav, search guidance) -->
+
+## SUGGESTED SCENARIO: Admin user switches between Settings and Admin tabs on account page
+**Source:** Sprint 59A — Account tab split
+**User:** admin
+**Starting state:** Logged in as admin, on /account page
+**Goal:** View admin tools (invite codes, feedback queue) then switch back to personal settings (watch list, profile)
+**Expected outcome:** Tab bar shows "Settings" and "Admin". Clicking Admin loads admin sections. Clicking Settings loads user sections. URL hash updates (#settings / #admin). Refreshing page restores the active tab.
+**Edge cases seen in code:** Non-admin users see settings content directly with no tab bar. Admin fragment returns 403 for non-admin.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Non-admin user sees account settings without tab bar
+**Source:** Sprint 59A — Account tab split
+**User:** expediter
+**Starting state:** Logged in as non-admin user
+**Goal:** Access profile, watch list, voice settings on account page
+**Expected outcome:** Page loads with all user sections visible. No tab bar shown. No admin sections visible.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin activity feed paginates through entries
+**Source:** Sprint 59B — Admin Activity pagination
+**User:** admin
+**Starting state:** Activity feed has 200+ entries
+**Goal:** Browse through older activity entries
+**Expected outcome:** First page shows 100 entries with "Older" link. Clicking "Older" loads next 100 with "Newer" link. Works in both standalone (/admin/activity) and fragment (admin ops tab) modes.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Voice calibration jump navigation on long page
+**Source:** Sprint 59C — Voice Cal jump nav
+**User:** expediter
+**Starting state:** On /account/voice-calibration with 7+ audience groups
+**Goal:** Jump quickly between audience sections without scrolling
+**Expected outcome:** Sticky pill bar below progress bar shows audience labels. Clicking a pill scrolls to that audience group. Active pill highlights based on scroll position. Fixed footer provides "Back to Account" link at all times.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Public search shows format guidance when no permits found
+**Source:** Sprint 59D — Search NL guidance
+**User:** homeowner
+**Starting state:** Not logged in, searching for a query that returns no results
+**Goal:** Understand how to use the search correctly
+**Expected outcome:** Instead of bare "No permits found", page shows guidance card with clickable examples (address format, permit number, block/lot). For NL queries, shows "How to use sfpermits.ai" heading. Signup CTA at bottom.
+**Edge cases seen in code:** Some queries return "Please provide..." from permit_lookup instead of "No permits found", bypassing the guidance card. Edge case documented for follow-up.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
