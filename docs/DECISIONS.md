@@ -382,3 +382,49 @@ Sudbury-style forms packages, plugin-generated structural drawings, and syntheti
 ### Guard Against Hollow Sessions
 
 One prod session (`oeNQCmMYRT2evqRjO1-F7g`) has 0 extractions despite being linked to the 12-page PrelimPermitSet. Any fingerprinting logic must check `len(extractions) == 0` before attempting to match — never assume a completed session has data.
+
+## Decision 13: CSP `unsafe-inline` for HTMX Compatibility
+
+**Date:** 2026-02-26
+**Status:** Decided — Accept `unsafe-inline` now, migrate to nonce-based CSP later
+
+### Context
+
+Sprint 62C added Content-Security-Policy headers. HTMX requires inline event handlers (`hx-on:*` attributes, inline `<script>` blocks), and many templates use inline `<style>` elements.
+
+### Decision
+
+Use `'unsafe-inline'` for both `script-src` and `style-src` in the CSP directive. This is less restrictive than a nonce-based CSP but necessary for the current HTMX + inline style architecture.
+
+### Trade-offs
+
+- **Pro:** Immediate security improvement (CSP blocks XSS from external scripts, frame-ancestors blocks clickjacking)
+- **Con:** `unsafe-inline` weakens script-src protection against reflected XSS
+- **Mitigation:** X-Content-Type-Options nosniff + X-Frame-Options DENY + strict Referrer-Policy
+
+### Future Migration Path
+
+A future sprint can implement nonce-based CSP by:
+1. Generating a per-request nonce in `@app.before_request`
+2. Adding `nonce="{{ csp_nonce }}"` to all `<script>` and `<style>` tags
+3. Replacing `'unsafe-inline'` with `'nonce-{value}'` in the CSP header
+
+## Decision 14: Three-Tier Feature Gating
+
+**Date:** 2026-02-26
+**Status:** Decided — FREE / AUTHENTICATED / ADMIN tiers
+
+### Context
+
+Sprint 62D added feature access control for launch hardening. All features were previously visible to unauthenticated visitors.
+
+### Decision
+
+Three-tier enum: `FREE` (search, landing), `AUTHENTICATED` (analyze, brief, portfolio, watch, projects), `ADMIN` (ops, QA, costs). A `PREMIUM` tier is commented as reserved for future paid features.
+
+### Implementation
+
+- `FeatureTier` enum in `web/feature_gate.py`
+- Feature registry maps 14 features to minimum tier
+- `@app.context_processor` injects `gate` dict into all templates
+- Nav items show greyed "Sign up" badges for locked features

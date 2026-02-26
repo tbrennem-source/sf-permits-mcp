@@ -1,5 +1,48 @@
 # Changelog
 
+## Sprint 62 — Activity Intelligence + Launch Hardening (2026-02-26)
+
+4-agent parallel swarm adding analytics engine, client-side tracking, security hardening, and feature gating. Resolves 10 Chief tasks.
+
+### Agent A: Activity Intelligence — Analytics Engine (#224-226, #228-229)
+- **New module**: `web/activity_intel.py` with 5 analytics query functions
+- `get_bounce_rate()` — searches with no follow-up action within 60s
+- `get_feature_funnel()` — search → detail → analyze → ask conversion
+- `get_query_refinements()` — same user refining search 2+ times within 5 min
+- `get_feedback_by_page()` — feedback-to-visit ratio per path
+- `get_time_to_first_action()` — avg seconds from first page view to first action
+- **Admin ops Intelligence tab** with all 5 metrics in card layout
+- 29 new tests
+
+### Agent B: Client-Side Tracking + Search Fix (#227, #228, #279)
+- **New**: `web/static/activity-tracker.js` — lightweight (~2KB) client-side tracker
+- Dead click detection, time-to-first-action measurement, session ID via sessionStorage
+- Batched `POST /api/activity/track` every 5s via sendBeacon
+- `_is_no_results()` helper fixes search guidance edge case (Chief #279)
+- Script tags added to index.html and search_results_public.html
+- 21 new tests
+
+### Agent C: Security Headers + Rate Limiting (#123, #136)
+- **New module**: `web/security.py` — security middleware
+- CSP with `'unsafe-inline'` (required for HTMX), X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy, HSTS (prod-only)
+- UA blocking: python-requests, scrapy, wget, go-http-client, bot/spider/crawler (exempt /health, /cron/*, curl)
+- Daily request limits: 200/day auth, 50/day anon, cached 60s. `/api/activity/track` exempt.
+- Extended blocked paths: /api/v1, /graphql, /console, /.aws, /debug, /metrics
+- 38 new tests
+
+### Agent D: Feature Gating + Test Fixes (#124)
+- **New module**: `web/feature_gate.py` — `FeatureTier` enum (FREE, AUTHENTICATED, ADMIN)
+- Feature registry: 14 features mapped to minimum tier
+- `@app.context_processor` injects `gate` context into all templates
+- Nav shows greyed "Sign up" badges for locked features (Brief, Portfolio, Projects, Analyses)
+- Fixed 4 pre-existing test failures (migration count assertions for Sprint 61B)
+- 32 new tests
+
+### Sprint Totals
+- 120 new tests (2929 → 3017 passing, 12 pre-existing DuckDB lock failures)
+- 4 pre-existing test failures fixed
+- 10 Chief tasks resolved: #123, #124, #136, #224-229, #279
+
 ## Sprint 60 — Permit Intelligence Layer (2026-02-26)
 
 4-agent parallel swarm adding intelligence features: historical project comparison, station path prediction, cost of delay analysis, and congestion monitoring.

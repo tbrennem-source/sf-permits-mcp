@@ -7,6 +7,7 @@
 <!-- Sprint 57.0: 6 scenarios added (entity resolution, timeline filter, velocity periods, multi-role, neighborhood backfill) -->
 <!-- Sprint 60: 4 scenarios added (similar projects, station prediction, cost of delay, congestion signal) -->
 <!-- Sprint 61B: 5 scenarios added (projects auto-create, dedup by parcel, auto-join on signup, join banner, non-member access control) -->
+<!-- Sprint 62: 10 scenarios added by 4 agents (A-D) — activity intelligence, client tracking, security, feature gating -->
 
 ## SUGGESTED SCENARIO: Plumbing inspection data persists after ingest
 **Source:** Sprint 56 — PgConnWrapper cursor fix
@@ -1750,5 +1751,105 @@ _Last reviewed: never_
 **Goal:** Access control prevents unauthorized project viewing
 **Expected outcome:** 403 response; project members and admins can access; anonymous users are redirected to login
 **Edge cases seen in code:** Site admins (is_admin=True) bypass member check; missing project returns 404 not 403
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin sees bounce rate in Intelligence tab
+**Source:** Sprint 62A — Activity Intelligence
+**User:** admin
+**Starting state:** Admin has activity_log entries for searches with and without follow-up actions
+**Goal:** View bounce rate metric in admin ops Intelligence tab
+**Expected outcome:** Intelligence tab loads with bounce rate card showing total searches, bounced count, and percentage. Searches followed by another action within 60s are not counted as bounced.
+**Edge cases seen in code:** Anonymous users tracked by ip_hash not user_id; zero searches returns 0% not division error
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Feature funnel shows conversion stages
+**Source:** Sprint 62A — Activity Intelligence
+**User:** admin
+**Starting state:** Multiple users have performed searches, some continued to lookups and analyses
+**Goal:** Understand conversion funnel from search to analysis
+**Expected outcome:** Funnel shows 4 stages (search → detail → analyze → ask) with counts and percentages. Each stage count is unique users/IPs, not total actions.
+**Edge cases seen in code:** Stages can overlap (user who analyzed also searched); percentage is of search stage, not previous stage
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Query refinement patterns detected
+**Source:** Sprint 62A — Activity Intelligence
+**User:** admin
+**Starting state:** A user searched "kitchen remodel" then "kitchen remodel mission" then "kitchen remodel 94110" within 5 minutes
+**Goal:** Detect that users are refining their searches and surface the pattern
+**Expected outcome:** Refinement sessions count shows 1 session with 3 refinements. Top refined queries list includes the base query.
+**Edge cases seen in code:** Same exact query repeated is still a refinement; DuckDB uses json_extract_string vs Postgres ::json->>'query'
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Dead clicks batched to server
+**Source:** Sprint 62B — Client-Side Tracking
+**User:** homeowner (unauthenticated)
+**Starting state:** User lands on search results page, clicks on a non-interactive text element
+**Goal:** Track UI dead zones where users click expecting interactivity
+**Expected outcome:** After 5 seconds, a POST to /api/activity/track sends the dead_click event with tag, classes, text, and path. Event stored in activity_log with action="client_dead_click".
+**Edge cases seen in code:** Clicks on elements inside <a> or <button> are NOT dead clicks (checks .closest()); sendBeacon used with fetch fallback; queue capped at 50 events per batch
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Time to first action measured from page load
+**Source:** Sprint 62B — Client-Side Tracking
+**User:** homeowner (unauthenticated)
+**Starting state:** User loads the landing page and sits for 8 seconds before submitting first search
+**Goal:** Measure how long users take to engage with the product
+**Expected outcome:** first_action event logged with elapsed_ms ~8000 and trigger "form_submit". Only the FIRST action per page load is tracked (subsequent submits ignored).
+**Edge cases seen in code:** HTMX requests also trigger first action detection; performance.now() used for sub-millisecond accuracy
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Search guidance shows for ambiguous queries
+**Source:** Sprint 62B — Search Fix (Chief #279)
+**User:** homeowner (unauthenticated)
+**Starting state:** User searches public search with a vague query that returns "Please provide a permit number"
+**Goal:** Show the guidance card instead of a confusing "provide a permit number" message
+**Expected outcome:** _is_no_results() detects both "No permits found" AND "Please provide a permit number" as empty results, triggering the guidance card with address, permit number, and block/lot examples.
+**Edge cases seen in code:** 5 phrases checked case-insensitively; None and empty string also return True
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: CSP header blocks injected external script
+**Source:** Sprint 62C — Security Headers
+**User:** admin (or attacker attempting XSS)
+**Starting state:** Production response includes Content-Security-Policy header
+**Goal:** Verify that external script injection is blocked by CSP
+**Expected outcome:** CSP header present on every response with script-src 'self' 'unsafe-inline' (no external domains). Browser blocks any injected <script src="https://evil.com/...">. frame-ancestors 'none' blocks clickjacking.
+**Edge cases seen in code:** HSTS only added in production (checks RAILWAY_ENVIRONMENT); curl exempted from UA blocking for health checks
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Bot user agent blocked from app routes
+**Source:** Sprint 62C — Security Headers
+**User:** scraper/bot
+**Starting state:** A request arrives with User-Agent "python-requests/2.28.0" or "Scrapy/2.7"
+**Goal:** Block automated scraping while allowing health checks and cron
+**Expected outcome:** Bot receives 403 on all app routes. /health and /cron/* remain accessible (for monitoring and scheduled jobs). curl is NOT blocked (used for health checks). Empty/None UA is NOT blocked (could be legitimate).
+**Edge cases seen in code:** "Go-http-client" blocked; all "bot", "spider", "crawler" substring matches; case-insensitive
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Daily limit prevents anonymous abuse
+**Source:** Sprint 62C — Rate Limiting
+**User:** anonymous visitor (potential scraper)
+**Starting state:** Anonymous user makes 50+ requests in a single day
+**Goal:** Prevent anonymous users from consuming excessive resources
+**Expected outcome:** After 50 requests in a calendar day, user receives 429 "Daily request limit exceeded." Authenticated users get 200/day. /api/activity/track is EXEMPT (client tracker batches events every 5s). Cache prevents DB query on every request (60s TTL).
+**Edge cases seen in code:** Fails open on DB error; test mode skips limit; CURRENT_DATE vs DATE_TRUNC for DuckDB/Postgres
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Unauthenticated visitor sees gated navigation
+**Source:** Sprint 62D — Feature Gating
+**User:** homeowner (not logged in)
+**Starting state:** Visitor arrives at landing page without being logged in
+**Goal:** Show which features exist while guiding toward signup
+**Expected outcome:** Nav shows Search (normal), Brief/Portfolio/Projects/Analyses (greyed with "Sign up" badge linking to /auth/login). Clicking a gated badge takes user to login page. After login, badges disappear and normal links appear. Admin features (ops) hidden entirely for non-admin users.
+**Edge cases seen in code:** gate_context injected via @app.context_processor; FeatureTier.PREMIUM reserved but unused; unknown features default to AUTHENTICATED tier
 **CC confidence:** high
 **Status:** PENDING REVIEW
