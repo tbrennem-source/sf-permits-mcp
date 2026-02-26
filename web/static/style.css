@@ -1,3 +1,6 @@
+/* Import Obsidian design system (Sprint 69) — scoped under body.obsidian */
+@import url('/static/design-system.css');
+
 /*
  * style.css — sfpermits.ai shared utility classes
  *

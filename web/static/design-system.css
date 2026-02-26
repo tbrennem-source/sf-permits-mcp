@@ -1,0 +1,324 @@
+/*
+ * design-system.css — Obsidian Intelligence Design System
+ *
+ * Canonical CSS for sfpermits.ai. All new pages reference this file.
+ * Scoped under body.obsidian so existing pages are NOT affected.
+ *
+ * Sprint 69 — Session 1
+ */
+
+/* ── Google Fonts ────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ── Foundation Tokens ───────────────────────────────────────────────────── */
+
+:root {
+    /* Foundation */
+    --bg-deep:        #0B0F19;
+    --bg-surface:     #131825;
+    --bg-elevated:    #1A2035;
+    --bg-glass:       rgba(255,255,255, 0.04);
+
+    /* Text hierarchy */
+    --text-primary:   #E8ECF4;
+    --text-secondary: #8B95A8;
+    --text-tertiary:  #5A6478;
+
+    /* Signal colors */
+    --signal-green:   #34D399;
+    --signal-amber:   #FBBF24;
+    --signal-red:     #F87171;
+    --signal-blue:    #60A5FA;
+    --signal-cyan:    #22D3EE;
+
+    /* Gradients */
+    --gradient-hero:  linear-gradient(135deg, #0B0F19 0%, #0F172A 50%, #131D35 100%);
+    --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
+
+    /* Typography */
+    --font-display: 'JetBrains Mono', 'Fira Code', monospace;
+    --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Fluid type scale */
+    --text-xs:    clamp(0.7rem, 0.65rem + 0.25vw, 0.75rem);
+    --text-sm:    clamp(0.8rem, 0.75rem + 0.25vw, 0.875rem);
+    --text-base:  clamp(0.875rem, 0.85rem + 0.15vw, 1rem);
+    --text-lg:    clamp(1.1rem, 1rem + 0.5vw, 1.25rem);
+    --text-xl:    clamp(1.4rem, 1.2rem + 1vw, 1.75rem);
+    --text-2xl:   clamp(1.8rem, 1.5rem + 1.5vw, 2.5rem);
+    --text-3xl:   clamp(2.2rem, 1.8rem + 2vw, 3.5rem);
+
+    /* Spacing */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Layout */
+    --content-max: 1400px;
+    --card-radius: 12px;
+    --card-border: 1px solid rgba(255,255,255, 0.06);
+    --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
+}
+
+/* ── Base Resets (scoped to .obsidian) ───────────────────────────────────── */
+
+body.obsidian {
+    font-family: var(--font-body);
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.obsidian * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.obsidian h1,
+body.obsidian h2,
+body.obsidian h3,
+body.obsidian h4 {
+    font-family: var(--font-display);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+body.obsidian a {
+    color: var(--signal-cyan);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+body.obsidian a:hover {
+    color: var(--signal-blue);
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+
+body.obsidian .obs-container {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+}
+
+/* ── Glass Card ──────────────────────────────────────────────────────────── */
+
+body.obsidian .glass-card {
+    background: var(--bg-surface);
+    border: var(--card-border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+body.obsidian .glass-card:hover {
+    border-color: rgba(255,255,255, 0.1);
+    transition: border-color 0.3s;
+}
+
+/* ── Status Dots ─────────────────────────────────────────────────────────── */
+
+body.obsidian .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+}
+
+body.obsidian .status-dot.status-success {
+    background: var(--signal-green);
+    box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+}
+
+body.obsidian .status-dot.status-warning {
+    background: var(--signal-amber);
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
+}
+
+body.obsidian .status-dot.status-danger {
+    background: var(--signal-red);
+    box-shadow: 0 0 6px rgba(248, 113, 113, 0.5);
+}
+
+/* ── Data Bar ────────────────────────────────────────────────────────────── */
+
+body.obsidian .data-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+body.obsidian .data-bar-fill {
+    height: 100%;
+    background: var(--gradient-accent);
+    border-radius: 3px;
+    position: relative;
+    transition: width 0.6s ease;
+}
+
+body.obsidian .data-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255,255,255, 0.3);
+}
+
+/* ── Stat Block ──────────────────────────────────────────────────────────── */
+
+body.obsidian .stat-block {
+    text-align: center;
+}
+
+body.obsidian .stat-block .stat-number {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--signal-cyan);
+    line-height: 1;
+}
+
+body.obsidian .stat-block .stat-label {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: var(--space-1);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+body.obsidian .obsidian-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: 600;
+    padding: var(--space-3) var(--space-6);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+    min-height: 44px;
+}
+
+body.obsidian .obsidian-btn-primary {
+    background: var(--gradient-accent);
+    color: #fff;
+    border-color: transparent;
+}
+
+body.obsidian .obsidian-btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(34, 211, 238, 0.2);
+}
+
+body.obsidian .obsidian-btn-outline {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: rgba(255,255,255, 0.12);
+}
+
+body.obsidian .obsidian-btn-outline:hover {
+    color: var(--text-primary);
+    border-color: rgba(255,255,255, 0.24);
+    background: var(--bg-glass);
+}
+
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+
+body.obsidian .obsidian-input {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border: 1px solid rgba(255,255,255, 0.08);
+    border-radius: 8px;
+    padding: var(--space-3) var(--space-4);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-height: 44px;
+    width: 100%;
+}
+
+body.obsidian .obsidian-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+body.obsidian .obsidian-input:focus {
+    border-color: var(--signal-cyan);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+}
+
+/* ── Responsive Density ──────────────────────────────────────────────────── */
+
+/* Phone: single column, large tap targets, no animations */
+@media (max-width: 768px) {
+    body.obsidian .obs-container {
+        padding: 0 var(--space-4);
+    }
+
+    body.obsidian .obsidian-btn {
+        min-height: 48px;
+        padding: var(--space-3) var(--space-4);
+    }
+
+    body.obsidian .obsidian-input {
+        min-height: 48px;
+        font-size: max(1rem, 16px);
+    }
+}
+
+/* Desktop: max info density */
+@media (min-width: 1024px) {
+    body.obsidian .obs-container {
+        padding: 0 var(--space-8);
+    }
+}
+
+/* ── Print Styles ────────────────────────────────────────────────────────── */
+
+@media print {
+    body.obsidian {
+        background: #fff;
+        color: #111;
+    }
+
+    body.obsidian .glass-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    body.obsidian .stat-block .stat-number {
+        color: #111;
+    }
+
+    body.obsidian .obsidian-btn {
+        border: 1px solid #999;
+    }
+}

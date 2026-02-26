@@ -5,15 +5,109 @@ Blueprint: api (no url_prefix)
 
 import logging
 import os
+import time
 
 from flask import (
     Blueprint, request, abort, Response, jsonify, session, g,
     render_template,
 )
 
-from web.helpers import login_required, run_async
+from web.helpers import login_required, run_async, _is_rate_limited
 
 bp = Blueprint("api", __name__)
+
+
+# ---------------------------------------------------------------------------
+# Public stats endpoint (cached, rate-limited)
+# ---------------------------------------------------------------------------
+
+_stats_cache: dict = {}
+_STATS_CACHE_TTL = 3600  # 1 hour
+
+_STATS_FALLBACK = {
+    "permits": 1137816,
+    "routing_records": 3920710,
+    "entities": 1000000,
+    "inspections": 671000,
+    "last_refresh": None,
+    "today_changes": 0,
+}
+
+
+def _fetch_stats_from_db() -> dict:
+    """Query actual counts from the database."""
+    from src.db import query_one
+    stats = {}
+    try:
+        row = query_one("SELECT COUNT(*) FROM permits")
+        stats["permits"] = row[0] if row else _STATS_FALLBACK["permits"]
+    except Exception:
+        stats["permits"] = _STATS_FALLBACK["permits"]
+
+    try:
+        row = query_one("SELECT COUNT(*) FROM addenda")
+        stats["routing_records"] = row[0] if row else _STATS_FALLBACK["routing_records"]
+    except Exception:
+        stats["routing_records"] = _STATS_FALLBACK["routing_records"]
+
+    try:
+        row = query_one("SELECT COUNT(*) FROM entities")
+        stats["entities"] = row[0] if row else _STATS_FALLBACK["entities"]
+    except Exception:
+        stats["entities"] = _STATS_FALLBACK["entities"]
+
+    try:
+        row = query_one("SELECT COUNT(*) FROM inspections")
+        stats["inspections"] = row[0] if row else _STATS_FALLBACK["inspections"]
+    except Exception:
+        stats["inspections"] = _STATS_FALLBACK["inspections"]
+
+    try:
+        row = query_one(
+            "SELECT MAX(filed_date) FROM permits WHERE filed_date IS NOT NULL"
+        )
+        if row and row[0]:
+            stats["last_refresh"] = str(row[0]) + "T04:00:00Z"
+        else:
+            stats["last_refresh"] = None
+    except Exception:
+        stats["last_refresh"] = None
+
+    try:
+        row = query_one(
+            "SELECT COUNT(*) FROM permits WHERE filed_date = CURRENT_DATE"
+        )
+        stats["today_changes"] = row[0] if row else 0
+    except Exception:
+        stats["today_changes"] = 0
+
+    return stats
+
+
+@bp.route("/api/stats")
+def api_stats():
+    """Public JSON endpoint: cached data counts for the landing page.
+
+    Rate limited to 60 requests/min per IP. Results cached for 1 hour.
+    """
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+    if ip:
+        ip = ip.split(",")[0].strip()
+    if _is_rate_limited(ip, 60):
+        return jsonify({"error": "rate limited"}), 429
+
+    now = time.time()
+    if _stats_cache.get("data") and (now - _stats_cache.get("ts", 0)) < _STATS_CACHE_TTL:
+        return jsonify(_stats_cache["data"])
+
+    try:
+        data = _fetch_stats_from_db()
+    except Exception:
+        data = dict(_STATS_FALLBACK)
+
+    _stats_cache["data"] = data
+    _stats_cache["ts"] = now
+    return jsonify(data)
 
 
 # ---------------------------------------------------------------------------

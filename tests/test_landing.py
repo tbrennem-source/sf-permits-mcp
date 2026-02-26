@@ -48,13 +48,13 @@ class TestLandingPage:
         assert 'name="q"' in html
 
     def test_landing_has_feature_cards(self, client):
-        """Landing page shows feature cards."""
+        """Landing page shows capability cards."""
         rv = client.get("/")
         html = rv.data.decode()
-        assert "Address Lookup" in html
-        assert "Property Reports" in html
-        assert "Morning Brief" in html
+        assert "Permit Search" in html
         assert "Plan Analysis" in html
+        assert "Morning Brief" in html
+        assert "Timeline Estimation" in html
 
     def test_landing_has_stats(self, client):
         """Landing page shows data stats."""

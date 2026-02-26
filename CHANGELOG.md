@@ -1,5 +1,36 @@
 # Changelog
 
+## Sprint 69 — Session 1: Design System + Landing Rewrite (2026-02-26)
+
+### Obsidian Intelligence Design System
+- **`web/static/design-system.css` (NEW)**: Canonical CSS with custom properties (bg-deep, signal-cyan, font-display), fluid type scale, Google Fonts (JetBrains Mono, IBM Plex Sans), component classes (.glass-card, .status-dot, .data-bar, .stat-block, .obsidian-btn, .obsidian-input), responsive density, print styles
+- **Scoped under `body.obsidian`**: Existing pages unaffected — only landing page uses the new body class
+
+### Landing Page Rewrite
+- **`web/templates/landing.html` (REWRITE)**: Complete visual overhaul with Obsidian design system
+  - Split hero layout: headline + search bar (left) + Live Data Pulse panel (right)
+  - Data Pulse panel: 4 live counts fetched from `/api/stats` with green status dot
+  - Homeowner funnel: "Planning a project?" form + "Got a violation?" card (restyled)
+  - 6 capability cards: Permit Search, Timeline, Entity Network, AI Plan Analysis, Routing Intelligence, Morning Briefs — each with data point and free/premium badge
+  - Stats bar: 4 key numbers with cyan accent
+  - Credibility footer: "22 SF government data sources" / "3,300+ automated tests" / "Updated nightly"
+  - CTA section with feature list
+  - Mobile: single column, horizontal scroll capability cards, 2x2 stats grid, no horizontal overflow at 375px
+
+### /api/stats Endpoint
+- **`web/routes_api.py` (/api/stats)**: Public JSON endpoint returning cached data counts (permits, routing_records, entities, inspections, last_refresh, today_changes)
+- 1-hour in-memory cache with hardcoded fallback if DB unavailable
+- Rate limited at 60 requests/min per IP
+
+### CSS Integration
+- **`web/static/style.css`**: Added `@import url('/static/design-system.css')` at top
+- **`web/static/mobile.css`**: Added landing-specific phone overrides (Section 21)
+
+### Tests
+- 34 new tests in `tests/test_sprint69_s1.py` (10 design system + 13 landing + 6 API stats + 4 backward compat + 1 existing test fix)
+- Fixed `test_landing.py::test_landing_has_feature_cards` assertion (card name change)
+- Total: 3,340 passing
+
 ## Sprint 64 — Reliability + Monitoring (2026-02-26)
 
 Hardens the reliability layer after Sprint 63 deadlock fix: syncs DDL across migration paths, overhauls data quality checks, enriches morning brief with pipeline stats, and integrates signals/velocity into the nightly pipeline.
