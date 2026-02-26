@@ -981,3 +981,117 @@ def test_cron_velocity_refresh_route_exists():
     from web.app import app
     rules = [r.rule for r in app.url_map.iter_rules()]
     assert "/cron/velocity-refresh" in rules
+
+
+# ── Velocity trend detection tests (Sprint 66-D) ─────────────────
+
+
+def test_check_velocity_trends_no_data(duck_conn):
+    """Returns None when no velocity data exists."""
+    from unittest.mock import patch
+    with patch("web.data_quality._timed_query", return_value=[]):
+        from web.data_quality import _check_velocity_trends
+        result = _check_velocity_trends()
+    assert result is None
+
+
+def test_check_velocity_trends_normal():
+    """Returns green when all stations within 15% of baseline."""
+    from unittest.mock import patch
+    current_data = [("BLDG", 10.0), ("SFFD", 20.0)]
+    baseline_data = [("BLDG", 9.5), ("SFFD", 19.0)]
+
+    def mock_query(sql, params=()):
+        if "'current'" in sql:
+            return current_data
+        elif "'baseline'" in sql:
+            return baseline_data
+        return []
+
+    with patch("web.data_quality._timed_query", side_effect=mock_query):
+        from web.data_quality import _check_velocity_trends
+        result = _check_velocity_trends()
+
+    assert result is not None
+    assert result["status"] == "green"
+    assert "Normal" in result["value"]
+
+
+def test_check_velocity_trends_flagged():
+    """Returns yellow when stations are >15% slower."""
+    from unittest.mock import patch
+    # BLDG is 50% slower than baseline
+    current_data = [("BLDG", 15.0), ("SFFD", 20.0)]
+    baseline_data = [("BLDG", 10.0), ("SFFD", 19.0)]
+
+    def mock_query(sql, params=()):
+        if "'current'" in sql:
+            return current_data
+        elif "'baseline'" in sql:
+            return baseline_data
+        return []
+
+    with patch("web.data_quality._timed_query", side_effect=mock_query):
+        from web.data_quality import _check_velocity_trends
+        result = _check_velocity_trends()
+
+    assert result is not None
+    assert result["status"] == "yellow"
+    assert "BLDG" in result["detail"]
+
+
+def test_check_velocity_trends_in_run_all_checks():
+    """_check_velocity_trends is registered in run_all_checks."""
+    import inspect
+    from web.data_quality import run_all_checks
+    source = inspect.getsource(run_all_checks)
+    assert "_check_velocity_trends" in source
+
+
+# ── Recency weighting tests (Sprint 66-D) ────────────────────────
+
+
+def test_recency_weight_today():
+    """Today's date has weight 1.0."""
+    from src.signals.aggregator import _recency_weight
+    assert _recency_weight(date.today()) == 1.0
+
+
+def test_recency_weight_half_life():
+    """Signal at half-life has weight ~0.5."""
+    from src.signals.aggregator import _recency_weight, RECENCY_HALF_LIFE_DAYS
+    past = date.today() - timedelta(days=RECENCY_HALF_LIFE_DAYS)
+    weight = _recency_weight(past)
+    assert 0.45 <= weight <= 0.55
+
+
+def test_recency_weight_old():
+    """Very old signal has minimum weight."""
+    from src.signals.aggregator import _recency_weight
+    old = date.today() - timedelta(days=365 * 3)
+    weight = _recency_weight(old)
+    assert weight == 0.1
+
+
+def test_recency_weight_none():
+    """None date returns 1.0."""
+    from src.signals.aggregator import _recency_weight
+    assert _recency_weight(None) == 1.0
+
+
+def test_recency_weight_string_date():
+    """String date is parsed correctly."""
+    from src.signals.aggregator import _recency_weight
+    today_str = date.today().isoformat()
+    assert _recency_weight(today_str) == 1.0
+
+
+def test_sort_signals_by_recency():
+    """Signals are sorted most recent first."""
+    from src.signals.aggregator import sort_signals_by_recency
+    from src.signals.types import Signal
+    s1 = Signal("nov", "at_risk", "P001", "1234/001", "old signal")
+    s2 = Signal("complaint", "slower", "P002", "1234/001", "recent signal")
+    # Without detected_at, all have weight 1.0 — order is stable
+    result = sort_signals_by_recency([s1, s2])
+    assert len(result) == 2

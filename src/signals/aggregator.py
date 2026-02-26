@@ -6,11 +6,48 @@ Implements the validated compound signal model (Session 50):
   abatement, expired_uninspected, stale_with_activity)
 - hold_stalled (behind) does NOT compound
 - complaint (slower) does NOT compound
+
+Sprint 66: Added recency-weighted scoring for signal prioritization.
 """
 
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 from src.signals.types import Signal, PropertyHealth, COMPOUNDING_TYPES
+
+
+# Recency half-life: signals older than this many days receive reduced weight
+RECENCY_HALF_LIFE_DAYS = 90
+
+
+def _recency_weight(detected_at: date | str | None) -> float:
+    """Compute a recency weight for a signal based on its detection date.
+
+    Returns a float between 0.1 and 1.0:
+    - Today: 1.0
+    - RECENCY_HALF_LIFE_DAYS ago: 0.5
+    - 2x half-life: 0.25
+    - Minimum: 0.1 (signals never fully expire)
+
+    If detected_at is None, returns 1.0 (assume recent).
+    """
+    if detected_at is None:
+        return 1.0
+
+    if isinstance(detected_at, str):
+        try:
+            detected_at = date.fromisoformat(detected_at[:10])
+        except (ValueError, TypeError):
+            return 1.0
+
+    days_ago = (date.today() - detected_at).days
+    if days_ago <= 0:
+        return 1.0
+
+    # Exponential decay with half-life
+    weight = 0.5 ** (days_ago / RECENCY_HALF_LIFE_DAYS)
+    return max(weight, 0.1)
 
 
 def compute_property_health(block_lot: str, signals: list[Signal]) -> PropertyHealth:
@@ -46,3 +83,16 @@ def compute_property_health(block_lot: str, signals: list[Signal]) -> PropertyHe
         at_risk_count=len(at_risk),
         signals=signals,
     )
+
+
+def sort_signals_by_recency(signals: list[Signal]) -> list[Signal]:
+    """Sort signals by recency weight (most recent first).
+
+    Uses the `detected_at` attribute if present on the signal,
+    otherwise treats as maximally recent. This allows callers to
+    prioritize fresh signals when displaying or acting on property health.
+    """
+    def _sort_key(s: Signal) -> float:
+        detected = getattr(s, "detected_at", None)
+        return -_recency_weight(detected)
+    return sorted(signals, key=_sort_key)
