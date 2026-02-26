@@ -649,13 +649,13 @@ def test_format_days():
 
 def test_format_station_velocity_empty():
     """Empty station data produces empty list."""
-    from src.tools.estimate_timeline import _format_station_velocity
-    assert _format_station_velocity([]) == []
+    from src.tools.estimate_timeline import _format_station_table
+    assert _format_station_table([], {}) == []
 
 
 def test_format_station_velocity_with_data():
     """Station velocity data produces markdown table."""
-    from src.tools.estimate_timeline import _format_station_velocity
+    from src.tools.estimate_timeline import _format_station_table
     data = [{
         "station": "BLDG",
         "p25_days": 1.0,
@@ -663,9 +663,9 @@ def test_format_station_velocity_with_data():
         "p75_days": 7.0,
         "p90_days": 14.0,
         "sample_count": 100,
-        "period": "recent_6mo",
+        "period": "current",
     }]
-    lines = _format_station_velocity(data)
+    lines = _format_station_table(data, {})
     text = "\n".join(lines)
     assert "BLDG" in text
     assert "Station" in text
