@@ -1,5 +1,30 @@
 # Changelog
 
+## QS3-D — PostHog Analytics + Revenue Polish (2026-02-26)
+
+### PostHog Integration (D-1)
+- **`web/helpers.py`**: PostHog helper functions — `posthog_enabled()`, `posthog_track()`, `posthog_get_flags()`. Complete no-op if `POSTHOG_API_KEY` env var not set. Zero overhead.
+- **`web/app.py`**: after_request hook tracks page views, search, analyze, lookup, signup events. before_request hook loads feature flags into `g.posthog_flags`.
+- **`web/app.py`**: Context processor injects `posthog_key` and `posthog_host` into all templates.
+- **Templates**: Async PostHog JS snippet in `landing.html` and `index.html` — loads only when `posthog_key` is set.
+- **`pyproject.toml`**: Added `posthog>=3.0.0` dependency.
+
+### PWA + Manifest Polish (D-3)
+- **`landing.html` + `index.html`**: Added `<link rel="manifest">`, `<meta name="theme-color">`, `<meta name="apple-mobile-web-app-capable">`, `<link rel="apple-touch-icon">`.
+- PWA icons (icon-192.png, icon-512.png) already existed from Sprint 69-S4.
+
+### Charis Beta Invite (D-2)
+- **`docs/charis-invite.md`**: Invite code `friends-gridcare`, message draft, staging test instructions.
+
+### api_usage DDL (D-4)
+- **`scripts/release.py`**: Added `api_usage` table + index for cost tracking.
+- Sitemap verified: `/demo` excluded, base URL correct (`https://sfpermits.ai`).
+
+### Tests
+- 26 new tests in `tests/test_qs3_d_analytics.py` (PostHog helpers, hooks, templates, DDL, sitemap, invite doc)
+- 9/9 QA checks PASS (Playwright browser + grep)
+- Visual review: 4.0/5 avg across 1440px, 768px, 375px viewports
+
 ## Sprint 69 — Session 1: Design System + Landing Rewrite (2026-02-26)
 
 ### Obsidian Intelligence Design System
