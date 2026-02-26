@@ -8,6 +8,7 @@ The tools don't care which backend they're talking to — the SQL is
 standard enough to work on both (with minor syntax helpers below).
 """
 
+import atexit
 import logging
 import os
 from pathlib import Path
@@ -27,6 +28,77 @@ _DUCKDB_PATH = os.environ.get(
 BACKEND = "postgres" if DATABASE_URL else "duckdb"
 
 
+# ── PostgreSQL Connection Pool ────────────────────────────────────
+
+# Lazy singleton — created on first get_connection() call
+_pool = None
+
+
+def _get_pool():
+    """Get or create the PostgreSQL connection pool (lazy singleton)."""
+    global _pool
+    if _pool is None:
+        import psycopg2.pool
+        _pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=2,
+            maxconn=20,
+            dsn=DATABASE_URL,
+            connect_timeout=10,
+        )
+        logger.info("PostgreSQL connection pool created (minconn=2, maxconn=20)")
+    return _pool
+
+
+def _close_pool():
+    """Close the connection pool on shutdown."""
+    global _pool
+    if _pool is not None:
+        try:
+            _pool.closeall()
+            logger.info("PostgreSQL connection pool closed")
+        except Exception as e:
+            logger.warning("Error closing pool: %s", e)
+        _pool = None
+
+
+atexit.register(_close_pool)
+
+
+class _PooledConnection:
+    """Wrapper around a psycopg2 connection that returns it to the pool on close.
+
+    Instead of destroying the connection, .close() rolls back any uncommitted
+    transaction and returns the connection to the pool via putconn().
+    """
+
+    def __init__(self, conn, pool):
+        self._conn = conn
+        self._pool = pool
+
+    def close(self):
+        """Roll back uncommitted work and return connection to pool."""
+        if self._conn is not None:
+            try:
+                self._conn.rollback()
+            except Exception:
+                pass
+            try:
+                self._pool.putconn(self._conn)
+            except Exception:
+                pass
+            self._conn = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+
 def get_connection(db_path: str | None = None):
     """Get a database connection (Postgres or DuckDB).
 
@@ -36,14 +108,22 @@ def get_connection(db_path: str | None = None):
 
     Returns a connection object. Caller is responsible for closing it.
     Both backends support: conn.execute(), conn.close(), cursor context.
+
+    For Postgres (no db_path override): returns a _PooledConnection from the
+    connection pool. Sets statement_timeout=30s unless CRON_WORKER=true.
     """
     if BACKEND == "postgres" and not db_path:
-        import psycopg2
         try:
-            conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
-            return conn
+            pool = _get_pool()
+            raw_conn = pool.getconn()
+            # Set statement_timeout for web requests; skip for cron workers
+            if not os.environ.get("CRON_WORKER", "").lower() == "true":
+                with raw_conn.cursor() as cur:
+                    cur.execute("SET statement_timeout = '30s'")
+                raw_conn.commit()
+            return _PooledConnection(raw_conn, pool)
         except Exception as e:
-            logger.error("Postgres connection failed: %s", e)
+            logger.error("Postgres pool connection failed: %s", e)
             raise
     else:
         import duckdb

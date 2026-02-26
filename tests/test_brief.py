@@ -1180,14 +1180,15 @@ def test_email_unsubscribe_bad_token(client):
     assert rv.status_code == 400
 
 
-def test_cron_send_briefs_requires_auth(client):
-    """Cron send-briefs endpoint requires bearer token."""
+def test_cron_send_briefs_blocked_on_web_worker(client):
+    """Cron send-briefs endpoint blocked on web workers by cron guard."""
     rv = client.post("/cron/send-briefs")
-    assert rv.status_code == 403
+    assert rv.status_code == 404  # Cron guard blocks POST /cron/* on web workers
 
 
 def test_cron_send_briefs_with_auth(client, monkeypatch):
-    """Cron send-briefs endpoint works with correct bearer token."""
+    """Cron send-briefs endpoint works with correct bearer token on cron worker."""
+    monkeypatch.setenv("CRON_WORKER", "true")
     monkeypatch.setenv("CRON_SECRET", "test-secret")
 
     rv = client.post(

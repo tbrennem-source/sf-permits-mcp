@@ -49,8 +49,14 @@ def render_triage_email(triage_data: dict) -> str:
 
 # ── SMTP send ─────────────────────────────────────────────────────
 
-def send_triage_email(to_email: str, html_body: str) -> bool:
-    """Send a triage report email to a single admin."""
+def send_triage_email(to_email: str, html_body: str, sync: bool = True) -> bool:
+    """Send a triage report email to a single admin.
+
+    Args:
+        sync: If True (default), send synchronously. When False, dispatches
+              to background thread. Default is True because this is typically
+              called from cron jobs that are already background.
+    """
     today = date.today().strftime("%b %d")
     subject = f"Feedback Triage Report \u2014 {today} \u2014 sfpermits.ai"
 
@@ -61,6 +67,16 @@ def send_triage_email(to_email: str, html_body: str) -> bool:
         )
         return True  # Dev mode pass-through
 
+    if sync:
+        return _send_triage_sync(to_email, html_body, subject)
+
+    from web.background import submit_task
+    submit_task(_send_triage_sync, to_email, html_body, subject)
+    return True  # Optimistically return True — email delivery is fire-and-forget
+
+
+def _send_triage_sync(to_email: str, html_body: str, subject: str) -> bool:
+    """Send a triage report email synchronously via SMTP."""
     try:
         msg = EmailMessage()
         msg["Subject"] = subject

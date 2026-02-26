@@ -1,5 +1,36 @@
 # Changelog
 
+## Sprint 57.5 — Infrastructure Scaling (2026-02-25)
+
+Third outage from startup migrations + health check blocking all 2 sync workers. This sprint makes the app handle 400+ concurrent connections, deploy without downtime, and isolates cron from web traffic.
+
+### Gevent Workers + Connection Pool (Agent A)
+- **Gevent worker class**: 4 workers × 100 connections = 400 concurrent capacity (was 2 sync workers)
+- **Connection pool**: Lazy `psycopg2.pool.ThreadedConnectionPool` (min=2, max=20) with `_PooledConnection` wrapper — rollback on return, double-close safe
+- **Statement timeout**: 30s on web connections, disabled for cron workers via `CRON_WORKER` env var
+- **atexit cleanup**: Pool closes cleanly on shutdown
+
+### Cron Worker Isolation (Agent B)
+- **Cron guard**: `_is_cron_worker()` function checked per-request — cron workers serve only `/cron/*` + `/health`, web workers block POST `/cron/*`
+- **Dockerfile.cron**: Separate container for cron jobs — sync workers, 900s timeout, `CRON_WORKER=true`
+- **Manual step**: Create `sfpermits-cron` Railway service after merge
+
+### Zero-Downtime Deploys (Agent C)
+- **Release command**: `scripts/release.py` runs migrations once per deploy via Railway `releaseCommand`, before workers start
+- **Migration gate**: `_run_startup_migrations()` no longer runs at module import — requires `RUN_MIGRATIONS_ON_STARTUP=true` (local dev fallback)
+
+### Background Email + Observability (Agent D)
+- **Background email**: `web/background.py` with `ThreadPoolExecutor(4)` — magic link emails send async (< 100ms user wait)
+- **Sync param**: `send_magic_link(sync=False)`, `send_brief_email(sync=True)`, `send_triage_email(sync=True)` — cron callers stay synchronous
+- **Slow request logging**: Requests > 5s logged as WARNING with method, path, status, elapsed time
+
+### Test Coverage
+- 60 new tests (24 pool + 12 cron guard + 10 release + 14 background)
+- Updated 12 existing tests for cron guard behavior (POST /cron/* → 404 on web workers)
+- Total: 2,124 passed, 0 failed
+
+---
+
 ## Sprint 56 — Chang Family Loop + Infrastructure Close-Out (2026-02-25)
 
 6-agent parallel build implementing the homeowner viral loop, shareable analysis, three-tier signup, and data platform close-out. 2,304 tests passing (was 1,984). Target: 53+ tables, 18.4M+ rows.

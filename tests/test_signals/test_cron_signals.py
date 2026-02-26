@@ -16,11 +16,12 @@ def client():
 
 
 class TestCronSignals:
-    def test_returns_403_without_auth(self, client):
+    def test_blocked_on_web_worker(self, client):
         resp = client.post("/cron/signals")
-        assert resp.status_code == 403
+        assert resp.status_code == 404  # Cron guard blocks POST /cron/* on web workers
 
-    def test_returns_200_with_auth(self, client):
+    def test_returns_200_with_auth(self, client, monkeypatch):
+        monkeypatch.setenv("CRON_WORKER", "true")
         mock_conn = MagicMock()
         mock_stats = {
             "total_signals": 42,
@@ -41,7 +42,8 @@ class TestCronSignals:
         assert data["status"] == "ok"
         assert data["total_signals"] == 42
 
-    def test_returns_500_on_error(self, client):
+    def test_returns_500_on_error(self, client, monkeypatch):
+        monkeypatch.setenv("CRON_WORKER", "true")
         with patch("src.db.get_connection", side_effect=Exception("db error")):
             resp = client.post(
                 "/cron/signals",

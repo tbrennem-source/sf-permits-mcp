@@ -698,12 +698,12 @@ def test_cost_bracket():
 # ── Cron endpoint test ───────────────────────────────────────────────
 
 
-def test_cron_velocity_refresh_requires_auth():
-    """Cron endpoint requires CRON_SECRET."""
+def test_cron_velocity_refresh_blocked_on_web_worker():
+    """Cron endpoint blocked on web workers by cron guard."""
     from web.app import app
     with app.test_client() as client:
         rv = client.post("/cron/velocity-refresh")
-        assert rv.status_code == 403
+        assert rv.status_code == 404  # Cron guard blocks POST /cron/* on web workers
 
 
 def test_cron_velocity_refresh_route_exists():

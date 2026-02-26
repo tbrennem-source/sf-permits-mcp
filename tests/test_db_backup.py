@@ -217,13 +217,14 @@ class TestBackupScript:
 class TestCronBackupEndpoint:
     """Test the /cron/backup route."""
 
-    def test_backup_endpoint_requires_auth(self, client):
-        """Backup endpoint rejects unauthenticated requests."""
+    def test_backup_endpoint_blocked_on_web_worker(self, client):
+        """Backup endpoint blocked on web workers by cron guard."""
         rv = client.post("/cron/backup")
-        assert rv.status_code == 403
+        assert rv.status_code == 404  # Cron guard blocks POST /cron/* on web workers
 
     def test_backup_endpoint_with_auth(self, client, monkeypatch):
-        """Backup endpoint accepts valid CRON_SECRET."""
+        """Backup endpoint accepts valid CRON_SECRET on cron worker."""
+        monkeypatch.setenv("CRON_WORKER", "true")
         monkeypatch.setenv("CRON_SECRET", "test-secret-123")
 
         with patch("scripts.db_backup.run_backup", return_value={"ok": True, "file": "test.dump"}):

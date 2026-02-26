@@ -18,7 +18,7 @@ import re
 import sys
 import time
 from collections import defaultdict
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, render_template_string, request, abort, Response, redirect, url_for, session, g, send_file, jsonify, make_response
 import markdown
@@ -640,7 +640,8 @@ def _run_startup_migrations():
         logging.getLogger(__name__).warning("Startup migration failed (non-fatal): %s", e)
 
 
-_run_startup_migrations()
+if os.environ.get("RUN_MIGRATIONS_ON_STARTUP", "").lower() in ("1", "true", "yes"):
+    _run_startup_migrations()
 
 # Recover stale background analysis jobs from previous worker restarts
 try:
@@ -743,6 +744,26 @@ def _security_filters():
             ), 429
 
 
+# === SPRINT 57.5B: CRON GUARD ===
+def _is_cron_worker():
+    """Check CRON_WORKER env var at request time (testable via monkeypatch.setenv)."""
+    return os.environ.get("CRON_WORKER", "").lower() in ("1", "true", "yes")
+
+@app.before_request
+def _cron_guard():
+    """Route isolation: cron workers only serve /cron/* + /health."""
+    path = request.path
+    if _is_cron_worker():
+        # Cron worker: only allow /cron/* and /health
+        if not (path.startswith("/cron") or path == "/health"):
+            abort(404)
+    else:
+        # Web worker: reject /cron/* POST requests (except /cron/status GET)
+        if path.startswith("/cron") and path != "/cron/status" and request.method == "POST":
+            abort(404)
+# === END SPRINT 57.5B: CRON GUARD ===
+
+
 @app.before_request
 def _load_user():
     """Load current user from session into g for templates and routes."""
@@ -812,6 +833,28 @@ def _log_activity(response):
     except Exception:
         pass  # Never break the response
     return response
+
+
+# === SPRINT 57.5D: SLOW REQUEST LOGGING ===
+@app.before_request
+def _start_timer():
+    """Record request start time for slow-request detection."""
+    g._request_start = time.monotonic()
+
+
+@app.after_request
+def _slow_request_log(response):
+    """Log requests that take more than 5 seconds."""
+    start = getattr(g, '_request_start', None)
+    if start is not None:
+        elapsed = time.monotonic() - start
+        if elapsed > 5.0:
+            logging.getLogger("slow_request").warning(
+                "SLOW REQUEST: %.1fs %s %s -> %d",
+                elapsed, request.method, request.path, response.status_code,
+            )
+    return response
+# === END SPRINT 57.5D: SLOW REQUEST LOGGING ===
 
 
 # ---------------------------------------------------------------------------
@@ -7505,6 +7548,132 @@ def cron_ingest_planning_review_metrics():
 
 # === END SESSION F: REVIEW METRICS INGEST ===
 
+
+# === QA REPLAY ===
+
+QA_STORAGE_DIR = os.environ.get("QA_STORAGE_DIR", "qa-results")
+
+# Ensure QA storage directories exist at startup
+for _qa_sub in ("videos", "markers", "screenshots"):
+    os.makedirs(os.path.join(QA_STORAGE_DIR, _qa_sub), exist_ok=True)
+
+
+@app.route("/admin/qa")
+@login_required
+def admin_qa():
+    """QA run listing page — video replays of RELAY sessions."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    markers_dir = os.path.join(QA_STORAGE_DIR, "markers")
+    runs = []
+    if os.path.isdir(markers_dir):
+        for fname in os.listdir(markers_dir):
+            if not fname.endswith(".json"):
+                continue
+            fpath = os.path.join(markers_dir, fname)
+            try:
+                with open(fpath) as f:
+                    data = json.loads(f.read())
+                # Format the timestamp for display
+                started = data.get("started_at", "")
+                try:
+                    dt = datetime.fromisoformat(started)
+                    data["started_at_fmt"] = dt.strftime("%b %d, %Y %H:%M")
+                except (ValueError, TypeError):
+                    data["started_at_fmt"] = started
+                # Ensure numeric fields have defaults
+                data.setdefault("total_steps", len(data.get("steps", [])))
+                data.setdefault("passed", 0)
+                data.setdefault("failed", 0)
+                data.setdefault("blocked", 0)
+                data.setdefault("duration_seconds", 0)
+                runs.append(data)
+            except (json.JSONDecodeError, OSError):
+                continue
+
+    # Sort newest first
+    runs.sort(key=lambda r: r.get("started_at", ""), reverse=True)
+
+    return render_template("admin_qa.html", user=g.user, active_page="admin", runs=runs)
+
+
+@app.route("/admin/qa/<run_name>")
+@login_required
+def admin_qa_detail(run_name):
+    """Single QA run playback — video + step timeline."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    # Sanitize run_name to prevent path traversal
+    safe_name = os.path.basename(run_name)
+    markers_path = os.path.join(QA_STORAGE_DIR, "markers", f"{safe_name}.json")
+    if not os.path.isfile(markers_path):
+        abort(404)
+
+    with open(markers_path) as f:
+        data = json.loads(f.read())
+
+    # Format timestamp
+    started = data.get("started_at", "")
+    try:
+        dt = datetime.fromisoformat(started)
+        data["started_at_fmt"] = dt.strftime("%b %d, %Y %H:%M")
+    except (ValueError, TypeError):
+        data["started_at_fmt"] = started
+
+    data.setdefault("total_steps", len(data.get("steps", [])))
+    data.setdefault("passed", 0)
+    data.setdefault("failed", 0)
+    data.setdefault("blocked", 0)
+    data.setdefault("duration_seconds", 0)
+    data.setdefault("video_file", None)
+
+    return render_template(
+        "admin_qa_detail.html", user=g.user, active_page="admin", run=data
+    )
+
+
+@app.route("/admin/qa/<run_name>/video")
+@login_required
+def admin_qa_video(run_name):
+    """Serve the .webm video file for a QA run."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    safe_name = os.path.basename(run_name)
+    video_dir = os.path.join(QA_STORAGE_DIR, "videos", safe_name)
+    if not os.path.isdir(video_dir):
+        abort(404)
+
+    # Find the .webm file (Playwright generates the filename)
+    webm_files = [f for f in os.listdir(video_dir) if f.endswith(".webm")]
+    if not webm_files:
+        abort(404)
+
+    return send_file(
+        os.path.join(video_dir, webm_files[0]),
+        mimetype="video/webm",
+    )
+
+
+@app.route("/admin/qa/<run_name>/screenshot/<filename>")
+@login_required
+def admin_qa_screenshot(run_name, filename):
+    """Serve a failure screenshot from a QA run."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    safe_name = os.path.basename(run_name)
+    safe_file = os.path.basename(filename)
+    screenshot_path = os.path.join(QA_STORAGE_DIR, "screenshots", safe_name, safe_file)
+    if not os.path.isfile(screenshot_path):
+        abort(404)
+
+    return send_file(screenshot_path, mimetype="image/png")
+
+
+# === END QA REPLAY ===
 
 
 if __name__ == "__main__":
