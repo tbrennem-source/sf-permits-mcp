@@ -144,7 +144,6 @@
     </div>
 
     {# Sprint 61B: join banner #}{% if project_id and g.user and not is_project_member %}<div id="join-banner" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;"><span style="font-size:0.9rem;color:var(--text);">This analysis is linked to a project.</span><button id="join-btn" onclick="joinProject()" style="padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:0.85rem;font-weight:600;cursor:pointer;">Join Project</button></div>{% elif project_id and g.user and is_project_member %}<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 18px;margin-bottom:16px;font-size:0.85rem;color:var(--text-muted);">Part of a project &mdash; <a href="/project/{{ project_id }}" style="color:var(--accent);text-decoration:none;">View project</a></div>{% endif %}
-
     <!-- Analysis results tabs (reuse results.html tab logic) -->
     {% set results = session.results %}
     {% set TAB_META = {
@@ -327,6 +326,7 @@ document.querySelectorAll('.tab').forEach(btn => {
         document.getElementById(panel)?.classList.add('active');
     });
 });
+{% if project_id %}function joinProject(){var pid={{ project_id|tojson }};var btn=document.getElementById('join-btn');if(btn){btn.disabled=true;btn.textContent='Joining...';}fetch('/project/'+pid+'/join',{method:'POST',headers:{'Content-Type':'application/json'}}).then(function(r){return r.json();}).then(function(d){var b=document.getElementById('join-banner');if(d.ok){if(b){b.innerHTML='Joined! <a href="/project/'+pid+'" style="color:#166534;font-weight:600;">View project</a>';}}else{if(btn){btn.disabled=false;btn.textContent='Join this project';}}}).catch(function(){if(btn){btn.disabled=false;btn.textContent='Join this project';}});}{% endif %}
 </script>
 </body>
 </html>
