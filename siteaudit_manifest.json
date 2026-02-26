@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-26T16:39:08.381572+00:00",
-  "total_routes": 141,
+  "generated_at": "2026-02-26T22:35:09.975456+00:00",
+  "total_routes": 147,
   "routes": [
     {
       "path": "/robots.txt",
@@ -307,6 +307,24 @@
       "auth_level": "admin",
       "template": null,
       "function_name": "admin_qa_screenshot"
+    },
+    {
+      "path": "/api/stats",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_stats"
+    },
+    {
+      "path": "/api/csp-report",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "csp_report"
     },
     {
       "path": "/api/plan-sessions/<session_id>/pages/<int:page_number>/image",
@@ -1013,6 +1031,33 @@
       "function_name": "adu_landing"
     },
     {
+      "path": "/methodology",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "methodology.html",
+      "function_name": "methodology"
+    },
+    {
+      "path": "/about-data",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "about_data.html",
+      "function_name": "about_data"
+    },
+    {
+      "path": "/demo",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "demo.html",
+      "function_name": "demo"
+    },
+    {
       "path": "/consultants",
       "methods": [
         "GET"
@@ -1256,6 +1301,15 @@
       "function_name": "analysis_share_email"
     },
     {
+      "path": "/lookup/intel-preview",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "lookup_intel_preview"
+    },
+    {
       "path": "/lookup",
       "methods": [
         "POST"
@@ -1296,9 +1350,9 @@
     ]
   },
   "auth_summary": {
-    "public": 39,
+    "public": 43,
     "auth": 25,
     "admin": 31,
-    "cron": 46
+    "cron": 48
   }
 }

@@ -82,6 +82,36 @@
 ### Tests
 - **`tests/test_qs3_a_permit_prep.py` (NEW)**: 50 tests covering data model, API, routes, integration, categorization
 
+## QS3 Session C — Testing Infrastructure (2026-02-26)
+
+### Playwright E2E Tests (NEW)
+- **`tests/e2e/test_scenarios.py` (REWRITE)**: 26 Playwright browser tests covering anonymous (landing, search, content pages, infra endpoints, navigation), authenticated (dashboard, account, portfolio, search), and admin (ops, feedback, pipeline, costs, beta requests) flows
+- Each test cites scenario ID from design guide, captures screenshot to `qa-results/screenshots/e2e/`
+- Scenarios covered: 7, 34, 37-41, 49, 51
+
+### Conftest Playwright Fixtures (EXTEND)
+- **`tests/e2e/conftest.py`**: Added `live_server` (subprocess Flask on random port), `pw_browser` (session-scoped Chromium), `page` (function-scoped), `auth_page` (factory for persona login)
+- Subprocess isolation prevents asyncio event loop conflict with pytest-asyncio
+- Graceful skip when TESTING env var not set (auth tests) or when test-login returns 404
+
+### Extended Dead Link Spider
+- **`tests/e2e/test_links.py` (EXTEND)**: Page cap 100→200, added admin crawl (8 admin seeds), response time tracking (>5s flagged), internal/external link separation, summary output per crawl
+- 7 tests total (3 crawls + 1 slow page check + 3 coverage checks)
+
+### Visual Baselines Script (NEW)
+- **`scripts/capture_baselines.py`**: Thin wrapper around visual_qa.py for sprint baseline capture
+
+### Launch QA Plan (NEW)
+- **`docs/LAUNCH_QA_PLAN.md`**: Automated tests inventory, smoke test checklist, 15 manual test journeys, visual regression process, E2E coverage map for all 73 scenarios
+
+### Test Counts
+- Full suite: 3,414 passed, 46 skipped, 1 pre-existing failure
+- Playwright standalone: 26 passed
+- Spider: 7 passed
+- New/upgraded tests: 33 (26 Playwright + 7 spider)
+
+---
+
 ## Sprint 69 — Session 1: Design System + Landing Rewrite (2026-02-26)
 
 ### Obsidian Intelligence Design System

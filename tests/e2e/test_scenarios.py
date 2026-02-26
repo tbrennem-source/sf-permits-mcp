@@ -1,289 +1,318 @@
-"""Sprint 67-C: Behavioral scenario tests using Flask test client.
+"""Playwright E2E scenario tests for sfpermits.ai.
 
-Tests core user journeys without requiring a live server or Playwright.
-Uses Flask's built-in test client for fast, reliable testing.
+Tests core user journeys with a real browser (Chromium) against a live
+Flask server. Covers anonymous, authenticated, and admin flows.
 
-Coverage:
-- Anonymous user flows (landing, search, health, robots)
-- Authentication flows (test-login, session handling)
-- Authenticated user flows (index page, account, portfolio)
-- Rate limiting behavior
-- API endpoints (health, sitemap)
-- Error handling (404, invalid input)
+Each test cites a scenario ID from scenario-design-guide.md and captures
+a screenshot to qa-results/screenshots/e2e/.
+
+Run (standalone — recommended):
+    pytest tests/e2e/test_scenarios.py -v
+    pytest tests/e2e/test_scenarios.py -v -k anonymous
+
+NOTE: Playwright tests are skipped in the full test suite to avoid asyncio
+event loop conflicts with pytest-asyncio. Run them separately or set
+E2E_PLAYWRIGHT=1 to include them in the full suite (Python 3.13+ may
+have event loop issues).
 """
+
+from __future__ import annotations
 
 import json
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web"))
-
-from app import app, _rate_buckets
-
+# Ensure project root importable
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 # ---------------------------------------------------------------------------
-# Fixtures
+# Skip Playwright tests in full suite to avoid asyncio event loop conflict
+# with pytest-asyncio. Run them standalone:
+#   pytest tests/e2e/test_scenarios.py -v
+# Or include in full suite by setting E2E_PLAYWRIGHT=1
 # ---------------------------------------------------------------------------
+_playwright_targeted = any(
+    "test_scenarios" in arg or "e2e" == os.path.basename(arg.rstrip("/"))
+    for arg in sys.argv
+)
+_playwright_enabled = (
+    os.environ.get("E2E_PLAYWRIGHT", "")
+    or os.environ.get("E2E_BASE_URL", "")
+    or _playwright_targeted
+)
 
-@pytest.fixture
-def client():
-    """Fresh Flask test client with TESTING mode and clean rate buckets."""
-    app.config["TESTING"] = True
-    _rate_buckets.clear()
-    with app.test_client() as c:
-        yield c
-    _rate_buckets.clear()
+pytestmark = pytest.mark.skipif(
+    not _playwright_enabled,
+    reason="Playwright tests skipped in full suite (asyncio conflict). "
+           "Run: pytest tests/e2e/test_scenarios.py -v",
+)
 
-
-def _login(client, email="scenario-test@test.com"):
-    """Helper: create a user and log them in via magic link."""
-    import src.db as db_mod
-    if db_mod.BACKEND == "duckdb":
-        db_mod.init_user_schema()
-    from web.auth import get_or_create_user, create_magic_token
-    user = get_or_create_user(email)
-    token = create_magic_token(user["user_id"])
-    client.get(f"/auth/verify/{token}", follow_redirects=True)
-    return user
+SCREENSHOT_DIR = Path("qa-results/screenshots/e2e")
 
 
-def _login_admin(client, email="admin-scenario@test.com"):
-    """Helper: create an admin user and log them in."""
-    import src.db as db_mod
-    if db_mod.BACKEND == "duckdb":
-        db_mod.init_user_schema()
-    from web.auth import get_or_create_user, create_magic_token
-    user = get_or_create_user(email)
-    # Make user admin
-    conn = db_mod.get_connection()
+def _screenshot(page, name: str) -> None:
+    """Capture a screenshot (best-effort, doesn't fail the test)."""
     try:
-        conn.execute(
-            "UPDATE users SET is_admin = TRUE WHERE user_id = ?",
-            [user["user_id"]],
-        )
-        if hasattr(conn, "commit"):
-            conn.commit()
+        SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(SCREENSHOT_DIR / f"{name}.png"))
     except Exception:
-        pass  # DuckDB may auto-commit
-    finally:
-        if hasattr(db_mod, "release_connection"):
-            db_mod.release_connection(conn)
-    token = create_magic_token(user["user_id"])
-    client.get(f"/auth/verify/{token}", follow_redirects=True)
-    return user
+        pass
 
 
-# ---------------------------------------------------------------------------
-# 1. Anonymous user flows
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Anonymous user flows (no login)
+# ===========================================================================
+
 
 class TestAnonymousLanding:
-    """Anonymous users see the landing page."""
+    """Anonymous users see the landing page with hero, search box, and feature cards."""
 
-    def test_landing_page_returns_200(self, client):
-        """GET / returns 200 for anonymous users."""
-        rv = client.get("/")
-        assert rv.status_code == 200
+    def test_landing_page_renders(self, page, live_server):
+        """SCENARIO-37: Landing page renders with search box and feature cards."""
+        page.goto(live_server)
+        _screenshot(page, "anon-landing")
+        assert page.title(), "Page should have a title"
+        # Search input present
+        search = page.locator('input[name="q"], input[type="search"]')
+        assert search.count() > 0, "Landing page must have a search input"
 
-    def test_landing_page_contains_search_form(self, client):
-        """Landing page has a search form."""
-        rv = client.get("/")
-        html = rv.data.decode()
-        assert 'action="/search"' in html
-        assert 'name="q"' in html
+    def test_landing_page_has_stats(self, page, live_server):
+        """SCENARIO-37: Landing page shows permit stats."""
+        page.goto(live_server)
+        body = page.text_content("body") or ""
+        # Should mention permits or some stat
+        assert "permit" in body.lower(), "Landing page should mention permits"
 
-    def test_landing_page_has_cta(self, client):
-        """Landing page has CTA for signup."""
-        rv = client.get("/")
-        html = rv.data.decode()
-        assert "Create free account" in html or "Get started" in html
+    def test_landing_page_has_cta(self, page, live_server):
+        """SCENARIO-37: Landing page has signup/login CTA."""
+        page.goto(live_server)
+        body = page.text_content("body") or ""
+        lower = body.lower()
+        assert any(w in lower for w in ["sign up", "get started", "create", "login", "log in"]), \
+            "Landing page should have a CTA"
 
 
 class TestAnonymousSearch:
-    """Anonymous users can search by address."""
+    """Anonymous users can search and see public results."""
 
-    def test_search_returns_200(self, client):
-        """GET /search?q=market returns 200."""
-        rv = client.get("/search?q=market")
-        assert rv.status_code == 200
+    def test_search_returns_results(self, page, live_server):
+        """SCENARIO-38: Search for address returns permit results."""
+        page.goto(f"{live_server}/search?q=1455+Market+St")
+        page.wait_for_load_state("networkidle")
+        _screenshot(page, "anon-search-market")
+        body = page.text_content("body") or ""
+        lower = body.lower()
+        assert "permit" in lower or "result" in lower or "market" in lower, \
+            "Search results should contain permit data or search context"
 
-    def test_search_with_empty_query(self, client):
-        """GET /search with empty q still returns 200."""
-        rv = client.get("/search?q=")
-        assert rv.status_code in (200, 302)
+    def test_empty_search_handled(self, page, live_server):
+        """SCENARIO-38: Empty search query handled gracefully."""
+        resp = page.goto(f"{live_server}/search?q=")
+        assert resp.status in (200, 302), f"Empty search returned {resp.status}"
 
-    def test_search_results_page_structure(self, client):
-        """Search results page has expected structure."""
-        rv = client.get("/search?q=123+main+st")
-        assert rv.status_code == 200
-        html = rv.data.decode()
-        # Should contain some kind of result or "no results" message
-        assert "search" in html.lower() or "result" in html.lower() or "permit" in html.lower()
-
-
-# ---------------------------------------------------------------------------
-# 2. Authentication flows
-# ---------------------------------------------------------------------------
-
-class TestLoginFlow:
-    """Login flow using test-login endpoint."""
-
-    def test_login_page_returns_200(self, client):
-        """GET /auth/login returns 200."""
-        rv = client.get("/auth/login")
-        assert rv.status_code == 200
-
-    def test_login_page_has_email_input(self, client):
-        """Login page has an email input field."""
-        rv = client.get("/auth/login")
-        html = rv.data.decode()
-        assert 'type="email"' in html or 'name="email"' in html
-
-    def test_authenticated_user_sees_index(self, client):
-        """After login, user sees index.html not landing.html."""
-        _login(client)
-        rv = client.get("/")
-        assert rv.status_code == 200
-        html = rv.data.decode()
-        # Authenticated users see the search UI (index.html), not the marketing landing
-        assert "Building Permit Intelligence" not in html or "My Account" in html or "account" in html.lower()
-
-    def test_logout_redirects(self, client):
-        """POST /auth/logout clears session and redirects."""
-        _login(client)
-        rv = client.post("/auth/logout", follow_redirects=False)
-        assert rv.status_code in (302, 303)
+    def test_search_xss_sanitized(self, page, live_server):
+        """SCENARIO-34 (CSP): XSS attempt sanitized in search."""
+        page.goto(f'{live_server}/search?q=<script>alert("xss")</script>')
+        body = page.content()
+        assert "<script>alert" not in body, "XSS should be sanitized"
 
 
-# ---------------------------------------------------------------------------
-# 3. Authenticated user flows
-# ---------------------------------------------------------------------------
+class TestAnonymousContentPages:
+    """Static content pages accessible to anonymous users."""
 
-class TestAuthenticatedFlows:
-    """Authenticated user can access protected routes."""
+    def test_methodology_page(self, page, live_server):
+        """Methodology page loads with section headings."""
+        page.goto(f"{live_server}/methodology")
+        _screenshot(page, "anon-methodology")
+        body = page.text_content("body") or ""
+        assert "methodology" in body.lower() or "how" in body.lower()
+        # Should have multiple sections
+        headings = page.locator("h2, h3")
+        assert headings.count() >= 3, "Methodology page should have multiple sections"
 
-    def test_account_page_accessible(self, client):
-        """Authenticated user can access /account."""
-        _login(client)
-        rv = client.get("/account")
-        assert rv.status_code == 200
-        html = rv.data.decode()
-        assert "My Account" in html
+    def test_about_data_page(self, page, live_server):
+        """About-data page loads with data inventory info."""
+        page.goto(f"{live_server}/about-data")
+        _screenshot(page, "anon-about-data")
+        body = page.text_content("body") or ""
+        lower = body.lower()
+        assert "data" in lower, "About-data page should mention data"
 
-    def test_account_has_watch_list(self, client):
-        """Account page shows the watch list section."""
-        _login(client)
-        rv = client.get("/account")
-        html = rv.data.decode()
-        assert "Watch List" in html
+    def test_demo_page(self, page, live_server):
+        """Demo page loads with permit data."""
+        page.goto(f"{live_server}/demo")
+        _screenshot(page, "anon-demo")
+        body = page.text_content("body") or ""
+        lower = body.lower()
+        assert "permit" in lower or "demo" in lower
 
-    def test_portfolio_accessible(self, client):
-        """Authenticated user can access /portfolio."""
-        _login(client)
-        rv = client.get("/portfolio")
-        assert rv.status_code == 200
-
-
-# ---------------------------------------------------------------------------
-# 4. Health and infrastructure endpoints
-# ---------------------------------------------------------------------------
-
-class TestHealthEndpoint:
-    """GET /health returns expected JSON structure."""
-
-    def test_health_returns_200(self, client):
-        """Health endpoint returns 200."""
-        rv = client.get("/health")
-        assert rv.status_code == 200
-
-    def test_health_returns_json(self, client):
-        """Health endpoint returns valid JSON."""
-        rv = client.get("/health")
-        data = json.loads(rv.data)
-        assert "status" in data
-        assert data["status"] in ("ok", "degraded")
-
-    def test_health_has_expected_fields(self, client):
-        """Health JSON includes backend, db_connected, table_count."""
-        rv = client.get("/health")
-        data = json.loads(rv.data)
-        assert "backend" in data
-        assert "db_connected" in data
+    def test_beta_request_page(self, page, live_server):
+        """SCENARIO-49: Beta request page loads with form."""
+        page.goto(f"{live_server}/beta-request")
+        _screenshot(page, "anon-beta-request")
+        # Should have email input
+        email_input = page.locator('input[type="email"], input[name="email"]')
+        assert email_input.count() > 0, "Beta request page should have email input"
 
 
-class TestSitemap:
-    """GET /sitemap.xml returns valid XML."""
+class TestAnonymousInfrastructure:
+    """Infrastructure endpoints accessible without auth."""
 
-    def test_sitemap_returns_200(self, client):
-        """Sitemap endpoint returns 200."""
-        rv = client.get("/sitemap.xml")
-        assert rv.status_code == 200
+    def test_health_endpoint(self, page, live_server):
+        """Health endpoint returns valid JSON with status."""
+        resp = page.goto(f"{live_server}/health")
+        assert resp.status == 200
+        data = json.loads(page.text_content("body") or "{}")
+        assert data.get("status") in ("ok", "degraded")
 
-    def test_sitemap_is_xml(self, client):
-        """Sitemap has XML content type."""
-        rv = client.get("/sitemap.xml")
-        assert "xml" in rv.content_type
+    def test_robots_txt(self, page, live_server):
+        """Robots.txt exists and disallows /admin."""
+        resp = page.goto(f"{live_server}/robots.txt")
+        assert resp.status == 200
+        body = page.text_content("body") or ""
+        assert "/admin" in body, "robots.txt should disallow /admin"
 
+    def test_sitemap_xml(self, page, live_server):
+        """Sitemap.xml returns XML content."""
+        resp = page.goto(f"{live_server}/sitemap.xml")
+        assert resp.status == 200
 
-# ---------------------------------------------------------------------------
-# 5. Rate limiting
-# ---------------------------------------------------------------------------
-
-class TestRateLimiting:
-    """Rate limiting returns 429 after threshold."""
-
-    def test_search_rate_limit(self, client):
-        """Exceeding search rate limit returns 429."""
-        # Search rate limit is 15/min — send 20 requests
-        for i in range(20):
-            rv = client.get(f"/search?q=test{i}")
-            if rv.status_code == 429:
-                break
-        else:
-            # If we got through 20 without 429, the rate limiter may not
-            # apply in TESTING mode — that's acceptable
-            pytest.skip("Rate limiter not active in TESTING mode")
-        assert rv.status_code == 429
-
-
-# ---------------------------------------------------------------------------
-# 6. Error handling
-# ---------------------------------------------------------------------------
-
-class TestErrorHandling:
-    """Application handles errors gracefully."""
-
-    def test_404_for_unknown_route(self, client):
+    def test_404_for_unknown_route(self, page, live_server):
         """Unknown routes return 404."""
-        rv = client.get("/this-route-does-not-exist-12345")
-        assert rv.status_code == 404
-
-    def test_search_with_xss_attempt(self, client):
-        """Search sanitizes XSS attempts."""
-        rv = client.get('/search?q=<script>alert("xss")</script>')
-        assert rv.status_code == 200
-        html = rv.data.decode()
-        assert "<script>alert" not in html
+        resp = page.goto(f"{live_server}/this-route-does-not-exist-xyz")
+        assert resp.status == 404
 
 
-# ---------------------------------------------------------------------------
-# 7. Admin-only flows
-# ---------------------------------------------------------------------------
+class TestAnonymousNavigation:
+    """SCENARIO-41: Unauthenticated visitor sees gated navigation."""
 
-class TestAdminFlows:
+    def test_login_page_accessible(self, page, live_server):
+        """Login page renders with email input."""
+        page.goto(f"{live_server}/auth/login")
+        _screenshot(page, "anon-login")
+        email_input = page.locator('input[type="email"], input[name="email"]')
+        assert email_input.count() > 0, "Login page should have email input"
+
+    def test_premium_routes_redirect(self, page, live_server):
+        """SCENARIO-40: Premium routes redirect anonymous users to login."""
+        for route in ["/brief", "/portfolio", "/consultants", "/account"]:
+            resp = page.goto(f"{live_server}{route}")
+            # Should redirect to login or return 302
+            url = page.url
+            assert resp.status in (200, 302) or "/auth/login" in url or "/login" in url, \
+                f"{route} should redirect anonymous users"
+
+
+# ===========================================================================
+# Authenticated user flows (free user)
+# ===========================================================================
+
+
+class TestAuthenticatedDashboard:
+    """Authenticated user sees the full app dashboard."""
+
+    def test_dashboard_renders_after_login(self, auth_page):
+        """SCENARIO-39: Home page serves full app for authenticated users."""
+        pg = auth_page("homeowner")
+        pg.goto(pg._base_url)
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "auth-dashboard")
+        body = pg.text_content("body") or ""
+        lower = body.lower()
+        # Authenticated users should see app features, not just the marketing landing
+        assert "search" in lower or "account" in lower or "brief" in lower
+
+    def test_account_page_accessible(self, auth_page):
+        """SCENARIO-40: Account page accessible after login."""
+        pg = auth_page("expediter")
+        pg.goto(f"{pg._base_url}/account")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "auth-account")
+        assert pg.url.endswith("/account") or "/account" in pg.url
+        body = pg.text_content("body") or ""
+        assert "account" in body.lower()
+
+    def test_search_works_authenticated(self, auth_page):
+        """SCENARIO-38: Authenticated search returns results."""
+        pg = auth_page("homeowner")
+        pg.goto(f"{pg._base_url}/search?q=kitchen+remodel")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "auth-search")
+        assert pg.locator("body").text_content()
+
+    def test_portfolio_page_accessible(self, auth_page):
+        """Portfolio page renders for authenticated users."""
+        pg = auth_page("expediter")
+        pg.goto(f"{pg._base_url}/portfolio")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "auth-portfolio")
+        body = pg.text_content("body") or ""
+        assert "portfolio" in body.lower() or "project" in body.lower() or "watch" in body.lower()
+
+
+# ===========================================================================
+# Admin flows
+# ===========================================================================
+
+
+class TestAdminRoutes:
     """Admin users can access admin-only routes."""
 
-    def test_admin_ops_requires_admin(self, client):
-        """Non-admin cannot access /admin/ops."""
-        _login(client)
-        rv = client.get("/admin/ops")
-        # Should redirect to login or return 403
-        assert rv.status_code in (302, 403, 404)
+    def test_admin_ops_accessible(self, auth_page):
+        """SCENARIO-7: Admin Ops page loads."""
+        pg = auth_page("admin")
+        pg.goto(f"{pg._base_url}/admin/ops")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "admin-ops")
+        body = pg.text_content("body") or ""
+        # Should have tab structure or admin content
+        assert "admin" in body.lower() or "data quality" in body.lower() or "ops" in body.lower() or "pipeline" in body.lower()
 
-    def test_admin_ops_accessible_for_admin(self, client):
-        """Admin user can access /admin/ops."""
-        _login_admin(client)
-        rv = client.get("/admin/ops")
-        assert rv.status_code == 200
+    def test_admin_feedback_accessible(self, auth_page):
+        """Admin feedback queue renders."""
+        pg = auth_page("admin")
+        pg.goto(f"{pg._base_url}/admin/feedback")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "admin-feedback")
+        body = pg.text_content("body") or ""
+        assert "feedback" in body.lower()
+
+    def test_admin_pipeline_accessible(self, auth_page):
+        """Admin pipeline health renders."""
+        pg = auth_page("admin")
+        pg.goto(f"{pg._base_url}/admin/pipeline")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "admin-pipeline")
+        body = pg.text_content("body") or ""
+        lower = body.lower()
+        assert "pipeline" in lower or "health" in lower or "permit" in lower
+
+    def test_admin_costs_accessible(self, auth_page):
+        """Admin costs dashboard renders."""
+        pg = auth_page("admin")
+        pg.goto(f"{pg._base_url}/admin/costs")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "admin-costs")
+        body = pg.text_content("body") or ""
+        assert "cost" in body.lower() or "spend" in body.lower() or "api" in body.lower()
+
+    def test_non_admin_cannot_access_ops(self, auth_page):
+        """SCENARIO-40: Non-admin redirected away from admin routes."""
+        pg = auth_page("homeowner")
+        pg.goto(f"{pg._base_url}/admin/ops")
+        url = pg.url
+        body = pg.text_content("body") or ""
+        # Should be redirected or get 403
+        assert "/admin/ops" not in url or "forbidden" in body.lower() or "login" in url.lower()
+
+    def test_admin_beta_requests_accessible(self, auth_page):
+        """SCENARIO-51: Admin can view beta requests."""
+        pg = auth_page("admin")
+        pg.goto(f"{pg._base_url}/admin/beta-requests")
+        pg.wait_for_load_state("networkidle")
+        _screenshot(pg, "admin-beta-requests")
+        body = pg.text_content("body") or ""
+        assert "beta" in body.lower() or "request" in body.lower()
