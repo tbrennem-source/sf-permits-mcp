@@ -1,5 +1,37 @@
 # Changelog
 
+## Visual QA Pipeline Phase 1 (2026-02-25)
+
+Replaces DeskCC (manual visual QA) with automated visual regression in termRelay. All headless, all Playwright, ~3-5 minutes per run.
+
+### scripts/visual_qa.py
+- **Page matrix**: 21 pages × 3 viewports (mobile 390×844, tablet 768×1024, desktop 1440×900)
+- **Golden comparison**: Pillow pixel-diff with 1% threshold, 30 per-pixel RGB tolerance
+- **Auto-baseline**: Missing goldens auto-captured on first run
+- **Retry logic**: 3 attempts per page with backoff, domcontentloaded wait strategy
+- **Video recording**: Playwright record_video_dir, one .webm per viewport
+- **Filmstrips**: Horizontal PNG strips (400px height, 4px gaps) for quick visual scan
+- **Markers JSON**: Compatible with /admin/qa replay UI
+- **Journey recording**: 4 scripted user flows with --journeys flag, --guided mode for interactive breakpoints
+- **Auth**: TEST_LOGIN_SECRET via JSON POST to /auth/test-login
+- **CLI**: --url, --sprint, --capture-goldens, --update-goldens, --viewport, --pages, --threshold, --journeys, --guided
+
+### tests/test_visual_qa.py
+- 11 unit tests: identical/different/missing images, size mismatch, anti-aliasing tolerance, custom threshold, diff image verification, filmstrip generation
+
+### termRelay Script Template
+- `qa-drop/sprint57-termrelay.md`: staging visual QA → promotion → prod visual QA → staging↔prod divergence check
+- Replaces per-sprint DeskRelay requirement; DeskRelay becomes escalation-only (UX score ≤ 2.0)
+
+### First Run Results (Sprint 57)
+- Staging: 60/63 pages captured (brief timeout — known slow page)
+- UX evaluation: 3.29/5.0 avg, 8 pages flagged, no blockers
+- Prod: 15/15 public pages, 0 FAIL
+- Divergence: 0.00% diff — staging = prod pixel-identical
+- Chief tasks #266-273 created for UX improvements
+
+---
+
 ## Sprint 57.5 — Infrastructure Scaling (2026-02-25)
 
 Third outage from startup migrations + health check blocking all 2 sync workers. This sprint makes the app handle 400+ concurrent connections, deploy without downtime, and isolates cron from web traffic.

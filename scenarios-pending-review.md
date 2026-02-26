@@ -1519,3 +1519,45 @@ _Last reviewed: never_
 **Edge cases seen in code:** submit_task is fire-and-forget (no error surfacing to user); dev mode (no SMTP_HOST) still logs immediately; plan_worker emails use sync=True since already in background thread
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+<!-- Visual QA Pipeline Phase 1 session: 4 scenarios added on 2026-02-25 -->
+
+## SUGGESTED SCENARIO: Visual regression catches unintended CSS change
+**Source:** scripts/visual_qa.py — compare_screenshots()
+**User:** admin
+**Starting state:** Golden baselines exist from previous sprint
+**Goal:** Detect that a CSS change in the current sprint altered a page's appearance beyond threshold
+**Expected outcome:** visual_qa.py reports FAIL with diff percentage and saves a diff image highlighting changed pixels in hot pink; filmstrip shows the affected page alongside passing pages for quick comparison
+**Edge cases seen in code:** Anti-aliasing tolerance (30px) prevents false positives from font rendering differences; size mismatch triggers golden resize rather than immediate fail
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Staging and prod divergence detected after promotion
+**Source:** qa-drop/sprint57-termrelay.md — Part 5 divergence check
+**User:** admin
+**Starting state:** Staging goldens captured, code promoted to prod, prod screenshots taken
+**Goal:** Verify staging and prod render identically for the same code
+**Expected outcome:** Divergence check shows 0% diff on all public pages; staging banner difference is expected and within tolerance; any layout difference triggers a FAIL and Chief task creation
+**Edge cases seen in code:** Prod lacks TESTING env var so auth/admin pages can't be compared — divergence check limited to public pages only
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: UX evaluation flags page below threshold for DeskRelay escalation
+**Source:** qa-ux-designer agent evaluation workflow
+**User:** admin
+**Starting state:** Golden screenshots captured, qa-ux-designer agent launched
+**Goal:** Identify pages with poor UX scores that need human visual review
+**Expected outcome:** Agent scores each page 1-5 on layout/readability/navigation/responsiveness; pages scoring ≤ 2.0 on any dimension are flagged DESKRELAY; results written to qa-results/ with per-persona notes
+**Edge cases seen in code:** Brief page may be missing from goldens due to timeout — agent should note the gap rather than skip silently
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: First-run golden capture establishes baselines without failures
+**Source:** scripts/visual_qa.py — run_visual_qa() with --capture-goldens
+**User:** admin
+**Starting state:** No goldens directory exists, fresh project or new sprint
+**Goal:** Capture baseline screenshots for all pages without any comparison failures
+**Expected outcome:** All captured pages report status "new_baseline"; goldens directory populated; filmstrips generated; markers JSON written for admin UI; exit code 0
+**Edge cases seen in code:** Auth pages skipped gracefully when TEST_LOGIN_SECRET not set (status="pass" with "skipped" message, not "fail"); staging server throttling under 63 rapid requests triggers retry with backoff
+**CC confidence:** high
+**Status:** PENDING REVIEW
