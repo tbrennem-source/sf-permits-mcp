@@ -1562,3 +1562,52 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 <!-- Sprint 57 CHECKCHAT: 4 scenarios verified, video capture QA complete, session closed 2026-02-25 -->
+
+## Sprint 58 Session (2026-02-26)
+
+## SUGGESTED SCENARIO: Methodology card expands on click
+**Source:** Sprint 58C — results.html methodology cards
+**User:** architect | expediter
+**Starting state:** Logged in, viewing a completed 5-tool analysis
+**Goal:** Understand how a specific number (timeline, fee, etc.) was calculated
+**Expected outcome:** Clicking ⓘ expands a details card showing model name, formula, data source, sample size, confidence, and coverage gaps. Card collapses on second click.
+**Edge cases seen in code:** When methodology is None (old analysis), no card renders. When coverage_gaps is empty, Note section is hidden.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Station-based timeline shows per-station breakdown
+**Source:** Sprint 58A — estimate_timeline.py station-sum model
+**User:** architect | expediter
+**Starting state:** Running a project analysis for a permit that routes to multiple stations
+**Goal:** See which review stations the permit will pass through and how long each takes
+**Expected outcome:** Timeline methodology card shows a table: Station | Median | Reviews | Trend. Trend arrows (▲▼—) compare current 90-day velocity to 1-year baseline. Total is the sum.
+**Edge cases seen in code:** When no station velocity data matches, falls back to aggregate with a fallback_note explaining why. Stations with < 30 reviews in 90 days auto-widen to 180 days.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Show methodology toggle persists across page loads
+**Source:** Sprint 58C — results.html localStorage toggle
+**User:** architect (experienced)
+**Starting state:** Viewing analysis results, toggle defaults to ON for experienced users
+**Goal:** Toggle methodology off, navigate away, come back — toggle stays off
+**Expected outcome:** localStorage stores preference. On return visit, all methodology cards respect the saved state.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Shared analysis page shows methodology without toggle
+**Source:** Sprint 58C — analysis_shared.html
+**User:** architect (recipient of shared link)
+**Starting state:** Received shared analysis email, clicked "View Full Analysis"
+**Goal:** See the full analysis with the option to inspect methodology
+**Expected outcome:** Page renders with all 5 tool results. Methodology cards are present but collapsed. No toggle visible. Recipient can click any ⓘ to expand. Clean first impression.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: ADU landing page shows pre-computed permit stats
+**Source:** Sprint 58B — /adu route + adu_landing.html
+**User:** homeowner
+**Starting state:** Searching for "ADU permits San Francisco" on Google
+**Goal:** Find out what's involved in building an ADU in SF
+**Expected outcome:** Page shows current ADU permit count, median processing time, common ADU types, and a CTA to run a full analysis. Stats are cached (not queried per-request).
+**CC confidence:** high
+**Status:** PENDING REVIEW

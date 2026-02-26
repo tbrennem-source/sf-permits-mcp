@@ -1,5 +1,48 @@
 # Changelog
 
+## Sprint 58 — Methodology Transparency + Trust Infrastructure (2026-02-26)
+
+Station-based timeline becomes the primary model. Every calculated number gets a methodology card. SEO foundation for organic acquisition.
+
+### Agent A: Station-Based Timeline + Methodology Dicts
+- **Station-sum primary model**: `estimate_timeline` now sums per-station median review times from `station_velocity_v2` (90-day rolling). Aggregate `timeline_stats` is fallback only.
+- **Agency-to-station mapping**: New `src/tools/_routing.py` with `AGENCY_TO_STATIONS` dict mapping 7 agencies to 31 station codes, validated against actual addenda data.
+- **Trend arrows**: ±15% deviation from 1-year baseline → ▲ slower / ▼ faster / — normal.
+- **Methodology dicts on all 5 tools**: Common keys (model, formula, data_source, recency, sample_size, data_freshness, confidence, coverage_gaps) guaranteed on every return. Tool-specific keys (stations, formula_steps, triggers_matched, correction_categories, revision_context) only where relevant.
+- **Fee revision context**: Budget ceiling = (estimated_cost × 1.23) + total_fees. Revision probability by cost bracket surfaced in output.
+- **`/analyze` methodology persistence**: Full methodology dicts saved to `analysis_sessions.results` JSONB via `_methodology` key.
+- 78 new tests
+
+### Agent B: SEO Foundation + Email Deliverability
+- **Open Graph tags**: `og:title`, `og:description`, `og:image`, `og:url`, `twitter:card` on `analysis_shared.html` and `report.html`
+- **OG card image**: Pillow-generated 1200×630 PNG at `/static/og-card.png` (placeholder — Tim provides branded version)
+- **Sitemap**: `GET /sitemap.xml` — static pages only (/, /search, /adu, /beta-request, /analyze-preview). No dynamic URLs to protect crawl budget.
+- **ADU landing page**: `GET /adu` — pre-computed stats cached 24h, 4 ADU type cards, "Start your ADU analysis" CTA
+- **Meta descriptions**: landing, preview, shared analysis pages
+- **Email deliverability report**: `reports/email-deliverability.md` — SMTP config audit, SPF/DKIM recommendations
+- **Fixed 17 pre-existing test failures**: Root cause was `CRON_WORKER` env var not set in test fixtures
+- 40 new tests
+
+### Agent C: Methodology UI Cards + Toggle
+- **`<details>` methodology cards**: Expandable ⓘ cards on `results.html`, `analysis_shared.html`, `analyze_preview.html` with anchor IDs (`#method-timeline`, `#method-fees`, etc.)
+- **Show methodology toggle**: localStorage-persisted, defaults OFF for homeowners, ON for professionals
+- **Backward compatibility**: `{% if methodology %}` guard — older analyses without methodology data render clean (no broken cards)
+- **Email deep-links**: `analysis_email.html` has "See how we calculated this →" links per section with `#method-*` anchors
+- **Print CSS**: `@media print` expands all methodology cards
+- **Type safety fix**: `|float` filter on `c.rate` and `revision_rate` template values to prevent TypeError when DB unavailable
+- 53 new tests
+
+### Orchestrator Fixes
+- Updated `test_station_velocity_v2.py` for renamed `_format_station_table` function
+- Updated `test_methodology_ux.py` for Sprint 58C CSS class names (methodology-footer, coverage-gaps)
+
+### Test Coverage
+- 171 new tests (78 + 40 + 53)
+- 17 pre-existing failures fixed
+- Total: 2,710 passed, 0 failed, 20 skipped (was 2,522 at sprint start)
+
+---
+
 ## Sprint 57 — Data Sharpening + Methodology Transparency (2026-02-25)
 
 Every calculated number in the UI now links to its reasoning. Users never wonder "where did this number come from?"
