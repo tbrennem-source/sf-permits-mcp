@@ -7,7 +7,7 @@
 <!-- Sprint 57.0: 6 scenarios added (entity resolution, timeline filter, velocity periods, multi-role, neighborhood backfill) -->
 <!-- Sprint 60: 4 scenarios added (similar projects, station prediction, cost of delay, congestion signal) -->
 <!-- Sprint 61B: 5 scenarios added (projects auto-create, dedup by parcel, auto-join on signup, join banner, non-member access control) -->
-<!-- Sprint 62: 10 scenarios added by 4 agents (A-D) — activity intelligence, client tracking, security, feature gating -->
+<!-- Sprint 62: 10 scenarios added by 4 agents (A-D) — activity intelligence, client tracking, security, feature gating (session close 2026-02-26) -->
 
 ## SUGGESTED SCENARIO: Plumbing inspection data persists after ingest
 **Source:** Sprint 56 — PgConnWrapper cursor fix
