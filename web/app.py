@@ -6379,6 +6379,17 @@ def cron_velocity_refresh():
             stats = refresh_velocity_v2(conn)
         finally:
             conn.close()
+
+        # === SESSION B: Station transitions refresh ===
+        try:
+            from src.tools.station_predictor import refresh_station_transitions
+            trans_stats = refresh_station_transitions()
+            stats["transitions"] = trans_stats.get("transitions", 0)
+        except Exception as e:
+            logging.getLogger(__name__).warning("transitions refresh failed: %s", e)
+            stats["transitions_error"] = str(e)
+        # === END SESSION B ===
+
         return Response(
             _json_mod.dumps({"status": "ok", **stats}),
             mimetype="application/json",
