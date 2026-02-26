@@ -131,6 +131,7 @@ EXPECTED_TABLES = [
     "cron_log", "beta_requests", "projects", "project_members",
     "voice_calibrations", "plan_analysis_sessions", "plan_analysis_images",
     "plan_analysis_jobs", "project_notes", "analysis_sessions",
+    "prep_checklists", "prep_items", "api_usage",
     "pim_cache", "dq_cache",
 ]
 
@@ -556,6 +557,46 @@ def _run_startup_migrations():
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_pim_cache_fetched ON pim_cache (fetched_at)"
         )
+
+        # ── QS3: Permit Prep + API Usage ──────────────────────
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS prep_checklists (
+                checklist_id SERIAL PRIMARY KEY,
+                permit_number TEXT NOT NULL,
+                user_id INTEGER NOT NULL REFERENCES users(user_id),
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_prep_checklists_user ON prep_checklists(user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_prep_checklists_permit ON prep_checklists(permit_number)")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS prep_items (
+                item_id SERIAL PRIMARY KEY,
+                checklist_id INTEGER NOT NULL REFERENCES prep_checklists(checklist_id),
+                document_name TEXT NOT NULL,
+                category TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'required',
+                source TEXT NOT NULL DEFAULT 'predicted',
+                notes TEXT,
+                due_date TEXT
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_prep_items_checklist ON prep_items(checklist_id)")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS api_usage (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER,
+                endpoint TEXT,
+                model TEXT,
+                input_tokens INTEGER,
+                output_tokens INTEGER,
+                cost_usd DOUBLE PRECISION,
+                called_at TIMESTAMP DEFAULT NOW(),
+                extra JSONB
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_api_usage_user_date ON api_usage(user_id, called_at)")
 
         # ── Bulk table indexes ──────────────────────────────────
         _bulk_indexes = [
@@ -1169,3 +1210,68 @@ def health():
         info["status"] = "degraded"
 
     return Response(json.dumps(info, indent=2), mimetype="application/json")
+
+
+# Expected columns for critical tables — schema verification
+# Add new columns here when migrations are added
+_EXPECTED_SCHEMA = {
+    "users": [
+        "user_id", "email", "is_admin", "is_active", "created_at",
+        "notify_permit_changes", "notify_email",
+    ],
+    "prep_checklists": ["checklist_id", "permit_number", "user_id", "created_at"],
+    "prep_items": ["item_id", "checklist_id", "document_name", "category", "status"],
+    "api_usage": ["id", "user_id", "endpoint", "cost_usd", "called_at"],
+    "activity_log": ["id", "user_id", "action", "created_at"],
+    "watch_items": ["watch_id", "user_id", "watch_type"],
+    "permit_changes": ["change_id", "permit_number", "change_type"],
+}
+
+
+@app.route("/health/schema")
+def health_schema():
+    """Schema verification — checks that expected columns exist on critical tables.
+
+    Returns per-table PASS/FAIL with missing columns listed.
+    Use after deployments to catch migration gaps before they cause 500s.
+    """
+    from src.db import get_connection, BACKEND
+    result = {"status": "ok", "backend": BACKEND, "tables": {}}
+
+    try:
+        conn = get_connection()
+        try:
+            for table, expected_cols in _EXPECTED_SCHEMA.items():
+                try:
+                    if BACKEND == "postgres":
+                        with conn.cursor() as cur:
+                            cur.execute(
+                                "SELECT column_name FROM information_schema.columns "
+                                "WHERE table_schema = 'public' AND table_name = %s",
+                                (table,)
+                            )
+                            actual_cols = {r[0] for r in cur.fetchall()}
+                    else:
+                        rows = conn.execute(
+                            f"SELECT column_name FROM information_schema.columns "
+                            f"WHERE table_name = '{table}'"
+                        ).fetchall()
+                        actual_cols = {r[0] for r in rows}
+
+                    missing = sorted(set(expected_cols) - actual_cols)
+                    if missing:
+                        result["tables"][table] = {"status": "FAIL", "missing_columns": missing}
+                        result["status"] = "FAIL"
+                    else:
+                        result["tables"][table] = {"status": "PASS", "columns": len(actual_cols)}
+                except Exception as e:
+                    result["tables"][table] = {"status": "FAIL", "error": str(e)}
+                    result["status"] = "FAIL"
+        finally:
+            conn.close()
+    except Exception as e:
+        result["status"] = "ERROR"
+        result["error"] = str(e)
+
+    status_code = 200 if result["status"] == "ok" else 503
+    return Response(json.dumps(result, indent=2), mimetype="application/json"), status_code
