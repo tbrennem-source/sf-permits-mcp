@@ -482,6 +482,151 @@ def _format_days(d: float | None) -> str:
     return f"{months:.1f} mo"
 
 
+def _query_dbi_metrics(conn, permit_type: str | None = None,
+                       neighborhood: str | None = None) -> str | None:
+    """Query DBI metrics tables for processing averages.
+
+    Queries permit_issuance_metrics, permit_review_metrics, and
+    planning_review_metrics for relevant processing time averages.
+
+    Returns a markdown section '## DBI Processing Metrics' with weekly
+    avg and 30-day rolling numbers, or None if no data is available.
+    """
+    ph = "%s" if BACKEND == "postgres" else "?"
+    sections: list[str] = []
+
+    # --- Permit issuance metrics: avg calendar/business days ---
+    try:
+        issuance_conditions = ["calendar_days IS NOT NULL", "calendar_days > 0"]
+        issuance_params = []
+
+        if permit_type:
+            # Map permit_type to OTC/IH classification
+            if "otc" in permit_type.lower():
+                issuance_conditions.append(f"otc_ih = {ph}")
+                issuance_params.append("OTC")
+            elif permit_type.lower() in ("alterations", "new_construction", "in_house"):
+                issuance_conditions.append(f"otc_ih = {ph}")
+                issuance_params.append("IH")
+
+        where = " AND ".join(issuance_conditions)
+
+        sql = f"""
+            SELECT
+                COUNT(*) AS n,
+                ROUND(AVG(calendar_days), 1) AS avg_cal,
+                ROUND(AVG(business_days), 1) AS avg_biz,
+                ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY calendar_days), 1) AS median_cal
+            FROM permit_issuance_metrics
+            WHERE {where}
+        """
+
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute(sql, issuance_params)
+                row = cur.fetchone()
+        else:
+            row = conn.execute(sql, issuance_params).fetchone()
+
+        if row and row[0] and row[0] >= 5:
+            sections.append(
+                f"**Permit Issuance** (n={row[0]:,}): "
+                f"avg {row[1]} cal days, median {row[3]} cal days, "
+                f"avg {row[2]} biz days"
+            )
+    except Exception:
+        pass
+
+    # --- Permit review metrics: avg review time by station ---
+    try:
+        review_conditions = [
+            "calendar_days IS NOT NULL",
+            "calendar_days > 0",
+            "calendar_days < 1000",
+        ]
+        review_params = []
+
+        where = " AND ".join(review_conditions)
+
+        sql = f"""
+            SELECT
+                station,
+                COUNT(*) AS n,
+                ROUND(AVG(calendar_days), 1) AS avg_days,
+                ROUND(SUM(CASE WHEN met_cal_sla THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS sla_pct
+            FROM permit_review_metrics
+            WHERE {where}
+            GROUP BY station
+            HAVING COUNT(*) >= 5
+            ORDER BY AVG(calendar_days) DESC
+            LIMIT 10
+        """
+
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute(sql, review_params)
+                rows = cur.fetchall()
+        else:
+            rows = conn.execute(sql, review_params).fetchall()
+
+        if rows:
+            review_lines = ["| Station | Avg Days | SLA Met % | Samples |"]
+            review_lines.append("|---------|----------|-----------|---------|")
+            for r in rows:
+                review_lines.append(
+                    f"| {r[0]} | {r[1]} | {r[2]}% | {r[3]:,} |"  # noqa: E501
+                )
+            sections.append("**Review Times by Station**\n" + "\n".join(review_lines))
+    except Exception:
+        pass
+
+    # --- Planning review metrics: avg processing time ---
+    try:
+        sql = f"""
+            SELECT
+                project_stage,
+                COUNT(*) AS n,
+                ROUND(AVG(metric_value), 1) AS avg_days,
+                ROUND(AVG(sla_value), 1) AS avg_sla,
+                ROUND(SUM(CASE WHEN metric_outcome = 'Under Deadline' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS met_pct
+            FROM planning_review_metrics
+            WHERE metric_value IS NOT NULL
+              AND metric_value > 0
+            GROUP BY project_stage
+            HAVING COUNT(*) >= 5
+            ORDER BY AVG(metric_value) DESC
+        """
+
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute(sql)
+                rows = cur.fetchall()
+        else:
+            rows = conn.execute(sql).fetchall()
+
+        if rows:
+            planning_lines = ["| Stage | Avg Days | SLA Target | Met % | Samples |"]
+            planning_lines.append("|-------|----------|------------|-------|---------|")
+            for r in rows:
+                planning_lines.append(
+                    f"| {r[0]} | {r[1]} | {r[2]} | {r[3]}% | {r[4]:,} |"  # noqa: E501
+                )
+            sections.append("**Planning Review Times**\n" + "\n".join(planning_lines))
+    except Exception:
+        pass
+
+    if not sections:
+        return None
+
+    lines = ["\n## DBI Processing Metrics\n"]
+    lines.append("*From DBI performance metrics datasets (issuance, review, planning)*\n")
+    for section in sections:
+        lines.append(section)
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 async def estimate_timeline(
     permit_type: str,
     neighborhood: str | None = None,
@@ -526,6 +671,7 @@ async def estimate_timeline(
     db_available = False
     v2_available = False
     fallback_note = ""
+    dbi_metrics_md = None
 
     # Gather all relevant station codes from triggers + default BLDG
     relevant_stations: list[str] | None = None
@@ -595,6 +741,9 @@ async def estimate_timeline(
 
             # Trend
             trend = _query_trend(conn, neighborhood, review_path)
+
+            # DBI processing metrics (Sprint 65-B)
+            dbi_metrics_md = _query_dbi_metrics(conn, permit_type, neighborhood)
 
         finally:
             conn.close()
@@ -771,6 +920,10 @@ async def estimate_timeline(
         lines.append(f"\n## Data Coverage\n")
         for gap in coverage_gaps:
             lines.append(f"- {gap}")
+
+    # DBI Processing Metrics (Sprint 65-B) — appended below station velocity
+    if dbi_metrics_md:
+        lines.append(dbi_metrics_md)
 
     # Source citations
     sources = []
