@@ -745,6 +745,19 @@ def _security_filters():
         if path.startswith(blocked):
             abort(404)
 
+    # === SESSION C: UA blocking ===
+    from web.security import is_blocked_user_agent, EXTENDED_BLOCKED_PATHS
+    # Block extended scanner paths
+    for blocked in EXTENDED_BLOCKED_PATHS:
+        if path.startswith(blocked):
+            abort(404)
+    # Block bot user agents (exempt /health and /cron/*)
+    if not (path == "/health" or path.startswith("/cron")):
+        ua = request.headers.get("User-Agent", "")
+        if is_blocked_user_agent(ua):
+            abort(403)
+    # === END SESSION C: UA blocking ===
+
     # Rate limit POST endpoints
     ip = request.headers.get("X-Forwarded-For", request.remote_addr)
     if ip:
@@ -803,6 +816,29 @@ def _load_user():
         from web.auth import get_user_by_id
         g.user = get_user_by_id(user_id)
         g.is_impersonating = bool(session.get("impersonating"))
+
+
+# === SESSION C: Daily limits ===
+@app.before_request
+def _daily_limit_check():
+    """Enforce daily request limits (authenticated: 200, anon: 50)."""
+    path = request.path
+    # Exempt: static files, health, cron, client tracking, auth
+    if (path.startswith("/static") or path == "/health" or
+        path.startswith("/cron") or path == "/api/activity/track" or
+        path.startswith("/auth") or path == "/robots.txt" or
+            path == "/favicon.ico"):
+        return
+
+    from web.security import check_daily_limit
+    user_id = g.user["user_id"] if getattr(g, 'user', None) else None
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    if ip:
+        ip = ip.split(",")[0].strip()
+
+    if check_daily_limit(user_id, ip):
+        return '<div class="error">Daily request limit exceeded. Please try again tomorrow.</div>', 429
+# === END SESSION C: Daily limits ===
 
 
 # Paths worth logging (skip static, favicon, healthcheck, etc.)
@@ -884,6 +920,15 @@ def _slow_request_log(response):
             )
     return response
 # === END SPRINT 57.5D: SLOW REQUEST LOGGING ===
+
+
+# === SESSION C: Security headers ===
+@app.after_request
+def _security_headers(response):
+    """Add security headers to every response."""
+    from web.security import add_security_headers
+    return add_security_headers(response)
+# === END SESSION C: Security headers ===
 
 
 # ---------------------------------------------------------------------------
