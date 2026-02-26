@@ -864,6 +864,159 @@ def _enrich_multi_role_entities(conn) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Entity quality scoring (Sprint 65-D)
+# ---------------------------------------------------------------------------
+
+def compute_entity_quality(entity_id: int, conn=None) -> dict:
+    """Compute a quality confidence score (0-100) for an entity.
+
+    Scores based on:
+    - Number of sources (0-25 points): more source datasets = higher confidence
+    - Name consistency (0-25 points): consistent naming across contacts
+    - Activity recency (0-25 points): recent activity = higher confidence
+    - Number of relationships (0-25 points): more connections = higher confidence
+
+    Args:
+        entity_id: The entity to score
+        conn: Optional DB connection (creates one if not provided)
+
+    Returns:
+        Dict with total score, component scores, and explanation.
+    """
+    from src.db import get_connection as _get_conn
+
+    own_conn = conn is None
+    if own_conn:
+        conn = _get_conn()
+
+    try:
+        # Get entity info
+        entity = conn.execute("""
+            SELECT entity_id, canonical_name, source_datasets, contact_count, permit_count
+            FROM entities WHERE entity_id = ?
+        """, [entity_id]).fetchone()
+
+        if not entity:
+            return {"entity_id": entity_id, "score": 0, "error": "Entity not found"}
+
+        source_datasets = entity[2] or ""
+        contact_count = entity[3] or 0
+        permit_count = entity[4] or 0
+
+        # --- Component 1: Number of sources (0-25) ---
+        sources = [s.strip() for s in source_datasets.split(",") if s.strip()]
+        source_count = len(sources)
+        if source_count >= 4:
+            source_score = 25
+        elif source_count >= 3:
+            source_score = 20
+        elif source_count >= 2:
+            source_score = 15
+        elif source_count >= 1:
+            source_score = 10
+        else:
+            source_score = 0
+
+        # --- Component 2: Name consistency (0-25) ---
+        names = conn.execute("""
+            SELECT DISTINCT name FROM contacts
+            WHERE entity_id = ? AND name IS NOT NULL AND TRIM(name) != ''
+        """, [entity_id]).fetchall()
+
+        name_count = len(names)
+        if name_count == 0:
+            name_score = 0
+        elif name_count == 1:
+            name_score = 25  # Perfect consistency
+        elif name_count == 2:
+            # Check similarity of the two names
+            norm_names = [_normalize_name(n[0]) for n in names]
+            sim = _token_set_similarity(norm_names[0], norm_names[1])
+            name_score = round(25 * sim)
+        else:
+            # Multiple names — check pairwise similarity with canonical
+            canonical = entity[1] or ""
+            norm_canonical = _normalize_name(canonical)
+            sims = []
+            for (n,) in names:
+                sim = _token_set_similarity(norm_canonical, _normalize_name(n))
+                sims.append(sim)
+            avg_sim = sum(sims) / len(sims) if sims else 0
+            name_score = round(25 * avg_sim)
+
+        # --- Component 3: Activity recency (0-25) ---
+        recent_row = conn.execute("""
+            SELECT MAX(from_date) FROM contacts
+            WHERE entity_id = ? AND from_date IS NOT NULL
+        """, [entity_id]).fetchone()
+
+        recency_score = 0
+        if recent_row and recent_row[0]:
+            try:
+                from datetime import date as _date
+                # Parse date (handles various formats)
+                date_str = str(recent_row[0])[:10]
+                parts = date_str.split("-")
+                if len(parts) == 3:
+                    last_active = _date(int(parts[0]), int(parts[1]), int(parts[2]))
+                    days_ago = (_date.today() - last_active).days
+                    if days_ago <= 365:
+                        recency_score = 25
+                    elif days_ago <= 730:
+                        recency_score = 20
+                    elif days_ago <= 1825:  # 5 years
+                        recency_score = 15
+                    else:
+                        recency_score = 5
+            except (ValueError, IndexError):
+                recency_score = 10  # Can't parse, give moderate score
+
+        # --- Component 4: Number of relationships (0-25) ---
+        rel_count_row = conn.execute("""
+            SELECT COUNT(*) FROM relationships
+            WHERE entity_id_a = ? OR entity_id_b = ?
+        """, [entity_id, entity_id]).fetchone()
+
+        rel_count = rel_count_row[0] if rel_count_row else 0
+        if rel_count >= 20:
+            rel_score = 25
+        elif rel_count >= 10:
+            rel_score = 20
+        elif rel_count >= 5:
+            rel_score = 15
+        elif rel_count >= 2:
+            rel_score = 10
+        elif rel_count >= 1:
+            rel_score = 5
+        else:
+            rel_score = 0
+
+        total = source_score + name_score + recency_score + rel_score
+
+        return {
+            "entity_id": entity_id,
+            "score": total,
+            "components": {
+                "source_diversity": source_score,
+                "name_consistency": name_score,
+                "activity_recency": recency_score,
+                "relationship_count": rel_score,
+            },
+            "details": {
+                "source_count": source_count,
+                "sources": sources,
+                "distinct_names": name_count,
+                "contact_count": contact_count,
+                "permit_count": permit_count,
+                "relationship_count": rel_count,
+            },
+        }
+    finally:
+        if own_conn:
+            conn.close()
+
+
+# ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
 

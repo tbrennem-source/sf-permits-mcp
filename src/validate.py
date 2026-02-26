@@ -635,6 +635,52 @@ def anomaly_scan(min_permits: int = 10, db_path=None) -> dict:
     ]
     anomalies["fast_approvals"] = [dict(zip(fast_cols, r)) for r in fast]
 
+    # --- Reviewer-specific approval rate anomalies (Sprint 65-D) ----------
+    try:
+        reviewer_anomalies = conn.execute("""
+            WITH reviewer_stats AS (
+                SELECT
+                    plan_checked_by AS reviewer,
+                    COUNT(*) AS total_reviews,
+                    SUM(CASE WHEN review_results = 'Approved' THEN 1 ELSE 0 END) AS approvals,
+                    ROUND(SUM(CASE WHEN review_results = 'Approved' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS approval_rate
+                FROM addenda
+                WHERE plan_checked_by IS NOT NULL
+                  AND TRIM(plan_checked_by) != ''
+                  AND review_results IS NOT NULL
+                GROUP BY plan_checked_by
+                HAVING COUNT(*) >= ?
+            ),
+            overall_stats AS (
+                SELECT
+                    ROUND(AVG(approval_rate), 1) AS avg_rate,
+                    ROUND(STDDEV(approval_rate), 1) AS std_rate
+                FROM reviewer_stats
+            )
+            SELECT
+                rs.reviewer,
+                rs.total_reviews,
+                rs.approvals,
+                rs.approval_rate,
+                os.avg_rate AS overall_avg_rate
+            FROM reviewer_stats rs
+            CROSS JOIN overall_stats os
+            WHERE rs.approval_rate > os.avg_rate + 2 * os.std_rate
+               OR (rs.approval_rate >= 95.0 AND rs.total_reviews >= 50)
+            ORDER BY rs.approval_rate DESC, rs.total_reviews DESC
+        """, [min_permits]).fetchall()
+
+        reviewer_cols = [
+            "reviewer", "total_reviews", "approvals",
+            "approval_rate", "overall_avg_rate",
+        ]
+        anomalies["reviewer_high_approval_rate"] = [
+            dict(zip(reviewer_cols, r)) for r in reviewer_anomalies
+        ]
+    except Exception:
+        # addenda table may not exist in test environments
+        anomalies["reviewer_high_approval_rate"] = []
+
     conn.close()
 
     summary = {k: len(v) for k, v in anomalies.items()}
