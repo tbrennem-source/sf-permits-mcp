@@ -459,10 +459,15 @@ def test_refresh_velocity_v2_empty(duck_conn):
 
 
 def test_refresh_velocity_v2_with_data(duck_conn):
-    """Refresh inserts rows into station_velocity_v2."""
-    _bulk_addenda(duck_conn, "BLDG", count=20, arrive_base="2024-01-01",
+    """Refresh inserts rows into station_velocity_v2.
+
+    Uses recent dates so the cron-mode rolling windows (90d + 365d) capture the data.
+    """
+    # Insert data within last 30 days so both 'current' (90d) and 'baseline' (365d) pick it up
+    recent_base = (date.today() - timedelta(days=20)).strftime("%Y-%m-%d")
+    _bulk_addenda(duck_conn, "BLDG", count=20, arrive_base=recent_base,
                   days_range=(3, 10), id_start=1)
-    _bulk_addenda(duck_conn, "SFFD", count=15, arrive_base="2024-03-01",
+    _bulk_addenda(duck_conn, "SFFD", count=15, arrive_base=recent_base,
                   days_range=(15, 30), id_start=100)
 
     from src.station_velocity_v2 import refresh_velocity_v2

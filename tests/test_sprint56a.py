@@ -230,7 +230,7 @@ class TestTimelineTradeFilterInQuery:
         init_schema(conn)
 
         from datetime import date, timedelta
-        base = date(2024, 1, 1)
+        base = date.today() - timedelta(days=180)  # Recent dates for recency filter
         permits = []
         for i in range(20):
             pnum = f"BLDG{i:04d}"
@@ -285,7 +285,7 @@ class TestTimelineTradeFilterInQuery:
         init_schema(conn)
 
         from datetime import date, timedelta
-        base = date(2024, 1, 1)
+        base = date.today() - timedelta(days=180)  # Recent dates for recency filter
         permits = []
         for i in range(15):
             pnum = f"BLDG{i:04d}"

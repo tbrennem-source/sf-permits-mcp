@@ -30,8 +30,8 @@ from scripts.run_prod_migrations import (
 
 class TestMigrationRegistry:
     def test_migration_count(self):
-        """Eleven migrations in the registry (Sprint 56D adds shareable_analysis)."""
-        assert len(MIGRATIONS) == 11
+        """Twelve migrations in the registry (Sprint 56D + Sprint 57.0)."""
+        assert len(MIGRATIONS) == 12
 
     def test_all_have_names(self):
         """Every migration has a non-empty name."""
@@ -73,6 +73,7 @@ class TestMigrationRegistry:
             "reference_tables",
             "inspections_unique",
             "shareable_analysis",
+            "neighborhood_backfill",
         }
         actual = {m.name for m in MIGRATIONS}
         assert expected == actual
@@ -87,12 +88,21 @@ class TestMigrationRegistry:
     def test_inspections_unique_before_shareable(self):
         """'inspections_unique' runs before 'shareable_analysis'."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-2] == "inspections_unique"
+        insp_idx = names.index("inspections_unique")
+        share_idx = names.index("shareable_analysis")
+        assert insp_idx < share_idx
 
-    def test_shareable_analysis_is_last(self):
-        """'shareable_analysis' migration is last in registry (Sprint 56D)."""
+    def test_shareable_before_neighborhood_backfill(self):
+        """'shareable_analysis' runs before 'neighborhood_backfill'."""
         names = [m.name for m in MIGRATIONS]
-        assert names[-1] == "shareable_analysis"
+        share_idx = names.index("shareable_analysis")
+        backfill_idx = names.index("neighborhood_backfill")
+        assert share_idx < backfill_idx
+
+    def test_neighborhood_backfill_is_last(self):
+        """'neighborhood_backfill' migration is last in registry."""
+        names = [m.name for m in MIGRATIONS]
+        assert names[-1] == "neighborhood_backfill"
 
     def test_schema_is_first(self):
         """'schema' migration runs first."""

@@ -354,6 +354,45 @@ def _run_inspections_unique() -> dict[str, Any]:
     finally:
         conn.close()
 
+def _run_neighborhood_backfill() -> dict[str, Any]:
+    """Backfill NULL neighborhoods on trade permits from tax_rolls.
+
+    847K electrical + plumbing permits have neighborhood = NULL because the
+    SODA ingest doesn't populate that field for trade permits. This migration
+    joins against tax_rolls on block+lot to recover the neighborhood value.
+
+    Idempotent: only updates rows where neighborhood IS NULL.
+    """
+    from src.db import get_connection, BACKEND  # type: ignore
+
+    conn = get_connection()
+    try:
+        sql = """
+            UPDATE permits SET neighborhood = t.neighborhood
+            FROM tax_rolls t
+            WHERE permits.block = t.block AND permits.lot = t.lot
+              AND permits.neighborhood IS NULL
+              AND t.neighborhood IS NOT NULL
+        """
+        if BACKEND == "postgres":
+            with conn.cursor() as cur:
+                cur.execute(sql)
+                rows = cur.rowcount
+            conn.commit()
+        else:
+            conn.execute(sql)
+            rows_result = conn.execute("SELECT changes()").fetchone()
+            rows = rows_result[0] if rows_result else 0
+        return {"ok": True, "rows_updated": rows}
+    except Exception as exc:
+        if BACKEND == "postgres":
+            conn.rollback()
+        logger.error("neighborhood_backfill migration failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+    finally:
+        conn.close()
+
+
 # ---- ordered registry ------------------------------------------------
 
 MIGRATIONS: list[Migration] = [
@@ -413,6 +452,11 @@ MIGRATIONS: list[Migration] = [
         name="shareable_analysis",
         description="Sprint 56D: analysis_sessions table, beta_requests table, users three-tier columns",
         run=_run_shareable_analysis,
+    ),
+    Migration(
+        name="neighborhood_backfill",
+        description="Backfill NULL neighborhoods on trade permits from tax_rolls (block+lot join)",
+        run=_run_neighborhood_backfill,
     ),
 ]
 

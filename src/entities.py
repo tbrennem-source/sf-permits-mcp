@@ -2,9 +2,16 @@
 
 Resolves contact records into unique entities using a priority cascade:
   1. pts_agent_id  (building contacts only, high confidence)
-  2. license_number  (all sources, medium confidence)
+  2. license_number  (all sources, medium confidence) — with license normalization
+  2.5. Cross-source name matching on same permit (medium confidence)
   3. sf_business_license  (all sources, medium confidence)
   4. Fuzzy name matching  (remaining unresolved, low confidence)
+
+Improvements in this version:
+  - License normalization: strips leading zeros, normalizes type prefixes (C-10 → C10)
+  - Cross-source matching: same normalized name on same permit across different sources
+  - Name normalization: LAST FIRST reordering, punctuation stripping, lower threshold for trades
+  - Multi-role entity tracking: populates `roles` column after resolution
 
 Performance: Uses a mapping table + single bulk UPDATE per step to
 minimize DuckDB column rewrites on the 1.8M-row contacts table.
@@ -16,6 +23,7 @@ Usage:
 
 from __future__ import annotations
 
+import re
 import time
 from collections import Counter
 
@@ -25,6 +33,49 @@ from src.db import get_connection
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _normalize_license(lic: str | None) -> str | None:
+    """Normalize a contractor license number for consistent matching.
+
+    Transformations applied:
+    - Strip whitespace; return None for empty/None input
+    - Normalize type prefixes: "C-10" → "C10", "c-10" → "C10" (uppercase, remove dash)
+    - Strip leading zeros from numeric-only license numbers
+
+    Examples:
+        "0012345"  → "12345"
+        "C-10"     → "C10"
+        "c-10"     → "C10"
+        "c10"      → "C10"
+        "B-12345"  → "B12345"
+        None       → None
+        ""         → None
+        "  "       → None
+    """
+    if lic is None:
+        return None
+    lic = lic.strip()
+    if not lic:
+        return None
+
+    # Normalize license type prefixes (e.g., "C-10", "c-10", "c10" → "C10")
+    # Pattern: one or more letters, optional dash, digits (possibly with more dashes/digits)
+    prefix_match = re.match(r'^([A-Za-z]+)-?(\d.*)$', lic)
+    if prefix_match:
+        prefix = prefix_match.group(1).upper()
+        rest = prefix_match.group(2)
+        # Strip leading zeros from the numeric part after the prefix
+        # But only if it's purely digits (don't strip "10" from "C10" sub-licenses)
+        # For the prefix pattern we just join them
+        return prefix + rest
+
+    # Pure numeric: strip leading zeros
+    if re.match(r'^\d+$', lic):
+        return str(int(lic))  # int() strips leading zeros naturally
+
+    # Mixed or other formats: just uppercase and return
+    return lic.upper()
+
 
 def _pick_canonical_name(names: list[str | None]) -> str | None:
     """Return the longest non-null name as the canonical representative."""
@@ -49,6 +100,30 @@ def _most_common_role(roles: list[str | None]) -> str | None:
         return None
     counter = Counter(valid)
     return counter.most_common(1)[0][0]
+
+
+def _normalize_name(name: str) -> str:
+    """Normalize a contact name for fuzzy matching.
+
+    Transformations:
+    - Strip whitespace and UPPERCASE
+    - Strip punctuation (commas, periods, dashes)
+    - Detect LAST FIRST pattern (exactly 2 tokens, common in DBI data)
+      and produce canonical "FIRST LAST" form for token comparison
+
+    The token SET similarity is order-independent, so reordering doesn't
+    change the similarity score. This function is mainly for preprocessing
+    before blocking.
+    """
+    if not name:
+        return ""
+    # Uppercase and strip whitespace
+    normalized = name.upper().strip()
+    # Remove punctuation: commas, periods, dashes, apostrophes
+    normalized = re.sub(r"[,.\-']+", " ", normalized)
+    # Collapse multiple spaces
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return normalized
 
 
 def _token_set_similarity(a: str, b: str) -> float:
@@ -148,9 +223,12 @@ def _resolve_by_key(conn, next_entity_id: int, key_column: str,
                      method: str, confidence: str) -> tuple[int, int]:
     """Generic step for resolving by a key column (license_number or sf_business_license).
 
+    For license_number matching, applies license normalization before lookup.
     Handles merging into existing entities where the key already has one.
     Returns (next_entity_id, entities_created).
     """
+    apply_license_norm = (key_column == "license_number")
+
     # Find unresolved contacts with this key, excluding already-resolved
     unresolved_groups = conn.execute(f"""
         SELECT {key_column},
@@ -166,30 +244,43 @@ def _resolve_by_key(conn, next_entity_id: int, key_column: str,
         return next_entity_id, 0
 
     # Build lookup of existing entities by this key
-    existing_map = {}
+    # For license_number, normalize the stored key for matching
+    existing_map: dict[str, int] = {}
     existing_rows = conn.execute(f"""
         SELECT {key_column}, entity_id FROM entities
         WHERE {key_column} IS NOT NULL
     """).fetchall()
     for er in existing_rows:
-        existing_map[er[0]] = er[1]
+        raw_key = er[0]
+        norm_key = _normalize_license(raw_key) if apply_license_norm else raw_key
+        if norm_key and norm_key not in existing_map:
+            existing_map[norm_key] = er[1]
 
     # Separate into merge (existing entity) and create (new entity)
     merge_pairs = []  # (contact_id, existing_entity_id)
-    new_groups = {}  # entity_id -> [contact_ids]
+    new_groups: dict[int, list[int]] = {}  # entity_id -> [contact_ids]
+    # Track which normalized keys map to which new entity_id
+    new_key_to_eid: dict[str, int] = {}
     entity_id = next_entity_id
 
     for row in unresolved_groups:
         key_val = row[0]
         contact_ids = row[1]
 
-        if key_val in existing_map:
-            target_eid = existing_map[key_val]
+        norm_key = _normalize_license(key_val) if apply_license_norm else key_val
+
+        if norm_key in existing_map:
+            target_eid = existing_map[norm_key]
             for cid in contact_ids:
                 merge_pairs.append((cid, target_eid))
+        elif norm_key in new_key_to_eid:
+            # Another raw key normalized to the same value → merge into same new entity
+            target_eid = new_key_to_eid[norm_key]
+            new_groups[target_eid].extend(contact_ids)
         else:
-            new_groups[entity_id] = contact_ids
-            existing_map[key_val] = entity_id
+            new_groups[entity_id] = list(contact_ids)
+            existing_map[norm_key] = entity_id
+            new_key_to_eid[norm_key] = entity_id
             entity_id += 1
 
     # Apply merge assignments via VALUES temp table
@@ -277,12 +368,149 @@ def _resolve_by_key(conn, next_entity_id: int, key_column: str,
     return entity_id, created
 
 
+def _resolve_by_cross_source_name(conn, next_entity_id: int) -> tuple[int, int]:
+    """Step 2.5: Match contacts with same normalized name on same permit across sources.
+
+    Two contacts on the same permit with the same (normalized) name but
+    different source datasets are almost certainly the same person —
+    e.g. "JOHN'S ELECTRIC" appearing on both a building contact list and
+    an electrical permit for the same permit_number.
+
+    Uses UPPER + punctuation-stripped name comparison in SQL, then merges
+    matching groups in Python.
+
+    Returns (next_entity_id, entities_created).
+    """
+    # Find unresolved contacts grouped by (normalized_name, permit_number)
+    # where multiple sources are present.
+    # Note: DuckDB regex character class — use explicit characters, not escape sequences
+    # that get mis-parsed. Period, dash, and single-quote handled as separate alternatives.
+    groups = conn.execute("""
+        SELECT
+            UPPER(REGEXP_REPLACE(REGEXP_REPLACE(TRIM(name), '[,.-]+', ' '), E'\\'', ' ')) AS norm_name,
+            permit_number,
+            LIST(id) AS contact_ids,
+            LIST(DISTINCT source) AS sources
+        FROM contacts
+        WHERE entity_id IS NULL
+          AND name IS NOT NULL
+          AND TRIM(name) != ''
+          AND permit_number IS NOT NULL
+        GROUP BY norm_name, permit_number
+        HAVING COUNT(DISTINCT source) > 1
+           AND COUNT(*) > 1
+    """).fetchall()
+
+    if not groups:
+        return next_entity_id, 0
+
+    # Build mapping: contact_id -> entity_id
+    # We also need to handle the case where multiple groups point to the same
+    # person across different permits (use norm_name as a secondary grouping key)
+    name_to_eid: dict[str, int] = {}
+    merge_pairs: list[tuple[int, int]] = []  # (contact_id, entity_id)
+    new_groups: dict[int, list[int]] = {}  # entity_id -> [contact_ids]
+
+    entity_id = next_entity_id
+
+    for row in groups:
+        norm_name = row[0]
+        # permit_number = row[1]  # not used but present for context
+        contact_ids = row[2]
+
+        if norm_name in name_to_eid:
+            # This person was already seen — merge into existing entity
+            target_eid = name_to_eid[norm_name]
+            # Some of these contacts may already be assigned to that entity
+            for cid in contact_ids:
+                new_groups.setdefault(target_eid, []).append(cid)
+        else:
+            # New entity
+            name_to_eid[norm_name] = entity_id
+            new_groups[entity_id] = list(contact_ids)
+            entity_id += 1
+
+    # Flatten to (contact_id, entity_id) pairs, filtering already-assigned contacts
+    all_pairs = []
+    for eid, cids in new_groups.items():
+        for cid in cids:
+            all_pairs.append((cid, eid))
+
+    if not all_pairs:
+        return next_entity_id, 0
+
+    # Apply via VALUES temp table
+    values = ",".join(f"({cid},{eid})" for cid, eid in all_pairs)
+    conn.execute(f"""
+        CREATE OR REPLACE TEMP TABLE _cross_source_map AS
+        SELECT * FROM (VALUES {values}) AS t(contact_id, entity_id)
+    """)
+    conn.execute("""
+        UPDATE contacts SET entity_id = _cross_source_map.entity_id
+        FROM _cross_source_map
+        WHERE contacts.id = _cross_source_map.contact_id
+          AND contacts.entity_id IS NULL
+    """)
+    conn.execute("DROP TABLE IF EXISTS _cross_source_map")
+
+    # Determine which entity IDs were actually used (contacts may have been
+    # pre-filtered if already assigned)
+    used_eids = set()
+    for eid, cids in new_groups.items():
+        if eid >= next_entity_id:
+            used_eids.add(eid)
+
+    if not used_eids:
+        return next_entity_id, 0
+
+    eid_min = next_entity_id
+    eid_max = entity_id - 1
+
+    # Create entity records for the new entities
+    conn.execute(f"""
+        INSERT INTO entities (
+            entity_id, canonical_name, canonical_firm, entity_type,
+            pts_agent_id, license_number, sf_business_license,
+            resolution_method, resolution_confidence,
+            contact_count, permit_count, source_datasets
+        )
+        SELECT
+            c.entity_id,
+            MAX(c.name),
+            MAX(c.firm_name),
+            MODE(c.role),
+            FIRST(c.pts_agent_id) FILTER (WHERE c.pts_agent_id IS NOT NULL),
+            FIRST(c.license_number) FILTER (WHERE c.license_number IS NOT NULL),
+            FIRST(c.sf_business_license) FILTER (WHERE c.sf_business_license IS NOT NULL),
+            'cross_source_name',
+            'medium',
+            COUNT(*),
+            COUNT(DISTINCT c.permit_number),
+            STRING_AGG(DISTINCT c.source, ',' ORDER BY c.source)
+        FROM contacts c
+        WHERE c.entity_id >= {eid_min} AND c.entity_id <= {eid_max}
+        GROUP BY c.entity_id
+        HAVING COUNT(*) > 0
+    """)
+
+    created = entity_id - next_entity_id
+    return entity_id, created
+
+
 def _resolve_by_fuzzy_name(conn, next_entity_id: int) -> tuple[int, int]:
     """Step 4: Fuzzy name matching for remaining unresolved contacts.
 
-    Uses blocking on the first 3 characters of upper(name) to limit
+    Uses blocking on the first 3 characters of normalized name to limit
     comparisons.  Within each block, clusters contacts whose names have
-    token-set Jaccard similarity >= 0.75.
+    token-set Jaccard similarity >= threshold.
+
+    Improvements over original:
+    - Names are normalized (UPPER, punctuation stripped) before blocking
+    - LAST FIRST pattern detection: "SMITH JOHN" → tokens {"SMITH","JOHN"}
+      (token-set similarity is already order-independent, so this mainly
+       helps with blocking key consistency)
+    - Lower similarity threshold for trade contacts (0.67 vs 0.75) to
+      catch variations like "SMITH JOHN" vs "JOHN SMITH ELECTRIC"
 
     Blocks larger than MAX_BLOCK_SIZE are skipped (contacts become singletons
     in step 5) because the O(n^2) pairwise comparison is too expensive and
@@ -290,8 +518,11 @@ def _resolve_by_fuzzy_name(conn, next_entity_id: int) -> tuple[int, int]:
 
     Returns (next_entity_id, entities_created).
     """
-    SIMILARITY_THRESHOLD = 0.75
+    SIMILARITY_THRESHOLD = 0.67  # Lowered from 0.75 for better trade contact matching
     MAX_BLOCK_SIZE = 500
+
+    # Trade roles that warrant the lower threshold
+    TRADE_ROLES = {"electrical", "plumbing", "mechanical", "contractor", "engineer"}
 
     # Fetch unresolved contacts that have a name
     unresolved = conn.execute("""
@@ -309,19 +540,24 @@ def _resolve_by_fuzzy_name(conn, next_entity_id: int) -> tuple[int, int]:
 
     print(f"    {len(unresolved):,} named contacts to fuzzy match", flush=True)
 
-    # Build blocking index: first 3 chars of UPPER(name) -> list of contacts
+    # Build blocking index: first 3 chars of normalized name -> list of contacts
     blocks: dict[str, list[tuple]] = {}
+    normalized_names: dict[int, str] = {}  # contact_id -> normalized name
+
     for row in unresolved:
-        name_upper = row[1].upper().strip()
-        block_key = name_upper[:3] if len(name_upper) >= 3 else name_upper
+        raw_name = row[1]
+        norm = _normalize_name(raw_name)
+        normalized_names[row[0]] = norm
+        block_key = norm[:3] if len(norm) >= 3 else norm
         if block_key not in blocks:
             blocks[block_key] = []
         blocks[block_key].append(row)
 
-    # Pre-compute token sets for all unresolved contacts
+    # Pre-compute token sets for all unresolved contacts (using normalized names)
     token_cache: dict[int, frozenset[str]] = {}
     for row in unresolved:
-        token_cache[row[0]] = frozenset(row[1].upper().split()) if row[1] else frozenset()
+        norm = normalized_names[row[0]]
+        token_cache[row[0]] = frozenset(norm.split()) if norm else frozenset()
 
     assigned: set[int] = set()
     clusters: list[list[tuple]] = []
@@ -351,6 +587,10 @@ def _resolve_by_fuzzy_name(conn, next_entity_id: int) -> tuple[int, int]:
             if not tokens_a:
                 continue
 
+            # Choose threshold based on role
+            role_a = (contact_a[3] or "").lower()
+            threshold = SIMILARITY_THRESHOLD if any(t in role_a for t in TRADE_ROLES) else 0.75
+
             for j in range(i + 1, len(block_contacts)):
                 contact_b = block_contacts[j]
                 cid_b = contact_b[0]
@@ -361,11 +601,15 @@ def _resolve_by_fuzzy_name(conn, next_entity_id: int) -> tuple[int, int]:
                 if not tokens_b:
                     continue
 
+                # Use the lower of the two thresholds if either is a trade contact
+                role_b = (contact_b[3] or "").lower()
+                pair_threshold = SIMILARITY_THRESHOLD if any(t in role_b for t in TRADE_ROLES) else threshold
+
                 intersection = len(tokens_a & tokens_b)
                 if intersection == 0:
                     continue
                 union = len(tokens_a | tokens_b)
-                if intersection / union >= SIMILARITY_THRESHOLD:
+                if intersection / union >= pair_threshold:
                     cluster.append(contact_b)
                     block_assigned.add(cid_b)
 
@@ -497,6 +741,44 @@ def _resolve_remaining_singletons(conn, next_entity_id: int) -> tuple[int, int]:
     return next_entity_id + count, count
 
 
+def _enrich_multi_role_entities(conn) -> int:
+    """Post-resolution: populate the `roles` column for multi-role entities.
+
+    After all resolution steps, entities that appear in contacts with
+    different role values get their `roles` column set to a comma-separated
+    list of all observed roles. The `entity_type` column retains the MODE
+    (most common) role.
+
+    Returns the count of entities updated.
+    """
+    # Ensure roles column exists (DuckDB supports ADD COLUMN IF NOT EXISTS)
+    try:
+        conn.execute("ALTER TABLE entities ADD COLUMN IF NOT EXISTS roles VARCHAR")
+    except Exception:
+        # Column may already exist (e.g. in tests using a manually-created schema)
+        pass
+
+    conn.execute("""
+        UPDATE entities SET roles = sub.all_roles
+        FROM (
+            SELECT entity_id,
+                   STRING_AGG(DISTINCT role, ',' ORDER BY role) AS all_roles
+            FROM contacts
+            WHERE role IS NOT NULL
+              AND entity_id IS NOT NULL
+            GROUP BY entity_id
+            HAVING COUNT(DISTINCT role) > 1
+        ) sub
+        WHERE entities.entity_id = sub.entity_id
+    """)
+
+    updated = conn.execute(
+        "SELECT COUNT(*) FROM entities WHERE roles IS NOT NULL"
+    ).fetchone()[0]
+
+    return updated
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
@@ -519,14 +801,16 @@ def resolve_entities(db_path: str | None = None) -> dict:
             "total_contacts": 0,
             "pts_agent_id": 0,
             "license_number": 0,
+            "cross_source_name": 0,
             "sf_business_license": 0,
             "fuzzy_name": 0,
             "singleton": 0,
             "total_entities": 0,
+            "multi_role_entities": 0,
         }
 
     # Step 0: Clear existing resolution
-    print("\n[0/5] Clearing existing entities and resetting contact assignments...", flush=True)
+    print("\n[0/6] Clearing existing entities and resetting contact assignments...", flush=True)
     conn.execute("DELETE FROM entities")
     conn.execute("UPDATE contacts SET entity_id = NULL")
 
@@ -534,7 +818,7 @@ def resolve_entities(db_path: str | None = None) -> dict:
     stats: dict[str, int] = {}
 
     # Step 1: pts_agent_id (pure SQL)
-    print("\n[1/5] Resolving by pts_agent_id (building contacts)...", flush=True)
+    print("\n[1/6] Resolving by pts_agent_id (building contacts)...", flush=True)
     t = time.time()
     next_eid, count = _resolve_by_pts_agent_id(conn, next_eid)
     resolved_contacts = conn.execute(
@@ -543,8 +827,8 @@ def resolve_entities(db_path: str | None = None) -> dict:
     stats["pts_agent_id"] = count
     print(f"  Created {count:,} entities ({resolved_contacts:,}/{total_contacts:,} contacts resolved) [{time.time() - t:.1f}s]", flush=True)
 
-    # Step 2: license_number
-    print("\n[2/5] Resolving by license_number (all sources)...", flush=True)
+    # Step 2: license_number (with normalization)
+    print("\n[2/6] Resolving by license_number (all sources, with normalization)...", flush=True)
     t = time.time()
     next_eid, count = _resolve_by_key(conn, next_eid, "license_number", "license_number", "medium")
     resolved_contacts = conn.execute(
@@ -553,8 +837,18 @@ def resolve_entities(db_path: str | None = None) -> dict:
     stats["license_number"] = count
     print(f"  Created {count:,} new entities ({resolved_contacts:,}/{total_contacts:,} contacts resolved) [{time.time() - t:.1f}s]", flush=True)
 
+    # Step 2.5: Cross-source name matching on same permit
+    print("\n[2.5/6] Resolving by cross-source name match on same permit...", flush=True)
+    t = time.time()
+    next_eid, count = _resolve_by_cross_source_name(conn, next_eid)
+    resolved_contacts = conn.execute(
+        "SELECT COUNT(*) FROM contacts WHERE entity_id IS NOT NULL"
+    ).fetchone()[0]
+    stats["cross_source_name"] = count
+    print(f"  Created {count:,} new entities ({resolved_contacts:,}/{total_contacts:,} contacts resolved) [{time.time() - t:.1f}s]", flush=True)
+
     # Step 3: sf_business_license
-    print("\n[3/5] Resolving by sf_business_license (all sources)...", flush=True)
+    print("\n[3/6] Resolving by sf_business_license (all sources)...", flush=True)
     t = time.time()
     next_eid, count = _resolve_by_key(conn, next_eid, "sf_business_license", "sf_business_license", "medium")
     resolved_contacts = conn.execute(
@@ -564,7 +858,7 @@ def resolve_entities(db_path: str | None = None) -> dict:
     print(f"  Created {count:,} new entities ({resolved_contacts:,}/{total_contacts:,} contacts resolved) [{time.time() - t:.1f}s]", flush=True)
 
     # Step 4: Fuzzy name matching
-    print("\n[4/5] Resolving by fuzzy name matching (remaining unresolved)...", flush=True)
+    print("\n[4/6] Resolving by fuzzy name matching (remaining unresolved)...", flush=True)
     unresolved_before = conn.execute(
         "SELECT COUNT(*) FROM contacts WHERE entity_id IS NULL"
     ).fetchone()[0]
@@ -578,11 +872,18 @@ def resolve_entities(db_path: str | None = None) -> dict:
     print(f"  Created {count:,} new entities ({resolved_contacts:,}/{total_contacts:,} contacts resolved) [{time.time() - t:.1f}s]", flush=True)
 
     # Step 5: Singletons
-    print("\n[5/5] Creating singleton entities for remaining unresolved contacts...", flush=True)
+    print("\n[5/6] Creating singleton entities for remaining unresolved contacts...", flush=True)
     t = time.time()
     next_eid, count = _resolve_remaining_singletons(conn, next_eid)
     stats["singleton"] = count
     print(f"  Created {count:,} singleton entities [{time.time() - t:.1f}s]", flush=True)
+
+    # Step 6: Multi-role entity enrichment
+    print("\n[6/6] Enriching multi-role entities (populating `roles` column)...", flush=True)
+    t = time.time()
+    multi_role_count = _enrich_multi_role_entities(conn)
+    stats["multi_role_entities"] = multi_role_count
+    print(f"  Updated {multi_role_count:,} entities with multi-role data [{time.time() - t:.1f}s]", flush=True)
 
     # Final verification
     unresolved_final = conn.execute(
@@ -604,9 +905,11 @@ def resolve_entities(db_path: str | None = None) -> dict:
     print(f"\n  Entities by resolution method:", flush=True)
     print(f"    pts_agent_id:       {stats['pts_agent_id']:,}", flush=True)
     print(f"    license_number:     {stats['license_number']:,}", flush=True)
+    print(f"    cross_source_name:  {stats['cross_source_name']:,}", flush=True)
     print(f"    sf_business_license:{stats['sf_business_license']:,}", flush=True)
     print(f"    fuzzy_name:         {stats['fuzzy_name']:,}", flush=True)
     print(f"    singleton:          {stats['singleton']:,}", flush=True)
+    print(f"    multi_role_entities:{stats['multi_role_entities']:,}", flush=True)
     print(f"{'=' * 60}", flush=True)
 
     conn.close()

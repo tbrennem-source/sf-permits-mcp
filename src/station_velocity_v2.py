@@ -36,8 +36,18 @@ MIN_SAMPLES = 10
 # Review results to exclude (pass-through / administrative routing)
 EXCLUDED_RESULTS = ("Not Applicable", "Administrative")
 
-# Periods to compute
+# Periods to compute (legacy list — still used for mode='all')
 PERIODS = ["all", "2024", "2025", "2026", "recent_6mo"]
+
+# Two-period cron refresh config
+VELOCITY_PERIODS = {
+    'current': 90,    # rolling 90 days — primary for estimates
+    'baseline': 365,  # rolling 1 year — trend comparison
+}
+
+# When 90-day sample < MIN_CURRENT_SAMPLES for a station, widen to CURRENT_WIDEN_DAYS
+MIN_CURRENT_SAMPLES = 30
+CURRENT_WIDEN_DAYS = 180
 
 
 @dataclass
@@ -77,6 +87,13 @@ def _period_filter(period: str) -> tuple[str, list]:
         return f"arrive::DATE >= {ph}", ["2018-01-01"]
 
 
+def _rolling_period_filter(days: int) -> tuple[str, list]:
+    """Return SQL WHERE clause fragment and params for a rolling N-day window from today."""
+    ph = _ph()
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    return f"arrive::DATE >= {ph}", [cutoff]
+
+
 def _date_diff_expr() -> str:
     """Return the SQL expression for days between arrive and finish_date."""
     if BACKEND == "postgres":
@@ -85,11 +102,102 @@ def _date_diff_expr() -> str:
         return "DATEDIFF('day', arrive::DATE, finish_date::DATE)"
 
 
+def _compute_velocities_for_period(
+    conn,
+    period_clause: str,
+    period_params: list,
+    period_label: str,
+) -> list[StationVelocity]:
+    """Inner helper: compute velocity rows for a single (period_clause, period_label) pair."""
+    results = []
+    diff_expr = _date_diff_expr()
+
+    for metric_type, addenda_filter in [
+        ("initial", "addenda_number = 0"),
+        ("revision", "addenda_number > 0"),
+    ]:
+        sql = f"""
+            WITH filtered AS (
+                SELECT application_number, station, addenda_number,
+                       arrive, finish_date,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY application_number, station, addenda_number
+                           ORDER BY finish_date DESC NULLS LAST
+                       ) as rn
+                FROM addenda
+                WHERE station IS NOT NULL
+                  AND arrive IS NOT NULL
+                  AND finish_date IS NOT NULL
+                  AND {period_clause}
+                  AND arrive::DATE <= CURRENT_DATE
+                  AND {addenda_filter}
+                  AND (review_results IS NULL
+                       OR review_results NOT IN ('Not Applicable', 'Administrative'))
+            ),
+            durations AS (
+                SELECT station, {diff_expr} AS days_in
+                FROM filtered
+                WHERE rn = 1
+                  AND {diff_expr} BETWEEN 0 AND 365
+            )
+            SELECT
+                station,
+                COUNT(*) as n,
+                PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY days_in) as p25,
+                PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY days_in) as p50,
+                PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY days_in) as p75,
+                PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY days_in) as p90
+            FROM durations
+            GROUP BY station
+            HAVING COUNT(*) >= {MIN_SAMPLES}
+            ORDER BY station
+        """
+
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(sql, period_params)
+                    rows = cur.fetchall()
+            else:
+                sql_duck = sql.replace("%s", "?")
+                rows = conn.execute(sql_duck, period_params).fetchall()
+        except Exception:
+            logger.warning(
+                "_compute_velocities_for_period failed for period=%s metric=%s",
+                period_label, metric_type, exc_info=True,
+            )
+            continue
+
+        for row in rows:
+            results.append(StationVelocity(
+                station=row[0],
+                metric_type=metric_type,
+                p25_days=round(float(row[2]), 1) if row[2] is not None else None,
+                p50_days=round(float(row[3]), 1) if row[3] is not None else None,
+                p75_days=round(float(row[4]), 1) if row[4] is not None else None,
+                p90_days=round(float(row[5]), 1) if row[5] is not None else None,
+                sample_count=row[1],
+                period=period_label,
+            ))
+
+    return results
+
+
 def compute_station_velocity(
     conn=None,
     periods: list[str] | None = None,
+    mode: str = 'cron',
 ) -> list[StationVelocity]:
     """Compute velocity baselines from addenda data.
+
+    Args:
+        conn: Optional DB connection; opened and closed internally if None.
+        periods: Explicit period list. When provided, forces mode='all' behavior
+                 (backward compatible with callers that pass periods=[...]).
+        mode: 'cron' (default) — computes only 'current' (rolling 90d) and
+              'baseline' (rolling 365d) periods for the nightly refresh.
+              'all' — computes the original PERIODS list (backward compatible).
+              If `periods` is explicitly passed, mode is forced to 'all'.
 
     Returns a list of StationVelocity objects, one per station/metric_type/period
     combination that has >= MIN_SAMPLES records.
@@ -99,86 +207,66 @@ def compute_station_velocity(
         conn = get_connection()
         close = True
 
-    if periods is None:
-        periods = PERIODS
+    # If an explicit periods list was provided, always use legacy mode
+    if periods is not None:
+        mode = 'all'
 
     results = []
-    diff_expr = _date_diff_expr()
-    ph = _ph()
 
-    for period in periods:
-        period_clause, period_params = _period_filter(period)
-
-        for metric_type, addenda_filter in [
-            ("initial", "addenda_number = 0"),
-            ("revision", "addenda_number > 0"),
-        ]:
-            sql = f"""
-                WITH filtered AS (
-                    SELECT application_number, station, addenda_number,
-                           arrive, finish_date,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY application_number, station, addenda_number
-                               ORDER BY finish_date DESC NULLS LAST
-                           ) as rn
-                    FROM addenda
-                    WHERE station IS NOT NULL
-                      AND arrive IS NOT NULL
-                      AND finish_date IS NOT NULL
-                      AND {period_clause}
-                      AND arrive::DATE <= CURRENT_DATE
-                      AND {addenda_filter}
-                      AND (review_results IS NULL
-                           OR review_results NOT IN ('Not Applicable', 'Administrative'))
-                ),
-                durations AS (
-                    SELECT station, {diff_expr} AS days_in
-                    FROM filtered
-                    WHERE rn = 1
-                      AND {diff_expr} BETWEEN 0 AND 365
+    try:
+        if mode == 'cron':
+            # Primary cron periods: 'current' (90 days) and 'baseline' (365 days)
+            for period_label, days in VELOCITY_PERIODS.items():
+                period_clause, period_params = _rolling_period_filter(days)
+                period_results = _compute_velocities_for_period(
+                    conn, period_clause, period_params, period_label
                 )
-                SELECT
-                    station,
-                    COUNT(*) as n,
-                    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY days_in) as p25,
-                    PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY days_in) as p50,
-                    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY days_in) as p75,
-                    PERCENTILE_CONT(0.90) WITHIN GROUP (ORDER BY days_in) as p90
-                FROM durations
-                GROUP BY station
-                HAVING COUNT(*) >= {MIN_SAMPLES}
-                ORDER BY station
-            """
 
-            try:
-                if BACKEND == "postgres":
-                    with conn.cursor() as cur:
-                        cur.execute(sql, period_params)
-                        rows = cur.fetchall()
+                # For 'current' period: if any station has < MIN_CURRENT_SAMPLES,
+                # widen that station to CURRENT_WIDEN_DAYS
+                if period_label == 'current':
+                    wide_clause, wide_params = _rolling_period_filter(CURRENT_WIDEN_DAYS)
+                    wide_results = _compute_velocities_for_period(
+                        conn, wide_clause, wide_params, 'current_wide'
+                    )
+                    wide_by_key = {
+                        (v.station, v.metric_type): v for v in wide_results
+                    }
+
+                    final = []
+                    for v in period_results:
+                        if v.sample_count < MIN_CURRENT_SAMPLES:
+                            wide = wide_by_key.get((v.station, v.metric_type))
+                            if wide:
+                                # Use wider window, but keep period label 'current'
+                                final.append(StationVelocity(
+                                    station=wide.station,
+                                    metric_type=wide.metric_type,
+                                    p25_days=wide.p25_days,
+                                    p50_days=wide.p50_days,
+                                    p75_days=wide.p75_days,
+                                    p90_days=wide.p90_days,
+                                    sample_count=wide.sample_count,
+                                    period='current',
+                                ))
+                                continue
+                        final.append(v)
+                    results.extend(final)
                 else:
-                    sql_duck = sql.replace("%s", "?")
-                    rows = conn.execute(sql_duck, period_params).fetchall()
-            except Exception:
-                logger.warning(
-                    "compute_station_velocity failed for period=%s metric=%s",
-                    period, metric_type, exc_info=True,
+                    results.extend(period_results)
+
+        else:
+            # mode='all' — backward-compatible: compute the original PERIODS list
+            active_periods = periods if periods is not None else PERIODS
+            for period in active_periods:
+                period_clause, period_params = _period_filter(period)
+                results.extend(
+                    _compute_velocities_for_period(conn, period_clause, period_params, period)
                 )
-                continue
 
-            for row in rows:
-                results.append(StationVelocity(
-                    station=row[0],
-                    metric_type=metric_type,
-                    p25_days=round(float(row[2]), 1) if row[2] is not None else None,
-                    p50_days=round(float(row[3]), 1) if row[3] is not None else None,
-                    p75_days=round(float(row[4]), 1) if row[4] is not None else None,
-                    p90_days=round(float(row[5]), 1) if row[5] is not None else None,
-                    sample_count=row[1],
-                    period=period,
-                ))
-
-    if close:
-        conn.close()
+    finally:
+        if close:
+            conn.close()
 
     return results
 
@@ -268,8 +356,8 @@ def refresh_velocity_v2(conn=None) -> dict:
             except Exception:
                 pass  # Table might not exist yet in DuckDB tests
 
-        # Compute
-        velocities = compute_station_velocity(conn)
+        # Compute using cron mode (current + baseline periods)
+        velocities = compute_station_velocity(conn, mode='cron')
 
         # Insert
         inserted = 0
@@ -317,14 +405,16 @@ def refresh_velocity_v2(conn=None) -> dict:
             conn.commit()
 
         stations = len(set(v.station for v in velocities))
+        active_period_labels = list(set(v.period for v in velocities))
         logger.info(
-            "velocity_v2 refresh: %d rows inserted, %d stations, %d periods",
-            inserted, stations, len(PERIODS),
+            "velocity_v2 refresh: %d rows inserted, %d stations, periods=%s",
+            inserted, stations, active_period_labels,
         )
         return {
             "rows_inserted": inserted,
             "stations": stations,
-            "periods": len(PERIODS),
+            "periods": len(active_period_labels),
+            "period_labels": active_period_labels,
         }
     finally:
         if close:

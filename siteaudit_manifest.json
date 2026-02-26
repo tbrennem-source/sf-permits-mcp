@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-25T17:45:59.085867+00:00",
-  "total_routes": 127,
+  "generated_at": "2026-02-26T00:29:39.713972+00:00",
+  "total_routes": 130,
   "routes": [
     {
       "path": "/robots.txt",
@@ -1146,6 +1146,33 @@
       "auth_level": "cron",
       "template": null,
       "function_name": "cron_ingest_plumbing_inspections"
+    },
+    {
+      "path": "/cron/ingest-permit-issuance-metrics",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_permit_issuance_metrics"
+    },
+    {
+      "path": "/cron/ingest-permit-review-metrics",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_permit_review_metrics"
+    },
+    {
+      "path": "/cron/ingest-planning-review-metrics",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_planning_review_metrics"
     }
   ],
   "user_journeys": {
@@ -1173,6 +1200,6 @@
     "public": 37,
     "auth": 23,
     "admin": 26,
-    "cron": 41
+    "cron": 44
   }
 }
