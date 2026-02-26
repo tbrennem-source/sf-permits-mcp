@@ -131,15 +131,16 @@ def test_pipeline_health_summary_line_in_response(client):
 # ── POST /cron/pipeline-health?action=run_nightly ────────────────
 
 
-def test_pipeline_health_post_requires_auth(client):
-    """POST without auth returns 403."""
+def test_pipeline_health_post_blocked_on_web_worker(client):
+    """POST blocked on web workers by cron guard."""
     with patch.dict("os.environ", {"CRON_SECRET": "test-secret"}):
         resp = client.post("/cron/pipeline-health")
-    assert resp.status_code == 403
+    assert resp.status_code == 404  # Cron guard blocks POST /cron/* on web workers
 
 
-def test_pipeline_health_post_wrong_token(client):
-    """POST with wrong token returns 403."""
+def test_pipeline_health_post_wrong_token(client, monkeypatch):
+    """POST with wrong token returns 403 on cron worker."""
+    monkeypatch.setenv("CRON_WORKER", "true")
     with patch.dict("os.environ", {"CRON_SECRET": "correct-secret"}):
         resp = client.post(
             "/cron/pipeline-health?action=run_nightly",
@@ -148,8 +149,9 @@ def test_pipeline_health_post_wrong_token(client):
     assert resp.status_code == 403
 
 
-def test_pipeline_health_post_unknown_action(client):
-    """POST with unknown action returns 400."""
+def test_pipeline_health_post_unknown_action(client, monkeypatch):
+    """POST with unknown action returns 400 on cron worker."""
+    monkeypatch.setenv("CRON_WORKER", "true")
     with patch.dict("os.environ", {"CRON_SECRET": "test-secret"}):
         resp = client.post(
             "/cron/pipeline-health?action=unknown_thing",

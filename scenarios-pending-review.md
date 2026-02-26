@@ -1188,3 +1188,45 @@ _Last reviewed: never_
 **Edge cases seen in code:** Self-join backfill uses MODE(neighborhood) when a block/lot appears in multiple neighborhoods; 68K permits remain with NULL neighborhood (no block/lot match); prod uses tax_rolls table instead of self-join
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+<!-- Sprint 57.5: Infrastructure Scaling — 4 scenarios added -->
+
+## SUGGESTED SCENARIO: Web worker under concurrent load
+**Source:** Sprint 57.5 — gevent workers + connection pool
+**User:** expediter | homeowner
+**Starting state:** Multiple users accessing sfpermits.ai simultaneously, gevent workers serving 400+ connections
+**Goal:** All concurrent users get responsive pages without blocking each other
+**Expected outcome:** Health endpoint responds in < 1s even while other requests are processing; no request blocks another; connection pool recycles DB connections
+**Edge cases seen in code:** Pool maxconn=20 could be exhausted under extreme load; statement_timeout=30s kills runaway queries; DuckDB path unchanged (no pool)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Cron job runs without impacting web traffic
+**Source:** Sprint 57.5 — cron guard + Dockerfile.cron
+**User:** admin
+**Starting state:** Cron worker service deployed separately from web worker, CRON_WORKER=true set
+**Goal:** Run nightly change detection / velocity refresh without degrading web performance
+**Expected outcome:** Cron worker serves only /cron/* and /health; web worker blocks POST /cron/*; GET /cron/status allowed on web worker for monitoring
+**Edge cases seen in code:** POST /cron/status would be blocked on web worker (rare edge); pipeline-health GET is allowed through on web worker
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Zero-downtime deploy with release command
+**Source:** Sprint 57.5 — scripts/release.py + releaseCommand
+**User:** admin
+**Starting state:** New code pushed to main, Railway detects change, starts deploy
+**Goal:** Migrations run once before workers start; users never see downtime
+**Expected outcome:** Railway logs show "Release migrations complete" before "Booting worker"; health endpoint responds immediately after workers start; no migration SQL runs per-worker
+**Edge cases seen in code:** RUN_MIGRATIONS_ON_STARTUP gate prevents double-run; release.py skips on DuckDB; admin auto-seed runs during release
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Magic link email sends without blocking response
+**Source:** Sprint 57.5 — background email + web/background.py
+**User:** homeowner
+**Starting state:** User enters email on login page, SMTP configured
+**Goal:** Login page responds instantly while email sends in background
+**Expected outcome:** User sees "check your email" message in < 200ms; email arrives within seconds; sync=True still works for cron-initiated emails
+**Edge cases seen in code:** submit_task is fire-and-forget (no error surfacing to user); dev mode (no SMTP_HOST) still logs immediately; plan_worker emails use sync=True since already in background thread
+**CC confidence:** high
+**Status:** PENDING REVIEW

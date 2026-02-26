@@ -308,15 +308,15 @@ class TestCronEndpointAuth:
             with app.test_client() as c:
                 yield c
 
-    def test_cron_seed_references_403_without_token(self, client):
-        """POST /cron/seed-references returns 403 without auth token."""
+    def test_cron_seed_references_blocked_on_web_worker(self, client):
+        """POST /cron/seed-references blocked by cron guard on web workers."""
         resp = client.post("/cron/seed-references")
-        assert resp.status_code == 403, f"Expected 403, got {resp.status_code}"
+        assert resp.status_code == 404  # Cron guard blocks POST /cron/* on web workers
 
-    def test_cron_seed_references_403_with_wrong_token(self, client):
-        """POST /cron/seed-references returns 403 with wrong token."""
+    def test_cron_seed_references_blocked_even_with_token(self, client):
+        """POST /cron/seed-references blocked by cron guard even with auth token."""
         resp = client.post(
             "/cron/seed-references",
             headers={"Authorization": "Bearer wrong-token"},
         )
-        assert resp.status_code == 403, f"Expected 403, got {resp.status_code}"
+        assert resp.status_code == 404  # Cron guard runs before auth check

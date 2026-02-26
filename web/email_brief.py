@@ -152,8 +152,14 @@ def render_brief_email(user: dict, brief_data: dict) -> str:
 
 # ── SMTP send ─────────────────────────────────────────────────────
 
-def send_brief_email(to_email: str, html_body: str, subject: str | None = None) -> bool:
-    """Send a brief email. Returns True on success."""
+def send_brief_email(to_email: str, html_body: str, subject: str | None = None, sync: bool = True) -> bool:
+    """Send a brief email. Returns True on success.
+
+    Args:
+        sync: If True (default), send synchronously. When False, dispatches
+              to background thread. Default is True because this is typically
+              called from cron jobs that are already background.
+    """
     if not subject:
         today = date.today().strftime("%b %d")
         subject = f"Morning Brief — {today} — sfpermits.ai"
@@ -165,6 +171,16 @@ def send_brief_email(to_email: str, html_body: str, subject: str | None = None) 
         )
         return True  # Dev mode: "sent" successfully
 
+    if sync:
+        return _send_brief_sync(to_email, html_body, subject)
+
+    from web.background import submit_task
+    submit_task(_send_brief_sync, to_email, html_body, subject)
+    return True  # Optimistically return True — email delivery is fire-and-forget
+
+
+def _send_brief_sync(to_email: str, html_body: str, subject: str) -> bool:
+    """Send a brief email synchronously via SMTP."""
     try:
         msg = EmailMessage()
         msg["Subject"] = subject

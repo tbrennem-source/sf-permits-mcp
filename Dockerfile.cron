@@ -20,7 +20,8 @@ WORKDIR /app/web
 
 ENV PORT=8080
 ENV PYTHONPATH=/app
+ENV CRON_WORKER=true
 
 EXPOSE 8080
 
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--worker-class", "gevent", "--workers", "4", "--worker-connections", "100", "--timeout", "120"]
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "900"]

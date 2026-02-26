@@ -334,15 +334,16 @@ CRON_ENDPOINTS = [
 
 
 class TestCronAuth:
-    """All ingest cron endpoints require CRON_SECRET auth."""
+    """All ingest cron endpoints blocked on web workers by cron guard."""
 
     @pytest.mark.parametrize("endpoint", CRON_ENDPOINTS)
-    def test_no_auth_returns_403(self, client, endpoint):
+    def test_no_auth_blocked_on_web_worker(self, client, endpoint):
         rv = client.post(endpoint)
-        assert rv.status_code == 403
+        assert rv.status_code == 404  # Cron guard blocks POST /cron/* on web workers
 
     @pytest.mark.parametrize("endpoint", CRON_ENDPOINTS)
-    def test_wrong_token_returns_403(self, client, endpoint, monkeypatch):
+    def test_wrong_token_returns_403_on_cron_worker(self, client, endpoint, monkeypatch):
+        monkeypatch.setenv("CRON_WORKER", "true")
         monkeypatch.setenv("CRON_SECRET", "correct-secret")
         rv = client.post(endpoint, headers={"Authorization": "Bearer wrong-secret"})
         assert rv.status_code == 403

@@ -249,8 +249,12 @@ def verify_magic_token(token: str) -> dict | None:
     return get_user_by_id(user_id)
 
 
-def send_magic_link(email: str, token: str) -> bool:
+def send_magic_link(email: str, token: str, sync: bool = False) -> bool:
     """Send the magic link via email (or log to console in dev mode).
+
+    Args:
+        sync: If True, send synchronously (for callers already in background).
+              Default False sends via background thread pool.
 
     Returns True if sent/logged successfully.
     """
@@ -260,6 +264,16 @@ def send_magic_link(email: str, token: str) -> bool:
         logger.info("Magic link for %s: %s", email, link)
         return True
 
+    if sync:
+        return _send_magic_link_sync(email, link)
+
+    from web.background import submit_task
+    submit_task(_send_magic_link_sync, email, link)
+    return True  # Optimistically return True — email delivery is fire-and-forget
+
+
+def _send_magic_link_sync(email: str, link: str) -> bool:
+    """Send the magic link synchronously via SMTP."""
     try:
         msg = EmailMessage()
         msg["Subject"] = "Your sfpermits.ai sign-in link"
