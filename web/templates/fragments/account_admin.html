@@ -1,0 +1,176 @@
+<!-- Account Admin Fragment — admin-only sections -->
+<!-- Loaded via HTMX when admin clicks the Admin tab -->
+
+<div class="card admin-section">
+    <h2>Admin: Quick Search</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        Search permits by address, permit number, or person name.
+    </p>
+    <form action="/" method="GET"
+          style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="text" name="q" placeholder="e.g. 75 Robin Hood Dr, 614 6th Ave, Amy Lee..."
+               required autocomplete="off"
+               style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;flex:1;min-width:250px;">
+        <button type="submit" class="btn-sm">Search</button>
+    </form>
+</div>
+
+<div id="quiz-card"
+     hx-get="/admin/knowledge/quiz?idx=0"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+</div>
+
+<div class="card admin-section">
+    <h2>Admin: Activity</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        {% if activity_stats %}
+        Last 24h: {{ activity_stats.total }} actions
+        {% if activity_stats.by_action %}
+         —
+        {% for action, count in activity_stats.by_action.items() %}
+            {{ count }} {{ action }}{{ ", " if not loop.last else "" }}
+        {% endfor %}
+        {% endif %}
+        {% else %}
+        No activity data yet.
+        {% endif %}
+    </p>
+    <a href="/admin/activity" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">View full activity feed &rarr;</a>
+</div>
+
+<div class="card admin-section">
+    <h2>Admin: Feedback Queue
+        {% if feedback_counts and feedback_counts.get('new', 0) > 0 %}
+        <span style="background:var(--error);color:#fff;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle;">{{ feedback_counts.new }} new</span>
+        {% endif %}
+    </h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        {% if feedback_counts and feedback_counts.total > 0 %}
+        {{ feedback_counts.total }} total:
+        {{ feedback_counts.get('new', 0) }} new,
+        {{ feedback_counts.get('reviewed', 0) }} reviewed,
+        {{ feedback_counts.get('resolved', 0) }} resolved
+        {% else %}
+        No feedback yet.
+        {% endif %}
+    </p>
+    <a href="/admin/feedback" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">Review feedback &rarr;</a>
+</div>
+
+<div class="card admin-section">
+    <h2>Admin: Knowledge Sources</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        Printable inventory of all LUCK (Land Use Consultants Knowledgebase) sources, lifecycle coverage, and gaps.
+    </p>
+    <a href="/admin/sources" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">View source inventory &rarr;</a>
+</div>
+
+<div class="card admin-section">
+    <h2>Admin: Regulatory Watch</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        Track pending legislation and regulatory changes that may affect permits.
+    </p>
+    <a href="/admin/regulatory-watch" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">Manage watch items &rarr;</a>
+</div>
+
+<div class="card admin-section">
+    <h2>Admin: Invite Codes</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        {{ invite_codes | length }} codes configured. Click to copy.
+    </p>
+    {% if invite_codes %}
+    <div style="display:flex;flex-direction:column;gap:6px;">
+        {% for code in invite_codes %}
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                <span style="font-size:0.7rem;color:var(--accent);background:rgba(79,143,247,0.12);padding:2px 8px;border-radius:4px;white-space:nowrap;">{{ code.split('-')[0] }}</span>
+                <code style="font-size:0.85rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ code }}</code>
+            </div>
+            <button onclick="copyCode(this, '{{ code }}')"
+                    style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;white-space:nowrap;margin-left:10px;"
+                    title="Copy to clipboard">
+                📋 Copy
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No invite codes configured. Set INVITE_CODES env var.</p>
+    {% endif %}
+</div>
+
+<div class="card admin-section">
+    <h2>Admin: Send Invite</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
+        Email an invite code to someone. They'll get a link + their code.
+    </p>
+    <form method="POST" action="/admin/send-invite"
+          hx-post="/admin/send-invite"
+          hx-target="#invite-status"
+          hx-swap="innerHTML"
+          style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input type="email" name="to_email" placeholder="recipient@example.com" required
+                   style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;width:220px;">
+            <select name="invite_code" required
+                    style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
+                {% for code in invite_codes %}
+                <option value="{{ code }}">{{ code }}</option>
+                {% endfor %}
+            </select>
+            <select name="cohort" id="invite-cohort"
+                    onchange="updateInviteTemplate(this.value)"
+                    style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
+                <option value="friends">Friends (casual)</option>
+                <option value="testers">Beta Testers</option>
+                <option value="consultants">Land Use Consultants (professional)</option>
+                <option value="custom">Custom</option>
+            </select>
+        </div>
+        <textarea name="message" id="invite-message" placeholder="Personal note (optional)"
+                  rows="3" maxlength="500"
+                  style="width:100%;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.85rem;resize:vertical;font-family:inherit;"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <button type="submit" class="btn-sm">Send Invite</button>
+            <span id="invite-status" style="font-size:0.85rem;"></span>
+        </div>
+    </form>
+</div>
+
+<div class="card admin-section">
+    <h2>Admin: Impersonate User</h2>
+    <form method="POST" action="/auth/impersonate" style="display: flex; gap: 10px; align-items: center;">
+        <input type="email" name="target_email" placeholder="user@example.com" required
+               style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;width:250px;">
+        <button type="submit" class="btn-sm">Impersonate</button>
+    </form>
+</div>
+
+<script>
+function copyCode(btn, code) {
+    navigator.clipboard.writeText(code).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '✓ Copied';
+        btn.style.color = 'var(--success)';
+        btn.style.borderColor = 'var(--success)';
+        setTimeout(function() {
+            btn.innerHTML = orig;
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        }, 1500);
+    });
+}
+
+/* Invite cohort template pre-fill */
+var INVITE_TEMPLATES = {
+    friends: "Hey! I'm building a tool that makes SF permit research way easier. I'd love your feedback on it.",
+    testers: "You're invited to join the sfpermits.ai beta — a comprehensive SF building permit intelligence platform. As a tester, your honest feedback will directly shape the product.",
+    consultants: "I'm inviting you to sfpermits.ai — a professional platform for land use consultants. Monitor 25+ properties, AI-powered plan validation, contractor intelligence, and more. Would love your professional feedback.",
+    custom: ""
+};
+function updateInviteTemplate(cohort) {
+    var el = document.getElementById('invite-message');
+    if (el && INVITE_TEMPLATES[cohort] !== undefined) el.value = INVITE_TEMPLATES[cohort];
+}
+</script>

@@ -3986,6 +3986,64 @@ def account():
 
 
 # ---------------------------------------------------------------------------
+# === SESSION A: Account tab fragments ===
+# ---------------------------------------------------------------------------
+
+@app.route("/account/fragment/settings")
+@login_required
+def account_fragment_settings():
+    """Settings tab fragment — user profile, watches, points, plan analyses."""
+    from web.auth import get_watches
+    from web.activity import get_user_points, get_points_history
+    watches = get_watches(g.user["user_id"])
+    total_points = get_user_points(g.user["user_id"])
+    points_history = get_points_history(g.user["user_id"], limit=10)
+    recent_analyses = []
+    try:
+        from web.plan_jobs import get_user_jobs
+        recent_analyses = get_user_jobs(g.user["user_id"], limit=3)
+    except Exception:
+        pass
+    cal_stats = None
+    try:
+        from web.voice_calibration import get_calibration_stats
+        cal_stats = get_calibration_stats(g.user["user_id"])
+        if cal_stats["total"] == 0:
+            cal_stats = None
+    except Exception:
+        pass
+    return render_template(
+        "fragments/account_settings.html",
+        user=g.user,
+        watches=watches,
+        total_points=total_points,
+        points_history=points_history,
+        recent_analyses=recent_analyses,
+        cal_stats=cal_stats,
+    )
+
+
+@app.route("/account/fragment/admin")
+@login_required
+def account_fragment_admin():
+    """Admin tab fragment — admin-only sections. Returns 403 for non-admin users."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    from web.auth import INVITE_CODES
+    from web.activity import get_activity_stats, get_feedback_counts
+    invite_codes = sorted(INVITE_CODES)
+    activity_stats = get_activity_stats(hours=24)
+    feedback_counts = get_feedback_counts()
+    return render_template(
+        "fragments/account_admin.html",
+        user=g.user,
+        invite_codes=invite_codes,
+        activity_stats=activity_stats,
+        feedback_counts=feedback_counts,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Primary address
 # ---------------------------------------------------------------------------
 

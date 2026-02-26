@@ -227,6 +227,15 @@
             cursor: pointer;
             font-size: 0.9rem;
         }
+        .btn-sm {
+            padding: 8px 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
         .status-badge {
             display: inline-block;
             padding: 2px 8px;
@@ -239,6 +248,27 @@
         .status-pending { background: #4a4a00; color: #fff9c4; }
         .status-failed { background: #b71c1c; color: #ef9a9a; }
         .status-stale { background: #e65100; color: #ffcc80; }
+
+        /* Tab bar (admin only) */
+        .tab-bar { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+        .tab-btn { padding: 7px 16px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); cursor: pointer; font-family: inherit; text-decoration: none; transition: all 0.15s; }
+        .tab-btn:hover { border-color: var(--text-muted); color: var(--text); }
+        .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .tab-btn.loading {
+            color: var(--accent) !important;
+            background: var(--surface-2) !important;
+            border-color: var(--accent) !important;
+            animation: tab-pulse 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes tab-pulse { from { border-color: rgba(79,143,247,0.3); } to { border-color: rgba(79,143,247,1); } }
+        #tab-content { min-height: 200px; }
+        .tab-loading { text-align: center; padding: 60px 0; color: var(--text-muted); font-size: 0.9rem; }
+        .tab-loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Tab panel visibility */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
     </style>
     <link rel="stylesheet" href="/static/mobile.css">
 </head>
@@ -260,482 +290,88 @@
             <h1>My Account</h1>
             <p class="subtitle">{{ user.email }}</p>
 
-            <div class="card">
-                <h2>Profile</h2>
-                <div class="info-row">
-                    <span class="info-label">Email</span>
-                    <span>{{ user.email }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Name</span>
-                    <span>{{ user.display_name or '—' }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Role</span>
-                    <span>{{ user.role or '—' }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Firm</span>
-                    <span>{{ user.firm_name or '—' }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Verified</span>
-                    <span>{{ 'Yes' if user.email_verified else 'No' }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Primary Address</span>
-                    <span id="primary-addr-display">
-                        {% if user.primary_street_number and user.primary_street_name %}
-                        <span style="display:flex;align-items:center;gap:8px;">
-                            {{ user.primary_street_number }} {{ user.primary_street_name }}
-                            <button class="btn-unwatch"
-                                hx-post="/account/primary-address/clear"
-                                hx-target="#primary-addr-display"
-                                hx-swap="innerHTML"
-                                title="Remove primary address">&#10005;</button>
-                        </span>
-                        {% else %}
-                        <span style="color:var(--text-muted);font-style:italic;">Not set &mdash; search for your address to save it</span>
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>Email Preferences</h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
-                    Receive your morning brief by email. Only sent when there's something new.
-                </p>
-                <form method="POST" action="/account/brief-frequency"
-                      hx-post="/account/brief-frequency"
-                      hx-target="#freq-status"
-                      hx-swap="innerHTML"
-                      style="display:flex;align-items:center;gap:12px;">
-                    <select name="brief_frequency" style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
-                        <option value="none" {{ 'selected' if (user.brief_frequency or 'none') == 'none' else '' }}>No emails</option>
-                        <option value="daily" {{ 'selected' if user.brief_frequency == 'daily' else '' }}>Daily brief</option>
-                        <option value="weekly" {{ 'selected' if user.brief_frequency == 'weekly' else '' }}>Weekly brief (Mondays)</option>
-                    </select>
-                    <button type="submit" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;">Save</button>
-                    <span id="freq-status" style="font-size:0.85rem;"></span>
-                </form>
-            </div>
-
-            <!-- Voice & Style Preferences -->
-            <div class="card">
-                <h2>Voice &amp; Style</h2>
-                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:12px;">
-                    Tell me how you want AI responses to sound. These instructions apply to every response I generate for you.
-                </p>
-                <form hx-post="/account/voice-style"
-                      hx-target="#voice-status"
-                      hx-swap="innerHTML"
-                      style="display:flex; flex-direction:column; gap:10px;">
-                    <textarea name="voice_style" rows="4"
-                        placeholder="e.g. Be warm and direct. Use bullet points for action items. Start with a one-line summary. Sign off as 'Amy'. Avoid jargon when talking to homeowners..."
-                        style="width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px; font-family:inherit; font-size:0.9rem; resize:vertical;">{{ user.voice_style or '' }}</textarea>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <button type="submit" style="padding:8px 16px; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">Save Style</button>
-                        <span id="voice-status" style="font-size:0.85rem;"></span>
-                    </div>
-                </form>
-                <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
-                    <a href="/account/voice-calibration"
-                       style="color:var(--accent); text-decoration:none; font-size:0.88rem; font-weight:500;">
-                        Voice Calibration &rarr;
-                    </a>
-                    <span style="color:var(--text-muted); font-size:0.82rem; margin-left:8px;">
-                        {% if cal_stats %}
-                        {{ cal_stats.calibrated }} of {{ cal_stats.total }} scenarios calibrated
-                        {% else %}
-                        Teach me your voice for different situations
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Portfolio Import -->
-            <div class="card">
-                <h2>Import Portfolio</h2>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
-                    Find and watch all your permits automatically by searching the permit database.
-                </p>
-                <form hx-post="/portfolio/discover" hx-target="#discover-results" hx-indicator="#discover-spinner"
-                      style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end;">
-                    <div>
-                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Name</label>
-                        <input type="text" name="name" placeholder="e.g. Amy Lee"
-                               style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; width: 180px;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Firm (optional)</label>
-                        <input type="text" name="firm" placeholder="e.g. 3S LLC"
-                               style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; width: 180px;">
-                    </div>
-                    <button type="submit" class="badge badge-btn"
-                            style="background: var(--accent); color: white; border-color: var(--accent); padding: 8px 16px; font-size: 0.85rem;">
-                        Find My Permits
-                    </button>
-                    <span id="discover-spinner" class="htmx-indicator" style="color: var(--accent); font-size: 0.85rem; margin-left: 8px;">
-                        Searching permits...
-                    </span>
-                </form>
-                <div id="discover-results"></div>
-            </div>
-
-            <div class="card" id="watch-list-card">
-                <h2>Watch List (<span id="watch-count">{{ watches | length }}</span>)</h2>
-
-                {% if watches %}
-                <input type="text" class="watch-search" id="watch-search"
-                       placeholder="Search watched items..." autocomplete="off"
-                       oninput="filterWatches(this.value)">
-
-                <ul class="watch-list" id="watch-list">
-                    {% for w in watches %}
-                    <li class="watch-item" data-search="{{ (w.label or '') | lower }} {{ (w.street_number or '') | lower }} {{ (w.street_name or '') | lower }} {{ (w.permit_number or '') | lower }} {{ (w.neighborhood or '') | lower }} {{ (w.watch_type or '') | lower }} {{ (w.block or '') }}/{{ (w.lot or '') }} {{ (w.tags or '') | lower }}">
-                        <div class="watch-meta">
-                            <span class="watch-label" id="watch-label-{{ w.watch_id }}">
-                                {{ w.label or [w.street_number, w.street_name] | select | join(' ') or w.permit_number or ([w.block, w.lot] | select | join('/')) or w.neighborhood or ('Entity ' ~ w.entity_id) }}
-                            </span>
-                            <span class="watch-type">{{ w.watch_type }}</span>
-                            {% with watch=w %}{% include 'fragments/tag_editor.html' %}{% endwith %}
-                        </div>
-                        <div class="watch-actions">
-                            <button class="btn-edit" title="Edit label"
-                                    onclick="editWatch({{ w.watch_id }}, this)">
-                                &#9998;
-                            </button>
-                            <button class="btn-unwatch"
-                                hx-post="/watch/remove"
-                                hx-target="closest .watch-item"
-                                hx-swap="outerHTML"
-                                hx-vals='{"watch_id": "{{ w.watch_id }}"}'>
-                                &#10005;
-                            </button>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p class="empty">No watched items yet. Search for permits, addresses, or people and click "Watch" to track changes.</p>
-                {% endif %}
-
-                <!-- Add watch form -->
-                <form class="watch-add-form" method="POST" action="/watch/add"
-                      hx-post="/watch/add"
-                      hx-target="#watch-add-status"
-                      hx-swap="innerHTML"
-                      onsubmit="setTimeout(function(){ location.reload(); }, 800);">
-                    <input type="text" name="street_number" placeholder="Street #" style="width:70px;" autocomplete="off">
-                    <input type="text" name="street_name" placeholder="Street name" style="flex:1;min-width:140px;" autocomplete="off">
-                    <input type="hidden" name="watch_type" value="address">
-                    <input type="text" name="label" placeholder="Label (optional)" style="width:140px;" autocomplete="off">
-                    <button type="submit">+ Add Address</button>
-                    <span id="watch-add-status" style="font-size:0.8rem;"></span>
-                </form>
-            </div>
-
-            <div class="card">
-                <h2>Points
-                    <span style="float:right;font-size:1.3rem;color:var(--success);">{{ total_points }}</span>
-                </h2>
-                {% if points_history %}
-                <div style="margin-top:12px;">
-                    {% for entry in points_history %}
-                    <div class="info-row">
-                        <span>
-                            <span style="color:var(--success);font-weight:600;">+{{ entry.points }}</span>
-                            <span style="color:var(--text-muted);font-size:0.85rem;margin-left:8px;">{{ entry.reason_label }}</span>
-                        </span>
-                        <span class="info-label" style="font-size:0.8rem;">
-                            {{ entry.created_at.strftime('%b %d') if entry.created_at else '' }}
-                        </span>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="empty" style="padding:8px 0;">
-                    No points yet. Submit feedback to earn points!
-                </p>
-                {% endif %}
-            </div>
-
-            <div class="card">
-                <h2>Plan Analyses
-                    {% if recent_analyses %}
-                    <span style="float:right;font-size:0.85rem;color:var(--text-muted);font-weight:400;">{{ recent_analyses|length }} recent</span>
-                    {% endif %}
-                </h2>
-                {% if recent_analyses %}
-                <div style="margin-top:12px;">
-                    {% for job in recent_analyses %}
-                    <div class="info-row">
-                        <span>
-                            <span style="font-weight:500;">{{ job.filename }}</span>
-                            <br>
-                            <span style="color:var(--text-muted);font-size:0.8rem;">
-                                {{ job.file_size_mb }} MB
-                                {% if job.property_address %} &middot; {{ job.property_address }}{% endif %}
-                            </span>
-                        </span>
-                        <span style="display:flex;align-items:center;gap:8px;">
-                            <span class="status-badge status-{{ job.status }}">{{ job.status }}</span>
-                            {% if job.status == 'completed' and job.session_id %}
-                            <a href="/plan-jobs/{{ job.job_id }}/results" style="color:var(--accent);text-decoration:none;font-size:0.85rem;">View</a>
-                            {% endif %}
-                        </span>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div style="margin-top:16px;">
-                    <a href="/account/analyses" style="color:var(--accent);text-decoration:none;font-size:0.9rem;">
-                        View all analyses &rarr;
-                    </a>
-                </div>
-                {% else %}
-                <p class="empty">
-                    No plan analyses yet.
-                    <a href="/" style="color:var(--accent);">Upload a plan set</a> to get started.
-                </p>
-                {% endif %}
-            </div>
-
             {% if user.is_admin %}
-            <div class="card admin-section">
-                <h2>Admin: Quick Search</h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
-                    Search permits by address, permit number, or person name.
-                </p>
-                <form action="/" method="GET"
-                      style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                    <input type="text" name="q" placeholder="e.g. 75 Robin Hood Dr, 614 6th Ave, Amy Lee..."
-                           required autocomplete="off"
-                           style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;flex:1;min-width:250px;">
-                    <button type="submit" class="btn-sm">Search</button>
-                </form>
+            <!-- Admin users: tab bar with server-side rendered panels -->
+            <div class="tab-bar" id="tab-bar">
+                <button class="tab-btn active" data-tab="settings"
+                        hx-get="/account/fragment/settings"
+                        hx-target="#tab-content-settings"
+                        hx-swap="innerHTML"
+                        onclick="switchTab('settings')">Settings</button>
+                <button class="tab-btn" data-tab="admin"
+                        hx-get="/account/fragment/admin"
+                        hx-target="#tab-content-admin"
+                        hx-swap="innerHTML"
+                        onclick="switchTab('admin')">Admin</button>
             </div>
-
-            <div id="quiz-card"
-                 hx-get="/admin/knowledge/quiz?idx=0"
-                 hx-trigger="load"
-                 hx-swap="innerHTML">
+            <!-- Settings tab: pre-rendered server-side -->
+            <div id="tab-content-settings" class="tab-panel active">
+                {% include 'fragments/account_settings.html' %}
             </div>
-
-            <div class="card admin-section">
-                <h2>Admin: Activity</h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
-                    {% if activity_stats %}
-                    Last 24h: {{ activity_stats.total }} actions
-                    {% if activity_stats.by_action %}
-                     —
-                    {% for action, count in activity_stats.by_action.items() %}
-                        {{ count }} {{ action }}{{ ", " if not loop.last else "" }}
-                    {% endfor %}
-                    {% endif %}
-                    {% else %}
-                    No activity data yet.
-                    {% endif %}
-                </p>
-                <a href="/admin/activity" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">View full activity feed &rarr;</a>
+            <!-- Admin tab: pre-rendered server-side -->
+            <div id="tab-content-admin" class="tab-panel">
+                {% include 'fragments/account_admin.html' %}
             </div>
-
-            <div class="card admin-section">
-                <h2>Admin: Feedback Queue
-                    {% if feedback_counts and feedback_counts.get('new', 0) > 0 %}
-                    <span style="background:var(--error);color:#fff;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle;">{{ feedback_counts.new }} new</span>
-                    {% endif %}
-                </h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
-                    {% if feedback_counts and feedback_counts.total > 0 %}
-                    {{ feedback_counts.total }} total:
-                    {{ feedback_counts.get('new', 0) }} new,
-                    {{ feedback_counts.get('reviewed', 0) }} reviewed,
-                    {{ feedback_counts.get('resolved', 0) }} resolved
-                    {% else %}
-                    No feedback yet.
-                    {% endif %}
-                </p>
-                <a href="/admin/feedback" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">Review feedback &rarr;</a>
-            </div>
-
-            <div class="card admin-section">
-                <h2>Admin: Knowledge Sources</h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
-                    Printable inventory of all LUCK (Land Use Consultants Knowledgebase) sources, lifecycle coverage, and gaps.
-                </p>
-                <a href="/admin/sources" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">View source inventory &rarr;</a>
-            </div>
-
-            <div class="card admin-section">
-                <h2>Admin: Regulatory Watch</h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
-                    Track pending legislation and regulatory changes that may affect permits.
-                </p>
-                <a href="/admin/regulatory-watch" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">Manage watch items &rarr;</a>
-            </div>
-
-            <div class="card admin-section">
-                <h2>Admin: Invite Codes</h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
-                    {{ invite_codes | length }} codes configured. Click to copy.
-                </p>
-                {% if invite_codes %}
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                    {% for code in invite_codes %}
-                    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;">
-                        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-                            <span style="font-size:0.7rem;color:var(--accent);background:rgba(79,143,247,0.12);padding:2px 8px;border-radius:4px;white-space:nowrap;">{{ code.split('-')[0] }}</span>
-                            <code style="font-size:0.85rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ code }}</code>
-                        </div>
-                        <button onclick="copyCode(this, '{{ code }}')"
-                                style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;white-space:nowrap;margin-left:10px;"
-                                title="Copy to clipboard">
-                            📋 Copy
-                        </button>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p class="empty">No invite codes configured. Set INVITE_CODES env var.</p>
-                {% endif %}
-            </div>
-
-            <div class="card admin-section">
-                <h2>Admin: Send Invite</h2>
-                <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">
-                    Email an invite code to someone. They'll get a link + their code.
-                </p>
-                <form method="POST" action="/admin/send-invite"
-                      hx-post="/admin/send-invite"
-                      hx-target="#invite-status"
-                      hx-swap="innerHTML"
-                      style="display:flex;flex-direction:column;gap:10px;">
-                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                        <input type="email" name="to_email" placeholder="recipient@example.com" required
-                               style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;width:220px;">
-                        <select name="invite_code" required
-                                style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
-                            {% for code in invite_codes %}
-                            <option value="{{ code }}">{{ code }}</option>
-                            {% endfor %}
-                        </select>
-                        <select name="cohort" id="invite-cohort"
-                                onchange="updateInviteTemplate(this.value)"
-                                style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
-                            <option value="friends">Friends (casual)</option>
-                            <option value="testers">Beta Testers</option>
-                            <option value="consultants">Land Use Consultants (professional)</option>
-                            <option value="custom">Custom</option>
-                        </select>
-                    </div>
-                    <textarea name="message" id="invite-message" placeholder="Personal note (optional)"
-                              rows="3" maxlength="500"
-                              style="width:100%;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.85rem;resize:vertical;font-family:inherit;"></textarea>
-                    <div style="display:flex;gap:10px;align-items:center;">
-                        <button type="submit" class="btn-sm">Send Invite</button>
-                        <span id="invite-status" style="font-size:0.85rem;"></span>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card admin-section">
-                <h2>Admin: Impersonate User</h2>
-                <form method="POST" action="/auth/impersonate" style="display: flex; gap: 10px; align-items: center;">
-                    <input type="email" name="target_email" placeholder="user@example.com" required>
-                    <button type="submit" class="btn-sm">Impersonate</button>
-                </form>
-            </div>
+            {% else %}
+            <!-- Non-admin users: settings content rendered directly (no tab bar needed) -->
+            {% include 'fragments/account_settings.html' %}
             {% endif %}
         </div>
     </main>
 
     {% include 'fragments/feedback_widget.html' %}
 
+    {% if user.is_admin %}
     <script>
-    function copyCode(btn, code) {
-        navigator.clipboard.writeText(code).then(function() {
-            var orig = btn.innerHTML;
-            btn.innerHTML = '✓ Copied';
-            btn.style.color = 'var(--success)';
-            btn.style.borderColor = 'var(--success)';
-            setTimeout(function() {
-                btn.innerHTML = orig;
-                btn.style.color = '';
-                btn.style.borderColor = '';
-            }, 1500);
-        });
-    }
+    (function() {
+        var activeTab = 'settings';
 
-    /* Watch list search/filter */
-    function filterWatches(query) {
-        var q = query.toLowerCase().trim();
-        var items = document.querySelectorAll('#watch-list .watch-item');
-        var visible = 0;
-        items.forEach(function(item) {
-            var data = item.getAttribute('data-search') || '';
-            if (!q || data.indexOf(q) !== -1) {
-                item.classList.remove('hidden');
-                visible++;
-            } else {
-                item.classList.add('hidden');
+        // Read hash on load to restore tab state
+        var hash = location.hash.replace('#', '');
+        if (hash === 'settings' || hash === 'admin') {
+            activeTab = hash;
+        }
+
+        function switchTab(tabName) {
+            // Update button states
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.tab === tabName);
+            });
+            // Update panel visibility
+            document.querySelectorAll('.tab-panel').forEach(function(panel) {
+                panel.classList.remove('active');
+            });
+            var panel = document.getElementById('tab-content-' + tabName);
+            if (panel) panel.classList.add('active');
+            // Persist to URL hash
+            history.replaceState(null, '', '#' + tabName);
+            activeTab = tabName;
+        }
+
+        // Make switchTab globally accessible (called from onclick)
+        window.switchTab = switchTab;
+
+        // Restore active tab from hash on page load
+        if (activeTab !== 'settings') {
+            switchTab(activeTab);
+        }
+
+        // After HTMX swaps fragment content, keep the panel visible
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            var d = evt.detail || {};
+            var trigger = d.elt || (d.requestConfig && d.requestConfig.elt) || null;
+            if (trigger && trigger.dataset && trigger.dataset.tab) {
+                var tabName = trigger.dataset.tab;
+                // Ensure the correct panel stays visible after HTMX refresh
+                document.querySelectorAll('.tab-panel').forEach(function(panel) {
+                    panel.classList.remove('active');
+                });
+                var panel = document.getElementById('tab-content-' + tabName);
+                if (panel) panel.classList.add('active');
             }
         });
-        var countEl = document.getElementById('watch-count');
-        if (countEl) countEl.textContent = q ? visible + '/' + items.length : items.length;
-    }
-
-    /* Inline watch label edit */
-    function editWatch(watchId, btn) {
-        var labelEl = document.getElementById('watch-label-' + watchId);
-        if (!labelEl) return;
-        var currentText = labelEl.textContent.trim();
-        var li = btn.closest('.watch-item');
-
-        /* Replace label with input */
-        labelEl.innerHTML = '<input type="text" class="watch-edit-input" value="' +
-            currentText.replace(/"/g, '&quot;') + '" onkeydown="if(event.key===\'Enter\')saveWatch(' +
-            watchId + ',this)" onblur="saveWatch(' + watchId + ',this)">';
-        var input = labelEl.querySelector('input');
-        input.focus();
-        input.select();
-    }
-
-    /* Invite cohort template pre-fill */
-    var INVITE_TEMPLATES = {
-        friends: "Hey! I'm building a tool that makes SF permit research way easier. I'd love your feedback on it.",
-        testers: "You're invited to join the sfpermits.ai beta — a comprehensive SF building permit intelligence platform. As a tester, your honest feedback will directly shape the product.",
-        consultants: "I'm inviting you to sfpermits.ai — a professional platform for land use consultants. Monitor 25+ properties, AI-powered plan validation, contractor intelligence, and more. Would love your professional feedback.",
-        custom: ""
-    };
-    function updateInviteTemplate(cohort) {
-        var el = document.getElementById('invite-message');
-        if (el && INVITE_TEMPLATES[cohort] !== undefined) el.value = INVITE_TEMPLATES[cohort];
-    }
-
-    function saveWatch(watchId, input) {
-        var label = input.value.trim();
-        if (!label) {
-            /* Revert on empty */
-            location.reload();
-            return;
-        }
-        var formData = new FormData();
-        formData.append('watch_id', watchId);
-        formData.append('label', label);
-        fetch('/watch/edit', { method: 'POST', body: formData })
-            .then(function(resp) { return resp.text(); })
-            .then(function(html) {
-                var labelEl = document.getElementById('watch-label-' + watchId);
-                if (labelEl) labelEl.innerHTML = label;
-                /* Update search data */
-                var li = labelEl.closest('.watch-item');
-                if (li) {
-                    var old = li.getAttribute('data-search') || '';
-                    li.setAttribute('data-search', label.toLowerCase() + ' ' + old);
-                }
-            });
-    }
+    })();
     </script>
+    {% endif %}
 </body>
 </html>
