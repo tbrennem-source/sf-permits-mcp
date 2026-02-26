@@ -1520,7 +1520,7 @@ _Last reviewed: never_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-<!-- Visual QA Pipeline Phase 1 session: 4 scenarios added on 2026-02-25 -->
+<!-- Visual QA Pipeline Phase 1 session: 4 scenarios added on 2026-02-25 (CHECKCHAT close) -->
 
 ## SUGGESTED SCENARIO: Visual regression catches unintended CSS change
 **Source:** scripts/visual_qa.py — compare_screenshots()
