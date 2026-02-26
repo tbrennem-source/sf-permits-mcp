@@ -155,15 +155,43 @@ def inject_environment():
 # ---------------------------------------------------------------------------
 # Startup migrations (idempotent, run once per deploy)
 # ---------------------------------------------------------------------------
+
+# Tables that _run_startup_migrations creates. Used for post-migration
+# verification and /health expected-tables check.
+EXPECTED_TABLES = [
+    "users", "auth_tokens", "watch_items", "permit_changes", "activity_log",
+    "feedback", "points_ledger", "addenda_changes", "regulatory_watch",
+    "cron_log", "beta_requests", "projects", "project_members",
+    "voice_calibrations", "plan_analysis_sessions", "plan_analysis_images",
+    "plan_analysis_jobs", "project_notes", "analysis_sessions",
+]
+
+
 def _run_startup_migrations():
-    """Run any pending schema migrations on startup. Idempotent."""
+    """Run any pending schema migrations on startup. Idempotent.
+
+    Uses pg_advisory_lock to serialize across gunicorn workers — only one
+    worker runs DDL at a time, preventing deadlocks on new table creation.
+    """
     from src.db import BACKEND, get_connection
     if BACKEND != "postgres":
         return  # DuckDB schema is managed by init_user_schema
+    logger = logging.getLogger(__name__)
     try:
         conn = get_connection()
         conn.autocommit = True
         cur = conn.cursor()
+
+        # Serialize migrations across workers. advisory_lock key 20260226
+        # is arbitrary but stable. pg_try_advisory_lock returns immediately:
+        # True if we got the lock, False if another worker already holds it.
+        cur.execute("SELECT pg_try_advisory_lock(20260226)")
+        got_lock = cur.fetchone()[0]
+        if not got_lock:
+            logger.info("Another worker is running migrations — skipping")
+            cur.close()
+            conn.close()
+            return
 
         # Kill zombie transactions (e.g. from timed-out /cron/migrate calls)
         # that hold locks and block DDL. Only targets idle-in-transaction
@@ -677,11 +705,34 @@ def _run_startup_migrations():
                     "Auto-seeded admin user: %s", admin_email
                 )
 
+        # Release advisory lock so other workers don't wait forever
+        cur.execute("SELECT pg_advisory_unlock(20260226)")
+
+        # Verify critical tables exist (catch silent DDL failures)
+        cur.execute("""
+            SELECT tablename FROM pg_tables
+            WHERE schemaname = 'public' AND tablename = ANY(%s)
+        """, (EXPECTED_TABLES,))
+        found = {row[0] for row in cur.fetchall()}
+        missing = set(EXPECTED_TABLES) - found
+        if missing:
+            logger.error(
+                "MIGRATION INCOMPLETE — missing tables: %s", sorted(missing)
+            )
+        else:
+            logger.info("Startup migrations complete — all %d expected tables verified", len(EXPECTED_TABLES))
+
         cur.close()
         conn.close()
-        logging.getLogger(__name__).info("Startup migrations complete")
     except Exception as e:
-        logging.getLogger(__name__).warning("Startup migration failed (non-fatal): %s", e)
+        logger.error("Startup migration FAILED: %s", e)
+        # Release advisory lock even on failure
+        try:
+            cur.execute("SELECT pg_advisory_unlock(20260226)")
+            cur.close()
+            conn.close()
+        except Exception:
+            pass
 
 
 if os.environ.get("RUN_MIGRATIONS_ON_STARTUP", "").lower() in ("1", "true", "yes"):
@@ -1097,6 +1148,13 @@ def health():
                     ).fetchone()[0]
             info["db_connected"] = True
             info["table_count"] = len(info["tables"])
+
+            # Check for missing expected tables (catches silent migration failures)
+            found_tables = set(info["tables"].keys())
+            missing = sorted(set(EXPECTED_TABLES) - found_tables)
+            if missing:
+                info["missing_expected_tables"] = missing
+                info["status"] = "degraded"
         finally:
             conn.close()
     except Exception as e:
