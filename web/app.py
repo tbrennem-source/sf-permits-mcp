@@ -831,6 +831,8 @@ def _load_user():
 @app.before_request
 def _daily_limit_check():
     """Enforce daily request limits (authenticated: 200, anon: 50)."""
+    if app.config.get("TESTING"):
+        return
     path = request.path
     # Exempt: static files, health, cron, client tracking, auth
     if (path.startswith("/static") or path == "/health" or
