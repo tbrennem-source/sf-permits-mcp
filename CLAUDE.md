@@ -400,7 +400,49 @@ Both stages always end with CHECKCHAT. QA is not optional. Scenarios are not opt
 
 ## Swarm Orchestration Rules
 
-This project uses multi-agent swarm builds. When a swarm orchestrator command is invoked, follow these rules:
+This project uses multi-agent swarm builds. **The default execution model is a single orchestrator CC session (Opus) spawning parallel build agents via the Task tool.** Do not use separate CC terminals for parallel work — use one orchestrator that spawns, collects, merges, and pushes.
+
+### Execution Model: Task Tool Swarming
+
+**This is the standard. Every quad sprint uses this pattern.**
+
+```
+CC0 (Opus orchestrator)
+├── Pre-flight: git pull, verify prod state
+├── Spawn Agent A ──► Task(subagent_type="general-purpose", model="sonnet", isolation="worktree")
+├── Spawn Agent B ──► Task(subagent_type="general-purpose", model="sonnet", isolation="worktree")
+├── Spawn Agent C ──► Task(subagent_type="general-purpose", model="sonnet", isolation="worktree")
+├── Spawn Agent D ──► Task(subagent_type="general-purpose", model="sonnet", isolation="worktree")
+│   (all 4 run in parallel)
+├── Collect results from all agents
+├── Merge worktree branches in dependency order
+├── Single test run (Fast Merge Protocol)
+├── Push to main
+└── Report summary table
+```
+
+**Key parameters for each Task call:**
+- `subagent_type: "general-purpose"` — full tool access including Bash, Read, Write, Edit, Grep, Glob
+- `model: "sonnet"` — build agents use Sonnet for execution speed
+- `isolation: "worktree"` — each agent gets an isolated git worktree copy of the repo
+- `prompt:` — self-contained build instructions (agent rules, read list, tasks, test/QA/scenarios/ship)
+
+**Agent prompts must include this preamble:**
+```
+You are ALREADY in a git worktree. Do NOT use EnterWorktree. Do NOT run git checkout main.
+Your working directory is your isolated worktree copy of the repo.
+```
+
+**Agents commit to their worktree branch. The orchestrator merges all branches to main after collecting results.** Agents must NEVER merge to main themselves.
+
+### Swarm Sprint Prompt Structure
+
+Every swarm sprint has TWO prompt types:
+
+1. **`sprint-prompts/qsN-swarm.md`** — The master orchestrator prompt. CC0 reads this, executes pre-flight, spawns agents, merges, tests, pushes. This is what Tim pastes into CC.
+2. **`sprint-prompts/qsN-X-*.md`** — Per-agent prompts for manual/fallback use. Same content but with Session Bootstrap for standalone execution.
+
+The swarm prompt contains the full agent instructions inline (not file references) so each Task call is self-contained.
 
 ### QA Protocol Naming
 
@@ -410,27 +452,9 @@ This project uses multi-agent swarm builds. When a swarm orchestrator command is
 
 ### Domain Parallel Patterns
 
-Spawn parallel subagents when work spans independent file domains:
-
-| Domain | Agent | Files Owned |
-|--------|-------|-------------|
-| Auth/Environment | session-a-* | web/auth.py, tests/e2e/ |
-| Cost/Rate Limiting | session-b-* | web/cost_tracking.py, templates/admin_costs.html |
-| Pipeline/Cron | session-c-* | web/pipeline_health.py, scripts/nightly_changes.py |
-| CSS/Migrations | session-d-* | static/, tests/e2e/test_mobile.py, scripts/run_prod_migrations.py |
+Spawn parallel subagents when work spans independent file domains. File ownership tables go in both the swarm prompt and per-agent prompts.
 
 **Critical rule:** Parallel agents ONLY work when they touch different files. The orchestrator validates file ownership after completion.
-
-### Session Bootstrap (MANDATORY for all sprint prompts)
-
-Every sprint prompt MUST include a Session Bootstrap preamble that handles both fresh launches and session reuse:
-```
-## SETUP — Session Bootstrap
-1. cd /Users/timbrenneman/AIprojects/sf-permits-mcp  # escape any old worktree
-2. git checkout main && git pull origin main          # get latest code
-3. EnterWorktree with name `sprint-NN-agent`          # create fresh worktree
-```
-This allows agents to be pasted into CC sessions reused from previous sprints. Without it, sessions whose CWD is a deleted worktree are permanently broken.
 
 ### Pre-Flight: Codebase Audit
 
@@ -454,12 +478,25 @@ Merge order follows the dependency graph: infrastructure first, features second,
 
 - Orchestrator: Opus (strategic reasoning, conflict resolution)
 - Build agents: Sonnet (execution, code generation, testing)
-- Set via: `CLAUDE_CODE_SUBAGENT_MODEL=claude-sonnet-4-5-20250929`
+- Routing is handled by `model: "sonnet"` parameter in Task calls. No env var needed.
 
-### Black Box Protocol (v1.2)
+### Session Bootstrap (fallback for manual per-agent prompts)
+
+Only needed in the per-agent `qsN-X-*.md` files (not the swarm prompt). Handles paste-into-CC-terminal use:
+```
+## SETUP — Session Bootstrap
+1. cd /Users/timbrenneman/AIprojects/sf-permits-mcp  # escape any old worktree
+2. git checkout main && git pull origin main          # get latest code
+3. EnterWorktree with name `sprint-NN-agent`          # create fresh worktree
+```
+
+### Black Box Protocol (v1.3)
 
 **Stage 1 — termCC (Terminal Claude Code):**
-Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → VISUAL REVIEW → CHECKCHAT
+
+For swarm sprints, the orchestrator (CC0) spawns all build agents in parallel via Task tool. Each agent independently follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → VISUAL REVIEW → CHECKCHAT
+
+After all agents complete, the orchestrator: MERGE → SINGLE TEST RUN → PUSH → CONSOLIDATE ARTIFACTS → REPORT.
 
 **Visual Review (Phase 6.5):** After Playwright screenshots, run automated visual scoring. Use `scripts/visual_qa.py` (preferred) or send screenshots to Claude Vision. Score each page 1-5. ≥3.0 = PASS. ≤2.0 = escalate to DeskRelay. This is standard, not optional.
 

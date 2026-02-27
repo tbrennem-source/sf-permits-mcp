@@ -1,8 +1,8 @@
 # BLACKBOX_PROTOCOL.md — Autonomous Build Session Protocol
 
 **Owner:** dforge
-**Version:** 1.2
-**Last Updated:** 2026-02-25
+**Version:** 1.3
+**Last Updated:** 2026-02-26
 
 ---
 
@@ -25,9 +25,44 @@ CC must read this file at session start. If this file is not present, CC must st
 
 Every Black Box session has exactly two stages. Both are mandatory. Neither can be skipped.
 
+### Swarm Execution (MANDATORY for multi-agent sprints)
+
+**When a sprint has 2+ parallel agents, the orchestrator MUST use the Task tool to spawn them from a single CC session.** Do not use separate CC terminals. This is the core throughput mechanism.
+
+```
+CC0 (Opus orchestrator) — single session
+├── Pre-flight: git pull, verify prod state, read manifest
+├── Spawn ALL agents IN PARALLEL via Task tool:
+│   Task(subagent_type="general-purpose", model="sonnet", isolation="worktree", prompt="...")
+│   (each agent gets an isolated worktree, runs Stage 1 independently)
+├── Collect results from all agents
+├── Merge worktree branches in dependency order (Fast Merge Protocol)
+├── Single test run after ALL merges (not between each)
+├── Push to main
+├── Stateful Deployment Protocol (if schema/ingest changes)
+├── Generate DeskRelay prompt
+└── Report summary table
+```
+
+**Task parameters for each agent:**
+- `subagent_type: "general-purpose"` — full tool access
+- `model: "sonnet"` — build agents use Sonnet
+- `isolation: "worktree"` — isolated git worktree per agent
+- `prompt:` — self-contained instructions (must NOT reference external files; inline everything)
+
+**Every agent prompt must start with:**
+```
+You are ALREADY in a git worktree. Do NOT use EnterWorktree. Do NOT run git checkout main.
+Your working directory is your isolated worktree copy of the repo.
+```
+
+**Agents commit to their worktree branch. The orchestrator merges to main. Agents NEVER merge themselves.**
+
+For single-agent sessions, the regular single-terminal flow applies (no Task tool needed).
+
 ### Stage 1: termCC (Terminal Claude Code)
 
-Runs in terminal. Builds code, runs tests, generates QA artifacts.
+Runs in terminal. For swarm sprints, each agent is a Task subagent running in parallel. For single-agent sessions, runs directly.
 
 **Phase order is fixed. Do not reorder. Do not skip phases.**
 
@@ -553,6 +588,7 @@ chief_project_slug: sf-permits-mcp
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-02-26 | v1.3 — Task Tool Swarming as default execution model | QS5 pre-sprint: multi-agent sprints must use Task tool with isolation:worktree to spawn parallel agents from a single CC session, not separate terminals. Baked into Session Structure as mandatory. |
 | 2026-02-25 | v1.2 — Stateful Deployment Protocol | Sprint 55 post-mortem: 5 bugs escaped to staging because protocol assumed deploy = ready. New section handles schema gates, auth smoke tests, staged ingest runbooks, and fix-redeploy loops. |
 | 2026-02-25 | v1.1 — Single DeskRelay file for all topologies | Sequential steps (staging → promote → prod) belong in one file. Two-branch no longer generates 2 separate files. |
 | 2026-02-25 | v1.0 — Initial protocol | Sprint 54 post-mortem: CC skipped staging verification, generated single DeskRelay for two-branch topology, wrote prod URLs from memory instead of manifest |
