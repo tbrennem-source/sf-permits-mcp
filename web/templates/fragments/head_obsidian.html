@@ -1,0 +1,30 @@
+{# Obsidian Intelligence shared head — include in all migrated templates
+   Usage: {% include "fragments/head_obsidian.html" %}
+   Provides: Google Fonts, PWA meta, design-system.css link, legacy alias vars #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/design-system.css">
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/mobile.css">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#22D3EE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<style nonce="{{ csp_nonce }}">
+    /* Legacy alias vars — so fragments/nav.html keeps working */
+    :root {
+        --bg: var(--bg-deep);
+        --surface: var(--bg-surface);
+        --surface-2: var(--bg-elevated);
+        --border: rgba(255,255,255, 0.06);
+        --text: var(--text-primary);
+        --text-muted: var(--text-secondary);
+        --accent: var(--signal-cyan);
+        --accent-hover: #1ab8d1;
+        --success: var(--signal-green);
+        --warning: var(--signal-amber);
+        --error: var(--signal-red);
+    }
+</style>

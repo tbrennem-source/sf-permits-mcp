@@ -255,20 +255,27 @@ class TestIndexTemplate:
                 pass
 
     def test_index_html_file_has_manifest(self):
-        """Raw index.html file contains manifest link tag."""
-        path = os.path.join(os.path.dirname(__file__), "..", "web", "templates", "index.html")
-        with open(path) as f:
-            content = f.read()
-        assert 'rel="manifest"' in content
-        assert '/static/manifest.json' in content
+        """index.html (or its included head fragment) contains manifest link tag."""
+        tpl_dir = os.path.join(os.path.dirname(__file__), "..", "web", "templates")
+        with open(os.path.join(tpl_dir, "index.html")) as f:
+            index_content = f.read()
+        # Manifest may be in shared fragment included via head_obsidian.html
+        frag_path = os.path.join(tpl_dir, "fragments", "head_obsidian.html")
+        frag_content = open(frag_path).read() if os.path.isfile(frag_path) else ""
+        combined = index_content + frag_content
+        assert 'rel="manifest"' in combined
+        assert '/static/manifest.json' in combined
 
     def test_index_html_file_has_theme_color(self):
-        """Raw index.html file contains theme-color meta tag."""
-        path = os.path.join(os.path.dirname(__file__), "..", "web", "templates", "index.html")
-        with open(path) as f:
-            content = f.read()
-        assert 'name="theme-color"' in content
-        assert '#22D3EE' in content
+        """index.html (or its included head fragment) contains theme-color meta tag."""
+        tpl_dir = os.path.join(os.path.dirname(__file__), "..", "web", "templates")
+        with open(os.path.join(tpl_dir, "index.html")) as f:
+            index_content = f.read()
+        frag_path = os.path.join(tpl_dir, "fragments", "head_obsidian.html")
+        frag_content = open(frag_path).read() if os.path.isfile(frag_path) else ""
+        combined = index_content + frag_content
+        assert 'name="theme-color"' in combined
+        assert '#22D3EE' in combined
 
 
 # ---------------------------------------------------------------------------
