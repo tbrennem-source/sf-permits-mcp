@@ -1,91 +1,243 @@
-<!-- Feedback FAB + modal -->
-<div id="feedback-fab" onclick="document.getElementById('feedback-modal').style.display='flex'"
-     style="position:fixed;bottom:24px;right:24px;background:var(--accent, #4f8ff7);color:#fff;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.3);font-size:1.2rem;z-index:1000;"
-     title="Send feedback">
-    💬
-</div>
+<!-- Feedback FAB + modal — migrated to Obsidian token components -->
+<!-- Uses: action-btn, form-input, chip, modal-backdrop, modal, ghost-cta, toast via toast.js -->
 
-<!-- Capture overlay (shown while html2canvas renders, instead of leaving user staring at bare page) -->
-<div id="feedback-capture-overlay"
-     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1002;align-items:center;justify-content:center;">
-    <div style="text-align:center;color:var(--text, #e4e6eb);">
-        <div style="font-size:2rem;margin-bottom:12px;">📸</div>
-        <div style="font-size:0.95rem;">Capturing page screenshot...</div>
+<!-- FAB trigger -->
+<button id="feedback-fab"
+        onclick="document.getElementById('feedback-modal-backdrop').style.display='flex'"
+        class="feedback-fab"
+        title="Send feedback"
+        aria-label="Send feedback">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</button>
+
+<!-- Capture overlay -->
+<div id="feedback-capture-overlay" class="feedback-capture-overlay">
+    <div style="text-align:center;">
+        <div class="feedback-capture-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+        <div style="font-family:var(--sans);color:var(--text-secondary);">Capturing page screenshot&hellip;</div>
     </div>
 </div>
 
-<div id="feedback-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1001;align-items:center;justify-content:center;">
-    <div style="background:var(--surface, #1a1d27);border:1px solid var(--border, #333749);border-radius:12px;padding:24px;max-width:440px;width:90%;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-            <h3 style="font-size:1.1rem;margin:0;color:var(--text, #e4e6eb);">Send Feedback</h3>
-            <button onclick="document.getElementById('feedback-modal').style.display='none'"
-                    style="background:none;border:none;color:var(--text-muted, #8b8fa3);font-size:1.2rem;cursor:pointer;">&times;</button>
+<!-- Modal backdrop -->
+<div id="feedback-modal-backdrop" class="modal-backdrop" style="display:none;">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
+
+        <div class="modal__header">
+            <h3 class="modal__title" id="feedback-modal-title">Send Feedback</h3>
+            <button class="modal__close"
+                    onclick="document.getElementById('feedback-modal-backdrop').style.display='none'"
+                    aria-label="Close">&times;</button>
         </div>
-        <form id="feedback-form" hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <input type="hidden" name="page_url" class="feedback-page-url">
-            <input type="hidden" name="screenshot_data" id="feedback-screenshot-data">
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-                <label class="fb-type-label" style="flex:1;text-align:center;padding:8px;border:1px solid var(--border, #333749);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text, #e4e6eb);">
-                    <input type="radio" name="feedback_type" value="bug" style="display:none;">
-                    🐛 Bug
-                </label>
-                <label class="fb-type-label" style="flex:1;text-align:center;padding:8px;border:1px solid var(--accent, #4f8ff7);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text, #e4e6eb);background:rgba(79,143,247,0.1);">
-                    <input type="radio" name="feedback_type" value="suggestion" checked style="display:none;">
-                    💡 Suggestion
-                </label>
-                <label class="fb-type-label" style="flex:1;text-align:center;padding:8px;border:1px solid var(--border, #333749);border-radius:6px;cursor:pointer;font-size:0.85rem;color:var(--text, #e4e6eb);">
-                    <input type="radio" name="feedback_type" value="question" style="display:none;">
-                    ❓ Question
-                </label>
-            </div>
-            <textarea name="message" rows="4" placeholder="What's on your mind?"
-                      style="width:100%;padding:10px;background:var(--surface-2, #252834);border:1px solid var(--border, #333749);border-radius:6px;color:var(--text, #e4e6eb);font-size:0.9rem;resize:vertical;font-family:inherit;"
-                      required minlength="3"></textarea>
-            <!-- Screenshot capture / upload -->
-            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <button type="button" id="capture-screenshot-btn"
-                        onclick="fbCaptureScreenshot()"
-                        style="padding:4px 10px;background:var(--surface-2, #252834);border:1px solid var(--border, #333749);border-radius:6px;color:var(--text-muted, #8b8fa3);cursor:pointer;font-size:0.8rem;">
-                    📸 Capture Page
-                </button>
-                <label style="padding:4px 10px;background:var(--surface-2, #252834);border:1px solid var(--border, #333749);border-radius:6px;color:var(--text-muted, #8b8fa3);cursor:pointer;font-size:0.8rem;">
-                    📎 Upload Image
-                    <input type="file" accept="image/*" onchange="fbHandleFileUpload(this)" style="display:none;">
-                </label>
-                <span id="screenshot-status" style="font-size:0.75rem;color:var(--text-muted, #8b8fa3);"></span>
-            </div>
-            <div id="screenshot-preview" style="display:none;margin-top:8px;position:relative;">
-                <img id="screenshot-thumb" style="max-width:100%;max-height:120px;border-radius:6px;border:1px solid var(--border, #333749);">
-                <button type="button" onclick="fbClearScreenshot()"
-                        style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border:none;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:0.7rem;line-height:20px;text-align:center;">
-                    &times;
-                </button>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-                <span id="feedback-result" style="font-size:0.85rem;"></span>
-                <button type="submit" style="padding:8px 20px;background:var(--accent, #4f8ff7);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.9rem;">Send</button>
-            </div>
-        </form>
+
+        <div class="modal__body">
+            <form id="feedback-form" hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="page_url" class="feedback-page-url">
+                <input type="hidden" name="screenshot_data" id="feedback-screenshot-data">
+
+                <!-- Feedback type chips -->
+                <div style="display:flex;gap:8px;margin-bottom:var(--space-4);">
+                    <label class="fb-chip-label" style="flex:1;text-align:center;cursor:pointer;">
+                        <input type="radio" name="feedback_type" value="bug" style="display:none;">
+                        <span class="chip fb-chip" style="display:block;padding:8px;cursor:pointer;">Bug</span>
+                    </label>
+                    <label class="fb-chip-label" style="flex:1;text-align:center;cursor:pointer;">
+                        <input type="radio" name="feedback_type" value="suggestion" checked style="display:none;">
+                        <span class="chip fb-chip fb-chip--active" style="display:block;padding:8px;cursor:pointer;">Suggestion</span>
+                    </label>
+                    <label class="fb-chip-label" style="flex:1;text-align:center;cursor:pointer;">
+                        <input type="radio" name="feedback_type" value="question" style="display:none;">
+                        <span class="chip fb-chip" style="display:block;padding:8px;cursor:pointer;">Question</span>
+                    </label>
+                </div>
+
+                <!-- Message -->
+                <textarea name="message" rows="4" class="form-input"
+                          placeholder="What's on your mind?"
+                          required minlength="3"
+                          style="resize:vertical;font-family:var(--mono);"></textarea>
+
+                <!-- Screenshot actions -->
+                <div style="margin-top:var(--space-2);display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <button type="button" id="capture-screenshot-btn"
+                            class="action-btn"
+                            onclick="fbCaptureScreenshot()"
+                            style="width:auto;padding:4px 10px;font-size:var(--text-xs);">
+                        Capture Page
+                    </button>
+                    <label class="action-btn" style="width:auto;padding:4px 10px;font-size:var(--text-xs);cursor:pointer;">
+                        Upload Image
+                        <input type="file" accept="image/*" onchange="fbHandleFileUpload(this)" style="display:none;">
+                    </label>
+                    <span id="screenshot-status" style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);"></span>
+                </div>
+
+                <div id="screenshot-preview" style="display:none;margin-top:var(--space-2);position:relative;">
+                    <img id="screenshot-thumb" style="max-width:100%;max-height:120px;border-radius:var(--radius-sm);border:1px solid var(--glass-border);">
+                    <button type="button" onclick="fbClearScreenshot()"
+                            class="screenshot-clear-btn"
+                            aria-label="Remove screenshot">
+                        &times;
+                    </button>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-3);">
+                    <span id="feedback-result" style="font-family:var(--sans);font-size:var(--text-xs);color:var(--text-secondary);"></span>
+                    <button type="submit" class="action-btn" style="width:auto;">Send &rarr;</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+<style nonce="{{ csp_nonce }}">
+/* FAB */
+.feedback-fab {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 44px; height: 44px; border-radius: var(--radius-full);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 1000;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    transition: border-color 0.3s, color 0.3s;
+}
+.feedback-fab:hover { border-color: var(--glass-hover); color: var(--accent); }
+
+/* Capture overlay */
+.feedback-capture-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.70); z-index: 1002;
+    align-items: center; justify-content: center;
+}
+.feedback-capture-icon { font-size: var(--text-xl); margin-bottom: var(--space-3); }
+
+/* Screenshot clear */
+.screenshot-clear-btn {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(0, 0, 0, 0.70); border: none;
+    color: var(--text-primary); border-radius: var(--radius-full);
+    width: 20px; height: 20px; cursor: pointer; font-size: var(--text-xs);
+    line-height: 20px; text-align: center;
+}
+
+/* Modal token component (DESIGN_TOKENS.md §5) */
+.modal-backdrop {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(0, 0, 0, 0.60);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    animation: backdrop-in 0.2s ease-out;
+}
+@keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    max-width: 440px; width: calc(100vw - 32px);
+    max-height: calc(100vh - 64px); overflow-y: auto;
+    animation: modal-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modal-fade-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.modal__header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--space-6) var(--space-6) 0;
+}
+.modal__title {
+    font-family: var(--sans); font-size: var(--text-lg); font-weight: 400;
+    color: var(--text-primary); margin: 0;
+}
+.modal__close {
+    background: none; border: none; color: var(--text-secondary);
+    font-size: 20px; cursor: pointer; padding: 0; transition: color 0.2s;
+}
+.modal__close:hover { color: var(--text-primary); }
+.modal__body {
+    padding: var(--space-4) var(--space-6) var(--space-6);
+    font-family: var(--sans); font-size: var(--text-sm);
+    color: var(--text-secondary); line-height: 1.5;
+}
+
+/* Chip token */
+.chip {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-secondary); background: var(--glass);
+    border: 1px solid var(--glass-border); padding: 1px 7px;
+    border-radius: 3px; white-space: nowrap;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.fb-chip--active {
+    border-color: var(--accent-ring);
+    color: var(--accent);
+    background: var(--accent-glow);
+}
+
+/* form-input token */
+.form-input {
+    width: 100%; padding: 10px 14px;
+    font-family: var(--mono); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-primary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    outline: none; transition: border-color 0.3s, box-shadow 0.3s;
+}
+.form-input:focus {
+    border-color: var(--accent-ring);
+    box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.1);
+}
+.form-input::placeholder { color: var(--text-tertiary); }
+
+/* action-btn token */
+.action-btn {
+    font-family: var(--mono); font-size: var(--text-sm); font-weight: 400;
+    color: var(--text-secondary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    padding: 8px 16px; cursor: pointer;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.action-btn:hover {
+    border-color: var(--glass-hover); color: var(--text-primary);
+    background: var(--obsidian-light);
+}
+
+@media (max-width: 768px) {
+    .modal-backdrop { align-items: flex-end; }
+    .modal {
+        max-width: 100%; width: 100%;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-height: 85vh;
+        animation: modal-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modal-slide-up {
+        from { transform: translateY(100%); }
+        to   { transform: translateY(0); }
+    }
+    .modal::before {
+        content: ''; display: block; width: 32px; height: 4px;
+        background: var(--glass-hover); border-radius: 2px;
+        margin: var(--space-3) auto 0;
+    }
+}
+</style>
 
 <script nonce="{{ csp_nonce }}">
 (function() {
     // Set page URL
     var urlInputs = document.querySelectorAll('.feedback-page-url');
     urlInputs.forEach(function(el) { el.value = window.location.href; });
-    // Radio visual toggle
-    document.querySelectorAll('.fb-type-label input[type=radio]').forEach(function(r) {
-        r.addEventListener('change', function() {
-            document.querySelectorAll('.fb-type-label').forEach(function(l) {
-                l.style.borderColor = 'var(--border, #333749)';
-                l.style.background = 'transparent';
+
+    // Chip radio visual toggle
+    document.querySelectorAll('.fb-chip-label').forEach(function(label) {
+        var radio = label.querySelector('input[type=radio]');
+        var chip = label.querySelector('.fb-chip');
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.fb-chip').forEach(function(c) {
+                c.classList.remove('fb-chip--active');
             });
-            if (r.checked) {
-                r.parentElement.style.borderColor = 'var(--accent, #4f8ff7)';
-                r.parentElement.style.background = 'rgba(79,143,247,0.1)';
-            }
+            if (radio.checked) { chip.classList.add('fb-chip--active'); }
         });
     });
 
@@ -93,48 +245,52 @@
     document.body.addEventListener('htmx:afterRequest', function(evt) {
         if (evt.detail.pathInfo && evt.detail.pathInfo.requestPath === '/feedback/submit'
             && evt.detail.successful) {
-            // Delay reset so user sees the "Thanks!" message briefly
             setTimeout(function() {
                 var form = document.getElementById('feedback-form');
                 if (form) {
                     form.querySelector('textarea[name="message"]').value = '';
                     fbClearScreenshot();
-                    // Reset radio to "suggestion"
                     var sugRadio = form.querySelector('input[value="suggestion"]');
-                    if (sugRadio) {
-                        sugRadio.checked = true;
-                        sugRadio.dispatchEvent(new Event('change'));
-                    }
+                    if (sugRadio) { sugRadio.checked = true; sugRadio.dispatchEvent(new Event('change')); }
+                }
+                if (typeof showToast === 'function') {
+                    showToast('Feedback sent \u2014 thanks!', { type: 'success' });
                 }
             }, 2000);
-            // Auto-close modal after a short pause
             setTimeout(function() {
-                document.getElementById('feedback-modal').style.display = 'none';
+                document.getElementById('feedback-modal-backdrop').style.display = 'none';
                 document.getElementById('feedback-result').textContent = '';
             }, 3000);
         }
     });
+
+    // Close on backdrop click
+    document.getElementById('feedback-modal-backdrop').addEventListener('click', function(e) {
+        if (e.target === this) { this.style.display = 'none'; }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var backdrop = document.getElementById('feedback-modal-backdrop');
+            if (backdrop && backdrop.style.display === 'flex') { backdrop.style.display = 'none'; }
+        }
+    });
 })();
 
-var FB_MAX_BYTES = 5 * 1024 * 1024; // 5MB base64 limit
+var FB_MAX_BYTES = 5 * 1024 * 1024;
 var _html2canvasLoaded = false;
 
 function _loadHtml2Canvas(callback) {
-    if (_html2canvasLoaded && window.html2canvas) {
-        callback();
-        return;
-    }
+    if (_html2canvasLoaded && window.html2canvas) { callback(); return; }
     var script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
     script.crossOrigin = 'anonymous';
-    script.onload = function() {
-        _html2canvasLoaded = true;
-        callback();
-    };
+    script.onload = function() { _html2canvasLoaded = true; callback(); };
     script.onerror = function() {
         var status = document.getElementById('screenshot-status');
         status.textContent = 'Failed to load capture library. Try uploading instead.';
-        status.style.color = 'var(--error, #f87171)';
+        status.style.color = 'var(--signal-red)';
         document.getElementById('capture-screenshot-btn').disabled = false;
     };
     document.head.appendChild(script);
@@ -143,49 +299,40 @@ function _loadHtml2Canvas(callback) {
 function fbCaptureScreenshot() {
     var btn = document.getElementById('capture-screenshot-btn');
     var status = document.getElementById('screenshot-status');
-    var modal = document.getElementById('feedback-modal');
+    var backdrop = document.getElementById('feedback-modal-backdrop');
     var overlay = document.getElementById('feedback-capture-overlay');
 
     btn.disabled = true;
     status.textContent = '';
-
-    // Hide modal, show overlay so user knows what's happening
-    modal.style.display = 'none';
+    backdrop.style.display = 'none';
     overlay.style.display = 'flex';
 
     _loadHtml2Canvas(function() {
         requestAnimationFrame(function() {
             html2canvas(document.body, {
-                scale: 1,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#0f1117',
-                ignoreElements: function(el) {
-                    // Don't capture the overlay itself
-                    return el.id === 'feedback-capture-overlay';
-                }
+                scale: 1, useCORS: true, logging: false,
+                backgroundColor: '#0a0a0f',
+                ignoreElements: function(el) { return el.id === 'feedback-capture-overlay'; }
             }).then(function(canvas) {
                 overlay.style.display = 'none';
-                modal.style.display = 'flex';
+                backdrop.style.display = 'flex';
                 var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                if (dataUrl.length > FB_MAX_BYTES) {
-                    dataUrl = canvas.toDataURL('image/jpeg', 0.4);
-                }
+                if (dataUrl.length > FB_MAX_BYTES) { dataUrl = canvas.toDataURL('image/jpeg', 0.4); }
                 if (dataUrl.length > FB_MAX_BYTES) {
                     status.textContent = 'Image too large. Try uploading a smaller file.';
-                    status.style.color = 'var(--error, #f87171)';
+                    status.style.color = 'var(--signal-red)';
                     btn.disabled = false;
                     return;
                 }
                 fbSetScreenshot(dataUrl);
                 status.textContent = 'Page captured!';
-                status.style.color = 'var(--success, #34d399)';
+                status.style.color = 'var(--signal-green)';
                 btn.disabled = false;
-            }).catch(function(err) {
+            }).catch(function() {
                 overlay.style.display = 'none';
-                modal.style.display = 'flex';
+                backdrop.style.display = 'flex';
                 status.textContent = 'Capture failed. Try uploading instead.';
-                status.style.color = 'var(--error, #f87171)';
+                status.style.color = 'var(--signal-red)';
                 btn.disabled = false;
             });
         });
@@ -196,24 +343,22 @@ function fbHandleFileUpload(input) {
     var status = document.getElementById('screenshot-status');
     if (!input.files || !input.files[0]) return;
     var file = input.files[0];
-
     if (!file.type.startsWith('image/')) {
         status.textContent = 'Please select an image file.';
-        status.style.color = 'var(--error, #f87171)';
+        status.style.color = 'var(--signal-red)';
         return;
     }
-
     var reader = new FileReader();
     reader.onload = function(e) {
         var dataUrl = e.target.result;
         if (dataUrl.length > FB_MAX_BYTES) {
             status.textContent = 'Image too large (max ~4MB).';
-            status.style.color = 'var(--error, #f87171)';
+            status.style.color = 'var(--signal-red)';
             return;
         }
         fbSetScreenshot(dataUrl);
         status.textContent = file.name + ' attached';
-        status.style.color = 'var(--success, #34d399)';
+        status.style.color = 'var(--signal-green)';
     };
     reader.readAsDataURL(file);
 }

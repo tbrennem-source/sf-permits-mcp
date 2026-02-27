@@ -1,7 +1,53 @@
-<button class="btn-watch"
+<!-- watch_button.html — action-btn token component with toast feedback -->
+<!-- Requires toast.js to be loaded in the parent page -->
+<button class="action-btn watch-btn"
     hx-post="/watch/add"
     hx-target="closest .watch-container"
     hx-swap="innerHTML"
-    hx-vals='{"watch_type": "{{ watch_data.watch_type }}", "permit_number": "{{ watch_data.permit_number or '' }}", "street_number": "{{ watch_data.street_number or '' }}", "street_name": "{{ watch_data.street_name or '' }}", "block": "{{ watch_data.block or '' }}", "lot": "{{ watch_data.lot or '' }}", "entity_id": "{{ watch_data.entity_id or '' }}", "neighborhood": "{{ watch_data.neighborhood or '' }}", "label": "{{ watch_data.label or '' }}"}'>
-    &#9734; Watch
+    hx-vals='{"watch_type": "{{ watch_data.watch_type }}", "permit_number": "{{ watch_data.permit_number or '' }}", "street_number": "{{ watch_data.street_number or '' }}", "street_name": "{{ watch_data.street_name or '' }}", "block": "{{ watch_data.block or '' }}", "lot": "{{ watch_data.lot or '' }}", "entity_id": "{{ watch_data.entity_id or '' }}", "neighborhood": "{{ watch_data.neighborhood or '' }}", "label": "{{ watch_data.label or '' }}"}'
+    hx-on::after-request="handleWatchResponse(event)"
+    style="display:inline-flex;align-items:center;gap:6px;">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    Watch
 </button>
+<style>
+.action-btn {
+    font-family: var(--mono, 'JetBrains Mono', monospace);
+    font-size: var(--text-sm, 0.875rem);
+    font-weight: 400;
+    color: var(--text-secondary, rgba(255,255,255,0.55));
+    background: var(--glass, rgba(255,255,255,0.04));
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+    border-radius: var(--radius-sm, 6px);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.action-btn:hover {
+    border-color: var(--glass-hover, rgba(255,255,255,0.10));
+    color: var(--text-primary, rgba(255,255,255,0.92));
+    background: var(--obsidian-light, #1a1a26);
+}
+</style>
+<script>
+function handleWatchResponse(evt) {
+    if (!evt.detail.successful) return;
+    var label = '{{ watch_data.label or (watch_data.street_number ~ " " ~ watch_data.street_name) or "Property" }}';
+    if (typeof showToast === 'function') {
+        showToast('Watch added: ' + label.trim(), {
+            type: 'success',
+            action: function() { undoWatch('{{ watch_data.permit_number or "" }}', '{{ watch_data.block or "" }}', '{{ watch_data.lot or "" }}'); },
+            actionLabel: 'Undo'
+        });
+    }
+}
+
+function undoWatch(permitNumber, block, lot) {
+    // Best-effort undo — fire and forget
+    fetch('/watch/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.cookie.match(/csrf_token=([^;]+)/)?.[1] || '' },
+        body: JSON.stringify({ permit_number: permitNumber, block: block, lot: lot })
+    });
+}
+</script>
