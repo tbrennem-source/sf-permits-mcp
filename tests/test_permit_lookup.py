@@ -710,9 +710,11 @@ async def test_permit_lookup_address_suggestions(mock_get_conn):
     """When exact match fails but similar streets exist, show suggestions."""
     mock_conn = MagicMock()
     mock_get_conn.return_value = mock_conn
-    # First call (exact match) returns nothing; second call (suggestions) returns options
+    # _lookup_by_address uses two-pass strategy (pass 1 fast, pass 2 slow),
+    # then _suggest_street_names runs the suggestion query.
     mock_conn.execute.return_value.fetchall.side_effect = [
-        [],                                      # exact match — empty
+        [],                                      # pass 1 (fast indexed) — empty
+        [],                                      # pass 2 (UPPER fallback) — empty
         [("BLAKE", 18), ("LAKE MERCED", 7)],     # suggestion query
     ]
 
