@@ -4,36 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ query }} — sfpermits.ai</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/design-system.css">
+    <link rel="stylesheet" href="/static/mobile.css">
     <style nonce="{{ csp_nonce }}">
-        /* ── Obsidian Design Tokens ── */
-        :root {
-            --bg-deep: #0B0F19;
-            --bg-surface: #131825;
-            --bg-elevated: #1A2035;
-            --bg-glass: rgba(255,255,255, 0.04);
-            --text-primary: #E8ECF4;
-            --text-secondary: #8B95A8;
-            --text-tertiary: #5A6478;
-            --signal-green: #34D399;
-            --signal-amber: #FBBF24;
-            --signal-red: #F87171;
-            --signal-blue: #60A5FA;
-            --signal-cyan: #22D3EE;
-            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
-            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
-            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
-            --card-radius: 12px;
-            --card-border: 1px solid rgba(255,255,255, 0.06);
-            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
-        }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             background: var(--bg-deep);
             color: var(--text-primary);
             line-height: 1.6;
@@ -58,24 +36,21 @@
             justify-content: space-between;
         }
         .logo {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 1.3rem;
             font-weight: 600;
-            background: var(--gradient-accent);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--signal-cyan);
             text-decoration: none;
         }
         .logo-suffix {
-            -webkit-text-fill-color: var(--text-tertiary);
+            color: var(--text-tertiary);
         }
         .header-actions { display: flex; align-items: center; gap: 10px; }
         .btn {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: 0.85rem;
             padding: 8px 18px;
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             text-decoration: none;
             font-weight: 600;
             cursor: pointer;
@@ -115,7 +90,7 @@
             background: none;
             border: none;
             color: var(--text-primary);
-            font-family: var(--font-body);
+            font-family: var(--mono);
             font-size: 1rem;
             padding: 14px 18px;
             outline: none;
@@ -127,7 +102,7 @@
             border: none;
             color: #fff;
             padding: 14px 24px;
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
@@ -155,7 +130,7 @@
 
         /* ── Results Column ── */
         .results-heading {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 0.8rem;
             color: var(--text-tertiary);
             text-transform: uppercase;
@@ -192,7 +167,7 @@
         .status-dot.red { background: var(--signal-red); }
         .status-dot.blue { background: var(--signal-blue); }
         .permit-type-badge {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.04em;
@@ -205,7 +180,7 @@
 
         /* ── Permit card result HTML override ── */
         .permit-results-content { font-size: 0.9rem; }
-        .permit-results-content h1 { font-size: 1.1rem; margin-bottom: 12px; font-family: var(--font-display); }
+        .permit-results-content h1 { font-size: 1.1rem; margin-bottom: 12px; font-family: var(--mono); }
         .permit-results-content h2 { font-size: 1rem; margin: 16px 0 8px; color: var(--text-secondary); }
         .permit-results-content h3 { font-size: 0.9rem; margin: 12px 0 6px; color: var(--text-secondary); }
         .permit-results-content table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -233,7 +208,7 @@
         .intel-section:first-child { padding-top: 0; }
         .intel-section:last-of-type { border-bottom: none; }
         .intel-heading {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 0.8rem;
             color: var(--text-secondary);
             text-transform: uppercase;
@@ -265,7 +240,7 @@
             margin-bottom: 4px;
         }
         .routing-permit {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 0.8rem;
             color: var(--text-secondary);
         }
@@ -317,7 +292,7 @@
             font-size: 0.85rem;
         }
         .entity-role {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 0.7rem;
             color: var(--text-tertiary);
             text-transform: uppercase;
@@ -348,7 +323,7 @@
             background: var(--gradient-accent);
             color: #fff;
             padding: 10px 24px;
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
@@ -401,7 +376,7 @@
             padding: 48px 20px;
         }
         .no-results h3 {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 1.1rem;
             color: var(--text-primary);
             margin-bottom: 8px;
@@ -416,7 +391,7 @@
             margin-bottom: 16px;
         }
         .guidance-card h3 {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 0.9rem;
             margin-bottom: 16px;
         }
@@ -426,7 +401,7 @@
             gap: 16px;
         }
         .guidance-label {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: 0.65rem;
             color: var(--text-tertiary);
             text-transform: uppercase;
@@ -462,7 +437,7 @@
                 border-radius: var(--card-radius);
                 padding: 14px 18px;
                 color: var(--text-secondary);
-                font-family: var(--font-body);
+                font-family: var(--sans);
                 font-size: 0.9rem;
                 font-weight: 500;
                 cursor: pointer;
@@ -515,7 +490,6 @@
             .entity-role { min-width: auto; }
         }
     </style>
-    <link rel="stylesheet" href="/static/mobile.css">
     <script nonce="{{ csp_nonce }}" src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -601,7 +575,7 @@
                     </div>
                     {% if permit_number %}
                     <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04);">
-                        <a href="/prep/{{ permit_number }}" class="btn btn-ghost" style="font-size: 0.8rem;">Prep Checklist</a>
+                        <a href="/prep/{{ permit_number }}" class="btn btn-ghost">Prep Checklist</a>
                     </div>
                     {% endif %}
                 </div>
