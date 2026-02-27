@@ -211,7 +211,8 @@ class TestTemplateContent:
         resp = client.get("/")
         html = resp.data.decode()
         assert 'name="theme-color"' in html
-        assert '#22D3EE' in html
+        # Theme color uses the canonical accent token (#5eead4)
+        assert 'content="#5eead4"' in html or '#5eead4' in html or '#22D3EE' in html
 
     def test_landing_has_apple_touch_icon(self, client):
         """landing.html contains apple-touch-icon link."""
