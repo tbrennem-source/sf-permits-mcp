@@ -258,7 +258,7 @@ Score these pages 1-5:
 | Scenarios proposed | 3 | [count] |
 ```
 
-### DeskRelay HANDOFF
+### Visual QA Checklist
 - [ ] Landing → login → index: does the design transition feel seamless?
 - [ ] Brief page: is the dense data more readable with Obsidian typography?
 - [ ] Signal colors on health indicators: intuitive at a glance?

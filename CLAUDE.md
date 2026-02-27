@@ -381,7 +381,7 @@ This project participates in Tim's standard session protocols. These are defined
 
 **Black Box Session Protocol (2 stages):**
 
-**Stage 1 — termCC (Terminal Claude Code):** READ → BUILD → TEST → SCENARIOS → QA (termRelay) → CHECKCHAT. CHECKCHAT output includes a DeskRelay HANDOFF section listing visual checks for Stage 2.
+**Stage 1 — termCC (Terminal Claude Code):** READ → BUILD → TEST → SCENARIOS → QA (termRelay) → CHECKCHAT. CHECKCHAT output includes a Visual QA Checklist section listing items for human spot-check.
 
 **Stage 2 — DeskCC (Desktop Claude Code):** DeskRelay visual checks → CHECKCHAT. Stage 2 CHECKCHAT is lightweight (commit QA results, note follow-ups, no code changes expected).
 
@@ -406,7 +406,7 @@ This project uses multi-agent swarm builds. When a swarm orchestrator command is
 
 - **termRelay** — Automated QA via headless Playwright in Terminal CC. Runs persona-based browser checks, captures screenshots, reports PASS/FAIL. No human needed.
 - **DeskRelay** — Visual QA escalation via Desktop CC. Only triggered when termRelay finds checks requiring human visual judgment. Typically ≤10 checks per sprint.
-- **CHECKCHAT** — Session completion summary written by each build agent. Includes a "DeskRelay HANDOFF" section listing visual checks for Desktop CC.
+- **CHECKCHAT** — Session completion summary written by each build agent. Includes a "Visual QA Checklist" section listing items for human spot-check.
 
 ### Domain Parallel Patterns
 
@@ -457,7 +457,7 @@ Every build agent follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS 
 
 **Visual Review (Phase 6.5):** After Playwright screenshots, run automated visual scoring. Use `scripts/visual_qa.py` (preferred) or send screenshots to Claude Vision. Score each page 1-5. ≥3.0 = PASS. ≤2.0 = escalate to DeskRelay. This is standard, not optional.
 
-CHECKCHAT output includes visual scores and a DeskRelay HANDOFF section for any pages scoring ≤2.0.
+CHECKCHAT output includes visual scores and a Visual QA Checklist section for any pages scoring ≤2.0.
 
 **Stage 2 — DeskCC (Desktop Claude Code):**
 DeskRelay visual checks → CHECKCHAT

@@ -295,7 +295,7 @@ Score these pages 1-5:
 | Scenarios proposed | 3 | [count] |
 ```
 
-### DeskRelay HANDOFF
+### Visual QA Checklist
 - [ ] /health JSON: is the pool stats section clear and useful for ops?
 - [ ] /health/ready: does the 200/503 distinction make sense for Railway?
 - [ ] /demo page: would this impress an AI architect evaluating the product?

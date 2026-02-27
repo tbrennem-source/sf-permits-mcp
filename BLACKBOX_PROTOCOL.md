@@ -149,8 +149,8 @@ Stage 2 is **optional** (can be skipped) when the sprint is:
 - Test-only changes
 - Configuration or environment changes
 
-When Stage 2 is skipped, the CHECKCHAT DeskRelay HANDOFF section should state:
-"DeskRelay SKIPPED — backend/docs only sprint, no visual changes."
+When Stage 2 is skipped, the CHECKCHAT Visual QA Checklist section should state:
+"Visual QA SKIPPED — backend/docs only sprint, no visual changes."
 
 ---
 

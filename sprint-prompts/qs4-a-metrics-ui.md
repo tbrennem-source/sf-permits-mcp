@@ -254,7 +254,7 @@ Score these pages 1-5:
 | Scenarios proposed | 3 | [count] |
 ```
 
-### DeskRelay HANDOFF
+### Visual QA Checklist
 - [ ] Metrics dashboard: are the tables readable and well-organized?
 - [ ] SLA color coding: does green/amber/red communicate intuitively?
 - [ ] Mobile: usable on phone or is admin-only desktop-first acceptable?

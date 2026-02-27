@@ -277,7 +277,7 @@ Score these pages 1-5:
 | Scenarios proposed | 3 | [count] |
 ```
 
-### DeskRelay HANDOFF
+### Visual QA Checklist
 - [ ] Login page: does the invite code flow feel polished?
 - [ ] CSP: any pages visibly broken? (should be none — Report-Only doesn't enforce)
 

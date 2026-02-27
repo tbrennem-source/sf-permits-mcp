@@ -1,5 +1,39 @@
 # Changelog
 
+## QS4 — Quad Sprint 4 (2026-02-26)
+
+### QS4-A: Metrics UI + Data Surfacing
+- `/admin/metrics` dashboard with 3 sections: Permit Issuance Trends, Station SLA Compliance (color-coded), Planning Velocity
+- Pipeline integration: 3 metrics ingest functions wired into `run_ingestion()`
+- 25 new tests
+
+### QS4-B: Performance + Production Hardening
+- Connection pool monitoring: `get_pool_stats()`, `DB_POOL_MAX` env var
+- `/health/ready` readiness probe for zero-downtime Railway deploys
+- Pool stats in `/health` response
+- Docker CI via GitHub Actions (`.github/workflows/docker-build.yml`)
+- `/demo` page polished for Charis meeting: architecture showcase + CTA
+- 24 new tests
+
+### QS4-C: Obsidian Design Migration
+- `head_obsidian.html` shared fragment: Google Fonts, PWA meta, design-system.css, legacy aliases
+- `index.html` migrated to Obsidian: display fonts, card shadows, shared fragment
+- `brief.html` migrated to Obsidian: same pattern, signal colors for health indicators
+- 27 new tests
+
+### QS4-D: Security + Beta Launch Polish
+- CSP-Report-Only updated with external CDN sources (unpkg, jsdelivr, Google Fonts, PostHog)
+- CSRF protection middleware: lightweight, no flask-wtf, supports form fields + HTMX headers
+- CSRF tokens added to 6 templates
+- PostHog verification: server-side + client-side confirmed working
+- 28 new tests
+
+### Orchestrator fixes
+- Renamed "DeskRelay HANDOFF" → "Visual QA Checklist" across CLAUDE.md, BLACKBOX_PROTOCOL.md, sprint prompts
+- Fixed CSRF `_generate_csrf_token()` graceful outside request context (email rendering)
+
+---
+
 ## QS3-D — PostHog Analytics + Revenue Polish (2026-02-26)
 
 ### PostHog Integration (D-1)
