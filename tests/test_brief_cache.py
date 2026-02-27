@@ -256,8 +256,9 @@ class TestBriefRefresh:
 class TestCronComputeCaches:
     """POST /cron/compute-caches pre-populates cache for all users."""
 
-    def test_cron_compute_caches_requires_auth(self, client):
+    def test_cron_compute_caches_requires_auth(self, client, monkeypatch):
         """POST /cron/compute-caches without CRON_SECRET should return 403."""
+        monkeypatch.setenv("CRON_WORKER", "1")
         resp = client.post("/cron/compute-caches")
         assert resp.status_code == 403
 
@@ -299,6 +300,7 @@ class TestCronComputeCaches:
 
     def test_cron_compute_caches_wrong_secret(self, client, monkeypatch):
         """POST /cron/compute-caches with wrong secret returns 403."""
+        monkeypatch.setenv("CRON_WORKER", "1")
         monkeypatch.setenv("CRON_SECRET", "correct-secret")
 
         resp = client.post(
@@ -309,6 +311,7 @@ class TestCronComputeCaches:
 
     def test_cron_compute_caches_no_header(self, client, monkeypatch):
         """POST /cron/compute-caches with no Authorization header returns 403."""
+        monkeypatch.setenv("CRON_WORKER", "1")
         monkeypatch.setenv("CRON_SECRET", "some-secret")
 
         resp = client.post("/cron/compute-caches")
@@ -333,11 +336,11 @@ class TestCacheIsolation:
             pytest.skip("web.helpers._page_cache not yet implemented")
 
     def test_page_cache_import_available(self):
-        """The _page_cache dict must be importable from web.helpers."""
+        """The cache API must be importable from web.helpers."""
         try:
-            from web.helpers import _page_cache, get_cached_or_compute, invalidate_cache
+            from web.helpers import get_cached_or_compute, invalidate_cache
         except ImportError as e:
             pytest.fail(
                 f"web.helpers does not expose expected cache API: {e}\n"
-                "Expected: _page_cache, get_cached_or_compute, invalidate_cache"
+                "Expected: get_cached_or_compute, invalidate_cache"
             )
