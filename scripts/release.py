@@ -548,6 +548,12 @@ def run_release_migrations():
     """)
     cur.execute("CREATE INDEX IF NOT EXISTS idx_parcel_summary_neighborhood ON parcel_summary (neighborhood)")
 
+    # === Sprint 75-2 ===
+    # Onboarding completion tracking
+    cur.execute(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT FALSE"
+    )
+
     # Admin auto-seed
     admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
     if admin_email:

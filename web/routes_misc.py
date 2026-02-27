@@ -8,6 +8,7 @@ from datetime import datetime
 
 from flask import (
     Blueprint, render_template, request, g, Response, jsonify,
+    redirect, url_for,
 )
 
 from web.helpers import login_required
@@ -501,6 +502,21 @@ def _get_demo_data() -> dict:
     _demo_cache.update(data)
     _demo_cache["computed_at"] = _time.time()
     return _demo_cache
+
+
+@bp.route("/welcome")
+@login_required
+def welcome():
+    """3-step onboarding page shown to new beta users after first login.
+
+    Walks through: (1) address search, (2) property report, (3) watchlist.
+    Redirects to dashboard if user has already completed onboarding.
+    """
+    user = g.user
+    # If already completed, redirect to dashboard
+    if user.get("onboarding_complete"):
+        return redirect(url_for("search.index"))
+    return render_template("welcome.html", user=user, active_page="welcome")
 
 
 @bp.route("/demo")
