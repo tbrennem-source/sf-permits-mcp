@@ -48,7 +48,7 @@
 {% set active_businesses = active_businesses if active_businesses is defined else [] %}
 {% set show_quick_actions = show_quick_actions if show_quick_actions is defined else false %}
 {% set address_intel = address_intel if address_intel is defined else none %}
-<div class="result-card search-result-card">
+<div class="result-card search-result-card glass-card">
     <div class="search-echo" style="display: flex; justify-content: space-between; align-items: center;">
         <span>{{ query_echo }}</span>
         {% if watch_data %}
@@ -66,14 +66,14 @@
 
     {# Quick Actions - only on address/parcel searches, not on complaint/violation results #}
     {% if show_quick_actions and not no_results and (report_url or street_address) %}
-    <div style="margin-top:16px;margin-bottom:16px;padding:16px;background:rgba(79, 143, 247, 0.06);border:1px solid rgba(79, 143, 247, 0.2);border-radius:10px;">
-        <div style="font-weight: 600; margin-bottom: 12px; color: var(--text);">Quick Actions</div>
+    <div class="glass-card" style="margin-top:var(--space-4);margin-bottom:var(--space-4);">
+        <div style="font-weight: 600; margin-bottom: var(--space-3); color: var(--text-primary);">Quick Actions</div>
         <div style="display: flex; flex-wrap: wrap; gap: 10px;">
 
             <!-- Primary: View Property Report -->
             {% if report_url %}
-            <a href="{{ report_url }}"
-               style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent, #4f8ff7);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;">
+            <a href="{{ report_url }}" class="obsidian-btn obsidian-btn-primary"
+               style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
                 📊 View Property Report
             </a>
             {% endif %}
@@ -91,8 +91,8 @@
                 {% else %}
                 <input type="hidden" name="q" value="I want to analyze a project at {{ street_address }}">
                 {% endif %}
-                <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+                <button type="submit" class="obsidian-btn obsidian-btn-outline"
+                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;">
                     🔍 {% if project_context %}Analyze: {{ project_context.label }}{% else %}Analyze Project{% endif %}
                 </button>
             </form>
@@ -103,15 +103,14 @@
             <form hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
                   hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="q" value="Are there any violations at {{ street_address }}?">
-                <button type="submit" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;
+                <button type="submit" class="obsidian-btn obsidian-btn-outline"
+                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;
                     {% if violation_counts and violation_counts.total > 0 %}
-                        background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.35);
+                        background:rgba(239,68,68,0.1);color:var(--signal-red);border-color:rgba(239,68,68,0.35);
                     {% elif violation_counts %}
-                        background:rgba(52,211,153,0.08);color:#6ee7b7;border:1px solid rgba(52,211,153,0.25);
-                    {% else %}
-                        background:var(--surface);color:var(--text);border:1px solid var(--border);
+                        background:rgba(52,211,153,0.08);color:var(--signal-green);border-color:rgba(52,211,153,0.25);
                     {% endif %}
-                ">
+                    ">
                     {% if violation_counts and violation_counts.total > 0 %}
                         ⚠️ Check Violations · {{ violation_counts.total }} open
                     {% elif violation_counts %}
@@ -128,8 +127,8 @@
             <form hx-post="/ask" hx-target="#search-results" hx-swap="innerHTML"
                   hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="q" value="Who is operating at {{ street_address }}?">
-                <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">
+                <button type="submit" class="obsidian-btn obsidian-btn-outline"
+                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;">
                     🏢 Who's Here
                     {% if active_businesses|length == 1 %}· {{ active_businesses[0].name[:22] }}
                     {% else %}· {{ active_businesses|length }} businesses{% endif %}
@@ -223,7 +222,7 @@
 
     {{ result_html | safe }}
     {% if no_results and no_results_address %}
-    <div style="margin-top: 20px; padding: 20px; background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2); border-radius: 10px;">
+    <div class="glass-card" style="margin-top: var(--space-5)">
         {# ===== Fuzzy suggestions: "Did you mean...?" ===== #}
         {% if fuzzy_suggestions %}
         <div style="font-weight: 600; margin-bottom: 10px;">Did you mean?</div>
@@ -265,7 +264,7 @@
     {% elif not no_results %}
     {# ===== Neighborhood stats card ===== #}
     {% if hood_stats %}
-    <div style="margin-top:12px;padding:14px 18px;background:var(--surface, #1a1d27);border:1px solid var(--border, #333749);border-radius:8px;">
+    <div class="glass-card" style="margin-top:var(--space-3);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <span style="font-weight:600;font-size:0.9rem;color:var(--text, #e4e6eb);">{{ hood_stats.name }}</span>
             <span style="font-size:0.75rem;color:var(--text-muted, #8b8fa3);">neighborhood</span>

@@ -409,3 +409,14 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Tasks may reference features that were built under different task numbers (e.g., #207 "orphaned test files" was wrong — source files exist). Task descriptions may be stale while the underlying work was completed in a different sprint.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Account page renders with Obsidian dark theme
+
+**Source:** web/templates/account.html Obsidian migration (Sprint 75-3)
+**User:** expediter | homeowner | architect
+**Starting state:** User is authenticated and navigates to their account page
+**Goal:** View account settings, watched addresses, and plan analyses in the Obsidian dark theme
+**Expected outcome:** Page loads with dark background, JetBrains Mono headings, IBM Plex Sans body text, card sections clearly separated, no white/light background visible
+**Edge cases seen in code:** Admin users see tab bar with Settings/Admin tabs; non-admins see settings directly without tab bar. Both paths must render correctly under Obsidian.
+**CC confidence:** high
+**Status:** PENDING REVIEW
