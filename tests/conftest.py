@@ -55,9 +55,28 @@ def _isolated_test_db(tmp_path_factory):
     except Exception:
         pass
 
+    # Guard: monkey-patch duckdb.connect to block access to the real DB file
+    _real_db = os.path.abspath(original_path)
+    import duckdb as _duckdb_mod
+    _original_connect = _duckdb_mod.connect
+
+    def _guarded_connect(database=":memory:", *args, **kwargs):
+        if database not in (":memory:", ":default:"):
+            abs_path = os.path.abspath(database)
+            if abs_path == _real_db:
+                raise RuntimeError(
+                    f"TEST GUARD: Attempted to open the real DuckDB file "
+                    f"({_real_db}) during tests. Use the temp DB from the "
+                    f"_isolated_test_db fixture or duckdb.connect(':memory:') instead."
+                )
+        return _original_connect(database, *args, **kwargs)
+
+    _duckdb_mod.connect = _guarded_connect
+
     yield db_path
 
-    # Restore original state (matters if tests patch these themselves)
+    # Restore
+    _duckdb_mod.connect = _original_connect
     db_mod._DUCKDB_PATH = original_path
     db_mod.BACKEND = original_backend
 

@@ -10,7 +10,7 @@ import pytest
 
 DB_PATH = os.environ.get(
     "SF_PERMITS_DB",
-    os.path.join(os.path.dirname(__file__), "..", "data", "sf_permits.duckdb"),
+    None,  # Do NOT default to real DuckDB — use temp DB from conftest fixture
 )
 
 # --- Scenario A: Residential Kitchen Remodel ---
