@@ -255,6 +255,18 @@ git branch | grep worktree-agent | xargs git branch -d 2>/dev/null
 
 ---
 
+---
+
+## Sprint 78 Addendum (ran in same session as QS7)
+
+**Result:** Agent used DuckDB fallback (Postgres `initdb` not found — no `postgresql@16` installed).
+- `testing.postgresql` import succeeded but `Postgresql()` constructor failed — no `initdb` binary on PATH
+- Agent correctly hit the time-box, fell back to per-session temp DuckDB
+- Fixes lock contention (P0). Postgres divergence remains P1 follow-up.
+- **Lesson for next time:** Pre-install `brew install postgresql@16` before launching the sprint. The agent can't do `brew install` from a worktree sandbox.
+
+---
+
 ## Lessons for dforge
 
 These should be captured as dforge lessons for the quad sprint framework:
