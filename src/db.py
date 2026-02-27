@@ -836,6 +836,21 @@ def init_user_schema(conn=None) -> None:
             )
         """)
 
+        # Sprint 76-3: Severity cache (DuckDB version — VARCHAR instead of JSONB, TIMESTAMP instead of TIMESTAMPTZ)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS severity_cache (
+                permit_number TEXT PRIMARY KEY,
+                score INTEGER NOT NULL,
+                tier TEXT NOT NULL,
+                drivers VARCHAR,
+                computed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        try:
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_severity_cache_tier ON severity_cache (tier)")
+        except Exception:
+            pass
+
     finally:
         if close:
             conn.close()

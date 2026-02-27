@@ -390,6 +390,103 @@ def _watch_context(watch_data: dict) -> dict:
     return ctx
 
 
+def _get_severity_for_permit(permit_number: str) -> dict | None:
+    """Query severity_cache for a permit, compute + store if missing.
+
+    Returns dict with 'score', 'tier', 'drivers' keys, or None on failure.
+    Failures are swallowed — severity never breaks search.
+    """
+    try:
+        import json as _json
+        from src.db import get_connection, BACKEND, query as db_query
+
+        # Check cache first
+        _ph = "%s" if BACKEND == "postgres" else "?"
+        cached = db_query(
+            f"SELECT score, tier, drivers FROM severity_cache WHERE permit_number = {_ph}",
+            (permit_number,),
+        )
+        if cached:
+            drivers_raw = cached[0][2]
+            drivers = _json.loads(drivers_raw) if drivers_raw else {}
+            return {"score": cached[0][0], "tier": cached[0][1], "drivers": drivers}
+
+        # Cache miss — fetch permit data and compute
+        permit_rows = db_query(
+            f"SELECT permit_number, status, permit_type_definition, description, "
+            f"filed_date, issued_date, completed_date, status_date, "
+            f"estimated_cost, revised_cost "
+            f"FROM permits WHERE permit_number = {_ph}",
+            (permit_number,),
+        )
+        if not permit_rows:
+            return None
+
+        row = permit_rows[0]
+        # Count inspections for this permit
+        insp_rows = db_query(
+            f"SELECT COUNT(*) FROM inspections WHERE reference_number = {_ph}",
+            (permit_number,),
+        )
+        insp_count = insp_rows[0][0] if insp_rows else 0
+
+        from src.severity import PermitInput, score_permit
+        permit_input = PermitInput.from_dict(
+            {
+                "permit_number": row[0],
+                "status": row[1] or "",
+                "permit_type_definition": row[2] or "",
+                "description": row[3] or "",
+                "filed_date": row[4],
+                "issued_date": row[5],
+                "completed_date": row[6],
+                "status_date": row[7],
+                "estimated_cost": row[8],
+                "revised_cost": row[9],
+            },
+            inspection_count=insp_count,
+        )
+        result = score_permit(permit_input)
+        drivers_json = _json.dumps({
+            dim: vals["score"] for dim, vals in result.dimensions.items()
+        })
+
+        # Upsert into cache
+        try:
+            conn = get_connection()
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "INSERT INTO severity_cache (permit_number, score, tier, drivers) "
+                            "VALUES (%s, %s, %s, %s) "
+                            "ON CONFLICT (permit_number) DO UPDATE "
+                            "SET score=EXCLUDED.score, tier=EXCLUDED.tier, "
+                            "    drivers=EXCLUDED.drivers, computed_at=NOW()",
+                            (permit_number, result.score, result.tier, drivers_json),
+                        )
+                        conn.commit()
+                else:
+                    conn.execute(
+                        "INSERT OR REPLACE INTO severity_cache "
+                        "(permit_number, score, tier, drivers) VALUES (?, ?, ?, ?)",
+                        [permit_number, result.score, result.tier, drivers_json],
+                    )
+            finally:
+                conn.close()
+        except Exception as cache_err:
+            logging.debug("severity_cache upsert failed: %s", cache_err)
+
+        return {
+            "score": result.score,
+            "tier": result.tier,
+            "drivers": result.dimensions,
+        }
+    except Exception as e:
+        logging.debug("_get_severity_for_permit failed for %s: %s", permit_number, e)
+        return None
+
+
 def _ask_permit_lookup(query: str, entities: dict) -> str:
     """Handle permit number lookup."""
     permit_num = entities.get("permit_number")
@@ -403,10 +500,16 @@ def _ask_permit_lookup(query: str, entities: dict) -> str:
         "permit_number": permit_num,
         "label": f"Permit #{permit_num}",
     }
+    # Enrich with severity data (cache hit or compute on-demand)
+    severity = None
+    if permit_num:
+        severity = _get_severity_for_permit(permit_num)
     return render_template(
         "search_results.html",
         query_echo=f"Permit #{permit_num}",
         result_html=md_to_html(result_md),
+        severity_score=severity["score"] if severity else None,
+        severity_tier=severity["tier"] if severity else None,
         **_watch_context(watch_data),
     )
 
