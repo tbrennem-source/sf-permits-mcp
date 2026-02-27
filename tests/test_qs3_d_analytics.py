@@ -302,12 +302,12 @@ class TestApiUsageDDL:
 class TestSitemap:
     """Tests for sitemap.xml route."""
 
-    def test_sitemap_excludes_demo(self, client):
-        """/sitemap.xml does not contain /demo."""
+    def test_sitemap_includes_demo(self, client):
+        """/sitemap.xml contains /demo (added Sprint 69)."""
         resp = client.get("/sitemap.xml")
         assert resp.status_code == 200
         xml = resp.data.decode()
-        assert "/demo" not in xml
+        assert "/demo" in xml
 
     def test_sitemap_has_production_base_url(self, client):
         """/sitemap.xml points to sfpermits.ai production."""
