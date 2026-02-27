@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        /* ── Welcome / Onboarding Page ─────────────────────────────────── */
+
+        .welcome-header {
+            border-bottom: 1px solid rgba(255,255,255, 0.06);
+            padding: var(--space-4) 0;
+        }
+        .welcome-header .obs-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .welcome-logo {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--signal-cyan);
+            text-decoration: none;
+        }
+
+        /* ── Hero ─────────────────────────────────────────────────────── */
+
+        .welcome-hero {
+            text-align: center;
+            padding: var(--space-12) 0 var(--space-8) 0;
+        }
+        .welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: rgba(34,211,238, 0.1);
+            border: 1px solid rgba(34,211,238, 0.2);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: var(--text-sm);
+            color: var(--signal-cyan);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-6);
+        }
+        .welcome-hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-4) 0;
+            line-height: 1.2;
+        }
+        .welcome-hero h1 .cyan { color: var(--signal-cyan); }
+        .welcome-hero p {
+            color: var(--text-secondary);
+            font-size: var(--text-lg);
+            max-width: 540px;
+            margin: 0 auto var(--space-8) auto;
+            line-height: 1.6;
+        }
+
+        /* ── Progress Dots ────────────────────────────────────────────── */
+
+        .progress-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-10);
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255, 0.1);
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .dot.active {
+            background: var(--signal-cyan);
+            border-color: var(--signal-cyan);
+            box-shadow: 0 0 8px rgba(34,211,238, 0.4);
+        }
+        .dot.done {
+            background: var(--signal-green);
+            border-color: var(--signal-green);
+        }
+        .dot-connector {
+            width: 40px;
+            height: 1px;
+            background: rgba(255,255,255, 0.08);
+        }
+
+        /* ── Step Cards ───────────────────────────────────────────────── */
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-4);
+            margin-bottom: var(--space-10);
+        }
+
+        @media (max-width: 768px) {
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .step-card {
+            position: relative;
+        }
+        .step-card .glass-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .step-card.is-active .glass-card {
+            border-color: rgba(34,211,238, 0.3);
+            box-shadow: 0 0 0 1px rgba(34,211,238, 0.15), var(--card-shadow);
+        }
+
+        .step-number {
+            font-family: var(--font-display);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-4);
+        }
+        .step-number .num {
+            color: var(--signal-cyan);
+            font-size: var(--text-lg);
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: var(--space-4);
+            display: block;
+        }
+
+        .step-title {
+            font-family: var(--font-display);
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+
+        .step-desc {
+            color: var(--text-secondary);
+            font-size: var(--text-sm);
+            line-height: 1.6;
+            margin: 0 0 var(--space-6) 0;
+            flex: 1;
+        }
+
+        .step-cta {
+            margin-top: auto;
+        }
+
+        /* ── CTA Footer ───────────────────────────────────────────────── */
+
+        .welcome-footer-card {
+            text-align: center;
+            margin-bottom: var(--space-12);
+        }
+        .welcome-footer-card h2 {
+            font-family: var(--font-display);
+            font-size: var(--text-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        .welcome-footer-card p {
+            color: var(--text-secondary);
+            font-size: var(--text-base);
+            margin: 0 0 var(--space-6) 0;
+        }
+
+        /* ── Dismiss link ─────────────────────────────────────────────── */
+
+        .skip-link {
+            display: block;
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: var(--text-sm);
+            text-decoration: none;
+            padding: var(--space-4) 0 var(--space-8) 0;
+            transition: color 0.2s;
+        }
+        .skip-link:hover {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body class="obsidian">
+
+    <!-- Header -->
+    <header class="welcome-header">
+        <div class="obs-container">
+            <a href="/" class="welcome-logo">sfpermits<span style="color:var(--text-tertiary);font-weight:400;">.ai</span></a>
+            <span style="color:var(--text-secondary);font-size:var(--text-sm);">
+                Welcome, {{ user.get('display_name') or user.get('email', '').split('@')[0] }}
+            </span>
+        </div>
+    </header>
+
+    <div class="obs-container">
+
+        <!-- Hero -->
+        <section class="welcome-hero">
+            <div class="welcome-badge">Beta Access Granted</div>
+            <h1>Welcome to <span class="cyan">sfpermits.ai</span></h1>
+            <p>Your account is ready. Here&rsquo;s what you can do — it only takes a few minutes to get value from the first search.</p>
+
+            <!-- Progress dots: 3 steps -->
+            <div class="progress-dots">
+                <div class="dot active" id="dot-1"></div>
+                <div class="dot-connector"></div>
+                <div class="dot" id="dot-2"></div>
+                <div class="dot-connector"></div>
+                <div class="dot" id="dot-3"></div>
+            </div>
+        </section>
+
+        <!-- 3-Step Cards -->
+        <section class="steps-grid">
+
+            <!-- Step 1: Search -->
+            <div class="step-card is-active" id="step-1">
+                <div class="glass-card" style="padding:var(--space-6);">
+                    <div class="step-number"><span class="num">1</span> Start here</div>
+                    <span class="step-icon">&#x1F50D;</span>
+                    <h3 class="step-title">Search any SF address</h3>
+                    <p class="step-desc">
+                        Enter a street address to see full permit history, inspection records, routing progress, and AI-powered timeline estimates. No signup needed for a first look — you&rsquo;re already in.
+                    </p>
+                    <div class="step-cta">
+                        <a href="/search" class="obsidian-btn obsidian-btn-primary" style="width:100%;display:block;text-align:center;">
+                            Go to Search
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Property Report -->
+            <div class="step-card" id="step-2">
+                <div class="glass-card" style="padding:var(--space-6);">
+                    <div class="step-number"><span class="num">2</span> Go deeper</div>
+                    <span class="step-icon">&#x1F4CB;</span>
+                    <h3 class="step-title">Pull a property report</h3>
+                    <p class="step-desc">
+                        After your search, open a full property report to see permit health scores, entity network maps, complaints, and violations. Great for pre-purchase due diligence or permit strategy.
+                    </p>
+                    <div class="step-cta">
+                        <a href="/search" class="obsidian-btn obsidian-btn-outline" style="width:100%;display:block;text-align:center;">
+                            Search an address
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Watchlist -->
+            <div class="step-card" id="step-3">
+                <div class="glass-card" style="padding:var(--space-6);">
+                    <div class="step-number"><span class="num">3</span> Stay informed</div>
+                    <span class="step-icon">&#x1F514;</span>
+                    <h3 class="step-title">Watch properties for changes</h3>
+                    <p class="step-desc">
+                        Add any property, permit, or entity to your watchlist. We check for changes nightly and email you a morning brief when something moves — status changes, new inspections, new filings.
+                    </p>
+                    <div class="step-cta">
+                        <a href="/account" class="obsidian-btn obsidian-btn-outline" style="width:100%;display:block;text-align:center;">
+                            View watchlist settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Footer CTA -->
+        <section class="welcome-footer-card glass-card" style="padding:var(--space-8);">
+            <h2>Ready to get started?</h2>
+            <p>Search any SF address to see permit intelligence in action. Most users find something useful in their first 60 seconds.</p>
+            <form method="POST" action="/onboarding/dismiss" id="dismiss-form">
+                <a href="/search"
+                   class="obsidian-btn obsidian-btn-primary"
+                   style="display:inline-block;padding:14px 40px;font-size:var(--text-base);"
+                   onclick="dismissOnboarding()">
+                    Start searching now
+                </a>
+            </form>
+        </section>
+
+        <!-- Skip link -->
+        <a href="#" class="skip-link" onclick="dismissOnboarding(); return false;">
+            Skip onboarding &mdash; take me to the dashboard
+        </a>
+
+    </div>
+
+    <script nonce="{{ csp_nonce }}">
+        function dismissOnboarding() {
+            // Fire-and-forget POST to mark onboarding complete
+            fetch('/onboarding/dismiss', { method: 'POST', credentials: 'same-origin' })
+                .catch(function() {}); // Non-fatal if it fails
+        }
+
+        // Highlight active dot based on scroll / time (progressive reveal simulation)
+        // For now just show all active since all steps are visible at once
+        document.querySelectorAll('.dot').forEach(function(d, i) {
+            if (i === 0) d.classList.add('active');
+        });
+    </script>
+
+</body>
+</html>

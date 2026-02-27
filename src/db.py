@@ -764,6 +764,8 @@ def init_user_schema(conn=None) -> None:
             "ALTER TABLE users ADD COLUMN detected_persona TEXT",
             "ALTER TABLE users ADD COLUMN beta_requested_at TIMESTAMP",
             "ALTER TABLE users ADD COLUMN beta_approved_at TIMESTAMP",
+            # Sprint 75-2: Onboarding completion tracking
+            "ALTER TABLE users ADD COLUMN onboarding_complete BOOLEAN DEFAULT FALSE",
         ]:
             try:
                 conn.execute(alter_stmt)

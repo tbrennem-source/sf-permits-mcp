@@ -745,13 +745,32 @@ def email_unsubscribe():
 # Onboarding
 # ---------------------------------------------------------------------------
 
-# E4: First-login welcome banner dismiss
+# E4: First-login welcome banner / onboarding page dismiss
 @bp.route("/onboarding/dismiss", methods=["POST"])
 def onboarding_dismiss():
-    """Dismiss the first-login welcome banner. HTMX endpoint.
+    """Dismiss the first-login welcome banner or onboarding page. HTMX endpoint.
+
+    Clears the session banner flag and persists onboarding_complete = True
+    in the database so the /welcome redirect guard works on future logins.
 
     Returns empty string — hx-swap='outerHTML' removes the banner div.
+    For non-HTMX callers (e.g. fetch() from welcome.html JS) the empty
+    response is also fine — the caller ignores the body.
     """
     session.pop("show_onboarding_banner", None)
     session["onboarding_dismissed"] = True
+
+    # Persist onboarding completion in DB so /welcome redirect guard works
+    if g.get("user"):
+        user_id = g.user.get("user_id")
+        if user_id:
+            try:
+                from src.db import execute_write
+                execute_write(
+                    "UPDATE users SET onboarding_complete = TRUE WHERE user_id = %s",
+                    (user_id,),
+                )
+            except Exception:
+                logging.warning("onboarding_dismiss: failed to update onboarding_complete", exc_info=True)
+
     return ""  # Empty response removes the banner via hx-swap="outerHTML"

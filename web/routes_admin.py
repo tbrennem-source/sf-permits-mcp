@@ -852,18 +852,29 @@ def admin_approve_beta(req_id):
     if not g.user.get("is_admin"):
         abort(403)
     from web.auth import (
-        approve_beta_request, create_magic_token, send_magic_link
+        approve_beta_request, create_magic_token, send_magic_link,
+        send_beta_welcome_email, BASE_URL,
     )
     user = approve_beta_request(req_id)
     if not user:
         return redirect(url_for("admin.admin_beta_requests", msg="Request not found or already reviewed."))
 
-    # Send magic link
+    # Generate magic link token
     token = create_magic_token(user["user_id"])
-    send_magic_link(user["email"], token)
+    magic_link = f"{BASE_URL}/auth/verify/{token}"
 
-    logging.info("Admin %s approved beta request %d for %s", g.user.get("email"), req_id, user["email"])
-    return redirect(url_for("admin.admin_beta_requests", msg=f"Approved and sent magic link to {user['email']}."))
+    # Send beta approval welcome email (includes magic link CTA)
+    welcome_sent = send_beta_welcome_email(user["email"], magic_link)
+
+    # Fall back to plain magic link email if welcome send failed
+    if not welcome_sent:
+        send_magic_link(user["email"], token)
+
+    logging.info(
+        "Admin %s approved beta request %d for %s (welcome_email=%s)",
+        g.user.get("email"), req_id, user["email"], welcome_sent,
+    )
+    return redirect(url_for("admin.admin_beta_requests", msg=f"Approved and sent welcome email to {user['email']}."))
 
 
 @bp.route("/admin/beta-requests/<int:req_id>/deny", methods=["POST"])

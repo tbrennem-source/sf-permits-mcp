@@ -112,7 +112,8 @@ def get_user_by_email(email: str) -> dict | None:
         "primary_street_number, primary_street_name, "
         "COALESCE(subscription_tier, 'free'), voice_style, "
         "COALESCE(referral_source, 'invited'), detected_persona, "
-        "COALESCE(notify_permit_changes, FALSE), notify_email "
+        "COALESCE(notify_permit_changes, FALSE), notify_email, "
+        "COALESCE(onboarding_complete, FALSE) "
         "FROM users WHERE email = %s",
         (email,),
     )
@@ -129,7 +130,8 @@ def get_user_by_id(user_id: int) -> dict | None:
         "primary_street_number, primary_street_name, "
         "COALESCE(subscription_tier, 'free'), voice_style, "
         "COALESCE(referral_source, 'invited'), detected_persona, "
-        "COALESCE(notify_permit_changes, FALSE), notify_email "
+        "COALESCE(notify_permit_changes, FALSE), notify_email, "
+        "COALESCE(onboarding_complete, FALSE) "
         "FROM users WHERE user_id = %s",
         (user_id,),
     )
@@ -148,7 +150,8 @@ def _row_to_user(row) -> dict:
         11: primary_street_number, 12: primary_street_name,
         13: subscription_tier, 14: voice_style,
         15: referral_source, 16: detected_persona,
-        17: notify_permit_changes, 18: notify_email
+        17: notify_permit_changes, 18: notify_email,
+        19: onboarding_complete
     """
     email = row[1]
     db_admin = row[7]
@@ -176,6 +179,7 @@ def _row_to_user(row) -> dict:
         "detected_persona": row[16] if len(row) > 16 else None,
         "notify_permit_changes": bool(row[17]) if len(row) > 17 else False,
         "notify_email": row[18] if len(row) > 18 else None,
+        "onboarding_complete": bool(row[19]) if len(row) > 19 else False,
     }
 
 
@@ -727,6 +731,126 @@ def deny_beta_request(req_id: int) -> bool:
         ("denied", datetime.now(timezone.utc), req_id),
     )
     return True
+
+
+def send_beta_welcome_email(email: str, magic_link: str) -> bool:
+    """Send beta approval welcome email with magic link.
+
+    Called when admin approves a beta request. Includes a one-click sign-in
+    button so the new user lands immediately in the app.
+
+    Args:
+        email: Recipient email address.
+        magic_link: Full URL for one-click sign-in (e.g. BASE_URL/auth/verify/<token>).
+
+    Returns True on success (or dev mode with SMTP not configured).
+    """
+    if not SMTP_HOST:
+        logger.info("Beta welcome email for %s: %s (SMTP not configured)", email, magic_link)
+        return True
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = "You're in — sfpermits.ai beta access approved"
+        msg["From"] = f"SF Permits AI <{SMTP_FROM}>"
+        msg["To"] = email
+        msg["List-Unsubscribe"] = f"<mailto:{SMTP_FROM}?subject=unsubscribe>"
+
+        # Plain text version
+        msg.set_content(
+            f"Welcome to sfpermits.ai!\n\n"
+            f"Your beta access request has been approved. Click the link below to sign in:\n\n"
+            f"{magic_link}\n\n"
+            f"This link expires in {TOKEN_EXPIRY_MINUTES} minutes.\n\n"
+            f"After signing in, we'll walk you through your first search, property report, "
+            f"and how to set up your watchlist.\n\n"
+            f"--\n"
+            f"sfpermits.ai - San Francisco Building Permit Intelligence"
+        )
+
+        # HTML version — brand colors, inline CSS for email client compatibility
+        html_body = f"""\
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#0B0F19;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0B0F19;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <!-- Header -->
+        <tr>
+          <td style="background-color:#131825;border-radius:12px 12px 0 0;padding:32px 40px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;">
+            <span style="font-family:'Courier New',Courier,monospace;font-size:22px;font-weight:700;color:#22D3EE;letter-spacing:-0.5px;">sfpermits.ai</span>
+            <p style="color:#8B95A8;font-size:13px;margin:6px 0 0 0;letter-spacing:0.05em;text-transform:uppercase;">San Francisco Building Permit Intelligence</p>
+          </td>
+        </tr>
+        <!-- Body -->
+        <tr>
+          <td style="background-color:#131825;padding:40px 40px 32px 40px;">
+            <h1 style="color:#E8ECF4;font-size:24px;font-weight:700;margin:0 0 16px 0;line-height:1.3;">You're in — beta access approved</h1>
+            <p style="color:#8B95A8;font-size:16px;line-height:1.6;margin:0 0 24px 0;">
+              Welcome to sfpermits.ai! Your request has been approved. Click the button below to sign in — no password needed.
+            </p>
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr><td align="center" style="padding:8px 0 32px 0;">
+                <a href="{magic_link}"
+                   style="display:inline-block;background:linear-gradient(135deg,#22D3EE,#60A5FA);color:#0B0F19;text-decoration:none;padding:16px 40px;border-radius:8px;font-weight:700;font-size:16px;letter-spacing:0.02em;">
+                  Sign in to sfpermits.ai
+                </a>
+              </td></tr>
+            </table>
+            <p style="color:#5A6478;font-size:13px;line-height:1.5;margin:0 0 24px 0;">
+              This link expires in {TOKEN_EXPIRY_MINUTES} minutes. If the button doesn&rsquo;t work, copy and paste this URL:
+              <br><a href="{magic_link}" style="color:#22D3EE;word-break:break-all;">{magic_link}</a>
+            </p>
+            <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:24px 0;">
+            <!-- What to expect -->
+            <p style="color:#E8ECF4;font-size:15px;font-weight:600;margin:0 0 12px 0;">What happens next</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:8px 0;">
+                  <span style="color:#22D3EE;font-weight:700;">1.</span>
+                  <span style="color:#8B95A8;font-size:14px;"> Sign in with the button above</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;">
+                  <span style="color:#22D3EE;font-weight:700;">2.</span>
+                  <span style="color:#8B95A8;font-size:14px;"> Run your first address search</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;">
+                  <span style="color:#22D3EE;font-weight:700;">3.</span>
+                  <span style="color:#8B95A8;font-size:14px;"> Add properties to your watchlist for permit alerts</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#0F1520;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);">
+            <p style="color:#5A6478;font-size:12px;margin:0;">sfpermits.ai &mdash; Permit intelligence for San Francisco homeowners and expediters</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+        msg.add_alternative(html_body, subtype="html")
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            if SMTP_USER:
+                server.login(SMTP_USER, SMTP_PASS or "")
+            server.send_message(msg)
+        logger.info("Beta welcome email sent to %s", email)
+        return True
+    except Exception:
+        logger.exception("Failed to send beta welcome email to %s", email)
+        return False
 
 
 def send_beta_confirmation_email(email: str) -> bool:
