@@ -5,171 +5,388 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Portfolio — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
     <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
     <style nonce="{{ csp_nonce }}">
-        :root {
-            --bg: #0f1117; --surface: #1a1d27; --surface-2: #252834;
-            --border: #333749; --text: #e4e6eb; --text-muted: #8b8fa3;
-            --accent: #4f8ff7; --accent-hover: #3a7ae0;
-            --success: #34d399; --warning: #fbbf24; --error: #f87171;
+        /* ── Portfolio layout ────────────────────────────────────────── */
+        .portfolio-main {
+            padding: var(--space-8) 0 var(--space-16);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
-        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
-        header .container { display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
-        .logo span { color: var(--text-muted); font-weight: 400; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .badge { font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); text-decoration: none; cursor: pointer; font-family: inherit; }
-        .badge:hover { color: var(--text); border-color: var(--text-muted); }
-        main { padding: 32px 0 80px; }
-        h1 { font-size: 1.5rem; margin-bottom: 4px; }
-        .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
 
-        .summary-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-        .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; flex: 1; min-width: 120px; text-align: center; }
-        .summary-number { font-size: 1.8rem; font-weight: 700; }
-        .summary-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-        .summary-card.alert .summary-number { color: var(--error); }
-        .summary-card.warn .summary-number { color: var(--warning); }
-        .summary-card.ok .summary-number { color: var(--success); }
+        /* Summary stats */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+        }
+        @media (max-width: 640px) {
+            .summary-row { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+        }
+        @media (max-width: 360px) {
+            .summary-row { grid-template-columns: 1fr 1fr; }
+        }
 
-        .filter-bar { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
-        .filter-chip { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); cursor: pointer; font-size: 0.8rem; font-family: inherit; text-decoration: none; }
-        .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-        .filter-chip:hover { color: var(--text); border-color: var(--text-muted); }
-        .sort-select { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-family: inherit; margin-left: auto; }
+        /* Filter bar */
+        .filter-bar {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-chip {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            color: var(--text-secondary);
+            background: var(--bg-glass);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 9999px;
+            padding: 4px 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: border-color 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+        .filter-chip:hover {
+            color: var(--text-primary);
+            border-color: rgba(255,255,255,0.14);
+        }
+        .filter-chip.active {
+            color: var(--signal-cyan);
+            border-color: rgba(34, 211, 238, 0.3);
+            background: rgba(34, 211, 238, 0.06);
+        }
+        .sort-select {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin-left: auto;
+            outline: none;
+            cursor: pointer;
+        }
 
-        .property-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
-        @media (min-width: 700px) { .property-grid { grid-template-columns: 1fr 1fr; } }
+        /* Property grid */
+        .property-grid {
+            display: grid;
+            gap: var(--space-4);
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 700px) {
+            .property-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Property card */
+        .property-card {
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--card-radius, 12px);
+            padding: var(--space-6);
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .property-card:hover {
+            border-color: rgba(255,255,255,0.12);
+        }
+        /* Left-edge health indicator using status-dot color */
+        .property-card.health-at_risk  { border-left: 3px solid var(--signal-red); }
+        .property-card.health-behind   { border-left: 3px solid var(--signal-amber); }
+        .property-card.health-slower   { border-left: 3px solid var(--signal-amber); }
+        .property-card.health-on_track { border-left: 3px solid var(--signal-green); }
+
+        /* Card header row */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-2);
+        }
+        .card-address {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+        .card-address a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .card-address a:hover { color: var(--signal-cyan); }
+
+        /* Health indicator */
+        .health-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            flex-shrink: 0;
+        }
+        .health-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 9999px;
+            display: inline-block;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+        .health-dot.on_track  { background: var(--signal-green); }
+        .health-dot.slower    { background: var(--signal-amber); }
+        .health-dot.behind    { background: var(--signal-amber); }
+        .health-dot.at_risk   { background: var(--signal-red); }
+        .health-dot.complete  { background: var(--text-tertiary); }
+
+        .health-text {
+            font-family: var(--mono);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 400;
+        }
+        .health-text.at_risk  { color: var(--signal-red); }
+        .health-text.behind   { color: var(--signal-amber); }
+        .health-text.slower   { color: var(--signal-amber); }
+        .health-text.on_track { color: var(--signal-green); }
+        .health-text.complete { color: var(--text-tertiary); }
+
+        /* Card metadata */
+        .card-health-reason {
+            font-family: var(--sans);
+            font-size: var(--text-xs);
+            font-style: italic;
+            margin-bottom: var(--space-2);
+        }
+        .health-at_risk .card-health-reason  { color: var(--signal-red); }
+        .health-behind  .card-health-reason  { color: var(--signal-amber); }
+        .health-slower  .card-health-reason  { color: var(--signal-amber); }
+
+        .card-recency {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            margin-bottom: var(--space-1);
+        }
+        .card-recency.fresh { color: var(--signal-green); }
+        .card-recency.stale { color: var(--text-secondary); }
+
+        .card-neighborhood {
+            font-family: var(--sans);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+        }
+
+        .card-stats {
+            display: flex;
+            gap: var(--space-4);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+        }
+
+        /* Tags */
+        .tag-pill {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            background: rgba(34, 211, 238, 0.06);
+            color: var(--signal-cyan);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            padding: 1px 7px;
+            border-radius: 3px;
+            margin-right: var(--space-1);
+        }
+
+        /* Expanded permit list */
+        .permit-list {
+            margin-top: var(--space-4);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: var(--space-4);
+            display: none;
+        }
+        .property-card.expanded .permit-list { display: block; }
+
+        /* Permit rows in expanded view */
+        .permit-row {
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+        }
+        .permit-row:last-child { border-bottom: none; }
+
+        .permit-status {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .permit-status.filed    { background: rgba(34, 211, 238, 0.1);  color: var(--signal-cyan); }
+        .permit-status.issued   { background: rgba(52, 211, 153, 0.1);  color: var(--signal-green); }
+        .permit-status.complete { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
+        .permit-status.triage   { background: rgba(251, 191, 36, 0.1);  color: var(--signal-amber); }
+
+        /* Enforcement row */
+        .enforce-row {
+            display: flex;
+            gap: var(--space-3);
+            align-items: center;
+            margin-bottom: var(--space-3);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            flex-wrap: wrap;
+        }
+        .enforce-label {
+            color: var(--text-secondary);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .enforce-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 400;
+        }
+        .enforce-badge.clear   { background: rgba(52,211,153,0.1);  color: var(--signal-green); }
+        .enforce-badge.alert   { background: rgba(248,113,113,0.1);  color: var(--signal-red); }
+        .enforce-badge.unknown { background: rgba(255,255,255,0.04); color: var(--text-secondary); }
+
+        /* Routing progress */
+        .routing-section { margin-bottom: var(--space-3); }
+        .routing-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-1);
+        }
+        .routing-bar-wrap {
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            height: 4px;
+            overflow: hidden;
+            margin-bottom: var(--space-1);
+        }
+        .routing-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s;
+        }
+        .routing-fill-ok  { background: var(--signal-green); }
+        .routing-fill-mid { background: var(--signal-amber); }
+        .routing-fill-low { background: var(--signal-cyan); }
+        .routing-stations {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+        }
+        .routing-alert {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            margin-top: var(--space-1);
+        }
+        .routing-alert.stalled { color: var(--signal-red); }
+        .routing-alert.held    { color: var(--signal-amber); }
+
+        /* Empty state */
+        .portfolio-empty {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+        }
+        .portfolio-empty h2 {
+            font-family: var(--sans);
+            font-size: var(--text-lg);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        .portfolio-empty p {
+            font-family: var(--sans);
+            color: var(--text-secondary);
+            font-size: var(--text-sm);
+            max-width: 420px;
+            margin: 0 auto var(--space-6);
+        }
+        .portfolio-empty-actions {
+            display: flex;
+            gap: var(--space-3);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Card expand animation */
+        @keyframes card-expand-pulse { from { opacity: 1; } to { opacity: 0.5; } }
+        .property-card.expanding {
+            animation: card-expand-pulse 0.35s ease-in-out 2 alternate;
+        }
+
+        /* Timeline loading */
+        .timeline-loading {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            padding: var(--space-2) 0;
+            font-style: italic;
+        }
+
         @media (max-width: 500px) {
             .filter-bar { flex-direction: column; align-items: stretch; }
             .filter-chip { text-align: center; }
             .sort-select { margin-left: 0; width: 100%; }
-            .summary-row { gap: 8px; }
-            .summary-card { min-width: 70px; padding: 12px 8px; }
-            .summary-number { font-size: 1.4rem; }
         }
-
-        .property-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; cursor: pointer; transition: border-color 0.2s; }
-        .property-card:hover { border-color: var(--accent); }
-        .property-card.health-at_risk { border-left: 3px solid var(--error); }
-        .property-card.health-behind { border-left: 3px solid var(--warning); }
-        .property-card.health-slower { border-left: 3px solid var(--warning); }
-        .property-card.health-on_track { border-left: 3px solid var(--success); }
-
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .card-address { font-weight: 600; font-size: 1rem; }
-        .card-address a { color: var(--text); text-decoration: none; }
-        .card-address a:hover { color: var(--accent); }
-        .health-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; margin-top: 6px; }
-        .health-dot.on_track { background: var(--success); }
-        .health-dot.slower { background: var(--warning); }
-        .health-dot.behind { background: var(--warning); }
-        .health-dot.at_risk { background: var(--error); }
-        .health-indicator { display: flex; align-items: center; gap: 4px; }
-        .health-text { font-size: 0.7rem; text-transform: uppercase; font-weight: 600; }
-        .health-text.at_risk { color: var(--error); }
-        .health-text.behind { color: var(--warning); }
-        .health-text.slower { color: var(--warning); }
-        .health-text.on_track { color: var(--success); }
-        .health-text.complete { color: var(--text-muted); }
-
-        .card-stats { display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
-        .card-neighborhood { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
-        .card-health-reason { font-size: 0.75rem; font-style: italic; margin-bottom: 6px; }
-        .health-at_risk .card-health-reason { color: var(--error); opacity: 0.85; }
-        .health-behind .card-health-reason { color: var(--warning); opacity: 0.85; }
-        .health-slower .card-health-reason { color: var(--warning); opacity: 0.7; }
-        .card-recency { font-size: 0.72rem; margin-bottom: 6px; }
-        .card-recency.fresh { color: var(--success); }
-        .card-recency.stale { color: var(--text-muted); }
-        .tag-pill { display: inline-block; background: rgba(79, 143, 247, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 4px; }
-
-        .permit-list { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; display: none; }
-        .property-card.expanded .permit-list { display: block; }
-        .permit-row { padding: 8px 0; border-bottom: 1px solid rgba(51,55,73,0.5); font-size: 0.85rem; }
-        .permit-row:last-child { border-bottom: none; }
-        .permit-status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-        .permit-status.filed { background: rgba(79,143,247,0.15); color: var(--accent); }
-        .permit-status.issued { background: rgba(52,211,153,0.2); color: var(--success); }
-        .permit-status.complete { background: rgba(52,211,153,0.3); color: var(--success); }
-        .permit-status.triage { background: rgba(251,191,36,0.15); color: var(--warning); }
-
-        /* Enforcement row in expanded card */
-        .enforce-row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; font-size: 0.8rem; flex-wrap: wrap; }
-        .enforce-badge { padding: 3px 9px; border-radius: 10px; font-weight: 600; font-size: 0.72rem; }
-        .enforce-badge.clear { background: rgba(52,211,153,0.15); color: var(--success); }
-        .enforce-badge.alert { background: rgba(248,113,113,0.15); color: var(--error); }
-        .enforce-badge.unknown { background: var(--surface-2); color: var(--text-muted); }
-
-        /* Routing progress in expanded card */
-        .routing-section { margin-bottom: 10px; }
-        .routing-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
-        .routing-bar-wrap { background: var(--surface-2); border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 4px; }
-        .routing-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
-        .routing-fill-ok { background: var(--success); }
-        .routing-fill-mid { background: var(--warning); }
-        .routing-fill-low { background: var(--accent); }
-        .routing-stations { font-size: 0.75rem; color: var(--text-muted); }
-        .routing-alert { font-size: 0.75rem; margin-top: 3px; }
-        .routing-alert.stalled { color: var(--error); }
-        .routing-alert.held { color: var(--warning); }
-
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-        .empty-state h2 { color: var(--text); margin-bottom: 8px; }
-        .empty-state a { color: var(--accent); }
-
-        /* Card expand pulse */
-        @keyframes card-expand-pulse { from { opacity: 1; } to { opacity: 0.5; } }
-        .property-card.expanding { animation: card-expand-pulse 0.35s ease-in-out 2 alternate; }
-
-        /* Timeline loading spinner */
-        .timeline-loading { font-size: 0.78rem; color: var(--text-muted); padding: 8px 0; font-style: italic; }
     </style>
-    <link rel="stylesheet" href="/static/mobile.css">
 </head>
-<body>
+<body class="obsidian">
     {% set active_page = 'portfolio' %}
     {% include 'fragments/nav.html' %}
     <main>
-        <div class="container">
-            <h1>Portfolio</h1>
-            <p class="subtitle">{{ summary.total_properties }} properties &middot; {{ summary.total_active_permits }} active permits</p>
+        <div class="obs-container portfolio-main">
+            <div>
+                <h1 style="font-family: var(--sans); font-size: var(--text-xl); font-weight: 300; color: var(--text-primary); margin-bottom: var(--space-1);">Portfolio</h1>
+                <p style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">{{ summary.total_properties }} properties &middot; {{ summary.total_active_permits }} active permits</p>
+            </div>
 
             {% if properties %}
-            <!-- Summary -->
+            <!-- Summary stats row -->
             <div class="summary-row">
-                <div class="summary-card">
-                    <div class="summary-number">{{ summary.total_properties }}</div>
-                    <div class="summary-label">Properties</div>
+                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
+                    <div class="stat-number" style="font-size: var(--text-xl);">{{ summary.total_properties }}</div>
+                    <div class="stat-label">Properties</div>
                 </div>
-                <div class="summary-card {{ 'alert' if summary.action_needed > 0 else 'ok' }}">
-                    <div class="summary-number">{{ summary.action_needed }}</div>
-                    <div class="summary-label">Action Needed</div>
+                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
+                    <div class="stat-number" style="font-size: var(--text-xl); color: {% if summary.action_needed > 0 %}var(--signal-red){% else %}var(--signal-green){% endif %};">{{ summary.action_needed }}</div>
+                    <div class="stat-label">Action Needed</div>
                 </div>
-                <div class="summary-card {{ 'warn' if summary.in_review > 0 else '' }}">
-                    <div class="summary-number">{{ summary.in_review }}</div>
-                    <div class="summary-label">In Review</div>
+                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
+                    <div class="stat-number" style="font-size: var(--text-xl); color: {% if summary.in_review > 0 %}var(--signal-amber){% else %}var(--text-primary){% endif %};">{{ summary.in_review }}</div>
+                    <div class="stat-label">In Review</div>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-number">${{ "{:,.0f}".format(summary.total_value / 1000000) }}M</div>
-                    <div class="summary-label">Portfolio Value</div>
+                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
+                    <div class="stat-number" style="font-size: var(--text-xl);">${{ "{:,.0f}".format(summary.total_value / 1000000) }}M</div>
+                    <div class="stat-label">Portfolio Value</div>
                 </div>
             </div>
 
-            <!-- Filters -->
+            <!-- Filter / sort bar -->
             <div class="filter-bar">
                 <a href="/portfolio" class="filter-chip {{ 'active' if not filter_by or filter_by == 'all' }}">All</a>
                 <a href="/portfolio?filter=action_needed&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'action_needed' }}">Action Needed</a>
                 <a href="/portfolio?filter=in_review&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'in_review' }}">In Review</a>
                 <a href="/portfolio?filter=active&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'active' }}">Active</a>
                 <select class="sort-select" onchange="window.location.href='/portfolio?filter={{ filter_by or 'all' }}&sort='+this.value">
-                    <option value="recent" {{ 'selected' if sort_by == 'recent' or not sort_by }}>Sort: Recent Activity</option>
-                    <option value="cost_desc" {{ 'selected' if sort_by == 'cost_desc' }}>Sort: Highest Cost</option>
-                    <option value="stale" {{ 'selected' if sort_by == 'stale' }}>Sort: Most Stale</option>
-                    <option value="health" {{ 'selected' if sort_by == 'health' }}>Sort: Worst Health</option>
+                    <option value="recent" {{ 'selected' if sort_by == 'recent' or not sort_by }}>Recent Activity</option>
+                    <option value="cost_desc" {{ 'selected' if sort_by == 'cost_desc' }}>Highest Cost</option>
+                    <option value="stale" {{ 'selected' if sort_by == 'stale' }}>Most Stale</option>
+                    <option value="health" {{ 'selected' if sort_by == 'health' }}>Worst Health</option>
                 </select>
             </div>
 
@@ -191,11 +408,10 @@
                     {% endif %}
                     {% if prop.days_since_activity is not none %}
                     <div class="card-recency {% if prop.days_since_activity <= 7 %}fresh{% else %}stale{% endif %}">
-                        {% if prop.days_since_activity == 0 %}&#x1f7e2; Activity today
-                        {% elif prop.days_since_activity == 1 %}&#x1f7e2; Activity yesterday
-                        {% elif prop.days_since_activity <= 7 %}&#x1f7e2; Activity {{ prop.days_since_activity }}d ago
-                        {% elif prop.days_since_activity <= 30 %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
-                        {% else %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
+                        {% if prop.days_since_activity == 0 %}Activity today
+                        {% elif prop.days_since_activity == 1 %}Activity yesterday
+                        {% elif prop.days_since_activity <= 7 %}Activity {{ prop.days_since_activity }}d ago
+                        {% else %}Last activity {{ prop.days_since_activity }}d ago
                         {% endif %}
                     </div>
                     {% endif %}
@@ -213,16 +429,16 @@
                         {% endif %}
                     </div>
                     {% if prop.tags %}
-                    <div style="margin-bottom: 4px;">
+                    <div style="margin-bottom: var(--space-1);">
                         {% for tag in prop.tags.split(',') if tag.strip() %}
                         <span class="tag-pill">{{ tag.strip() }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
                     {% if prop.last_inspection %}
-                    <div style="font-size: 0.75rem; color: var(--text-muted);">
-                        Last inspection: {{ prop.last_inspection.type }} —
-                        <span style="color: {{ 'var(--success)' if prop.last_inspection.result == 'PASSED' else 'var(--error)' if prop.last_inspection.result == 'FAILED' else 'var(--text-muted)' }}">
+                    <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">
+                        Last inspection: {{ prop.last_inspection.type }} &mdash;
+                        <span style="color: {{ 'var(--signal-green)' if prop.last_inspection.result == 'PASSED' else 'var(--signal-red)' if prop.last_inspection.result == 'FAILED' else 'var(--text-secondary)' }}">
                             {{ prop.last_inspection.result or 'Pending' }}
                         </span>
                         ({{ prop.last_inspection.date }})
@@ -235,20 +451,20 @@
                         <!-- Enforcement summary -->
                         {% if prop.open_violations is not none or prop.open_complaints is not none %}
                         <div class="enforce-row">
-                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Enforcement</span>
+                            <span class="enforce-label">Enforcement</span>
                             {% set viol = prop.open_violations %}
                             {% set comp = prop.open_complaints %}
                             {% if (viol is not none and viol > 0) or (comp is not none and comp > 0) %}
                                 {% if viol is not none and viol > 0 %}
-                                <span class="enforce-badge alert">⚠ {{ viol }} violation{{ 's' if viol != 1 }}</span>
+                                <span class="enforce-badge alert">{{ viol }} violation{{ 's' if viol != 1 }}</span>
                                 {% endif %}
                                 {% if comp is not none and comp > 0 %}
-                                <span class="enforce-badge alert">⚠ {{ comp }} complaint{{ 's' if comp != 1 }}</span>
+                                <span class="enforce-badge alert">{{ comp }} complaint{{ 's' if comp != 1 }}</span>
                                 {% endif %}
                             {% elif viol == 0 and comp == 0 %}
-                                <span class="enforce-badge clear">✓ No open enforcement</span>
+                                <span class="enforce-badge clear">No open enforcement</span>
                             {% else %}
-                                <span class="enforce-badge unknown">— Unknown</span>
+                                <span class="enforce-badge unknown">Unknown</span>
                             {% endif %}
                         </div>
                         {% endif %}
@@ -257,7 +473,7 @@
                         {% if prop.routing %}
                         {% set r = prop.routing %}
                         <div class="routing-section">
-                            <div class="routing-label">Plan Check · {{ r.permit_number }}</div>
+                            <div class="routing-label">Plan Check &middot; {{ r.permit_number }}</div>
                             <div class="routing-bar-wrap">
                                 <div class="routing-bar-fill {% if r.completion_pct >= 75 %}routing-fill-ok{% elif r.completion_pct >= 40 %}routing-fill-mid{% else %}routing-fill-low{% endif %}"
                                      style="width: {{ r.completion_pct }}%;"></div>
@@ -265,14 +481,14 @@
                             <div class="routing-stations">
                                 {{ r.completed_stations }}/{{ r.total_stations }} stations ({{ r.completion_pct }}%)
                                 {% if r.pending_station_names %}
-                                 · Waiting: {{ r.pending_station_names | join(', ') }}
+                                 &middot; Waiting: {{ r.pending_station_names | join(', ') }}
                                 {% endif %}
                             </div>
                             {% if r.stalled_stations %}
-                            <div class="routing-alert stalled">⚠ Stalled &gt;30d: {{ r.stalled_stations | join(', ') }}</div>
+                            <div class="routing-alert stalled">Stalled &gt;30d: {{ r.stalled_stations | join(', ') }}</div>
                             {% endif %}
                             {% if r.held_stations %}
-                            <div class="routing-alert held">⏸ On hold: {{ r.held_stations | join(', ') }}</div>
+                            <div class="routing-alert held">On hold: {{ r.held_stations | join(', ') }}</div>
                             {% endif %}
                         </div>
                         {% endif %}
@@ -280,38 +496,40 @@
                         {% for pm in prop.permits %}
                         <div class="permit-row">
                             <span class="permit-status {{ pm.status }}">{{ pm.status }}</span>
-                            <strong>{{ pm.permit_number }}</strong> — {{ pm.permit_type }}
-                            {% if pm.cost %}<span style="color: var(--text-muted);"> &middot; ${{ "{:,.0f}".format(pm.cost) }}</span>{% endif %}
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">{{ pm.description }}</div>
+                            <strong style="color: var(--text-primary);">{{ pm.permit_number }}</strong> &mdash; <span style="color: var(--text-secondary);">{{ pm.permit_type }}</span>
+                            {% if pm.cost %}<span style="color: var(--text-secondary);"> &middot; ${{ "{:,.0f}".format(pm.cost) }}</span>{% endif %}
+                            <div style="font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1);">{{ pm.description }}</div>
                         </div>
                         {% endfor %}
+
                         <!-- Inspection timeline (lazy-loaded when card is expanded) -->
                         <div id="timeline-{{ prop.block }}-{{ prop.lot }}"
                              hx-get="/portfolio/timeline/{{ prop.block }}/{{ prop.lot }}"
                              hx-trigger="revealed"
                              hx-swap="innerHTML">
-                            <div class="timeline-loading">Loading inspection history…</div>
+                            <div class="timeline-loading">Loading inspection history...</div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
 
+            <!-- Load more (if portfolio has many properties) -->
+            {% if properties | length >= 20 %}
+            <div class="load-more" style="display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-6) 0;">
+                <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">Showing {{ properties | length }} properties</span>
+                <a href="/portfolio?filter={{ filter_by or 'all' }}&sort={{ sort_by or 'recent' }}&all=1" class="ghost-cta" style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid transparent; transition: color 0.3s, border-color 0.3s;">Show all &rarr;</a>
+            </div>
+            {% endif %}
+
             {% else %}
-            <!-- SESSION E: Empty state — no portfolio watches -->
-            <div style="text-align: center; padding: 60px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
-                <div style="font-size: 2.5rem; margin-bottom: 12px;">&#128203;</div>
-                <h2 style="font-size: 1.3rem; margin-bottom: 8px;">Your portfolio is empty</h2>
-                <p style="color: var(--text-muted); max-width: 420px; margin: 0 auto 20px; font-size: 0.9rem;">
-                    Start watching properties to track permit activity, health indicators, inspection timelines, and smart alerts — all in one place.
-                </p>
-                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                    <a href="/search" style="background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-                        Search for a property &rarr;
-                    </a>
-                    <a href="/account" style="background: var(--surface-2); color: var(--text); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; border: 1px solid var(--border);">
-                        Import by name &rarr;
-                    </a>
+            <!-- Empty state -->
+            <div class="glass-card portfolio-empty">
+                <h2>Your portfolio is empty</h2>
+                <p>Start watching properties to track permit activity, health indicators, inspection timelines, and smart alerts &mdash; all in one place.</p>
+                <div class="portfolio-empty-actions">
+                    <a href="/search" class="obsidian-btn obsidian-btn-primary">Search for a property &rarr;</a>
+                    <a href="/account" class="obsidian-btn obsidian-btn-outline">Import by name &rarr;</a>
                 </div>
             </div>
             {% endif %}
@@ -322,10 +540,8 @@
         var isExpanding = !card.classList.contains('expanded');
         card.classList.toggle('expanded');
         if (isExpanding) {
-            // Brief pulse to confirm the click registered
             card.classList.add('expanding');
             setTimeout(function() { card.classList.remove('expanding'); }, 750);
-            // Nudge HTMX to notice newly visible timeline div
             htmx.process(card);
         }
     }

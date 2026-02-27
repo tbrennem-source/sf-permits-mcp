@@ -4,144 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ project.name }} — sfpermits.ai</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% include "fragments/head_obsidian.html" %}
     <style nonce="{{ csp_nonce }}">
-        .project-detail-header {
-            margin-bottom: 28px;
+        /* ── Project detail layout ────────────────────────────────── */
+        .project-detail-main {
+            padding: var(--space-8) 0 var(--space-16);
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
         }
-        .project-detail-header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text);
-            margin: 0 0 6px 0;
-        }
-        .project-detail-address {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
+
+        /* Back link */
         .back-link {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            margin-bottom: 20px;
+            gap: var(--space-1);
+            transition: color 0.2s;
         }
-        .back-link:hover { color: var(--text); }
-        .section-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin-bottom: 20px;
+        .back-link:hover { color: var(--text-primary); }
+
+        /* Project header */
+        .project-header h1 {
+            font-family: var(--sans);
+            font-size: var(--text-xl);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
         }
-        .section-card h2 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-            margin: 0 0 16px 0;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
+        .project-meta {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
         }
+
+        /* Section card heading */
+        .section-card-heading {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-4) 0;
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* Member rows */
         .member-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
         }
         .member-row:last-child { border-bottom: none; }
         .member-name {
-            font-size: 0.9rem;
-            color: var(--text);
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-primary);
         }
         .member-email {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
+
+        /* Role badge */
         .role-badge {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            border-radius: 3px;
         }
-        .role-owner { background: rgba(37, 99, 235, 0.1); color: var(--accent); }
-        .role-admin { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
-        .role-member { background: var(--surface-2); color: var(--text-muted); }
+        .role-owner  { background: rgba(34, 211, 238, 0.08); color: var(--signal-cyan); border: 1px solid rgba(34, 211, 238, 0.2); }
+        .role-admin  { background: rgba(96, 165, 250, 0.08); color: var(--signal-blue); border: 1px solid rgba(96, 165, 250, 0.2); }
+        .role-member { background: rgba(255,255,255,0.04); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.06); }
+
+        /* Analysis rows */
         .analysis-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
         }
         .analysis-row:last-child { border-bottom: none; }
         .analysis-row a {
-            font-size: 0.9rem;
-            color: var(--accent);
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--signal-cyan);
             text-decoration: none;
+            transition: color 0.2s;
         }
         .analysis-row a:hover { text-decoration: underline; }
         .analysis-meta {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        /* Invite form */
+        .invite-section {
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .invite-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+            display: block;
         }
         .invite-form {
             display: flex;
-            gap: 8px;
-            margin-top: 12px;
+            gap: var(--space-2);
         }
         .invite-form input[type="email"] {
             flex: 1;
             padding: 8px 12px;
-            border: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 6px;
-            background: var(--surface-2);
-            color: var(--text);
-            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        .invite-form button {
-            padding: 8px 18px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
+        .invite-form input[type="email"]:focus {
+            border-color: rgba(34, 211, 238, 0.3);
         }
+        .invite-form input[type="email"]::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* Invite feedback */
         .invite-feedback {
-            margin-top: 8px;
-            font-size: 0.85rem;
+            margin-top: var(--space-2);
+            font-family: var(--sans);
+            font-size: var(--text-xs);
         }
-        .invite-feedback.ok { color: #166534; }
-        .invite-feedback.err { color: #991b1b; }
+        .invite-feedback.ok  { color: var(--signal-green); }
+        .invite-feedback.err { color: var(--signal-red); }
+
+        /* Empty list state */
         .empty-list {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            padding: 8px 0;
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            padding: var(--space-3) 0;
         }
     </style>
 </head>
-<body>
+<body class="obsidian">
 {% include "fragments/nav.html" %}
-<div class="container" style="max-width: 900px; margin: 0 auto; padding: 32px 16px;">
+<main>
+<div class="obs-container project-detail-main">
     <a href="/projects" class="back-link">&larr; All Projects</a>
 
-    <div class="project-detail-header">
+    <div class="project-header">
         <h1>{{ project.name }}</h1>
-        <div class="project-detail-address">
+        <div class="project-meta">
             {% if project.address %}{{ project.address }}{% endif %}
             {% if project.neighborhood %} &middot; {{ project.neighborhood }}{% endif %}
             {% if project.block and project.lot %} &middot; Block {{ project.block }}, Lot {{ project.lot }}{% endif %}
         </div>
     </div>
 
-    <!-- Members -->
-    <div class="section-card">
-        <h2>Members ({{ members | length }})</h2>
+    <!-- Members section -->
+    <div class="glass-card" style="padding: var(--space-6);">
+        <h2 class="section-card-heading">Members <span style="color: var(--text-tertiary);">({{ members | length }})</span></h2>
         {% if members %}
         {% for m in members %}
         <div class="member-row">
@@ -157,20 +205,20 @@
         {% endif %}
 
         {% if my_role in ('owner', 'admin') or (g.user and g.user.is_admin) %}
-        <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
-            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px;">Invite a collaborator</div>
+        <div class="invite-section">
+            <span class="invite-label">Invite a collaborator</span>
             <div class="invite-form">
                 <input type="email" id="invite-email" placeholder="colleague@firm.com">
-                <button onclick="sendInvite()">Send Invite</button>
+                <button class="obsidian-btn obsidian-btn-primary" onclick="sendInvite()">Send Invite</button>
             </div>
             <div id="invite-feedback" class="invite-feedback" style="display:none;"></div>
         </div>
         {% endif %}
     </div>
 
-    <!-- Analyses -->
-    <div class="section-card">
-        <h2>Analyses ({{ analyses | length }})</h2>
+    <!-- Analyses section -->
+    <div class="glass-card" style="padding: var(--space-6);">
+        <h2 class="section-card-heading">Analyses <span style="color: var(--text-tertiary);">({{ analyses | length }})</span></h2>
         {% if analyses %}
         {% for a in analyses %}
         <div class="analysis-row">
@@ -183,6 +231,7 @@
         {% endif %}
     </div>
 </div>
+</main>
 
 <script nonce="{{ csp_nonce }}">
 function sendInvite() {
