@@ -981,3 +981,53 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Cache miss on first-ever visit should compute and cache, not error. User with 0 watches gets clean empty state.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property report renders risk assessment with severity colors
+**Source:** web/templates/report.html — risk assessment section migration
+**User:** expediter
+**Starting state:** User navigates to a property report for a parcel with known complaints or violations.
+**Goal:** Quickly identify the severity and nature of risks at this property.
+**Expected outcome:** Risk items display with color-coded left borders (red for high, amber for moderate, blue for low) and matching severity chips. Each risk item shows title, description, and optional cross-reference link to the relevant section. "No known risks" state shows a green-bordered card with "Clear" chip.
+**Edge cases seen in code:** Properties with no risk_assessment show fallback "No known risks" card. KB citations render as small teal chips when present.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Permit history table shows expandable details inline
+**Source:** web/templates/report.html — permit history section
+**User:** expediter
+**Starting state:** User views a property report with multiple permits; some permits have contacts, inspections, or routing data.
+**Goal:** Drill into a specific permit without leaving the page.
+**Expected outcome:** Clicking "Details →" on a permit row expands an inline panel showing contacts (with entity links), recent inspections (with pass/fail coloring), and plan review routing (progress bar + station-by-station results). Clicking again collapses the panel.
+**Edge cases seen in code:** Permits without contacts/inspections/routing show no Details button. Routing stalled stations show red risk-flag. Routing "All clear" shows green checkmark.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Complaint and violation cards display status with semantic coloring
+**Source:** web/templates/report.html — complaints and violations section
+**User:** expediter
+**Starting state:** User views a property report for a parcel with open complaints and violations on file.
+**Goal:** Assess the severity and current status of each complaint or violation at a glance.
+**Expected outcome:** Each complaint/violation shows as a glass card with case number (linked to DBI portal), status chip (Open = amber, Closed = green, etc.), filing date, and description. Empty state displays italic "No complaints on file" message.
+**Edge cases seen in code:** Status chips fall back to default (ghost) styling for unrecognized status strings. Complaint numbers link to external city portal.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property profile data rows render in obsidian design with correct font split
+**Source:** web/templates/report.html — property profile section
+**User:** homeowner
+**Starting state:** User views the property profile section of a report.
+**Goal:** Read property details (address, zoning, assessed value, etc.) in a clean readable format.
+**Expected outcome:** Each data row shows label in sans font (IBM Plex Sans) and value in mono font (JetBrains Mono). Rows are separated by glass-border lines. Zoning value is a hyperlink to the SF Planning Code. No information is truncated or misaligned on mobile.
+**Edge cases seen in code:** Null/missing values show em-dash (—) placeholder. On mobile viewport, data rows stack label above value (column direction).
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Consultant recommendation section shows tiered callout based on risk signal
+**Source:** web/templates/report.html — consultant recommendation section
+**User:** homeowner
+**Starting state:** User views a property report where the consultant_signal is "strongly_recommended" due to active complaints and permit complexity.
+**Goal:** Understand whether they need a consultant and find one.
+**Expected outcome:** Callout box renders with appropriate color and urgency (warm = blue, recommended = amber, strongly_recommended = red, essential = red with thicker border). A "Find a consultant →" link passes block/lot and signal context. Contributing factors list renders below the callout.
+**Edge cases seen in code:** Section hidden entirely when signal is "cold". Neighborhood and complaint flags appended to consultant finder URL when available.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
