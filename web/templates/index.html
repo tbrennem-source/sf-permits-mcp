@@ -9,12 +9,151 @@
     <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
     <style nonce="{{ csp_nonce }}">
 
+        /* ── Dashboard layout (obs-container is defined in design-system.css) ── */
         .container {
             max-width: 1100px;
             margin: 0 auto;
             padding: 0 24px;
         }
 
+        /* ── Dashboard sections ──────────────────────────────────────────── */
+        .dash-main {
+            padding: var(--space-8) 0 var(--space-16);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        /* Search card */
+        .dash-search-card {
+            padding: var(--space-8);
+        }
+        .dash-search-heading {
+            font-family: var(--font-display);
+            font-size: clamp(1.4rem, 1.2rem + 1.5vw, 2.2rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-6);
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+        .dash-search-heading .cyan { color: var(--signal-cyan); }
+
+        /* Quick actions card */
+        .dash-actions-card {
+            padding: var(--space-6);
+        }
+        .dash-section-label {
+            font-family: var(--font-body);
+            font-size: var(--text-sm);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-4);
+        }
+        .dash-actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+        @media (max-width: 768px) {
+            .dash-actions-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: var(--space-3);
+            }
+        }
+        @media (max-width: 375px) {
+            .dash-actions-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Recent items card */
+        .dash-recent-card {
+            padding: var(--space-6);
+        }
+        .dash-recent-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-4);
+        }
+        @media (max-width: 1024px) {
+            .dash-recent-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 640px) {
+            .dash-recent-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .recent-chip {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255, 0.06);
+            border-radius: 10px;
+            padding: var(--space-4);
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .recent-chip:hover {
+            border-color: rgba(255,255,255, 0.14);
+            background: rgba(255,255,255, 0.04);
+        }
+        .recent-chip-address {
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .recent-chip-date {
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+        .recent-empty {
+            color: var(--text-tertiary);
+            font-size: var(--text-sm);
+            font-style: italic;
+        }
+
+        /* Watched Properties empty state */
+        .dash-watch-card {
+            padding: var(--space-6);
+            text-align: center;
+        }
+        .dash-empty-text {
+            color: var(--text-secondary);
+            font-size: var(--text-sm);
+            margin-bottom: var(--space-4);
+        }
+
+        /* Stats row */
+        .dash-stats-card {
+            padding: var(--space-6);
+        }
+        .dash-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-6);
+        }
+        @media (max-width: 768px) {
+            .dash-stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 400px) {
+            .dash-stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ──────────────────────────────────────────────────────────────── */
         .impersonate-banner {
             background: rgba(251, 191, 36, 0.15);
             border-bottom: 1px solid var(--warning);
@@ -743,20 +882,9 @@
         }
 
         /* Hero search box */
-        .hero-search {
-            text-align: center;
-            padding: 48px 0 32px;
-        }
-
-        .hero-search h1 {
-            font-family: var(--font-display);
-            font-size: 2rem;
-            margin-bottom: 24px;
-        }
-
         .search-form {
-            max-width: 700px;
-            margin: 0 auto 20px;
+            max-width: 100%;
+            margin: 0 0 var(--space-4);
         }
 
         .search-box-wrapper {
@@ -764,24 +892,22 @@
             gap: 0;
         }
 
-        .search-box-wrapper input[type="text"] {
+        .search-box-wrapper .obsidian-input {
             flex: 1;
             border-radius: 8px 0 0 8px;
-            padding: 16px 20px;
-            font-size: 1.05rem;
             border-right: none;
         }
 
-        .search-box-wrapper input[type="text"]:focus {
-            border-color: var(--accent);
+        .search-box-wrapper .obsidian-input:focus {
             z-index: 1;
         }
 
         .search-btn {
             border-radius: 0 8px 8px 0 !important;
-            padding: 16px 28px;
+            padding: var(--space-3) var(--space-6);
             width: auto !important;
-            min-width: 70px;
+            min-width: 80px;
+            flex-shrink: 0;
         }
 
         .quick-actions {
@@ -863,28 +989,29 @@
     {% include 'fragments/nav.html' %}
 
     <main>
-        <div class="container">
+        <div class="obs-container dash-main">
+
             {# SESSION E: First-login onboarding banner #}
             {% if session.get('show_onboarding_banner') and not session.get('onboarding_dismissed') %}
             <div id="onboarding-banner"
-                 style="background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.3); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                 style="background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.3); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                 <div>
                     <strong style="color: var(--success);">Welcome to sfpermits.ai!</strong>
-                    <span style="color: var(--text-muted); font-size: 0.9rem; margin-left: 8px;">Start by searching an address or describing your project.</span>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem; margin-left: 8px;">Start by searching an address or describing your project.</span>
                 </div>
                 <button
                     hx-post="/onboarding/dismiss"
                     hx-target="#onboarding-banner"
                     hx-swap="outerHTML"
-                    style="background: none; border: 1px solid rgba(52,211,153,0.4); border-radius: 6px; color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 0.8rem; padding: 6px 12px;">
+                    style="background: none; border: 1px solid rgba(52,211,153,0.4); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 0.8rem; padding: 6px 12px;">
                     Dismiss
                 </button>
             </div>
             {% endif %}
 
-            <!-- Hero search box -->
-            <div class="hero-search">
-                <h1>What do you need to know about SF permits?</h1>
+            {# ── Search card ─────────────────────────────────────────────── #}
+            <div class="glass-card dash-search-card">
+                <h1 class="dash-search-heading">What do you need to know about <span class="cyan">SF permits</span>?</h1>
                 <form class="search-form"
                       hx-post="/ask"
                       hx-target="#search-results"
@@ -892,9 +1019,10 @@
                     <input type="hidden" name="draft" id="draft-mode" value="0">
                     <div class="search-box-wrapper">
                         <input type="text" name="q" id="search-q"
+                            class="obsidian-input"
                             placeholder="Permit number, address, client question, or anything about SF permits..."
                             autocomplete="off" autofocus>
-                        <button type="submit" class="btn search-btn">
+                        <button type="submit" class="obsidian-btn obsidian-btn-primary search-btn">
                             <span class="label">Go</span>
                             <span class="spinner">...</span>
                         </button>
@@ -906,41 +1034,83 @@
                     <button class="recent-clear" onclick="_clearRecentSearches()" title="Clear recent searches">&times;</button>
                 </div>
                 <div class="actions-divider" id="actions-divider" style="display:none;"></div>
-                <div class="quick-actions">
+
+                <div id="search-loading" class="htmx-indicator" style="margin-top: var(--space-4);">
+                    <div class="loading-bar">
+                        <div class="dots">...</div>
+                        <p>Searching permits...</p>
+                    </div>
+                </div>
+
+                <div id="search-results"></div>
+            </div>
+
+            {# ── Quick actions card ──────────────────────────────────────── #}
+            <div class="glass-card dash-actions-card">
+                <div class="dash-section-label">Quick Actions</div>
+                <div class="dash-actions-row">
                     {% if g.user and g.user.primary_street_number and g.user.primary_street_name %}
-                    <button class="preset-chip" style="border-color:var(--accent);color:var(--accent);"
+                    <button class="obsidian-btn obsidian-btn-outline"
                         onclick="document.getElementById('search-q').value='{{ g.user.primary_street_number }} {{ g.user.primary_street_name }}'; htmx.trigger(document.querySelector('.search-form'), 'submit');">
                         Check {{ g.user.primary_street_number }} {{ g.user.primary_street_name }}
                     </button>
                     {% endif %}
-                    <button class="preset-chip" onclick="revealSection('analyze')">Analyze a project</button>
-                    <button class="preset-chip" onclick="revealSection('analyze-plans')">Analyze plans</button>
-                    <button class="preset-chip" onclick="revealSection('lookup')">Look up a permit</button>
-                    <button class="preset-chip" onclick="_enterDraftMode()">Draft a reply</button>
+                    <button class="obsidian-btn obsidian-btn-outline" onclick="revealSection('analyze')">Analyze a project</button>
+                    <button class="obsidian-btn obsidian-btn-outline" onclick="revealSection('lookup')">Look up a permit</button>
+                    <button class="obsidian-btn obsidian-btn-outline" onclick="revealSection('analyze-plans')">Upload plans</button>
+                    <button class="obsidian-btn obsidian-btn-outline" onclick="_enterDraftMode()">Draft a reply</button>
                 </div>
             </div>
 
-            <div id="search-loading" class="htmx-indicator">
-                <div class="loading-bar">
-                    <div class="dots">...</div>
-                    <p>Searching permits...</p>
+            {# ── Recent items card ───────────────────────────────────────── #}
+            <div class="glass-card dash-recent-card" id="dash-recent-section">
+                <div class="dash-section-label">Recent Searches</div>
+                <div class="dash-recent-grid" id="dash-recent-grid">
+                    <span class="recent-empty">Your recent searches will appear here.</span>
                 </div>
             </div>
 
-            <div id="search-results"></div>
-
+            {# ── Watched Properties card ─────────────────────────────────── #}
             {% if user_report_url %}
-            <!-- Your Property Report card -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;">
+            <div class="glass-card" style="padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
                 <div>
-                    <div style="font-size:0.75rem;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Your Property</div>
-                    <div style="font-size:1rem;font-weight:600;color:var(--text);">{{ user_report_address }}</div>
+                    <div class="dash-section-label" style="margin-bottom: var(--space-2);">Your Property</div>
+                    <div style="font-size: var(--text-base); font-weight: 600; color: var(--text-primary);">{{ user_report_address }}</div>
                 </div>
-                <a href="{{ user_report_url }}" style="display:inline-block;padding:10px 20px;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;white-space:nowrap;">
+                <a href="{{ user_report_url }}" class="obsidian-btn obsidian-btn-primary" style="white-space: nowrap;">
                     View Property Report &rarr;
                 </a>
             </div>
+            {% else %}
+            <div class="glass-card dash-watch-card">
+                <div class="dash-section-label" style="text-align: left; margin-bottom: var(--space-4);">Watched Properties</div>
+                <p class="dash-empty-text">Add properties to your watchlist to see them here.</p>
+                <a href="/account" class="obsidian-btn obsidian-btn-outline" style="display: inline-flex;">Manage Watchlist</a>
+            </div>
             {% endif %}
+
+            {# ── Quick Stats row ─────────────────────────────────────────── #}
+            <div class="glass-card dash-stats-card">
+                <div class="dash-section-label" style="margin-bottom: var(--space-6);">Quick Stats</div>
+                <div class="dash-stats-row">
+                    <div class="stat-block">
+                        <div class="stat-number">{{ watch_count | default(0) }}</div>
+                        <div class="stat-label">Permits Watched</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-number">{{ changes_this_week | default(0) }}</div>
+                        <div class="stat-label">Changes This Week</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-number">1.1M+</div>
+                        <div class="stat-label">SF Permits Indexed</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-number">30</div>
+                        <div class="stat-label">Analysis Tools</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- === Analyze Project Section (hidden by default) === -->
             <div class="tool-section" id="section-analyze">
@@ -1461,7 +1631,7 @@
     </main>
 
     <footer>
-        <div class="container">
+        <div class="obs-container" style="padding-top: var(--space-6); padding-bottom: var(--space-6); border-top: 1px solid rgba(255,255,255,0.06); text-align: center; color: var(--text-secondary); font-size: var(--text-sm);">
             sfpermits.ai &mdash; powered by djarvis &mdash; SF permit data from data.sfgov.org
         </div>
     </footer>
@@ -1822,32 +1992,64 @@
 
         function _renderRecentSearches() {
             var container = document.getElementById("recent-searches");
-            if (!container) return;
+            var grid = document.getElementById("dash-recent-grid");
             var list = [];
             try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
-            // Remove old chips (keep label + clear button)
-            container.querySelectorAll(".preset-chip").forEach(function(el) { el.remove(); });
-            var divider = document.getElementById("actions-divider");
-            if (list.length === 0) { container.style.display = "none"; if (divider) divider.style.display = "none"; return; }
-            if (divider) divider.style.display = "block";
-            var clearBtn = container.querySelector(".recent-clear");
-            list.forEach(function(q) {
-                var btn = document.createElement("button");
-                btn.className = "preset-chip";
-                btn.textContent = q.length > 30 ? q.substring(0, 28) + "..." : q;
-                btn.title = q;
-                btn.onclick = function() {
-                    // Reset draft mode so recent chips always do a normal search
-                    var dm = document.getElementById("draft-mode");
-                    if (dm) { dm.value = "0"; }
-                    var sq = document.getElementById("search-q");
-                    sq.placeholder = "Permit number, address, client question, or anything about SF permits...";
-                    sq.value = q;
-                    htmx.trigger(document.querySelector(".search-form"), "submit");
-                };
-                container.insertBefore(btn, clearBtn);
-            });
-            container.style.display = "flex";
+
+            // Legacy inline recent-searches bar (within search card)
+            if (container) {
+                container.querySelectorAll(".preset-chip").forEach(function(el) { el.remove(); });
+                var divider = document.getElementById("actions-divider");
+                if (list.length === 0) { container.style.display = "none"; if (divider) divider.style.display = "none"; }
+                else {
+                    if (divider) divider.style.display = "block";
+                    var clearBtn = container.querySelector(".recent-clear");
+                    list.forEach(function(q) {
+                        var btn = document.createElement("button");
+                        btn.className = "preset-chip";
+                        btn.textContent = q.length > 30 ? q.substring(0, 28) + "..." : q;
+                        btn.title = q;
+                        btn.onclick = function() {
+                            var dm = document.getElementById("draft-mode");
+                            if (dm) { dm.value = "0"; }
+                            var sq = document.getElementById("search-q");
+                            sq.placeholder = "Permit number, address, client question, or anything about SF permits...";
+                            sq.value = q;
+                            htmx.trigger(document.querySelector(".search-form"), "submit");
+                        };
+                        container.insertBefore(btn, clearBtn);
+                    });
+                    container.style.display = "flex";
+                }
+            }
+
+            // New dashboard recent items grid
+            if (grid) {
+                grid.innerHTML = "";
+                if (list.length === 0) {
+                    grid.innerHTML = '<span class="recent-empty">Your recent searches will appear here.</span>';
+                } else {
+                    // Show up to 6 recent searches as cards
+                    var show = list.slice(0, 6);
+                    show.forEach(function(q) {
+                        var a = document.createElement("a");
+                        a.className = "recent-chip";
+                        a.href = "#";
+                        a.innerHTML = '<div class="recent-chip-address">' + (q.length > 40 ? q.substring(0,38) + "..." : q) + '</div>' +
+                            '<div class="recent-chip-date">Recent search</div>';
+                        a.onclick = function(e) {
+                            e.preventDefault();
+                            var dm = document.getElementById("draft-mode");
+                            if (dm) { dm.value = "0"; }
+                            var sq = document.getElementById("search-q");
+                            sq.value = q;
+                            sq.scrollIntoView({ behavior: "smooth", block: "center" });
+                            htmx.trigger(document.querySelector(".search-form"), "submit");
+                        };
+                        grid.appendChild(a);
+                    });
+                }
+            }
         }
 
         function _clearRecentSearches() {
