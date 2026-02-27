@@ -395,6 +395,174 @@ def check_performance(staging_url):
 
 
 # ============================================================
+# Check 11: Migration Safety
+# ============================================================
+
+def check_migration_safety():
+    """Check if recent commits contain migration-like SQL without down-migration."""
+    issues = []
+    try:
+        result = subprocess.run(
+            ["git", "diff", "HEAD~5..HEAD",
+             "--", "*.py", "*.sql",
+             ":!scripts/prod_gate.py"],
+            capture_output=True, text=True, timeout=30
+        )
+        diff = result.stdout
+
+        # Patterns that indicate DDL changes
+        create_table = re.findall(r"^\+.*CREATE\s+TABLE", diff, re.MULTILINE | re.IGNORECASE)
+        alter_table = re.findall(r"^\+.*ALTER\s+TABLE", diff, re.MULTILINE | re.IGNORECASE)
+        drop_stmts = re.findall(r"^\+.*DROP\s+(?:TABLE|COLUMN|INDEX)", diff, re.MULTILINE | re.IGNORECASE)
+
+        if not create_table and not alter_table and not drop_stmts:
+            return 5, "No DDL migrations in recent commits", []
+
+        if drop_stmts:
+            # Check if there's a mention of backup or the drop is in a migration that has
+            # a corresponding rollback hint nearby
+            backup_refs = re.findall(r"(?:backup|restore|rollback|down_migration|migrate_back)", diff, re.IGNORECASE)
+            if not backup_refs:
+                for stmt in drop_stmts[:3]:
+                    issues.append(f"DROP without backup evidence: {stmt.strip()[:80]}")
+                return 1, f"{len(drop_stmts)} DROP statement(s) without backup/rollback evidence", issues
+
+        migration_count = len(create_table) + len(alter_table)
+        msg = f"{migration_count} DDL migration(s) detected"
+        if create_table:
+            msg += f" ({len(create_table)} CREATE TABLE"
+        if alter_table:
+            msg += f", {len(alter_table)} ALTER TABLE" if create_table else f" ({len(alter_table)} ALTER TABLE"
+        msg += ")"
+
+        issues = [f"Migration: {s.strip()[:80]}" for s in (create_table + alter_table)[:5]]
+        return 3, msg + " — verify idempotency", issues
+
+    except Exception as e:
+        return 4, f"Migration check error (non-blocking): {e}", []
+
+
+# ============================================================
+# Check 12: Cron Endpoint Health
+# ============================================================
+
+def check_cron_health(staging_url):
+    """Verify cron endpoints respond (without executing them)."""
+    # Use GET to check reachability — cron endpoints require POST + CRON_SECRET,
+    # so a GET will return 405 or 401/403 but NOT 500/404, which is what we want.
+    cron_endpoints = [
+        "/cron/nightly",
+        "/cron/compute-caches",
+    ]
+    issues = []
+    responding = 0
+    cron_secret = os.environ.get("CRON_SECRET", "")
+
+    for path in cron_endpoints:
+        try:
+            url = f"{staging_url}{path}"
+            headers = {"User-Agent": "prod-gate/1.0"}
+            if cron_secret:
+                headers["Authorization"] = f"Bearer {cron_secret}"
+            req = urllib.request.Request(url, method="GET", headers=headers)
+            try:
+                resp = urllib.request.urlopen(req, timeout=10)
+                # 200 on a GET to a cron endpoint is unexpected but not a failure
+                responding += 1
+            except urllib.error.HTTPError as e:
+                # 405 (Method Not Allowed) = endpoint exists, correct
+                # 401/403 = auth-gated, endpoint exists, correct
+                # 302 = redirect, endpoint exists
+                if e.code in (401, 403, 405, 302, 200):
+                    responding += 1
+                else:
+                    issues.append(f"{path}: unexpected HTTP {e.code}")
+        except Exception as e:
+            issues.append(f"{path}: unreachable — {str(e)[:60]}")
+
+    total = len(cron_endpoints)
+    if responding == total:
+        return 5, f"All {total} cron endpoints reachable", []
+    elif responding >= total // 2:
+        return 3, f"{responding}/{total} cron endpoints reachable", issues
+    else:
+        return 1, f"Only {responding}/{total} cron endpoints reachable", issues
+
+
+# ============================================================
+# Check 13: Design Lint Trend
+# ============================================================
+
+def check_lint_trend():
+    """Track design lint violation count trend across runs."""
+    history_file = "qa-results/design-lint-history.json"
+    issues = []
+
+    # Run current lint
+    current_violations = None
+    try:
+        result = subprocess.run(
+            [sys.executable, "scripts/design_lint.py", "--quiet"],
+            capture_output=True, text=True, timeout=60
+        )
+        output = result.stdout.strip()
+        match = re.search(r"(\d+) violations", output)
+        if match:
+            current_violations = int(match.group(1))
+        elif "No changed templates" in output or "0 violations" in output:
+            current_violations = 0
+    except Exception as e:
+        return 4, f"Lint trend: could not run lint — {e}", []
+
+    if current_violations is None:
+        return 4, "Lint trend: could not parse violation count", []
+
+    # Load history
+    history = []
+    try:
+        os.makedirs(os.path.dirname(history_file), exist_ok=True)
+        if os.path.exists(history_file):
+            with open(history_file) as f:
+                history = json.load(f)
+    except Exception:
+        history = []
+
+    # Append current run
+    history.append({
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "violations": current_violations,
+    })
+    # Keep last 10 runs
+    history = history[-10:]
+
+    try:
+        with open(history_file, "w") as f:
+            json.dump(history, f, indent=2)
+    except Exception:
+        pass  # Non-fatal — trend tracking is best-effort
+
+    if len(history) < 2:
+        return 5, f"Lint trend: {current_violations} violations (no history yet)", []
+
+    # Compare against last 3 runs (excluding current)
+    recent = [h["violations"] for h in history[:-1][-3:]]
+    avg_recent = sum(recent) / len(recent)
+
+    if current_violations == 0:
+        return 5, f"Lint trend: 0 violations (clean)", []
+    elif current_violations <= avg_recent:
+        return 5, f"Lint trend: {current_violations} violations (stable/declining, avg {avg_recent:.0f})", []
+    elif current_violations <= avg_recent * 1.5:
+        # Growing moderately
+        issues.append(f"Violations grew from avg {avg_recent:.0f} to {current_violations}")
+        return 3, f"Lint trend: {current_violations} violations (growing — avg {avg_recent:.0f})", issues
+    else:
+        # Spike: more than 50% increase
+        issues.append(f"Violation spike: from avg {avg_recent:.0f} to {current_violations}")
+        return 1, f"Lint trend: {current_violations} violations (spike — avg {avg_recent:.0f})", issues
+
+
+# ============================================================
 # Runner
 # ============================================================
 
@@ -437,6 +605,14 @@ def main():
     else:
         results.append(("Test Suite", 5, "Skipped (--skip-tests)", []))
 
+    print("Checking migration safety...") if not args.quiet else None
+    score, msg, issues = check_migration_safety()
+    results.append(("Migration Safety", score, msg, issues))
+
+    print("Checking lint trend...") if not args.quiet else None
+    score, msg, issues = check_lint_trend()
+    results.append(("Lint Trend", score, msg, issues))
+
     # --- Remote checks (require staging URL) ---
 
     if not args.skip_remote and HAS_URLLIB:
@@ -461,8 +637,12 @@ def main():
         print("Checking performance...") if not args.quiet else None
         score, msg, issues = check_performance(args.staging_url)
         results.append(("Performance", score, msg, issues))
+
+        print("Checking cron endpoint health...") if not args.quiet else None
+        score, msg, issues = check_cron_health(args.staging_url)
+        results.append(("Cron Health", score, msg, issues))
     elif args.skip_remote:
-        for name in ["Health", "Smoke Test", "Data Freshness", "Auth Safety", "Performance"]:
+        for name in ["Health", "Smoke Test", "Data Freshness", "Auth Safety", "Performance", "Cron Health"]:
             results.append((name, 5, "Skipped (--skip-remote)", []))
 
     # --- Compute weighted score ---
@@ -472,10 +652,10 @@ def main():
     # Tier 2: Scored checks — weighted by risk category
     #
     # Categories and weights:
-    #   Safety (1.0x):  Test Suite, Dependencies
+    #   Safety (1.0x):  Test Suite, Dependencies, Migration Safety
     #   Data (1.0x):    Health, Data Freshness, Smoke Test
-    #   Ops (0.8x):     Route Inventory, Performance
-    #   Design (0.6x):  Design Tokens
+    #   Ops (0.8x):     Route Inventory, Performance, Cron Health
+    #   Design (0.6x):  Design Tokens, Lint Trend
     #
     # Effective score = min across weighted category minimums
     # A category score is floored at 2 (a single low-weight category
@@ -491,6 +671,10 @@ def main():
         "Route Inventory": ("ops", 0.8),
         "Performance": ("ops", 0.8),
         # Auth Safety and Secret Leak handled as hard holds, not scored
+        # Checks 11-13
+        "Migration Safety": ("safety", 1.0),
+        "Cron Health": ("ops", 0.8),
+        "Lint Trend": ("design", 0.6),
     }
 
     category_mins = {}  # category -> min raw score
@@ -705,7 +889,9 @@ def main():
     lines.append("| Auth/Secret | Always HOLD regardless of score |")
     lines.append("| Hotfix ratchet | Score 3 twice without fix → downgrade to HOLD |")
     lines.append("")
-    lines.append("*Scoring uses weighted category minimums (safety 1.0x, data 1.0x, ops 0.8x, design 0.6x). "
+    lines.append("*Scoring uses weighted category minimums (safety 1.0x: tests, deps, migration safety; "
+                 "data 1.0x: health, freshness, smoke; ops 0.8x: routes, perf, cron health; "
+                 "design 0.6x: tokens, lint trend). "
                  "A low-weight category can't drag the effective score below 2 unless its raw score is 1.*")
     lines.append("")
 
