@@ -289,6 +289,7 @@ Write a QA script to `qa-drop/[feature-name]-qa.md`. Rules:
 - Cover happy path, empty state, and at least one edge case
 - NO route-specific assertions unless absolutely necessary
 - NO color/style assertions
+- If the feature touches templates/CSS, include DESIGN TOKEN COMPLIANCE section (see Design System section)
 - Output format: compact checklist, not prose
 ### Step 2: Append Suggested Scenarios
 Append to `scenarios-pending-review.md` in **this repo's root** (create if missing). Always here, regardless of which repo the feature lives in.
@@ -312,6 +313,72 @@ Guidance:
 After writing both files, output a single summary line:
 `QA READY: qa-drop/[filename] | [N] scenarios appended to scenarios-pending-review.md`
 
+
+---
+
+## Design System
+
+This project has a 3-file design system authority chain. **All agents modifying templates or CSS must follow it.**
+
+### Authority Chain
+
+1. `docs/DESIGN_CANON.md` — immutable identity ("why"). Do not modify.
+2. `docs/DESIGN_TOKENS.md` — agent-facing bible ("what"). 26 components with copy-paste HTML/CSS.
+3. `docs/DESIGN_PRINCIPALS.md` — audiences and constraints ("who/where").
+4. `docs/DESIGN_COMPONENT_LOG.md` — running inventory of new components created during sprints.
+
+### Agent Rules (mandatory for any template/CSS work)
+
+Before modifying any file in `web/templates/` or `web/static/`:
+1. **Read** `docs/DESIGN_TOKENS.md` — use ONLY components and tokens from this file
+2. **No invented colors** — all hex values must come from the token palette (Section 1)
+3. **No invented fonts** — `--mono` for data, `--sans` for prose (Section 2, role assignment table)
+4. **No invented components** — use token components. If you need one that doesn't exist, append it to `docs/DESIGN_COMPONENT_LOG.md` with the HTML/CSS you created
+5. **After building**, verify against the Agent Checklist (DESIGN_TOKENS.md §14)
+
+### Template Migration (existing pages)
+
+When an agent touches an existing template for feature work, it should reconcile that template with the design system as part of the task. This means: replace ad-hoc inline colors with token variables, swap non-standard components for token components, ensure font role split is correct. Do not do a separate migration pass — migrate on touch.
+
+### QA Script — Token Compliance Checks
+
+Every QA script that covers UI changes must include this section:
+
+```
+## DESIGN TOKEN COMPLIANCE
+- [ ] No inline colors outside DESIGN_TOKENS.md palette
+- [ ] Font families: --mono for data, --sans for prose (spot check 3 elements)
+- [ ] Components use token classes (glass-card, obs-table, ghost-cta, etc.)
+- [ ] Status dots use --dot-* not --signal-* colors
+- [ ] Interactive text uses --text-secondary or higher (not --text-tertiary)
+- [ ] New components logged in DESIGN_COMPONENT_LOG.md
+```
+
+### Pre-Sprint Design Brief (for sprints with UI work)
+
+Before any sprint that builds new pages or significant UI changes, run a design brief (10-15 min):
+
+1. List all pages/components being built or modified
+2. Check DESIGN_TOKENS.md for coverage — does every needed component exist?
+3. Flag gaps: components that don't exist yet need to be specced BEFORE agents start building
+4. Get Tim's sign-off on any new patterns or design decisions not covered by CANON/TOKENS
+5. Add approved new patterns to DESIGN_TOKENS.md before launching agents
+
+This prevents the cycle of: agent invents → review after → rework.
+
+### CHECKCHAT Integration
+
+**VERIFY step** — add: "Design token compliance: no ad-hoc colors/fonts/components introduced"
+
+**CAPTURE step** — add: "DESIGN_COMPONENT_LOG.md updated if new components were created"
+
+**Visual QA Checklist** — add: "Token compliance: [PASS/FAIL] — [N] ad-hoc styles found"
+
+### Governance Cadence
+
+- **Every sprint with UI work:** Token compliance checks in QA script + CHECKCHAT
+- **Every 5 sprints:** Review DESIGN_COMPONENT_LOG.md. Promote good patterns to TOKENS, deprecate ad-hoc ones. Run token usage audit.
+- **On request:** Full design review against CANON constraints
 
 ---
 
@@ -377,11 +444,11 @@ This project participates in Tim's standard session protocols. These are defined
 
 **RELAY** — QA loop. After building, CC runs QA scripts using **Playwright headless Chromium** for any step involving page navigation or UI rendering. Do NOT substitute pytest or curl for browser verification — launch a real browser, navigate pages, take screenshots to `qa-results/screenshots/`. CLI-only steps (imports, DB queries, pytest) can use Python/bash directly. Loops until all tests PASS or are marked BLOCKED. New QA scripts go to `qa-drop/`.
 
-**CHECKCHAT** — Session close protocol. Six steps: VERIFY (RELAY gate — check `qa-results/` for unprocessed files, run RELAY if needed; tests pass), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
+**CHECKCHAT** — Session close protocol. Six steps: VERIFY (RELAY gate — check `qa-results/` for unprocessed files, run RELAY if needed; tests pass; design token compliance if UI work), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios; update DESIGN_COMPONENT_LOG.md if new components created), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
 
 **Black Box Session Protocol (2 stages):**
 
-**Stage 1 — termCC (Terminal Claude Code):** READ → BUILD → TEST → SCENARIOS → QA (termRelay) → CHECKCHAT. CHECKCHAT output includes a Visual QA Checklist section listing items for human spot-check.
+**Stage 1 — termCC (Terminal Claude Code):** READ (including DESIGN_TOKENS.md if UI work) → BUILD → TEST → SCENARIOS → QA (termRelay, including token compliance if UI work) → CHECKCHAT. CHECKCHAT output includes a Visual QA Checklist section listing items for human spot-check.
 
 **Stage 2 — DeskCC (Desktop Claude Code):** DeskRelay visual checks → CHECKCHAT. Stage 2 CHECKCHAT is lightweight (commit QA results, note follow-ups, no code changes expected).
 
@@ -431,6 +498,8 @@ CC0 (Opus orchestrator)
 ```
 You are ALREADY in a git worktree. Do NOT use EnterWorktree. Do NOT run git checkout main.
 Your working directory is your isolated worktree copy of the repo.
+If you modify any file in web/templates/ or web/static/, read docs/DESIGN_TOKENS.md first.
+Use ONLY token components and CSS custom properties. Log new components to docs/DESIGN_COMPONENT_LOG.md.
 ```
 
 **Agents commit to their worktree branch. The orchestrator merges all branches to main after collecting results.** Agents must NEVER merge to main themselves.
