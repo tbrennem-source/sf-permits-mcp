@@ -245,6 +245,7 @@ def sitemap():
         "/analyze-preview",
         "/methodology",
         "/about-data",
+        "/demo",
     ]
     base = "https://sfpermits.ai"
     now = datetime.now().strftime("%Y-%m-%d")
@@ -291,12 +292,15 @@ _DEMO_ADDRESS = {"street_number": "1455", "street_name": "MARKET", "block": "350
 _demo_cache: dict = {}
 
 
+_DEMO_CACHE_TTL = 900  # 15 minutes
+
+
 def _get_demo_data() -> dict:
-    """Pre-query all intelligence layers for the demo address. Cached 1 hour."""
+    """Pre-query all intelligence layers for the demo address. Cached 15 minutes."""
     import time as _time
 
     now = _time.time()
-    if _demo_cache and _demo_cache.get("computed_at", 0) > now - 3600:
+    if _demo_cache and _demo_cache.get("computed_at", 0) > now - _DEMO_CACHE_TTL:
         return _demo_cache
 
     addr = _DEMO_ADDRESS
@@ -311,6 +315,12 @@ def _get_demo_data() -> dict:
         "entities": [],
         "complaints": [],
         "violations": [],
+        "severity_tier": None,
+        "severity_score": None,
+        "permit_count": None,
+        "open_permit_count": None,
+        "complaint_count": None,
+        "violation_count": None,
     }
 
     try:
@@ -318,6 +328,41 @@ def _get_demo_data() -> dict:
         conn = get_connection()
         ph = "%s" if BACKEND == "postgres" else "?"
         try:
+            # ── Task 75-4-1: Check parcel_summary for real cached data ──────
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT neighborhood, permit_count, open_permit_count, "
+                            "complaint_count, violation_count, health_tier "
+                            "FROM parcel_summary WHERE block = %s AND lot = %s",
+                            (addr["block"], addr["lot"]),
+                        )
+                        ps_row = cur.fetchone()
+                else:
+                    ps_row = conn.execute(
+                        "SELECT neighborhood, permit_count, open_permit_count, "
+                        "complaint_count, violation_count, health_tier "
+                        "FROM parcel_summary WHERE block = ? AND lot = ?",
+                        (addr["block"], addr["lot"]),
+                    ).fetchone()
+
+                if ps_row:
+                    if ps_row[0]:
+                        data["neighborhood"] = ps_row[0]
+                    if ps_row[1] is not None:
+                        data["permit_count"] = ps_row[1]
+                    if ps_row[2] is not None:
+                        data["open_permit_count"] = ps_row[2]
+                    if ps_row[3] is not None:
+                        data["complaint_count"] = ps_row[3]
+                    if ps_row[4] is not None:
+                        data["violation_count"] = ps_row[4]
+                    if ps_row[5]:
+                        data["severity_tier"] = ps_row[5]
+            except Exception:
+                pass  # Fallback to hardcoded values below
+
             # Permits
             rows = conn.execute(
                 f"SELECT permit_number, permit_type_definition, status, "
@@ -350,7 +395,49 @@ def _get_demo_data() -> dict:
                     "filed_date": filed,
                     "cost_display": cost_display,
                     "description_short": desc,
+                    "permit_type_definition": r[1] or "",
+                    "description": r[5] or "",
+                    "estimated_cost": cost,
                 })
+
+            # ── Task 75-4-2: Score active permits with severity model ──────
+            try:
+                from src.severity import score_permit, PermitInput
+                active_statuses = {"issued", "filed", "approved"}
+                active_permits = [
+                    p for p in data["permits"]
+                    if p.get("status", "").lower() in active_statuses
+                ]
+                if active_permits:
+                    scored = []
+                    for p in active_permits:
+                        pi = PermitInput.from_dict({
+                            "permit_number": p["permit_number"],
+                            "status": p["status"],
+                            "permit_type_definition": p.get("permit_type_definition", ""),
+                            "description": p.get("description", ""),
+                            "filed_date": p.get("filed_date"),
+                            "estimated_cost": p.get("estimated_cost") or 0.0,
+                        })
+                        result = score_permit(pi)
+                        scored.append((result.score, result.tier, p["permit_number"]))
+                    # Highest score among active permits drives the overall tier
+                    scored.sort(key=lambda x: x[0], reverse=True)
+                    top_score, top_tier, _ = scored[0]
+                    # Only override if parcel_summary didn't provide a tier
+                    if not data.get("severity_tier"):
+                        data["severity_tier"] = top_tier
+                    data["severity_score"] = top_score
+                    # Annotate each permit with its tier
+                    score_map = {pnum: (sc, tr) for sc, tr, pnum in scored}
+                    for p in data["permits"]:
+                        if p["permit_number"] in score_map:
+                            p["severity_score"], p["severity_tier"] = score_map[p["permit_number"]]
+                        else:
+                            p["severity_score"] = None
+                            p["severity_tier"] = None
+            except Exception as sev_err:
+                logging.debug("Demo severity scoring skipped: %s", sev_err)
 
             # Complaints
             try:
