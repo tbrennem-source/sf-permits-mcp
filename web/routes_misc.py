@@ -4,11 +4,12 @@ Blueprint: misc (no url_prefix)
 """
 
 import logging
+import time
 from datetime import datetime
 
 from flask import (
     Blueprint, render_template, request, g, Response, jsonify,
-    redirect, url_for,
+    redirect, url_for, session,
 )
 
 from web.helpers import login_required
@@ -26,16 +27,39 @@ def brief():
     """Morning brief dashboard — what changed, permit health, inspections."""
     from web.brief import get_morning_brief
     from web.auth import get_primary_address
+    from web.helpers import get_cached_or_compute
     lookback = request.args.get("lookback", "1")
     try:
         lookback_days = max(1, min(int(lookback), 90))
     except ValueError:
         lookback_days = 1
     primary_addr = get_primary_address(g.user["user_id"])
-    brief_data = get_morning_brief(g.user["user_id"], lookback_days,
-                                   primary_address=primary_addr)
+    cache_key = f"brief:{g.user['user_id']}:{lookback_days}"
+    brief_data = get_cached_or_compute(
+        cache_key,
+        lambda: get_morning_brief(g.user["user_id"], lookback_days, primary_address=primary_addr),
+        ttl_minutes=30
+    )
+    # Add cache metadata for template
+    brief_data['cached_at'] = brief_data.get('_cached_at')
+    brief_data['can_refresh'] = True
     return render_template("brief.html", user=g.user, brief=brief_data,
                            active_page="brief")
+
+
+@bp.route("/brief/refresh", methods=["POST"])
+@login_required
+def brief_refresh():
+    """Force-invalidate the brief cache for this user (rate-limited to once per 5 min)."""
+    from web.helpers import invalidate_cache
+    user_id = g.user["user_id"]
+    # Rate limit: check if last refresh was < 5 min ago
+    last_refresh = session.get("last_brief_refresh", 0)
+    if time.time() - last_refresh < 300:
+        return "Rate limited — try again in a few minutes", 429
+    invalidate_cache(f"brief:{user_id}:%")
+    session["last_brief_refresh"] = time.time()
+    return redirect(url_for("misc.brief"))
 
 
 # ---------------------------------------------------------------------------
