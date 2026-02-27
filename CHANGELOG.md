@@ -1,5 +1,12 @@
 # Changelog
 
+## Design Token Migration — Portfolio + Index (2026-02-27)
+
+- `portfolio.html`: complete rewrite to obsidian design tokens — glass-card property cards, status-dot indicators, filter chips, stat-number/stat-label summary, signal-cyan accent replacing legacy blue
+- `project_detail.html`: complete rewrite — glass-card sections, role badges (owner=cyan, admin=blue, member=dim), obsidian-btn invite form
+- `index.html`: targeted CSS migration — replaced rgba(79,143,247,...) blue with rgba(34,211,238,...) cyan, var(--surface)/var(--border) replaced with token vars, fixed #1a1d27 staging banner hardcode
+- Design lint: portfolio 5/5, project_detail 5/5 (clean); index.html pre-existing false positive violations (HTML entities + font-display/font-body naming mismatch)
+
 ## Sprint 77 — E2E Scenario Testing Blitz (2026-02-26)
 
 - 64 new Playwright E2E tests across 4 new test files (1,533 lines)
