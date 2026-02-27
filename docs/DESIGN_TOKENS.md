@@ -32,7 +32,7 @@
 :root {
   --text-primary:   rgba(255, 255, 255, 0.92);  /* headings, data values, primary content */
   --text-secondary: rgba(255, 255, 255, 0.55);  /* body copy, descriptions, labels */
-  --text-tertiary:  rgba(255, 255, 255, 0.30);  /* placeholders, hints, disabled text */
+  --text-tertiary:  rgba(255, 255, 255, 0.30);  /* placeholders, hints, disabled text — ~3.4:1 contrast, WCAG AA exempt only for placeholder/disabled. Do NOT use for interactive or informational text at rest. */
   --text-ghost:     rgba(255, 255, 255, 0.15);  /* wordmarks, footers, barely-there text */
 }
 ```
@@ -257,7 +257,7 @@ The primary content container across all pages.
   font-family: var(--mono);
   font-size: var(--text-sm);
   font-weight: 300;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);  /* secondary (5.2:1), not tertiary — interactive text must pass WCAG AA */
   background: none;
   border: none;
   cursor: pointer;
@@ -591,6 +591,43 @@ For admin dashboards, portfolio views, and any structured data with columns.
 .obs-table tr:hover .obs-table__mono:first-of-type {
   color: var(--accent);
 }
+/* Sort indicators */
+.obs-table th[data-sort] {
+  cursor: pointer;
+  user-select: none;
+}
+.obs-table th[data-sort]::after {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 6px;
+  vertical-align: middle;
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  border-top: 4px solid var(--text-tertiary);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.obs-table th[data-sort]:hover::after {
+  border-top-color: var(--text-secondary);
+}
+.obs-table th[data-sort="asc"]::after {
+  border-top-color: var(--accent);
+  transform: rotate(180deg);
+}
+.obs-table th[data-sort="desc"]::after {
+  border-top-color: var(--accent);
+}
+
+/* Empty state row */
+.obs-table__empty {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-tertiary);
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+}
+
 /* Mobile: horizontal scroll with shadow hint */
 @media (max-width: 768px) {
   .obs-table-wrap {
@@ -602,6 +639,126 @@ For admin dashboards, portfolio views, and any structured data with columns.
   .obs-table { min-width: 600px; }
 }
 ```
+
+**Sort behavior:** Add `data-sort` attribute to sortable `<th>` elements. Set `data-sort="asc"` or `data-sort="desc"` on the active sort column. Use HTMX or JS to toggle.
+
+### Tabs
+
+Underline-style tabs for switching between views within a page. Matches the ghost CTA aesthetic — no pills, no card tabs.
+
+```html
+<nav class="tabs" role="tablist">
+  <button class="tab tab--active" role="tab" aria-selected="true">Active</button>
+  <button class="tab" role="tab" aria-selected="false">Completed</button>
+  <button class="tab" role="tab" aria-selected="false">Expired</button>
+</nav>
+<div class="tab-panel" role="tabpanel">
+  <!-- Tab content here -->
+</div>
+```
+
+```css
+.tabs {
+  display: flex;
+  gap: var(--space-6);
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: var(--space-6);
+}
+.tab {
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  padding: var(--space-3) 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+.tab:hover {
+  color: var(--text-secondary);
+}
+.tab--active {
+  color: var(--text-primary);
+}
+.tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+}
+/* Tab count badge (optional) */
+.tab__count {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin-left: var(--space-2);
+}
+.tab--active .tab__count {
+  color: var(--accent);
+}
+@media (max-width: 480px) {
+  .tabs {
+    gap: var(--space-4);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+```
+
+**Behavior:** Use HTMX `hx-get` on tabs to swap panel content, or vanilla JS to toggle `tab--active` class and show/hide panels. Tabs scroll horizontally on phone if they overflow.
+
+### Pagination / Load More
+
+Use "Show more" as the primary pattern. No numbered page links (feels SaaS). Loads next batch via HTMX.
+
+```html
+<div class="load-more">
+  <span class="load-more__count">Showing 20 of 142</span>
+  <button class="ghost-cta load-more__btn"
+          hx-get="/inspections?page=2"
+          hx-target="#results-list"
+          hx-swap="beforeend"
+          hx-indicator=".load-more__spinner">
+    Show more →
+  </button>
+  <span class="load-more__spinner skeleton skeleton--text" style="width: 80px; display: none;"></span>
+</div>
+```
+
+```css
+.load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+}
+.load-more__count {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+.load-more__btn {
+  /* Inherits ghost-cta styles */
+}
+/* HTMX indicator: show skeleton while loading */
+.load-more__spinner {
+  display: none;
+}
+.htmx-request .load-more__btn { display: none; }
+.htmx-request .load-more__spinner { display: block; }
+```
+
+**Behavior:** Server returns the next batch of HTML rows/cards. HTMX appends them (`hx-swap="beforeend"`). When no more results, server returns an empty response and the button disappears. The count updates via `hx-swap="outerHTML"` on the count span (server includes updated count in response).
 
 ### Form Elements
 
