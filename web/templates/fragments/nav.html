@@ -1,132 +1,440 @@
 <style nonce="{{ csp_nonce }}">
-    header { border-bottom: 1px solid var(--border); padding: 20px 0; }
-    header .container { display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
-    .logo span { color: var(--text-muted); font-weight: 400; }
-    .header-right { display: flex; align-items: center; gap: 10px; }
-    .badge {
-        font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted);
-        padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
-        text-decoration: none; cursor: pointer; font-family: inherit;
+    /* ── Obsidian Nav ─────────────────────────────────────────────────────── */
+    .obs-nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(11, 15, 25, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255, 0.06);
     }
-    .badge:hover { color: var(--text); border-color: var(--text-muted); }
-    .badge-active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
-    .badge-btn {
-        cursor: pointer; font-family: inherit; font-size: 0.7rem;
-        background: var(--surface-2); color: var(--text-muted);
-        padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border);
+    .obs-nav-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-3) 0;
+        gap: var(--space-4);
     }
-    .badge-btn:hover { color: var(--text); border-color: var(--text-muted); }
-    .badge-loading {
-        color: var(--accent) !important;
+    .obs-nav-logo {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--signal-cyan);
+        text-decoration: none;
+        flex-shrink: 0;
+        letter-spacing: -0.02em;
+    }
+    .obs-nav-logo .logo-dim {
+        color: var(--text-tertiary);
+        font-weight: 400;
+    }
+
+    /* Desktop nav items */
+    .obs-nav-items {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex-wrap: nowrap;
+    }
+    .obs-nav-right {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex-shrink: 0;
+    }
+
+    /* Nav badge pill */
+    .nav-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: var(--bg-elevated);
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255, 0.06);
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+        font-family: inherit;
+    }
+    .nav-badge:hover {
+        color: var(--text-primary);
+        border-color: rgba(255,255,255, 0.15);
+    }
+    .nav-badge.nav-badge-active {
+        background: rgba(34, 211, 238, 0.12);
+        color: var(--signal-cyan);
+        border-color: rgba(34, 211, 238, 0.3);
+    }
+    .nav-badge-loading {
+        color: var(--signal-cyan) !important;
         animation: nav-pulse 0.5s ease-in-out infinite alternate;
     }
     @keyframes nav-pulse {
-        from { border-color: rgba(79,143,247,0.3); }
-        to   { border-color: rgba(79,143,247,1); }
+        from { border-color: rgba(34, 211, 238, 0.2); }
+        to   { border-color: rgba(34, 211, 238, 0.8); }
     }
-    /* Admin dropdown */
-    .admin-dropdown {
+
+    /* "More" dropdown */
+    .nav-more-dropdown {
         position: relative;
         display: inline-block;
     }
-    .admin-dropdown-menu {
+    .nav-more-menu {
         display: none;
         position: absolute;
         right: 0;
-        top: 100%;
-        padding-top: 6px;       /* invisible bridge covers the hover gap */
+        top: calc(100% + 6px);
         min-width: 200px;
         z-index: 1000;
     }
-    .admin-dropdown-menu-inner {
-        background: var(--surface);
-        border: 1px solid var(--border);
+    .nav-more-menu-inner {
+        background: var(--bg-surface);
+        border: 1px solid rgba(255,255,255, 0.1);
         border-radius: 10px;
         padding: 6px 0;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     }
-    .admin-dropdown:hover .admin-dropdown-menu,
-    .admin-dropdown:focus-within .admin-dropdown-menu {
+    .nav-more-menu-inner a,
+    .nav-more-menu-inner button {
         display: block;
-    }
-    .admin-dropdown-menu-inner a {
-        display: block;
-        padding: 8px 16px;
-        color: var(--text-muted);
+        width: 100%;
+        padding: 9px 16px;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.75rem;
+        font-size: var(--text-sm);
+        font-family: var(--font-body);
+        font-weight: 400;
         white-space: nowrap;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        transition: color 0.15s, background 0.15s;
     }
-    .admin-dropdown-menu-inner a:hover {
-        color: var(--text);
-        background: var(--surface-2);
+    .nav-more-menu-inner a:hover,
+    .nav-more-menu-inner button:hover {
+        color: var(--text-primary);
+        background: var(--bg-elevated);
+    }
+    .nav-more-dropdown:hover .nav-more-menu,
+    .nav-more-dropdown:focus-within .nav-more-menu {
+        display: block;
+    }
+
+    /* Admin dropdown (gear icon) */
+    .nav-admin-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .nav-admin-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        min-width: 220px;
+        z-index: 1000;
+    }
+    .nav-admin-menu-inner {
+        background: var(--bg-surface);
+        border: 1px solid rgba(255,255,255, 0.1);
+        border-radius: 10px;
+        padding: 6px 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .nav-admin-menu-inner a {
+        display: block;
+        padding: 9px 16px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: var(--text-sm);
+        white-space: nowrap;
+        transition: color 0.15s, background 0.15s;
+    }
+    .nav-admin-menu-inner a:hover {
+        color: var(--text-primary);
+        background: var(--bg-elevated);
+    }
+    .nav-admin-dropdown:hover .nav-admin-menu,
+    .nav-admin-dropdown:focus-within .nav-admin-menu {
+        display: block;
+    }
+
+    /* Hamburger — mobile only */
+    .nav-hamburger {
+        display: none;
+        background: none;
+        border: 1px solid rgba(255,255,255, 0.1);
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+        flex-direction: column;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+    .nav-hamburger span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: var(--text-secondary);
+        border-radius: 2px;
+        transition: transform 0.2s, opacity 0.2s;
+    }
+    .nav-hamburger.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .nav-hamburger.is-open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    /* Mobile slide-down panel */
+    .nav-mobile-panel {
+        display: none;
+        flex-direction: column;
+        border-top: 1px solid rgba(255,255,255, 0.06);
+        padding: var(--space-3) 0;
+        gap: var(--space-1);
+    }
+    .nav-mobile-panel.is-open {
+        display: flex;
+    }
+    .nav-mobile-panel a,
+    .nav-mobile-panel button {
+        display: flex;
+        align-items: center;
+        padding: 0 var(--space-4);
+        min-height: 48px;
+        font-family: var(--font-body);
+        font-size: var(--text-base);
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-decoration: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: color 0.15s, background 0.15s;
+        text-align: left;
+        width: 100%;
+    }
+    .nav-mobile-panel a:hover,
+    .nav-mobile-panel button:hover {
+        color: var(--text-primary);
+        background: var(--bg-elevated);
+    }
+    .nav-mobile-panel a.nav-badge-active {
+        color: var(--signal-cyan);
+    }
+    .nav-mobile-divider {
+        height: 1px;
+        background: rgba(255,255,255, 0.06);
+        margin: var(--space-2) var(--space-4);
+    }
+    .nav-signup-chip {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.65rem;
+        background: var(--signal-cyan);
+        color: #0B0F19;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: var(--space-2);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Desktop: hide hamburger, show nav-items */
+    @media (min-width: 769px) {
+        .nav-hamburger { display: none !important; }
+        .obs-nav-items { display: flex !important; }
+        .nav-mobile-panel { display: none !important; }
+    }
+
+    /* Mobile: show hamburger, hide desktop nav-items */
+    @media (max-width: 768px) {
+        .obs-nav-items { display: none !important; }
+        .nav-hamburger { display: flex !important; }
+        .obs-nav-right { display: none !important; }
     }
 </style>
-<header>
-    <div class="container">
-        <a href="/" class="logo">sfpermits<span>.ai</span></a>
-        <div class="header-right">
-            <a href="/" class="badge {% if active_page == 'search' %}badge-active{% endif %}">Search</a>
-            {% if gate.can_brief %}
-            <a href="/brief" class="badge {% if active_page == 'brief' %}badge-active{% endif %}">Brief</a>
-            {% else %}
-            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access Morning Brief">Brief <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
-            {% endif %}
-            {% if gate.can_portfolio %}
-            <a href="/portfolio" class="badge {% if active_page == 'portfolio' %}badge-active{% endif %}">Portfolio</a>
-            {% else %}
-            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access Portfolio">Portfolio <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
-            {% endif %}
-            {% if gate.can_projects %}
-            <a href="/projects" class="badge {% if active_page == 'projects' %}badge-active{% endif %}">Projects</a>
-            {% else %}
-            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access Projects">Projects <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
-            {% endif %}
-            {% if gate.can_analyses %}
-            <a href="/account/analyses" class="badge {% if active_page == 'analyses' %}badge-active{% endif %}">My Analyses</a>
-            {% else %}
-            <a href="/auth/login" class="badge" style="opacity:0.5;" title="Sign up to access My Analyses">My Analyses <span style="font-size:0.6rem;background:var(--accent);color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px;">Sign up</span></a>
-            {% endif %}
-            {% if g.user %}
-            <a href="/account/prep" class="badge {% if active_page == 'prep' %}badge-active{% endif %}">Permit Prep</a>
-            {% endif %}
-            {% if g.user and g.user.is_admin %}
-            <div class="admin-dropdown">
-                <span class="badge {% if active_page == 'admin' %}badge-active{% endif %}" tabindex="0">&#9881;&#65039; Admin &#9662;</span>
-                <div class="admin-dropdown-menu">
-                    <div class="admin-dropdown-menu-inner">
-                        <a href="/admin/ops#pipeline">Pipeline Health</a>
-                        <a href="/admin/ops#quality">Data Quality</a>
-                        <a href="/admin/ops#activity">User Activity</a>
-                        <a href="/admin/ops#feedback">Feedback</a>
-                        <a href="/admin/ops#sources">LUCK Sources</a>
-                        <a href="/admin/ops#regulatory">Regulatory Watch</a>
-                        <a href="/admin/qa">QA Replays</a>
+
+<nav class="obs-nav" id="obs-nav">
+    <div class="obs-container">
+        <div class="obs-nav-inner">
+            <a href="/" class="obs-nav-logo">sfpermits<span class="logo-dim">.ai</span></a>
+
+            {# Desktop nav items — max 5 visible badges #}
+            <div class="obs-nav-items">
+                <a href="/" class="nav-badge {% if active_page == 'search' %}nav-badge-active{% endif %}">Search</a>
+
+                {% if gate.can_brief %}
+                <a href="/brief" class="nav-badge {% if active_page == 'brief' %}nav-badge-active{% endif %}">Brief</a>
+                {% else %}
+                <a href="/auth/login" class="nav-badge" title="Sign up to access Morning Brief">
+                    Brief <span class="nav-signup-chip">Sign up</span>
+                </a>
+                {% endif %}
+
+                {% if gate.can_portfolio %}
+                <a href="/portfolio" class="nav-badge {% if active_page == 'portfolio' %}nav-badge-active{% endif %}">Portfolio</a>
+                {% else %}
+                <a href="/auth/login" class="nav-badge" title="Sign up to access Portfolio">
+                    Portfolio <span class="nav-signup-chip">Sign up</span>
+                </a>
+                {% endif %}
+
+                {% if gate.can_projects %}
+                <a href="/projects" class="nav-badge {% if active_page == 'projects' %}nav-badge-active{% endif %}">Projects</a>
+                {% else %}
+                <a href="/auth/login" class="nav-badge" title="Sign up to access Projects">
+                    Projects <span class="nav-signup-chip">Sign up</span>
+                </a>
+                {% endif %}
+
+                {# "More" dropdown — secondary nav items #}
+                <div class="nav-more-dropdown" id="nav-more-dropdown">
+                    <button class="nav-badge">More &#9662;</button>
+                    <div class="nav-more-menu" id="nav-more-menu">
+                        <div class="nav-more-menu-inner">
+                            {% if gate.can_analyses %}
+                            <a href="/account/analyses" class="{% if active_page == 'analyses' %}nav-badge-active{% endif %}">My Analyses</a>
+                            {% else %}
+                            <a href="/auth/login" title="Sign up for My Analyses">My Analyses <span class="nav-signup-chip">Sign up</span></a>
+                            {% endif %}
+                            {% if g.user %}
+                            <a href="/account/prep" class="{% if active_page == 'prep' %}nav-badge-active{% endif %}">Permit Prep</a>
+                            {% endif %}
+                            <a href="/consultants">Consultants</a>
+                            <a href="/bottlenecks">Bottlenecks</a>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {# Right side: admin + account #}
+            <div class="obs-nav-right">
+                {% if g.user and g.user.is_admin %}
+                <div class="nav-admin-dropdown">
+                    <button class="nav-badge {% if active_page == 'admin' %}nav-badge-active{% endif %}" tabindex="0">&#9881;&#65039; Admin &#9662;</button>
+                    <div class="nav-admin-menu">
+                        <div class="nav-admin-menu-inner">
+                            <a href="/admin/ops#pipeline">Pipeline Health</a>
+                            <a href="/admin/ops#quality">Data Quality</a>
+                            <a href="/admin/ops#activity">User Activity</a>
+                            <a href="/admin/ops#feedback">Feedback</a>
+                            <a href="/admin/ops#sources">LUCK Sources</a>
+                            <a href="/admin/ops#regulatory">Regulatory Watch</a>
+                            <a href="/admin/qa">QA Replays</a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if g.user %}
+                <a href="/account" class="nav-badge {% if active_page == 'account' %}nav-badge-active{% endif %}">{{ g.user.display_name or g.user.email }}</a>
+                <form action="/auth/logout" method="post" style="display:inline;">
+                    <button class="nav-badge" type="submit">Logout</button>
+                </form>
+                {% else %}
+                <a href="/auth/login" class="nav-badge">Sign in</a>
+                {% endif %}
+            </div>
+
+            {# Hamburger button — mobile only #}
+            <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        {# Mobile slide-down panel #}
+        <div class="nav-mobile-panel" id="nav-mobile-panel">
+            <a href="/" class="{% if active_page == 'search' %}nav-badge-active{% endif %}">Search</a>
+
+            {% if gate.can_brief %}
+            <a href="/brief" class="{% if active_page == 'brief' %}nav-badge-active{% endif %}">Brief</a>
+            {% else %}
+            <a href="/auth/login">Brief <span class="nav-signup-chip">Sign up</span></a>
             {% endif %}
+
+            {% if gate.can_portfolio %}
+            <a href="/portfolio" class="{% if active_page == 'portfolio' %}nav-badge-active{% endif %}">Portfolio</a>
+            {% else %}
+            <a href="/auth/login">Portfolio <span class="nav-signup-chip">Sign up</span></a>
+            {% endif %}
+
+            {% if gate.can_projects %}
+            <a href="/projects" class="{% if active_page == 'projects' %}nav-badge-active{% endif %}">Projects</a>
+            {% else %}
+            <a href="/auth/login">Projects <span class="nav-signup-chip">Sign up</span></a>
+            {% endif %}
+
+            {% if gate.can_analyses %}
+            <a href="/account/analyses" class="{% if active_page == 'analyses' %}nav-badge-active{% endif %}">My Analyses</a>
+            {% else %}
+            <a href="/auth/login">My Analyses <span class="nav-signup-chip">Sign up</span></a>
+            {% endif %}
+
             {% if g.user %}
-            <a href="/account" class="badge {% if active_page == 'account' %}badge-active{% endif %}">{{ g.user.display_name or g.user.email }}</a>
-            <form action="/auth/logout" method="post" style="display:inline;">
-                <button class="badge badge-btn" type="submit">Logout</button>
+            <a href="/account/prep" class="{% if active_page == 'prep' %}nav-badge-active{% endif %}">Permit Prep</a>
+            {% endif %}
+
+            <a href="/consultants">Consultants</a>
+            <a href="/bottlenecks">Bottlenecks</a>
+
+            <div class="nav-mobile-divider"></div>
+
+            {% if g.user and g.user.is_admin %}
+            <a href="/admin/ops">Admin Dashboard</a>
+            {% endif %}
+
+            {% if g.user %}
+            <a href="/account" class="{% if active_page == 'account' %}nav-badge-active{% endif %}">{{ g.user.display_name or g.user.email }}</a>
+            <form action="/auth/logout" method="post">
+                <button type="submit">Logout</button>
             </form>
             {% else %}
-            <a href="/auth/login" class="badge">Sign in</a>
+            <a href="/auth/login">Sign in</a>
             {% endif %}
         </div>
     </div>
-</header>
+</nav>
+
 <script nonce="{{ csp_nonce }}">
 (function() {
-    // Immediately highlight nav link on click while next page loads
-    document.querySelectorAll('header .badge[href]').forEach(function(link) {
+    // Loading state on nav badge click
+    document.querySelectorAll('.nav-badge[href]').forEach(function(link) {
         link.addEventListener('click', function() {
-            // Don't animate if already on this page
-            if (this.classList.contains('badge-active')) return;
-            this.classList.add('badge-loading');
+            if (this.classList.contains('nav-badge-active')) return;
+            this.classList.add('nav-badge-loading');
         });
     });
+
+    // Hamburger toggle
+    var hamburger = document.getElementById('nav-hamburger');
+    var mobilePanel = document.getElementById('nav-mobile-panel');
+
+    if (hamburger && mobilePanel) {
+        hamburger.addEventListener('click', function() {
+            var isOpen = mobilePanel.classList.toggle('is-open');
+            hamburger.classList.toggle('is-open', isOpen);
+            hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        // Close on tap outside
+        document.addEventListener('click', function(e) {
+            var nav = document.getElementById('obs-nav');
+            if (nav && !nav.contains(e.target)) {
+                mobilePanel.classList.remove('is-open');
+                hamburger.classList.remove('is-open');
+                hamburger.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
 })();
 </script>
