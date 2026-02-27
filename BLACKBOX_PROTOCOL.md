@@ -40,6 +40,7 @@ CC0 (Opus orchestrator) — single session
 ├── Single test run after ALL merges (not between each)
 ├── Push to main
 ├── Stateful Deployment Protocol (if schema/ingest changes)
+├── `python scripts/prod_gate.py --quiet` — unified promotion gate (PROMOTE or HOLD)
 ├── Generate DeskRelay prompt
 └── Report summary table
 ```
@@ -67,7 +68,7 @@ Runs in terminal. For swarm sprints, each agent is a Task subagent running in pa
 **Phase order is fixed. Do not reorder. Do not skip phases.**
 
 ```
-READ → BUILD → TEST → SCENARIOS → QA → CHECKCHAT
+READ → BUILD → TEST → SCENARIOS → QA → VISUAL REVIEW → CHECKCHAT
 ```
 
 #### READ
@@ -128,6 +129,41 @@ Spawn QA subagents using headless Playwright. Each subagent:
 - **API:** Health checks, data endpoints
 
 **Gate:** All relevant subagent categories must PASS before proceeding to CHECKCHAT. After 3 failed fix attempts per category, mark as BLOCKED.
+
+#### VISUAL REVIEW (Phase 6.5)
+
+Three sub-phases run after QA screenshots are captured. Execute in order.
+
+**Phase 6.5a — Mechanical (every sprint with template changes):**
+
+```bash
+python scripts/design_lint.py --changed --quiet
+```
+
+- Runs in <5 seconds. No browser required.
+- Reports token compliance score 1-5 per changed template.
+- Save results to `qa-results/design-lint-{agent-id}.md`.
+- Non-blocking — proceed regardless of score. Score determines prod promotion gate (see CLAUDE.md §Design System).
+
+**Phase 6.5b — Targeted Visual (only when templates changed):**
+
+Take Playwright screenshots of each modified template. Compare against component goldens in `qa-results/goldens/` if available.
+
+- Screenshot paths: `qa-results/screenshots/{sprint-id}/{template-name}-{viewport}.png`
+- Viewports: mobile (375px), tablet (768px), desktop (1280px)
+- Only capture modified templates — not a full site sweep.
+- If a screenshot shows broken layout or obviously wrong styling, mark as FAIL and attempt fix before CHECKCHAT.
+
+**Phase 6.5c — Full Sweep (every 5 sprints):**
+
+```bash
+python scripts/visual_qa.py --url {staging_url} --sprint {sprint-id} --capture-goldens
+```
+
+- 21 pages × 3 viewports. Full regression baseline.
+- Run only when sprint notes call for full baseline (e.g., after major migration, design system update, or 5-sprint interval).
+
+**Skip Visual Review entirely** when the sprint is backend-only (no template or CSS changes). State "Visual Review SKIPPED — no template changes" in CHECKCHAT.
 
 #### CHECKCHAT
 
@@ -588,6 +624,7 @@ chief_project_slug: sf-permits-mcp
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-02-27 | v1.4 — Visual Review phase (6.5) + prod_gate.py in swarm post-merge | QS7 docs sprint: replaces full visual_qa.py sweep with tiered approach (mechanical lint always, targeted screenshots on template changes, full sweep every 5 sprints). Adds prod_gate.py to orchestrator post-merge steps for unified PROMOTE/HOLD decision. |
 | 2026-02-26 | v1.3 — Task Tool Swarming as default execution model | QS5 pre-sprint: multi-agent sprints must use Task tool with isolation:worktree to spawn parallel agents from a single CC session, not separate terminals. Baked into Session Structure as mandatory. |
 | 2026-02-25 | v1.2 — Stateful Deployment Protocol | Sprint 55 post-mortem: 5 bugs escaped to staging because protocol assumed deploy = ready. New section handles schema gates, auth smoke tests, staged ingest runbooks, and fix-redeploy loops. |
 | 2026-02-25 | v1.1 — Single DeskRelay file for all topologies | Sequential steps (staging → promote → prod) belong in one file. Two-branch no longer generates 2 separate files. |
