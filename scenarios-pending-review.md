@@ -409,3 +409,61 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Tasks may reference features that were built under different task numbers (e.g., #207 "orphaned test files" was wrong — source files exist). Task descriptions may be stale while the underlying work was completed in a different sprint.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: authenticated address search returns permit results
+**Source:** tests/e2e/test_search_scenarios.py / web/routes_search.py (Sprint 77-3)
+**User:** expediter
+**Starting state:** User is logged in. No search has been performed.
+**Goal:** Search for a street name ("valencia") and see a list of matching permits.
+**Expected outcome:** Search results page loads with permit data or a count of matching records. Page is not blank and contains permit-related content.
+**Edge cases seen in code:** Authenticated users are redirected from /search to /?q= for the full experience.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: permit number lookup returns meaningful response
+**Source:** tests/e2e/test_search_scenarios.py / web/routes_search.py `_ask_permit_lookup` (Sprint 77-3)
+**User:** expediter
+**Starting state:** User is logged in. A permit-style number is entered into search.
+**Goal:** Look up a specific permit by its number and see the permit detail or a "not found" message.
+**Expected outcome:** Page returns a result — either the permit detail, a "no results" message, or a search context explanation. Page must not show a server error.
+**Edge cases seen in code:** If the permit number doesn't exist in the DB, the page should show a graceful "not found" state rather than crashing.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: empty search query handled gracefully
+**Source:** tests/e2e/test_search_scenarios.py / web/routes_public.py `public_search` (Sprint 77-3)
+**User:** homeowner
+**Starting state:** User (authenticated or anonymous) submits a search with an empty query string.
+**Goal:** The app handles the empty query without crashing.
+**Expected outcome:** User is redirected to the landing/index page or sees a helpful guidance message. No server error or blank page.
+**Edge cases seen in code:** Whitespace-only queries are stripped and treated as empty.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: plan analysis upload form is present for authenticated users
+**Source:** tests/e2e/test_search_scenarios.py / web/templates/index.html (Sprint 77-3)
+**User:** architect
+**Starting state:** User is logged in as an architect or any authenticated role.
+**Goal:** Find and interact with the plan analysis upload form.
+**Expected outcome:** The authenticated dashboard shows a file input element that accepts .pdf files. The plan/upload/analyze section is mentioned in the page content.
+**Edge cases seen in code:** File input has `accept=".pdf"` to restrict to PDF only. Max size is 400 MB.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: methodology page is substantive and publicly accessible
+**Source:** tests/e2e/test_search_scenarios.py / web/routes_misc.py (Sprint 77-3)
+**User:** homeowner (anonymous)
+**Starting state:** No authentication. User navigates directly to /methodology.
+**Goal:** Read about how SF Permits AI works — data sources, entity resolution, plan analysis.
+**Expected outcome:** Page returns HTTP 200. Page contains at least 3 section headings. Mentions data sources, entity or search methodology, and plan analysis/AI vision. Page is not a stub.
+**Edge cases seen in code:** Methodology page has a dedicated #plan-analysis section.
+**CC confidence:** high
+**Status:** PENDING REVIEW
