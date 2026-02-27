@@ -1,743 +1,1233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sfpermits.ai — San Francisco Building Permit Intelligence</title>
-    <meta name="description" content="Free SF building permit lookup powered by 1.1M+ permits, 3.9M routing records, and AI analysis. See permit history, get timeline and fee estimates, and share project analysis with your contractor.">
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#5eead4">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
-    <link rel="stylesheet" href="/static/design-system.css">
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/mobile.css">
-    <style nonce="{{ csp_nonce }}">
-        /* ── Landing Page Layout ─────────────────────────────────────────── */
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sfpermits.ai — San Francisco Building Permit Intelligence</title>
+<meta name="description" content="Free SF building permit lookup powered by 1.1M+ permits, 3.9M routing records, and AI analysis. See permit history, get timeline and fee estimates, and share project analysis with your contractor.">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#5eead4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style nonce="{{ csp_nonce }}">
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --obsidian: #0a0a0f;
+    --obsidian-mid: #12121a;
+    --obsidian-light: #1a1a26;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --text-primary: rgba(255, 255, 255, 0.92);
+    --text-secondary: rgba(255, 255, 255, 0.45);
+    --text-tertiary: rgba(255, 255, 255, 0.25);
+    --accent: #5eead4;
+    --accent-glow: rgba(94, 234, 212, 0.08);
+    --amber: #fbbf24;
+    --red-soft: #f87171;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
+  body {
+    font-family: var(--sans); background: var(--obsidian); color: var(--text-primary);
+    overflow-x: hidden; -webkit-font-smoothing: antialiased;
+  }
+  .ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .ambient::before {
+    content: ''; position: absolute; top: -40%; left: -20%; width: 80%; height: 80%;
+    background: radial-gradient(ellipse, rgba(94, 234, 212, 0.03) 0%, transparent 70%);
+    animation: drift 25s ease-in-out infinite;
+  }
+  @keyframes drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(40px, 20px); } }
+  @keyframes fadeIn { to { opacity: 1; } }
 
-        .landing-header {
-            border-bottom: 1px solid rgba(255,255,255, 0.06);
-            padding: var(--space-4) 0;
-        }
-        .landing-header .obs-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .landing-logo {
-            font-family: var(--mono);
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--signal-cyan);
-            text-decoration: none;
-        }
-        .landing-logo .logo-dim { color: var(--text-tertiary); font-weight: 400; }
-        .landing-header-actions { display: flex; align-items: center; gap: var(--space-2); }
+  .reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
 
-        /* ── Hero Split ──────────────────────────────────────────────────── */
+  /* ═══ HERO ═══ */
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 92vh; min-height: 92dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 24px;
+    padding-bottom: 48px;
+  }
+  .hero-wordmark {
+    font-family: var(--mono); font-size: clamp(11px, 1.2vw, 13px); font-weight: 300;
+    letter-spacing: 0.35em; text-transform: uppercase; color: var(--text-tertiary);
+    margin-bottom: 48px;
+    opacity: 0; animation: fadeIn 1s 0.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .hero-headline {
+    font-family: var(--sans); font-size: clamp(30px, 4.8vw, 60px); font-weight: 300;
+    line-height: 1.15; text-align: center; max-width: 660px;
+    opacity: 0; animation: fadeIn 1s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .hero-headline em { font-style: normal; color: var(--accent); font-weight: 400; }
+  .hero-cred {
+    font-family: var(--mono); font-size: clamp(10px, 1.1vw, 12px); font-weight: 300;
+    letter-spacing: 0.06em; color: var(--text-tertiary);
+    margin-top: 16px; text-align: center;
+    opacity: 0; animation: fadeIn 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .beta-badge {
+    display: none;
+    font-family: var(--mono); font-size: 9px; font-weight: 400;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-glow);
+    border: 1px solid rgba(94, 234, 212, 0.15);
+    padding: 2px 8px; border-radius: var(--radius-full);
+    margin-left: 8px; vertical-align: middle;
+  }
+  .beta-badge.visible { display: inline; }
 
-        .hero-section {
-            background: var(--gradient-hero);
-            padding: var(--space-16) 0 var(--space-12);
-            position: relative;
-            overflow: hidden;
-        }
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(34,211,238,0.04) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .hero-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-12);
-            align-items: center;
-        }
-        .hero-content h1 {
-            font-size: var(--text-3xl);
-            font-weight: 700;
-            margin-bottom: var(--space-4);
-            color: var(--text-primary);
-        }
-        .hero-content h1 .cyan { color: var(--signal-cyan); }
-        .hero-content .hero-sub {
-            font-size: var(--text-lg);
-            color: var(--text-secondary);
-            margin-bottom: var(--space-8);
-            max-width: 500px;
-            line-height: 1.6;
-        }
+  /* ═══ SEARCH ═══ */
+  .search-container {
+    margin-top: 48px; width: 100%; max-width: 520px; position: relative;
+    opacity: 0; animation: fadeIn 1s 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .search-bar { position: relative; }
+  .search-bar input {
+    width: 100%; padding: 16px 22px; padding-right: 50px;
+    font-family: var(--mono); font-size: 14px; font-weight: 300;
+    color: var(--text-primary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: 12px; outline: none;
+    transition: border-color 0.4s, background 0.4s, box-shadow 0.4s, border-radius 0.2s;
+  }
+  .search-bar input::placeholder { color: var(--text-tertiary); font-weight: 300; }
+  .search-bar input:focus {
+    border-color: rgba(94, 234, 212, 0.3); background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 40px var(--accent-glow);
+  }
+  .search-bar.dropdown-open input { border-radius: 12px 12px 0 0; border-bottom-color: var(--glass-border); }
+  .search-bar .search-icon {
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+    color: var(--text-tertiary); transition: color 0.3s;
+  }
+  .search-bar input:focus ~ .search-icon { color: var(--accent); }
 
-        /* ── Search Bar ──────────────────────────────────────────────────── */
+  /* Keyboard hint */
+  .search-bar .kbd-hint {
+    position: absolute; right: 44px; top: 50%; transform: translateY(-50%);
+    font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    padding: 2px 6px; border-radius: 4px;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .search-bar input:focus ~ .kbd-hint { opacity: 0; }
+  .search-bar input:not(:focus):placeholder-shown ~ .kbd-hint { opacity: 0.6; }
 
-        .hero-search-form {
-            display: flex;
-            background: var(--bg-surface);
-            border: 1px solid rgba(255,255,255, 0.08);
-            border-radius: var(--card-radius);
-            overflow: hidden;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .hero-search-form:focus-within {
-            border-color: var(--signal-cyan);
-            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
-        }
-        .hero-search-form input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-family: var(--mono);
-            font-size: var(--text-base);
-            padding: var(--space-4) var(--space-6);
-            outline: none;
-            min-width: 0;
-        }
-        .hero-search-form input::placeholder { color: var(--text-tertiary); }
-        .hero-search-form button {
-            background: var(--gradient-accent);
-            border: none;
-            color: #fff;
-            font-family: var(--sans);
-            font-size: var(--text-base);
-            font-weight: 600;
-            padding: var(--space-4) var(--space-8);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: opacity 0.2s;
-        }
-        .hero-search-form button:hover { opacity: 0.9; }
-        .search-suggestions {
-            margin-top: var(--space-3);
-            font-size: var(--text-sm);
-            color: var(--text-tertiary);
-        }
-        .search-suggestions code {
-            background: var(--bg-elevated);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .search-suggestions code:hover { color: var(--signal-cyan); }
+  .below-search {
+    text-align: center; margin-top: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .below-search__sub {
+    font-family: var(--mono); font-size: 12px; font-weight: 300;
+    color: var(--text-tertiary); line-height: 1.5;
+    letter-spacing: 0.02em;
+    opacity: 0;
+    animation: emerge 1.5s 1.8s ease-out forwards;
+    transition: opacity 0.8s ease-out;
+  }
+  .below-search__sub a {
+    color: var(--text-secondary); text-decoration: none;
+    padding-bottom: 1px; border-bottom: 1px solid var(--glass-border);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .below-search__sub a:hover {
+    color: var(--accent); border-bottom-color: var(--accent);
+  }
+  .below-search__watched {
+    font-family: var(--mono); font-size: 11px; font-weight: 300;
+    color: var(--text-secondary);
+    opacity: 0;
+    animation: emerge 1.5s 2.4s ease-out forwards;
+    transition: opacity 0.25s;
+  }
+  .below-search__watched:empty { display: none; }
+  .below-search__watched a {
+    color: var(--text-secondary); text-decoration: none; cursor: pointer;
+    transition: color 0.2s;
+  }
+  .below-search__watched a:hover { color: var(--accent); }
+  .below-search__context {
+    font-family: var(--mono); font-size: 11px; font-weight: 300;
+    color: var(--text-tertiary);
+    opacity: 0;
+    animation: emerge 1.5s 3.2s ease-out forwards;
+    transition: opacity 0.8s ease-out;
+  }
+  .below-search__context a {
+    color: var(--text-tertiary); text-decoration: none; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    padding-bottom: 1px; border-bottom: 1px solid transparent;
+  }
+  .below-search__context a:hover { color: var(--accent); }
+  .below-search__context a.source-active {
+    color: var(--accent); border-bottom-color: var(--accent);
+  }
+  @keyframes emerge {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .urgent-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    vertical-align: middle; margin-right: 2px;
+    animation: urgent-pulse 2s ease-in-out infinite;
+  }
+  .urgent-dot--red { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.5); }
+  .urgent-dot--amber { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+  @keyframes urgent-pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+  .example-link { display: none; }
+  .example-link.hidden { display: none; }
 
-        /* ── Live Data Pulse Panel ───────────────────────────────────────── */
+  /* ═══ DROPDOWN ═══ */
+  .search-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border); border-top: none;
+    border-radius: 0 0 12px 12px; overflow-y: auto; overflow-x: hidden;
+    max-height: 0; opacity: 0;
+    transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+    z-index: 10;
+    scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent;
+  }
+  .search-dropdown.open { max-height: 380px; opacity: 1; }
 
-        .data-pulse {
-            padding: var(--space-8);
-        }
-        .data-pulse-title {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            margin-bottom: var(--space-6);
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-        }
-        .pulse-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--signal-green);
-            box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
-        }
-        .pulse-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-6);
-        }
-        .pulse-stat-number {
-            font-family: var(--mono);
-            font-size: var(--text-xl);
-            font-weight: 700;
-            color: var(--signal-cyan);
-            line-height: 1;
-        }
-        .pulse-stat-label {
-            font-size: var(--text-xs);
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-top: var(--space-1);
-        }
-        .pulse-refresh {
-            margin-top: var(--space-6);
-            padding-top: var(--space-4);
-            border-top: 1px solid rgba(255,255,255, 0.04);
-            font-size: var(--text-xs);
-            color: var(--text-tertiary);
-        }
+  .dropdown-section { padding-top: 4px; }
+  .dropdown-section + .dropdown-section { border-top: 1px solid var(--glass-border); }
+  .dropdown-section.hidden { display: none; }
 
-        /* ── Homeowner Funnel ────────────────────────────────────────────── */
+  .dropdown-label {
+    padding: 10px 22px 4px;
+    font-family: var(--mono); font-size: 10px; font-weight: 400;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dropdown-label .label-count {
+    font-size: 10px; letter-spacing: 0; text-transform: none; opacity: 0.6;
+  }
 
-        .funnel-section {
-            padding: var(--space-12) 0;
-            border-top: 1px solid rgba(255,255,255, 0.04);
-        }
-        .funnel-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-6);
-        }
-        .funnel-card {
-            padding: var(--space-8);
-        }
-        .funnel-card h2 {
-            font-size: var(--text-lg);
-            margin-bottom: var(--space-2);
-        }
-        .funnel-card p {
-            font-size: var(--text-sm);
-            color: var(--text-secondary);
-            margin-bottom: var(--space-6);
-            line-height: 1.6;
-        }
-        .funnel-card.funnel-primary {
-            border-color: rgba(34, 211, 238, 0.2);
-        }
-        .funnel-form textarea {
-            width: 100%;
-            background: var(--bg-elevated);
-            border: 1px solid rgba(255,255,255, 0.08);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: var(--sans);
-            font-size: var(--text-sm);
-            padding: var(--space-3) var(--space-4);
-            resize: none;
-            outline: none;
-            margin-bottom: var(--space-3);
-            transition: border-color 0.2s;
-            min-height: 80px;
-        }
-        .funnel-form textarea:focus { border-color: var(--signal-cyan); }
-        .funnel-form textarea::placeholder { color: var(--text-tertiary); }
-        .funnel-form select {
-            width: 100%;
-            background: var(--bg-elevated);
-            border: 1px solid rgba(255,255,255, 0.08);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-family: var(--sans);
-            font-size: var(--text-sm);
-            padding: var(--space-3) var(--space-4);
-            margin-bottom: var(--space-4);
-            outline: none;
-        }
-        .funnel-form select:focus { border-color: var(--signal-cyan); color: var(--text-primary); }
-        .funnel-violation-icon { font-size: 2.2rem; margin-bottom: var(--space-4); }
-        .funnel-violation-cta {
-            display: inline-block;
-            border: 2px solid var(--signal-red);
-            border-radius: 8px;
-            color: var(--signal-red);
-            font-size: var(--text-sm);
-            font-weight: 600;
-            padding: var(--space-3) var(--space-6);
-            text-decoration: none;
-            transition: background 0.2s, color 0.2s;
-        }
-        .funnel-violation-cta:hover {
-            background: var(--signal-red);
-            color: #fff;
-        }
+  .dropdown-item {
+    padding: 9px 22px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: background 0.12s;
+  }
+  .dropdown-item:hover { background: var(--glass); }
+  .dropdown-item.hidden { display: none; }
 
-        /* ── Capability Cards ────────────────────────────────────────────── */
+  .dropdown-item .item-icon { flex-shrink: 0; color: var(--text-tertiary); transition: color 0.12s; }
+  .dropdown-item:hover .item-icon { color: var(--accent); }
 
-        .capabilities-section {
-            padding: var(--space-12) 0;
-        }
-        .capabilities-section h2 {
-            font-size: var(--text-xl);
-            text-align: center;
-            margin-bottom: var(--space-8);
-            color: var(--text-primary);
-        }
-        .capabilities-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-6);
-        }
-        .capability-card {
-            padding: var(--space-6);
-            transition: border-color 0.3s;
-        }
-        .capability-card:hover {
-            border-color: rgba(34, 211, 238, 0.15);
-        }
-        .capability-icon {
-            font-size: 1.6rem;
-            margin-bottom: var(--space-3);
-        }
-        .capability-card h3 {
-            font-family: var(--sans);
-            font-size: var(--text-base);
-            font-weight: 600;
-            margin-bottom: var(--space-2);
-            color: var(--text-primary);
-        }
-        .capability-card .capability-desc {
-            font-size: var(--text-sm);
-            color: var(--text-secondary);
-            line-height: 1.5;
-            margin-bottom: var(--space-3);
-        }
-        .capability-data-point {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--signal-cyan);
-            margin-bottom: var(--space-3);
-        }
-        .capability-badge {
-            display: inline-block;
-            font-size: var(--text-xs);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-        .capability-badge-free {
-            background: rgba(52, 211, 153, 0.1);
-            color: var(--signal-green);
-        }
-        .capability-badge-premium {
-            background: rgba(96, 165, 250, 0.1);
-            color: var(--signal-blue);
-        }
+  .dropdown-item .item-address {
+    font-family: var(--mono); font-size: 13px; font-weight: 300;
+    color: var(--text-secondary); transition: color 0.12s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dropdown-item:hover .item-address { color: var(--text-primary); }
 
-        /* ── Stats Bar ───────────────────────────────────────────────────── */
+  /* Match highlighting */
+  .dropdown-item .item-address mark {
+    background: none; color: var(--accent); font-weight: 400;
+  }
 
-        .stats-bar {
-            border-top: 1px solid rgba(255,255,255, 0.04);
-            padding: var(--space-10) 0;
-        }
-        .stats-bar-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--space-6);
-            text-align: center;
-        }
+  .dropdown-item .item-badge {
+    margin-left: auto; display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
 
-        /* ── Credibility Footer ──────────────────────────────────────────── */
+  .dropdown-item .item-type {
+    font-size: 10px; font-weight: 400; color: var(--text-tertiary);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    padding: 1px 7px; border-radius: 3px; white-space: nowrap;
+    transition: color 0.12s, border-color 0.12s;
+  }
+  .dropdown-item:hover .item-type { color: var(--text-secondary); border-color: rgba(255,255,255,0.1); }
 
-        .credibility-section {
-            border-top: 1px solid rgba(255,255,255, 0.04);
-            padding: var(--space-8) 0;
-        }
-        .credibility-grid {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-10);
-            flex-wrap: wrap;
-        }
-        .credibility-item {
-            font-size: var(--text-sm);
-            color: var(--text-tertiary);
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-        }
-        .credibility-item .cred-icon {
-            color: var(--signal-cyan);
-            font-size: 1rem;
-        }
+  /* Status dot */
+  .dropdown-item .item-status {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .item-status.status-green { background: var(--accent); }
+  .item-status.status-amber { background: var(--amber); }
+  .item-status.status-red { background: var(--red-soft); }
 
-        /* ── CTA Section ─────────────────────────────────────────────────── */
+  /* Footer link in dropdown */
+  .dropdown-footer {
+    padding: 10px 22px 12px;
+    border-top: 1px solid var(--glass-border);
+    text-align: center;
+  }
+  .dropdown-footer a {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .dropdown-footer a:hover { color: var(--accent); }
 
-        .cta-section {
-            padding: var(--space-12) 0;
-            text-align: center;
-            background: rgba(34, 211, 238, 0.02);
-            border-top: 1px solid rgba(255,255,255, 0.04);
-            border-bottom: 1px solid rgba(255,255,255, 0.04);
-        }
-        .cta-section h2 {
-            font-size: var(--text-xl);
-            margin-bottom: var(--space-2);
-        }
-        .cta-section .cta-sub {
-            color: var(--text-secondary);
-            font-size: var(--text-base);
-            max-width: 540px;
-            margin: 0 auto var(--space-6);
-        }
-        .cta-features {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-6);
-            margin-top: var(--space-4);
-            flex-wrap: wrap;
-        }
-        .cta-features span {
-            font-size: var(--text-sm);
-            color: var(--text-secondary);
-        }
+  /* No results */
+  .dropdown-empty {
+    padding: 20px 22px; text-align: center;
+    font-size: 13px; color: var(--text-tertiary);
+    display: none;
+  }
 
-        /* ── Footer ──────────────────────────────────────────────────────── */
+  .scroll-cue {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    opacity: 0; animation: fadeIn 1s 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.5s;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .scroll-cue.hidden { opacity: 0 !important; }
+  .scroll-cue__text {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    color: var(--text-secondary); text-transform: uppercase;
+    animation: pulse-line 2.5s ease-in-out infinite;
+  }
+  .scroll-cue__arrow {
+    animation: bounce-down 2s ease-in-out infinite;
+    color: var(--text-tertiary);
+  }
+  @keyframes pulse-line { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+  @keyframes bounce-down {
+    0%, 100% { transform: translateY(0); opacity: 0.3; }
+    50% { transform: translateY(6px); opacity: 0.7; }
+  }
 
-        .landing-footer {
-            border-top: 1px solid rgba(255,255,255, 0.04);
-            padding: var(--space-6) 0;
-            text-align: center;
-        }
-        .landing-footer p {
-            font-size: var(--text-sm);
-            color: var(--text-tertiary);
-        }
+  /* ═══ SECTIONS ═══ */
+  section { position: relative; z-index: 1; padding: 0 24px; }
+  .section-inner { max-width: 1000px; margin: 0 auto; }
 
-        /* ── Mobile: Phone (<=768px) ─────────────────────────────────────── */
+  .stats-section { padding-top: 140px; padding-bottom: 100px; }
+  .stats-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
+    padding: 40px 0;
+  }
+  .stat-item { text-align: center; flex: 1; }
+  .stat-item .number { font-family: var(--mono); font-size: clamp(22px, 3vw, 36px); font-weight: 300; line-height: 1; }
+  .stat-item .label { font-size: 12px; font-weight: 400; color: var(--text-tertiary); margin-top: 8px; }
+  .stat-divider { width: 1px; height: 40px; background: var(--glass-border); flex-shrink: 0; }
 
-        @media (max-width: 768px) {
-            .hero-section {
-                padding: var(--space-10) 0 var(--space-8);
-            }
-            .hero-grid {
-                grid-template-columns: 1fr;
-                gap: var(--space-6);
-            }
-            .hero-content h1 {
-                font-size: var(--text-2xl);
-            }
-            .hero-search-form {
-                flex-direction: column;
-            }
-            .hero-search-form input {
-                padding: var(--space-4);
-            }
-            .hero-search-form button {
-                padding: var(--space-4);
-                min-height: 48px;
-            }
-            .data-pulse {
-                padding: var(--space-6);
-            }
-            .pulse-stats {
-                grid-template-columns: 1fr 1fr;
-                gap: var(--space-4);
-            }
-            .funnel-grid {
-                grid-template-columns: 1fr;
-            }
-            .funnel-card {
-                padding: var(--space-6);
-            }
-            .capabilities-grid {
-                grid-template-columns: 1fr;
-                gap: var(--space-4);
-                display: flex;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                scroll-snap-type: x mandatory;
-                padding-bottom: var(--space-2);
-            }
-            .capabilities-grid::-webkit-scrollbar { display: none; }
-            .capability-card {
-                min-width: 260px;
-                scroll-snap-align: start;
-                flex-shrink: 0;
-            }
-            .stats-bar-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: var(--space-4);
-            }
-            .credibility-grid {
-                gap: var(--space-4);
-                flex-direction: column;
-                align-items: center;
-            }
-            .cta-features {
-                flex-direction: column;
-                align-items: center;
-                gap: var(--space-2);
-            }
-        }
+  .capabilities-section { padding-bottom: 120px; }
+  .cap-list { list-style: none; }
+  .cap-item {
+    display: grid; grid-template-columns: 48px 1fr auto; align-items: baseline; gap: 20px;
+    padding: 28px 0; border-bottom: 1px solid var(--glass-border); cursor: default; transition: background 0.3s;
+  }
+  .cap-item:first-child { border-top: 1px solid var(--glass-border); }
+  .cap-item:hover {
+    background: linear-gradient(90deg, var(--accent-glow), transparent 60%);
+    margin: 0 -16px; padding-left: 16px; padding-right: 16px;
+  }
+  .cap-input-row {
+    display: flex; gap: 8px; margin-top: 10px; max-width: 400px;
+  }
+  .cap-input {
+    flex: 1; padding: 8px 12px;
+    font-family: var(--mono); font-size: 12px; font-weight: 300;
+    color: var(--text-primary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    outline: none; transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .cap-input::placeholder { color: var(--text-tertiary); }
+  .cap-input:focus { border-color: var(--accent-ring); box-shadow: 0 0 20px var(--accent-glow); }
+  .cap-go {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  .cap-go:hover { color: var(--accent); border-color: var(--accent-ring); }
+  .cap-links {
+    display: flex; gap: 12px; margin-top: 8px;
+  }
+  .cap-links a {
+    font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .cap-links a:hover { color: var(--accent); }
+  .cap-num { font-family: var(--mono); font-size: 12px; color: var(--text-tertiary); }
+  .cap-content h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .cap-content p { font-size: 13px; font-weight: 300; color: var(--text-secondary); line-height: 1.55; max-width: 520px; }
+  .cap-stat { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
 
-        /* ── Tablet (<=1024px) ───────────────────────────────────────────── */
+  .demo-section { padding-bottom: 120px; }
+  .demo-container { background: var(--obsidian-mid); border: 1px solid var(--glass-border); border-radius: 14px; overflow: hidden; }
+  .demo-header { padding: 16px 24px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 10px; }
+  .demo-dots { display: flex; gap: 5px; }
+  .demo-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--glass-border); }
+  .demo-url { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); margin-left: 8px; }
+  .demo-body { padding: 32px 28px; }
+  .demo-address { font-family: var(--mono); font-size: 13px; margin-bottom: 28px; }
+  .demo-address .addr-accent { color: var(--accent); }
+  .demo-address .addr-type {
+    font-size: 11px; color: var(--text-tertiary); background: var(--glass);
+    border: 1px solid var(--glass-border); padding: 2px 8px; border-radius: 4px;
+    margin-left: 10px; vertical-align: middle;
+  }
+  .demo-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--glass-border);
+    opacity: 0; transform: translateX(-8px);
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .demo-row.visible { opacity: 1; transform: translateX(0); }
+  .demo-row .row-label { font-size: 13px; color: var(--text-secondary); }
+  .demo-row .row-value { font-family: var(--mono); font-size: 12px; }
+  .status-active { color: var(--accent); }
+  .status-warn { color: var(--amber); }
+  .status-alert { color: var(--red-soft); }
+  .demo-progress { margin-top: 24px; opacity: 0; transition: opacity 0.8s 0.5s; }
+  .demo-progress.visible { opacity: 1; }
+  .demo-progress .progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .demo-progress .progress-label span { font-size: 11px; color: var(--text-tertiary); font-family: var(--mono); }
+  .progress-track { height: 2px; background: var(--glass); border-radius: 1px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
+    border-radius: 1px; transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .progress-fill.animate { width: 62%; }
+  .demo-cta { margin-top: 24px; text-align: center; opacity: 0; transition: opacity 0.6s 1s; }
+  .demo-cta.visible { opacity: 1; }
+  .demo-cta span {
+    font-size: 12px; color: var(--text-tertiary); font-family: var(--mono);
+    letter-spacing: 0.04em; cursor: pointer; padding-bottom: 1px;
+    border-bottom: 1px solid transparent; transition: color 0.3s, border-color 0.3s;
+  }
+  .demo-cta span:hover { color: var(--accent); border-color: var(--accent); }
 
-        @media (max-width: 1024px) and (min-width: 769px) {
-            .hero-grid {
-                gap: var(--space-8);
-            }
-            .capabilities-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
+  .footer { position: relative; z-index: 1; padding: 0 24px 80px; text-align: center; }
+  .footer-links { font-size: 12px; color: var(--text-tertiary); }
+  .footer-links a {
+    color: var(--text-secondary); text-decoration: none;
+    border-bottom: 1px solid var(--glass-border); padding-bottom: 1px;
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
+  .footer-links .sep { margin: 0 12px; color: var(--glass-border); }
+
+  @media (max-width: 768px) {
+    .stats-row { flex-wrap: wrap; gap: 24px; justify-content: center; padding: 28px 0; }
+    .stat-divider { display: none; }
+    .stat-item { flex: 0 0 40%; }
+    .cap-item { grid-template-columns: 1fr; gap: 6px; }
+    .cap-num { display: none; }
+    .cap-stat { font-size: 11px; margin-top: 4px; }
+    .demo-body { padding: 20px 16px; }
+    .demo-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  }
+  @media (max-width: 480px) { .stat-item { flex: 0 0 100%; } }
+</style>
 </head>
-<body class="obsidian">
+<body>
+
 {% if is_staging %}
-<div id="staging-banner" style="background: var(--signal-amber); color: #0B0F19; text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; position: relative; z-index: 9999;">
-  ⚠ STAGING ENVIRONMENT &mdash; changes here do not affect production
+<div style="background: var(--amber); color: var(--obsidian); text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; position: relative; z-index: 9999;">
+  STAGING ENVIRONMENT
 </div>
 {% endif %}
 
-    <!-- ── Header ────────────────────────────────────────────────────── -->
-    <header class="landing-header">
-        <div class="obs-container">
-            <a href="/" class="landing-logo">sfpermits<span class="logo-dim">.ai</span></a>
-            <div class="landing-header-actions">
-                <a href="/auth/login" class="obsidian-btn obsidian-btn-outline">Sign in</a>
-                <a href="/auth/login" class="obsidian-btn obsidian-btn-primary">Get started free</a>
-            </div>
-        </div>
-    </header>
+<div class="ambient"></div>
 
-    <!-- ── Hero Split ────────────────────────────────────────────────── -->
-    <section class="hero-section">
-        <div class="obs-container">
-            <div class="hero-grid">
-                <div class="hero-content">
-                    <h1>San Francisco<br><span class="cyan">Building Permit<br>Intelligence</span></h1>
-                    <p class="hero-sub">Look up any SF address to see permit history, inspection results, and compliance status. Powered by 1.1M+ permits and AI analysis.</p>
-                    <div class="hero-search">
-                        <form class="hero-search-form" action="/search" method="GET">
-                            <input type="text" name="q" placeholder="Enter an address, permit #, or block/lot..." autocomplete="off" autofocus>
-                            <button type="submit">Search</button>
-                        </form>
-                        <div class="search-suggestions">
-                            Try <code onclick="this.closest('form')||document.querySelector('.hero-search-form input').value='1455 Market St'">1455 Market St</code>
-                            or <code onclick="document.querySelector('.hero-search-form input').value='Block 3506 Lot 007'">Block 3506 Lot 007</code>
-                        </div>
-                    </div>
-                </div>
-                <div class="glass-card data-pulse" id="data-pulse">
-                    <div class="data-pulse-title">
-                        <span class="pulse-dot"></span>
-                        Live Data Pulse
-                    </div>
-                    <div class="pulse-stats">
-                        <div>
-                            <div class="pulse-stat-number" data-stat="permits">1,137,816</div>
-                            <div class="pulse-stat-label">Permits tracked</div>
-                        </div>
-                        <div>
-                            <div class="pulse-stat-number" data-stat="routing_records">3,920,710</div>
-                            <div class="pulse-stat-label">Routing records</div>
-                        </div>
-                        <div>
-                            <div class="pulse-stat-number" data-stat="entities">1,000,000</div>
-                            <div class="pulse-stat-label">Entities mapped</div>
-                        </div>
-                        <div>
-                            <div class="pulse-stat-number" data-stat="inspections">671,000</div>
-                            <div class="pulse-stat-label">Inspections</div>
-                        </div>
-                    </div>
-                    <div class="pulse-refresh">
-                        <span data-stat="last_refresh">Updated nightly from SF open data</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- SIGN IN — visible but quiet -->
+<div style="position: fixed; top: 16px; right: 24px; z-index: 60; opacity: 0; animation: fadeIn 2s 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+  <a href="/auth/login" style="font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#5eead4'" onmouseout="this.style.color=''">Sign in &rarr;</a>
+</div>
 
-    <!-- ── Homeowner Funnel ──────────────────────────────────────────── -->
-    <section class="funnel-section">
-        <div class="obs-container">
-            <div class="funnel-grid">
-                <div class="glass-card funnel-card funnel-primary">
-                    <h2>Planning a project?</h2>
-                    <p>Describe your remodel and get an instant permit preview — what you'll need, OTC vs. in-house review, and how long it takes.</p>
-                    <form class="funnel-form" action="/analyze-preview" method="POST">
-                        <textarea name="description" rows="3" placeholder="e.g. Kitchen remodel in the Mission, moving the sink and adding an island..." required></textarea>
-                        <select name="neighborhood">
-                            <option value="">Neighborhood (optional)</option>
-                            <option value="Mission">Mission</option>
-                            <option value="Noe Valley">Noe Valley</option>
-                            <option value="Castro/Upper Market">Castro / Upper Market</option>
-                            <option value="Bernal Heights">Bernal Heights</option>
-                            <option value="Pacific Heights">Pacific Heights</option>
-                            <option value="Richmond">Richmond</option>
-                            <option value="Sunset">Sunset</option>
-                            <option value="SoMa">SoMa</option>
-                            <option value="Potrero Hill">Potrero Hill</option>
-                            <option value="Haight Ashbury">Haight Ashbury</option>
-                            <option value="Marina">Marina</option>
-                            <option value="North Beach">North Beach</option>
-                            <option value="Chinatown">Chinatown</option>
-                            <option value="Tenderloin">Tenderloin</option>
-                            <option value="Bayview Hunters Point">Bayview / Hunters Point</option>
-                            <option value="Excelsior">Excelsior</option>
-                            <option value="Glen Park">Glen Park</option>
-                            <option value="Visitacion Valley">Visitacion Valley</option>
-                            <option value="Outer Sunset">Outer Sunset</option>
-                        </select>
-                        <button type="submit" class="obsidian-btn obsidian-btn-primary" style="width:100%;">Get free permit preview</button>
-                    </form>
-                </div>
-                <div class="glass-card funnel-card" style="display:flex;flex-direction:column;justify-content:center;">
-                    <div class="funnel-violation-icon">&#x26A0;&#xFE0F;</div>
-                    <h2>Got a Notice of Violation?</h2>
-                    <p>Look up your property to see open complaints, enforcement actions, and what steps come next.</p>
-                    <a href="/search?context=violation" class="funnel-violation-cta">Look up your property</a>
-                </div>
-            </div>
-        </div>
-    </section>
+<section class="hero">
+  <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">beta</span></div>
+  <h1 class="hero-headline">Permit intelligence,<br><em>distilled</em></h1>
+  <p class="hero-cred">18.4 million San Francisco government records.<br>One search.</p>
 
-    <!-- ── Capability Cards ──────────────────────────────────────────── -->
-    <section class="capabilities-section">
-        <div class="obs-container">
-            <h2>What you can do</h2>
-            <div class="capabilities-grid">
-                <div class="glass-card capability-card">
-                    <div class="capability-icon">&#x1F50D;</div>
-                    <h3>Permit Search &amp; Tracking</h3>
-                    <p class="capability-desc">Search any SF address to see all building permits, current status, and inspection history.</p>
-                    <div class="capability-data-point">1.1M+ permits indexed</div>
-                    <span class="capability-badge capability-badge-free">Free</span>
-                </div>
-                <div class="glass-card capability-card">
-                    <div class="capability-icon">&#x23F1;</div>
-                    <h3>Timeline Estimation</h3>
-                    <p class="capability-desc">AI-powered processing time predictions using station-sum velocity model and historical data.</p>
-                    <div class="capability-data-point">Station-sum velocity model</div>
-                    <span class="capability-badge capability-badge-free">Free</span>
-                </div>
-                <div class="glass-card capability-card">
-                    <div class="capability-icon">&#x1F578;</div>
-                    <h3>Entity Network</h3>
-                    <p class="capability-desc">Discover contractors, architects, and engineers connected to any permit or property.</p>
-                    <div class="capability-data-point">1M entities &middot; 576K edges</div>
-                    <span class="capability-badge capability-badge-premium">Sign up free</span>
-                </div>
-                <div class="glass-card capability-card">
-                    <div class="capability-icon">&#x1F4CB;</div>
-                    <h3>AI Plan Analysis</h3>
-                    <p class="capability-desc">Upload plan sets for AI-powered EPR compliance checks and review station routing predictions.</p>
-                    <div class="capability-data-point">Claude Vision EPR checks</div>
-                    <span class="capability-badge capability-badge-premium">Sign up free</span>
-                </div>
-                <div class="glass-card capability-card">
-                    <div class="capability-icon">&#x1F4CA;</div>
-                    <h3>Routing Intelligence</h3>
-                    <p class="capability-desc">Track permit review progress through DBI, Planning, Fire, and 15+ agency review stations.</p>
-                    <div class="capability-data-point">3.9M addenda records</div>
-                    <span class="capability-badge capability-badge-premium">Sign up free</span>
-                </div>
-                <div class="glass-card capability-card">
-                    <div class="capability-icon">&#x1F4E8;</div>
-                    <h3>Morning Briefs</h3>
-                    <p class="capability-desc">Daily email updates when your watched permits change status, get inspected, or hit milestones.</p>
-                    <div class="capability-data-point">Daily severity scoring</div>
-                    <span class="capability-badge capability-badge-premium">Sign up free</span>
-                </div>
-            </div>
-        </div>
-    </section>
+  <div class="search-container">
+    <form class="search-bar" id="search-bar" action="/search" method="GET">
+      <input type="text" name="q" id="search-input" placeholder="Address? Project? Question?" autocomplete="off">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </form>
+    <div class="search-dropdown" id="search-dropdown">
+      <div class="dropdown-empty" id="dropdown-empty">No matches in your properties or history</div>
+    </div>
+    <div class="example-link" id="example-link" style="display:none;"></div>
+    <div class="below-search">
+      <div class="below-search__sub" id="below-sub"><a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a></div>
+      <div class="below-search__watched" id="below-watched"></div>
+      <div class="below-search__context" id="below-context">try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a></div>
+    </div>
+  </div>
 
-    <!-- ── Stats Bar ─────────────────────────────────────────────────── -->
-    <section class="stats-bar">
-        <div class="obs-container">
-            <div class="stats-bar-grid">
-                <div class="stat-block">
-                    <div class="stat-number" data-stat="permits">1.1M+</div>
-                    <div class="stat-label">Permits tracked</div>
-                </div>
-                <div class="stat-block">
-                    <div class="stat-number" data-stat="routing">3.9M+</div>
-                    <div class="stat-label">Review records</div>
-                </div>
-                <div class="stat-block">
-                    <div class="stat-number" data-stat="inspections">671K+</div>
-                    <div class="stat-label">Inspections</div>
-                </div>
-                <div class="stat-block">
-                    <div class="stat-number" data-stat="entities">1M+</div>
-                    <div class="stat-label">Entities mapped</div>
-                </div>
-            </div>
-        </div>
-    </section>
+  <a href="#cap-permits" class="scroll-cue" id="scroll-cue" style="text-decoration:none;cursor:pointer;">
+    <span class="scroll-cue__text" id="scroll-text">See how it works</span>
+    <svg class="scroll-cue__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+  </a>
+</section>
 
-    <!-- ── Credibility Footer ────────────────────────────────────────── -->
-    <section class="credibility-section">
-        <div class="obs-container">
-            <div class="credibility-grid">
-                <div class="credibility-item">
-                    <span class="cred-icon">&#x1F3DB;</span>
-                    Built on 22 SF government data sources
-                </div>
-                <div class="credibility-item">
-                    <span class="cred-icon">&#x2705;</span>
-                    3,300+ automated tests
-                </div>
-                <div class="credibility-item">
-                    <span class="cred-icon">&#x1F504;</span>
-                    Updated nightly
-                </div>
-            </div>
-        </div>
-    </section>
+<section class="stats-section">
+  <div class="section-inner">
+    <div class="stats-row reveal">
+      <div class="stat-item">
+        <div class="number"><span class="counting" data-target="1137816">0</span></div>
+        <div class="label">SF building permits</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="number">22</div>
+        <div class="label">City data sources</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="number" style="font-size: clamp(18px, 2.5vw, 28px);">Nightly</div>
+        <div class="label">Updated from city records</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="number" style="font-size: clamp(18px, 2.5vw, 28px);">Free</div>
+        <div class="label">During beta</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- ── CTA Section ───────────────────────────────────────────────── -->
-    <section class="cta-section">
-        <div class="obs-container">
-            <h2>Get more from your permit data</h2>
-            <p class="cta-sub">Create a free account to unlock property reports, morning briefs, plan analysis, and your personal portfolio tracker.</p>
-            <a href="/auth/login" class="obsidian-btn obsidian-btn-primary" style="font-size:var(--text-lg);padding:var(--space-4) var(--space-8);">Create free account</a>
-            <div class="cta-features">
-                <span>✓ No credit card</span>
-                <span>✓ Watch up to 25 properties</span>
-                <span>✓ Daily email briefs</span>
-            </div>
+<section class="capabilities-section">
+  <div class="section-inner">
+    <ul class="cap-list">
+      <li class="cap-item reveal" id="cap-permits">
+        <span class="cap-num">01</span>
+        <div class="cap-content">
+          <h3>Do I need a permit?</h3>
+          <p>Describe your project in plain English. AI tells you which permits to file, whether you can get same-day approval, and what it'll cost.</p>
+          <form class="cap-input-row" action="/search" method="GET">
+            <input class="cap-input" name="q" placeholder="e.g. kitchen remodel, replace water heater">
+            <button class="cap-go" type="submit">Ask AI &rarr;</button>
+          </form>
+          <div class="cap-links">
+            <a href="/methodology">How this works &rarr;</a>
+            <a href="/demo">See an example &rarr;</a>
+          </div>
         </div>
-    </section>
-
-    <!-- ── Footer ────────────────────────────────────────────────────── -->
-    <footer class="landing-footer">
-        <div class="obs-container">
-            <p>Built on San Francisco open data. <a href="/health">System status</a></p>
+        <span class="cap-stat">Same-day or months —<br>know before you start</span>
+      </li>
+      <li class="cap-item reveal reveal-delay-1" id="cap-timeline">
+        <span class="cap-num">02</span>
+        <div class="cap-content">
+          <h3>How long will it take?</h3>
+          <p>Real timelines from real permits — not city estimates. See how long each review step actually takes in your neighborhood.</p>
+          <form class="cap-input-row" action="/search" method="GET">
+            <input class="cap-input" name="q" placeholder="e.g. 487 Noe St, or any SF address">
+            <button class="cap-go" type="submit">Check &rarr;</button>
+          </form>
+          <div class="cap-links">
+            <a href="/methodology">How we estimate &rarr;</a>
+            <a href="/demo">Slowest stations right now &rarr;</a>
+          </div>
         </div>
-    </footer>
+        <span class="cap-stat">Based on 1.1M<br>actual permits</span>
+      </li>
+      <li class="cap-item reveal reveal-delay-2" id="cap-stuck">
+        <span class="cap-num">03</span>
+        <div class="cap-content">
+          <h3>Is my permit stuck?</h3>
+          <p>Track which city departments have reviewed your plans, which are pending, and which are stalled.</p>
+          <form class="cap-input-row" action="/search" method="GET">
+            <input class="cap-input" name="q" placeholder="Permit # or address">
+            <button class="cap-go" type="submit">Track &rarr;</button>
+          </form>
+          <div class="cap-links">
+            <a href="/about-data">What the stations mean &rarr;</a>
+            <a href="/about-data">Common stall reasons &rarr;</a>
+          </div>
+        </div>
+        <span class="cap-stat">8 review stations<br>tracked per permit</span>
+      </li>
+      <li class="cap-item reveal reveal-delay-3" id="cap-hire">
+        <span class="cap-num">04</span>
+        <div class="cap-content">
+          <h3>Who should I hire?</h3>
+          <p>See which architects, contractors, and expediters have the most experience with your type of project in your neighborhood.</p>
+          <form class="cap-input-row" action="/search" method="GET">
+            <input class="cap-input" name="q" placeholder="e.g. kitchen remodel in Noe Valley">
+            <button class="cap-go" type="submit">Find &rarr;</button>
+          </form>
+          <div class="cap-links">
+            <a href="/methodology">How we rank professionals &rarr;</a>
+          </div>
+        </div>
+        <span class="cap-stat">1M+ professionals<br>tracked</span>
+      </li>
+    </ul>
+  </div>
+</section>
 
-    <!-- ── Live Data Fetch (progressive enhancement) ─────────────────── -->
-    <script nonce="{{ csp_nonce }}">
-    (function() {
-        fetch('/api/stats')
-            .then(function(r) { return r.ok ? r.json() : null; })
-            .then(function(data) {
-                if (!data) return;
-                var fmt = function(n) {
-                    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M+';
-                    if (n >= 1000) return Math.round(n / 1000).toLocaleString() + 'K+';
-                    return n.toLocaleString();
-                };
-                var pulse = document.getElementById('data-pulse');
-                if (pulse && data.permits) {
-                    var els = pulse.querySelectorAll('[data-stat]');
-                    els.forEach(function(el) {
-                        var key = el.getAttribute('data-stat');
-                        if (key === 'last_refresh' && data.last_refresh) {
-                            el.textContent = 'Last refresh: ' + new Date(data.last_refresh).toLocaleDateString();
-                        } else if (data[key]) {
-                            el.textContent = fmt(data[key]);
-                        }
-                    });
-                }
-            })
-            .catch(function() { /* Fallback numbers already in HTML */ });
-    })();
-    </script>
-    <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
-    <!-- PostHog analytics (async, non-blocking) -->
-    {% if posthog_key %}
-    <script async nonce="{{ csp_nonce }}">
-      !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-      posthog.init('{{ posthog_key }}', {api_host: '{{ posthog_host }}'});
-    </script>
-    {% endif %}
+<section class="demo-section">
+  <div class="section-inner">
+    <div class="reveal" id="demo-trigger">
+      <div class="demo-container">
+        <div class="demo-header">
+          <div class="demo-dots"><span></span><span></span><span></span></div>
+          <div class="demo-url" id="demo-url">sfpermits.ai/lookup?q=1455+Market+St</div>
+        </div>
+        <div class="demo-body">
+          <div class="demo-address" id="demo-address"><span class="addr-accent">1455 Market St</span> <span class="addr-type">Commercial</span></div>
+          <div class="demo-row" data-delay="0"><span class="row-label">Active permits</span><span class="row-value status-active">3 in review</span></div>
+          <div class="demo-row" data-delay="100"><span class="row-label">Routing progress</span><span class="row-value status-active">BLDG ✓ · SFFD ✓ · PPC pending</span></div>
+          <div class="demo-row" data-delay="200"><span class="row-label">Est. remaining</span><span class="row-value status-warn">4–7 months</span></div>
+          <div class="demo-row" data-delay="300"><span class="row-label">Open complaints</span><span class="row-value status-alert">2 active</span></div>
+          <div class="demo-row" data-delay="400"><span class="row-label">Lead architect</span><span class="row-value">Smith & Associates · 47 permits</span></div>
+          <div class="demo-progress"><div class="progress-label"><span>Plan review</span><span>5 / 8 stations</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+          <div class="demo-cta"><a href="/demo" style="font-size:12px;color:var(--text-tertiary);font-family:var(--mono);letter-spacing:0.04em;text-decoration:none;padding-bottom:1px;border-bottom:1px solid transparent;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='';this.style.borderColor='transparent'">Full property intelligence →</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="footer reveal">
+  <p style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto;">
+    Built on public data from SF Department of Building Inspection, Planning Department, and 20 other city agencies. Updated nightly. Not affiliated with the City of San Francisco.
+  </p>
+  <div class="footer-links">
+    <a href="/methodology">Methodology</a><span class="sep">·</span>
+    <a href="/about-data">About the data</a><span class="sep">·</span>
+    <a href="/auth/login">Sign in</a>
+  </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+  // ═══ DATA ═══
+
+  // Common "do I need a permit for..." — ranked by actual SF permit volume
+  const permitQuestions = [
+    { q: 'Do I need a permit for a kitchen remodel?', tag: '233K filed', tagColor: '', note: 'OTC if cosmetic, in-house if structural' },
+    { q: 'Do I need a permit to replace my roof?', tag: '150K filed', tagColor: '', note: 'Usually OTC for like-for-like' },
+    { q: 'Do I need a permit for a bathroom remodel?', tag: '105K filed', tagColor: '', note: 'OTC if cosmetic, in-house if plumbing moves' },
+    { q: 'Do I need a permit to replace windows?', tag: '78K filed', tagColor: 'amber', note: 'Yes — often skipped' },
+    { q: 'Do I need a permit to replace a water heater?', tag: '63K filed', tagColor: 'amber', note: 'Yes — most people skip this' },
+    { q: 'Do I need a permit for a garage conversion?', tag: '43K filed', tagColor: '', note: 'Always yes — change of use' },
+    { q: 'Do I need a permit to build a deck?', tag: '32K filed', tagColor: '', note: 'Yes if attached or elevated' },
+    { q: 'Do I need a permit for solar panels?', tag: '18K filed', tagColor: 'green', note: 'OTC eligible — same day' },
+    { q: 'Do I need a permit for an ADU?', tag: '4K filed', tagColor: 'green', note: 'Streamlined path since 2023' },
+    { q: 'Do I need a permit for an electrical panel upgrade?', tag: '3.9K filed', tagColor: 'amber', note: 'Yes — often missed' },
+  ];
+
+  const questionSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+
+  // Simulated watched properties (power user has 90)
+  const watchedProperties = [
+    { addr: '487 Noe St', type: 'Kitchen remodel', status: 'amber', activity: 'PPC stalled 12d' },
+    { addr: '1122 Folsom St', type: 'Commercial TI', status: 'red', activity: '2 new complaints' },
+    { addr: '225 Bush St', type: 'Seismic retrofit', status: 'green', activity: 'BLDG approved today' },
+    { addr: '88 1st St', type: 'New construction', status: 'green', activity: 'On track' },
+    { addr: '301 Howard St', type: 'Restaurant buildout', status: 'amber', activity: 'DPH pending 28d' },
+    { addr: '150 Van Ness Ave', type: 'Office conversion', status: 'green', activity: '6/8 stations cleared' },
+    { addr: '2001 Market St', type: 'ADU', status: 'green', activity: 'Issued last week' },
+    { addr: '3412 Mission St', type: 'Storefront', status: 'amber', activity: 'Plan check comments' },
+    { addr: '555 California St', type: 'Elevator modernization', status: 'green', activity: 'On track' },
+    { addr: '1700 Owens St', type: 'Lab buildout', status: 'green', activity: '4/6 stations cleared' },
+    { addr: '735 Market St', type: 'Commercial TI', status: 'amber', activity: 'Revision submitted' },
+    { addr: '50 Beale St', type: 'Fire alarm upgrade', status: 'green', activity: 'SFFD approved' },
+    { addr: '1800 Bryant St', type: 'Warehouse conversion', status: 'red', activity: 'NOV issued' },
+    { addr: '475 Brannan St', type: 'Office remodel', status: 'green', activity: 'On track' },
+    { addr: '2222 Sutter St', type: 'Medical office', status: 'amber', activity: 'CPC review pending' },
+    // ... imagine 75 more
+  ];
+
+  const recentSearches = [
+    { addr: '487 Noe St', type: 'Kitchen remodel' },
+    { addr: '1122 Folsom St', type: 'Commercial TI' },
+    { addr: '225 Bush St', type: 'Seismic retrofit' },
+    { addr: '3639 18th St', type: 'Bathroom remodel' },
+    { addr: '950 Mason St', type: 'Elevator modernization' },
+  ];
+
+  const exampleAddresses = [
+    { addr: '1455 Market St', type: 'Commercial' },
+    { addr: '3639 18th St', type: 'Kitchen remodel' },
+    { addr: '201 Spear St', type: 'New construction' },
+    { addr: '742 Shotwell St', type: 'ADU' },
+    { addr: '950 Mason St', type: 'Seismic retrofit' },
+    { addr: '2175 Market St', type: 'Restaurant buildout' },
+  ];
+
+  const pinSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+  const clockSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const eyeSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+  let currentState = 'new';
+  const input = document.getElementById('search-input');
+  const dropdown = document.getElementById('search-dropdown');
+  const searchBar = document.getElementById('search-bar');
+  const exLink = document.getElementById('example-link');
+  const emptyMsg = document.getElementById('dropdown-empty');
+
+  // ═══ RENDER ═══
+
+  function highlightMatch(text, query) {
+    if (!query) return text;
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return text;
+    return text.slice(0, idx) + '<mark>' + text.slice(idx, idx + query.length) + '</mark>' + text.slice(idx + query.length);
+  }
+
+  function renderItem(item, icon, query, showStatus) {
+    const statusDot = showStatus && item.status
+      ? `<span class="item-status status-${item.status}" title="${item.activity || ''}"></span>`
+      : '';
+    return `
+      <div class="dropdown-item" onmousedown="selectAddress('${item.addr}', '${item.type}')">
+        <span class="item-icon">${icon}</span>
+        <span class="item-address">${highlightMatch(item.addr, query)}</span>
+        <span class="item-badge">
+          ${statusDot}
+          <span class="item-type">${item.type}</span>
+        </span>
+      </div>`;
+  }
+
+  function renderDropdown(query) {
+    let html = '';
+    let totalVisible = 0;
+    const q = (query || '').toLowerCase().trim();
+
+    if (currentState === 'new') {
+      // New visitors: only show examples, only when explicitly asked or filtering
+      const filtered = exampleAddresses.filter(a =>
+        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
+      );
+      if (filtered.length > 0) {
+        html += `<div class="dropdown-section"><div class="dropdown-label">Example addresses</div>`;
+        filtered.forEach(a => { html += renderItem(a, pinSVG, q, false); });
+        html += `</div>`;
+        totalVisible = filtered.length;
+      }
+    }
+
+    if (currentState === 'returning') {
+      // Recent searches
+      const recentFiltered = recentSearches.filter(a =>
+        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
+      ).slice(0, q ? 5 : 3);
+      if (recentFiltered.length > 0) {
+        html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
+        recentFiltered.forEach(a => { html += renderItem(a, clockSVG, q, false); });
+        html += `</div>`;
+        totalVisible += recentFiltered.length;
+      }
+      // Show fewer examples
+      if (!q) {
+        html += `<div class="dropdown-section"><div class="dropdown-label">Try an address</div>`;
+        exampleAddresses.slice(0, 2).forEach(a => { html += renderItem(a, pinSVG, q, false); });
+        html += `</div>`;
+        totalVisible += 2;
+      }
+    }
+
+    if (currentState === 'power') {
+      // PRIORITY 1: Filter watched properties
+      const watchedFiltered = watchedProperties.filter(a =>
+        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
+      );
+
+      // Show "needs attention" first (red, amber), then green — capped
+      const needsAttention = watchedFiltered.filter(a => a.status === 'red' || a.status === 'amber');
+      const onTrack = watchedFiltered.filter(a => a.status === 'green');
+
+      if (q) {
+        // Filtering: show all matches, up to 7
+        const shown = watchedFiltered.slice(0, 7);
+        if (shown.length > 0) {
+          const matchLabel = watchedFiltered.length > 7
+            ? `${shown.length} of ${watchedFiltered.length} matches`
+            : `${shown.length} match${shown.length === 1 ? '' : 'es'}`;
+          html += `<div class="dropdown-section"><div class="dropdown-label">Watching <span class="label-count">${matchLabel}</span></div>`;
+          shown.forEach(a => { html += renderItem(a, eyeSVG, q, true); });
+          html += `</div>`;
+          totalVisible += shown.length;
+        }
+
+        // PRIORITY 2: Recent searches (exclude already-shown watched)
+        const watchedAddrs = new Set(watchedProperties.map(a => a.addr));
+        const recentOnly = recentSearches.filter(a =>
+          !watchedAddrs.has(a.addr) &&
+          (a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q))
+        ).slice(0, 3);
+        if (recentOnly.length > 0) {
+          html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
+          recentOnly.forEach(a => { html += renderItem(a, clockSVG, q, false); });
+          html += `</div>`;
+          totalVisible += recentOnly.length;
+        }
+      } else {
+        // No query: show hot list
+        // Needs attention (up to 3)
+        const hotItems = needsAttention.slice(0, 3);
+        if (hotItems.length > 0) {
+          html += `<div class="dropdown-section"><div class="dropdown-label">Needs attention <span class="label-count">${needsAttention.length} total</span></div>`;
+          hotItems.forEach(a => { html += renderItem(a, eyeSVG, '', true); });
+          html += `</div>`;
+          totalVisible += hotItems.length;
+        }
+
+        // Recent (up to 3, excluding watched)
+        const watchedAddrs = new Set(watchedProperties.map(a => a.addr));
+        const recentOnly = recentSearches.filter(a => !watchedAddrs.has(a.addr)).slice(0, 3);
+        if (recentOnly.length > 0) {
+          html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
+          recentOnly.forEach(a => { html += renderItem(a, clockSVG, '', false); });
+          html += `</div>`;
+          totalVisible += recentOnly.length;
+        }
+
+        // Footer: link to full portfolio
+        html += `<div class="dropdown-footer"><a href="#">All ${watchedProperties.length} watched properties →</a></div>`;
+      }
+    }
+
+    // Empty state for typed queries with no matches
+    emptyMsg.style.display = (q && totalVisible === 0 && currentState !== 'new') ? 'block' : 'none';
+
+    // Remove old sections (keep empty msg)
+    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
+    dropdown.insertAdjacentHTML('afterbegin', html);
+  }
+
+  // ═══ INTERACTIONS ═══
+
+  function openDropdown() {
+    renderDropdown(input.value);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  let mouseInSearchZone = false;
+  let activeSource = null;
+
+  function setSourceActive(el) {
+    clearSourceActive();
+    activeSource = el;
+    if (el) el.classList.add('source-active');
+  }
+  function clearSourceActive() {
+    if (activeSource) activeSource.classList.remove('source-active');
+    activeSource = null;
+  }
+
+  // Search zone = search bar + dropdown only (tight)
+  searchBar.addEventListener('mouseenter', () => { mouseInSearchZone = true; });
+  searchBar.addEventListener('mouseleave', () => {
+    mouseInSearchZone = false;
+    // Small delay to check if mouse moved into dropdown
+    setTimeout(() => {
+      if (!mouseInSearchZone && document.activeElement !== input) {
+        closeDropdownNow();
+      }
+    }, 100);
+  });
+  dropdown.addEventListener('mouseenter', () => { mouseInSearchZone = true; });
+  dropdown.addEventListener('mouseleave', () => {
+    mouseInSearchZone = false;
+    setTimeout(() => {
+      if (!mouseInSearchZone && document.activeElement !== input) {
+        closeDropdownNow();
+      }
+    }, 100);
+  });
+
+  function closeDropdownNow() {
+    dropdown.classList.remove('open');
+    searchBar.classList.remove('dropdown-open');
+    clearSourceActive();
+    input.value = '';
+  }
+
+  function closeDropdown() {
+    setTimeout(() => {
+      if (!mouseInSearchZone) {
+        closeDropdownNow();
+      }
+    }, 150);
+  }
+
+  function showExamples() {
+    input.focus();
+    renderDropdown('');
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  // Common project types for "kitchen remodel" hover
+  const projectTypes = [
+    { q: 'kitchen remodel — cosmetic only', note: 'Cabinets, counters, no plumbing moves', tag: 'OTC eligible', tagColor: 'green' },
+    { q: 'kitchen remodel — full gut', note: 'New layout, plumbing, electrical, possibly structural', tag: 'In-house review', tagColor: 'amber' },
+    { q: 'bathroom remodel', note: 'Fixtures, tile, possibly plumbing relocation', tag: '105K filed', tagColor: '' },
+    { q: 'bedroom addition', note: 'New square footage, structural + planning', tag: 'In-house review', tagColor: 'amber' },
+    { q: 'garage conversion', note: 'Change of use — always requires permit', tag: '43K filed', tagColor: '' },
+    { q: 'deck or patio', note: 'Attached or elevated requires permit', tag: '32K filed', tagColor: '' },
+    { q: 'seismic retrofit', note: 'Soft-story or foundation work', tag: 'Mandated', tagColor: 'amber' },
+    { q: 'ADU / in-law unit', note: 'Streamlined approval path since 2023', tag: 'Fast track', tagColor: 'green' },
+  ];
+
+  const hammerSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
+
+  function showProjectTypes(evt) {
+    if (evt && evt.target) setSourceActive(evt.target);
+    input.value = '';
+    input.focus();
+    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
+    emptyMsg.style.display = 'none';
+    let html = '<div class="dropdown-section"><div class="dropdown-label">Popular project types</div>';
+    projectTypes.forEach(pt => {
+      const tagStyle = pt.tagColor === 'amber'
+        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
+        : pt.tagColor === 'green'
+        ? 'color: var(--accent); border-color: rgba(94,234,212,0.25);'
+        : '';
+      html += `
+        <div class="dropdown-item" style="align-items: flex-start;" onmousedown="input.value='${pt.q}'; document.getElementById('search-bar').submit();">
+          <span class="item-icon" style="margin-top: 3px;">${hammerSVG}</span>
+          <span style="flex: 1; min-width: 0;">
+            <span class="item-address" style="display: block;">${pt.q}</span>
+            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${pt.note}</span>
+          </span>
+          <span class="item-badge"><span class="item-type" style="${tagStyle}">${pt.tag}</span></span>
+        </div>`;
+    });
+    html += '</div>';
+    dropdown.insertAdjacentHTML('afterbegin', html);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  function showAddressExamples(evt) {
+    if (evt && evt.target) setSourceActive(evt.target);
+    input.value = '';
+    input.focus();
+    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
+    emptyMsg.style.display = 'none';
+    let html = '<div class="dropdown-section"><div class="dropdown-label">Try an address</div>';
+    exampleAddresses.forEach(a => {
+      html += renderItem(a, pinSVG, '', false);
+    });
+    html += '</div>';
+    dropdown.insertAdjacentHTML('afterbegin', html);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  function prefillSearch(text) {
+    input.value = text;
+    input.focus();
+    renderDropdown(text);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  function showPermitQuestions(evt) {
+    if (evt && evt.target) setSourceActive(evt.target);
+    input.value = 'Do I need a permit for ';
+    input.focus();
+    // Render custom permit questions dropdown
+    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
+    emptyMsg.style.display = 'none';
+    let html = '<div class="dropdown-section"><div class="dropdown-label">Top SF permit questions <span class="label-count">ranked by volume</span></div>';
+    permitQuestions.forEach(pq => {
+      const tagStyle = pq.tagColor === 'amber'
+        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
+        : pq.tagColor === 'green'
+        ? 'color: var(--accent); border-color: rgba(94,234,212,0.25);'
+        : '';
+      const shortQ = pq.q.replace('Do I need a permit for ', '').replace('Do I need a permit to ', '');
+      html += `
+        <div class="dropdown-item" style="align-items: flex-start;" onmousedown="input.value='${pq.q}'; document.getElementById('search-bar').submit();">
+          <span class="item-icon" style="margin-top: 3px;">${questionSVG}</span>
+          <span style="flex: 1; min-width: 0;">
+            <span class="item-address" style="display: block;">${shortQ}</span>
+            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${pq.note}</span>
+          </span>
+          <span class="item-badge">
+            <span class="item-type" style="${tagStyle}">${pq.tag}</span>
+          </span>
+        </div>`;
+    });
+    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="#" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">Based on 1,137,816 SF building permits →</a></div>';
+    html += '</div>';
+    dropdown.insertAdjacentHTML('afterbegin', html);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+
+  const clockSVG2 = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const alertSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+
+  const timelineData = [
+    { q: 'Kitchen remodel (OTC)', note: 'Cosmetic only — cabinets, counters, no plumbing', tag: '1 day', tagColor: 'green' },
+    { q: 'Kitchen remodel (in-house)', note: 'Structural, plumbing moves, electrical', tag: '45-90 days', tagColor: 'amber' },
+    { q: 'Bathroom remodel', note: 'Fixtures + tile, possibly plumbing relocation', tag: '30-60 days', tagColor: '' },
+    { q: 'ADU / in-law unit', note: 'Streamlined approval path since 2023', tag: '60-120 days', tagColor: 'amber' },
+    { q: 'Seismic retrofit', note: 'Soft-story or foundation work', tag: '90-180 days', tagColor: 'amber' },
+    { q: 'New construction', note: 'Full plan review required', tag: '6-18 months', tagColor: 'amber' },
+  ];
+
+  function showTimelines(evt) {
+    if (evt && evt.target) setSourceActive(evt.target);
+    input.value = '';
+    input.focus();
+    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
+    emptyMsg.style.display = 'none';
+    let html = '<div class="dropdown-section"><div class="dropdown-label">How long does it take? <span class="label-count">typical timelines</span></div>';
+    timelineData.forEach(t => {
+      const tagStyle = t.tagColor === 'amber'
+        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
+        : t.tagColor === 'green'
+        ? 'color: var(--accent); border-color: rgba(94,234,212,0.25);'
+        : '';
+      html += `
+        <div class="dropdown-item" style="align-items: flex-start;" onmousedown="input.value='${t.q}'; closeDropdown(); input.blur();">
+          <span class="item-icon" style="margin-top: 3px;">${clockSVG2}</span>
+          <span style="flex: 1; min-width: 0;">
+            <span class="item-address" style="display: block;">${t.q}</span>
+            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${t.note}</span>
+          </span>
+          <span class="item-badge"><span class="item-type" style="${tagStyle}">${t.tag}</span></span>
+        </div>`;
+    });
+    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="#" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">Enter your address for a neighborhood estimate \u2192</a></div>';
+    html += '</div>';
+    dropdown.insertAdjacentHTML('afterbegin', html);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  const stuckData = [
+    { station: 'PPC (Plan Review)', note: 'Longest station \u2014 often 3-6 months', tag: 'avg 174d', tagColor: 'amber' },
+    { station: 'SFFD (Fire)', note: 'Sprinkler plans need separate review', tag: 'avg 28d', tagColor: '' },
+    { station: 'CP-ZOC (Planning)', note: 'Conditional use triggers this station', tag: 'avg 45d', tagColor: 'amber' },
+    { station: 'DPH (Public Health)', note: 'Restaurant, food service, pool projects', tag: 'avg 35d', tagColor: '' },
+    { station: 'BLDG (Building)', note: 'Structural, mechanical, electrical review', tag: 'avg 21d', tagColor: '' },
+  ];
+
+  function showStuckPermit(evt) {
+    if (evt && evt.target) setSourceActive(evt.target);
+    input.value = '';
+    input.focus();
+    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
+    emptyMsg.style.display = 'none';
+    let html = '<div class="dropdown-section"><div class="dropdown-label">Common stall points <span class="label-count">by station</span></div>';
+    html += '<div class="dropdown-item" style="padding: 12px 22px; color: var(--text-secondary); font-size: 12px; font-family: var(--mono);">Enter a permit # or address to check yours</div>';
+    stuckData.forEach(s => {
+      const tagStyle = s.tagColor === 'amber'
+        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
+        : '';
+      html += `
+        <div class="dropdown-item" style="align-items: flex-start;">
+          <span class="item-icon" style="margin-top: 3px;">${alertSVG}</span>
+          <span style="flex: 1; min-width: 0;">
+            <span class="item-address" style="display: block;">${s.station}</span>
+            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${s.note}</span>
+          </span>
+          <span class="item-badge"><span class="item-type" style="${tagStyle}">${s.tag}</span></span>
+        </div>`;
+    });
+    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="/about-data" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">What do these stations mean? \u2192</a></div>';
+    html += '</div>';
+    dropdown.insertAdjacentHTML('afterbegin', html);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  input.addEventListener('focus', () => {
+    if (currentState !== 'new') {
+      openDropdown();
+    }
+  });
+  input.addEventListener('blur', closeDropdown);
+  input.addEventListener('input', () => {
+    renderDropdown(input.value);
+    if (input.value.length > 0 || currentState !== 'new') {
+      dropdown.classList.add('open');
+      searchBar.classList.add('dropdown-open');
+    }
+  });
+
+  // Keyboard shortcut: / to focus search
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== input) {
+      e.preventDefault();
+      input.focus();
+    }
+  });
+
+  function selectAddress(addr, type) {
+    input.value = addr;
+    closeDropdownNow();
+    // Submit the search form
+    document.getElementById('search-bar').submit();
+  }
+
+  const states = {
+    new: {
+      placeholder: 'Enter an SF address or describe your project',
+      sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
+      watched: '',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      scroll: 'See how it works'
+    },
+    returning: {
+      placeholder: 'Search any SF address',
+      sub: '',
+      watched: '<span class="urgent-dot urgent-dot--amber"></span><a onclick="selectAddress(\'487 Noe St\',\'Kitchen remodel\')">487 Noe — PPC stalled 12d</a> · <a onclick="selectAddress(\'225 Bush St\',\'Seismic retrofit\')">225 Bush — on track</a> · <a href="#" style="color:rgba(255,255,255,0.3)">2 watching →</a>',
+      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      scroll: 'What\'s new this week'
+    },
+    returning_nowatch: {
+      placeholder: 'Search any SF address',
+      sub: '',
+      watched: '',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      scroll: 'What\'s new this week'
+    },
+    power: {
+      placeholder: 'Search your properties or any address',
+      sub: '23 properties watched · 14 active · 3 need attention',
+      watched: '<span class="urgent-dot urgent-dot--red"></span>1122 Folsom — new complaint · <span class="urgent-dot urgent-dot--amber"></span>487 Noe — PPC stalled 12d · <a href="#" style="color:rgba(255,255,255,0.3)">view all →</a>',
+      context: '',
+      scroll: 'Morning brief'
+    },
+    beta: {
+      placeholder: 'Enter an SF address or describe your project',
+      sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
+      watched: '<span class="urgent-dot urgent-dot--amber"></span><a onclick="selectAddress(\'487 Noe St\',\'Kitchen remodel\')">487 Noe — PPC stalled 12d</a> · <a href="#" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
+      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      scroll: 'See what you can do'
+    },
+    beta_nowatch: {
+      placeholder: 'Enter an SF address or describe your project',
+      sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
+      watched: '',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      scroll: 'See what you can do'
+    }
+  };
+
+  function setState(s) {
+    currentState = s;
+    input.value = '';
+    dropdown.classList.remove('open');
+    searchBar.classList.remove('dropdown-open');
+
+    const st = states[s];
+    const belowSub = document.getElementById('below-sub');
+    const belowWatched = document.getElementById('below-watched');
+    const belowCtx = document.getElementById('below-context');
+    const scrollText = document.getElementById('scroll-text');
+
+    // Kill initial animations so toggle works
+    [belowSub, belowWatched, belowCtx].forEach(el => {
+      el.style.animation = 'none';
+      el.style.opacity = '0';
+    });
+    setTimeout(() => {
+      input.placeholder = st.placeholder;
+      belowSub.innerHTML = st.sub;
+      belowWatched.innerHTML = st.watched;
+      belowCtx.innerHTML = st.context;
+      if (scrollText) scrollText.textContent = st.scroll;
+      // Stagger the fade-ins
+      setTimeout(() => { if (st.sub) belowSub.style.opacity = '1'; }, 0);
+      setTimeout(() => { if (st.watched) belowWatched.style.opacity = '1'; }, 200);
+      setTimeout(() => { if (st.context) belowCtx.style.opacity = '1'; }, 400);
+
+      // Beta badge — show for beta states only
+      const badge = document.getElementById('beta-badge');
+      badge.classList.toggle('visible', s.startsWith('beta'));
+    }, 200);
+
+    document.querySelectorAll('.state-toggle button').forEach(btn => {
+      // Match button text to state name
+      const btnStates = {
+        'New': 'new',
+        'Beta': 'beta_nowatch',
+        'Beta+watch': 'beta',
+        'Return': 'returning_nowatch',
+        'Return+watch': 'returning',
+        'Power': 'power'
+      };
+      btn.classList.toggle('active', btnStates[btn.textContent.trim()] === s);
+    });
+  }
+
+  // ═══ OBSERVERS ═══
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        entry.target.querySelectorAll('.counting').forEach(el => {
+          if (!el.dataset.started) { el.dataset.started = 'true'; animateCount(el); }
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  function animateCount(el) {
+    const target = parseInt(el.dataset.target), duration = 2000, start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target).toLocaleString('en-US');
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const demoObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const rows = entry.target.querySelectorAll('.demo-row');
+        const progress = entry.target.querySelector('.demo-progress');
+        const fill = entry.target.querySelector('.progress-fill');
+        const cta = entry.target.querySelector('.demo-cta');
+        rows.forEach((row, i) => {
+          setTimeout(() => row.classList.add('visible'), 200 + (parseInt(row.dataset.delay) || i * 100));
+        });
+        setTimeout(() => { progress.classList.add('visible'); setTimeout(() => fill.classList.add('animate'), 150); }, 700);
+        setTimeout(() => cta.classList.add('visible'), 900);
+        demoObs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.25 });
+  const dt = document.getElementById('demo-trigger');
+  if (dt) demoObs.observe(dt);
+
+  let scrolled = false;
+  window.addEventListener('scroll', () => {
+    if (!scrolled && window.scrollY > 80) {
+      scrolled = true;
+      document.getElementById('scroll-cue').classList.add('hidden');
+    }
+  }, { passive: true });
+</script>
+<script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
+{% if posthog_key %}
+<script async nonce="{{ csp_nonce }}">
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init('{{ posthog_key }}', {api_host: '{{ posthog_host }}'});
+</script>
+{% endif %}
+
 </body>
 </html>
