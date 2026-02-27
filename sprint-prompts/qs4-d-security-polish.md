@@ -171,19 +171,6 @@ Pattern for HTMX:
 **Add client-side PostHog JS if not present:**
 Check if any template loads the PostHog client-side JS snippet. If not, add to a shared location (or document that server-side only is intentional).
 
-### Task D-4: Charis Beta Invite Flow Polish (~25 min)
-**Files:** `web/templates/demo.html`
-
-**Polish `/demo` page for Charis meeting:**
-- Verify invite code `friends-gridcare` works (test signup flow)
-- Update `/demo` copy to emphasize:
-  - MCP architecture (Claude integration)
-  - Entity resolution (1M entities, 576K relationships)
-  - AI vision plan analysis
-  - 30 tools available via MCP
-- Add a clear CTA: "Try it yourself" → `/auth/login?invite_code=friends-gridcare`
-- Ensure the page looks polished on desktop (Charis will view on laptop during Zoom)
-
 ---
 
 ## PHASE 3: TEST
@@ -210,10 +197,7 @@ Write `tests/test_qs4_d_security.py`:
 - X-CSRFToken header accepted (for HTMX)
 - posthog_track function exists and is callable
 - posthog_track no-ops without POSTHOG_API_KEY
-- /demo renders 200
-- /demo contains "MCP" or "entity" or relevant keywords
 - auth_login.html contains csrf_token hidden input
-- /auth/send-link works with invite code (integration test)
 
 **Target: 25+ tests**
 
@@ -238,10 +222,7 @@ Write `qa-drop/qs4-d-security-qa.md`:
 3. [NEW] POST /auth/send-link without csrf_token returns 403 — PASS/FAIL
 4. [NEW] POST /auth/send-link with csrf_token succeeds — PASS/FAIL
 5. [NEW] HTMX POST with X-CSRFToken header succeeds — PASS/FAIL
-6. [NEW] /demo page renders with polished copy — PASS/FAIL
-7. [NEW] /demo has CTA linking to signup with invite code — PASS/FAIL
-8. [NEW] posthog_track called on page view (verify via mock or log) — PASS/FAIL
-9. [NEW] Screenshot /demo at 1440px — PASS/FAIL
+6. [NEW] posthog_track called on page view (verify via mock or log) — PASS/FAIL
 ```
 
 Save screenshots to `qa-results/screenshots/qs4-d/`
@@ -252,7 +233,6 @@ Write results to `qa-results/qs4-d-results.md`
 ## PHASE 5.5: VISUAL REVIEW
 
 Score these pages 1-5:
-- /demo at 1440px (Charis will see this on Zoom)
 - /auth/login at 1440px
 - /auth/login at 375px
 
@@ -287,17 +267,16 @@ Score these pages 1-5:
 |--------|-----------|--------|
 | Wall clock time | 2 hours | [first commit to CHECKCHAT] |
 | New tests | 25+ | [count] |
-| Tasks completed | 4 | [N of 4] |
+| Tasks completed | 3 | [N of 3] |
 | Tasks descoped | — | [count + reasons] |
 | Tasks blocked | — | [count + reasons] |
 | Longest task | — | [task name, duration] |
-| QA checks | 9 | [pass/fail/skip] |
+| QA checks | 6 | [pass/fail/skip] |
 | Visual Review avg | — | [score] |
 | Scenarios proposed | 3 | [count] |
 ```
 
 ### DeskRelay HANDOFF
-- [ ] /demo page: would this impress an AI architect evaluating the product?
 - [ ] Login page: does the invite code flow feel polished?
 - [ ] CSP: any pages visibly broken? (should be none — Report-Only doesn't enforce)
 
@@ -306,7 +285,6 @@ Score these pages 1-5:
 ## File Ownership (Session D ONLY)
 **Own:**
 - `web/security.py` (CSP-Report-Only, CSRF middleware)
-- `web/templates/demo.html` (polish copy)
 - `web/templates/auth_login.html` (add CSRF token)
 - `web/templates/account.html` (add CSRF tokens to forms)
 - `web/templates/consultants.html` (add CSRF token to search form)
@@ -318,6 +296,7 @@ Score these pages 1-5:
 **Do NOT touch:**
 - `web/templates/index.html` (Session C)
 - `web/templates/brief.html` (Session C)
+- `web/templates/demo.html` (Session B)
 - `web/static/design-system.css` (Session C)
 - `src/db.py` (Session B)
 - `web/app.py` (Session B — if CSRF needs app-level init, add to security.py's init_security instead)

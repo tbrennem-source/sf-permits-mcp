@@ -178,6 +178,19 @@ jobs:
 
 **Note:** Railway still needs to be configured to pull from GHCR instead of building from source. Document this as a manual step for Tim.
 
+### Task B-5: Charis Beta Invite Flow Polish (~25 min)
+**Files:** `web/templates/demo.html`
+
+**Polish `/demo` page for Charis meeting:**
+- Verify invite code `friends-gridcare` works (test signup flow)
+- Update `/demo` copy to emphasize:
+  - MCP architecture (Claude integration)
+  - Entity resolution (1M entities, 576K relationships)
+  - AI vision plan analysis
+  - 30 tools available via MCP
+- Add a clear CTA: "Try it yourself" → `/auth/login?invite_code=friends-gridcare`
+- Ensure the page looks polished on desktop (Charis will view on laptop during Zoom)
+
 ---
 
 ## PHASE 3: TEST
@@ -200,6 +213,10 @@ Write `tests/test_qs4_b_perf.py`:
 - /health/schema still works (regression check — CC0 built it)
 - GitHub Actions workflow file is valid YAML
 - Dockerfile builds successfully (dry-run parse)
+- /demo renders 200
+- /demo contains MCP or entity resolution keywords
+- /demo has CTA linking to signup with invite code
+- /auth/send-link with friends-gridcare invite code succeeds
 
 **Target: 20+ tests**
 
@@ -225,6 +242,9 @@ Write `qa-drop/qs4-b-performance-qa.md`:
 4. [NEW] GET /health/schema still works (CC0 regression) — PASS/FAIL
 5. [NEW] DB_POOL_MAX env var is respected (default 20) — PASS/FAIL
 6. [NEW] .github/workflows/docker-build.yml exists and is valid — PASS/FAIL
+7. [NEW] /demo page renders with polished Charis copy — PASS/FAIL
+8. [NEW] /demo has CTA linking to signup with invite code — PASS/FAIL
+9. [NEW] Screenshot /demo at 1440px — PASS/FAIL
 ```
 
 Save results to `qa-results/qs4-b-results.md`
@@ -233,7 +253,8 @@ Save results to `qa-results/qs4-b-results.md`
 
 ## PHASE 5.5: VISUAL REVIEW
 
-N/A — no UI changes in this session. All endpoints return JSON.
+Score these pages 1-5:
+- /demo at 1440px (Charis will see this on Zoom)
 
 ---
 
@@ -265,11 +286,11 @@ N/A — no UI changes in this session. All endpoints return JSON.
 |--------|-----------|--------|
 | Wall clock time | 2 hours | [first commit to CHECKCHAT] |
 | New tests | 20+ | [count] |
-| Tasks completed | 4 | [N of 4] |
+| Tasks completed | 5 | [N of 5] |
 | Tasks descoped | — | [count + reasons] |
 | Tasks blocked | — | [count + reasons] |
 | Longest task | — | [task name, duration] |
-| QA checks | 6 | [pass/fail/skip] |
+| QA checks | 9 | [pass/fail/skip] |
 | Visual Review avg | N/A | N/A (JSON endpoints only) |
 | Scenarios proposed | 3 | [count] |
 ```
@@ -277,6 +298,7 @@ N/A — no UI changes in this session. All endpoints return JSON.
 ### DeskRelay HANDOFF
 - [ ] /health JSON: is the pool stats section clear and useful for ops?
 - [ ] /health/ready: does the 200/503 distinction make sense for Railway?
+- [ ] /demo page: would this impress an AI architect evaluating the product?
 
 ---
 
@@ -285,6 +307,7 @@ N/A — no UI changes in this session. All endpoints return JSON.
 - `src/db.py` (pool config, pool stats function)
 - `web/app.py` (health endpoint modifications, /health/ready)
 - `.github/workflows/docker-build.yml` (NEW)
+- `web/templates/demo.html` (Charis polish)
 - `tests/test_qs4_b_perf.py` (NEW)
 - `CHANGELOG-qs4-b.md` (NEW — per-agent)
 - `scenarios-pending-review-qs4-b.md` (NEW — per-agent)
