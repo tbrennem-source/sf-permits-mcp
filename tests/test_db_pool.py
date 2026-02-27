@@ -155,12 +155,13 @@ class TestConnectionReturn:
 
 class TestStatementTimeout:
     def test_statement_timeout_set_for_web(self, monkeypatch):
-        """Web connections get SET statement_timeout = '30s'."""
+        """Web connections get SET statement_timeout with default '30s'."""
         import src.db as db
 
         monkeypatch.setattr(db, "BACKEND", "postgres")
         monkeypatch.setattr(db, "DATABASE_URL", "postgresql://test:test@localhost/test")
         monkeypatch.delenv("CRON_WORKER", raising=False)
+        monkeypatch.delenv("DB_STATEMENT_TIMEOUT", raising=False)
 
         mock_pool = MagicMock()
         mock_raw_conn = MagicMock()
@@ -171,7 +172,8 @@ class TestStatementTimeout:
         db._pool = mock_pool
 
         conn = db.get_connection()
-        mock_cursor.execute.assert_called_with("SET statement_timeout = '30s'")
+        # Statement timeout is now parameterized via DB_STATEMENT_TIMEOUT env var
+        mock_cursor.execute.assert_called_with("SET statement_timeout = %s", ("30s",))
         conn.close()
 
         # Restore
@@ -363,6 +365,7 @@ class TestPoolErrorHandling:
     def test_pool_creation_error_propagates(self, monkeypatch):
         """If ThreadedConnectionPool() fails, error should propagate."""
         import src.db as db
+        import psycopg2.pool  # use real module to avoid MagicMock exception-class issues
 
         monkeypatch.setattr(db, "BACKEND", "postgres")
         monkeypatch.setattr(db, "DATABASE_URL", "postgresql://test:test@localhost/test")
@@ -370,10 +373,7 @@ class TestPoolErrorHandling:
 
         mock_pool_cls = MagicMock(side_effect=Exception("cannot connect"))
 
-        with patch.dict("sys.modules", {"psycopg2": MagicMock(), "psycopg2.pool": MagicMock()}):
-            import psycopg2.pool
-            psycopg2.pool.ThreadedConnectionPool = mock_pool_cls
-
+        with patch.object(psycopg2.pool, "ThreadedConnectionPool", mock_pool_cls):
             with pytest.raises(Exception, match="cannot connect"):
                 db.get_connection()
 
