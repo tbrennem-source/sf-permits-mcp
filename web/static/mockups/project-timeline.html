@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1122 Folsom St — Timeline — sfpermits.ai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="obsidian-tokens.css">
+<style>
+  .page-body { padding-top: 56px; }
+
+  .timeline-header {
+    padding: var(--space-6) 0 var(--space-2);
+  }
+  .timeline-address {
+    font-family: var(--mono); font-size: var(--text-xl); font-weight: 300;
+    color: var(--accent); margin-bottom: var(--space-2);
+  }
+  .timeline-meta {
+    display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;
+  }
+
+  /* Summary bar */
+  .summary-bar {
+    display: flex; gap: var(--space-6); align-items: baseline;
+    padding: var(--space-4) 0;
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .summary-stat__val {
+    font-family: var(--mono); font-size: var(--text-lg); font-weight: 300;
+  }
+  .summary-stat__lbl {
+    font-family: var(--sans); font-size: var(--text-xs); color: var(--text-tertiary);
+    margin-left: var(--space-2);
+  }
+
+  /* Critical path callout */
+  .critical-path {
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+    border-left: 2px solid var(--signal-amber);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-6);
+    display: flex; align-items: flex-start; gap: var(--space-3);
+  }
+  .critical-path__icon {
+    color: var(--signal-amber); font-size: 14px; flex-shrink: 0; margin-top: 1px;
+  }
+  .critical-path__body {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary); line-height: 1.5;
+  }
+  .critical-path__body strong { font-weight: 400; color: var(--text-primary); }
+  .critical-path__body em {
+    font-style: normal; font-family: var(--mono); color: var(--signal-amber);
+    font-size: var(--text-xs);
+  }
+
+  /* Gantt chart */
+  .gantt { margin-bottom: var(--space-8); }
+  .gantt-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+
+  /* Month labels */
+  .gantt-months {
+    display: grid; grid-template-columns: 180px 1fr;
+    margin-bottom: var(--space-1);
+  }
+  .gantt-months__labels {
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 9px; color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+  }
+
+  /* Today line */
+  .gantt-body { position: relative; }
+  .gantt-today {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: var(--accent);
+    opacity: 0.4;
+    z-index: 2;
+  }
+  .gantt-today__label {
+    position: absolute; top: -16px; left: -12px;
+    font-family: var(--mono); font-size: 8px; color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* Gantt rows */
+  .gantt-row {
+    display: grid; grid-template-columns: 180px 1fr;
+    align-items: center;
+    min-height: 32px;
+    border-bottom: 1px solid var(--glass-border);
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+  .gantt-row:hover { background: var(--glass); }
+
+  .gantt-row__label {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: 6px var(--space-3);
+  }
+  .gantt-row__permit {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 300;
+    color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .gantt-row__type {
+    font-family: var(--sans); font-size: 10px; color: var(--text-tertiary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .gantt-row__track {
+    position: relative; height: 100%; padding: 6px 0;
+  }
+  .gantt-bar {
+    position: absolute; top: 8px; height: 16px;
+    border-radius: 3px; display: flex; align-items: center;
+    overflow: hidden;
+  }
+  .gantt-bar__seg {
+    height: 100%;
+  }
+  .gantt-bar__seg--done { background: var(--signal-green); opacity: 0.7; }
+  .gantt-bar__seg--active { background: var(--signal-amber); opacity: 0.85; }
+  .gantt-bar__seg--stalled { background: var(--signal-red); opacity: 0.85; }
+  .gantt-bar__seg--projected {
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.06) 0px,
+      rgba(255,255,255,0.06) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+  }
+
+  .gantt-bar__label {
+    position: absolute; right: -4px; top: 50%; transform: translate(100%, -50%);
+    font-family: var(--mono); font-size: 9px; color: var(--text-tertiary);
+    white-space: nowrap; padding-left: 6px;
+  }
+
+  /* Critical path highlight */
+  .gantt-row--critical {
+    background: rgba(251, 191, 36, 0.03);
+  }
+  .gantt-row--critical .gantt-row__permit { color: var(--signal-amber); }
+  .gantt-row--critical .gantt-bar {
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.15);
+  }
+
+  /* Critical path connector line */
+  .gantt-row--critical .gantt-row__track::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    background: rgba(251, 191, 36, 0.12);
+    z-index: 0;
+  }
+
+  /* Critical path label on first row */
+  .critical-tag {
+    font-family: var(--mono); font-size: 8px; font-weight: 400;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--signal-amber); background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    padding: 1px 5px; border-radius: 2px;
+    margin-left: var(--space-2);
+  }
+
+  /* Non-critical rows dimmed */
+  .gantt-row:not(.gantt-row--critical) {
+    opacity: 0.65;
+    transition: opacity 0.2s;
+  }
+  .gantt-row:not(.gantt-row--critical):hover {
+    opacity: 1;
+  }
+
+  /* Toggle — switch style */
+  .gantt-toggle {
+    font-family: var(--mono); font-size: 11px; font-weight: 400;
+    color: var(--text-secondary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-full);
+    padding: 5px 14px 5px 10px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .gantt-toggle:hover {
+    border-color: var(--accent-ring); color: var(--text-primary);
+    background: var(--accent-glow);
+  }
+  .gantt-toggle.active {
+    border-color: var(--accent-ring); color: var(--accent); background: var(--accent-glow);
+  }
+  .gantt-toggle__track {
+    width: 24px; height: 12px; border-radius: 6px;
+    background: var(--glass-border); position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .gantt-toggle.active .gantt-toggle__track { background: var(--accent); }
+  .gantt-toggle__thumb {
+    width: 8px; height: 8px; border-radius: var(--radius-full);
+    background: var(--text-tertiary);
+    position: absolute; top: 2px; left: 2px;
+    transition: left 0.2s, background 0.2s;
+  }
+  .gantt-toggle.active .gantt-toggle__thumb {
+    left: 14px; background: var(--obsidian);
+  }
+
+  /* Non-critical hide/show */
+  .gantt-body.cp-only .gantt-row:not(.gantt-row--critical),
+  .gantt-body.cp-only .gantt-group:not(.gantt-group--critical) {
+    max-height: 0; overflow: hidden; opacity: 0;
+    border: none; min-height: 0; padding: 0; margin: 0;
+    transition: max-height 0.3s, opacity 0.2s;
+  }
+  .gantt-row:not(.gantt-row--critical),
+  .gantt-group:not(.gantt-group--critical) {
+    max-height: 60px; transition: max-height 0.3s, opacity 0.2s;
+  }
+
+  /* Dependency arrows */
+  .gantt-dep {
+    position: absolute;
+    border-left: 1px dashed var(--glass-hover);
+    border-bottom: 1px dashed var(--glass-hover);
+    z-index: 1;
+  }
+
+  /* Permit group headers */
+  .gantt-group {
+    display: grid; grid-template-columns: 180px 1fr;
+    padding: var(--space-2) var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .gantt-group__label {
+    font-family: var(--mono); font-size: 9px; font-weight: 400;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary);
+  }
+
+  /* Legend */
+  .gantt-legend {
+    display: flex; gap: var(--space-5); padding: var(--space-3) 0;
+    margin-bottom: var(--space-4);
+  }
+  .gantt-legend__item {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
+  }
+  .gantt-legend__swatch {
+    width: 16px; height: 6px; border-radius: 2px;
+  }
+
+  /* Expand to full */
+  .expand-row {
+    text-align: center; padding: var(--space-4) 0;
+  }
+
+  @media (max-width: 768px) {
+    .gantt-row { grid-template-columns: 120px 1fr; }
+    .gantt-months { grid-template-columns: 120px 1fr; }
+    .gantt-group { grid-template-columns: 120px 1fr; }
+    .summary-bar { flex-wrap: wrap; gap: var(--space-3); }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav-float">
+  <a href="#" class="nav-float__wordmark">sfpermits.ai</a>
+  <div class="nav-float__links">
+    <a href="#" class="nav-float__link" style="color: var(--text-tertiary);">&larr; Portfolio</a>
+    <div class="nav-float__avatar">AK</div>
+  </div>
+</nav>
+
+<div class="page-body">
+<div class="obs-container">
+
+  <!-- HEADER -->
+  <div class="timeline-header reveal">
+    <h1 class="timeline-address">1122 Folsom St</h1>
+    <div class="timeline-meta">
+      <span class="chip">Commercial TI</span>
+      <span class="chip">SoMa</span>
+      <span class="chip">3 active permits</span>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-bar reveal">
+    <div>
+      <span class="summary-stat__val status-text--amber">6&ndash;9 mo</span>
+      <span class="summary-stat__lbl">est. completion</span>
+    </div>
+    <div>
+      <span class="summary-stat__val">3</span>
+      <span class="summary-stat__lbl">permits</span>
+    </div>
+    <div>
+      <span class="summary-stat__val">19</span>
+      <span class="summary-stat__lbl">stations total</span>
+    </div>
+    <div>
+      <span class="summary-stat__val status-text--red">2</span>
+      <span class="summary-stat__lbl">stalled</span>
+    </div>
+  </div>
+
+  <!-- CRITICAL PATH -->
+  <div class="critical-path reveal reveal-delay-1">
+    <span class="critical-path__icon">&#9888;</span>
+    <div class="critical-path__body">
+      <strong>Critical path: Building permit → SFFD → PPC.</strong> The SFFD station is stalled at <em>18 days</em> (avg is 8). This is blocking everything downstream. The electrical and plumbing permits can proceed in parallel but cannot get final approval until the building permit clears PPC.
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="gantt-legend reveal reveal-delay-1">
+    <div class="gantt-legend__item">
+      <span class="gantt-legend__swatch" style="background: var(--signal-green); opacity: 0.7;"></span>
+      Completed
+    </div>
+    <div class="gantt-legend__item">
+      <span class="gantt-legend__swatch" style="background: var(--signal-amber);"></span>
+      In review
+    </div>
+    <div class="gantt-legend__item">
+      <span class="gantt-legend__swatch" style="background: var(--signal-red);"></span>
+      Stalled
+    </div>
+    <div class="gantt-legend__item">
+      <span class="gantt-legend__swatch" style="background: repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 3px, transparent 3px, transparent 6px);"></span>
+      Projected
+    </div>
+    <div class="gantt-legend__item">
+      <span style="width: 16px; border-bottom: 1px dashed var(--glass-hover); display: inline-block;"></span>
+      Dependency
+    </div>
+  </div>
+
+  <!-- GANTT CHART -->
+  <section class="gantt reveal reveal-delay-2">
+    <div class="gantt-header">
+      <div class="section-label" style="margin-bottom: 0;">Project timeline</div>
+      <div style="display: flex; gap: var(--space-2);">
+        <button class="gantt-toggle" id="cp-toggle" onclick="toggleCritical()">
+          <span class="gantt-toggle__track"><span class="gantt-toggle__thumb"></span></span>
+          <span id="cp-label">Critical path only</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Month labels -->
+    <div class="gantt-months">
+      <span></span>
+      <div class="gantt-months__labels">
+        <span>Oct 24</span>
+        <span>Nov</span>
+        <span>Dec</span>
+        <span>Jan 25</span>
+        <span>Feb</span>
+        <span>Mar</span>
+        <span>Apr</span>
+        <span>May</span>
+        <span>Jun</span>
+      </div>
+    </div>
+
+    <div class="gantt-body">
+      <!-- Today marker at ~58% (late Feb in Oct-Jun range) -->
+      <div class="gantt-today" style="left: calc(180px + (100% - 180px) * 0.58);">
+        <span class="gantt-today__label">today</span>
+      </div>
+
+      <!-- BUILDING PERMIT (critical path) -->
+      <div class="gantt-group gantt-group--critical">
+        <span class="gantt-group__label">Building permit &middot; 202410082341 <span class="critical-tag">critical path</span></span>
+      </div>
+
+      <div class="gantt-row gantt-row--critical">
+        <div class="gantt-row__label">
+          <span class="status-dot status-dot--green" style="width:5px;height:5px;"></span>
+          <div>
+            <div class="gantt-row__permit">BLDG</div>
+            <div class="gantt-row__type">Building review</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 2%; width: 14%;">
+            <span class="gantt-bar__seg gantt-bar__seg--done" style="width: 100%;"></span>
+            <span class="gantt-bar__label">22d ✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt-row gantt-row--critical">
+        <div class="gantt-row__label">
+          <span class="status-dot status-dot--green" style="width:5px;height:5px;"></span>
+          <div>
+            <div class="gantt-row__permit">ELEC</div>
+            <div class="gantt-row__type">Electrical review</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 17%; width: 8%;">
+            <span class="gantt-bar__seg gantt-bar__seg--done" style="width: 100%;"></span>
+            <span class="gantt-bar__label">12d ✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt-row gantt-row--critical">
+        <div class="gantt-row__label">
+          <span class="status-dot status-dot--red" style="width:5px;height:5px;"></span>
+          <div>
+            <div class="gantt-row__permit">SFFD</div>
+            <div class="gantt-row__type">Fire dept review</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 26%; width: 18%;">
+            <span class="gantt-bar__seg gantt-bar__seg--stalled" style="width: 65%;"></span>
+            <span class="gantt-bar__seg gantt-bar__seg--projected" style="width: 35%;"></span>
+            <span class="gantt-bar__label" style="color: var(--signal-red);">18d — stalled</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt-row gantt-row--critical">
+        <div class="gantt-row__label">
+          <span class="status-dot" style="width:5px;height:5px;background:var(--glass-border);"></span>
+          <div>
+            <div class="gantt-row__permit">PPC</div>
+            <div class="gantt-row__type">Plan & permit check</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 48%; width: 18%;">
+            <span class="gantt-bar__seg gantt-bar__seg--projected" style="width: 100%;"></span>
+            <span class="gantt-bar__label">~35d projected</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt-row gantt-row--critical">
+        <div class="gantt-row__label">
+          <span class="status-dot" style="width:5px;height:5px;background:var(--glass-border);"></span>
+          <div>
+            <div class="gantt-row__permit">CP-ZOC</div>
+            <div class="gantt-row__type">Zoning</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 68%; width: 10%;">
+            <span class="gantt-bar__seg gantt-bar__seg--projected" style="width: 100%;"></span>
+            <span class="gantt-bar__label">~18d</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt-row gantt-row--critical">
+        <div class="gantt-row__label">
+          <span class="status-dot" style="width:5px;height:5px;background:var(--glass-border);"></span>
+          <div>
+            <div class="gantt-row__permit">DPH</div>
+            <div class="gantt-row__type">Public health</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 80%; width: 12%;">
+            <span class="gantt-bar__seg gantt-bar__seg--projected" style="width: 100%;"></span>
+            <span class="gantt-bar__label">~21d</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ELECTRICAL PERMIT (parallel) -->
+      <div class="gantt-group">
+        <span class="gantt-group__label">Electrical permit &middot; 202410129874</span>
+      </div>
+
+      <div class="gantt-row">
+        <div class="gantt-row__label">
+          <span class="status-dot status-dot--green" style="width:5px;height:5px;"></span>
+          <div>
+            <div class="gantt-row__permit">ELEC-T</div>
+            <div class="gantt-row__type">Trade electrical</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 12%; width: 10%;">
+            <span class="gantt-bar__seg gantt-bar__seg--done" style="width: 100%;"></span>
+            <span class="gantt-bar__label">15d ✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt-row">
+        <div class="gantt-row__label">
+          <span class="status-dot status-dot--amber" style="width:5px;height:5px;"></span>
+          <div>
+            <div class="gantt-row__permit">INSP</div>
+            <div class="gantt-row__type">Rough inspection</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 50%; width: 6%;">
+            <span class="gantt-bar__seg gantt-bar__seg--active" style="width: 100%;"></span>
+            <span class="gantt-bar__label">scheduling</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLUMBING PERMIT (parallel) -->
+      <div class="gantt-group">
+        <span class="gantt-group__label">Plumbing permit &middot; 202411015501</span>
+      </div>
+
+      <div class="gantt-row">
+        <div class="gantt-row__label">
+          <span class="status-dot status-dot--green" style="width:5px;height:5px;"></span>
+          <div>
+            <div class="gantt-row__permit">PLMB-T</div>
+            <div class="gantt-row__type">Trade plumbing</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 18%; width: 8%;">
+            <span class="gantt-bar__seg gantt-bar__seg--done" style="width: 100%;"></span>
+            <span class="gantt-bar__label">11d ✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt-row">
+        <div class="gantt-row__label">
+          <span class="status-dot status-dot--amber" style="width:5px;height:5px;"></span>
+          <div>
+            <div class="gantt-row__permit">DPH-P</div>
+            <div class="gantt-row__type">Health (grease trap)</div>
+          </div>
+        </div>
+        <div class="gantt-row__track">
+          <div class="gantt-bar" style="left: 42%; width: 14%;">
+            <span class="gantt-bar__seg gantt-bar__seg--active" style="width: 60%;"></span>
+            <span class="gantt-bar__seg gantt-bar__seg--projected" style="width: 40%;"></span>
+            <span class="gantt-bar__label">8d in review</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /gantt-body -->
+
+    <!-- PROJECTED COMPLETION -->
+    <div style="display: flex; align-items: baseline; justify-content: space-between; padding: var(--space-4) 0; border-top: 1px solid var(--glass-border); margin-top: var(--space-2);">
+      <div>
+        <span style="font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary);">Projected completion</span>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-family: var(--mono); font-size: var(--text-lg); font-weight: 300; color: var(--signal-amber);">Aug&ndash;Oct 2025</span>
+        <div style="font-family: var(--mono); font-size: 10px; color: var(--text-tertiary); margin-top: 2px;">
+          Critical path: SFFD stall adds ~10d to projection
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIONS -->
+  <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-8);" class="reveal reveal-delay-3">
+    <button class="action-btn">Export timeline</button>
+    <button class="action-btn">Share with client</button>
+    <a href="#" class="ghost-cta" style="padding: 8px 0;">Ask AI about this project →</a>
+  </div>
+
+  <!-- FRESHNESS -->
+  <div class="freshness reveal">
+    <span class="freshness-dot"></span>
+    Data as of Feb 27, 2026 &middot; Updated nightly &middot; Projections based on station velocity model
+  </div>
+
+</div>
+</div>
+
+<script>
+function toggleCritical() {
+  const btn = document.getElementById('cp-toggle');
+  const body = document.querySelector('.gantt-body');
+  const label = document.getElementById('cp-label');
+  btn.classList.toggle('active');
+  body.classList.toggle('cp-only');
+  label.textContent = btn.classList.contains('active') ? 'Show all permits' : 'Critical path only';
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

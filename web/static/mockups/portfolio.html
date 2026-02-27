@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — sfpermits.ai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="obsidian-tokens.css">
+<style>
+  .page-body { padding-top: 56px; }
+
+  /* Portfolio header */
+  .portfolio-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: var(--space-6) 0 var(--space-4);
+  }
+  .portfolio-greeting {
+    font-family: var(--sans); font-size: var(--text-lg); font-weight: 300;
+    color: var(--text-secondary);
+  }
+  .portfolio-greeting strong { font-weight: 400; color: var(--text-primary); }
+  .portfolio-stats {
+    font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);
+    display: flex; gap: var(--space-4);
+  }
+  .portfolio-stats .ps-val { color: var(--text-secondary); }
+
+  /* Action queue — the hero */
+  .action-queue { margin-bottom: var(--space-6); }
+  .aq-item {
+    display: flex; align-items: center; gap: var(--space-4);
+    padding: 10px var(--space-4);
+    margin: 0 calc(-1 * var(--space-4));
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .aq-item:last-child { border-bottom: none; }
+  .aq-item:hover { background: var(--glass); }
+
+  .aq-item__dot {
+    width: 6px; height: 6px; border-radius: var(--radius-full); flex-shrink: 0;
+    margin-top: 14px;
+  }
+  .aq-item__body { flex: 1; min-width: 0; }
+  .aq-item__headline {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 400;
+    color: var(--text-primary);
+  }
+  .aq-item__detail {
+    font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);
+    margin-top: 1px;
+  }
+  .aq-item__actions {
+    display: flex; gap: var(--space-3); margin-top: var(--space-2);
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s, margin 0.2s;
+  }
+  .aq-item:hover .aq-item__actions {
+    max-height: 40px; opacity: 1; margin-top: var(--space-2);
+  }
+  .aq-action {
+    font-family: var(--mono); font-size: 10px; font-weight: 400;
+    color: var(--text-tertiary); background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    padding: 3px 8px; cursor: pointer; white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    text-decoration: none;
+  }
+  .aq-action:hover { color: var(--accent); border-color: var(--accent-ring); }
+
+  .aq-item__time {
+    font-family: var(--mono); font-size: 10px;
+    flex-shrink: 0; white-space: nowrap; align-self: flex-start; margin-top: 2px;
+  }
+  .aq-item__time--red { color: var(--signal-red); }
+  .aq-item__time--amber { color: var(--signal-amber); }
+  .aq-item__time--green { color: var(--signal-green); }
+  .aq-item__time--muted { color: var(--text-tertiary); }
+  .aq-item__arrow {
+    font-family: var(--mono); font-size: 12px; color: var(--text-tertiary);
+    opacity: 0; transition: opacity 0.15s;
+    flex-shrink: 0; align-self: flex-start; margin-top: 2px;
+  }
+  .aq-item:hover .aq-item__arrow { opacity: 1; color: var(--accent); }
+
+  /* Permit table */
+  .permit-table { margin-bottom: var(--space-6); }
+  .pt-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+  .pt-filter {
+    display: flex; gap: var(--space-2);
+  }
+  .pt-chip {
+    font-family: var(--mono); font-size: 10px; font-weight: 400;
+    color: var(--text-tertiary); background: var(--glass);
+    border: 1px solid var(--glass-border);
+    padding: 3px 8px; border-radius: var(--radius-full);
+    cursor: pointer; transition: border-color 0.2s, color 0.2s;
+  }
+  .pt-chip:hover { border-color: var(--glass-hover); color: var(--text-secondary); }
+  .pt-chip--active { border-color: var(--accent-ring); color: var(--accent); background: var(--accent-glow); }
+
+  .pt-row {
+    display: grid; grid-template-columns: 14px 1.4fr 0.8fr 1fr 0.6fr 14px;
+    align-items: center; gap: var(--space-3);
+    padding: 9px var(--space-3);
+    margin: 0 calc(-1 * var(--space-3));
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer; transition: background 0.12s;
+  }
+  .pt-row:hover { background: var(--glass); }
+  .pt-row--header {
+    cursor: default; padding: 6px var(--space-3);
+  }
+  .pt-row--header:hover { background: none; }
+  .pt-row--header span {
+    font-family: var(--mono); font-size: 9px; font-weight: 400;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary);
+  }
+
+  .pt-addr {
+    font-family: var(--mono); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: color 0.15s;
+  }
+  .pt-row:hover .pt-addr { color: var(--accent); }
+
+  .pt-type {
+    font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .pt-station {
+    display: flex; align-items: center; gap: var(--space-2);
+  }
+  .pt-station__bar { flex: 1; }
+  .pt-station__frac {
+    font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  /* Mini gantt — replaces simple progress bar */
+  .mini-gantt {
+    display: flex; height: 4px; border-radius: 2px; overflow: hidden;
+    gap: 1px; flex: 1;
+  }
+  .mini-gantt__seg {
+    height: 100%; border-radius: 1px;
+    position: relative;
+  }
+  .mini-gantt__seg--done { background: var(--signal-green); }
+  .mini-gantt__seg--active { background: var(--signal-amber); animation: pulse-seg 2s ease-in-out infinite; }
+  .mini-gantt__seg--pending { background: var(--glass-border); }
+  .mini-gantt__seg--stalled { background: var(--signal-red); animation: pulse-seg 2s ease-in-out infinite; }
+  @keyframes pulse-seg { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+  /* Gantt tooltip */
+  .mini-gantt__seg[title] { cursor: default; }
+
+  .pt-status {
+    font-family: var(--mono); font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+
+  .pt-arrow {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    opacity: 0; transition: opacity 0.12s;
+  }
+  .pt-row:hover .pt-arrow { opacity: 1; color: var(--accent); }
+
+  /* Quick actions bar */
+  .quick-actions {
+    display: flex; gap: var(--space-2); flex-wrap: wrap;
+    margin-bottom: var(--space-6);
+  }
+  .qa-btn {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-tertiary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    padding: 6px 12px; cursor: pointer;
+    display: flex; align-items: center; gap: var(--space-2);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .qa-btn:hover {
+    border-color: var(--accent-ring); color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .qa-btn__icon { font-size: 12px; }
+
+  /* Upcoming section */
+  .upcoming { margin-bottom: var(--space-6); }
+  .up-item {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: 8px var(--space-3);
+    margin: 0 calc(-1 * var(--space-3));
+    border-radius: var(--radius-sm);
+    transition: background 0.12s; cursor: pointer;
+  }
+  .up-item:hover { background: var(--glass); }
+  .up-date {
+    font-family: var(--mono); font-size: var(--text-xs);
+    width: 50px; flex-shrink: 0;
+  }
+  .up-date--urgent { color: var(--signal-red); }
+  .up-date--soon { color: var(--signal-amber); }
+  .up-date--normal { color: var(--text-tertiary); }
+  .up-text {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary); flex: 1;
+  }
+  .up-text strong { font-weight: 400; color: var(--text-primary); }
+  .up-cta {
+    flex-shrink: 0;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .up-item:hover .up-cta { opacity: 1; }
+  .up-arrow {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    opacity: 0; transition: opacity 0.12s;
+  }
+  .up-item:hover .up-arrow { opacity: 1; color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .portfolio-header { flex-direction: column; gap: var(--space-2); }
+    .pt-row { grid-template-columns: 10px 1fr 0.7fr 14px; }
+    .pt-row--header span:nth-child(4),
+    .pt-row--header span:nth-child(5),
+    .pt-row span:nth-child(4),
+    .pt-row span:nth-child(5) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav-float">
+  <a href="#" class="nav-float__wordmark">sfpermits.ai</a>
+  <div class="nav-float__links">
+    <div class="search-bar" style="width: 200px;">
+      <input type="text" class="search-input" placeholder="Search" style="padding: 8px 14px; font-size: 12px;">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <a href="#" class="nav-float__link">Brief</a>
+    <div class="nav-float__avatar">AK</div>
+  </div>
+</nav>
+
+<div class="page-body">
+<div class="obs-container">
+
+  <!-- HEADER -->
+  <div class="portfolio-header reveal">
+    <div class="portfolio-greeting"><strong>Good morning.</strong> 3 things need attention.</div>
+    <div class="portfolio-stats">
+      <span><span class="ps-val">23</span> watching</span>
+      <span><span class="ps-val">14</span> active</span>
+      <span><span class="ps-val">3</span> urgent</span>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="quick-actions reveal reveal-delay-1">
+    <button class="qa-btn"><span class="qa-btn__icon">&#9993;</span> Send morning brief to clients</button>
+    <button class="qa-btn"><span class="qa-btn__icon">&#43;</span> New property lookup</button>
+    <button class="qa-btn"><span class="qa-btn__icon">&#10024;</span> Ask AI</button>
+    <button class="qa-btn"><span class="qa-btn__icon">&#8645;</span> Check all stalled permits</button>
+  </div>
+
+  <!-- ACTION QUEUE -->
+  <section class="action-queue reveal reveal-delay-1">
+    <div class="section-label">Needs attention</div>
+
+    <div class="aq-item">
+      <span class="aq-item__dot" style="background: var(--signal-red);"></span>
+      <div class="aq-item__body">
+        <div class="aq-item__headline">New complaint filed at 1122 Folsom St</div>
+        <div class="aq-item__detail">Building code violation &middot; Commercial TI &middot; <span style="color: var(--signal-green);">Does not block active permit</span></div>
+        <div class="aq-item__actions">
+          <a href="#" class="aq-action">View complaint</a>
+          <a href="#" class="aq-action">Draft client email</a>
+        </div>
+      </div>
+      <span class="aq-item__time aq-item__time--red">2h ago</span>
+      <span class="aq-item__arrow">&rarr;</span>
+    </div>
+
+    <div class="aq-item">
+      <span class="aq-item__dot" style="background: var(--signal-amber);"></span>
+      <div class="aq-item__body">
+        <div class="aq-item__headline">PPC stalled 12 days on 487 Noe St</div>
+        <div class="aq-item__detail">Kitchen remodel &middot; 5/8 stations cleared &middot; Plan checker: R. Dominguez &middot; <span style="color: var(--signal-amber);">No holds on file</span></div>
+        <div class="aq-item__actions">
+          <a href="#" class="aq-action">Contact R. Dominguez</a>
+          <a href="#" class="aq-action">Notify client</a>
+        </div>
+      </div>
+      <span class="aq-item__time aq-item__time--amber">12d stalled</span>
+      <span class="aq-item__arrow">&rarr;</span>
+    </div>
+
+    <div class="aq-item">
+      <span class="aq-item__dot" style="background: var(--signal-amber);"></span>
+      <div class="aq-item__body">
+        <div class="aq-item__headline">DPH pending 28 days on 301 Howard St</div>
+        <div class="aq-item__detail">Restaurant buildout &middot; Health dept review &middot; <span style="color: var(--signal-amber);">Avg DPH review: 21 days</span></div>
+        <div class="aq-item__actions">
+          <a href="#" class="aq-action">Contact DPH reviewer</a>
+          <a href="#" class="aq-action">View DPH checklist</a>
+          <a href="#" class="aq-action">Notify client</a>
+        </div>
+      </div>
+      <span class="aq-item__time aq-item__time--amber">28d stalled</span>
+      <span class="aq-item__arrow">&rarr;</span>
+    </div>
+
+    <div class="aq-item">
+      <span class="aq-item__dot" style="background: var(--signal-green);"></span>
+      <div class="aq-item__body">
+        <div class="aq-item__headline">BLDG approved today on 225 Bush St</div>
+        <div class="aq-item__detail">Seismic retrofit &middot; Moving to SFFD next</div>
+        <div class="aq-item__actions">
+          <a href="#" class="aq-action">Prep SFFD docs</a>
+          <a href="#" class="aq-action">Notify client</a>
+          <a href="#" class="aq-action">View timeline</a>
+        </div>
+      </div>
+      <span class="aq-item__time aq-item__time--green">today</span>
+      <span class="aq-item__arrow">&rarr;</span>
+    </div>
+
+    <div class="aq-item">
+      <span class="aq-item__dot" style="background: var(--signal-green);"></span>
+      <div class="aq-item__body">
+        <div class="aq-item__headline">2001 Market St permit issued</div>
+        <div class="aq-item__detail">ADU &middot; All 8 stations cleared</div>
+        <div class="aq-item__actions">
+          <a href="#" class="aq-action">Send client congrats</a>
+          <a href="#" class="aq-action">Schedule inspection</a>
+          <a href="#" class="aq-action">Archive</a>
+        </div>
+      </div>
+      <span class="aq-item__time aq-item__time--green">yesterday</span>
+      <span class="aq-item__arrow">&rarr;</span>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PERMIT TABLE -->
+  <section class="permit-table reveal reveal-delay-2" style="padding-top: var(--space-6);">
+    <div class="pt-header">
+      <div class="section-label" style="margin-bottom: 0;">Active permits</div>
+      <div class="pt-filter">
+        <span class="pt-chip pt-chip--active">All</span>
+        <span class="pt-chip">Stalled</span>
+        <span class="pt-chip">On track</span>
+        <span class="pt-chip">Issued</span>
+      </div>
+    </div>
+
+    <div class="pt-row pt-row--header">
+      <span></span>
+      <span>Address</span>
+      <span>Type</span>
+      <span>Progress</span>
+      <span>Status</span>
+      <span></span>
+    </div>
+
+    <div class="pt-row">
+      <span class="status-dot status-dot--red"></span>
+      <span class="pt-addr">1122 Folsom St</span>
+      <span class="pt-type">Commercial TI</span>
+      <span class="pt-station">
+        <div class="mini-gantt">
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="BLDG ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="ELEC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--stalled" style="flex:1" title="SFFD — 18d"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="PLMB"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="PPC"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="CP-ZOC"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="DPH"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="MECH"></span>
+        </div>
+        <span class="pt-station__frac">3/8</span>
+      </span>
+      <span class="pt-status status-text--red">SFFD 18d</span>
+      <span class="pt-arrow">&rarr;</span>
+    </div>
+
+    <div class="pt-row">
+      <span class="status-dot status-dot--amber"></span>
+      <span class="pt-addr">487 Noe St</span>
+      <span class="pt-type">Kitchen remodel</span>
+      <span class="pt-station">
+        <div class="mini-gantt">
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="BLDG ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="SFFD ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="ELEC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PLMB ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="MECH ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--active" style="flex:1" title="PPC — 12d"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="CP-ZOC"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="DPH"></span>
+        </div>
+        <span class="pt-station__frac">5/8</span>
+      </span>
+      <span class="pt-status status-text--amber">PPC 12d</span>
+      <span class="pt-arrow">&rarr;</span>
+    </div>
+
+    <div class="pt-row">
+      <span class="status-dot status-dot--amber"></span>
+      <span class="pt-addr">301 Howard St</span>
+      <span class="pt-type">Restaurant buildout</span>
+      <span class="pt-station">
+        <div class="mini-gantt">
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="BLDG ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="SFFD ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PLMB ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="ELEC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--stalled" style="flex:1" title="DPH — 28d"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="PPC"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="CP-ZOC"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="MECH"></span>
+        </div>
+        <span class="pt-station__frac">4/8</span>
+      </span>
+      <span class="pt-status status-text--amber">DPH 28d</span>
+      <span class="pt-arrow">&rarr;</span>
+    </div>
+
+    <div class="pt-row">
+      <span class="status-dot status-dot--green"></span>
+      <span class="pt-addr">225 Bush St</span>
+      <span class="pt-type">Seismic retrofit</span>
+      <span class="pt-station">
+        <div class="mini-gantt">
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="BLDG ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="SFFD ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="ELEC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PLMB ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="MECH ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PPC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--active" style="flex:1" title="CP-ZOC — 4d"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="DPH"></span>
+        </div>
+        <span class="pt-station__frac">7/8</span>
+      </span>
+      <span class="pt-status status-text--green">On track</span>
+      <span class="pt-arrow">&rarr;</span>
+    </div>
+
+    <div class="pt-row">
+      <span class="status-dot status-dot--green"></span>
+      <span class="pt-addr">88 1st St</span>
+      <span class="pt-type">New construction</span>
+      <span class="pt-station">
+        <div class="mini-gantt">
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="BLDG ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="SFFD ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="ELEC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PLMB ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="MECH ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--active" style="flex:1" title="PPC — 6d"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="CP-ZOC"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="DPH"></span>
+        </div>
+        <span class="pt-station__frac">6/8</span>
+      </span>
+      <span class="pt-status status-text--green">On track</span>
+      <span class="pt-arrow">&rarr;</span>
+    </div>
+
+    <div class="pt-row">
+      <span class="status-dot status-dot--green"></span>
+      <span class="pt-addr">150 Van Ness Ave</span>
+      <span class="pt-type">Office conversion</span>
+      <span class="pt-station">
+        <div class="mini-gantt">
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="BLDG ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="SFFD ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="ELEC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PLMB ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PPC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--active" style="flex:1" title="CP-ZOC — 3d"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="DPH"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1" title="MECH"></span>
+        </div>
+        <span class="pt-station__frac">6/8</span>
+      </span>
+      <span class="pt-status status-text--green">On track</span>
+      <span class="pt-arrow">&rarr;</span>
+    </div>
+
+    <div class="pt-row">
+      <span class="status-dot status-dot--green"></span>
+      <span class="pt-addr">2001 Market St</span>
+      <span class="pt-type">ADU</span>
+      <span class="pt-station">
+        <div class="mini-gantt">
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="BLDG ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="SFFD ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="ELEC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PLMB ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="MECH ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="PPC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="CP-ZOC ✓"></span>
+          <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1" title="DPH ✓"></span>
+        </div>
+        <span class="pt-station__frac">8/8</span>
+      </span>
+      <span class="pt-status status-text--green">Issued</span>
+      <span class="pt-arrow">&rarr;</span>
+    </div>
+
+    <div style="text-align: center; padding: var(--space-3) 0;">
+      <a href="#" class="ghost-cta">All 14 active permits &rarr;</a>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- UPCOMING -->
+  <section class="upcoming reveal reveal-delay-3" style="padding-top: var(--space-6);">
+    <div class="section-label">Heads up</div>
+
+    <div class="up-item">
+      <span class="up-date up-date--urgent">4 days</span>
+      <span class="up-text"><strong>225 Bush St</strong> &mdash; final inspection window opens Mar 3</span>
+      <span class="up-cta"><a href="#" class="aq-action">Schedule now</a></span>
+      <span class="up-arrow">&rarr;</span>
+    </div>
+    <div class="up-item">
+      <span class="up-date up-date--soon">9 days</span>
+      <span class="up-text"><strong>555 California St</strong> &mdash; elevator cert expires Mar 8</span>
+      <span class="up-cta"><a href="#" class="aq-action">Start renewal</a></span>
+      <span class="up-arrow">&rarr;</span>
+    </div>
+    <div class="up-item">
+      <span class="up-date up-date--soon">16 days</span>
+      <span class="up-text"><strong>3412 Mission St</strong> &mdash; plan check comments due Mar 15</span>
+      <span class="up-cta"><a href="#" class="aq-action">Draft response</a></span>
+      <span class="up-arrow">&rarr;</span>
+    </div>
+    <div class="up-item">
+      <span class="up-date up-date--normal">23 days</span>
+      <span class="up-text"><strong>88 1st St</strong> &mdash; permit expires if not extended Mar 22</span>
+      <span class="up-cta"><a href="#" class="aq-action">File extension</a></span>
+      <span class="up-arrow">&rarr;</span>
+    </div>
+  </section>
+
+  <!-- FRESHNESS -->
+  <div class="freshness reveal">
+    <span class="freshness-dot"></span>
+    Data as of Feb 27, 2026 &middot; Updated nightly
+  </div>
+
+</div>
+</div>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

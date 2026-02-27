@@ -1,0 +1,859 @@
+# Design Tokens Bible — sfpermits.ai
+
+> The agent-facing reference. Paste relevant sections into agent prompts verbatim.
+> When creating or modifying ANY template, this document is the authority.
+
+## Quick Reference for Agents
+
+**READ FIRST:** `docs/DESIGN_CANON.md` for the "why." This document is the "what."
+
+**The rule:** If a CSS property isn't documented here, check the v5 mockup (`web/static/landing-v5.html`). If it's not there either, keep it minimal and ask.
+
+---
+
+## 1. Color Palette
+
+### Backgrounds
+
+```css
+:root {
+  --obsidian:       #0a0a0f;   /* page background — 90% of everything */
+  --obsidian-mid:   #12121a;   /* card/surface background */
+  --obsidian-light: #1a1a26;   /* elevated elements (inputs, dropdowns, modals) */
+  --glass:          rgba(255, 255, 255, 0.04);  /* glassmorphism tint */
+  --glass-border:   rgba(255, 255, 255, 0.06);  /* card/container borders */
+  --glass-hover:    rgba(255, 255, 255, 0.10);  /* border on hover */
+}
+```
+
+### Text
+
+```css
+:root {
+  --text-primary:   rgba(255, 255, 255, 0.92);  /* headings, data values, primary content */
+  --text-secondary: rgba(255, 255, 255, 0.55);  /* body copy, descriptions, labels */
+  --text-tertiary:  rgba(255, 255, 255, 0.30);  /* placeholders, hints, disabled text */
+  --text-ghost:     rgba(255, 255, 255, 0.15);  /* wordmarks, footers, barely-there text */
+}
+```
+
+### Accent & Signal
+
+```css
+:root {
+  --accent:       #5eead4;                       /* THE brand color — links, focus, active */
+  --accent-glow:  rgba(94, 234, 212, 0.08);     /* subtle teal glow for hover/focus bg */
+  --accent-ring:  rgba(94, 234, 212, 0.30);     /* focus ring border color */
+
+  /* Semantic signal colors — ONLY for their semantic purpose */
+  --signal-green: #34d399;   /* on track, success, approved */
+  --signal-amber: #fbbf24;   /* warning, stalled, pending */
+  --signal-red:   #f87171;   /* alert, violation, complaint */
+  --signal-blue:  #60a5fa;   /* informational, premium badge */
+}
+```
+
+### Do NOT use
+
+- No other colors. No gradients on backgrounds. No brand blues/purples.
+- The only gradient allowed is the ambient hero glow (landing page only).
+- Signal colors are never used decoratively — only for status semantics.
+
+---
+
+## 2. Typography
+
+### Font Stacks
+
+```css
+:root {
+  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+  --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+```
+
+**Google Fonts import** (must appear in `<head>`):
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+```
+
+### Font Role Assignment
+
+| Element | Font | Weight | Example |
+|---------|------|--------|---------|
+| Hero headline | `--sans` | 300 | "Permit intelligence, distilled" |
+| Page titles (h1, h2) | `--sans` | 300–400 | "Timeline Estimation" |
+| Card headings (h3, h4) | `--sans` | 400–500 | "Active Permits" |
+| Wordmark / logo | `--mono` | 300, letter-spacing 0.35em, uppercase | "SFPERMITS.AI" |
+| Section labels | `--mono` | 400, uppercase, letter-spacing 0.06em | "RECENT", "WATCHING" |
+| Data values (numbers, addresses, permits) | `--mono` | 300–400 | "487 Noe St", "$125,000", "202401015555" |
+| Status text | `--mono` | 400 | "3 in review", "BLDG ✓" |
+| Body copy / descriptions | `--sans` | 300–400 | "Station-sum model from real routing data." |
+| Labels / captions | `--sans` | 400 | "Active permits", "Routing progress" |
+| Navigation links | `--sans` | 400 | "Search", "Methodology" |
+| Buttons / CTAs | `--mono` | 300–400 | "Full property intelligence →" |
+| Form inputs / placeholders | `--mono` | 300 | "Search any SF address" |
+| Badge text | `--mono` | 400 | "Commercial", "Kitchen remodel" |
+| Timestamps / metadata | `--mono` | 300 | "Feb 26, 2026", "Updated nightly" |
+
+**The split:** `--sans` = anything you'd READ (headlines, prose, labels). `--mono` = anything that IS DATA (numbers, addresses, codes, inputs, timestamps, badges, CTAs, wordmark).
+
+### Type Scale (fluid)
+
+```css
+:root {
+  --text-xs:  clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);   /* 10–12px: kbd hints, micro labels */
+  --text-sm:  clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);  /* 12–14px: captions, badges, meta */
+  --text-base: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);   /* 13–16px: body copy, labels */
+  --text-lg:  clamp(0.875rem, 0.8rem + 0.4vw, 1.125rem);  /* 14–18px: card titles, nav */
+  --text-xl:  clamp(1.125rem, 1rem + 0.5vw, 1.5rem);      /* 18–24px: section headings */
+  --text-2xl: clamp(1.5rem, 1.2rem + 1.2vw, 2.5rem);      /* 24–40px: page titles */
+  --text-3xl: clamp(1.875rem, 1.5rem + 1.8vw, 3.75rem);   /* 30–60px: hero headline */
+}
+```
+
+---
+
+## 3. Spacing
+
+```css
+:root {
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+}
+```
+
+**Spacing rules:**
+- Between sections: `--space-24` to `--space-32` (96–128px)
+- Between cards in a group: `--space-6` to `--space-8` (24–32px)
+- Card internal padding: `--space-6` to `--space-8` (24–32px)
+- Between label and value: `--space-2` to `--space-3` (8–12px)
+- Inline element gaps: `--space-2` to `--space-3` (8–12px)
+
+---
+
+## 4. Layout
+
+### Containers
+
+```css
+/* Public pages — focused reading width */
+.obs-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);  /* 24px sides */
+}
+
+/* Admin pages — wider for tables */
+.obs-container-wide {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+```
+
+### Border Radius
+
+```css
+:root {
+  --radius-sm:  6px;   /* badges, small chips */
+  --radius-md:  12px;  /* cards, inputs, dropdowns */
+  --radius-lg:  16px;  /* modals, large containers */
+  --radius-full: 9999px; /* pills, status dots */
+}
+```
+
+---
+
+## 5. Components
+
+Each component includes CSS + copy-paste HTML. Agents: use these exactly.
+
+### Glass Card
+
+The primary content container across all pages.
+
+```html
+<div class="glass-card">
+  <h3>Card Title</h3>
+  <p>Card content goes here.</p>
+</div>
+```
+
+```css
+.glass-card {
+  background: var(--obsidian-mid);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  transition: border-color 0.3s;
+}
+.glass-card:hover {
+  border-color: var(--glass-hover);
+}
+```
+
+### Search Input
+
+```html
+<div class="search-bar">
+  <input type="text" class="search-input" placeholder="Search any SF address" autocomplete="off">
+  <span class="kbd-hint">/</span>
+  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+</div>
+```
+
+```css
+.search-input {
+  width: 100%;
+  padding: 16px 22px;
+  padding-right: 50px;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text-primary);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+}
+.search-input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 300;
+}
+.search-input:focus {
+  border-color: var(--accent-ring);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 40px var(--accent-glow);
+}
+```
+
+### Ghost Button (Primary CTA)
+
+```html
+<a href="/report" class="ghost-cta">Full property intelligence →</a>
+```
+
+```css
+.ghost-cta {
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding-bottom: 1px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s, border-color 0.3s;
+  letter-spacing: 0.04em;
+}
+.ghost-cta:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+/* Always include arrow suffix in content: "View report →" */
+```
+
+### Action Button (Secondary — forms, uploads, destructive)
+
+For functional actions that need more affordance than a ghost link (save, upload, delete):
+
+```html
+<button class="action-btn">Upload plans</button>
+<button class="action-btn action-btn--danger">Delete</button>
+```
+
+```css
+.action-btn {
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-secondary);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.action-btn:hover {
+  border-color: var(--glass-hover);
+  color: var(--text-primary);
+  background: var(--obsidian-light);
+}
+/* Destructive variant */
+.action-btn--danger:hover {
+  border-color: rgba(248, 113, 113, 0.3);
+  color: var(--signal-red);
+}
+```
+
+### Status Badge
+
+```html
+<span class="status-dot status-dot--green" title="On track"></span>
+<span class="status-text--green">3 in review</span>
+
+<span class="status-dot status-dot--amber" title="Stalled 12 days"></span>
+<span class="status-text--amber">PPC pending</span>
+
+<span class="status-dot status-dot--red" title="2 active complaints"></span>
+<span class="status-text--red">2 complaints</span>
+```
+
+```css
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+}
+.status-dot--green  { background: var(--signal-green); }
+.status-dot--amber  { background: var(--signal-amber); }
+.status-dot--red    { background: var(--signal-red); }
+
+.status-text--green  { color: var(--signal-green); }
+.status-text--amber  { color: var(--signal-amber); }
+.status-text--red    { color: var(--signal-red); }
+```
+
+### Type Badge / Chip
+
+```html
+<span class="chip">Commercial</span>
+<span class="chip">Kitchen remodel</span>
+```
+
+```css
+.chip {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--text-tertiary);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  padding: 1px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+```
+
+### Data Row (key-value pairs)
+
+```html
+<div class="data-row">
+  <span class="data-row__label">Active permits</span>
+  <span class="data-row__value status-text--green">3 in review</span>
+</div>
+<div class="data-row">
+  <span class="data-row__label">Est. remaining</span>
+  <span class="data-row__value status-text--amber">4–7 months</span>
+</div>
+```
+
+```css
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+.data-row__label {
+  font-family: var(--sans);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+.data-row__value {
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+```
+
+### Stat Counter
+
+```html
+<div class="stat-item">
+  <div class="stat-number">1,137,816</div>
+  <div class="stat-label">Permits tracked</div>
+</div>
+```
+
+```css
+.stat-number {
+  font-family: var(--mono);
+  font-size: clamp(22px, 3vw, 36px);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.stat-label {
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+}
+```
+
+### Progress Bar
+
+```html
+<div class="progress-label">
+  <span>Plan review</span>
+  <span>5 / 8 stations</span>
+</div>
+<div class="progress-track">
+  <div class="progress-fill" style="width: 62%"></div>
+</div>
+```
+
+```css
+.progress-track {
+  height: 2px;
+  background: var(--glass);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
+  border-radius: 1px;
+  transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+```
+
+### Dropdown
+
+```css
+.dropdown {
+  background: var(--obsidian-mid);
+  border: 1px solid var(--glass-border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  overflow-y: auto;
+  max-height: 380px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
+}
+.dropdown__item {
+  padding: 9px 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.12s;
+}
+.dropdown__item:hover {
+  background: var(--glass);
+}
+.dropdown__label {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: 10px 22px 4px;
+}
+```
+
+### Section Divider
+
+```css
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  margin: 0;
+}
+```
+
+---
+
+## 6. Navigation
+
+### Floating Nav Bar
+
+Hidden at top of landing page. Appears on scroll and on all interior pages.
+
+```css
+.nav-float {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 12px var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+  transition: opacity 0.4s, transform 0.4s;
+}
+/* Hidden state (landing hero) */
+.nav-float--hidden {
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+.nav-float__wordmark {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+.nav-float__link {
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.nav-float__link:hover {
+  color: var(--accent);
+}
+```
+
+---
+
+## 7. Animation
+
+### Scroll Reveal (apply to all content sections)
+
+```css
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Staggered delays for sibling elements */
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+```
+
+**JavaScript observer** (include in base template):
+```javascript
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+```
+
+### Ambient Glow (landing page ONLY)
+
+```css
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ambient::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(ellipse, rgba(94, 234, 212, 0.03) 0%, transparent 70%);
+  animation: drift 25s ease-in-out infinite;
+}
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(40px, 20px); }
+}
+```
+
+### Fade In (for staggered hero elements)
+
+```css
+@keyframes fadeIn { to { opacity: 1; } }
+/* Usage: opacity: 0; animation: fadeIn 2s 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; */
+```
+
+### Hover Transitions
+
+- Card borders: `transition: border-color 0.3s;`
+- Links/CTAs: `transition: color 0.3s, border-color 0.3s;`
+- Dropdown items: `transition: background 0.12s;`
+- Inputs: `transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;`
+
+---
+
+## 8. Responsive Breakpoints
+
+```css
+/* Mobile-first. Three tiers: */
+@media (max-width: 768px) { /* Tablet and below */ }
+@media (max-width: 480px) { /* Phone */ }
+```
+
+### What Changes at Each Breakpoint
+
+| Element | Desktop (769px+) | Tablet (481–768px) | Phone (≤480px) |
+|---------|-------------------|--------------------|----------------|
+| **Container** | max-width 1000px, 24px padding | Fluid, 24px padding | Fluid, 16px padding |
+| **Stats row** | 4-column flex | 2×2 grid, dividers hidden | Single column stack |
+| **Capability list** | 3-column grid: number · content · stat | Content + stat only (number hidden) | Single column, stat below content |
+| **Data rows** | Flex row: label left, value right | Same | Stack: label above value, left-aligned |
+| **Cards** | padding 32px | padding 24px | padding 16px |
+| **Card grids** (intel panel) | 2–3 columns side by side | 2 columns | Single column stack |
+| **Nav** | Floating bar: wordmark + links + avatar | Wordmark + hamburger | Same as tablet |
+| **Hero headline** | clamp max (60px) | Mid range (~40px) | clamp min (30px) |
+| **Demo panel** | Full width in container | Same | Compact: rows stack, padding reduced |
+| **Search dropdown** | max-height 380px | Same | max-height 320px |
+| **Admin tables** | Horizontal scroll if needed at 1200px | Horizontal scroll | Horizontal scroll with shadow hints |
+
+### Mobile-Specific Rules
+
+```css
+@media (max-width: 768px) {
+  .stats-row { flex-wrap: wrap; gap: 24px; justify-content: center; }
+  .stat-divider { display: none; }
+  .stat-item { flex: 0 0 40%; }
+  .cap-item { grid-template-columns: 1fr; gap: 6px; }
+  .cap-num { display: none; }
+  .demo-body { padding: 20px 16px; }
+  .data-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+}
+@media (max-width: 480px) {
+  .stat-item { flex: 0 0 100%; }
+  .obs-container { padding: 0 16px; }
+}
+```
+
+---
+
+## 9. Page Archetypes
+
+### Landing Page (1000px, ambient glow)
+Full-viewport hero → stats bar → capability list → demo panel → footer. No nav at top. Ambient glow.
+
+### Search Results (1000px, no ambient)
+Nav bar → search input → results list (glass cards). Each result is a data-row card with address, type badge, status dot.
+
+### Property Report (1000px, no ambient)
+Nav bar → property header (address, type chip) → data sections in glass cards → related permits list → ghost CTA links.
+
+### Admin Dashboard (1200px, no ambient)
+Nav bar → page title → summary stats row → data tables in glass cards → action buttons.
+
+### Auth Pages (1000px, no ambient)
+Centered card, wordmark above, minimal form fields, ghost CTA submit.
+
+### Email Templates
+Inline CSS only. Use obsidian-mid background, same type hierarchy, teal accent for links. Must render in Gmail/Outlook.
+
+---
+
+## 10. Do / Don't
+
+### DO
+- Use CSS custom properties from this document
+- Use `var(--mono)` for ALL data/numbers
+- Use `var(--sans)` for ALL prose/labels
+- Use `clamp()` for font sizes (responsive)
+- Use glass-card pattern for content containers
+- Use ghost CTAs for navigation actions
+- Add `class="reveal"` to content sections
+- Test on mobile (375px) and tablet (768px)
+
+### DON'T
+- Add colors not in the palette
+- Use font-weight above 500 on headings
+- Use filled/gradient buttons for primary CTAs
+- Add box-shadow to cards (use border only)
+- Use solid background colors on cards (use --obsidian-mid)
+- Add ambient glow to non-landing pages
+- Import additional fonts
+- Use rem/em without clamp() for display text
+- Use `!important` (fix specificity instead)
+
+---
+
+## 11. Content Rules
+
+### Action Bias
+
+Every element must pass this test: **"Does this help the user take action or understand what needs attention?"** If not, it doesn't belong.
+
+- No vanity metrics on interior pages. "1.1M permits tracked" is marketing, not intelligence.
+- Data earns its place by being contextual. "Based on 3,412 similar permits" next to a timeline estimate = useful. Same number in a stats strip = decoration.
+- Empty states are honest. "No urgent actions — your portfolio is healthy" > filling space with charts.
+- **First-visit exception:** Anonymous users see the stats strip below the fold on their first visit only.
+
+### Progressive Disclosure
+
+Summary first, detail on demand. This pattern applies everywhere:
+
+- Search dropdown: 3–5 items relevant to your state, not 20 results
+- Property intel: 3 permits shown initially, "Show all 12" available
+- AI consultation: Opening summary in one sentence, detail cards below
+- Routing progress: Simple progress bar with fraction, expand for full station timeline
+
+### Three User States
+
+The interface adapts to who's using it:
+
+| State | Search Dropdown Shows | Hero Subhead |
+|-------|----------------------|--------------|
+| **Anonymous** | Example addresses (on focus or "try an example" click) | "18.4 million San Francisco government records. One search." |
+| **Returning** | Recent searches (3–5) + example addresses | Neutral |
+| **Power** | "Needs attention" (red/amber, up to 3) → Recent → "All N watched →" | "{N} properties watched · {M} need attention" |
+
+### Credibility Signals
+
+Credibility belongs in context, not in banners.
+
+- **DO:** "Based on 3,412 similar permits in your neighborhood" (inside a timeline estimate)
+- **DON'T:** "Powered by 3.9 million routing records" (in a stats strip)
+- **DO:** Data freshness indicator at bottom of data pages: `[green dot] Data as of Feb 26, 2026 · Updated nightly` (JetBrains Mono 11px, ghost color)
+
+### AI Disclosure
+
+Every AI-generated response includes:
+1. **Label before:** Sparkle icon + "AI Analysis · Based on public records as of {date}" in accent color, mono 12px
+2. **Disclaimer after:** "AI-generated from public records. Not legal advice." in ghost text, 11px
+
+### Empty States
+
+- **No urgent actions:** "All clear — no urgent actions across your portfolio."
+- **No permits found:** "No permits found for this address. This could mean no work has been permitted, or the address format doesn't match DBI records." + suggestion
+- **No search results:** "No matches — press Enter to search" (inside dropdown)
+
+### Loading States
+
+Use skeleton screens or subtle pulse animations on the content area. No spinners.
+
+---
+
+## 12. Icons
+
+SVG stroke icons only. No filled icons. No emoji in UI chrome (emoji OK in AI-generated content).
+
+```
+Stroke width:  1.5 (default), 2.0 (emphasis)
+Default color: var(--text-tertiary)
+Hover color:   var(--accent) or var(--text-secondary)
+Size:          13–16px (inline), 15–18px (buttons/nav)
+```
+
+Define SVGs inline. Core set: search, pin, clock, eye, back, menu, close, check, sparkle, user, portfolio, doc, settings.
+
+---
+
+## 13. Anti-Patterns (Never Do These)
+
+| Anti-Pattern | Why | Instead |
+|---|---|---|
+| Stats strips on interior pages | Vanity metrics don't help users act | Put data in context next to the decision it supports |
+| Example prompt chips below search bar | Redundant with intelligent dropdown | Use the dropdown's section system for all suggestions |
+| Nav bar on home/hero page | Kills the cinematic single-purpose feel | Keep hero chrome-free. Nav on interior pages. |
+| Marketing copy inside the product | Users are already here — don't sell to them | Informational tone, plain language |
+| Nested cards > 2 levels | Visual clutter, lost hierarchy | Maximum one card inside another card |
+| Bounce/spring animations | Feel cheap, break restrained-premium tone | Use `cubic-bezier(0.16, 1, 0.3, 1)` for everything |
+| Loading spinners | Feel anxious | Skeleton screens or subtle pulse on content area |
+| Solid divider lines | Too harsh for obsidian | Gradient fades: `linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)` |
+| Gradient/filled primary CTA buttons | Breaks the editorial restraint | Ghost CTAs for navigation, glass buttons for actions |
+| Box shadows on cards | Too heavy for the glass aesthetic | Use border opacity only |
+
+---
+
+## 14. Agent Implementation Checklist
+
+Before shipping any new page or component, verify:
+
+- [ ] **Action bias:** Every element helps the user act or understand what needs attention
+- [ ] **Font pairing:** `--sans` for prose/headlines, `--mono` for data/labels/inputs
+- [ ] **Colors from system:** All colors come from Section 1. No new hex values.
+- [ ] **Ghost CTAs:** No filled/gradient buttons for primary navigation
+- [ ] **Progressive disclosure:** Summary first, detail on demand
+- [ ] **Mobile tested:** Works at 375px without horizontal scroll
+- [ ] **Status colors semantic:** Green/amber/red only for their defined meanings
+- [ ] **Scroll reveals added:** `class="reveal"` on content sections
+- [ ] **AI disclosure present:** If AI content exists, label + disclaimer are present
+- [ ] **Data freshness shown:** If displaying permit data, freshness indicator at bottom
+- [ ] **Empty state designed:** What does the user see when there's no data?
+- [ ] **Error state designed:** What does the user see when something breaks?
+- [ ] **Reduced motion:** `prefers-reduced-motion` disables all animation
+
+---
+
+## 15. Accessibility
+
+### Reduced Motion
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+  .ambient { display: none; }
+}
+```
+
+### Focus Indicators
+
+All interactive elements get a visible focus ring:
+```css
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+```
+
+### Keyboard
+
+- `/` focuses search from anywhere
+- `Escape` closes dropdown and blurs
+- `Enter` submits search
+- Tab order follows visual order
+- Status dots always have `title` attributes
+
+---
+
+## 16. File References
+
+| File | Role | Status |
+|------|------|--------|
+| `web/static/design-system.css` | Production CSS (needs reconciliation) | Outdated — reconcile with these tokens |
+| `web/static/landing-v5.html` | Design prototype (source of truth) | Reference |
+| `web/templates/fragments/head_obsidian.html` | Shared `<head>` fragment for obsidian pages | Update with token imports |
+| `docs/DESIGN_CANON.md` | Aesthetic philosophy | Current |
+| `docs/DESIGN_PRINCIPALS.md` | Audiences and constraints | Current |
+| `docs/DESIGN_MIGRATION.md` | Template migration manifest | Current |
