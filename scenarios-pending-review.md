@@ -981,3 +981,33 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Cache miss on first-ever visit should compute and cache, not error. User with 0 watches gets clean empty state.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Share analysis email modal uses dark theme
+**Source:** results.html design token migration
+**User:** expediter
+**Starting state:** User has completed a permit analysis with an analysis_id
+**Goal:** Share the analysis with a team member via email
+**Expected outcome:** Share bar appears below results. Clicking "Email to your team" opens a modal with dark background (obsidian), monospaced email inputs, and teal focus rings. Entering valid email(s) and clicking Send delivers the share link. Modal closes on success.
+**Edge cases seen in code:** Empty email input shows validation error. More than 5 recipients blocked. Invalid email format shows inline error message. Cancel closes modal without sending.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Methodology card readable at rest
+**Source:** results.html design token migration — WCAG AA concern
+**User:** expediter
+**Starting state:** User has run a search and the results tabs are visible
+**Goal:** Read methodology disclosure labels without needing to interact
+**Expected outcome:** "How we calculated this" summary text is visible at rest (--text-secondary contrast, not faded tertiary). On hover the text turns teal (--accent). On expand, methodology body shows formula steps in monospace and data sources in footer.
+**Edge cases seen in code:** Methodology toggle checkbox persists open/closed state via localStorage. If methodology data is absent for a tab, no card is shown.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Demo page CTA matches design system
+**Source:** demo.html design token migration
+**User:** homeowner
+**Starting state:** Anonymous user arrives at /demo via landing page
+**Goal:** Get interested and click through to sign up
+**Expected outcome:** "Get Started →" CTA renders as a ghost-cta link (underline on hover, teal on hover), not a solid blue button. Clicking navigates to auth/login. Demo data cards render with dark obsidian backgrounds and readable text.
+**Edge cases seen in code:** Demo page requires demo data from the route — if no permit data, shows "No permit data available" empty state.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
