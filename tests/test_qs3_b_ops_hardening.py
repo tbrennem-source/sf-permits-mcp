@@ -208,16 +208,35 @@ class TestGetRelatedTeam:
 
 @pytest.fixture
 def app():
-    """Create a test Flask app."""
-    # Set required env vars before importing
+    """Create a test Flask app with cron worker env vars.
+
+    Uses monkeypatch-style cleanup to prevent CRON_WORKER from
+    leaking into subsequent test files and triggering the cron guard
+    (which 404s all non-cron routes).
+    """
     import os
-    os.environ.setdefault("TESTING", "1")
-    os.environ.setdefault("CRON_SECRET", "test-secret-123")
-    os.environ.setdefault("CRON_WORKER", "1")
+    _had_cron_worker = "CRON_WORKER" in os.environ
+    _had_cron_secret = "CRON_SECRET" in os.environ
+    _old_cron_worker = os.environ.get("CRON_WORKER")
+    _old_cron_secret = os.environ.get("CRON_SECRET")
+
+    os.environ["TESTING"] = "1"
+    os.environ["CRON_SECRET"] = "test-secret-123"
+    os.environ["CRON_WORKER"] = "1"
 
     from web.app import app as flask_app
     flask_app.config["TESTING"] = True
     yield flask_app
+
+    # Cleanup: restore original env state
+    if _had_cron_worker:
+        os.environ["CRON_WORKER"] = _old_cron_worker
+    else:
+        os.environ.pop("CRON_WORKER", None)
+    if _had_cron_secret:
+        os.environ["CRON_SECRET"] = _old_cron_secret
+    else:
+        os.environ.pop("CRON_SECRET", None)
 
 
 @pytest.fixture

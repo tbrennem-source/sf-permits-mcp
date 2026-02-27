@@ -17,7 +17,11 @@ from unittest.mock import patch, MagicMock
 
 @pytest.fixture
 def app():
-    """Create a Flask test application with in-memory DuckDB."""
+    """Create a Flask test application with in-memory DuckDB.
+
+    Cleans up test-specific tables after yield to prevent schema
+    pollution across test files in the same pytest session.
+    """
     import os
     os.environ.setdefault("TESTING", "1")
 
@@ -140,6 +144,20 @@ def app():
         conn.close()
 
         yield app
+
+        # Cleanup: drop test-specific tables to prevent schema pollution
+        cleanup_conn = db_mod.get_connection()
+        for table in ["prep_items", "prep_checklists"]:
+            try:
+                cleanup_conn.execute(f"DROP TABLE IF EXISTS {table}")
+            except Exception:
+                pass
+        for seq in ["prep_checklists_seq", "prep_items_seq"]:
+            try:
+                cleanup_conn.execute(f"DROP SEQUENCE IF EXISTS {seq}")
+            except Exception:
+                pass
+        cleanup_conn.close()
 
 
 @pytest.fixture

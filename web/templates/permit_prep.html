@@ -331,7 +331,7 @@
         {% include "fragments/prep_progress.html" %}
 
         {# ── What's Still Needed ── #}
-        {% set required_items = checklist.items | selectattr('status', 'equalto', 'required') | list %}
+        {% set required_items = checklist.all_items | selectattr('status', 'equalto', 'required') | list %}
         {% if required_items %}
         <div class="prep-summary-card">
             <h3>Still Needed</h3>
