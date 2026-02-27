@@ -561,11 +561,11 @@ For admin dashboards, portfolio views, and any structured data with columns.
 }
 .obs-table th {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);  /* tertiary fails WCAG AA at small sizes */
   text-align: left;
   padding: 6px var(--space-3);
   border-bottom: 1px solid var(--glass-border);
@@ -1001,7 +1001,7 @@ Inline CSS only. Use obsidian-mid background, same type hierarchy, teal accent f
 - Add colors not in the palette
 - Use font-weight above 500 on headings
 - Use filled/gradient buttons for primary CTAs
-- Add box-shadow to cards (use border only)
+- Add elevation shadows to cards (use border only; `box-shadow` OK for focus rings)
 - Use solid background colors on cards (use --obsidian-mid)
 - Add ambient glow to non-landing pages
 - Import additional fonts
@@ -1091,11 +1091,10 @@ Define SVGs inline. Core set: search, pin, clock, eye, back, menu, close, check,
 | Marketing copy inside the product | Users are already here — don't sell to them | Informational tone, plain language |
 | Nested cards > 2 levels | Visual clutter, lost hierarchy | Maximum one card inside another card |
 | Bounce/spring animations | Feel cheap, break restrained-premium tone | Use `cubic-bezier(0.16, 1, 0.3, 1)` for everything |
-| Loading spinners | Feel anxious | Skeleton screens or subtle pulse on content area |
+| Loading spinners | Feel anxious, break the calm register | Use `.skeleton` component with pulse animation. Primary use: cache-miss fallback and manual refresh. Pre-computed pages should never show skeletons. |
 | Solid divider lines | Too harsh for obsidian | Gradient fades: `linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)` |
 | Gradient/filled buttons | No filled or gradient backgrounds on any button | Ghost CTAs for navigation, glass action-btn for functional actions |
 | Elevation shadows on cards | Drop shadows break the glass-on-obsidian aesthetic | Use border opacity only. (`box-shadow` IS allowed for focus rings and glow effects.) |
-| Loading spinners | Feel anxious, break the calm register | Use `.skeleton` component with pulse animation |
 
 ---
 
