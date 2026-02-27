@@ -14,6 +14,12 @@ RUN pip install --no-cache-dir -r web/requirements.txt
 COPY src/ /app/src/
 COPY data/knowledge/ /app/data/knowledge/
 
+# Docs + sprint prompts — readable by c.ai via read_source MCP tool
+COPY docs/ /app/docs/
+COPY sprint-prompts/ /app/sprint-prompts/
+COPY CLAUDE.md /app/CLAUDE.md
+COPY CHANGELOG.md /app/CHANGELOG.md
+
 ENV PYTHONPATH=/app
 
 # Railway sets PORT dynamically; mcp.run() reads it via the FastMCP constructor
