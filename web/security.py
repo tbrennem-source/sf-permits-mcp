@@ -2,6 +2,7 @@
 
 Provides:
   - Security response headers (CSP, HSTS, X-Frame-Options, etc.)
+  - CSRF protection for POST/PUT/PATCH/DELETE requests
   - User-agent blocking for bots/scrapers
   - Daily request limit checking
 """
@@ -9,8 +10,10 @@ from __future__ import annotations
 
 import logging
 import os
+import secrets
 import time
 
+from flask import abort, request, session
 from src.db import BACKEND, query
 
 logger = logging.getLogger(__name__)
@@ -43,18 +46,20 @@ def add_security_headers(response):
     )
     response.headers["Content-Security-Policy"] = csp
 
-    # CSP Report-Only — nonce-based policy for monitoring violations
-    # Keeps 'unsafe-inline' as fallback so nothing breaks.
+    # CSP Report-Only — nonce-based policy for monitoring violations.
+    # Includes 'unsafe-inline' as fallback so browsers that don't support nonces
+    # still work. When a nonce is present, browsers ignore 'unsafe-inline'.
     # Violations are logged to /api/csp-report for analysis.
+    # Once violations reach zero, swap this to the enforced header.
     nonce = getattr(g, "csp_nonce", "")
     if nonce:
         csp_ro = (
             f"default-src 'self'; "
-            f"script-src 'self' 'nonce-{nonce}' 'unsafe-inline'; "
-            f"style-src 'self' 'nonce-{nonce}' 'unsafe-inline'; "
-            f"img-src 'self' data: blob:; "
-            f"font-src 'self'; "
-            f"connect-src 'self'; "
+            f"script-src 'nonce-{nonce}' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
+            f"style-src 'nonce-{nonce}' 'unsafe-inline' https://fonts.googleapis.com; "
+            f"font-src 'self' https://fonts.gstatic.com; "
+            f"img-src 'self' data: blob: https:; "
+            f"connect-src 'self' https://*.posthog.com; "
             f"frame-ancestors 'none'; "
             f"base-uri 'self'; "
             f"form-action 'self'; "
@@ -171,3 +176,64 @@ EXTENDED_BLOCKED_PATHS = {
     "/api/v1", "/graphql", "/console", "/.aws",
     "/debug", "/metrics", "/actuator/health",
 }
+
+
+# ---------------------------------------------------------------------------
+# CSRF Protection (QS4-D)
+# ---------------------------------------------------------------------------
+
+def _generate_csrf_token():
+    """Generate or retrieve CSRF token for the current session."""
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_hex(32)
+    return session["csrf_token"]
+
+
+# Paths that use their own auth and skip CSRF validation
+_CSRF_SKIP_PREFIXES = ("/api/csp-report", "/auth/test-login", "/cron/")
+
+
+def _csrf_protect():
+    """Validate CSRF token on state-changing requests.
+
+    Checks form field 'csrf_token' or header 'X-CSRFToken'.
+    Skips: GET/HEAD/OPTIONS, CRON_SECRET-authenticated endpoints,
+    /api/csp-report, /auth/test-login, /cron/*.
+    """
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        return
+
+    # Skip endpoints that use their own auth mechanisms
+    if any(request.path.startswith(p) for p in _CSRF_SKIP_PREFIXES):
+        return
+
+    # Skip Bearer-authenticated requests (cron jobs, API clients)
+    if request.headers.get("Authorization", "").startswith("Bearer "):
+        return
+
+    token = (
+        request.form.get("csrf_token")
+        or request.headers.get("X-CSRFToken")
+        or ""
+    )
+    expected = session.get("csrf_token", "")
+    if not expected or not secrets.compare_digest(token, expected):
+        abort(403)
+
+
+def init_security(app):
+    """Register CSRF protection with a Flask app.
+
+    Adds:
+    - csrf_token context processor (available in all templates)
+    - before_request CSRF check (skipped in TESTING mode)
+    """
+    @app.context_processor
+    def csrf_context():
+        return {"csrf_token": _generate_csrf_token()}
+
+    @app.before_request
+    def csrf_check():
+        if app.config.get("TESTING"):
+            return
+        _csrf_protect()

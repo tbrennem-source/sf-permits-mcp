@@ -273,11 +273,12 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/mobile.css">
 </head>
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     {% if session.get('impersonating') %}
     <div class="impersonate-banner">
         Viewing as {{ session.impersonating }}
         <form method="POST" action="/auth/stop-impersonate">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit">Stop impersonating</button>
         </form>
     </div>

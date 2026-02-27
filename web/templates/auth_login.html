@@ -137,6 +137,7 @@
         </p>
 
         <form method="POST" action="/auth/send-link">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="email" name="email" placeholder="you@example.com" required autofocus>
             {% if invite_required %}
             <p class="invite-label">Invite code (required for new accounts)</p>

@@ -52,6 +52,7 @@
           hx-target="#freq-status"
           hx-swap="innerHTML"
           style="display:flex;align-items:center;gap:12px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <select name="brief_frequency" style="padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.9rem;">
             <option value="none" {{ 'selected' if (user.brief_frequency or 'none') == 'none' else '' }}>No emails</option>
             <option value="daily" {{ 'selected' if user.brief_frequency == 'daily' else '' }}>Daily brief</option>
@@ -67,6 +68,7 @@
               hx-target="#notify-status"
               hx-swap="innerHTML"
               style="display:flex;align-items:flex-start;gap:10px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="checkbox" name="notify_permit_changes" id="notify_permit_changes"
                    value="1"
                    {% if user.notify_permit_changes %}checked{% endif %}
@@ -189,6 +191,7 @@
           hx-target="#watch-add-status"
           hx-swap="innerHTML"
           onsubmit="setTimeout(function(){ location.reload(); }, 800);">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <input type="text" name="street_number" placeholder="Street #" style="width:70px;" autocomplete="off">
         <input type="text" name="street_name" placeholder="Street name" style="flex:1;min-width:140px;" autocomplete="off">
         <input type="hidden" name="watch_type" value="address">
