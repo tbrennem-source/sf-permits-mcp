@@ -8,53 +8,55 @@
     {% include "fragments/head_obsidian.html" %}
     <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
     <style nonce="{{ csp_nonce }}">
-        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 var(--space-6); }
         /* header styles provided by fragments/nav.html */
         /* badge-active provided by fragments/nav.html */
-        main { padding: 40px 0 80px; }
-        h1 { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 4px; }
-        .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
+        main { padding: var(--space-10) 0 var(--space-20); }
+        h1 { font-family: var(--sans); font-weight: 400; font-size: var(--text-xl); margin-bottom: var(--space-1); color: var(--text-primary); }
+        .subtitle { color: var(--text-secondary); margin-bottom: var(--space-6); font-size: var(--text-sm); font-family: var(--sans); }
 
         /* Summary cards */
         .summary-row {
-            display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;
+            display: flex; gap: var(--space-3); margin-bottom: var(--space-7, 28px); flex-wrap: wrap;
         }
         .summary-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--card-radius, 10px); box-shadow: var(--card-shadow, 0 4px 24px rgba(0,0,0, 0.3));
-            padding: 16px 20px; flex: 1; min-width: 120px;
-            text-align: center;
+            background: var(--obsidian-mid); border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); flex: 1; min-width: 120px;
+            text-align: center; transition: border-color 0.3s;
         }
-        .summary-number { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
-        .summary-label { font-family: var(--font-display); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .summary-card.alert .summary-number { color: var(--error); }
-        .summary-card.warn .summary-number { color: var(--warning); }
-        .summary-card.ok .summary-number { color: var(--success); }
+        .summary-card:hover { border-color: var(--glass-hover); }
+        .summary-number { font-family: var(--mono); font-size: 1.8rem; font-weight: 300; color: var(--text-primary); }
+        .summary-label { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+        .summary-card.alert .summary-number { color: var(--signal-red); }
+        .summary-card.warn .summary-number { color: var(--signal-amber); }
+        .summary-card.ok .summary-number { color: var(--signal-green); }
 
         /* Sections */
         .section {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--card-radius, 12px); box-shadow: var(--card-shadow, 0 4px 24px rgba(0,0,0, 0.3));
-            padding: 24px; margin-bottom: 24px;
+            background: var(--obsidian-mid); border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md); padding: var(--space-6); margin-bottom: var(--space-6);
+            transition: border-color 0.3s;
         }
-        .section h2 { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 16px; color: var(--accent); }
-        .section-empty { color: var(--text-muted); font-style: italic; font-size: 0.9rem; }
+        .section:hover { border-color: var(--glass-hover); }
+        .section h2 { font-family: var(--sans); font-weight: 400; font-size: var(--text-lg); margin-bottom: var(--space-4); color: var(--accent); }
+        .section-empty { color: var(--text-secondary); font-style: italic; font-size: var(--text-sm); font-family: var(--sans); }
 
         /* Lookback toggle */
-        .lookback-toggle { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .lookback-toggle { display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap; }
         .lookback-btn {
-            padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
-            background: var(--surface-2); color: var(--text-muted); cursor: pointer;
-            font-size: 0.8rem; font-family: inherit; text-decoration: none;
+            padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border);
+            background: var(--obsidian-light); color: var(--text-secondary); cursor: pointer;
+            font-size: var(--text-xs); font-family: var(--mono); text-decoration: none; transition: border-color 0.2s, color 0.2s;
         }
-        .lookback-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .lookback-btn:hover { border-color: var(--glass-hover); color: var(--text-primary); }
+        .lookback-btn.active { background: var(--accent); color: var(--obsidian); border-color: var(--accent); }
         .lookback-btn.loading {
             color: var(--accent) !important;
             animation: lookback-pulse 0.5s ease-in-out infinite alternate;
         }
         @keyframes lookback-pulse {
-            from { border-color: rgba(79,143,247,0.3); }
-            to   { border-color: rgba(79,143,247,1); }
+            from { border-color: var(--accent-ring); }
+            to   { border-color: var(--accent); }
         }
 
         /* Clickable summary cards */
@@ -68,159 +70,218 @@
         /* Change cards */
         .change-card {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid var(--border);
+            padding: var(--space-3) 0; border-bottom: 1px solid var(--glass-border);
         }
         .change-card:last-child { border-bottom: none; }
         .change-meta { display: flex; flex-direction: column; }
-        .change-permit { font-weight: 500; font-size: 0.95rem; }
-        .change-permit a { color: var(--text); text-decoration: none; }
+        .change-permit { font-weight: 500; font-size: var(--text-base); font-family: var(--sans); }
+        .change-permit a { color: var(--text-primary); text-decoration: none; }
         .change-permit a:hover { color: var(--accent); text-decoration: underline; }
-        .change-detail { font-size: 0.8rem; color: var(--text-muted); }
+        .change-detail { font-size: var(--text-sm); color: var(--text-secondary); font-family: var(--sans); }
         .status-badge {
-            display: inline-block; padding: 2px 8px; border-radius: 4px;
-            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm);
+            font-size: var(--text-xs); font-weight: 500; text-transform: uppercase;
+            font-family: var(--mono);
         }
-        .status-filed { background: rgba(79, 143, 247, 0.15); color: var(--accent); }
-        .status-approved { background: rgba(52, 211, 153, 0.15); color: var(--success); }
-        .status-issued { background: rgba(52, 211, 153, 0.2); color: var(--success); }
-        .status-completed { background: rgba(52, 211, 153, 0.3); color: var(--success); }
-        .status-expired, .status-cancelled { background: rgba(248, 113, 113, 0.15); color: var(--error); }
-        .status-activity { background: rgba(79, 143, 247, 0.12); color: var(--accent); }
-        .status-on_track { background: rgba(52, 211, 153, 0.12); color: var(--success); }
-        .status-slower { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
-        .status-behind { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
-        .status-at_risk { background: rgba(248, 113, 113, 0.15); color: var(--error); }
-        .status-arrow { color: var(--text-muted); margin: 0 4px; }
+        .status-filed { background: var(--accent-glow); color: var(--accent); }
+        .status-approved { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
+        .status-issued { background: rgba(52, 211, 153, 0.2); color: var(--signal-green); }
+        .status-completed { background: rgba(52, 211, 153, 0.3); color: var(--signal-green); }
+        .status-expired, .status-cancelled { background: rgba(248, 113, 113, 0.15); color: var(--signal-red); }
+        .status-activity { background: var(--accent-glow); color: var(--accent); }
+        .status-on_track { background: rgba(52, 211, 153, 0.12); color: var(--signal-green); }
+        .status-slower { background: rgba(251, 191, 36, 0.12); color: var(--signal-amber); }
+        .status-behind { background: rgba(251, 191, 36, 0.2); color: var(--signal-amber); }
+        .status-at_risk { background: rgba(248, 113, 113, 0.15); color: var(--signal-red); }
+        .status-arrow { color: var(--text-secondary); margin: 0 var(--space-1); }
 
         /* Health bars */
         .health-item {
-            padding: 14px 0; border-bottom: 1px solid var(--border);
+            padding: var(--space-3) 0; border-bottom: 1px solid var(--glass-border);
         }
         .health-item:last-child { border-bottom: none; }
-        .health-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .health-label { font-family: var(--font-body); font-weight: 500; font-size: 0.9rem; }
-        .health-label a { color: var(--text); text-decoration: none; }
+        .health-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-1); }
+        .health-label { font-family: var(--sans); font-weight: 400; font-size: var(--text-sm); }
+        .health-label a { color: var(--text-primary); text-decoration: none; }
         .health-label a:hover { color: var(--accent); text-decoration: underline; }
         .health-status {
-            font-family: var(--font-display); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
-            padding: 2px 8px; border-radius: 4px;
+            font-family: var(--mono); font-size: var(--text-xs); font-weight: 400; text-transform: uppercase;
+            padding: 2px 8px; border-radius: var(--radius-sm); letter-spacing: 0.04em;
         }
-        .health-on_track { background: rgba(52, 211, 153, 0.15); color: var(--success); }
-        .health-slower { background: rgba(251, 191, 36, 0.12); color: var(--warning); }
-        .health-behind { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
-        .health-at_risk { background: rgba(248, 113, 113, 0.25); color: var(--error); }
+        .health-on_track { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
+        .health-slower { background: rgba(251, 191, 36, 0.12); color: var(--signal-amber); }
+        .health-behind { background: rgba(251, 191, 36, 0.2); color: var(--signal-amber); }
+        .health-at_risk { background: rgba(248, 113, 113, 0.25); color: var(--signal-red); }
         .progress-track {
-            height: 8px; background: var(--surface-2); border-radius: 4px;
-            position: relative; overflow: visible; margin-top: 4px;
+            height: 4px; background: var(--glass); border-radius: 2px;
+            position: relative; overflow: hidden; margin-top: var(--space-1);
         }
         .progress-fill {
-            height: 100%; border-radius: 4px; transition: width 0.3s;
+            height: 100%; border-radius: 2px; transition: width 0.3s;
+            background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
         }
-        .progress-fill.on_track { background: var(--success); }
-        .progress-fill.slower { background: var(--warning); }
-        .progress-fill.behind { background: var(--warning); }
-        .progress-fill.at_risk { background: var(--error); }
-        .health-detail { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .progress-fill.on_track { background: linear-gradient(90deg, var(--signal-green), rgba(52, 211, 153, 0.4)); }
+        .progress-fill.slower { background: linear-gradient(90deg, var(--signal-amber), rgba(251, 191, 36, 0.4)); }
+        .progress-fill.behind { background: linear-gradient(90deg, var(--signal-amber), rgba(251, 191, 36, 0.4)); }
+        .progress-fill.at_risk { background: linear-gradient(90deg, var(--signal-red), rgba(248, 113, 113, 0.4)); }
+        .health-detail { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); font-family: var(--mono); }
+
+        /* Plan review result badges */
+        .plan-result-approved { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
+        .plan-result-comments { background: rgba(251, 191, 36, 0.15); color: var(--signal-amber); }
+        .plan-result-other { background: var(--glass); color: var(--text-secondary); }
+        .plan-result-routed { background: var(--accent-glow); color: var(--accent); }
 
         /* Inspection results */
-        .insp-pass { color: var(--success); }
-        .insp-fail { color: var(--error); }
-        .insp-other { color: var(--text-muted); }
+        .insp-pass { color: var(--signal-green); }
+        .insp-fail { color: var(--signal-red); }
+        .insp-other { color: var(--text-secondary); }
 
         /* Expiring */
-        .expire-urgent { color: var(--error); font-weight: 600; }
-        .expire-warning { color: var(--warning); }
+        .expire-urgent { color: var(--signal-red); font-weight: 600; font-family: var(--mono); }
+        .expire-warning { color: var(--signal-amber); font-family: var(--mono); }
 
         /* Onboarding empty state */
         .onboarding {
             text-align: center;
-            padding: 48px 24px;
+            padding: var(--space-12) var(--space-6);
         }
-        .onboarding h2 { color: var(--text); font-size: 1.2rem; margin-bottom: 12px; }
-        .onboarding p { color: var(--text-muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .onboarding h2 { color: var(--text-primary); font-family: var(--sans); font-weight: 400; font-size: var(--text-xl); margin-bottom: var(--space-3); }
+        .onboarding p { color: var(--text-secondary); font-family: var(--sans); margin-bottom: var(--space-5); max-width: 480px; margin-left: auto; margin-right: auto; }
         .onboarding .btn {
             display: inline-block;
             padding: 10px 24px;
             background: var(--accent);
-            color: #fff;
+            color: var(--obsidian);
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
+            border-radius: var(--radius-sm);
+            font-family: var(--mono);
+            font-weight: 400;
+            font-size: var(--text-sm);
         }
-        .onboarding .btn:hover { background: var(--accent-hover); }
+        .onboarding .btn:hover { opacity: 0.9; }
 
         /* Reviewed (dismiss) */
         .btn-dismiss {
-            background: none; border: 1px solid var(--border); color: var(--text-muted);
-            padding: 3px 10px; border-radius: 5px; cursor: pointer;
-            font-size: 0.75rem; font-family: inherit; margin-left: 8px;
+            background: none; border: 1px solid var(--glass-border); color: var(--text-secondary);
+            padding: 3px 10px; border-radius: var(--radius-sm); cursor: pointer;
+            font-size: var(--text-xs); font-family: var(--mono); margin-left: var(--space-2);
+            transition: border-color 0.2s, color 0.2s;
         }
-        .btn-dismiss:hover { border-color: var(--success); color: var(--success); }
+        .btn-dismiss:hover { border-color: var(--signal-green); color: var(--signal-green); }
 
         /* Property snapshot grid */
         .property-snapshot-grid {
-            display: grid; gap: 16px; grid-template-columns: 1fr;
+            display: grid; gap: var(--space-4); grid-template-columns: 1fr;
         }
         @media (min-width: 640px) {
             .property-snapshot-grid { grid-template-columns: 1fr 1fr; }
         }
         .prop-card {
-            background: var(--surface-2); border: 1px solid var(--border);
-            border-radius: var(--card-radius, 10px); box-shadow: var(--card-shadow, 0 4px 24px rgba(0,0,0, 0.3));
-            padding: 16px;
+            background: var(--obsidian-light); border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md); padding: var(--space-4);
+            transition: border-color 0.2s;
         }
-        .prop-card.health-at_risk { border-left: 3px solid var(--error); }
-        .prop-card.health-behind { border-left: 3px solid var(--warning); }
+        .prop-card:hover { border-color: var(--glass-hover); }
+        .prop-card.health-at_risk { border-left: 3px solid var(--signal-red); }
+        .prop-card.health-behind { border-left: 3px solid var(--signal-amber); }
         .prop-card.health-slower { border-left: 3px solid rgba(251,191,36,0.5); }
-        .prop-card.health-on_track { border-left: 3px solid var(--success); }
+        .prop-card.health-on_track { border-left: 3px solid var(--signal-green); }
         .prop-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-1);
         }
         .prop-address {
-            font-weight: 600; font-size: 1rem; color: var(--text); text-decoration: none;
+            font-family: var(--mono); font-weight: 400; font-size: var(--text-base); color: var(--text-primary); text-decoration: none;
         }
         .prop-address:hover { color: var(--accent); }
         .health-dot {
-            display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px;
+            display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-full); margin-right: var(--space-1);
         }
-        .health-dot.on_track { background: var(--success); }
-        .health-dot.slower { background: var(--warning); }
-        .health-dot.behind { background: var(--warning); }
-        .health-dot.at_risk { background: var(--error); }
+        .health-dot.on_track { background: var(--dot-green); }
+        .health-dot.slower { background: var(--dot-amber); }
+        .health-dot.behind { background: var(--dot-amber); }
+        .health-dot.at_risk { background: var(--dot-red); }
         .health-text {
-            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+            font-family: var(--mono); font-size: var(--text-xs); font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em;
         }
-        .health-text.on_track { color: var(--success); }
-        .health-text.slower { color: var(--warning); }
-        .health-text.behind { color: var(--warning); }
-        .health-text.at_risk { color: var(--error); }
+        .health-text.on_track { color: var(--signal-green); }
+        .health-text.slower { color: var(--signal-amber); }
+        .health-text.behind { color: var(--signal-amber); }
+        .health-text.at_risk { color: var(--signal-red); }
         .prop-health-reason {
-            font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;
-            font-style: italic;
+            font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-1);
+            font-style: italic; font-family: var(--sans);
         }
-        .prop-card.health-at_risk .prop-health-reason { color: var(--error); opacity: 0.8; }
-        .prop-card.health-behind .prop-health-reason { color: var(--warning); opacity: 0.9; }
-        .prop-card.health-slower .prop-health-reason { color: var(--warning); opacity: 0.7; }
-        .prop-recency { font-size: 0.72rem; margin-bottom: 6px; }
-        .prop-recency.fresh { color: var(--success); }
-        .prop-recency.stale { color: var(--text-muted); }
-        .prop-stats { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
-        .prop-enforcement { margin-bottom: 8px; }
+        .prop-card.health-at_risk .prop-health-reason { color: var(--signal-red); opacity: 0.8; }
+        .prop-card.health-behind .prop-health-reason { color: var(--signal-amber); opacity: 0.9; }
+        .prop-card.health-slower .prop-health-reason { color: var(--signal-amber); opacity: 0.7; }
+        .prop-recency { font-family: var(--mono); font-size: var(--text-xs); margin-bottom: var(--space-1); }
+        .prop-recency.fresh { color: var(--signal-green); }
+        .prop-recency.stale { color: var(--text-secondary); }
+        .prop-stats { font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-2); font-family: var(--sans); }
+        .prop-enforcement { margin-bottom: var(--space-2); }
         .enforcement-badge {
-            display: inline-block; padding: 2px 8px; border-radius: 4px;
-            font-size: 0.75rem; font-weight: 500;
+            display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm);
+            font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
         }
-        .enforcement-badge.clear { background: rgba(52,211,153,0.12); color: var(--success); }
-        .enforcement-badge.alert { background: rgba(248,113,113,0.15); color: var(--error); }
-        .enforcement-badge.unknown { color: var(--text-muted); font-style: italic; font-size: 0.75rem; }
-        .prop-routing { margin-top: 8px; }
-        .routing-label { font-size: 0.8rem; color: var(--text); margin-bottom: 4px; }
-        .routing-alert { font-size: 0.75rem; margin-top: 4px; }
-        .routing-alert.stalled { color: var(--error); }
-        .routing-alert.held { color: var(--warning); }
-        .routing-pending { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-        .routing-velocity { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+        .enforcement-badge.clear { background: rgba(52,211,153,0.12); color: var(--signal-green); }
+        .enforcement-badge.alert { background: rgba(248,113,113,0.15); color: var(--signal-red); }
+        .enforcement-badge.unknown { color: var(--text-secondary); font-style: italic; font-size: var(--text-xs); }
+        .prop-routing { margin-top: var(--space-2); }
+        .routing-label { font-family: var(--sans); font-size: var(--text-sm); color: var(--text-primary); margin-bottom: var(--space-1); }
+        .routing-alert { font-family: var(--mono); font-size: var(--text-xs); margin-top: var(--space-1); }
+        .routing-alert.stalled { color: var(--signal-red); }
+        .routing-alert.held { color: var(--signal-amber); }
+        .routing-pending { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); }
+        .routing-velocity { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); font-style: italic; }
+
+        /* Stale data warning */
+        .data-stale-warning {
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: var(--radius-sm);
+            padding: 10px var(--space-4);
+            margin-bottom: var(--space-4);
+            font-size: var(--text-sm);
+            color: var(--signal-amber);
+            font-family: var(--sans);
+        }
+
+        /* All quiet empty state */
+        .all-quiet-card {
+            background: var(--accent-glow);
+            border: 1px solid var(--accent-ring);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            text-align: center;
+        }
+        .all-quiet-card .all-quiet-icon { font-size: var(--text-xl); margin-bottom: var(--space-2); }
+        .all-quiet-card .all-quiet-title { font-family: var(--sans); font-weight: 400; color: var(--text-primary); margin-bottom: var(--space-1); }
+        .all-quiet-card .all-quiet-body { color: var(--text-secondary); font-family: var(--sans); font-size: var(--text-sm); max-width: 480px; margin: 0 auto; }
+
+        /* Cache freshness row */
+        .cache-freshness {
+            display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);
+        }
+        .cache-freshness__time {
+            font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);
+        }
+
+        /* Regulatory alert impact badges */
+        .impact-high { background: rgba(248,113,113,0.15); color: var(--signal-red); }
+        .impact-moderate { background: rgba(251,191,36,0.15); color: var(--signal-amber); }
+        .impact-low { background: var(--accent-glow); color: var(--accent); }
+        .impact-badge {
+            font-family: var(--mono); font-size: var(--text-xs); padding: 1px 6px;
+            border-radius: 3px; text-transform: uppercase; font-weight: 400;
+        }
+
+        /* Email pref link */
+        .email-pref-link {
+            color: var(--text-secondary); font-family: var(--mono); font-size: var(--text-xs); text-decoration: none;
+        }
+        .email-pref-link:hover { color: var(--accent); }
     </style>
 </head>
 <body class="obsidian">
@@ -240,9 +301,22 @@
                     &middot; Data as of {{ brief.last_refresh.last_success_date }}
                 {% endif %}
             </p>
+
+            {% if brief.cached_at %}
+            <div class="cache-freshness">
+                <span class="status-dot status-dot--green" title="Cached"></span>
+                <span class="cache-freshness__time">Updated {{ brief.cached_at[:16] }}</span>
+                {% if brief.can_refresh %}
+                <form method="post" action="{{ url_for('misc.brief_refresh') }}" style="display: inline;">
+                    <button type="submit" class="ghost-cta" style="font-size: var(--text-xs);">Refresh &rarr;</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+
             {% if brief.last_refresh and brief.last_refresh.is_stale %}
-            <div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--warning);">
-                &#9888; Data may be incomplete &mdash; last refresh was {{ brief.last_refresh.hours_ago|int }} hours ago.
+            <div class="data-stale-warning">
+                ⚠ Data may be incomplete &mdash; last refresh was {{ brief.last_refresh.hours_ago|int }} hours ago.
                 {% if brief.last_refresh.was_catchup %}Some changes were recovered via backfill.{% endif %}
             </div>
             {% endif %}
@@ -257,9 +331,9 @@
 
             {% if brief.property_synopsis %}
             <!-- Property Synopsis -->
-            <div class="section" style="margin-bottom:28px;">
+            <div class="section" style="margin-bottom: var(--space-7, 28px);">
                 <h2>Your Property</h2>
-                <div class="summary-row" style="margin-bottom:16px;">
+                <div class="summary-row" style="margin-bottom: var(--space-4);">
                     <div class="summary-card">
                         <div class="summary-number">{{ brief.property_synopsis.total_permits }}</div>
                         <div class="summary-label">Total Permits</div>
@@ -274,11 +348,11 @@
                     </div>
                 </div>
                 {% if brief.property_synopsis.latest_permit %}
-                <div style="margin-bottom:12px;">
-                    <span style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;">Most Recent</span>
-                    <div style="margin-top:4px;">
+                <div style="margin-bottom: var(--space-3);">
+                    <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">Most Recent</span>
+                    <div style="margin-top: var(--space-1);">
                         <a href="/?q={{ brief.property_synopsis.latest_permit.permit_number }}"
-                           style="color:var(--accent);text-decoration:none;font-weight:500;">
+                           style="font-family: var(--mono); color: var(--accent); text-decoration: none; font-weight: 400;">
                             {{ brief.property_synopsis.latest_permit.permit_number }}
                         </a>
                         &middot;
@@ -291,32 +365,30 @@
                         {% endif %}
                     </div>
                     {% if brief.property_synopsis.latest_permit.description %}
-                    <div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px;">
+                    <div style="font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-1);">
                         {{ brief.property_synopsis.latest_permit.description }}
                     </div>
                     {% endif %}
                 </div>
                 {% endif %}
                 {% if brief.property_synopsis.top_types %}
-                <div style="font-size:0.8rem;color:var(--text-muted);">
-                    <span style="text-transform:uppercase;">Permit Types:</span>
+                <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">
+                    <span style="text-transform: uppercase; letter-spacing: 0.06em;">Permit Types:</span>
                     {% for ptype, count in brief.property_synopsis.top_types %}
                         {{ ptype }} ({{ count }}){% if not loop.last %},{% endif %}
                     {% endfor %}
                 </div>
                 {% endif %}
                 {% if brief.property_synopsis.block and brief.property_synopsis.lot %}
-                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">
+                <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-2);">
                     Block {{ brief.property_synopsis.block }}, Lot {{ brief.property_synopsis.lot }}
                     {% if brief.property_synopsis.earliest_date and brief.property_synopsis.latest_date %}
                     &middot; Permit history: {{ brief.property_synopsis.earliest_date }} &ndash; {{ brief.property_synopsis.latest_date }}
                     {% endif %}
                 </div>
-                <div style="margin-top:12px;">
+                <div style="margin-top: var(--space-3);">
                     <a href="/report/{{ brief.property_synopsis.block }}/{{ brief.property_synopsis.lot }}"
-                       style="display:inline-block;padding:8px 18px;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.85rem;">
-                        View Property Report &rarr;
-                    </a>
+                       class="ghost-cta">View Property Report &rarr;</a>
                 </div>
                 {% endif %}
             </div>
@@ -376,13 +448,13 @@
                             {% if c.permit_type %} &middot; {{ c.permit_type }}{% endif %}
                         </span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap;">
                         {% if c.latest_permit_status %}
-                        <span class="status-badge status-{{ c.latest_permit_status|lower }}" style="font-size:0.65rem;">{{ c.latest_permit_status }}</span>
+                        <span class="status-badge status-{{ c.latest_permit_status|lower }}">{{ c.latest_permit_status }}</span>
                         {% endif %}
-                        <span style="font-size:0.65rem;color:var(--text-muted);">{{ c.days_since_activity }}d ago</span>
-                        <span style="font-size:0.65rem;color:var(--text-muted);">&middot; {{ c.active_permits }} active of {{ c.total_permits }}</span>
-                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
+                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">{{ c.days_since_activity }}d ago</span>
+                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">&middot; {{ c.active_permits }} active of {{ c.total_permits }}</span>
+                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">✓</button>
                     </div>
                     {% else %}
                     {# Permit-level status transition (from permit_changes detection log) #}
@@ -397,16 +469,16 @@
                             {% if c.permit_type %} &middot; {{ c.permit_type }}{% endif %}
                         </span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap;">
                         {% if c.old_status %}
                         <span class="status-badge status-{{ c.old_status|lower }}">{{ c.old_status }}</span>
                         <span class="status-arrow">&rarr;</span>
                         {% endif %}
                         <span class="status-badge status-{{ c.new_status|lower }}">{{ c.new_status }}</span>
                         {% if c.change_date %}
-                        <span style="font-size:0.65rem;color:var(--text-muted);">{{ c.change_date }}</span>
+                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">{{ c.change_date }}</span>
                         {% endif %}
-                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
+                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">✓</button>
                     </div>
                     {% endif %}
                 </div>
@@ -429,55 +501,55 @@
                         <span class="change-permit">
                             <a href="/?q={{ pr.permit_number }}">{{ pr.label or pr.permit_number }}</a>
                         </span>
-                        <span class="change-date">{{ pr.change_date }}</span>
+                        <span class="change-detail">{{ pr.change_date }}</span>
                     </div>
                     <div class="change-detail">
                         <strong>{{ pr.station }}</strong>
-                        {% if pr.department %}<span style="color:var(--text-muted);"> ({{ pr.department }})</span>{% endif %}
+                        {% if pr.department %}<span style="color:var(--text-secondary);"> ({{ pr.department }})</span>{% endif %}
                         {% if pr.reviewer %} &middot; {{ pr.reviewer }}{% endif %}
                     </div>
                     <div>
                         {% if pr.result == 'Approved' %}
-                        <span class="status-badge" style="background:#059669;color:#fff;">{{ pr.result }}</span>
+                        <span class="status-badge plan-result-approved">{{ pr.result }}</span>
                         {% elif pr.result == 'Issued Comments' %}
-                        <span class="status-badge" style="background:#d97706;color:#fff;">{{ pr.result }}</span>
+                        <span class="status-badge plan-result-comments">{{ pr.result }}</span>
                         {% elif pr.result %}
-                        <span class="status-badge" style="background:#6b7280;color:#fff;">{{ pr.result }}</span>
+                        <span class="status-badge plan-result-other">{{ pr.result }}</span>
                         {% else %}
-                        <span class="status-badge" style="background:#3b82f6;color:#fff;">Routed</span>
+                        <span class="status-badge plan-result-routed">Routed</span>
                         {% endif %}
                     </div>
                     {% if pr.notes %}
-                    <div style="margin-top:4px;font-size:0.85rem;color:var(--text-muted);">{{ pr.notes }}</div>
+                    <div style="margin-top: var(--space-1); font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary);">{{ pr.notes }}</div>
                     {% endif %}
                     {# Routing context + velocity #}
                     {% if pr.routing_completion_pct is defined and pr.routing_completion_pct is not none %}
-                    <div style="margin-top:6px;">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <div class="progress-track" style="flex:1;height:6px;">
+                    <div style="margin-top: var(--space-1);">
+                        <div style="display:flex;align-items:center;gap:var(--space-2);">
+                            <div class="progress-track" style="flex:1;">
                                 <div class="progress-fill {{ 'on_track' if pr.routing_completion_pct >= 50 else 'slower' }}"
                                      style="width:{{ pr.routing_completion_pct }}%"></div>
                             </div>
-                            <span style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                            <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);white-space:nowrap;">
                                 {{ pr.routing_completed_stations }}/{{ pr.routing_total_stations }} stations
                             </span>
                         </div>
                         {% if pr.station_typical_label %}
-                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">
+                        <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);margin-top:var(--space-1);">
                             {{ pr.station }} typically takes {{ pr.station_typical_label }}
                         </div>
                         {% endif %}
                         {% if pr.routing_pending_stations %}
-                        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">
+                        <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);margin-top:var(--space-1);">
                             Waiting on: {{ pr.routing_pending_stations | join(', ') }}
                         </div>
                         {% endif %}
                         {# Sprint 60B: Station path prediction #}
                         {% if pr.predicted_next %}
-                        <div style="font-size:0.75rem;color:var(--accent, #4f8ff7);margin-top:3px;font-weight:500;">
+                        <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--accent);margin-top:var(--space-1);">
                             Predicted next: {{ pr.predicted_next }}
                             {% if pr.predicted_next_days %} (~{{ pr.predicted_next_days }} days){% endif %}
-                            {% if pr.predicted_remaining_days %} · Est. {{ pr.predicted_remaining_days }} days remaining{% endif %}
+                            {% if pr.predicted_remaining_days %} &middot; Est. {{ pr.predicted_remaining_days }} days remaining{% endif %}
                         </div>
                         {% endif %}
                     </div>
@@ -489,7 +561,7 @@
 
             {# ===== Your Properties — always visible when property cards exist ===== #}
             {% if brief.property_cards %}
-            <div class="section" id="section-properties" style="margin-bottom:28px;">
+            <div class="section" id="section-properties" style="margin-bottom: var(--space-7, 28px);">
                 <h2>Your Properties</h2>
                 <div class="property-snapshot-grid" id="property-grid">
                     {% for prop in brief.property_cards %}
@@ -529,9 +601,9 @@
                             {% if prop.enforcement_total is none %}
                             <span class="enforcement-badge unknown">&mdash; Enforcement data not available</span>
                             {% elif prop.enforcement_total == 0 %}
-                            <span class="enforcement-badge clear">&#10003; No open violations or complaints</span>
+                            <span class="enforcement-badge clear">✓ No open violations or complaints</span>
                             {% else %}
-                            <span class="enforcement-badge alert">&#9888;
+                            <span class="enforcement-badge alert">⚠
                                 {% if prop.open_violations %}{{ prop.open_violations }} violation{{ 's' if prop.open_violations != 1 else '' }}{% endif %}{% if prop.open_violations and prop.open_complaints %} + {% endif %}{% if prop.open_complaints %}{{ prop.open_complaints }} complaint{{ 's' if prop.open_complaints != 1 else '' }}{% endif %}
                             </span>
                             {% endif %}
@@ -547,10 +619,10 @@
                                      style="width:{{ prop.routing.completion_pct }}%"></div>
                             </div>
                             {% if prop.routing.stalled_stations %}
-                            <div class="routing-alert stalled">&#9888; Stalled: {{ prop.routing.stalled_stations | join(', ') }}</div>
+                            <div class="routing-alert stalled">⚠ Stalled: {{ prop.routing.stalled_stations | join(', ') }}</div>
                             {% endif %}
                             {% if prop.routing.held_stations %}
-                            <div class="routing-alert held">&#9201; Held: {{ prop.routing.held_stations | join(', ') }}</div>
+                            <div class="routing-alert held">⏱ Held: {{ prop.routing.held_stations | join(', ') }}</div>
                             {% endif %}
                             {% if prop.routing.pending_station_names %}
                             <div class="routing-pending">Waiting on: {{ prop.routing.pending_station_names | join(', ') }}</div>
@@ -570,14 +642,14 @@
             {# Fallback if no property cards — show simplified quiet message #}
             {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.regulatory_alerts %}
             {% if all_empty %}
-            <div style="background: rgba(79, 143, 247, 0.06); border: 1px solid rgba(79, 143, 247, 0.2); border-radius: 10px; padding: 24px; margin-bottom: 24px; text-align: center;">
-                <div style="font-size: 1.5rem; margin-bottom: 8px;">&#x2705;</div>
-                <div style="font-weight: 600; margin-bottom: 6px;">All quiet on your watched items</div>
-                <div style="color: var(--text-muted); font-size: 0.9rem; max-width: 480px; margin: 0 auto;">
+            <div class="all-quiet-card">
+                <div class="all-quiet-icon">&#x2705;</div>
+                <div class="all-quiet-title">All quiet on your watched items</div>
+                <div class="all-quiet-body">
                     {% if brief.lookback_days == 1 %}No activity today. Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> or <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% elif brief.lookback_days < 90 %}No activity in the last {{ brief.lookback_days }} days. {% if brief.lookback_days <= 30 %}Try <a href="/brief?lookback=90" style="color:var(--accent);">last 90 days</a>.{% endif %}{% else %}No activity in the last 90 days.{% endif %}
                 </div>
-                <div style="margin-top: 16px;">
-                    <a href="/" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Search for permits to watch &rarr;</a>
+                <div style="margin-top: var(--space-4);">
+                    <a href="/" class="ghost-cta">Search for permits to watch &rarr;</a>
                 </div>
             </div>
             {% endif %}
@@ -634,7 +706,7 @@
                         <span class="status-badge {% if insp.is_pass %}status-approved{% elif insp.is_fail %}status-expired{% else %}{% endif %}">
                             {{ insp.result or 'Pending' }}
                         </span>
-                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">&#10003;</button>
+                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">✓</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -681,7 +753,7 @@
                     <div class="change-meta">
                         <span class="change-permit">{{ t.entity_name }} ({{ t.role }})</span>
                         <span class="change-detail">
-                            <a href="/?q={{ t.permit_number }}" style="color:var(--text-muted);text-decoration:none;">{{ t.permit_number }}</a> &middot;
+                            <a href="/?q={{ t.permit_number }}" style="color:var(--text-secondary);text-decoration:none;">{{ t.permit_number }}</a> &middot;
                             {{ t.street_number }} {{ t.street_name }}
                             {% if t.neighborhood %} &middot; {{ t.neighborhood }}{% endif %}
                             {% if t.permit_type %} &middot; {{ t.permit_type }}{% endif %}
@@ -740,26 +812,23 @@
                             {% if a.filed_date %} &middot; Filed {{ a.filed_date }}{% endif %}
                         </span>
                     </div>
-                    <div style="display:flex;gap:6px;align-items:center;">
-                        <span class="badge-{{ a.impact_level }}" style="font-size:0.7rem;padding:1px 6px;border-radius:3px;text-transform:uppercase;font-weight:600;
-                            {% if a.impact_level == 'high' %}background:rgba(248,113,113,0.15);color:#f87171;
-                            {% elif a.impact_level == 'moderate' %}background:rgba(251,191,36,0.15);color:#fbbf24;
-                            {% else %}background:rgba(79,143,247,0.12);color:#4f8ff7;{% endif %}">{{ a.impact_level }}</span>
-                        <span style="font-size:0.75rem;color:var(--text-muted);">{{ a.status }}</span>
+                    <div style="display:flex;gap:var(--space-1);align-items:center;">
+                        <span class="impact-badge {% if a.impact_level == 'high' %}impact-high{% elif a.impact_level == 'moderate' %}impact-moderate{% else %}impact-low{% endif %}">{{ a.impact_level }}</span>
+                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">{{ a.status }}</span>
                     </div>
                 </div>
                 {% endfor %}
                 {% if g and g.user and g.user.is_admin %}
-                <div style="text-align:right;margin-top:8px;">
-                    <a href="/admin/regulatory-watch" style="font-size:0.8rem;color:var(--accent);">Manage watch items &rarr;</a>
+                <div style="text-align:right;margin-top:var(--space-2);">
+                    <a href="/admin/regulatory-watch" class="ghost-cta" style="font-size:var(--text-xs);">Manage watch items &rarr;</a>
                 </div>
                 {% endif %}
             </div>
             {% endif %}
 
             <!-- Email preferences hint -->
-            <div style="text-align:center;margin-top:16px;">
-                <a href="/account" style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;">
+            <div style="text-align:center;margin-top:var(--space-4);">
+                <a href="/account" class="email-pref-link">
                     Manage email preferences &middot; Get this brief in your inbox
                 </a>
             </div>
