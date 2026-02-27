@@ -1585,7 +1585,14 @@ def cron_refresh_parcel_summary():
 
 
 def _refresh_parcel_summary_pg(cur):
-    """Postgres-specific parcel summary refresh using UPSERT."""
+    """Postgres-specific parcel summary refresh using DELETE + INSERT.
+
+    Uses DELETE + INSERT (not UPSERT) because the GROUP BY can produce
+    duplicate (block, lot) rows when permits at the same parcel have
+    different neighborhood/supervisor_district values across filings.
+    DISTINCT ON deduplicates, keeping the row with the highest permit count.
+    """
+    cur.execute("DELETE FROM parcel_summary")
     cur.execute("""
         INSERT INTO parcel_summary (
             block, lot, canonical_address, neighborhood, supervisor_district,
@@ -1594,71 +1601,59 @@ def _refresh_parcel_summary_pg(cur):
             tax_value, zoning_code, use_definition, number_of_units,
             health_tier, last_permit_date, refreshed_at
         )
-        SELECT
-            p.block, p.lot,
-            -- canonical_address: UPPER of most recent permit address
-            UPPER(
-                COALESCE(
-                    (SELECT pa.street_number || ' ' || pa.street_name
-                     FROM permits pa
-                     WHERE pa.block = p.block AND pa.lot = p.lot
-                       AND pa.street_number IS NOT NULL AND pa.street_name IS NOT NULL
-                     ORDER BY pa.filed_date DESC NULLS LAST
-                     LIMIT 1),
-                    tr.property_location
-                )
-            ),
-            p.neighborhood,
-            p.supervisor_district,
-            COUNT(*),
-            COUNT(*) FILTER (WHERE p.status IN ('filed', 'issued', 'approved', 'reinstated')),
-            -- correlated subquery counts
-            COALESCE((SELECT COUNT(*) FROM complaints c WHERE c.block = p.block AND c.lot = p.lot), 0),
-            COALESCE((SELECT COUNT(*) FROM violations v WHERE v.block = p.block AND v.lot = p.lot), 0),
-            COALESCE((SELECT COUNT(*) FROM boiler_permits bp WHERE bp.block = p.block AND bp.lot = p.lot), 0),
-            COALESCE((SELECT COUNT(*) FROM inspections i WHERE i.block = p.block AND i.lot = p.lot), 0),
-            -- tax data from most recent tax_rolls
-            tr.tax_value,
-            tr.zoning_code,
-            tr.use_definition,
-            tr.number_of_units,
-            -- health tier
-            ph.tier,
-            MAX(p.filed_date),
-            NOW()
-        FROM permits p
-        LEFT JOIN LATERAL (
+        SELECT DISTINCT ON (block, lot)
+            block, lot, canonical_address, neighborhood, supervisor_district,
+            permit_count, open_permit_count, complaint_count, violation_count,
+            boiler_permit_count, inspection_count,
+            tax_value, zoning_code, use_definition, number_of_units,
+            health_tier, last_permit_date, refreshed_at
+        FROM (
             SELECT
-                t.zoning_code, t.use_definition, t.number_of_units,
-                t.property_location,
-                COALESCE(t.assessed_land_value, 0) + COALESCE(t.assessed_improvement_value, 0) AS tax_value
-            FROM tax_rolls t
-            WHERE t.block = p.block AND t.lot = p.lot
-            ORDER BY t.tax_year DESC
-            LIMIT 1
-        ) tr ON TRUE
-        LEFT JOIN property_health ph ON ph.block_lot = p.block || '/' || p.lot
-        WHERE p.block IS NOT NULL AND p.lot IS NOT NULL
-        GROUP BY p.block, p.lot, p.neighborhood, p.supervisor_district,
-                 tr.tax_value, tr.zoning_code, tr.use_definition, tr.number_of_units,
-                 tr.property_location, ph.tier
-        ON CONFLICT (block, lot) DO UPDATE SET
-            canonical_address = EXCLUDED.canonical_address,
-            neighborhood = EXCLUDED.neighborhood,
-            supervisor_district = EXCLUDED.supervisor_district,
-            permit_count = EXCLUDED.permit_count,
-            open_permit_count = EXCLUDED.open_permit_count,
-            complaint_count = EXCLUDED.complaint_count,
-            violation_count = EXCLUDED.violation_count,
-            boiler_permit_count = EXCLUDED.boiler_permit_count,
-            inspection_count = EXCLUDED.inspection_count,
-            tax_value = EXCLUDED.tax_value,
-            zoning_code = EXCLUDED.zoning_code,
-            use_definition = EXCLUDED.use_definition,
-            number_of_units = EXCLUDED.number_of_units,
-            health_tier = EXCLUDED.health_tier,
-            last_permit_date = EXCLUDED.last_permit_date,
-            refreshed_at = NOW()
+                p.block, p.lot,
+                UPPER(
+                    COALESCE(
+                        (SELECT pa.street_number || ' ' || pa.street_name
+                         FROM permits pa
+                         WHERE pa.block = p.block AND pa.lot = p.lot
+                           AND pa.street_number IS NOT NULL AND pa.street_name IS NOT NULL
+                         ORDER BY pa.filed_date DESC NULLS LAST
+                         LIMIT 1),
+                        tr.property_location
+                    )
+                ) AS canonical_address,
+                p.neighborhood,
+                p.supervisor_district,
+                COUNT(*) AS permit_count,
+                COUNT(*) FILTER (WHERE p.status IN ('filed', 'issued', 'approved', 'reinstated')) AS open_permit_count,
+                COALESCE((SELECT COUNT(*) FROM complaints c WHERE c.block = p.block AND c.lot = p.lot), 0) AS complaint_count,
+                COALESCE((SELECT COUNT(*) FROM violations v WHERE v.block = p.block AND v.lot = p.lot), 0) AS violation_count,
+                COALESCE((SELECT COUNT(*) FROM boiler_permits bp WHERE bp.block = p.block AND bp.lot = p.lot), 0) AS boiler_permit_count,
+                COALESCE((SELECT COUNT(*) FROM inspections i WHERE i.block = p.block AND i.lot = p.lot), 0) AS inspection_count,
+                tr.tax_value,
+                tr.zoning_code,
+                tr.use_definition,
+                tr.number_of_units,
+                ph.tier AS health_tier,
+                MAX(p.filed_date) AS last_permit_date,
+                NOW() AS refreshed_at
+            FROM permits p
+            LEFT JOIN LATERAL (
+                SELECT
+                    t.zoning_code, t.use_definition, t.number_of_units,
+                    t.property_location,
+                    COALESCE(t.assessed_land_value, 0) + COALESCE(t.assessed_improvement_value, 0) AS tax_value
+                FROM tax_rolls t
+                WHERE t.block = p.block AND t.lot = p.lot
+                ORDER BY t.tax_year DESC
+                LIMIT 1
+            ) tr ON TRUE
+            LEFT JOIN property_health ph ON ph.block_lot = p.block || '/' || p.lot
+            WHERE p.block IS NOT NULL AND p.lot IS NOT NULL
+            GROUP BY p.block, p.lot, p.neighborhood, p.supervisor_district,
+                     tr.tax_value, tr.zoning_code, tr.use_definition, tr.number_of_units,
+                     tr.property_location, ph.tier
+        ) sub
+        ORDER BY block, lot, permit_count DESC
     """)
 
 

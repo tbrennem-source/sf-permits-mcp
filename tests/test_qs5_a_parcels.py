@@ -68,6 +68,7 @@ class TestParcelSummaryDDL:
 
     def test_primary_key_block_lot(self, db_conn):
         """block + lot form the primary key — no duplicates allowed."""
+        db_conn.execute("DELETE FROM parcel_summary WHERE block = '1234' AND lot = '001'")
         db_conn.execute(
             "INSERT INTO parcel_summary (block, lot) VALUES ('1234', '001')"
         )
