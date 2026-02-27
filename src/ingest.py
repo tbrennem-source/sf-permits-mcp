@@ -2359,6 +2359,11 @@ async def run_ingestion(
             results["housing_production"] = await ingest_housing_production(conn, client)
         if dwelling_completions:
             results["dwelling_completions"] = await ingest_dwelling_completions(conn, client)
+
+        # Metrics datasets (refresh alongside main pipeline)
+        results["permit_issuance_metrics"] = await ingest_permit_issuance_metrics(conn, client)
+        results["permit_review_metrics"] = await ingest_permit_review_metrics(conn, client)
+        results["planning_review_metrics"] = await ingest_planning_review_metrics(conn, client)
     finally:
         await client.close()
 
