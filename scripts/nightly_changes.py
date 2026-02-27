@@ -1421,6 +1421,27 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
 
     try:
         client = SODAClient()
+
+        # ── Step 0: Incremental permit ingest (QS5-B) ────────────────
+        # Run BEFORE change detection so newly-filed permits are in the
+        # permits table before detect_changes() compares against it.
+        # This reduces false "new_permit" entries in permit_changes.
+        try:
+            from src.ingest import ingest_recent_permits
+            from src.db import get_connection as _get_conn
+            _inc_conn = _get_conn()
+            inc_count = await ingest_recent_permits(_inc_conn, client, days=30)
+            try:
+                _inc_conn.commit()
+            except Exception:
+                pass
+            _inc_conn.close()
+            step_results["incremental_ingest"] = {"ok": True, "upserted": inc_count}
+            logger.info("Incremental ingest: %d permits upserted", inc_count)
+        except Exception as exc:
+            step_results["incremental_ingest"] = {"ok": False, "error": str(exc)}
+            logger.warning("Incremental ingest failed (non-fatal): %s", exc)
+
         retry_extended = False
         permit_records: list[dict] = []
         inspection_records: list[dict] = []
@@ -1799,13 +1820,99 @@ async def run_nightly(lookback_days: int = 1, dry_run: bool = False) -> dict:
         raise
 
 
+async def backfill_orphan_permits(dry_run: bool = False) -> dict:
+    """Backfill orphan permits: rows in permit_changes not yet in permits table.
+
+    Queries permit_changes for permit_numbers that don't exist in the permits
+    table, fetches them from SODA in batches of 50, and upserts into permits.
+
+    Returns dict with orphan_count, backfilled, still_missing.
+    """
+    ph = _ph()
+    orphan_rows = query(
+        "SELECT DISTINCT permit_number FROM permit_changes "
+        "WHERE permit_number NOT IN (SELECT permit_number FROM permits)"
+    )
+    orphan_numbers = [r[0] for r in orphan_rows if r[0]]
+
+    if not orphan_numbers:
+        return {"orphan_count": 0, "backfilled": 0, "still_missing": 0}
+
+    logger.info("Found %d orphan permit numbers to backfill", len(orphan_numbers))
+
+    if dry_run:
+        return {
+            "orphan_count": len(orphan_numbers),
+            "backfilled": 0,
+            "still_missing": len(orphan_numbers),
+            "dry_run": True,
+        }
+
+    client = SODAClient()
+    backfilled = 0
+    still_missing = 0
+
+    # Process in chunks of 50
+    for i in range(0, len(orphan_numbers), 50):
+        chunk = orphan_numbers[i:i + 50]
+        # Build SODA $where clause for this batch
+        quoted = ", ".join(f"'{pn}'" for pn in chunk)
+        where_clause = f"permit_number in ({quoted})"
+
+        try:
+            records = await client.query(
+                endpoint_id=BUILDING_PERMITS_ENDPOINT,
+                where=where_clause,
+                limit=50,
+            )
+        except Exception as exc:
+            logger.warning("SODA fetch failed for batch %d: %s", i // 50, exc)
+            still_missing += len(chunk)
+            continue
+
+        fetched_numbers = {r.get("permit_number") for r in records}
+
+        for record in records:
+            pn = record.get("permit_number")
+            if not pn:
+                continue
+            try:
+                _insert_new_permit(record)
+                backfilled += 1
+            except Exception as exc:
+                logger.debug("Failed to insert %s: %s", pn, exc)
+
+        # Count permits not found in SODA
+        still_missing += len(chunk) - len(fetched_numbers)
+
+    try:
+        await client.close()
+    except Exception:
+        pass
+
+    logger.info(
+        "Backfill complete: %d orphans, %d backfilled, %d still missing",
+        len(orphan_numbers), backfilled, still_missing,
+    )
+    return {
+        "orphan_count": len(orphan_numbers),
+        "backfilled": backfilled,
+        "still_missing": still_missing,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Nightly permit change detection")
     parser.add_argument("--lookback", type=int, default=1, help="Days to look back (default: 1)")
     parser.add_argument("--dry-run", action="store_true", help="Preview only, no writes")
+    parser.add_argument("--backfill", action="store_true",
+                        help="Backfill orphan permits from permit_changes into permits table")
     args = parser.parse_args()
 
-    result = asyncio.run(run_nightly(lookback_days=args.lookback, dry_run=args.dry_run))
+    if args.backfill:
+        result = asyncio.run(backfill_orphan_permits(dry_run=args.dry_run))
+    else:
+        result = asyncio.run(run_nightly(lookback_days=args.lookback, dry_run=args.dry_run))
     logger.info("Result: %s", result)
 
 

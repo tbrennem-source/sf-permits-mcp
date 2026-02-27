@@ -2440,5 +2440,68 @@ def main():
     )
 
 
+async def ingest_recent_permits(conn, client: SODAClient, days: int = 30) -> int:
+    """Incremental ingest: fetch recently-filed permits and upsert into permits table.
+
+    This is NOT a replacement for run_ingestion() (full table replace).
+    It fills the gap between full ingests by fetching permits filed in the
+    last N days and upserting them.  This reduces orphan rates in
+    permit_changes where the nightly tracker detects new permits before
+    the bulk permits table has been refreshed.
+
+    Uses INSERT ... ON CONFLICT (permit_number) DO UPDATE to upsert —
+    new permits are inserted, existing ones get their fields updated.
+
+    Must NOT run concurrently with run_ingestion() (which does DELETE +
+    re-INSERT).  The caller must check cron_log for recent full_ingest
+    jobs before calling this function.
+
+    Args:
+        conn: Database connection (DuckDB or _PgConnWrapper).
+        client: SODAClient instance.
+        days: Number of days to look back (default 30).
+
+    Returns:
+        Count of rows upserted.
+    """
+    from datetime import date, timedelta
+
+    since = (date.today() - timedelta(days=days)).isoformat()
+
+    # Fetch from SODA
+    all_records: list[dict] = []
+    offset = 0
+    while True:
+        records = await client.query(
+            endpoint_id=DATASETS["building_permits"]["endpoint_id"],
+            where=f"filed_date > '{since}T00:00:00.000'",
+            order="filed_date DESC",
+            limit=PAGE_SIZE,
+            offset=offset,
+        )
+        if not records:
+            break
+        all_records.extend(records)
+        if len(records) < PAGE_SIZE:
+            break
+        offset += PAGE_SIZE
+
+    if not all_records:
+        return 0
+
+    batch = [_normalize_permit(r) for r in all_records]
+
+    # Upsert: ON CONFLICT (permit_number) DO UPDATE
+    # DuckDB: INSERT OR REPLACE
+    # Postgres: handled by _PgConnWrapper._translate_sql or explicit ON CONFLICT
+    conn.executemany(
+        "INSERT OR REPLACE INTO permits VALUES "
+        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        batch,
+    )
+
+    return len(batch)
+
+
 if __name__ == "__main__":
     main()
