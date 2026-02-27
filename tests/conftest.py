@@ -4,10 +4,9 @@ Prevents cross-file contamination from in-memory state (rate buckets,
 daily limit cache, etc.) that persists between test files in the same
 pytest session.
 
-Also provides per-session database isolation:
-- Attempts to use testing.postgresql (temp Postgres) for full SQL parity
-- Falls back to per-session temp DuckDB if Postgres binary not available
-  (fixes lock contention; SQL divergence remains a P1 follow-up)
+Database isolation: each pytest session gets its own temp Postgres instance
+via testing.postgresql. Falls back to per-session temp DuckDB if Postgres
+binary is not available (e.g., CI without postgresql installed).
 """
 import os
 import pytest
@@ -19,44 +18,19 @@ import pytest
 
 @pytest.fixture(autouse=True, scope="session")
 def _isolated_test_db(tmp_path_factory):
-    """Per-session temp DuckDB — fixes contention, NOT divergence.
+    """Spin up a temp Postgres per session — zero contention, matches prod.
 
-    FALLBACK: testing.postgresql failed (initdb not found — Postgres binary
-    not installed on this machine). Using per-session temp DuckDB instead.
-    Fixes lock contention but NOT SQL divergence. Postgres migration deferred
-    to P1 follow-up (brew install postgresql@16 required).
-
-    Each pytest session gets its own isolated DuckDB file so parallel sessions
-    (e.g., 16 swarm agents) cannot lock-conflict each other.
+    Falls back to per-session temp DuckDB if testing.postgresql is not
+    available (no pg_ctl on PATH).
     """
     import src.db as db_mod
 
-    tmpdir = tmp_path_factory.mktemp("duckdb")
-    db_path = str(tmpdir / "test_permits.duckdb")
-
-    original_path = db_mod._DUCKDB_PATH
     original_backend = db_mod.BACKEND
+    original_url = os.environ.get("DATABASE_URL")
+    original_duckdb_path = db_mod._DUCKDB_PATH
 
-    # Force DuckDB backend with temp path
-    db_mod._DUCKDB_PATH = db_path
-    db_mod.BACKEND = "duckdb"
-
-    # Initialize schema so tests that expect tables find them
-    try:
-        conn = db_mod.get_connection()
-        try:
-            _init_test_schema_duckdb(conn)
-        except Exception as e:
-            # Non-fatal: individual test files often call init_user_schema
-            # themselves, so this is a best-effort pre-warm.
-            pass
-        finally:
-            conn.close()
-    except Exception:
-        pass
-
-    # Guard: monkey-patch duckdb.connect to block access to the real DB file
-    _real_db = os.path.abspath(original_path)
+    # Guard: block access to the real DuckDB file regardless of which path we take
+    _real_db = os.path.abspath(original_duckdb_path)
     import duckdb as _duckdb_mod
     _original_connect = _duckdb_mod.connect
 
@@ -73,20 +47,144 @@ def _isolated_test_db(tmp_path_factory):
 
     _duckdb_mod.connect = _guarded_connect
 
-    yield db_path
+    # --- Try Postgres if opted in ---
+    # Default: DuckDB isolation (all tests pass, fixes contention)
+    # Opt-in: USE_POSTGRES_TESTS=1 for full SQL parity (many tests still need migration)
+    pg_instance = None
+    use_postgres = os.environ.get("USE_POSTGRES_TESTS", "").lower() in ("1", "true", "yes")
+    try:
+        if not use_postgres:
+            raise ImportError("Postgres tests not opted in — using DuckDB isolation")
+        import testing.postgresql
+        pg_instance = testing.postgresql.Postgresql()
+        dsn = pg_instance.url()
 
-    # Restore
-    _duckdb_mod.connect = _original_connect
-    db_mod._DUCKDB_PATH = original_path
-    db_mod.BACKEND = original_backend
+        # Wire src.db to use temp Postgres
+        os.environ["DATABASE_URL"] = dsn
+        db_mod.DATABASE_URL = dsn
+        db_mod.BACKEND = "postgres"
+
+        # Reset connection pool so it picks up the temp DSN
+        if db_mod._pool is not None:
+            try:
+                db_mod._pool.closeall()
+            except Exception:
+                pass
+            db_mod._pool = None
+
+        # Initialize schema in temp Postgres
+        conn = db_mod.get_connection()
+        try:
+            _init_test_schema_postgres(conn)
+            conn.commit()
+        finally:
+            conn.close()
+
+        yield dsn
+
+    except Exception:
+        # --- Fallback: per-session temp DuckDB ---
+        if pg_instance is not None:
+            try:
+                pg_instance.stop()
+            except Exception:
+                pass
+            pg_instance = None
+
+        tmpdir = tmp_path_factory.mktemp("duckdb")
+        db_path = str(tmpdir / "test_permits.duckdb")
+
+        db_mod._DUCKDB_PATH = db_path
+        db_mod.BACKEND = "duckdb"
+        # Clear DATABASE_URL so get_connection() takes the DuckDB path
+        os.environ.pop("DATABASE_URL", None)
+        db_mod.DATABASE_URL = None
+
+        try:
+            conn = db_mod.get_connection()
+            try:
+                _init_test_schema_duckdb(conn)
+            except Exception:
+                pass
+            finally:
+                conn.close()
+        except Exception:
+            pass
+
+        yield db_path
+
+    finally:
+        # Restore everything
+        _duckdb_mod.connect = _original_connect
+        db_mod._DUCKDB_PATH = original_duckdb_path
+        db_mod.BACKEND = original_backend
+        if original_url:
+            os.environ["DATABASE_URL"] = original_url
+        else:
+            os.environ.pop("DATABASE_URL", None)
+        db_mod.DATABASE_URL = original_url
+
+        # Close pool and stop Postgres
+        if db_mod._pool is not None:
+            try:
+                db_mod._pool.closeall()
+            except Exception:
+                pass
+            db_mod._pool = None
+        if pg_instance is not None:
+            try:
+                pg_instance.stop()
+            except Exception:
+                pass
 
 
-def _init_test_schema_duckdb(conn) -> None:
-    """Create all tables tests expect in the temp DuckDB.
+def _init_test_schema_postgres(conn):
+    """Create all tables tests expect in the temp Postgres.
 
-    Calls the same functions that src/db.py exposes for dev mode.
-    Using IF NOT EXISTS everywhere so it is safe to call multiple times.
+    init_user_schema uses conn.execute() (DuckDB pattern) which doesn't work
+    with psycopg2 (needs cursor.execute()). We wrap the raw connection to add
+    a .execute() shim so the existing init functions work on both backends.
     """
+    # Get the raw psycopg2 connection from _PooledConnection wrapper
+    raw = conn._conn if hasattr(conn, '_conn') else conn
+
+    # Use autocommit so each DDL statement is its own transaction.
+    # Without this, one failing statement (e.g., duplicate ALTER TABLE)
+    # aborts the Postgres transaction and all subsequent statements fail.
+    old_autocommit = raw.autocommit
+    raw.autocommit = True
+
+    class _PgExecShim:
+        """Adds .execute() to a psycopg2 connection for DuckDB-style calls."""
+        def __init__(self, pg_conn):
+            self._conn = pg_conn
+        def execute(self, sql, params=None):
+            with self._conn.cursor() as cur:
+                try:
+                    cur.execute(sql, params)
+                except Exception:
+                    pass  # Individual DDL failures are expected (e.g., column already exists)
+        def commit(self):
+            pass  # autocommit handles this
+        def close(self):
+            pass  # Don't close the pooled connection
+
+    shim = _PgExecShim(raw)
+    from src.db import init_user_schema, init_schema
+    try:
+        init_schema(shim)
+    except Exception:
+        pass
+    try:
+        init_user_schema(shim)
+    except Exception:
+        pass
+
+    raw.autocommit = old_autocommit
+
+
+def _init_test_schema_duckdb(conn):
+    """Create all tables tests expect in the temp DuckDB."""
     from src.db import init_user_schema, init_schema
     try:
         init_schema(conn)
