@@ -222,7 +222,7 @@
     </style>
     <link rel="stylesheet" href="/static/mobile.css">
 </head>
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     <header>
         <div class="container">
             <a href="/" class="logo">sfpermits<span>.ai</span></a>
@@ -231,6 +231,7 @@
                 <a href="/brief" class="badge">Morning Brief</a>
                 <a href="/account" class="badge">{{ g.user.display_name or g.user.email }}</a>
                 <form method="POST" action="/auth/logout" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button class="badge" type="submit">Logout</button>
                 </form>
                 {% else %}

@@ -730,6 +730,10 @@ app.register_blueprint(cron_bp)
 app.register_blueprint(api_bp)
 app.register_blueprint(misc_bp)
 
+# QS4-D: Register CSRF protection middleware
+from web.security import init_security
+init_security(app)
+
 
 # ---------------------------------------------------------------------------
 # Backward-compatible endpoint aliases

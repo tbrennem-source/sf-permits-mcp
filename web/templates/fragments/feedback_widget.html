@@ -22,6 +22,7 @@
                     style="background:none;border:none;color:var(--text-muted, #8b8fa3);font-size:1.2rem;cursor:pointer;">&times;</button>
         </div>
         <form id="feedback-form" hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="page_url" class="feedback-page-url">
             <input type="hidden" name="screenshot_data" id="feedback-screenshot-data">
             <div style="display:flex;gap:8px;margin-bottom:12px;">
