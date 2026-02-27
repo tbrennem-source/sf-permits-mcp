@@ -1009,5 +1009,53 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Goal:** Get interested and click through to sign up
 **Expected outcome:** "Get Started →" CTA renders as a ghost-cta link (underline on hover, teal on hover), not a solid blue button. Clicking navigates to auth/login. Demo data cards render with dark obsidian backgrounds and readable text.
 **Edge cases seen in code:** Demo page requires demo data from the route — if no permit data, shows "No permit data available" empty state.
+
+## SUGGESTED SCENARIO: nav recovery chip prompts sign-up for gated features
+**Source:** web/templates/fragments/nav.html nav-signup-chip
+**User:** homeowner
+**Starting state:** User is anonymous (not signed in), viewing any public page
+**Goal:** User wants to understand what Brief/Portfolio/Projects offer before committing to sign up
+**Expected outcome:** Nav shows Brief, Portfolio, Projects with a small "Sign up" indicator badge; clicking navigates to the login/signup flow; the badge communicates value without fully blocking access to the navigation label
+**Edge cases seen in code:** Three separate features (Brief, Portfolio, Projects) each have independent gate checks — if one is unlocked, others may still show the chip
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: nav active state persists on page reload
+**Source:** web/templates/fragments/nav.html active_page variable
+**User:** expediter
+**Starting state:** User is authenticated and on the Search page
+**Goal:** User reloads the page and expects to remain oriented in the nav
+**Expected outcome:** The Search nav badge renders with active styling (teal accent, highlighted border) after reload; no nav item flickers or loses active state during load
+**Edge cases seen in code:** active_page is a server-side variable; JS nav-badge-loading class is added on click — if the click triggers a full page load, the loading state should clear when the new page renders
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: 404 page search bar recovers user session
+**Source:** web/templates/error.html 404 variant
+**User:** homeowner
+**Starting state:** User follows a stale link or mistyped URL and lands on a 404 page
+**Goal:** User wants to continue using the site without going "back" manually
+**Expected outcome:** The 404 page shows a functional search bar; user can type an SF address and submit to get to real search results; the "Back to home" ghost CTA also works as an alternative exit
+**Edge cases seen in code:** Search form uses GET method to "/" — must not interfere with any HTMX-powered search on the main page; search query should be preserved in URL
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: error page variants render correct code and message
+**Source:** web/templates/error.html error_type conditionals
+**User:** admin
+**Starting state:** The Flask app raises different error types (rate_limit=429, kill_switch=503, 403, 404, generic 500)
+**Goal:** Admin wants to verify that each error variant renders appropriate user-facing messaging
+**Expected outcome:** Each error_type shows the matching HTTP status code in large mono font, a semantically correct label, and a friendly message matching the error context; generic 500 shows "Something went wrong. We're looking into it."
+**Edge cases seen in code:** Generic else branch handles any non-typed error; detail parameter is conditionally shown only for rate_limit and generic errors (not kill_switch or 403 to avoid leaking internal info)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: login_prompt ghost CTA visible in watch context
+**Source:** web/templates/fragments/login_prompt.html
+**User:** homeowner
+**Starting state:** Anonymous user visits a property report page that includes a watch button
+**Goal:** User sees the login prompt and understands they need to sign in to watch a property
+**Expected outcome:** "Sign in to watch →" renders as a subtle but legible ghost CTA link; on hover the text transitions to teal accent; clicking navigates to the sign-in page
+**Edge cases seen in code:** Previous implementation had a `<span class="login-prompt">` wrapper that could inherit unwanted styles from parent containers; new ghost-cta version has no wrapper
 **CC confidence:** medium
 **Status:** PENDING REVIEW

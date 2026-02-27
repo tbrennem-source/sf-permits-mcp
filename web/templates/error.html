@@ -5,105 +5,281 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ title|default("Error") }} — sfpermits.ai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style nonce="{{ csp_nonce }}">
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
         :root {
-            --bg: #0f1117;
-            --surface: #1a1d27;
-            --border: #333749;
-            --text: #e4e6eb;
-            --text-muted: #8b8fa3;
-            --accent: #4f8ff7;
-            --error: #f87171;
-            --warning: #fbbf24;
+            --obsidian:       #0a0a0f;
+            --obsidian-mid:   #12121a;
+            --obsidian-light: #1a1a26;
+            --glass:          rgba(255, 255, 255, 0.04);
+            --glass-border:   rgba(255, 255, 255, 0.06);
+            --glass-hover:    rgba(255, 255, 255, 0.10);
+            --text-primary:   rgba(255, 255, 255, 0.92);
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --text-tertiary:  rgba(255, 255, 255, 0.30);
+            --accent:         #5eead4;
+            --accent-glow:    rgba(94, 234, 212, 0.08);
+            --accent-ring:    rgba(94, 234, 212, 0.30);
+            --signal-red:     #f87171;
+            --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+            --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --text-xs:   clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+            --text-sm:   clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+            --text-base: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);
+            --text-2xl:  clamp(1.5rem, 1.2rem + 1.2vw, 2.5rem);
+            --text-3xl:  clamp(1.875rem, 1.5rem + 1.8vw, 3.75rem);
+            --space-2:  8px;
+            --space-3:  12px;
+            --space-4:  16px;
+            --space-6:  24px;
+            --space-8:  32px;
+            --space-10: 40px;
+            --radius-sm:   6px;
+            --radius-md:   12px;
+            --radius-full: 9999px;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg); color: var(--text); line-height: 1.6;
-            display: flex; align-items: center; justify-content: center;
-            min-height: 100vh; padding: 24px;
+            font-family: var(--sans);
+            background: var(--obsidian);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-6);
+            -webkit-font-smoothing: antialiased;
         }
-        .card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 12px; padding: 40px 48px; max-width: 480px; width: 100%;
+
+        /* Glass Card (token component) */
+        .glass-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-10) var(--space-8);
+            max-width: 520px;
+            width: 100%;
             text-align: center;
+            transition: border-color 0.3s;
         }
-        .icon { font-size: 2.5rem; margin-bottom: 16px; }
-        h1 { font-size: 1.4rem; margin-bottom: 8px; }
-        .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
-        .detail {
-            background: rgba(79,143,247,0.06); border: 1px solid rgba(79,143,247,0.15);
-            border-radius: 8px; padding: 12px 16px; font-size: 0.85rem;
-            color: var(--text-muted); margin-bottom: 24px; text-align: left;
+        .glass-card:hover {
+            border-color: var(--glass-hover);
         }
-        .btn {
-            display: inline-block; padding: 10px 22px; border-radius: 8px;
-            text-decoration: none; font-size: 0.9rem; font-weight: 500;
-            background: var(--accent); color: #fff; border: none; cursor: pointer;
-            transition: opacity 0.15s;
+
+        /* Error code — mono weight 300, large */
+        .error-code {
+            font-family: var(--mono);
+            font-size: var(--text-3xl);
+            font-weight: 300;
+            color: var(--text-tertiary);
+            letter-spacing: 0.06em;
+            margin-bottom: var(--space-4);
+            line-height: 1;
         }
-        .btn:hover { opacity: 0.85; }
-        .btn-ghost {
-            background: transparent; border: 1px solid var(--border);
-            color: var(--text-muted); margin-left: 10px;
+
+        /* Error label — mono, accent */
+        .error-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: var(--space-6);
         }
-        .status-code {
-            font-size: 0.7rem; color: var(--text-muted); margin-top: 20px;
+
+        /* Friendly message — sans, secondary */
+        .error-message {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: var(--space-8);
+        }
+
+        /* Search bar (token component) */
+        .search-bar {
+            position: relative;
+            margin-bottom: var(--space-8);
+        }
+        .search-input {
+            width: 100%;
+            padding: 16px 22px;
+            padding-right: 50px;
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 300;
+            color: var(--text-primary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+        }
+        .search-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
+        .search-input:focus {
+            border-color: var(--accent-ring);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 40px var(--accent-glow);
+        }
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            pointer-events: none;
+        }
+
+        /* Ghost CTA (token component) */
+        .ghost-cta {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding-bottom: 1px;
+            border-bottom: 1px solid transparent;
+            transition: color 0.3s, border-color 0.3s;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .ghost-cta:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Detail box for rate-limit / kill-switch messages */
+        .error-detail {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-6);
+            text-align: left;
+        }
+
+        /* Status code footnote */
+        .error-status {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-top: var(--space-8);
+            letter-spacing: 0.06em;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .glass-card {
+                padding: var(--space-8) var(--space-6);
+            }
         }
     </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='mobile.css') }}">
 </head>
 <body>
-    <div class="card">
+    <div class="glass-card">
+
         {% if error_type == "rate_limit" %}
-        <div class="icon">&#x23F1;</div>
-        <h1>Rate limit reached</h1>
-        <p class="subtitle">You've sent too many requests. Please wait a moment and try again.</p>
+
+        <div class="error-code">429</div>
+        <div class="error-label">Rate limit reached</div>
+        <p class="error-message">You've sent too many requests. Please wait a moment and try again.</p>
         {% if detail %}
-        <div class="detail">{{ detail }}</div>
+        <div class="error-detail">{{ detail }}</div>
         {% endif %}
-        <a href="javascript:history.back()" class="btn">Go back</a>
-        <a href="/" class="btn btn-ghost">Home</a>
-        <div class="status-code">HTTP 429</div>
+        <div class="search-bar">
+            <form action="/" method="get">
+                <input type="text" name="q" class="search-input" placeholder="Search any SF address or permit" autocomplete="off">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </form>
+        </div>
+        <a href="/" class="ghost-cta">Back to home &rarr;</a>
+        <div class="error-status">HTTP 429</div>
 
         {% elif error_type == "kill_switch" %}
-        <div class="icon">&#x26A0;</div>
-        <h1>AI features temporarily unavailable</h1>
-        <p class="subtitle">
-            Our AI assistant is temporarily paused for cost protection.
-            Basic permit lookups and search still work.
-        </p>
-        <a href="/" class="btn">Return to search</a>
-        <div class="status-code">HTTP 503</div>
+
+        <div class="error-code">503</div>
+        <div class="error-label">Temporarily unavailable</div>
+        <p class="error-message">AI features are temporarily paused for cost protection. Basic permit lookups and search still work.</p>
+        <div class="search-bar">
+            <form action="/" method="get">
+                <input type="text" name="q" class="search-input" placeholder="Search any SF address or permit" autocomplete="off">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </form>
+        </div>
+        <a href="/" class="ghost-cta">Back to home &rarr;</a>
+        <div class="error-status">HTTP 503</div>
 
         {% elif error_type == "403" %}
-        <div class="icon">&#x1F512;</div>
-        <h1>Access denied</h1>
-        <p class="subtitle">You don't have permission to view this page.</p>
-        <a href="/" class="btn">Go home</a>
-        <a href="/auth/login" class="btn btn-ghost">Sign in</a>
-        <div class="status-code">HTTP 403</div>
+
+        <div class="error-code">403</div>
+        <div class="error-label">Access denied</div>
+        <p class="error-message">You don't have permission to view this page. Sign in to continue.</p>
+        <div class="search-bar">
+            <form action="/" method="get">
+                <input type="text" name="q" class="search-input" placeholder="Search any SF address or permit" autocomplete="off">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </form>
+        </div>
+        <a href="/" class="ghost-cta">Back to home &rarr;</a>
+        <div class="error-status">HTTP 403</div>
 
         {% elif error_type == "404" %}
-        <div class="icon">&#x1F50D;</div>
-        <h1>Page not found</h1>
-        <p class="subtitle">The page you're looking for doesn't exist or has moved.</p>
-        <a href="/" class="btn">Go home</a>
-        <div class="status-code">HTTP 404</div>
+
+        <div class="error-code">404</div>
+        <div class="error-label">Page not found</div>
+        <p class="error-message">Page not found. Try searching for what you need.</p>
+        <div class="search-bar">
+            <form action="/" method="get">
+                <input type="text" name="q" class="search-input" placeholder="Search any SF address or permit" autocomplete="off">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </form>
+        </div>
+        <a href="/" class="ghost-cta">Back to home &rarr;</a>
+        <div class="error-status">HTTP 404</div>
 
         {% else %}
-        <div class="icon">&#x26A1;</div>
-        <h1>{{ title|default("Something went wrong") }}</h1>
-        <p class="subtitle">{{ subtitle|default("An unexpected error occurred. Please try again.") }}</p>
+
+        <div class="error-code">{{ status_code|default("500") }}</div>
+        <div class="error-label">{{ title|default("Something went wrong") }}</div>
+        <p class="error-message">{{ subtitle|default("Something went wrong. We're looking into it.") }}</p>
         {% if detail %}
-        <div class="detail">{{ detail }}</div>
+        <div class="error-detail">{{ detail }}</div>
         {% endif %}
-        <a href="javascript:history.back()" class="btn">Go back</a>
-        <a href="/" class="btn btn-ghost">Home</a>
+        <div class="search-bar">
+            <form action="/" method="get">
+                <input type="text" name="q" class="search-input" placeholder="Search any SF address or permit" autocomplete="off">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </form>
+        </div>
+        <a href="/" class="ghost-cta">Back to home &rarr;</a>
         {% if status_code %}
-        <div class="status-code">HTTP {{ status_code }}</div>
+        <div class="error-status">HTTP {{ status_code }}</div>
         {% endif %}
+
         {% endif %}
+
     </div>
 </body>
 </html>

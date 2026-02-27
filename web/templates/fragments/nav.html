@@ -1,43 +1,71 @@
 <style nonce="{{ csp_nonce }}">
-    /* ── Obsidian Nav ─────────────────────────────────────────────────────── */
-    .obs-nav {
+    /* ── Token vars — ensure obsidian tokens available even on non-migrated pages ─── */
+    :root {
+        --obsidian:       #0a0a0f;
+        --obsidian-mid:   #12121a;
+        --glass-border:   rgba(255, 255, 255, 0.06);
+        --glass-hover:    rgba(255, 255, 255, 0.10);
+        --glass:          rgba(255, 255, 255, 0.04);
+        --accent:         #5eead4;
+        --accent-glow:    rgba(94, 234, 212, 0.08);
+        --accent-ring:    rgba(94, 234, 212, 0.30);
+        --text-primary:   rgba(255, 255, 255, 0.92);
+        --text-secondary: rgba(255, 255, 255, 0.55);
+        --text-tertiary:  rgba(255, 255, 255, 0.30);
+        --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+        --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --space-1:  4px;
+        --space-2:  8px;
+        --space-3:  12px;
+        --space-4:  16px;
+        --text-xs:  clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+        --text-sm:  clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+        --text-base: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);
+        --radius-sm:   6px;
+        --radius-md:   12px;
+        --radius-full: 9999px;
+    }
+
+    /* ── Floating Nav ─────────────────────────────────────────────────────── */
+    .nav-float {
         position: sticky;
         top: 0;
         z-index: 100;
-        background: rgba(11, 15, 25, 0.85);
+        background: rgba(0, 0, 0, 0.85);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(255,255,255, 0.06);
+        border-bottom: 1px solid var(--glass-border);
     }
-    .obs-nav-inner {
+    .nav-float__inner {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: var(--space-3) 0;
         gap: var(--space-4);
     }
-    .obs-nav-logo {
-        font-family: var(--font-display);
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: var(--signal-cyan);
+    .nav-float__wordmark {
+        font-family: var(--mono);
+        font-size: var(--text-sm);
+        font-weight: 300;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
         text-decoration: none;
         flex-shrink: 0;
-        letter-spacing: -0.02em;
     }
-    .obs-nav-logo .logo-dim {
+    .nav-float__wordmark .logo-dim {
         color: var(--text-tertiary);
-        font-weight: 400;
+        opacity: 0.6;
     }
 
     /* Desktop nav items */
-    .obs-nav-items {
+    .nav-float__items {
         display: flex;
         align-items: center;
         gap: var(--space-2);
         flex-wrap: nowrap;
     }
-    .obs-nav-right {
+    .nav-float__right {
         display: flex;
         align-items: center;
         gap: var(--space-2);
@@ -49,36 +77,35 @@
         display: inline-flex;
         align-items: center;
         gap: var(--space-1);
-        font-family: var(--font-body);
+        font-family: var(--sans);
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: 400;
         color: var(--text-secondary);
-        background: var(--bg-elevated);
+        background: var(--glass);
         padding: 5px 12px;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255, 0.06);
+        border-radius: var(--radius-full);
+        border: 1px solid var(--glass-border);
         text-decoration: none;
         cursor: pointer;
         white-space: nowrap;
         transition: color 0.2s, border-color 0.2s, background 0.2s;
-        font-family: inherit;
     }
     .nav-badge:hover {
         color: var(--text-primary);
-        border-color: rgba(255,255,255, 0.15);
+        border-color: var(--glass-hover);
     }
     .nav-badge.nav-badge-active {
-        background: rgba(34, 211, 238, 0.12);
-        color: var(--signal-cyan);
-        border-color: rgba(34, 211, 238, 0.3);
+        background: var(--accent-glow);
+        color: var(--accent);
+        border-color: var(--accent-ring);
     }
     .nav-badge-loading {
-        color: var(--signal-cyan) !important;
+        color: var(--accent) !important;
         animation: nav-pulse 0.5s ease-in-out infinite alternate;
     }
     @keyframes nav-pulse {
-        from { border-color: rgba(34, 211, 238, 0.2); }
-        to   { border-color: rgba(34, 211, 238, 0.8); }
+        from { border-color: var(--accent-ring); }
+        to   { border-color: var(--accent); }
     }
 
     /* "More" dropdown */
@@ -95,11 +122,11 @@
         z-index: 1000;
     }
     .nav-more-menu-inner {
-        background: var(--bg-surface);
-        border: 1px solid rgba(255,255,255, 0.1);
-        border-radius: 10px;
+        background: var(--obsidian-mid);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
         padding: 6px 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
     .nav-more-menu-inner a,
     .nav-more-menu-inner button {
@@ -109,7 +136,7 @@
         color: var(--text-secondary);
         text-decoration: none;
         font-size: var(--text-sm);
-        font-family: var(--font-body);
+        font-family: var(--sans);
         font-weight: 400;
         white-space: nowrap;
         background: none;
@@ -121,7 +148,7 @@
     .nav-more-menu-inner a:hover,
     .nav-more-menu-inner button:hover {
         color: var(--text-primary);
-        background: var(--bg-elevated);
+        background: var(--glass);
     }
     .nav-more-dropdown:hover .nav-more-menu,
     .nav-more-dropdown:focus-within .nav-more-menu {
@@ -142,11 +169,11 @@
         z-index: 1000;
     }
     .nav-admin-menu-inner {
-        background: var(--bg-surface);
-        border: 1px solid rgba(255,255,255, 0.1);
-        border-radius: 10px;
+        background: var(--obsidian-mid);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
         padding: 6px 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
     .nav-admin-menu-inner a {
         display: block;
@@ -159,7 +186,7 @@
     }
     .nav-admin-menu-inner a:hover {
         color: var(--text-primary);
-        background: var(--bg-elevated);
+        background: var(--glass);
     }
     .nav-admin-dropdown:hover .nav-admin-menu,
     .nav-admin-dropdown:focus-within .nav-admin-menu {
@@ -170,8 +197,8 @@
     .nav-hamburger {
         display: none;
         background: none;
-        border: 1px solid rgba(255,255,255, 0.1);
-        border-radius: 8px;
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-sm);
         padding: 8px 10px;
         cursor: pointer;
         flex-direction: column;
@@ -194,7 +221,7 @@
     .nav-mobile-panel {
         display: none;
         flex-direction: column;
-        border-top: 1px solid rgba(255,255,255, 0.06);
+        border-top: 1px solid var(--glass-border);
         padding: var(--space-3) 0;
         gap: var(--space-1);
     }
@@ -207,15 +234,15 @@
         align-items: center;
         padding: 0 var(--space-4);
         min-height: 48px;
-        font-family: var(--font-body);
+        font-family: var(--sans);
         font-size: var(--text-base);
-        font-weight: 500;
+        font-weight: 400;
         color: var(--text-secondary);
         text-decoration: none;
         background: none;
         border: none;
         cursor: pointer;
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         transition: color 0.15s, background 0.15s;
         text-align: left;
         width: 100%;
@@ -223,52 +250,54 @@
     .nav-mobile-panel a:hover,
     .nav-mobile-panel button:hover {
         color: var(--text-primary);
-        background: var(--bg-elevated);
+        background: var(--glass);
     }
     .nav-mobile-panel a.nav-badge-active {
-        color: var(--signal-cyan);
+        color: var(--accent);
     }
     .nav-mobile-divider {
         height: 1px;
-        background: rgba(255,255,255, 0.06);
+        background: var(--glass-border);
         margin: var(--space-2) var(--space-4);
     }
     .nav-signup-chip {
         display: inline-flex;
         align-items: center;
-        font-size: 0.65rem;
-        background: var(--signal-cyan);
-        color: #0B0F19;
+        font-size: var(--text-xs);
+        background: var(--accent-glow);
+        color: var(--accent);
         padding: 2px 6px;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         margin-left: var(--space-2);
-        font-weight: 700;
+        font-weight: 400;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        font-family: var(--mono);
+        border: 1px solid var(--accent-ring);
     }
 
     /* Desktop: hide hamburger, show nav-items */
     @media (min-width: 769px) {
         .nav-hamburger { display: none !important; }
-        .obs-nav-items { display: flex !important; }
+        .nav-float__items { display: flex !important; }
         .nav-mobile-panel { display: none !important; }
     }
 
     /* Mobile: show hamburger, hide desktop nav-items */
     @media (max-width: 768px) {
-        .obs-nav-items { display: none !important; }
+        .nav-float__items { display: none !important; }
         .nav-hamburger { display: flex !important; }
-        .obs-nav-right { display: none !important; }
+        .nav-float__right { display: none !important; }
     }
 </style>
 
-<nav class="obs-nav" id="obs-nav">
+<nav class="nav-float" id="obs-nav">
     <div class="obs-container">
-        <div class="obs-nav-inner">
-            <a href="/" class="obs-nav-logo">sfpermits<span class="logo-dim">.ai</span></a>
+        <div class="nav-float__inner">
+            <a href="/" class="nav-float__wordmark">sfpermits<span class="logo-dim">.ai</span></a>
 
             {# Desktop nav items — max 5 visible badges #}
-            <div class="obs-nav-items">
+            <div class="nav-float__items">
                 <a href="/" class="nav-badge {% if active_page == 'search' %}nav-badge-active{% endif %}">Search</a>
 
                 {% if gate.can_brief %}
@@ -297,7 +326,7 @@
 
                 {# "More" dropdown — secondary nav items #}
                 <div class="nav-more-dropdown" id="nav-more-dropdown">
-                    <button class="nav-badge">More &#9662;</button>
+                    <button class="nav-badge">More ▾</button>
                     <div class="nav-more-menu" id="nav-more-menu">
                         <div class="nav-more-menu-inner">
                             {% if gate.can_analyses %}
@@ -316,10 +345,10 @@
             </div>
 
             {# Right side: admin + account #}
-            <div class="obs-nav-right">
+            <div class="nav-float__right">
                 {% if g.user and g.user.is_admin %}
                 <div class="nav-admin-dropdown">
-                    <button class="nav-badge {% if active_page == 'admin' %}nav-badge-active{% endif %}" tabindex="0">&#9881;&#65039; Admin &#9662;</button>
+                    <button class="nav-badge {% if active_page == 'admin' %}nav-badge-active{% endif %}" tabindex="0">Admin ▾</button>
                     <div class="nav-admin-menu">
                         <div class="nav-admin-menu-inner">
                             <a href="/admin/ops#pipeline">Pipeline Health</a>
