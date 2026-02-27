@@ -409,3 +409,69 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Tasks may reference features that were built under different task numbers (e.g., #207 "orphaned test files" was wrong — source files exist). Task descriptions may be stale while the underlying work was completed in a different sprint.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+<!-- Sprint 77-1 scenarios — appended 2026-02-26 -->
+
+## SUGGESTED SCENARIO: Property report skips gracefully when DuckDB not ingested
+
+**Source:** tests/e2e/test_severity_scenarios.py — TestPropertyReport
+**User:** expediter
+**Starting state:** Fresh checkout; DuckDB lacks the permits table
+**Goal:** Developer runs E2E tests to validate local environment
+**Expected outcome:** Property report tests skip with a clear message ("DuckDB permits table absent — run python -m src.ingest") rather than failing with a raw traceback or unhelpful assertion error
+**Edge cases seen in code:** Route returns 500 with DuckDB CatalogException when table is missing; test distinguishes this from a real app bug
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Demo page serves property intelligence without auth
+
+**Source:** web/routes_misc.py — /demo route; tests/e2e/test_severity_scenarios.py
+**User:** homeowner (anonymous visitor)
+**Starting state:** User has not logged in; arrives at /demo from a marketing link
+**Goal:** Preview property intelligence before creating an account
+**Expected outcome:** Demo page loads with pre-populated 1455 Market St data. Contains permit data, structured headings, and meaningful content. density=max parameter is accepted without error.
+**Edge cases seen in code:** density_max param toggles a higher-density view; unexpected param values should not error
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Morning brief lookback parameter accepts any valid range
+
+**Source:** web/routes_misc.py — /brief route; web/templates/brief.html lookback toggle
+**User:** expediter
+**Starting state:** Authenticated expediter on the morning brief page
+**Goal:** Switch lookback window using URL parameter
+**Expected outcome:** All valid values (1, 7, 30, 90) return HTTP 200. Values outside 1-90 are clamped. Non-integer values default to 1. Active lookback button reflects current selection.
+**Edge cases seen in code:** max(1, min(int(lookback), 90)) — ValueError on non-numeric input defaults to 1
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Anonymous users cannot access brief or portfolio
+
+**Source:** web/helpers.py — login_required; SCENARIO-40
+**User:** homeowner (anonymous / not logged in)
+**Starting state:** User is not authenticated; navigates directly to /brief or /portfolio
+**Goal:** Access permit data without logging in
+**Expected outcome:** Both /brief and /portfolio redirect to the login page. No partial page content shown. Post-login redirect preserves intended destination.
+**Edge cases seen in code:** /portfolio and /brief listed in login_required route list in app.py
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Search query for address returns results or graceful empty state
+
+**Source:** web/routes_public.py — /search route; SCENARIO-38
+**User:** homeowner
+**Starting state:** Anonymous or authenticated user enters partial address ("market")
+**Goal:** Find permits at a known address
+**Expected outcome:** Search returns at least one result card referencing the search term, OR displays a clear "no results" message. Never returns blank page or Python traceback. XSS-escaped query reflected safely in the page.
+**Edge cases seen in code:** Empty q= param is handled; XSS injection in q= is sanitized (SCENARIO-34)
+**CC confidence:** high
+**Status:** PENDING REVIEW
