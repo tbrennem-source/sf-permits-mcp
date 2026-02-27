@@ -532,6 +532,22 @@ def run_release_migrations():
     """)
     cur.execute("CREATE INDEX IF NOT EXISTS idx_prep_items_checklist ON prep_items(checklist_id)")
 
+    # QS5-A: Materialized parcel summary table
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS parcel_summary (
+            block TEXT NOT NULL, lot TEXT NOT NULL,
+            canonical_address TEXT, neighborhood TEXT, supervisor_district TEXT,
+            permit_count INTEGER DEFAULT 0, open_permit_count INTEGER DEFAULT 0,
+            complaint_count INTEGER DEFAULT 0, violation_count INTEGER DEFAULT 0,
+            boiler_permit_count INTEGER DEFAULT 0, inspection_count INTEGER DEFAULT 0,
+            tax_value DOUBLE PRECISION, zoning_code TEXT, use_definition TEXT,
+            number_of_units INTEGER, health_tier TEXT, last_permit_date TEXT,
+            refreshed_at TIMESTAMPTZ DEFAULT NOW(),
+            PRIMARY KEY (block, lot)
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_parcel_summary_neighborhood ON parcel_summary (neighborhood)")
+
     # Admin auto-seed
     admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
     if admin_email:

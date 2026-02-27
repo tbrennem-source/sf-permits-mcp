@@ -132,7 +132,7 @@ EXPECTED_TABLES = [
     "voice_calibrations", "plan_analysis_sessions", "plan_analysis_images",
     "plan_analysis_jobs", "project_notes", "analysis_sessions",
     "prep_checklists", "prep_items", "api_usage",
-    "pim_cache", "dq_cache",
+    "pim_cache", "dq_cache", "parcel_summary",
 ]
 
 
@@ -597,6 +597,22 @@ def _run_startup_migrations():
             )
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_api_usage_user_date ON api_usage(user_id, called_at)")
+
+        # ── QS5-A: Materialized parcel summary ─────────────────
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS parcel_summary (
+                block TEXT NOT NULL, lot TEXT NOT NULL,
+                canonical_address TEXT, neighborhood TEXT, supervisor_district TEXT,
+                permit_count INTEGER DEFAULT 0, open_permit_count INTEGER DEFAULT 0,
+                complaint_count INTEGER DEFAULT 0, violation_count INTEGER DEFAULT 0,
+                boiler_permit_count INTEGER DEFAULT 0, inspection_count INTEGER DEFAULT 0,
+                tax_value DOUBLE PRECISION, zoning_code TEXT, use_definition TEXT,
+                number_of_units INTEGER, health_tier TEXT, last_permit_date TEXT,
+                refreshed_at TIMESTAMPTZ DEFAULT NOW(),
+                PRIMARY KEY (block, lot)
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_parcel_summary_neighborhood ON parcel_summary (neighborhood)")
 
         # ── Bulk table indexes ──────────────────────────────────
         _bulk_indexes = [
