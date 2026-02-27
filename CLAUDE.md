@@ -340,6 +340,8 @@ Before modifying any file in `web/templates/` or `web/static/`:
 
 When an agent touches an existing template for feature work, it should reconcile that template with the design system as part of the task. This means: replace ad-hoc inline colors with token variables, swap non-standard components for token components, ensure font role split is correct. Do not do a separate migration pass — migrate on touch.
 
+**Do NOT copy CSS patterns from existing templates** — always reference `docs/DESIGN_TOKENS.md`. Existing templates may predate the design system and contain non-token colors, fonts, and components that should not be propagated.
+
 ### Token Lint (`scripts/design_lint.py`)
 
 Automated token compliance check. Runs in <5 seconds, no browser needed.

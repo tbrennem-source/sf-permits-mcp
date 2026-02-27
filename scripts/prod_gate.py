@@ -272,8 +272,11 @@ def check_secret_leaks():
 
     try:
         # Check last 5 commits for secret patterns
+        # Exclude the gate script itself (it contains the patterns as regex)
         result = subprocess.run(
-            ["git", "diff", "HEAD~5..HEAD", "--", "*.py", "*.html", "*.js", "*.css", "*.md"],
+            ["git", "diff", "HEAD~5..HEAD",
+             "--", "*.py", "*.html", "*.js", "*.css", "*.md",
+             ":!scripts/prod_gate.py", ":!scripts/design_lint.py"],
             capture_output=True, text=True, timeout=30
         )
         diff = result.stdout
@@ -462,54 +465,223 @@ def main():
         for name in ["Health", "Smoke Test", "Data Freshness", "Auth Safety", "Performance"]:
             results.append((name, 5, "Skipped (--skip-remote)", []))
 
-    # --- Compute overall verdict ---
+    # --- Compute weighted score ---
+    #
+    # Two-tier aggregation (c.ai recommendation):
+    # Tier 1: Hard holds (auth, secrets) — binary PASS/FAIL, always block
+    # Tier 2: Scored checks — weighted by risk category
+    #
+    # Categories and weights:
+    #   Safety (1.0x):  Test Suite, Dependencies
+    #   Data (1.0x):    Health, Data Freshness, Smoke Test
+    #   Ops (0.8x):     Route Inventory, Performance
+    #   Design (0.6x):  Design Tokens
+    #
+    # Effective score = min across weighted category minimums
+    # A category score is floored at 2 (a single low-weight category
+    # can't drag effective score below 2 on its own unless raw = 1)
 
-    scores = [r[1] for r in results if isinstance(r[1], int)]
-    min_score = min(scores) if scores else 5
+    CATEGORY_WEIGHTS = {
+        "Design Tokens": ("design", 0.6),
+        "Test Suite": ("safety", 1.0),
+        "Dependencies": ("safety", 1.0),
+        "Health": ("data", 1.0),
+        "Data Freshness": ("data", 1.0),
+        "Smoke Test": ("data", 1.0),
+        "Route Inventory": ("ops", 0.8),
+        "Performance": ("ops", 0.8),
+        # Auth Safety and Secret Leak handled as hard holds, not scored
+    }
+
+    category_mins = {}  # category -> min raw score
+    for name, raw_score, msg, issues in results:
+        if name in ("Auth Safety", "Secret Leak"):
+            continue  # handled by hard_holds
+        cat_info = CATEGORY_WEIGHTS.get(name)
+        if not cat_info:
+            continue
+        cat_name, weight = cat_info
+        if cat_name not in category_mins or raw_score < category_mins[cat_name][0]:
+            category_mins[cat_name] = (raw_score, weight, name)
+
+    # Compute weighted category scores
+    # Weight only dampens violations — a perfect score stays perfect
+    # Weight formula: effective = 5 - (5 - raw) * weight
+    # At raw=5: effective=5 (always). At raw=1, weight=0.6: effective=5-4*0.6=2.6→3
+    # This means low-weight categories can't drag score as far down
+    weighted_scores = {}
+    for cat_name, (raw, weight, check_name) in category_mins.items():
+        if raw == 5:
+            weighted = 5.0
+        else:
+            penalty = (5 - raw) * weight
+            weighted = 5.0 - penalty
+            # Floor: a category can't drag below 2 unless raw is 1
+            if raw >= 2:
+                weighted = max(weighted, 2.0)
+        weighted_scores[cat_name] = (round(weighted, 1), raw, weight, check_name)
+
+    effective_score_float = min(ws[0] for ws in weighted_scores.values()) if weighted_scores else 5.0
+    effective_score = max(1, min(5, round(effective_score_float)))
+
+    # Raw min for reference
+    raw_scores = [r[1] for r in results if isinstance(r[1], int)]
+    raw_min = min(raw_scores) if raw_scores else 5
 
     if hard_holds:
         verdict = "HOLD"
         reason = f"Hard hold: {', '.join(h[0] for h in hard_holds)}"
-    elif min_score <= 2:
+    elif effective_score <= 2:
         verdict = "HOLD"
-        reason = f"Score {min_score}/5 — user-visible issues require Tim review before prod"
-    elif min_score <= 3:
+        reason = f"Effective score {effective_score}/5 — user-visible issues require Tim review before prod"
+    elif effective_score <= 3:
         verdict = "PROMOTE"
-        reason = f"Score {min_score}/5 — promote to prod, mandatory hotfix session after"
+        reason = f"Effective score {effective_score}/5 — promote to prod, mandatory hotfix session after"
     else:
         verdict = "PROMOTE"
-        reason = f"Score {min_score}/5 — clean, auto-promote to prod"
+        reason = f"Effective score {effective_score}/5 — clean, auto-promote to prod"
 
-    # --- Format report ---
+    # --- Hotfix ratchet ---
+    # If score 3 (promote with mandatory hotfix), write HOTFIX_REQUIRED.md
+    # If HOTFIX_REQUIRED.md already exists from a previous promotion,
+    # the same issues are still present → downgrade to HOLD
+    hotfix_file = "qa-results/HOTFIX_REQUIRED.md"
+    hotfix_ratchet_triggered = False
+
+    if effective_score == 3 and not hard_holds:
+        if os.path.exists(hotfix_file):
+            # Ratchet: hotfix was required last time and still not fixed
+            hotfix_ratchet_triggered = True
+            verdict = "HOLD"
+            reason = f"Hotfix ratchet: score 3 again without fixing previous hotfix — downgraded to HOLD"
+        else:
+            # First time at score 3 — write hotfix requirement
+            hotfix_issues = [(name, msg) for name, score, msg, issues in results if score <= 3 and issues]
+            with open(hotfix_file, "w") as f:
+                f.write("# HOTFIX REQUIRED\n\n")
+                f.write(f"**Created:** {time.strftime('%Y-%m-%d %H:%M UTC')}\n")
+                f.write(f"**Deadline:** 48 hours from creation\n")
+                f.write(f"**Score:** {effective_score}/5\n\n")
+                f.write("## Issues requiring hotfix\n\n")
+                for name, msg in hotfix_issues:
+                    f.write(f"- **{name}:** {msg}\n")
+                f.write("\n## Resolution\n\nFix issues, re-run `python scripts/prod_gate.py`. "
+                        "Delete this file when score improves to 4+.\n")
+    elif effective_score >= 4 and os.path.exists(hotfix_file):
+        # Hotfix was required but issues are now resolved — clean up
+        os.remove(hotfix_file)
+
+    # --- Build release notes + report ---
+
+    # Gather git stats for release notes
+    try:
+        git_stat = subprocess.run(
+            ["git", "diff", "--stat", "HEAD~5..HEAD"],
+            capture_output=True, text=True, timeout=10
+        ).stdout.strip().split("\n")[-1] if True else ""
+        git_log = subprocess.run(
+            ["git", "log", "--oneline", "HEAD~5..HEAD"],
+            capture_output=True, text=True, timeout=10
+        ).stdout.strip()
+    except Exception:
+        git_stat = "unknown"
+        git_log = "unknown"
+
+    # Find changed templates for release notes
+    try:
+        changed_templates = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD~5..HEAD", "--", "web/templates/", "web/static/"],
+            capture_output=True, text=True, timeout=10
+        ).stdout.strip()
+    except Exception:
+        changed_templates = ""
 
     lines = []
+
+    # --- Release Notes (glanceable summary) ---
     lines.append("# Prod Promotion Gate Report")
     lines.append("")
     lines.append(f"**Verdict: {verdict}**")
-    lines.append(f"**Overall Score: {min_score}/5**")
+    lines.append(f"**Effective Score: {effective_score}/5** (raw min: {raw_min}/5)")
     lines.append(f"**Reason:** {reason}")
+    lines.append(f"**Timestamp:** {time.strftime('%Y-%m-%d %H:%M UTC')}")
+    lines.append("")
+
+    if hotfix_ratchet_triggered:
+        lines.append("> **HOTFIX RATCHET:** This is the second consecutive promotion at score 3 ")
+        lines.append("> without resolving the hotfix. Downgraded to HOLD. Fix the issues in ")
+        lines.append("> `qa-results/HOTFIX_REQUIRED.md` before promoting.")
+        lines.append("")
+
+    # Release notes section
+    lines.append("## Release Notes")
+    lines.append("")
+    lines.append("### What shipped")
+    if git_log and git_log != "unknown":
+        for commit_line in git_log.split("\n")[:8]:
+            lines.append(f"- {commit_line}")
+    else:
+        lines.append("- (git log unavailable)")
+    lines.append("")
+    if git_stat and git_stat != "unknown":
+        lines.append(f"**Diff:** {git_stat}")
+    if changed_templates:
+        template_list = [t for t in changed_templates.split("\n") if t.strip()]
+        if template_list:
+            lines.append(f"**Templates changed:** {len(template_list)}")
+            for t in template_list[:5]:
+                lines.append(f"  - {t}")
+            if len(template_list) > 5:
+                lines.append(f"  - ... and {len(template_list) - 5} more")
+    lines.append("")
+
+    # Gate scores
+    lines.append("### Gate Scores")
     lines.append("")
 
     if hard_holds:
-        lines.append("## Hard Holds (always block prod)")
-        lines.append("")
         for name, msg, issues in hard_holds:
-            lines.append(f"### {name}")
-            lines.append(f"**{msg}**")
-            for issue in issues:
-                lines.append(f"- {issue}")
-            lines.append("")
+            lines.append(f"**{name}: HOLD** — {msg}")
+            for issue in issues[:3]:
+                lines.append(f"  - {issue}")
+        lines.append("")
 
-    lines.append("## Check Results")
-    lines.append("")
-    lines.append("| Check | Score | Result |")
-    lines.append("|-------|-------|--------|")
-    for name, score, msg, issues in results:
-        icon = {5: "5/5", 4: "4/5", 3: "3/5", 2: "2/5", 1: "1/5"}.get(score, "?")
-        lines.append(f"| {name} | {icon} | {msg} |")
+    lines.append("| Check | Score | Category | Weight | Result |")
+    lines.append("|-------|-------|----------|--------|--------|")
+    for name, raw_score, msg, issues in results:
+        icon = {5: "5/5", 4: "4/5", 3: "3/5", 2: "2/5", 1: "1/5"}.get(raw_score, "?")
+        cat_info = CATEGORY_WEIGHTS.get(name)
+        if cat_info:
+            cat_name, weight = cat_info
+            lines.append(f"| {name} | {icon} | {cat_name} | {weight}x | {msg} |")
+        else:
+            lines.append(f"| {name} | {icon} | hard hold | — | {msg} |")
     lines.append("")
 
-    # Detail any issues
+    # Weighted breakdown
+    if weighted_scores:
+        lines.append("### Weighted Category Scores")
+        lines.append("")
+        lines.append("| Category | Raw Min | Weight | Effective | Limiting Check |")
+        lines.append("|----------|---------|--------|-----------|----------------|")
+        for cat_name, (weighted, raw, weight, check_name) in sorted(weighted_scores.items()):
+            lines.append(f"| {cat_name} | {raw}/5 | {weight}x | {weighted} | {check_name} |")
+        lines.append("")
+
+    # Hotfix status
+    if effective_score == 3 and not hotfix_ratchet_triggered and not hard_holds:
+        lines.append("### Hotfix Required")
+        lines.append("")
+        lines.append(f"A hotfix session is **mandatory** within 48 hours.")
+        lines.append(f"Hotfix tracker: `qa-results/HOTFIX_REQUIRED.md`")
+        lines.append(f"If not resolved by next promotion, score will downgrade to HOLD.")
+        lines.append("")
+        hotfix_items = [(name, msg) for name, score, msg, issues in results if score <= 3 and issues]
+        for name, msg in hotfix_items:
+            lines.append(f"- **{name}:** {msg}")
+        lines.append("")
+
+    # Issue details
     any_issues = [(name, issues) for name, score, msg, issues in results if issues]
     if any_issues:
         lines.append("## Issue Details")
@@ -520,16 +692,21 @@ def main():
                 lines.append(f"- {issue[:200]}")
             lines.append("")
 
+    # Promotion rules reference
     lines.append("## Promotion Rules")
     lines.append("")
-    lines.append("| Score | Action |")
-    lines.append("|-------|--------|")
+    lines.append("| Effective Score | Action |")
+    lines.append("|----------------|--------|")
     lines.append("| 5/5 | Auto-promote to prod |")
     lines.append("| 4/5 | Auto-promote, hotfix after |")
-    lines.append("| 3/5 | Promote, mandatory hotfix after |")
+    lines.append("| 3/5 | Promote, mandatory hotfix within 48h (ratchet on repeat) |")
     lines.append("| 2/5 | HOLD — Tim reviews before prod |")
     lines.append("| 1/5 | HOLD — Tim reviews before prod |")
-    lines.append("| Auth/Secret HOLD | Always blocks prod regardless of score |")
+    lines.append("| Auth/Secret | Always HOLD regardless of score |")
+    lines.append("| Hotfix ratchet | Score 3 twice without fix → downgrade to HOLD |")
+    lines.append("")
+    lines.append("*Scoring uses weighted category minimums (safety 1.0x, data 1.0x, ops 0.8x, design 0.6x). "
+                 "A low-weight category can't drag the effective score below 2 unless its raw score is 1.*")
     lines.append("")
 
     report = "\n".join(lines)
@@ -540,7 +717,7 @@ def main():
         f.write(report)
 
     if args.quiet:
-        print(f"Prod gate: {verdict} ({min_score}/5) — {reason}")
+        print(f"Prod gate: {verdict} ({effective_score}/5, raw min {raw_min}/5) — {reason}")
     else:
         print(report)
 
