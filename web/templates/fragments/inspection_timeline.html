@@ -1,40 +1,42 @@
 {% if timeline %}
-<div class="inspection-timeline" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span style="font-size: 0.8rem; font-weight: 600; color: var(--accent);">Inspection Progress</span>
-        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ timeline.progress_pct }}% &middot; {{ timeline.total_inspections }} inspections</span>
+<div class="inspection-timeline" style="margin-top: var(--space-3, 12px); padding-top: var(--space-3, 12px); border-top: 1px solid var(--glass-border, rgba(255,255,255,0.06));">
+    <div class="data-row" style="padding: 0 0 var(--space-2, 8px);">
+        <span class="data-row__label" style="font-family: var(--mono, monospace); font-size: var(--text-xs, 0.7rem); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary, rgba(255,255,255,0.55));">Inspection Progress</span>
+        <span class="data-row__value" style="font-family: var(--mono, monospace); font-size: var(--text-xs, 0.7rem); color: var(--text-tertiary, rgba(255,255,255,0.30));">{{ timeline.progress_pct }}% &middot; {{ timeline.total_inspections }} inspections</span>
     </div>
 
-    <!-- Progress bar -->
-    <div style="background: var(--surface-2); border-radius: 4px; height: 6px; margin-bottom: 10px; overflow: hidden;">
-        <div style="background: {{ 'var(--success)' if timeline.progress_pct >= 90 else 'var(--accent)' if timeline.progress_pct >= 50 else 'var(--warning)' }}; height: 100%; width: {{ timeline.progress_pct }}%; border-radius: 4px; transition: width 0.3s;"></div>
+    {# Progress bar #}
+    <div class="progress-track" style="margin-bottom: var(--space-3, 12px);">
+        <div class="progress-fill" style="width: {{ timeline.progress_pct }}%;"></div>
     </div>
 
-    <!-- Sequence steps -->
-    <div style="display: flex; flex-wrap: wrap; gap: 4px; font-size: 0.7rem;">
+    {# Sequence steps #}
+    <div style="display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--mono, monospace); font-size: var(--text-xs, 0.7rem);">
         {% for step in timeline.sequence %}
         {% if step in timeline.completed_types %}
-        <span style="color: var(--success);" title="Passed">&#10003; {{ step | truncate(12, True, '..') }}</span>
+        <span class="status-text--green" title="Passed">✓ {{ step | truncate(12, True, '..') }}</span>
         {% elif step == timeline.suggested_next %}
-        <span style="color: var(--accent); font-weight: 600;" title="Suggested next">&#9654; {{ step | truncate(12, True, '..') }}</span>
+        <span style="color: var(--accent, #5eead4); font-weight: 500;" title="Suggested next">▶ {{ step | truncate(12, True, '..') }}</span>
         {% else %}
-        <span style="color: var(--text-muted);">&#9675; {{ step | truncate(12, True, '..') }}</span>
+        <span style="color: var(--text-tertiary, rgba(255,255,255,0.30));">○ {{ step | truncate(12, True, '..') }}</span>
         {% endif %}
-        {% if not loop.last %}<span style="color: var(--border);">&rarr;</span>{% endif %}
+        {% if not loop.last %}<span style="color: var(--glass-border, rgba(255,255,255,0.06));">&rarr;</span>{% endif %}
         {% endfor %}
     </div>
 
     {% if timeline.suggested_next %}
-    <div style="margin-top: 8px; font-size: 0.8rem; color: var(--accent);">
-        Next: <strong>{{ timeline.suggested_next }}</strong>
+    <div class="risk-flag risk-flag--low" style="margin-top: var(--space-2, 8px);">
+        <span class="risk-flag__dot"></span>
+        <span class="risk-flag__text">Next: <strong style="color: var(--text-primary, rgba(255,255,255,0.92));">{{ timeline.suggested_next }}</strong></span>
     </div>
     {% endif %}
 
     {% if timeline.failed_needing_reinspection %}
-    <div style="margin-top: 8px;">
+    <div style="margin-top: var(--space-2, 8px);">
         {% for fail in timeline.failed_needing_reinspection %}
-        <div style="font-size: 0.75rem; color: var(--error);">
-            &#10007; {{ fail.type }} failed ({{ fail.date }}) — needs re-inspection
+        <div class="risk-flag risk-flag--high">
+            <span class="risk-flag__dot"></span>
+            <span class="risk-flag__text">{{ fail.type }} failed ({{ fail.date }}) &mdash; needs re-inspection</span>
         </div>
         {% endfor %}
     </div>
