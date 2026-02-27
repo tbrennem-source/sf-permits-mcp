@@ -994,3 +994,149 @@ def admin_qa_screenshot(run_name, filename):
         abort(404)
 
     return send_file(screenshot_path, mimetype="image/png")
+
+
+# ---------------------------------------------------------------------------
+# Admin: Metrics Dashboard (QS4-A)
+# ---------------------------------------------------------------------------
+
+@bp.route("/admin/metrics")
+@login_required
+def admin_metrics():
+    """Admin metrics dashboard — issuance trends, SLA compliance, planning velocity."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    from src.db import get_connection, BACKEND
+
+    conn = get_connection()
+    log = logging.getLogger(__name__)
+
+    issuance_rows = []
+    sla_rows = []
+    planning_rows = []
+
+    try:
+        # --- Section 1: Permit Issuance Trends (last 2 years) ---
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        SELECT issued_year,
+                               EXTRACT(MONTH FROM issued_date::TIMESTAMP)::INTEGER AS issued_month,
+                               permit_type, otc_ih, COUNT(*) as count
+                        FROM permit_issuance_metrics
+                        WHERE issued_year IS NOT NULL
+                          AND issued_date IS NOT NULL
+                          AND issued_year::INTEGER >= EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER - 2
+                        GROUP BY issued_year, issued_month, permit_type, otc_ih
+                        ORDER BY issued_year DESC, issued_month DESC
+                    """)
+                    issuance_rows = [
+                        {"year": r[0], "month": r[1], "type": r[2], "otc_ih": r[3], "count": r[4]}
+                        for r in cur.fetchall()
+                    ]
+            else:
+                rows = conn.execute("""
+                    SELECT issued_year,
+                           MONTH(issued_date::TIMESTAMP) AS issued_month,
+                           permit_type, otc_ih, COUNT(*) as count
+                    FROM permit_issuance_metrics
+                    WHERE issued_year IS NOT NULL
+                      AND issued_date IS NOT NULL
+                      AND CAST(issued_year AS INTEGER) >= YEAR(CURRENT_DATE) - 2
+                    GROUP BY issued_year, issued_month, permit_type, otc_ih
+                    ORDER BY issued_year DESC, issued_month DESC
+                """).fetchall()
+                issuance_rows = [
+                    {"year": r[0], "month": r[1], "type": r[2], "otc_ih": r[3], "count": r[4]}
+                    for r in rows
+                ]
+        except Exception:
+            log.warning("admin_metrics: issuance query failed", exc_info=True)
+
+        # --- Section 2: Station SLA Compliance ---
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        SELECT station, department,
+                               COUNT(*) as total,
+                               SUM(CASE WHEN met_cal_sla THEN 1 ELSE 0 END) as met_sla,
+                               ROUND(AVG(calendar_days)::numeric, 1) as avg_days
+                        FROM permit_review_metrics
+                        WHERE station IS NOT NULL
+                        GROUP BY station, department
+                        ORDER BY total DESC
+                        LIMIT 30
+                    """)
+                    sla_rows = [
+                        {"station": r[0], "department": r[1], "total": r[2],
+                         "met_sla": r[3], "avg_days": float(r[4]) if r[4] else 0,
+                         "sla_pct": round(r[3] / r[2] * 100, 1) if r[2] else 0}
+                        for r in cur.fetchall()
+                    ]
+            else:
+                rows = conn.execute("""
+                    SELECT station, department,
+                           COUNT(*) as total,
+                           SUM(CASE WHEN met_cal_sla THEN 1 ELSE 0 END) as met_sla,
+                           ROUND(AVG(calendar_days), 1) as avg_days
+                    FROM permit_review_metrics
+                    WHERE station IS NOT NULL
+                    GROUP BY station, department
+                    ORDER BY total DESC
+                    LIMIT 30
+                """).fetchall()
+                sla_rows = [
+                    {"station": r[0], "department": r[1], "total": r[2],
+                     "met_sla": r[3], "avg_days": float(r[4]) if r[4] else 0,
+                     "sla_pct": round(r[3] / r[2] * 100, 1) if r[2] else 0}
+                    for r in rows
+                ]
+        except Exception:
+            log.warning("admin_metrics: SLA query failed", exc_info=True)
+
+        # --- Section 3: Planning Velocity ---
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        SELECT project_stage, metric_outcome, COUNT(*) as count,
+                               ROUND(AVG(metric_value)::numeric, 1) as avg_value
+                        FROM planning_review_metrics
+                        GROUP BY project_stage, metric_outcome
+                        ORDER BY count DESC
+                    """)
+                    planning_rows = [
+                        {"stage": r[0], "outcome": r[1], "count": r[2],
+                         "avg_value": float(r[3]) if r[3] else 0}
+                        for r in cur.fetchall()
+                    ]
+            else:
+                rows = conn.execute("""
+                    SELECT project_stage, metric_outcome, COUNT(*) as count,
+                           ROUND(AVG(metric_value), 1) as avg_value
+                    FROM planning_review_metrics
+                    GROUP BY project_stage, metric_outcome
+                    ORDER BY count DESC
+                """).fetchall()
+                planning_rows = [
+                    {"stage": r[0], "outcome": r[1], "count": r[2],
+                     "avg_value": float(r[3]) if r[3] else 0}
+                    for r in rows
+                ]
+        except Exception:
+            log.warning("admin_metrics: planning query failed", exc_info=True)
+
+    finally:
+        conn.close()
+
+    return render_template(
+        "admin_metrics.html",
+        user=g.user,
+        active_page="admin",
+        issuance_rows=issuance_rows,
+        sla_rows=sla_rows,
+        planning_rows=planning_rows,
+    )
