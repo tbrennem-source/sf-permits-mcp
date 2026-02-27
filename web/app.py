@@ -134,6 +134,7 @@ EXPECTED_TABLES = [
     "prep_checklists", "prep_items", "api_usage",
     "pim_cache", "dq_cache", "parcel_summary",
     "boiler_permits", "fire_permits",
+    "severity_cache",
 ]
 
 

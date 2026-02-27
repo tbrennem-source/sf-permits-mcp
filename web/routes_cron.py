@@ -1869,3 +1869,142 @@ def cron_ingest_recent_permits():
         "days": days,
         "elapsed_s": round(elapsed, 1),
     })
+
+
+# ---------------------------------------------------------------------------
+# Sprint 76-3: Severity cache refresh
+# ---------------------------------------------------------------------------
+
+@bp.route("/cron/refresh-severity-cache", methods=["POST"])
+def cron_refresh_severity_cache():
+    """Bulk-score active permits and upsert into severity_cache.
+
+    Protected by CRON_SECRET bearer token. Scores permits with status in
+    filed/issued/approved in batches of 500 to avoid timeouts.
+    """
+    _check_api_auth()
+    import json as _json
+    from src.db import get_connection, BACKEND
+    from src.severity import PermitInput, score_permit
+
+    start = time.time()
+    BATCH_LIMIT = 500
+
+    try:
+        conn = get_connection()
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT permit_number, status, permit_type_definition, description, "
+                        "filed_date, issued_date, completed_date, status_date, "
+                        "estimated_cost, revised_cost "
+                        "FROM permits "
+                        "WHERE LOWER(status) IN ('filed', 'issued', 'approved') "
+                        "ORDER BY filed_date DESC NULLS LAST "
+                        "LIMIT %s",
+                        (BATCH_LIMIT,),
+                    )
+                    rows = cur.fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT permit_number, status, permit_type_definition, description, "
+                    "filed_date, issued_date, completed_date, status_date, "
+                    "estimated_cost, revised_cost "
+                    "FROM permits "
+                    "WHERE LOWER(status) IN ('filed', 'issued', 'approved') "
+                    "ORDER BY filed_date DESC "
+                    "LIMIT ?",
+                    [BATCH_LIMIT],
+                ).fetchall()
+
+            # Get inspection counts in one query
+            permit_numbers = [r[0] for r in rows if r[0]]
+            insp_counts = {}
+            if permit_numbers:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT reference_number, COUNT(*) FROM inspections "
+                            "WHERE reference_number = ANY(%s) "
+                            "GROUP BY reference_number",
+                            (permit_numbers,),
+                        )
+                        for pnum, cnt in cur.fetchall():
+                            insp_counts[pnum] = cnt
+                else:
+                    placeholders = ", ".join(["?" for _ in permit_numbers])
+                    ic_rows = conn.execute(
+                        f"SELECT reference_number, COUNT(*) FROM inspections "
+                        f"WHERE reference_number IN ({placeholders}) "
+                        f"GROUP BY reference_number",
+                        permit_numbers,
+                    ).fetchall()
+                    for pnum, cnt in ic_rows:
+                        insp_counts[pnum] = cnt
+
+            # Score each permit and upsert to cache
+            scored = 0
+            errors = 0
+            for row in rows:
+                try:
+                    pnum = row[0]
+                    if not pnum:
+                        continue
+                    permit_input = PermitInput.from_dict(
+                        {
+                            "permit_number": pnum,
+                            "status": row[1] or "",
+                            "permit_type_definition": row[2] or "",
+                            "description": row[3] or "",
+                            "filed_date": row[4],
+                            "issued_date": row[5],
+                            "completed_date": row[6],
+                            "status_date": row[7],
+                            "estimated_cost": row[8],
+                            "revised_cost": row[9],
+                        },
+                        inspection_count=insp_counts.get(pnum, 0),
+                    )
+                    result = score_permit(permit_input)
+                    drivers_json = _json.dumps({
+                        dim: vals["score"] for dim, vals in result.dimensions.items()
+                    })
+                    if BACKEND == "postgres":
+                        with conn.cursor() as cur:
+                            cur.execute(
+                                "INSERT INTO severity_cache (permit_number, score, tier, drivers) "
+                                "VALUES (%s, %s, %s, %s) "
+                                "ON CONFLICT (permit_number) DO UPDATE "
+                                "SET score=EXCLUDED.score, tier=EXCLUDED.tier, "
+                                "    drivers=EXCLUDED.drivers, computed_at=NOW()",
+                                (pnum, result.score, result.tier, drivers_json),
+                            )
+                    else:
+                        conn.execute(
+                            "INSERT OR REPLACE INTO severity_cache "
+                            "(permit_number, score, tier, drivers) VALUES (?, ?, ?, ?)",
+                            [pnum, result.score, result.tier, drivers_json],
+                        )
+                    scored += 1
+                except Exception as row_err:
+                    logging.debug("severity score failed for %s: %s", row[0], row_err)
+                    errors += 1
+
+            if BACKEND == "postgres":
+                conn.commit()
+
+        finally:
+            conn.close()
+
+        elapsed = time.time() - start
+        return jsonify({
+            "ok": True,
+            "permits_scored": scored,
+            "errors": errors,
+            "elapsed_s": round(elapsed, 1),
+        })
+
+    except Exception as e:
+        logging.exception("cron_refresh_severity_cache failed")
+        return jsonify({"ok": False, "error": str(e)}), 500

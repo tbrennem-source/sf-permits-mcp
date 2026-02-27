@@ -554,6 +554,18 @@ def run_release_migrations():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_complete BOOLEAN DEFAULT FALSE"
     )
 
+    # === Sprint 76-3 ===
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS severity_cache (
+            permit_number TEXT PRIMARY KEY,
+            score INTEGER NOT NULL,
+            tier TEXT NOT NULL,
+            drivers JSONB,
+            computed_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_severity_cache_tier ON severity_cache (tier)")
+
     # Admin auto-seed
     admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
     if admin_email:

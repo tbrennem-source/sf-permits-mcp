@@ -1,0 +1,35 @@
+<style>
+.severity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: var(--text-xs, 0.75rem);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+}
+.severity-critical {
+    background-color: var(--signal-red, #ef4444);
+    color: #fff;
+}
+.severity-high {
+    background-color: #f59e0b;
+    color: #fff;
+}
+.severity-medium {
+    background-color: #eab308;
+    color: #fff;
+}
+.severity-low {
+    background-color: var(--signal-blue, #3b82f6);
+    color: #fff;
+}
+.severity-green {
+    background-color: var(--signal-green, #22c55e);
+    color: #fff;
+}
+</style>
+{% if severity_tier %}
+<span class="severity-badge severity-{{ severity_tier|lower }}">{{ severity_tier }}</span>
+{% endif %}
