@@ -442,7 +442,13 @@ When multiple agents must touch the same file, prefer function-level interface c
 
 ### Sequential Dependencies
 
-Merge order follows the dependency graph: infrastructure first, features second, UX/tests last. Run full test suite between each merge step.
+Merge order follows the dependency graph: infrastructure first, features second, UX/tests last.
+
+### Fast Merge Protocol (QS4+)
+
+**Merge all agents at once. Run the full test suite ONCE at the end.** Do NOT run between each merge — agents already ran the suite on their branches, and with clean file ownership the intermediate runs add ~7 min each with near-zero diagnostic value. If tests fail after all merges, bisect by reverting the last merge and re-testing (still faster than sequential). Only fall back to sequential test runs when file ownership is violated (2+ agents modify the same production file).
+
+**Sprint sizing:** 8-10 tasks per agent, estimate 15-30 min per agent (not 3-5 tasks and 2-3 hours).
 
 ### Model Routing
 
