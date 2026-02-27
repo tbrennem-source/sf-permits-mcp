@@ -821,6 +821,21 @@ def init_user_schema(conn=None) -> None:
             except Exception:
                 pass  # Column/index already exists
 
+        # QS5-A: Materialized parcel summary
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS parcel_summary (
+                block TEXT NOT NULL, lot TEXT NOT NULL,
+                canonical_address TEXT, neighborhood TEXT, supervisor_district TEXT,
+                permit_count INTEGER DEFAULT 0, open_permit_count INTEGER DEFAULT 0,
+                complaint_count INTEGER DEFAULT 0, violation_count INTEGER DEFAULT 0,
+                boiler_permit_count INTEGER DEFAULT 0, inspection_count INTEGER DEFAULT 0,
+                tax_value DOUBLE, zoning_code TEXT, use_definition TEXT,
+                number_of_units INTEGER, health_tier TEXT, last_permit_date TEXT,
+                refreshed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (block, lot)
+            )
+        """)
+
     finally:
         if close:
             conn.close()

@@ -1528,3 +1528,280 @@ def cron_ingest_planning_review_metrics():
     return jsonify({"ok": True, "table": "planning_review_metrics", "rows": count, "elapsed_s": round(elapsed, 1)})
 
 # === END SESSION F: REVIEW METRICS INGEST ===
+
+
+# === QS5-A: PARCEL SUMMARY REFRESH ===
+
+@bp.route("/cron/refresh-parcel-summary", methods=["POST"])
+def cron_refresh_parcel_summary():
+    """Materialize one-row-per-parcel summary from permits, tax_rolls,
+    complaints, violations, boiler_permits, inspections, and property_health.
+
+    CRON_SECRET auth required.
+    """
+    _check_api_auth()
+    from src.db import get_connection, BACKEND
+
+    start = time.time()
+    conn = get_connection()
+    try:
+        if BACKEND == "postgres":
+            conn.autocommit = True
+            cur = conn.cursor()
+        else:
+            cur = conn
+
+        # Placeholder style
+        ph = "%s" if BACKEND == "postgres" else "?"
+
+        # Build the canonical_address from the most recent filed permit
+        # per parcel (UPPER-cased, street_number || ' ' || street_name).
+        # Uses DISTINCT ON for Postgres, ROW_NUMBER for DuckDB.
+        if BACKEND == "postgres":
+            _refresh_parcel_summary_pg(cur)
+        else:
+            _refresh_parcel_summary_duckdb(cur)
+
+        # Count results
+        if BACKEND == "postgres":
+            cur.execute("SELECT COUNT(*) FROM parcel_summary")
+            count = cur.fetchone()[0]
+            cur.close()
+        else:
+            result = conn.execute("SELECT COUNT(*) FROM parcel_summary").fetchone()
+            count = result[0]
+        conn.close()
+
+        elapsed = time.time() - start
+        return jsonify({
+            "ok": True,
+            "parcels_refreshed": count,
+            "elapsed_s": round(elapsed, 1),
+        })
+    except Exception as e:
+        logging.exception("cron_refresh_parcel_summary failed")
+        conn.close()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+def _refresh_parcel_summary_pg(cur):
+    """Postgres-specific parcel summary refresh using UPSERT."""
+    cur.execute("""
+        INSERT INTO parcel_summary (
+            block, lot, canonical_address, neighborhood, supervisor_district,
+            permit_count, open_permit_count, complaint_count, violation_count,
+            boiler_permit_count, inspection_count,
+            tax_value, zoning_code, use_definition, number_of_units,
+            health_tier, last_permit_date, refreshed_at
+        )
+        SELECT
+            p.block, p.lot,
+            -- canonical_address: UPPER of most recent permit address
+            UPPER(
+                COALESCE(
+                    (SELECT pa.street_number || ' ' || pa.street_name
+                     FROM permits pa
+                     WHERE pa.block = p.block AND pa.lot = p.lot
+                       AND pa.street_number IS NOT NULL AND pa.street_name IS NOT NULL
+                     ORDER BY pa.filed_date DESC NULLS LAST
+                     LIMIT 1),
+                    tr.property_location
+                )
+            ),
+            p.neighborhood,
+            p.supervisor_district,
+            COUNT(*),
+            COUNT(*) FILTER (WHERE p.status IN ('filed', 'issued', 'approved', 'reinstated')),
+            -- correlated subquery counts
+            COALESCE((SELECT COUNT(*) FROM complaints c WHERE c.block = p.block AND c.lot = p.lot), 0),
+            COALESCE((SELECT COUNT(*) FROM violations v WHERE v.block = p.block AND v.lot = p.lot), 0),
+            COALESCE((SELECT COUNT(*) FROM boiler_permits bp WHERE bp.block = p.block AND bp.lot = p.lot), 0),
+            COALESCE((SELECT COUNT(*) FROM inspections i WHERE i.block = p.block AND i.lot = p.lot), 0),
+            -- tax data from most recent tax_rolls
+            tr.tax_value,
+            tr.zoning_code,
+            tr.use_definition,
+            tr.number_of_units,
+            -- health tier
+            ph.tier,
+            MAX(p.filed_date),
+            NOW()
+        FROM permits p
+        LEFT JOIN LATERAL (
+            SELECT
+                t.zoning_code, t.use_definition, t.number_of_units,
+                t.property_location,
+                COALESCE(t.assessed_land_value, 0) + COALESCE(t.assessed_improvement_value, 0) AS tax_value
+            FROM tax_rolls t
+            WHERE t.block = p.block AND t.lot = p.lot
+            ORDER BY t.tax_year DESC
+            LIMIT 1
+        ) tr ON TRUE
+        LEFT JOIN property_health ph ON ph.block_lot = p.block || '/' || p.lot
+        WHERE p.block IS NOT NULL AND p.lot IS NOT NULL
+        GROUP BY p.block, p.lot, p.neighborhood, p.supervisor_district,
+                 tr.tax_value, tr.zoning_code, tr.use_definition, tr.number_of_units,
+                 tr.property_location, ph.tier
+        ON CONFLICT (block, lot) DO UPDATE SET
+            canonical_address = EXCLUDED.canonical_address,
+            neighborhood = EXCLUDED.neighborhood,
+            supervisor_district = EXCLUDED.supervisor_district,
+            permit_count = EXCLUDED.permit_count,
+            open_permit_count = EXCLUDED.open_permit_count,
+            complaint_count = EXCLUDED.complaint_count,
+            violation_count = EXCLUDED.violation_count,
+            boiler_permit_count = EXCLUDED.boiler_permit_count,
+            inspection_count = EXCLUDED.inspection_count,
+            tax_value = EXCLUDED.tax_value,
+            zoning_code = EXCLUDED.zoning_code,
+            use_definition = EXCLUDED.use_definition,
+            number_of_units = EXCLUDED.number_of_units,
+            health_tier = EXCLUDED.health_tier,
+            last_permit_date = EXCLUDED.last_permit_date,
+            refreshed_at = NOW()
+    """)
+
+
+def _refresh_parcel_summary_duckdb(conn):
+    """DuckDB-specific parcel summary refresh using DELETE + INSERT.
+
+    Handles missing tables gracefully (complaints, violations,
+    boiler_permits, inspections, tax_rolls, property_health may not
+    exist in test or fresh DuckDB environments).
+    """
+    conn.execute("DELETE FROM parcel_summary")
+
+    # Check which optional tables exist
+    existing = {
+        r[0] for r in conn.execute(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'"
+        ).fetchall()
+    }
+    has_tax = "tax_rolls" in existing
+    has_complaints = "complaints" in existing
+    has_violations = "violations" in existing
+    has_boiler = "boiler_permits" in existing
+    has_inspections = "inspections" in existing
+    has_health = "property_health" in existing
+
+    # Build complaint/violation/boiler/inspection count expressions
+    complaint_expr = (
+        "COALESCE((SELECT COUNT(*) FROM complaints c WHERE c.block = p.block AND c.lot = p.lot), 0)"
+        if has_complaints else "0"
+    )
+    violation_expr = (
+        "COALESCE((SELECT COUNT(*) FROM violations v WHERE v.block = p.block AND v.lot = p.lot), 0)"
+        if has_violations else "0"
+    )
+    boiler_expr = (
+        "COALESCE((SELECT COUNT(*) FROM boiler_permits bp WHERE bp.block = p.block AND bp.lot = p.lot), 0)"
+        if has_boiler else "0"
+    )
+    inspection_expr = (
+        "COALESCE((SELECT COUNT(*) FROM inspections i WHERE i.block = p.block AND i.lot = p.lot), 0)"
+        if has_inspections else "0"
+    )
+
+    # Tax rolls JOIN
+    if has_tax:
+        tax_join = """
+        LEFT JOIN (
+            SELECT t.block, t.lot,
+                   t.zoning_code, t.use_definition, t.number_of_units,
+                   t.property_location,
+                   COALESCE(t.assessed_land_value, 0) + COALESCE(t.assessed_improvement_value, 0) AS tax_value,
+                   ROW_NUMBER() OVER (PARTITION BY t.block, t.lot ORDER BY t.tax_year DESC) AS rn
+            FROM tax_rolls t
+        ) tr ON tr.block = p.block AND tr.lot = p.lot AND tr.rn = 1
+        """
+        tax_value_col = "tr.tax_value"
+        zoning_col = "tr.zoning_code"
+        use_col = "tr.use_definition"
+        units_col = "tr.number_of_units"
+        tax_group = ", tr.tax_value, tr.zoning_code, tr.use_definition, tr.number_of_units, tr.property_location"
+    else:
+        tax_join = ""
+        tax_value_col = "NULL"
+        zoning_col = "NULL"
+        use_col = "NULL"
+        units_col = "NULL"
+        tax_group = ""
+
+    # Health JOIN
+    if has_health:
+        health_join = "LEFT JOIN property_health ph ON ph.block_lot = p.block || '/' || p.lot"
+        health_col = "ph.tier"
+        health_group = ", ph.tier"
+    else:
+        health_join = ""
+        health_col = "NULL"
+        health_group = ""
+
+    # Check if permits table has supervisor_district column
+    permit_cols = {
+        r[0] for r in conn.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_name = 'permits'"
+        ).fetchall()
+    }
+    has_supervisor = "supervisor_district" in permit_cols
+    supervisor_select = "p.supervisor_district" if has_supervisor else "NULL"
+    supervisor_group = ", p.supervisor_district" if has_supervisor else ""
+
+    # Canonical address expression
+    if has_tax:
+        addr_expr = """UPPER(
+            COALESCE(
+                (SELECT pa.street_number || ' ' || pa.street_name
+                 FROM permits pa
+                 WHERE pa.block = p.block AND pa.lot = p.lot
+                   AND pa.street_number IS NOT NULL AND pa.street_name IS NOT NULL
+                 ORDER BY pa.filed_date DESC NULLS LAST
+                 LIMIT 1),
+                tr.property_location
+            )
+        )"""
+    else:
+        addr_expr = """UPPER(
+            (SELECT pa.street_number || ' ' || pa.street_name
+             FROM permits pa
+             WHERE pa.block = p.block AND pa.lot = p.lot
+               AND pa.street_number IS NOT NULL AND pa.street_name IS NOT NULL
+             ORDER BY pa.filed_date DESC NULLS LAST
+             LIMIT 1)
+        )"""
+
+    sql = f"""
+        INSERT INTO parcel_summary (
+            block, lot, canonical_address, neighborhood, supervisor_district,
+            permit_count, open_permit_count, complaint_count, violation_count,
+            boiler_permit_count, inspection_count,
+            tax_value, zoning_code, use_definition, number_of_units,
+            health_tier, last_permit_date, refreshed_at
+        )
+        SELECT
+            p.block, p.lot,
+            {addr_expr},
+            p.neighborhood,
+            {supervisor_select},
+            COUNT(*),
+            COUNT(*) FILTER (WHERE p.status IN ('filed', 'issued', 'approved', 'reinstated')),
+            {complaint_expr},
+            {violation_expr},
+            {boiler_expr},
+            {inspection_expr},
+            {tax_value_col},
+            {zoning_col},
+            {use_col},
+            {units_col},
+            {health_col},
+            MAX(p.filed_date),
+            CURRENT_TIMESTAMP
+        FROM permits p
+        {tax_join}
+        {health_join}
+        WHERE p.block IS NOT NULL AND p.lot IS NOT NULL
+        GROUP BY p.block, p.lot, p.neighborhood{supervisor_group}
+                 {tax_group}{health_group}
+    """
+    conn.execute(sql)

@@ -187,6 +187,75 @@ def _safe_float(val: Any) -> float | None:
 
 
 # ---------------------------------------------------------------------------
+# Parcel summary cache helpers
+# ---------------------------------------------------------------------------
+
+def _get_parcel_summary(block: str, lot: str) -> dict | None:
+    """Query parcel_summary for cached property data.
+
+    Returns a dict with tax/zoning fields if found, None otherwise.
+    """
+    try:
+        conn = get_connection()
+        try:
+            sql = f"""
+                SELECT canonical_address, neighborhood, supervisor_district,
+                       tax_value, zoning_code, use_definition, number_of_units,
+                       health_tier, permit_count, complaint_count, violation_count
+                FROM parcel_summary
+                WHERE block = {_PH} AND lot = {_PH}
+            """
+            if BACKEND == "postgres":
+                cur = conn.cursor()
+                cur.execute(sql, (block, lot))
+                row = cur.fetchone()
+                cur.close()
+            else:
+                row = conn.execute(sql, [block, lot]).fetchone()
+            conn.close()
+            if row:
+                return {
+                    "canonical_address": row[0],
+                    "neighborhood_code_definition": row[1],
+                    "supervisor_district": row[2],
+                    "tax_value": row[3],
+                    "zoning_code": row[4],
+                    "use_definition": row[5],
+                    "number_of_units": row[6],
+                    "health_tier": row[7],
+                    "permit_count": row[8],
+                    "complaint_count": row[9],
+                    "violation_count": row[10],
+                }
+        except Exception:
+            conn.close()
+    except Exception:
+        pass
+    return None
+
+
+def _format_property_profile_from_cache(cache: dict) -> dict:
+    """Build property profile from parcel_summary cache data.
+
+    Maps cache fields to the same structure as _format_property_profile().
+    """
+    total_val = cache.get("tax_value")
+    return {
+        "assessed_value": _format_currency(total_val) if total_val else None,
+        "assessed_value_raw": total_val,
+        "zoning": cache.get("zoning_code") or None,
+        "property_class": None,  # Not stored in parcel_summary
+        "use_code": cache.get("use_definition") or None,
+        "neighborhood": cache.get("neighborhood_code_definition") or None,
+        "year_built": None,  # Not stored in parcel_summary
+        "building_area": None,  # Not stored in parcel_summary
+        "lot_area": None,  # Not stored in parcel_summary
+        "tax_year": None,  # Not stored in parcel_summary
+        "source": "parcel_summary",  # Flag indicating cached data
+    }
+
+
+# ---------------------------------------------------------------------------
 # Risk assessment
 # ---------------------------------------------------------------------------
 
@@ -762,19 +831,29 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
     finally:
         conn.close()
 
-    # ── 2. Async SODA queries (parallel) ──────────────────────────
+    # ── 1b. Check parcel_summary cache for tax/property data ────
+    parcel_cache = _get_parcel_summary(block, lot)
 
-    async def _fetch_soda() -> tuple[list[dict], list[dict], list[dict]]:
+    # ── 2. Async SODA queries (parallel) ──────────────────────────
+    # If parcel_summary has data, skip the property tax SODA call.
+
+    async def _fetch_soda(skip_property: bool = False) -> tuple[list[dict], list[dict], list[dict]]:
         client = SODAClient()
         try:
-            results = await asyncio.gather(
+            coros = [
                 _fetch_complaints(client, block, lot),
                 _fetch_violations(client, block, lot),
-                _fetch_property(client, block, lot),
-            )
+            ]
+            if not skip_property:
+                coros.append(_fetch_property(client, block, lot))
+            results = await asyncio.gather(*coros)
+            if skip_property:
+                return results[0], results[1], []
             return results[0], results[1], results[2]
         finally:
             await client.close()
+
+    skip_property_soda = parcel_cache is not None
 
     try:
         loop = asyncio.get_event_loop()
@@ -783,25 +862,37 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
             # Use a thread pool to run a fresh event loop.
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 complaints, violations, property_data = pool.submit(
-                    asyncio.run, _fetch_soda()
+                    asyncio.run, _fetch_soda(skip_property_soda)
                 ).result(timeout=30)
         else:
-            complaints, violations, property_data = asyncio.run(_fetch_soda())
+            complaints, violations, property_data = asyncio.run(
+                _fetch_soda(skip_property_soda)
+            )
     except RuntimeError:
         # No current event loop — create one via asyncio.run
-        complaints, violations, property_data = asyncio.run(_fetch_soda())
+        complaints, violations, property_data = asyncio.run(
+            _fetch_soda(skip_property_soda)
+        )
     except Exception as e:
         logger.warning("SODA fetch failed: %s", e)
         complaints, violations, property_data = [], [], []
 
     # ── 3. Compute derived sections ───────────────────────────────
+    # If we have cached parcel data, build property_data from it
+    # so downstream functions (risk assessment, consultant signal) work.
+    if parcel_cache and not property_data:
+        property_data = [parcel_cache]
+
     risk_assessment = _compute_risk_assessment(
         permits, complaints, violations, property_data,
     )
     consultant_signal = _compute_consultant_signal(
         complaints, violations, permits, property_data,
     )
-    property_profile = _format_property_profile(property_data)
+    if parcel_cache:
+        property_profile = _format_property_profile_from_cache(parcel_cache)
+    else:
+        property_profile = _format_property_profile(property_data)
 
     # ── 3b. Cross-reference analysis (always — uses public data) ──
     from web.owner_mode import (
