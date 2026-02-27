@@ -1,5 +1,43 @@
 # Changelog
 
+## Sprint 77 — E2E Scenario Testing Blitz (2026-02-26)
+
+- 64 new Playwright E2E tests across 4 new test files (1,533 lines)
+- test_severity_scenarios.py: 14 tests (property reports, search, portfolio, brief, demo)
+- test_admin_scenarios.py: 18 tests (admin ops, SQL injection, directory traversal, CSP, rate limiting)
+- test_search_scenarios.py: 15 tests (address/permit search, empty search, plan upload, methodology page)
+- test_auth_mobile_scenarios.py: 17 tests (landing page, auth redirects, mobile no-scroll, hamburger nav, beta form)
+- Zero production code changes
+
+## Sprint 76 — Intelligence v2 (2026-02-26)
+
+### Agent 76-1: Station Routing Sequence Model
+- `estimate_sequence_timeline()` — builds permit-specific timeline from actual addenda routing history
+- Parallel review detection (stations with same arrive date use max, not sum)
+- `GET /api/timeline/<permit_number>` — public JSON endpoint
+- 15 tests
+
+### Agent 76-2: Cost Tracking Middleware Wiring
+- After-request hook: logs `g.api_usage` to `api_usage` table automatically
+- Kill switch guard: blocks AI routes (`/ask`, `/analyze`, `/lookup/intel-preview`) with 503 when active
+- `POST /cron/aggregate-api-usage` — daily summary cron endpoint
+- `@_rate_limited_ai` applied to `/analyze-preview`
+- 22 tests
+
+### Agent 76-3: Severity UI Integration + Caching
+- `severity_cache` table (Postgres + DuckDB DDL)
+- `severity_badge.html` fragment with signal-color CSS
+- Search result enrichment with cached severity scores
+- `POST /cron/refresh-severity-cache` — bulk scoring cron endpoint
+- 23 tests
+
+### Agent 76-4: Admin Template Migration (5 pages)
+- Obsidian migration: admin_ops, admin_feedback, admin_metrics, admin_costs, admin_activity
+- Glass-card sections, signal-color badges, tab hash routing preserved
+- 34 tests
+
+**Total: 94 new tests across 4 agents**
+
 ## Sprint 75 — UX + Beta Launch (2026-02-26)
 
 ### Agent 75-1: Dashboard + Nav Redesign
