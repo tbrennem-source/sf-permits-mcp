@@ -1214,6 +1214,20 @@ def _security_headers(response):
     return add_security_headers(response)
 
 
+@app.after_request
+def add_cache_headers(response):
+    """Add Cache-Control headers for static content pages.
+
+    These pages have no personalisation and change only on deploy — a 1-hour
+    max-age with a 24-hour stale-while-revalidate window is safe and cuts
+    redundant origin hits from repeat visitors.
+    """
+    static_pages = ["/methodology", "/about-data", "/demo", "/pricing"]
+    if request.path in static_pages and response.status_code == 200:
+        response.headers["Cache-Control"] = "public, max-age=3600, stale-while-revalidate=86400"
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Health check (stays in app.py — infrastructure route)
 # ---------------------------------------------------------------------------
