@@ -921,3 +921,63 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** The metric insert happens only when `g._request_start` is set (i.e., request went through `_set_start_time`). Static file requests that bypass the before_request hook will not be recorded.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Design token ghost CTA meets WCAG AA
+**Source:** DESIGN_TOKENS.md ghost CTA accessibility fix
+**User:** architect | homeowner
+**Starting state:** User is on any page with ghost CTA links (property report, search results)
+**Goal:** Click a ghost CTA to navigate
+**Expected outcome:** Ghost CTA text is visible and legible at rest state (--text-secondary, 5.2:1 contrast), turns teal on hover. Passes WCAG AA for interactive text.
+**Edge cases seen in code:** Old templates may still use --text-tertiary for CTAs — migration needed
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Table sort indicators reflect active sort state
+**Source:** DESIGN_TOKENS.md obs-table sort indicators
+**User:** expediter | architect
+**Starting state:** User is viewing a data table with sortable columns (inspection history, permit list)
+**Goal:** Sort the table by clicking a column header
+**Expected outcome:** Chevron indicator appears on sortable columns in --text-tertiary. Active sort column shows teal chevron pointing up (asc) or down (desc). Clicking toggles direction. Only one column active at a time.
+**Edge cases seen in code:** Tables with no data should show empty state row, not sort controls
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Tabs switch content without full page reload
+**Source:** DESIGN_TOKENS.md tabs component
+**User:** expediter | admin
+**Starting state:** User is on a page with tabbed views (e.g., inspection history with Recent/Failed/All tabs)
+**Goal:** Switch between tab views
+**Expected outcome:** Active tab shows --text-primary with teal underline. Inactive tabs show --text-tertiary. Content panel swaps via HTMX without full page reload. On phone, tabs scroll horizontally if they overflow.
+**Edge cases seen in code:** Tab count badges should update when content changes
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Load more pagination appends results
+**Source:** DESIGN_TOKENS.md pagination / load more component
+**User:** expediter | homeowner
+**Starting state:** User is viewing a list with more than 20 results
+**Goal:** See additional results
+**Expected outcome:** "Showing 20 of 142" count displayed. "Show more →" ghost CTA loads next batch via HTMX append. Count updates. When no more results, button disappears. Skeleton placeholder shown during loading.
+**Edge cases seen in code:** If only 20 or fewer results, no pagination UI shown at all
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Toast notification with undo on watch action
+**Source:** DESIGN_TOKENS.md toast component
+**User:** expediter | homeowner
+**Starting state:** User is on a property page or search results
+**Goal:** Add a property to watchlist and see confirmation
+**Expected outcome:** "Watch added" toast appears top-center with green left border. Includes "Undo" link. Auto-dismisses after 5 seconds. Pauses on hover. Undo link reverses the action and dismisses toast immediately.
+**Edge cases seen in code:** Multiple rapid actions should stack toasts vertically, not replace
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Pre-computed brief loads sub-second
+**Source:** Instant Site Architecture spec (Chief Task #349)
+**User:** expediter
+**Starting state:** User is logged in with 40+ watched properties, first load of the day
+**Goal:** View morning brief quickly on mobile at job site
+**Expected outcome:** Brief page loads in under 200ms from page_cache. Shows "Updated X min ago" badge. Manual refresh button available (rate-limited to 1 per 5 min). All property cards, status dots, and sections render from pre-computed JSON.
+**Edge cases seen in code:** Cache miss on first-ever visit should compute and cache, not error. User with 0 watches gets clean empty state.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
