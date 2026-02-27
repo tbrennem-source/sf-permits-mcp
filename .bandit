@@ -1,0 +1,7 @@
+[bandit]
+# Exclude test directories from security scan
+exclude_dirs = tests,.venv,build,dist,.git
+# Skip assert_used check (B101) — asserts are fine in tests and debug code
+skips = B101
+# Scan these targets
+targets = src,web
