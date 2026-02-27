@@ -41,7 +41,8 @@ Read these files before writing any code:
 1. `CLAUDE.md` — project structure, deployment, rules
 2. `web/security.py` — CSP headers, security middleware, rate limiting, bot blocking
 3. `web/app.py` lines 30-40 — session cookie config
-4. `web/app.py` lines 60-120 — before_request hooks, context processors
+4. `web/app.py` lines 84-120 — context processors
+4b. `web/app.py` lines 851-960 — before_request hooks (rate limiting, cron guard, user loading, flags)
 5. `web/routes_auth.py` — login flow, invite codes, magic links
 6. `web/templates/demo.html` — current /demo page
 7. `web/templates/auth_login.html` — login/signup page
