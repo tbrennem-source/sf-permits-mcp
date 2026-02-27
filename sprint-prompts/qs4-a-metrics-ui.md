@@ -147,14 +147,8 @@ CREATE TABLE IF NOT EXISTS station_velocity_cache (
 - Calls `_refresh_velocity_cache()`
 - Returns count of stations cached
 
-### Task A-4: Extract Street-Use Contacts (~30 min)
-**Files:** `src/ingest.py` (add extraction function)
-
-**Add `_extract_street_use_contacts()` function:**
-- Query `street_use_permits` for agent, contact, planchecker fields
-- Insert into `contacts` table with entity_type='contractor' or 'agent'
-- Run entity resolution on new contacts
-- Add call to `run_ingestion()` after street-use ingest
+### ~~Task A-4: Extract Street-Use Contacts~~ — DESCOPED TO QS5
+**Reason:** Entity resolution changes are high-risk for a beta launch sprint. 1.2M records touching the 5-step resolution cascade could introduce regressions in consultant recommendations, entity network, and property reports. Defer to QS5 when we can test thoroughly.
 
 ---
 
@@ -180,9 +174,8 @@ Write `tests/test_qs4_a_metrics.py`:
 - POST /cron/refresh-velocity-cache requires CRON_SECRET
 - POST /cron/refresh-velocity-cache returns station count
 - Metrics ingest functions are called in run_ingestion
-- Street-use contact extraction produces contacts rows
 
-**Target: 25+ tests**
+**Target: 20+ tests**
 
 Run pytest after EACH task.
 
@@ -252,7 +245,7 @@ Score these pages 1-5:
 |--------|-----------|--------|
 | Wall clock time | 2-3 hours | [first commit to CHECKCHAT] |
 | New tests | 25+ | [count] |
-| Tasks completed | 4 | [N of 4] |
+| Tasks completed | 3 | [N of 3] |
 | Tasks descoped | — | [count + reasons] |
 | Tasks blocked | — | [count + reasons] |
 | Longest task | — | [task name, duration] |
@@ -288,3 +281,4 @@ Score these pages 1-5:
 - `web/templates/brief.html` (Session C)
 - `web/routes_misc.py` (Session B)
 - `web/static/design-system.css` (Session C)
+- `web/helpers.py` (Session D owns PostHog verification)
