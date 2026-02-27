@@ -1140,3 +1140,166 @@ def admin_metrics():
         sla_rows=sla_rows,
         planning_rows=planning_rows,
     )
+
+
+# ---------------------------------------------------------------------------
+# Admin: /admin/perf — Request performance dashboard (Sprint 74-1)
+# ---------------------------------------------------------------------------
+
+log = logging.getLogger(__name__)
+
+
+@bp.route("/admin/perf")
+@admin_required
+def admin_perf():
+    """Request performance dashboard — top slowest endpoints, volume by path, percentiles."""
+    from src.db import BACKEND, get_connection
+
+    # Default empty data structures
+    top_slowest = []
+    volume_rows = []
+    overall_percentiles = {"p50": 0.0, "p95": 0.0, "p99": 0.0, "total": 0}
+
+    conn = get_connection()
+    try:
+        if BACKEND == "postgres":
+            # Top 10 slowest endpoints (avg + p95)
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        path,
+                        method,
+                        COUNT(*) AS request_count,
+                        ROUND(AVG(duration_ms)::numeric, 1) AS avg_ms,
+                        ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms)::numeric, 1) AS p95_ms
+                    FROM request_metrics
+                    WHERE recorded_at >= NOW() - INTERVAL '24 hours'
+                    GROUP BY path, method
+                    HAVING COUNT(*) >= 2
+                    ORDER BY p95_ms DESC
+                    LIMIT 10
+                """)
+                top_slowest = [
+                    {
+                        "path": r[0], "method": r[1], "count": r[2],
+                        "avg_ms": float(r[3]) if r[3] else 0.0,
+                        "p95_ms": float(r[4]) if r[4] else 0.0,
+                    }
+                    for r in cur.fetchall()
+                ]
+
+            # Volume by path (24h)
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        path,
+                        method,
+                        COUNT(*) AS request_count,
+                        ROUND(AVG(duration_ms)::numeric, 1) AS avg_ms
+                    FROM request_metrics
+                    WHERE recorded_at >= NOW() - INTERVAL '24 hours'
+                    GROUP BY path, method
+                    ORDER BY request_count DESC
+                    LIMIT 20
+                """)
+                volume_rows = [
+                    {
+                        "path": r[0], "method": r[1], "count": r[2],
+                        "avg_ms": float(r[3]) if r[3] else 0.0,
+                    }
+                    for r in cur.fetchall()
+                ]
+
+            # Overall p50/p95/p99 (24h)
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT
+                        COUNT(*) AS total,
+                        ROUND(PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration_ms)::numeric, 1) AS p50,
+                        ROUND(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms)::numeric, 1) AS p95,
+                        ROUND(PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_ms)::numeric, 1) AS p99
+                    FROM request_metrics
+                    WHERE recorded_at >= NOW() - INTERVAL '24 hours'
+                """)
+                row = cur.fetchone()
+                if row and row[0]:
+                    overall_percentiles = {
+                        "total": int(row[0]),
+                        "p50": float(row[1]) if row[1] else 0.0,
+                        "p95": float(row[2]) if row[2] else 0.0,
+                        "p99": float(row[3]) if row[3] else 0.0,
+                    }
+        else:
+            # DuckDB fallback
+            rows = conn.execute("""
+                SELECT
+                    path,
+                    method,
+                    COUNT(*) AS request_count,
+                    ROUND(AVG(duration_ms), 1) AS avg_ms,
+                    ROUND(QUANTILE_CONT(duration_ms, 0.95), 1) AS p95_ms
+                FROM request_metrics
+                WHERE recorded_at >= NOW() - INTERVAL '24 hours'
+                GROUP BY path, method
+                HAVING COUNT(*) >= 2
+                ORDER BY p95_ms DESC
+                LIMIT 10
+            """).fetchall()
+            top_slowest = [
+                {
+                    "path": r[0], "method": r[1], "count": r[2],
+                    "avg_ms": float(r[3]) if r[3] else 0.0,
+                    "p95_ms": float(r[4]) if r[4] else 0.0,
+                }
+                for r in rows
+            ]
+
+            rows = conn.execute("""
+                SELECT
+                    path,
+                    method,
+                    COUNT(*) AS request_count,
+                    ROUND(AVG(duration_ms), 1) AS avg_ms
+                FROM request_metrics
+                WHERE recorded_at >= NOW() - INTERVAL '24 hours'
+                GROUP BY path, method
+                ORDER BY request_count DESC
+                LIMIT 20
+            """).fetchall()
+            volume_rows = [
+                {
+                    "path": r[0], "method": r[1], "count": r[2],
+                    "avg_ms": float(r[3]) if r[3] else 0.0,
+                }
+                for r in rows
+            ]
+
+            row = conn.execute("""
+                SELECT
+                    COUNT(*) AS total,
+                    ROUND(QUANTILE_CONT(duration_ms, 0.50), 1) AS p50,
+                    ROUND(QUANTILE_CONT(duration_ms, 0.95), 1) AS p95,
+                    ROUND(QUANTILE_CONT(duration_ms, 0.99), 1) AS p99
+                FROM request_metrics
+                WHERE recorded_at >= NOW() - INTERVAL '24 hours'
+            """).fetchone()
+            if row and row[0]:
+                overall_percentiles = {
+                    "total": int(row[0]),
+                    "p50": float(row[1]) if row[1] else 0.0,
+                    "p95": float(row[2]) if row[2] else 0.0,
+                    "p99": float(row[3]) if row[3] else 0.0,
+                }
+    except Exception:
+        log.warning("admin_perf: query failed", exc_info=True)
+    finally:
+        conn.close()
+
+    return render_template(
+        "admin_perf.html",
+        user=g.user,
+        active_page="admin",
+        top_slowest=top_slowest,
+        volume_rows=volume_rows,
+        overall_percentiles=overall_percentiles,
+    )

@@ -836,6 +836,25 @@ def init_user_schema(conn=None) -> None:
             )
         """)
 
+        # Sprint 74-1: Request metrics (DuckDB — INTEGER PK, TIMESTAMP not TIMESTAMPTZ)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS request_metrics (
+                id INTEGER PRIMARY KEY,
+                path TEXT NOT NULL,
+                method TEXT NOT NULL DEFAULT 'GET',
+                status_code INTEGER,
+                duration_ms FLOAT NOT NULL,
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        try:
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_reqmetrics_path_ts "
+                "ON request_metrics (path, recorded_at)"
+            )
+        except Exception:
+            pass
+
     finally:
         if close:
             conn.close()

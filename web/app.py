@@ -7,6 +7,7 @@ Route implementations live in web/routes_*.py modules.
 import json
 import logging
 import os
+import random
 import sys
 import time
 from datetime import timedelta
@@ -134,6 +135,7 @@ EXPECTED_TABLES = [
     "prep_checklists", "prep_items", "api_usage",
     "pim_cache", "dq_cache", "parcel_summary",
     "boiler_permits", "fire_permits",
+    "request_metrics",
 ]
 
 
@@ -1106,6 +1108,17 @@ def _slow_request_log(response):
                 "SLOW REQUEST: %.1fs %s %s -> %d",
                 elapsed, request.method, request.path, response.status_code,
             )
+        # Record to request_metrics: sample 10% of requests + all slow ones
+        if elapsed > 0.2 or random.random() < 0.1:
+            try:
+                from src.db import execute_write
+                execute_write(
+                    "INSERT INTO request_metrics (path, method, status_code, duration_ms)"
+                    " VALUES (%s, %s, %s, %s)",
+                    (request.path, request.method, response.status_code, elapsed * 1000),
+                )
+            except Exception:
+                pass  # Never fail the response
     return response
 
 
