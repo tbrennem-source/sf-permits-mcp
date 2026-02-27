@@ -1,5 +1,15 @@
 # Changelog
 
+## Sprint 75-3 — Template Migration Batch 1 (2026-02-26)
+
+### Agent 3: Obsidian Design Migration — 5 User Templates
+- `account.html` fully migrated: `head_obsidian.html` include, `class="obsidian"` body, `.obs-container`, Obsidian token CSS vars, `.card` aliased to glass-card for fragment compatibility
+- `search_results.html` fragment: root wrapper gets `.glass-card`, Quick Actions section uses `.glass-card` + `.obsidian-btn-primary`/`.obsidian-btn-outline`, no-results + neighborhood stats use `.glass-card`
+- `analyze_plans_complete.html` fragment: `.glass-card` wrapper, `obsidian-btn-primary` for View Results, `var(--signal-green)` success color
+- `analyze_plans_results.html` fragment: root `.glass-card`, all action buttons migrated to `.obsidian-btn-outline`, email inputs get `.obsidian-input`, watch cross-sell uses `.glass-card`
+- `analyze_plans_polling.html` fragment: Cancel button uses `.obsidian-btn-outline`, spacing tokens applied
+- 43 new tests (test_sprint_75_3.py): template structure, Obsidian compliance, preserved Jinja/HTMX, route smoke tests
+
 ## QS4 — Quad Sprint 4 (2026-02-26)
 
 ### QS4-A: Metrics UI + Data Surfacing

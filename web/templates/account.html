@@ -5,95 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>My Account — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
     <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
     <style nonce="{{ csp_nonce }}">
-        :root {
-            --bg: #0f1117;
-            --surface: #1a1d27;
-            --surface-2: #252834;
-            --border: #333749;
-            --text: #e4e6eb;
-            --text-muted: #8b8fa3;
-            --accent: #4f8ff7;
-            --accent-hover: #3a7ae0;
-            --success: #34d399;
-            --warning: #fbbf24;
-            --error: #f87171;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
-        header {
-            border-bottom: 1px solid var(--border);
-            padding: 20px 0;
-        }
-        header .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--accent);
-            text-decoration: none;
-        }
-        .logo span { color: var(--text-muted); font-weight: 400; }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .badge {
-            font-size: 0.7rem;
-            background: var(--surface-2);
-            color: var(--text-muted);
-            padding: 4px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            text-decoration: none;
-        }
-        .badge-btn {
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .badge-btn:hover { color: var(--text); border-color: var(--text-muted); }
-        main { padding: 40px 0 80px; }
-        h1 { font-size: 1.5rem; margin-bottom: 8px; }
-        .subtitle { color: var(--text-muted); margin-bottom: 32px; }
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-            color: var(--accent);
-        }
+        /* Account page supplemental styles */
         .info-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(255,255,255, 0.06);
         }
         .info-row:last-child { border-bottom: none; }
-        .info-label { color: var(--text-muted); }
+        .info-label { color: var(--text-secondary); }
         .watch-list { list-style: none; }
         .watch-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(255,255,255, 0.06);
         }
         .watch-item:last-child { border-bottom: none; }
         .watch-meta {
@@ -103,47 +33,40 @@
         .watch-label { font-weight: 500; }
         .watch-type {
             font-size: 0.8rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             text-transform: uppercase;
         }
         .btn-unwatch {
             background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255, 0.06);
+            color: var(--text-secondary);
             padding: 4px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.8rem;
         }
-        .btn-unwatch:hover { color: var(--error); border-color: var(--error); }
+        .btn-unwatch:hover { color: var(--signal-red); border-color: var(--signal-red); }
         .btn-edit {
             background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255, 0.06);
+            color: var(--text-secondary);
             padding: 4px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.8rem;
         }
-        .btn-edit:hover { color: var(--accent); border-color: var(--accent); }
+        .btn-edit:hover { color: var(--signal-cyan); border-color: var(--signal-cyan); }
         .watch-search {
             width: 100%;
-            padding: 8px 12px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text);
-            font-size: 0.85rem;
-            margin-bottom: 16px;
+            margin-bottom: var(--space-4);
         }
-        .watch-search::placeholder { color: var(--text-muted); }
         .watch-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
         .watch-edit-input {
             padding: 4px 8px;
-            background: var(--surface-2);
-            border: 1px solid var(--accent);
+            background: var(--bg-elevated);
+            border: 1px solid var(--signal-cyan);
             border-radius: 4px;
-            color: var(--text);
+            color: var(--text-primary);
             font-size: 0.85rem;
             width: 200px;
         }
@@ -152,43 +75,26 @@
             gap: 8px;
             align-items: center;
             flex-wrap: wrap;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-        .watch-add-form input, .watch-add-form select {
-            padding: 8px 12px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text);
-            font-size: 0.85rem;
-        }
-        .watch-add-form button {
-            padding: 8px 16px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid rgba(255,255,255, 0.06);
         }
         .watch-item.hidden { display: none; }
         .tag-pill {
             display: inline-block;
-            background: rgba(79, 143, 247, 0.15);
-            color: var(--accent);
+            background: rgba(34, 211, 238, 0.15);
+            color: var(--signal-cyan);
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 0.7rem;
             margin-right: 4px;
         }
         .tag-editor { margin-top: 4px; }
-        .empty { color: var(--text-muted); font-style: italic; }
+        .empty { color: var(--text-secondary); font-style: italic; }
         .impersonate-banner {
             background: rgba(251, 191, 36, 0.15);
-            border: 1px solid var(--warning);
-            color: var(--warning);
+            border: 1px solid var(--signal-amber);
+            color: var(--signal-amber);
             text-align: center;
             padding: 8px;
             font-size: 0.85rem;
@@ -196,8 +102,8 @@
         .impersonate-banner form { display: inline; }
         .impersonate-banner button {
             background: none;
-            border: 1px solid var(--warning);
-            color: var(--warning);
+            border: 1px solid var(--signal-amber);
+            color: var(--signal-amber);
             padding: 2px 8px;
             border-radius: 4px;
             cursor: pointer;
@@ -205,37 +111,10 @@
             margin-left: 8px;
         }
         .admin-section {
-            margin-top: 32px;
+            margin-top: var(--space-8);
         }
         .htmx-indicator { display: none; }
         .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
-        .admin-section input[type="email"] {
-            padding: 8px 12px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text);
-            font-size: 0.9rem;
-            width: 250px;
-        }
-        .admin-section .btn-sm {
-            padding: 8px 16px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        .btn-sm {
-            padding: 8px 16px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
         .status-badge {
             display: inline-block;
             padding: 2px 8px;
@@ -249,31 +128,70 @@
         .status-failed { background: #b71c1c; color: #ef9a9a; }
         .status-stale { background: #e65100; color: #ffcc80; }
 
-        /* Tab bar (admin only) */
-        .tab-bar { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
-        .tab-btn { padding: 7px 16px; border-radius: 6px; font-size: 0.8rem; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); cursor: pointer; font-family: inherit; text-decoration: none; transition: all 0.15s; }
-        .tab-btn:hover { border-color: var(--text-muted); color: var(--text); }
-        .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        /* Tab bar */
+        .tab-bar { display: flex; gap: 6px; margin-bottom: var(--space-6); flex-wrap: wrap; }
+        .tab-btn {
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: var(--text-sm);
+            border: 1px solid rgba(255,255,255, 0.06);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .tab-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+        .tab-btn.active { background: var(--signal-cyan); color: #0B0F19; border-color: var(--signal-cyan); font-weight: 600; }
         .tab-btn.loading {
-            color: var(--accent) !important;
-            background: var(--surface-2) !important;
-            border-color: var(--accent) !important;
+            color: var(--signal-cyan) !important;
+            background: var(--bg-elevated) !important;
+            border-color: var(--signal-cyan) !important;
             animation: tab-pulse 0.5s ease-in-out infinite alternate;
         }
-        @keyframes tab-pulse { from { border-color: rgba(79,143,247,0.3); } to { border-color: rgba(79,143,247,1); } }
+        @keyframes tab-pulse { from { border-color: rgba(34,211,238,0.3); } to { border-color: rgba(34,211,238,1); } }
         #tab-content { min-height: 200px; }
-        .tab-loading { text-align: center; padding: 60px 0; color: var(--text-muted); font-size: 0.9rem; }
-        .tab-loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+        .tab-loading { text-align: center; padding: 60px 0; color: var(--text-secondary); font-size: var(--text-sm); }
+        .tab-loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255, 0.06); border-top-color: var(--signal-cyan); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Tab panel visibility */
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
+
+        /* Page layout */
+        main { padding: var(--space-10) 0 var(--space-16); }
+        .account-header { margin-bottom: var(--space-8); }
+        .account-header h1 {
+            font-family: var(--font-display);
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+        .account-header .subtitle { color: var(--text-secondary); }
+
+        /* .card = glass-card alias for fragments using old class name */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255, 0.06);
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(8px);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+        .card h2, .glass-card h2 {
+            font-family: var(--font-display);
+            font-size: var(--text-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+            color: var(--signal-cyan);
+        }
     </style>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/mobile.css">
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body class="obsidian" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     {% if session.get('impersonating') %}
     <div class="impersonate-banner">
         Viewing as {{ session.impersonating }}
@@ -288,9 +206,11 @@
     {% include 'fragments/nav.html' %}
 
     <main>
-        <div class="container">
-            <h1>My Account</h1>
-            <p class="subtitle">{{ user.email }}</p>
+        <div class="obs-container">
+            <div class="account-header">
+                <h1>My Account</h1>
+                <p class="subtitle">{{ user.email }}</p>
+            </div>
 
             {% if user.is_admin %}
             <!-- Admin users: tab bar with visual separator between Settings and Admin -->

@@ -677,3 +677,16 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Unauthenticated access redirects to login; if onboarding_complete already TRUE, immediate redirect to /; dismiss is fire-and-forget (non-blocking JS fetch); banner dismiss (HTMX) and page dismiss both use same endpoint
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+<!-- Sprint 75-3 scenarios — appended 2026-02-26 -->
+
+## SUGGESTED SCENARIO: Account page renders with Obsidian dark theme
+
+**Source:** web/templates/account.html Obsidian migration (Sprint 75-3)
+**User:** expediter | homeowner | architect
+**Starting state:** User is authenticated and navigates to their account page
+**Goal:** View account settings, watched addresses, and plan analyses in the Obsidian dark theme
+**Expected outcome:** Page loads with dark background, JetBrains Mono headings, IBM Plex Sans body text, card sections clearly separated, no white/light background visible
+**Edge cases seen in code:** Admin users see tab bar with Settings/Admin tabs; non-admins see settings directly without tab bar. Both paths must render correctly under Obsidian.
+**CC confidence:** high
+**Status:** PENDING REVIEW

@@ -45,14 +45,11 @@
 
     <div class="step-detail">{{ job.progress_detail or 'Processing...' }}</div>
 
-    <div style="margin-top: 16px;">
+    <div style="margin-top: var(--space-4);">
         <button hx-post="/plan-jobs/{{ job.job_id }}/cancel"
                 hx-target="#job-status-poll"
                 hx-swap="outerHTML"
-                style="background:transparent; border:1px solid var(--border, #444); color:var(--text-muted, #999);
-                       padding:8px 20px; border-radius:6px; font-size:0.85rem; cursor:pointer;"
-                onmouseover="this.style.borderColor='var(--error, #f87171)'; this.style.color='var(--error, #f87171)'"
-                onmouseout="this.style.borderColor='var(--border, #444)'; this.style.color='var(--text-muted, #999)'">
+                class="obsidian-btn obsidian-btn-outline">
             Cancel Analysis
         </button>
     </div>

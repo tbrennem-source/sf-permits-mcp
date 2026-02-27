@@ -1102,7 +1102,7 @@
     }
 </style>
 
-<div class="result-card">
+<div class="result-card glass-card">
     <div class="validate-header">
         <h2>Plan Set Analysis Report</h2>
         <div class="validate-meta">
@@ -1132,7 +1132,7 @@
 
     {# ===== Previous Analyses Banner (Revision Tracking) ===== #}
     {% if previous_analyses is defined and previous_analyses %}
-    <div style="background:rgba(79,143,247,0.08);border:1px solid rgba(79,143,247,0.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+    <div class="glass-card" style="margin-bottom:var(--space-4);">
         <div style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:6px;">
             📋 Previous {{ 'version' if previous_analyses|length == 1 else 'versions' }} analyzed
         </div>
@@ -1154,23 +1154,23 @@
     {% if session_id %}
     <!-- Bulk Actions Toolbar -->
     <div class="bulk-actions-toolbar">
-        <button onclick="downloadAllPages()" class="action-btn">
+        <button onclick="downloadAllPages()" class="action-btn obsidian-btn obsidian-btn-outline">
             📦 Download All Pages (ZIP)
         </button>
-        <button onclick="printReport()" class="action-btn">
+        <button onclick="printReport()" class="action-btn obsidian-btn obsidian-btn-outline">
             📄 Download Analysis Report (PDF)
         </button>
-        <button onclick="emailAnalysis()" class="action-btn">
+        <button onclick="emailAnalysis()" class="action-btn obsidian-btn obsidian-btn-outline">
             ✉️ Email Full Analysis
         </button>
-        <button onclick="printReport()" class="action-btn">
+        <button onclick="printReport()" class="action-btn obsidian-btn obsidian-btn-outline">
             🖨️ Print Report
         </button>
         <div class="annotation-controls">
-            <button id="toggle-annotations" onclick="toggleAnnotations()" class="action-btn ann-toggle-on" aria-label="Toggle annotations">
+            <button id="toggle-annotations" onclick="toggleAnnotations()" class="action-btn obsidian-btn obsidian-btn-outline ann-toggle-on" aria-label="Toggle annotations">
                 Annotations: ON
             </button>
-            <select id="annotation-filter" onchange="filterAnnotations()" aria-label="Filter annotation types">
+            <select id="annotation-filter" onchange="filterAnnotations()" class="obsidian-input" aria-label="Filter annotation types">
                 <option value="all">All Types</option>
                 <option value="epr_issue">EPR Issues</option>
                 <option value="code_reference">Code References</option>
@@ -1185,8 +1185,8 @@
                 <option value="reviewer_note">Reviewer Notes</option>
                 <option value="ai_reviewer_response">AI Responses</option>
             </select>
-            <span id="filter-page-count" style="display:none; font-size:0.78rem; color:var(--text-muted, #999); margin-left:8px;"></span>
-            <button onclick="toggleLegend()" class="action-btn" id="legend-btn" aria-label="Show annotation legend">
+            <span id="filter-page-count" style="display:none; font-size:var(--text-xs); color:var(--text-secondary); margin-left:var(--space-2);"></span>
+            <button onclick="toggleLegend()" class="action-btn obsidian-btn obsidian-btn-outline" id="legend-btn" aria-label="Show annotation legend">
                 Legend
             </button>
             <div id="annotation-legend" class="annotation-legend" style="display:none;"></div>
@@ -1255,9 +1255,9 @@
                     <tr><th>Professional Stamp</th><td id="meta-stamp"></td></tr>
                 </table>
                 <div class="detail-actions">
-                    <button onclick="downloadPage()" class="action-btn">Download Page</button>
-                    <button onclick="openLightbox(currentPage)" class="action-btn">Full Screen</button>
-                    <button onclick="openComparison()" class="action-btn">Compare</button>
+                    <button onclick="downloadPage()" class="action-btn obsidian-btn obsidian-btn-outline">Download Page</button>
+                    <button onclick="openLightbox(currentPage)" class="action-btn obsidian-btn obsidian-btn-outline">Full Screen</button>
+                    <button onclick="openComparison()" class="action-btn obsidian-btn obsidian-btn-outline">Compare</button>
                 </div>
             </div>
         </div>
@@ -1303,8 +1303,8 @@
             <div class="lightbox-info">
                 <span id="lightbox-page-info"></span>
                 <div class="lightbox-actions">
-                    <button onclick="downloadPage()">Download</button>
-                    <button onclick="printPage()">Print</button>
+                    <button onclick="downloadPage()" class="obsidian-btn obsidian-btn-outline">Download</button>
+                    <button onclick="printPage()" class="obsidian-btn obsidian-btn-outline">Print</button>
                 </div>
             </div>
         </div>
@@ -1341,8 +1341,8 @@
             </div>
         </div>
         <div class="comparison-actions">
-            <button onclick="downloadComparison()">Download Both</button>
-            <button onclick="emailComparison()">Email Comparison</button>
+            <button onclick="downloadComparison()" class="obsidian-btn obsidian-btn-outline">Download Both</button>
+            <button onclick="emailComparison()" class="obsidian-btn obsidian-btn-outline">Email Comparison</button>
         </div>
     </div>
 
@@ -1353,13 +1353,13 @@
             <h3>Email Analysis</h3>
             <form id="email-form" onsubmit="sendEmail(event)">
                 <label>Recipient Email</label>
-                <input type="email" id="email-recipient" required>
+                <input type="email" id="email-recipient" class="obsidian-input" required>
                 <label>Message (optional)</label>
-                <textarea id="email-message" rows="4"></textarea>
+                <textarea id="email-message" class="obsidian-input" rows="4"></textarea>
                 <input type="hidden" id="email-context">
                 <div class="modal-actions">
-                    <button type="submit" class="btn">Send</button>
-                    <button type="button" onclick="closeEmailModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn obsidian-btn obsidian-btn-primary">Send</button>
+                    <button type="button" onclick="closeEmailModal()" class="btn-secondary obsidian-btn obsidian-btn-outline">Cancel</button>
                 </div>
             </form>
         </div>
@@ -1396,17 +1396,15 @@
 
     <!-- Watch cross-sell prompt -->
     {% if property_address and g.user %}
-    <div style="margin-top:32px; padding:20px; background:var(--surface-2, #252834); border:1px solid var(--border, #333749); border-radius:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div class="glass-card" style="margin-top:var(--space-8); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:var(--space-3);">
         <div>
-            <span style="font-size:0.95rem;">Track changes to this property?</span>
-            <span style="color:var(--text-muted, #8b8fa3);font-size:0.85rem;display:block;margin-top:4px;">
+            <span style="font-size:var(--text-base);">Track changes to this property?</span>
+            <span style="color:var(--text-secondary);font-size:var(--text-sm);display:block;margin-top:var(--space-1);">
                 Get notified about new permits, inspections, and complaints at {{ property_address }}.
             </span>
         </div>
         <div class="watch-container">
-            <button style="background:none;border:1px solid var(--accent, #4f8ff7);color:var(--accent, #4f8ff7);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:inherit;transition:all 0.2s;"
-                onmouseover="this.style.background='rgba(79,143,247,0.1)'"
-                onmouseout="this.style.background='none'"
+            <button class="obsidian-btn obsidian-btn-outline"
                 hx-post="/watch/add"
                 hx-target="closest .watch-container"
                 hx-swap="innerHTML"
@@ -1416,18 +1414,15 @@
         </div>
     </div>
     {% elif property_address and not g.user %}
-    <div style="margin-top:24px; text-align:center; color:var(--text-muted, #8b8fa3); font-size:0.85rem;">
-        <a href="/auth/login" style="color:var(--accent, #4f8ff7);">Sign in</a> to watch {{ property_address }} for permit updates.
+    <div style="margin-top:var(--space-6); text-align:center; color:var(--text-secondary); font-size:var(--text-sm);">
+        <a href="/auth/login" style="color:var(--signal-cyan);">Sign in</a> to watch {{ property_address }} for permit updates.
     </div>
     {% endif %}
 
     <!-- Analyze Another Plan -->
-    <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border, #333749); text-align:center;">
-        <a href="/account/analyses#upload"
-           style="display:inline-block; background:transparent; border:1px solid var(--accent, #4f8ff7); color:var(--accent, #4f8ff7);
-                  padding:10px 24px; border-radius:8px; text-decoration:none; font-size:0.9rem; font-weight:500; transition:all 0.2s;"
-           onmouseover="this.style.background='rgba(79,143,247,0.1)'"
-           onmouseout="this.style.background='transparent'">
+    <div style="margin-top:var(--space-8); padding-top:var(--space-6); border-top:1px solid rgba(255,255,255,0.06); text-align:center;">
+        <a href="/account/analyses#upload" class="obsidian-btn obsidian-btn-outline"
+           style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
             &#43; Analyze Another Plan
         </a>
     </div>
