@@ -788,6 +788,481 @@ For admin dashboards, portfolio views, and any structured data with columns.
 }
 ```
 
+### Toast / Notification
+
+Transient feedback for user actions. Supports an optional undo/action link. Auto-dismisses after 5 seconds unless hovered.
+
+```html
+<div class="toast toast--success" role="status" aria-live="polite">
+  <span class="toast__icon">✓</span>
+  <span class="toast__message">Watch added</span>
+  <a href="#" class="toast__action">Undo</a>
+  <button class="toast__dismiss" aria-label="Dismiss">×</button>
+</div>
+
+<!-- Variants -->
+<div class="toast toast--error">...</div>
+<div class="toast toast--info">...</div>
+```
+
+```css
+.toast {
+  position: fixed;
+  top: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px var(--space-5);
+  background: var(--obsidian-mid);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(12px);
+  animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: min(420px, calc(100vw - 32px));
+}
+.toast--success { border-left: 2px solid var(--signal-green); }
+.toast--error   { border-left: 2px solid var(--signal-red); }
+.toast--info    { border-left: 2px solid var(--signal-blue); }
+.toast__icon {
+  font-size: var(--text-sm);
+}
+.toast--success .toast__icon { color: var(--signal-green); }
+.toast--error .toast__icon   { color: var(--signal-red); }
+.toast--info .toast__icon    { color: var(--signal-blue); }
+.toast__message {
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+.toast__action {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--accent);
+  text-decoration: none;
+  margin-left: var(--space-2);
+  white-space: nowrap;
+}
+.toast__action:hover { text-decoration: underline; }
+.toast__dismiss {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 0 0 var(--space-2);
+  transition: color 0.2s;
+}
+.toast__dismiss:hover { color: var(--text-primary); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.toast.toast--exit {
+  animation: toast-out 0.25s ease-in forwards;
+}
+@keyframes toast-out {
+  to { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+}
+```
+
+**Behavior:**
+- Auto-dismiss after 5 seconds. Pause timer on hover.
+- Multiple toasts stack vertically with `var(--space-3)` gap (newest on top).
+- Undo action fires callback then dismisses. If no undo, omit `.toast__action`.
+- Replaces the existing ad-hoc `.flash` divs in the codebase.
+
+**JavaScript:**
+```javascript
+function showToast(message, { type = 'success', action, actionLabel = 'Undo', duration = 5000 } = {}) {
+  const toast = document.createElement('div');
+  toast.className = `toast toast--${type}`;
+  toast.setAttribute('role', 'status');
+  toast.innerHTML = `
+    <span class="toast__icon">${type === 'success' ? '✓' : type === 'error' ? '!' : 'i'}</span>
+    <span class="toast__message">${message}</span>
+    ${action ? `<a href="#" class="toast__action">${actionLabel}</a>` : ''}
+    <button class="toast__dismiss" aria-label="Dismiss">×</button>
+  `;
+  document.body.appendChild(toast);
+  let timer = setTimeout(() => dismiss(), duration);
+  toast.addEventListener('mouseenter', () => clearTimeout(timer));
+  toast.addEventListener('mouseleave', () => { timer = setTimeout(() => dismiss(), duration); });
+  toast.querySelector('.toast__dismiss').addEventListener('click', dismiss);
+  if (action) toast.querySelector('.toast__action').addEventListener('click', (e) => { e.preventDefault(); action(); dismiss(); });
+  function dismiss() { toast.classList.add('toast--exit'); setTimeout(() => toast.remove(), 250); }
+}
+```
+
+### Modal / Dialog
+
+Confirmation dialogs, mobile nav overlay, and any content that requires focus trapping. Desktop: centered fade. Mobile: slide-up sheet from bottom.
+
+```html
+<div class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal__header">
+      <h3 class="modal__title" id="modal-title">Delete this watch?</h3>
+      <button class="modal__close" aria-label="Close">×</button>
+    </div>
+    <div class="modal__body">
+      <p>This will remove 487 Noe St from your watched properties. You can re-add it later.</p>
+    </div>
+    <div class="modal__footer">
+      <button class="action-btn" onclick="closeModal()">Cancel</button>
+      <button class="action-btn action-btn--danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+```
+
+```css
+/* Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.60);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: backdrop-in 0.2s ease-out;
+}
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Modal — desktop (centered fade) */
+.modal {
+  background: var(--obsidian-mid);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  max-width: 440px;
+  width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  animation: modal-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-6) 0;
+}
+.modal__title {
+  font-family: var(--sans);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0;
+}
+.modal__close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+.modal__close:hover { color: var(--text-primary); }
+.modal__body {
+  padding: var(--space-4) var(--space-6);
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: 0 var(--space-6) var(--space-6);
+}
+
+/* Mobile — slide-up sheet */
+@media (max-width: 768px) {
+  .modal-backdrop {
+    align-items: flex-end;
+  }
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 85vh;
+    animation: modal-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes modal-slide-up {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .modal__header {
+    padding-top: var(--space-5);
+  }
+  /* Drag handle hint */
+  .modal::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 4px;
+    background: var(--glass-hover);
+    border-radius: 2px;
+    margin: var(--space-3) auto 0;
+  }
+}
+```
+
+**Behavior:**
+- `Escape` closes the modal. Backdrop click closes the modal.
+- Focus is trapped inside the modal while open. First focusable element receives focus on open.
+- On close, return focus to the element that triggered the modal.
+- No nested modals (Canon constraint). One modal at a time.
+
+### Print Styles
+
+Property reports and morning briefs are printable. The obsidian palette inverts to white for ink efficiency.
+
+```css
+@media print {
+  /* Invert palette */
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+  }
+
+  /* Hide chrome */
+  .nav-float,
+  .ambient,
+  .toast,
+  .modal-backdrop,
+  .ghost-cta,
+  .action-btn,
+  footer,
+  .search-bar,
+  .kbd-hint { display: none !important; }
+
+  /* Cards become bordered containers */
+  .glass-card {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+
+  /* Text colors for print */
+  .data-row__label,
+  .obs-table td { color: #555 !important; }
+  .data-row__value,
+  .obs-table__mono,
+  .stat-number { color: #1a1a1a !important; }
+
+  /* Table headers */
+  .obs-table th {
+    color: #777 !important;
+    border-bottom: 1px solid #ccc !important;
+  }
+  .obs-table tr:hover { background: none !important; }
+
+  /* Status colors stay semantic (they're already high contrast) */
+  .status-text--green  { color: #16a34a !important; }
+  .status-text--amber  { color: #d97706 !important; }
+  .status-text--red    { color: #dc2626 !important; }
+
+  /* Status dots — darker for print */
+  .status-dot--green  { background: #16a34a !important; }
+  .status-dot--amber  { background: #d97706 !important; }
+  .status-dot--red    { background: #dc2626 !important; }
+
+  /* Links show URLs */
+  a[href]:not(.ghost-cta)::after {
+    content: " (" attr(href) ")";
+    font-size: 9px;
+    color: #888;
+  }
+
+  /* Disable animations */
+  .reveal { opacity: 1 !important; transform: none !important; }
+
+  /* Page breaks */
+  h2, h3 { break-after: avoid; }
+  .glass-card { break-inside: avoid; }
+
+  /* Data freshness footer — keep visible */
+  .data-freshness { display: block !important; color: #999 !important; }
+}
+```
+
+**Rules:**
+- Include `@media print` in the base stylesheet, not a separate file.
+- Print button (if added) should be a ghost CTA: `Print report →`
+- Property reports should fit on A4/Letter. Test with `Ctrl+P` preview.
+
+### Content Patterns
+
+Recurring content blocks used across AI consultations, property reports, and the brief. Agents: use these patterns instead of inventing new layouts.
+
+#### Insight Callout
+
+A left-bordered box highlighting a key finding or recommendation. Semantic color matches the signal type.
+
+```html
+<div class="insight insight--amber">
+  <div class="insight__label">Things to know</div>
+  <div class="insight__body">This permit has been in plan review for 47 days longer than the neighborhood median. Consider contacting the assigned plan checker.</div>
+</div>
+```
+
+```css
+.insight {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-4);
+  border-left: 2px solid;
+}
+.insight--green  { background: rgba(52, 211, 153, 0.06); border-left-color: var(--signal-green); }
+.insight--amber  { background: rgba(251, 191, 36, 0.06); border-left-color: var(--signal-amber); }
+.insight--red    { background: rgba(248, 113, 113, 0.06); border-left-color: var(--signal-red); }
+.insight--info   { background: rgba(96, 165, 250, 0.06); border-left-color: var(--signal-blue); }
+.insight__label {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.insight--green .insight__label  { color: var(--signal-green); }
+.insight--amber .insight__label  { color: var(--signal-amber); }
+.insight--red .insight__label    { color: var(--signal-red); }
+.insight--info .insight__label   { color: var(--signal-blue); }
+.insight__body {
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+```
+
+#### Expandable Section
+
+Progressive disclosure for detail-on-demand. Summary visible, detail hidden until clicked.
+
+```html
+<details class="expandable">
+  <summary class="expandable__summary">
+    <span class="expandable__title">Why in-house review?</span>
+    <span class="expandable__arrow">▾</span>
+  </summary>
+  <div class="expandable__body">
+    <p>Estimated cost exceeds $50,000 and the project includes structural modifications, triggering mandatory DBI in-house review per Administrative Bulletin 003.</p>
+  </div>
+</details>
+```
+
+```css
+.expandable {
+  border-bottom: 1px solid var(--glass-border);
+}
+.expandable__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  cursor: pointer;
+  list-style: none;
+}
+.expandable__summary::-webkit-details-marker { display: none; }
+.expandable__title {
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+.expandable__summary:hover .expandable__title { color: var(--accent); }
+.expandable__arrow {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  transition: transform 0.3s;
+}
+.expandable[open] .expandable__arrow { transform: rotate(180deg); }
+.expandable__body {
+  padding: 0 0 var(--space-4);
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+```
+
+#### Risk Flag
+
+Compact inline warning for specific risk items in a list or card.
+
+```html
+<div class="risk-flag risk-flag--high">
+  <span class="risk-flag__dot"></span>
+  <span class="risk-flag__text">2 active complaints at this parcel</span>
+</div>
+```
+
+```css
+.risk-flag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 0;
+}
+.risk-flag__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.risk-flag--high .risk-flag__dot   { background: var(--dot-red); }
+.risk-flag--medium .risk-flag__dot { background: var(--dot-amber); }
+.risk-flag--low .risk-flag__dot    { background: var(--dot-green); }
+.risk-flag__text {
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+```
+
+#### Action Prompt
+
+End-of-section nudge toward the next step. Always a ghost CTA with context.
+
+```html
+<div class="action-prompt">
+  <span class="action-prompt__context">Based on 3,412 similar permits in your neighborhood</span>
+  <a href="/report/3512/001" class="ghost-cta">Full property intelligence →</a>
+</div>
+```
+
+```css
+.action-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+}
+.action-prompt__context {
+  font-family: var(--sans);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+```
+
 ---
 
 ## 6. Navigation
