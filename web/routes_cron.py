@@ -1536,17 +1536,6 @@ def cron_ingest_planning_review_metrics():
 def cron_refresh_parcel_summary():
     """Materialize one-row-per-parcel summary from permits, tax_rolls,
     complaints, violations, boiler_permits, inspections, and property_health.
-# ---------------------------------------------------------------------------
-# QS5-B: Incremental permit ingest
-# ---------------------------------------------------------------------------
-
-@bp.route("/cron/ingest-recent-permits", methods=["POST"])
-def cron_ingest_recent_permits():
-    """Incremental ingest of recently-filed permits via SODA API.
-
-    Upserts permits filed in the last 30 days into the permits table to
-    reduce orphan rates in permit_changes.  Skips if a full_ingest job
-    completed in the last hour (sequencing guard).
 
     CRON_SECRET auth required.
     """
@@ -1783,7 +1772,7 @@ def _refresh_parcel_summary_duckdb(conn):
         )"""
 
     sql = f"""
-        INSERT INTO parcel_summary (
+        INSERT OR REPLACE INTO parcel_summary (
             block, lot, canonical_address, neighborhood, supervisor_district,
             permit_count, open_permit_count, complaint_count, violation_count,
             boiler_permit_count, inspection_count,
@@ -1816,6 +1805,23 @@ def _refresh_parcel_summary_duckdb(conn):
                  {tax_group}{health_group}
     """
     conn.execute(sql)
+
+
+# ---------------------------------------------------------------------------
+# QS5-B: Incremental permit ingest
+# ---------------------------------------------------------------------------
+
+@bp.route("/cron/ingest-recent-permits", methods=["POST"])
+def cron_ingest_recent_permits():
+    """Incremental ingest of recently-filed permits via SODA API.
+
+    Upserts permits filed in the last 30 days into the permits table to
+    reduce orphan rates in permit_changes.  Skips if a full_ingest job
+    completed in the last hour (sequencing guard).
+
+    CRON_SECRET auth required.
+    """
+    _check_api_auth()
 
     from src.db import query
 
