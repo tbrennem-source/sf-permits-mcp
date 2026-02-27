@@ -1,5 +1,40 @@
 # Changelog
 
+## Sprint 75 — UX + Beta Launch (2026-02-26)
+
+### Agent 75-1: Dashboard + Nav Redesign
+- **nav.html**: Obsidian sticky nav with `backdrop-filter: blur(12px)`, 5 desktop badges + "More" dropdown, hamburger mobile menu (slide-down panel, 48px touch targets, close-on-tap-outside)
+- **index.html**: Full dashboard redesign — search in `.glass-card`, quick actions row, recent searches grid (from localStorage), watched properties card, quick stats row with `.stat-block` components
+- All content in `.obs-container`, all design tokens from `design-system.css`
+- 22 tests
+
+### Agent 75-2: Beta Approval Email + Onboarding
+- `send_beta_welcome_email()` in `web/auth.py` — branded HTML email with magic link CTA on admin approval
+- `web/templates/emails/beta_approved.html` — inline CSS dark theme email template
+- `admin_approve_beta()` wired to send welcome email (falls back to plain magic link on SMTP failure)
+- `onboarding_complete` column added to users table (release.py + DuckDB DDL)
+- `GET /welcome` — 3-step onboarding page (search, reports, watchlist) with Obsidian glass-card design
+- `POST /onboarding/dismiss` — persists completion to DB
+- 19 tests
+
+### Agent 75-3: Template Migration Batch 1 (5 Pages)
+- **account.html**: Full page migration — replaced 165 lines inline CSS with `head_obsidian.html`, glass-card aliases
+- **search_results.html**: HTMX fragment — glass-card wrappers, obsidian-btn classes on all buttons
+- **analyze_plans_complete.html**: glass-card + obsidian-btn-primary on View Results
+- **analyze_plans_results.html**: glass-card sections, obsidian-btn/obsidian-input on all controls + email modal
+- **analyze_plans_polling.html**: obsidian-btn-outline on Cancel button
+- 43 tests
+
+### Agent 75-4: Demo Enhancement + PWA Polish
+- `_get_demo_data()`: queries `parcel_summary` for real data, integrates `score_permit` severity scoring
+- Severity badges in demo.html — colored pills (CRITICAL/HIGH/MEDIUM/LOW/GREEN) in hero + permit table
+- Cache TTL reduced to 15 min (from 1 hour)
+- `manifest.json`: `"purpose": "any maskable"` on icons, added orientation/lang/scope fields
+- `/demo` added to sitemap
+- 24 tests
+
+**Total: 108 new tests, 0 blocked items**
+
 ## Sprint 74 — Performance + Observability (2026-02-26)
 
 ### Agent 74-1: Request Metrics + /admin/perf Dashboard
