@@ -183,6 +183,8 @@ def run_all_checks() -> list[dict]:
         _check_orphaned_contacts,
         _check_inspection_null_rate,
         _check_data_freshness,
+        _check_orphan_inspections,
+        _check_trade_permit_counts,
     ]
 
     if BACKEND == "postgres":
@@ -672,4 +674,97 @@ def _check_station_velocity_freshness() -> dict:
         "unit": f"{days_old}d old",
         "status": status,
         "detail": f"station_velocity_v2 last computed: {max_date} ({days_old} days old)",
+    }
+
+
+# ── Trade permit & orphan inspection checks ──────────────────────
+
+
+def _check_orphan_inspections() -> dict:
+    """Check percentage of permit-type inspections with no matching permit.
+
+    Filters to reference_number_type='permit' to exclude complaint inspections,
+    which reference complaint numbers (not permit numbers) by design.
+
+    Thresholds: green < 5%, yellow 5-15%, red > 15%.
+    """
+    try:
+        orphan_rows = _timed_query(
+            "SELECT COUNT(*) FROM inspections "
+            "WHERE reference_number_type = 'permit' "
+            "AND reference_number NOT IN (SELECT permit_number FROM permits)",
+            (),
+        )
+        total_rows = _timed_query(
+            "SELECT COUNT(*) FROM inspections WHERE reference_number_type = 'permit'",
+            (),
+        )
+    except Exception:
+        return {
+            "name": "Orphan Inspections",
+            "category": "completeness",
+            "value": "Error",
+            "unit": "",
+            "status": "yellow",
+            "detail": "Query failed — inspections or permits table may be unavailable",
+        }
+
+    orphans = orphan_rows[0][0] if orphan_rows else 0
+    total = total_rows[0][0] if total_rows else 1
+    pct = round(orphans / max(total, 1) * 100, 2)
+    status = "green" if pct < 5 else ("yellow" if pct <= 15 else "red")
+    return {
+        "name": "Orphan Inspections",
+        "category": "completeness",
+        "value": f"{pct}%",
+        "unit": f"({orphans:,} of {total:,} permit-type)",
+        "status": status,
+        "detail": f"{orphans:,} permit-type inspections with no matching permit ({pct}%)",
+    }
+
+
+def _check_trade_permit_counts() -> dict:
+    """Verify boiler_permits and fire_permits tables have data.
+
+    Returns red if either table is empty (data pipeline broken).
+    """
+    try:
+        boiler_rows = _timed_query("SELECT COUNT(*) FROM boiler_permits", ())
+        fire_rows = _timed_query("SELECT COUNT(*) FROM fire_permits", ())
+    except Exception:
+        return {
+            "name": "Trade Permits",
+            "category": "completeness",
+            "value": "Error",
+            "unit": "",
+            "status": "red",
+            "detail": "boiler_permits or fire_permits table not available",
+        }
+
+    boiler_ct = boiler_rows[0][0] if boiler_rows else 0
+    fire_ct = fire_rows[0][0] if fire_rows else 0
+
+    empty_tables = []
+    if boiler_ct == 0:
+        empty_tables.append("boiler_permits")
+    if fire_ct == 0:
+        empty_tables.append("fire_permits")
+
+    if empty_tables:
+        return {
+            "name": "Trade Permits",
+            "category": "completeness",
+            "value": "Empty",
+            "unit": ", ".join(empty_tables),
+            "status": "red",
+            "detail": f"Empty tables: {', '.join(empty_tables)} — trade permit pipeline may be broken",
+        }
+
+    return {
+        "name": "Trade Permits",
+        "category": "completeness",
+        "value": f"{boiler_ct + fire_ct:,}",
+        "unit": f"({boiler_ct:,} boiler + {fire_ct:,} fire)",
+        "status": "green",
+        "detail": f"{boiler_ct:,} boiler permits + {fire_ct:,} fire permits loaded",
     }

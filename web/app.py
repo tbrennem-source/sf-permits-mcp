@@ -133,6 +133,7 @@ EXPECTED_TABLES = [
     "plan_analysis_jobs", "project_notes", "analysis_sessions",
     "prep_checklists", "prep_items", "api_usage",
     "pim_cache", "dq_cache", "parcel_summary",
+    "boiler_permits", "fire_permits",
 ]
 
 
