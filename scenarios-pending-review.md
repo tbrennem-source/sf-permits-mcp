@@ -981,3 +981,43 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Cache miss on first-ever visit should compute and cache, not error. User with 0 watches gets clean empty state.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Portfolio page shows property cards in obsidian dark theme
+**Source:** web/templates/portfolio.html obsidian migration
+**User:** expediter | homeowner
+**Starting state:** User is authenticated and has watched properties on their portfolio
+**Goal:** View the portfolio page to see watched properties with current status
+**Expected outcome:** Portfolio page renders with dark obsidian-themed property cards showing property address, current permit status, last activity date, and status indicator dot. Summary stats (total watched, active, attention) appear at top. Filter chips allow switching between All/Active/Attention/Stale views.
+**Edge cases seen in code:** Empty state (no watched properties) shows distinct CTA prompting user to search for a property to watch. Filter with 0 results shows per-filter empty message, not a crash.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Project detail shows role-appropriate invite section
+**Source:** web/templates/project_detail.html obsidian migration
+**User:** expediter | architect | admin
+**Starting state:** User is a project owner or admin viewing a project detail page
+**Goal:** Invite a collaborator to the project
+**Expected outcome:** An invite form with email input is visible only to project owners and admins. Sending an invite to a valid email shows success feedback. Sending to an invalid email shows error feedback. Regular members see no invite section.
+**Edge cases seen in code:** Admin override via g.user.is_admin — site admins can invite on any project regardless of project role.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Project detail links analyses to correct reports
+**Source:** web/templates/project_detail.html analysis list
+**User:** expediter | architect
+**Starting state:** User has a project with one or more linked plan analyses
+**Goal:** Navigate from the project detail page to a specific analysis
+**Expected outcome:** Analyses section shows each linked analysis as a clickable link with description (or address fallback, or "Untitled Analysis"). Clicking navigates to the correct analysis page. "No analyses linked" empty state shown when project has no analyses.
+**Edge cases seen in code:** Analysis with null description falls back to address, then to "Untitled Analysis". created_at date displayed in "Jan 01, 2025" format.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Search result cards use obsidian design tokens on authenticated home page
+**Source:** web/templates/index.html obsidian migration
+**User:** expediter | homeowner
+**Starting state:** User is authenticated and performs a permit search
+**Goal:** Read search results clearly on dark obsidian-themed page
+**Expected outcome:** Search result cards use the obsidian dark surface (no white/light cards). Accent color for links and interactive elements is cyan-teal (not legacy blue). Font hierarchy is clear — addresses/permit numbers in display font, metadata in body font. Error state (empty results, server error) renders in red signal color using token variable.
+**Edge cases seen in code:** Loading bar and progress dots use signal-cyan accent. Personalization form (priorities, experience) uses cyan chip highlight when selected.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
