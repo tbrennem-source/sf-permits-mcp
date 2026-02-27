@@ -409,3 +409,13 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Tasks may reference features that were built under different task numbers (e.g., #207 "orphaned test files" was wrong — source files exist). Task descriptions may be stale while the underlying work was completed in a different sprint.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: admin navigates ops dashboard across tabs
+**Source:** admin_ops.html Obsidian migration (Sprint 76-4)
+**User:** admin
+**Starting state:** Admin is logged in, visits /admin/ops
+**Goal:** Check pipeline health, then look at feedback, then check user activity — all in one session
+**Expected outcome:** Tab navigation loads each panel without a full page reload; hash in URL updates to reflect current tab; back/forward navigation restores correct tab
+**Edge cases seen in code:** Hash aliases (luck, dq, watch, intelligence) allow bookmarking with friendly names; 30s HTMX timeout shows error if server is slow
+**CC confidence:** high
+**Status:** PENDING REVIEW

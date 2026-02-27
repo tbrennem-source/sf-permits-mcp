@@ -6,91 +6,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Activity Feed — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
 {% endif %}
     <style nonce="{{ csp_nonce }}">
-        :root {
-            --bg: #0f1117;
-            --surface: #1a1d27;
-            --surface-2: #252834;
-            --border: #333749;
-            --text: #e4e6eb;
-            --text-muted: #8b8fa3;
-            --accent: #4f8ff7;
-            --success: #34d399;
-            --warning: #fbbf24;
-            --error: #f87171;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
-        header { border-bottom: 1px solid var(--border); padding: 20px 0; }
-        header .container { display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-decoration: none; }
-        .logo span { color: var(--text-muted); font-weight: 400; }
-        .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
-        .back-link:hover { color: var(--text); }
-        main { padding: 40px 0 80px; }
-        h1 { font-size: 1.5rem; margin-bottom: 8px; }
-        .subtitle { color: var(--text-muted); margin-bottom: 24px; }
-        .stats-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
         .stat-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 100px;
+            background: var(--bg-elevated); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--card-radius); padding: var(--space-4); flex: 1; min-width: 100px;
             cursor: pointer; text-decoration: none; color: inherit;
             transition: border-color 0.15s, background 0.15s;
         }
-        .stat-card:hover { border-color: var(--accent); background: var(--surface-2); }
-        .stat-card.active { border-color: var(--accent); background: rgba(79,143,247,0.08); }
-        .stat-number { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
-        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .stat-card:hover { border-color: var(--signal-cyan); background: var(--bg-elevated); }
+        .stat-card.active { border-color: var(--signal-cyan); background: rgba(34,211,238,0.08); }
+        .stat-number { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--signal-cyan); }
+        .stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-body); }
+
         .filter-bar {
-            display: flex; gap: 12px; align-items: center; margin-bottom: 24px;
+            display: flex; gap: 12px; align-items: center; margin-bottom: var(--space-6);
             flex-wrap: wrap;
         }
         .filter-bar select {
             padding: 8px 12px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 6px;
-            color: var(--text);
-            font-size: 0.85rem;
+            color: var(--text-primary);
+            font-size: var(--text-sm);
             min-width: 200px;
+            font-family: var(--font-body);
         }
         .clear-btn {
             background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-secondary);
             padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: var(--text-sm);
             text-decoration: none;
+            transition: all 0.15s;
         }
-        .clear-btn:hover { color: var(--text); border-color: var(--text-muted); }
+        .clear-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
         .filter-tag {
             display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(79,143,247,0.12); color: var(--accent);
-            padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;
+            background: rgba(34,211,238,0.12); color: var(--signal-cyan);
+            padding: 4px 10px; border-radius: 4px; font-size: var(--text-sm);
         }
-        .filter-tag a { color: var(--accent); text-decoration: none; font-weight: 700; }
-        .filter-tag a:hover { color: var(--error); }
+        .filter-tag a { color: var(--signal-cyan); text-decoration: none; font-weight: 700; }
+        .filter-tag a:hover { color: var(--signal-red); }
+
         .activity-list { display: flex; flex-direction: column; gap: 2px; }
         .activity-row {
             display: flex; align-items: center; gap: 12px;
-            padding: 10px 16px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 6px;
-            font-size: 0.85rem;
+            padding: 10px 16px; background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.04); border-radius: 6px;
+            font-size: var(--text-sm); transition: background 0.1s;
         }
-        .activity-time { color: var(--text-muted); font-size: 0.75rem; min-width: 100px; }
+        .activity-row:hover { background: var(--bg-glass); }
+        .activity-time { color: var(--text-secondary); font-size: 0.75rem; min-width: 100px; font-family: var(--font-mono); }
         .activity-action {
             font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;
-            background: rgba(79,143,247,0.12); color: var(--accent);
-            min-width: 80px; text-align: center;
+            background: rgba(34,211,238,0.12); color: var(--signal-cyan);
+            min-width: 80px; text-align: center; font-weight: 600;
         }
-        .activity-user { color: var(--text-muted); min-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .activity-detail { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .empty { color: var(--text-muted); font-style: italic; padding: 40px 0; text-align: center; }
-        .result-count { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 12px; }
+        .activity-user { color: var(--text-secondary); min-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .activity-detail { color: var(--text-primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .empty { color: var(--text-secondary); font-style: italic; padding: 40px 0; text-align: center; }
+        .result-count { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-3); }
 
         @media (max-width: 480px) {
             .activity-row {
@@ -123,114 +104,121 @@
         }
     </style>
 {% if not fragment %}
-    <link rel="stylesheet" href="/static/mobile.css">
 </head>
-<body>
-    <header>
-        <div class="container">
-            <a href="/" class="logo">sfpermits<span>.ai</span></a>
-            <a href="/" class="back-link">&larr; Home</a>
-        </div>
-    </header>
+<body class="obsidian">
+    {% include 'fragments/nav.html' %}
 {% endif %}
-    <main>
-        <div class="container">
-            <h1><span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>Activity Feed</h1>
-            <p class="subtitle">Last 24 hours: {{ stats.total }} actions</p>
-
-            {# ===== Stat cards: clickable action filters ===== #}
-            {% set base_url = '/admin/ops/fragment/activity' if fragment else '/admin/activity' %}
-            {% if stats.by_action %}
-            <div class="stats-row">
-                {% for action, count in stats.by_action.items() %}
-                <a href="{{ base_url }}?action={{ action }}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
-                   class="stat-card {{ 'active' if action_filter == action else '' }}"
-                   {% if fragment %}hx-get="{{ base_url }}?action={{ action }}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
-                    <div class="stat-number">{{ count }}</div>
-                    <div class="stat-label">{{ action }}</div>
-                </a>
-                {% endfor %}
-                <a href="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}"
-                   class="stat-card {{ 'active' if not action_filter else '' }}"
-                   {% if fragment %}hx-get="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
-                    <div class="stat-number">{{ stats.total }}</div>
-                    <div class="stat-label">All</div>
-                </a>
-            </div>
-            {% endif %}
-
-            {# ===== Filter bar: user dropdown + active filter tags ===== #}
-            <div class="filter-bar">
-                <select onchange="filterByUser(this.value)">
-                    <option value="">All users</option>
-                    {% for u in users %}
-                    <option value="{{ u.user_id }}" {{ 'selected' if user_id_filter == u.user_id else '' }}>
-                        {{ u.display_name or u.email }} ({{ u.action_count }})
-                    </option>
-                    {% endfor %}
-                </select>
-
-                {% if action_filter or user_id_filter %}
-                <div style="display:flex;gap:8px;align-items:center;">
-                    {% if action_filter %}
-                    <span class="filter-tag">
-                        Action: {{ action_filter }}
-                        <a href="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}" title="Remove filter"
-                           {% if fragment %}hx-get="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>&times;</a>
-                    </span>
-                    {% endif %}
-                    {% if user_id_filter %}
-                    <span class="filter-tag">
-                        User: {% for u in users %}{% if u.user_id == user_id_filter %}{{ u.display_name or u.email }}{% endif %}{% endfor %}
-                        <a href="{{ base_url }}{% if action_filter %}?action={{ action_filter }}{% endif %}" title="Remove filter"
-                           {% if fragment %}hx-get="{{ base_url }}{% if action_filter %}?action={{ action_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>&times;</a>
-                    </span>
-                    {% endif %}
-                    <a href="{{ base_url }}" class="clear-btn"
-                       {% if fragment %}hx-get="{{ base_url }}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Clear all</a>
-                </div>
-                {% endif %}
-            </div>
-
-            {# ===== Activity list ===== #}
-            {% if activity %}
-            <p class="result-count">Showing {{ activity | length }} entries</p>
-            <div class="activity-list">
-                {% for a in activity %}
-                <div class="activity-row">
-                    <span class="activity-time">{{ a.created_at.strftime('%b %d %H:%M') if a.created_at else '' }}</span>
-                    <span class="activity-action">{{ a.action }}</span>
-                    <span class="activity-user">{{ a.email or 'anon' }}</span>
-                    <span class="activity-detail">
-                        {% if a.detail %}
-                            {% if a.detail.query is defined %}{{ a.detail.query }}{% endif %}
-                        {% endif %}
-                        {{ a.path or '' }}
-                    </span>
-                </div>
-                {% endfor %}
+    <main style="padding: var(--space-10) 0 var(--space-16);">
+        <div class="obs-container">
+            {% if not fragment %}
+            <div class="glass-card" style="margin-bottom: var(--space-6);">
+                <h1 style="font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-2);">
+                    <span style="font-size:0.65rem;background:var(--bg-elevated);color:var(--text-secondary);padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);vertical-align:middle;margin-right:8px; font-family: var(--font-body);">&#9881; Admin</span>Activity Feed
+                </h1>
+                <p style="color: var(--text-secondary); font-size: var(--text-sm);">Last 24 hours: {{ stats.total }} actions</p>
             </div>
             {% else %}
-            <p class="empty">No activity recorded{% if action_filter or user_id_filter %} matching these filters{% endif %}.</p>
-            {% endif %}
-
-            {# ===== Pagination ===== #}
-            {% if activity|length >= limit %}
-            <div style="display:flex;justify-content:center;gap:16px;margin-top:20px;">
-                {% if offset > 0 %}
-                <a href="{{ base_url }}?offset={{ [offset - limit, 0]|max }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
-                   class="clear-btn"
-                   {% if fragment %}hx-get="{{ base_url }}?offset={{ [offset - limit, 0]|max }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
-                    &larr; Newer
-                </a>
-                {% endif %}
-                <a href="{{ base_url }}?offset={{ offset + limit }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
-                   class="clear-btn"
-                   {% if fragment %}hx-get="{{ base_url }}?offset={{ offset + limit }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
-                    Older &rarr;
-                </a>
+            <div style="margin-bottom: var(--space-4);">
+                <h2 style="font-family: var(--font-display); font-size: var(--text-xl); font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2);">Activity Feed</h2>
+                <p style="color: var(--text-secondary); font-size: var(--text-sm);">Last 24 hours: {{ stats.total }} actions</p>
             </div>
             {% endif %}
+
+            <div class="glass-card">
+                {# ===== Stat cards: clickable action filters ===== #}
+                {% set base_url = '/admin/ops/fragment/activity' if fragment else '/admin/activity' %}
+                {% if stats.by_action %}
+                <div class="stats-row" style="display: flex; gap: 12px; margin-bottom: var(--space-6); flex-wrap: wrap;">
+                    {% for action, count in stats.by_action.items() %}
+                    <a href="{{ base_url }}?action={{ action }}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
+                       class="stat-card {{ 'active' if action_filter == action else '' }}"
+                       {% if fragment %}hx-get="{{ base_url }}?action={{ action }}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
+                        <div class="stat-number">{{ count }}</div>
+                        <div class="stat-label">{{ action }}</div>
+                    </a>
+                    {% endfor %}
+                    <a href="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}"
+                       class="stat-card {{ 'active' if not action_filter else '' }}"
+                       {% if fragment %}hx-get="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
+                        <div class="stat-number">{{ stats.total }}</div>
+                        <div class="stat-label">All</div>
+                    </a>
+                </div>
+                {% endif %}
+
+                {# ===== Filter bar: user dropdown + active filter tags ===== #}
+                <div class="filter-bar">
+                    <select onchange="filterByUser(this.value)">
+                        <option value="">All users</option>
+                        {% for u in users %}
+                        <option value="{{ u.user_id }}" {{ 'selected' if user_id_filter == u.user_id else '' }}>
+                            {{ u.display_name or u.email }} ({{ u.action_count }})
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    {% if action_filter or user_id_filter %}
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        {% if action_filter %}
+                        <span class="filter-tag">
+                            Action: {{ action_filter }}
+                            <a href="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}" title="Remove filter"
+                               {% if fragment %}hx-get="{{ base_url }}{% if user_id_filter %}?user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>&times;</a>
+                        </span>
+                        {% endif %}
+                        {% if user_id_filter %}
+                        <span class="filter-tag">
+                            User: {% for u in users %}{% if u.user_id == user_id_filter %}{{ u.display_name or u.email }}{% endif %}{% endfor %}
+                            <a href="{{ base_url }}{% if action_filter %}?action={{ action_filter }}{% endif %}" title="Remove filter"
+                               {% if fragment %}hx-get="{{ base_url }}{% if action_filter %}?action={{ action_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>&times;</a>
+                        </span>
+                        {% endif %}
+                        <a href="{{ base_url }}" class="clear-btn"
+                           {% if fragment %}hx-get="{{ base_url }}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>Clear all</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# ===== Activity list ===== #}
+                {% if activity %}
+                <p class="result-count">Showing {{ activity | length }} entries</p>
+                <div class="activity-list">
+                    {% for a in activity %}
+                    <div class="activity-row">
+                        <span class="activity-time">{{ a.created_at.strftime('%b %d %H:%M') if a.created_at else '' }}</span>
+                        <span class="activity-action">{{ a.action }}</span>
+                        <span class="activity-user">{{ a.email or 'anon' }}</span>
+                        <span class="activity-detail">
+                            {% if a.detail %}
+                                {% if a.detail.query is defined %}{{ a.detail.query }}{% endif %}
+                            {% endif %}
+                            {{ a.path or '' }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="empty">No activity recorded{% if action_filter or user_id_filter %} matching these filters{% endif %}.</p>
+                {% endif %}
+
+                {# ===== Pagination ===== #}
+                {% if activity|length >= limit %}
+                <div style="display:flex;justify-content:center;gap:16px;margin-top:var(--space-6);">
+                    {% if offset > 0 %}
+                    <a href="{{ base_url }}?offset={{ [offset - limit, 0]|max }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
+                       class="clear-btn"
+                       {% if fragment %}hx-get="{{ base_url }}?offset={{ [offset - limit, 0]|max }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
+                        &larr; Newer
+                    </a>
+                    {% endif %}
+                    <a href="{{ base_url }}?offset={{ offset + limit }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}"
+                       class="clear-btn"
+                       {% if fragment %}hx-get="{{ base_url }}?offset={{ offset + limit }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_id_filter %}&user_id={{ user_id_filter }}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML"{% endif %}>
+                        Older &rarr;
+                    </a>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </main>
 

@@ -170,12 +170,13 @@ class TestMetricsTemplate:
         assert "Planning Velocity" in html
 
     def test_has_obsidian_vars(self, client):
-        """Template uses Obsidian-style CSS variables."""
+        """Template uses Obsidian design system CSS variables (Sprint 76-4 migration)."""
         _login_admin(client)
         rv = client.get("/admin/metrics")
         html = rv.data.decode()
-        assert "--bg: #0f1117" in html
-        assert "--surface: #1a1d27" in html
+        # Updated for Obsidian migration: now uses design-system.css tokens, not hardcoded hex vars
+        assert "design-system.css" in html
+        assert "obsidian" in html
 
     def test_has_back_link(self, client):
         """Template includes back link to operations hub."""
