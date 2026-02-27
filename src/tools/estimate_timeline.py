@@ -719,6 +719,254 @@ def _query_dbi_metrics(conn, permit_type: str | None = None,
     return "\n".join(lines)
 
 
+def estimate_sequence_timeline(permit_number: str, conn=None) -> dict | None:
+    """Estimate timeline for a specific permit using its actual station routing sequence.
+
+    Queries the addenda table for the permit's historical station sequence, looks up
+    p50 velocity for each station from station_velocity_v2, and returns a structured
+    estimate with per-station breakdown, parallel detection, and totals.
+
+    Sprint 76-1: Station Routing Sequence Model.
+
+    Args:
+        permit_number: The permit application number (e.g. "202201234567")
+        conn: Optional DB connection; opened and closed internally if None.
+
+    Returns:
+        Dict with keys:
+          permit_number, stations, total_estimate_days, confidence
+        or None if no addenda found for the permit.
+
+    Station status values:
+      "done"    — station has a finish_date (review completed)
+      "stalled" — station has arrive but no finish_date (in-flight with no activity)
+      "pending" — station has no velocity data (unknown)
+    """
+    ph = "%s" if BACKEND == "postgres" else "?"
+
+    close = False
+    if conn is None:
+        conn = get_connection()
+        close = True
+
+    try:
+        # Step 1: Query addenda for the permit's station sequence
+        # Get distinct stations ordered by first arrival time
+        if BACKEND == "postgres":
+            sql = """
+                SELECT DISTINCT station, MIN(arrive) as first_arrive,
+                       MAX(finish_date) as last_finish
+                FROM addenda
+                WHERE application_number = %s
+                  AND station IS NOT NULL
+                GROUP BY station
+                ORDER BY MIN(arrive)
+            """
+            params = [permit_number]
+        else:
+            sql = """
+                SELECT DISTINCT station, MIN(arrive) as first_arrive,
+                       MAX(finish_date) as last_finish
+                FROM addenda
+                WHERE application_number = ?
+                  AND station IS NOT NULL
+                GROUP BY station
+                ORDER BY MIN(arrive)
+            """
+            params = [permit_number]
+
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(sql, params)
+                    rows = cur.fetchall()
+            else:
+                rows = conn.execute(sql, params).fetchall()
+        except Exception:
+            logger.warning("estimate_sequence_timeline: addenda query failed for %s", permit_number, exc_info=True)
+            return None
+
+        if not rows:
+            return None
+
+        # Step 2: Look up velocity for each station from station_velocity_v2
+        # Also check if station_velocity_v2 table exists
+        v2_available = True
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1 FROM station_velocity_v2 LIMIT 1")
+            else:
+                conn.execute("SELECT 1 FROM station_velocity_v2 LIMIT 1")
+        except Exception:
+            v2_available = False
+
+        # Build velocity lookup by station
+        velocity_map: dict[str, dict] = {}
+        if v2_available:
+            station_names = [row[0] for row in rows]
+
+            if BACKEND == "postgres":
+                vel_sql = """
+                    SELECT station, p50_days, p25_days, p75_days, p90_days, sample_count, period
+                    FROM station_velocity_v2
+                    WHERE metric_type = 'initial'
+                      AND period IN ('current', 'baseline')
+                      AND station = ANY(%s)
+                    ORDER BY station,
+                      CASE period WHEN 'current' THEN 0 ELSE 1 END
+                """
+                vel_params = [station_names]
+            else:
+                placeholders = ", ".join(["?"] * len(station_names))
+                vel_sql = f"""
+                    SELECT station, p50_days, p25_days, p75_days, p90_days, sample_count, period
+                    FROM station_velocity_v2
+                    WHERE metric_type = 'initial'
+                      AND period IN ('current', 'baseline')
+                      AND station IN ({placeholders})
+                    ORDER BY station,
+                      CASE period WHEN 'current' THEN 0 ELSE 1 END
+                """
+                vel_params = station_names
+
+            try:
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(vel_sql, vel_params)
+                        vel_rows = cur.fetchall()
+                else:
+                    vel_rows = conn.execute(vel_sql, vel_params).fetchall()
+
+                # Deduplicate: prefer 'current' over 'baseline'
+                for vrow in vel_rows:
+                    station_name = vrow[0]
+                    period = vrow[6]
+                    if station_name not in velocity_map or period == "current":
+                        velocity_map[station_name] = {
+                            "p50_days": float(vrow[1]) if vrow[1] is not None else None,
+                            "p25_days": float(vrow[2]) if vrow[2] is not None else None,
+                            "p75_days": float(vrow[3]) if vrow[3] is not None else None,
+                            "p90_days": float(vrow[4]) if vrow[4] is not None else None,
+                            "sample_count": vrow[5],
+                            "period": period,
+                        }
+            except Exception:
+                logger.warning("estimate_sequence_timeline: velocity query failed", exc_info=True)
+
+        # Step 3: Build station list with status and velocity
+        # Detect parallel review: stations whose first_arrive windows overlap
+        # Strategy: if two stations' first_arrive are within 1 day of each other → parallel
+        station_list = []
+        arrive_times = [row[1] for row in rows]
+
+        for i, row in enumerate(rows):
+            station_name = row[0]
+            first_arrive = row[1]
+            last_finish = row[2]
+
+            # Determine status
+            if last_finish is not None:
+                status = "done"
+            elif first_arrive is not None:
+                status = "stalled"
+            else:
+                status = "pending"
+
+            # Detect parallel: check if any adjacent station has same arrive time window
+            is_parallel = False
+            if i > 0 and first_arrive is not None and arrive_times[i - 1] is not None:
+                try:
+                    # Compare as strings if dates, or as datetimes
+                    t_curr = str(first_arrive)[:10]  # date portion
+                    t_prev = str(arrive_times[i - 1])[:10]
+                    if t_curr == t_prev:
+                        is_parallel = True
+                except Exception:
+                    pass
+
+            # Look up velocity
+            vel = velocity_map.get(station_name)
+            p50_days = vel["p50_days"] if vel else None
+            skipped = (vel is None)
+
+            station_entry = {
+                "station": station_name,
+                "p50_days": p50_days,
+                "status": status,
+                "is_parallel": is_parallel,
+                "first_arrive": str(first_arrive)[:10] if first_arrive else None,
+                "last_finish": str(last_finish)[:10] if last_finish else None,
+            }
+            if skipped:
+                station_entry["note"] = "no velocity data — skipped in total"
+
+            station_list.append(station_entry)
+
+        # Step 4: Sum sequential stations, use max for parallel groups
+        # Simple parallel detection: group consecutive parallel stations together
+        total_days = 0.0
+        skipped_stations = []
+        i = 0
+        while i < len(station_list):
+            entry = station_list[i]
+            if entry.get("p50_days") is None:
+                skipped_stations.append(entry["station"])
+                i += 1
+                continue
+
+            # Check if next station is marked parallel (shares arrive window with this one)
+            # Collect a parallel group
+            group = [entry]
+            j = i + 1
+            while j < len(station_list) and station_list[j].get("is_parallel"):
+                group.append(station_list[j])
+                j += 1
+
+            if len(group) == 1:
+                # Sequential station: add p50
+                total_days += entry["p50_days"]
+            else:
+                # Parallel group: add max p50
+                group_p50s = [s["p50_days"] for s in group if s.get("p50_days") is not None]
+                if group_p50s:
+                    total_days += max(group_p50s)
+
+            i = j if j > i + 1 else i + 1
+
+        # Step 5: Determine confidence
+        stations_with_velocity = sum(1 for s in station_list if s.get("p50_days") is not None)
+        total_stations = len(station_list)
+
+        if total_stations == 0:
+            return None
+
+        coverage_ratio = stations_with_velocity / total_stations
+        if coverage_ratio >= 0.8 and total_days > 0:
+            confidence = "high"
+        elif coverage_ratio >= 0.5 and total_days > 0:
+            confidence = "medium"
+        else:
+            confidence = "low"
+
+        result: dict = {
+            "permit_number": permit_number,
+            "stations": station_list,
+            "total_estimate_days": round(total_days, 1),
+            "confidence": confidence,
+        }
+
+        if skipped_stations:
+            result["skipped_stations"] = skipped_stations
+            result["note"] = f"{len(skipped_stations)} station(s) skipped — no velocity data: {', '.join(skipped_stations)}"
+
+        return result
+
+    finally:
+        if close:
+            conn.close()
+
+
 async def estimate_timeline(
     permit_type: str,
     neighborhood: str | None = None,

@@ -107,6 +107,51 @@ def api_prep_preview(permit_number):
 
 
 # ---------------------------------------------------------------------------
+# Timeline sequence API (Sprint 76-1)
+# ---------------------------------------------------------------------------
+
+@bp.route("/api/timeline/<permit_number>")
+def api_timeline_sequence(permit_number):
+    """Return station routing sequence timeline for a specific permit.
+
+    GET /api/timeline/<permit_number>
+
+    Public endpoint (no auth required — permit numbers are public data).
+    Rate limited at 60 req/min per IP.
+
+    Returns JSON:
+      {
+        "permit_number": str,
+        "stations": [{"station": str, "p50_days": float|null, "status": "done|stalled|pending", ...}],
+        "total_estimate_days": float,
+        "confidence": "high|medium|low"
+      }
+    or {"error": "no addenda found"} with 404 if no routing data exists.
+    """
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+    if ip:
+        ip = ip.split(",")[0].strip()
+    if _is_rate_limited(ip, 60):
+        return jsonify({"error": "rate limited"}), 429
+
+    permit_number = permit_number.strip()
+    if not permit_number:
+        return jsonify({"error": "permit_number required"}), 400
+
+    try:
+        from src.tools.estimate_timeline import estimate_sequence_timeline  # noqa: F401 (importable for patching)
+        result = estimate_sequence_timeline(permit_number)
+    except Exception:
+        logging.exception("api_timeline_sequence failed for %s", permit_number)
+        return jsonify({"error": "internal error"}), 500
+
+    if result is None:
+        return jsonify({"error": "no addenda found", "permit_number": permit_number}), 404
+
+    return jsonify(result)
+
+
+# ---------------------------------------------------------------------------
 # Public stats endpoint (cached, rate-limited)
 # ---------------------------------------------------------------------------
 
