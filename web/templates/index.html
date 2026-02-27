@@ -29,7 +29,7 @@
             padding: var(--space-8);
         }
         .dash-search-heading {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: clamp(1.4rem, 1.2rem + 1.5vw, 2.2rem);
             font-weight: 700;
             color: var(--text-primary);
@@ -44,7 +44,7 @@
             padding: var(--space-6);
         }
         .dash-section-label {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: var(--text-sm);
             font-weight: 600;
             text-transform: uppercase;
@@ -104,7 +104,7 @@
             background: rgba(255,255,255, 0.04);
         }
         .recent-chip-address {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-sm);
             font-weight: 400;
             color: var(--text-primary);
@@ -114,12 +114,12 @@
             text-overflow: ellipsis;
         }
         .recent-chip-date {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             color: var(--text-tertiary);
         }
         .recent-empty {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             color: var(--text-secondary);
             font-size: var(--text-sm);
             font-style: italic;
@@ -131,7 +131,7 @@
             text-align: center;
         }
         .dash-empty-text {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             color: var(--text-secondary);
             font-size: var(--text-sm);
             margin-bottom: var(--space-4);
@@ -164,7 +164,7 @@
             color: var(--signal-amber);
             text-align: center;
             padding: 8px;
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: var(--text-xs);
         }
         .impersonate-stop {
@@ -174,7 +174,7 @@
             padding: 2px 8px;
             border-radius: 4px;
             cursor: pointer;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             margin-left: 8px;
         }
@@ -186,13 +186,13 @@
             padding: 4px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
         }
         .btn-watch:hover { color: var(--signal-amber); border-color: rgba(251, 191, 36, 0.3); }
         .watch-active {
             color: var(--signal-amber);
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             display: inline-flex;
             align-items: center;
@@ -208,7 +208,7 @@
         }
         .btn-unwatch:hover { color: var(--signal-red); }
         .watch-container { display: inline-block; }
-        .login-prompt { font-family: var(--font-body); font-size: var(--text-xs); color: var(--text-secondary); }
+        .login-prompt { font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary); }
         .login-prompt a { color: var(--signal-cyan); text-decoration: none; }
         .login-prompt a:hover { text-decoration: underline; }
 
@@ -217,14 +217,14 @@
         }
 
         h1 {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xl);
             font-weight: 400;
             margin-bottom: 8px;
         }
 
         .subtitle {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             color: var(--text-secondary);
             font-size: var(--text-sm);
             margin-bottom: 32px;
@@ -256,7 +256,7 @@
 
         label {
             display: block;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             font-weight: 400;
             color: var(--text-secondary);
@@ -273,7 +273,7 @@
             color: var(--text-primary);
             padding: 12px 16px;
             font-size: var(--text-sm);
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-weight: 300;
             transition: border-color 0.2s;
         }
@@ -294,7 +294,7 @@
             border: 1px solid transparent;
             border-radius: 8px;
             padding: 14px 32px;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-sm);
             font-weight: 500;
             cursor: pointer;
@@ -347,7 +347,7 @@
 
         .tab {
             padding: 10px 18px;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             font-weight: 400;
             color: var(--text-secondary);
@@ -383,7 +383,7 @@
 
         /* Markdown output styling */
         .result-card h1 { font-size: 1.3rem; margin: 0 0 16px; color: var(--signal-cyan); }
-        .result-card h2 { font-size: 1.1rem; margin: 20px 0 10px; color: var(--text-primary); }
+        .result-card h2 { font-size: var(--text-lg); margin: 20px 0 10px; color: var(--text-primary); }
         .result-card h3 { font-size: 0.95rem; margin: 16px 0 8px; color: var(--text-secondary); }
         .result-card p { margin: 8px 0; }
         .result-card ul, .result-card ol { margin: 8px 0; padding-left: 24px; }
@@ -405,7 +405,7 @@
         }
 
         .result-card th {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             text-transform: uppercase;
             letter-spacing: 0.06em;
@@ -459,7 +459,7 @@
         }
 
         .loading-bar p {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             color: var(--text-secondary);
             margin-top: 12px;
             font-size: var(--text-sm);
@@ -503,7 +503,7 @@
             padding: 20px 0;
             text-align: center;
             color: var(--text-secondary);
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
         }
 
@@ -513,7 +513,7 @@
         }
 
         .presets-label {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             color: var(--text-secondary);
             margin-bottom: 8px;
@@ -531,7 +531,7 @@
             color: var(--text-secondary);
             padding: 6px 14px;
             border-radius: 20px;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             cursor: pointer;
             transition: all 0.2s;
@@ -549,7 +549,7 @@
         }
 
         .section-title {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: var(--text-xl);
             font-weight: 400;
             color: var(--text-primary);
@@ -587,7 +587,7 @@
             flex-direction: column;
             align-items: center;
             gap: 6px;
-            font-family: var(--font-body);
+            font-family: var(--sans);
             color: var(--text-secondary);
             pointer-events: none;
         }
@@ -598,7 +598,7 @@
         }
 
         .file-hint {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             color: var(--text-secondary);
             opacity: 0.7;
@@ -617,7 +617,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: var(--text-sm);
             color: var(--text-secondary);
             cursor: pointer;
@@ -685,7 +685,7 @@
         .btn-pill {
             display: inline-flex; align-items: center;
             padding: 4px 12px; border-radius: 20px;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs); font-weight: 400;
             background: transparent; border: 1px solid rgba(255,255,255,0.06);
             color: var(--text-secondary); cursor: pointer;
@@ -725,7 +725,7 @@
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 8px;
             padding: 10px 14px;
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: var(--text-xs);
             color: var(--text-primary);
             line-height: 1.5;
@@ -763,7 +763,7 @@
             background: none;
             border: none;
             color: var(--signal-cyan);
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-sm);
             cursor: pointer;
             padding: 10px 0;
@@ -792,7 +792,7 @@
         .personalize-section.open { display: block; }
 
         .personalize-section .section-label {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             font-weight: 400;
             color: var(--text-secondary);
@@ -802,7 +802,7 @@
         }
 
         .personalize-section .section-hint {
-            font-family: var(--font-body);
+            font-family: var(--sans);
             font-size: var(--text-xs);
             color: var(--text-secondary);
             opacity: 0.7;
@@ -823,7 +823,7 @@
             color: var(--text-secondary);
             padding: 8px 16px;
             border-radius: 20px;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             cursor: pointer;
             transition: all 0.2s;
@@ -851,7 +851,7 @@
         .experience-option {
             flex: 1;
             padding: 10px 16px;
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             text-align: center;
             background: rgba(255,255,255,0.04);
@@ -899,11 +899,11 @@
         }
 
         .team-grid input {
-            font-size: 0.9rem;
+            font-size: var(--text-sm);
         }
 
         .field-hint {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             color: var(--text-secondary);
             opacity: 0.6;
@@ -956,7 +956,7 @@
         }
 
         .recent-label {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             text-transform: uppercase;
             letter-spacing: 0.06em;
@@ -969,7 +969,7 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-sm);
             cursor: pointer;
             padding: 2px 6px;
@@ -979,7 +979,7 @@
         .recent-clear:hover { opacity: 1; }
 
         .search-echo {
-            font-family: var(--font-display);
+            font-family: var(--mono);
             font-size: var(--text-xs);
             color: var(--text-secondary);
             margin-bottom: 12px;
@@ -1025,16 +1025,16 @@
             {# SESSION E: First-login onboarding banner #}
             {% if session.get('show_onboarding_banner') and not session.get('onboarding_dismissed') %}
             <div id="onboarding-banner"
-                 style="background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.3); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                 style="background: var(--accent-glow); border: 1px solid var(--accent-ring); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap;">
                 <div>
                     <strong style="color: var(--signal-green);">Welcome to sfpermits.ai!</strong>
-                    <span style="font-family: var(--font-body); color: var(--text-secondary); font-size: var(--text-sm); margin-left: 8px;">Start by searching an address or describing your project.</span>
+                    <span style="font-family: var(--sans); color: var(--text-secondary); font-size: var(--text-sm); margin-left: 8px;">Start by searching an address or describing your project.</span>
                 </div>
                 <button
                     hx-post="/onboarding/dismiss"
                     hx-target="#onboarding-banner"
                     hx-swap="outerHTML"
-                    style="background: none; border: 1px solid rgba(52,211,153,0.4); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 0.8rem; padding: 6px 12px;">
+                    style="background: none; border: 1px solid rgba(52,211,153,0.4); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-family: var(--sans); font-size: var(--text-xs); padding: 6px 12px;">
                     Dismiss
                 </button>
             </div>
@@ -1215,7 +1215,7 @@
                     <!-- Personalization toggle -->
                     <div class="full-width">
                         <button type="button" class="personalize-toggle" onclick="togglePersonalize()">
-                            <span class="toggle-icon">&#9654;</span>
+                            <span class="toggle-icon">▶</span>
                             <span>Help us give you a better analysis</span>
                         </button>
                     </div>
@@ -1226,11 +1226,11 @@
                         <!-- B1: Priorities -->
                         <div class="section-label">What matters most to you?</div>
                         <div class="priority-chips">
-                            <button type="button" class="priority-chip" data-value="timeline" onclick="toggleChip(this)">&#9202; Timeline</button>
-                            <button type="button" class="priority-chip" data-value="cost" onclick="toggleChip(this)">&#128176; Cost</button>
-                            <button type="button" class="priority-chip" data-value="corrections" onclick="toggleChip(this)">&#9989; Avoiding corrections</button>
-                            <button type="button" class="priority-chip" data-value="requirements" onclick="toggleChip(this)">&#128203; Understanding requirements</button>
-                            <button type="button" class="priority-chip" data-value="exploring" onclick="toggleChip(this)">&#128269; Just exploring</button>
+                            <button type="button" class="priority-chip" data-value="timeline" onclick="toggleChip(this)">⏲ Timeline</button>
+                            <button type="button" class="priority-chip" data-value="cost" onclick="toggleChip(this)">💰 Cost</button>
+                            <button type="button" class="priority-chip" data-value="corrections" onclick="toggleChip(this)">✅ Avoiding corrections</button>
+                            <button type="button" class="priority-chip" data-value="requirements" onclick="toggleChip(this)">📋 Understanding requirements</button>
+                            <button type="button" class="priority-chip" data-value="exploring" onclick="toggleChip(this)">🔍 Just exploring</button>
                         </div>
                         <!-- Hidden input to carry selected priorities -->
                         <input type="hidden" name="priorities" id="priorities-input" value="">
@@ -1266,8 +1266,8 @@
                         <!-- B4: Experience level -->
                         <div class="section-label">Experience level</div>
                         <div class="experience-toggle">
-                            <button type="button" class="experience-option" data-value="first_time" onclick="selectExperience(this)">&#127381; First time filing in SF</button>
-                            <button type="button" class="experience-option" data-value="experienced" onclick="selectExperience(this)">&#128260; Done this before</button>
+                            <button type="button" class="experience-option" data-value="first_time" onclick="selectExperience(this)">🆕 First time filing in SF</button>
+                            <button type="button" class="experience-option" data-value="experienced" onclick="selectExperience(this)">🔄 Done this before</button>
                         </div>
                         <input type="hidden" name="experience_level" id="experience-input" value="unspecified">
 
@@ -1309,7 +1309,7 @@
             <p class="subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. AI Analysis and Full Analysis use AI vision to annotate your plans with EPR issues, code references, dimensions, and compliance checks.</p>
 
             {% if upload_error %}
-            <div style="margin-bottom:16px;padding:12px 16px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;font-family:var(--font-body);font-size:var(--text-sm);color:var(--signal-red);">
+            <div style="margin-bottom:16px;padding:12px 16px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;font-family:var(--sans);font-size:var(--text-sm);color:var(--signal-red);">
                 {{ upload_error }}
             </div>
             {% endif %}
@@ -1327,7 +1327,7 @@
                             <input type="file" id="analyze-planfile" name="planfile" accept=".pdf"
                                 class="file-input" onchange="updateAnalyzeFileLabel(this)">
                             <div class="file-upload-label" id="analyze-file-label">
-                                <span class="file-icon">&#128196;</span>
+                                <span class="file-icon">📄</span>
                                 <span>Drag & drop a PDF here, or <strong>click to browse</strong></span>
                                 <span class="file-hint">Max 400 MB &mdash; .pdf only</span>
                             </div>
@@ -1341,7 +1341,7 @@
                     <!-- "More options" toggle — uses existing personalize-toggle pattern -->
                     <div class="full-width">
                         <button type="button" class="personalize-toggle" id="plan-options-toggle" onclick="togglePlanOptions()">
-                            <span class="toggle-icon">&#9654;</span>
+                            <span class="toggle-icon">▶</span>
                             <span>More options</span>
                         </button>
                     </div>
@@ -1453,10 +1453,10 @@
             <div id="analyze-plans-loading" class="htmx-indicator">
                 <div style="text-align: center; padding: 40px;">
                     <div class="hourglass-spinner">⏳</div>
-                    <p style="font-size: 1.1rem; margin-top: 16px; font-weight: 500;">
+                    <p style="font-size: var(--text-lg); margin-top: 16px; font-weight: 500;">
                         Running quick metadata check...
                     </p>
-                    <p style="opacity: 0.7; font-size: 0.9rem; margin-top: 8px;">
+                    <p style="opacity: 0.7; font-size: var(--text-sm); margin-top: 8px;">
                         This usually takes just a few seconds.
                     </p>
                     <div class="progress-dots" style="margin-top: 12px;">
@@ -1548,7 +1548,7 @@
                         var resultsDiv = document.getElementById('analyze-plans-results');
                         if (resultsDiv) {
                             resultsDiv.innerHTML = '<div style="text-align:center;padding:32px;color:var(--signal-red);">' +
-                                '<p style="font-size:1.1rem;font-weight:500;">Analysis request failed</p>' +
+                                '<p style="font-size:var(--text-lg);font-weight:500;">Analysis request failed</p>' +
                                 '<p style="margin-top:8px;color:var(--text-secondary);font-size:var(--text-sm);">The server may be busy. Please try again.</p></div>';
                         }
                     });
@@ -1568,7 +1568,7 @@
 
             {% if g.user %}
             <div style="text-align:center;margin-top:16px;">
-                <a href="/account/analyses" style="font-family:var(--font-display);color:var(--text-secondary);text-decoration:none;font-size:var(--text-xs);">
+                <a href="/account/analyses" style="font-family:var(--mono);color:var(--text-secondary);text-decoration:none;font-size:var(--text-xs);">
                     View your analysis history &rarr;
                 </a>
             </div>
@@ -1593,9 +1593,9 @@
                     <!-- Mode toggle -->
                     <div class="full-width">
                         <div class="experience-toggle lookup-mode-toggle">
-                            <button type="button" class="experience-option selected" data-mode="number" onclick="selectLookupMode(this)">&#128290; Permit Number</button>
-                            <button type="button" class="experience-option" data-mode="address" onclick="selectLookupMode(this)">&#128205; Address</button>
-                            <button type="button" class="experience-option" data-mode="parcel" onclick="selectLookupMode(this)">&#128506; Block / Lot</button>
+                            <button type="button" class="experience-option selected" data-mode="number" onclick="selectLookupMode(this)">🔢 Permit Number</button>
+                            <button type="button" class="experience-option" data-mode="address" onclick="selectLookupMode(this)">📍 Address</button>
+                            <button type="button" class="experience-option" data-mode="parcel" onclick="selectLookupMode(this)">🗺 Block / Lot</button>
                         </div>
                         <input type="hidden" name="lookup_mode" id="lookup-mode-input" value="number">
                     </div>
@@ -1643,10 +1643,10 @@
             <div id="lookup-loading" class="htmx-indicator">
                 <div style="text-align: center; padding: 40px;">
                     <div class="hourglass-spinner">⏳</div>
-                    <p style="font-size: 1.1rem; margin-top: 16px; font-weight: 500;">
+                    <p style="font-size: var(--text-lg); margin-top: 16px; font-weight: 500;">
                         Searching permits...
                     </p>
-                    <p style="opacity: 0.7; font-size: 0.9rem; margin-top: 8px;">
+                    <p style="opacity: 0.7; font-size: var(--text-sm); margin-top: 8px;">
                         Searching 1.1M permits across 22 datasets
                     </p>
                     <div class="progress-dots" style="margin-top: 12px;">
@@ -1760,12 +1760,12 @@
             if (input.files && input.files[0]) {
                 const f = input.files[0];
                 const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
-                label.innerHTML = '<span class="file-icon">&#9989;</span>'
+                label.innerHTML = '<span class="file-icon">✅</span>'
                     + '<span><strong>' + f.name + '</strong></span>'
                     + '<span class="file-hint">' + sizeMB + ' MB</span>';
                 label.classList.add("has-file");
             } else {
-                label.innerHTML = '<span class="file-icon">&#128196;</span>'
+                label.innerHTML = '<span class="file-icon">📄</span>'
                     + '<span>Drag & drop a PDF here, or <strong>click to browse</strong></span>'
                     + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
                 label.classList.remove("has-file");
@@ -1778,12 +1778,12 @@
             if (input.files && input.files[0]) {
                 const f = input.files[0];
                 const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
-                label.innerHTML = '<span class="file-icon">&#9989;</span>'
+                label.innerHTML = '<span class="file-icon">✅</span>'
                     + '<span><strong>' + f.name + '</strong></span>'
                     + '<span class="file-hint">' + sizeMB + ' MB</span>';
                 label.classList.add("has-file");
             } else {
-                label.innerHTML = '<span class="file-icon">&#128196;</span>'
+                label.innerHTML = '<span class="file-icon">📄</span>'
                     + '<span>Drag & drop a PDF here, or <strong>click to browse</strong></span>'
                     + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
                 label.classList.remove("has-file");
