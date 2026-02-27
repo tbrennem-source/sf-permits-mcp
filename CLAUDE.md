@@ -504,11 +504,11 @@ Both stages always end with CHECKCHAT. QA is not optional. Scenarios are not opt
 
 ## Swarm Orchestration Rules
 
-This project uses multi-agent swarm builds. **The default execution model is a single orchestrator CC session (Opus) spawning parallel build agents via the Task tool.** Do not use separate CC terminals for parallel work — use one orchestrator that spawns, collects, merges, and pushes.
+This project uses multi-agent swarm builds. Two execution models depending on sprint size:
 
-### Execution Model: Task Tool Swarming
+### Standard Sprint (4 agents, 1 terminal)
 
-**This is the standard. Every quad sprint uses this pattern.**
+For focused sprints with 4 or fewer agents. One CC terminal (Opus) spawns agents via Task tool.
 
 ```
 CC0 (Opus orchestrator)
@@ -541,12 +541,50 @@ Use ONLY token components and CSS custom properties. Log new components to docs/
 
 **Agents commit to their worktree branch. The orchestrator merges all branches to main after collecting results.** Agents must NEVER merge to main themselves.
 
+### Quad Sprint (16 agents, 4 terminals) — THE STANDARD FOR LARGE SPRINTS
+
+For sprints with 8+ tasks spanning multiple domains. 4 CC terminals × 4 agents each. Tim operates T0 (orchestrator terminal) which launches and coordinates T1-T4.
+
+```
+T0 (Tim — orchestrator, no agents)
+├── Pre-flight: verify clean state, tests, prod health, baselines
+├── Launch T1-T4 by pasting prompts into 4 CC terminals
+├── Monitor: all agents FOREGROUND, watch for failures
+├── After all terminals finish:
+│   ├── Verify each terminal pushed to main
+│   ├── File ownership audit (diff against ownership matrix)
+│   ├── Full test suite (one run, not per-terminal)
+│   ├── Prod gate: python scripts/prod_gate.py --quiet
+│   └── Promote: git checkout prod && git merge main && git push origin prod
+└── Report to Chief
+
+T1 (CC Terminal 1 — e.g., infrastructure)     — spawns 4 agents, merges internally
+T2 (CC Terminal 2 — e.g., public templates)    — spawns 4 agents, merges internally
+T3 (CC Terminal 3 — e.g., auth templates)      — spawns 4 agents, merges internally
+T4 (CC Terminal 4 — e.g., tests + docs)        — spawns 4 agents, merges internally
+```
+
+**Merge order:** Terminals merge to main in dependency order (infrastructure → foundation → consumers → tests). Each terminal handles its own 4-agent internal merge. T0 verifies cross-terminal file ownership after all pushes.
+
+**Cross-terminal interface contracts:** When one terminal's output is consumed by another, document the interface in BOTH terminal prompts. Use merge order as the dependency resolver.
+
+**Sprint prompt files:**
+```
+sprint-prompts/qsN-t0-orchestrator.md   ← Tim reads this
+sprint-prompts/qsN-t1-[theme].md        ← Paste into CC Terminal 1
+sprint-prompts/qsN-t2-[theme].md        ← Paste into CC Terminal 2
+sprint-prompts/qsN-t3-[theme].md        ← Paste into CC Terminal 3
+sprint-prompts/qsN-t4-[theme].md        ← Paste into CC Terminal 4
+```
+
+> Full quad sprint template with T0 orchestrator role, merge ceremony, prod gate integration, failure recovery, and report template: see dforge `swarm-coordination.md` template.
+
 ### Swarm Sprint Prompt Structure
 
-Every swarm sprint has TWO prompt types:
+Standard sprints use TWO prompt types, quad sprints use FIVE (T0 + T1-T4):
 
-1. **`sprint-prompts/qsN-swarm.md`** — The master orchestrator prompt. CC0 reads this, executes pre-flight, spawns agents, merges, tests, pushes. This is what Tim pastes into CC.
-2. **`sprint-prompts/qsN-X-*.md`** — Per-agent prompts for manual/fallback use. Same content but with Session Bootstrap for standalone execution.
+1. **`sprint-prompts/qsN-swarm.md`** (standard) or **`qsN-t0-orchestrator.md`** (quad) — The master orchestrator prompt.
+2. **`sprint-prompts/qsN-X-*.md`** (standard) or **`qsN-tN-*.md`** (quad) — Per-terminal/agent prompts.
 
 The swarm prompt contains the full agent instructions inline (not file references) so each Task call is self-contained.
 
