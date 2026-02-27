@@ -4,6 +4,28 @@
 >
 > **Authority:** `docs/DESIGN_TOKENS.md` defines the target state. Every template should end up using `fragments/head_obsidian.html` and CSS custom properties from the tokens bible.
 
+## Sprint Migration Status (lint scores)
+
+Tracks per-template violation counts before and after migration. "Post" column filled after sprint QA verifies lint score.
+
+| Template | Violations (pre) | Violations (post) | Sprint | Agent |
+|----------|------------------|--------------------|--------|-------|
+| `landing.html` | 15 | — | QS7 | 2B |
+| `search_results_public.html` | 25 | — | QS7 | 2B |
+| `results.html` | 54 | — | QS7 | 2C |
+| `report.html` | 46 | — | QS7 | 3B |
+| `brief.html` | 35 | — | QS7 | 3A |
+| `portfolio.html` | 18 | — | QS7 | 3C |
+| `index.html` | (tbd) | — | QS7 | 3C |
+| `auth_login.html` | (tbd) | — | QS7 | 3D |
+| `error.html` | (tbd) | — | QS7 | 2D |
+
+"Post" column: filled after sprint when `python scripts/design_lint.py --files web/templates/<name>` is re-run.
+"Violations (pre)": count of non-token hex values + non-token font references + non-token component classes.
+Sprint QS7 = quad sprint with T1-T4 terminals and 4 agents each.
+
+---
+
 ## Migration Status Key
 
 | Status | Meaning |
