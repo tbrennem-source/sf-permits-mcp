@@ -116,7 +116,7 @@ def test_blackbox_escalation_has_backend_skip_guidance():
     with open(BLACKBOX_PATH) as f:
         content = f.read()
     assert "backend" in content.lower()
-    assert "DeskRelay SKIPPED" in content
+    assert "Visual QA SKIPPED" in content
 
 
 # ---------------------------------------------------------------------------
