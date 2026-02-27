@@ -30,7 +30,7 @@ These are load-bearing walls. Do not violate them.
 
 4. **Weight 300 is the signature.** Light weight on IBM Plex Sans headlines is what makes this site distinctive. Most sites use 600+. We use 300. It reads as refined, editorial, quietly confident.
 
-5. **No filled buttons.** Primary CTAs are ghost text — monospace, tertiary color, underline on hover, arrow suffix (`→`). The interface invites; it does not demand.
+5. **No filled buttons.** No gradient fills, no solid backgrounds on buttons. Navigation CTAs are ghost text (monospace, underline on hover, arrow suffix `→`). Functional actions (save, upload, delete) use the glass action-btn pattern (transparent background, border, teal on hover). Professional views may promote action-btn for faster scanning, but never filled.
 
 6. **Glass cards, not boxes.** Containers use transparent-tinted backgrounds with barely-visible borders (`rgba(255,255,255, 0.06)`). Content floats on obsidian. No harsh edges, no drop shadows, no solid backgrounds.
 

@@ -46,10 +46,15 @@
   --accent-ring:  rgba(94, 234, 212, 0.30);     /* focus ring border color */
 
   /* Semantic signal colors — ONLY for their semantic purpose */
-  --signal-green: #34d399;   /* on track, success, approved */
-  --signal-amber: #fbbf24;   /* warning, stalled, pending */
-  --signal-red:   #f87171;   /* alert, violation, complaint */
-  --signal-blue:  #60a5fa;   /* informational, premium badge */
+  --signal-green: #34d399;   /* on track, success, approved — text */
+  --signal-amber: #fbbf24;   /* warning, stalled, pending — text */
+  --signal-red:   #f87171;   /* alert, violation, complaint — text */
+  --signal-blue:  #60a5fa;   /* informational, premium badge — text */
+
+  /* Higher-saturation variants for 6px status dots (legibility at small sizes) */
+  --dot-green: #22c55e;
+  --dot-amber: #f59e0b;
+  --dot-red:   #ef4444;
 }
 ```
 
@@ -316,16 +321,18 @@ For functional actions that need more affordance than a ghost link (save, upload
 ```
 
 ```css
+/* Dots use higher-saturation variants for legibility at 6px */
 .status-dot {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
   display: inline-block;
 }
-.status-dot--green  { background: var(--signal-green); }
-.status-dot--amber  { background: var(--signal-amber); }
-.status-dot--red    { background: var(--signal-red); }
+.status-dot--green  { background: var(--dot-green); }
+.status-dot--amber  { background: var(--dot-amber); }
+.status-dot--red    { background: var(--dot-red); }
 
+/* Text uses standard signal colors */
 .status-text--green  { color: var(--signal-green); }
 .status-text--amber  { color: var(--signal-amber); }
 .status-text--red    { color: var(--signal-red); }
@@ -479,6 +486,305 @@ For functional actions that need more affordance than a ghost link (save, upload
   border: none;
   border-top: 1px solid var(--glass-border);
   margin: 0;
+}
+```
+
+### Skeleton Screen (loading placeholder)
+
+Use instead of spinners. Skeleton shapes mirror the content they replace.
+
+```html
+<!-- Skeleton for a data row -->
+<div class="skeleton-row">
+  <div class="skeleton skeleton--text" style="width: 120px;"></div>
+  <div class="skeleton skeleton--text" style="width: 80px;"></div>
+</div>
+
+<!-- Skeleton for a card -->
+<div class="glass-card">
+  <div class="skeleton skeleton--heading" style="width: 60%;"></div>
+  <div class="skeleton skeleton--text" style="width: 100%; margin-top: 12px;"></div>
+  <div class="skeleton skeleton--text" style="width: 85%; margin-top: 8px;"></div>
+</div>
+```
+
+```css
+.skeleton {
+  background: var(--glass);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+.skeleton--heading { height: 20px; }
+.skeleton--text { height: 12px; }
+.skeleton--dot { width: 6px; height: 6px; border-radius: var(--radius-full); }
+.skeleton-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0; border-bottom: 1px solid var(--glass-border);
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.04; }
+  50% { opacity: 0.08; }
+}
+```
+
+### Table
+
+For admin dashboards, portfolio views, and any structured data with columns.
+
+```html
+<table class="obs-table">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Address</th>
+      <th>Type</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="status-dot status-dot--green"></span></td>
+      <td class="obs-table__mono">487 Noe St</td>
+      <td>Kitchen remodel</td>
+      <td class="obs-table__mono status-text--green">On track</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+```css
+.obs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+}
+.obs-table th {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  text-align: left;
+  padding: 6px var(--space-3);
+  border-bottom: 1px solid var(--glass-border);
+}
+.obs-table td {
+  padding: 9px var(--space-3);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border);
+}
+.obs-table tr {
+  transition: background 0.12s;
+  cursor: pointer;
+}
+.obs-table tr:hover {
+  background: var(--glass);
+}
+.obs-table__mono {
+  font-family: var(--mono);
+  font-weight: 300;
+  color: var(--text-primary);
+}
+/* Address goes teal on hover */
+.obs-table tr:hover .obs-table__mono:first-of-type {
+  color: var(--accent);
+}
+/* Mobile: horizontal scroll with shadow hint */
+@media (max-width: 768px) {
+  .obs-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(-1 * var(--space-4));
+    padding: 0 var(--space-4);
+  }
+  .obs-table { min-width: 600px; }
+}
+```
+
+### Form Elements
+
+#### Text Input (non-search)
+
+```html
+<label class="form-label" for="project-cost">Estimated cost</label>
+<input class="form-input" id="project-cost" type="text" placeholder="e.g. $85,000">
+```
+
+```css
+.form-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: var(--text-primary);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.form-input:focus {
+  border-color: var(--accent-ring);
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.1);
+}
+```
+
+#### Checkbox
+
+```html
+<label class="form-check">
+  <input type="checkbox" class="form-check__input">
+  <span class="form-check__box"></span>
+  <span class="form-check__label">Include structural engineer letter</span>
+</label>
+```
+
+```css
+.form-check {
+  display: flex; align-items: center; gap: var(--space-3);
+  cursor: pointer; padding: 6px 0;
+}
+.form-check__input { display: none; }
+.form-check__box {
+  width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  transition: border-color 0.2s, background 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.form-check__input:checked + .form-check__box {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+.form-check__input:checked + .form-check__box::after {
+  content: '✓'; font-size: 10px; color: var(--accent);
+}
+.form-check__label {
+  font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary);
+}
+```
+
+#### Toggle Switch
+
+```html
+<label class="form-toggle">
+  <input type="checkbox" class="form-toggle__input">
+  <span class="form-toggle__track"><span class="form-toggle__thumb"></span></span>
+  <span class="form-toggle__label">Email notifications</span>
+</label>
+```
+
+```css
+.form-toggle {
+  display: flex; align-items: center; gap: var(--space-3);
+  cursor: pointer; padding: 6px 0;
+}
+.form-toggle__input { display: none; }
+.form-toggle__track {
+  width: 28px; height: 14px; border-radius: 7px; flex-shrink: 0;
+  background: var(--glass-border);
+  position: relative; transition: background 0.2s;
+}
+.form-toggle__input:checked + .form-toggle__track {
+  background: var(--accent);
+}
+.form-toggle__thumb {
+  width: 10px; height: 10px; border-radius: var(--radius-full);
+  background: var(--text-tertiary);
+  position: absolute; top: 2px; left: 2px;
+  transition: left 0.2s, background 0.2s;
+}
+.form-toggle__input:checked + .form-toggle__track .form-toggle__thumb {
+  left: 16px; background: var(--obsidian);
+}
+.form-toggle__label {
+  font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary);
+}
+```
+
+#### Select / Dropdown Input
+
+```html
+<label class="form-label" for="permit-type">Permit type</label>
+<select class="form-select" id="permit-type">
+  <option value="">Select...</option>
+  <option>Alterations</option>
+  <option>New construction</option>
+  <option>Demolition</option>
+</select>
+```
+
+```css
+.form-select {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: var(--text-primary);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.3)' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+.form-select:focus {
+  border-color: var(--accent-ring);
+}
+```
+
+#### File Upload
+
+```html
+<label class="form-upload">
+  <input type="file" class="form-upload__input">
+  <span class="form-upload__zone">
+    <span class="form-upload__icon">↑</span>
+    <span class="form-upload__text">Drop plans here or click to browse</span>
+    <span class="form-upload__hint">PDF up to 250MB · EPR format recommended</span>
+  </span>
+</label>
+```
+
+```css
+.form-upload__input { display: none; }
+.form-upload__zone {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--space-2); padding: var(--space-8) var(--space-6);
+  border: 1px dashed var(--glass-border); border-radius: var(--radius-md);
+  cursor: pointer; text-align: center;
+  transition: border-color 0.3s, background 0.3s;
+}
+.form-upload__zone:hover {
+  border-color: var(--accent-ring);
+  background: var(--accent-glow);
+}
+.form-upload__icon {
+  font-size: 20px; color: var(--text-tertiary);
+}
+.form-upload__text {
+  font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary);
+}
+.form-upload__hint {
+  font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);
 }
 ```
 
@@ -787,8 +1093,9 @@ Define SVGs inline. Core set: search, pin, clock, eye, back, menu, close, check,
 | Bounce/spring animations | Feel cheap, break restrained-premium tone | Use `cubic-bezier(0.16, 1, 0.3, 1)` for everything |
 | Loading spinners | Feel anxious | Skeleton screens or subtle pulse on content area |
 | Solid divider lines | Too harsh for obsidian | Gradient fades: `linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)` |
-| Gradient/filled primary CTA buttons | Breaks the editorial restraint | Ghost CTAs for navigation, glass buttons for actions |
-| Box shadows on cards | Too heavy for the glass aesthetic | Use border opacity only |
+| Gradient/filled buttons | No filled or gradient backgrounds on any button | Ghost CTAs for navigation, glass action-btn for functional actions |
+| Elevation shadows on cards | Drop shadows break the glass-on-obsidian aesthetic | Use border opacity only. (`box-shadow` IS allowed for focus rings and glow effects.) |
+| Loading spinners | Feel anxious, break the calm register | Use `.skeleton` component with pulse animation |
 
 ---
 
