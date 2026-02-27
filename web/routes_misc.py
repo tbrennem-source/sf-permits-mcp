@@ -515,7 +515,7 @@ def welcome():
     user = g.user
     # If already completed, redirect to dashboard
     if user.get("onboarding_complete"):
-        return redirect(url_for("search.index"))
+        return redirect(url_for("index"))
     return render_template("welcome.html", user=user, active_page="welcome")
 
 
