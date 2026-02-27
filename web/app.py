@@ -137,6 +137,7 @@ EXPECTED_TABLES = [
     "boiler_permits", "fire_permits",
     "severity_cache",
     "request_metrics",
+    "page_cache",
 ]
 
 
@@ -632,6 +633,21 @@ def _run_startup_migrations():
         cur.execute("""
             CREATE INDEX IF NOT EXISTS idx_reqmetrics_path_ts
             ON request_metrics (path, recorded_at)
+        """)
+
+        # ── Page cache (sub-second cached page payloads) ─────────
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS page_cache (
+                cache_key TEXT PRIMARY KEY,
+                payload TEXT NOT NULL,
+                computed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                invalidated_at TIMESTAMP,
+                ttl_minutes INT DEFAULT 30
+            )
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_page_cache_invalidated
+            ON page_cache (cache_key) WHERE invalidated_at IS NOT NULL
         """)
 
         # ── Bulk table indexes ──────────────────────────────────
