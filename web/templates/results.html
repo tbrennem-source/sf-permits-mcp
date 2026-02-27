@@ -1,31 +1,321 @@
 <style nonce="{{ csp_nonce }}">
-/* === Sprint 58C: Methodology Cards === */
+/* === Results page — design token migration === */
+
+/* Token aliases for this fragment context */
+:root {
+    --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --obsidian:       #0a0a0f;
+    --obsidian-mid:   #12121a;
+    --obsidian-light: #1a1a26;
+    --glass:          rgba(255, 255, 255, 0.04);
+    --glass-border:   rgba(255, 255, 255, 0.06);
+    --glass-hover:    rgba(255, 255, 255, 0.10);
+    --text-primary:   rgba(255, 255, 255, 0.92);
+    --text-secondary: rgba(255, 255, 255, 0.55);
+    --text-tertiary:  rgba(255, 255, 255, 0.30);
+    --text-ghost:     rgba(255, 255, 255, 0.15);
+    --accent:         #5eead4;
+    --accent-glow:    rgba(94, 234, 212, 0.08);
+    --accent-ring:    rgba(94, 234, 212, 0.30);
+    --signal-green:   #34d399;
+    --signal-amber:   #fbbf24;
+    --signal-red:     #f87171;
+    --signal-blue:    #60a5fa;
+    --dot-green: #22c55e;
+    --dot-amber: #f59e0b;
+    --dot-red:   #ef4444;
+    --radius-sm:  6px;
+    --radius-md:  12px;
+}
+
+/* === Methodology Cards === */
 .methodology-card { margin-top: 8px; }
-.methodology-card summary { cursor: pointer; color: #888; font-size: 0.85em; user-select: none; list-style: none; display: flex; align-items: center; gap: 4px; }
-.methodology-card summary:hover { color: #ccc; }
+.methodology-card summary {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-family: var(--mono);
+    font-size: 0.82em;
+    font-weight: 400;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+}
+.methodology-card summary:hover { color: var(--accent); }
 .methodology-card summary::before { content: "ⓘ"; }
-.methodology-body { background: #1a1a2e; border-left: 3px solid #4a9eff; padding: 12px 16px; margin-top: 6px; font-size: 0.9em; line-height: 1.6; border-radius: 0 4px 4px 0; }
-.methodology-model { font-weight: 600; color: #cdd; margin-bottom: 6px; font-size: 0.95em; }
+.methodology-body {
+    background: var(--obsidian-light);
+    border-left: 2px solid var(--accent);
+    padding: 12px 16px;
+    margin-top: 6px;
+    font-family: var(--sans);
+    font-size: 0.9em;
+    line-height: 1.6;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.methodology-model {
+    font-family: var(--mono);
+    font-weight: 400;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    font-size: 0.9em;
+}
 .formula-steps { margin: 8px 0; }
-.formula-steps .step { padding: 2px 0; color: #b0c4de; font-family: monospace; font-size: 0.85em; }
+.formula-steps .step {
+    padding: 2px 0;
+    color: var(--text-secondary);
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 0.85em;
+}
 .station-breakdown { width: 100%; margin: 8px 0; font-size: 0.9em; border-collapse: collapse; }
-.station-breakdown th { text-align: left; color: #888; padding: 4px 8px; border-bottom: 1px solid #333; }
-.station-breakdown td { padding: 4px 8px; border-bottom: 1px solid #222; }
+.station-breakdown th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.station-breakdown td {
+    font-family: var(--sans);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--glass-border);
+}
 .triggers-matched { margin-top: 8px; }
-.triggers-matched div { font-size: 0.85em; color: #b0c4de; padding: 2px 0; }
+.triggers-matched div { font-family: var(--sans); font-size: 0.85em; color: var(--text-secondary); padding: 2px 0; }
 .correction-cats { margin-top: 8px; }
-.correction-cats div { font-size: 0.85em; color: #b0c4de; padding: 2px 0; }
-.coverage-gaps { color: #f0ad4e; font-size: 0.85em; margin-top: 8px; }
-.fallback-note { color: #888; font-style: italic; font-size: 0.85em; margin-top: 6px; }
-.revision-context { margin-top: 8px; padding: 8px; background: rgba(240, 173, 78, 0.1); border-radius: 4px; font-size: 0.85em; }
-.methodology-footer { color: #888; font-size: 0.8em; margin-top: 10px; border-top: 1px solid #333; padding-top: 6px; }
-.methodology-toggle { margin-bottom: 12px; font-size: 0.9em; color: #888; display: flex; align-items: center; gap: 6px; }
+.correction-cats div { font-family: var(--sans); font-size: 0.85em; color: var(--text-secondary); padding: 2px 0; }
+.coverage-gaps { color: var(--signal-amber); font-family: var(--sans); font-size: 0.85em; margin-top: 8px; }
+.fallback-note { font-family: var(--sans); color: var(--text-tertiary); font-style: italic; font-size: 0.85em; margin-top: 6px; }
+.revision-context {
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(251, 191, 36, 0.06);
+    border-left: 2px solid var(--signal-amber);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-family: var(--sans);
+    font-size: 0.85em;
+}
+.methodology-footer {
+    font-family: var(--mono);
+    font-weight: 300;
+    color: var(--text-tertiary);
+    font-size: 0.78em;
+    margin-top: 10px;
+    border-top: 1px solid var(--glass-border);
+    padding-top: 6px;
+}
+.methodology-toggle {
+    margin-bottom: 12px;
+    font-family: var(--sans);
+    font-size: 0.85em;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 .methodology-toggle label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
-.methodology-toggle input[type="checkbox"] { cursor: pointer; }
+.methodology-toggle input[type="checkbox"] { cursor: pointer; accent-color: var(--accent); }
+
+/* === Cost of Delay overlay === */
+.cost-delay-box {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+    border-radius: var(--radius-sm);
+}
+.cost-delay-title {
+    font-family: var(--mono);
+    font-weight: 400;
+    color: var(--signal-amber);
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.cost-delay-meta {
+    margin-top: 6px;
+    font-family: var(--sans);
+    font-size: 0.85em;
+    color: var(--text-secondary);
+}
+.cost-delay-table {
+    width: 100%;
+    margin-top: 8px;
+    font-size: 0.85em;
+    border-collapse: collapse;
+}
+.cost-delay-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    text-align: left;
+    padding: 4px 8px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--glass-border);
+}
+.cost-delay-table th.right { text-align: right; }
+.cost-delay-table td {
+    font-family: var(--sans);
+    padding: 4px 8px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--glass-border);
+}
+.cost-delay-table td.right {
+    text-align: right;
+    font-family: var(--mono);
+    font-weight: 300;
+}
+.cost-delay-table td.value-col {
+    text-align: right;
+    font-family: var(--mono);
+    font-weight: 400;
+    color: var(--text-primary);
+}
+.cost-delay-risk {
+    margin-top: 8px;
+    font-family: var(--sans);
+    font-size: 0.85em;
+    color: var(--signal-amber);
+}
+
+/* === Share bar — dark theme === */
+.share-bar {
+    border-top: 1px solid var(--glass-border);
+    padding: 16px 0;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.share-bar__label {
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+}
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 400;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    text-decoration: none;
+}
+.share-btn--primary {
+    background: var(--glass);
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+}
+.share-btn--primary:hover {
+    border-color: var(--accent-ring);
+    color: var(--accent);
+}
+.share-btn--secondary {
+    background: none;
+    color: var(--text-tertiary);
+    border: 1px solid var(--glass-border);
+}
+.share-btn--secondary:hover {
+    border-color: var(--glass-hover);
+    color: var(--text-secondary);
+}
+
+/* === Share email modal — dark theme === */
+.share-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.60);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    z-index: 90;
+}
+.share-modal {
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 28px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.share-modal h3 {
+    font-family: var(--sans);
+    margin: 0 0 8px 0;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+.share-modal p {
+    font-family: var(--sans);
+    margin: 0 0 20px 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+.share-modal-error {
+    display: none;
+    font-family: var(--sans);
+    color: var(--signal-red);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: rgba(248, 113, 113, 0.08);
+    border-left: 2px solid var(--signal-red);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.share-modal-input {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    font-weight: 300;
+    color: var(--text-primary);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s;
+}
+.share-modal-input:focus { border-color: var(--accent-ring); }
+.share-modal-input::placeholder { color: var(--text-tertiary); }
+.share-modal-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* === Loading state for similar projects === */
+.similar-loading {
+    text-align: center;
+    padding: 20px;
+    font-family: var(--sans);
+    color: var(--text-tertiary);
+}
+
 @media print {
     .methodology-card .methodology-body { display: block !important; }
     .methodology-card[open] .methodology-body, .methodology-card:not([open]) .methodology-body { display: block !important; }
     .methodology-toggle { display: none; }
+    .share-bar { display: none; }
 }
 </style>
 {% set TAB_META = {
@@ -115,30 +405,30 @@
 
             {# === SESSION C: Cost of Delay overlay === #}
             {% if m.cost_impact %}
-            <div style="margin-top:12px;padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:6px;">
-                <strong style="color:#fbbf24;font-size:0.9em;">Financial Impact of Delay</strong>
-                <div style="margin-top:6px;font-size:0.85em;color:var(--text-muted, #b0c4de);">
-                    Monthly: ${{ "{:,.0f}".format(m.cost_impact.monthly_carrying_cost|float) }} ·
+            <div class="cost-delay-box">
+                <div class="cost-delay-title">Financial Impact of Delay</div>
+                <div class="cost-delay-meta">
+                    Monthly: ${{ "{:,.0f}".format(m.cost_impact.monthly_carrying_cost|float) }} &middot;
                     Weekly: ${{ "{:,.0f}".format(m.cost_impact.weekly_cost|float) }}
                 </div>
                 {% if m.cost_impact.scenarios %}
-                <table style="width:100%;margin-top:8px;font-size:0.85em;border-collapse:collapse;">
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
-                        <th style="text-align:left;padding:4px 8px;color:#888;">Scenario</th>
-                        <th style="text-align:right;padding:4px 8px;color:#888;">Days</th>
-                        <th style="text-align:right;padding:4px 8px;color:#888;">Carrying Cost</th>
+                <table class="cost-delay-table">
+                    <tr>
+                        <th>Scenario</th>
+                        <th class="right">Days</th>
+                        <th class="right">Carrying Cost</th>
                     </tr>
                     {% for s in m.cost_impact.scenarios %}
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <td style="padding:4px 8px;">{{ s.label }}</td>
-                        <td style="text-align:right;padding:4px 8px;">{{ s.days }}</td>
-                        <td style="text-align:right;padding:4px 8px;font-weight:600;">${{ "{:,}".format(s.carrying_cost|int) }}</td>
+                    <tr>
+                        <td>{{ s.label }}</td>
+                        <td class="right">{{ s.days }}</td>
+                        <td class="value-col">${{ "{:,}".format(s.carrying_cost|int) }}</td>
                     </tr>
                     {% endfor %}
                 </table>
                 {% endif %}
                 {% if m.cost_impact.delay_cost is defined and m.cost_impact.delay_cost %}
-                <div style="margin-top:8px;font-size:0.85em;color:#fbbf24;">
+                <div class="cost-delay-risk">
                     Delay risk: +${{ "{:,}".format(m.cost_impact.delay_cost|int) }} if review takes {{ m.cost_impact.delay_days|int }} extra days
                 </div>
                 {% endif %}
@@ -223,7 +513,7 @@
              hx-get="/api/similar-projects?permit_type={{ (analyze_permit_type or '')|urlencode }}&neighborhood={{ (analyze_neighborhood or '')|urlencode }}&cost={{ analyze_cost or '' }}{% if analysis_id %}&analysis_id={{ analysis_id }}{% endif %}"
              hx-trigger="intersect once"
              hx-swap="innerHTML">
-            <div style="text-align:center;padding:20px;color:var(--text-muted, #888);">
+            <div class="similar-loading">
                 Loading similar projects...
             </div>
         </div>
@@ -233,68 +523,52 @@
 
 {% if analysis_id %}
 <!-- Share actions bar -->
-<div id="share-bar" style="border-top:1px solid #e5e7eb; padding:16px 0; margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-    <span style="font-size:0.85rem; color:#6b7280; font-weight:500;">Share this analysis:</span>
+<div id="share-bar" class="share-bar">
+    <span class="share-bar__label">Share this analysis:</span>
 
     <!-- Email to team -->
     <button id="share-email-btn"
-            onclick="document.getElementById('share-email-modal').style.display='flex'"
-            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
-                   background:#2563eb; color:white; border:none; border-radius:6px;
-                   font-size:0.85rem; font-weight:500; cursor:pointer;">
+            class="share-btn share-btn--primary"
+            onclick="document.getElementById('share-email-modal').style.display='flex'">
         Email to your team
     </button>
 
     <!-- Copy share link -->
     <button id="share-link-btn"
-            onclick="copyShareLink('{{ analysis_id }}')"
-            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
-                   background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
-                   border-radius:6px; font-size:0.85rem; cursor:pointer;">
+            class="share-btn share-btn--secondary"
+            onclick="copyShareLink('{{ analysis_id }}')">
         Copy share link
     </button>
 
     <!-- Copy all text -->
     <button id="copy-all-btn"
-            onclick="copyAllText()"
-            style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
-                   background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
-                   border-radius:6px; font-size:0.85rem; cursor:pointer;">
+            class="share-btn share-btn--secondary"
+            onclick="copyAllText()">
         Copy all
     </button>
 </div>
 
 <!-- Email share modal -->
-<div id="share-email-modal"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
-            align-items:center; justify-content:center; z-index:9999;">
-    <div style="background:white; border-radius:12px; padding:28px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <h3 style="margin:0 0 8px 0; font-size:1.1rem; color:#111827;">Email to your team</h3>
-        <p style="margin:0 0 20px 0; font-size:0.875rem; color:#6b7280;">Enter up to 5 email addresses.</p>
+<div id="share-email-modal" class="share-modal-backdrop">
+    <div class="share-modal">
+        <h3>Email to your team</h3>
+        <p>Enter up to 5 email addresses.</p>
 
-        <div id="share-email-error" style="display:none; color:#991b1b; font-size:0.85rem; margin-bottom:12px; padding:8px 12px; background:#fef2f2; border-radius:6px;"></div>
+        <div id="share-email-error" class="share-modal-error"></div>
 
         <div id="email-inputs">
-            <input type="email" placeholder="colleague@example.com"
-                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
-                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
-            <input type="email" placeholder="Add another (optional)"
-                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
-                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
-            <input type="email" placeholder="Add another (optional)"
-                   style="width:100%; margin-bottom:8px; padding:10px 12px; border:1px solid #d1d5db;
-                          border-radius:6px; font-size:0.9rem; box-sizing:border-box;">
+            <input type="email" class="share-modal-input" placeholder="colleague@example.com">
+            <input type="email" class="share-modal-input" placeholder="Add another (optional)">
+            <input type="email" class="share-modal-input" placeholder="Add another (optional)">
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:8px;">
-            <button onclick="sendShareEmail('{{ analysis_id }}')"
-                    style="flex:1; padding:11px; background:#2563eb; color:white; border:none;
-                           border-radius:8px; font-size:0.95rem; font-weight:500; cursor:pointer;">
+        <div class="share-modal-footer">
+            <button class="share-btn share-btn--primary" style="flex:1;"
+                    onclick="sendShareEmail('{{ analysis_id }}')">
                 Send
             </button>
-            <button onclick="document.getElementById('share-email-modal').style.display='none'"
-                    style="padding:11px 20px; background:#f3f4f6; color:#374151; border:none;
-                           border-radius:8px; font-size:0.95rem; cursor:pointer;">
+            <button class="share-btn share-btn--secondary"
+                    onclick="document.getElementById('share-email-modal').style.display='none'">
                 Cancel
             </button>
         </div>
