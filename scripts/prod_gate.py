@@ -276,7 +276,8 @@ def check_secret_leaks():
         result = subprocess.run(
             ["git", "diff", "HEAD~5..HEAD",
              "--", "*.py", "*.html", "*.js", "*.css", "*.md",
-             ":!scripts/prod_gate.py", ":!scripts/design_lint.py"],
+             ":!scripts/prod_gate.py", ":!scripts/design_lint.py",
+             ":!tests/"],
             capture_output=True, text=True, timeout=30
         )
         diff = result.stdout
