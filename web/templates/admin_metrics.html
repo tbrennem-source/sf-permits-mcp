@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Metrics Dashboard — sfpermits.ai</title>
+    <style nonce="{{ csp_nonce }}">
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #252834;
+            --border: #333749;
+            --text: #e4e6eb;
+            --text-muted: #8b8fa3;
+            --accent: #4f8ff7;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --error: #f87171;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        main { padding: 40px 0 80px; }
+        h1 { font-size: 1.5rem; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 32px; font-size: 0.9rem; }
+        h2 { font-size: 1.15rem; margin-bottom: 12px; color: var(--text); }
+        .section { margin-bottom: 40px; }
+        .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .section-header .badge {
+            font-size: 0.7rem; background: var(--surface-2); color: var(--text-muted);
+            padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+        }
+
+        /* Tables */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-table th {
+            text-align: left; padding: 8px 12px; background: var(--surface-2);
+            color: var(--text-muted); font-weight: 600; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table td {
+            padding: 8px 12px; border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .data-table tr:hover { background: rgba(79,143,247,0.04); }
+        .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+        /* SLA color coding */
+        .sla-good { color: var(--success); font-weight: 600; }
+        .sla-warn { color: var(--warning); font-weight: 600; }
+        .sla-bad { color: var(--error); font-weight: 600; }
+
+        /* Stats cards */
+        .stats-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat-card {
+            flex: 1; min-width: 160px; padding: 16px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+        .stat-card .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card .value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+
+        /* Empty state */
+        .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+
+        /* Back link */
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Table wrapper for overflow */
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* Month name helper */
+        .month-name { color: var(--text-muted); font-size: 0.8rem; }
+    </style>
+    <link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body>
+    {% include 'fragments/nav.html' %}
+
+    <main>
+        <div class="container">
+            <p style="margin-bottom: 16px;"><a href="/admin/ops" class="back-link">&larr; Back to Operations</a></p>
+            <h1><span style="font-size:0.65rem;background:var(--surface-2);color:var(--text-muted);padding:3px 8px;border-radius:8px;border:1px solid var(--border);vertical-align:middle;margin-right:8px;">&#9881; Admin</span>Metrics Dashboard</h1>
+            <p class="subtitle">Permit issuance trends, station SLA compliance, and planning velocity.</p>
+
+            <!-- Summary stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="label">Issuance Records</div>
+                    <div class="value">{{ issuance_rows|length }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Stations Tracked</div>
+                    <div class="value">{{ sla_rows|length }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Planning Stages</div>
+                    <div class="value">{{ planning_rows|length }}</div>
+                </div>
+            </div>
+
+            <!-- Section 1: Permit Issuance Trends -->
+            <div class="section" id="issuance">
+                <div class="section-header">
+                    <h2>Permit Issuance Trends</h2>
+                    <span class="badge">permit_issuance_metrics</span>
+                </div>
+                {% if issuance_rows %}
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Month</th>
+                                <th>Permit Type</th>
+                                <th>OTC / In-House</th>
+                                <th class="num">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set month_names = {1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'} %}
+                            {% for row in issuance_rows[:100] %}
+                            <tr>
+                                <td>{{ row.year }}</td>
+                                <td>{{ month_names.get(row.month|int, row.month) }}</td>
+                                <td>{{ row.type or '—' }}</td>
+                                <td>{{ row.otc_ih or '—' }}</td>
+                                <td class="num">{{ '{:,}'.format(row.count) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if issuance_rows|length > 100 %}
+                <p style="color:var(--text-muted);font-size:0.8rem;margin-top:8px;">Showing 100 of {{ issuance_rows|length }} rows.</p>
+                {% endif %}
+                {% else %}
+                <div class="empty">No issuance data available. Run the metrics ingest first.</div>
+                {% endif %}
+            </div>
+
+            <!-- Section 2: Station SLA Compliance -->
+            <div class="section" id="sla">
+                <div class="section-header">
+                    <h2>Station SLA Compliance</h2>
+                    <span class="badge">permit_review_metrics</span>
+                </div>
+                {% if sla_rows %}
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Station</th>
+                                <th>Department</th>
+                                <th class="num">Total Reviews</th>
+                                <th class="num">Met SLA</th>
+                                <th class="num">SLA %</th>
+                                <th class="num">Avg Days</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in sla_rows %}
+                            <tr>
+                                <td>{{ row.station or '—' }}</td>
+                                <td>{{ row.department or '—' }}</td>
+                                <td class="num">{{ '{:,}'.format(row.total) }}</td>
+                                <td class="num">{{ '{:,}'.format(row.met_sla) }}</td>
+                                <td class="num {% if row.sla_pct >= 80 %}sla-good{% elif row.sla_pct >= 60 %}sla-warn{% else %}sla-bad{% endif %}">
+                                    {{ row.sla_pct }}%
+                                </td>
+                                <td class="num">{{ row.avg_days }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty">No SLA data available. Run the metrics ingest first.</div>
+                {% endif %}
+            </div>
+
+            <!-- Section 3: Planning Velocity -->
+            <div class="section" id="planning">
+                <div class="section-header">
+                    <h2>Planning Velocity</h2>
+                    <span class="badge">planning_review_metrics</span>
+                </div>
+                {% if planning_rows %}
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Project Stage</th>
+                                <th>Outcome</th>
+                                <th class="num">Count</th>
+                                <th class="num">Avg Value (days)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in planning_rows %}
+                            <tr>
+                                <td>{{ row.stage or '—' }}</td>
+                                <td>{{ row.outcome or '—' }}</td>
+                                <td class="num">{{ '{:,}'.format(row.count) }}</td>
+                                <td class="num">{{ row.avg_value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty">No planning data available. Run the metrics ingest first.</div>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+</body>
+</html>
