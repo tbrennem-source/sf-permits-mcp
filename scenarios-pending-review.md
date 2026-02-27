@@ -1099,3 +1099,33 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Loading bar and progress dots use signal-cyan accent. Personalization form (priorities, experience) uses cyan chip highlight when selected.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Brief cache freshness indicator shows last update time
+**Source:** web/templates/brief.html cache freshness UI
+**User:** expediter | homeowner
+**Starting state:** User has watched properties; brief was pre-computed and cached
+**Goal:** Understand how fresh the brief data is without hunting for timestamps
+**Expected outcome:** A subtle status dot (green) with timestamp appears near the page header, showing when data was last updated. If a refresh button is available, it is styled as a ghost CTA with "Refresh →" label.
+**Edge cases seen in code:** When brief.cached_at is None, the cache freshness row is hidden entirely. When brief.can_refresh is False, no refresh button appears.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Stale data warning prompts user to act
+**Source:** web/templates/brief.html stale data warning block
+**User:** expediter | homeowner
+**Starting state:** Brief data is stale (last refresh was many hours ago)
+**Goal:** User should understand their brief may be missing recent changes
+**Expected outcome:** An amber warning banner appears below the subtitle, explaining how many hours ago the last refresh ran. If a catchup backfill was used, a note about recovered changes appears.
+**Edge cases seen in code:** Warning only shows when brief.last_refresh.is_stale is true. Message mentions hours_ago (integer truncated).
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: All-quiet state with no recent activity
+**Source:** web/templates/brief.html all-quiet-card block
+**User:** homeowner
+**Starting state:** User has watched properties but none have had activity in the selected lookback period
+**Goal:** User checks brief expecting updates, finds none
+**Expected outcome:** A distinct "All quiet" card appears (not an error, not a blank page), explaining no activity in the selected period. Contextual links to expand the lookback window are shown (e.g., "Try last 90 days"). A link to search for permits is offered.
+**Edge cases seen in code:** Card only shows when no changes, health, inspections, new_filings, team_activity, expiring, or regulatory_alerts exist. Different copy for 1-day vs 7-day vs 90-day lookback.
+**CC confidence:** high
+**Status:** PENDING REVIEW
