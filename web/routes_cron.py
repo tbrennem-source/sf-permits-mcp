@@ -454,6 +454,21 @@ def cron_nightly():
                 return _send_staleness_alert(warnings, result)
             staleness_alert_result = _timed_step("staleness_alert", _run_staleness_alert)
 
+        # Invalidate brief caches after new permit/inspection data is ingested.
+        # This ensures the next compute-caches run (or direct brief request)
+        # rebuilds with fresh data rather than serving stale cached results.
+        cache_invalidation_result = {}
+        if not dry_run:
+            def _run_cache_invalidation():
+                try:
+                    from web.helpers import invalidate_cache
+                    count = invalidate_cache("brief:%")
+                    return {"invalidated": count}
+                except ImportError:
+                    # Agent 1A's invalidate_cache not yet merged — non-fatal
+                    return {"skipped": "helpers_not_available"}
+            cache_invalidation_result = _timed_step("cache_invalidation", _run_cache_invalidation)
+
         return Response(
             json.dumps({
                 "status": "ok", **result,
@@ -467,6 +482,7 @@ def cron_nightly():
                 "signals": signals_result,
                 "velocity_v2": velocity_v2_result,
                 "staleness_alert": staleness_alert_result,
+                "cache_invalidation": cache_invalidation_result,
                 "step_timings": step_timings,
             }, indent=2),
             mimetype="application/json",
@@ -2040,3 +2056,70 @@ def cron_aggregate_api_usage():
     result = aggregate_daily_usage(target_date)
     result["ok"] = result.get("inserted", False)
     return jsonify(result), 200 if result["ok"] else 500
+
+
+# ---------------------------------------------------------------------------
+# Brief pre-compute cache — warm user briefs proactively (every 15 min)
+# ---------------------------------------------------------------------------
+
+@bp.route("/cron/compute-caches", methods=["POST"])
+def cron_compute_caches():
+    """Pre-compute morning briefs for all active users.
+
+    Protected by CRON_SECRET bearer token. Designed to run every 15 minutes
+    so that when a user opens their brief, the data is already cached and
+    the page loads instantly instead of waiting for a live DB query.
+
+    Returns JSON:
+      { "computed": N, "errors": M, "total_users": T }
+    """
+    _check_api_auth()
+
+    from flask import current_app
+    from web.brief import get_morning_brief
+    from web.auth import get_primary_address
+
+    # get_cached_or_compute and invalidate_cache are provided by web.helpers
+    # (built by Agent 1A in a parallel worktree — merged by orchestrator).
+    try:
+        from web.helpers import get_cached_or_compute
+    except ImportError:
+        # Agent 1A's functions not yet merged — skip caching but still log.
+        logging.warning("compute-caches: get_cached_or_compute not available yet — skipping run")
+        return jsonify({
+            "computed": 0,
+            "errors": 0,
+            "total_users": 0,
+            "skipped": "helpers_not_available",
+        })
+
+    from src.db import query
+
+    try:
+        rows = query("SELECT user_id FROM users WHERE user_id IS NOT NULL")
+    except Exception as e:
+        logging.error("compute-caches: failed to fetch users: %s", e)
+        return jsonify({"computed": 0, "errors": 0, "total_users": 0, "error": str(e)}), 500
+
+    computed = 0
+    errors = 0
+    for row in rows:
+        user_id = row[0]
+        try:
+            primary_addr = get_primary_address(user_id)
+            cache_key = f"brief:{user_id}:1"  # Default lookback=1
+            get_cached_or_compute(
+                cache_key,
+                lambda uid=user_id, pa=primary_addr: get_morning_brief(uid, 1, primary_address=pa),
+                ttl_minutes=30,
+            )
+            computed += 1
+        except Exception as e:
+            logging.warning("Brief pre-compute failed for user %s: %s", user_id, e)
+            errors += 1
+
+    logging.info(
+        "compute-caches: computed=%d errors=%d total=%d",
+        computed, errors, len(rows),
+    )
+    return jsonify({"computed": computed, "errors": errors, "total_users": len(rows)})
