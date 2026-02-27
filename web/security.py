@@ -183,10 +183,17 @@ EXTENDED_BLOCKED_PATHS = {
 # ---------------------------------------------------------------------------
 
 def _generate_csrf_token():
-    """Generate or retrieve CSRF token for the current session."""
-    if "csrf_token" not in session:
-        session["csrf_token"] = secrets.token_hex(32)
-    return session["csrf_token"]
+    """Generate or retrieve CSRF token for the current session.
+
+    Returns empty string outside request context (e.g. email template rendering).
+    """
+    try:
+        if "csrf_token" not in session:
+            session["csrf_token"] = secrets.token_hex(32)
+        return session["csrf_token"]
+    except RuntimeError:
+        # Outside request context (email rendering, etc.)
+        return ""
 
 
 # Paths that use their own auth and skip CSRF validation
