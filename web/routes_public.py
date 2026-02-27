@@ -1472,10 +1472,12 @@ def _parse_preview_timeline(tl_md: str) -> dict:
 
 
 @bp.route("/analyze-preview", methods=["POST"])
+@_rate_limited_ai
 def analyze_preview():
     """Unauthenticated permit preview -- runs predict_permits + estimate_timeline only.
 
     No login required. Shows 2 of 5 tools; fees/docs/risk are locked cards.
+    Rate limited via @_rate_limited_ai (per-user/IP) + legacy IP bucket below.
     """
     description = request.form.get("description", "").strip()
     neighborhood = request.form.get("neighborhood", "").strip() or None
@@ -1483,7 +1485,7 @@ def analyze_preview():
     if not description:
         return redirect(url_for("index"))
 
-    # Rate limit: 10 per minute per IP (same as /analyze)
+    # Rate limit: 10 per minute per IP (legacy IP-based check, kept for extra protection)
     ip = request.headers.get("X-Forwarded-For", request.remote_addr)
     if ip:
         ip = ip.split(",")[0].strip()

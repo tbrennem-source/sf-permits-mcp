@@ -1005,6 +1005,37 @@ def _posthog_load_flags():
 
 
 # ---------------------------------------------------------------------------
+# Kill switch: block AI routes when cost protection is active (Sprint 76-2)
+# ---------------------------------------------------------------------------
+
+_AI_ROUTE_PREFIXES = ("/ask", "/analyze", "/lookup/intel-preview")
+
+
+@app.before_request
+def _kill_switch_guard():
+    """Block AI-heavy routes when the cost kill switch is active.
+
+    Safe for tests: returns None (no-op) when app.config["TESTING"] is True.
+    Safe for email rendering: returns None when not in a request context.
+    """
+    if app.config.get("TESTING"):
+        return
+    from flask import has_request_context
+    if not has_request_context():
+        return
+    from web.cost_tracking import is_kill_switch_active
+    if not is_kill_switch_active():
+        return
+    path = request.path
+    if any(path == p or path.startswith(p + "/") or path.startswith(p) for p in _AI_ROUTE_PREFIXES):
+        return jsonify({
+            "error": "AI features are temporarily unavailable (cost protection). "
+                     "Please try again later.",
+            "kill_switch": True,
+        }), 503
+
+
+# ---------------------------------------------------------------------------
 # After-request hooks
 # ---------------------------------------------------------------------------
 
@@ -1013,6 +1044,27 @@ _LOG_PATHS = {"/ask", "/analyze", "/validate", "/analyze-plans", "/lookup", "/br
               "/watch/add", "/watch/remove", "/watch/tags", "/feedback/submit",
               "/admin/send-invite", "/account/primary-address",
               "/account/primary-address/clear", "/search"}
+
+
+@app.after_request
+def _log_api_usage(response):
+    """Log Claude API usage from g.api_usage to api_usage table. Fire-and-forget."""
+    try:
+        api_usage = getattr(g, "api_usage", None)
+        if api_usage:
+            from web.cost_tracking import log_api_call
+            user_id = g.user["user_id"] if getattr(g, "user", None) and g.user else None
+            log_api_call(
+                endpoint=api_usage.get("endpoint", request.path),
+                model=api_usage.get("model", "unknown"),
+                input_tokens=api_usage.get("input_tokens", 0),
+                output_tokens=api_usage.get("output_tokens", 0),
+                user_id=user_id,
+                extra=api_usage.get("extra"),
+            )
+    except Exception:
+        pass  # Never fail the response
+    return response
 
 
 @app.after_request

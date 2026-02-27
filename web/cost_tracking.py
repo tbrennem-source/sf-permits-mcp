@@ -350,6 +350,103 @@ def get_cost_summary(days: int = 7) -> dict:
         }
 
 
+def aggregate_daily_usage(target_date: date | None = None) -> dict:
+    """Aggregate api_usage rows into api_daily_summary for a given date.
+
+    Inserts or replaces a row in api_daily_summary with:
+      - summary_date
+      - total_calls
+      - total_cost_usd
+      - breakdown_json (endpoint-level breakdown)
+      - computed_at
+
+    Returns a dict with: summary_date, total_calls, total_cost_usd, inserted.
+    Missing or unavailable tables are handled gracefully (try/except, log warning).
+    """
+    from src.db import BACKEND, execute_write, query, query_one
+
+    if target_date is None:
+        from datetime import date as _date, timedelta
+        target_date = _date.today() - timedelta(days=1)
+
+    date_str = target_date.isoformat()
+    result: dict = {
+        "summary_date": date_str,
+        "total_calls": 0,
+        "total_cost_usd": 0.0,
+        "inserted": False,
+    }
+
+    try:
+        # Fetch aggregate stats for the date
+        if BACKEND == "postgres":
+            count_row = query_one(
+                "SELECT COUNT(*), COALESCE(SUM(cost_usd), 0) FROM api_usage "
+                "WHERE DATE(called_at) = %s",
+                (date_str,),
+            )
+            breakdown_rows = query(
+                "SELECT endpoint, COUNT(*), COALESCE(SUM(cost_usd), 0) "
+                "FROM api_usage WHERE DATE(called_at) = %s "
+                "GROUP BY endpoint ORDER BY SUM(cost_usd) DESC",
+                (date_str,),
+            )
+        else:
+            count_row = query_one(
+                "SELECT COUNT(*), COALESCE(SUM(cost_usd), 0) FROM api_usage "
+                "WHERE DATE(called_at) = ?",
+                (date_str,),
+            )
+            breakdown_rows = query(
+                "SELECT endpoint, COUNT(*), COALESCE(SUM(cost_usd), 0) "
+                "FROM api_usage WHERE DATE(called_at) = ? "
+                "GROUP BY endpoint ORDER BY SUM(cost_usd) DESC",
+                (date_str,),
+            )
+
+        total_calls = int(count_row[0]) if count_row else 0
+        total_cost = float(count_row[1]) if count_row else 0.0
+        breakdown = [
+            {"endpoint": r[0], "calls": int(r[1]), "cost_usd": round(float(r[2]), 6)}
+            for r in (breakdown_rows or [])
+        ]
+        breakdown_json = json.dumps(breakdown)
+
+        # Upsert into api_daily_summary
+        if BACKEND == "postgres":
+            execute_write(
+                """
+                INSERT INTO api_daily_summary
+                    (summary_date, total_calls, total_cost_usd, breakdown_json, computed_at)
+                VALUES (%s, %s, %s, %s, NOW())
+                ON CONFLICT (summary_date) DO UPDATE SET
+                    total_calls = EXCLUDED.total_calls,
+                    total_cost_usd = EXCLUDED.total_cost_usd,
+                    breakdown_json = EXCLUDED.breakdown_json,
+                    computed_at = NOW()
+                """,
+                (date_str, total_calls, total_cost, breakdown_json),
+            )
+        else:
+            execute_write(
+                """
+                INSERT OR REPLACE INTO api_daily_summary
+                    (summary_date, total_calls, total_cost_usd, breakdown_json, computed_at)
+                VALUES (?, ?, ?, ?, NOW())
+                """,
+                (date_str, total_calls, total_cost, breakdown_json),
+            )
+
+        result["total_calls"] = total_calls
+        result["total_cost_usd"] = round(total_cost, 6)
+        result["inserted"] = True
+
+    except Exception as e:
+        logger.warning("aggregate_daily_usage failed (non-critical): %s", e)
+
+    return result
+
+
 def init_cost_tracking_schema() -> None:
     """Lazily create cost tracking tables for DuckDB dev mode.
 
