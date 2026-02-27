@@ -51,8 +51,8 @@ Read these files before writing any code:
 
 **Architecture notes:**
 - Connection pool: `psycopg2.pool.ThreadedConnectionPool(minconn=2, maxconn=20)` at `src/db.py:44`
-- Railway Postgres default max connections = 100. Cap pool at 60 to leave headroom for cron worker.
-- Gunicorn: 4 gevent workers × 100 connections = 400 potential concurrent requests vs only 20 DB connections = **bottleneck**
+- Railway Postgres max_connections = 100. With 4 web workers + 1 cron worker, each gets own pool: 5 × 20 = 100. This is at the limit, NOT a bottleneck to fix by increasing. Gevent greenlets yield during I/O so 20 connections per worker handles concurrency well.
+- Task is: make pool configurable via env var, add monitoring stats to /health. NOT increase pool size.
 - `/health/schema` already exists (CC0 built it) — verify it works, don't rebuild
 - `/health/ready` does NOT exist yet — needs to be created
 - Docker build currently happens from source on Railway (~5 min). Pre-built GHCR images would cut to ~30s.
@@ -61,15 +61,14 @@ Read these files before writing any code:
 
 ## PHASE 2: BUILD
 
-### Task B-1: Connection Pool Tuning + Monitoring (~30 min)
+### Task B-1: Connection Pool Monitoring + Env Override (~30 min)
 **Files:** `src/db.py`
 
-**Increase pool size:**
+**IMPORTANT MATH:** Railway Postgres max_connections = 100. With 4 web workers + 1 cron worker, each gets a separate pool. Current `maxconn=20` means 5 × 20 = 100 — exactly at the limit. Do NOT increase the default. Instead, make it env-configurable and add monitoring.
+
 ```python
-# At line ~44, change:
-maxconn=20
-# To:
-maxconn=int(os.environ.get("DB_POOL_MAX", "60"))
+# At line ~44, make configurable but keep default at 20:
+maxconn=int(os.environ.get("DB_POOL_MAX", "20"))
 ```
 
 **Add pool stats function:**
@@ -192,7 +191,7 @@ Write `tests/test_qs4_b_perf.py`:
 - get_pool_stats returns dict with backend, maxconn keys
 - get_pool_stats returns "no_pool" when pool is None
 - DB_POOL_MAX env var overrides default maxconn
-- Default maxconn is 60 (not 20)
+- Default maxconn is still 20 (Railway limit: 100 / 5 workers = 20)
 - /health response includes "pool" key
 - /health/ready returns 200 when all checks pass
 - /health/ready returns 503 when tables missing
@@ -224,7 +223,7 @@ Write `qa-drop/qs4-b-performance-qa.md`:
 2. [NEW] GET /health/ready returns 200 with all checks passing — PASS/FAIL
 3. [NEW] GET /health/ready returns 503 when simulating missing table — PASS/FAIL
 4. [NEW] GET /health/schema still works (CC0 regression) — PASS/FAIL
-5. [NEW] DB_POOL_MAX env var changes pool size — PASS/FAIL
+5. [NEW] DB_POOL_MAX env var is respected (default 20) — PASS/FAIL
 6. [NEW] .github/workflows/docker-build.yml exists and is valid — PASS/FAIL
 ```
 
@@ -251,7 +250,7 @@ N/A — no UI changes in this session. All endpoints return JSON.
 - 3 scenarios in `scenarios-pending-review-qs4-b.md`
 
 ### 4. SHIP
-- Commit with: "feat: Connection pool tuning + health/ready + Docker CI (QS4-B)"
+- Commit with: "feat: Pool monitoring + health/ready + Docker CI (QS4-B)"
 
 ### 5. PREP NEXT
 - Note: Railway must be configured to pull from GHCR (manual Tim step)
