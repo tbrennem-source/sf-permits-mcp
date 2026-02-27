@@ -206,6 +206,40 @@
         .badge-complete { background: rgba(139, 149, 168, 0.15); color: var(--text-secondary); }
         .badge-expired { background: rgba(248, 113, 113, 0.15); color: var(--signal-red); }
 
+        /* Severity tier badges */
+        .severity-pill {
+            font-family: var(--font-display);
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: inline-block;
+        }
+        .severity-CRITICAL { background: rgba(248, 113, 113, 0.18); color: var(--signal-red); border: 1px solid rgba(248, 113, 113, 0.3); }
+        .severity-HIGH { background: rgba(251, 191, 36, 0.18); color: var(--signal-amber); border: 1px solid rgba(251, 191, 36, 0.3); }
+        .severity-MEDIUM { background: rgba(251, 191, 36, 0.10); color: #E5B100; border: 1px solid rgba(251, 191, 36, 0.2); }
+        .severity-LOW { background: rgba(96, 165, 250, 0.15); color: var(--signal-blue); border: 1px solid rgba(96, 165, 250, 0.25); }
+        .severity-GREEN { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); border: 1px solid rgba(52, 211, 153, 0.25); }
+
+        /* Overall severity banner */
+        .severity-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+        .severity-banner .sev-label {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
         /* Progress bars for routing */
         .routing-item {
             display: flex;
@@ -450,6 +484,15 @@
             <h1>Property Intelligence</h1>
             <div class="address">{{ demo_address }}</div>
             <div class="subtitle">San Francisco, CA &mdash; Block {{ block }}, Lot {{ lot }} &mdash; {{ neighborhood }}</div>
+            {% if severity_tier %}
+            <div class="severity-banner severity-{{ severity_tier }}">
+                <span class="sev-label">Severity</span>
+                <span class="severity-pill severity-{{ severity_tier }}">{{ severity_tier }}</span>
+                {% if severity_score is not none %}
+                <span style="font-family: var(--font-display); font-size: 0.75rem; color: var(--text-secondary);">{{ severity_score }}/100</span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
 
         <!-- Summary stats -->
@@ -484,6 +527,7 @@
                             <th>Permit #</th>
                             <th>Type</th>
                             <th>Status</th>
+                            <th>Severity</th>
                             <th>Filed</th>
                             <th>Cost</th>
                             <th>Description</th>
@@ -498,6 +542,13 @@
                                 <span class="badge {% if p.status == 'issued' %}badge-issued{% elif p.status == 'filed' %}badge-filed{% elif p.status == 'complete' %}badge-complete{% elif p.status == 'expired' %}badge-expired{% endif %}">
                                     {{ p.status or 'unknown' }}
                                 </span>
+                            </td>
+                            <td>
+                                {% if p.severity_tier %}
+                                <span class="severity-pill severity-{{ p.severity_tier }}">{{ p.severity_tier }}</span>
+                                {% else %}
+                                <span style="color: var(--text-tertiary); font-size: 0.75rem;">—</span>
+                                {% endif %}
                             </td>
                             <td>{{ p.filed_date or 'N/A' }}</td>
                             <td>{{ p.cost_display or 'N/A' }}</td>
