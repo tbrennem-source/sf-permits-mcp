@@ -39,14 +39,29 @@ def _get_pool():
     global _pool
     if _pool is None:
         import psycopg2.pool
+        _maxconn = int(os.environ.get("DB_POOL_MAX", "20"))
         _pool = psycopg2.pool.ThreadedConnectionPool(
             minconn=2,
-            maxconn=20,
+            maxconn=_maxconn,
             dsn=DATABASE_URL,
             connect_timeout=10,
         )
-        logger.info("PostgreSQL connection pool created (minconn=2, maxconn=20)")
+        logger.info("PostgreSQL connection pool created (minconn=2, maxconn=%d)", _maxconn)
     return _pool
+
+
+def get_pool_stats() -> dict:
+    """Return connection pool statistics for /health endpoint."""
+    if _pool is None:
+        return {"status": "no_pool", "backend": BACKEND}
+    return {
+        "backend": BACKEND,
+        "minconn": _pool.minconn,
+        "maxconn": _pool.maxconn,
+        "closed": _pool.closed,
+        "pool_size": len(_pool._pool) if hasattr(_pool, '_pool') else -1,
+        "used_count": len(_pool._used) if hasattr(_pool, '_used') else -1,
+    }
 
 
 def _close_pool():

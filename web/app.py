@@ -1152,6 +1152,14 @@ def health():
                 info["missing_expected_tables"] = missing
                 info["status"] = "degraded"
 
+            # === QS4-B: POOL STATS ===
+            try:
+                from src.db import get_pool_stats
+                info["pool"] = get_pool_stats()
+            except Exception:
+                info["pool"] = {"error": "unavailable"}
+            # === END QS4-B ===
+
             # === QS3-B: HEALTH ENHANCEMENT ===
             # Add circuit breaker status
             try:
@@ -1275,3 +1283,55 @@ def health_schema():
 
     status_code = 200 if result["status"] == "ok" else 503
     return Response(json.dumps(result, indent=2), mimetype="application/json"), status_code
+
+
+@app.route("/health/ready")
+def health_ready():
+    """Readiness probe — returns 200 only when fully operational.
+
+    Use as Railway health check for zero-downtime deploys.
+    Checks: DB pool initialized, all expected tables exist, latest migration applied.
+    """
+    from src.db import get_connection, BACKEND
+    checks = {"db_pool": False, "tables": False, "migrations": False}
+
+    try:
+        conn = get_connection()
+        try:
+            checks["db_pool"] = True
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute("SET statement_timeout = '5s'")
+                    cur.execute("""
+                        SELECT tablename FROM pg_tables
+                        WHERE schemaname = 'public' AND tablename = ANY(%s)
+                    """, (list(EXPECTED_TABLES),))
+                    found = {row[0] for row in cur.fetchall()}
+                    missing = set(EXPECTED_TABLES) - found
+                    checks["tables"] = len(missing) == 0
+                    if missing:
+                        checks["missing_tables"] = sorted(missing)
+                    # Check latest migration marker (prep_checklists = QS3-A deployed)
+                    cur.execute("SELECT 1 FROM pg_tables WHERE tablename = 'prep_checklists'")
+                    checks["migrations"] = cur.fetchone() is not None
+            else:
+                # DuckDB: check tables via information_schema
+                rows = conn.execute(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'main'"
+                ).fetchall()
+                found = {r[0] for r in rows}
+                missing = set(EXPECTED_TABLES) - found
+                checks["tables"] = len(missing) == 0
+                if missing:
+                    checks["missing_tables"] = sorted(missing)
+                # DuckDB: check if prep_checklists exists
+                checks["migrations"] = "prep_checklists" in found
+        finally:
+            conn.close()
+    except Exception as e:
+        checks["error"] = str(e)
+
+    all_ready = all(checks.get(k) for k in ["db_pool", "tables", "migrations"])
+    status_code = 200 if all_ready else 503
+    return jsonify({"ready": all_ready, "checks": checks}), status_code
