@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Request Performance — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        main { padding: var(--space-10) 0 var(--space-16); }
+
+        .page-header {
+            margin-bottom: var(--space-8);
+        }
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        .page-header .subtitle {
+            color: var(--text-secondary);
+            font-size: var(--text-sm);
+        }
+
+        /* Admin badge pill */
+        .admin-badge {
+            display: inline-block;
+            font-size: var(--text-xs);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            padding: 3px var(--space-2);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.06);
+            vertical-align: middle;
+            margin-right: var(--space-2);
+            font-family: var(--font-body);
+        }
+
+        /* Stat blocks row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+        @media (max-width: 768px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 375px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-block {
+            background: var(--bg-surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--card-radius);
+            padding: var(--space-6);
+            text-align: center;
+        }
+        .stat-block .stat-value {
+            font-family: var(--font-display);
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--signal-cyan);
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+        .stat-block .stat-label {
+            font-family: var(--font-body);
+            font-size: var(--text-sm);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .stat-block.warn .stat-value { color: var(--signal-amber); }
+        .stat-block.danger .stat-value { color: var(--signal-red); }
+
+        /* Section headers */
+        .section-title {
+            font-family: var(--font-display);
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+        }
+
+        /* Data tables */
+        .data-table-wrap {
+            overflow-x: auto;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-sm);
+        }
+        .data-table thead th {
+            font-family: var(--font-body);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            text-align: left;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .data-table thead th.right { text-align: right; }
+        .data-table tbody td {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+        .data-table tbody td.right { text-align: right; }
+        .data-table tbody td.mono {
+            font-family: var(--font-mono);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+        .data-table tbody tr:hover td {
+            background: var(--bg-elevated);
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Duration badges */
+        .dur-badge {
+            display: inline-block;
+            padding: 2px var(--space-2);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: var(--text-xs);
+            font-weight: 600;
+        }
+        .dur-fast { background: rgba(52,211,153,0.12); color: var(--signal-green); }
+        .dur-ok   { background: rgba(96,165,250,0.12); color: var(--signal-blue); }
+        .dur-slow { background: rgba(251,191,36,0.12); color: var(--signal-amber); }
+        .dur-very-slow { background: rgba(248,113,113,0.12); color: var(--signal-red); }
+
+        /* Method badge */
+        .method-badge {
+            display: inline-block;
+            padding: 2px var(--space-2);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+        }
+        .method-get { color: var(--signal-cyan); }
+        .method-post { color: var(--signal-amber); }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-12) var(--space-6);
+            color: var(--text-secondary);
+            font-size: var(--text-sm);
+        }
+
+        /* Section gap */
+        .section-gap { margin-bottom: var(--space-6); }
+    </style>
+</head>
+<body class="obsidian">
+    {% include 'fragments/nav.html' %}
+
+    <main>
+        <div class="obs-container">
+
+            <!-- Page header -->
+            <div class="page-header">
+                <h1>
+                    <span class="admin-badge">Admin</span>
+                    Request Performance
+                </h1>
+                <p class="subtitle">Endpoint latency and traffic volume — last 24 hours</p>
+            </div>
+
+            <!-- Overall percentile stat blocks -->
+            <div class="stats-row section-gap">
+                <div class="stat-block">
+                    <span class="stat-value">{{ overall_percentiles.total | int | format_number if overall_percentiles.total else '0' }}</span>
+                    <span class="stat-label">Requests Sampled</span>
+                </div>
+                <div class="stat-block {% if overall_percentiles.p50 > 500 %}warn{% elif overall_percentiles.p50 > 1500 %}danger{% endif %}">
+                    <span class="stat-value">{{ "%.0f" | format(overall_percentiles.p50) }}ms</span>
+                    <span class="stat-label">p50 Latency</span>
+                </div>
+                <div class="stat-block {% if overall_percentiles.p95 > 2000 %}warn{% elif overall_percentiles.p95 > 5000 %}danger{% endif %}">
+                    <span class="stat-value">{{ "%.0f" | format(overall_percentiles.p95) }}ms</span>
+                    <span class="stat-label">p95 Latency</span>
+                </div>
+                <div class="stat-block {% if overall_percentiles.p99 > 5000 %}danger{% elif overall_percentiles.p99 > 3000 %}warn{% endif %}">
+                    <span class="stat-value">{{ "%.0f" | format(overall_percentiles.p99) }}ms</span>
+                    <span class="stat-label">p99 Latency</span>
+                </div>
+            </div>
+
+            <!-- Top 10 slowest endpoints -->
+            <div class="glass-card section-gap">
+                <h2 class="section-title">Top 10 Slowest Endpoints (p95)</h2>
+                {% if top_slowest %}
+                <div class="data-table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Path</th>
+                                <th>Method</th>
+                                <th class="right">Requests</th>
+                                <th class="right">Avg</th>
+                                <th class="right">p95</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in top_slowest %}
+                            <tr>
+                                <td class="mono">{{ row.path }}</td>
+                                <td>
+                                    <span class="method-badge method-{{ row.method | lower }}">{{ row.method }}</span>
+                                </td>
+                                <td class="right">{{ row.count }}</td>
+                                <td class="right">
+                                    {% set avg = row.avg_ms %}
+                                    <span class="dur-badge {% if avg < 200 %}dur-fast{% elif avg < 1000 %}dur-ok{% elif avg < 3000 %}dur-slow{% else %}dur-very-slow{% endif %}">
+                                        {{ "%.0f" | format(avg) }}ms
+                                    </span>
+                                </td>
+                                <td class="right">
+                                    {% set p95 = row.p95_ms %}
+                                    <span class="dur-badge {% if p95 < 500 %}dur-fast{% elif p95 < 2000 %}dur-ok{% elif p95 < 5000 %}dur-slow{% else %}dur-very-slow{% endif %}">
+                                        {{ "%.0f" | format(p95) }}ms
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    No request data collected in the last 24 hours yet.<br>
+                    Metrics are sampled at 10% rate plus all requests over 200ms.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Volume by path (24h) -->
+            <div class="glass-card section-gap">
+                <h2 class="section-title">Volume by Endpoint (24h)</h2>
+                {% if volume_rows %}
+                <div class="data-table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Path</th>
+                                <th>Method</th>
+                                <th class="right">Requests</th>
+                                <th class="right">Avg Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in volume_rows %}
+                            <tr>
+                                <td class="mono">{{ row.path }}</td>
+                                <td>
+                                    <span class="method-badge method-{{ row.method | lower }}">{{ row.method }}</span>
+                                </td>
+                                <td class="right">{{ row.count }}</td>
+                                <td class="right">
+                                    {% set avg = row.avg_ms %}
+                                    <span class="dur-badge {% if avg < 200 %}dur-fast{% elif avg < 1000 %}dur-ok{% elif avg < 3000 %}dur-slow{% else %}dur-very-slow{% endif %}">
+                                        {{ "%.0f" | format(avg) }}ms
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    No request data yet. Volume data appears after traffic is sampled.
+                </div>
+                {% endif %}
+            </div>
+
+        </div><!-- /.obs-container -->
+    </main>
+</body>
+</html>
