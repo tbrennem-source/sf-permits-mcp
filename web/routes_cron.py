@@ -1869,3 +1869,35 @@ def cron_ingest_recent_permits():
         "days": days,
         "elapsed_s": round(elapsed, 1),
     })
+
+
+# ---------------------------------------------------------------------------
+# API usage aggregation (Sprint 76-2)
+# ---------------------------------------------------------------------------
+
+@bp.route("/cron/aggregate-api-usage", methods=["POST"])
+def cron_aggregate_api_usage():
+    """Aggregate api_usage rows into api_daily_summary for yesterday.
+
+    Protected by CRON_SECRET bearer token. Safe to run multiple times —
+    uses UPSERT semantics. Intended to run nightly after the main cron job.
+
+    Optional query param: ?date=YYYY-MM-DD  (default: yesterday)
+
+    Returns JSON: {ok, summary_date, total_calls, total_cost_usd, inserted}
+    """
+    _check_api_auth()
+    from web.cost_tracking import aggregate_daily_usage
+    from datetime import date, timedelta
+
+    date_param = request.args.get("date")
+    target_date = None
+    if date_param:
+        try:
+            target_date = date.fromisoformat(date_param)
+        except ValueError:
+            return jsonify({"ok": False, "error": f"Invalid date: {date_param}"}), 400
+
+    result = aggregate_daily_usage(target_date)
+    result["ok"] = result.get("inserted", False)
+    return jsonify(result), 200 if result["ok"] else 500
