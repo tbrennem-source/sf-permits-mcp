@@ -1,5 +1,35 @@
 # Changelog
 
+## Sprint 74 — Performance + Observability (2026-02-26)
+
+### Agent 74-1: Request Metrics + /admin/perf Dashboard
+- `request_metrics` table (Postgres + DuckDB DDL) for passive request latency collection
+- After-request hook: samples all requests > 200ms + 10% random sample
+- `GET /admin/perf` admin dashboard with p50/p95/p99 stat blocks, top-10 slowest endpoints, volume by path
+- Obsidian dark theme template (`admin_perf.html`)
+- 14 new tests
+
+### Agent 74-2: Load Test Script
+- `scripts/load_test.py` — concurrent HTTP load tester with ThreadPoolExecutor + httpx
+- 5 scenarios: health, search, demo, landing, sitemap
+- Per-scenario p50/p95/p99/RPS stats, JSON output, human-readable summary table
+- 29 new tests
+
+### Agent 74-3: Security Audit Tooling
+- `scripts/security_audit.py` — runs bandit + pip-audit, combined markdown report
+- `.bandit` config (excludes tests, skips B101)
+- `.github/workflows/security.yml` — weekly cron + push-to-main, artifact upload
+- Graceful degradation when tools not installed
+- 29 new tests
+
+### Agent 74-4: Connection Pool Tuning
+- `DB_POOL_MIN`, `DB_CONNECT_TIMEOUT`, `DB_STATEMENT_TIMEOUT` env vars in `src/db.py`
+- `get_pool_health()` function for operational visibility
+- Pool exhaustion WARNING logging with stats
+- 13 new tests
+
+**Total: 85 new tests across 4 agents**
+
 ## Sprint 75-3 — Template Migration Batch 1 (2026-02-26)
 
 ### Agent 3: Obsidian Design Migration — 5 User Templates
