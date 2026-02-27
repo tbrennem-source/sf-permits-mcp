@@ -1177,5 +1177,53 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Goal:** Understand whether they need a consultant and find one.
 **Expected outcome:** Callout box renders with appropriate color and urgency (warm = blue, recommended = amber, strongly_recommended = red, essential = red with thicker border). A "Find a consultant →" link passes block/lot and signal context. Contributing factors list renders below the callout.
 **Edge cases seen in code:** Section hidden entirely when signal is "cold". Neighborhood and complaint flags appended to consultant finder URL when available.
+
+## SUGGESTED SCENARIO: Auth login page shows magic link confirmation state
+**Source:** web/templates/auth_login.html — migrated auth page
+**User:** homeowner | expediter | architect
+**Starting state:** User is on the login page and has not yet requested a link
+**Goal:** Sign in using magic link
+**Expected outcome:** User enters email, submits form, and the form state hides — replaced by a confirmation state showing the submitted email address and "Check your email" message. "Use a different email" link restores the form without a page reload.
+**Edge cases seen in code:** If server returns a success message, the JS should auto-show the sent state. If required invite_code field is missing or invalid, server renders error message inline with red left-border style.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Beta request form uses obsidian design system
+**Source:** web/templates/beta_request.html — migrated template
+**User:** homeowner
+**Starting state:** User is not invited and visits /beta-request
+**Goal:** Request beta access
+**Expected outcome:** Page renders with obsidian dark background, centered glass-card, monospace wordmark above. Form fields (email, name, reason textarea) use dark glass-border inputs. Submit button is ghost/outline style — not filled blue. On success, green left-border inline message appears. On error, red left-border inline message appears.
+**Edge cases seen in code:** Honeypot field must remain hidden (aria-hidden, display:none) and not styled.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Feedback widget FAB opens modal with chip type selector
+**Source:** web/templates/fragments/feedback_widget.html — migrated fragment
+**User:** expediter | homeowner | admin
+**Starting state:** User is on any authenticated page with the feedback widget included
+**Goal:** Submit feedback via the FAB
+**Expected outcome:** FAB (bottom-right) shows SVG icon, dark glass background. Clicking opens a modal with three chip selectors (Bug, Suggestion, Question). Active chip has teal border. Textarea and action buttons use token components. On submit, "Feedback sent" toast appears top-center. Modal auto-closes after 3 seconds.
+**Edge cases seen in code:** Clicking the backdrop or pressing Escape closes modal. Screenshot capture hides modal, shows overlay, then restores modal.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Watch button shows undo toast on property add
+**Source:** web/templates/fragments/watch_button.html — migrated fragment
+**User:** expediter | homeowner
+**Starting state:** User is viewing a property page or search result with a watch button
+**Goal:** Add a property to watchlist
+**Expected outcome:** Watch button uses dark glass action-btn style. On success, a toast appears with property label and "Undo" link. Clicking Undo fires a best-effort remove request. Toast auto-dismisses after 5 seconds.
+**Edge cases seen in code:** toast.js must be loaded in the page for showToast() to be available. If not loaded, watch still succeeds via HTMX — just no toast.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: toast.js showToast stacks multiple notifications
+**Source:** web/static/toast.js — new standalone file
+**User:** expediter
+**Starting state:** User performs multiple rapid actions (e.g., adding multiple watches)
+**Goal:** See confirmation for each action
+**Expected outcome:** Each showToast() call appends a new toast to the DOM. Multiple toasts stack vertically at top-center. Each auto-dismisses independently. Pausing on any one does not affect the others' timers.
+**Edge cases seen in code:** If action callback is provided, clicking "Undo" fires callback then dismisses. Duration option allows callers to override the 5-second default.
 **CC confidence:** medium
 **Status:** PENDING REVIEW

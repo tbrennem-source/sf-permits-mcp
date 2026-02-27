@@ -4,155 +4,264 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Permit Prep — sfpermits.ai</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    {% include "fragments/head_obsidian.html" %}
     <style nonce="{{ csp_nonce }}">
+        /* Auth/interior page token overrides (DESIGN_TOKENS.md §1-5) */
         :root {
-            --bg-deep: #0B0F19;
-            --bg-surface: #131825;
-            --bg-elevated: #1A2035;
-            --text-primary: #E8ECF4;
-            --text-secondary: #8B95A8;
-            --text-tertiary: #5A6478;
-            --text-muted: #5A6478;
-            --signal-green: #34D399;
-            --signal-amber: #FBBF24;
-            --signal-red: #F87171;
-            --signal-cyan: #22D3EE;
-            --gradient-accent: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%);
-            --font-display: 'JetBrains Mono', 'Fira Code', monospace;
-            --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
-            --card-radius: 12px;
-            --card-border: 1px solid rgba(255,255,255, 0.06);
-            --card-shadow: 0 4px 24px rgba(0,0,0, 0.3);
-            --border: rgba(255,255,255, 0.06);
-            --surface: #131825;
-            --surface-2: #1A2035;
-            --accent: #4f8ff7;
-            --text: #E8ECF4;
-            --success: #34D399;
-            --error: #F87171;
+            --obsidian:       #0a0a0f;
+            --obsidian-mid:   #12121a;
+            --obsidian-light: #1a1a26;
+            --glass:          rgba(255, 255, 255, 0.04);
+            --glass-border:   rgba(255, 255, 255, 0.06);
+            --glass-hover:    rgba(255, 255, 255, 0.10);
+            --text-primary:   rgba(255, 255, 255, 0.92);
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --text-tertiary:  rgba(255, 255, 255, 0.30);
+            --accent:         #5eead4;
+            --accent-glow:    rgba(94, 234, 212, 0.08);
+            --accent-ring:    rgba(94, 234, 212, 0.30);
+            --signal-green:   #34d399;
+            --signal-amber:   #fbbf24;
+            --dot-green:      #22c55e;
+            --dot-amber:      #f59e0b;
+            --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+            --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --text-xs:   clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+            --text-sm:   clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+            --text-base: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);
+            --text-lg:   clamp(0.875rem, 0.8rem + 0.4vw, 1.125rem);
+            --text-xl:   clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
+            --radius-sm:   6px;
+            --radius-md:   12px;
+            --space-1:  4px;
+            --space-2:  8px;
+            --space-3:  12px;
+            --space-4:  16px;
+            --space-5:  20px;
+            --space-6:  24px;
+            --space-8:  32px;
+            --space-10: 40px;
+            --space-12: 48px;
+            --space-16: 64px;
         }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: var(--font-body);
-            background: var(--bg-deep);
+            font-family: var(--sans);
+            background: var(--obsidian);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
-        .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
 
+        /* Container */
+        .obs-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        /* Page header */
         .page-header {
-            padding: 32px 0 24px;
-            border-bottom: var(--card-border);
+            padding: var(--space-8) 0 var(--space-6);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: var(--space-8);
         }
         .page-header h1 {
-            font-family: var(--font-display);
-            font-size: 1.3rem;
-            font-weight: 600;
+            font-family: var(--sans);
+            font-size: var(--text-xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
         }
         .page-header p {
-            font-size: 0.9rem;
+            font-family: var(--sans);
+            font-size: var(--text-sm);
             color: var(--text-secondary);
-            margin-top: 4px;
         }
 
+        /* Checklist grid */
         .checklist-grid {
             display: grid;
-            gap: 12px;
-            padding: 24px 0;
+            gap: var(--space-3);
+            padding-bottom: var(--space-16);
         }
 
-        .checklist-card {
-            background: var(--bg-surface);
-            border: var(--card-border);
-            border-radius: var(--card-radius);
-            padding: 20px;
+        /* Checklist card — glass-card pattern */
+        .glass-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-5) var(--space-6);
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: var(--space-4);
             text-decoration: none;
             color: inherit;
-            transition: border-color 0.15s;
+            transition: border-color 0.3s;
         }
-        .checklist-card:hover { border-color: rgba(255,255,255, 0.12); }
+        .glass-card:hover { border-color: var(--glass-hover); }
 
-        .checklist-info { flex: 1; }
+        .checklist-info { flex: 1; min-width: 0; }
+
         .checklist-permit {
-            font-family: var(--font-display);
-            font-size: 0.9rem;
-            color: var(--signal-cyan);
-            margin-bottom: 4px;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--accent);
+            margin-bottom: var(--space-1);
         }
+
         .checklist-progress-text {
-            font-size: 0.8rem;
+            font-family: var(--sans);
+            font-size: var(--text-xs);
             color: var(--text-secondary);
         }
-        .checklist-bar {
-            height: 6px;
-            background: rgba(255,255,255, 0.06);
-            border-radius: 3px;
+
+        /* progress-track/progress-fill token components */
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: var(--space-2);
+        }
+        .progress-track {
+            height: 2px;
+            background: var(--glass);
+            border-radius: 1px;
             overflow: hidden;
-            margin-top: 8px;
+            margin-top: var(--space-2);
         }
-        .checklist-bar-fill {
+        .progress-fill {
             height: 100%;
-            border-radius: 3px;
-            background: var(--gradient-accent);
+            background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
+            border-radius: 1px;
+            transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        /* Percent readout */
         .checklist-percent {
-            font-family: var(--font-display);
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-family: var(--mono);
+            font-size: var(--text-lg);
+            font-weight: 300;
             min-width: 48px;
             text-align: right;
+            flex-shrink: 0;
         }
-        .checklist-percent.complete { color: var(--signal-green); }
-        .checklist-percent.partial { color: var(--signal-amber); }
+        .checklist-percent--complete { color: var(--signal-green); }
+        .checklist-percent--partial  { color: var(--signal-amber); }
 
+        /* Empty state */
         .empty-state {
             text-align: center;
-            padding: 48px 20px;
-            color: var(--text-secondary);
+            padding: var(--space-12) var(--space-5);
         }
         .empty-state h3 {
-            font-family: var(--font-display);
-            font-size: 1rem;
-            margin-bottom: 8px;
-            color: var(--text-primary);
+            font-family: var(--sans);
+            font-size: var(--text-lg);
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
         }
-        .empty-state a {
-            display: inline-block;
-            margin-top: 16px;
-            background: var(--gradient-accent);
-            color: #fff;
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
+        .empty-state p {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-6);
         }
 
+        /* ghost-cta token */
+        .ghost-cta {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding-bottom: 1px;
+            border-bottom: 1px solid transparent;
+            transition: color 0.3s, border-color 0.3s;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+        }
+        .ghost-cta:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Footer */
         footer {
-            border-top: var(--card-border);
-            padding: 24px 0;
+            border-top: 1px solid var(--glass-border);
+            padding: var(--space-6) 0;
             text-align: center;
         }
-        footer p { font-size: 0.78rem; color: var(--text-tertiary); }
-        footer a { color: var(--signal-cyan); text-decoration: none; }
+        footer p {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        footer a:hover { color: var(--text-secondary); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: var(--space-6);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: 10px var(--space-5);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(12px);
+            animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: min(420px, calc(100vw - 32px));
+        }
+        .toast--success { border-left: 2px solid var(--signal-green); }
+        .toast__icon { font-size: var(--text-sm); }
+        .toast--success .toast__icon { color: var(--signal-green); }
+        .toast__message { font-family: var(--sans); font-size: var(--text-sm); color: var(--text-primary); }
+        .toast__dismiss {
+            background: none; border: none; color: var(--text-secondary);
+            font-size: 16px; cursor: pointer; padding: 0 0 0 var(--space-2); transition: color 0.2s;
+        }
+        .toast__dismiss:hover { color: var(--text-primary); }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .toast.toast--exit { animation: toast-out 0.25s ease-in forwards; }
+        @keyframes toast-out {
+            to { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+        }
 
         @media (max-width: 768px) {
-            .container { padding: 0 16px; }
-            .checklist-card { padding: 16px; }
+            .obs-container { padding: 0 var(--space-4); }
+            .glass-card { padding: var(--space-4); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
-    <link rel="stylesheet" href="/static/mobile.css">
 </head>
 <body>
     {% include "fragments/nav.html" %}
 
-    <div class="container">
+    <div class="obs-container">
         <div class="page-header">
             <h1>My Permit Prep</h1>
             <p>Track document checklists for your permit submissions</p>
@@ -161,7 +270,7 @@
         <div class="checklist-grid">
             {% if checklists %}
             {% for cl in checklists %}
-            <a href="/prep/{{ cl.permit_number }}" class="checklist-card">
+            <a href="/prep/{{ cl.permit_number }}" class="glass-card">
                 <div class="checklist-info">
                     <div class="checklist-permit">#{{ cl.permit_number }}</div>
                     <div class="checklist-progress-text">
@@ -170,27 +279,29 @@
                         &mdash; {{ cl.missing_required }} still needed
                         {% endif %}
                     </div>
-                    <div class="checklist-bar">
-                        <div class="checklist-bar-fill" style="width: {{ cl.percent }}%"></div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ cl.percent }}%"></div>
                     </div>
                 </div>
-                <div class="checklist-percent {% if cl.percent == 100 %}complete{% else %}partial{% endif %}">{{ cl.percent }}%</div>
+                <div class="checklist-percent {% if cl.percent == 100 %}checklist-percent--complete{% else %}checklist-percent--partial{% endif %}">{{ cl.percent }}%</div>
             </a>
             {% endfor %}
             {% else %}
             <div class="empty-state">
                 <h3>No checklists yet</h3>
                 <p>Search for a permit to start your first Prep Checklist.</p>
-                <a href="/">Search permits</a>
+                <a href="/" class="ghost-cta">Search permits &rarr;</a>
             </div>
             {% endif %}
         </div>
     </div>
 
     <footer>
-        <div class="container">
+        <div class="obs-container">
             <p>Built on San Francisco open data &mdash; <a href="/health">System status</a></p>
         </div>
     </footer>
+
+    <script src="{{ url_for('static', filename='toast.js') }}"></script>
 </body>
 </html>

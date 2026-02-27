@@ -3,29 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Request Beta Access — sfpermits.ai</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style nonce="{{ csp_nonce }}">
+        /* Design token root — Auth Pages archetype (DESIGN_TOKENS.md §9) */
+        :root {
+            --obsidian:       #0a0a0f;
+            --obsidian-mid:   #12121a;
+            --obsidian-light: #1a1a26;
+            --glass:          rgba(255, 255, 255, 0.04);
+            --glass-border:   rgba(255, 255, 255, 0.06);
+            --glass-hover:    rgba(255, 255, 255, 0.10);
+            --text-primary:   rgba(255, 255, 255, 0.92);
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --text-tertiary:  rgba(255, 255, 255, 0.30);
+            --text-ghost:     rgba(255, 255, 255, 0.15);
+            --accent:         #5eead4;
+            --accent-glow:    rgba(94, 234, 212, 0.08);
+            --accent-ring:    rgba(94, 234, 212, 0.30);
+            --signal-green:   #34d399;
+            --signal-red:     #f87171;
+            --signal-amber:   #fbbf24;
+            --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+            --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --text-xs:  clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+            --text-sm:  clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+            --text-xl:  clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
+            --radius-sm:   6px;
+            --radius-md:   12px;
+            --space-2:  8px;
+            --space-3:  12px;
+            --space-4:  16px;
+            --space-5:  20px;
+            --space-6:  24px;
+            --space-8:  32px;
+            --space-10: 40px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--obsidian);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-6);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+            opacity: 0;
+            animation: fadeUp 1.2s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Wordmark */
+        .auth-wordmark {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 300;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            margin-bottom: var(--space-10);
+            transition: color 0.3s;
+        }
+        .auth-wordmark:hover { color: var(--accent); }
+
+        /* glass-card */
+        .glass-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+        }
+
+        .auth-title {
+            font-family: var(--sans);
+            font-size: var(--text-xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+        .auth-subtitle {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-8);
+            line-height: 1.5;
+        }
+
+        /* form-label */
+        .form-label {
+            display: block;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-2);
+        }
+
+        /* form-input */
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-primary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-input::placeholder { color: var(--text-tertiary); font-weight: 300; }
+        .form-input:focus {
+            border-color: var(--accent-ring);
+            box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.1);
+        }
+
+        /* textarea variant */
+        textarea.form-input {
+            resize: vertical;
+            font-family: var(--mono);
+        }
+
+        .auth-field { margin-bottom: var(--space-5); }
+
+        /* Honeypot hidden */
+        .auth-honeypot { display: none; }
+
+        /* action-btn for submit */
+        .action-btn {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-secondary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: border-color 0.3s, color 0.3s, background 0.3s;
+            width: 100%;
+        }
+        .action-btn:hover {
+            border-color: var(--glass-hover);
+            color: var(--text-primary);
+            background: var(--obsidian-light);
+        }
+
+        /* Inline message */
+        .auth-message {
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-5);
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            line-height: 1.4;
+        }
+        .auth-message--success {
+            background: rgba(52, 211, 153, 0.06);
+            border-left: 2px solid var(--signal-green);
+            color: var(--signal-green);
+        }
+        .auth-message--error {
+            background: rgba(248, 113, 113, 0.06);
+            border-left: 2px solid var(--signal-red);
+            color: var(--signal-red);
+        }
+
+        .auth-note {
+            margin-top: var(--space-5);
+            font-family: var(--sans);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* ghost-cta for secondary links */
+        .ghost-cta {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding-bottom: 1px;
+            border-bottom: 1px solid transparent;
+            transition: color 0.3s, border-color 0.3s;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+        }
+        .ghost-cta:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Footer */
+        .auth-footer {
+            margin-top: var(--space-10);
+            text-align: center;
+        }
+        .auth-footer a {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 300;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .auth-footer a:hover { color: var(--accent); }
+        .auth-footer .sep { margin: 0 var(--space-3); color: var(--glass-border); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+            .auth-container { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-<div class="container" style="max-width: 480px; margin: 60px auto; padding: 0 20px;">
-    <div style="text-align:center; margin-bottom:32px;">
-        <a href="/" style="text-decoration:none;">
-            <span style="font-size:1.6rem; font-weight:800; color:#2563eb; letter-spacing:-0.5px;">sfpermits.ai</span>
-        </a>
-    </div>
 
-    <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:32px;">
-        <h1 style="font-size:1.4rem; margin:0 0 8px 0; color:#111827;">Request Beta Access</h1>
-        <p style="color:#6b7280; font-size:0.9rem; margin:0 0 24px 0; line-height:1.5;">
+<div class="auth-container">
+    <a href="/" class="auth-wordmark">sfpermits.ai</a>
+
+    <div class="glass-card">
+        <h1 class="auth-title">Request Beta Access</h1>
+        <p class="auth-subtitle">
             sfpermits.ai is currently invite-only. Tell us a bit about yourself
-            and we'll review your request within 1–2 business days.
+            and we'll review your request within 1&ndash;2 business days.
         </p>
 
         {% if message %}
-        <div style="padding:12px 16px; border-radius:8px; margin-bottom:20px;
-                    background:{% if message_type == 'error' %}#fef2f2; border:1px solid #fecaca; color:#991b1b;
-                                {% else %}#f0fdf4; border:1px solid #bbf7d0; color:#166534;{% endif %}
-                    font-size:0.9rem;">
+        <div class="auth-message auth-message--{{ message_type or 'success' }}">
             {{ message }}
         </div>
         {% endif %}
@@ -33,55 +270,54 @@
         {% if not submitted %}
         <form method="POST" action="/beta-request">
             <!-- Honeypot — hidden from real users, bots fill it -->
-            <div style="display:none;" aria-hidden="true">
+            <div class="auth-honeypot" aria-hidden="true">
                 <label for="website">Website (leave blank)</label>
                 <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
             </div>
 
-            <div style="margin-bottom:16px;">
-                <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:6px;">
-                    Email address <span style="color:#ef4444;">*</span>
+            <div class="auth-field">
+                <label class="form-label" for="req-email">
+                    Email address <span style="color: var(--signal-red);">*</span>
                 </label>
-                <input type="email" name="email" required
+                <input class="form-input" type="email" id="req-email" name="email"
+                       required placeholder="you@example.com"
                        value="{{ prefill_email or '' }}"
-                       placeholder="you@example.com"
-                       style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:6px;
-                              font-size:0.95rem; box-sizing:border-box; outline:none;">
+                       autocomplete="email">
             </div>
 
-            <div style="margin-bottom:16px;">
-                <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:6px;">
-                    Your name
+            <div class="auth-field">
+                <label class="form-label" for="req-name">Your name</label>
+                <input class="form-input" type="text" id="req-name" name="name"
+                       placeholder="Jane Smith">
+            </div>
+
+            <div class="auth-field">
+                <label class="form-label" for="req-reason">
+                    What brings you to sfpermits.ai? <span style="color: var(--signal-red);">*</span>
                 </label>
-                <input type="text" name="name"
-                       placeholder="Jane Smith"
-                       style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:6px;
-                              font-size:0.95rem; box-sizing:border-box; outline:none;">
+                <textarea class="form-input" id="req-reason" name="reason"
+                          required rows="4"
+                          placeholder="I'm a homeowner planning a kitchen remodel at 123 Main St and want to understand the permit process..."></textarea>
             </div>
 
-            <div style="margin-bottom:24px;">
-                <label style="display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:6px;">
-                    What brings you to sfpermits.ai? <span style="color:#ef4444;">*</span>
-                </label>
-                <textarea name="reason" required rows="4"
-                          placeholder="I'm a homeowner planning a kitchen remodel at 123 Main St and want to understand the permit process..."
-                          style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:6px;
-                                 font-size:0.95rem; resize:vertical; box-sizing:border-box; outline:none;
-                                 font-family:inherit;"></textarea>
-            </div>
-
-            <button type="submit"
-                    style="width:100%; padding:12px; background:#2563eb; color:white; border:none;
-                           border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer;">
-                Request Access
-            </button>
+            <button type="submit" class="action-btn">Request Access &rarr;</button>
         </form>
 
-        <p style="text-align:center; margin-top:16px; font-size:0.85rem; color:#6b7280;">
-            Already have an invite code? <a href="/auth/login" style="color:#2563eb;">Sign in here</a>
+        <p class="auth-note">
+            Already have an invite code?
+            <a href="/auth/login" class="ghost-cta">Sign in here &rarr;</a>
         </p>
         {% endif %}
     </div>
+
+    <div class="auth-footer">
+        <a href="/about-data">About</a>
+        <span class="sep">&middot;</span>
+        <a href="/methodology">Methodology</a>
+        <span class="sep">&middot;</span>
+        <a href="/">Back to search</a>
+    </div>
 </div>
+
 </body>
 </html>
