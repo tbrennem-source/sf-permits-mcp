@@ -4,9 +4,11 @@ Extracted from web/app.py during Phase 0 Blueprint refactor (Sprint 64).
 """
 
 import asyncio
+import json
 import os
 import time
 from collections import defaultdict
+from datetime import datetime, timezone
 from functools import wraps
 
 import markdown
@@ -241,3 +243,129 @@ def _is_no_results(result_md: str) -> bool:
         "no results",
         "0 permits found",
     ])
+
+
+# ---------------------------------------------------------------------------
+# Page cache (sub-second cached page payloads)
+# ---------------------------------------------------------------------------
+
+def get_cached_or_compute(cache_key: str, compute_fn, ttl_minutes: int = 30) -> dict:
+    """Read from page_cache or compute and store. Returns dict.
+
+    On a cache hit that is still within ttl_minutes, returns the stored payload
+    with ``_cached=True`` and ``_cached_at`` fields injected.  On a miss (or
+    stale/invalidated entry), calls ``compute_fn()``, stores the result, and
+    returns it directly.
+
+    All exceptions from cache reads/writes are swallowed — the function always
+    returns a result even when the database is unavailable.
+    """
+    from src.db import get_connection, BACKEND
+    conn = None
+    try:
+        conn = get_connection()
+        sql = (
+            "SELECT payload, computed_at, invalidated_at "
+            "FROM page_cache WHERE cache_key = %s"
+        )
+        if BACKEND == "duckdb":
+            sql = sql.replace("%s", "?")
+            row = conn.execute(sql, (cache_key,)).fetchone()
+        else:
+            with conn.cursor() as cur:
+                cur.execute(sql, (cache_key,))
+                row = cur.fetchone()
+
+        if row:
+            payload_str, computed_at, invalidated_at = row
+            if invalidated_at is None:
+                # Normalise computed_at for age calculation.
+                # Postgres returns TIMESTAMPTZ (UTC-aware); DuckDB returns a
+                # naive local-time datetime.  We normalise: if tz-aware, compare
+                # against UTC now; if naive, compare against naive local now.
+                if isinstance(computed_at, str):
+                    computed_at = datetime.fromisoformat(computed_at)
+                if computed_at.tzinfo is not None:
+                    now = datetime.now(timezone.utc)
+                else:
+                    now = datetime.now()
+                age_minutes = (now - computed_at).total_seconds() / 60
+                if age_minutes < ttl_minutes:
+                    result = json.loads(payload_str)
+                    result["_cached"] = True
+                    result["_cached_at"] = computed_at.isoformat()
+                    return result
+    except Exception:
+        pass  # Cache read failed — fall through to compute
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    # Cache miss or stale — compute fresh result
+    result = compute_fn()
+
+    # Persist to cache (non-fatal if write fails)
+    try:
+        from src.db import get_connection, BACKEND
+        conn = get_connection()
+        upsert_sql = (
+            "INSERT INTO page_cache (cache_key, payload, computed_at, invalidated_at) "
+            "VALUES (%s, %s, NOW(), NULL) "
+            "ON CONFLICT (cache_key) DO UPDATE "
+            "SET payload = EXCLUDED.payload, computed_at = NOW(), invalidated_at = NULL"
+        )
+        payload_json = json.dumps(result, default=str)
+        if BACKEND == "duckdb":
+            # DuckDB supports NOW() but uses ? placeholders
+            upsert_sql = upsert_sql.replace("%s", "?")
+            conn.execute(upsert_sql, (cache_key, payload_json))
+        else:
+            with conn.cursor() as cur:
+                cur.execute(upsert_sql, (cache_key, payload_json))
+            conn.commit()
+    except Exception:
+        pass  # Cache write failed — non-fatal, result still returned
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    return result
+
+
+def invalidate_cache(pattern: str) -> None:
+    """Invalidate cache entries whose cache_key matches a SQL LIKE pattern.
+
+    Example: ``invalidate_cache("brief:%")`` invalidates all morning brief
+    entries.  Uses ``NOW()`` / ``CURRENT_TIMESTAMP`` depending on backend.
+    Exceptions are swallowed — cache invalidation is always best-effort.
+    """
+    from src.db import get_connection, BACKEND
+    conn = None
+    try:
+        conn = get_connection()
+        sql = (
+            "UPDATE page_cache SET invalidated_at = NOW() "
+            "WHERE cache_key LIKE %s"
+        )
+        if BACKEND == "duckdb":
+            # DuckDB supports NOW() but uses ? placeholders
+            sql = sql.replace("%s", "?")
+            conn.execute(sql, (pattern,))
+        else:
+            with conn.cursor() as cur:
+                cur.execute(sql, (pattern,))
+            conn.commit()
+    except Exception:
+        pass
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass

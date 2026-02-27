@@ -916,6 +916,26 @@ def init_user_schema(conn=None) -> None:
         except Exception:
             pass
 
+        # Page cache (sub-second cached page payloads — DuckDB version)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS page_cache (
+                cache_key TEXT PRIMARY KEY,
+                payload TEXT NOT NULL,
+                computed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                invalidated_at TIMESTAMP,
+                ttl_minutes INTEGER DEFAULT 30
+            )
+        """)
+        # Note: DuckDB does not support partial indexes (WHERE clause), so we
+        # create a plain index instead of the Postgres partial index.
+        try:
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_page_cache_invalidated "
+                "ON page_cache (cache_key)"
+            )
+        except Exception:
+            pass
+
     finally:
         if close:
             conn.close()
