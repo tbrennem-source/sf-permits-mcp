@@ -340,12 +340,47 @@ Before modifying any file in `web/templates/` or `web/static/`:
 
 When an agent touches an existing template for feature work, it should reconcile that template with the design system as part of the task. This means: replace ad-hoc inline colors with token variables, swap non-standard components for token components, ensure font role split is correct. Do not do a separate migration pass — migrate on touch.
 
+### Token Lint (`scripts/design_lint.py`)
+
+Automated token compliance check. Runs in <5 seconds, no browser needed.
+
+```bash
+python scripts/design_lint.py --changed --quiet   # only git-changed templates
+python scripts/design_lint.py --files web/templates/brief.html  # specific file
+python scripts/design_lint.py                      # all templates (baseline)
+```
+
+**Agents run `--changed` mode during the BUILD step.** Results logged to `qa-results/design-lint-{agent}.md`. Non-blocking — agents keep building regardless of score.
+
+### Prod Promotion Gate
+
+Lint scores determine prod promotion. **Nothing blocks staging — only prod has a gate.**
+
+| Score | Staging | Prod | Post-Prod |
+|---|---|---|---|
+| **5/5 — clean** | Auto | Auto-promote | Nothing |
+| **4/5 — minor** | Auto | Auto-promote | Hotfix after prod push |
+| **3/5 — notable** | Auto | Auto-promote | Mandatory hotfix after prod push |
+| **2/5 — significant** | Auto | **HOLD** | Tim reviews, hotfix before promote |
+| **1/5 — broken** | Auto | **HOLD** | Tim reviews, hotfix before promote |
+
+**The threshold:** can a user see this and lose trust? Wrong font weight (4/5) — no. Completely off-brand page with random colors (2/5) — yes.
+
+**Hotfix session flow (after quad sprint completes):**
+1. Orchestrator consolidates lint results from all agents
+2. If score ≤ 3: open a design review session
+3. CC presents violations + screenshots of affected pages
+4. Tim: fix / accept / defer per violation
+5. Fixes committed as hotfix, promoted to prod
+
 ### QA Script — Token Compliance Checks
 
 Every QA script that covers UI changes must include this section:
 
 ```
 ## DESIGN TOKEN COMPLIANCE
+- [ ] Run: python scripts/design_lint.py --changed --quiet
+- [ ] Score: [N]/5
 - [ ] No inline colors outside DESIGN_TOKENS.md palette
 - [ ] Font families: --mono for data, --sans for prose (spot check 3 elements)
 - [ ] Components use token classes (glass-card, obs-table, ghost-cta, etc.)

@@ -291,11 +291,11 @@ def format_report(violations, files_checked, lint_score):
     lines.append("")
 
     severity_desc = {
-        5: "Clean — no violations",
-        4: "Minor — 1-2 small issues, review in hotfix session",
-        3: "Notable — ad-hoc patterns detected, hotfix session mandatory",
-        2: "Significant — multiple off-system elements, hotfix before next sprint",
-        1: "Broken — extensive design system violations",
+        5: "Clean — no violations. Auto-promote to prod.",
+        4: "Minor — 1-2 small issues. Auto-promote, hotfix after prod push.",
+        3: "Notable — ad-hoc patterns detected. Auto-promote, mandatory hotfix after prod push.",
+        2: "Significant — user-visible off-system elements. HOLD prod — Tim reviews, hotfix before promote.",
+        1: "Broken — extensive design system violations. HOLD prod — Tim reviews, hotfix before promote.",
     }
     lines.append(f"**Assessment:** {severity_desc.get(lint_score, 'Unknown')}")
     lines.append("")
