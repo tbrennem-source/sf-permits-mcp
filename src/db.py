@@ -39,15 +39,47 @@ def _get_pool():
     global _pool
     if _pool is None:
         import psycopg2.pool
+        _minconn = int(os.environ.get("DB_POOL_MIN", "2"))
         _maxconn = int(os.environ.get("DB_POOL_MAX", "20"))
+        _connect_timeout = int(os.environ.get("DB_CONNECT_TIMEOUT", "10"))
         _pool = psycopg2.pool.ThreadedConnectionPool(
-            minconn=2,
+            minconn=_minconn,
             maxconn=_maxconn,
             dsn=DATABASE_URL,
-            connect_timeout=10,
+            connect_timeout=_connect_timeout,
         )
-        logger.info("PostgreSQL connection pool created (minconn=2, maxconn=%d)", _maxconn)
+        logger.info(
+            "PostgreSQL connection pool created (minconn=%d, maxconn=%d, connect_timeout=%ds)",
+            _minconn, _maxconn, _connect_timeout,
+        )
     return _pool
+
+
+def get_pool_health() -> dict:
+    """Return a structured health dict for the connection pool.
+
+    Returns:
+        {
+            "healthy": bool,
+            "min": int,
+            "max": int,
+            "in_use": int,
+            "available": int,
+        }
+    """
+    if _pool is None or _pool.closed:
+        return {"healthy": False, "min": 0, "max": 0, "in_use": 0, "available": 0}
+
+    pool_size = len(_pool._pool) if hasattr(_pool, '_pool') else 0
+    used_count = len(_pool._used) if hasattr(_pool, '_used') else 0
+    available = pool_size - used_count
+    return {
+        "healthy": not _pool.closed,
+        "min": _pool.minconn,
+        "max": _pool.maxconn,
+        "in_use": used_count,
+        "available": max(available, 0),
+    }
 
 
 def get_pool_stats() -> dict:
@@ -61,6 +93,7 @@ def get_pool_stats() -> dict:
         "closed": _pool.closed,
         "pool_size": len(_pool._pool) if hasattr(_pool, '_pool') else -1,
         "used_count": len(_pool._used) if hasattr(_pool, '_used') else -1,
+        "health": get_pool_health(),
     }
 
 
@@ -133,18 +166,29 @@ def get_connection(db_path: str | None = None):
     Both backends support: conn.execute(), conn.close(), cursor context.
 
     For Postgres (no db_path override): returns a _PooledConnection from the
-    connection pool. Sets statement_timeout=30s unless CRON_WORKER=true.
+    connection pool. Sets statement_timeout (DB_STATEMENT_TIMEOUT, default 30s)
+    unless CRON_WORKER=true. Logs a WARNING with pool stats on PoolError.
     """
     if BACKEND == "postgres" and not db_path:
+        import psycopg2.pool
         try:
             pool = _get_pool()
             raw_conn = pool.getconn()
             # Set statement_timeout for web requests; skip for cron workers
             if not os.environ.get("CRON_WORKER", "").lower() == "true":
+                _stmt_timeout = os.environ.get("DB_STATEMENT_TIMEOUT", "30s")
                 with raw_conn.cursor() as cur:
-                    cur.execute("SET statement_timeout = '30s'")
+                    cur.execute("SET statement_timeout = %s", (_stmt_timeout,))
                 raw_conn.commit()
             return _PooledConnection(raw_conn, pool)
+        except psycopg2.pool.PoolError as e:
+            stats = get_pool_stats()
+            logger.warning(
+                "Pool exhausted — could not acquire connection: %s | pool_stats=%s",
+                e,
+                stats,
+            )
+            raise
         except Exception as e:
             logger.error("Postgres pool connection failed: %s", e)
             raise
