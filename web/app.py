@@ -617,6 +617,22 @@ def _run_startup_migrations():
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_parcel_summary_neighborhood ON parcel_summary (neighborhood)")
 
+        # ── Sprint 74-1: Request metrics ─────────────────────────
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS request_metrics (
+                id SERIAL PRIMARY KEY,
+                path TEXT NOT NULL,
+                method TEXT NOT NULL DEFAULT 'GET',
+                status_code INTEGER,
+                duration_ms FLOAT NOT NULL,
+                recorded_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reqmetrics_path_ts
+            ON request_metrics (path, recorded_at)
+        """)
+
         # ── Bulk table indexes ──────────────────────────────────
         _bulk_indexes = [
             ("idx_contacts_permit", "contacts", "permit_number"),
