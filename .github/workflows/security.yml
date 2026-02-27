@@ -1,0 +1,49 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly — Sunday at 06:00 UTC
+    - cron: '0 6 * * 0'
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install project dependencies
+        run: pip install -e ".[dev,web]"
+
+      - name: Install security tools
+        run: pip install bandit pip-audit
+
+      - name: Run security audit
+        # continue-on-error so the report artifact is always uploaded,
+        # even when HIGH issues are found (exit code 1)
+        continue-on-error: true
+        id: audit
+        run: python scripts/security_audit.py
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-audit-report-${{ github.run_id }}
+          path: qa-results/security-audit-latest.md
+          retention-days: 90
+
+      - name: Fail job if HIGH issues found
+        if: steps.audit.outcome == 'failure'
+        run: |
+          echo "::error::Security audit found HIGH severity issues. See the uploaded artifact for details."
+          exit 1
