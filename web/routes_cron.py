@@ -1528,3 +1528,72 @@ def cron_ingest_planning_review_metrics():
     return jsonify({"ok": True, "table": "planning_review_metrics", "rows": count, "elapsed_s": round(elapsed, 1)})
 
 # === END SESSION F: REVIEW METRICS INGEST ===
+
+
+# ---------------------------------------------------------------------------
+# QS5-B: Incremental permit ingest
+# ---------------------------------------------------------------------------
+
+@bp.route("/cron/ingest-recent-permits", methods=["POST"])
+def cron_ingest_recent_permits():
+    """Incremental ingest of recently-filed permits via SODA API.
+
+    Upserts permits filed in the last 30 days into the permits table to
+    reduce orphan rates in permit_changes.  Skips if a full_ingest job
+    completed in the last hour (sequencing guard).
+
+    CRON_SECRET auth required.
+    """
+    _check_api_auth()
+
+    from src.db import query
+
+    # Sequencing guard: skip if full_ingest ran recently (< 1 hour)
+    try:
+        recent_full = query(
+            "SELECT log_id FROM cron_log "
+            "WHERE job_type = 'full_ingest' "
+            "AND status = 'success' "
+            "AND completed_at > NOW() - INTERVAL '1 hour' "
+            "LIMIT 1"
+        )
+    except Exception:
+        recent_full = []
+
+    if recent_full:
+        return jsonify({
+            "ok": True,
+            "skipped": True,
+            "reason": "full ingest completed recently",
+        })
+
+    from src.ingest import ingest_recent_permits
+    from src.soda_client import SODAClient
+
+    days = request.args.get("days", "30")
+    try:
+        days = max(1, min(int(days), 90))
+    except ValueError:
+        days = 30
+
+    start = time.time()
+    conn = _get_ingest_conn()
+    client = SODAClient()
+    try:
+        count = run_async(ingest_recent_permits(conn, client, days=days))
+        conn.commit()
+    except Exception as e:
+        logging.exception("cron_ingest_recent_permits failed")
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        run_async(client.close())
+        conn.close()
+
+    elapsed = time.time() - start
+    return jsonify({
+        "ok": True,
+        "table": "permits",
+        "upserted": count,
+        "days": days,
+        "elapsed_s": round(elapsed, 1),
+    })
