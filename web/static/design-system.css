@@ -299,6 +299,14 @@ body.obsidian .obsidian-input:focus {
     }
 }
 
+/* ── Navigation (Sprint 75-1) ────────────────────────────────────────────── */
+
+/*
+ * Nav classes are defined inline in fragments/nav.html using scoped <style>.
+ * This section is a placeholder for any nav tokens that need to be accessible
+ * globally (e.g., from tests or other stylesheets).
+ */
+
 /* ── Print Styles ────────────────────────────────────────────────────────── */
 
 @media print {
