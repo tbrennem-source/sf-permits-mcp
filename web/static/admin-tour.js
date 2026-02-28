@@ -262,8 +262,12 @@
     currentStop = idx;
     var stop = stops[idx];
 
-    // Find element
+    // Find element — skip to next if not found
     var el = document.querySelector(stop.selector);
+    if (!el) {
+      if (idx < stops.length - 1) { showStop(idx + 1); } else { endTour(); }
+      return;
+    }
     if (el) {
       // Scroll into view if needed
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -318,6 +322,17 @@
     var stop = stops[currentStop];
     var commentEl = document.getElementById('tour-comment-' + currentStop);
     var comment = commentEl ? commentEl.value.trim() : '';
+
+    // Require a note on reject
+    if (verdict === 'reject' && !comment) {
+      if (commentEl) {
+        commentEl.placeholder = 'Please add a note — what needs fixing?';
+        commentEl.style.borderColor = '#f87171';
+        commentEl.focus();
+      }
+      return;
+    }
+
     stop.verdict = verdict;
     stop.comment = comment;
 
