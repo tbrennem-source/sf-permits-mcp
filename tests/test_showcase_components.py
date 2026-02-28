@@ -140,15 +140,15 @@ class TestShowcaseWhatif:
         html = render(env, self.TEMPLATE, context)
         assert html
 
-    def test_contains_scenario_labels(self, env, context):
+    def test_contains_simulation_intelligence_label(self, env, context):
         html = render(env, self.TEMPLATE, context)
-        assert 'KITCHEN ONLY' in html
-        assert 'KITCHEN + BATH + WALL' in html
+        assert 'Simulation Intelligence' in html
 
-    def test_contains_key_values(self, env, context):
+    def test_contains_visual_timeline_numbers(self, env, context):
+        # Visual-first design: big timeline numbers, not construction cost columns
         html = render(env, self.TEMPLATE, context)
-        assert '$45,000' in html
-        assert '$185,000' in html
+        assert '2 weeks' in html
+        assert '5 months' in html
         assert '$1,200' in html
         assert '$6,487' in html
 
@@ -161,9 +161,11 @@ class TestShowcaseWhatif:
         assert 'data-track="showcase-view"' in html
         assert 'data-showcase="whatif"' in html
 
-    def test_strategy_callout_present(self, env, context):
+    def test_has_visual_comparison_columns(self, env, context):
+        # Visual-first: two tinted columns, not a data table
         html = render(env, self.TEMPLATE, context)
-        assert 'splitting into two permits' in html.lower() or 'splitting' in html.lower()
+        assert 'whatif-col--a' in html
+        assert 'whatif-col--b' in html
 
 
 # ---------------------------------------------------------------------------
@@ -180,18 +182,19 @@ class TestShowcaseRisk:
         html = render(env, self.TEMPLATE, context)
         assert '24.6%' in html or '24.6' in html
 
-    def test_contains_severity_badge(self, env, context):
+    def test_has_predictive_intelligence_label(self, env, context):
         html = render(env, self.TEMPLATE, context)
-        assert 'HIGH' in html
+        assert 'Predictive Intelligence' in html
 
-    def test_contains_sample_size(self, env, context):
+    def test_has_svg_arc_gauge(self, env, context):
+        # Visual-first: circular SVG gauge replaces linear gauge bar
         html = render(env, self.TEMPLATE, context)
-        assert '21,596' in html
+        assert '<svg' in html
+        assert '<circle' in html
 
-    def test_contains_top_triggers(self, env, context):
+    def test_contains_risk_percentage_in_gauge(self, env, context):
         html = render(env, self.TEMPLATE, context)
-        assert 'grease interceptor' in html.lower()
-        assert 'ventilation' in html.lower()
+        assert '24.6%' in html
 
     def test_ghost_cta_link(self, env, context):
         html = render(env, self.TEMPLATE, context)
@@ -202,9 +205,10 @@ class TestShowcaseRisk:
         assert 'data-track="showcase-view"' in html
         assert 'data-showcase="risk"' in html
 
-    def test_budget_recommendation_present(self, env, context):
+    def test_has_context_description(self, env, context):
+        # Visual-first: simple context label, not a full data table
         html = render(env, self.TEMPLATE, context)
-        assert '$321,250' in html
+        assert 'Restaurant alterations in the Mission' in html
 
 
 # ---------------------------------------------------------------------------
@@ -255,32 +259,23 @@ class TestShowcaseDelay:
         html = render(env, self.TEMPLATE, context)
         assert html
 
-    def test_contains_monthly_cost(self, env, context):
+    def test_has_financial_intelligence_label(self, env, context):
         html = render(env, self.TEMPLATE, context)
-        assert '$15,000' in html
+        assert 'Financial Intelligence' in html
 
-    def test_contains_delay_scenarios(self, env, context):
+    def test_has_hero_daily_cost_number(self, env, context):
+        # Visual-first: $500/day hero number is the primary element
         html = render(env, self.TEMPLATE, context)
-        assert 'Best case' in html
-        assert 'Typical' in html
-        assert 'Conservative' in html
-        assert 'Worst case' in html
+        assert '$500' in html
+        assert '/day' in html
 
-    def test_contains_cost_values(self, env, context):
-        html = render(env, self.TEMPLATE, context)
-        assert '$17,500' in html
-        assert '$35,000' in html
-        assert '$56,500' in html
-        assert '$87,000' in html
-
-    def test_expected_cost_highlighted(self, env, context):
+    def test_has_expected_total(self, env, context):
         html = render(env, self.TEMPLATE, context)
         assert '$41,375' in html
 
-    def test_warning_badge_present(self, env, context):
+    def test_has_carrying_cost_basis(self, env, context):
         html = render(env, self.TEMPLATE, context)
-        assert 'SFFD-HQ' in html
-        assert '86%' in html
+        assert '$15K/mo' in html
 
     def test_ghost_cta_link(self, env, context):
         html = render(env, self.TEMPLATE, context)
@@ -291,6 +286,7 @@ class TestShowcaseDelay:
         assert 'data-track="showcase-view"' in html
         assert 'data-showcase="delay"' in html
 
-    def test_recommendation_present(self, env, context):
+    def test_hero_number_present_in_card(self, env, context):
+        # The big number IS the intelligence — must be immediately visible
         html = render(env, self.TEMPLATE, context)
-        assert 'p75' in html
+        assert 'delay-hero-number' in html

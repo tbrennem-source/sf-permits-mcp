@@ -1,6 +1,6 @@
 /**
  * showcase-entity.js — Entrance animation for the Entity Network Mini-Graph component.
- * Nodes fade in and connect sequentially on scroll using IntersectionObserver.
+ * Nodes fade in on scroll using IntersectionObserver. Float animations are CSS-driven.
  */
 (function () {
   'use strict';
@@ -29,6 +29,8 @@
 
       nodes.forEach(function (node) {
         node.style.opacity = '0';
+        // Pause float animations until entrance completes
+        node.style.animationPlayState = 'paused';
       });
 
       edges.forEach(function (edge) {
@@ -41,9 +43,7 @@
   }
 
   function animateEntityGraph(container) {
-    var nodes = container.querySelectorAll('.entity-node');
     var edges = container.querySelectorAll('line');
-    var edgeLabels = container.querySelectorAll('.entity-edge-label');
 
     // Fade in central node first
     var centralNode = container.querySelector('.entity-node-central');
@@ -57,26 +57,22 @@
     // Fade in edges slightly after central node
     edges.forEach(function (edge, index) {
       setTimeout(function () {
-        edge.style.opacity = '1';
+        edge.style.opacity = String(parseFloat(edge.getAttribute('opacity') || '1'));
       }, 400 + index * 80);
     });
 
-    // Fade in edge labels with edges
-    edgeLabels.forEach(function (label, index) {
-      label.style.opacity = '0';
-      label.style.transition = 'opacity 0.5s ease';
-      setTimeout(function () {
-        label.style.opacity = '1';
-      }, 500 + index * 80);
-    });
-
-    // Fade in secondary nodes in sequence
+    // Fade in secondary nodes in sequence, then start float animations
     var secondaryNodes = container.querySelectorAll('.entity-node-secondary');
     secondaryNodes.forEach(function (node, index) {
+      var delay = 600 + index * 120;
       setTimeout(function () {
-        node.style.transition = 'opacity 0.5s ease ' + (index * 0.12) + 's';
+        node.style.transition = 'opacity 0.5s ease';
         node.style.opacity = '1';
-      }, 600 + index * 120);
+      }, delay);
+      // Start float after node has fully appeared
+      setTimeout(function () {
+        node.style.animationPlayState = 'running';
+      }, delay + 600);
     });
   }
 

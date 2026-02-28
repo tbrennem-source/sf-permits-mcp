@@ -1,4 +1,4 @@
-{# showcase_risk.html — Revision Risk Meter #}
+{# showcase_risk.html — Revision Risk Meter (visual-first redesign) #}
 {# Receives: showcase.revision_risk #}
 {% set risk = showcase.revision_risk %}
 <div class="showcase-risk glass-card"
@@ -6,143 +6,44 @@
      data-showcase="risk"
      style="padding: var(--space-6);">
   <style>
-    .risk-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--space-4);
-      margin-bottom: var(--space-5);
-      flex-wrap: wrap;
-    }
-    .risk-title {
-      font-family: var(--sans);
-      font-size: var(--text-lg);
-      font-weight: 400;
-      color: var(--text-primary);
-      margin: 0;
-    }
-    .risk-severity-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-2);
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--signal-red);
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-      padding: 3px 10px;
-      border-radius: var(--radius-sm);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .risk-gauge-section {
-      margin-bottom: var(--space-5);
-    }
-    .risk-pct-display {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-2);
-      margin-bottom: var(--space-3);
-    }
-    .risk-pct-value {
-      font-family: var(--mono);
-      font-size: clamp(28px, 5vw, 44px);
-      font-weight: 300;
-      color: var(--signal-red);
-      line-height: 1;
-    }
-    .risk-pct-label {
-      font-family: var(--sans);
-      font-size: var(--text-sm);
-      color: var(--text-secondary);
-    }
-    .risk-gauge-track {
-      height: 8px;
-      background: var(--glass);
-      border-radius: var(--radius-full);
-      overflow: hidden;
-      margin-bottom: var(--space-2);
-    }
-    .risk-gauge-fill {
-      height: 100%;
-      border-radius: var(--radius-full);
-      background: linear-gradient(90deg, var(--dot-amber), var(--dot-red));
-      transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .risk-gauge-label {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--text-tertiary);
-    }
-    .risk-sample {
-      font-family: var(--sans);
-      font-size: var(--text-xs);
-      color: var(--text-secondary);
-      margin-bottom: var(--space-5);
-    }
-    .risk-triggers-label {
+    .risk-intel-label {
       font-family: var(--mono);
       font-size: 10px;
       font-weight: 400;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: var(--space-3);
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-4);
     }
-    .risk-triggers-list {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 var(--space-5) 0;
+    .risk-gauge-layout {
       display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
+      align-items: center;
+      gap: var(--space-5);
+      margin-bottom: var(--space-4);
     }
-    .risk-trigger-item {
-      display: flex;
-      gap: var(--space-3);
+    .risk-gauge-svg {
+      flex-shrink: 0;
+    }
+    .risk-gauge-meta {
+      flex: 1;
+    }
+    .risk-context-label {
       font-family: var(--sans);
       font-size: var(--text-sm);
       color: var(--text-secondary);
+      margin-bottom: var(--space-3);
       line-height: 1.5;
     }
-    .risk-trigger-num {
+    .risk-triggers-link {
       font-family: var(--mono);
       font-size: var(--text-xs);
-      color: var(--signal-amber);
-      flex-shrink: 0;
-      width: 16px;
-      margin-top: 2px;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(94, 234, 212, 0.3);
+      padding-bottom: 1px;
     }
-    .risk-impacts {
-      display: flex;
-      gap: var(--space-4);
-      margin-bottom: var(--space-5);
-      flex-wrap: wrap;
-    }
-    .risk-impact-item {
-      background: var(--glass);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-sm);
-      padding: var(--space-3) var(--space-4);
-      flex: 1;
-      min-width: 120px;
-    }
-    .risk-impact-value {
-      font-family: var(--mono);
-      font-size: var(--text-lg);
-      font-weight: 300;
-      color: var(--signal-amber);
-    }
-    .risk-impact-label {
-      font-family: var(--sans);
-      font-size: var(--text-xs);
-      color: var(--text-secondary);
-      margin-top: var(--space-1);
+    .risk-triggers-link:hover {
+      border-bottom-color: var(--accent);
     }
     .risk-cta-row {
       padding-top: var(--space-4);
@@ -152,58 +53,31 @@
     }
   </style>
 
-  <div class="risk-header">
-    <div>
-      <h3 class="risk-title">Revision Risk Meter</h3>
-    </div>
-    <span class="risk-severity-badge">
-      <span class="status-dot status-dot--red"></span>
-      {{ risk.severity }}
-    </span>
-  </div>
+  <div class="risk-intel-label">Predictive Intelligence</div>
 
-  <div class="risk-gauge-section">
-    <div class="risk-pct-display">
-      <span class="risk-pct-value">{{ risk.risk_pct }}%</span>
-      <span class="risk-pct-label">probability of plan corrections</span>
-    </div>
-    <div class="risk-gauge-track">
-      <div class="risk-gauge-fill" style="width: {{ risk.risk_pct }}%;"></div>
-    </div>
-    <div class="risk-gauge-label">
-      <span>0%</span>
-      <span>50%</span>
-      <span>100%</span>
-    </div>
-  </div>
+  <div class="risk-gauge-layout">
+    <svg class="risk-gauge-svg" viewBox="0 0 120 120" width="120" height="120" aria-label="Revision risk gauge: 24.6%">
+      <!-- Background track -->
+      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--glass-border)" stroke-width="8"/>
+      <!-- Filled arc — 24.6% of 314 ≈ 77, so dashoffset = 314 - 77 = 237 -->
+      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--dot-amber)" stroke-width="8"
+              stroke-dasharray="314" stroke-dashoffset="237" stroke-linecap="round"
+              transform="rotate(-90 60 60)"/>
+      <!-- Center percentage -->
+      <text x="60" y="65" text-anchor="middle" fill="var(--text-primary)"
+            font-family="var(--mono)" font-size="20" font-weight="300">24.6%</text>
+    </svg>
 
-  <p class="risk-sample">Based on {{ "{:,}".format(risk.sample_size) }} {{ risk.sample_description }}</p>
-
-  <div class="risk-triggers-label">Top correction triggers</div>
-  <ol class="risk-triggers-list">
-    {% for trigger in risk.top_triggers %}
-    <li class="risk-trigger-item">
-      <span class="risk-trigger-num">{{ loop.index }}.</span>
-      <span>{{ trigger }}</span>
-    </li>
-    {% endfor %}
-  </ol>
-
-  <div class="risk-impacts">
-    <div class="risk-impact-item">
-      <div class="risk-impact-value">+{{ risk.timeline_impact_days }} days</div>
-      <div class="risk-impact-label">Average timeline impact</div>
-    </div>
-    <div class="risk-impact-item">
-      <div class="risk-impact-value">{{ risk.budget_recommended }}</div>
-      <div class="risk-impact-label">Recommended budget</div>
+    <div class="risk-gauge-meta">
+      <div class="risk-context-label">Restaurant alterations in the Mission</div>
+      <a href="/tools/revision-risk?demo=restaurant-mission" class="risk-triggers-link">5 common triggers</a>
     </div>
   </div>
 
   <div class="risk-cta-row">
-    <a href="/tools/revision-risk?demo={{ risk.demo }}"
+    <a href="/tools/revision-risk?demo=restaurant-mission"
        class="ghost-cta"
        data-track="showcase-click"
-       data-showcase="risk">Try it yourself →</a>
+       data-showcase="risk">Check your risk &rarr;</a>
   </div>
 </div>
