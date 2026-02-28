@@ -1999,3 +1999,23 @@ _Consolidated: Sprint 85-B (2026-02-27) — 116 unique scenarios, 27 duplicates 
 **Edge cases seen in code:** A branch can be merged into main but still have an active worktree checked out (git will refuse deletion with `+` prefix marker in --merged output); prunable worktrees (nested inside other worktrees) are flagged but only cleared by prune, not by branch deletion
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: DB pool exhaustion visible in logs before outage
+**Source:** Sprint 84-A — src/db.py pool exhaustion warning
+**User:** admin
+**Starting state:** App is under heavy load; DB pool is 80%+ utilized
+**Goal:** Detect connection pressure before it becomes a user-facing error
+**Expected outcome:** Warning log appears citing current utilization percentage; no user request is dropped; admin can act (scale pool or traffic) before connections are exhausted
+**Edge cases seen in code:** Warning fires on every acquired connection above threshold — could be noisy at sustained high load
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Consistent rate limiting across dyno restarts
+**Source:** Sprint 84-C — web/helpers.py Redis rate limiter
+**User:** expediter
+**Starting state:** User has made 18 of 20 allowed requests; app dyno restarts mid-window
+**Goal:** Rate limit state is preserved so user cannot reset their count by triggering a restart
+**Expected outcome:** With Redis enabled, the counter survives the dyno restart; user's next 2 requests succeed and the 3rd is blocked until the window expires
+**Edge cases seen in code:** Without Redis, in-memory state is lost on restart — documented as known limitation in SCALING.md
+**CC confidence:** high
+**Status:** PENDING REVIEW
