@@ -361,12 +361,14 @@
 }
 
 .mcp-demo-dot {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   border-radius: var(--radius-full);
   background: var(--glass-hover);
   cursor: pointer;
   border: none;
+  padding: 10px; /* expands touch target to 32px total */
+  box-sizing: content-box;
   transition: background 0.3s;
 }
 
