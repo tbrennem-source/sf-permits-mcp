@@ -1413,3 +1413,119 @@ def admin_health():
         db_cb_status=db_cb_status,
         cache=cache,
     )
+
+
+# ---------------------------------------------------------------------------
+# Admin: Visual QA Accept/Reject/Note log (QS10 T2-B)
+# ---------------------------------------------------------------------------
+
+import tempfile as _tempfile
+
+
+def _atomic_write_json(path: str, data) -> None:
+    """Write JSON atomically using a temp file + rename."""
+    dir_ = os.path.dirname(path) or "."
+    with _tempfile.NamedTemporaryFile("w", dir=dir_, suffix=".tmp", delete=False) as f:
+        json.dump(data, f, indent=2)
+        tmp = f.name
+    os.replace(tmp, path)
+
+
+@bp.route("/admin/qa-decision", methods=["POST"])
+@login_required
+def admin_qa_decision():
+    """Record Tim's Accept/Reject/Note verdict for a visual QA pending review.
+
+    Appends to qa-results/review-decisions.json (append-only, git-tracked).
+    Also removes the matching entry from qa-results/pending-reviews.json.
+
+    Admin-only — 403 for non-admins.
+    """
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    _log = logging.getLogger(__name__)
+
+    # --- Validate verdict ---
+    tim_verdict = request.form.get("tim_verdict", "").strip()
+    if tim_verdict not in ("accept", "reject", "note"):
+        return (
+            '<span style="font-family:var(--mono);font-size:var(--text-xs);'
+            'color:var(--signal-red);">Invalid verdict</span>',
+            400,
+        )
+
+    # --- Collect fields ---
+    page = request.form.get("page", "").strip()[:200]
+    persona = request.form.get("persona", "unknown").strip()[:100]
+    viewport = request.form.get("viewport", "desktop").strip()[:20]
+    dimension = request.form.get("dimension", "").strip()[:100]
+    note = request.form.get("note", "").strip()[:500]
+    sprint = request.form.get("sprint", "qs10").strip()[:20]
+
+    try:
+        pipeline_score = float(request.form.get("pipeline_score", 0))
+    except (ValueError, TypeError):
+        pipeline_score = 0.0
+
+    decision = {
+        "page": page,
+        "persona": persona,
+        "viewport": viewport,
+        "dimension": dimension,
+        "pipeline_score": pipeline_score,
+        "tim_verdict": tim_verdict,
+        "sprint": sprint,
+        "note": note,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+    # --- Append to review-decisions.json ---
+    decisions_path = os.path.join(QA_STORAGE_DIR, "review-decisions.json")
+    try:
+        if os.path.isfile(decisions_path):
+            with open(decisions_path, "r") as f:
+                decisions = json.load(f)
+        else:
+            decisions = []
+        if not isinstance(decisions, list):
+            decisions = []
+        decisions.append(decision)
+        _atomic_write_json(decisions_path, decisions)
+    except Exception as e:
+        _log.warning("admin_qa_decision: failed to write decisions: %s", e)
+
+    # --- Remove matching entry from pending-reviews.json ---
+    pending_path = os.path.join(QA_STORAGE_DIR, "pending-reviews.json")
+    try:
+        if os.path.isfile(pending_path):
+            with open(pending_path, "r") as f:
+                pending = json.load(f)
+            if isinstance(pending, list):
+                pending = [
+                    p for p in pending
+                    if not (
+                        p.get("page") == page
+                        and p.get("dimension") == dimension
+                        and p.get("sprint") == sprint
+                    )
+                ]
+                _atomic_write_json(pending_path, pending)
+    except Exception as e:
+        _log.warning("admin_qa_decision: failed to update pending-reviews: %s", e)
+
+    # --- Return HTMX confirmation snippet ---
+    if tim_verdict == "accept":
+        color = "var(--signal-green)"
+        label = "Accepted"
+    elif tim_verdict == "reject":
+        color = "var(--signal-red)"
+        label = "Rejected \u2014 flagged for fix"
+    else:
+        color = "var(--accent)"
+        label = "Noted"
+
+    return (
+        f'<span style="font-family:var(--mono);font-size:var(--text-xs);'
+        f'color:{color};">{label}</span>'
+    )

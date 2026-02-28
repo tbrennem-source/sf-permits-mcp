@@ -32,6 +32,66 @@
         </div>
 
         <div class="modal__body">
+
+            {% if g.user and g.user.get('is_admin') %}
+            <div id="qa-review-panel" style="margin-bottom:var(--space-4);padding-bottom:var(--space-4);border-bottom:1px solid var(--glass-border);">
+
+                <!-- Header row -->
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">QA Reviews</span>
+                    <span id="qa-pending-badge" style="font-family:var(--mono);font-size:var(--text-xs);color:var(--accent);background:var(--accent-glow);border:1px solid var(--accent-ring);border-radius:3px;padding:1px 6px;">
+                        {{ qa_pending_count|default(0) }} pending
+                    </span>
+                </div>
+
+                <!-- Hidden fields for the HTMX form -->
+                <input type="hidden" id="qa-page" name="page" value="">
+                <input type="hidden" id="qa-persona" name="persona" value="">
+                <input type="hidden" id="qa-viewport" name="viewport" value="">
+                <input type="hidden" id="qa-dimension" name="dimension" value="">
+                <input type="hidden" id="qa-score" name="pipeline_score" value="">
+                <input type="hidden" id="qa-sprint" name="sprint" value="qs10">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <!-- Context display -->
+                <div id="qa-context" style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-2);">No item selected</div>
+
+                <!-- Note input -->
+                <textarea id="qa-note" name="note" rows="2" class="form-input"
+                    placeholder="Why? (optional — this is training data)"
+                    style="margin-top:var(--space-2);font-size:var(--text-xs);resize:vertical;"></textarea>
+
+                <!-- Verdict buttons -->
+                <div style="display:flex;gap:8px;margin-top:var(--space-2);">
+                    <button type="button" class="action-btn"
+                        style="flex:1;padding:6px;font-size:var(--text-xs);color:var(--signal-green);border-color:var(--signal-green);"
+                        hx-post="/admin/qa-decision"
+                        hx-target="#qa-result"
+                        hx-swap="innerHTML"
+                        hx-include="#qa-review-panel"
+                        hx-vals='{"tim_verdict":"accept"}'>Accept</button>
+                    <button type="button" class="action-btn"
+                        style="flex:1;padding:6px;font-size:var(--text-xs);color:var(--accent);border-color:var(--accent);"
+                        hx-post="/admin/qa-decision"
+                        hx-target="#qa-result"
+                        hx-swap="innerHTML"
+                        hx-include="#qa-review-panel"
+                        hx-vals='{"tim_verdict":"note"}'>Note</button>
+                    <button type="button" class="action-btn"
+                        style="flex:1;padding:6px;font-size:var(--text-xs);color:var(--signal-red);border-color:var(--signal-red);"
+                        hx-post="/admin/qa-decision"
+                        hx-target="#qa-result"
+                        hx-swap="innerHTML"
+                        hx-include="#qa-review-panel"
+                        hx-vals='{"tim_verdict":"reject"}'>Reject</button>
+                </div>
+
+                <!-- Result span -->
+                <span id="qa-result" style="font-family:var(--mono);font-size:var(--text-xs);display:block;margin-top:var(--space-2);"></span>
+
+            </div>
+            {% endif %}
+
             <form id="feedback-form" hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="page_url" class="feedback-page-url">
@@ -370,6 +430,21 @@ function fbSetScreenshot(dataUrl) {
     thumb.src = dataUrl;
     preview.style.display = 'block';
 }
+
+window.qaLoadItem = function(item) {
+    document.getElementById('qa-page').value = item.page || '';
+    document.getElementById('qa-persona').value = item.persona || '';
+    document.getElementById('qa-viewport').value = item.viewport || '';
+    document.getElementById('qa-dimension').value = item.dimension || '';
+    document.getElementById('qa-score').value = item.pipeline_score || '';
+    document.getElementById('qa-sprint').value = item.sprint || 'qs10';
+    var ctx = document.getElementById('qa-context');
+    if (ctx) {
+        ctx.textContent = (item.page || '?') + ' \u00b7 ' + (item.dimension || '?') + ' \u00b7 ' + (item.pipeline_score || '?') + '/5';
+    }
+    var result = document.getElementById('qa-result');
+    if (result) { result.textContent = ''; }
+};
 
 function fbClearScreenshot() {
     document.getElementById('feedback-screenshot-data').value = '';

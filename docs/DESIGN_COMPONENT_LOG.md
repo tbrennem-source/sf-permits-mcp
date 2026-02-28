@@ -345,3 +345,26 @@
 .recent-chip:hover { color: var(--accent); border-color: var(--accent); }
 ```
 **Notes:** Used for recent search items AND for primary-address quick-chip. Clickable chip that populates search input.
+
+---
+
+### qa-review-panel (Admin Visual QA Accept/Reject/Note Panel)
+**Sprint:** QS10 T2-B
+**File:** `web/templates/fragments/feedback_widget.html`
+**Usage:** Admin-only panel inside the feedback modal. Shown when `g.user.is_admin` is true. Allows Tim to Accept/Reject/Note pending visual QA items from `qa-results/pending-reviews.json`. Verdict buttons POST to `/admin/qa-decision` via HTMX.
+**Status:** NEW
+**HTML:**
+```html
+<div id="qa-review-panel" style="margin-bottom:var(--space-4);padding-bottom:var(--space-4);border-bottom:1px solid var(--glass-border);">
+  <!-- Header row: label + pending badge -->
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">QA Reviews</span>
+    <span id="qa-pending-badge" style="font-family:var(--mono);font-size:var(--text-xs);color:var(--accent);background:var(--accent-glow);border:1px solid var(--accent-ring);border-radius:3px;padding:1px 6px;">N pending</span>
+  </div>
+  <!-- Hidden fields + context display + note textarea -->
+  <!-- Three verdict buttons: Accept (signal-green), Note (accent), Reject (signal-red) -->
+  <!-- Result span #qa-result for HTMX swap -->
+</div>
+```
+**CSS:** No new CSS classes — uses only existing token classes (`action-btn`, `form-input`) and inline CSS custom properties.
+**Notes:** Pending badge count is passed via `qa_pending_count` template context variable (injected by the rendering route). `window.qaLoadItem(item)` global JS function populates hidden fields from a pending review item object. All three verdict buttons use `hx-include="#qa-review-panel"` to submit the full panel's hidden fields.
