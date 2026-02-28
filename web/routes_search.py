@@ -27,6 +27,8 @@ from web.helpers import (
     _resolve_block_lot,
     md_to_html,
     run_async,
+    parse_search_query,
+    build_empty_result_guidance,
 )
 
 bp = Blueprint("search", __name__)
@@ -336,6 +338,24 @@ def ask():
     result = classify_intent(query, [n for n in NEIGHBORHOODS if n])
     intent = result.intent
     entities = result.entities
+
+    # --- NLP enhancement: if intent router missed an address in a natural
+    # language query, use parse_search_query to extract street/neighborhood.
+    # Merge extracted fields into entities so the right handler is triggered.
+    if intent not in ("lookup_permit", "search_complaint", "search_parcel", "validate_plans"):
+        nlp = parse_search_query(query)
+        if nlp.get("street_number") and nlp.get("street_name"):
+            if intent not in ("search_address",):
+                # Upgrade intent to address search when NLP found an address
+                intent = "search_address"
+            if not entities.get("street_number"):
+                entities["street_number"] = nlp["street_number"]
+            if not entities.get("street_name"):
+                entities["street_name"] = nlp["street_name"]
+        # Merge neighborhood into analyze_project entities if not already present
+        if nlp.get("neighborhood") and intent == "analyze_project":
+            if not entities.get("neighborhood"):
+                entities["neighborhood"] = nlp["neighborhood"]
 
     # Allow explicit draft mode override via form field
     if request.form.get("draft") == "1" and intent not in (
