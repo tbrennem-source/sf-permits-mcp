@@ -1,4 +1,4 @@
-{# showcase_stuck.html — Stuck Permit Diagnosis #}
+{# showcase_stuck.html — Stuck Permit Diagnosis (visual pipeline redesign) #}
 {# Receives: showcase.stuck_permit #}
 {% set stuck = showcase.stuck_permit %}
 <div class="showcase-stuck glass-card"
@@ -6,210 +6,191 @@
      data-showcase="stuck"
      style="padding: var(--space-6);">
   <style>
-    .stuck-header {
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    .severity-pulse {
+      animation: pulse-red 2s ease-in-out infinite;
+    }
+
+    /* Intelligence label */
+    .stuck-intel-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-3);
+    }
+
+    /* Headline row */
+    .stuck-headline-row {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: var(--space-4);
-      margin-bottom: var(--space-4);
       flex-wrap: wrap;
+      margin-bottom: var(--space-5);
     }
-    .stuck-title {
-      font-family: var(--sans);
-      font-size: var(--text-lg);
+    .stuck-headline {
+      font-family: var(--mono);
+      font-size: var(--text-xl);
       font-weight: 400;
       color: var(--text-primary);
       margin: 0;
+      letter-spacing: -0.01em;
     }
-    .stuck-address {
-      font-family: var(--mono);
-      font-size: var(--text-xs);
-      color: var(--text-secondary);
-      margin-top: var(--space-1);
-    }
-    .stuck-severity-badge {
+    .stuck-critical-badge {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2);
       font-family: var(--mono);
       font-size: 10px;
       font-weight: 400;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--signal-red);
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(239, 68, 68, 0.08);
       border: 1px solid rgba(239, 68, 68, 0.25);
-      padding: 3px 10px;
+      padding: 4px 10px;
       border-radius: var(--radius-sm);
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .stuck-severity-dot {
+    .stuck-critical-dot {
       width: 6px;
       height: 6px;
       border-radius: var(--radius-full);
       background: var(--dot-red);
       flex-shrink: 0;
     }
-    .stuck-blocks-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-3);
+
+    /* Pipeline */
+    .stuck-pipeline {
+      display: flex;
+      gap: var(--space-2);
       margin-bottom: var(--space-5);
     }
-    .stuck-block-card {
+    .stuck-station-block {
+      flex: 1;
       background: var(--obsidian-light);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
-      padding: var(--space-3) var(--space-4);
-    }
-    .stuck-block-card--comments {
-      border-color: rgba(239, 68, 68, 0.2);
-    }
-    .stuck-block-card--waiting {
-      border-color: rgba(255, 255, 255, 0.06);
-    }
-    .stuck-block-header {
+      padding: var(--space-3) var(--space-2);
       display: flex;
+      flex-direction: column;
       align-items: center;
       gap: var(--space-2);
-      margin-bottom: var(--space-2);
+      position: relative;
+      text-align: center;
     }
-    .stuck-block-station {
+    .stuck-station-block--blocked {
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.04);
+    }
+    .stuck-station-abbr {
       font-family: var(--mono);
-      font-size: var(--text-sm);
+      font-size: var(--text-xs);
       font-weight: 400;
       color: var(--text-primary);
+      letter-spacing: 0.04em;
     }
-    .stuck-block-reviewer {
+    .stuck-station-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+    .stuck-station-icon--blocked {
+      color: var(--signal-red);
+    }
+    .stuck-station-icon--clear {
+      color: var(--signal-green);
+    }
+    .stuck-station-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      letter-spacing: 0.02em;
+    }
+
+    /* Intervention line */
+    .stuck-intervention {
       font-family: var(--sans);
       font-size: var(--text-sm);
       color: var(--text-secondary);
-      margin-bottom: var(--space-1);
-    }
-    .stuck-block-round {
-      font-family: var(--mono);
-      font-size: var(--text-xs);
-      color: var(--signal-amber);
-    }
-    .stuck-block-date {
-      font-family: var(--mono);
-      font-size: var(--text-xs);
-      color: var(--text-tertiary);
-      margin-top: var(--space-1);
-    }
-    .stuck-block-card--waiting .stuck-block-round {
-      color: var(--text-tertiary);
-    }
-    .stuck-playbook {
+      padding: var(--space-3) var(--space-4);
       background: var(--glass);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
-      padding: var(--space-4);
-      margin-bottom: var(--space-4);
+      margin-bottom: var(--space-5);
     }
-    .stuck-playbook-title {
-      font-family: var(--mono);
-      font-size: 10px;
+    .stuck-intervention strong {
+      color: var(--text-primary);
       font-weight: 400;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: var(--space-3);
     }
-    .stuck-playbook-steps {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      padding: 0;
-      margin: 0;
-    }
-    .stuck-playbook-step {
-      display: flex;
-      gap: var(--space-3);
-      font-family: var(--sans);
-      font-size: var(--text-sm);
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-    .stuck-playbook-num {
-      font-family: var(--mono);
-      font-size: var(--text-xs);
-      color: var(--accent);
-      flex-shrink: 0;
-      width: 16px;
-      margin-top: 1px;
-    }
-    .stuck-impact {
-      font-family: var(--mono);
-      font-size: var(--text-xs);
-      color: var(--signal-amber);
-      margin-bottom: var(--space-4);
-    }
+
+    /* CTA row */
     .stuck-cta-row {
       padding-top: var(--space-4);
       border-top: 1px solid var(--glass-border);
       display: flex;
       justify-content: flex-end;
     }
-    @media (max-width: 520px) {
-      .stuck-blocks-grid {
-        grid-template-columns: 1fr;
+
+    @media (max-width: 420px) {
+      .stuck-pipeline {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-2);
       }
     }
   </style>
 
-  <div class="stuck-header">
-    <div>
-      <h3 class="stuck-title">Stuck Permit Diagnosis</h3>
-      <div class="stuck-address">{{ stuck.address }} · {{ stuck.permit }}</div>
-    </div>
-    <span class="stuck-severity-badge">
-      <span class="stuck-severity-dot"></span>
-      {{ stuck.severity }} — {{ stuck.block_count }} SIMULTANEOUS BLOCKS
+  {# Intelligence label #}
+  <div class="stuck-intel-label">Diagnostic Intelligence</div>
+
+  {# Headline + severity badge #}
+  <div class="stuck-headline-row">
+    <h3 class="stuck-headline">{{ stuck.days_stuck }} days · {{ stuck.block_count }} agencies blocked</h3>
+    <span class="stuck-critical-badge">
+      <span class="stuck-critical-dot severity-pulse"></span>
+      {{ stuck.severity }}
     </span>
   </div>
 
-  <p style="font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-4);">
-    {{ stuck.description }} · {{ stuck.days_stuck }} days at current status
-  </p>
-
-  <div class="stuck-blocks-grid">
+  {# Visual pipeline — 4 station blocks #}
+  <div class="stuck-pipeline">
     {% for block in stuck.blocks %}
-    <div class="stuck-block-card stuck-block-card--{{ block.status }}">
-      <div class="stuck-block-header">
-        <span class="status-dot status-dot--{{ 'red' if block.status == 'comments' else 'amber' }}"></span>
-        <span class="stuck-block-station">{{ block.station }}</span>
-        <span class="chip">{{ block.station_label }}</span>
-      </div>
-      <div class="stuck-block-reviewer">{{ block.reviewer }}</div>
-      <div class="stuck-block-round">{{ block.round }}</div>
-      <div class="stuck-block-date">{{ block.date_issued }}</div>
+    <div class="stuck-station-block {{ 'stuck-station-block--blocked' if block.status in ['critically_stalled', 'stalled', 'comments'] else '' }}">
+      <span class="stuck-station-abbr">{{ block.station }}</span>
+      <span class="stuck-station-icon {{ 'stuck-station-icon--blocked' if block.status in ['critically_stalled', 'stalled', 'comments'] else 'stuck-station-icon--clear' }}">
+        {{ '✗' if block.status in ['critically_stalled', 'stalled', 'comments'] else '✓' }}
+      </span>
+      <span class="stuck-station-meta">
+        {%- if block.dwell_days and block.dwell_days > 0 -%}
+          {{ block.dwell_days }}d
+        {%- elif block.round -%}
+          {{ block.round | truncate(12, True, '') }}
+        {%- endif -%}
+      </span>
     </div>
     {% endfor %}
   </div>
 
-  <div class="stuck-playbook">
-    <div class="stuck-playbook-title">Intervention Playbook</div>
-    <ol class="stuck-playbook-steps">
-      {% for step in stuck.playbook %}
-      <li class="stuck-playbook-step">
-        <span class="stuck-playbook-num">{{ loop.index }}.</span>
-        <span>{{ step }}</span>
-      </li>
-      {% endfor %}
-    </ol>
+  {# First intervention only #}
+  {% if stuck.playbook %}
+  {% set first = stuck.playbook[0] %}
+  <div class="stuck-intervention">
+    <strong>Step 1:</strong> {{ first.action | truncate(80, True, '…') }}
   </div>
+  {% endif %}
 
-  <div class="stuck-impact">
-    Timeline impact: {{ stuck.timeline_impact }}
-  </div>
-
+  {# CTA #}
   <div class="stuck-cta-row">
     <a href="/tools/stuck-permit?permit={{ stuck.permit }}"
        class="ghost-cta"
        data-track="showcase-click"
-       data-showcase="stuck">Try it yourself →</a>
+       data-showcase="stuck">See full playbook →</a>
   </div>
 </div>

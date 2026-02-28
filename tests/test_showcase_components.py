@@ -106,19 +106,24 @@ class TestShowcaseStuck:
         assert '202412237330' in html
 
     def test_contains_severity_badge(self, env, context):
+        # Redesigned: shows "CRITICAL" badge + "4 agencies blocked" headline.
+        # "4 SIMULTANEOUS BLOCKS" text was replaced by the visual pipeline design.
         html = render(env, self.TEMPLATE, context)
         assert 'CRITICAL' in html
-        assert '4 SIMULTANEOUS BLOCKS' in html
+        assert 'agencies blocked' in html
 
-    def test_contains_reviewer_names(self, env, context):
+    def test_pipeline_station_blocks(self, env, context):
+        # Redesigned: shows visual pipeline — reviewer names are not displayed.
+        # Station abbreviations replace reviewer text in the new layout.
         html = render(env, self.TEMPLATE, context)
-        assert 'Jeff Ibarra' in html
-        assert 'Wesley Wong' in html
+        for station in ['BLDG', 'MECH', 'SFFD', 'CP-ZOC']:
+            assert station in html, f"Pipeline station '{station}' missing"
 
-    def test_contains_playbook_steps(self, env, context):
+    def test_contains_first_playbook_step(self, env, context):
+        # Redesigned: only shows Step 1 of the playbook as the intervention hint.
+        # Full multi-step playbook is available at the linked tool page.
         html = render(env, self.TEMPLATE, context)
-        assert 'BLDG + MECH + SFFD' in html
-        assert 'EPR-025' in html
+        assert 'Step 1:' in html
 
     def test_ghost_cta_link(self, env, context):
         html = render(env, self.TEMPLATE, context)
