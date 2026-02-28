@@ -267,11 +267,29 @@ def run_async(coro):
 
 
 def md_to_html(text: str) -> str:
-    """Convert markdown output from tools to HTML."""
-    return markdown.markdown(
+    """Convert markdown output from tools to HTML.
+
+    Post-processes external links (http/https) to open in a new tab
+    with rel="noopener noreferrer" for security. DBI portal links get
+    an additional class for tertiary styling as secondary actions.
+    """
+    html = markdown.markdown(
         text,
         extensions=["tables", "fenced_code", "nl2br"],
     )
+    # Mark DBI portal links with a class for tertiary styling
+    html = re.sub(
+        r'<a href="(https://dbiweb02\.sfgov\.org[^"]*)"',
+        r'<a href="\1" class="dbi-link" target="_blank" rel="noopener noreferrer"',
+        html,
+    )
+    # Add target="_blank" rel="noopener noreferrer" to remaining external links
+    html = re.sub(
+        r'<a href="(https?://[^"]+)"(?![^>]*target=)',
+        r'<a href="\1" target="_blank" rel="noopener noreferrer"',
+        html,
+    )
+    return html
 
 
 # ---------------------------------------------------------------------------
