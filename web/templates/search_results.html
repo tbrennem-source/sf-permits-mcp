@@ -1,10 +1,11 @@
 <style nonce="{{ csp_nonce }}">
 .search-result-card table td a {
-    color: var(--accent, #4f8ff7);
+    color: var(--accent);
     text-decoration: underline;
 }
 .search-result-card table td a:hover {
-    color: #7ab0ff;
+    color: var(--accent);
+    opacity: 0.8;
 }
 /* Property Intelligence Panel */
 .intel-panel {
@@ -21,25 +22,34 @@
 }
 .intel-col {
     padding: 12px 14px;
-    background: var(--surface, #1a1d27);
-    border: 1px solid var(--border, #333749);
-    border-radius: 10px;
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
 }
 .intel-col-label {
-    font-size: 0.7rem;
-    color: var(--text-muted, #8b8fa3);
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-bottom: 6px;
 }
 .intel-col-value {
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-family: var(--mono);
+    font-size: var(--text-lg);
+    font-weight: 400;
+    color: var(--text-primary);
 }
 .intel-col-detail {
-    font-size: 0.78rem;
-    color: var(--text-muted, #8b8fa3);
+    font-family: var(--sans);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
     margin-top: 2px;
+}
+/* Enforcement alert state — used when violations exist */
+.intel-col--alert {
+    background: rgba(248, 113, 113, 0.07);
+    border-color: rgba(248, 113, 113, 0.25);
 }
 </style>
 {# Default context vars — callers that don't pass these get safe no-op values #}
@@ -92,7 +102,7 @@
                 <input type="hidden" name="q" value="I want to analyze a project at {{ street_address }}">
                 {% endif %}
                 <button type="submit" class="obsidian-btn obsidian-btn-outline"
-                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;">
+                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--sans);">
                     🔍 {% if project_context %}Analyze: {{ project_context.label }}{% else %}Analyze Project{% endif %}
                 </button>
             </form>
@@ -104,9 +114,9 @@
                   hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="q" value="Are there any violations at {{ street_address }}?">
                 <button type="submit" class="obsidian-btn obsidian-btn-outline"
-                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;
+                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--sans);
                     {% if violation_counts and violation_counts.total > 0 %}
-                        background:rgba(239,68,68,0.1);color:var(--signal-red);border-color:rgba(239,68,68,0.35);
+                        background:rgba(248,113,113,0.1);color:var(--signal-red);border-color:rgba(248,113,113,0.35);
                     {% elif violation_counts %}
                         background:rgba(52,211,153,0.08);color:var(--signal-green);border-color:rgba(52,211,153,0.25);
                     {% endif %}
@@ -128,7 +138,7 @@
                   hx-indicator="#search-loading" style="display:inline;margin:0;">
                 <input type="hidden" name="q" value="Who is operating at {{ street_address }}?">
                 <button type="submit" class="obsidian-btn obsidian-btn-outline"
-                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;">
+                    style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--sans);">
                     🏢 Who's Here
                     {% if active_businesses|length == 1 %}· {{ active_businesses[0].name[:22] }}
                     {% else %}· {{ active_businesses|length }} businesses{% endif %}
@@ -144,20 +154,20 @@
     {% if address_intel and show_quick_actions and not no_results %}
     <div class="intel-panel">
         {# Column 1: Enforcement #}
-        <div class="intel-col"{% if address_intel.enforcement_total and address_intel.enforcement_total > 0 %} style="background:rgba(239,68,68,0.07);border-color:rgba(239,68,68,0.25);"{% endif %}>
+        <div class="intel-col{% if address_intel.enforcement_total and address_intel.enforcement_total > 0 %} intel-col--alert{% endif %}">
             <div class="intel-col-label">Enforcement</div>
             {% if address_intel.enforcement_total is not none %}
                 {% if address_intel.enforcement_total > 0 %}
-                <div class="intel-col-value" style="color:#f87171;">{{ address_intel.enforcement_total }} open</div>
-                <div class="intel-col-detail" style="color:#f87171;">
+                <div class="intel-col-value" style="color:var(--signal-red);">{{ address_intel.enforcement_total }} open</div>
+                <div class="intel-col-detail" style="color:var(--signal-red);">
                     {% if address_intel.open_violations %}{{ address_intel.open_violations }} violation{{ 's' if address_intel.open_violations != 1 else '' }}{% endif %}{% if address_intel.open_violations and address_intel.open_complaints %}, {% endif %}{% if address_intel.open_complaints %}{{ address_intel.open_complaints }} complaint{{ 's' if address_intel.open_complaints != 1 else '' }}{% endif %}
                 </div>
                 {% else %}
-                <div class="intel-col-value" style="color:var(--success, #34d399);">✓ Clear</div>
+                <div class="intel-col-value" style="color:var(--signal-green);">✓ Clear</div>
                 <div class="intel-col-detail">No open violations</div>
                 {% endif %}
             {% else %}
-            <div class="intel-col-value" style="color:var(--text-muted);">&mdash;</div>
+            <div class="intel-col-value" style="color:var(--text-secondary);">&mdash;</div>
             <div class="intel-col-detail">No parcel data</div>
             {% endif %}
         </div>
@@ -166,15 +176,15 @@
         <div class="intel-col">
             <div class="intel-col-label">Businesses</div>
             {% if address_intel.business_count > 0 %}
-            <div class="intel-col-value" style="color:var(--text);">{{ address_intel.business_count }} active</div>
+            <div class="intel-col-value" style="color:var(--text-primary);">{{ address_intel.business_count }} active</div>
             <div class="intel-col-detail">
                 {{ address_intel.active_businesses[0].name[:28] }}{% if address_intel.business_count > 1 %} +{{ address_intel.business_count - 1 }}{% endif %}
             </div>
             {% elif address_intel.business_count == 0 and address_intel.active_businesses is defined %}
-            <div class="intel-col-value" style="color:var(--text-muted);">None</div>
+            <div class="intel-col-value" style="color:var(--text-secondary);">None</div>
             <div class="intel-col-detail">No registered businesses</div>
             {% else %}
-            <div class="intel-col-value" style="color:var(--text-muted);">&mdash;</div>
+            <div class="intel-col-value" style="color:var(--text-secondary);">&mdash;</div>
             <div class="intel-col-detail">Parcel search only</div>
             {% endif %}
         </div>
@@ -183,29 +193,29 @@
         <div class="intel-col">
             <div class="intel-col-label">Permits</div>
             {% if address_intel.total_permits is not none %}
-            <div class="intel-col-value" style="color:var(--text);">
+            <div class="intel-col-value" style="color:var(--text-primary);">
                 {{ address_intel.total_permits }}
-                <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);">total</span>
+                <span style="font-size:var(--text-xs);font-weight:400;color:var(--text-secondary);">total</span>
             </div>
             <div class="intel-col-detail">
                 {% if address_intel.active_permits %}{{ address_intel.active_permits }} active{% else %}None active{% endif %}{% if address_intel.latest_permit_type %} · {{ address_intel.latest_permit_type }}{% endif %}
             </div>
             {% if address_intel.routing_total and address_intel.routing_total > 0 %}
-            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border, #333749);">
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--glass-border);">
                 <div class="intel-col-label">Plan Review</div>
                 {% set pct = ((address_intel.routing_complete or 0) * 100 / address_intel.routing_total) | int %}
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
-                        <div style="width:{{ pct }}%;height:100%;background:{% if pct == 100 %}var(--success, #34d399){% elif pct >= 50 %}var(--accent, #4f8ff7){% else %}#f59e0b{% endif %};border-radius:3px;"></div>
+                    <div style="flex:1;height:6px;background:var(--glass);border-radius:3px;overflow:hidden;">
+                        <div style="width:{{ pct }}%;height:100%;background:{% if pct == 100 %}var(--signal-green){% elif pct >= 50 %}var(--accent){% else %}var(--signal-amber){% endif %};border-radius:3px;"></div>
                     </div>
-                    <span style="font-size:0.78rem;font-weight:600;color:var(--text);white-space:nowrap;">{{ address_intel.routing_complete }}/{{ address_intel.routing_total }}</span>
+                    <span style="font-size:var(--text-xs);font-weight:400;color:var(--text-primary);white-space:nowrap;">{{ address_intel.routing_complete }}/{{ address_intel.routing_total }}</span>
                 </div>
                 {% if address_intel.routing_latest_station %}
                 <div class="intel-col-detail" style="margin-top:4px;">
                     {% if address_intel.routing_latest_result and 'approv' in address_intel.routing_latest_result|lower %}
-                    <span style="color:var(--success, #34d399);">✓</span>
+                    <span style="color:var(--signal-green);">✓</span>
                     {% elif address_intel.routing_latest_result and 'comment' in address_intel.routing_latest_result|lower %}
-                    <span style="color:#f59e0b;">💬</span>
+                    <span style="color:var(--signal-amber);">💬</span>
                     {% endif %}
                     {{ address_intel.routing_latest_station }}{% if address_intel.routing_latest_date %} · {{ address_intel.routing_latest_date }}{% endif %}
                 </div>
@@ -213,7 +223,7 @@
             </div>
             {% endif %}
             {% else %}
-            <div class="intel-col-value" style="color:var(--text-muted);">&mdash;</div>
+            <div class="intel-col-value" style="color:var(--text-secondary);">&mdash;</div>
             <div class="intel-col-detail">No permit data</div>
             {% endif %}
         </div>
@@ -232,29 +242,29 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="q" value="{{ s.street_number }} {{ s.full_name }}">
                 <button type="submit"
-                    style="display:inline-flex;align-items:center;gap:8px;color:#4f8ff7;background:none;border:none;cursor:pointer;padding:4px 0;font-family:inherit;font-size:0.95rem;text-align:left;">
-                    <span style="font-size:0.9rem;">&#x27A4;</span>
+                    style="display:inline-flex;align-items:center;gap:8px;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 0;font-family:var(--sans);font-size:var(--text-base);text-align:left;">
+                    <span>&#x27A4;</span>
                     {{ s.street_number }} {{ s.full_name }}
-                    <span style="color:#8b8fa3;font-size:0.8rem;">({{ s.count }} permits)</span>
+                    <span style="color:var(--text-secondary);font-size:var(--text-sm);">({{ s.count }} permits)</span>
                 </button>
             </form>
             {% endfor %}
         </div>
-        <div style="border-top:1px solid rgba(79,143,247,0.15);padding-top:12px;margin-top:4px;">
+        <div style="border-top:1px solid var(--glass-border);padding-top:12px;margin-top:4px;">
         {% endif %}
         <div style="font-weight: 600; margin-bottom: 8px;">What you can do next</div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
             {% if report_url %}
             <a href="{{ report_url }}"
-               style="display: inline-flex; align-items: center; gap: 8px; color: #4f8ff7; text-decoration: none; font-weight: 600; font-size: 0.95rem;">
-                <span style="font-size: 1.1rem;">&#x1F4CA;</span> Run Property Report
+               style="display: inline-flex; align-items: center; gap: 8px; color: var(--accent); text-decoration: none; font-weight: 400; font-size: var(--text-base);">
+                <span>&#x1F4CA;</span> Run Property Report
             </a>
             {% endif %}
             <a href="/?q={{ no_results_address }}"
-               style="display: inline-flex; align-items: center; gap: 8px; color: #8b8fa3; text-decoration: none; font-size: 0.9rem;">
-                <span style="font-size: 1.1rem;">&#x1F50D;</span> Try a different search
+               style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); text-decoration: none; font-size: var(--text-sm);">
+                <span>&#x1F50D;</span> Try a different search
             </a>
-            <span style="color: #8b8fa3; font-size: 0.85rem; margin-top: 4px;">
+            <span style="color: var(--text-secondary); font-size: var(--text-sm); margin-top: 4px;">
                 No permit history doesn't mean no permits are required &mdash; it may just mean no permits have been filed yet at this address.
             </span>
         </div>
@@ -267,25 +277,25 @@
     {% if hood_stats %}
     <div class="glass-card" style="margin-top:var(--space-3);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span style="font-weight:600;font-size:0.9rem;color:var(--text, #e4e6eb);">{{ hood_stats.name }}</span>
-            <span style="font-size:0.75rem;color:var(--text-muted, #8b8fa3);">neighborhood</span>
+            <span style="font-family:var(--sans);font-weight:400;font-size:var(--text-base);color:var(--text-primary);">{{ hood_stats.name }}</span>
+            <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">neighborhood</span>
         </div>
         <div style="display:flex;gap:20px;flex-wrap:wrap;">
             <div>
-                <div style="font-size:1.1rem;font-weight:700;color:var(--accent, #4f8ff7);">{{ "{:,}".format(hood_stats.total_permits) }}</div>
-                <div style="font-size:0.7rem;color:var(--text-muted, #8b8fa3);text-transform:uppercase;">total permits</div>
+                <div style="font-family:var(--mono);font-size:var(--text-lg);font-weight:300;color:var(--accent);">{{ "{:,}".format(hood_stats.total_permits) }}</div>
+                <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);text-transform:uppercase;">total permits</div>
             </div>
             <div>
-                <div style="font-size:1.1rem;font-weight:700;color:var(--success, #34d399);">{{ "{:,}".format(hood_stats.active_permits) }}</div>
-                <div style="font-size:0.7rem;color:var(--text-muted, #8b8fa3);text-transform:uppercase;">active</div>
+                <div style="font-family:var(--mono);font-size:var(--text-lg);font-weight:300;color:var(--signal-green);">{{ "{:,}".format(hood_stats.active_permits) }}</div>
+                <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);text-transform:uppercase;">active</div>
             </div>
             {% if hood_stats.top_types %}
             <div style="flex:1;min-width:160px;">
-                <div style="font-size:0.7rem;color:var(--text-muted, #8b8fa3);text-transform:uppercase;margin-bottom:4px;">top permit types</div>
+                <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px;">top permit types</div>
                 {% for t in hood_stats.top_types %}
-                <div style="font-size:0.8rem;color:var(--text, #e4e6eb);display:flex;justify-content:space-between;gap:8px;">
+                <div style="font-family:var(--sans);font-size:var(--text-sm);color:var(--text-secondary);display:flex;justify-content:space-between;gap:8px;">
                     <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.type }}</span>
-                    <span style="color:var(--text-muted, #8b8fa3);flex-shrink:0;">{{ "{:,}".format(t.count) }}</span>
+                    <span style="color:var(--text-secondary);flex-shrink:0;">{{ "{:,}".format(t.count) }}</span>
                 </div>
                 {% endfor %}
             </div>
