@@ -293,12 +293,12 @@
   .scroll-cue.hidden { opacity: 0 !important; }
   .scroll-cue__text {
     font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
-    color: var(--text-secondary); text-transform: uppercase;
+    color: var(--accent); text-transform: uppercase;
     animation: pulse-line 2.5s ease-in-out infinite;
   }
   .scroll-cue__arrow {
     animation: bounce-down 2s ease-in-out infinite;
-    color: var(--text-tertiary);
+    color: var(--accent);
   }
   @keyframes pulse-line { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
   @keyframes bounce-down {
@@ -481,7 +481,7 @@
     <div class="below-search">
       <div class="below-search__sub" id="below-sub"><a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a></div>
       <div class="below-search__watched" id="below-watched"></div>
-      <div class="below-search__context" id="below-context">try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a></div>
+      <div class="below-search__context" id="below-context">try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a></div>
     </div>
   </div>
 
@@ -1098,42 +1098,42 @@
       placeholder: 'Enter an SF address or describe your project',
       sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
       watched: '',
-      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'See how it works'
     },
     returning: {
       placeholder: 'Search any SF address',
       sub: '',
-      watched: '<span class="urgent-dot urgent-dot--amber"></span><a onclick="selectAddress(\'487 Noe St\',\'Kitchen remodel\')">487 Noe — PPC stalled 12d</a> · <a onclick="selectAddress(\'225 Bush St\',\'Seismic retrofit\')">225 Bush — on track</a> · <a href="#" style="color:rgba(255,255,255,0.3)">2 watching →</a>',
-      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/search?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/search?q=225+Bush+St">225 Bush — on track</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">2 watching →</a>',
+      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'What\'s new this week'
     },
     returning_nowatch: {
       placeholder: 'Search any SF address',
       sub: '',
       watched: '',
-      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'What\'s new this week'
     },
     power: {
       placeholder: 'Search your properties or any address',
       sub: '23 properties watched · 14 active · 3 need attention',
-      watched: '<span class="urgent-dot urgent-dot--red"></span>1122 Folsom — new complaint · <span class="urgent-dot urgent-dot--amber"></span>487 Noe — PPC stalled 12d · <a href="#" style="color:rgba(255,255,255,0.3)">view all →</a>',
+      watched: '<span class="urgent-dot urgent-dot--red"></span>1122 Folsom — new complaint · <span class="urgent-dot urgent-dot--amber"></span>487 Noe — PPC stalled 12d · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">view all →</a>',
       context: '',
       scroll: 'Morning brief'
     },
     beta: {
       placeholder: 'Enter an SF address or describe your project',
       sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
-      watched: '<span class="urgent-dot urgent-dot--amber"></span><a onclick="selectAddress(\'487 Noe St\',\'Kitchen remodel\')">487 Noe — PPC stalled 12d</a> · <a href="#" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
-      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/search?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
+      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'See what you can do'
     },
     beta_nowatch: {
       placeholder: 'Enter an SF address or describe your project',
       sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
       watched: '',
-      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit for...</a>',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'See what you can do'
     }
   };
@@ -1174,12 +1174,12 @@
     document.querySelectorAll('.state-toggle button').forEach(btn => {
       // Match button text to state name
       const btnStates = {
-        'New': 'new',
-        'Beta': 'beta_nowatch',
-        'Beta+watch': 'beta',
-        'Return': 'returning_nowatch',
-        'Return+watch': 'returning',
-        'Power': 'power'
+        'New Visitor': 'new',
+        'Beta Tester': 'beta_nowatch',
+        'Beta + Watching': 'beta',
+        'Returning': 'returning_nowatch',
+        'Returning + Watching': 'returning',
+        'Power User': 'power'
       };
       btn.classList.toggle('active', btnStates[btn.textContent.trim()] === s);
     });
@@ -1238,12 +1238,12 @@
 </script>
 <!-- Admin state toggle — only with ?admin=1 -->
 <div class="state-toggle" id="state-toggle">
-  <button class="active" onclick="setState('new')">New</button>
-  <button onclick="setState('beta_nowatch')">Beta</button>
-  <button onclick="setState('beta')">Beta+watch</button>
-  <button onclick="setState('returning_nowatch')">Return</button>
-  <button onclick="setState('returning')">Return+watch</button>
-  <button onclick="setState('power')">Power</button>
+  <button class="active" onclick="setState('new')">New Visitor</button>
+  <button onclick="setState('beta_nowatch')">Beta Tester</button>
+  <button onclick="setState('beta')">Beta + Watching</button>
+  <button onclick="setState('returning_nowatch')">Returning</button>
+  <button onclick="setState('returning')">Returning + Watching</button>
+  <button onclick="setState('power')">Power User</button>
 </div>
 <script nonce="{{ csp_nonce }}">
   // Show state toggle only for admin
