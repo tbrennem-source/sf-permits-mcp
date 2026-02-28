@@ -32,6 +32,43 @@
         </div>
 
         <div class="modal__body">
+            {% if g.user and g.user.get('is_admin') %}
+            {% set _admin_personas = [
+                ("anon_new", "Anonymous New"),
+                ("anon_returning", "Anonymous Returning"),
+                ("free_auth", "Free Authenticated"),
+                ("beta_empty", "Beta Empty"),
+                ("beta_active", "Beta Active (3 watches)"),
+                ("power_user", "Power User (12 watches)"),
+                ("admin_reset", "Admin (reset)"),
+            ] %}
+            <div id="persona-panel" style="margin-bottom:var(--space-4);padding-bottom:var(--space-4);border-bottom:1px solid var(--glass-border);">
+                <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">QA Persona</div>
+                <select id="persona-select" name="persona_id" class="form-input" style="margin-top:var(--space-1);">
+                    {% for pid, plabel in _admin_personas %}
+                    <option value="{{ pid }}"{% if session.get('persona_id') == pid %} selected{% endif %}>{{ plabel }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button"
+                        class="action-btn"
+                        style="margin-top:var(--space-2);width:100%;"
+                        hx-post="/admin/impersonate"
+                        hx-target="#persona-status"
+                        hx-swap="innerHTML"
+                        hx-include="#persona-select"
+                        hx-vals='{"csrf_token": "{{ csrf_token }}"}'>
+                    Apply Persona
+                </button>
+                <div style="margin-top:var(--space-2);display:flex;justify-content:space-between;align-items:center;">
+                    <span id="persona-status" style="font-family:var(--mono);font-size:var(--text-xs);">
+                        {% if session.get('persona_id') %}
+                        <span style="color:var(--signal-green);">Active: {{ session.get('persona_label', session.get('persona_id', '')) }}</span>
+                        {% endif %}
+                    </span>
+                    <a href="/admin/reset-impersonation" class="ghost-cta" style="font-size:var(--text-xs);">Reset</a>
+                </div>
+            </div>
+            {% endif %}
             <form id="feedback-form" hx-post="/feedback/submit" hx-target="#feedback-result" hx-swap="innerHTML">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="page_url" class="feedback-page-url">

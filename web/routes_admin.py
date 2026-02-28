@@ -20,7 +20,7 @@ import signal
 from datetime import datetime
 from flask import (
     Blueprint, Response, abort, g, jsonify, redirect, render_template,
-    render_template_string, request, send_file, url_for,
+    render_template_string, request, send_file, session, url_for,
 )
 
 from web.helpers import login_required, admin_required, md_to_html, QUIZ_QUESTIONS, BRAND_CONFIG
@@ -1413,3 +1413,57 @@ def admin_health():
         db_cb_status=db_cb_status,
         cache=cache,
     )
+
+
+# ---------------------------------------------------------------------------
+# Admin: Persona Impersonation (QS10 T2-A)
+# ---------------------------------------------------------------------------
+
+@bp.route("/admin/impersonate", methods=["POST"])
+@login_required
+def admin_impersonate():
+    """Inject a QA persona into the session for UI preview.
+
+    POST body: persona_id (str)
+    Returns an HTMX snippet showing the active persona label.
+    Admin-only — returns 403 for non-admins.
+    """
+    from web.admin_personas import get_persona, apply_persona
+
+    if not g.user or not g.user.get("is_admin"):
+        abort(403)
+
+    persona_id = request.form.get("persona_id", "").strip()
+    persona = get_persona(persona_id)
+
+    if persona is None:
+        return (
+            '<span style="font-family:var(--mono);font-size:var(--text-xs);'
+            'color:var(--signal-red);">Error: unknown persona</span>'
+        ), 200
+
+    apply_persona(session, persona)
+
+    return (
+        f'<span style="font-family:var(--mono);font-size:var(--text-xs);'
+        f'color:var(--signal-green);">Persona: {persona["label"]}</span>'
+    ), 200
+
+
+@bp.route("/admin/reset-impersonation")
+@login_required
+def admin_reset_impersonation():
+    """Clear all persona impersonation state and redirect back.
+
+    Admin-only escape hatch to restore real session state.
+    """
+    from web.admin_personas import get_persona, apply_persona
+
+    if not g.user or not g.user.get("is_admin"):
+        abort(403)
+
+    reset_persona = get_persona("admin_reset")
+    apply_persona(session, reset_persona)
+
+    referrer = request.referrer or "/"
+    return redirect(referrer)
