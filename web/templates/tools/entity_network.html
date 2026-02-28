@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Network — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <!-- D3 for force-directed graph -->
+    <script src="https://d3js.org/d3.v7.min.js" nonce="{{ csp_nonce }}"></script>
+    <style nonce="{{ csp_nonce }}">
+        body {
+            background: var(--obsidian);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            padding: var(--space-10) 0 var(--space-8);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: var(--space-8);
+        }
+
+        .page-header h1 {
+            font-family: var(--sans);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2);
+        }
+
+        .page-header p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin: 0;
+            max-width: 600px;
+        }
+
+        /* ── Search bar ──────────────────────────────────────────── */
+        .search-bar {
+            display: flex;
+            gap: var(--space-2);
+            align-items: stretch;
+            margin-bottom: var(--space-8);
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--text-primary);
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-ring);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .search-btn {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--obsidian);
+            background: var(--accent);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            opacity: 0.88;
+        }
+
+        .search-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ── Main layout ─────────────────────────────────────────── */
+        .network-layout {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: var(--space-6);
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .network-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Graph panel ─────────────────────────────────────────── */
+        .graph-panel {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            min-height: 420px;
+            position: relative;
+        }
+
+        .graph-panel-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .graph-panel-title {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+        }
+
+        .graph-hint {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+
+        .graph-container {
+            width: 100%;
+            height: 420px;
+        }
+
+        /* ── Empty state ─────────────────────────────────────────── */
+        .graph-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 380px;
+            color: var(--text-tertiary);
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            text-align: center;
+            gap: var(--space-3);
+            padding: var(--space-8);
+        }
+
+        .graph-empty-icon {
+            font-size: 2.5rem;
+            opacity: 0.35;
+        }
+
+        .graph-empty-title {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-tertiary);
+        }
+
+        .graph-empty-hint {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            max-width: 300px;
+        }
+
+        /* ── Loading state ───────────────────────────────────────── */
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: var(--obsidian-mid);
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--glass-border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        /* ── Entity detail sidebar ───────────────────────────────── */
+        .entity-sidebar {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            position: sticky;
+            top: 80px;
+        }
+
+        .sidebar-title {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-4);
+        }
+
+        .entity-detail-empty {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            text-align: center;
+            padding: var(--space-8) 0;
+        }
+
+        .entity-name {
+            font-family: var(--sans);
+            font-size: var(--text-lg);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2);
+            word-break: break-word;
+        }
+
+        .entity-type-chip {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 2px 7px;
+            border-radius: 3px;
+            margin-bottom: var(--space-4);
+        }
+
+        .entity-type-chip.contractor  { color: var(--signal-amber);  background: rgba(251,191,36,0.12); }
+        .entity-type-chip.architect   { color: var(--accent);         background: var(--accent-glow); }
+        .entity-type-chip.engineer    { color: var(--signal-blue);    background: rgba(96,165,250,0.10); }
+        .entity-type-chip.owner       { color: var(--signal-green);   background: rgba(52,211,153,0.10); }
+        .entity-type-chip.central     { color: var(--accent);         background: var(--accent-glow); }
+        .entity-type-chip.default     { color: var(--text-secondary); background: var(--glass); }
+
+        .entity-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .entity-stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .entity-stat-label {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        .entity-stat-value {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-primary);
+        }
+
+        .entity-stat-value.na {
+            color: var(--text-tertiary);
+        }
+
+        /* Legend */
+        .graph-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3) var(--space-4);
+            margin-top: var(--space-4);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend-dot--architect  { background: var(--accent); }
+        .legend-dot--contractor { background: var(--signal-amber); }
+        .legend-dot--engineer   { background: var(--signal-blue); }
+        .legend-dot--owner      { background: var(--signal-green); }
+
+        /* Error */
+        .error-notice {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--signal-red);
+            background: rgba(248,113,113,0.06);
+            border: 1px solid rgba(248,113,113,0.2);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3) var(--space-4);
+            margin-bottom: var(--space-4);
+            display: none;
+        }
+
+        .error-notice.visible {
+            display: block;
+        }
+
+        .error-notice a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .error-notice a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                padding: var(--space-8) 0 var(--space-6);
+                margin-bottom: var(--space-6);
+            }
+
+            .entity-sidebar {
+                position: static;
+            }
+
+            .graph-container {
+                height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include "fragments/nav.html" %}
+
+    <main>
+        <div class="obs-container">
+            <header class="page-header">
+                <h1>Entity Network</h1>
+                <p>Visualize professional relationships around a property — contractors, architects, and engineers.</p>
+            </header>
+
+            <!-- Search bar -->
+            <div class="search-bar">
+                <input
+                    id="network-search"
+                    type="text"
+                    class="search-input"
+                    placeholder="Enter an address or entity name — e.g. 487 Noe St or ABC General Contractor"
+                    autocomplete="off"
+                    aria-label="Address or entity name"
+                >
+                <button id="search-btn" class="search-btn" type="button">Map network &rarr;</button>
+            </div>
+
+            <div id="error-notice" class="error-notice" role="alert"></div>
+
+            <div class="network-layout">
+                <!-- Graph panel -->
+                <div class="graph-panel" id="graph-panel">
+                    <div class="graph-panel-toolbar">
+                        <span class="graph-panel-title">Network Graph</span>
+                        <span class="graph-hint">Scroll to zoom &middot; drag to pan &middot; click node for details</span>
+                    </div>
+
+                    <!-- Loading overlay -->
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div class="loading-spinner"></div>
+                        <span class="loading-text">Building network&hellip;</span>
+                    </div>
+
+                    <!-- Graph renders here -->
+                    <div class="graph-container" id="graph-container">
+                        <div class="graph-empty-state" id="graph-empty">
+                            <div class="graph-empty-icon">&#9673;</div>
+                            <div class="graph-empty-title">No network loaded</div>
+                            <div class="graph-empty-hint">Enter an address above to map the professional relationships for that property.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Entity detail sidebar -->
+                <aside class="entity-sidebar">
+                    <p class="sidebar-title">Entity Detail</p>
+                    <div id="entity-detail">
+                        <div class="entity-detail-empty">Click any node to view entity details.</div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="graph-legend" id="graph-legend" style="display:none;">
+                        <div class="legend-item">
+                            <div class="legend-dot legend-dot--architect"></div>
+                            <span>Architect</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot legend-dot--contractor"></div>
+                            <span>Contractor</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot legend-dot--engineer"></div>
+                            <span>Engineer</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot legend-dot--owner"></div>
+                            <span>Owner</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/entity-graph.js" nonce="{{ csp_nonce }}"></script>
+    <script nonce="{{ csp_nonce }}">
+    (function () {
+        'use strict';
+
+        var searchInput  = document.getElementById('network-search');
+        var searchBtn    = document.getElementById('search-btn');
+        var errorNotice  = document.getElementById('error-notice');
+        var loadingOverlay = document.getElementById('loading-overlay');
+        var graphEmpty   = document.getElementById('graph-empty');
+        var entityDetail = document.getElementById('entity-detail');
+        var graphLegend  = document.getElementById('graph-legend');
+        var csrfMeta     = document.querySelector('meta[name="csrf-token"]');
+
+        // ── Auto-fill from ?address= query param ──────────────────
+        (function autoFill() {
+            var params = new URLSearchParams(window.location.search);
+            var addr = params.get('address');
+            if (addr) {
+                searchInput.value = addr;
+                // Auto-run after short tick to let page settle
+                setTimeout(runSearch, 80);
+            }
+        })();
+
+        // ── Helpers ────────────────────────────────────────────────
+        function setLoading(on) {
+            loadingOverlay.classList.toggle('visible', on);
+            searchBtn.disabled = on;
+        }
+
+        function showError(msg, is401) {
+            if (is401) {
+                errorNotice.innerHTML = 'Please <a href="/auth/login">log in</a> to use the Entity Network tool.';
+            } else {
+                errorNotice.textContent = msg;
+            }
+            errorNotice.classList.add('visible');
+        }
+
+        function clearError() {
+            errorNotice.classList.remove('visible');
+            errorNotice.textContent = '';
+        }
+
+        function escapeHtml(t) {
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(t));
+            return d.innerHTML;
+        }
+
+        // ── Node click handler ─────────────────────────────────────
+        function onNodeClick(node) {
+            var typeClass = node.type || 'default';
+            var html = '';
+            html += '<div class="entity-name">' + escapeHtml(node.label) + '</div>';
+            html += '<span class="entity-type-chip ' + escapeHtml(typeClass) + '">' + escapeHtml(typeClass) + '</span>';
+            html += '<div>';
+
+            var statsRows = [
+                { label: 'Permits', value: node.permit_count ? node.permit_count.toString() : '—' },
+                { label: 'License', value: node.license || '—', na: !node.license },
+                { label: 'Avg issuance', value: node.avg_days ? node.avg_days + ' days' : '—', na: !node.avg_days },
+            ];
+
+            statsRows.forEach(function (row) {
+                html += '<div class="entity-stat-row">';
+                html +=   '<span class="entity-stat-label">' + escapeHtml(row.label) + '</span>';
+                html +=   '<span class="entity-stat-value' + (row.na ? ' na' : '') + '">' + escapeHtml(row.value) + '</span>';
+                html += '</div>';
+            });
+
+            html += '</div>';
+            entityDetail.innerHTML = html;
+        }
+
+        // ── Render graph from API response ─────────────────────────
+        function renderGraph(data) {
+            graphEmpty.style.display = 'none';
+            graphLegend.style.display = '';
+
+            EntityGraph.init('#graph-container', data, onNodeClick);
+        }
+
+        // ── Show empty state ───────────────────────────────────────
+        function showEmpty(msg) {
+            EntityGraph.destroy();
+            graphEmpty.querySelector('.graph-empty-title').textContent = msg || 'No results';
+            graphEmpty.querySelector('.graph-empty-hint').textContent  = 'Try a different address or entity name.';
+            graphEmpty.style.display = '';
+            graphLegend.style.display = 'none';
+        }
+
+        // ── Main search ────────────────────────────────────────────
+        function runSearch() {
+            var query = searchInput.value.trim();
+            if (!query) {
+                searchInput.focus();
+                return;
+            }
+
+            clearError();
+            setLoading(true);
+
+            var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+            fetch('/api/entity-network', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ query: query }),
+            })
+            .then(function (resp) {
+                if (resp.status === 401) {
+                    setLoading(false);
+                    showError('Unauthorized', true);
+                    return null;
+                }
+                return resp.json();
+            })
+            .then(function (data) {
+                if (data === null) return;
+                setLoading(false);
+
+                if (data.error) {
+                    showError(data.error, false);
+                    showEmpty('Error loading network');
+                    return;
+                }
+
+                var hasNodes = data.nodes && data.nodes.length > 0;
+                if (!hasNodes) {
+                    showEmpty('No entity relationships found');
+                    return;
+                }
+
+                renderGraph(data);
+            })
+            .catch(function () {
+                setLoading(false);
+                showError('Network error — please try again.', false);
+                showEmpty('Request failed');
+            });
+        }
+
+        // ── Events ─────────────────────────────────────────────────
+        searchBtn.addEventListener('click', runSearch);
+
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                runSearch();
+            }
+        });
+
+    })();
+    </script>
+{% include 'fragments/feedback_widget.html' %}
+<script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js" defer></script>
+<script nonce="{{ csp_nonce }}" src="/static/admin-tour.js" defer></script>
+</body>
+</html>
