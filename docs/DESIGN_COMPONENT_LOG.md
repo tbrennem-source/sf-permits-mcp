@@ -390,3 +390,119 @@ Displays a beta upgrade teaser card that fits inside an existing page element.
 
 **CSS:** All custom properties. Badge uses `--signal-blue`, `--mono`. Title uses `--sans`, `--text-xl`. CTA uses `--accent`, `--obsidian`. Card uses `--obsidian-mid`, `--glass-border`, `--radius-md`.
 **Notes:** Companion to `tier_gate_teaser.html` (full-page). This version has no DOCTYPE/html tags so it can be safely injected via HTMX `hx-swap="innerHTML"`. Used by routes_search.py /ask endpoint to gate AI synthesis intents.
+
+---
+
+### Interactive Gantt Chart (Station Routing Timeline)
+**Sprint:** QS11 T3-A
+**File:** `web/static/js/gantt-interactive.js`, `web/templates/tools/station_predictor.html`
+**Usage:** Station Predictor tool page — horizontal bar chart of permit routing stations. Bars are clickable to expand detail panel.
+**Status:** NEW
+**HTML:**
+```html
+<div class="gantt-wrap">
+  <div class="gantt-track" role="list">
+    <button class="gantt-bar gantt-bar-complete" style="width:25%;border-color:var(--signal-green);" data-idx="0">
+      <div class="gantt-bar-label" style="color:var(--signal-green);">BLDG</div>
+    </button>
+    <button class="gantt-bar gantt-bar-active gantt-bar-current" style="width:40%;border-color:var(--accent);" data-idx="1">
+      <div class="gantt-bar-label" style="color:var(--accent);">CP-ZOC</div>
+      <div class="gantt-bar-pulse"></div>
+    </button>
+  </div>
+  <div class="gantt-legend">
+    <span class="gantt-legend-item">
+      <span class="gantt-legend-dot" style="background:var(--signal-green);"></span>
+      <span class="gantt-legend-label">Complete</span>
+    </span>
+  </div>
+  <div class="gantt-station-list">
+    <div class="gantt-station-row" data-idx="0">
+      <div class="gantt-station-main" style="border-left-color:var(--signal-green);">
+        <div class="gantt-station-name">Building Inspection</div>
+        <div class="gantt-station-meta">20d dwell</div>
+      </div>
+      <div class="gantt-station-badge gantt-status-complete">Complete</div>
+      <div class="gantt-detail" id="gantt-detail-0" aria-hidden="true">...</div>
+    </div>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.gantt-wrap { width: 100%; }
+.gantt-track { display: flex; gap: 4px; align-items: stretch; height: 44px; }
+.gantt-bar { flex: 0 0 auto; min-width: 32px; border: 1px solid; border-radius: var(--radius-sm); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, box-shadow 0.15s; }
+.gantt-bar:hover, .gantt-bar:focus { transform: scaleY(1.06); outline: none; }
+.gantt-bar-selected { box-shadow: 0 0 0 2px var(--accent-ring); }
+.gantt-bar-label { font-family: var(--mono); font-size: 9px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+.gantt-bar-pulse { position: absolute; inset: 0; animation: gantt-pulse 2s ease-in-out infinite; }
+@keyframes gantt-pulse { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.35; } }
+.gantt-status-complete  { color: var(--signal-green);  background: rgba(52,211,153,0.10); }
+.gantt-status-active    { color: var(--accent);         background: var(--accent-glow); }
+.gantt-status-stalled   { color: var(--signal-amber);   background: rgba(251,191,36,0.10); }
+.gantt-status-predicted { color: var(--signal-amber);   background: rgba(251,191,36,0.08); }
+.gantt-detail { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.2s ease; }
+```
+**Notes:** Rendered by `GanttInteractive.render(container, stations, options)` from gantt-interactive.js. Status colors use signal tokens semantically. Pulse animation on active station. Bars are proportionally sized by dwell_days (historic) or p50_days (predicted). UMD module pattern for browser/Node compatibility.
+
+---
+
+### Severity Dashboard (Stuck Permit)
+**Sprint:** QS11 T3-A
+**File:** `web/templates/tools/stuck_permit.html`
+**Usage:** Stuck Permit Analyzer — top-of-results header showing RED/AMBER/GREEN severity badge, block count, and permit number.
+**Status:** NEW
+**HTML:**
+```html
+<div class="severity-dashboard">
+  <div class="severity-dashboard-row">
+    <div class="severity-badge severity-badge-red">CRITICAL</div>
+    <div class="severity-meta">2 stations blocked</div>
+    <div class="severity-permit-number">202501015257</div>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.severity-dashboard { margin-bottom: var(--space-8); padding-bottom: var(--space-6); border-bottom: 1px solid var(--glass-border); }
+.severity-dashboard-row { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.severity-badge { font-family: var(--mono); font-size: var(--text-sm); font-weight: 400; text-transform: uppercase; letter-spacing: 0.06em; padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); border: 1px solid; }
+.severity-badge-green { color: var(--signal-green); background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.25); }
+.severity-badge-amber { color: var(--signal-amber); background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); }
+.severity-badge-red   { color: var(--signal-red);   background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.25); }
+.severity-permit-number { font-family: var(--mono); font-size: var(--text-sm); color: var(--accent); margin-left: auto; }
+```
+**Notes:** Uses rgba backgrounds derived from signal token hex values at 0.08 opacity — consistent with existing chip/badge pattern. Not a chip (larger, no letter-spacing, border included). Separate from severity-chip (which is used for scoring in report.html).
+
+---
+
+### Playbook Step (Stuck Permit Intervention)
+**Sprint:** QS11 T3-A
+**File:** `web/templates/tools/stuck_permit.html`
+**Usage:** Stuck Permit Analyzer — numbered intervention steps with urgency badge, action text, and contact info.
+**Status:** NEW
+**HTML:**
+```html
+<div class="playbook-step">
+  <div class="playbook-step-number">1.</div>
+  <div class="playbook-step-body">
+    <div class="playbook-step-urgency urgency-immediate">IMMEDIATE</div>
+    <div class="playbook-step-action">Revise plans and resubmit via EPR</div>
+    <div class="playbook-step-contact">SF DBI — <a href="tel:+14155586000">(415) 558-6000</a></div>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.playbook-step { display: flex; gap: var(--space-4); padding: var(--space-4) var(--space-5); background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); }
+.playbook-step-number { font-family: var(--mono); font-size: var(--text-sm); color: var(--text-tertiary); min-width: 20px; }
+.playbook-step-urgency { font-family: var(--mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 3px; display: inline-block; }
+.urgency-immediate { color: var(--signal-red);   background: rgba(248,113,113,0.12); }
+.urgency-high      { color: var(--signal-amber); background: rgba(251,191,36,0.12); }
+.urgency-medium    { color: var(--signal-blue);  background: rgba(96,165,250,0.12); }
+.urgency-low       { color: var(--text-secondary); background: var(--glass); }
+.playbook-step-action { font-family: var(--sans); font-size: var(--text-sm); color: var(--text-primary); }
+.playbook-step-contact { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); }
+```
+**Notes:** Urgency variants mirror the 4-tier priority system from diagnose_stuck_permit.py (IMMEDIATE/HIGH/MEDIUM/LOW). Contact lines linkify phone numbers via regex replacement in JS render function.

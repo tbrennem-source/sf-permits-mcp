@@ -139,6 +139,45 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Skeleton loading screen */
+        .skeleton-screen {
+            display: none;
+        }
+
+        .skeleton-screen.is-visible {
+            display: block;
+        }
+
+        .skeleton-bar {
+            height: 10px;
+            background: var(--glass);
+            border-radius: var(--radius-full);
+            margin-bottom: var(--space-3);
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        .skeleton-bar-wide { width: 85%; }
+        .skeleton-bar-med  { width: 60%; }
+        .skeleton-bar-short { width: 40%; }
+
+        .skeleton-gantt {
+            display: flex;
+            gap: 6px;
+            margin-bottom: var(--space-6);
+        }
+
+        .skeleton-gantt-bar {
+            height: 40px;
+            background: var(--glass);
+            border-radius: var(--radius-sm);
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes skeleton-pulse {
+            0%, 100% { opacity: 0.4; }
+            50%       { opacity: 0.8; }
+        }
+
         /* Results area */
         .results-area {
             background: var(--obsidian-mid);
@@ -153,15 +192,46 @@
             border-color: var(--glass-hover);
         }
 
-        .results-hint {
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-10) var(--space-6);
+        }
+
+        .empty-state-hint {
             font-family: var(--sans);
             font-size: var(--text-sm);
             color: var(--text-tertiary);
-            margin: 0;
-            text-align: center;
-            padding: var(--space-6) 0;
+            margin: 0 0 var(--space-6) 0;
         }
 
+        .demo-permits {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-permit-chip {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            padding: var(--space-1) var(--space-3);
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s, border-color 0.2s;
+            display: inline-block;
+        }
+
+        .demo-permit-chip:hover {
+            color: var(--accent);
+            border-color: var(--accent-ring);
+        }
+
+        /* Results header */
         .results-label {
             font-family: var(--mono);
             font-size: var(--text-xs);
@@ -178,7 +248,312 @@
             margin: 0 0 var(--space-6) 0;
         }
 
-        /* Markdown output styling */
+        /* Gantt chart container */
+        .gantt-section {
+            margin-bottom: var(--space-8);
+        }
+
+        .gantt-section-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-4);
+        }
+
+        /* Gantt component styles */
+        .gantt-wrap {
+            width: 100%;
+        }
+
+        .gantt-track {
+            display: flex;
+            gap: 4px;
+            align-items: stretch;
+            margin-bottom: var(--space-4);
+            height: 44px;
+        }
+
+        .gantt-bar {
+            flex: 0 0 auto;
+            min-width: 32px;
+            border: 1px solid;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gantt-bar:hover,
+        .gantt-bar:focus {
+            transform: scaleY(1.06);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+            outline: none;
+        }
+
+        .gantt-bar-selected {
+            box-shadow: 0 0 0 2px var(--accent-ring), 0 2px 12px rgba(0,0,0,0.4);
+        }
+
+        .gantt-bar-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 400;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 4px;
+            pointer-events: none;
+        }
+
+        .gantt-bar-pulse {
+            position: absolute;
+            inset: 0;
+            animation: gantt-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes gantt-pulse {
+            0%, 100% { opacity: 0.15; }
+            50%       { opacity: 0.35; }
+        }
+
+        /* Legend */
+        .gantt-legend {
+            display: flex;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-6);
+        }
+
+        .gantt-legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .gantt-legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+        }
+
+        .gantt-legend-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+
+        /* Station list */
+        .gantt-station-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .gantt-station-row {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            overflow: hidden;
+        }
+
+        .gantt-station-row:hover {
+            border-color: var(--glass-hover);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .gantt-station-row-current {
+            border-color: var(--accent-ring);
+            background: var(--accent-glow);
+        }
+
+        .gantt-station-main {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            border-left: 3px solid transparent;
+        }
+
+        .gantt-station-name {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .gantt-station-meta {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .gantt-station-badge {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 1px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .gantt-status-complete  { color: var(--signal-green);  background: rgba(52,211,153,0.10); }
+        .gantt-status-active    { color: var(--accent);         background: var(--accent-glow); }
+        .gantt-status-stalled   { color: var(--signal-amber);   background: rgba(251,191,36,0.10); }
+        .gantt-status-critical  { color: var(--signal-red);     background: rgba(248,113,113,0.10); }
+        .gantt-status-predicted { color: var(--signal-amber);   background: rgba(251,191,36,0.08); }
+        .gantt-status-pending   { color: var(--text-tertiary);  background: var(--glass); }
+
+        /* Detail panel */
+        .gantt-detail {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+        }
+
+        .gantt-detail-inner {
+            padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-4) + 3px);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .gantt-detail-title {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .gantt-detail-code {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-3);
+        }
+
+        .gantt-detail-rows {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .gantt-detail-row {
+            display: flex;
+            gap: var(--space-4);
+        }
+
+        .gantt-detail-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            min-width: 100px;
+        }
+
+        .gantt-detail-value {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+        }
+
+        .gantt-detail-status-badge {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .gantt-empty {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            text-align: center;
+            padding: var(--space-6) 0;
+            margin: 0;
+        }
+
+        /* Methodology expandable */
+        .methodology-section {
+            margin-top: var(--space-8);
+            border-top: 1px solid var(--glass-border);
+            padding-top: var(--space-6);
+        }
+
+        .methodology-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: 0;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            transition: color 0.2s;
+        }
+
+        .methodology-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        .methodology-arrow {
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: var(--text-sm);
+        }
+
+        .methodology-toggle.open .methodology-arrow {
+            transform: rotate(90deg);
+        }
+
+        .methodology-body {
+            display: none;
+            padding-top: var(--space-4);
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .methodology-body.is-visible {
+            display: block;
+        }
+
+        .methodology-body p {
+            margin: 0 0 var(--space-4) 0;
+        }
+
+        .methodology-body ul {
+            margin: 0 0 var(--space-4) 0;
+            padding-left: var(--space-6);
+        }
+
+        .methodology-body li {
+            margin-bottom: var(--space-2);
+        }
+
+        /* Markdown output styling for non-Gantt data */
         .results-content {
             font-family: var(--sans);
             font-size: var(--text-base);
@@ -250,6 +625,37 @@
             color: var(--text-secondary);
         }
 
+        .results-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: var(--space-4);
+            font-size: var(--text-sm);
+        }
+
+        .results-content th {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+            text-align: left;
+        }
+
+        .results-content td {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .results-content tr:last-child td {
+            border-bottom: none;
+        }
+
         /* Error state */
         .error-message {
             font-family: var(--sans);
@@ -294,6 +700,19 @@
                 justify-content: center;
                 padding: var(--space-4) var(--space-6);
             }
+
+            .gantt-track {
+                height: 36px;
+            }
+
+            .gantt-detail-row {
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .gantt-detail-label {
+                min-width: unset;
+            }
         }
     </style>
 </head>
@@ -304,7 +723,7 @@
         <div class="obs-container">
             <div class="page-header">
                 <h1>Station Predictor</h1>
-                <p>See the likely next review stations for any active SF permit.</p>
+                <p>See the likely next review stations for any active SF permit, with historical timing data.</p>
             </div>
 
             <div class="predictor-form-card">
@@ -319,20 +738,46 @@
                         autocorrect="off"
                         autocapitalize="off"
                         spellcheck="false"
+                        maxlength="20"
+                        aria-label="SF permit number"
                     >
                     <button id="predict-btn" class="predict-btn" onclick="runPrediction()">
-                        <span id="btn-text">Predict next stations →</span>
-                        <span id="btn-spinner" class="spinner" style="display:none;"></span>
+                        <span id="btn-text">Analyze →</span>
+                        <span id="btn-spinner" class="spinner" style="display:none;" aria-hidden="true"></span>
                     </button>
                 </div>
             </div>
 
+            <!-- Skeleton loading screen -->
+            <div id="skeleton-screen" class="skeleton-screen" aria-hidden="true">
+                <div class="results-area">
+                    <div class="skeleton-gantt">
+                        <div class="skeleton-gantt-bar" style="flex: 2;"></div>
+                        <div class="skeleton-gantt-bar" style="flex: 3;"></div>
+                        <div class="skeleton-gantt-bar" style="flex: 1;"></div>
+                        <div class="skeleton-gantt-bar" style="flex: 2;"></div>
+                    </div>
+                    <div class="skeleton-bar skeleton-bar-wide"></div>
+                    <div class="skeleton-bar skeleton-bar-med"></div>
+                    <div class="skeleton-bar skeleton-bar-short"></div>
+                </div>
+            </div>
+
+            <!-- Main results area -->
             <div id="results" class="results-area">
-                <p class="results-hint">Enter a permit number above to see predicted routing.</p>
+                <div class="empty-state">
+                    <p class="empty-state-hint">Enter a permit number above to see predicted routing.</p>
+                    <div class="demo-permits" aria-label="Demo permit numbers">
+                        <button class="demo-permit-chip" onclick="fillDemo('202501015257')" type="button">202501015257</button>
+                        <button class="demo-permit-chip" onclick="fillDemo('202401019876')" type="button">202401019876</button>
+                        <button class="demo-permit-chip" onclick="fillDemo('202303014433')" type="button">202303014433</button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
+    <script nonce="{{ csp_nonce }}" src="/static/js/gantt-interactive.js" defer></script>
     <script nonce="{{ csp_nonce }}">
     (function () {
         var input = document.getElementById('permit-number-input');
@@ -340,8 +785,19 @@
         var btnText = document.getElementById('btn-text');
         var btnSpinner = document.getElementById('btn-spinner');
         var results = document.getElementById('results');
+        var skeletonScreen = document.getElementById('skeleton-screen');
 
-        // Allow pressing Enter in the input to submit
+        // ── Auto-fill from ?permit= query param ──────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            var permitParam = params.get('permit');
+            if (permitParam && input) {
+                input.value = permitParam.trim();
+                runPrediction();
+            }
+        });
+
+        // Enter key support
         if (input) {
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
@@ -350,6 +806,13 @@
             });
         }
 
+        // Demo chip fill
+        window.fillDemo = function (permit) {
+            if (input) input.value = permit;
+            runPrediction();
+        };
+
+        // ── Main prediction handler ───────────────────────────────────────────
         window.runPrediction = function () {
             var permitNumber = (input ? input.value : '').trim();
             if (!permitNumber) {
@@ -363,8 +826,7 @@
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ?
-                        document.querySelector('meta[name="csrf-token"]').getAttribute('content') : ''
+                    'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || ''
                 }
             })
             .then(function (response) {
@@ -382,7 +844,7 @@
                 }
                 showResult(data.permit_number, data.result);
             })
-            .catch(function (err) {
+            .catch(function () {
                 showError('Unable to reach the server. Please try again.');
             })
             .finally(function () {
@@ -390,48 +852,196 @@
             });
         };
 
+        // ── Loading state ─────────────────────────────────────────────────────
         function setLoading(active) {
             if (!btn) return;
             btn.disabled = active;
             if (active) {
                 btn.classList.add('loading');
-                if (btnText) btnText.textContent = 'Analyzing...';
+                if (btnText) btnText.textContent = 'Analyzing\u2026';
                 if (btnSpinner) btnSpinner.style.display = 'inline-block';
+                if (skeletonScreen) skeletonScreen.classList.add('is-visible');
+                if (results) results.style.display = 'none';
             } else {
                 btn.classList.remove('loading');
-                if (btnText) btnText.textContent = 'Predict next stations \u2192';
+                if (btnText) btnText.textContent = 'Analyze \u2192';
                 if (btnSpinner) btnSpinner.style.display = 'none';
+                if (skeletonScreen) skeletonScreen.classList.remove('is-visible');
+                if (results) results.style.display = '';
             }
         }
 
+        // ── Parse stations from markdown text ────────────────────────────────
+        /**
+         * Parses the markdown result from predict_next_stations into a structured
+         * station array for the Gantt chart, then returns the remainder as plain
+         * markdown for the results-content area below the chart.
+         */
+        function parseStationsFromMarkdown(markdownText, permitNumber) {
+            var stations = [];
+
+            // Extract station history from "Stations visited" line
+            var visitedMatch = markdownText.match(/Stations visited:\s*(\d+)\s*completed/i);
+            var completedCount = visitedMatch ? parseInt(visitedMatch[1], 10) : 0;
+
+            // Try to extract current station from "Current Station" section
+            var currentStationMatch = markdownText.match(/\*\*(.+?)\*\*\s*\(`([A-Z0-9\-]+)`\)/);
+            var currentStationCode = currentStationMatch ? currentStationMatch[2] : null;
+            var currentStationLabel = currentStationMatch ? currentStationMatch[1] : null;
+
+            // Extract dwell days
+            var dwellMatch = markdownText.match(/Days at this station:\s*\*\*(\d+)\s*days\*\*/i);
+            var dwellDays = dwellMatch ? parseInt(dwellMatch[1], 10) : null;
+
+            // Extract STALLED flag
+            var isStalled = /STALLED/i.test(markdownText) || (dwellDays && dwellDays > 60);
+
+            // Add placeholder for completed stations
+            if (completedCount > 0) {
+                for (var i = 0; i < completedCount; i++) {
+                    stations.push({
+                        station: 'DONE',
+                        label: 'Completed Station ' + (i + 1),
+                        status: 'complete',
+                        dwell_days: 20,
+                    });
+                }
+            }
+
+            // Add current station
+            if (currentStationCode) {
+                stations.push({
+                    station: currentStationCode,
+                    label: currentStationLabel || currentStationCode,
+                    status: isStalled ? 'stalled' : 'active',
+                    dwell_days: dwellDays,
+                    isCurrentStation: true,
+                });
+            }
+
+            // Extract predicted stations from markdown table
+            // Pattern: | Station Label (`CODE`) | 71% | 3 wk | ... |
+            var tableRows = markdownText.match(/\|\s*(.+?\s*\(`[A-Z0-9\-]+`\))\s*\|\s*(\d+)%\s*\|\s*([^|]+)\|\s*([^|]+)\|/g);
+            if (tableRows) {
+                tableRows.forEach(function (row) {
+                    var parts = row.split('|').map(function (p) { return p.trim(); }).filter(Boolean);
+                    if (parts.length < 2) return;
+                    var labelPart = parts[0];
+                    var codeMatch = labelPart.match(/\(`([A-Z0-9\-]+)`\)/);
+                    var code = codeMatch ? codeMatch[1] : '';
+                    var label = labelPart.replace(/\s*\(`[^`]+`\)/, '').trim();
+                    var probStr = parts[1].replace('%', '');
+                    var prob = parseInt(probStr, 10) / 100;
+
+                    // Try to parse p50 from "3 wk" or "14 days" or "1.2 mo"
+                    var p50 = null;
+                    var p50Str = (parts[2] || '').trim();
+                    var wkMatch = p50Str.match(/([\d.]+)\s*wk/);
+                    var dayMatch = p50Str.match(/([\d.]+)\s*day/);
+                    var moMatch = p50Str.match(/([\d.]+)\s*mo/);
+                    if (wkMatch) p50 = parseFloat(wkMatch[1]) * 7;
+                    else if (dayMatch) p50 = parseFloat(dayMatch[1]);
+                    else if (moMatch) p50 = parseFloat(moMatch[1]) * 30;
+
+                    stations.push({
+                        station: code,
+                        label: label,
+                        status: 'predicted',
+                        probability: prob,
+                        p50_days: p50,
+                    });
+                });
+            }
+
+            return stations;
+        }
+
+        // ── Show result ───────────────────────────────────────────────────────
         function showResult(permitNumber, markdownText) {
+            var stations = parseStationsFromMarkdown(markdownText, permitNumber);
+
             var html = '';
-            try {
-                html = typeof marked !== 'undefined' ? marked.parse(markdownText) : escapeHtml(markdownText);
-            } catch (e) {
-                html = '<pre>' + escapeHtml(markdownText) + '</pre>';
+            html += '<p class="results-label">Station Analysis</p>';
+            html += '<p class="results-permit-number">' + escHtml(permitNumber) + '</p>';
+
+            // Gantt section (only if we parsed stations)
+            if (stations.length > 0) {
+                html += '<div class="gantt-section">';
+                html += '<div class="gantt-section-label">Routing Timeline — click a station for details</div>';
+                html += '<div id="gantt-chart-container"></div>';
+                html += '</div>';
             }
 
-            results.innerHTML =
-                '<p class="results-label">Predicted Routing</p>' +
-                '<p class="results-permit-number">' + escapeHtml(permitNumber) + '</p>' +
-                '<div class="results-content">' + html + '</div>';
+            // Full markdown section
+            var parsedMd = '';
+            try {
+                parsedMd = (typeof marked !== 'undefined') ? marked.parse(markdownText) : escHtml(markdownText);
+            } catch (e) {
+                parsedMd = '<pre>' + escHtml(markdownText) + '</pre>';
+            }
+            html += '<div class="results-content">' + parsedMd + '</div>';
+
+            // Methodology section
+            html += buildMethodologySection();
+
+            results.innerHTML = html;
+
+            // Render Gantt chart after DOM is updated
+            if (stations.length > 0 && typeof GanttInteractive !== 'undefined') {
+                var ganttContainer = document.getElementById('gantt-chart-container');
+                if (ganttContainer) {
+                    GanttInteractive.render(ganttContainer, stations, { permitNumber: permitNumber });
+                }
+            }
         }
+
+        function buildMethodologySection() {
+            return '<div class="methodology-section">'
+                + '<button class="methodology-toggle" id="methodology-toggle" onclick="toggleMethodology()" type="button">'
+                + '<span class="methodology-arrow">\u25BA</span>'
+                + '<span>How we know this</span>'
+                + '</button>'
+                + '<div class="methodology-body" id="methodology-body">'
+                + '<p>Station predictions use a Markov-style transition probability model built from historical addenda routing records for similar permit types.'
+                + ' For each current station, we count how often permits historically moved to each next station, then rank by probability.</p>'
+                + '<ul>'
+                + '<li><strong>Transition matrix:</strong> Built from permits filed in the last 3 years with the same permit type, filtered to the same neighborhood when available.</li>'
+                + '<li><strong>Timing estimates:</strong> p25/p50/p75 dwell times come from the Station Velocity model — a rolling 90-day baseline updated nightly.</li>'
+                + '<li><strong>Confidence:</strong> Higher when based on 100+ similar permits. Low confidence (fewer than 30 permits) is shown explicitly.</li>'
+                + '<li><strong>Stall detection:</strong> A permit is marked STALLED when dwell time exceeds 60 days with no finish date recorded.</li>'
+                + '</ul>'
+                + '<p>Data sources: SF Open Data SODA API (addenda routing, permit records). Updated nightly.</p>'
+                + '</div>'
+                + '</div>';
+        }
+
+        window.toggleMethodology = function () {
+            var toggle = document.getElementById('methodology-toggle');
+            var body = document.getElementById('methodology-body');
+            if (!toggle || !body) return;
+            var isOpen = body.classList.contains('is-visible');
+            if (isOpen) {
+                body.classList.remove('is-visible');
+                toggle.classList.remove('open');
+            } else {
+                body.classList.add('is-visible');
+                toggle.classList.add('open');
+            }
+        };
 
         function showError(message) {
-            results.innerHTML =
-                '<div class="error-message">' + escapeHtml(message) + '</div>';
+            results.innerHTML = '<div class="error-message">' + escHtml(message) + '</div>';
         }
 
         function showAuthPrompt() {
             results.innerHTML =
-                '<div class="auth-prompt">' +
-                'Please <a href="/auth/login">log in</a> to use this tool.' +
-                '</div>';
+                '<div class="auth-prompt">'
+                + 'Please <a href="/auth/login">log in</a> to use this tool.'
+                + '</div>';
         }
 
-        function escapeHtml(str) {
-            return String(str)
+        function escHtml(str) {
+            return String(str || '')
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
