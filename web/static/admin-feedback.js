@@ -16,13 +16,20 @@
 
   var feedbackItems = JSON.parse(localStorage.getItem('qa-feedback') || '[]');
 
+  // Auto-prune synced items on load — once submitted to server, clear from panel
+  var pruned = feedbackItems.filter(function(item) { return !item.synced; });
+  if (pruned.length < feedbackItems.length) {
+    feedbackItems = pruned;
+    localStorage.setItem('qa-feedback', JSON.stringify(feedbackItems));
+  }
+
   // Create panel
   var panel = document.createElement('div');
   panel.id = 'qa-panel';
   panel.innerHTML = `
     <div class="qa-panel__header">
       <span class="qa-panel__title">QA Feedback</span>
-      <span class="qa-panel__count" id="qa-count">${feedbackItems.length}</span>
+      <span class="qa-panel__count" id="qa-count">${pruned.length}</span>
       <button class="qa-panel__toggle" id="qa-toggle">−</button>
     </div>
     <div class="qa-panel__body" id="qa-body">
@@ -117,7 +124,8 @@
   var clearBtn = document.getElementById('qa-clear');
 
   function renderHistory() {
-    history.innerHTML = feedbackItems.map(function(item, i) {
+    var pending = feedbackItems.filter(function(item) { return !item.synced; });
+    history.innerHTML = pending.map(function(item) {
       return '<div class="qa-panel__item">' +
         item.text +
         '<div class="qa-panel__item-meta">' +
@@ -127,7 +135,7 @@
         '</div>' +
       '</div>';
     }).join('');
-    count.textContent = feedbackItems.length;
+    count.textContent = pending.length;
     history.scrollTop = history.scrollHeight;
   }
 
@@ -159,6 +167,7 @@
         if (r.ok) {
           item.synced = true;
           localStorage.setItem('qa-feedback', JSON.stringify(feedbackItems));
+          renderHistory();
         }
       }).catch(function() {});
     } catch(e) {}
@@ -209,6 +218,7 @@
         if (r.ok) {
           item.synced = true;
           localStorage.setItem('qa-feedback', JSON.stringify(feedbackItems));
+          renderHistory();
         }
       }).catch(function() {});
     }
