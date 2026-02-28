@@ -288,9 +288,10 @@
     display: none;
   }
 
+  @keyframes fadeInCue { to { opacity: 0.6; } }
   .scroll-cue {
     position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
-    opacity: 0; animation: fadeIn 1s 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0; animation: fadeInCue 1s 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     transition: opacity 0.5s;
     display: flex; flex-direction: column; align-items: center; gap: 8px;
   }
@@ -825,7 +826,7 @@
 </div>
 
 <section class="hero">
-  <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">beta</span></div>
+  <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">Beta Tester</span></div>
   <h1 class="hero-headline">Permit intelligence,<br><em>distilled</em></h1>
   <p class="hero-cred"><span style="white-space:nowrap;">18.4 million San Francisco government records.</span> <span class="hero-cred__punch" style="white-space:nowrap;">One search.</span></p>
 
@@ -1402,7 +1403,7 @@
     returning: {
       placeholder: 'Search any SF address',
       sub: '',
-      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/search?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/search?q=225+Bush+St">225 Bush — on track</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">2 watching →</a>',
+      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/?q=225+Bush+St">225 Bush — on track</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">2 watching →</a>',
       context: 'try: <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
       scroll: 'What\'s new this week'
     },
@@ -1423,7 +1424,7 @@
     beta: {
       placeholder: 'Enter an SF address or describe your project',
       sub: '',
-      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/search?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
+      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
       context: 'try: <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
       scroll: 'See what you can do'
     },
