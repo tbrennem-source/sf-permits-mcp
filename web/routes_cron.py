@@ -865,29 +865,90 @@ def cron_signals():
     Protected by CRON_SECRET bearer token. Detects 13 signal types across
     permits, violations, complaints, and inspections. Computes property-level
     health tiers (on_track -> high_risk) and persists to property_health table.
+    Logs run start/completion to cron_log.
+
+    Returns JSON with ok, status, elapsed_seconds, and pipeline stats.
     """
     _check_api_auth()
+    import time as _time
     import json as _json_mod
+    from datetime import datetime, timezone as _tz
     from src.signals.pipeline import run_signal_pipeline
-    from src.db import get_connection
+    from src.db import get_connection, execute_write, BACKEND
 
+    started_at = datetime.now(_tz.utc)
+    t0 = _time.monotonic()
+
+    # Log start (non-fatal)
+    try:
+        if BACKEND == "postgres":
+            execute_write(
+                "INSERT INTO cron_log (job_type, started_at, status) VALUES (%s, %s, %s)",
+                ("signals", started_at, "running"),
+            )
+        else:
+            _lc = get_connection()
+            try:
+                _lc.execute(
+                    "INSERT INTO cron_log (log_id, job_type, started_at, status) "
+                    "VALUES ((SELECT COALESCE(MAX(log_id), 0) + 1 FROM cron_log), ?, ?, ?)",
+                    ("signals", started_at.isoformat(), "running"),
+                )
+            finally:
+                _lc.close()
+    except Exception as _le:
+        logging.warning("cron_signals: failed to log start: %s", _le)
+
+    stats = {}
+    error_msg = None
+    final_status = "success"
     try:
         conn = get_connection()
         try:
-            stats = run_signal_pipeline(conn)
+            stats = run_signal_pipeline(conn) or {}
         finally:
             conn.close()
-        return Response(
-            _json_mod.dumps({"status": "ok", **stats}),
-            mimetype="application/json",
-        )
     except Exception as e:
         logging.getLogger(__name__).exception("signal pipeline failed")
-        return Response(
-            _json_mod.dumps({"status": "error", "error": str(e)}),
-            status=500,
-            mimetype="application/json",
-        )
+        error_msg = str(e)
+        final_status = "failed"
+        stats = {"error": error_msg}
+
+    elapsed = round(_time.monotonic() - t0, 2)
+    completed_at = datetime.now(_tz.utc)
+
+    # Log completion (non-fatal)
+    try:
+        if BACKEND == "postgres":
+            execute_write(
+                "UPDATE cron_log SET status = %s, completed_at = %s, error_message = %s "
+                "WHERE job_type = %s AND status = 'running' AND started_at = %s",
+                (final_status, completed_at, error_msg, "signals", started_at),
+            )
+        else:
+            _lc2 = get_connection()
+            try:
+                _lc2.execute(
+                    "UPDATE cron_log SET status = ?, completed_at = ?, error_message = ? "
+                    "WHERE job_type = ? AND status = 'running' AND started_at = ?",
+                    (final_status, completed_at.isoformat(), error_msg,
+                     "signals", started_at.isoformat()),
+                )
+            finally:
+                _lc2.close()
+    except Exception as _le2:
+        logging.warning("cron_signals: failed to log completion: %s", _le2)
+
+    return Response(
+        _json_mod.dumps({
+            "ok": final_status == "success",
+            "status": final_status,
+            "elapsed_seconds": elapsed,
+            **stats,
+        }),
+        status=200 if final_status == "success" else 500,
+        mimetype="application/json",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -900,16 +961,47 @@ def cron_velocity_refresh():
 
     Protected by CRON_SECRET bearer token. Recomputes p25/p50/p75/p90
     per station per metric_type (initial/revision) per period (all, 2024-2026, recent_6mo).
+    Logs run start/completion to cron_log.
+
+    Returns JSON with ok, status, elapsed_seconds, and refresh stats.
     """
     _check_api_auth()
+    import time as _time
     import json as _json_mod
+    from datetime import datetime, timezone as _tz
     from src.station_velocity_v2 import refresh_velocity_v2
-    from src.db import get_connection
+    from src.db import get_connection, execute_write, BACKEND
 
+    started_at = datetime.now(_tz.utc)
+    t0 = _time.monotonic()
+
+    # Log start (non-fatal)
+    try:
+        if BACKEND == "postgres":
+            execute_write(
+                "INSERT INTO cron_log (job_type, started_at, status) VALUES (%s, %s, %s)",
+                ("velocity_refresh", started_at, "running"),
+            )
+        else:
+            _lc = get_connection()
+            try:
+                _lc.execute(
+                    "INSERT INTO cron_log (log_id, job_type, started_at, status) "
+                    "VALUES ((SELECT COALESCE(MAX(log_id), 0) + 1 FROM cron_log), ?, ?, ?)",
+                    ("velocity_refresh", started_at.isoformat(), "running"),
+                )
+            finally:
+                _lc.close()
+    except Exception as _le:
+        logging.warning("cron_velocity_refresh: failed to log start: %s", _le)
+
+    stats = {}
+    error_msg = None
+    final_status = "success"
     try:
         conn = get_connection()
         try:
-            stats = refresh_velocity_v2(conn)
+            stats = refresh_velocity_v2(conn) or {}
         finally:
             conn.close()
 
@@ -933,17 +1025,47 @@ def cron_velocity_refresh():
             stats["congestion_error"] = str(e)
         # === END SESSION D ===
 
-        return Response(
-            _json_mod.dumps({"status": "ok", **stats}),
-            mimetype="application/json",
-        )
     except Exception as e:
         logging.getLogger(__name__).exception("velocity-refresh failed")
-        return Response(
-            _json_mod.dumps({"status": "error", "error": str(e)}),
-            status=500,
-            mimetype="application/json",
-        )
+        error_msg = str(e)
+        final_status = "failed"
+        stats = {"error": error_msg}
+
+    elapsed = round(_time.monotonic() - t0, 2)
+    completed_at = datetime.now(_tz.utc)
+
+    # Log completion (non-fatal)
+    try:
+        if BACKEND == "postgres":
+            execute_write(
+                "UPDATE cron_log SET status = %s, completed_at = %s, error_message = %s "
+                "WHERE job_type = %s AND status = 'running' AND started_at = %s",
+                (final_status, completed_at, error_msg, "velocity_refresh", started_at),
+            )
+        else:
+            _lc2 = get_connection()
+            try:
+                _lc2.execute(
+                    "UPDATE cron_log SET status = ?, completed_at = ?, error_message = ? "
+                    "WHERE job_type = ? AND status = 'running' AND started_at = ?",
+                    (final_status, completed_at.isoformat(), error_msg,
+                     "velocity_refresh", started_at.isoformat()),
+                )
+            finally:
+                _lc2.close()
+    except Exception as _le2:
+        logging.warning("cron_velocity_refresh: failed to log completion: %s", _le2)
+
+    return Response(
+        _json_mod.dumps({
+            "ok": final_status == "success",
+            "status": final_status,
+            "elapsed_seconds": elapsed,
+            **stats,
+        }),
+        status=200 if final_status == "success" else 500,
+        mimetype="application/json",
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -189,6 +189,9 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     # QS3-A: Permit Prep summary
     prep_summary = _get_prep_summary(user_id)
 
+    # QS8-T1-B: Pipeline stats (last 5 nightly durations + 24h success/fail)
+    pipeline_stats = _get_pipeline_stats()
+
     return {
         "changes": changes,
         "plan_reviews": plan_reviews,
@@ -208,6 +211,7 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         "nearby_development": nearby_development,
         "change_velocity": change_velocity,
         "prep_summary": prep_summary,
+        "pipeline_stats": pipeline_stats,
         "summary": {
             "total_watches": total_watches,
             "total_properties": len(property_cards),
@@ -1549,6 +1553,81 @@ def get_pipeline_health_for_brief() -> dict:
     except Exception as e:
         logger.warning("Pipeline health check failed (non-fatal): %s", e)
         return {"status": "unknown", "issues": [str(e)], "checks": []}
+
+
+# ── Pipeline stats (QS8-T1-B) ────────────────────────────────────
+
+def _get_pipeline_stats() -> dict:
+    """Compute pipeline stats from cron_log for inclusion in morning brief.
+
+    Returns:
+        Dict with:
+          - recent_jobs: list of last 5 nightly job dicts (job_type, status,
+            started_at, elapsed_seconds)
+          - avg_duration_seconds: average duration of last 5 completed nightly
+            jobs (None if insufficient data)
+          - last_24h_success: count of jobs with status='success' in last 24h
+          - last_24h_failed: count of jobs with status='failed' in last 24h
+          - last_24h_jobs: count of all jobs in last 24h
+
+    Never raises — returns empty dict on error.
+    """
+    try:
+        from datetime import datetime, timezone
+        ph = _ph()
+
+        # Last 5 nightly jobs for duration computation
+        rows = query(
+            "SELECT job_type, started_at, completed_at, status "
+            "FROM cron_log "
+            "WHERE job_type = 'nightly' "
+            "ORDER BY started_at DESC "
+            "LIMIT 5"
+        )
+
+        recent_jobs = []
+        durations = []
+        for r in rows:
+            job_type, started_at, completed_at, status = r[0], r[1], r[2], r[3]
+            elapsed = None
+            if started_at and completed_at:
+                try:
+                    s = started_at if isinstance(started_at, datetime) else datetime.fromisoformat(str(started_at))
+                    c = completed_at if isinstance(completed_at, datetime) else datetime.fromisoformat(str(completed_at))
+                    elapsed = round((c - s).total_seconds(), 2)
+                    if status == "success" and elapsed >= 0:
+                        durations.append(elapsed)
+                except Exception:
+                    pass
+            recent_jobs.append({
+                "job_type": job_type,
+                "status": status,
+                "started_at": str(started_at) if started_at else None,
+                "elapsed_seconds": elapsed,
+            })
+
+        avg_duration = round(sum(durations) / len(durations), 2) if durations else None
+
+        # 24h success/failed counts
+        cutoff_rows = query(
+            f"SELECT status, COUNT(*) FROM cron_log "
+            f"WHERE started_at >= NOW() - INTERVAL '24 hours' "
+            f"GROUP BY status"
+        )
+        status_counts: dict[str, int] = {}
+        for r in (cutoff_rows or []):
+            status_counts[str(r[0])] = int(r[1])
+
+        return {
+            "recent_jobs": recent_jobs,
+            "avg_duration_seconds": avg_duration,
+            "last_24h_success": status_counts.get("success", 0),
+            "last_24h_failed": status_counts.get("failed", 0),
+            "last_24h_jobs": sum(status_counts.values()),
+        }
+    except Exception as e:
+        logger.warning("_get_pipeline_stats failed (non-fatal): %s", e)
+        return {}
 
 
 # ── Section 11: Planning & Zoning Context ────────────────────────
