@@ -830,6 +830,8 @@
     renderDropdown(input.value);
     dropdown.classList.add('open');
     searchBar.classList.add('dropdown-open');
+    var cue = document.getElementById('scroll-cue');
+    if (cue) cue.style.opacity = '0';
   }
 
   let mouseInSearchZone = false;
@@ -871,6 +873,8 @@
     searchBar.classList.remove('dropdown-open');
     clearSourceActive();
     input.value = '';
+    var cue = document.getElementById('scroll-cue');
+    if (cue && !cue.classList.contains('hidden')) cue.style.opacity = '';
   }
 
   function closeDropdown() {
