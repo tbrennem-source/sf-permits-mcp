@@ -49,6 +49,11 @@
             "type": "command",
             "command": "bash .claude/hooks/detect-descope.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/test-hygiene-hook.sh",
+            "timeout": 5
           }
         ]
       }
