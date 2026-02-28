@@ -1,0 +1,230 @@
+{# admin_health.html — System health fragment for admin ops tab
+   Rendered by /admin/health (HTMX fragment endpoint)
+   Auto-refreshes every 30s via hx-trigger="every 30s"
+#}
+<style nonce="{{ csp_nonce }}">
+    .health-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--space-6);
+    }
+    .health-card {
+        background: var(--obsidian-mid);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-6);
+        transition: border-color 0.3s;
+    }
+    .health-card:hover {
+        border-color: var(--glass-hover);
+    }
+    .health-card__title {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-4);
+    }
+    .health-stat {
+        font-family: var(--mono);
+        font-size: clamp(22px, 3vw, 36px);
+        font-weight: 300;
+        line-height: 1;
+        color: var(--text-primary);
+    }
+    .health-stat-label {
+        font-family: var(--sans);
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin-top: var(--space-1);
+    }
+    .health-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    .health-row:last-child {
+        border-bottom: none;
+    }
+    .health-row__label {
+        font-family: var(--sans);
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+    }
+    .health-row__value {
+        font-family: var(--mono);
+        font-size: var(--text-sm);
+        color: var(--text-primary);
+    }
+    /* Pool bar */
+    .pool-bar-wrap {
+        margin: var(--space-4) 0 var(--space-2);
+    }
+    .pool-bar-labels {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--mono);
+        font-size: var(--text-xs);
+        color: var(--text-secondary);
+        margin-bottom: var(--space-2);
+    }
+    .progress-track {
+        height: 4px;
+        background: var(--glass);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
+        border-radius: 2px;
+        transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .progress-fill--warn {
+        background: linear-gradient(90deg, var(--signal-amber), rgba(251, 191, 36, 0.4));
+    }
+    .progress-fill--danger {
+        background: linear-gradient(90deg, var(--signal-red), rgba(248, 113, 113, 0.4));
+    }
+    /* Status dot */
+    .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: var(--radius-full);
+        margin-right: var(--space-2);
+        flex-shrink: 0;
+    }
+    .status-dot--green { background: var(--dot-green); }
+    .status-dot--amber { background: var(--dot-amber); }
+    .status-dot--red   { background: var(--dot-red); }
+    /* CB state */
+    .cb-state-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-4);
+    }
+    .cb-state-label {
+        font-family: var(--mono);
+        font-size: var(--text-sm);
+        font-weight: 400;
+    }
+    .cb-state--closed { color: var(--signal-green); }
+    .cb-state--open   { color: var(--signal-red); }
+    .cb-state--half-open { color: var(--signal-amber); }
+    /* Refresh hint */
+    .health-refresh-hint {
+        font-family: var(--mono);
+        font-size: var(--text-xs);
+        color: var(--text-tertiary);
+        text-align: right;
+        margin-top: var(--space-4);
+    }
+    /* Unhealthy pool border */
+    .health-card--warn {
+        border-left: 3px solid var(--dot-amber);
+    }
+    .health-card--danger {
+        border-left: 3px solid var(--dot-red);
+    }
+</style>
+
+<div
+    hx-get="/admin/health"
+    hx-trigger="every 30s"
+    hx-swap="outerHTML"
+>
+    <div class="health-grid">
+
+        {# ── Pool Card ──────────────────────────────────────────── #}
+        {% set pool_pct = (pool.in_use / pool.max * 100) if pool.max > 0 else 0 %}
+        <div class="health-card {% if not pool.healthy %}health-card--danger{% elif pool_pct >= 80 %}health-card--warn{% endif %}">
+            <div class="health-card__title">DB Connection Pool</div>
+            <div class="health-stat">{{ pool.in_use }} / {{ pool.max }}</div>
+            <div class="health-stat-label">connections in use</div>
+
+            <div class="pool-bar-wrap">
+                <div class="pool-bar-labels">
+                    <span>{{ pool.in_use }} used</span>
+                    <span>{{ pool.available }} free</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill {% if pool_pct >= 90 %}progress-fill--danger{% elif pool_pct >= 70 %}progress-fill--warn{% endif %}"
+                         style="width: {{ [pool_pct, 100] | min }}%"></div>
+                </div>
+            </div>
+
+            <div class="health-row">
+                <span class="health-row__label">Status</span>
+                <span class="health-row__value">
+                    {% if pool.healthy %}
+                        <span class="status-dot status-dot--green"></span>healthy
+                    {% else %}
+                        <span class="status-dot status-dot--red"></span>unhealthy
+                    {% endif %}
+                </span>
+            </div>
+            <div class="health-row">
+                <span class="health-row__label">Min / Max</span>
+                <span class="health-row__value">{{ pool.min }} / {{ pool.max }}</span>
+            </div>
+        </div>
+
+        {# ── Circuit Breaker Card ────────────────────────────────── #}
+        <div class="health-card {% if cb.state == 'open' %}health-card--danger{% elif cb.state == 'half-open' %}health-card--warn{% endif %}">
+            <div class="health-card__title">SODA Circuit Breaker</div>
+            <div class="cb-state-row">
+                {% if cb.state == 'closed' %}
+                    <span class="status-dot status-dot--green"></span>
+                    <span class="cb-state-label cb-state--closed">CLOSED</span>
+                {% elif cb.state == 'open' %}
+                    <span class="status-dot status-dot--red"></span>
+                    <span class="cb-state-label cb-state--open">OPEN</span>
+                {% else %}
+                    <span class="status-dot status-dot--amber"></span>
+                    <span class="cb-state-label cb-state--half-open">HALF-OPEN</span>
+                {% endif %}
+            </div>
+            <div class="health-row">
+                <span class="health-row__label">Failure count</span>
+                <span class="health-row__value">{{ cb.failure_count }} / {{ cb.failure_threshold }}</span>
+            </div>
+            <div class="health-row">
+                <span class="health-row__label">DB circuit</span>
+                <span class="health-row__value">
+                    {% if db_cb_status %}
+                        {% for cat, state in db_cb_status.items() %}
+                            <span style="display:block;">{{ cat }}: {{ state }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="status-dot status-dot--green"></span>all closed
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        {# ── Cache Card ─────────────────────────────────────────── #}
+        <div class="health-card">
+            <div class="health-card__title">Page Cache</div>
+            <div class="health-stat">{{ cache.row_count }}</div>
+            <div class="health-stat-label">cached entries</div>
+
+            <div class="health-row">
+                <span class="health-row__label">Oldest entry</span>
+                <span class="health-row__value">{{ cache.oldest_age or "—" }}</span>
+            </div>
+            <div class="health-row">
+                <span class="health-row__label">Active (not invalidated)</span>
+                <span class="health-row__value">{{ cache.active_count }}</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="health-refresh-hint">auto-refresh every 30s</div>
+</div>

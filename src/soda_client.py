@@ -232,3 +232,33 @@ class SODAClient:
     async def close(self):
         """Close the underlying HTTP client."""
         await self.client.aclose()
+
+
+# ---------------------------------------------------------------------------
+# Module-level circuit breaker singleton for observability
+# (SODAClient instances use this shared breaker so admin health panel can
+#  read its state without creating a throw-away client instance)
+# ---------------------------------------------------------------------------
+
+_soda_circuit_breaker = CircuitBreaker(
+    failure_threshold=int(os.environ.get("SODA_CB_THRESHOLD", "5")),
+    recovery_timeout=int(os.environ.get("SODA_CB_TIMEOUT", "60")),
+)
+
+
+def get_soda_cb_status() -> dict:
+    """Return SODA circuit breaker state for admin health panel.
+
+    Returns:
+        {
+            "state": "closed" | "open" | "half-open",
+            "failure_count": int,
+            "failure_threshold": int,
+        }
+    """
+    cb = _soda_circuit_breaker
+    return {
+        "state": cb.state,
+        "failure_count": cb.failure_count,
+        "failure_threshold": cb.failure_threshold,
+    }
