@@ -5,8 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Revision Risk — sfpermits.ai</title>
     {% include "fragments/head_obsidian.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" nonce="{{ csp_nonce }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/share.css') }}">
-            padding: var(--space-12) 0 var(--space-8);
+    <style nonce="{{ csp_nonce }}">
+        body {
+            background: var(--obsidian);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            padding: var(--space-16) 0 var(--space-8);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: var(--space-8);
         }
 
         .page-header h1 {
@@ -25,63 +38,123 @@
             max-width: 560px;
         }
 
+        .demo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: color 0.3s, border-color 0.3s;
+            margin-top: var(--space-3);
+        }
+        .demo-link:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* ── Two-column layout ───────────────────────────────────────────── */
+        .tool-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: var(--space-8);
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .tool-layout {
+                grid-template-columns: 1fr;
+            }
+            .page-header {
+                padding: var(--space-10) 0 var(--space-6);
+            }
+        }
+
         .form-card {
             background: var(--obsidian-mid);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
-            padding: var(--space-8);
-            margin-bottom: var(--space-6);
+            padding: var(--space-6);
+            position: sticky;
+            top: 80px;
             transition: border-color 0.3s;
         }
 
-        .form-card:hover {
-            border-color: var(--glass-hover);
+        @media (max-width: 768px) {
+            .form-card { position: static; }
         }
 
-        .form-label {
-            display: block;
-            font-family: var(--mono);
-            font-size: var(--text-xs);
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .form-field label {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
             font-weight: 400;
             color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: var(--space-3);
         }
 
-        .input-row {
-            display: flex;
-            gap: var(--space-3);
-            align-items: stretch;
+        .form-field label .optional-tag {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-left: var(--space-2);
+            font-weight: 300;
         }
 
-        .permit-input {
-            flex: 1;
-            padding: 14px 20px;
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
             font-family: var(--mono);
             font-size: var(--text-base);
             font-weight: 300;
             color: var(--text-primary);
-            background: var(--glass);
+            background: var(--obsidian-light);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
             outline: none;
-            transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
-            min-width: 0;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        .permit-input::placeholder {
+        .form-select {
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.3)'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        .form-select option {
+            background: var(--obsidian-mid);
+            color: var(--text-primary);
+        }
+
+        .form-input::placeholder {
             color: var(--text-tertiary);
             font-weight: 300;
         }
 
-        .permit-input:focus {
+        .form-input:focus,
+        .form-select:focus {
             border-color: var(--accent-ring);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: 0 0 40px var(--accent-glow);
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
-        .assess-btn {
+        .action-btn {
             font-family: var(--mono);
             font-size: var(--text-sm);
             font-weight: 400;
@@ -89,169 +162,286 @@
             background: var(--glass);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-sm);
-            padding: 0 var(--space-6);
+            padding: 10px 24px;
             cursor: pointer;
-            white-space: nowrap;
             transition: border-color 0.3s, color 0.3s, background 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
+            width: 100%;
+            margin-top: var(--space-3);
         }
 
-        .assess-btn:hover {
+        .action-btn:hover:not(:disabled) {
             border-color: var(--glass-hover);
             color: var(--text-primary);
+            background: var(--obsidian-light);
         }
 
-        .assess-btn:disabled {
+        .action-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid var(--glass-border);
-            border-top-color: var(--accent);
-            border-radius: var(--radius-full);
-            animation: spin 0.7s linear infinite;
+        /* ── Loading skeleton ─────────────────────────────────────────── */
+        .loading-area {
+            display: none;
+        }
+        .loading-area.visible {
+            display: block;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .loading-label {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent);
+            margin-bottom: var(--space-6);
         }
 
-        /* Risk gauge section */
-        .results-area {
+        .skeleton {
+            background: var(--glass);
+            border-radius: var(--radius-sm);
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+        .skeleton--heading { height: 20px; }
+        .skeleton--text { height: 12px; }
+        .skeleton-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--glass-border);
+            gap: var(--space-4);
+        }
+        @keyframes skeleton-pulse {
+            0%, 100% { opacity: 0.04; }
+            50% { opacity: 0.10; }
+        }
+
+        /* ── Empty state ─────────────────────────────────────────────── */
+        .empty-state {
+            padding: var(--space-12) var(--space-8);
             background: var(--obsidian-mid);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
-            padding: var(--space-8);
-            transition: border-color 0.3s;
-            min-height: 120px;
+            text-align: center;
         }
 
-        .results-area:hover {
-            border-color: var(--glass-hover);
+        .empty-state__icon {
+            font-family: var(--mono);
+            font-size: var(--text-2xl);
+            color: var(--text-ghost);
+            margin-bottom: var(--space-4);
         }
 
-        .results-hint {
+        .empty-state__title {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-3);
+        }
+
+        .empty-state__desc {
             font-family: var(--sans);
             font-size: var(--text-sm);
             color: var(--text-tertiary);
-            margin: 0;
-            text-align: center;
-            padding: var(--space-6) 0;
+            margin: 0 0 var(--space-6);
         }
 
-        .results-label {
+        /* ── Risk gauge ──────────────────────────────────────────────── */
+        .risk-gauge-wrap {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            display: none;
+            align-items: center;
+            gap: var(--space-6);
+        }
+        .risk-gauge-wrap.visible {
+            display: flex;
+        }
+
+        @media (max-width: 480px) {
+            .risk-gauge-wrap {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .risk-gauge-svg {
+            flex-shrink: 0;
+        }
+
+        .risk-gauge-info {
+            flex: 1;
+        }
+
+        .risk-gauge-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-2) 0;
+        }
+
+        .risk-gauge-level {
+            font-family: var(--mono);
+            font-size: var(--text-xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+
+        .risk-gauge-sub {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* ── Results panel ───────────────────────────────────────────── */
+        .results-panel {
+            display: none;
+        }
+
+        .results-panel.visible {
+            display: block;
+        }
+
+        /* Permit number badge */
+        .permit-badge {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: var(--space-4) var(--space-6);
+            margin-bottom: var(--space-6);
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .permit-badge__label {
             font-family: var(--mono);
             font-size: var(--text-xs);
-            color: var(--text-secondary);
-            text-transform: uppercase;
+            font-weight: 400;
             letter-spacing: 0.08em;
-            margin: 0 0 var(--space-4) 0;
-        }
-
-        .results-permit-number {
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            color: var(--accent);
-            margin: 0 0 var(--space-6) 0;
-        }
-
-        .results-content {
-            font-family: var(--sans);
-            font-size: var(--text-base);
+            text-transform: uppercase;
             color: var(--text-secondary);
-            line-height: 1.7;
         }
 
-        .results-content h1,
-        .results-content h2,
-        .results-content h3 {
+        .permit-badge__value {
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--accent);
+        }
+
+        /* Full markdown result */
+        .result-markdown {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .result-markdown h1,
+        .result-markdown h2,
+        .result-markdown h3 {
             font-family: var(--sans);
             font-weight: 400;
             color: var(--text-primary);
-            margin: var(--space-6) 0 var(--space-3) 0;
+            margin-top: var(--space-6);
+            margin-bottom: var(--space-3);
+        }
+        .result-markdown h1 { font-size: var(--text-xl); margin-top: 0; }
+        .result-markdown h2 { font-size: var(--text-lg); border-bottom: 1px solid var(--glass-border); padding-bottom: var(--space-2); }
+        .result-markdown h3 { font-size: var(--text-base); }
+
+        .result-markdown p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin: var(--space-3) 0;
         }
 
-        .results-content h1 { font-size: var(--text-xl); }
-        .results-content h2 { font-size: var(--text-lg); }
-        .results-content h3 { font-size: var(--text-base); }
-
-        .results-content p {
-            margin: 0 0 var(--space-4) 0;
-        }
-
-        .results-content ul,
-        .results-content ol {
-            margin: 0 0 var(--space-4) 0;
-            padding-left: var(--space-6);
-        }
-
-        .results-content li {
-            margin-bottom: var(--space-2);
-        }
-
-        .results-content code {
+        .result-markdown strong {
             font-family: var(--mono);
-            font-size: var(--text-sm);
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm);
-            padding: 2px 6px;
-            color: var(--accent);
-        }
-
-        .results-content strong {
             font-weight: 500;
             color: var(--text-primary);
         }
 
-        .error-message {
+        .result-markdown ul, .result-markdown ol {
             font-family: var(--sans);
-            font-size: var(--text-sm);
-            color: var(--signal-red);
-            background: rgba(248, 113, 113, 0.07);
-            border: 1px solid rgba(248, 113, 113, 0.20);
-            border-radius: var(--radius-sm);
-            padding: var(--space-4) var(--space-6);
-        }
-
-        .auth-prompt {
-            font-family: var(--sans);
-            font-size: var(--text-sm);
+            font-size: var(--text-base);
             color: var(--text-secondary);
-            text-align: center;
-            padding: var(--space-6) 0;
+            line-height: 1.65;
+            padding-left: var(--space-6);
+            margin: var(--space-3) 0;
         }
 
-        .auth-prompt a {
+        .result-markdown code {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent);
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 3px;
+            padding: 1px 5px;
+        }
+
+        .result-markdown hr {
+            border: none;
+            border-top: 1px solid var(--glass-border);
+            margin: var(--space-6) 0;
+        }
+
+        .result-markdown table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            margin: var(--space-4) 0;
+        }
+
+        .result-markdown th {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: left;
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .result-markdown td {
+            color: var(--text-primary);
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        /* Error / auth states */
+        .error-box {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--signal-red);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .error-box a {
             color: var(--accent);
             text-decoration: none;
-            transition: opacity 0.2s;
         }
 
-        .auth-prompt a:hover {
-            opacity: 0.75;
-        }
-
-        @media (max-width: 480px) {
-            .page-header {
-                padding: var(--space-8) 0 var(--space-6);
-            }
-
-            .input-row {
-                flex-direction: column;
-            }
-
-            .assess-btn {
-                width: 100%;
-                justify-content: center;
-                padding: var(--space-4) var(--space-6);
-            }
+        .error-box a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -260,33 +450,141 @@
 
     <main>
         <div class="obs-container">
-            <div class="page-header">
+            <header class="page-header">
                 <h1>Revision Risk</h1>
-                <p>Assess the likelihood of revision requests and common correction categories for any SF permit.</p>
-            </div>
+                <p class="subtitle">Assess the probability of plan revisions for any permit type before you file — with data-backed risk factors.</p>
+                <a href="?permit_type=alterations&neighborhood=Mission" class="demo-link">Try demo: Alterations in the Mission &rarr;</a>
+            </header>
 
-            <div class="form-card">
-                <label class="form-label" for="permit-number-input">Permit Number</label>
-                <div class="input-row">
-                    <input
-                        type="text"
-                        id="permit-number-input"
-                        class="permit-input"
-                        placeholder="e.g. 202401015555"
-                        autocomplete="off"
-                        autocorrect="off"
-                        autocapitalize="off"
-                        spellcheck="false"
-                    >
-                    <button id="assess-btn" class="assess-btn" onclick="runRiskAssessment()" type="button">
-                        <span id="btn-text">Assess revision risk →</span>
-                        <span id="btn-spinner" class="spinner" style="display:none;"></span>
-                    </button>
+            <div class="tool-layout">
+                <!-- Left: Input form -->
+                <div>
+                    <div class="glass-card form-card">
+                        <form id="risk-form" novalidate>
+                            <div class="form-grid">
+
+                                <div class="form-field">
+                                    <label for="permit-type">Permit Type</label>
+                                    <select id="permit-type" class="form-select" required>
+                                        <option value="" disabled selected>Select permit type&hellip;</option>
+                                        <option value="alterations">Alterations</option>
+                                        <option value="new_construction">New Construction</option>
+                                        <option value="adu">Accessory Dwelling Unit (ADU)</option>
+                                        <option value="commercial_ti">Commercial Tenant Improvement</option>
+                                        <option value="restaurant">Restaurant / Food Service</option>
+                                        <option value="change_of_use">Change of Use</option>
+                                        <option value="adaptive_reuse">Adaptive Reuse</option>
+                                        <option value="seismic">Seismic Retrofit</option>
+                                        <option value="kitchen_remodel">Kitchen Remodel</option>
+                                        <option value="bathroom_remodel">Bathroom Remodel</option>
+                                        <option value="otc">Over-the-Counter (OTC)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="neighborhood">
+                                        Neighborhood
+                                        <span class="optional-tag">optional</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="neighborhood"
+                                        class="form-input"
+                                        placeholder="e.g. Mission, Noe Valley, SoMa"
+                                        autocomplete="off"
+                                    >
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="project-type">
+                                        Project Type
+                                        <span class="optional-tag">optional</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="project-type"
+                                        class="form-input"
+                                        placeholder="e.g. restaurant, adu, seismic"
+                                        autocomplete="off"
+                                    >
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="review-path">
+                                        Review Path
+                                        <span class="optional-tag">optional</span>
+                                    </label>
+                                    <select id="review-path" class="form-select">
+                                        <option value="">Any (default)</option>
+                                        <option value="otc">Over-the-Counter (OTC)</option>
+                                        <option value="in_house">In-House Review</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <button type="submit" id="submit-btn" class="action-btn">
+                                Assess revision risk &rarr;
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-            <div id="results" class="results-area">
-                <p class="results-hint">Enter a permit number above to see revision risk assessment.</p>
+                <!-- Right: Results -->
+                <div>
+                    <!-- Loading skeleton -->
+                    <div class="loading-area" id="loading-area">
+                        <div class="loading-label">Analyzing revision patterns&hellip;</div>
+                        <div class="skeleton skeleton--heading" style="width: 60%; margin-bottom: 20px;"></div>
+                        <div class="skeleton-row">
+                            <div class="skeleton skeleton--text" style="width: 120px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton skeleton--text" style="width: 100px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 90px;"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton skeleton--text" style="width: 110px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 70px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-state__icon">&mdash;</div>
+                        <h2 class="empty-state__title">Predict revision probability</h2>
+                        <p class="empty-state__desc">Select a permit type to see data-backed revision risk — common correction categories, probability estimates, and mitigation strategies.</p>
+                        <a href="?permit_type=alterations&neighborhood=Mission" class="demo-link">See demo: Alterations in the Mission &rarr;</a>
+                    </div>
+
+                    <!-- Risk gauge -->
+                    <div class="risk-gauge-wrap" id="risk-gauge-wrap">
+                        <svg class="risk-gauge-svg" width="100" height="100" viewBox="0 0 100 100" id="risk-gauge-svg" aria-hidden="true">
+                            <!-- Background arc -->
+                            <path d="M 15 75 A 40 40 0 0 1 85 75" stroke="var(--glass-border)" stroke-width="8" fill="none" stroke-linecap="round"/>
+                            <!-- Risk arc (filled by JS) -->
+                            <path id="gauge-arc" d="M 15 75 A 40 40 0 0 1 85 75" stroke="var(--signal-green)" stroke-width="8" fill="none" stroke-linecap="round"
+                                  stroke-dasharray="0 125.7" style="transition: stroke-dasharray 0.8s ease, stroke 0.5s;"/>
+                            <!-- Center label -->
+                            <text x="50" y="68" text-anchor="middle" fill="var(--text-primary)" font-family="var(--mono)" font-size="11" font-weight="300" id="gauge-pct-text"></text>
+                        </svg>
+                        <div class="risk-gauge-info">
+                            <p class="risk-gauge-label">Revision Risk</p>
+                            <p class="risk-gauge-level" id="risk-level-text"></p>
+                            <p class="risk-gauge-sub" id="risk-sub-text"></p>
+                        </div>
+                    </div>
+
+                    <!-- Results panel -->
+                    <div class="results-panel" id="results" role="region" aria-live="polite">
+                        <!-- Full markdown detail -->
+                        <div class="result-markdown" id="result-markdown"></div>
+                    </div>
+
+                    <!-- Error state -->
+                    <div id="error-area" style="display:none;"></div>
+                </div>
             </div>
 
             {% include "components/share_button.html" %}
@@ -296,103 +594,233 @@
     <script src="{{ url_for('static', filename='js/share.js') }}" defer></script>
     <script nonce="{{ csp_nonce }}">
     (function () {
-        var input = document.getElementById('permit-number-input');
-        var btn = document.getElementById('assess-btn');
-        var btnText = document.getElementById('btn-text');
-        var btnSpinner = document.getElementById('btn-spinner');
-        var results = document.getElementById('results');
+        'use strict';
 
-        if (input) {
-            input.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    runRiskAssessment();
-                }
-            });
+        // ── Demo data ──────────────────────────────────────────────────────────
+        var DEMO_DATA = {
+            'alterations_mission': {
+                permitType: 'alterations',
+                neighborhood: 'Mission',
+                projectType: '',
+                reviewPath: ''
+            }
+        };
+
+        // ── DOM refs ───────────────────────────────────────────────────────────
+        var form = document.getElementById('risk-form');
+        var submitBtn = document.getElementById('submit-btn');
+        var loadingArea = document.getElementById('loading-area');
+        var emptyState = document.getElementById('empty-state');
+        var resultsPanel = document.getElementById('results');
+        var errorArea = document.getElementById('error-area');
+        var resultMarkdown = document.getElementById('result-markdown');
+        var riskGaugeWrap = document.getElementById('risk-gauge-wrap');
+        var gaugeArc = document.getElementById('gauge-arc');
+        var gaugePctText = document.getElementById('gauge-pct-text');
+        var riskLevelText = document.getElementById('risk-level-text');
+        var riskSubText = document.getElementById('risk-sub-text');
+
+        var permitSelect = document.getElementById('permit-type');
+        var neighborhoodInput = document.getElementById('neighborhood');
+        var projectTypeInput = document.getElementById('project-type');
+        var reviewPathSelect = document.getElementById('review-path');
+
+        // ── Auto-fill from URL params ──────────────────────────────────────────
+        var urlParams = new URLSearchParams(window.location.search);
+        var permitTypeParam = urlParams.get('permit_type') || urlParams.get('permit-type');
+        var neighborhoodParam = urlParams.get('neighborhood');
+        var projectTypeParam = urlParams.get('project_type');
+        var reviewPathParam = urlParams.get('review_path');
+
+        if (permitTypeParam) {
+            permitSelect.value = permitTypeParam;
+        }
+        if (neighborhoodParam) {
+            neighborhoodInput.value = neighborhoodParam;
+        }
+        if (projectTypeParam) {
+            projectTypeInput.value = projectTypeParam;
+        }
+        if (reviewPathParam) {
+            reviewPathSelect.value = reviewPathParam;
         }
 
-        window.runRiskAssessment = function () {
-            var permitNumber = (input ? input.value : '').trim();
-            if (!permitNumber) {
-                showError('Please enter a permit number.');
+        // Auto-run if permit type was pre-filled
+        if (permitTypeParam && permitSelect.value) {
+            setTimeout(function () {
+                form.dispatchEvent(new Event('submit', { cancelable: true }));
+            }, 400);
+        }
+
+        // ── Helpers ────────────────────────────────────────────────────────────
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        // ── Risk gauge rendering ───────────────────────────────────────────────
+        // Arc circumference for a 40-radius half circle = PI * 40 = 125.66
+        var ARC_LEN = 125.7;
+
+        function extractRiskLevel(markdown) {
+            // Look for risk level patterns: HIGH, MODERATE, LOW
+            var riskMatch = markdown.match(/\*\*(HIGH|MODERATE|LOW)\*\*/i) ||
+                            markdown.match(/Risk Level[^:]*:\s*\**(HIGH|MODERATE|LOW)\**/i) ||
+                            markdown.match(/Revision Risk[^:]*:\s*(HIGH|MODERATE|LOW)/i) ||
+                            markdown.match(/probability[^:]*:\s*[\*]*(HIGH|MODERATE|LOW)[\*]*/i);
+            if (riskMatch) return riskMatch[1].toUpperCase();
+
+            // Try percentage extraction
+            var pctMatch = markdown.match(/(\d+)%.*(?:revision|correction|risk)/i);
+            if (pctMatch) {
+                var pct = parseInt(pctMatch[1]);
+                if (pct >= 60) return 'HIGH';
+                if (pct >= 35) return 'MODERATE';
+                return 'LOW';
+            }
+            return null;
+        }
+
+        function extractRiskPct(markdown) {
+            // Extract a numeric percentage from the markdown
+            var match = markdown.match(/(\d+)%/);
+            return match ? parseInt(match[1]) : null;
+        }
+
+        function renderGauge(riskLevel, pct) {
+            var color, fill, label, sub;
+
+            if (riskLevel === 'HIGH') {
+                color = 'var(--signal-red)';
+                fill = pct !== null ? pct : 75;
+                label = 'High Risk';
+                sub = 'Revisions likely. Plan for correction cycles and build buffer time into your timeline.';
+            } else if (riskLevel === 'MODERATE') {
+                color = 'var(--dot-amber)';
+                fill = pct !== null ? pct : 45;
+                label = 'Moderate Risk';
+                sub = 'Some revision probability. Address common triggers upfront to reduce correction rounds.';
+            } else {
+                color = 'var(--signal-green)';
+                fill = pct !== null ? pct : 20;
+                label = 'Low Risk';
+                sub = 'Historically lower revision rates. Standard pre-check protocols apply.';
+            }
+
+            var dashLen = Math.min(fill / 100 * ARC_LEN, ARC_LEN);
+            gaugeArc.setAttribute('stroke', color);
+            gaugeArc.setAttribute('stroke-dasharray', dashLen + ' ' + (ARC_LEN - dashLen));
+            gaugePctText.textContent = fill + '%';
+            riskLevelText.textContent = label;
+            riskLevelText.style.color = color;
+            riskSubText.textContent = sub;
+            riskGaugeWrap.classList.add('visible');
+        }
+
+        // ── UI state ───────────────────────────────────────────────────────────
+        function showLoading() {
+            submitBtn.disabled = true;
+            loadingArea.classList.add('visible');
+            emptyState.style.display = 'none';
+            resultsPanel.classList.remove('visible');
+            riskGaugeWrap.classList.remove('visible');
+            errorArea.style.display = 'none';
+        }
+
+        function hideLoading() {
+            submitBtn.disabled = false;
+            loadingArea.classList.remove('visible');
+        }
+
+        function showError(message, is401) {
+            hideLoading();
+            emptyState.style.display = 'none';
+            errorArea.style.display = 'block';
+            if (is401) {
+                errorArea.innerHTML =
+                    '<div class="error-box">Please <a href="/auth/login">log in</a> to use this tool.</div>';
+            } else {
+                errorArea.innerHTML =
+                    '<div class="error-box">' + escapeHtml(message || 'An error occurred. Please try again.') + '</div>';
+            }
+        }
+
+        function renderResults(permitType, neighborhood, markdown) {
+            hideLoading();
+            emptyState.style.display = 'none';
+            errorArea.style.display = 'none';
+
+            // Render risk gauge
+            var riskLevel = extractRiskLevel(markdown);
+            var pct = extractRiskPct(markdown);
+            if (riskLevel) {
+                renderGauge(riskLevel, pct);
+            }
+
+            // Render full markdown
+            resultMarkdown.innerHTML = marked.parse(markdown);
+            resultsPanel.classList.add('visible');
+        }
+
+        // ── Form submit ────────────────────────────────────────────────────────
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var permitType = permitSelect.value;
+            if (!permitType) {
+                permitSelect.focus();
                 return;
             }
 
-            setLoading(true);
+            var neighborhood = neighborhoodInput.value.trim() || null;
+            var projectType = projectTypeInput.value.trim() || null;
+            var reviewPath = reviewPathSelect.value || null;
 
-            fetch('/api/revision-risk/' + encodeURIComponent(permitNumber), {
-                method: 'GET',
+            var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+            showLoading();
+
+            fetch('/api/revision-risk', {
+                method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
-                    'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || ''
-                }
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    permit_type: permitType,
+                    neighborhood: neighborhood,
+                    project_type: projectType,
+                    review_path: reviewPath
+                })
             })
-            .then(function (response) {
-                if (response.status === 401) {
-                    showAuthPrompt();
+            .then(function (resp) {
+                if (resp.status === 401) {
+                    showError('', true);
                     return null;
                 }
-                return response.json();
+                if (resp.status === 404) {
+                    showError('Revision risk analysis is not available yet. Please try the What-If Simulator which includes revision risk as part of its output.', false);
+                    return null;
+                }
+                return resp.json();
             })
             .then(function (data) {
                 if (data === null) return;
                 if (data.error) {
-                    showError(data.error);
-                    return;
+                    showError(data.error, false);
+                } else if (data.result) {
+                    renderResults(permitType, neighborhood, data.result);
+                } else {
+                    showError('Unexpected response. Please try again.', false);
                 }
-                showResult(data.permit_number || permitNumber, data.result || JSON.stringify(data, null, 2));
             })
             .catch(function () {
-                showError('Unable to reach the server. Please try again.');
-            })
-            .finally(function () {
-                setLoading(false);
+                showError('Network error. Please try again.', false);
             });
-        };
+        });
 
-        function setLoading(active) {
-            if (!btn) return;
-            btn.disabled = active;
-            if (active) {
-                if (btnText) btnText.textContent = 'Analyzing...';
-                if (btnSpinner) btnSpinner.style.display = 'inline-block';
-            } else {
-                if (btnText) btnText.textContent = 'Assess revision risk \u2192';
-                if (btnSpinner) btnSpinner.style.display = 'none';
-            }
-        }
-
-        function showResult(permitNumber, markdownText) {
-            var html = '';
-            try {
-                html = typeof marked !== 'undefined' ? marked.parse(markdownText) : escapeHtml(markdownText);
-            } catch (e) {
-                html = '<pre>' + escapeHtml(markdownText) + '</pre>';
-            }
-            results.innerHTML =
-                '<p class="results-label">Revision Risk Assessment</p>' +
-                '<p class="results-permit-number">' + escapeHtml(permitNumber) + '</p>' +
-                '<div class="results-content">' + html + '</div>';
-        }
-
-        function showError(message) {
-            results.innerHTML =
-                '<div class="error-message">' + escapeHtml(message) + '</div>';
-        }
-
-        function showAuthPrompt() {
-            results.innerHTML =
-                '<div class="auth-prompt">' +
-                'Please <a href="/auth/login">log in</a> to use this tool.' +
-                '</div>';
-        }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
     })();
     </script>
 {% include 'fragments/feedback_widget.html' %}

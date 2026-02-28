@@ -73,3 +73,34 @@
 ### Test Results
 - 87 new tests: all passing
 - Design lint: 5/5 on templates (0 new violations introduced; 5 pre-existing medium violations in gantt-interactive.js are architectural, use CSS custom properties at runtime)
+
+---
+
+# CHANGELOG — T2 Sprint 95 (Tool UX Polish)
+
+## Agent: T2 — entity_network, revision_risk, what_if, cost_of_delay polish
+
+### Critical Fix: revision_risk.html — missing style block
+The revision_risk.html template was rendering broken because the entire `<style nonce="{{ csp_nonce }}">` opening tag was absent. CSS was floating as bare text after the `<link>` tag, causing the page to render with all CSS as visible text. Fixed by rewriting the template with a proper `<head>` structure.
+
+### revision_risk.html — full UX rebuild
+- **Redesigned input**: Changed from `permit-number-input` to `permit-type` select + optional neighborhood/project_type/review_path fields — matching the actual `revision_risk()` MCP tool signature
+- **?permit_type= pre-fill**: URL param auto-fills select and triggers analysis
+- **Two-column layout**: Sticky left form, right results panel (matches cost_of_delay.html pattern)
+- **Loading skeleton**: 3-row skeleton while analysis is in flight
+- **Empty state**: Centered state with demo link (?permit_type=alterations&neighborhood=Mission)
+- **SVG risk gauge**: Half-circle arc SVG with stroke-dasharray animation; arc color = red/amber/green
+- **Graceful 404**: If /api/revision-risk returns 404, shows helpful message suggesting What-If Simulator
+- **Lint**: 5/5
+
+### entity_network.html — UX improvements
+- **?address= pre-fill**: Reads `?address=` or `?q=` URL params, auto-populates input, auto-runs
+- **Loading skeleton**: Separate loading-area div with skeleton rows
+- **Empty state**: Dedicated div with demo link (?address=Smith+Construction)
+- **Network graph visualization**: Center node badge, connection rows, shared permit counts
+- **Network stats row**: 3 stat cards (Connected entities, Relationships, Hops)
+- **Lint**: 5/5
+
+### Tests
+- Created `tests/test_tool_ux_remaining.py`: 82 new tests
+- Updated `tests/test_tools_new.py`: 7 assertions updated to match new designs
