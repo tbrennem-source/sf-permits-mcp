@@ -7,7 +7,7 @@ Claude (claude.ai / Claude Code)
     |
     | MCP tool calls
     v
-SF Permits MCP Server (FastMCP) — 21 tools
+SF Permits MCP Server (FastMCP) — 34 tools
     |
     |--- Phase 1 tools (8) -------> data.sfgov.org SODA API (live HTTP)
     |                                     |
@@ -36,9 +36,24 @@ SF Permits MCP Server (FastMCP) — 21 tools
     |                                Plan analysis + EPR compliance -> Claude
     |
     |--- Phase 5 tools (1) ------> PostgreSQL / DuckDB (addenda routing, 3.9M rows)
+    |                                    |
+    |                                    v
+    |                               Plan review routing search -> Claude
+    |
+    |--- Phase 6 tools (2) ------> PostgreSQL (severity cache, health signals)
+    |                                    |
+    |                                    v
+    |                               Severity scoring, property health aggregation -> Claude
+    |
+    |--- Phase 7 tools (6) ------> PostgreSQL + local DB (project intelligence)
+    |                                    |
+    |                                    v
+    |                               SQL queries, source search, schema info, similar projects -> Claude
+    |
+    |--- Phase 8 tools (4) ------> PostgreSQL / DuckDB (addenda routing, station velocity)
                                          |
                                          v
-                                    Plan review routing search -> Claude
+                                    Permit intelligence (predictions, diagnostics, simulation, cost) -> Claude
 
 Flask + HTMX Web UI (Railway) — https://sfpermits-ai-production.up.railway.app
     |
@@ -47,7 +62,7 @@ Flask + HTMX Web UI (Railway) — https://sfpermits-ai-production.up.railway.app
     |--- Claude Vision API --------- async plan analysis jobs
 ```
 
-Phase 1 tools (`search_permits`, `get_permit_details`, `permit_stats`, `search_businesses`, `property_lookup`, `search_complaints`, `search_violations`, `search_inspections`) query data.sfgov.org live via `SODAClient`.
+Phase 1 tools (`search_permits`, `get_permit_details`, `permit_stats`, `search_businesses`, `property_lookup`, `search_complaints`, `search_violations`, `search_inspections`) query data.sfgov.org live via `SODAClient`. The SODA client now includes a circuit breaker (`CircuitBreaker` class) that short-circuits on repeated failures and recovers via half-open probing.
 
 Phase 2 tools (`search_entity`, `entity_network`, `network_anomalies`) query PostgreSQL (production) or DuckDB (local) containing 1.8M+ resolved contact records, entity relationships, and anomaly detection results.
 
@@ -58,6 +73,17 @@ Phase 3.5 tools (`recommend_consultants`, `permit_lookup`) combine knowledge bas
 Phase 4 tools (`analyze_plans`, `validate_plans`) use the Claude Vision API to analyze architectural drawings and check EPR compliance.
 
 Phase 5 tool (`search_addenda`) searches 3.9M+ addenda routing records in the local database for plan review status by permit, station, reviewer, department, or date range. The `permit_lookup` tool also includes plan review routing data from the addenda table.
+
+Phase 6 tools (`permit_severity`, `property_health`) provide severity scoring and signal-based property health aggregation. Severity scores (CRITICAL/HIGH/MEDIUM/LOW/GREEN) are cached in the `severity_cache` table for search result enrichment.
+
+Phase 7 tools (`run_query`, `read_source`, `search_source`, `schema_info`, `list_tests`, `similar_projects`) provide project intelligence: direct SQL execution, source file navigation, schema introspection, test discovery, and similar-permit lookup.
+
+Phase 8 tools (`predict_next_stations`, `diagnose_stuck_permit`, `simulate_what_if`, `calculate_delay_cost`) deliver permit intelligence:
+
+- **`predict_next_stations`**: Builds a Markov-style transition matrix from 3 years of similar permits (neighborhood-filtered, with type fallback) to predict what review stations a permit will visit next. Returns probability table, all-clear estimate, and confidence level. Stall detection for permits >60 days with no activity.
+- **`diagnose_stuck_permit`**: Fetches active addenda routing stations, computes dwell time vs p50/p75/p90 baselines from `station_velocity_v2`, maps 14 inter-agency station codes (SFFD, HEALTH, Planning, DPW, SFPUC, HIS, ABE) to agency contacts, and produces a ranked intervention playbook (IMMEDIATE > HIGH > MEDIUM > LOW).
+- **`simulate_what_if`**: Orchestrates `predict_permits`, `estimate_timeline`, `estimate_fees`, and `revision_risk` in parallel via `asyncio.gather()` for a base project plus N variations. Returns a markdown comparison table and delta section highlighting review path changes, timeline shifts, and fee differences.
+- **`calculate_delay_cost`**: Computes financial exposure at p25/p50/p90 timelines: carrying cost (monthly × days / 30.44), revision risk cost (P(revision) × delay × daily rate), break-even analysis, and OTC eligibility note. Uses live `estimate_timeline` data when available; falls back to calibrated averages for 13 permit types.
 
 ---
 
@@ -293,43 +319,56 @@ ingest_log
 
 ```
 src/
-├── server.py        # FastMCP entry point, registers all 20 tools
-├── soda_client.py   # Async SODA API client (httpx), used by Phase 1 tools + ingestion
+├── server.py        # FastMCP entry point, registers all 34 tools
+├── soda_client.py   # Async SODA API client (httpx) + CircuitBreaker class
 ├── formatters.py    # Response formatting for Claude consumption
-├── db.py            # DuckDB + PostgreSQL dual-mode connections
+├── db.py            # DuckDB + PostgreSQL dual-mode connections, pool mgmt
 ├── knowledge.py     # KnowledgeBase singleton, semantic index
 ├── ingest.py        # SODA -> DuckDB/Postgres pipeline (paginated fetch, normalization)
 ├── entities.py      # 5-step entity resolution cascade
 ├── graph.py         # Co-occurrence graph (self-join + N-hop traversal)
 ├── validate.py      # Validation queries + anomaly detection
 ├── report_links.py  # External links for property reports
+├── severity.py      # Permit severity scoring v2
+├── station_velocity_v2.py  # Station-sum timeline model
+├── signals/         # Health signal aggregation
 ├── vision/          # AI Vision modules
 │   ├── client.py        # Anthropic Vision API wrapper
 │   ├── pdf_to_images.py # PDF-to-base64 image conversion
 │   ├── prompts.py       # EPR check prompts
 │   └── epr_checks.py    # Vision-based EPR compliance checker
 └── tools/
-    ├── search_permits.py      # Phase 1: SODA API
-    ├── get_permit_details.py  # Phase 1: SODA API
-    ├── permit_stats.py        # Phase 1: SODA API
-    ├── search_businesses.py   # Phase 1: SODA API
-    ├── property_lookup.py     # Phase 1: SODA API
-    ├── search_complaints.py   # Phase 1: SODA API
-    ├── search_violations.py   # Phase 1: SODA API
-    ├── search_inspections.py  # Phase 1: SODA API
-    ├── search_entity.py       # Phase 2: Entity search
-    ├── entity_network.py      # Phase 2: Network traversal
-    ├── network_anomalies.py   # Phase 2: Anomaly detection
-    ├── knowledge_base.py      # Phase 2.75: Shared loader for all tier1 JSON
-    ├── predict_permits.py     # Phase 2.75: Decision tree walk + predictions
-    ├── estimate_timeline.py   # Phase 2.75: Timeline percentiles
-    ├── estimate_fees.py       # Phase 2.75: Fee table calculation + statistics
-    ├── required_documents.py  # Phase 2.75: Document checklist assembly
-    ├── revision_risk.py       # Phase 2.75: Revision probability from cost data
+    ├── search_permits.py        # Phase 1: SODA API
+    ├── get_permit_details.py    # Phase 1: SODA API
+    ├── permit_stats.py          # Phase 1: SODA API
+    ├── search_businesses.py     # Phase 1: SODA API
+    ├── property_lookup.py       # Phase 1: SODA API
+    ├── search_complaints.py     # Phase 1: SODA API
+    ├── search_violations.py     # Phase 1: SODA API
+    ├── search_inspections.py    # Phase 1: SODA API
+    ├── search_entity.py         # Phase 2: Entity search
+    ├── entity_network.py        # Phase 2: Network traversal
+    ├── network_anomalies.py     # Phase 2: Anomaly detection
+    ├── knowledge_base.py        # Phase 2.75: Shared loader for all tier1 JSON
+    ├── predict_permits.py       # Phase 2.75: Decision tree walk + predictions
+    ├── estimate_timeline.py     # Phase 2.75: Timeline percentiles
+    ├── estimate_fees.py         # Phase 2.75: Fee table calculation + statistics
+    ├── required_documents.py    # Phase 2.75: Document checklist assembly
+    ├── revision_risk.py         # Phase 2.75: Revision probability from cost data
     ├── recommend_consultants.py # Phase 3.5: Land use consultant recommendations
-    ├── permit_lookup.py       # Phase 3.5: Quick permit lookup (exact match, historical lots, parcel merge)
-    ├── analyze_plans.py       # Phase 4: AI vision plan analysis
-    └── validate_plans.py      # Phase 4: EPR compliance checking
+    ├── permit_lookup.py         # Phase 3.5: Quick permit lookup (exact match, historical lots, parcel merge)
+    ├── analyze_plans.py         # Phase 4: AI vision plan analysis
+    ├── validate_plans.py        # Phase 4: EPR compliance checking
+    ├── search_addenda.py        # Phase 5: Addenda routing search (3.9M rows)
+    ├── permit_severity.py       # Phase 6: Severity scoring (CRITICAL/HIGH/MEDIUM/LOW/GREEN)
+    ├── property_health.py       # Phase 6: Signal-based property health aggregation
+    ├── list_feedback.py         # Phase 7: Admin feedback list
+    ├── project_intel.py         # Phase 7: SQL queries, source nav, schema, tests, similar projects
+    ├── similar_projects.py      # Phase 7: Similar permit project lookup
+    ├── predict_next_stations.py # Phase 8: Markov transition model for next review stations
+    ├── stuck_permit.py          # Phase 8: Stuck permit diagnosis + intervention playbook
+    ├── what_if_simulator.py     # Phase 8: Parallel what-if scenario comparison
+    └── cost_of_delay.py         # Phase 8: Financial cost-of-delay analysis
 ```
 
 ### Knowledge Base Dependencies (Phase 2.75)
