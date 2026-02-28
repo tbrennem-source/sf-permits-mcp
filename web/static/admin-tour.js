@@ -112,6 +112,24 @@
       '  color: #5eead4;',
       '}',
       '.tour-btn--primary:hover { background: rgba(94,234,212,0.15); }',
+      '.tour-verdict { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }',
+      '.tour-btn--accept {',
+      '  background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.25); color: #34d399;',
+      '}',
+      '.tour-btn--accept:hover { background: rgba(52,211,153,0.15); border-color: #34d399; }',
+      '.tour-btn--reject {',
+      '  background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.25); color: #f87171;',
+      '}',
+      '.tour-btn--reject:hover { background: rgba(248,113,113,0.15); border-color: #f87171; }',
+      '.tour-comment {',
+      '  flex: 1; padding: 6px 10px;',
+      '  font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 300;',
+      '  color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.04);',
+      '  border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; outline: none;',
+      '  transition: border-color 0.2s;',
+      '}',
+      '.tour-comment:focus { border-color: rgba(94,234,212,0.3); }',
+      '.tour-comment::placeholder { color: rgba(255,255,255,0.2); }',
     ].join('\n');
     document.head.appendChild(style);
 
@@ -131,7 +149,15 @@
 
     // Keyboard nav
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'ArrowRight' || e.key === 'Enter') nextStop();
+      // Don't hijack Enter when typing in comment
+      if (e.target.classList && e.target.classList.contains('tour-comment')) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          verdictStop('accept');  // Enter in comment = accept with comment
+        }
+        return;
+      }
+      if (e.key === 'ArrowRight') nextStop();
       if (e.key === 'ArrowLeft') prevStop();
       if (e.key === 'Escape') endTour();
     });
@@ -178,6 +204,11 @@
       '<div class="tour-quote">' + stop.feedback + '</div>' +
       '<div class="tour-fix">' + stop.fix + '</div>' +
       '<div class="tour-action">' + stop.action + '</div>' +
+      '<div class="tour-verdict">' +
+        '<button class="tour-btn tour-btn--accept" onclick="verdictStop(\'accept\')">Accept ✓</button>' +
+        '<button class="tour-btn tour-btn--reject" onclick="verdictStop(\'reject\')">Reject ✗</button>' +
+        '<input type="text" class="tour-comment" id="tour-comment-' + idx + '" placeholder="Comment (optional, Enter to save)">' +
+      '</div>' +
       '<div class="tour-nav">' +
         '<span class="tour-counter">' + (idx + 1) + ' / ' + stops.length + '</span>' +
         '<div class="tour-btns">' +
@@ -188,6 +219,44 @@
         '</div>' +
       '</div>';
   }
+
+  window.verdictStop = function(verdict) {
+    var stop = stops[currentStop];
+    var commentEl = document.getElementById('tour-comment-' + currentStop);
+    var comment = commentEl ? commentEl.value.trim() : '';
+    stop.verdict = verdict;
+    stop.comment = comment;
+
+    // Save to DB
+    fetch('/api/qa-feedback', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        text: '[TOUR ' + verdict.toUpperCase() + '] ' + stop.feedback + (comment ? ' — ' + comment : ''),
+        url: window.location.href,
+        page: window.location.pathname,
+        viewport: window.innerWidth + 'x' + window.innerHeight,
+        scrollY: Math.round(window.scrollY),
+        tourStop: currentStop,
+        verdict: verdict,
+        selector: stop.selector
+      })
+    }).catch(function() {});
+
+    // Visual feedback on the button
+    var btns = tooltip.querySelectorAll('.tour-btn--accept, .tour-btn--reject');
+    btns.forEach(function(b) { b.style.opacity = '0.3'; });
+    var activeBtn = verdict === 'accept'
+      ? tooltip.querySelector('.tour-btn--accept')
+      : tooltip.querySelector('.tour-btn--reject');
+    if (activeBtn) {
+      activeBtn.style.opacity = '1';
+      activeBtn.style.borderColor = verdict === 'accept' ? '#34d399' : '#f87171';
+    }
+
+    // Auto-advance after brief pause
+    setTimeout(function() { nextStop(); }, 600);
+  };
 
   function nextStop() { if (currentStop < stops.length - 1) showStop(currentStop + 1); else endTour(); }
   function prevStop() { if (currentStop > 0) showStop(currentStop - 1); }
