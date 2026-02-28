@@ -15,6 +15,7 @@
     <meta name="twitter:title" content="Project Analysis: {{ (session.project_description or 'SF Permit Analysis')[:60] }}">
     <meta name="twitter:description" content="Permits needed, timeline estimate, fee breakdown. Powered by sfpermits.ai">
     <meta name="twitter:image" content="https://sfpermits.ai/static/og-card.png">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style nonce="{{ csp_nonce }}">
         .shared-banner {
@@ -305,7 +306,13 @@
 function joinProject() {
     const btn = document.getElementById('join-btn');
     if (btn) btn.disabled = true;
-    fetch('/project/{{ project_id }}/join', {method: 'POST', headers: {'Content-Type': 'application/json'}})
+    fetch('/project/{{ project_id }}/join', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+    })
     .then(r => r.json())
     .then(d => {
         const banner = document.getElementById('join-banner');

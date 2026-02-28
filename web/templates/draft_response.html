@@ -236,7 +236,10 @@ function _saveDraftEdit() {
     fetch('/feedback/draft-edit', {
         method: 'POST',
         body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
     })
     .then(function(r) { return r.text(); })
     .then(function(html) {
@@ -270,7 +273,10 @@ function _markDraftGood() {
     fetch('/feedback/draft-good', {
         method: 'POST',
         body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
     })
     .then(function(r) { return r.text(); })
     .then(function(html) {

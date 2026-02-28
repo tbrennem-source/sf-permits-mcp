@@ -476,7 +476,14 @@
     .reveal { opacity: 1; transform: none; }
   }
 </style>
+<meta name="csrf-token" content="{{ csrf_token }}">
 <script nonce="{{ csp_nonce }}" src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+<script nonce="{{ csp_nonce }}">
+    document.addEventListener('htmx:configRequest', function(e) {
+        var token = document.querySelector('meta[name="csrf-token"]');
+        if (token) e.detail.headers['X-CSRFToken'] = token.getAttribute('content');
+    });
+</script>
 </head>
 <body>
 

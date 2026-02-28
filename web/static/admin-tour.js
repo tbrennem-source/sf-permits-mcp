@@ -265,7 +265,10 @@
     // Save to DB
     fetch('/api/qa-feedback', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+      },
       body: JSON.stringify({
         text: '[TOUR ' + verdict.toUpperCase() + '] ' + stop.feedback + (comment ? ' — ' + comment : ''),
         url: window.location.href,

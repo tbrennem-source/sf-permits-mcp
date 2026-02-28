@@ -46,7 +46,7 @@ function undoWatch(permitNumber, block, lot) {
     // Best-effort undo — fire and forget
     fetch('/watch/remove', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.cookie.match(/csrf_token=([^;]+)/)?.[1] || '' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || document.cookie.match(/csrf_token=([^;]+)/)?.[1] || '' },
         body: JSON.stringify({ permit_number: permitNumber, block: block, lot: lot })
     });
 }

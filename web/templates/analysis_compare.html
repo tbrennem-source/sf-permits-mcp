@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Compare Analyses — sfpermits.ai</title>
     <style nonce="{{ csp_nonce }}">
         :root {
@@ -1045,7 +1046,10 @@ function saveCmpNotes() {
     if (!ta) return;
     fetch('/api/project-notes/' + encodeURIComponent(vg), {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
         body: JSON.stringify({notes_text: ta.value}),
     }).then(r => {
         if (r.ok) {

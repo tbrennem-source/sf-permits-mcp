@@ -440,7 +440,10 @@ function saveProjectNotes(vg) {
     const text = ta.value;
     fetch('/api/project-notes/' + encodeURIComponent(vg), {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
         body: JSON.stringify({notes_text: text}),
     }).then(function(r) {
         if (r.ok) {

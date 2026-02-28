@@ -310,7 +310,11 @@ function saveWatch(watchId, input) {
     var formData = new FormData();
     formData.append('watch_id', watchId);
     formData.append('label', label);
-    fetch('/watch/edit', { method: 'POST', body: formData })
+    fetch('/watch/edit', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || '' },
+        body: formData
+    })
         .then(function(resp) { return resp.text(); })
         .then(function(html) {
             var labelEl = document.getElementById('watch-label-' + watchId);

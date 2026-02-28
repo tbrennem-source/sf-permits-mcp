@@ -70,7 +70,10 @@
         } else {
             fetch('/api/activity/track', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
                 body: body,
                 keepalive: true
             }).catch(function() {}); // silent fail

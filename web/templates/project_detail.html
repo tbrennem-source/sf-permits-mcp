@@ -241,7 +241,10 @@ function sendInvite() {
     const projectId = {{ project.id | tojson }};
     fetch('/project/' + projectId + '/invite', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
         body: JSON.stringify({email: email}),
     })
     .then(r => r.json())

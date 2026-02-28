@@ -150,7 +150,10 @@
     try {
       fetch('/api/qa-feedback', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
         body: JSON.stringify(item)
       }).then(function(r) {
         if (r.ok) {
@@ -197,7 +200,10 @@
     if (!item.synced) {
       fetch('/api/qa-feedback', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
         body: JSON.stringify(item)
       }).then(function(r) {
         if (r.ok) {

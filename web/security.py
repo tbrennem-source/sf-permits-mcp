@@ -197,7 +197,8 @@ def _generate_csrf_token():
 
 
 # Paths that use their own auth and skip CSRF validation
-_CSRF_SKIP_PREFIXES = ("/api/csp-report", "/api/qa-feedback", "/auth/test-login", "/cron/")
+# /api/activity/track is called via sendBeacon which cannot set custom headers
+_CSRF_SKIP_PREFIXES = ("/api/csp-report", "/api/qa-feedback", "/api/activity/track", "/auth/test-login", "/cron/")
 
 
 def _csrf_protect():

@@ -696,7 +696,10 @@ async function sendShareEmail(analysisId) {
     try {
         const resp = await fetch('/analysis/' + analysisId + '/share', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
             body: JSON.stringify({emails}),
         });
         const data = await resp.json();

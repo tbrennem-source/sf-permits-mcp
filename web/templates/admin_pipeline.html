@@ -327,7 +327,10 @@ function triggerNightly() {
     resultEl.style.color = 'var(--text-muted)';
 
     var csrfToken = document.querySelector('meta[name="csrf-token"]');
-    var headers = {'Content-Type': 'application/json'};
+    var headers = {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken ? csrfToken.getAttribute('content') : ''
+    };
 
     fetch('/cron/pipeline-health?action=run_nightly&lookback=' + lookback, {
         method: 'POST',
