@@ -1937,3 +1937,53 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Owner detection via detect_owner() — matches primary_address or explicit ?owner=1 param; remediation_roadmap only populated when is_owner=True
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: new user sees onboarding prompt instead of zero stats
+**Source:** web/templates/index.html dashboard rebuild
+**User:** homeowner
+**Starting state:** User is authenticated but has no watched properties
+**Goal:** Understand what they can do on the dashboard
+**Expected outcome:** Dashboard shows an onboarding card prompting the user to watch their first property; no "0 properties watched" or "0 changes" zero-stats are displayed anywhere on the page
+**Edge cases seen in code:** watch_count defaults to 0 when DB query fails (graceful), so onboarding always shown on error too
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: returning user sees brief summary on dashboard
+**Source:** web/templates/index.html dashboard rebuild
+**User:** expediter
+**Starting state:** User is authenticated and has ≥1 active watched property
+**Goal:** Quickly scan current status of watched permits on arrival
+**Expected outcome:** Brief summary card shows total watch count, number of changes in last 7 days, and a CTA to view the full brief; no onboarding card shown
+**Edge cases seen in code:** changes_count query falls back to 0 on exception; urgent_count placeholder ready for future wiring
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: search is always accessible regardless of watch state
+**Source:** web/templates/index.html dashboard rebuild
+**User:** expediter
+**Starting state:** User is authenticated, may or may not have watches
+**Goal:** Run a permit search from the dashboard
+**Expected outcome:** Search bar is the topmost interactive element on the page, visible immediately without scrolling; submitting triggers HTMX search without full page reload; loading indicator appears during request
+**Edge cases seen in code:** HTMX hx-indicator="#search-loading" ensures spinner visible; form targets #search-results div
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: primary address chip auto-populates search
+**Source:** web/templates/index.html dashboard rebuild — primary address quick chip
+**User:** homeowner
+**Starting state:** User has primary_street_number and primary_street_name set on their account
+**Goal:** Quickly check their own property without typing
+**Expected outcome:** A chip button appears below the search input pre-labeled with their address; clicking it populates the search input and triggers a search
+**Edge cases seen in code:** Chip only renders when both primary_street_number AND primary_street_name are set on g.user; absent for users without primary address
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: ghost CTAs on dashboard — no filled primary buttons
+**Source:** web/templates/index.html dashboard rebuild — DESIGN_CANON compliance
+**User:** expediter
+**Starting state:** User is authenticated and viewing the dashboard
+**Goal:** Interact with dashboard action links
+**Expected outcome:** All action links use ghost CTA style (monospace, underline on hover, arrow suffix); no filled/primary buttons appear on the main dashboard content area except the search submit button
+**Edge cases seen in code:** Search submit button (.search-btn) is the one permitted active element; all other links use .ghost-cta
+**CC confidence:** medium
+**Status:** PENDING REVIEW

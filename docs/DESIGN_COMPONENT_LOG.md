@@ -304,3 +304,44 @@
 .auth-sent__text { font-family: var(--sans); font-size: var(--text-sm); font-weight: 300; color: var(--text-secondary); line-height: 1.55; }
 ```
 **Notes:** Mirrors the golden mockup (`web/static/mockups/auth-login.html`). Hidden by default, shown via JS class toggle.
+
+---
+
+## Sprint 75-1 Dashboard Rebuild — agent-a1dbe24e (2026-02-27)
+
+### .brief-card
+```css
+.brief-card { /* glass-card base */ }
+.brief-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
+.brief-greeting { font-family: var(--sans); font-size: var(--text-sm); font-weight: 300; color: var(--text-secondary); line-height: 1.55; }
+.brief-stats { display: flex; gap: var(--space-4); flex-shrink: 0; }
+.brief-stat { text-align: right; }
+.brief-stat-num { font-family: var(--mono); font-size: var(--text-2xl); font-weight: 400; color: var(--text-primary); display: block; }
+.brief-stat-label { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+```
+**Notes:** Conditional card shown only when `watch_count > 0`. Replaces old stats row with zero-state issue. Stats only shown when meaningful.
+
+### .onboard-card
+```css
+.onboard-card { /* glass-card base */ text-align: center; padding: var(--space-8) var(--space-6); }
+.onboard-headline { font-family: var(--sans); font-size: var(--text-2xl); font-weight: 300; color: var(--text-primary); margin-bottom: var(--space-3); }
+.onboard-body { font-family: var(--sans); font-size: var(--text-sm); font-weight: 300; color: var(--text-secondary); line-height: 1.6; max-width: 440px; margin: 0 auto var(--space-6); }
+```
+**Notes:** Shown when `watch_count == 0` (new users). Prompts user to watch their first property. No zero stats displayed.
+
+### .dash-search-card
+```css
+.dash-search-card { /* glass-card base */ }
+.dash-search-heading { font-family: var(--sans); font-size: var(--text-xl); font-weight: 300; color: var(--text-primary); margin-bottom: var(--space-4); }
+.search-form { display: flex; gap: var(--space-2); align-items: stretch; }
+.search-btn { font-family: var(--mono); font-size: var(--text-sm); padding: var(--space-2) var(--space-4); background: var(--accent); color: var(--bg-primary); border: none; border-radius: var(--radius-sm); cursor: pointer; flex-shrink: 0; transition: opacity 0.15s; }
+.search-btn:hover { opacity: 0.85; }
+```
+**Notes:** Primary dashboard card. Search IS the action — no quick-action rows.
+
+### .recent-chip (primary address variant)
+```css
+.recent-chip { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); background: transparent; border: 1px solid var(--glass-border); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); cursor: pointer; transition: color 0.15s, border-color 0.15s; white-space: nowrap; }
+.recent-chip:hover { color: var(--accent); border-color: var(--accent); }
+```
+**Notes:** Used for recent search items AND for primary-address quick-chip. Clickable chip that populates search input.
