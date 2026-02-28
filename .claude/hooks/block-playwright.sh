@@ -25,14 +25,16 @@ fi
 # --- Blocked patterns ---
 # Only block actual Playwright EXECUTION commands, not installation or pytest
 BLOCKED_PATTERNS=(
-    "playwright"
+    "from playwright"
+    "import playwright"
+    "sync_playwright"
+    "async_playwright"
     "chromium.launch"
     "browser.new_context"
     "page\.goto"
     "page\.screenshot"
     "page\.click"
     "expect(page"
-    "sync_playwright"
 )
 
 # --- Allowed patterns (override blocked) ---
@@ -42,6 +44,8 @@ ALLOWED_PATTERNS=(
     "python -m pytest"
     "pip install"
     "pip3 install"
+    "python3 scripts/"
+    "python scripts/"
     "grep"
     "cat "
     "git "
