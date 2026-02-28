@@ -171,17 +171,17 @@ def test_share_api_endpoint_no_body(client):
     assert data.get("shared") is True
 
 
-def test_entity_network_route_requires_auth(client):
-    """/tools/entity-network redirects to login when unauthenticated."""
+def test_entity_network_route_accessible(client):
+    """/tools/entity-network is publicly accessible (returns 200)."""
     resp = client.get("/tools/entity-network")
-    assert resp.status_code in (301, 302), (
-        "Expected redirect to /auth/login for unauthenticated request"
+    assert resp.status_code == 200, (
+        f"Expected 200 for /tools/entity-network, got {resp.status_code}"
     )
 
 
-def test_revision_risk_route_requires_auth(client):
-    """/tools/revision-risk redirects to login when unauthenticated."""
+def test_revision_risk_route_accessible(client):
+    """/tools/revision-risk is publicly accessible (returns 200)."""
     resp = client.get("/tools/revision-risk")
-    assert resp.status_code in (301, 302), (
-        "Expected redirect to /auth/login for unauthenticated request"
+    assert resp.status_code == 200, (
+        f"Expected 200 for /tools/revision-risk, got {resp.status_code}"
     )
