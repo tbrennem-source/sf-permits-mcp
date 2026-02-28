@@ -1230,6 +1230,32 @@ def add_cache_headers(response):
 
 
 @app.after_request
+def _add_static_cache_headers(response):
+    """Add Cache-Control headers for static asset responses.
+
+    CSS and JS: 1-day max-age with 7-day stale-while-revalidate.
+    Images and fonts: 7-day max-age (content-addressed, rarely change).
+    HTML responses are never cached here — only /static/ file assets.
+    """
+    if not request.path.startswith("/static/"):
+        return response
+    if response.status_code != 200:
+        return response
+    content_type = response.content_type or ""
+    if "text/css" in content_type or "javascript" in content_type:
+        response.headers["Cache-Control"] = (
+            "public, max-age=86400, stale-while-revalidate=604800"
+        )
+    elif any(t in content_type for t in ("image/", "font/", "application/font")):
+        response.headers["Cache-Control"] = "public, max-age=604800"
+    elif request.path.endswith((".woff", ".woff2", ".ttf", ".otf", ".eot")):
+        response.headers["Cache-Control"] = "public, max-age=604800"
+    elif request.path.endswith((".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp")):
+        response.headers["Cache-Control"] = "public, max-age=604800"
+    return response
+
+
+@app.after_request
 def _add_response_time_header(response):
     """Add X-Response-Time header to every response.
 
