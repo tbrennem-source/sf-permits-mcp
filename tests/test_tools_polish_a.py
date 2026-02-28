@@ -500,16 +500,16 @@ try:
         _rate_buckets.clear()
 
     class TestStationPredictorRoute:
-        def test_route_redirects_unauthenticated(self, client):
-            """GET /tools/station-predictor redirects to login if not authenticated."""
+        def test_route_accessible_unauthenticated(self, client):
+            """GET /tools/station-predictor returns 200 for anonymous users (no redirect)."""
             rv = client.get("/tools/station-predictor")
-            assert rv.status_code in (302, 301)
+            assert rv.status_code == 200
 
-        def test_route_redirect_target_is_login(self, client):
-            """Unauthenticated redirect sends user to /auth/login."""
+        def test_route_no_redirect_to_login(self, client):
+            """Anonymous user is NOT redirected to /auth/login from station-predictor."""
             rv = client.get("/tools/station-predictor")
             location = rv.headers.get('Location', '')
-            assert 'login' in location or 'auth' in location
+            assert 'login' not in location and 'auth' not in location
 
         @pytest.mark.xfail(reason="g.user requires full before_request chain — needs integration fixture")
         def test_route_renders_for_authenticated_user(self, authed_client):
@@ -524,16 +524,16 @@ try:
             assert rv.status_code == 200
 
     class TestStuckPermitRoute:
-        def test_route_redirects_unauthenticated(self, client):
-            """GET /tools/stuck-permit redirects to login if not authenticated."""
+        def test_route_accessible_unauthenticated(self, client):
+            """GET /tools/stuck-permit returns 200 for anonymous users (no redirect)."""
             rv = client.get("/tools/stuck-permit")
-            assert rv.status_code in (302, 301)
+            assert rv.status_code == 200
 
-        def test_route_redirect_target_is_login(self, client):
-            """Unauthenticated redirect sends user to /auth/login."""
+        def test_route_no_redirect_to_login(self, client):
+            """Anonymous user is NOT redirected to /auth/login from stuck-permit."""
             rv = client.get("/tools/stuck-permit")
             location = rv.headers.get('Location', '')
-            assert 'login' in location or 'auth' in location
+            assert 'login' not in location and 'auth' not in location
 
         @pytest.mark.xfail(reason="g.user requires full before_request chain — needs integration fixture")
         def test_route_renders_for_authenticated_user(self, authed_client):

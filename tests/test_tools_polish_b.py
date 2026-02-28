@@ -352,13 +352,15 @@ def client():
 
 
 class TestToolRoutes:
-    def test_what_if_route_redirects_unauthenticated(self, client):
+    def test_what_if_route_accessible_unauthenticated(self, client):
+        """GET /tools/what-if returns 200 for anonymous users (no redirect)."""
         rv = client.get("/tools/what-if")
-        assert rv.status_code in (301, 302)
+        assert rv.status_code == 200
 
-    def test_cost_of_delay_route_redirects_unauthenticated(self, client):
+    def test_cost_of_delay_route_accessible_unauthenticated(self, client):
+        """GET /tools/cost-of-delay returns 200 for anonymous users (no redirect)."""
         rv = client.get("/tools/cost-of-delay")
-        assert rv.status_code in (301, 302)
+        assert rv.status_code == 200
 
     def test_what_if_api_requires_auth(self, client):
         rv = client.post(
