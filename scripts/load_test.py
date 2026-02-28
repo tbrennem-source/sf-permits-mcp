@@ -6,17 +6,27 @@ Runs concurrent HTTP requests against configurable scenarios and reports
 latency percentiles, error counts, and throughput.
 
 Usage:
-    python scripts/load_test.py --url https://staging.example.com
-    python scripts/load_test.py --url http://localhost:5000 --scenario health --concurrency 5 --duration 10
+    python -m scripts.load_test --url http://localhost:5001
+    python -m scripts.load_test --url http://localhost:5001 --users 50 --duration 60
+    python -m scripts.load_test --url https://sfpermits-ai-staging-production.up.railway.app --users 20 --duration 30
     python scripts/load_test.py --url https://sfpermits-ai-staging-production.up.railway.app --scenario all --concurrency 20 --duration 60
 
 Scenarios:
-    health    GET /health
-    search    GET /search?q=valencia
-    demo      GET /demo
-    landing   GET /
-    sitemap   GET /sitemap.xml
-    all       Run all scenarios equally distributed
+    health      GET /health
+    landing     GET /
+    methodology GET /methodology
+    demo        GET /demo
+    search      GET /search?q=valencia
+    sitemap     GET /sitemap.xml
+    all         Run all scenarios equally distributed
+
+Exit codes:
+    0   All scenarios have error rate <= 5%
+    1   At least one scenario has error rate > 5%
+
+Dependencies:
+    - httpx (preferred, in project venv)
+    - Falls back to urllib3/urllib if httpx is unavailable
 """
 
 from __future__ import annotations
@@ -27,14 +37,27 @@ import math
 import statistics
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urljoin
 
-import httpx
+# ---------------------------------------------------------------------------
+# HTTP backend: prefer httpx, fall back to urllib
+# ---------------------------------------------------------------------------
+
+try:
+    import httpx as _httpx
+    _HAS_HTTPX = True
+except ImportError:
+    _HAS_HTTPX = False
+
+if not _HAS_HTTPX:
+    import urllib.request
+    import urllib.error
+
 
 # ---------------------------------------------------------------------------
 # Scenario definitions
@@ -47,11 +70,17 @@ SCENARIOS: dict[str, dict] = {
         "path": "/health",
         "description": "App health endpoint — fast, no DB needed",
     },
-    "search": {
-        "name": "Search",
+    "landing": {
+        "name": "Landing Page",
         "method": "GET",
-        "path": "/search?q=valencia",
-        "description": "Public search results for 'valencia'",
+        "path": "/",
+        "description": "Landing page (public, no auth)",
+    },
+    "methodology": {
+        "name": "Methodology",
+        "method": "GET",
+        "path": "/methodology",
+        "description": "Methodology page (public, no auth)",
     },
     "demo": {
         "name": "Demo Page",
@@ -59,11 +88,11 @@ SCENARIOS: dict[str, dict] = {
         "path": "/demo",
         "description": "Anonymous demo path",
     },
-    "landing": {
-        "name": "Landing Page",
+    "search": {
+        "name": "Search",
         "method": "GET",
-        "path": "/",
-        "description": "Landing page (public)",
+        "path": "/search?q=valencia",
+        "description": "Public search results for 'valencia'",
     },
     "sitemap": {
         "name": "Sitemap",
@@ -72,6 +101,9 @@ SCENARIOS: dict[str, dict] = {
         "description": "XML sitemap — static, fast",
     },
 }
+
+# Default scenario set for --scenario all
+DEFAULT_SCENARIOS = ["health", "landing", "methodology", "demo", "search", "sitemap"]
 
 
 # ---------------------------------------------------------------------------
@@ -109,7 +141,7 @@ class ScenarioStats:
         return self.error_count / self.total_requests
 
     def percentile(self, p: float) -> float:
-        """Return the p-th percentile of latencies (e.g. p=50 → median)."""
+        """Return the p-th percentile of latencies (e.g. p=50 -> median)."""
         if not self.latencies_ms:
             return 0.0
         sorted_lats = sorted(self.latencies_ms)
@@ -164,16 +196,16 @@ class ScenarioStats:
 
 
 # ---------------------------------------------------------------------------
-# HTTP worker
+# HTTP workers — httpx path (preferred)
 # ---------------------------------------------------------------------------
 
-def make_request(base_url: str, scenario_key: str, timeout: float = 10.0) -> RequestResult:
-    """Send a single HTTP request for the given scenario. Thread-safe."""
+def _make_request_httpx(base_url: str, scenario_key: str, timeout: float) -> RequestResult:
+    """Send a single HTTP request using httpx. Thread-safe."""
     scenario = SCENARIOS[scenario_key]
     url = urljoin(base_url.rstrip("/") + "/", scenario["path"].lstrip("/"))
     start = time.perf_counter()
     try:
-        with httpx.Client(timeout=timeout, follow_redirects=True) as client:
+        with _httpx.Client(timeout=timeout, follow_redirects=True) as client:
             response = client.request(scenario["method"], url)
         elapsed_ms = (time.perf_counter() - start) * 1000
         return RequestResult(
@@ -181,7 +213,7 @@ def make_request(base_url: str, scenario_key: str, timeout: float = 10.0) -> Req
             status_code=response.status_code,
             elapsed_ms=elapsed_ms,
         )
-    except httpx.TimeoutException as exc:
+    except _httpx.TimeoutException as exc:
         elapsed_ms = (time.perf_counter() - start) * 1000
         return RequestResult(
             scenario=scenario_key,
@@ -189,7 +221,7 @@ def make_request(base_url: str, scenario_key: str, timeout: float = 10.0) -> Req
             elapsed_ms=elapsed_ms,
             error=f"Timeout: {exc}",
         )
-    except httpx.RequestError as exc:
+    except _httpx.RequestError as exc:
         elapsed_ms = (time.perf_counter() - start) * 1000
         return RequestResult(
             scenario=scenario_key,
@@ -205,6 +237,51 @@ def make_request(base_url: str, scenario_key: str, timeout: float = 10.0) -> Req
             elapsed_ms=elapsed_ms,
             error=f"UnexpectedError: {exc}",
         )
+
+
+# ---------------------------------------------------------------------------
+# HTTP workers — urllib fallback
+# ---------------------------------------------------------------------------
+
+def _make_request_urllib(base_url: str, scenario_key: str, timeout: float) -> RequestResult:
+    """Send a single HTTP request using stdlib urllib. Thread-safe."""
+    scenario = SCENARIOS[scenario_key]
+    url = urljoin(base_url.rstrip("/") + "/", scenario["path"].lstrip("/"))
+    start = time.perf_counter()
+    try:
+        req = urllib.request.Request(url, method=scenario["method"])
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            _ = resp.read()  # consume body
+            status_code = resp.status
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        return RequestResult(
+            scenario=scenario_key,
+            status_code=status_code,
+            elapsed_ms=elapsed_ms,
+        )
+    except urllib.error.HTTPError as exc:
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        # HTTP errors like 404 / 302-not-followed are non-5xx — count as success
+        return RequestResult(
+            scenario=scenario_key,
+            status_code=exc.code,
+            elapsed_ms=elapsed_ms,
+        )
+    except Exception as exc:
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        return RequestResult(
+            scenario=scenario_key,
+            status_code=None,
+            elapsed_ms=elapsed_ms,
+            error=str(exc),
+        )
+
+
+def make_request(base_url: str, scenario_key: str, timeout: float = 10.0) -> RequestResult:
+    """Send a single HTTP request. Uses httpx if available, else urllib."""
+    if _HAS_HTTPX:
+        return _make_request_httpx(base_url, scenario_key, timeout)
+    return _make_request_urllib(base_url, scenario_key, timeout)
 
 
 # ---------------------------------------------------------------------------
@@ -229,11 +306,13 @@ def run_load_test(
         for key in scenarios
     }
 
-    scenario_cycle = scenarios  # round-robin index tracked below
+    scenario_cycle = scenarios
     scenario_idx = 0
     results: list[RequestResult] = []
 
+    backend_label = "httpx" if _HAS_HTTPX else "urllib (stdlib)"
     print(f"  Target: {base_url}", file=sys.stderr)
+    print(f"  Backend: {backend_label}", file=sys.stderr)
     print(f"  Scenarios: {', '.join(scenarios)}", file=sys.stderr)
     print(f"  Concurrency: {concurrency} threads | Duration: {duration}s", file=sys.stderr)
     print(f"  Request timeout: {request_timeout}s", file=sys.stderr)
@@ -241,8 +320,6 @@ def run_load_test(
 
     deadline = time.perf_counter() + duration
     actual_start = time.perf_counter()
-    in_flight = 0
-    total_submitted = 0
 
     with ThreadPoolExecutor(max_workers=concurrency) as executor:
         futures = {}
@@ -252,7 +329,6 @@ def run_load_test(
             scenario_idx += 1
             fut = executor.submit(make_request, base_url, key, request_timeout)
             futures[fut] = key
-            total_submitted += 1
 
         while futures and time.perf_counter() < deadline:
             done = []
@@ -271,7 +347,6 @@ def run_load_test(
                     scenario_idx += 1
                     new_fut = executor.submit(make_request, base_url, key, request_timeout)
                     futures[new_fut] = key
-                    total_submitted += 1
 
             if not done:
                 time.sleep(0.01)  # brief yield to avoid busy-spin
@@ -386,18 +461,30 @@ def build_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("--url", required=True, help="Base URL to test (e.g. https://sfpermits-ai-staging-production.up.railway.app)")
     parser.add_argument(
+        "--url",
+        default="http://localhost:5001",
+        help="Base URL to test (default: http://localhost:5001)",
+    )
+    # --users is the primary flag; --concurrency is the legacy alias
+    users_group = parser.add_mutually_exclusive_group()
+    users_group.add_argument(
+        "--users",
+        type=int,
+        default=None,
+        help="Number of concurrent users/threads (default: 50)",
+    )
+    users_group.add_argument(
         "--concurrency",
         type=int,
-        default=10,
-        help="Number of concurrent threads (default: 10)",
+        default=None,
+        help="Alias for --users (number of concurrent threads)",
     )
     parser.add_argument(
         "--duration",
         type=int,
-        default=30,
-        help="Test duration in seconds (default: 30)",
+        default=60,
+        help="Test duration in seconds (default: 60)",
     )
     parser.add_argument(
         "--scenario",
@@ -421,7 +508,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def resolve_scenarios(scenario_arg: str) -> list[str]:
     if scenario_arg == "all":
-        return list(SCENARIOS.keys())
+        return DEFAULT_SCENARIOS
     return [scenario_arg]
 
 
@@ -429,13 +516,15 @@ def main() -> int:
     parser = build_arg_parser()
     args = parser.parse_args()
 
+    # Resolve concurrency: --users wins, then --concurrency, then default 50
+    concurrency = args.users if args.users is not None else (args.concurrency if args.concurrency is not None else 50)
     scenarios = resolve_scenarios(args.scenario)
 
-    print(f"Starting load test...", file=sys.stderr)
+    print("Starting load test...", file=sys.stderr)
     stats, actual_duration = run_load_test(
         base_url=args.url,
         scenarios=scenarios,
-        concurrency=args.concurrency,
+        concurrency=concurrency,
         duration=args.duration,
         request_timeout=args.timeout,
     )
@@ -447,7 +536,7 @@ def main() -> int:
         duration=actual_duration,
         base_url=args.url,
         scenarios=scenarios,
-        concurrency=args.concurrency,
+        concurrency=concurrency,
     )
 
     output_path = Path(args.output)
