@@ -5,29 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morning Brief — sfpermits.ai</title>
 </head>
-<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;line-height:1.6;">
+<body style="margin:0;padding:0;background:#0a0e1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#f0f4ff;line-height:1.6;">
     <!-- Outer wrapper for background color -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0a0e1a;">
         <tr>
             <td align="center" style="padding:24px 16px;">
                 <!-- Inner container -->
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#10182c;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.4);">
 
                     <!-- Header -->
                     <tr>
-                        <td style="background:#1a1d27;padding:20px 28px;">
-                            <a href="{{ base_url }}" style="color:#4f8ff7;font-size:1.3rem;font-weight:700;text-decoration:none;">sfpermits<span style="color:#8b8fa3;font-weight:400;">.ai</span></a>
-                            <span style="float:right;color:#8b8fa3;font-size:0.85rem;line-height:2;">Morning Brief</span>
+                        <td style="background:#0a0e1a;padding:20px 28px;border-bottom:1px solid #1e2a3a;">
+                            <a href="{{ base_url }}" style="color:#00d4c8;font-size:1.3rem;font-weight:700;text-decoration:none;">sfpermits<span style="color:#8899aa;font-weight:400;">.ai</span></a>
+                            <span style="float:right;color:#8899aa;font-size:0.85rem;line-height:2;">Morning Brief</span>
                         </td>
                     </tr>
 
                     <!-- Greeting -->
                     <tr>
                         <td style="padding:28px 28px 8px;">
-                            <h1 style="margin:0;font-size:1.3rem;color:#1a1a2e;">
+                            <h1 style="margin:0;font-size:1.3rem;color:#f0f4ff;">
                                 Good Morning{% if user_name %}, {{ user_name }}{% endif %}
                             </h1>
-                            <p style="margin:4px 0 0;color:#6b7280;font-size:0.9rem;">
+                            <p style="margin:4px 0 0;color:#8899aa;font-size:0.9rem;">
                                 Here's what changed in the last {{ lookback_days }} day{{ 's' if lookback_days > 1 else '' }}.
                             </p>
                         </td>
@@ -38,24 +38,24 @@
                         <td style="padding:16px 28px 24px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
-                                        <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;">{{ summary.total_watches }}</div>
-                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Watching</div>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#0a0e1a;border-radius:8px;border:1px solid #1e2a3a;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:#f0f4ff;">{{ summary.total_watches }}</div>
+                                        <div style="font-size:0.7rem;color:#8899aa;text-transform:uppercase;">Watching</div>
                                     </td>
                                     <td width="4%"></td>
-                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
-                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.changes_count > 0 %}#059669{% else %}#1a1a2e{% endif %};">{{ summary.changes_count }}</div>
-                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Changed</div>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#0a0e1a;border-radius:8px;border:1px solid #1e2a3a;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.changes_count > 0 %}#34d399{% else %}#f0f4ff{% endif %};">{{ summary.changes_count }}</div>
+                                        <div style="font-size:0.7rem;color:#8899aa;text-transform:uppercase;">Changed</div>
                                     </td>
                                     <td width="4%"></td>
-                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
-                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.at_risk_count > 0 %}#dc2626{% else %}#1a1a2e{% endif %};">{{ summary.at_risk_count }}</div>
-                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">At Risk</div>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#0a0e1a;border-radius:8px;border:1px solid #1e2a3a;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.at_risk_count > 0 %}#f87171{% else %}#f0f4ff{% endif %};">{{ summary.at_risk_count }}</div>
+                                        <div style="font-size:0.7rem;color:#8899aa;text-transform:uppercase;">At Risk</div>
                                     </td>
                                     <td width="4%"></td>
-                                    <td width="20%" align="center" style="padding:12px 4px;background:#f8f9fb;border-radius:8px;">
-                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.expiring_count > 0 %}#d97706{% else %}#1a1a2e{% endif %};">{{ summary.expiring_count }}</div>
-                                        <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Expiring</div>
+                                    <td width="20%" align="center" style="padding:12px 4px;background:#0a0e1a;border-radius:8px;border:1px solid #1e2a3a;">
+                                        <div style="font-size:1.5rem;font-weight:700;color:{% if summary.expiring_count > 0 %}#fbbf24{% else %}#f0f4ff{% endif %};">{{ summary.expiring_count }}</div>
+                                        <div style="font-size:0.7rem;color:#8899aa;text-transform:uppercase;">Expiring</div>
                                     </td>
                                 </tr>
                             </table>
@@ -66,27 +66,27 @@
                     <!-- Your Properties -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Your Properties</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Your Properties</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for prop in property_cards[:6] %}
                                 <tr>
-                                    <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;">
+                                    <td style="padding:10px 0;border-bottom:1px solid #1e2a3a;">
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td>
                                                     <div style="font-weight:600;font-size:0.95rem;">
-                                                        <a href="{{ base_url }}{{ prop.search_url }}" style="color:#1a1a2e;text-decoration:none;">{{ prop.address }}</a>
+                                                        <a href="{{ base_url }}{{ prop.search_url }}" style="color:#f0f4ff;text-decoration:none;">{{ prop.address }}</a>
                                                         {% if prop.worst_health == 'at_risk' %}
-                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc2626;margin-left:6px;vertical-align:middle;"></span>
+                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-left:6px;vertical-align:middle;"></span>
                                                         {% elif prop.worst_health == 'behind' %}
-                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d97706;margin-left:6px;vertical-align:middle;"></span>
-                                                        {% elif prop.worst_health == 'slower' %}
                                                         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-left:6px;vertical-align:middle;"></span>
+                                                        {% elif prop.worst_health == 'slower' %}
+                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fbbf24;margin-left:6px;vertical-align:middle;"></span>
                                                         {% else %}
-                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#059669;margin-left:6px;vertical-align:middle;"></span>
+                                                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-left:6px;vertical-align:middle;"></span>
                                                         {% endif %}
                                                     </div>
-                                                    <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">
+                                                    <div style="font-size:0.8rem;color:#8899aa;margin-top:2px;">
                                                         {{ prop.active_permits }} active of {{ prop.total_permits }}
                                                         {% if prop.neighborhood %} &middot; {{ prop.neighborhood }}{% endif %}
                                                         {% if prop.parcels_display %} &middot; {{ prop.parcels_display }}{% endif %}
@@ -94,11 +94,11 @@
                                                 </td>
                                                 <td align="right" style="vertical-align:top;white-space:nowrap;">
                                                     {% if prop.enforcement_total is not none and prop.enforcement_total > 0 %}
-                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#fee2e2;color:#dc2626;">
+                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#3d1a1a;color:#f87171;border:1px solid #5a2020;">
                                                         &#9888; {{ prop.enforcement_total }} open
                                                     </span>
                                                     {% elif prop.enforcement_total is not none and prop.enforcement_total == 0 %}
-                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#d1fae5;color:#059669;">
+                                                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#0d2e1a;color:#34d399;border:1px solid #134d2a;">
                                                         &#10003; Clear
                                                     </span>
                                                     {% endif %}
@@ -107,12 +107,12 @@
                                             {% if prop.routing %}
                                             <tr>
                                                 <td colspan="2" style="padding-top:6px;">
-                                                    <div style="font-size:0.8rem;color:#6b7280;">
+                                                    <div style="font-size:0.8rem;color:#8899aa;">
                                                         Plan Check: {{ prop.routing.completed_stations }}/{{ prop.routing.total_stations }} stations ({{ prop.routing.completion_pct }}%)
                                                     </div>
                                                     <!-- Simple progress bar -->
-                                                    <div style="margin-top:4px;background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;">
-                                                        <div style="height:100%;border-radius:4px;width:{{ prop.routing.completion_pct }}%;background:{% if prop.routing.completion_pct >= 80 %}#059669{% elif prop.routing.completion_pct >= 50 %}#3b82f6{% else %}#d97706{% endif %};"></div>
+                                                    <div style="margin-top:4px;background:#1e2a3a;border-radius:4px;height:6px;overflow:hidden;">
+                                                        <div style="height:100%;border-radius:4px;width:{{ prop.routing.completion_pct }}%;background:{% if prop.routing.completion_pct >= 80 %}#34d399{% elif prop.routing.completion_pct >= 50 %}#00d4c8{% else %}#fbbf24{% endif %};"></div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -122,7 +122,7 @@
                                 </tr>
                                 {% endfor %}
                                 {% if property_cards|length > 6 %}
-                                <tr><td style="padding:8px 0;color:#6b7280;font-size:0.8rem;">+ {{ property_cards|length - 6 }} more properties</td></tr>
+                                <tr><td style="padding:8px 0;color:#8899aa;font-size:0.8rem;">+ {{ property_cards|length - 6 }} more properties</td></tr>
                                 {% endif %}
                             </table>
                         </td>
@@ -131,15 +131,15 @@
                     <!-- Fallback: single property link (legacy) -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:8px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0a0e1a;border:1px solid #1e2a3a;border-radius:8px;">
                                 <tr>
                                     <td style="padding:16px 20px;">
-                                        <div style="font-size:0.75rem;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px;">Your Property</div>
-                                        <div style="font-size:1rem;font-weight:600;color:#1a1a2e;">{{ property_synopsis.address }}</div>
+                                        <div style="font-size:0.75rem;text-transform:uppercase;color:#8899aa;font-weight:600;margin-bottom:4px;">Your Property</div>
+                                        <div style="font-size:1rem;font-weight:600;color:#f0f4ff;">{{ property_synopsis.address }}</div>
                                     </td>
                                     <td align="right" style="padding:16px 20px;">
                                         <a href="{{ base_url }}/report/{{ property_synopsis.block }}/{{ property_synopsis.lot }}"
-                                           style="display:inline-block;padding:10px 20px;background:#4f8ff7;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;white-space:nowrap;">
+                                           style="display:inline-block;padding:10px 20px;background:#00d4c8;color:#0a0e1a;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.9rem;white-space:nowrap;">
                                             View Report &rarr;
                                         </a>
                                     </td>
@@ -153,14 +153,14 @@
                     <!-- Pipeline Health Alert -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{% if pipeline_health.status == 'critical' %}#fee2e2{% else %}#fef3c7{% endif %};border:1px solid {% if pipeline_health.status == 'critical' %}#fecaca{% else %}#fde68a{% endif %};border-radius:8px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{% if pipeline_health.status == 'critical' %}#3d1a1a{% else %}#2e2200{% endif %};border:1px solid {% if pipeline_health.status == 'critical' %}#5a2020{% else %}#4a3800{% endif %};border-radius:8px;">
                                 <tr>
                                     <td style="padding:16px 20px;">
-                                        <div style="font-size:0.85rem;font-weight:700;color:{% if pipeline_health.status == 'critical' %}#dc2626{% else %}#d97706{% endif %};margin-bottom:6px;">
+                                        <div style="font-size:0.85rem;font-weight:700;color:{% if pipeline_health.status == 'critical' %}#f87171{% else %}#fbbf24{% endif %};margin-bottom:6px;">
                                             &#9888; Pipeline {{ pipeline_health.status|upper }}
                                         </div>
                                         {% for issue in pipeline_health.issues %}
-                                        <div style="font-size:0.8rem;color:#6b7280;margin:2px 0;">&bull; {{ issue }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;margin:2px 0;">&bull; {{ issue }}</div>
                                         {% endfor %}
                                     </td>
                                 </tr>
@@ -173,33 +173,33 @@
                     <!-- What Changed -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">What Changed</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">What Changed</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for c in changes[:10] %}
                                 <tr>
-                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <div style="font-weight:500;font-size:0.9rem;">{{ c.label or c.permit_number }}</div>
-                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                    <td style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <div style="font-weight:500;font-size:0.9rem;color:#f0f4ff;">{{ c.label or c.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;">
                                             {{ c.street_number }} {{ c.street_name }}
                                             {% if c.neighborhood %} &middot; {{ c.neighborhood }}{% endif %}
                                         </div>
                                     </td>
-                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #1e2a3a;white-space:nowrap;">
                                         {% if c.old_status %}
-                                        <span style="font-size:0.75rem;color:#6b7280;">{{ c.old_status }}</span>
-                                        <span style="color:#9ca3af;"> &rarr; </span>
+                                        <span style="font-size:0.75rem;color:#8899aa;">{{ c.old_status }}</span>
+                                        <span style="color:#8899aa;"> &rarr; </span>
                                         {% endif %}
                                         <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;
-                                            {% if c.new_status|lower in ('approved', 'issued', 'completed') %}background:#d1fae5;color:#059669;
-                                            {% elif c.new_status|lower in ('expired', 'cancelled', 'withdrawn') %}background:#fee2e2;color:#dc2626;
-                                            {% else %}background:#dbeafe;color:#2563eb;{% endif %}">
+                                            {% if c.new_status|lower in ('approved', 'issued', 'completed') %}background:#0d2e1a;color:#34d399;border:1px solid #134d2a;
+                                            {% elif c.new_status|lower in ('expired', 'cancelled', 'withdrawn') %}background:#3d1a1a;color:#f87171;border:1px solid #5a2020;
+                                            {% else %}background:#0a1a2e;color:#00d4c8;border:1px solid #0e2a4a;{% endif %}">
                                             {{ c.new_status }}
                                         </span>
                                     </td>
                                 </tr>
                                 {% endfor %}
                                 {% if changes|length > 10 %}
-                                <tr><td colspan="2" style="padding:8px 0;color:#6b7280;font-size:0.8rem;">+ {{ changes|length - 10 }} more changes</td></tr>
+                                <tr><td colspan="2" style="padding:8px 0;color:#8899aa;font-size:0.8rem;">+ {{ changes|length - 10 }} more changes</td></tr>
                                 {% endif %}
                             </table>
                         </td>
@@ -210,30 +210,30 @@
                     <!-- Plan Review Activity -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Plan Review Activity</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Plan Review Activity</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for pr in plan_reviews[:10] %}
                                 <tr>
-                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <div style="font-weight:600;font-size:0.95rem;">
+                                    <td style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <div style="font-weight:600;font-size:0.95rem;color:#f0f4ff;">
                                             {{ pr.label or pr.permit_number }} &mdash; {{ pr.station }}
-                                            {% if pr.department %}<span style="color:#6b7280;font-weight:400;"> ({{ pr.department }})</span>{% endif %}
+                                            {% if pr.department %}<span style="color:#8899aa;font-weight:400;"> ({{ pr.department }})</span>{% endif %}
                                         </div>
-                                        <div style="font-size:0.85rem;color:#6b7280;margin-top:2px;">
+                                        <div style="font-size:0.85rem;color:#8899aa;margin-top:2px;">
                                             {% if pr.result == 'Approved' %}
-                                            <span style="background:#059669;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
+                                            <span style="background:#34d399;color:#0a0e1a;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
                                             {% elif pr.result == 'Issued Comments' %}
-                                            <span style="background:#d97706;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
+                                            <span style="background:#fbbf24;color:#0a0e1a;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
                                             {% elif pr.result %}
-                                            <span style="background:#6b7280;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
+                                            <span style="background:#8899aa;color:#0a0e1a;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{{ pr.result }}</span>
                                             {% else %}
-                                            <span style="background:#3b82f6;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.8rem;">Routed</span>
+                                            <span style="background:#00d4c8;color:#0a0e1a;padding:2px 8px;border-radius:4px;font-size:0.8rem;">Routed</span>
                                             {% endif %}
                                             {% if pr.reviewer %} &middot; {{ pr.reviewer }}{% endif %}
                                             {% if pr.finish_date %} &middot; {{ pr.finish_date[:10] }}{% endif %}
                                         </div>
                                         {% if pr.notes %}
-                                        <div style="font-size:0.8rem;color:#9ca3af;margin-top:4px;">{{ pr.notes }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;margin-top:4px;">{{ pr.notes }}</div>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -247,22 +247,22 @@
                     <!-- Permit Health -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Permit Health</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Permit Health</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for h in health[:8] %}
                                 <tr>
-                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <div style="font-weight:500;font-size:0.9rem;">{{ h.label or h.permit_number }}</div>
-                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                    <td style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <div style="font-weight:500;font-size:0.9rem;color:#f0f4ff;">{{ h.label or h.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;">
                                             {{ h.elapsed_days }} days elapsed &middot; typical: {{ h.p50 }} days
                                         </div>
                                     </td>
-                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #1e2a3a;white-space:nowrap;">
                                         <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;
-                                            {% if h.status == 'on_track' %}background:#d1fae5;color:#059669;
-                                            {% elif h.status == 'slower' %}background:#fef3c7;color:#d97706;
-                                            {% elif h.status == 'behind' %}background:#fee2e2;color:#dc2626;
-                                            {% elif h.status == 'at_risk' %}background:#fecaca;color:#b91c1c;
+                                            {% if h.status == 'on_track' %}background:#0d2e1a;color:#34d399;border:1px solid #134d2a;
+                                            {% elif h.status == 'slower' %}background:#2e2200;color:#fbbf24;border:1px solid #4a3800;
+                                            {% elif h.status == 'behind' %}background:#3d1a1a;color:#f87171;border:1px solid #5a2020;
+                                            {% elif h.status == 'at_risk' %}background:#4d0e0e;color:#f87171;border:1px solid #6a1414;
                                             {% endif %}">
                                             {{ h.status|replace('_', ' ')|upper }}
                                         </span>
@@ -278,22 +278,22 @@
                     <!-- Inspections -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Inspection Results</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Inspection Results</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for insp in inspections[:8] %}
                                 <tr>
-                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <div style="font-weight:500;font-size:0.9rem;">{{ insp.label or insp.permit_number }}</div>
-                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                    <td style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <div style="font-weight:500;font-size:0.9rem;color:#f0f4ff;">{{ insp.label or insp.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;">
                                             {{ insp.description or 'Inspection' }}
                                             {% if insp.inspector %} &middot; {{ insp.inspector }}{% endif %}
                                         </div>
                                     </td>
-                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #1e2a3a;white-space:nowrap;">
                                         <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;
-                                            {% if insp.is_pass %}background:#d1fae5;color:#059669;
-                                            {% elif insp.is_fail %}background:#fee2e2;color:#dc2626;
-                                            {% else %}background:#f3f4f6;color:#6b7280;{% endif %}">
+                                            {% if insp.is_pass %}background:#0d2e1a;color:#34d399;border:1px solid #134d2a;
+                                            {% elif insp.is_fail %}background:#3d1a1a;color:#f87171;border:1px solid #5a2020;
+                                            {% else %}background:#0a0e1a;color:#8899aa;border:1px solid #1e2a3a;{% endif %}">
                                             {{ insp.result or 'Pending' }}
                                         </span>
                                     </td>
@@ -308,22 +308,22 @@
                     <!-- Expiring -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Expiring Permits</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Expiring Permits</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for e in expiring %}
                                 <tr>
-                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <div style="font-weight:500;font-size:0.9rem;">{{ e.label or e.permit_number }}</div>
-                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                    <td style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <div style="font-weight:500;font-size:0.9rem;color:#f0f4ff;">{{ e.label or e.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;">
                                             {{ e.street_number }} {{ e.street_name }}
                                             &middot; Issued: {{ e.issued_date }}
                                         </div>
                                     </td>
-                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #1e2a3a;white-space:nowrap;">
                                         {% if e.is_expired %}
-                                        <span style="color:#dc2626;font-weight:600;font-size:0.85rem;">EXPIRED</span>
+                                        <span style="color:#f87171;font-weight:600;font-size:0.85rem;">EXPIRED</span>
                                         {% else %}
-                                        <span style="color:#d97706;font-size:0.85rem;">{{ e.expires_in }} days left</span>
+                                        <span style="color:#fbbf24;font-size:0.85rem;">{{ e.expires_in }} days left</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -337,19 +337,19 @@
                     <!-- Regulatory Watch -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Regulatory Watch</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Regulatory Watch</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for a in regulatory_alerts %}
                                 <tr>
-                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <div style="font-weight:500;font-size:0.9rem;">{{ a.title }}</div>
-                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                    <td style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <div style="font-weight:500;font-size:0.9rem;color:#f0f4ff;">{{ a.title }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;">
                                             {{ a.source_type | replace('_', ' ') | title }} &mdash; {{ a.source_id }}
                                             {% if a.filed_date %} &middot; Filed {{ a.filed_date }}{% endif %}
                                         </div>
                                     </td>
-                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
-                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;{% if a.impact_level == 'high' %}background:#fee2e2;color:#dc2626;{% elif a.impact_level == 'moderate' %}background:#fef3c7;color:#d97706;{% else %}background:#dbeafe;color:#2563eb;{% endif %}">{{ a.impact_level | upper }}</span>
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #1e2a3a;white-space:nowrap;">
+                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;{% if a.impact_level == 'high' %}background:#3d1a1a;color:#f87171;border:1px solid #5a2020;{% elif a.impact_level == 'moderate' %}background:#2e2200;color:#fbbf24;border:1px solid #4a3800;{% else %}background:#0a1a2e;color:#00d4c8;border:1px solid #0e2a4a;{% endif %}">{{ a.impact_level | upper }}</span>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -362,20 +362,20 @@
                     <!-- New Filings -->
                     <tr>
                         <td style="padding:0 28px 20px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">New Filings at Watched Locations</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">New Filings at Watched Locations</h2>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 {% for f in new_filings[:10] %}
                                 <tr>
-                                    <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <div style="font-weight:500;font-size:0.9rem;">{{ f.permit_number }}</div>
-                                        <div style="font-size:0.8rem;color:#6b7280;">
+                                    <td style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <div style="font-weight:500;font-size:0.9rem;color:#f0f4ff;">{{ f.permit_number }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;">
                                             {{ f.street_number }} {{ f.street_name }}
                                             {% if f.neighborhood %} &middot; {{ f.neighborhood }}{% endif %}
                                             {% if f.permit_type %} &middot; {{ f.permit_type }}{% endif %}
                                         </div>
                                     </td>
-                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#dbeafe;color:#2563eb;">NEW</span>
+                                    <td align="right" style="padding:8px 0;border-bottom:1px solid #1e2a3a;">
+                                        <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;background:#0a1a2e;color:#00d4c8;border:1px solid #0e2a4a;">NEW</span>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -387,7 +387,7 @@
                     <!-- CTA -->
                     <tr>
                         <td align="center" style="padding:8px 28px 28px;">
-                            <a href="{{ base_url }}/brief" style="display:inline-block;padding:12px 32px;background:#4f8ff7;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;">
+                            <a href="{{ base_url }}/brief" style="display:inline-block;padding:12px 32px;background:#00d4c8;color:#0a0e1a;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;">
                                 View Full Brief
                             </a>
                         </td>
@@ -395,21 +395,21 @@
 
                     <!-- Footer -->
                     <tr>
-                        <td style="padding:20px 28px;background:#f8f9fb;border-top:1px solid #e5e7eb;">
+                        <td style="padding:20px 28px;background:#0a0e1a;border-top:1px solid #1e2a3a;">
                             {% if last_refresh %}
-                            <p style="margin:0 0 8px;font-size:0.7rem;color:#b0b4c0;text-align:center;">
+                            <p style="margin:0 0 8px;font-size:0.7rem;color:#8899aa;text-align:center;">
                                 Data as of {{ last_refresh.last_success_date }}
                                 {% if last_refresh.is_stale %} &mdash; &#9888; data may be incomplete{% endif %}
                                 {% if last_refresh.was_catchup %} &mdash; some changes recovered via backfill{% endif %}
                             </p>
                             {% endif %}
-                            <p style="margin:0;font-size:0.75rem;color:#9ca3af;text-align:center;">
+                            <p style="margin:0;font-size:0.75rem;color:#8899aa;text-align:center;">
                                 You're receiving this because you have an active watch list on
-                                <a href="{{ base_url }}" style="color:#4f8ff7;text-decoration:none;">sfpermits.ai</a>.
+                                <a href="{{ base_url }}" style="color:#00d4c8;text-decoration:none;">sfpermits.ai</a>.
                                 <br>
-                                <a href="{{ base_url }}/account" style="color:#4f8ff7;text-decoration:none;">Manage email preferences</a>
+                                <a href="{{ base_url }}/account" style="color:#00d4c8;text-decoration:none;">Manage email preferences</a>
                                 &middot;
-                                <a href="{{ unsubscribe_url }}" style="color:#4f8ff7;text-decoration:none;">Unsubscribe</a>
+                                <a href="{{ unsubscribe_url }}" style="color:#00d4c8;text-decoration:none;">Unsubscribe</a>
                             </p>
                         </td>
                     </tr>
