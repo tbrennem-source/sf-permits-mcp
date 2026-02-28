@@ -5,8 +5,6 @@ import sys
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web"))
-
 from web.sources import get_source_inventory, _parse_gaps, _extract_metadata, _build_lifecycle_matrix
 
 

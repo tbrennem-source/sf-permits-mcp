@@ -8,17 +8,13 @@ Extended from Sprint 67-C:
 - Summary output at end of crawl
 """
 
-import os
-import sys
 import time
 from urllib.parse import urljoin, urlparse
 from html.parser import HTMLParser
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web"))
-
-from app import app, _rate_buckets
+from web.app import app, _rate_buckets
 
 
 # ---------------------------------------------------------------------------

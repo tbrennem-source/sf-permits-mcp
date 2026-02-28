@@ -9,17 +9,17 @@ import pytest
 
 # ── Fixtures ──────────────────────────────────────────────────────
 
-@pytest.fixture(scope="module")
-def app():
+@pytest.fixture
+def app(monkeypatch):
     """Create a Flask test app with DuckDB backend."""
-    os.environ.setdefault("TESTING", "1")
-    os.environ.setdefault("CRON_WORKER", "1")
+    monkeypatch.setenv("TESTING", "1")
+    monkeypatch.setenv("CRON_WORKER", "1")
     from web.app import app as flask_app
     flask_app.config["TESTING"] = True
     return flask_app
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def client(app):
     return app.test_client()
 

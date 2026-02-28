@@ -1,14 +1,10 @@
 """Tests for morning brief dashboard — all 6 features + route."""
 
-import os
-import sys
 from datetime import date, timedelta
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web"))
-
-from app import app, _rate_buckets
+from web.app import app, _rate_buckets
 
 
 # ---------------------------------------------------------------------------
