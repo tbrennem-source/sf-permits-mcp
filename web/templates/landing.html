@@ -482,7 +482,7 @@
     <div class="below-search">
       <div class="below-search__sub" id="below-sub"></div>
       <div class="below-search__watched" id="below-watched"></div>
-      <div class="below-search__context" id="below-context">try: <a href="/search?q=487+Noe+St" onmouseenter="showAddressExamples(event)" onclick="event.preventDefault(); showAddressExamples(event)">487 Noe St</a> · <a href="/search?q=kitchen+remodel" onmouseenter="showProjectTypes(event)" onclick="event.preventDefault(); showProjectTypes(event)">kitchen remodel</a> · <a href="/search?q=do+I+need+a+permit" onmouseenter="showPermitQuestions(event)" onclick="event.preventDefault(); showPermitQuestions(event)">do I need a permit?</a></div>
+      <div class="below-search__context" id="below-context">try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a></div>
     </div>
   </div>
 
@@ -1099,21 +1099,21 @@
       placeholder: 'Enter an SF address or describe your project',
       sub: '',
       watched: '',
-      context: 'try: <a href="/search?q=487+Noe+St" onmouseenter="showAddressExamples(event)" onclick="event.preventDefault(); showAddressExamples(event)">487 Noe St</a> · <a href="/search?q=kitchen+remodel" onmouseenter="showProjectTypes(event)" onclick="event.preventDefault(); showProjectTypes(event)">kitchen remodel</a> · <a href="/search?q=do+I+need+a+permit" onmouseenter="showPermitQuestions(event)" onclick="event.preventDefault(); showPermitQuestions(event)">do I need a permit?</a>',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
       scroll: 'See how it works'
     },
     returning: {
       placeholder: 'Search any SF address',
       sub: '',
       watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/search?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/search?q=225+Bush+St">225 Bush — on track</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">2 watching →</a>',
-      context: 'try: <a href="/search?q=kitchen+remodel" onmouseenter="showProjectTypes(event)" onclick="event.preventDefault(); showProjectTypes(event)">kitchen remodel</a> · <a href="/search?q=do+I+need+a+permit" onmouseenter="showPermitQuestions(event)" onclick="event.preventDefault(); showPermitQuestions(event)">do I need a permit?</a>',
+      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
       scroll: 'What\'s new this week'
     },
     returning_nowatch: {
       placeholder: 'Search any SF address',
       sub: '',
       watched: '',
-      context: 'try: <a href="/search?q=487+Noe+St" onmouseenter="showAddressExamples(event)" onclick="event.preventDefault(); showAddressExamples(event)">487 Noe St</a> · <a href="/search?q=kitchen+remodel" onmouseenter="showProjectTypes(event)" onclick="event.preventDefault(); showProjectTypes(event)">kitchen remodel</a> · <a href="/search?q=do+I+need+a+permit" onmouseenter="showPermitQuestions(event)" onclick="event.preventDefault(); showPermitQuestions(event)">do I need a permit?</a>',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
       scroll: 'What\'s new this week'
     },
     power: {
@@ -1127,14 +1127,14 @@
       placeholder: 'Enter an SF address or describe your project',
       sub: '',
       watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/search?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
-      context: 'try: <a href="/search?q=kitchen+remodel" onmouseenter="showProjectTypes(event)" onclick="event.preventDefault(); showProjectTypes(event)">kitchen remodel</a> · <a href="/search?q=do+I+need+a+permit" onmouseenter="showPermitQuestions(event)" onclick="event.preventDefault(); showPermitQuestions(event)">do I need a permit?</a>',
+      context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
       scroll: 'See what you can do'
     },
     beta_nowatch: {
       placeholder: 'Enter an SF address or describe your project',
       sub: '',
       watched: '',
-      context: 'try: <a href="/search?q=487+Noe+St" onmouseenter="showAddressExamples(event)" onclick="event.preventDefault(); showAddressExamples(event)">487 Noe St</a> · <a href="/search?q=kitchen+remodel" onmouseenter="showProjectTypes(event)" onclick="event.preventDefault(); showProjectTypes(event)">kitchen remodel</a> · <a href="/search?q=do+I+need+a+permit" onmouseenter="showPermitQuestions(event)" onclick="event.preventDefault(); showPermitQuestions(event)">do I need a permit?</a>',
+      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
       scroll: 'See what you can do'
     }
   };
