@@ -4,12 +4,27 @@
     "description": "Parking Garage to Loading Zone Conversion",
     "address": "350 Mission St, San Francisco",
     "estimated_cost": 13000000,
-    "permit_type": "Alteration — Commercial",
+    "permit_type": "Alteration \u2014 Commercial",
     "neighborhood": "South of Market",
     "status": "In Review",
     "filed_date": "2025-09-15",
     "elapsed_days": 166,
     "stations": [
+      {
+        "station": "PERMIT-CTR",
+        "name": "PERMIT-CTR",
+        "label": "Permit Center",
+        "arrive": "2025-09-15",
+        "finish_date": "2025-09-18",
+        "review_results": "Submitted",
+        "addenda_number": 0,
+        "dwell_days": 3,
+        "status": "approved",
+        "is_current": false,
+        "reviewer": null,
+        "start_month": 0.0,
+        "width_pct": 1.2396694214876034
+      },
       {
         "station": "BLDG",
         "label": "Building Inspection",
@@ -18,7 +33,12 @@
         "review_results": "Approved",
         "addenda_number": 0,
         "dwell_days": 14,
-        "status": "approved"
+        "status": "approved",
+        "start_month": 0.0743801652892562,
+        "width_pct": 5.785123966942149,
+        "name": "BLDG",
+        "is_current": false,
+        "reviewer": null
       },
       {
         "station": "CP-ZOC",
@@ -28,7 +48,12 @@
         "review_results": "Approved",
         "addenda_number": 0,
         "dwell_days": 43,
-        "status": "approved"
+        "status": "approved",
+        "start_month": 0.42148760330578516,
+        "width_pct": 17.768595041322314,
+        "name": "CP-ZOC",
+        "is_current": false,
+        "reviewer": null
       },
       {
         "station": "SFFD",
@@ -38,7 +63,12 @@
         "review_results": "Approved",
         "addenda_number": 0,
         "dwell_days": 46,
-        "status": "approved"
+        "status": "approved",
+        "start_month": 1.487603305785124,
+        "width_pct": 19.00826446280992,
+        "name": "SFFD",
+        "is_current": false,
+        "reviewer": null
       },
       {
         "station": "DPW-BSM",
@@ -48,7 +78,12 @@
         "review_results": "Approved",
         "addenda_number": 0,
         "dwell_days": 24,
-        "status": "approved"
+        "status": "approved",
+        "start_month": 2.6280991735537187,
+        "width_pct": 9.917355371900827,
+        "name": "DPW-BSM",
+        "is_current": false,
+        "reviewer": null
       },
       {
         "station": "BLDG",
@@ -59,7 +94,11 @@
         "addenda_number": 1,
         "dwell_days": 28,
         "status": "comments",
-        "reviewer": "Plan Checker R. Hernandez"
+        "reviewer": "Plan Checker R. Hernandez",
+        "start_month": 3.2231404958677685,
+        "width_pct": 11.570247933884298,
+        "name": "BLDG",
+        "is_current": false
       },
       {
         "station": "BLDG",
@@ -70,7 +109,11 @@
         "addenda_number": 2,
         "dwell_days": 21,
         "status": "comments",
-        "reviewer": "Plan Checker R. Hernandez"
+        "reviewer": "Plan Checker R. Hernandez",
+        "start_month": 3.9173553719008267,
+        "width_pct": 8.677685950413224,
+        "name": "BLDG",
+        "is_current": false
       },
       {
         "station": "BLDG",
@@ -81,7 +124,11 @@
         "addenda_number": 3,
         "dwell_days": 16,
         "status": "active",
-        "reviewer": "Plan Checker R. Hernandez"
+        "reviewer": "Plan Checker R. Hernandez",
+        "start_month": 4.43801652892562,
+        "width_pct": 6.6115702479338845,
+        "name": "BLDG",
+        "is_current": true
       },
       {
         "station": "SFPUC",
@@ -91,7 +138,27 @@
         "review_results": null,
         "addenda_number": 0,
         "dwell_days": 39,
-        "status": "active"
+        "status": "active",
+        "start_month": 4.8347107438016526,
+        "width_pct": 16.115702479338843,
+        "name": "SFPUC",
+        "is_current": true,
+        "reviewer": null
+      },
+      {
+        "station": "CPB",
+        "name": "CPB",
+        "label": "Central Permit Bureau",
+        "arrive": "2026-02-20",
+        "finish_date": null,
+        "review_results": null,
+        "addenda_number": 0,
+        "dwell_days": 8,
+        "status": "active",
+        "is_current": true,
+        "reviewer": "CPB Staff",
+        "start_month": 5.801652892561983,
+        "width_pct": 3.3057851239669422
       }
     ],
     "summary": {
@@ -116,6 +183,15 @@
         "p50_days": 5,
         "p75_days": 10
       }
+    ],
+    "total_days": 242,
+    "axis_labels": [
+      "Sep 2025",
+      "Oct",
+      "Nov",
+      "Dec",
+      "Jan 2026",
+      "Feb"
     ]
   },
   "stuck_permit": {
@@ -129,7 +205,7 @@
     "filed_date": "2024-12-23",
     "elapsed_days": 432,
     "severity_score": 78,
-    "severity_tier": "HIGH",
+    "severity_tier": "CRITICAL",
     "overall_status": "critically_stalled",
     "revision_cycles": 2,
     "blocks": [
@@ -139,13 +215,14 @@
         "dwell_days": 156,
         "status": "critically_stalled",
         "review_results": "Comments Issued",
+        "reviewer": "Jeff Ibarra",
+        "round": "2nd round of comments",
+        "date_issued": "2024-10-15",
         "flags": [
           "dwell 156d > p90 (90d baseline)",
-          "comments issued — resubmission needed",
-          "revision cycle 2 (multiple rounds)"
-        ],
-        "is_inter_agency": false,
-        "is_bldg": true
+          "comments issued \u2014 resubmission needed",
+          "revision cycle 2"
+        ]
       },
       {
         "station": "MECH",
@@ -153,80 +230,69 @@
         "dwell_days": 98,
         "status": "stalled",
         "review_results": "Comments Issued",
+        "reviewer": "Ray Chen",
+        "round": "1st round of comments",
+        "date_issued": "2024-11-02",
         "flags": [
           "dwell 98d > p75 (60d baseline)",
-          "comments issued — resubmission needed"
-        ],
-        "is_inter_agency": false,
-        "is_bldg": false
+          "comments issued \u2014 resubmission needed"
+        ]
       },
       {
         "station": "SFFD",
-        "label": "SF Fire Department",
-        "dwell_days": 223,
-        "status": "critically_stalled",
-        "review_results": null,
+        "label": "Fire Department",
+        "dwell_days": 87,
+        "status": "stalled",
+        "review_results": "Comments Issued",
+        "reviewer": "M. Torres",
+        "round": "1st round of comments",
+        "date_issued": "2024-10-28",
         "flags": [
-          "dwell 223d > p90 (75d baseline)",
-          "223d with no recorded activity"
-        ],
-        "is_inter_agency": true,
-        "is_bldg": false
+          "fire suppression plan incomplete"
+        ]
       },
       {
         "station": "CP-ZOC",
         "label": "Planning (Zoning)",
         "dwell_days": 223,
         "status": "critically_stalled",
-        "review_results": null,
+        "review_results": "Pending",
+        "reviewer": "Wesley Wong",
+        "round": "Awaiting determination",
+        "date_issued": "2024-07-01",
         "flags": [
-          "dwell 223d > p90 (120d baseline)",
-          "223d with no recorded activity"
-        ],
-        "is_inter_agency": true,
-        "is_bldg": false
+          "223 days \u2014 no final determination",
+          "conditional use hearing required"
+        ]
       }
     ],
     "playbook": [
       {
-        "priority": 1,
-        "urgency": "IMMEDIATE",
-        "action": "Revise plans to address comments at BLDG, MECH and resubmit via EPR (Electronic Plan Review)",
-        "contact": null
+        "priority": "IMMEDIATE",
+        "step": 1,
+        "action": "Address BLDG + MECH + SFFD comments NOW \u2014 respond to all agencies in one resubmission",
+        "contact": "SF DBI: (415) 558-6000",
+        "detail": "Upload corrected sheets with revision clouds (EPR-025)"
       },
       {
-        "priority": 2,
-        "urgency": "HIGH",
-        "action": "Contact SF Fire Department directly — permit has been waiting 223d (critically past p90 baseline)",
-        "contact": {
-          "name": "SF Fire Department — Permit Division",
-          "phone": "(415) 558-3300",
-          "url": "https://sf.gov/departments/fire-department",
-          "notes": "Plan check: 698 2nd St, 3rd Floor"
-        }
+        "priority": "IMMEDIATE",
+        "step": 2,
+        "action": "Call Planning (628-652-7600) about CP-ZOC. Ask for Wesley Wong.",
+        "contact": "SF Planning: (628) 652-7600",
+        "detail": "This project needs a conditional use hearing scheduled \u2014 that is the blocker"
       },
       {
-        "priority": 3,
-        "urgency": "HIGH",
-        "action": "Contact SF Planning Department — 223d wait for zoning review (critically past p90 baseline)",
-        "contact": {
-          "name": "SF Planning Department",
-          "phone": "(415) 558-6378",
-          "url": "https://sfplanning.org",
-          "notes": "Permit Counter: 49 South Van Ness Ave, M-Th 8am-5pm"
-        }
-      },
-      {
-        "priority": 4,
-        "urgency": "MEDIUM",
-        "action": "Review all plan check comments carefully — 2 revision cycles indicate recurring issues. Consider consulting with a licensed architect or expediter.",
-        "contact": null
+        "priority": "HIGH",
+        "step": 3,
+        "action": "Upload corrected sheets with revision clouds (EPR-025)",
+        "contact": "SF DBI EPR portal",
+        "detail": "Each comment-response cycle without revision clouds adds 2-3 weeks to BLDG review"
       }
     ],
     "planning_days": 223,
     "agency_contacts": {
       "SFFD": {
-        "name": "SF Fire Department — Permit Division",
+        "name": "SF Fire Department \u2014 Permit Division",
         "phone": "(415) 558-3300",
         "url": "https://sf.gov/departments/fire-department"
       },
@@ -240,60 +306,66 @@
         "phone": "(415) 558-6000",
         "url": "https://sfdbi.org"
       }
-    }
+    },
+    "severity": "CRITICAL",
+    "block_count": 4,
+    "days_stuck": 432,
+    "timeline_impact": "Each comment-response cycle adds 6-8 weeks"
   },
   "what_if": {
     "scenario_a": {
-      "label": "Kitchen Remodel Only",
-      "description": "Remodel kitchen with new appliances, cabinets, countertops — no structural changes",
+      "label": "KITCHEN ONLY",
+      "description": "Remodel kitchen with new appliances, cabinets, countertops \u2014 no structural changes",
       "estimated_cost": 45000,
       "permit_type": "kitchen_remodel",
       "review_path": "OTC",
-      "agencies": [
-        "DBI"
-      ],
+      "agencies": "1 (DBI only)",
       "agency_count": 1,
       "p25_days": 10,
       "p50_days": 14,
       "p75_days": 21,
       "p90_days": 45,
-      "total_fees": 890,
-      "revision_risk": 0.12,
+      "total_fees": 1200,
+      "revision_risk": "Low (12%)",
       "revision_risk_label": "Low (12%)",
       "highlights": [
-        "Over-the-counter approval — same day in many cases",
+        "Over-the-counter approval \u2014 same day in many cases",
         "Single agency review (DBI only)",
         "No planning review required"
-      ]
+      ],
+      "cost": "$45,000",
+      "timeline_p50": "~2 weeks",
+      "timeline_p75": "~3 weeks",
+      "fees": "$1,200",
+      "plans_signed_by": "Contractor OK",
+      "ada_required": false
     },
     "scenario_b": {
-      "label": "Kitchen + Bath + Wall Removal",
+      "label": "KITCHEN + BATH + WALL",
       "description": "Remodel kitchen and bathroom, remove non-structural wall, update electrical and plumbing",
       "estimated_cost": 185000,
       "permit_type": "general_alteration",
       "review_path": "In-house",
-      "agencies": [
-        "DBI",
-        "BLDG",
-        "ELECT",
-        "PLMB",
-        "MECH",
-        "SFFD",
-        "CP-ZOC"
-      ],
+      "agencies": "7 agencies",
       "agency_count": 7,
       "p25_days": 35,
       "p50_days": 70,
       "p75_days": 105,
       "p90_days": 150,
-      "total_fees": 3420,
-      "revision_risk": 0.28,
+      "total_fees": 6487,
+      "revision_risk": "Moderate (28%)",
       "revision_risk_label": "Moderate (28%)",
       "highlights": [
-        "In-house plan review required — 7 agency touchpoints",
+        "In-house plan review required \u2014 7 agency touchpoints",
         "Structural changes trigger mandatory engineering review",
         "Electrical + plumbing permits required in addition to building"
-      ]
+      ],
+      "cost": "$185,000",
+      "timeline_p50": "70 days",
+      "timeline_p75": "113 days",
+      "fees": "$6,487",
+      "plans_signed_by": "Licensed Architect",
+      "ada_required": true
     },
     "comparison": [
       {
@@ -319,10 +391,10 @@
       },
       {
         "dimension": "Total Permit Fees",
-        "scenario_a": "$890",
-        "scenario_b": "$3,420",
+        "scenario_a": "$1,200",
+        "scenario_b": "$6,487",
         "verdict": "a_wins",
-        "delta": "+$2,530"
+        "delta": "+$5,287"
       },
       {
         "dimension": "Revision Risk",
@@ -339,53 +411,44 @@
         "delta": "More comprehensive project"
       }
     ],
-    "recommendation": "If timeline is critical, Scenario A saves ~56 days and $2,530 in fees. If the full scope is needed, plan for 70-day review and budget for possible revisions."
+    "recommendation": "If timeline is critical, Scenario A saves ~56 days and $2,530 in fees. If the full scope is needed, plan for 70-day review and budget for possible revisions.",
+    "strategy": "Consider splitting into two permits \u2014 kitchen first (OTC, issued in days), then wall + bath as a second permit. You can often start kitchen work while the second permit is in review."
   },
   "revision_risk": {
     "permit_type": "restaurant",
     "neighborhood": "Mission",
-    "description": "Restaurant alteration — new kitchen layout, Type I hood, updated equipment",
+    "description": "Restaurant alteration \u2014 new kitchen layout, Type I hood, updated equipment",
     "sample_size": 21596,
     "rate": 0.246,
     "rate_label": "24.6%",
-    "risk_level": "MODERATE",
+    "risk_level": "HIGH",
     "timeline_impact_days": 51,
-    "budget_recommendation": "Add $8,000-$15,000 contingency for revision rounds",
+    "budget_recommendation": "Plan for $321,250 (not $250K) \u2014 budget for p75 revision scenario",
     "triggers": [
       {
         "rank": 1,
-        "category": "Title-24 Energy Compliance",
-        "rate": "~45% of commercial alterations",
-        "detail": "Missing or incorrect energy forms. Submit CF1R/NRCC with initial application. (T24-C01)",
-        "preventable": true
+        "category": "Incomplete grease interceptor sizing",
+        "detail": "Missing grease interceptor calculations or sizing documentation"
       },
       {
         "rank": 2,
-        "category": "ADA/Accessibility (CBC 11B)",
-        "rate": "~38% of commercial alterations",
-        "detail": "Missing DA-02 checklist or path-of-travel documentation. (ADA-C01)",
-        "preventable": true
+        "category": "Missing Type I hood fire suppression details",
+        "detail": "Fire suppression design incomplete for commercial kitchen"
       },
       {
         "rank": 3,
-        "category": "DPH Food Facility",
-        "rate": "high for restaurant conversions",
-        "detail": "Equipment schedule not cross-referenced to layout, or missing exhaust data sheets. (DPH-002, DPH-004)",
-        "preventable": true
+        "category": "DPH health permit requirements not addressed",
+        "detail": "Equipment schedule not cross-referenced to layout"
       },
       {
         "rank": 4,
-        "category": "DPH Equipment Schedule (Appendix C)",
-        "rate": "#1 DPH correction item",
-        "detail": "Must include: Item#, Name, Manufacturer, Model, Dimensions, NSF cert, Gas/Elec, BTU/kW. Numbers must match floor plan.",
-        "preventable": true
+        "category": "Inadequate ventilation calculations",
+        "detail": "Ventilation design missing or insufficient for occupancy"
       },
       {
         "rank": 5,
-        "category": "Incomplete grease interceptor sizing",
-        "rate": "common for kitchen renovations",
-        "detail": "Missing grease interceptor calculations or Type I hood fire suppression details.",
-        "preventable": true
+        "category": "ADA path-of-travel missing or insufficient",
+        "detail": "DA-02 checklist or path-of-travel documentation missing"
       }
     ],
     "mitigation_strategies": [
@@ -400,7 +463,39 @@
       "revision_probability": 0.246,
       "revision_delay_days": 75,
       "expected_additional_days": 51
-    }
+    },
+    "risk_pct": "24.6%",
+    "severity": "HIGH",
+    "sample_description": "Based on 21,596 similar permits in San Francisco",
+    "top_triggers": [
+      {
+        "rank": 1,
+        "category": "Incomplete grease interceptor sizing",
+        "detail": "Missing grease interceptor calculations or sizing documentation"
+      },
+      {
+        "rank": 2,
+        "category": "Missing Type I hood fire suppression details",
+        "detail": "Fire suppression design incomplete for commercial kitchen"
+      },
+      {
+        "rank": 3,
+        "category": "DPH health permit requirements not addressed",
+        "detail": "Equipment schedule not cross-referenced to layout"
+      },
+      {
+        "rank": 4,
+        "category": "Inadequate ventilation calculations",
+        "detail": "Ventilation design missing or insufficient for occupancy"
+      },
+      {
+        "rank": 5,
+        "category": "ADA path-of-travel missing or insufficient",
+        "detail": "DA-02 checklist or path-of-travel documentation missing"
+      }
+    ],
+    "budget_recommended": "Plan for $321,250 (not $250K) \u2014 budget for p75 revision scenario",
+    "demo": "restaurant-mission"
   },
   "entity_network": {
     "address": "1 Market St",
@@ -425,6 +520,15 @@
         "shared_permits": 12,
         "role": "Structural Engineer",
         "last_active": "2025-08-22"
+      },
+      {
+        "canonical_name": "Gensler",
+        "entity_id": 5241,
+        "entity_type": "architect",
+        "last_active": "2025-09-18",
+        "permit_count": 1843,
+        "role": "Architect of Record",
+        "shared_permits": 6
       },
       {
         "entity_id": 31045,
@@ -454,7 +558,56 @@
         "last_active": "2025-06-30"
       }
     ],
-    "nodes": 8,
+    "nodes": [
+      {
+        "label": "Arb Inc",
+        "permit_count": 12674,
+        "entity_type": "contractor",
+        "role": "General Contractor",
+        "cx": 80,
+        "cy": 55,
+        "r": 22,
+        "size_pct": 100,
+        "edge_to": "central",
+        "shared_permits": 18
+      },
+      {
+        "label": "Pribuss Engineering",
+        "permit_count": 7309,
+        "entity_type": "engineer",
+        "role": "Structural Engineer",
+        "cx": 320,
+        "cy": 55,
+        "r": 16,
+        "size_pct": 57.66924412182421,
+        "edge_to": "central",
+        "shared_permits": 12
+      },
+      {
+        "label": "Gensler",
+        "permit_count": 1843,
+        "entity_type": "architect",
+        "role": "Architect of Record",
+        "cx": 80,
+        "cy": 170,
+        "r": 10,
+        "size_pct": 14.541581189837464,
+        "edge_to": "central",
+        "shared_permits": 6
+      },
+      {
+        "label": "Hathaway Dinwiddie Construction",
+        "permit_count": 4821,
+        "entity_type": "contractor",
+        "role": "General Contractor",
+        "cx": 320,
+        "cy": 170,
+        "r": 13,
+        "size_pct": 38.038504023986114,
+        "edge_to": "central",
+        "shared_permits": 9
+      }
+    ],
     "edges": 14,
     "permit_type_breakdown": {
       "Alterations": 31,
@@ -467,7 +620,15 @@
       "first": 2004,
       "last": 2025
     },
-    "insight": "Arb Inc and Pribuss Engineering have co-appeared on 18 permits at this address, forming the dominant contractor-engineer pair for major renovations."
+    "insight": "Arb Inc and Pribuss Engineering have co-appeared on 18 permits at this address, forming the dominant contractor-engineer pair for major renovations.",
+    "total_permits": 63,
+    "central_node": {
+      "label": "1 Market St",
+      "permit_count": 63,
+      "cx": 200,
+      "cy": 112,
+      "r": 32
+    }
   },
   "cost_of_delay": {
     "permit_type": "restaurant",
@@ -500,8 +661,8 @@
     },
     "expected": {
       "days": 84,
-      "cost": 41412,
-      "cost_formatted": "$41,412",
+      "cost": 41375,
+      "cost_formatted": "$41,375",
       "note": "Probability-weighted expected cost across all scenarios"
     },
     "revision_scenario": {
@@ -518,7 +679,7 @@
       "slowdown_pct": 86,
       "current_p50_days": 112,
       "baseline_p50_days": 60,
-      "note": "SFFD-HQ currently running 86% slower than baseline — add 52 days to fire review estimate"
+      "note": "SFFD-HQ currently running 86% slower than baseline \u2014 add 52 days to fire review estimate"
     },
     "mitigation_strategies": [
       "Pre-consultation with DPH before filing",
@@ -531,7 +692,139 @@
       "days_saved_estimate": 21,
       "savings": 10353,
       "net_roi": 5853,
-      "roi_label": "Positive ROI — expediter pays for itself"
-    }
+      "roi_label": "Positive ROI \u2014 expediter pays for itself"
+    },
+    "expected_cost": 41375,
+    "warning_text": "SFFD-HQ currently running 86% slower than baseline \u2014 add 52 days to fire review estimate",
+    "scenarios": [
+      {
+        "label": "Best case",
+        "percentile": "p25",
+        "days": 35,
+        "cost": 17500
+      },
+      {
+        "label": "Typical",
+        "percentile": "p50",
+        "days": 70,
+        "cost": 35000
+      },
+      {
+        "label": "Conservative",
+        "percentile": "p75",
+        "days": 113,
+        "cost": 56500
+      },
+      {
+        "label": "Worst case",
+        "percentile": "p90",
+        "days": 174,
+        "cost": 87000
+      }
+    ],
+    "recommendation": "Budget for p75 carrying cost ($55,709) \u2014 SFFD-HQ is running 86% slower than baseline.",
+    "demo": "restaurant-15k"
+  },
+  "whatif": {
+    "scenario_a": {
+      "label": "KITCHEN ONLY",
+      "description": "Remodel kitchen with new appliances, cabinets, countertops \u2014 no structural changes",
+      "estimated_cost": 45000,
+      "permit_type": "kitchen_remodel",
+      "review_path": "OTC",
+      "agencies": "1 (DBI only)",
+      "agency_count": 1,
+      "p25_days": 10,
+      "p50_days": 14,
+      "p75_days": 21,
+      "p90_days": 45,
+      "total_fees": 1200,
+      "revision_risk": "Low (12%)",
+      "revision_risk_label": "Low (12%)",
+      "highlights": [
+        "Over-the-counter approval \u2014 same day in many cases",
+        "Single agency review (DBI only)",
+        "No planning review required"
+      ],
+      "cost": "$45,000",
+      "timeline_p50": "~2 weeks",
+      "timeline_p75": "~3 weeks",
+      "fees": "$1,200",
+      "plans_signed_by": "Contractor OK",
+      "ada_required": false
+    },
+    "scenario_b": {
+      "label": "KITCHEN + BATH + WALL",
+      "description": "Remodel kitchen and bathroom, remove non-structural wall, update electrical and plumbing",
+      "estimated_cost": 185000,
+      "permit_type": "general_alteration",
+      "review_path": "In-house",
+      "agencies": "7 agencies",
+      "agency_count": 7,
+      "p25_days": 35,
+      "p50_days": 70,
+      "p75_days": 105,
+      "p90_days": 150,
+      "total_fees": 6487,
+      "revision_risk": "Moderate (28%)",
+      "revision_risk_label": "Moderate (28%)",
+      "highlights": [
+        "In-house plan review required \u2014 7 agency touchpoints",
+        "Structural changes trigger mandatory engineering review",
+        "Electrical + plumbing permits required in addition to building"
+      ],
+      "cost": "$185,000",
+      "timeline_p50": "70 days",
+      "timeline_p75": "113 days",
+      "fees": "$6,487",
+      "plans_signed_by": "Licensed Architect",
+      "ada_required": true
+    },
+    "comparison": [
+      {
+        "dimension": "Review Path",
+        "scenario_a": "OTC (same-day)",
+        "scenario_b": "In-house review",
+        "verdict": "a_wins",
+        "delta": "5x faster track"
+      },
+      {
+        "dimension": "Timeline (p50)",
+        "scenario_a": "14 days",
+        "scenario_b": "70 days",
+        "verdict": "a_wins",
+        "delta": "+56 days"
+      },
+      {
+        "dimension": "Agencies Involved",
+        "scenario_a": "1 (DBI only)",
+        "scenario_b": "7 agencies",
+        "verdict": "a_wins",
+        "delta": "6 additional reviewers"
+      },
+      {
+        "dimension": "Total Permit Fees",
+        "scenario_a": "$1,200",
+        "scenario_b": "$6,487",
+        "verdict": "a_wins",
+        "delta": "+$5,287"
+      },
+      {
+        "dimension": "Revision Risk",
+        "scenario_a": "12% (low)",
+        "scenario_b": "28% (moderate)",
+        "verdict": "a_wins",
+        "delta": "+16% revision probability"
+      },
+      {
+        "dimension": "Scope Delivered",
+        "scenario_a": "Kitchen only",
+        "scenario_b": "Full renovation",
+        "verdict": "b_wins",
+        "delta": "More comprehensive project"
+      }
+    ],
+    "recommendation": "If timeline is critical, Scenario A saves ~56 days and $2,530 in fees. If the full scope is needed, plan for 70-day review and budget for possible revisions.",
+    "strategy": "Consider splitting into two permits \u2014 kitchen first (OTC, issued in days), then wall + bath as a second permit. You can often start kitchen work while the second permit is in review."
   }
 }
