@@ -25,16 +25,22 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web
 
 @pytest.fixture(autouse=True)
 def _clear_page_cache():
-    """Clear the page_cache DB table before and after every test."""
+    """Clear ALL rows from page_cache before and after every test.
+
+    Deletes all rows (not just test:/brief: patterns) so that stale data
+    written by any preceding test — including rows with unexpected key
+    prefixes or keys left over when a prior test used a different DB path —
+    cannot produce false cache hits.
+    """
     def _truncate():
         try:
             from src.db import get_connection, BACKEND
             conn = get_connection()
             if BACKEND == "duckdb":
-                conn.execute("DELETE FROM page_cache WHERE cache_key LIKE 'test:%' OR cache_key LIKE 'brief:%'")
+                conn.execute("DELETE FROM page_cache")
             else:
                 with conn.cursor() as cur:
-                    cur.execute("DELETE FROM page_cache WHERE cache_key LIKE 'test:%%' OR cache_key LIKE 'brief:%%'")
+                    cur.execute("DELETE FROM page_cache")
                 conn.commit()
             conn.close()
         except Exception:
