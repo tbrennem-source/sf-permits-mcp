@@ -725,3 +725,31 @@ border: 1px solid rgba(245, 158, 11, 0.30); /* --dot-amber at 30% opacity */
 ```
 **CSS:** aspect-ratio 16/9, max-height 240px, --glass background, --glass-border border. Nodes: contractor nodes use amber tint, architect nodes use blue tint. Entrance animation via showcase-entity.js (opacity 0→1, staggered 120ms/node).
 **Notes:** Pure SVG, no D3. viewBox 400×225. Central node is teal (--accent). Entrance animation uses IntersectionObserver.
+
+---
+
+### MCP Demo Chat Terminal
+**Sprint:** QS11 / T1-landing-showcase
+**File:** `web/templates/components/mcp_demo.html`, `web/static/mcp-demo.css`, `web/static/mcp-demo.js`
+**Usage:** Landing page — animated chat transcript showing Claude using sfpermits.ai tools. 3 demos cycle: What-If Scope Comparison, Stuck Permit Diagnosis, Cost of Delay.
+**Status:** NEW
+**HTML:**
+```html
+<section class="mcp-demo-section" id="mcp-demo">
+  <div class="obs-container">
+    <h2 class="mcp-demo-section__title">What your AI sees</h2>
+    <div class="mcp-demo-terminal">
+      <div class="mcp-demo-terminal__bar">...</div>
+      <div class="mcp-demo-chat">
+        <div class="mcp-demo-slide active" data-demo="0">...</div>
+        <div class="mcp-demo-slide" data-demo="1">...</div>
+        <div class="mcp-demo-slide" data-demo="2">...</div>
+      </div>
+      <div class="mcp-demo-controls">...</div>
+    </div>
+    <div class="mcp-demo-cta">...</div>
+  </div>
+</section>
+```
+**CSS:** Full stylesheet in `web/static/mcp-demo.css`. Key classes: `.mcp-demo-terminal` (dark terminal window with title bar dots), `.mcp-msg--user` (right-aligned accent bubble), `.mcp-msg--claude` (left-aligned glass bubble with sfpermits.ai label), `.mcp-tool-badge` (accent pill with lightning icon + pulse animation), `.mcp-response-table` (mono data table inside Claude bubble), `.mcp-stacked-cards` (mobile replacement for tables — stacked key-value cards), `.mcp-expand-wrapper.collapsible` (mobile expand button for long responses). All colors from token palette. Mobile breakpoint at 480px. Reduced motion support.
+**Notes:** Scroll-triggered via IntersectionObserver (threshold 0.3). User messages fade-in + slide-up. Tool badges appear with 0.3s stagger + pulse. Claude responses type line by line; tables render instantly. 4s pause between demos. Manual prev/next arrows and dots. Auto-cycles indefinitely: Demo 2 -> Demo 1 -> Demo 6. CTA section: "Connect your AI" button + 3-step explainer (Connect, Ask, Get Intelligence).
