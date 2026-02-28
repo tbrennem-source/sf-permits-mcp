@@ -1517,6 +1517,17 @@ def init_schema(conn) -> None:
             pass
     # === END SESSION F ===
 
+    # Cron logging table (created dynamically by routes_cron but needed for tests)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS cron_log (
+            log_id INTEGER PRIMARY KEY,
+            job_type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            started_at TIMESTAMP,
+            completed_at TIMESTAMP
+        )
+    """)
+
     _create_indexes(conn)
 
 
