@@ -1227,3 +1227,227 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** If action callback is provided, clicking "Undo" fires callback then dismisses. Duration option allows callers to override the 5-second default.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+# QS8-T2-A: Station Predictor Scenarios
+
+## SUGGESTED SCENARIO: expediter checks next station for active permit
+
+**Source:** src/tools/predict_next_stations.py — predict_next_stations tool
+**User:** expediter
+**Starting state:** Permit is active, has been routed through at least one station (BLDG completed), currently sitting at SFFD with an arrive date 10 days ago
+**Goal:** Understand which stations the permit will visit next and how long each typically takes
+**Expected outcome:** Tool returns current station (SFFD with dwell time), top 3 predicted next stations with transition probabilities and p50 durations, and a total estimated remaining time
+**Edge cases seen in code:** If fewer than 5 similar permits have transitioned from the current station, no predictions are shown — tool explains why
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: homeowner asks about stalled permit
+
+**Source:** src/tools/predict_next_stations.py — STALL_THRESHOLD_DAYS = 60 logic
+**User:** homeowner
+**Starting state:** Permit has been at CP-ZOC (Planning/Zoning) for 75 days with no finish_date recorded
+**Goal:** Find out if their permit is stuck and what to do about it
+**Expected outcome:** Tool surfaces "STALLED" indicator on the current station card, shows how many days the permit has been at that station, and recommends following up with DBI. Predictions for next stations are still shown based on historical transitions.
+**Edge cases seen in code:** Stall threshold is configurable (STALL_THRESHOLD_DAYS = 60). Permits just over the threshold get the warning; those below do not.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: permit already complete — no action needed
+
+**Source:** src/tools/predict_next_stations.py — COMPLETE_STATUSES short-circuit
+**User:** homeowner | expediter
+**Starting state:** Permit status is "complete" or "issued"
+**Goal:** Check what happens next (doesn't know it's already done)
+**Expected outcome:** Tool returns a clear message that the permit has completed all review stations, shows the issued/completed date if available. Does NOT attempt to build transition predictions.
+**Edge cases seen in code:** Status values checked: "complete", "issued", "approved", "cancelled", "withdrawn" — all treated as terminal
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: permit not yet in plan review — no routing data
+
+**Source:** src/tools/predict_next_stations.py — empty addenda short-circuit
+**User:** homeowner
+**Starting state:** Permit was recently filed (< 2 weeks ago) and has no addenda records yet
+**Goal:** Ask what stations the permit will go through
+**Expected outcome:** Tool returns "No routing data available" with an explanation that the permit may not have entered plan review yet. Does not error out or return an empty page.
+**Edge cases seen in code:** Distinction between permit-not-found (permit table miss) and no-addenda (permit exists but addenda table has no rows for it)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: neighborhood-stratified prediction vs. city-wide fallback
+
+**Source:** src/tools/predict_next_stations.py — _build_transition_matrix neighborhood fallback
+**User:** expediter
+**Starting state:** Permit is in a neighborhood with sufficient historical data (e.g., Mission — many similar permits). Separately, a permit in a rare neighborhood with very few historical records.
+**Goal:** Get predictions that are relevant to the permit's actual location context
+**Expected outcome:** For Mission: predictions are labeled as "based on historical routing patterns from permits in Mission" (neighborhood-filtered). For rare neighborhood: falls back to all similar permit types city-wide, labeled accordingly. Both cases return predictions if transition data exists.
+**Edge cases seen in code:** Neighborhood fallback triggered when _build_transition_matrix returns empty dict for neighborhood query
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: expediter diagnoses critically stalled permit at plan check
+**Source:** src/tools/stuck_permit.py — diagnose_stuck_permit
+**User:** expediter
+**Starting state:** Permit has been at BLDG plan check station for 95 days. Historical p90 for BLDG is 60 days. No comments have been issued.
+**Goal:** Understand why the permit is stalled and what to do next
+**Expected outcome:** Tool returns a playbook identifying BLDG as critically stalled (past p90), recommending expediter contact DBI plan check counter with specific address and phone number, severity score reflects age/staleness
+**Edge cases seen in code:** Heuristic fallback when no velocity baseline exists for a station (>90d = critically stalled, >45d = stalled); stations missing from station_velocity_v2 still get flagged
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: homeowner learns to respond to plan check comments
+**Source:** src/tools/stuck_permit.py — _diagnose_station, review_results detection
+**User:** homeowner
+**Starting state:** Permit routing shows "Comments Issued" review result at BLDG station. 1 revision cycle completed.
+**Goal:** Understand what the comments mean and what action to take
+**Expected outcome:** Playbook identifies comment-issued status as highest priority intervention, recommends revising plans and resubmitting via EPR (Electronic Plan Review), includes EPR URL
+**Edge cases seen in code:** Revision cycle count (addenda_number >= 2) triggers additional warning about multiple rounds; 3+ cycles triggers expediter/architect recommendation
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: architect checks inter-agency hold at SFFD
+**Source:** src/tools/stuck_permit.py — INTER_AGENCY_STATIONS, _get_agency_key
+**User:** architect
+**Starting state:** Permit routed to SFFD station 50 days ago. p75 baseline for SFFD is 30 days.
+**Goal:** Know who to contact and what to say
+**Expected outcome:** Playbook identifies SFFD as stalled inter-agency station, provides SFFD Permit Division contact info (phone, address, URL), recommends contacting SFFD directly rather than DBI
+**Edge cases seen in code:** Multiple inter-agency stations (e.g. SFFD + HEALTH simultaneously) each get separate diagnosis entries ranked by severity; CP-ZOC (Planning) maps to Planning Department not DBI
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: expediter checks a healthy permit that is on track
+**Source:** src/tools/stuck_permit.py — _diagnose_station normal status, _format_playbook
+**User:** expediter
+**Starting state:** Permit has been at BLDG for 10 days. Historical p50 for BLDG is 15 days.
+**Goal:** Confirm permit routing is proceeding normally
+**Expected outcome:** Playbook shows "OK" routing status, no CRITICAL or STALLED labels, no urgent intervention steps, dwell shown relative to p50 baseline for reassurance
+**Edge cases seen in code:** Permit with no addenda data yet (not entered plan check queue) returns empty station list with advisory message about plan check queue status
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: homeowner looks up a permit number that doesn't exist
+**Source:** src/tools/stuck_permit.py — permit not found branch
+**User:** homeowner
+**Starting state:** User enters an incorrect or old permit number
+**Goal:** Understand the permit cannot be found
+**Expected outcome:** Tool returns a clear "not found" message with the queried permit number and a link to the DBI permit tracking portal (dbiweb02.sfgov.org) so the user can verify the number themselves
+**Edge cases seen in code:** DB error during connection (e.g., connection pool exhausted) returns a formatted error message with permit number preserved, not a raw exception traceback
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: what-if comparison on scope expansion
+
+**Source:** src/tools/what_if_simulator.py
+**User:** expediter
+**Starting state:** Expediter has a base kitchen remodel project ($80K) and client is considering adding a bathroom.
+**Goal:** Quickly compare how adding a bathroom changes timeline, fees, and revision risk without pulling up each tool separately.
+**Expected outcome:** A comparison table showing base vs. variation side-by-side; review path, p50 timeline, estimated DBI fees, and revision risk are all populated. Delta section calls out meaningful changes (e.g., review path shift from OTC to In-house if triggered).
+**Edge cases seen in code:** When underlying tools return errors for a variation, the row shows "N/A" in affected columns rather than crashing; the simulation still completes.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if simulation with no variations (base only)
+
+**Source:** src/tools/what_if_simulator.py
+**User:** homeowner
+**Starting state:** Homeowner asks about a kitchen remodel but doesn't specify any variations.
+**Goal:** Get the baseline permit picture without needing to provide variations.
+**Expected outcome:** Simulator runs with just the base scenario, produces a 1-row table, no "Delta vs. Base" section appears, and output still includes all column values (permits, review path, timeline, fees, risk).
+**Edge cases seen in code:** Empty variations list is valid input; no delta section should be rendered.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if detects OTC-to-in-house review path shift
+
+**Source:** src/tools/what_if_simulator.py — _evaluate_scenario + delta section
+**User:** expediter
+**Starting state:** Base project is OTC-eligible (simple kitchen remodel). Variation adds scope that triggers in-house review (e.g., change of use, structural work).
+**Goal:** Identify that the scope change moves the project out of OTC path, which has significant timeline implications.
+**Expected outcome:** Delta section explicitly calls out "OTC → In-house" review path change and notes it "may add weeks". Both table rows show different Review Path values.
+**Edge cases seen in code:** Only flagged when both base and variation have non-N/A review paths; partial data (one N/A) is silently skipped in the delta.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if with cost-free description uses default valuation
+
+**Source:** src/tools/what_if_simulator.py — _evaluate_scenario cost parsing
+**User:** homeowner
+**Starting state:** Homeowner describes a project without mentioning a dollar amount ("kitchen remodel in the Mission").
+**Goal:** Get a rough fee estimate even without explicit cost information.
+**Expected outcome:** Simulator falls back to $50K default valuation for fee estimation; output still includes an estimated fee (not N/A). A note or the table still renders.
+**Edge cases seen in code:** Both "$80K" and "80k" and "$80,000" are recognized; missing cost triggers $50K fallback defined in _evaluate_scenario.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if tool gracefully handles sub-tool database errors
+
+**Source:** src/tools/what_if_simulator.py — _evaluate_scenario try/except blocks
+**User:** expediter
+**Starting state:** Local DuckDB database is not initialized or is locked (e.g., parallel test run).
+**Goal:** Simulator still returns usable output even when one or more sub-tools fail due to DB unavailability.
+**Expected outcome:** Affected cells show "N/A". Notes section lists which sub-tools encountered errors. No exception is raised to the caller. Other cells that succeeded show valid data.
+**Edge cases seen in code:** Each of the four sub-tool calls is wrapped in try/except; errors are accumulated in result["notes"] and surfaced in a "Data Notes" section at the end of the output.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: expediter uses cost of delay to justify expediting fee
+**Source:** src/tools/cost_of_delay.py — calculate_delay_cost
+**User:** expediter
+**Starting state:** Expediter has a restaurant permit client spending $80K/month on a closed location
+**Goal:** Quantify the dollar value of shaving 30 days off the permit timeline
+**Expected outcome:** Tool returns a formatted table showing carrying cost + revision risk cost per scenario. Break-even section shows daily delay cost. Expediter can use the daily rate to justify their expediting premium to the client.
+**Edge cases seen in code:** revision_prob * revision_delay * daily_cost compounds even for p25 (best case) — this means there is always some expected revision cost regardless of timeline scenario
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: homeowner asks how much it costs to wait on a kitchen remodel permit
+**Source:** src/tools/cost_of_delay.py — calculate_delay_cost
+**User:** homeowner
+**Starting state:** Homeowner is renting elsewhere at $5,000/month while waiting for kitchen remodel permit
+**Goal:** Understand the total financial exposure of a kitchen remodel permit delay
+**Expected outcome:** Tool returns best/likely/worst-case costs. Likely (p50 = 21 days) shows ~$3,450 carrying cost. OTC-eligible note appears since kitchen remodel can go OTC. Mitigation strategies include pre-application consultation.
+**Edge cases seen in code:** OTC_ELIGIBLE_TYPES set — kitchen_remodel is in it, so the OTC note must appear
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: developer evaluates cost impact of CEQA trigger on new construction
+**Source:** src/tools/cost_of_delay.py — triggers parameter
+**User:** architect
+**Starting state:** Architect is scoping a new construction project that may trigger CEQA environmental review
+**Goal:** See the cost difference between base timeline and CEQA-triggered timeline
+**Expected outcome:** With triggers=['ceqa'], the p50 and p90 timelines are escalated by ~180 days. The cost table shows dramatically higher totals. The trigger note "CEQA environmental review" appears in the output.
+**Edge cases seen in code:** TRIGGER_DELAYS maps ceqa to 180 days — largest single trigger escalation. Only applies when DB fallback is used (db_available=False).
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: tool gracefully degrades when permit database is unavailable
+**Source:** src/tools/cost_of_delay.py — _get_timeline_estimates fallback
+**User:** expediter
+**Starting state:** MCP server running in environment without DuckDB permit database
+**Goal:** Get a cost of delay estimate for a commercial_ti permit
+**Expected outcome:** Tool returns output using hard-coded historical averages (clearly noted in Methodology section with "Note: Live permit database unavailable" message). All sections present: table, break-even, mitigation, methodology.
+**Edge cases seen in code:** db_available flag drives the note in Methodology section. Fallback timelines for all 13 permit types baked in.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: daily_delay_cost one-liner used in brief or property report
+**Source:** src/tools/cost_of_delay.py — daily_delay_cost helper
+**User:** expediter
+**Starting state:** User has a project with known monthly carrying costs
+**Goal:** Get a single-sentence summary of the daily delay cost for use in a client email or brief
+**Expected outcome:** Returns exactly one line: "Every day of permit delay costs you $X/day" formatted with appropriate K/M suffix.
+**Edge cases seen in code:** $30,440/month → ~$1,000/day. $304,400/month → ~$10K/day. Zero/negative returns error.
+**CC confidence:** medium
+**Status:** PENDING REVIEW

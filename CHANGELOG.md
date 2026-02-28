@@ -3055,3 +3055,309 @@ UPDATE entities SET entity_type = 'consultant' WHERE entity_type = 'expediter';
 - Baseline SODA API latency: ~450-650ms per query
 - Aggregation cold-cache penalty: 10-14s on large datasets (warm cache: ~600ms)
 - 13.3M total records across 22 datasets
+# CHANGELOG — QS8-T2-A: What's Next Station Predictor
+
+## Sprint: QS8 Terminal 2 Agent A
+## Date: 2026-02-27
+## Branch: worktree-agent-aabebfd3
+
+---
+
+## What Was Built
+
+### New: `src/tools/predict_next_stations.py`
+
+Async MCP tool that predicts what review stations an SF permit will visit next.
+
+**Function:** `async def predict_next_stations(permit_number: str) -> str`
+
+**Algorithm:**
+1. Query permit metadata (type, neighborhood, status) from `permits` table
+2. Query this permit's addenda routing history (deduped by station/addenda_number)
+3. Find current active station (arrived but no finish_date)
+4. Build Markov-style transition probability matrix from 3 years of similar permits
+   - Tries neighborhood-filtered first (e.g., Mission permits only)
+   - Falls back to type-only if neighborhood has insufficient data
+5. Compute top-3 predicted next stations ranked by historical transition frequency
+6. Enrich each prediction with velocity data (p50/p75) from `station_velocity_v2`
+7. Return formatted markdown with: current station, predictions table, all-clear estimate, confidence
+
+**Output includes:**
+- Current station with dwell time + STALLED warning if >60 days with no activity
+- Probability table: station | probability | typical duration | range
+- "All-clear estimate" (sequential sum of p50 durations for predicted stations)
+- Prediction confidence: High (≥100 samples), Medium (≥30), Low (<30)
+
+**Edge cases handled:**
+- Permit not found → helpful error with correction guidance
+- No addenda data → "No routing data available" message
+- Complete/issued/cancelled permit → "completed all review stations" message
+- No transition data for current station → explains why prediction isn't available
+- get_connection() failure → catches exception, returns error message string
+
+---
+
+### New: `tests/test_station_predictor.py`
+
+41 tests covering:
+
+| Class | Count | Coverage |
+|-------|-------|---------|
+| `TestFormatDays` | 7 | Edge cases for day formatting helper |
+| `TestLabel` | 2 | Known + unknown station code labels |
+| `TestFindCurrentStation` | 5 | Empty, all-finished, one-unfinished, multi-unfinished, no-arrive |
+| `TestComputeDwellDays` | 4 | None arrive, recent, old, timestamp format |
+| `TestComputeTopPredictions` | 6 | Empty transitions, below-threshold, top-n, probabilities, sort order, labels |
+| `TestFormatOutput` | 7 | No history, all-finished, current station, stall warning, predictions, all-clear, confidence |
+| `TestPredictNextStationsAsync` | 8 | Permit not found, complete, no addenda, in-progress, stalled, error handling, markdown return, predictions table |
+| Module-level | 2 | Import sanity, async function check |
+
+**All 41 tests: PASSING**
+
+---
+
+## Pre-existing File Note
+
+`src/tools/station_predictor.py` pre-existed as a cron/refresh utility (contains `refresh_station_transitions()` and `predict_remaining_path()` for the station_transitions table, postgres-only). Per agent rules (no modifying existing files), the new MCP-facing async tool was placed in `src/tools/predict_next_stations.py`. The orchestrator should consider whether to consolidate or alias during merge.
+
+The test file is named `tests/test_station_predictor.py` as specified in the sprint prompt, and tests the new `predict_next_stations` module.
+
+---
+
+## Files Created
+
+- `src/tools/predict_next_stations.py` (new, 717 lines)
+- `tests/test_station_predictor.py` (new, 631 lines)
+- `scenarios-pending-review-qs8-t2-a.md` (per-agent output file)
+- `CHANGELOG-qs8-t2-a.md` (this file)
+
+## Files NOT Modified
+
+Per sprint rules, no existing files were modified. Server registration (`src/server.py`) is left for the orchestrator's merge step.
+
+---
+
+## Test Results
+
+```
+41 passed in 0.12s
+```
+
+All tests pass with mocked DB connections — no live database required.
+# CHANGELOG — QS8-T2-B: Stuck Permit Intervention Playbook
+
+## Added
+
+### src/tools/stuck_permit.py (NEW)
+
+New async tool `diagnose_stuck_permit(permit_number: str) -> str` — diagnoses why a
+permit is stalled in the plan check routing queue and generates a ranked markdown
+intervention playbook.
+
+**Core logic:**
+- Fetches permit data and active addenda routing stations from the database
+- For each station: calculates dwell time (days since arrival) and compares to
+  p50/p75/p90 baselines from the `station_velocity_v2` table
+- Flags "stalled" if dwell > p75, "critically stalled" if dwell > p90
+- Falls back to heuristics (>45d = stalled, >90d = critically) when no baseline exists
+- Detects stuck patterns: comments issued (review_results contains "comment"),
+  inter-agency holds (SFFD/HEALTH/Planning/DPW/HIS), multiple revision cycles
+  (addenda_number >= 2), 30+ day inactivity
+
+**Inter-agency classification:**
+- 14 inter-agency station codes mapped to agency names (SFFD, HEALTH-*, CP-ZOC,
+  DPW-BSM, DPW-BUF, SFPUC, SFPUC-PRG, HIS, ABE)
+- 6 BLDG-family stations for DBI plan check routing
+- Agency contact info (phone, URL, notes) for DBI, SFFD, HEALTH, Planning, DPW, HIS
+
+**Playbook output (markdown):**
+- Header: permit number, address, description, status, severity score, routing status
+- Filed/issued dates with days-ago context
+- Station Diagnosis section: one entry per active station sorted by severity,
+  showing dwell vs p50/p75/p90 baselines with CRITICAL/STALLED/NORMAL labels
+- Intervention Steps: ranked by urgency (IMMEDIATE > HIGH > MEDIUM > LOW) with
+  agency contact details for each step
+- Revision History section if revision_count >= 1 (3+ cycles: expediter advisory)
+- Footer with generation date and EPR portal link
+
+**Graceful degradation:**
+- Permit not found → formatted "not found" message with DBI portal link
+- No addenda data → advisory that permit may not yet be in plan check queue
+- DB connection error → formatted error message with permit number preserved
+
+**Backends:** DuckDB and Postgres compatible via BACKEND/placeholder pattern
+from `src.db`.
+
+### tests/test_stuck_permit.py (NEW)
+
+34 tests — all passing. No live DB or network access (all DB calls mocked).
+
+**Unit tests (no async):**
+- `_parse_date` — string, date object, None inputs
+- `_calc_dwell_days` — normal and None arrive inputs
+- `_overall_status` — worst-case aggregation across stations
+- `_severity_label` — CRITICAL/STALLED/NORMAL mapping
+- `_diagnose_station` — 8 scenarios: critically stalled BLDG, stalled BLDG,
+  stalled SFFD inter-agency, comments issued, healthy, no velocity heuristic,
+  Planning inter-agency (CP-ZOC), revision cycle detection
+- `_get_agency_key` — SFFD, HEALTH, Planning, DPW, DBI (default) mappings
+- `_format_address` — full address, missing parts
+- `INTER_AGENCY_STATIONS` — 6 expected stations present
+- `BLDG_STATIONS` — none overlap with INTER_AGENCY_STATIONS
+
+**Integration tests (async, full playbook):**
+- Permit not found → "Not Found" in result
+- Critically stalled BLDG → CRITICAL label, DBI recommendation
+- Inter-agency hold (SFFD) → agency name and "Contact" in result
+- Comments issued → EPR resubmission recommendation
+- Multiple revision cycles (3) → Revision History section
+- Healthy permit → no CRITICAL label
+- No addenda data → graceful empty station message
+- DB error → formatted error message (not raw exception)
+# CHANGELOG — QS8-T2-C: What-If Permit Simulator
+
+## Added
+
+### `src/tools/what_if_simulator.py` (new)
+
+New tool: **`simulate_what_if(base_description, variations)`**
+
+Orchestrates four existing tools (predict_permits, estimate_timeline, estimate_fees, revision_risk)
+across a base project + N variations, running them in parallel via `asyncio.gather()`, and returns
+a formatted markdown comparison table.
+
+**Key features:**
+- Parallel scenario evaluation — all scenarios run concurrently, not sequentially
+- Markdown extraction helpers parse headline values from each sub-tool's output:
+  - `_extract_permits` — permit type / form summary
+  - `_extract_review_path` — OTC vs. In-house
+  - `_extract_p50` / `_extract_p75` — timeline percentiles
+  - `_extract_total_fee` — Total DBI Fees from Table 1A-A row
+  - `_extract_revision_risk` — risk level + rate
+- Cost parsing from natural language: `$80K`, `80k`, `$80,000` all recognized; missing cost defaults to $50K
+- Graceful degradation: sub-tool errors populate affected cells with "N/A" and surface error notes at end of output
+- Delta section: compares each variation to base, calls out review path changes, timeline shifts, fee deltas
+- Module-level sub-tool imports to support clean patch-based mocking in tests
+- All sub-tool imports at module level (not inside the async function) — avoids import-time side effects on mock patching
+
+**Output format:**
+```
+# What-If Permit Simulator
+
+**Base project:** Kitchen remodel in the Mission, $80K
+**Scenarios evaluated:** 3 (1 base + 2 variation(s))
+
+## Comparison Table
+| Scenario | Description | Permits | Review Path | Timeline (p50) | Timeline (p75) | Est. DBI Fees | Revision Risk |
+|---|---|---|---|---|---|---|---|
+| **Base** | Kitchen remodel... | Alteration (3 App) | OTC | 45 days | 75 days | $3,013 | MODERATE (18.5%) |
+| **Add bathroom** | Kitchen + bath... | Alteration (3 App) | In-house | 90 days | 130 days | $4,520 | MODERATE (18.5%) |
+
+## Delta vs. Base
+### Add bathroom
+- **Review path:** OTC → In-house (significant change — may add weeks)
+- **Timeline (p50):** 45 days → 90 days
+- **Fees:** $3,013 → $4,520
+```
+
+### `tests/test_what_if_simulator.py` (new)
+
+38 tests across 6 test classes:
+
+- `TestExtractPermits` (3 tests) — extraction helpers for permit summary
+- `TestExtractReviewPath` (4 tests) — OTC / In-house detection
+- `TestExtractP50` / `TestExtractP75` (5 tests) — timeline extraction
+- `TestExtractTotalFee` (3 tests) — fee extraction including table row pattern
+- `TestExtractRevisionRisk` (4 tests) — risk level + rate extraction
+- `TestSimulateWhatIfBasic` (6 tests) — happy path with mocked sub-tools
+- `TestSimulateWhatIfEdgeCases` (8 tests) — error handling, missing fields, truncation, call counts
+- `TestSimulateWhatIfCostParsing` (3 tests) — dollar/K cost notation
+- `TestSimulateWhatIfReturnType` (2 tests) — return type and table structure
+
+All tests use `unittest.mock.patch` + `AsyncMock` targeting `src.tools.what_if_simulator.*` module-level names.
+Uses `asyncio.run()` for Python 3.14 compatibility (not deprecated `get_event_loop()`).
+
+## Test Results
+
+```
+38 passed in 0.12s
+```
+
+## Files Created
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `src/tools/what_if_simulator.py` | ~360 | Tool implementation |
+| `tests/test_what_if_simulator.py` | ~460 | 38 tests |
+
+## Notes
+
+- `what_if_simulator` is NOT yet registered in `src/server.py` — orchestrator handles tool registration.
+- Sub-tool imports are at module level to support mocking; this means importing the module will import all four sub-tools. This is intentional and consistent with how other tools are structured.
+# QS8-T2-D Changelog
+
+## [QS8-T2-D] Cost of Delay Calculator Tool
+
+**Date:** 2026-02-27
+**Agent:** T2-D (QS8)
+**Branch:** worktree-agent-ad958e30
+
+### Added
+
+#### `src/tools/cost_of_delay.py` (NEW)
+
+New MCP tool providing financial cost-of-delay analysis for SF permit processing.
+
+**Public API:**
+
+```python
+async def calculate_delay_cost(
+    permit_type: str,
+    monthly_carrying_cost: float,
+    neighborhood: Optional[str] = None,
+    triggers: Optional[list] = None,
+) -> str
+```
+
+Returns a formatted markdown string with:
+- Financial exposure table (Best/Likely/Worst scenarios at p25/p50/p90)
+- Carrying cost per scenario (monthly_cost × timeline_days / 30.44)
+- Revision risk cost per scenario (P(revision) × revision_delay × daily_cost)
+- Break-even analysis (daily cost of delay including revision risk)
+- OTC eligibility note (when permit type qualifies for same-day processing)
+- Mitigation strategies (specific to permit type)
+- Methodology section (data sources, formulas)
+
+```python
+def daily_delay_cost(monthly_carrying_cost: float) -> str
+```
+
+One-liner helper: "Every day of permit delay costs you $X/day"
+
+**Key design decisions:**
+- Uses `estimate_timeline` for live p25/p50/p90 data when DB available
+- Falls back to calibrated historical averages (13 permit types) when DB unavailable
+- Trigger escalations (planning_review, ceqa, historic, etc.) applied to fallback timelines only
+- Module-level `estimate_timeline = None` sentinel enables clean test patching
+- All permit-type data (revision probability, delay days, OTC eligibility) in module-level constants
+
+**Permit types supported:** restaurant, commercial_ti, change_of_use, new_construction, adu, adaptive_reuse, seismic, general_alteration, kitchen_remodel, bathroom_remodel, alterations, otc, no_plans (+ unknown types fall back to defaults)
+
+#### `tests/test_cost_of_delay.py` (NEW)
+
+42 tests covering:
+- `TestDailyDelayCost` (6 tests) — basic/round numbers/small/large/zero/negative
+- `TestFormatCurrency` (5 tests) — small/thousands/millions/boundary/under-10k
+- `TestGetRevisionInfo` (4 tests) — restaurant high risk/OTC low risk/unknown/new construction
+- `TestGetTimelineEstimates` (4 tests) — restaurant/OTC/new construction/unknown
+- `TestGetPermitTypeLabel` (3 tests) — restaurant/ADU/unknown
+- Async `calculate_delay_cost` tests (17 tests) — happy path, table structure, math, error handling, OTC note, triggers, mitigation, methodology, break-even, neighborhood, daily oneliner, live timeline parsing, unknown type, small/large costs, multiple triggers
+- `TestConstants` (3 tests) — OTC set membership, probability range, all positive
+
+All 42 tests pass.
+
+### Test Results
+
+```
+============================= 42 passed in 0.10s ==============================
+```
