@@ -195,6 +195,30 @@ def check_tertiary_misuse(filepath, content, lines):
     return violations
 
 
+def check_missing_csrf(filepath, content, lines):
+    """Find POST forms missing a csrf_token hidden input."""
+    violations = []
+    for m in re.finditer(r'<form\b([^>]*)>', content, re.IGNORECASE):
+        attrs = m.group(1)
+        if not re.search(r'method=["\']?post', attrs, re.IGNORECASE):
+            continue
+        end_tag = content.find('</form>', m.end())
+        form_body = content[m.end():end_tag] if end_tag != -1 else content[m.end():m.end() + 2000]
+        if 'csrf_token' in form_body:
+            continue
+        line_num = content[:m.start()].count('\n') + 1
+        action_match = re.search(r'action=["\']([^"\']+)["\']', attrs)
+        action = action_match.group(1) if action_match else "(no action)"
+        violations.append({
+            "file": filepath,
+            "line": line_num,
+            "issue": f"POST form missing csrf_token: action={action}",
+            "content": lines[line_num - 1].strip()[:120] if line_num <= len(lines) else "",
+            "severity": "high",
+        })
+    return violations
+
+
 def check_rgba_colors(filepath, content, lines):
     """Find rgba() colors not in the token system."""
     violations = []
@@ -259,6 +283,7 @@ def lint_file(filepath):
     violations.extend(check_inline_styles(filepath, content, lines))
     violations.extend(check_tertiary_misuse(filepath, content, lines))
     violations.extend(check_rgba_colors(filepath, content, lines))
+    violations.extend(check_missing_csrf(filepath, content, lines))
     return violations
 
 
