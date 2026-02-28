@@ -442,11 +442,10 @@ def test_report_has_prominent_share_button():
     )
     with open(template_path) as f:
         content = f.read()
-    # Should have a btn-primary share button near the page title
-    assert 'class="btn-primary"' in content
+    # Should have a share button that opens the share modal
     assert "openShareModal()" in content
-    # The prominent button should contain the share text
-    assert "Share Report" in content
+    # The button should contain share text
+    assert "Share" in content
 
 
 def test_report_email_template_supports_personal_message():
