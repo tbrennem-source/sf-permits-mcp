@@ -11,6 +11,8 @@ Intents (priority order):
   3. search_parcel    — block/lot pattern
   3.5 validate_plans  — validation keywords
   4. search_address   — street address pattern
+  4.3 question        — natural language permit/construction question (do I, can I,
+                         etc. with construction context, or specific permit phrases)
   4.5 draft_response  — long question fallback (>150 chars with ?)
   5. search_person    — person/company name search
   6. analyze_project  — project description with action verbs
@@ -189,6 +191,54 @@ DRAFT_SIGNALS_RE = re.compile(
     r'(?:they|he|she)\s+(?:asked|wants?\s+to\s+know))',  # "they asked"
     re.IGNORECASE | re.MULTILINE,
 )
+
+# Priority 0.5: Natural language questions
+# These patterns identify questions that should route to AI consultation,
+# not literal permit search. Checked BEFORE address/permit patterns so that
+# "do I need a permit for a kitchen remodel?" doesn't fall through to a
+# permit_lookup call that returns "no permits found".
+QUESTION_PREFIX_RE = re.compile(
+    r'^(?:'
+    r'do\s+i\b|'
+    r'does\s+(?:a|my|the|this|our)\b|'
+    r'how\s+(?:long|much|many|do\s+i|does|can)\b|'
+    r'what\s+(?:do\s+i\s+need|permits?\s+do|\'?s\s+required|is\s+required|are\s+required|will)\b|'
+    r'can\s+i\b|'
+    r'should\s+i\b|'
+    r'is\s+it\b|'
+    r'is\s+a\s+permit\b|'
+    r'will\s+(?:i|a|my|the|this)\b|'
+    r'when\s+(?:do\s+i|does|is)\b|'
+    r'why\s+(?:do\s+i|does|is)\b'
+    r')',
+    re.IGNORECASE,
+)
+
+QUESTION_PHRASE_RE = re.compile(
+    r'\b(?:'
+    r'need\s+a\s+permit|'
+    r'require\s+a\s+permit|'
+    r'permits?\s+required|'
+    r'how\s+many\s+(?:permits?)\b|'
+    r'what\'?s\s+required\s+(?:for|to)\b|'
+    r'what\s+is\s+required\s+(?:for|to)\b|'
+    r'what\s+are\s+required\s+(?:for|to)\b|'
+    r'what\s+permits?\s+(?:do\s+i|are|will)\b'
+    r')',
+    re.IGNORECASE,
+)
+
+# Construction/permit context words — at least one must be present for
+# question-prefix patterns to fire (prevents over-classifying general queries
+# like "how long does plan review take?" as question intent).
+PERMIT_CONTEXT_WORDS_RE = re.compile(
+    r'\b(?:permit|remodel|kitchen|bathroom|adu|garage|deck|roof|windows?|solar|'
+    r'construct|demolish|addition|renovation|electrical|plumbing|mechanical|'
+    r'structural|seismic|sprinkler|elevator|fence|shed|driveway|patio|'
+    r'building|contractor|inspection|zoning|setback|variance|hearing)\b',
+    re.IGNORECASE,
+)
+
 
 # Entity extraction patterns
 COST_RE = re.compile(r'\$\s*([\d,]+)\s*([kK])?')
@@ -370,6 +420,29 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
                 intent="search_address",
                 confidence=0.85,
                 entities={"street_number": street_number, "street_name": street_name},
+            )
+
+    # --- Priority 4.3: Natural language question (permit/construction context) ---
+    # Detect questions that should route to AI consultation rather than literal
+    # permit search. Positioned AFTER address detection and validate_plans so
+    # those higher-confidence patterns win. Guard against draft_signal queries
+    # which belong to the draft_response path at 4.5.
+    # Two ways to match:
+    #   a) QUESTION_PHRASE_RE: contains a specific permit-question phrase
+    #      (e.g., "need a permit", "permits required") — very precise, no
+    #      context guard needed.
+    #   b) QUESTION_PREFIX_RE: starts with a question word (do I, can I, etc.)
+    #      AND contains at least one construction/permit context word — prevents
+    #      generic questions like "how long does plan review take?" from firing.
+    if not has_draft_signal:
+        is_question_phrase = bool(QUESTION_PHRASE_RE.search(text_lower))
+        is_question_prefix = bool(QUESTION_PREFIX_RE.match(text))
+        has_permit_context = bool(PERMIT_CONTEXT_WORDS_RE.search(text_lower))
+        if is_question_phrase or (is_question_prefix and has_permit_context):
+            return IntentResult(
+                intent="question",
+                confidence=0.9,
+                entities={"query": text},
             )
 
     # --- Priority 4.5: Draft response fallback ---

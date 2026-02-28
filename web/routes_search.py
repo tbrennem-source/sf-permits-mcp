@@ -375,6 +375,10 @@ def ask():
         intent = "draft_response"
         entities = {"query": query}
 
+    # question intent: treat like general_question for routing/tier-gate purposes
+    if intent == "question":
+        intent = "general_question"
+
     # Tier gate: AI synthesis intents require beta or higher.
     # Data lookup intents (permit, address, complaint, parcel, person) pass through freely.
     _AI_INTENTS = {"draft_response", "analyze_project", "general_question"}

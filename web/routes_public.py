@@ -151,7 +151,24 @@ def public_search():
     entities = result.entities
 
     # === SESSION D: NL query detection for search guidance ===
-    nl_query = intent in ("general_question", "analyze_project")
+    nl_query = intent in ("general_question", "analyze_project", "question")
+
+    # Question-type queries: redirect to AI consultation for authenticated users;
+    # for public users, show helpful guidance without a failed permit lookup.
+    if intent == "question":
+        return render_template(
+            "search_results_public.html",
+            query=query_str,
+            result_html="",
+            no_results=True,
+            error=None,
+            violation_context=False,
+            nl_query=True,
+            block=None,
+            lot=None,
+            empty_guidance=build_empty_result_guidance(query_str, parsed),
+            parsed_query=parsed,
+        )
 
     # Track block/lot for intel preview HTMX panel
     resolved_block = None
