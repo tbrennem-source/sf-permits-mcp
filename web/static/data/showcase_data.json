@@ -1,0 +1,76 @@
+{
+  "gantt": {
+    "title": "Timeline for 487 Noe St Kitchen Remodel",
+    "permit_type": "Residential Alteration",
+    "stations": [
+      {"name": "BLDG", "label": "Building", "days": 21, "status": "done"},
+      {"name": "SFFD", "label": "Fire", "days": 28, "status": "done"},
+      {"name": "PPC", "label": "Plan Review", "days": 174, "status": "pending"},
+      {"name": "CFC", "label": "Code Review", "days": 14, "status": "upcoming"}
+    ],
+    "total_days_estimate": "210–240 days",
+    "neighborhood": "Noe Valley"
+  },
+  "stuck": {
+    "permit_number": "202401015555",
+    "address": "1122 Folsom St",
+    "current_station": "PPC",
+    "days_at_station": 42,
+    "avg_days_at_station": 174,
+    "status": "stalled",
+    "last_activity": "Comments issued — awaiting resubmittal",
+    "routing": [
+      {"station": "BLDG", "status": "approved", "days": 18},
+      {"station": "SFFD", "status": "approved", "days": 24},
+      {"station": "PPC", "status": "stalled", "days": 42},
+      {"station": "DPH", "status": "pending", "days": 0}
+    ]
+  },
+  "whatif": {
+    "project": "Garage Conversion to ADU",
+    "neighborhood": "Mission",
+    "scenarios": [
+      {"label": "Cosmetic only", "days": "1–5", "cost": "$650", "path": "OTC"},
+      {"label": "New kitchen + bath", "days": "90–150", "cost": "$3,200", "path": "In-house"},
+      {"label": "Structural changes", "days": "180–300", "cost": "$8,500", "path": "Full review"}
+    ]
+  },
+  "risk": {
+    "permit_number": "202309045678",
+    "address": "742 Shotwell St",
+    "risk_score": 72,
+    "risk_level": "high",
+    "signals": [
+      {"label": "Revision history", "value": "3 revisions", "weight": "high"},
+      {"label": "Contractor track record", "value": "82% approval rate", "weight": "medium"},
+      {"label": "Neighbor objections", "value": "1 filed", "weight": "high"},
+      {"label": "Station delays", "value": "PPC > 60d", "weight": "high"}
+    ],
+    "recommendation": "Engage an expediter before resubmitting"
+  },
+  "entity": {
+    "entity": "Smith & Associates Architecture",
+    "permit_count": 47,
+    "approval_rate": "94%",
+    "avg_timeline": "62 days",
+    "specialties": ["ADU", "Kitchen remodel", "Commercial TI"],
+    "neighborhoods": ["Noe Valley", "Mission", "SOMA"],
+    "recent_permits": [
+      {"address": "487 Noe St", "type": "Kitchen", "status": "issued"},
+      {"address": "742 Shotwell St", "type": "ADU", "status": "in review"},
+      {"address": "1455 Market St", "type": "Commercial TI", "status": "approved"}
+    ]
+  },
+  "delay": {
+    "project_type": "Seismic Retrofit",
+    "delay_months": 4,
+    "daily_cost": "$185",
+    "total_cost": "$22,200",
+    "breakdown": [
+      {"label": "Carrying costs", "amount": "$12,400"},
+      {"label": "Contractor rebooking", "amount": "$5,800"},
+      {"label": "Opportunity cost", "amount": "$4,000"}
+    ],
+    "action": "Engaging an expediter typically reduces delays by 30–60%"
+  }
+}

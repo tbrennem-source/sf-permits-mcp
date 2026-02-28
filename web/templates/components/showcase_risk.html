@@ -1,0 +1,52 @@
+{# Showcase: Revision Risk Scorer — permit risk assessment #}
+<div class="showcase-card" data-track="showcase-view" data-showcase="risk" id="showcase-risk">
+  <div class="showcase-card__header">
+    <span class="showcase-card__icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </span>
+    <div class="showcase-card__meta">
+      <h3 class="showcase-card__title">Revision risk score</h3>
+      <p class="showcase-card__subtitle">Predict approval likelihood before you file</p>
+    </div>
+  </div>
+  <div class="showcase-card__body">
+    {%- if showcase and showcase.risk %}
+    {%- set risk = showcase.risk %}
+    <div class="showcase-risk">
+      <div class="showcase-risk__header">
+        <span class="showcase-risk__address">{{ risk.address }}</span>
+        <span class="showcase-risk__score showcase-risk__score--{{ risk.risk_level }}">{{ risk.risk_score }}<small>/100</small></span>
+      </div>
+      <div class="showcase-risk__signals">
+        {%- for sig in risk.signals %}
+        <div class="showcase-risk__signal">
+          <span class="showcase-risk__signal-dot showcase-risk__signal-dot--{{ sig.weight }}"></span>
+          <span class="showcase-risk__signal-label">{{ sig.label }}</span>
+          <span class="showcase-risk__signal-value">{{ sig.value }}</span>
+        </div>
+        {%- endfor %}
+      </div>
+      <div class="showcase-risk__rec">{{ risk.recommendation }}</div>
+    </div>
+    {%- else %}
+    <div class="showcase-risk">
+      <div class="showcase-risk__header">
+        <span class="showcase-risk__address">742 Shotwell St</span>
+        <span class="showcase-risk__score showcase-risk__score--high">72<small>/100</small></span>
+      </div>
+      <div class="showcase-risk__signals">
+        <div class="showcase-risk__signal"><span class="showcase-risk__signal-dot showcase-risk__signal-dot--high"></span><span class="showcase-risk__signal-label">Revision history</span><span class="showcase-risk__signal-value">3 revisions</span></div>
+        <div class="showcase-risk__signal"><span class="showcase-risk__signal-dot showcase-risk__signal-dot--medium"></span><span class="showcase-risk__signal-label">Contractor track record</span><span class="showcase-risk__signal-value">82% approval rate</span></div>
+        <div class="showcase-risk__signal"><span class="showcase-risk__signal-dot showcase-risk__signal-dot--high"></span><span class="showcase-risk__signal-label">Neighbor objections</span><span class="showcase-risk__signal-value">1 filed</span></div>
+        <div class="showcase-risk__signal"><span class="showcase-risk__signal-dot showcase-risk__signal-dot--high"></span><span class="showcase-risk__signal-label">Station delays</span><span class="showcase-risk__signal-value">PPC &gt; 60d</span></div>
+      </div>
+      <div class="showcase-risk__rec">Engage an expediter before resubmitting</div>
+    </div>
+    {%- endif %}
+  </div>
+  <div class="showcase-card__footer">
+    <a href="/search?q=revision+risk" class="showcase-card__cta ghost-cta" data-track="showcase-click" data-showcase="risk">
+      Score your permit &rarr;
+    </a>
+  </div>
+</div>

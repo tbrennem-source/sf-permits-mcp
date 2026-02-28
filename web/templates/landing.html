@@ -442,18 +442,300 @@
   .state-toggle button:hover { background: var(--obsidian-light); }
   .state-toggle button.active { background: var(--accent-glow); color: var(--accent); }
 
+  /* ═══ SHOWCASE SECTION ═══ */
+  .showcase-section { padding-top: 80px; padding-bottom: 80px; }
+  .showcase-section h2 {
+    font-family: var(--sans); font-size: clamp(20px, 2.4vw, 28px); font-weight: 300;
+    text-align: center; color: var(--text-primary);
+    margin-bottom: 48px;
+  }
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .showcase-card {
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.3s;
+  }
+  .showcase-card:hover { border-color: rgba(94, 234, 212, 0.18); }
+  .showcase-card__header {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 20px 20px 0;
+  }
+  .showcase-card__icon {
+    flex-shrink: 0; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-glow);
+    border: 1px solid rgba(94, 234, 212, 0.12);
+    border-radius: 8px;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+  .showcase-card__meta { flex: 1; min-width: 0; }
+  .showcase-card__title {
+    font-family: var(--sans); font-size: 15px; font-weight: 500;
+    color: var(--text-primary); margin-bottom: 3px;
+  }
+  .showcase-card__subtitle {
+    font-size: 12px; color: var(--text-secondary); line-height: 1.4;
+  }
+  .showcase-card__body { padding: 16px 20px; flex: 1; }
+  .showcase-card__footer {
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--glass-border);
+  }
+  .showcase-card__cta {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-tertiary); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .showcase-card__cta:hover { color: var(--accent); }
+
+  /* Gantt bars */
+  .showcase-gantt__label {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    margin-bottom: 12px;
+  }
+  .showcase-gantt__row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .showcase-gantt__station {
+    font-family: var(--mono); font-size: 11px; color: var(--text-secondary);
+    width: 36px; flex-shrink: 0;
+  }
+  .showcase-gantt__track {
+    flex: 1; height: 6px; background: var(--glass);
+    border-radius: 3px; overflow: hidden;
+  }
+  .showcase-gantt__bar {
+    height: 100%; border-radius: 3px;
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .showcase-gantt__bar--done { background: var(--accent); opacity: 0.7; }
+  .showcase-gantt__bar--pending { background: var(--signal-amber); }
+  .showcase-gantt__bar--upcoming { background: var(--glass-border); }
+  .showcase-gantt__days {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    width: 32px; text-align: right; flex-shrink: 0;
+  }
+  .showcase-gantt__days--done { color: var(--accent); }
+  .showcase-gantt__days--warn { color: var(--signal-amber); }
+  .showcase-gantt__total {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    margin-top: 12px;
+  }
+  .showcase-gantt__total strong { color: var(--text-primary); font-weight: 400; }
+
+  /* Routing tracker */
+  .showcase-routing__address {
+    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+  .showcase-routing__num {
+    font-size: 10px; color: var(--text-tertiary);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    padding: 1px 6px; border-radius: 3px; margin-left: 8px;
+  }
+  .showcase-routing__step {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
+  }
+  .showcase-routing__step:last-child { border-bottom: none; }
+  .showcase-routing__dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .showcase-routing__dot--approved { background: var(--dot-green); }
+  .showcase-routing__dot--stalled { background: var(--dot-amber); }
+  .showcase-routing__dot--pending { background: var(--glass-border); }
+  .showcase-routing__name {
+    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+    flex: 1;
+  }
+  .showcase-routing__status {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+  }
+  .showcase-routing__status--approved { color: var(--signal-green); }
+  .showcase-routing__status--stalled { color: var(--signal-amber); }
+  .showcase-routing__alert {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding: 8px 10px;
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+    border-radius: 6px;
+    font-family: var(--mono); font-size: 11px; color: var(--signal-amber);
+  }
+
+  /* What-if */
+  .showcase-whatif__project {
+    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+  .showcase-whatif__hood {
+    font-size: 10px; color: var(--text-tertiary);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    padding: 1px 6px; border-radius: 3px; margin-left: 8px;
+  }
+  .showcase-whatif__row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 0; border-bottom: 1px solid var(--glass-border);
+    flex-wrap: wrap;
+  }
+  .showcase-whatif__row:last-child { border-bottom: none; }
+  .showcase-whatif__label {
+    font-family: var(--sans); font-size: 12px; color: var(--text-secondary); flex: 1;
+  }
+  .showcase-whatif__badge {
+    font-family: var(--mono); font-size: 10px;
+    padding: 2px 7px; border-radius: 3px; border: 1px solid;
+    flex-shrink: 0;
+  }
+  .showcase-whatif__badge--green { color: var(--accent); border-color: rgba(94, 234, 212, 0.25); }
+  .showcase-whatif__badge--amber { color: var(--signal-amber); border-color: rgba(251, 191, 36, 0.25); }
+  .showcase-whatif__timeline {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); flex-shrink: 0;
+  }
+  .showcase-whatif__cost {
+    font-family: var(--mono); font-size: 11px; color: var(--accent); flex-shrink: 0;
+  }
+
+  /* Risk */
+  .showcase-risk__header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .showcase-risk__address {
+    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+  }
+  .showcase-risk__score {
+    font-family: var(--mono); font-size: 24px; font-weight: 300;
+    line-height: 1;
+  }
+  .showcase-risk__score small { font-size: 13px; color: var(--text-tertiary); }
+  .showcase-risk__score--high { color: var(--signal-red); }
+  .showcase-risk__score--medium { color: var(--signal-amber); }
+  .showcase-risk__score--low { color: var(--signal-green); }
+  .showcase-risk__signal {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
+    font-size: 12px;
+  }
+  .showcase-risk__signal:last-of-type { border-bottom: none; }
+  .showcase-risk__signal-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  }
+  .showcase-risk__signal-dot--high { background: var(--dot-red); }
+  .showcase-risk__signal-dot--medium { background: var(--dot-amber); }
+  .showcase-risk__signal-dot--low { background: var(--dot-green); }
+  .showcase-risk__signal-label { flex: 1; color: var(--text-secondary); }
+  .showcase-risk__signal-value {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+  }
+  .showcase-risk__rec {
+    margin-top: 10px; padding: 8px 10px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(94, 234, 212, 0.12);
+    border-radius: 6px;
+    font-family: var(--sans); font-size: 11px; color: var(--accent);
+  }
+
+  /* Entity */
+  .showcase-entity__name {
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    color: var(--text-primary); margin-bottom: 8px;
+  }
+  .showcase-entity__stats {
+    display: flex; gap: 16px; margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .showcase-entity__stat {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+  }
+  .showcase-entity__stat strong { color: var(--accent); font-weight: 400; }
+  .showcase-entity__permit {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
+    font-size: 12px;
+  }
+  .showcase-entity__permit:last-child { border-bottom: none; }
+  .showcase-entity__addr {
+    font-family: var(--mono); font-size: 11px; color: var(--text-secondary); flex: 1;
+  }
+  .showcase-entity__type { font-size: 11px; color: var(--text-tertiary); }
+  .showcase-entity__status {
+    font-family: var(--mono); font-size: 10px;
+    padding: 1px 6px; border-radius: 3px; border: 1px solid;
+    flex-shrink: 0;
+  }
+  .showcase-entity__status--done { color: var(--accent); border-color: rgba(94, 234, 212, 0.25); }
+  .showcase-entity__status--pending { color: var(--signal-amber); border-color: rgba(251, 191, 36, 0.25); }
+
+  /* Delay */
+  .showcase-delay__headline {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .showcase-delay__project {
+    font-family: var(--sans); font-size: 12px; color: var(--text-secondary);
+  }
+  .showcase-delay__months {
+    font-family: var(--mono); font-size: 11px; color: var(--signal-amber);
+  }
+  .showcase-delay__total {
+    font-family: var(--mono); font-size: 28px; font-weight: 300;
+    color: var(--signal-red); margin-bottom: 12px; line-height: 1;
+  }
+  .showcase-delay__total span {
+    font-size: 11px; color: var(--text-tertiary);
+    font-family: var(--sans); font-weight: 400;
+    margin-left: 6px;
+  }
+  .showcase-delay__row {
+    display: flex; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
+    font-size: 12px;
+  }
+  .showcase-delay__row:last-of-type { border-bottom: none; }
+  .showcase-delay__row-label { color: var(--text-secondary); }
+  .showcase-delay__row-amount { font-family: var(--mono); color: var(--text-primary); }
+  .showcase-delay__action {
+    margin-top: 10px;
+    font-family: var(--sans); font-size: 11px; color: var(--accent);
+    line-height: 1.5;
+  }
+
+  /* ═══ MCP DEMO SECTION ═══ */
+  .mcp-section { padding-top: 40px; padding-bottom: 100px; }
+
+  /* CSS var aliases for design token compliance */
+  :root {
+    --dot-green: #22c55e;
+    --dot-amber: #f59e0b;
+    --dot-red: #ef4444;
+    --signal-green: #34d399;
+    --signal-amber: #fbbf24;
+    --signal-red: #f87171;
+    --signal-blue: #60a5fa;
+  }
+
   @media (max-width: 768px) {
     .stats-row { flex-wrap: wrap; gap: 24px; justify-content: center; padding: 28px 0; }
     .stat-divider { display: none; }
     .stat-item { flex: 0 0 40%; }
-    .cap-item { grid-template-columns: 1fr; gap: 6px; }
-    .cap-num { display: none; }
-    .cap-stat { font-size: 11px; margin-top: 4px; }
+    .showcase-grid { grid-template-columns: 1fr; }
+    .showcase-section { padding-top: 60px; padding-bottom: 60px; }
     .demo-body { padding: 20px 16px; }
     .demo-row { flex-direction: column; align-items: flex-start; gap: 4px; }
   }
   @media (max-width: 480px) { .stat-item { flex: 0 0 100%; } }
 </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='mcp-demo.css') }}" nonce="{{ csp_nonce }}">
 </head>
 <body>
 
@@ -491,7 +773,7 @@
     </div>
   </div>
 
-  <a href="#cap-permits" class="scroll-cue" id="scroll-cue" style="text-decoration:none;cursor:pointer;">
+  <a href="#intelligence" class="scroll-cue" id="scroll-cue" style="text-decoration:none;cursor:pointer;">
     <span class="scroll-cue__text" id="scroll-text">See how it works</span>
     <svg class="scroll-cue__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
   </a>
@@ -523,96 +805,23 @@
   </div>
 </section>
 
-<section class="capabilities-section">
+<section class="showcase-section" id="intelligence">
   <div class="section-inner">
-    <ul class="cap-list">
-      <li class="cap-item reveal" id="cap-permits">
-        <span class="cap-num">01</span>
-        <div class="cap-content">
-          <h3>Do I need a permit?</h3>
-          <p>Describe your project in plain English. AI tells you which permits to file, whether you can get same-day approval, and what it'll cost.</p>
-          <form class="cap-input-row" action="/search" method="GET">
-            <input class="cap-input" name="q" placeholder="e.g. kitchen remodel, replace water heater">
-            <button class="cap-go" type="submit">Ask AI &rarr;</button>
-          </form>
-          <div class="cap-links">
-            <a href="/methodology">How this works &rarr;</a>
-            <a href="/demo">See an example &rarr;</a>
-          </div>
-        </div>
-        <span class="cap-stat">Same-day or months —<br>know before you start</span>
-      </li>
-      <li class="cap-item reveal reveal-delay-1" id="cap-timeline">
-        <span class="cap-num">02</span>
-        <div class="cap-content">
-          <h3>How long will it take?</h3>
-          <p>Real timelines from real permits — not city estimates. See how long each review step actually takes in your neighborhood.</p>
-          <form class="cap-input-row" action="/search" method="GET">
-            <input class="cap-input" name="q" placeholder="e.g. 487 Noe St, or any SF address">
-            <button class="cap-go" type="submit">Check &rarr;</button>
-          </form>
-          <div class="cap-links">
-            <a href="/methodology">How we estimate &rarr;</a>
-            <a href="/demo">Slowest stations right now &rarr;</a>
-          </div>
-        </div>
-        <span class="cap-stat">Based on 1.1M<br>actual permits</span>
-      </li>
-      <li class="cap-item reveal reveal-delay-2" id="cap-stuck">
-        <span class="cap-num">03</span>
-        <div class="cap-content">
-          <h3>Is my permit stuck?</h3>
-          <p>Track which city departments have reviewed your plans, which are pending, and which are stalled.</p>
-          <form class="cap-input-row" action="/search" method="GET">
-            <input class="cap-input" name="q" placeholder="Permit # or address">
-            <button class="cap-go" type="submit">Track &rarr;</button>
-          </form>
-          <div class="cap-links">
-            <a href="/about-data">What the stations mean &rarr;</a>
-            <a href="/about-data">Common stall reasons &rarr;</a>
-          </div>
-        </div>
-        <span class="cap-stat">8 review stations<br>tracked per permit</span>
-      </li>
-      <li class="cap-item reveal reveal-delay-3" id="cap-hire">
-        <span class="cap-num">04</span>
-        <div class="cap-content">
-          <h3>Who should I hire?</h3>
-          <p>See which architects, contractors, and expediters have the most experience with your type of project in your neighborhood.</p>
-          <form class="cap-input-row" action="/search" method="GET">
-            <input class="cap-input" name="q" placeholder="e.g. kitchen remodel in Noe Valley">
-            <button class="cap-go" type="submit">Find &rarr;</button>
-          </form>
-          <div class="cap-links">
-            <a href="/methodology">How we rank professionals &rarr;</a>
-          </div>
-        </div>
-        <span class="cap-stat">1M+ professionals<br>tracked</span>
-      </li>
-    </ul>
+    <h2 class="reveal">See what permit intelligence looks like</h2>
+    <div class="showcase-grid">
+      {% include "components/showcase_gantt.html" %}
+      {% include "components/showcase_stuck.html" %}
+      {% include "components/showcase_whatif.html" %}
+      {% include "components/showcase_risk.html" %}
+      {% include "components/showcase_entity.html" %}
+      {% include "components/showcase_delay.html" %}
+    </div>
   </div>
 </section>
 
-<section class="demo-section">
+<section class="mcp-section" id="mcp-demo" data-track="mcp-demo-view">
   <div class="section-inner">
-    <div class="reveal" id="demo-trigger">
-      <div class="demo-container">
-        <div class="demo-header">
-          <div class="demo-dots"><span></span><span></span><span></span></div>
-          <div class="demo-url" id="demo-url">sfpermits.ai/lookup?q=1455+Market+St</div>
-        </div>
-        <div class="demo-body">
-          <div class="demo-address" id="demo-address"><span class="addr-accent">1455 Market St</span> <span class="addr-type">Commercial</span></div>
-          <div class="demo-row" data-delay="0"><span class="row-label">Active permits</span><span class="row-value status-active">3 in review</span></div>
-          <div class="demo-row" data-delay="100"><span class="row-label">Routing progress</span><span class="row-value status-active">BLDG ✓ · SFFD ✓ · PPC pending</span></div>
-          <div class="demo-row" data-delay="200"><span class="row-label">Est. remaining</span><span class="row-value status-warn">4–7 months</span></div>
-          <div class="demo-row" data-delay="300"><span class="row-label">Open complaints</span><span class="row-value status-alert">2 active</span></div>
-          <div class="demo-row" data-delay="400"><span class="row-label">Lead architect</span><span class="row-value">Smith & Associates · 47 permits</span></div>
-          <div class="demo-progress"><div class="progress-label"><span>Plan review</span><span>5 / 8 stations</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
-          <div class="demo-cta"><a href="/demo" style="font-size:12px;color:var(--text-tertiary);font-family:var(--mono);letter-spacing:0.04em;text-decoration:none;padding-bottom:1px;border-bottom:1px solid transparent;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='';this.style.borderColor='transparent'">Full property intelligence →</a></div>
-        </div>
-      </div>
-    </div>
+    {% include "components/mcp_demo.html" %}
   </div>
 </section>
 
@@ -1226,25 +1435,6 @@
     requestAnimationFrame(step);
   }
 
-  const demoObs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const rows = entry.target.querySelectorAll('.demo-row');
-        const progress = entry.target.querySelector('.demo-progress');
-        const fill = entry.target.querySelector('.progress-fill');
-        const cta = entry.target.querySelector('.demo-cta');
-        rows.forEach((row, i) => {
-          setTimeout(() => row.classList.add('visible'), 200 + (parseInt(row.dataset.delay) || i * 100));
-        });
-        setTimeout(() => { progress.classList.add('visible'); setTimeout(() => fill.classList.add('animate'), 150); }, 700);
-        setTimeout(() => cta.classList.add('visible'), 900);
-        demoObs.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.25 });
-  const dt = document.getElementById('demo-trigger');
-  if (dt) demoObs.observe(dt);
-
   let scrolled = false;
   window.addEventListener('scroll', () => {
     if (!scrolled && window.scrollY > 80) {
@@ -1271,6 +1461,9 @@
 <script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js" defer></script>
 <script nonce="{{ csp_nonce }}" src="/static/admin-tour.js" defer></script>
 <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/showcase-gantt.js') }}" defer></script>
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/showcase-entity.js') }}" defer></script>
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='mcp-demo.js') }}" defer></script>
 {% if posthog_key %}
 <script async nonce="{{ csp_nonce }}">
   !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);

@@ -1,0 +1,54 @@
+{# Showcase: Is My Permit Stuck? — station routing tracker #}
+<div class="showcase-card" data-track="showcase-view" data-showcase="stuck" id="showcase-stuck">
+  <div class="showcase-card__header">
+    <span class="showcase-card__icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </span>
+    <div class="showcase-card__meta">
+      <h3 class="showcase-card__title">Is my permit stuck?</h3>
+      <p class="showcase-card__subtitle">See exactly where your plans are in the queue</p>
+    </div>
+  </div>
+  <div class="showcase-card__body">
+    {%- if showcase and showcase.stuck %}
+    {%- set stuck = showcase.stuck %}
+    <div class="showcase-routing">
+      <div class="showcase-routing__address">{{ stuck.address }} <span class="showcase-routing__num">{{ stuck.permit_number }}</span></div>
+      <div class="showcase-routing__stations">
+        {%- for step in stuck.routing %}
+        <div class="showcase-routing__step">
+          <span class="showcase-routing__dot showcase-routing__dot--{{ step.status }}"></span>
+          <span class="showcase-routing__name">{{ step.station }}</span>
+          <span class="showcase-routing__status showcase-routing__status--{{ step.status }}">
+            {%- if step.status == 'approved' %}approved{% elif step.status == 'stalled' %}stalled {{ step.days }}d{% else %}pending{% endif %}
+          </span>
+        </div>
+        {%- endfor %}
+      </div>
+      <div class="showcase-routing__alert">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ stuck.last_activity }}
+      </div>
+    </div>
+    {%- else %}
+    <div class="showcase-routing">
+      <div class="showcase-routing__address">1122 Folsom St <span class="showcase-routing__num">202401015555</span></div>
+      <div class="showcase-routing__stations">
+        <div class="showcase-routing__step"><span class="showcase-routing__dot showcase-routing__dot--approved"></span><span class="showcase-routing__name">BLDG</span><span class="showcase-routing__status showcase-routing__status--approved">approved</span></div>
+        <div class="showcase-routing__step"><span class="showcase-routing__dot showcase-routing__dot--approved"></span><span class="showcase-routing__name">SFFD</span><span class="showcase-routing__status showcase-routing__status--approved">approved</span></div>
+        <div class="showcase-routing__step"><span class="showcase-routing__dot showcase-routing__dot--stalled"></span><span class="showcase-routing__name">PPC</span><span class="showcase-routing__status showcase-routing__status--stalled">stalled 42d</span></div>
+        <div class="showcase-routing__step"><span class="showcase-routing__dot showcase-routing__dot--pending"></span><span class="showcase-routing__name">DPH</span><span class="showcase-routing__status">pending</span></div>
+      </div>
+      <div class="showcase-routing__alert">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Comments issued — awaiting resubmittal
+      </div>
+    </div>
+    {%- endif %}
+  </div>
+  <div class="showcase-card__footer">
+    <a href="/search?q=permit+stuck" class="showcase-card__cta ghost-cta" data-track="showcase-click" data-showcase="stuck">
+      Track your permit &rarr;
+    </a>
+  </div>
+</div>

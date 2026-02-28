@@ -5,6 +5,7 @@ Extracted from web/app.py during Sprint 64 Blueprint refactor.
 
 import json
 import logging
+import os
 import re
 
 from flask import (
@@ -47,11 +48,25 @@ bp = Blueprint("public", __name__)
 # Index
 # ---------------------------------------------------------------------------
 
+def _load_showcase_data():
+    """Load showcase_data.json for landing page cards. Returns {} on any error."""
+    showcase_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "web", "static", "data", "showcase_data.json",
+    )
+    try:
+        with open(showcase_path) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
 @bp.route("/")
 def index():
     # Unauthenticated users see the public landing page
     if not g.user:
-        return render_template("landing.html")
+        showcase = _load_showcase_data()
+        return render_template("landing.html", showcase=showcase)
 
     # If logged-in user has a primary address, resolve block/lot for report link
     user_report_url = None

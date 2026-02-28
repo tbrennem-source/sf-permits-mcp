@@ -621,3 +621,64 @@ Displays a beta upgrade teaser card that fits inside an existing page element.
 .playbook-step-contact { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); }
 ```
 **Notes:** Urgency variants mirror the 4-tier priority system from diagnose_stuck_permit.py (IMMEDIATE/HIGH/MEDIUM/LOW). Contact lines linkify phone numbers via regex replacement in JS render function.
+
+### Showcase Card (Intelligence Landing Cards)
+**Sprint:** QS11 (Sprint 90 — landing showcase integration)
+**File:** `web/templates/components/showcase_*.html`, `web/templates/landing.html`
+**Usage:** Landing page — 6 cards in 2-column grid (gantt, stuck, whatif, risk, entity, delay)
+**Status:** NEW
+**HTML:**
+```html
+<div class="showcase-card" data-track="showcase-view" data-showcase="gantt">
+  <div class="showcase-card__header">
+    <span class="showcase-card__icon"><!-- SVG icon --></span>
+    <div class="showcase-card__meta">
+      <h3 class="showcase-card__title">How long will it take?</h3>
+      <p class="showcase-card__subtitle">Station-by-station timeline from real permits</p>
+    </div>
+  </div>
+  <div class="showcase-card__body"><!-- card-specific content --></div>
+  <div class="showcase-card__footer">
+    <a href="/search?q=..." class="showcase-card__cta ghost-cta" data-track="showcase-click" data-showcase="gantt">
+      Check timeline &rarr;
+    </a>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.showcase-card { background: var(--obsidian-mid); border: 1px solid var(--glass-border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.showcase-card:hover { border-color: rgba(94, 234, 212, 0.18); }
+.showcase-card__icon { width: 32px; height: 32px; background: var(--accent-glow); border: 1px solid rgba(94, 234, 212, 0.12); border-radius: 8px; color: var(--accent); }
+.showcase-card__title { font-family: var(--sans); font-size: 15px; font-weight: 500; color: var(--text-primary); }
+.showcase-card__subtitle { font-size: 12px; color: var(--text-secondary); }
+.showcase-card__cta { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); text-decoration: none; }
+.showcase-card__cta:hover { color: var(--accent); }
+```
+**Notes:** Grid layout: `repeat(2, 1fr)` desktop, `1fr` tablet/mobile. Each card has a unique `data-showcase` type for PostHog analytics. Server-side data loaded from `web/static/data/showcase_data.json` via `_load_showcase_data()` in routes_public.py — graceful fallback to static HTML if JSON missing.
+
+### MCP Demo Chat Section
+**Sprint:** QS11 (Sprint 90 — landing showcase integration)
+**File:** `web/templates/components/mcp_demo.html`, `web/static/mcp-demo.css`
+**Usage:** Landing page — single instance below the showcase grid
+**Status:** NEW
+**HTML:**
+```html
+<div class="mcp-demo" data-track="mcp-demo-view">
+  <div class="mcp-demo__intro">
+    <h2 class="mcp-demo__headline">What your AI sees</h2>
+    <p class="mcp-demo__sub">Connect Claude to sfpermits.ai...</p>
+  </div>
+  <div class="mcp-demo__layout">
+    <div class="mcp-demo__chat"><!-- message bubbles --></div>
+    <div class="mcp-demo__sidebar"><!-- tool list + CTA --></div>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.mcp-demo__layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; }
+.mcp-demo__bubble--tool { background: rgba(94,234,212,0.04); border: 1px solid rgba(94,234,212,0.12); color: var(--accent); font-family: var(--mono); }
+.mcp-demo__tool-item--active { background: var(--accent-glow); color: var(--accent); }
+```
+**Notes:** Animated via `mcp-demo.js` — chat bubbles fade in sequentially on IntersectionObserver trigger. CTA links to /auth/login with `data-track="mcp-demo-cta"` for PostHog.

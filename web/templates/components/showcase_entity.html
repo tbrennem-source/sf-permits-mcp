@@ -1,0 +1,53 @@
+{# Showcase: Entity Network — professional track record browser #}
+<div class="showcase-card" data-track="showcase-view" data-showcase="entity" id="showcase-entity">
+  <div class="showcase-card__header">
+    <span class="showcase-card__icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </span>
+    <div class="showcase-card__meta">
+      <h3 class="showcase-card__title">Who should I hire?</h3>
+      <p class="showcase-card__subtitle">Entity network from 1M+ professionals</p>
+    </div>
+  </div>
+  <div class="showcase-card__body" id="showcase-entity-body">
+    {%- if showcase and showcase.entity %}
+    {%- set ent = showcase.entity %}
+    <div class="showcase-entity">
+      <div class="showcase-entity__name">{{ ent.entity }}</div>
+      <div class="showcase-entity__stats">
+        <span class="showcase-entity__stat"><strong>{{ ent.permit_count }}</strong> permits</span>
+        <span class="showcase-entity__stat"><strong>{{ ent.approval_rate }}</strong> approval</span>
+        <span class="showcase-entity__stat"><strong>{{ ent.avg_timeline }}</strong> avg</span>
+      </div>
+      <div class="showcase-entity__permits">
+        {%- for p in ent.recent_permits[:3] %}
+        <div class="showcase-entity__permit">
+          <span class="showcase-entity__addr">{{ p.address }}</span>
+          <span class="showcase-entity__type">{{ p.type }}</span>
+          <span class="showcase-entity__status showcase-entity__status--{{ 'done' if p.status == 'issued' else 'pending' }}">{{ p.status }}</span>
+        </div>
+        {%- endfor %}
+      </div>
+    </div>
+    {%- else %}
+    <div class="showcase-entity">
+      <div class="showcase-entity__name">Smith &amp; Associates Architecture</div>
+      <div class="showcase-entity__stats">
+        <span class="showcase-entity__stat"><strong>47</strong> permits</span>
+        <span class="showcase-entity__stat"><strong>94%</strong> approval</span>
+        <span class="showcase-entity__stat"><strong>62 days</strong> avg</span>
+      </div>
+      <div class="showcase-entity__permits">
+        <div class="showcase-entity__permit"><span class="showcase-entity__addr">487 Noe St</span><span class="showcase-entity__type">Kitchen</span><span class="showcase-entity__status showcase-entity__status--done">issued</span></div>
+        <div class="showcase-entity__permit"><span class="showcase-entity__addr">742 Shotwell St</span><span class="showcase-entity__type">ADU</span><span class="showcase-entity__status showcase-entity__status--pending">in review</span></div>
+        <div class="showcase-entity__permit"><span class="showcase-entity__addr">1455 Market St</span><span class="showcase-entity__type">Commercial TI</span><span class="showcase-entity__status showcase-entity__status--done">approved</span></div>
+      </div>
+    </div>
+    {%- endif %}
+  </div>
+  <div class="showcase-card__footer">
+    <a href="/search?q=find+architect+for+kitchen+remodel" class="showcase-card__cta ghost-cta" data-track="showcase-click" data-showcase="entity">
+      Find professionals &rarr;
+    </a>
+  </div>
+</div>

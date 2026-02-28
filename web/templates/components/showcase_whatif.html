@@ -1,0 +1,44 @@
+{# Showcase: What-If Scenario Planner — permit path comparison #}
+<div class="showcase-card" data-track="showcase-view" data-showcase="whatif" id="showcase-whatif">
+  <div class="showcase-card__header">
+    <span class="showcase-card__icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </span>
+    <div class="showcase-card__meta">
+      <h3 class="showcase-card__title">What-if scenarios</h3>
+      <p class="showcase-card__subtitle">Compare permit paths before you commit</p>
+    </div>
+  </div>
+  <div class="showcase-card__body">
+    {%- if showcase and showcase.whatif %}
+    {%- set wi = showcase.whatif %}
+    <div class="showcase-whatif">
+      <div class="showcase-whatif__project">{{ wi.project }}<span class="showcase-whatif__hood">{{ wi.neighborhood }}</span></div>
+      <div class="showcase-whatif__scenarios">
+        {%- for s in wi.scenarios %}
+        <div class="showcase-whatif__row">
+          <span class="showcase-whatif__label">{{ s.label }}</span>
+          <span class="showcase-whatif__badge showcase-whatif__badge--{{ 'green' if s.path == 'OTC' else 'amber' }}">{{ s.path }}</span>
+          <span class="showcase-whatif__timeline">{{ s.days }} days</span>
+          <span class="showcase-whatif__cost">{{ s.cost }}</span>
+        </div>
+        {%- endfor %}
+      </div>
+    </div>
+    {%- else %}
+    <div class="showcase-whatif">
+      <div class="showcase-whatif__project">Garage Conversion to ADU<span class="showcase-whatif__hood">Mission</span></div>
+      <div class="showcase-whatif__scenarios">
+        <div class="showcase-whatif__row"><span class="showcase-whatif__label">Cosmetic only</span><span class="showcase-whatif__badge showcase-whatif__badge--green">OTC</span><span class="showcase-whatif__timeline">1–5 days</span><span class="showcase-whatif__cost">$650</span></div>
+        <div class="showcase-whatif__row"><span class="showcase-whatif__label">New kitchen + bath</span><span class="showcase-whatif__badge showcase-whatif__badge--amber">In-house</span><span class="showcase-whatif__timeline">90–150 days</span><span class="showcase-whatif__cost">$3,200</span></div>
+        <div class="showcase-whatif__row"><span class="showcase-whatif__label">Structural changes</span><span class="showcase-whatif__badge showcase-whatif__badge--amber">Full review</span><span class="showcase-whatif__timeline">180–300 days</span><span class="showcase-whatif__cost">$8,500</span></div>
+      </div>
+    </div>
+    {%- endif %}
+  </div>
+  <div class="showcase-card__footer">
+    <a href="/search?q=what+permits+do+I+need" class="showcase-card__cta ghost-cta" data-track="showcase-click" data-showcase="whatif">
+      Plan your project &rarr;
+    </a>
+  </div>
+</div>

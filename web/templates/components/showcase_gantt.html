@@ -1,0 +1,48 @@
+{# Showcase: Project Timeline (Gantt) — renders static fallback, enhanced by showcase-gantt.js #}
+<div class="showcase-card" data-track="showcase-view" data-showcase="gantt" id="showcase-gantt">
+  <div class="showcase-card__header">
+    <span class="showcase-card__icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </span>
+    <div class="showcase-card__meta">
+      <h3 class="showcase-card__title">How long will it take?</h3>
+      <p class="showcase-card__subtitle">Station-by-station timeline from real permits</p>
+    </div>
+  </div>
+  <div class="showcase-card__body" id="showcase-gantt-body">
+    {%- if showcase and showcase.gantt %}
+    {%- set gantt = showcase.gantt %}
+    <div class="showcase-gantt" aria-label="Permit routing timeline">
+      <div class="showcase-gantt__label">{{ gantt.title }}</div>
+      {%- for station in gantt.stations %}
+      <div class="showcase-gantt__row">
+        <span class="showcase-gantt__station">{{ station.label }}</span>
+        <div class="showcase-gantt__track">
+          <div class="showcase-gantt__bar showcase-gantt__bar--{{ station.status }}"
+               style="width: {{ [(station.days / 200 * 100)|round|int, 100]|min }}%"
+               title="{{ station.days }} days avg"></div>
+        </div>
+        <span class="showcase-gantt__days {% if station.status == 'done' %}showcase-gantt__days--done{% elif station.status == 'pending' %}showcase-gantt__days--warn{% endif %}">
+          {{ station.days }}d
+        </span>
+      </div>
+      {%- endfor %}
+      <div class="showcase-gantt__total">Est. total: <strong>{{ gantt.total_days_estimate }}</strong></div>
+    </div>
+    {%- else %}
+    <div class="showcase-card__placeholder">
+      <div class="showcase-gantt showcase-gantt--skeleton" aria-hidden="true">
+        <div class="showcase-gantt__row"><span class="showcase-gantt__station">BLDG</span><div class="showcase-gantt__track"><div class="showcase-gantt__bar showcase-gantt__bar--done" style="width:25%"></div></div><span class="showcase-gantt__days showcase-gantt__days--done">21d</span></div>
+        <div class="showcase-gantt__row"><span class="showcase-gantt__station">SFFD</span><div class="showcase-gantt__track"><div class="showcase-gantt__bar showcase-gantt__bar--done" style="width:34%"></div></div><span class="showcase-gantt__days showcase-gantt__days--done">28d</span></div>
+        <div class="showcase-gantt__row"><span class="showcase-gantt__station">PPC</span><div class="showcase-gantt__track"><div class="showcase-gantt__bar showcase-gantt__bar--pending" style="width:87%"></div></div><span class="showcase-gantt__days showcase-gantt__days--warn">174d</span></div>
+        <div class="showcase-gantt__row"><span class="showcase-gantt__station">CFC</span><div class="showcase-gantt__track"><div class="showcase-gantt__bar showcase-gantt__bar--upcoming" style="width:17%"></div></div><span class="showcase-gantt__days">14d</span></div>
+      </div>
+    </div>
+    {%- endif %}
+  </div>
+  <div class="showcase-card__footer">
+    <a href="/search?q=how+long+does+a+permit+take" class="showcase-card__cta ghost-cta" data-track="showcase-click" data-showcase="gantt">
+      Check timeline for your address &rarr;
+    </a>
+  </div>
+</div>

@@ -1,0 +1,66 @@
+{# MCP Demo Component — animated AI chat showcase #}
+{# CSS: web/static/mcp-demo.css | JS: web/static/mcp-demo.js #}
+<div class="mcp-demo" data-track="mcp-demo-view" id="mcp-demo-container">
+  <div class="mcp-demo__intro">
+    <h2 class="mcp-demo__headline">What your AI sees</h2>
+    <p class="mcp-demo__sub">Connect Claude to sfpermits.ai. Get permit intelligence directly in your AI assistant.</p>
+  </div>
+
+  <div class="mcp-demo__layout">
+    <div class="mcp-demo__chat" id="mcp-demo-chat" aria-label="AI conversation demo" aria-live="polite">
+      <div class="mcp-demo__message mcp-demo__message--user">
+        <span class="mcp-demo__message-label">You</span>
+        <div class="mcp-demo__bubble mcp-demo__bubble--user">
+          What's the permit status for 487 Noe St?
+        </div>
+      </div>
+
+      <div class="mcp-demo__message mcp-demo__message--tool" id="mcp-tool-call">
+        <span class="mcp-demo__message-label">Tool call</span>
+        <div class="mcp-demo__bubble mcp-demo__bubble--tool">
+          <span class="mcp-demo__tool-icon" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </span>
+          <code>search_permits(address="487 Noe St")</code>
+        </div>
+      </div>
+
+      <div class="mcp-demo__message mcp-demo__message--result" id="mcp-tool-result">
+        <span class="mcp-demo__message-label">Result</span>
+        <div class="mcp-demo__bubble mcp-demo__bubble--result">
+          <div class="mcp-demo__result-row"><span>Permit #</span><span class="mcp-demo__mono">202401015555</span></div>
+          <div class="mcp-demo__result-row"><span>Status</span><span class="mcp-demo__amber">PPC — stalled 42d</span></div>
+          <div class="mcp-demo__result-row"><span>Est. remaining</span><span>4–7 months</span></div>
+          <div class="mcp-demo__result-row"><span>Routing</span><span class="mcp-demo__green">BLDG ✓ · SFFD ✓</span></div>
+        </div>
+      </div>
+
+      <div class="mcp-demo__message mcp-demo__message--assistant" id="mcp-assistant-msg">
+        <span class="mcp-demo__message-label">Claude</span>
+        <div class="mcp-demo__bubble mcp-demo__bubble--assistant">
+          Your permit at 487 Noe has been stalled at Plan Check (PPC) for 42 days — about 132 days shorter than average. Building and Fire have approved. I'd recommend following up with your expediter on the resubmittal status.
+        </div>
+      </div>
+    </div>
+
+    <div class="mcp-demo__sidebar">
+      <div class="mcp-demo__sidebar-card">
+        <div class="mcp-demo__sidebar-title">30 tools available</div>
+        <ul class="mcp-demo__tool-list" aria-label="Available MCP tools">
+          <li class="mcp-demo__tool-item mcp-demo__tool-item--active">search_permits</li>
+          <li class="mcp-demo__tool-item">estimate_timeline</li>
+          <li class="mcp-demo__tool-item">entity_network</li>
+          <li class="mcp-demo__tool-item">revision_risk</li>
+          <li class="mcp-demo__tool-item">predict_permits</li>
+          <li class="mcp-demo__tool-item mcp-demo__tool-item--more">+25 more &rarr;</li>
+        </ul>
+      </div>
+      <div class="mcp-demo__connect">
+        <a href="/auth/login" class="mcp-demo__cta ghost-cta" data-track="mcp-demo-cta">
+          Connect your AI &rarr;
+        </a>
+        <p class="mcp-demo__connect-note">Works with Claude, GPT-4, and any MCP-compatible AI</p>
+      </div>
+    </div>
+  </div>
+</div>

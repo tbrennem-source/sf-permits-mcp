@@ -1,0 +1,52 @@
+{# Showcase: Cost of Delay Calculator — financial impact of permit delays #}
+<div class="showcase-card" data-track="showcase-view" data-showcase="delay" id="showcase-delay">
+  <div class="showcase-card__header">
+    <span class="showcase-card__icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </span>
+    <div class="showcase-card__meta">
+      <h3 class="showcase-card__title">Cost of delay</h3>
+      <p class="showcase-card__subtitle">What a 4-month stall actually costs you</p>
+    </div>
+  </div>
+  <div class="showcase-card__body">
+    {%- if showcase and showcase.delay %}
+    {%- set delay = showcase.delay %}
+    <div class="showcase-delay">
+      <div class="showcase-delay__headline">
+        <span class="showcase-delay__project">{{ delay.project_type }}</span>
+        <span class="showcase-delay__months">{{ delay.delay_months }} month delay</span>
+      </div>
+      <div class="showcase-delay__total">{{ delay.total_cost }} <span>total cost</span></div>
+      <div class="showcase-delay__breakdown">
+        {%- for item in delay.breakdown %}
+        <div class="showcase-delay__row">
+          <span class="showcase-delay__row-label">{{ item.label }}</span>
+          <span class="showcase-delay__row-amount">{{ item.amount }}</span>
+        </div>
+        {%- endfor %}
+      </div>
+      <div class="showcase-delay__action">{{ delay.action }}</div>
+    </div>
+    {%- else %}
+    <div class="showcase-delay">
+      <div class="showcase-delay__headline">
+        <span class="showcase-delay__project">Seismic Retrofit</span>
+        <span class="showcase-delay__months">4 month delay</span>
+      </div>
+      <div class="showcase-delay__total">$22,200 <span>total cost</span></div>
+      <div class="showcase-delay__breakdown">
+        <div class="showcase-delay__row"><span class="showcase-delay__row-label">Carrying costs</span><span class="showcase-delay__row-amount">$12,400</span></div>
+        <div class="showcase-delay__row"><span class="showcase-delay__row-label">Contractor rebooking</span><span class="showcase-delay__row-amount">$5,800</span></div>
+        <div class="showcase-delay__row"><span class="showcase-delay__row-label">Opportunity cost</span><span class="showcase-delay__row-amount">$4,000</span></div>
+      </div>
+      <div class="showcase-delay__action">Engaging an expediter typically reduces delays by 30–60%</div>
+    </div>
+    {%- endif %}
+  </div>
+  <div class="showcase-card__footer">
+    <a href="/search?q=cost+of+delay" class="showcase-card__cta ghost-cta" data-track="showcase-click" data-showcase="delay">
+      Calculate your delay cost &rarr;
+    </a>
+  </div>
+</div>
