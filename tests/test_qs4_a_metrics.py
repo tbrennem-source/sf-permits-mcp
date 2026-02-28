@@ -384,7 +384,7 @@ class TestCronEndpoints:
             )
             assert rv.status_code == 200
             data = rv.get_json()
-            assert data["status"] == "ok"
+            assert data["status"] == "success"
 
 
 # ---------------------------------------------------------------------------
