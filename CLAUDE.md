@@ -485,7 +485,7 @@ This project participates in Tim's standard session protocols. These are defined
 
 **CHECKQUAD** — Session close protocol for **quad sprint terminals** (T1-T4). Lighter than CHECKCHAT, artifact-first. **Step 0: ESCAPE CWD** — `cd` to main repo root BEFORE the MERGE step. Then: MERGE, ARTIFACT (session report), CAPTURE (per-terminal files), HYGIENE CHECK, SIGNAL DONE. Delegates documentation/shipping to T0. See dforge `swarm-coordination` template for full protocol.
 
-**CHECKQUAD-T0** — Session close protocol for **quad sprint orchestrator** (T0). Heavier than CHECKCHAT, consolidates all terminals. **T0 NEVER enters a worktree** — it operates from main repo root throughout. Seven steps: COLLECT, VERIFY, VISUAL QA, CONSOLIDATE, DOCUMENT, HARVEST (dforge lessons), SHIP+PROMOTE. **Worktree cleanup (`git worktree prune` + branch deletion) is the LAST step of SHIP+PROMOTE**, after all sessions are closed.
+**CHECKQUAD-T0** — Session close protocol for **quad sprint orchestrator** (T0). Heavier than CHECKCHAT, consolidates all terminals. **T0 NEVER enters a worktree** — it operates from main repo root throughout. Eight steps: COLLECT, VERIFY, VISUAL QA, CONSOLIDATE, DOCUMENT, HARVEST (dforge lessons), SHIP+PROMOTE, CLEAN. **CLEAN is always the final step** — runs after all sessions are closed and prod is promoted.
 
 **Black Box Session Protocol (2 stages):**
 
@@ -561,9 +561,14 @@ T0 (Tim — orchestrator, no agents, NEVER in a worktree)
 │   ├── File ownership audit (diff against ownership matrix)
 │   ├── Full test suite (one run, not per-terminal)
 │   ├── Prod gate: python scripts/prod_gate.py --quiet
-│   ├── Promote: git checkout prod && git merge main && git push origin prod
-│   └── Worktree cleanup (LAST step): git worktree prune && delete merged branches
-└── Report to Chief
+│   └── Promote: git checkout prod && git merge main && git push origin prod
+├── Report to Chief
+└── CLEAN (always last):
+    ├── git worktree list → report count
+    ├── git worktree prune
+    ├── git branch --merged main | grep worktree → delete
+    ├── git branch --no-merged main | grep worktree → report (do NOT delete)
+    └── Report: "CLEAN: [N] worktrees pruned, [M] branches deleted, [K] unmerged reported"
 
 T1 (CC Terminal 1 — e.g., infrastructure)     — spawns 4 agents, merges internally
 T2 (CC Terminal 2 — e.g., public templates)    — spawns 4 agents, merges internally
@@ -647,7 +652,7 @@ Only needed in the per-agent `qsN-X-*.md` files (not the swarm prompt). Handles 
 
 For swarm sprints, the orchestrator (CC0) spawns all build agents in parallel via Task tool. Each agent independently follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → VISUAL REVIEW → session close (CHECKQUAD for quad sprint terminals, CHECKCHAT for solo sessions).
 
-After all agents complete, the orchestrator runs CHECKQUAD-T0: COLLECT → VERIFY → VISUAL QA → CONSOLIDATE → DOCUMENT → HARVEST → SHIP+PROMOTE.
+After all agents complete, the orchestrator runs CHECKQUAD-T0: COLLECT → VERIFY → VISUAL QA → CONSOLIDATE → DOCUMENT → HARVEST → SHIP+PROMOTE → CLEAN.
 
 **Visual Review (Phase 6.5):** After Playwright screenshots, run automated visual scoring. Use `scripts/visual_qa.py` (preferred) or send screenshots to Claude Vision. Score each page 1-5. ≥3.0 = PASS. ≤2.0 = escalate to DeskRelay. This is standard, not optional.
 
