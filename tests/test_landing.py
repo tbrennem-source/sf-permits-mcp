@@ -1,12 +1,8 @@
 """Tests for public landing page + address lookup + feature gating (Session C)."""
 
 import pytest
-import sys
-import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web"))
-
-from app import app, _rate_buckets
+from web.app import app, _rate_buckets
 
 
 @pytest.fixture

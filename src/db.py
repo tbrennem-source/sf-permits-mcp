@@ -1560,7 +1560,13 @@ def init_schema(conn) -> None:
             job_type TEXT NOT NULL,
             status TEXT NOT NULL,
             started_at TIMESTAMP,
-            completed_at TIMESTAMP
+            completed_at TIMESTAMP,
+            lookback_days INTEGER,
+            soda_records INTEGER,
+            changes_inserted INTEGER,
+            inspections_updated INTEGER,
+            error_message TEXT,
+            was_catchup BOOLEAN DEFAULT FALSE
         )
     """)
 

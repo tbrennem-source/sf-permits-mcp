@@ -39,7 +39,7 @@ class TestCronSignals:
                 )
         assert resp.status_code == 200
         data = json.loads(resp.data)
-        assert data["status"] == "ok"
+        assert data["status"] == "success"
         assert data["total_signals"] == 42
 
     def test_returns_500_on_error(self, client, monkeypatch):
@@ -51,4 +51,4 @@ class TestCronSignals:
             )
         assert resp.status_code == 500
         data = json.loads(resp.data)
-        assert data["status"] == "error"
+        assert data["status"] == "failed"

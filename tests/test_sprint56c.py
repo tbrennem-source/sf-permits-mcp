@@ -755,9 +755,6 @@ class TestCronIngestPlumbingInspectionsEndpoint:
 
     def test_wrong_token_returns_403(self, client, monkeypatch):
         monkeypatch.setenv("CRON_SECRET", "correct-secret")
-        import importlib
-        import web.app as app_mod
-        importlib.reload(app_mod)
 
         resp = client.post(
             "/cron/ingest-plumbing-inspections",

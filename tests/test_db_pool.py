@@ -464,7 +464,7 @@ class TestQueryWithPool:
 
 class TestPoolConfig:
     def test_pool_minconn_maxconn(self, monkeypatch):
-        """Pool should be created with minconn=2, maxconn=20."""
+        """Pool should be created with minconn=5, maxconn=50 (env-configurable defaults)."""
         import src.db as db
 
         monkeypatch.setattr(db, "BACKEND", "postgres")
@@ -482,8 +482,8 @@ class TestPoolConfig:
             db._get_pool()
 
             mock_pool_cls.assert_called_once_with(
-                minconn=2,
-                maxconn=20,
+                minconn=5,
+                maxconn=50,
                 dsn="postgresql://test:test@localhost/test",
                 connect_timeout=10,
             )

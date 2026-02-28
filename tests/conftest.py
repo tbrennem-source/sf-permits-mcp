@@ -271,3 +271,48 @@ def _restore_db_path():
         db_mod.DATABASE_URL = saved_db_url
     except (ImportError, Exception):
         pass
+
+
+# ---------------------------------------------------------------------------
+# Function-scoped Flask app guard
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _restore_flask_app():
+    """Restore the Flask app instance on web.app after each test.
+
+    Some tests (e.g. test_sprint56c.py) call importlib.reload(web.app),
+    which creates a NEW Flask app on the module. Tests that imported the
+    old app via ``from web.app import app`` then hold a stale reference
+    with no registered routes, causing 404s.
+
+    This fixture saves the module-level ``app`` before each test and
+    restores it afterwards, ensuring any reload is undone.
+    """
+    try:
+        import web.app as app_mod
+        saved_app = app_mod.app
+    except (ImportError, Exception):
+        yield
+        return
+
+    yield
+
+    try:
+        import web.app as app_mod
+        if app_mod.app is not saved_app:
+            app_mod.app = saved_app
+    except (ImportError, Exception):
+        pass
+
+
+@pytest.fixture(autouse=True)
+def _clear_cron_worker():
+    """Ensure CRON_WORKER env var is cleaned up after each test.
+
+    Some tests set CRON_WORKER=1 via os.environ directly (not monkeypatch).
+    If a test fails before cleanup, the env var leaks into subsequent tests,
+    causing all non-/cron routes to return 404 via the _cron_guard hook.
+    """
+    yield
+    os.environ.pop("CRON_WORKER", None)

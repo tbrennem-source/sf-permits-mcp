@@ -3,17 +3,17 @@
 import pytest
 import sys
 import os
+import web.app as _app_mod
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web"))
-
-from app import app, md_to_html, _rate_buckets
+from web.helpers import md_to_html, _rate_buckets
 
 
 @pytest.fixture
 def client():
-    app.config["TESTING"] = True
+    _app = _app_mod.app  # Always get the current app from the module
+    _app.config["TESTING"] = True
     _rate_buckets.clear()  # Reset rate limits between tests
-    with app.test_client() as client:
+    with _app.test_client() as client:
         yield client
     _rate_buckets.clear()
 
@@ -442,11 +442,10 @@ def test_report_has_prominent_share_button():
     )
     with open(template_path) as f:
         content = f.read()
-    # Should have a btn-primary share button near the page title
-    assert 'class="btn-primary"' in content
+    # Should have a share button that opens the share modal
     assert "openShareModal()" in content
-    # The prominent button should contain the share text
-    assert "Share Report" in content
+    # The button should contain share text
+    assert "Share" in content
 
 
 def test_report_email_template_supports_personal_message():

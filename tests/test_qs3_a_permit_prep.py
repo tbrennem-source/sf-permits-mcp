@@ -16,148 +16,145 @@ from unittest.mock import patch, MagicMock
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def app():
-    """Create a Flask test application with in-memory DuckDB.
+def app(_isolated_test_db):
+    """Create a Flask test application using the session-scoped isolated DB.
 
-    Cleans up test-specific tables after yield to prevent schema
-    pollution across test files in the same pytest session.
+    Uses the temp DuckDB already configured by the _isolated_test_db session
+    fixture instead of reloading src.db (which would reset _DUCKDB_PATH to
+    the real DB file and trigger the TEST GUARD).
     """
     import os
+    import src.db as db_mod
+
     os.environ.setdefault("TESTING", "1")
 
-    # Force DuckDB backend before importing anything that reads BACKEND
-    with patch.dict(os.environ, {"DATABASE_URL": ""}):
-        import importlib
-        import src.db as db_mod
-        importlib.reload(db_mod)
+    from web.app import app
+    app.config["TESTING"] = True
+    app.config["SECRET_KEY"] = "test-secret"
 
-        from web.app import app
-        app.config["TESTING"] = True
-        app.config["SECRET_KEY"] = "test-secret"
+    # Create tables in the temp DuckDB (already set up by _isolated_test_db)
+    conn = db_mod.get_connection()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS permits (
+            permit_number TEXT PRIMARY KEY,
+            description TEXT,
+            permit_type_definition TEXT,
+            street_number TEXT,
+            street_name TEXT,
+            block TEXT,
+            lot TEXT,
+            neighborhood TEXT,
+            status TEXT,
+            filed_date TEXT,
+            status_date TEXT,
+            revised_cost REAL,
+            estimated_cost REAL,
+            street_suffix TEXT
+        )
+    """)
+    # DuckDB: use sequences for auto-increment
+    conn.execute("CREATE SEQUENCE IF NOT EXISTS prep_checklists_seq START 1")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS prep_checklists (
+            checklist_id INTEGER PRIMARY KEY DEFAULT nextval('prep_checklists_seq'),
+            permit_number TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.execute("CREATE SEQUENCE IF NOT EXISTS prep_items_seq START 1")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS prep_items (
+            item_id INTEGER PRIMARY KEY DEFAULT nextval('prep_items_seq'),
+            checklist_id INTEGER NOT NULL,
+            document_name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'required',
+            source TEXT NOT NULL DEFAULT 'predicted',
+            notes TEXT,
+            due_date TEXT
+        )
+    """)
 
-        # Create tables in DuckDB
-        conn = db_mod.get_connection()
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS permits (
-                permit_number TEXT PRIMARY KEY,
-                description TEXT,
-                permit_type_definition TEXT,
-                street_number TEXT,
-                street_name TEXT,
-                block TEXT,
-                lot TEXT,
-                neighborhood TEXT,
-                status TEXT,
-                filed_date TEXT,
-                status_date TEXT,
-                revised_cost REAL,
-                estimated_cost REAL,
-                street_suffix TEXT
-            )
-        """)
-        # DuckDB: use sequences for auto-increment
-        conn.execute("CREATE SEQUENCE IF NOT EXISTS prep_checklists_seq START 1")
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS prep_checklists (
-                checklist_id INTEGER PRIMARY KEY DEFAULT nextval('prep_checklists_seq'),
-                permit_number TEXT NOT NULL,
-                user_id INTEGER NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.execute("CREATE SEQUENCE IF NOT EXISTS prep_items_seq START 1")
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS prep_items (
-                item_id INTEGER PRIMARY KEY DEFAULT nextval('prep_items_seq'),
-                checklist_id INTEGER NOT NULL,
-                document_name TEXT NOT NULL,
-                category TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'required',
-                source TEXT NOT NULL DEFAULT 'predicted',
-                notes TEXT,
-                due_date TEXT
-            )
-        """)
+    # Users table (init_user_schema already creates this, but INSERT OR IGNORE is idempotent)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY,
+            email TEXT UNIQUE,
+            display_name TEXT,
+            is_admin BOOLEAN DEFAULT FALSE,
+            is_active BOOLEAN DEFAULT TRUE,
+            email_verified BOOLEAN DEFAULT FALSE,
+            brief_frequency TEXT DEFAULT 'none',
+            role TEXT,
+            firm_name TEXT,
+            entity_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_login_at TIMESTAMP,
+            invite_code TEXT,
+            primary_street_number TEXT,
+            primary_street_name TEXT,
+            subscription_tier TEXT DEFAULT 'free',
+            voice_style TEXT,
+            last_brief_sent_at TIMESTAMP,
+            notify_permit_changes BOOLEAN DEFAULT FALSE
+        )
+    """)
+    conn.execute("""
+        INSERT OR IGNORE INTO users (user_id, email, is_admin, email_verified, is_active)
+        VALUES (1, 'test@example.com', FALSE, TRUE, TRUE)
+    """)
+    conn.execute("""
+        INSERT OR IGNORE INTO users (user_id, email, is_admin, email_verified, is_active)
+        VALUES (2, 'other@example.com', FALSE, TRUE, TRUE)
+    """)
 
-        # Users table
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                email TEXT UNIQUE,
-                display_name TEXT,
-                is_admin BOOLEAN DEFAULT FALSE,
-                is_active BOOLEAN DEFAULT TRUE,
-                email_verified BOOLEAN DEFAULT FALSE,
-                brief_frequency TEXT DEFAULT 'none',
-                role TEXT,
-                firm_name TEXT,
-                entity_id INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login_at TIMESTAMP,
-                invite_code TEXT,
-                primary_street_number TEXT,
-                primary_street_name TEXT,
-                subscription_tier TEXT DEFAULT 'free',
-                voice_style TEXT,
-                last_brief_sent_at TIMESTAMP,
-                notify_permit_changes BOOLEAN DEFAULT FALSE
-            )
-        """)
-        conn.execute("""
-            INSERT OR IGNORE INTO users (user_id, email, is_admin, email_verified, is_active)
-            VALUES (1, 'test@example.com', FALSE, TRUE, TRUE)
-        """)
-        conn.execute("""
-            INSERT OR IGNORE INTO users (user_id, email, is_admin, email_verified, is_active)
-            VALUES (2, 'other@example.com', FALSE, TRUE, TRUE)
-        """)
+    # Insert test permit
+    conn.execute("""
+        INSERT OR IGNORE INTO permits (permit_number, description, permit_type_definition,
+        street_number, street_name, block, lot, neighborhood)
+        VALUES ('202401010001', 'Kitchen remodel', 'additions alterations or repairs',
+        '123', 'MAIN', '3512', '001', 'Mission')
+    """)
 
-        # Insert test permit
-        conn.execute("""
-            INSERT OR IGNORE INTO permits (permit_number, description, permit_type_definition,
-            street_number, street_name, block, lot, neighborhood)
-            VALUES ('202401010001', 'Kitchen remodel', 'additions alterations or repairs',
-            '123', 'MAIN', '3512', '001', 'Mission')
-        """)
+    # Watch items table (for nav gate)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS watch_items (
+            watch_id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            watch_type TEXT,
+            permit_number TEXT,
+            street_number TEXT,
+            street_name TEXT,
+            block TEXT,
+            lot TEXT,
+            entity_id INTEGER,
+            neighborhood TEXT,
+            label TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active BOOLEAN DEFAULT TRUE,
+            tags TEXT DEFAULT ''
+        )
+    """)
 
-        # Watch items table (for nav gate)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS watch_items (
-                watch_id INTEGER PRIMARY KEY,
-                user_id INTEGER,
-                watch_type TEXT,
-                permit_number TEXT,
-                street_number TEXT,
-                street_name TEXT,
-                block TEXT,
-                lot TEXT,
-                entity_id INTEGER,
-                neighborhood TEXT,
-                label TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                is_active BOOLEAN DEFAULT TRUE,
-                tags TEXT DEFAULT ''
-            )
-        """)
+    conn.close()
 
-        conn.close()
+    yield app
 
-        yield app
-
-        # Cleanup: drop test-specific tables to prevent schema pollution
-        cleanup_conn = db_mod.get_connection()
-        for table in ["prep_items", "prep_checklists"]:
-            try:
-                cleanup_conn.execute(f"DROP TABLE IF EXISTS {table}")
-            except Exception:
-                pass
-        for seq in ["prep_checklists_seq", "prep_items_seq"]:
-            try:
-                cleanup_conn.execute(f"DROP SEQUENCE IF EXISTS {seq}")
-            except Exception:
-                pass
-        cleanup_conn.close()
+    # Cleanup: drop test-specific tables to prevent schema pollution
+    cleanup_conn = db_mod.get_connection()
+    for table in ["prep_items", "prep_checklists"]:
+        try:
+            cleanup_conn.execute(f"DROP TABLE IF EXISTS {table}")
+        except Exception:
+            pass
+    for seq in ["prep_checklists_seq", "prep_items_seq"]:
+        try:
+            cleanup_conn.execute(f"DROP SEQUENCE IF EXISTS {seq}")
+        except Exception:
+            pass
+    cleanup_conn.close()
 
 
 @pytest.fixture
@@ -653,14 +650,12 @@ class TestNavIntegration:
 
 
 class TestSearchResultsIntegration:
-    def test_public_search_has_prep_link(self, app):
-        """Verify the template has Prep Checklist button markup."""
-        from flask import render_template_string
-        # Check template source for the Prep Checklist link
+    def test_intel_preview_has_prep_link(self, app):
+        """Verify the intel preview template has Permit Prep section."""
         import os
         template_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            "web", "templates", "search_results_public.html"
+            "web", "templates", "fragments", "intel_preview.html"
         )
         with open(template_path) as f:
             content = f.read()

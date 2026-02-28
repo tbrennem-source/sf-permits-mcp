@@ -2,14 +2,11 @@
 
 import json
 import os
-import sys
 import yaml
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "web"))
-
-from app import app, _rate_buckets
+from web.app import app, _rate_buckets
 
 
 @pytest.fixture
@@ -112,8 +109,8 @@ class TestHealthReady:
 
     def test_health_ready_missing_tables_returns_503(self, client, monkeypatch):
         """/health/ready returns 503 when expected tables are missing."""
-        # Patch via the 'app' module (how it's imported via sys.path)
-        import app as app_mod
+        # Patch via the web.app module
+        import web.app as app_mod
         monkeypatch.setattr(app_mod, "EXPECTED_TABLES", ["nonexistent_table_xyz_999"])
         rv = client.get("/health/ready")
         data = json.loads(rv.data)
