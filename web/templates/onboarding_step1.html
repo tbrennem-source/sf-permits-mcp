@@ -221,6 +221,7 @@
 
         <!-- Role selector form -->
         <form method="POST" action="{{ url_for('auth.onboarding_step1_save') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
             {% if error %}
             <p class="onb-error">{{ error }}</p>

@@ -185,6 +185,7 @@
                 {% endif %}
                 <div class="rw-actions">
                     <form method="POST" action="/admin/regulatory-watch/{{ item.watch_id }}/update" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         {% if item.status == 'monitoring' %}
                         <button name="status" value="passed" class="rw-action-btn">Mark Passed</button>
                         {% endif %}
@@ -200,6 +201,7 @@
                     </form>
                     <form method="POST" action="/admin/regulatory-watch/{{ item.watch_id }}/delete" style="display:inline;"
                           onsubmit="return confirm('Delete this watch item?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button class="rw-action-btn danger">Delete</button>
                     </form>
                 </div>
@@ -213,6 +215,7 @@
         <div class="rw-form-card">
             <h2>New Watch Item</h2>
             <form method="POST" action="/admin/regulatory-watch/create">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="rw-form-group">
                     <label>Title *</label>
                     <input type="text" name="title" required placeholder="e.g., Permit Expiration Timeline Revision">

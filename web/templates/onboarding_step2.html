@@ -279,10 +279,12 @@
         <!-- CTA -->
         <div class="onb-actions">
             <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="action" value="add">
                 <button type="submit" class="onb-continue-btn">Add to portfolio &rarr;</button>
             </form>
             <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="action" value="skip">
                 <button type="submit" class="onb-skip">
                     Skip &mdash; I&rsquo;ll add properties later

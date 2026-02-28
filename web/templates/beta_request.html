@@ -269,6 +269,7 @@
 
         {% if not submitted %}
         <form method="POST" action="/beta-request">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <!-- Honeypot — hidden from real users, bots fill it -->
             <div class="auth-honeypot" aria-hidden="true">
                 <label for="website">Website (leave blank)</label>

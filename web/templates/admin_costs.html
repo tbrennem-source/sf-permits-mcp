@@ -155,6 +155,7 @@
                     <div>
                         {% if summary.kill_switch_active %}
                         <form action="/admin/costs/kill-switch" method="post" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <input type="hidden" name="active" value="0">
                             <button type="submit" class="btn btn-success" id="ks-btn">
                                 Deactivate Kill Switch
@@ -162,6 +163,7 @@
                         </form>
                         {% else %}
                         <form action="/admin/costs/kill-switch" method="post" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <input type="hidden" name="active" value="1">
                             <button type="submit" class="btn btn-danger" id="ks-btn"
                                 onclick="return confirm('Activate kill switch? This blocks all AI routes.')">

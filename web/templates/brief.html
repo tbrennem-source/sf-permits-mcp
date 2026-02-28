@@ -675,6 +675,7 @@
                 <span>Updated {{ brief.cached_at[:16] }}</span>
                 {% if brief.can_refresh %}
                 <form method="post" action="{{ url_for('misc.brief_refresh') }}" style="display: inline; margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit" class="ghost-cta" style="font-size: var(--text-xs); padding: 0;">Refresh &rarr;</button>
                 </form>
                 {% endif %}

@@ -281,6 +281,7 @@
         <!-- CTA -->
         <div class="onb-actions">
             <form method="POST" action="{{ url_for('auth.onboarding_complete') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit" class="onb-continue-btn">Go to Dashboard &rarr;</button>
             </form>
             <p class="onb-ready-note">

@@ -833,6 +833,7 @@
 
             <form method="post" action="/analyze-plans" enctype="multipart/form-data" id="upload-form"
                   class="upload-form-grid">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
                 <div class="uf-full">
                     <label for="uf-planfile">PDF Plan Set</label>

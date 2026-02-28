@@ -1063,6 +1063,7 @@
 <div class="impersonate-banner">
     Viewing as {{ session.impersonating }}
     <form method="POST" action="/auth/stop-impersonate" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button type="submit" class="impersonate-stop">Stop</button>
     </form>
 </div>

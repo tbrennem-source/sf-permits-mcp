@@ -51,6 +51,7 @@
                 </div>
                 <div style="display:flex; gap:8px; flex-shrink:0;">
                     <form method="POST" action="/admin/beta-requests/{{ req.id }}/approve" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button type="submit"
                                 style="padding:8px 16px; background:#16a34a; color:white; border:none;
                                        border-radius:6px; font-size:0.875rem; font-weight:500; cursor:pointer;">
@@ -58,6 +59,7 @@
                         </button>
                     </form>
                     <form method="POST" action="/admin/beta-requests/{{ req.id }}/deny" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button type="submit"
                                 style="padding:8px 16px; background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
                                        border-radius:6px; font-size:0.875rem; cursor:pointer;">
