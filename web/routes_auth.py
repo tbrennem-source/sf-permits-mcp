@@ -9,6 +9,7 @@ import os
 from flask import (
     Blueprint,
     abort,
+    flash,
     g,
     jsonify,
     redirect,
@@ -837,7 +838,18 @@ def onboarding_complete():
 
     session.pop("show_onboarding_banner", None)
     session["onboarding_dismissed"] = True
+    flash("Welcome to sfpermits.ai!", "success")
 
+    return redirect(url_for("index"))
+
+
+@bp.route("/onboarding/skip")
+@login_required
+def onboarding_skip():
+    """Skip the onboarding wizard entirely — go straight to dashboard with demo data."""
+    session.pop("show_onboarding_banner", None)
+    session["onboarding_dismissed"] = True
+    flash("Welcome to sfpermits.ai!", "success")
     return redirect(url_for("index"))
 
 

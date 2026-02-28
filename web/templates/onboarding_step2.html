@@ -50,13 +50,14 @@
             border-radius: var(--radius-full, 9999px);
             background: var(--obsidian-light, #1a1a26);
             border: 1px solid rgba(255,255,255,0.12);
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
-        .onb-dot.active {
+        .onb-dot.step--active {
             background: var(--accent, #5eead4);
             border-color: var(--accent, #5eead4);
-            box-shadow: 0 0 8px var(--accent-ring, rgba(94,234,212,0.3));
+            box-shadow: 0 0 10px rgba(94,234,212,0.35);
         }
-        .onb-dot.done {
+        .onb-dot.step--done {
             background: var(--signal-green, #34d399);
             border-color: var(--signal-green, #34d399);
         }
@@ -65,12 +66,21 @@
             height: 1px;
             background: rgba(255,255,255,0.08);
         }
+        .onb-progress-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            letter-spacing: 0.08em;
+            text-align: center;
+            margin-top: calc(-1 * var(--space-3));
+            margin-bottom: var(--space-4);
+        }
 
         /* ── Hero ─────────────────────────────────────────────────────── */
 
         .onb-hero {
             text-align: center;
-            padding: 0 0 var(--space-8) 0;
+            padding: 0 0 var(--space-6) 0;
         }
         .onb-hero h1 {
             font-family: var(--sans);
@@ -79,21 +89,79 @@
             color: var(--text-primary);
             margin: 0 0 var(--space-3) 0;
         }
-        .onb-hero p {
+        .onb-hero .magic-note {
             font-family: var(--sans);
             color: var(--text-secondary);
             font-size: var(--text-base);
-            max-width: 520px;
-            margin: 0 auto;
+            max-width: 480px;
+            margin: 0 auto var(--space-2) auto;
             line-height: 1.6;
+        }
+        .onb-hero .magic-tagline {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent, #5eead4);
+            letter-spacing: 0.04em;
+            margin-bottom: 0;
+        }
+
+        /* ── Address Input ────────────────────────────────────────────── */
+
+        .address-form {
+            max-width: 560px;
+            margin: 0 auto var(--space-6) auto;
+        }
+        .address-input-wrap {
+            position: relative;
+            margin-bottom: var(--space-3);
+        }
+        .address-input {
+            width: 100%;
+            padding: 16px 22px;
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--text-primary);
+            background: var(--glass, rgba(255,255,255,0.04));
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            border-radius: var(--radius-md, 12px);
+            outline: none;
+            transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+            box-sizing: border-box;
+        }
+        .address-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
+        .address-input:focus {
+            border-color: var(--accent-ring, rgba(94,234,212,0.30));
+            background: rgba(255,255,255,0.06);
+            box-shadow: 0 0 40px var(--accent-glow, rgba(94,234,212,0.08));
+        }
+        .address-hint {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Demo suggestion ──────────────────────────────────────────── */
+
+        .demo-suggestion {
+            max-width: 560px;
+            margin: 0 auto var(--space-6) auto;
+        }
+        .demo-suggestion-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-3);
         }
 
         /* ── Property Preview Card ────────────────────────────────────── */
 
-        .property-preview {
-            max-width: 560px;
-            margin: 0 auto var(--space-8) auto;
-        }
         .property-preview .glass-card {
             padding: var(--space-6);
         }
@@ -201,7 +269,6 @@
             transition: color 0.2s;
         }
         .onb-skip:hover { color: var(--text-secondary); }
-        /* Button reset for form-wrapped skip */
         button.onb-skip {
             background: none;
             border: none;
@@ -222,39 +289,65 @@
 
     <div class="obs-container">
 
-        <!-- Progress -->
-        <div class="onb-progress">
-            <div class="onb-dot done"></div>
+        <!-- Progress: 2/3 -->
+        <div class="onb-progress" aria-label="Step 2 of 3">
+            <div class="onb-dot step--done" title="Step 1: Your role — done"></div>
             <div class="onb-connector"></div>
-            <div class="onb-dot active"></div>
+            <div class="onb-dot step--active" title="Step 2: Watch a property"></div>
             <div class="onb-connector"></div>
-            <div class="onb-dot"></div>
+            <div class="onb-dot" title="Step 3: Morning brief preview"></div>
         </div>
+        <p class="onb-progress-label">2 / 3</p>
 
         <!-- Hero -->
         <section class="onb-hero">
             <h1>Watch your first property</h1>
-            <p>Add a property to your portfolio and get a morning brief when anything changes — new permits, inspection results, status updates.</p>
+            <p class="magic-note">Add a property and get a morning brief when anything changes &mdash; new permits, inspection results, status updates.</p>
+            <p class="magic-tagline">This is where the magic happens.</p>
         </section>
 
-        <!-- Demo property card -->
-        <div class="property-preview">
-            <div class="glass-card">
-                <p class="property-label">Demo property</p>
-                <h2 class="property-address">1455 Market St</h2>
-                <p class="property-meta">San Francisco, CA &mdash; Civic Center District</p>
-                <div class="property-stats">
-                    <div class="stat-item">
-                        <span class="stat-value">14</span>
-                        <span class="stat-label">Active permits</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">3</span>
-                        <span class="stat-label">In review</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">47</span>
-                        <span class="stat-label">Inspections (5yr)</span>
+        <!-- Address input -->
+        <div class="address-form">
+            <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}" id="address-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="add">
+                <div class="address-input-wrap">
+                    <input
+                        type="text"
+                        name="address"
+                        class="address-input"
+                        placeholder="e.g., 487 Noe St"
+                        autocomplete="off"
+                        autocorrect="off"
+                        spellcheck="false"
+                        aria-label="Property address"
+                    >
+                </div>
+                <p class="address-hint">Enter any San Francisco address to watch it.</p>
+            </form>
+        </div>
+
+        <!-- Demo suggestion -->
+        <div class="demo-suggestion">
+            <p class="demo-suggestion-label">Or try the demo property</p>
+            <div class="property-preview">
+                <div class="glass-card">
+                    <p class="property-label">Demo property &mdash; 1455 Market St</p>
+                    <h2 class="property-address">1455 Market St</h2>
+                    <p class="property-meta">San Francisco, CA &mdash; Civic Center District</p>
+                    <div class="property-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">14</span>
+                            <span class="stat-label">Active permits</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">3</span>
+                            <span class="stat-label">In review</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">47</span>
+                            <span class="stat-label">Inspections (5yr)</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -264,30 +357,26 @@
         <div class="watch-benefits">
             <div class="benefit-row">
                 <span class="benefit-icon">&#x1F4E7;</span>
-                <p class="benefit-text"><strong>Morning brief emails</strong> — daily or weekly digest of changes across your whole portfolio.</p>
+                <p class="benefit-text"><strong>Morning brief emails</strong> &mdash; daily or weekly digest of changes across your whole portfolio.</p>
             </div>
             <div class="benefit-row">
                 <span class="benefit-icon">&#x26A1;</span>
-                <p class="benefit-text"><strong>Instant permit alerts</strong> — get notified the morning after a permit status changes.</p>
+                <p class="benefit-text"><strong>Instant permit alerts</strong> &mdash; get notified the morning after a permit status changes.</p>
             </div>
             <div class="benefit-row">
                 <span class="benefit-icon">&#x1F4CA;</span>
-                <p class="benefit-text"><strong>Portfolio dashboard</strong> — all your watched properties in one view with health scores.</p>
+                <p class="benefit-text"><strong>Portfolio dashboard</strong> &mdash; all your watched properties in one view with health scores.</p>
             </div>
         </div>
 
         <!-- CTA -->
         <div class="onb-actions">
-            <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <input type="hidden" name="action" value="add">
-                <button type="submit" class="onb-continue-btn">Add to portfolio &rarr;</button>
-            </form>
-            <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" form="address-form" class="onb-continue-btn">Find my property &rarr;</button>
+            <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}" style="display:contents">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="action" value="skip">
                 <button type="submit" class="onb-skip">
-                    Skip &mdash; I&rsquo;ll add properties later
+                    Use demo property &rarr;
                 </button>
             </form>
         </div>

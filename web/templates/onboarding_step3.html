@@ -50,13 +50,14 @@
             border-radius: var(--radius-full, 9999px);
             background: var(--obsidian-light, #1a1a26);
             border: 1px solid rgba(255,255,255,0.12);
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
-        .onb-dot.active {
+        .onb-dot.step--active {
             background: var(--accent, #5eead4);
             border-color: var(--accent, #5eead4);
-            box-shadow: 0 0 8px var(--accent-ring, rgba(94,234,212,0.3));
+            box-shadow: 0 0 10px rgba(94,234,212,0.35);
         }
-        .onb-dot.done {
+        .onb-dot.step--done {
             background: var(--signal-green, #34d399);
             border-color: var(--signal-green, #34d399);
         }
@@ -64,6 +65,63 @@
             width: 48px;
             height: 1px;
             background: rgba(255,255,255,0.08);
+        }
+        .onb-progress-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            letter-spacing: 0.08em;
+            text-align: center;
+            margin-top: calc(-1 * var(--space-3));
+            margin-bottom: var(--space-4);
+        }
+
+        /* ── CSS-only celebration — subtle ring pulse ─────────────────── */
+        /*    No JS, no library. Pure CSS animation on page load.          */
+
+        @keyframes onb-celebrate-ring {
+            0%   { opacity: 0; transform: scale(0.7); }
+            40%  { opacity: 0.6; }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+
+        .onb-celebrate {
+            display: flex;
+            justify-content: center;
+            margin-bottom: var(--space-4);
+            position: relative;
+            height: 48px;
+            align-items: center;
+        }
+        .onb-celebrate-icon {
+            font-size: 2rem;
+            animation: onb-celebrate-ring 0.8s ease-out 0.2s both;
+            position: relative;
+            z-index: 1;
+        }
+        .onb-celebrate-ring {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-full, 9999px);
+            border: 1px solid rgba(94,234,212,0.4);
+            animation: onb-celebrate-ring 1s ease-out 0.2s both;
+        }
+        .onb-celebrate-ring-2 {
+            animation-delay: 0.45s;
+            border-color: rgba(52,211,153,0.3);
+        }
+
+        /* Fade-in for the main content */
+        @keyframes onb-fade-in {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .onb-fade-in {
+            animation: onb-fade-in 0.5s ease-out 0.1s both;
+        }
+        .onb-fade-in-delay {
+            animation: onb-fade-in 0.5s ease-out 0.3s both;
         }
 
         /* ── Hero ─────────────────────────────────────────────────────── */
@@ -86,6 +144,34 @@
             max-width: 520px;
             margin: 0 auto;
             line-height: 1.6;
+        }
+
+        /* ── Nightly update highlight ─────────────────────────────────── */
+
+        .onb-nightly-note {
+            max-width: 560px;
+            margin: 0 auto var(--space-6) auto;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: rgba(94,234,212,0.05);
+            border: 1px solid rgba(94,234,212,0.12);
+            border-radius: var(--radius-md, 12px);
+            padding: var(--space-4) var(--space-5);
+        }
+        .onb-nightly-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-full, 9999px);
+            background: var(--dot-green, #22c55e);
+            flex-shrink: 0;
+            box-shadow: 0 0 6px var(--dot-green, #22c55e);
+        }
+        .onb-nightly-text {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent, #5eead4);
+            letter-spacing: 0.02em;
         }
 
         /* ── Sample brief card ────────────────────────────────────────── */
@@ -208,7 +294,10 @@
             color: var(--text-secondary);
             margin-top: var(--space-4);
         }
-        .onb-ready-note .accent { color: var(--signal-green, #34d399); font-weight: 500; }
+        .onb-ready-note .accent-green {
+            color: var(--signal-green, #34d399);
+            font-weight: 500;
+        }
     </style>
 </head>
 <body class="obsidian">
@@ -223,23 +312,37 @@
 
     <div class="obs-container">
 
-        <!-- Progress -->
-        <div class="onb-progress">
-            <div class="onb-dot done"></div>
+        <!-- Progress: 3/3 -->
+        <div class="onb-progress" aria-label="Step 3 of 3">
+            <div class="onb-dot step--done" title="Step 1: Your role — done"></div>
             <div class="onb-connector"></div>
-            <div class="onb-dot done"></div>
+            <div class="onb-dot step--done" title="Step 2: Watch a property — done"></div>
             <div class="onb-connector"></div>
-            <div class="onb-dot active"></div>
+            <div class="onb-dot step--active" title="Step 3: Morning brief preview"></div>
+        </div>
+        <p class="onb-progress-label">3 / 3</p>
+
+        <!-- CSS-only celebration -->
+        <div class="onb-celebrate" aria-hidden="true">
+            <div class="onb-celebrate-ring"></div>
+            <div class="onb-celebrate-ring onb-celebrate-ring-2"></div>
+            <span class="onb-celebrate-icon">&#x2713;</span>
         </div>
 
         <!-- Hero -->
-        <section class="onb-hero">
+        <section class="onb-hero onb-fade-in">
             <h1>Your morning brief</h1>
-            <p>This is what your daily digest looks like. You&rsquo;ll get one email when watched properties have changes — nothing when they don&rsquo;t.</p>
+            <p>This is what your daily digest looks like. You&rsquo;ll get one email when watched properties have changes &mdash; nothing when they don&rsquo;t.</p>
         </section>
 
+        <!-- Nightly update highlight -->
+        <div class="onb-nightly-note onb-fade-in-delay">
+            <div class="onb-nightly-dot"></div>
+            <span class="onb-nightly-text">This updates every night with new city data &mdash; no action needed on your part.</span>
+        </div>
+
         <!-- Sample brief card -->
-        <div class="brief-preview">
+        <div class="brief-preview onb-fade-in-delay">
             <div class="glass-card">
                 <div class="brief-header">
                     <span class="brief-title">Morning Brief</span>
@@ -281,11 +384,11 @@
         <!-- CTA -->
         <div class="onb-actions">
             <form method="POST" action="{{ url_for('auth.onboarding_complete') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit" class="onb-continue-btn">Go to Dashboard &rarr;</button>
             </form>
             <p class="onb-ready-note">
-                <span class="accent">You&rsquo;re all set.</span> Briefs are off by default &mdash; turn them on from your account settings anytime.
+                <span class="accent-green">You&rsquo;re all set.</span> Briefs are off by default &mdash; turn them on from your account settings anytime.
             </p>
         </div>
 
