@@ -10,9 +10,17 @@
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#22D3EE">
+<meta name="csrf-token" content="{{ csrf_token }}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/static/icon-192.png">
+<script nonce="{{ csp_nonce }}">
+    /* Inject CSRF token header on every HTMX request */
+    document.addEventListener('htmx:configRequest', function(e) {
+        var token = document.querySelector('meta[name="csrf-token"]');
+        if (token) e.detail.headers['X-CSRFToken'] = token.getAttribute('content');
+    });
+</script>
 <style nonce="{{ csp_nonce }}">
     /* Legacy alias vars — so fragments/nav.html keeps working */
     :root {
