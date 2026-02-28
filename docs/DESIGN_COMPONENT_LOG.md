@@ -816,3 +816,121 @@ border: 1px solid rgba(245, 158, 11, 0.30); /* --dot-amber at 30% opacity */
 .mcp-demo__tool-item--active { background: var(--accent-glow); color: var(--accent); }
 ```
 **Notes:** Animated via `mcp-demo.js` — chat bubbles fade in sequentially on IntersectionObserver trigger. CTA links to /auth/login with `data-track="mcp-demo-cta"` for PostHog.
+
+---
+
+## Sprint QS12 — Agent 3B — Triage Intelligence Signals (2026-02-28)
+
+### Station Badge (Triage Intelligence)
+**Sprint:** QS12 / T3 agent-3B
+**File:** `web/templates/search_results_public.html`, `web/templates/search_results.html`
+**Usage:** Search result triage panels — one badge per active permit showing days at current station with color coding
+**Status:** NEW
+**HTML:**
+```html
+<span class="station-badge station-badge--amber" title="At BLDG station for 45 days (median: 30d)">
+  <span class="station-badge__dot"></span>
+  45d at BLDG
+</span>
+```
+**CSS:**
+```css
+.station-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+  padding: 2px 8px; border-radius: 3px; white-space: nowrap;
+}
+.station-badge__dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.station-badge--green { color: var(--dot-green); background: rgba(34, 197, 94, 0.10); border: 1px solid rgba(34, 197, 94, 0.20); }
+.station-badge--green .station-badge__dot { background: var(--dot-green); }
+.station-badge--amber { color: var(--dot-amber); background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.20); }
+.station-badge--amber .station-badge__dot { background: var(--dot-amber); }
+.station-badge--red   { color: var(--dot-red);   background: rgba(239, 68, 68, 0.10); border: 1px solid rgba(239, 68, 68, 0.20); }
+.station-badge--red   .station-badge__dot { background: var(--dot-red); }
+```
+**Notes:** Three-tier color coding: green (days < median), amber (median <= days < 2x median), red (days >= 2x median = stuck threshold). Uses `--dot-*` tokens (not `--signal-*`) per design system rules. `--dot-green: #22c55e`, `--dot-amber: #f59e0b`, `--dot-red: #ef4444`. Station medians are hardcoded per-station with live DB lookup when available.
+
+---
+
+### Triage Panel (Search Result Card)
+**Sprint:** QS12 / T3 agent-3B
+**File:** `web/templates/search_results_public.html`
+**Usage:** Public search results — one panel per search result showing active permits with station timing intelligence
+**Status:** NEW
+**HTML:**
+```html
+<div class="triage-panel reveal reveal-delay-1">
+  <div class="triage-heading">Active Permits</div>
+  <div class="triage-cards">
+    <div class="triage-card">
+      <div class="triage-card__header">
+        <span class="triage-card__permit">202401010002</span>
+        <span class="triage-card__status">plancheck</span>
+        <!-- optional: -->
+        <span class="stuck-indicator" aria-label="Permit may be stuck">&#9650; Stuck</span>
+      </div>
+      <div class="triage-card__desc">New construction</div>
+      <div class="triage-card__signals">
+        <span class="station-badge station-badge--amber">...</span>
+        <span class="triage-reviewer">Reviewer: ARRIOLA LAURA</span>
+      </div>
+    </div>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.triage-panel { margin: var(--space-4) 0; padding: var(--space-4); background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); }
+.triage-heading { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-3); }
+.triage-cards { display: flex; flex-direction: column; gap: var(--space-3); }
+.triage-card { padding: var(--space-3); background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 4px; }
+.triage-card__header { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-2); }
+.triage-card__permit { font-family: var(--mono); font-size: var(--text-sm); color: var(--accent); }
+.triage-card__status { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; }
+.triage-card__desc { font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-2); }
+.triage-card__signals { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.stuck-indicator { font-family: var(--mono); font-size: var(--text-xs); color: var(--dot-red); letter-spacing: 0.03em; }
+.triage-reviewer { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); }
+```
+**Notes:** Uses `glass` background pattern consistent with all other cards. Reviewer field only rendered when non-null. Stuck indicator uses `--dot-red` token. Panel is conditionally rendered only when `triage_signals` list is non-empty. Template var `triage_signals` is passed from `routes_public.py::public_search()`.
+
+---
+
+### Triage Signals Bar (Compact Inline Format)
+**Sprint:** QS12 / T3 agent-3B
+**File:** `web/templates/results.html`
+**Usage:** Permit detail page — compact horizontal bar showing station timing badges for active permits, positioned before methodology toggle
+**Status:** NEW
+**HTML:**
+```html
+<div class="triage-signals-bar">
+  <span class="triage-signals-bar__label">Current Status</span>
+  <div class="triage-signals-bar__badges">
+    <div class="triage-sig-badge">
+      <div class="triage-sig-badge__header">
+        <span class="triage-sig-badge__permit">202401010002</span>
+        <span class="triage-sig-badge__stuck stuck-indicator">&#9650; Stuck</span>
+      </div>
+      <div class="triage-sig-badge__signals">
+        <span class="station-badge station-badge--red">...</span>
+        <span class="triage-reviewer">Reviewer: SMITH J</span>
+      </div>
+    </div>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.triage-signals-bar { margin: var(--space-4) 0; padding: var(--space-3) var(--space-4); background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); }
+.triage-signals-bar__label { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-2); display: block; }
+.triage-signals-bar__badges { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.triage-sig-badge { padding: var(--space-2) var(--space-3); background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 4px; min-width: 200px; }
+.triage-sig-badge__header { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.triage-sig-badge__permit { font-family: var(--mono); font-size: var(--text-xs); color: var(--accent); }
+.triage-sig-badge__signals { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+```
+**Notes:** Compact variant of the triage-panel for use in narrower result contexts. Shares station-badge and triage-reviewer classes with the full panel. Rendered conditionally on `triage_signals` being non-empty.
+
+---
