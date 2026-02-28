@@ -3874,3 +3874,38 @@ Added `tests/test_sprint_79_3.py` with 11 tests:
 - `web/app.py` — `_start_timer`, `add_cache_headers`, `/health` route, new `_add_response_time_header`
 - `src/db.py` — documentation comment in `_get_pool()`
 - `tests/test_sprint_79_d.py` — new test file (10 tests)
+## Sprint 84-A: DB Pool Tuning
+- Increased DB_POOL_MIN from 2 to 5, DB_POOL_MAX from 20 to 50
+- Added pool exhaustion warning at >80% utilization (configurable via DB_POOL_WARN_THRESHOLD)
+- Documented pool env vars in ONBOARDING.md
+## Sprint 84-B: Static Asset Caching
+- Added Cache-Control headers for CSS/JS (max-age=86400, stale-while-revalidate=604800) and images/fonts (max-age=604800)
+- HTML pages excluded from caching
+## Sprint 84-C: Redis Rate Limiter
+
+### Changes
+
+- **web/helpers.py** — Added Redis-backed rate limiter with in-memory fallback
+  - New `_get_redis_client()` — connects to Redis via REDIS_URL (cached per-process); returns None when unavailable
+  - New `check_rate_limit(key, limit, window_seconds)` — public function using Redis INCR + EXPIRE for cross-worker shared counting; falls back to in-memory sliding window when Redis is unavailable or raises
+  - Refactored `_is_rate_limited(ip, max_requests)` — now delegates to `check_rate_limit()`; backward-compatible (same signature and return semantics)
+  - All existing callers (`app.py`, `routes_public.py`, `routes_api.py`, `routes_property.py`) continue to work without modification
+
+- **pyproject.toml** — Added dependencies
+  - `redis>=5.0.0` to `[project.dependencies]` (production)
+  - `fakeredis>=2.20.0` to `[project.optional-dependencies.dev]` (test only)
+
+- **tests/test_redis_rate_limiter.py** — New test file (10 tests, all passing)
+  - `TestRedisRateLimiter` — counts, blocks over threshold, resets after window, TTL is set
+  - `TestInMemoryFallback` — falls back when no Redis, falls back when Redis down, counts correctly
+  - `TestIsRateLimited` — backward-compat: returns False when under limit, True when over, uses Redis when available
+
+### Notes
+
+- REDIS_URL is Railway-internal only; not reachable from local dev. Local runs always use the in-memory path.
+- Redis client is cached after the first successful ping so connection overhead is paid once per process, not per request.
+- socket_connect_timeout=1 ensures fast failure when Redis is unreachable, avoiding request hangs.
+## Sprint 84-D: Load Test + Scaling Docs
+
+- Enhanced `scripts/load_test.py` — added `--users` flag (alias for `--concurrency`), added `/methodology` endpoint to scenario set, added urllib stdlib fallback when httpx is unavailable, defaults changed to 50 concurrent users / 60s duration to match sprint spec
+- Created `docs/SCALING.md` — 315-line practical scaling guide covering current capacity (gevent + 4 workers + DB_POOL_MAX=20), environment variables table, bottleneck hierarchy (DB pool -> rate limiter -> static assets -> Anthropic API), 3-tier scaling checklist for 0-200/200-1K/1K-5K concurrent users, load test usage examples with result interpretation table, and Railway monitoring/ops quick reference

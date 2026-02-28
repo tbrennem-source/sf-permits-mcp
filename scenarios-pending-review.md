@@ -1987,3 +1987,89 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Search submit button (.search-btn) is the one permitted active element; all other links use .ghost-cta
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: App logs warning when DB pool nears exhaustion
+**Source:** src/db.py — _check_pool_exhaustion_warning() added in Sprint 84-A
+**User:** admin
+**Starting state:** App is running under high load; DB_POOL_MAX=50; 40+ connections are in use simultaneously
+**Goal:** Detect that the connection pool is running low before requests start failing
+**Expected outcome:** A WARNING-level log line appears containing the current used/max connection counts and a suggestion to increase DB_POOL_MAX or enable PgBouncer. No user-facing error occurs — warning is operational signal only.
+**Edge cases seen in code:** Warning threshold is configurable via DB_POOL_WARN_THRESHOLD (default 0.8). If pool._used attribute is missing (psycopg2 internals change), the check fails silently with a DEBUG log rather than raising.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin increases pool size via env var without code change
+**Source:** src/db.py — DB_POOL_MAX env var + docs/ONBOARDING.md pool config section (Sprint 84-A)
+**User:** admin
+**Starting state:** App is deployed on Railway; pool exhaustion warnings are appearing in logs because traffic has grown beyond the default DB_POOL_MAX=50
+**Goal:** Increase the connection pool ceiling to handle more concurrent users without a code deploy
+**Expected outcome:** Admin sets DB_POOL_MAX=80 (or higher) in Railway environment variables. After Railway auto-restarts the service, the pool is initialized with the new max and exhaustion warnings stop. The /health endpoint reflects the updated pool configuration (maxconn=80).
+**Edge cases seen in code:** The pool is a lazy singleton — changes only take effect on process restart. DB_POOL_MIN must remain <= DB_POOL_MAX (psycopg2 enforces this at pool creation time).
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Browser caches CSS for 24 hours after first load
+**Source:** web/app.py _add_static_cache_headers after_request hook
+**User:** homeowner
+**Starting state:** User visits sfpermits.ai for the first time; browser has no cached assets
+**Goal:** Browser loads the page efficiently on repeat visits without re-downloading unchanged CSS/JS
+**Expected outcome:** CSS and JS assets are served with Cache-Control: public, max-age=86400, stale-while-revalidate=604800 — browser caches them for up to 24 hours and serves stale copies for up to 7 days while revalidating in the background
+**Edge cases seen in code:** Non-200 responses (e.g. 404 on missing file) receive no Cache-Control header; HTML responses from /static/ also receive no cache header
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: HTML pages are never served from browser cache via static hook
+**Source:** web/app.py _add_static_cache_headers after_request hook
+**User:** expediter
+**Starting state:** User navigates to a search result or property report page
+**Goal:** Each HTML page load reflects the latest server-rendered data — never a stale cached copy
+**Expected outcome:** HTML responses from any path (including hypothetical HTML files under /static/) receive no Cache-Control header from the static asset hook; the browser fetches fresh HTML on every navigation
+**Edge cases seen in code:** The hook checks both path prefix (/static/) AND content-type — a text/html response under /static/ is explicitly excluded; /api/ paths and all non-/static/ paths are entirely skipped
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Rate limit enforced consistently across multiple Gunicorn workers
+**Source:** web/helpers.py — Redis-backed rate limiter (Sprint 84-C)
+**User:** expediter
+**Starting state:** App is running with multiple Gunicorn workers and Redis is available via REDIS_URL. A single IP has made N requests in the current window.
+**Goal:** Enforce per-IP rate limits that are shared across all worker processes so that a user cannot bypass the limit by hitting different workers.
+**Expected outcome:** Once the IP hits the rate limit, all subsequent requests within the window are rejected regardless of which worker process handles them. The counter is stored in Redis and is visible to every worker.
+**Edge cases seen in code:** Worker A may have incremented the Redis counter while worker B serves the rejection — the shared INCR + EXPIRE pipeline ensures consistency.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Rate limiter degrades gracefully when Redis is down
+**Source:** web/helpers.py — _get_redis_client fallback logic (Sprint 84-C)
+**User:** expediter
+**Starting state:** App is running and REDIS_URL is set, but the Redis service is unreachable (e.g., network partition or Redis restart).
+**Goal:** Continue serving requests without crashing or hanging; enforce rate limits with best-effort in-memory counting.
+**Expected outcome:** When the Redis pipeline raises a connection error, the rate limiter silently falls back to the in-process dictionary. Requests are counted per-worker rather than globally, but the app remains available and does not return 500 errors.
+**Edge cases seen in code:** The socket_connect_timeout=1 ensures the connect attempt fails fast rather than blocking for the default TCP timeout.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Rate limit resets after time window expires
+**Source:** web/helpers.py — Redis INCR + EXPIRE pattern (Sprint 84-C)
+**User:** homeowner
+**Starting state:** A user has exceeded the rate limit for a given endpoint (e.g., /analyze) and is currently blocked.
+**Goal:** After the rate limit window (60 seconds) expires, the user should be able to make new requests without contacting support or waiting for a deploy.
+**Expected outcome:** Once the Redis TTL expires, the INCR counter resets to 0 and the next request is allowed. In the in-memory fallback, old timestamps are pruned from the bucket and fresh requests are permitted after the window elapses.
+**Edge cases seen in code:** EXPIRE is set on every INCR call, so the window slides relative to the first request in the current bucket, not the last.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Load test identifies DB pool bottleneck before it hits production users
+**Source:** scripts/load_test.py, src/db.py (DB_POOL_MAX default=20)
+**User:** admin
+**Starting state:** App is running on staging with default DB_POOL_MAX=20 and 4 gunicorn workers. A sprint added a new search feature with a heavy DB query.
+**Goal:** Verify the app handles 50 concurrent users without DB pool exhaustion before promoting to production.
+**Expected outcome:** Load test reports p95 latency and error rate per endpoint. If DB pool is exhausted, the test exits with code 1 and shows error_rate > 5% on DB-bound endpoints. Admin increases DB_POOL_MAX and re-runs — error rate drops to < 1%.
+**Edge cases seen in code:** psycopg2 ThreadedConnectionPool blocks (does not raise immediately) when pool is exhausted; gevent workers wait silently, causing p99 spike without an explicit error until the request timeout fires.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: New developer finds scaling guide and configures correct pool size
+**Source:** docs/SCALING.md
+**User:** admin
+**Starting state:** A new developer is onboarding. The app is running locally against a local Postgres instance. They want to run a load test and tune the DB pool for their expected traffic.
+**Goal:** Find documentation explaining what DB_POOL_MAX does, what value to set, and how to verify the change worked.
+**Expected outcome:** Developer reads SCALING.md, identifies DB_POOL_MAX as the primary bottleneck, sets it to 50 via railway variable set, deploys, and re-runs the load test. p95 latency on search endpoint improves. /health endpoint confirms pool configuration change is active.
+**Edge cases seen in code:** DB_POOL_MAX * worker_count must not exceed Postgres max_connections (default 100). SCALING.md includes this warning explicitly.
+**CC confidence:** high
+**Status:** PENDING REVIEW
