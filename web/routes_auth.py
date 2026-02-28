@@ -874,3 +874,67 @@ def onboarding_dismiss():
                 logging.warning("onboarding_dismiss: failed to update onboarding_complete", exc_info=True)
 
     return ""  # Empty response removes the banner via hx-swap="outerHTML"
+
+
+# ---------------------------------------------------------------------------
+# Beta invite flow (Sprint 89)
+# ---------------------------------------------------------------------------
+
+@bp.route("/beta/join")
+def beta_join():
+    """Validate beta invite code and route to onboarding wizard.
+
+    GET /beta/join?code=<invite_code>
+    - Valid code + unauthenticated: redirect to login with code preserved
+    - Valid code + authenticated free user: upgrade tier to beta, start onboarding
+    - Valid code + authenticated beta/premium: redirect to dashboard (already upgraded)
+    - Invalid/missing code: render error page
+    """
+    from web.auth import validate_invite_code
+    from src.db import execute_write
+
+    code = request.args.get("code", "").strip()
+
+    if not code or not validate_invite_code(code):
+        return render_template(
+            "onboarding/welcome.html",
+            error="Invalid or expired invite code. Please check your invite link.",
+            user=g.get("user"),
+        ), 400
+
+    if not g.get("user"):
+        return redirect(url_for("auth.auth_login") + f"?invite_code={code}&referral_source=beta_invite")
+
+    user = g.user
+    current_tier = user.get("subscription_tier", "free")
+    if current_tier in ("beta", "premium"):
+        return redirect(url_for("index"))
+
+    try:
+        execute_write(
+            "UPDATE users SET subscription_tier = 'beta' WHERE user_id = %s",
+            (user["user_id"],),
+        )
+        session["tier_just_upgraded"] = True
+    except Exception:
+        logging.warning("beta_join: failed to upgrade tier", exc_info=True)
+
+    return redirect(url_for("auth.beta_onboarding_welcome"))
+
+
+@bp.route("/beta/onboarding/welcome")
+@login_required
+def beta_onboarding_welcome():
+    return render_template("onboarding/welcome.html", user=g.user)
+
+
+@bp.route("/beta/onboarding/add-property")
+@login_required
+def beta_onboarding_add_property():
+    return render_template("onboarding/add_property.html", user=g.user)
+
+
+@bp.route("/beta/onboarding/severity-preview")
+@login_required
+def beta_onboarding_severity_preview():
+    return render_template("onboarding/severity_preview.html", user=g.user)
