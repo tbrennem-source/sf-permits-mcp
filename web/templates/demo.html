@@ -429,6 +429,9 @@
         @media (max-width: 480px) {
             .obs-container { padding: 0 var(--space-4); }
             .callout { display: block; max-width: 100%; box-sizing: border-box; }
+            .arch-grid { grid-template-columns: 1fr; }
+            .stat-row { gap: var(--space-2); }
+            .stat-pill { min-width: 70px; }
         }
 
         /* Density override */
@@ -483,7 +486,7 @@
             <div class="demo-grid">
                 <!-- Permit History -->
                 <div class="card full-width">
-                    <span class="callout">Queried from 1.1M building permits via SODA API (dataset i98e-djp9)</span>
+                    <span class="callout">Live SF building permit data — 1.1M permits searchable by address, permit number, or contractor</span>
                     <div class="card-title">Permit History</div>
                     {% if permits %}
                     <table class="data-table">
@@ -553,7 +556,7 @@
 
                 <!-- Timeline Estimate -->
                 <div class="card">
-                    <span class="callout">Station-sum model from station_velocity_v2 (p50 values)</span>
+                    <span class="callout">Timeline estimate based on historical station dwell times — p25, p50, p75 ranges</span>
                     <div class="card-title">Timeline Estimate</div>
                     {% if timeline %}
                     <div class="timeline-row">
@@ -659,9 +662,9 @@
 
             <!-- CTA -->
             <div class="cta-section">
-                <h2>Try it yourself</h2>
-                <p>Search any San Francisco address, analyze plan sets with AI vision, predict permit timelines, and explore the entity network.</p>
-                <a href="/auth/login?invite_code=friends-gridcare" class="ghost-cta">Get Started &rarr;</a>
+                <h2>Ready to search your property?</h2>
+                <p>Search any SF address to see permit history, routing status, and timeline predictions. No setup required.</p>
+                <a href="/auth/login" class="ghost-cta">Get Started &rarr;</a>
             </div>
 
             <footer class="demo-footer">
