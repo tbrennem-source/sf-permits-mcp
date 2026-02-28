@@ -767,9 +767,9 @@
             <!-- Main results area -->
             <div id="results" class="results-area">
                 <div class="empty-state">
-                    <p class="empty-state-hint">Enter a permit number above to see predicted routing.</p>
+                    <p class="empty-state-hint">Enter an SF permit number to see the predicted routing path, historical dwell times, and next stations.</p>
                     <div class="demo-permits" aria-label="Demo permit numbers">
-                        <button class="demo-permit-chip" onclick="fillDemo('202501015257')" type="button">202501015257</button>
+                        <button class="demo-permit-chip" onclick="fillDemo('202509155257')" type="button">202509155257</button>
                         <button class="demo-permit-chip" onclick="fillDemo('202401019876')" type="button">202401019876</button>
                         <button class="demo-permit-chip" onclick="fillDemo('202303014433')" type="button">202303014433</button>
                     </div>
@@ -960,13 +960,39 @@
             return stations;
         }
 
+        // ── Parse severity from markdown ──────────────────────────────────────
+        function parseStalledStatus(markdownText) {
+            if (/STALLED/i.test(markdownText)) return 'stalled';
+            return 'normal';
+        }
+
+        // ── Build severity banner for stalled permits ─────────────────────────
+        function buildStalledBanner(markdownText, permitNumber) {
+            if (!/STALLED/i.test(markdownText)) return '';
+            // Extract dwell days for banner
+            var dwellMatch = markdownText.match(/Days at this station:\s*\*\*(\d+)\s*days\*\*/i);
+            var dwell = dwellMatch ? dwellMatch[1] : null;
+            var msg = dwell
+                ? 'This permit has been stalled for ' + dwell + ' days with no finish recorded.'
+                : 'This permit appears stalled with no recent station activity.';
+            return '<div style="background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.25);border-radius:var(--radius-sm);padding:var(--space-3) var(--space-5);margin-bottom:var(--space-5);display:flex;align-items:center;gap:var(--space-3);">'
+                + '<span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--signal-amber);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">STALLED</span>'
+                + '<span style="font-family:var(--sans);font-size:var(--text-sm);color:var(--text-secondary);">' + escHtml(msg) + ' Consider contacting DBI: <a href="tel:+14155586000" style="color:var(--accent);">(415) 558-6000</a></span>'
+                + '</div>';
+        }
+
         // ── Show result ───────────────────────────────────────────────────────
         function showResult(permitNumber, markdownText) {
             var stations = parseStationsFromMarkdown(markdownText, permitNumber);
 
             var html = '';
-            html += '<p class="results-label">Station Analysis</p>';
-            html += '<p class="results-permit-number">' + escHtml(permitNumber) + '</p>';
+            html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);flex-wrap:wrap;gap:var(--space-2);">';
+            html += '<p class="results-label" style="margin:0;">Station Analysis</p>';
+            html += '<p class="results-permit-number" style="margin:0;">' + escHtml(permitNumber) + '</p>';
+            html += '</div>';
+
+            // Stalled banner (if applicable)
+            html += buildStalledBanner(markdownText, permitNumber);
 
             // Gantt section (only if we parsed stations)
             if (stations.length > 0) {
