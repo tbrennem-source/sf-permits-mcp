@@ -11,7 +11,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
-from flask import Blueprint, g, render_template, request
+from flask import Blueprint, g, redirect, render_template, request
 
 from src.tools.intent_router import classify as classify_intent
 from src.tools.knowledge_base import get_knowledge_base
@@ -1573,3 +1573,15 @@ def _render_rag_results(query: str, results: list[dict]) -> str:
         results=cleaned_results,
         is_expert=_is_expert_user(),
     )
+
+
+# ---------------------------------------------------------------------------
+# Stuck Permit Analyzer — /tools/stuck-permit (Sprint QS10-T3-3B)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/stuck-permit")
+def tools_stuck_permit():
+    """Stuck Permit Analyzer: diagnose delays and get intervention playbook."""
+    if not g.user:
+        return redirect("/auth/login")
+    return render_template("tools/stuck_permit.html")
