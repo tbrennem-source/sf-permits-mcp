@@ -701,3 +701,59 @@ Missing evidence → exit 2 (blocks the stop). Agent gets one retry (`stop_hook_
 - **Exit 2:** Action blocked — reason written to stderr is shown to the agent
 - **Any other exit code:** Action proceeds, stderr logged but not shown
 - All hooks receive JSON on stdin. Key fields: `last_assistant_message` (Stop), `tool_input` (PreToolUse/PostToolUse)
+
+
+---
+
+## 14. Notification Sounds
+
+`scripts/notify.sh` provides differentiated audio alerts for CC workflow events so sprint progress is audible without watching terminals.
+
+### Sound Map
+
+| Event | Sound | Meaning |
+|-------|-------|---------|
+| `agent-done` | Tink (light, brief) | One agent finished its task |
+| `terminal-done` | Glass (clear, ringing) | Full terminal (T1-T4) completed — 4 agents merged |
+| `sprint-done` | Hero (triumphant) | Full sprint complete — all terminals done |
+| `qa-fail` | Basso (deep, low) | QA FAIL detected in qa-results/ |
+| `prod-promoted` | Funk (celebratory) | Promoted to prod branch |
+| *(anything else)* | Pop (neutral) | Generic fallback notification |
+
+### Usage
+
+```bash
+# Test from command line
+scripts/notify.sh agent-done "Test notification"
+scripts/notify.sh qa-fail "Something broke"
+scripts/notify.sh sprint-done "Sprint 97 complete"
+
+# In sprint prompts — call at the end of CHECKQUAD
+bash scripts/notify.sh agent-done "Agent 4A done"
+```
+
+### How Automatic Notifications Work
+
+`notify-events.sh` is registered as a PostToolUse hook for both Write and Bash tools. It fires on:
+1. **Write to `qa-results/` containing "FAIL"** → plays `qa-fail` sound
+2. **Write containing "CHECKQUAD" and "COMPLETE"** → plays `terminal-done` sound
+3. **Bash command matching `git push origin prod`** → plays `prod-promoted` sound
+
+The hook is non-blocking (always exits 0). Audio fires in a background subshell so it never delays tool execution.
+
+### Adding New Event Types
+
+1. Add a new `case` branch to `scripts/notify.sh` with the sound file path
+2. Optionally add a detection pattern to `.claude/hooks/notify-events.sh`
+3. Document the new event in the table above
+
+Available macOS system sounds: `/System/Library/Sounds/` — Basso, Blow, Bottle, Frog, Funk, Glass, Hero, Morse, Ping, Pop, Purr, Sosumi, Submarine, Tink.
+
+### Disabling Notifications
+
+Set `NOTIFY_ENABLED=0` in your shell environment to silence all notifications:
+
+```bash
+export NOTIFY_ENABLED=0   # in ~/.zshrc to persist
+NOTIFY_ENABLED=0 scripts/notify.sh agent-done  # one-off override
+```
