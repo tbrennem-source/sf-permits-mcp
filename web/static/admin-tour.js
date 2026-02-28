@@ -64,34 +64,91 @@
   loadAndFilter();
 
   function getInlineStops() {
-    // Hardcoded stops for landing page — generated from QA feedback
-    if (window.location.pathname !== '/') return [];
-    return [
+    var pathname = window.location.pathname;
+
+    // Landing page stops
+    if (pathname === '/') return [
       {
         selector: '.scroll-cue',
         feedback: '"down button needs to be brighter" / "down arrow needs to be more visible"',
-        fix: 'Changed to accent teal color. Now clickable — scrolls to first capability section.',
-        action: 'Look at the bottom of the hero — the arrow and text should be teal.'
+        fix: 'Bigger arrow (20px), heavier stroke, brighter animation (0.5→1.0 opacity).',
+        action: 'Look at the bottom of the hero — arrow should be clearly visible.'
       },
       {
-        selector: '.below-search__watched',
-        feedback: '"return+watch clicks on properties come back to this page" / "beta+watch properties just come back to this page"',
-        fix: 'Property links now navigate to /search?q={address}. "view all" and "N watching" go to /portfolio.',
-        action: 'Switch to "Returning + Watching" or "Beta + Watching" persona and click a property name.'
-      },
-      {
-        selector: '.below-search__context',
+        selector: '.below-search__sub',
         feedback: '"we basically have two Do I need a permit for links — redundant"',
-        fix: 'Renamed context row link from "do I need a permit for..." to "common permit questions" to differentiate from the sub row anchor link.',
-        action: 'Compare the sub row (scrolls to section) vs context row (hover dropdown).'
+        fix: 'Sub row shortened to "Permits · Timeline · Track · Hire" — no longer duplicates capability card headers.',
+        action: 'Check sub row below search — should be short anchor links, not full questions.'
       },
       {
-        selector: '.state-toggle',
+        selector: '#beta-badge',
         feedback: '"BETA should be BETA Tester — more personal and descriptive"',
-        fix: 'Renamed all toggle labels: New Visitor, Beta Tester, Beta + Watching, Returning, Returning + Watching, Power User.',
-        action: 'Check the toggle buttons in the bottom-right corner.'
+        fix: 'Badge text changed from "beta" to "beta tester".',
+        action: 'Toggle to a beta state and check the badge next to sfpermits.ai wordmark.'
       }
     ];
+
+    // Tool pages (QS10 T3 — new this sprint)
+    if (pathname === '/tools/station-predictor') return [
+      {
+        selector: 'h1, .page-title, h2',
+        feedback: 'QS10 Sprint — new page. First review.',
+        fix: 'Station predictor tool page. Enter a permit number to see predicted next review stations.',
+        action: 'Check layout, try a permit number (e.g. 202301015555), verify HTMX submission works.'
+      }
+    ];
+    if (pathname === '/tools/stuck-permit') return [
+      {
+        selector: 'h1, .page-title, h2',
+        feedback: 'QS10 Sprint — new page. First review.',
+        fix: 'Stuck permit analyzer. Enter a permit number to diagnose delays.',
+        action: 'Check layout, try a permit number, verify results render correctly.'
+      }
+    ];
+    if (pathname === '/tools/what-if') return [
+      {
+        selector: 'h1, .page-title, h2',
+        feedback: 'QS10 Sprint — new page. First review.',
+        fix: 'What-if simulator. Add scenarios and compare outcomes.',
+        action: 'Check form layout, add a scenario, verify CSRF and HTMX work.'
+      }
+    ];
+    if (pathname === '/tools/cost-of-delay') return [
+      {
+        selector: 'h1, .page-title, h2',
+        feedback: 'QS10 Sprint — new page. First review.',
+        fix: 'Cost of delay calculator. Enter monthly carrying cost + permit type.',
+        action: 'Check form inputs, submit a calculation, verify results render.'
+      }
+    ];
+
+    // Onboarding pages (QS10 T4 — new this sprint)
+    if (pathname === '/beta/onboarding/welcome') return [
+      {
+        selector: 'h1, .onb-headline, h2',
+        feedback: 'QS10 Sprint — new page. First review.',
+        fix: 'Beta onboarding step 1: welcome page. Should show 3-step progress indicator.',
+        action: 'Check progress indicator, CTA button links to add-property step.'
+      }
+    ];
+    if (pathname === '/beta/onboarding/add-property') return [
+      {
+        selector: 'h1, .onb-headline, h2',
+        feedback: 'QS10 Sprint — new page. First review.',
+        fix: 'Beta onboarding step 2: add first property. Form with address input.',
+        action: 'Check form layout, progress indicator shows step 2, CSRF token present.'
+      }
+    ];
+    if (pathname === '/beta/onboarding/severity-preview') return [
+      {
+        selector: 'h1, .onb-headline, h2',
+        feedback: 'QS10 Sprint — new page. First review.',
+        fix: 'Beta onboarding step 3: severity preview. 3-card signal grid.',
+        action: 'Check 3-card layout, CTA links to dashboard, mobile stack at 375px.'
+      }
+    ];
+
+    return [];
   }
 
   var currentStop = 0;
