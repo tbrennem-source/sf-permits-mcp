@@ -485,7 +485,7 @@ This project participates in Tim's standard session protocols. These are defined
 
 **CHECKQUAD** — Session close protocol for **quad sprint terminals** (T1-T4). Lighter than CHECKCHAT, artifact-first. **Step 0: ESCAPE CWD** — `cd` to main repo root BEFORE the MERGE step. Then: MERGE, ARTIFACT (session report), CAPTURE (per-terminal files), HYGIENE CHECK, SIGNAL DONE. Delegates documentation/shipping to T0. See dforge `swarm-coordination` template for full protocol.
 
-**CHECKQUAD-T0** — Session close protocol for **quad sprint orchestrator** (T0). Heavier than CHECKCHAT, consolidates all terminals. **T0 NEVER enters a worktree** — it operates from main repo root throughout. Eight steps: COLLECT, VERIFY, VISUAL QA, CONSOLIDATE, DOCUMENT, HARVEST (dforge lessons), SHIP+PROMOTE, CLEAN. **CLEAN is always the final step** — runs after all sessions are closed and prod is promoted.
+**CHECKQUAD-T0** — Session close protocol for **quad sprint orchestrator** (T0). Heavier than CHECKCHAT, consolidates all terminals. **T0 NEVER enters a worktree** — it operates from main repo root throughout. Eight steps: COLLECT, VERIFY, VISUAL QA, CONSOLIDATE, DOCUMENT (includes Chief task drain), HARVEST (dforge lessons), SHIP+PROMOTE, CLEAN. **CLEAN is always the final step** — runs after all sessions are closed and prod is promoted.
 
 **Black Box Session Protocol (2 stages):**
 
