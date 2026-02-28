@@ -336,37 +336,40 @@
     stop.verdict = verdict;
     stop.comment = comment;
 
-    // Save to DB
-    fetch('/api/qa-feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || ''
-      },
-      body: JSON.stringify({
-        text: '[TOUR ' + verdict.toUpperCase() + '] ' + stop.feedback + (comment ? ' — ' + comment : ''),
-        url: window.location.href,
-        page: window.location.pathname,
-        viewport: window.innerWidth + 'x' + window.innerHeight,
-        scrollY: Math.round(window.scrollY),
-        tourStop: currentStop,
-        verdict: verdict,
-        selector: stop.selector
-      })
-    }).catch(function() {});
-
     // Visual feedback on the button
-    var btns = tooltip.querySelectorAll('.tour-btn--accept, .tour-btn--reject');
-    btns.forEach(function(b) { b.style.opacity = '0.3'; });
-    var activeBtn = verdict === 'accept'
-      ? tooltip.querySelector('.tour-btn--accept')
-      : tooltip.querySelector('.tour-btn--reject');
-    if (activeBtn) {
-      activeBtn.style.opacity = '1';
-      activeBtn.style.borderColor = verdict === 'accept' ? '#34d399' : '#f87171';
-    }
+    try {
+      var btns = tooltip.querySelectorAll('.tour-btn--accept, .tour-btn--reject');
+      btns.forEach(function(b) { b.style.opacity = '0.3'; });
+      var activeBtn = verdict === 'accept'
+        ? tooltip.querySelector('.tour-btn--accept')
+        : tooltip.querySelector('.tour-btn--reject');
+      if (activeBtn) {
+        activeBtn.style.opacity = '1';
+        activeBtn.style.borderColor = verdict === 'accept' ? '#34d399' : '#f87171';
+      }
+    } catch(e) {}
 
-    // Auto-advance after brief pause
+    // Save to DB (fire and forget — never blocks advance)
+    try {
+      var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      var csrfToken = csrfMeta ? csrfMeta.content : '';
+      fetch('/api/qa-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({
+          text: '[TOUR ' + verdict.toUpperCase() + '] ' + stop.feedback + (comment ? ' — ' + comment : ''),
+          url: window.location.href,
+          page: window.location.pathname,
+          viewport: window.innerWidth + 'x' + window.innerHeight,
+          scrollY: Math.round(window.scrollY),
+          tourStop: currentStop,
+          verdict: verdict,
+          selector: stop.selector
+        })
+      }).catch(function() {});
+    } catch(e) {}
+
+    // Auto-advance after brief pause — always fires
     setTimeout(function() { nextStop(); }, 600);
   };
 
