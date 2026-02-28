@@ -1,0 +1,77 @@
+/**
+ * share.css — Share button component styles.
+ * Uses ONLY CSS custom properties from DESIGN_TOKENS.md.
+ * Sprint QS10-T3-3D
+ */
+
+/* Container: right-aligned on desktop, full-width on mobile */
+.share-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* Share button — ghost-cta pattern from DESIGN_TOKENS.md §5 */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  padding-bottom: 1px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s, border-color 0.3s;
+  letter-spacing: 0.04em;
+}
+
+.share-btn:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.share-btn:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+/* Share icon glyph */
+.share-icon {
+  font-size: var(--text-base);
+  line-height: 1;
+}
+
+/* "Link copied!" confirmation — green text, fades in/out via JS toggle */
+.share-copied {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--signal-green);
+  font-weight: 400;
+  animation: share-fade-in 0.15s ease;
+}
+
+@keyframes share-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Mobile: full-width stacked layout */
+@media (max-width: 480px) {
+  .share-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .share-btn {
+    width: 100%;
+  }
+}

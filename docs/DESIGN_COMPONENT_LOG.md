@@ -541,6 +541,22 @@ Displays a beta upgrade teaser card that fits inside an existing page element.
       <div class="gantt-detail" id="gantt-detail-0" aria-hidden="true">...</div>
     </div>
   </div>
+
+### Share Container + Share Button
+**Sprint:** QS10-T3-3D
+**File:** `web/templates/components/share_button.html`, `web/static/css/share.css`, `web/static/js/share.js`
+**Usage:** All 6 intelligence tool pages (station_predictor, stuck_permit, what_if, cost_of_delay, entity_network, revision_risk). Renders after the results area on each tool page.
+**Status:** NEW
+**HTML:**
+```html
+<div class="share-container" data-track="share-view">
+  <button class="share-btn ghost-cta" type="button" data-track="share-click"
+          data-share-title="SF Permit Intelligence"
+          data-share-text="Check out this permit analysis from sfpermits.ai">
+    <span class="share-icon" aria-hidden="true">&nearrow;</span>
+    Send this to your contractor
+  </button>
+  <span class="share-copied" role="status" aria-live="polite" style="display:none;">Link copied!</span>
 </div>
 ```
 **CSS:**
@@ -621,3 +637,10 @@ Displays a beta upgrade teaser card that fits inside an existing page element.
 .playbook-step-contact { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); }
 ```
 **Notes:** Urgency variants mirror the 4-tier priority system from diagnose_stuck_permit.py (IMMEDIATE/HIGH/MEDIUM/LOW). Contact lines linkify phone numbers via regex replacement in JS render function.
+
+.share-container { display: flex; align-items: center; gap: var(--space-4); margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--glass-border); }
+.share-btn { /* extends ghost-cta */ display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--mono); font-size: var(--text-sm); font-weight: 300; color: var(--text-secondary); background: none; border: none; cursor: pointer; padding-bottom: 1px; border-bottom: 1px solid transparent; transition: color 0.3s, border-color 0.3s; letter-spacing: 0.04em; }
+.share-btn:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.share-copied { font-family: var(--mono); font-size: var(--text-xs); color: var(--signal-green); }
+```
+**Notes:** Uses Web Share API on mobile (native share sheet), clipboard copy on desktop with textarea execCommand fallback. No hardcoded hex — uses only CSS custom properties. share.js is loaded with `defer` attribute on each tool page. `share-btn` is a variant of `ghost-cta` pattern — extends it with `display:inline-flex` for icon alignment.

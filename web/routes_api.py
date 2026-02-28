@@ -974,3 +974,19 @@ def api_qa_tour_verdicts():
             pass
 
     return jsonify({"accepted": accepted})
+
+
+# ---------------------------------------------------------------------------
+# Share endpoint — /api/share (Sprint QS10-T3-3D)
+# ---------------------------------------------------------------------------
+
+@bp.route("/api/share", methods=["POST"])
+def create_share():
+    """Create a shareable link with pre-computed results.
+
+    For now, returns the current URL — placeholder for future
+    shareable-link persistence with server-side state.
+    """
+    data = request.get_json(silent=True) or {}
+    url = data.get("url", request.url)
+    return jsonify({"url": url, "shared": True})

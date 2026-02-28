@@ -6,6 +6,7 @@
     <title>Cost of Delay Calculator — sfpermits.ai</title>
     {% include "fragments/head_obsidian.html" %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" nonce="{{ csp_nonce }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/share.css') }}">
     <style nonce="{{ csp_nonce }}">
         body {
             background: var(--obsidian);
@@ -755,9 +756,12 @@
                 </div>
             </div>
 
+            {% include "components/share_button.html" %}
+
         </div>
     </main>
 
+    <script src="{{ url_for('static', filename='js/share.js') }}" defer></script>
     <script nonce="{{ csp_nonce }}">
     (function () {
         'use strict';
