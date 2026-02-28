@@ -1584,3 +1584,15 @@ def tools_station_predictor():
     if not g.user:
         return redirect("/auth/login")
     return render_template("tools/station_predictor.html")
+
+
+# ---------------------------------------------------------------------------
+# Stuck Permit Analyzer — /tools/stuck-permit (Sprint QS10-T3-3B)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/stuck-permit")
+def tools_stuck_permit():
+    """Stuck Permit Analyzer: diagnose delays and get intervention playbook."""
+    if not g.user:
+        return redirect("/auth/login")
+    return render_template("tools/stuck_permit.html")

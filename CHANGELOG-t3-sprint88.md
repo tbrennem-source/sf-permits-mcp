@@ -18,4 +18,30 @@
 - Added `tests/test_station_predictor_ui.py` (23 tests: 22 passing, 1 xfail)
   - 21 template-string tests (no Jinja/Flask rendering needed)
   - 2 route-level tests via Flask test client
+## Agent 3B — Stuck Permit Analyzer UI (Sprint QS10-T3)
+
+- Added `/tools/stuck-permit` page (`web/templates/tools/stuck_permit.html`)
+  - Page header with h1 "Stuck Permit Analyzer" and subtitle
+  - Monospace permit number input with focus glow and placeholder
+  - "Diagnose permit →" action button
+  - JS fetch → `GET /api/stuck-permit/<permit_number>`
+  - Loading indicator with amber status dot animation during fetch
+  - marked.js markdown rendering for playbook result
+  - 401 response shows inline login prompt (not redirect)
+  - 500/network error renders error message in signal-red
+  - Empty state hint before first query
+  - Mobile-responsive: stacked input/button at 375px
+  - Enter key submission support
+  - All colors via design token CSS custom properties (no hardcoded hex)
+  - CSP nonce on all inline `<style>` and `<script>` tags
+  - CSRF meta tag handled by head_obsidian.html include
+- Added `tools_stuck_permit` route to `web/routes_search.py` (appended at EOF)
+  - Auth guard: unauthenticated → redirect to `/auth/login`
+  - Added `redirect` to flask import line
+- Added `tests/test_stuck_permit_ui.py` (23 tests: 22 passed, 1 xfailed)
+  - Template structure checks: head include, nav include, results div, API reference
+  - Token compliance: no hardcoded hex in style blocks
+  - Font role: `--mono` usage verified
+  - Accessibility: viewport meta, auth handling, loading state, empty state
+  - Route tests: unauthenticated redirect (PASS), authenticated render (xfail — g.user integration)
 - Design lint score: **5/5** (0 violations)
