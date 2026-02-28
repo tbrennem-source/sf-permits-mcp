@@ -3404,3 +3404,187 @@ sprint-prompts/ now contains only:
 - CHANGELOG-qs5-a.md through qs5-d.md (consolidated into CHANGELOG.md)
 - CHANGELOG-qs8-t1-a.md through qs8-t3-d.md (consolidated into CHANGELOG.md)
 - CHANGELOG-sprint-74-1.md through sprint-77-4.md (content already in CHANGELOG.md)
+# CHANGELOG — Sprint 83-A
+
+## fix: update stale landing test assertions for Sprint 69 redesign
+
+**Date:** 2026-02-27
+**Agent:** Sprint 83-A (test fix)
+**File changed:** `tests/test_landing.py`
+
+### What changed
+
+Two test assertions in `TestLandingPage` were stale relative to the Sprint 69 landing page redesign:
+
+**`test_landing_has_feature_cards`**
+- Old: asserted `"Permit Search"`, `"Plan Analysis"`, `"Morning Brief"`, `"Timeline Estimation"` (pre-Sprint 69 capability card labels)
+- New: asserts `"Do I need a permit?"`, `"How long will it take?"`, `"Is my permit stuck?"` (the three capability section headings in the redesigned question-form layout)
+
+**`test_landing_has_stats`**
+- Old: asserted `"1.1M+"` and `"Permits tracked"` (pre-Sprint 69 stat display)
+- New: asserts `"SF building permits"` and `"City data sources"` (the actual stat labels in the redesigned stats section)
+
+### Test result
+
+All 23 tests in `tests/test_landing.py` pass.
+# CHANGELOG — Sprint 83-B: page_cache test flakiness fix
+
+## Fix: Eliminate page_cache test flakiness in full suite runs
+
+### Root cause
+
+`test_qs3_a_permit_prep.py` calls `importlib.reload(src.db)` inside its `app`
+fixture. This resets `src.db._DUCKDB_PATH` from the session-scoped temp path
+(set by `_isolated_test_db` in conftest.py) back to the real database path
+(`data/sf_permits.duckdb`). After `test_qs3_a_permit_prep.py` finishes and
+yields, `_DUCKDB_PATH` is left pointing to the real DB — not restored.
+
+When `test_page_cache.py` tests run next, every call to `get_cached_or_compute`
+tries to open `data/sf_permits.duckdb`. The TEST GUARD in conftest.py catches
+this and raises `RuntimeError: TEST GUARD: Attempted to open the real DuckDB
+file`. This exception is silently swallowed by the `except Exception: pass`
+blocks inside `get_cached_or_compute`, causing every cache read and write to
+fail invisibly. The result: `compute_fn` is called on every invocation, so
+tests that assert `compute_fn` was called exactly once (like
+`test_cache_hit_returns_cached`) fail with `assert 2 == 1`.
+
+### Fix
+
+**`tests/conftest.py`** — Added `_restore_db_path` autouse fixture (function
+scope). Saves `src.db._DUCKDB_PATH`, `src.db.BACKEND`, and `src.db.DATABASE_URL`
+before each test, then restores them in teardown. This ensures that any test
+which reloads `src.db` via `importlib.reload()` — or otherwise mutates these
+module-level globals — cannot pollute the DB state for subsequent tests.
+
+**`tests/test_page_cache.py`** — Updated `_clear_page_cache` autouse fixture to
+`DELETE FROM page_cache` (all rows) instead of the pattern-matched
+`WHERE cache_key LIKE 'test:%' OR cache_key LIKE 'brief:%'`. This is belt-and-
+suspenders: even if a test writes a cache entry under an unexpected prefix, the
+next test starts with a clean slate.
+
+### Verification
+
+- `pytest tests/test_page_cache.py` — 16/16 passed (was always passing)
+- `pytest tests/test_qs3_a_permit_prep.py tests/test_page_cache.py` — all page_cache tests now pass (was 9 failures)
+- `pytest tests/test_auth.py tests/test_page_cache.py` — all pass
+- `pytest tests/test_web.py tests/test_page_cache.py` — all pass
+- `pytest tests/test_auth.py tests/test_brief.py tests/test_page_cache.py` — all page_cache tests pass
+# Sprint 83-C: Cron Endpoint CRON_WORKER Env Var Audit
+
+## Summary
+
+Audited all test files that make HTTP requests to `/cron/*` routes to verify `CRON_WORKER=1` is set where required.
+
+## Findings
+
+**No changes were required.** All 29 test files containing `/cron/` references were audited:
+
+### Files already correct (CRON_WORKER properly set)
+- `tests/test_brief_cache.py` — `TestCronComputeCaches`: each test method sets `monkeypatch.setenv("CRON_WORKER", "1")` ✓
+- `tests/test_sprint_79_3.py` — uses `cron_client` fixture that sets `CRON_WORKER="1"` and `CRON_SECRET` ✓
+- `tests/test_sprint_76_2.py` — CRON_WORKER set in fixtures ✓
+- `tests/test_sprint_76_3.py` — uses `cron_client` fixture ✓
+- `tests/test_sprint64_cron.py` — CRON_WORKER set in fixture ✓
+- `tests/test_sprint56c.py` — CRON_WORKER set in client fixture ✓
+- `tests/test_qs3_b_ops_hardening.py` — CRON_WORKER set in fixtures ✓
+- `tests/test_qs4_a_metrics.py` — CRON_WORKER set per test method ✓
+- `tests/test_qs5_a_parcels.py` — CRON_WORKER set in app fixture ✓
+- `tests/test_qs5_b_backfill.py` — CRON_WORKER set in client fixture ✓
+- `tests/test_ingest_review_metrics.py` — CRON_WORKER set in client fixture ✓
+- `tests/test_cron_compute_caches.py` — uses `cron_client` fixture ✓
+- `tests/test_signals/test_cron_signals.py` — CRON_WORKER set in fixture ✓
+
+### Files intentionally testing CRON_GUARD behavior (no CRON_WORKER — correct)
+- `tests/test_station_velocity_v2.py` — `test_cron_velocity_refresh_blocked_on_web_worker` expects 404 ✓
+- `tests/test_reference_tables.py` — `TestCronEndpointAuth` tests expect 404 from guard ✓
+- `tests/test_db_backup.py` — `test_backup_endpoint_blocked_on_web_worker` expects 404 ✓
+- `tests/test_brief.py` — `test_cron_send_briefs_blocked_on_web_worker` expects 404 ✓
+- `tests/test_pipeline_routes.py` — `test_pipeline_health_post_blocked_on_web_worker` expects 404 ✓
+- `tests/test_cron_guard.py` — explicitly tests guard on/off behavior ✓
+
+### Files with non-HTTP /cron/ references (no fix needed)
+- `tests/test_sprint60b.py` — reads source files, no HTTP calls ✓
+- `tests/test_sprint62c.py` — GET /cron/status (allowed on web workers) ✓
+- `tests/test_pipeline_routes.py` GET calls — GET /cron/pipeline-health (allowed on web workers) ✓
+- `tests/test_sprint69_s4.py` — only checks robots.txt string ✓
+- `tests/test_pipeline_verification.py` — checks route registration, no HTTP calls ✓
+- `tests/test_discover_routes.py` — checks route manifest, no HTTP calls ✓
+- `tests/test_signal_fixes.py` — docstring reference only ✓
+
+## Test Results
+
+```
+25 passed, 1 skipped in 4.85s
+```
+
+All tests in `test_brief_cache.py` and `test_sprint_79_3.py` pass with no changes required.
+# Sprint 83-D Changelog — Stale Worktree Branch Cleanup
+
+**Date:** 2026-02-27
+**Agent:** Sprint 83-D (agent-a424bf69)
+
+## Summary
+
+Pruned stale worktree administrative references and deleted merged worktree branches that had no active checkout, reducing repo branch clutter from sprints 58-81.
+
+## Changes
+
+### git worktree prune
+- Pruned 6 prunable worktree references (nested worktrees inside `landing-rebuild` and `qs5-a` that were already gone from disk)
+
+### Branches Deleted (7 total — merged into main, no active worktree)
+- `worktree-agent-a1dbe24e` (was b49fe9e)
+- `worktree-agent-a33cbdb3` (was eabd66c)
+- `worktree-agent-a6dadb5e` (was 78651c1)
+- `worktree-agent-ad26a749` (was 74d71f7)
+- `worktree-agent-add0e3e9` (was db4e340)
+- `worktree-agent-aecd53cd` (was 8c1b203)
+- `worktree-landing-rebuild` (was bb81d05)
+
+All 7 branches were from the Sprint 69 landing-rebuild sub-agent swarm, fully merged into main.
+
+### Branches NOT Deleted (active worktrees — git prevents deletion)
+
+These branches are currently checked out in active worktrees. They cannot be deleted until their worktrees are removed:
+- `claude/stoic-carson` — active worktree
+- ~55 `worktree-agent-*` branches — active worktrees from current Sprint 83 swarm and recent sprints
+- `worktree-design-qa-session`, `worktree-hotfix-search` — active worktrees
+- `worktree-qs3-*`, `worktree-qs4-*`, `worktree-qs5-*` — active worktrees (sprint sub-agents)
+- `worktree-sprint-68*`, `worktree-sprint-69-*` — active worktrees
+
+### Unmerged Branches (NOT deleted — reported only)
+
+These branches are **not merged into main**. Require Tim review before deletion:
+
+| Branch | Last Commit | Notes |
+|--------|-------------|-------|
+| `worktree-sprint-58` | `ad4e735` Sprint 61C scenario landing pages | Old sprint branch, may have unmerged content |
+| `worktree-sprint-61` | `9de4cbf` WIP Sprint 61 | WIP commit — likely has content not in main |
+| `worktree-sprint-65` | `2dcc74d` Sprint 65 termRelay QA | QA results, may be intentionally unmerged |
+| `worktree-sprint-66` | `ffc7a0e` Sprint 66 termRelay results | QA results, may be intentionally unmerged |
+| `worktree-sprint-67` | `c336278` Sprint 67 termRelay | QA results, may be intentionally unmerged |
+| `worktree-agent-ab7fce9e` | `027754c` WIP Sprint 61C | WIP, likely superseded |
+| `worktree-agent-a2bb7957` | qs5-a sub-agent | Active worktree |
+| `worktree-agent-a425b028` | qs5-a sub-agent | Active worktree |
+| `worktree-agent-ae5a1338` | qs5-a sub-agent | Active worktree |
+| `worktree-agent-afabb6f1` | qs5-a sub-agent | Active worktree |
+| `worktree-sprint-68b` | Sprint 68 sub-sprint | Active worktree |
+| `worktree-sprint-68c` | Sprint 68 sub-sprint | Active worktree |
+| `worktree-sprint-68d` | Sprint 68 sub-sprint | Active worktree |
+
+### Test File Review: tests/test_sprint_79_d.py
+
+Reviewed `tests/test_sprint_79_d.py`. The file tests:
+1. Cache-Control headers on `/methodology`, `/about-data`, `/demo` static pages
+2. X-Response-Time header on all responses
+3. `/health` endpoint includes `pool_stats` and `cache_stats`
+
+No issues found. The test uses proper DuckDB isolation via `_use_duckdb` autouse fixture, imports the correct `_rate_buckets` from `web.app`, and all assertions are appropriately flexible (checking `pool_stats` OR `pool` key, allowing `error` in `cache_stats`). Left unchanged.
+
+## CHECKCHAT
+
+- Branches deleted: 7
+- Worktrees pruned: 6 (prunable references)
+- Unmerged branches reported: 13 (not deleted)
+- Test file: test_sprint_79_d.py — no issues, left unchanged
+- Visual QA Checklist: N/A (no UI changes)

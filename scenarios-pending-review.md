@@ -1932,3 +1932,70 @@ _Consolidated: Sprint 85-B (2026-02-27) — 116 unique scenarios, 27 duplicates 
 **Edge cases seen in code:** Architecture doc previously showed 21 tools and was missing Phase 6-8 tools entirely
 **CC confidence:** high
 **Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Landing page displays key capability questions to new visitor
+**Source:** tests/test_landing.py — test_landing_has_feature_cards
+**User:** homeowner
+**Starting state:** User is unauthenticated, visits the root URL
+**Goal:** Understand what the product does before signing up
+**Expected outcome:** The landing page presents the three core capability questions ("Do I need a permit?", "How long will it take?", "Is my permit stuck?") as navigable sections
+**Edge cases seen in code:** Sub-row anchor links (#cap-permits, #cap-timeline, #cap-stuck) must resolve to the correct section IDs on the page
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Landing page shows data credibility stats to build trust
+**Source:** tests/test_landing.py — test_landing_has_stats
+**User:** homeowner
+**Starting state:** User is unauthenticated, visits the root URL
+**Goal:** Verify that the site is backed by real data before trusting it
+**Expected outcome:** The landing page shows quantified stats including SF building permit count and city data source count, giving credibility to the AI guidance
+**Edge cases seen in code:** The permit count is rendered via a JS counting animation (data-target attribute) — the static label "SF building permits" must be present even before JS runs
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Page cache returns cached result on second request
+**Source:** tests/test_page_cache.py — TestCacheMissAndHit
+**User:** expediter | homeowner | architect | admin
+**Starting state:** Page cache is empty (no cached entry for the requested key)
+**Goal:** Retrieve the same data twice — the second request should be served from cache without recomputing
+**Expected outcome:** The compute function is called exactly once; the second response includes `_cached: true` and `_cached_at` timestamp indicating it was served from cache
+**Edge cases seen in code:** TTL=0 forces every read to recompute; large nested payloads (100 items) round-trip without truncation; empty dict `{}` is cached and annotated correctly
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Page cache cleanup prevents cross-test contamination
+**Source:** tests/conftest.py — _restore_db_path fixture; tests/test_page_cache.py — _clear_page_cache fixture
+**User:** admin
+**Starting state:** A prior test (e.g. test_qs3_a_permit_prep.py) called importlib.reload(src.db), resetting _DUCKDB_PATH to the real database path rather than the session temp path
+**Goal:** Subsequent page_cache tests should still connect to the correct session-scoped temp database and see cache entries they wrote in the same test
+**Expected outcome:** The `_restore_db_path` conftest fixture restores `_DUCKDB_PATH`, `BACKEND`, and `DATABASE_URL` after each test; the `_clear_page_cache` fixture truncates all rows from page_cache so no stale key from any prefix can produce a false hit
+**Edge cases seen in code:** TEST GUARD in conftest raises RuntimeError when the real DB path is opened during tests — this RuntimeError was silently swallowed by get_cached_or_compute's bare `except Exception: pass`, causing every cache read to silently fail and compute_fn to be called on every request
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Cron endpoint rejects unauthenticated requests with 403
+**Source:** tests/test_brief_cache.py, tests/test_sprint_79_3.py — CRON_WORKER env var audit
+**User:** admin
+**Starting state:** CRON_WORKER=1 is set (cron worker mode active), CRON_SECRET is set to a known value
+**Goal:** Verify that /cron/* endpoints reject requests without a valid CRON_SECRET bearer token
+**Expected outcome:** POST to any /cron/* endpoint without Authorization header returns 403; wrong token also returns 403; only the correct bearer token grants access
+**Edge cases seen in code:** Some endpoints check for missing header vs wrong secret separately; both should return 403 (not 500)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Cron endpoint returns 404 when CRON_WORKER not set (guard behavior)
+**Source:** tests/test_station_velocity_v2.py, tests/test_db_backup.py, tests/test_reference_tables.py — CRON_GUARD pattern
+**User:** admin
+**Starting state:** CRON_WORKER env var is NOT set (web worker mode, the default)
+**Goal:** Verify that the cron guard blocks POST requests to /cron/* routes on web workers
+**Expected outcome:** POST to /cron/* returns 404 (not 403, not 500) — the cron guard intercepts before auth; GET requests to /cron/* are still allowed through on web workers
+**Edge cases seen in code:** GET /cron/status and GET /cron/pipeline-health are allowed on web workers; only POST is blocked; the 404 comes from the guard before any route handler runs
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Post-sprint cleanup removes all merged worktree branches
+
+**Source:** Sprint 83-D branch cleanup task
+**User:** admin
+**Starting state:** Repository has accumulated stale worktree branches from multiple sprints that have since been merged into main; some branches have active worktree directories, some do not
+**Goal:** Remove all stale merged worktree branches to reduce repo clutter without disrupting any active work sessions
+**Expected outcome:** Branches that are merged into main AND have no active worktree checked out are deleted; branches currently checked out in active worktrees are not deleted (git prevents this); unmerged sprint branches are reported but not deleted; git worktree prune clears stale admin references
+**Edge cases seen in code:** A branch can be merged into main but still have an active worktree checked out (git will refuse deletion with `+` prefix marker in --merged output); prunable worktrees (nested inside other worktrees) are flagged but only cleared by prune, not by branch deletion
+**CC confidence:** medium
+**Status:** PENDING REVIEW
