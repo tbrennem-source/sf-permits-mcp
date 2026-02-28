@@ -247,6 +247,7 @@
       if (e.target.classList && e.target.classList.contains('tour-comment')) {
         if (e.key === 'Enter') {
           e.preventDefault();
+          console.log('[tour] Enter in comment — pendingVerdict:', pendingVerdict);
           verdictStop(pendingVerdict || 'accept');
         }
         return;
@@ -321,12 +322,15 @@
   var pendingVerdict = null;
 
   window.verdictStop = function(verdict) {
+    console.log('[tour] verdictStop called:', verdict, 'currentStop:', currentStop, 'totalStops:', stops.length);
     var stop = stops[currentStop];
     var commentEl = document.getElementById('tour-comment-' + currentStop);
     var comment = commentEl ? commentEl.value.trim() : '';
+    console.log('[tour] comment:', JSON.stringify(comment));
 
     // Require a note on reject — stash the verdict so Enter submits it
     if (verdict === 'reject' && !comment) {
+      console.log('[tour] reject without comment — prompting');
       pendingVerdict = 'reject';
       if (commentEl) {
         commentEl.placeholder = 'Please add a note — what needs fixing?';
@@ -374,12 +378,20 @@
     } catch(e) {}
 
     // Auto-advance after brief pause — always fires
-    setTimeout(function() { nextStop(); }, 600);
+    console.log('[tour] scheduling nextStop in 600ms');
+    setTimeout(function() {
+      console.log('[tour] nextStop firing — currentStop:', currentStop, 'total:', stops.length);
+      nextStop();
+    }, 600);
   };
 
-  function nextStop() { if (currentStop < stops.length - 1) showStop(currentStop + 1); else endTour(); }
+  function nextStop() {
+    console.log('[tour] nextStop — currentStop:', currentStop, 'total:', stops.length);
+    if (currentStop < stops.length - 1) { showStop(currentStop + 1); } else { console.log('[tour] endTour (last stop)'); endTour(); }
+  }
   function prevStop() { if (currentStop > 0) showStop(currentStop - 1); }
   function endTour() {
+    console.log('[tour] endTour called');
     if (overlay) overlay.remove();
     if (tooltip) tooltip.remove();
   }
