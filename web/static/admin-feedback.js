@@ -140,12 +140,17 @@
     localStorage.setItem('qa-feedback', JSON.stringify(feedbackItems));
     renderHistory();
 
-    // Try to POST to server (non-blocking, fail silently)
+    // POST to server (non-blocking)
     try {
       fetch('/api/qa-feedback', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(item)
+      }).then(function(r) {
+        if (r.ok) {
+          item.synced = true;
+          localStorage.setItem('qa-feedback', JSON.stringify(feedbackItems));
+        }
       }).catch(function() {});
     } catch(e) {}
   }
@@ -191,6 +196,22 @@
 
   // Initial render
   renderHistory();
+
+  // Sync any unsynced items from localStorage to server on load
+  feedbackItems.forEach(function(item) {
+    if (!item.synced) {
+      fetch('/api/qa-feedback', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(item)
+      }).then(function(r) {
+        if (r.ok) {
+          item.synced = true;
+          localStorage.setItem('qa-feedback', JSON.stringify(feedbackItems));
+        }
+      }).catch(function() {});
+    }
+  });
 
   // Focus shortcut: Ctrl+Shift+F to focus the feedback input
   document.addEventListener('keydown', function(e) {

@@ -689,3 +689,69 @@ def api_user_points(user_id):
         json.dumps({"user_id": user_id, "total": total, "history": history}),
         mimetype="application/json",
     )
+
+
+# ---------------------------------------------------------------------------
+# QA Feedback (admin widget — ?admin=1 on any page)
+# ---------------------------------------------------------------------------
+
+@bp.route("/api/qa-feedback", methods=["POST"])
+def api_qa_feedback():
+    """Save QA feedback from the admin widget to the feedback table."""
+    import json as _json
+    from src.db import get_connection
+
+    data = request.get_json(silent=True)
+    if not data or not data.get("text"):
+        return jsonify({"error": "missing text"}), 400
+
+    # Store as a feedback row with type='qa_note'
+    # Metadata (viewport, scroll, URL) goes in screenshot_data as JSON
+    metadata = {
+        "url": data.get("url", ""),
+        "page": data.get("page", ""),
+        "viewport": data.get("viewport", ""),
+        "scrollY": data.get("scrollY", 0),
+        "userAgent": data.get("userAgent", ""),
+    }
+
+    try:
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """INSERT INTO feedback (user_id, feedback_type, message, page_url, screenshot_data, status)
+                   VALUES (%s, 'qa_note', %s, %s, %s, 'new')""",
+                (
+                    g.user["user_id"] if g.user else None,
+                    data["text"],
+                    data.get("url", ""),
+                    _json.dumps(metadata),
+                )
+            )
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as e:
+        logging.warning("QA feedback save failed: %s", e)
+        # Fall back to DuckDB-style placeholders
+        try:
+            conn = get_connection()
+            try:
+                conn.execute(
+                    """INSERT INTO feedback (user_id, feedback_type, message, page_url, screenshot_data, status)
+                       VALUES (?, 'qa_note', ?, ?, ?, 'new')""",
+                    [
+                        g.user["user_id"] if g.user else None,
+                        data["text"],
+                        data.get("url", ""),
+                        _json.dumps(metadata),
+                    ]
+                )
+            finally:
+                conn.close()
+        except Exception as e2:
+            logging.warning("QA feedback save failed (fallback): %s", e2)
+            return jsonify({"error": "save failed"}), 500
+
+    return jsonify({"ok": True})
