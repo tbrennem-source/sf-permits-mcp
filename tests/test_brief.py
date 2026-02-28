@@ -62,9 +62,19 @@ def client():
 
 
 def _login_user(client, email="brief@example.com"):
-    """Helper: create user and magic-link session."""
-    from web.auth import get_or_create_user, create_magic_token
+    """Helper: create user and magic-link session.
+
+    Creates a beta-tier user so the brief tier gate passes — brief is a beta feature.
+    """
+    from web.auth import get_or_create_user, create_magic_token, execute_write
+    import src.db as db_mod
     user = get_or_create_user(email)
+    # Brief is a beta feature — upgrade to beta so tests see full brief content
+    ph = "%s" if db_mod.BACKEND == "postgres" else "?"
+    execute_write(
+        f"UPDATE users SET subscription_tier = {ph} WHERE user_id = {ph}",
+        ("beta", user["user_id"]),
+    )
     token = create_magic_token(user["user_id"])
     client.get(f"/auth/verify/{token}", follow_redirects=True)
     return user

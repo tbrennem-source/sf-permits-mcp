@@ -368,3 +368,25 @@
 ```
 **CSS:** No new CSS classes — uses only existing token classes (`action-btn`, `form-input`) and inline CSS custom properties.
 **Notes:** Pending badge count is passed via `qa_pending_count` template context variable (injected by the rendering route). `window.qaLoadItem(item)` global JS function populates hidden fields from a pending review item object. All three verdict buttons use `hx-include="#qa-review-panel"` to submit the full panel's hidden fields.
+
+---
+
+### Tier Gate Inline Card (HTMX Fragment)
+
+**Sprint:** 89-4B
+**File:** `web/templates/fragments/tier_gate_teaser_inline.html`
+**Usage:** Injected into HTMX swap targets (e.g., the search results panel for /ask).
+Displays a beta upgrade teaser card that fits inside an existing page element.
+
+```html
+<div class="tier-gate-inline-card">
+  <span class="tier-gate-inline-badge">Beta Feature</span>
+  <h2 class="tier-gate-inline-title">AI consultation is available for Beta users</h2>
+  <p class="tier-gate-inline-desc">...</p>
+  <a href="/beta/join" class="tier-gate-inline-cta">Join Beta &rarr;</a>
+  <p class="tier-gate-inline-current">Current plan: <span>free</span></p>
+</div>
+```
+
+**CSS:** All custom properties. Badge uses `--signal-blue`, `--mono`. Title uses `--sans`, `--text-xl`. CTA uses `--accent`, `--obsidian`. Card uses `--obsidian-mid`, `--glass-border`, `--radius-md`.
+**Notes:** Companion to `tier_gate_teaser.html` (full-page). This version has no DOCTYPE/html tags so it can be safely injected via HTMX `hx-swap="innerHTML"`. Used by routes_search.py /ask endpoint to gate AI synthesis intents.
