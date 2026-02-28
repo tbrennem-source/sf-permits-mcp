@@ -742,7 +742,107 @@ def email_unsubscribe():
 
 
 # ---------------------------------------------------------------------------
-# Onboarding
+# Onboarding wizard (multi-step)
+# ---------------------------------------------------------------------------
+
+@bp.route("/onboarding")
+@bp.route("/onboarding/step/1")
+@login_required
+def onboarding_step1():
+    """Step 1 of 3: Role selector (homeowner / architect / expediter / contractor).
+
+    If the user has already completed onboarding, redirect to dashboard.
+    """
+    if g.user.get("onboarding_complete") and not request.args.get("redo"):
+        return redirect(url_for("index"))
+    return render_template("onboarding_step1.html", user=g.user)
+
+
+@bp.route("/onboarding/step/1/save", methods=["POST"])
+@login_required
+def onboarding_step1_save():
+    """Save role selection and advance to step 2."""
+    from src.db import execute_write
+
+    role = request.form.get("role", "").strip()
+    valid_roles = {"homeowner", "architect", "expediter", "contractor"}
+    if role not in valid_roles:
+        return render_template(
+            "onboarding_step1.html",
+            user=g.user,
+            error="Please select a role to continue.",
+        )
+
+    # Persist role to user profile
+    execute_write(
+        "UPDATE users SET role = %s WHERE user_id = %s",
+        (role, g.user["user_id"]),
+    )
+    # Update session-level user dict so templates reflect change immediately
+    g.user["role"] = role
+
+    return redirect(url_for("auth.onboarding_step2"))
+
+
+@bp.route("/onboarding/step/2")
+@login_required
+def onboarding_step2():
+    """Step 2 of 3: Watch your first property (pre-filled demo parcel)."""
+    return render_template("onboarding_step2.html", user=g.user)
+
+
+@bp.route("/onboarding/step/2/save", methods=["POST"])
+@login_required
+def onboarding_step2_save():
+    """Add demo property watch and advance to step 3, or skip."""
+    action = request.form.get("action", "add")
+
+    if action == "add":
+        from web.auth import add_watch
+        try:
+            add_watch(
+                g.user["user_id"],
+                watch_type="address",
+                street_number="1455",
+                street_name="Market St",
+                label="Demo — 1455 Market St",
+            )
+        except Exception:
+            # Non-fatal: if watch already exists just proceed
+            logging.warning("onboarding step2: add_watch failed (may already exist)")
+
+    return redirect(url_for("auth.onboarding_step3"))
+
+
+@bp.route("/onboarding/step/3")
+@login_required
+def onboarding_step3():
+    """Step 3 of 3: Sample morning brief preview + Go to Dashboard CTA."""
+    return render_template("onboarding_step3.html", user=g.user)
+
+
+@bp.route("/onboarding/step/3/complete", methods=["POST"])
+@login_required
+def onboarding_complete():
+    """Mark onboarding complete and redirect to dashboard."""
+    from src.db import execute_write
+
+    try:
+        execute_write(
+            "UPDATE users SET onboarding_complete = TRUE WHERE user_id = %s",
+            (g.user["user_id"],),
+        )
+    except Exception:
+        logging.warning("onboarding_complete: failed to update DB", exc_info=True)
+
+    session.pop("show_onboarding_banner", None)
+    session["onboarding_dismissed"] = True
+
+    return redirect(url_for("index"))
+
+
+# ---------------------------------------------------------------------------
+# Onboarding (legacy single-page dismiss)
 # ---------------------------------------------------------------------------
 
 # E4: First-login welcome banner / onboarding page dismiss

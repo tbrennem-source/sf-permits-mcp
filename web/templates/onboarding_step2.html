@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch your first property — Step 2 of 3</title>
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        /* ── Onboarding Wizard — Step 2 ────────────────────────────────── */
+
+        body { background: var(--obsidian, #0a0a0f); }
+
+        .onb-header {
+            border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            padding: var(--space-4) 0;
+        }
+        .onb-header .obs-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .onb-logo {
+            font-family: var(--mono);
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--accent, #5eead4);
+            text-decoration: none;
+        }
+        .onb-step-label {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Progress ─────────────────────────────────────────────────── */
+
+        .onb-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            padding: var(--space-8) 0 var(--space-6) 0;
+        }
+        .onb-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: var(--radius-full, 9999px);
+            background: var(--obsidian-light, #1a1a26);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .onb-dot.active {
+            background: var(--accent, #5eead4);
+            border-color: var(--accent, #5eead4);
+            box-shadow: 0 0 8px var(--accent-ring, rgba(94,234,212,0.3));
+        }
+        .onb-dot.done {
+            background: var(--signal-green, #34d399);
+            border-color: var(--signal-green, #34d399);
+        }
+        .onb-connector {
+            width: 48px;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        /* ── Hero ─────────────────────────────────────────────────────── */
+
+        .onb-hero {
+            text-align: center;
+            padding: 0 0 var(--space-8) 0;
+        }
+        .onb-hero h1 {
+            font-family: var(--sans);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        .onb-hero p {
+            font-family: var(--sans);
+            color: var(--text-secondary);
+            font-size: var(--text-base);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ── Property Preview Card ────────────────────────────────────── */
+
+        .property-preview {
+            max-width: 560px;
+            margin: 0 auto var(--space-8) auto;
+        }
+        .property-preview .glass-card {
+            padding: var(--space-6);
+        }
+        .property-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-3);
+        }
+        .property-address {
+            font-family: var(--mono);
+            font-size: var(--text-xl);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        .property-meta {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-6) 0;
+        }
+        .property-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+        }
+        .stat-item { text-align: center; }
+        .stat-value {
+            font-family: var(--mono);
+            font-size: var(--text-lg);
+            font-weight: 400;
+            color: var(--accent, #5eead4);
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+        .stat-label {
+            font-family: var(--sans);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+
+        /* ── What you'll get section ──────────────────────────────────── */
+
+        .watch-benefits {
+            max-width: 560px;
+            margin: 0 auto var(--space-8) auto;
+        }
+        .benefit-row {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+        .benefit-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .benefit-text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .benefit-text strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ── Actions ──────────────────────────────────────────────────── */
+
+        .onb-actions {
+            text-align: center;
+            max-width: 560px;
+            margin: 0 auto;
+            padding-bottom: var(--space-12);
+        }
+        .onb-continue-btn {
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 400;
+            color: var(--obsidian, #0a0a0f);
+            background: var(--accent, #5eead4);
+            border: none;
+            border-radius: var(--radius-md, 12px);
+            padding: 14px 48px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            letter-spacing: 0.02em;
+            width: 100%;
+        }
+        .onb-continue-btn:hover { opacity: 0.88; }
+        .onb-skip {
+            display: block;
+            margin-top: var(--space-4);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .onb-skip:hover { color: var(--text-secondary); }
+        /* Button reset for form-wrapped skip */
+        button.onb-skip {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="obsidian">
+
+    <!-- Header -->
+    <header class="onb-header">
+        <div class="obs-container">
+            <a href="/" class="onb-logo">sfpermits.ai</a>
+            <span class="onb-step-label">Step 2 of 3</span>
+        </div>
+    </header>
+
+    <div class="obs-container">
+
+        <!-- Progress -->
+        <div class="onb-progress">
+            <div class="onb-dot done"></div>
+            <div class="onb-connector"></div>
+            <div class="onb-dot active"></div>
+            <div class="onb-connector"></div>
+            <div class="onb-dot"></div>
+        </div>
+
+        <!-- Hero -->
+        <section class="onb-hero">
+            <h1>Watch your first property</h1>
+            <p>Add a property to your portfolio and get a morning brief when anything changes — new permits, inspection results, status updates.</p>
+        </section>
+
+        <!-- Demo property card -->
+        <div class="property-preview">
+            <div class="glass-card">
+                <p class="property-label">Demo property</p>
+                <h2 class="property-address">1455 Market St</h2>
+                <p class="property-meta">San Francisco, CA &mdash; Civic Center District</p>
+                <div class="property-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">14</span>
+                        <span class="stat-label">Active permits</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">3</span>
+                        <span class="stat-label">In review</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">47</span>
+                        <span class="stat-label">Inspections (5yr)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits list -->
+        <div class="watch-benefits">
+            <div class="benefit-row">
+                <span class="benefit-icon">&#x1F4E7;</span>
+                <p class="benefit-text"><strong>Morning brief emails</strong> — daily or weekly digest of changes across your whole portfolio.</p>
+            </div>
+            <div class="benefit-row">
+                <span class="benefit-icon">&#x26A1;</span>
+                <p class="benefit-text"><strong>Instant permit alerts</strong> — get notified the morning after a permit status changes.</p>
+            </div>
+            <div class="benefit-row">
+                <span class="benefit-icon">&#x1F4CA;</span>
+                <p class="benefit-text"><strong>Portfolio dashboard</strong> — all your watched properties in one view with health scores.</p>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="onb-actions">
+            <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}">
+                <input type="hidden" name="action" value="add">
+                <button type="submit" class="onb-continue-btn">Add to portfolio &rarr;</button>
+            </form>
+            <form method="POST" action="{{ url_for('auth.onboarding_step2_save') }}">
+                <input type="hidden" name="action" value="skip">
+                <button type="submit" class="onb-skip">
+                    Skip &mdash; I&rsquo;ll add properties later
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</body>
+</html>

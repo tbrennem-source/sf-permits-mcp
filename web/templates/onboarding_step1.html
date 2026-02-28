@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to sfpermits.ai — Step 1 of 3</title>
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        /* ── Onboarding Wizard — Step 1 ────────────────────────────────── */
+
+        body { background: var(--obsidian, #0a0a0f); }
+
+        .onb-header {
+            border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            padding: var(--space-4) 0;
+        }
+        .onb-header .obs-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .onb-logo {
+            font-family: var(--mono);
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--accent, #5eead4);
+            text-decoration: none;
+        }
+        .onb-step-label {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Progress bar ─────────────────────────────────────────────── */
+
+        .onb-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            padding: var(--space-8) 0 var(--space-6) 0;
+        }
+        .onb-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: var(--radius-full, 9999px);
+            background: var(--obsidian-light, #1a1a26);
+            border: 1px solid rgba(255,255,255,0.12);
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .onb-dot.active {
+            background: var(--accent, #5eead4);
+            border-color: var(--accent, #5eead4);
+            box-shadow: 0 0 8px var(--accent-ring, rgba(94,234,212,0.3));
+        }
+        .onb-dot.done {
+            background: var(--signal-green, #34d399);
+            border-color: var(--signal-green, #34d399);
+        }
+        .onb-connector {
+            width: 48px;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        /* ── Hero ─────────────────────────────────────────────────────── */
+
+        .onb-hero {
+            text-align: center;
+            padding: 0 0 var(--space-8) 0;
+        }
+        .onb-hero h1 {
+            font-family: var(--sans);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3) 0;
+        }
+        .onb-hero h1 .accent { color: var(--accent, #5eead4); }
+        .onb-hero p {
+            font-family: var(--sans);
+            color: var(--text-secondary);
+            font-size: var(--text-base);
+            max-width: 480px;
+            margin: 0 auto var(--space-8) auto;
+            line-height: 1.6;
+        }
+
+        /* ── Role Cards ───────────────────────────────────────────────── */
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-4);
+            max-width: 640px;
+            margin: 0 auto var(--space-8) auto;
+        }
+        @media (max-width: 500px) {
+            .role-grid { grid-template-columns: 1fr; }
+        }
+
+        .role-label {
+            display: block;
+            cursor: pointer;
+        }
+        .role-label input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .role-card {
+            background: var(--obsidian-mid, #12121a);
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            border-radius: var(--radius-md, 12px);
+            padding: var(--space-6);
+            text-align: center;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .role-label:hover .role-card {
+            border-color: var(--glass-hover, rgba(255,255,255,0.10));
+            background: var(--obsidian-light, #1a1a26);
+        }
+        .role-label input:checked + .role-card {
+            border-color: var(--accent-ring, rgba(94,234,212,0.3));
+            box-shadow: 0 0 0 1px rgba(94,234,212,0.15);
+            background: rgba(94,234,212,0.05);
+        }
+        .role-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: var(--space-3);
+        }
+        .role-title {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+        .role-desc {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* ── Error ────────────────────────────────────────────────────── */
+
+        .onb-error {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--signal-red, #f87171);
+            text-align: center;
+            margin-bottom: var(--space-4);
+        }
+
+        /* ── CTA ──────────────────────────────────────────────────────── */
+
+        .onb-actions {
+            text-align: center;
+            padding-bottom: var(--space-12);
+        }
+        .onb-continue-btn {
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 400;
+            color: var(--obsidian, #0a0a0f);
+            background: var(--accent, #5eead4);
+            border: none;
+            border-radius: var(--radius-md, 12px);
+            padding: 14px 48px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            letter-spacing: 0.02em;
+        }
+        .onb-continue-btn:hover { opacity: 0.88; }
+        .onb-skip {
+            display: block;
+            margin-top: var(--space-4);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .onb-skip:hover { color: var(--text-secondary); }
+    </style>
+</head>
+<body class="obsidian">
+
+    <!-- Header -->
+    <header class="onb-header">
+        <div class="obs-container">
+            <a href="/" class="onb-logo">sfpermits.ai</a>
+            <span class="onb-step-label">Step 1 of 3</span>
+        </div>
+    </header>
+
+    <div class="obs-container">
+
+        <!-- Progress -->
+        <div class="onb-progress">
+            <div class="onb-dot active"></div>
+            <div class="onb-connector"></div>
+            <div class="onb-dot"></div>
+            <div class="onb-connector"></div>
+            <div class="onb-dot"></div>
+        </div>
+
+        <!-- Hero -->
+        <section class="onb-hero">
+            <h1>Welcome to <span class="accent">sfpermits.ai</span></h1>
+            <p>Tell us how you work — we&rsquo;ll tailor the experience to what matters most to you.</p>
+        </section>
+
+        <!-- Role selector form -->
+        <form method="POST" action="{{ url_for('auth.onboarding_step1_save') }}">
+
+            {% if error %}
+            <p class="onb-error">{{ error }}</p>
+            {% endif %}
+
+            <div class="role-grid">
+
+                <label class="role-label">
+                    <input type="radio" name="role" value="homeowner"
+                        {% if user.get('role') == 'homeowner' %}checked{% endif %}>
+                    <div class="role-card">
+                        <span class="role-icon">&#x1F3E0;</span>
+                        <p class="role-title">Homeowner</p>
+                        <p class="role-desc">I own property in SF and want to track permits or plan a project.</p>
+                    </div>
+                </label>
+
+                <label class="role-label">
+                    <input type="radio" name="role" value="architect"
+                        {% if user.get('role') == 'architect' %}checked{% endif %}>
+                    <div class="role-card">
+                        <span class="role-icon">&#x1F4D0;</span>
+                        <p class="role-title">Architect</p>
+                        <p class="role-desc">I design projects and navigate permit requirements for clients.</p>
+                    </div>
+                </label>
+
+                <label class="role-label">
+                    <input type="radio" name="role" value="expediter"
+                        {% if user.get('role') == 'expediter' %}checked{% endif %}>
+                    <div class="role-card">
+                        <span class="role-icon">&#x26A1;</span>
+                        <p class="role-title">Expediter</p>
+                        <p class="role-desc">I manage permit filings professionally and track multiple projects.</p>
+                    </div>
+                </label>
+
+                <label class="role-label">
+                    <input type="radio" name="role" value="contractor"
+                        {% if user.get('role') == 'contractor' %}checked{% endif %}>
+                    <div class="role-card">
+                        <span class="role-icon">&#x1F6E0;</span>
+                        <p class="role-title">Contractor</p>
+                        <p class="role-desc">I build and want to understand permit timelines for bidding &amp; scheduling.</p>
+                    </div>
+                </label>
+
+            </div>
+
+            <div class="onb-actions">
+                <button type="submit" class="onb-continue-btn">Continue &rarr;</button>
+                <a href="{{ url_for('auth.onboarding_step2') }}" class="onb-skip">Skip this step</a>
+            </div>
+
+        </form>
+
+    </div>
+
+</body>
+</html>
