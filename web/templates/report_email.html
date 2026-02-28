@@ -5,30 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Property Report — {{ report.address }} — sfpermits.ai</title>
 </head>
-<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;line-height:1.6;">
+<body style="margin:0;padding:0;background:#0a0e1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#f0f4ff;line-height:1.6;">
     <!-- Outer wrapper -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0a0e1a;">
         <tr>
             <td align="center" style="padding:24px 16px;">
                 <!-- Inner container -->
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#10182c;border-radius:12px;overflow:hidden;border:1px solid #1e2a3a;">
 
                     <!-- Header -->
                     <tr>
-                        <td style="background:#1a1d27;padding:20px 28px;">
-                            <a href="{{ report_url }}" style="color:#4f8ff7;font-size:1.3rem;font-weight:700;text-decoration:none;">sfpermits<span style="color:#8b8fa3;font-weight:400;">.ai</span></a>
-                            <span style="float:right;color:#8b8fa3;font-size:0.85rem;line-height:2;">Property Report</span>
+                        <td style="background:#0a0e1a;padding:20px 28px;border-bottom:1px solid #1e2a3a;">
+                            <a href="{{ report_url }}" style="color:#00d4c8;font-size:1.3rem;font-weight:700;text-decoration:none;">sfpermits<span style="color:#8899aa;font-weight:400;">.ai</span></a>
+                            <span style="float:right;color:#8899aa;font-size:0.85rem;line-height:2;">Property Report</span>
                         </td>
                     </tr>
 
                     <!-- Title -->
                     <tr>
                         <td style="padding:28px 28px 8px;">
-                            <h1 style="margin:0;font-size:1.3rem;color:#1a1a2e;">{{ report.address }}</h1>
-                            <p style="margin:4px 0 0;color:#6b7280;font-size:0.9rem;">
+                            <h1 style="margin:0;font-size:1.3rem;color:#f0f4ff;">{{ report.address }}</h1>
+                            <p style="margin:4px 0 0;color:#8899aa;font-size:0.9rem;">
                                 Block {{ report.block }}, Lot {{ report.lot }}
                                 {% if report.links and report.links.parcel %}
-                                &middot; <a href="{{ report.links.parcel }}" style="color:#4f8ff7;text-decoration:none;">View parcel</a>
+                                &middot; <a href="{{ report.links.parcel }}" style="color:#00d4c8;text-decoration:none;">View parcel</a>
                                 {% endif %}
                             </p>
                         </td>
@@ -40,9 +40,9 @@
                         <td style="padding:4px 28px 16px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:14px 18px;border-radius:6px;background:#f0f4ff;border-left:3px solid #4f8ff7;">
-                                        <div style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">{{ sender_name or "Someone" }} shared this with you:</div>
-                                        <div style="font-size:0.9rem;color:#1a1a2e;line-height:1.5;">{{ personal_message }}</div>
+                                    <td style="padding:14px 18px;border-radius:6px;background:#0a0e1a;border-left:3px solid #00d4c8;border:1px solid #1e2a3a;border-left:3px solid #00d4c8;">
+                                        <div style="font-size:0.8rem;color:#8899aa;margin-bottom:4px;">{{ sender_name or "Someone" }} shared this with you:</div>
+                                        <div style="font-size:0.9rem;color:#f0f4ff;line-height:1.5;">{{ personal_message }}</div>
                                     </td>
                                 </tr>
                             </table>
@@ -53,7 +53,7 @@
                     {# ===== Section 1: Risk Assessment ===== #}
                     <tr>
                         <td style="padding:20px 28px 8px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Risk Assessment</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Risk Assessment</h2>
                         </td>
                     </tr>
                     {% if report.risk_assessment %}
@@ -62,16 +62,16 @@
                         <td style="padding:0 28px 10px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:12px 16px;border-radius:6px;border-left:4px solid {% if risk.severity == 'high' %}#f87171{% elif risk.severity == 'moderate' %}#fbbf24{% else %}#4f8ff7{% endif %};background:{% if risk.severity == 'high' %}#fef2f2{% elif risk.severity == 'moderate' %}#fffbeb{% else %}#eff6ff{% endif %};">
-                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if risk.severity == 'high' %}background:#fee2e2;color:#dc2626;{% elif risk.severity == 'moderate' %}background:#fef3c7;color:#d97706;{% else %}background:#dbeafe;color:#2563eb;{% endif %}">{{ risk.severity }}</span>
-                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;">
+                                    <td style="padding:12px 16px;border-radius:6px;border-left:4px solid {% if risk.severity == 'high' %}#f87171{% elif risk.severity == 'moderate' %}#fbbf24{% else %}#00d4c8{% endif %};background:{% if risk.severity == 'high' %}#3d1a1a{% elif risk.severity == 'moderate' %}#2e2200{% else %}#0a1a2e{% endif %};">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if risk.severity == 'high' %}background:#5a2020;color:#f87171;{% elif risk.severity == 'moderate' %}background:#4a3800;color:#fbbf24;{% else %}background:#0e2a4a;color:#00d4c8;{% endif %}">{{ risk.severity }}</span>
+                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;color:#f0f4ff;">
                                             {% if risk.link %}
-                                            <a href="{{ risk.link }}" style="color:#1a1a2e;text-decoration:none;">{{ risk.title }}</a>
+                                            <a href="{{ risk.link }}" style="color:#f0f4ff;text-decoration:none;">{{ risk.title }}</a>
                                             {% else %}
                                             {{ risk.title }}
                                             {% endif %}
                                         </span>
-                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">{{ risk.description }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;margin-top:4px;">{{ risk.description }}</div>
                                     </td>
                                 </tr>
                             </table>
@@ -83,10 +83,10 @@
                         <td style="padding:0 28px 16px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:12px 16px;border-radius:6px;border-left:4px solid #34d399;background:#ecfdf5;">
-                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;background:#d1fae5;color:#059669;">clear</span>
-                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;">No known risks</span>
-                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">No active complaints, violations, or anomalies were found for this property.</div>
+                                    <td style="padding:12px 16px;border-radius:6px;border-left:4px solid #34d399;background:#0d2e1a;">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;background:#134d2a;color:#34d399;">clear</span>
+                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;color:#f0f4ff;">No known risks</span>
+                                        <div style="font-size:0.8rem;color:#8899aa;margin-top:4px;">No active complaints, violations, or anomalies were found for this property.</div>
                                     </td>
                                 </tr>
                             </table>
@@ -100,7 +100,7 @@
                         <td style="padding:0 28px 12px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:10px 14px;border-radius:6px;background:#eff6ff;border:1px solid #bfdbfe;font-size:0.85rem;color:#2563eb;">
+                                    <td style="padding:10px 14px;border-radius:6px;background:#0a1a2e;border:1px solid #0e2a4a;font-size:0.85rem;color:#00d4c8;">
                                         &#x1f3e0; You are viewing this report as the property owner. Recommendations are tailored for your situation.
                                     </td>
                                 </tr>
@@ -113,7 +113,7 @@
                     {% if report.remediation_roadmap %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Remediation Roadmap</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Remediation Roadmap</h2>
                         </td>
                     </tr>
                     {% for card in report.remediation_roadmap %}
@@ -121,17 +121,17 @@
                         <td style="padding:0 28px 12px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:14px 16px;border-radius:6px;border-left:4px solid {% if card.severity == 'high' %}#f87171{% else %}#fbbf24{% endif %};background:{% if card.severity == 'high' %}#fef2f2{% else %}#fffbeb{% endif %};">
-                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if card.severity == 'high' %}background:#fee2e2;color:#dc2626;{% else %}background:#fef3c7;color:#d97706;{% endif %}">{{ card.severity }}</span>
-                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;">{{ card.title }}</span>
+                                    <td style="padding:14px 16px;border-radius:6px;border-left:4px solid {% if card.severity == 'high' %}#f87171{% else %}#fbbf24{% endif %};background:{% if card.severity == 'high' %}#3d1a1a{% else %}#2e2200{% endif %};">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if card.severity == 'high' %}background:#5a2020;color:#f87171;{% else %}background:#4a3800;color:#fbbf24;{% endif %}">{{ card.severity }}</span>
+                                        <span style="font-weight:600;font-size:0.9rem;margin-left:6px;color:#f0f4ff;">{{ card.title }}</span>
                                         {% if card.what_at_stake %}
-                                        <div style="font-size:0.85rem;color:#374151;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.03);border-radius:4px;border-left:3px solid #fbbf24;">{{ card.what_at_stake }}</div>
+                                        <div style="font-size:0.85rem;color:#8899aa;margin-top:8px;padding:8px 10px;background:#0a0e1a;border-radius:4px;border-left:3px solid #fbbf24;">{{ card.what_at_stake }}</div>
                                         {% endif %}
                                         {% for opt in card.options %}
-                                        <div style="margin-top:10px;padding:10px 12px;border-radius:6px;border:1px solid {% if opt.effort == 'full_compliance' %}#34d399{% elif opt.effort == 'least_effort' %}#4f8ff7{% else %}#d1d5db{% endif %};background:#fafafa;">
-                                            <strong style="font-size:0.85rem;">{{ opt.label }}</strong>
-                                            {% if opt.cost_range %}<span style="font-size:0.75rem;color:#6b7280;margin-left:6px;">{{ opt.cost_range }}</span>{% endif %}
-                                            <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">{{ opt.description }}</div>
+                                        <div style="margin-top:10px;padding:10px 12px;border-radius:6px;border:1px solid {% if opt.effort == 'full_compliance' %}#134d2a{% elif opt.effort == 'least_effort' %}#0e2a4a{% else %}#1e2a3a{% endif %};background:#0a0e1a;">
+                                            <strong style="font-size:0.85rem;color:#f0f4ff;">{{ opt.label }}</strong>
+                                            {% if opt.cost_range %}<span style="font-size:0.75rem;color:#8899aa;margin-left:6px;">{{ opt.cost_range }}</span>{% endif %}
+                                            <div style="font-size:0.8rem;color:#8899aa;margin-top:4px;">{{ opt.description }}</div>
                                         </div>
                                         {% endfor %}
                                     </td>
@@ -146,47 +146,47 @@
                     {% if report.property_profile %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Property Profile</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Property Profile</h2>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding:0 28px 20px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;width:40%;">Zoning</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;font-weight:600;width:40%;">Zoning</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.9rem;color:#f0f4ff;">
                                         {% if report.property_profile.zoning %}
-                                        <a href="{{ links.planning_code(report.property_profile.zoning) }}" style="color:#4f8ff7;text-decoration:none;">{{ report.property_profile.zoning }}</a>
+                                        <a href="{{ links.planning_code(report.property_profile.zoning) }}" style="color:#00d4c8;text-decoration:none;">{{ report.property_profile.zoning }}</a>
                                         {% else %}&mdash;{% endif %}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Assessed Value</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.assessed_value or '—' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;font-weight:600;">Assessed Value</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.9rem;color:#f0f4ff;">{{ report.property_profile.assessed_value or '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Property Class</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.property_class or '—' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;font-weight:600;">Property Class</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.9rem;color:#f0f4ff;">{{ report.property_profile.property_class or '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Neighborhood</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.neighborhood or '—' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;font-weight:600;">Neighborhood</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.9rem;color:#f0f4ff;">{{ report.property_profile.neighborhood or '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Year Built</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.year_built or '—' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;font-weight:600;">Year Built</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.9rem;color:#f0f4ff;">{{ report.property_profile.year_built or '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Building Area</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.building_area or '—' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;font-weight:600;">Building Area</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.9rem;color:#f0f4ff;">{{ report.property_profile.building_area or '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.8rem;color:#6b7280;font-weight:600;">Lot Area</td>
-                                    <td style="padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:0.9rem;">{{ report.property_profile.lot_area or '—' }}</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;font-weight:600;">Lot Area</td>
+                                    <td style="padding:6px 0;border-bottom:1px solid #1e2a3a;font-size:0.9rem;color:#f0f4ff;">{{ report.property_profile.lot_area or '—' }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:6px 0;font-size:0.8rem;color:#6b7280;font-weight:600;">Tax Year</td>
-                                    <td style="padding:6px 0;font-size:0.9rem;">{{ report.property_profile.tax_year or '—' }}</td>
+                                    <td style="padding:6px 0;font-size:0.8rem;color:#8899aa;font-weight:600;">Tax Year</td>
+                                    <td style="padding:6px 0;font-size:0.9rem;color:#f0f4ff;">{{ report.property_profile.tax_year or '—' }}</td>
                                 </tr>
                             </table>
                         </td>
@@ -197,41 +197,41 @@
                     {% if report.permits %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Permit History</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Permit History</h2>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding:0 28px 20px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:0.85rem;">
-                                <tr style="background:#f8f9fb;">
-                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Permit #</td>
-                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Type</td>
-                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Cost</td>
-                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Status</td>
-                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Filed</td>
+                                <tr style="background:#0a0e1a;">
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Permit #</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Type</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Cost</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Status</td>
+                                    <td style="padding:8px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Filed</td>
                                 </tr>
                                 {% for p in report.permits[:10] %}
                                 <tr>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
-                                        <a href="{{ base_url }}{{ links.permit(p.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ p.permit_number }}</a>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #1e2a3a;">
+                                        <a href="{{ base_url }}{{ links.permit(p.permit_number) }}" style="color:#00d4c8;text-decoration:none;">{{ p.permit_number }}</a>
                                     </td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.permit_type_definition or '—' }}</td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
+                                    <td style="padding:8px 8px;border-bottom:1px solid #1e2a3a;color:#f0f4ff;">{{ p.permit_type_definition or '—' }}</td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #1e2a3a;color:#f0f4ff;">
                                         {% if p.estimated_cost %}${{ '{:,.0f}'.format(p.estimated_cost) }}{% else %}&mdash;{% endif %}
                                     </td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">
+                                    <td style="padding:8px 8px;border-bottom:1px solid #1e2a3a;">
                                         <span style="display:inline-block;padding:2px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;
-                                            {% if (p.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#d1fae5;color:#059669;
-                                            {% elif (p.status or '')|lower in ('expired', 'cancelled', 'revoked', 'disapproved', 'withdrawn') %}background:#fee2e2;color:#dc2626;
-                                            {% else %}background:#dbeafe;color:#2563eb;{% endif %}">
+                                            {% if (p.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#0d2e1a;color:#34d399;border:1px solid #134d2a;
+                                            {% elif (p.status or '')|lower in ('expired', 'cancelled', 'revoked', 'disapproved', 'withdrawn') %}background:#3d1a1a;color:#f87171;border:1px solid #5a2020;
+                                            {% else %}background:#0a1a2e;color:#00d4c8;border:1px solid #0e2a4a;{% endif %}">
                                             {{ p.status or 'Unknown' }}
                                         </span>
                                     </td>
-                                    <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;">{{ p.filed_date or '—' }}</td>
+                                    <td style="padding:8px 8px;border-bottom:1px solid #1e2a3a;color:#8899aa;">{{ p.filed_date or '—' }}</td>
                                 </tr>
                                 {% if p.description %}
                                 <tr>
-                                    <td colspan="5" style="padding:2px 8px 8px;border-bottom:1px solid #e5e7eb;font-size:0.8rem;color:#6b7280;">
+                                    <td colspan="5" style="padding:2px 8px 8px;border-bottom:1px solid #1e2a3a;font-size:0.8rem;color:#8899aa;">
                                         {{ p.description }}
                                     </td>
                                 </tr>
@@ -239,9 +239,9 @@
                                 {% endfor %}
                                 {% if report.permits|length > 10 %}
                                 <tr>
-                                    <td colspan="5" style="padding:8px;color:#6b7280;font-size:0.8rem;">
+                                    <td colspan="5" style="padding:8px;color:#8899aa;font-size:0.8rem;">
                                         + {{ report.permits|length - 10 }} more permits &mdash;
-                                        <a href="{{ report_url }}" style="color:#4f8ff7;text-decoration:none;">view full report</a>
+                                        <a href="{{ report_url }}" style="color:#00d4c8;text-decoration:none;">view full report</a>
                                     </td>
                                 </tr>
                                 {% endif %}
@@ -254,7 +254,7 @@
                     {% if report.whats_missing %}
                     <tr>
                         <td style="padding:4px 28px 4px;">
-                            <div style="font-size:0.85rem;font-weight:600;color:#d97706;margin-bottom:8px;">&#x26A0; Cross-Reference Analysis</div>
+                            <div style="font-size:0.85rem;font-weight:600;color:#fbbf24;margin-bottom:8px;">&#x26A0; Cross-Reference Analysis</div>
                         </td>
                     </tr>
                     {% for item in report.whats_missing %}
@@ -262,10 +262,10 @@
                         <td style="padding:0 28px 8px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:10px 14px;border-radius:6px;border-left:4px solid {% if item.severity == 'moderate' %}#fbbf24{% else %}#4f8ff7{% endif %};background:{% if item.severity == 'moderate' %}#fffbeb{% else %}#eff6ff{% endif %};">
-                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if item.severity == 'moderate' %}background:#fef3c7;color:#d97706;{% else %}background:#dbeafe;color:#2563eb;{% endif %}">{{ item.severity }}</span>
-                                        <span style="font-weight:600;font-size:0.85rem;margin-left:6px;">{{ item.title }}</span>
-                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:4px;">{{ item.description }}</div>
+                                    <td style="padding:10px 14px;border-radius:6px;border-left:4px solid {% if item.severity == 'moderate' %}#fbbf24{% else %}#00d4c8{% endif %};background:{% if item.severity == 'moderate' %}#2e2200{% else %}#0a1a2e{% endif %};">
+                                        <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:700;text-transform:uppercase;{% if item.severity == 'moderate' %}background:#4a3800;color:#fbbf24;{% else %}background:#0e2a4a;color:#00d4c8;{% endif %}">{{ item.severity }}</span>
+                                        <span style="font-weight:600;font-size:0.85rem;margin-left:6px;color:#f0f4ff;">{{ item.title }}</span>
+                                        <div style="font-size:0.8rem;color:#8899aa;margin-top:4px;">{{ item.description }}</div>
                                     </td>
                                 </tr>
                             </table>
@@ -278,14 +278,14 @@
                     {% if report.complaints or report.violations %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Complaints &amp; Violations</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Complaints &amp; Violations</h2>
                         </td>
                     </tr>
 
                     {% if report.complaints %}
                     <tr>
                         <td style="padding:0 28px 4px;">
-                            <div style="font-size:0.85rem;font-weight:600;color:#1a1a2e;margin-bottom:8px;">Complaints</div>
+                            <div style="font-size:0.85rem;font-weight:600;color:#f0f4ff;margin-bottom:8px;">Complaints</div>
                         </td>
                     </tr>
                     {% for c in report.complaints %}
@@ -293,18 +293,18 @@
                         <td style="padding:0 28px 10px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
+                                    <td style="padding:10px 14px;background:#0a0e1a;border-radius:6px;border:1px solid #1e2a3a;">
                                         <div style="display:inline;">
-                                            <a href="{{ base_url }}{{ links.complaint(c.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ c.complaint_number }}</a>
+                                            <a href="{{ base_url }}{{ links.complaint(c.complaint_number) }}" style="color:#f0f4ff;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ c.complaint_number }}</a>
                                             <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:600;margin-left:8px;
-                                                {% if (c.status or '')|lower == 'open' %}background:#fef3c7;color:#d97706;
-                                                {% else %}background:#d1fae5;color:#059669;{% endif %}">
+                                                {% if (c.status or '')|lower == 'open' %}background:#4a3800;color:#fbbf24;
+                                                {% else %}background:#134d2a;color:#34d399;{% endif %}">
                                                 {{ c.status or 'Unknown' }}
                                             </span>
                                         </div>
-                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">Filed {{ c.date_filed or 'N/A' }}</div>
+                                        <div style="font-size:0.8rem;color:#8899aa;margin-top:2px;">Filed {{ c.date_filed or 'N/A' }}</div>
                                         {% if c.complaint_description %}
-                                        <div style="font-size:0.85rem;color:#1a1a2e;margin-top:4px;">{{ c.complaint_description }}</div>
+                                        <div style="font-size:0.85rem;color:#f0f4ff;margin-top:4px;">{{ c.complaint_description }}</div>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -317,7 +317,7 @@
                     {% if report.violations %}
                     <tr>
                         <td style="padding:4px 28px 4px;">
-                            <div style="font-size:0.85rem;font-weight:600;color:#1a1a2e;margin-bottom:8px;">Violations</div>
+                            <div style="font-size:0.85rem;font-weight:600;color:#f0f4ff;margin-bottom:8px;">Violations</div>
                         </td>
                     </tr>
                     {% for v in report.violations %}
@@ -325,25 +325,25 @@
                         <td style="padding:0 28px 10px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="padding:10px 14px;background:#f8f9fb;border-radius:6px;border:1px solid #e5e7eb;">
+                                    <td style="padding:10px 14px;background:#0a0e1a;border-radius:6px;border:1px solid #1e2a3a;">
                                         <div style="display:inline;">
                                             {% if v.complaint_number %}
-                                            <a href="{{ base_url }}{{ links.complaint(v.complaint_number) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ v.complaint_number }}</a>
+                                            <a href="{{ base_url }}{{ links.complaint(v.complaint_number) }}" style="color:#f0f4ff;font-weight:600;text-decoration:none;font-size:0.9rem;">#{{ v.complaint_number }}</a>
                                             {% else %}
-                                            <span style="font-weight:600;font-size:0.9rem;">Violation</span>
+                                            <span style="font-weight:600;font-size:0.9rem;color:#f0f4ff;">Violation</span>
                                             {% endif %}
                                             <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.65rem;font-weight:600;margin-left:8px;
-                                                {% if (v.status or '')|lower == 'open' %}background:#fef3c7;color:#d97706;
-                                                {% else %}background:#d1fae5;color:#059669;{% endif %}">
+                                                {% if (v.status or '')|lower == 'open' %}background:#4a3800;color:#fbbf24;
+                                                {% else %}background:#134d2a;color:#34d399;{% endif %}">
                                                 {{ v.status or 'Unknown' }}
                                             </span>
                                         </div>
-                                        <div style="font-size:0.8rem;color:#6b7280;margin-top:2px;">
+                                        <div style="font-size:0.8rem;color:#8899aa;margin-top:2px;">
                                             Filed {{ v.date_filed or 'N/A' }}
                                             {% if v.nov_category_description %} &middot; {{ v.nov_category_description }}{% endif %}
                                         </div>
                                         {% if v.description %}
-                                        <div style="font-size:0.85rem;color:#1a1a2e;margin-top:4px;">{{ v.description }}</div>
+                                        <div style="font-size:0.85rem;color:#f0f4ff;margin-top:4px;">{{ v.description }}</div>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -358,16 +358,16 @@
                     {% if report.property_profile and report.property_profile.zoning %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Zoning &amp; Regulatory Context</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Zoning &amp; Regulatory Context</h2>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding:0 28px 20px;">
                             <div style="margin-bottom:8px;">
-                                <span style="font-size:0.8rem;color:#6b7280;font-weight:600;">Zoning District:</span>
-                                <a href="{{ links.planning_code(report.property_profile.zoning) }}" style="color:#4f8ff7;text-decoration:none;font-weight:600;margin-left:4px;">{{ report.property_profile.zoning }}</a>
+                                <span style="font-size:0.8rem;color:#8899aa;font-weight:600;">Zoning District:</span>
+                                <a href="{{ links.planning_code(report.property_profile.zoning) }}" style="color:#00d4c8;text-decoration:none;font-weight:600;margin-left:4px;">{{ report.property_profile.zoning }}</a>
                             </div>
-                            <div style="font-size:0.85rem;color:#6b7280;line-height:1.5;">
+                            <div style="font-size:0.85rem;color:#8899aa;line-height:1.5;">
                                 {% set zoning = report.property_profile.zoning %}
                                 {% if zoning.startswith('RH-1') %}
                                 RH-1 (Residential, House &mdash; One Family) district. Permits involving additional units or building envelope changes may require Planning review.
@@ -397,30 +397,30 @@
                     {% if report.nearby_activity %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Nearby Permit Activity</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Nearby Permit Activity</h2>
                         </td>
                     </tr>
                     <tr>
                         <td style="padding:0 28px 20px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:0.85rem;">
-                                <tr style="background:#f8f9fb;">
-                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Address</td>
-                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Permit #</td>
-                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Description</td>
-                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;border-bottom:2px solid #e5e7eb;">Status</td>
+                                <tr style="background:#0a0e1a;">
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Address</td>
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Permit #</td>
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Description</td>
+                                    <td style="padding:6px 8px;font-size:0.7rem;font-weight:600;color:#8899aa;text-transform:uppercase;border-bottom:2px solid #1e2a3a;">Status</td>
                                 </tr>
                                 {% for n in report.nearby_activity[:6] %}
                                 <tr>
-                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.street_number }} {{ n.street_name }} {{ n.street_suffix or '' }}</td>
-                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
-                                        <a href="{{ base_url }}{{ links.permit(n.permit_number) }}" style="color:#4f8ff7;text-decoration:none;">{{ n.permit_number }}</a>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #1e2a3a;color:#f0f4ff;">{{ n.street_number }} {{ n.street_name }} {{ n.street_suffix or '' }}</td>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #1e2a3a;">
+                                        <a href="{{ base_url }}{{ links.permit(n.permit_number) }}" style="color:#00d4c8;text-decoration:none;">{{ n.permit_number }}</a>
                                     </td>
-                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{{ n.description or '—' }}</td>
-                                    <td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">
+                                    <td style="padding:6px 8px;border-bottom:1px solid #1e2a3a;color:#8899aa;">{{ n.description or '—' }}</td>
+                                    <td style="padding:6px 8px;border-bottom:1px solid #1e2a3a;">
                                         <span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:0.7rem;font-weight:600;
-                                            {% if (n.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#d1fae5;color:#059669;
-                                            {% elif (n.status or '')|lower in ('expired', 'cancelled') %}background:#fee2e2;color:#dc2626;
-                                            {% else %}background:#dbeafe;color:#2563eb;{% endif %}">
+                                            {% if (n.status or '')|lower in ('approved', 'issued', 'complete', 'completed') %}background:#0d2e1a;color:#34d399;border:1px solid #134d2a;
+                                            {% elif (n.status or '')|lower in ('expired', 'cancelled') %}background:#3d1a1a;color:#f87171;border:1px solid #5a2020;
+                                            {% else %}background:#0a1a2e;color:#00d4c8;border:1px solid #0e2a4a;{% endif %}">
                                             {{ n.status or 'Unknown' }}
                                         </span>
                                     </td>
@@ -428,9 +428,9 @@
                                 {% endfor %}
                                 {% if report.nearby_activity|length > 6 %}
                                 <tr>
-                                    <td colspan="4" style="padding:6px 8px;color:#6b7280;font-size:0.8rem;">
+                                    <td colspan="4" style="padding:6px 8px;color:#8899aa;font-size:0.8rem;">
                                         + {{ report.nearby_activity|length - 6 }} more &mdash;
-                                        <a href="{{ report_url }}" style="color:#4f8ff7;text-decoration:none;">view full report</a>
+                                        <a href="{{ report_url }}" style="color:#00d4c8;text-decoration:none;">view full report</a>
                                     </td>
                                 </tr>
                                 {% endif %}
@@ -443,7 +443,7 @@
                     {% if report.consultant_signal and report.consultant_signal.signal != 'cold' %}
                     <tr>
                         <td style="padding:12px 28px 4px;">
-                            <h2 style="margin:0 0 12px;font-size:1rem;color:#4f8ff7;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Consultant Assessment</h2>
+                            <h2 style="margin:0 0 12px;font-size:1rem;color:#00d4c8;border-bottom:1px solid #1e2a3a;padding-bottom:8px;">Consultant Assessment</h2>
                         </td>
                     </tr>
                     <tr>
@@ -452,32 +452,32 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td style="padding:14px 16px;border-radius:6px;
-                                        {% if sig.signal == 'warm' %}background:#eff6ff;border:1px solid #dbeafe;
-                                        {% elif sig.signal == 'recommended' %}background:#fffbeb;border:1px solid #fef3c7;
-                                        {% elif sig.signal == 'strongly_recommended' %}background:#fef2f2;border:1px solid #fecaca;
-                                        {% elif sig.signal == 'essential' %}background:#fef2f2;border:2px solid #f87171;
+                                        {% if sig.signal == 'warm' %}background:#0a1a2e;border:1px solid #0e2a4a;
+                                        {% elif sig.signal == 'recommended' %}background:#2e2200;border:1px solid #4a3800;
+                                        {% elif sig.signal == 'strongly_recommended' %}background:#3d1a1a;border:1px solid #5a2020;
+                                        {% elif sig.signal == 'essential' %}background:#4d0e0e;border:2px solid #f87171;
                                         {% endif %}">
 
                                         {% if sig.signal == 'warm' %}
-                                        <div style="font-size:0.9rem;color:#6b7280;">
+                                        <div style="font-size:0.9rem;color:#8899aa;">
                                             Depending on your project scope, a consultant could save time.
                                         </div>
                                         {% elif sig.signal == 'recommended' %}
-                                        <div style="font-size:0.9rem;color:#d97706;font-weight:500;">
+                                        <div style="font-size:0.9rem;color:#fbbf24;font-weight:500;">
                                             Based on the risk profile, we recommend using a consultant for this property.
                                         </div>
                                         {% elif sig.signal == 'strongly_recommended' %}
-                                        <div style="font-size:0.9rem;color:#dc2626;font-weight:500;">
+                                        <div style="font-size:0.9rem;color:#f87171;font-weight:500;">
                                             {{ sig.message or 'A consultant is strongly advised given the circumstances of this property.' }}
                                         </div>
                                         {% elif sig.signal == 'essential' %}
-                                        <div style="font-size:0.9rem;color:#dc2626;font-weight:700;">
+                                        <div style="font-size:0.9rem;color:#f87171;font-weight:700;">
                                             {{ sig.message or 'An experienced consultant is essential for navigating the permitting process on this property.' }}
                                         </div>
                                         {% endif %}
 
                                         {% if sig.factors %}
-                                        <div style="margin-top:8px;font-size:0.8rem;color:#6b7280;">
+                                        <div style="margin-top:8px;font-size:0.8rem;color:#8899aa;">
                                             {% for f in sig.factors %}
                                             &bull; {{ f }}<br>
                                             {% endfor %}
@@ -485,7 +485,7 @@
                                         {% endif %}
 
                                         <div style="margin-top:10px;">
-                                            <a href="{{ report_url.rsplit('/', 1)[0] if '/' in report_url else report_url }}/../consultants?block={{ report.block }}&lot={{ report.lot }}" style="color:#4f8ff7;text-decoration:none;font-weight:600;font-size:0.9rem;">Find a consultant &rarr;</a>
+                                            <a href="{{ report_url.rsplit('/', 1)[0] if '/' in report_url else report_url }}/../consultants?block={{ report.block }}&lot={{ report.lot }}" style="color:#00d4c8;text-decoration:none;font-weight:600;font-size:0.9rem;">Find a consultant &rarr;</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -497,7 +497,7 @@
                     <!-- CTA -->
                     <tr>
                         <td align="center" style="padding:8px 28px 28px;">
-                            <a href="{{ report_url }}" style="display:inline-block;padding:12px 32px;background:#4f8ff7;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;">
+                            <a href="{{ report_url }}" style="display:inline-block;padding:12px 32px;background:#00d4c8;color:#0a0e1a;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;">
                                 View Full Report
                             </a>
                         </td>
@@ -505,15 +505,15 @@
 
                     <!-- Footer -->
                     <tr>
-                        <td style="padding:20px 28px;background:#f8f9fb;border-top:1px solid #e5e7eb;">
-                            <p style="margin:0 0 8px;font-size:0.75rem;color:#9ca3af;text-align:center;">
-                                Data from <a href="https://data.sfgov.org" style="color:#4f8ff7;text-decoration:none;">SF Open Data</a>.
+                        <td style="padding:20px 28px;background:#0a0e1a;border-top:1px solid #1e2a3a;">
+                            <p style="margin:0 0 8px;font-size:0.75rem;color:#8899aa;text-align:center;">
+                                Data from <a href="https://data.sfgov.org" style="color:#00d4c8;text-decoration:none;">SF Open Data</a>.
                                 This report was generated automatically and may not reflect the most recent changes.
                             </p>
-                            <p style="margin:0;font-size:0.75rem;color:#9ca3af;text-align:center;">
-                                Sent by <a href="{{ report_url.split('/report')[0] if '/report' in report_url else report_url }}" style="color:#4f8ff7;text-decoration:none;">sfpermits.ai</a>
+                            <p style="margin:0;font-size:0.75rem;color:#8899aa;text-align:center;">
+                                Sent by <a href="{{ report_url.split('/report')[0] if '/report' in report_url else report_url }}" style="color:#00d4c8;text-decoration:none;">sfpermits.ai</a>
                                 &middot;
-                                <a href="{{ report_url.split('/report')[0] if '/report' in report_url else report_url }}/account" style="color:#4f8ff7;text-decoration:none;">Manage preferences</a>
+                                <a href="{{ report_url.split('/report')[0] if '/report' in report_url else report_url }}/account" style="color:#00d4c8;text-decoration:none;">Manage preferences</a>
                             </p>
                         </td>
                     </tr>
