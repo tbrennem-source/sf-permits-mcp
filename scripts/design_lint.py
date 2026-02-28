@@ -5,6 +5,7 @@ Non-blocking. Produces a report for post-sprint review.
 Run: python scripts/design_lint.py [--files path1 path2 ...]
      python scripts/design_lint.py --changed   # only git-changed templates
      python scripts/design_lint.py             # all templates
+     python scripts/design_lint.py --live --url https://staging.example.com
 
 Output: prints report to stdout, writes to qa-results/design-lint-results.md
 """
@@ -87,6 +88,40 @@ TOKEN_CLASSES = {
     "obs-container", "obs-container-wide",
     "kbd-hint", "search-icon",
 }
+
+# --- Live check: token variable → expected hex color mapping ---
+# Maps CSS custom property name to expected resolved hex color (from DESIGN_TOKENS.md §1)
+# Used by --live mode to verify computed colors on rendered pages.
+ALLOWED_TOKENS_VARS = {
+    "--accent":          "#5eead4",   # teal brand color
+    "--signal-green":    "#34d399",   # on track / success
+    "--signal-amber":    "#fbbf24",   # warning / stalled
+    "--signal-red":      "#f87171",   # alert / violation
+    "--signal-blue":     "#60a5fa",   # informational / premium
+    "--dot-green":       "#22c55e",   # status dot green
+    "--dot-amber":       "#f59e0b",   # status dot amber
+    "--dot-red":         "#ef4444",   # status dot red
+    "--obsidian":        "#0a0a0f",   # page background
+    "--obsidian-mid":    "#12121a",   # card/surface background
+    "--obsidian-light":  "#1a1a26",   # elevated elements
+}
+
+# Pages to check in --live mode (public only by default; auth pages added if TEST_LOGIN_SECRET set)
+LIVE_PUBLIC_PAGES = [
+    {"slug": "landing", "path": "/", "auth": "public"},
+    {"slug": "search", "path": "/search?q=kitchen+remodel", "auth": "public"},
+    {"slug": "login", "path": "/auth/login", "auth": "public"},
+    {"slug": "beta-request", "path": "/beta-request", "auth": "public"},
+    {"slug": "property-report", "path": "/report/3512/035", "auth": "public"},
+]
+
+LIVE_AUTH_PAGES = [
+    {"slug": "account", "path": "/account", "auth": "auth"},
+    {"slug": "brief", "path": "/brief", "auth": "auth"},
+    {"slug": "portfolio", "path": "/portfolio", "auth": "auth"},
+]
+
+AXE_CDN_URL = "https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.9.1/axe.min.js"
 
 
 # --- Checks ---
@@ -360,43 +395,490 @@ def format_report(violations, files_checked, lint_score):
     return "\n".join(lines)
 
 
+# --- Live checks (Playwright-based) ---
+
+def _hex_to_rgb(hex_color: str) -> tuple[int, int, int] | None:
+    """Parse '#rrggbb' or '#rgb' hex string to (r, g, b) tuple. Returns None on failure."""
+    hex_color = hex_color.strip().lstrip("#")
+    if len(hex_color) == 3:
+        hex_color = "".join(c * 2 for c in hex_color)
+    if len(hex_color) != 6:
+        return None
+    try:
+        return (int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16))
+    except ValueError:
+        return None
+
+
+def _parse_computed_color(computed: str) -> tuple[int, int, int] | None:
+    """Parse 'rgb(r, g, b)' or 'rgba(r, g, b, a)' string returned by getComputedStyle."""
+    m = re.match(r"rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)", computed)
+    if m:
+        return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    return None
+
+
+def _rgb_within_tolerance(a: tuple[int, int, int], b: tuple[int, int, int], tolerance: int = 2) -> bool:
+    """Return True if all channels differ by at most `tolerance`."""
+    return all(abs(a[i] - b[i]) <= tolerance for i in range(3))
+
+
+def check_computed_colors(page, url: str) -> list[dict]:
+    """
+    Verify that computed foreground/background colors on representative elements
+    match expected token hex values (within ±2 RGB per channel).
+    """
+    violations = []
+    js = """
+    () => {
+        const results = [];
+        const checks = [
+            // [selector, property, token_var]
+            ['body', 'backgroundColor', '--obsidian'],
+            ['.glass-card', 'backgroundColor', '--obsidian-mid'],
+            ['a.ghost-cta', 'color', '--accent'],
+            ['.signal-green, .status-text--green', 'color', '--signal-green'],
+            ['.status-dot--green', 'backgroundColor', '--dot-green'],
+        ];
+        for (const [sel, prop, tokenVar] of checks) {
+            const el = document.querySelector(sel);
+            if (!el) continue;
+            const computed = window.getComputedStyle(el)[prop];
+            results.push({selector: sel, property: prop, tokenVar: tokenVar, computed: computed});
+        }
+        return results;
+    }
+    """
+    try:
+        elements = page.evaluate(js)
+    except Exception as e:
+        violations.append({
+            "file": url,
+            "line": 0,
+            "issue": f"check_computed_colors JS error: {e}",
+            "content": "",
+            "severity": "medium",
+        })
+        return violations
+
+    for item in elements:
+        token_var = item.get("tokenVar", "")
+        expected_hex = ALLOWED_TOKENS_VARS.get(token_var)
+        if not expected_hex:
+            continue
+        computed_str = item.get("computed", "")
+        computed_rgb = _parse_computed_color(computed_str)
+        expected_rgb = _hex_to_rgb(expected_hex)
+        if computed_rgb is None or expected_rgb is None:
+            continue
+        if not _rgb_within_tolerance(computed_rgb, expected_rgb):
+            violations.append({
+                "file": url,
+                "line": 0,
+                "issue": (
+                    f"Computed color mismatch on '{item['selector']}' "
+                    f"(property: {item['property']}): "
+                    f"got {computed_str}, expected {expected_hex} ({token_var})"
+                ),
+                "content": "",
+                "severity": "medium",
+            })
+    return violations
+
+
+def check_computed_fonts(page, url: str) -> list[dict]:
+    """
+    Verify computed font families:
+    - .obs-table elements must resolve to monospace
+    - p, .insight__body elements must resolve to sans-serif
+    """
+    violations = []
+    js = """
+    () => {
+        const results = [];
+        const monoChecks = ['.obs-table', '.obs-table__mono'];
+        const sansChecks = ['p', '.insight__body'];
+        for (const sel of monoChecks) {
+            const el = document.querySelector(sel);
+            if (!el) continue;
+            const ff = window.getComputedStyle(el).fontFamily.toLowerCase();
+            results.push({selector: sel, fontFamily: ff, expected: 'mono'});
+        }
+        for (const sel of sansChecks) {
+            const el = document.querySelector(sel);
+            if (!el) continue;
+            const ff = window.getComputedStyle(el).fontFamily.toLowerCase();
+            results.push({selector: sel, fontFamily: ff, expected: 'sans'});
+        }
+        return results;
+    }
+    """
+    try:
+        elements = page.evaluate(js)
+    except Exception as e:
+        violations.append({
+            "file": url,
+            "line": 0,
+            "issue": f"check_computed_fonts JS error: {e}",
+            "content": "",
+            "severity": "medium",
+        })
+        return violations
+
+    MONO_SIGNALS = ["mono", "courier", "consolas", "jetbrains", "cascadia", "ui-monospace"]
+    SANS_SIGNALS = ["sans", "inter", "system-ui", "ibm plex", "-apple-system", "blinkmacsystemfont", "segoe"]
+
+    for item in elements:
+        ff = item.get("fontFamily", "").lower()
+        expected = item.get("expected", "")
+        sel = item.get("selector", "")
+        if expected == "mono":
+            if not any(sig in ff for sig in MONO_SIGNALS):
+                violations.append({
+                    "file": url,
+                    "line": 0,
+                    "issue": (
+                        f"Font compliance: '{sel}' expected monospace but got: {ff[:80]}"
+                    ),
+                    "content": "",
+                    "severity": "medium",
+                })
+        elif expected == "sans":
+            if not any(sig in ff for sig in SANS_SIGNALS):
+                violations.append({
+                    "file": url,
+                    "line": 0,
+                    "issue": (
+                        f"Font compliance: '{sel}' expected sans-serif but got: {ff[:80]}"
+                    ),
+                    "content": "",
+                    "severity": "medium",
+                })
+    return violations
+
+
+def check_axe_contrast(page, url: str) -> list[dict]:
+    """
+    Inject axe-core and run WCAG AA color-contrast checks.
+    Each axe violation is reported as high severity.
+    """
+    violations = []
+    try:
+        page.add_script_tag(url=AXE_CDN_URL)
+        # Wait for axe to be available
+        page.wait_for_function("typeof axe !== 'undefined'", timeout=10000)
+    except Exception as e:
+        violations.append({
+            "file": url,
+            "line": 0,
+            "issue": f"axe-core load failed: {e}",
+            "content": "",
+            "severity": "medium",
+        })
+        return violations
+
+    js = """
+    async () => {
+        const result = await axe.run({runOnly: ['color-contrast']});
+        return result.violations.map(v => ({
+            id: v.id,
+            description: v.description,
+            nodes: v.nodes.map(n => ({
+                target: n.target.join(', '),
+                failureSummary: n.failureSummary
+            }))
+        }));
+    }
+    """
+    try:
+        axe_violations = page.evaluate(js)
+    except Exception as e:
+        violations.append({
+            "file": url,
+            "line": 0,
+            "issue": f"axe.run() failed: {e}",
+            "content": "",
+            "severity": "medium",
+        })
+        return violations
+
+    for v in axe_violations:
+        for node in v.get("nodes", []):
+            target = node.get("target", "")
+            summary = node.get("failureSummary", "")[:200]
+            violations.append({
+                "file": url,
+                "line": 0,
+                "issue": f"axe WCAG AA contrast violation on '{target}': {summary}",
+                "content": "",
+                "severity": "high",
+            })
+    return violations
+
+
+def check_viewport_overflow(page, url: str) -> list[dict]:
+    """
+    Check for horizontal scroll (layout breakage).
+    scrollWidth > window.innerWidth indicates overflow.
+    """
+    violations = []
+    js = """
+    () => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        innerWidth: window.innerWidth
+    })
+    """
+    try:
+        result = page.evaluate(js)
+        scroll_w = result.get("scrollWidth", 0)
+        inner_w = result.get("innerWidth", 0)
+        if scroll_w > inner_w:
+            violations.append({
+                "file": url,
+                "line": 0,
+                "issue": (
+                    f"Viewport overflow (horizontal scroll): "
+                    f"scrollWidth={scroll_w}px > innerWidth={inner_w}px"
+                ),
+                "content": "",
+                "severity": "medium",
+            })
+    except Exception as e:
+        violations.append({
+            "file": url,
+            "line": 0,
+            "issue": f"check_viewport_overflow JS error: {e}",
+            "content": "",
+            "severity": "medium",
+        })
+    return violations
+
+
+def run_live_checks(base_url: str, pages: list[dict], test_secret: str | None = None) -> list[dict]:
+    """
+    Launch headless Chromium via Playwright and run live CSS checks on each page.
+    Returns a flat list of violation dicts (same schema as static check violations).
+    """
+    # Conditional import — only needed for --live mode
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return [{
+            "file": base_url,
+            "line": 0,
+            "issue": "Playwright not installed. Run: pip install playwright && playwright install chromium",
+            "content": "",
+            "severity": "error",
+        }]
+
+    all_violations = []
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+
+        for page_def in pages:
+            page_url = base_url.rstrip("/") + page_def["path"]
+            context = browser.new_context(viewport={"width": 1440, "height": 900})
+
+            # If auth page and test_secret provided, inject auth cookie / header
+            if page_def.get("auth") == "auth" and test_secret:
+                # Use auth test-login endpoint if available (matches web/routes_auth.py pattern)
+                try:
+                    auth_page = context.new_page()
+                    auth_page.goto(
+                        base_url.rstrip("/") + f"/auth/test-login?secret={test_secret}",
+                        wait_until="networkidle",
+                        timeout=15000,
+                    )
+                    auth_page.close()
+                except Exception:
+                    pass  # Auth page check continues even if test login fails
+
+            page = context.new_page()
+            print(f"  [live] Checking {page_url} ...", file=sys.stderr)
+
+            try:
+                page.goto(page_url, wait_until="networkidle", timeout=30000)
+            except Exception as e:
+                all_violations.append({
+                    "file": page_url,
+                    "line": 0,
+                    "issue": f"Page load failed: {e}",
+                    "content": "",
+                    "severity": "medium",
+                })
+                page.close()
+                context.close()
+                continue
+
+            all_violations.extend(check_computed_colors(page, page_url))
+            all_violations.extend(check_computed_fonts(page, page_url))
+            all_violations.extend(check_axe_contrast(page, page_url))
+            all_violations.extend(check_viewport_overflow(page, page_url))
+
+            page.close()
+            context.close()
+
+        browser.close()
+
+    return all_violations
+
+
+def format_live_report(static_violations, live_violations, static_files, live_pages, combined_score):
+    """Format combined static + live violations as a markdown report."""
+    lines = []
+    lines.append("# Design Token Lint Report — Live + Static")
+    lines.append("")
+    lines.append(f"**Static files checked:** {len(static_files)}")
+    lines.append(f"**Live pages checked:** {len(live_pages)}")
+    lines.append(f"**Static violations:** {len(static_violations)}")
+    lines.append(f"**Live violations:** {len(live_violations)}")
+    lines.append(f"**Combined Score:** {combined_score}/5")
+    lines.append("")
+
+    severity_desc = {
+        5: "Clean — no violations. Auto-promote to prod.",
+        4: "Minor — 1-2 small issues. Auto-promote, hotfix after prod push.",
+        3: "Notable — ad-hoc patterns detected. Auto-promote, mandatory hotfix after prod push.",
+        2: "Significant — user-visible off-system elements. HOLD prod — Tim reviews, hotfix before promote.",
+        1: "Broken — extensive design system violations. HOLD prod — Tim reviews, hotfix before promote.",
+    }
+    lines.append(f"**Assessment:** {severity_desc.get(combined_score, 'Unknown')}")
+    lines.append("")
+
+    all_violations = static_violations + live_violations
+    if not all_violations:
+        lines.append("No violations found.")
+        return "\n".join(lines)
+
+    # Static section
+    if static_violations:
+        lines.append("## Static Analysis Violations")
+        lines.append("")
+        by_file = {}
+        for v in static_violations:
+            by_file.setdefault(v["file"], []).append(v)
+        for filepath, file_violations in sorted(by_file.items()):
+            lines.append(f"### `{filepath}` ({len(file_violations)} violations)")
+            lines.append("")
+            for v in file_violations:
+                sev_icon = {"high": "🔴", "medium": "🟡", "low": "🔵", "error": "⚫"}.get(v["severity"], "⚪")
+                lines.append(f"- {sev_icon} **Line {v['line']}** [{v['severity']}]: {v['issue']}")
+                if v.get("content"):
+                    lines.append(f"  `{v['content']}`")
+            lines.append("")
+
+    # Live section
+    if live_violations:
+        lines.append("## Live Computed CSS Violations")
+        lines.append("")
+        by_url = {}
+        for v in live_violations:
+            by_url.setdefault(v["file"], []).append(v)
+        for url, url_violations in sorted(by_url.items()):
+            lines.append(f"### `{url}` ({len(url_violations)} violations)")
+            lines.append("")
+            for v in url_violations:
+                sev_icon = {"high": "🔴", "medium": "🟡", "low": "🔵", "error": "⚫"}.get(v["severity"], "⚪")
+                lines.append(f"- {sev_icon} [{v['severity']}]: {v['issue']}")
+            lines.append("")
+
+    # Summary
+    lines.append("## Summary")
+    lines.append("")
+    lines.append("| Severity | Static | Live | Total |")
+    lines.append("|----------|--------|------|-------|")
+    for sev in ["high", "medium", "low"]:
+        s_count = sum(1 for v in static_violations if v["severity"] == sev)
+        l_count = sum(1 for v in live_violations if v["severity"] == sev)
+        if s_count + l_count > 0:
+            lines.append(f"| {sev} | {s_count} | {l_count} | {s_count + l_count} |")
+    lines.append("")
+
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Design token lint for sfpermits.ai templates")
     parser.add_argument("--files", nargs="*", help="Specific files to lint")
     parser.add_argument("--changed", action="store_true", help="Only lint git-changed templates")
     parser.add_argument("--output", default="qa-results/design-lint-results.md", help="Output file path")
     parser.add_argument("--quiet", action="store_true", help="Only print score line")
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Run live Playwright checks (computed CSS, axe-core WCAG AA contrast, viewport overflow). Requires --url.",
+    )
+    parser.add_argument(
+        "--url",
+        default=None,
+        help="Base URL for --live mode (e.g. https://sfpermits-ai-staging-production.up.railway.app)",
+    )
     args = parser.parse_args()
 
+    if args.live and not args.url:
+        parser.error("--live requires --url (e.g. --url https://staging.example.com)")
+
+    # --- Static checks (always run) ---
     if args.files:
         files = args.files
     elif args.changed:
         files = get_changed_templates()
-        if not files:
+        if not files and not args.live:
             print("No changed templates found.")
             return
     else:
         files = get_all_templates()
 
-    all_violations = []
+    static_violations = []
     for filepath in files:
         if os.path.exists(filepath):
-            all_violations.extend(lint_file(filepath))
+            static_violations.extend(lint_file(filepath))
 
-    lint_score = score(all_violations)
-    report = format_report(all_violations, files, lint_score)
+    if not args.live:
+        # Static-only path (original behavior)
+        lint_score = score(static_violations)
+        report = format_report(static_violations, files, lint_score)
 
-    # Write report
-    os.makedirs(os.path.dirname(args.output), exist_ok=True)
-    with open(args.output, "w") as f:
+        output_path = args.output
+        os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+        with open(output_path, "w") as f:
+            f.write(report)
+
+        if args.quiet:
+            print(f"Token lint: {lint_score}/5 ({len(static_violations)} violations across {len(files)} files)")
+        else:
+            print(report)
+
+        sys.exit(0)
+
+    # --- Live path ---
+    test_secret = os.environ.get("TEST_LOGIN_SECRET")
+    pages_to_check = list(LIVE_PUBLIC_PAGES)
+    if test_secret:
+        pages_to_check.extend(LIVE_AUTH_PAGES)
+
+    print(f"Running live checks on {len(pages_to_check)} pages at {args.url} ...", file=sys.stderr)
+    live_violations = run_live_checks(args.url, pages_to_check, test_secret)
+
+    all_violations = static_violations + live_violations
+    combined_score = score(all_violations)
+
+    output_path = args.output if args.output != "qa-results/design-lint-results.md" else "qa-results/design-lint-live-results.md"
+    os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+
+    report = format_live_report(static_violations, live_violations, files, pages_to_check, combined_score)
+    with open(output_path, "w") as f:
         f.write(report)
 
     if args.quiet:
-        print(f"Token lint: {lint_score}/5 ({len(all_violations)} violations across {len(files)} files)")
+        print(
+            f"Token lint (live): {combined_score}/5 "
+            f"(static: {len(static_violations)}, live: {len(live_violations)} violations)"
+        )
     else:
         print(report)
 
-    # Exit code: 0 always (non-blocking), but print score for CI
     sys.exit(0)
 
 
