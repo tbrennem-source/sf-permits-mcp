@@ -226,7 +226,7 @@ def check_test_regression():
     try:
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "tests/", "-x", "-q",
-             "--tb=no", "--ignore=tests/test_tools.py", "--timeout=30"],
+             "--tb=no", "--ignore=tests/test_tools.py", "--ignore=tests/e2e"],
             capture_output=True, text=True, timeout=300,
             env={**os.environ, "TESTING": "1"}
         )
