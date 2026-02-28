@@ -421,6 +421,21 @@
   .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
   .footer-links .sep { margin: 0 12px; color: var(--glass-border); }
 
+  /* Admin state toggle — visible only with ?admin=1 */
+  .state-toggle {
+    position: fixed; bottom: 24px; right: 24px; z-index: 100;
+    display: none; gap: 1px; border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--glass-border); flex-wrap: wrap; justify-content: flex-end;
+  }
+  .state-toggle.visible { display: flex; }
+  .state-toggle button {
+    padding: 8px 14px; font-family: var(--mono); font-size: 11px;
+    background: var(--obsidian-mid); color: var(--text-tertiary);
+    border: none; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  .state-toggle button:hover { background: var(--obsidian-light); }
+  .state-toggle button.active { background: var(--accent-glow); color: var(--accent); }
+
   @media (max-width: 768px) {
     .stats-row { flex-wrap: wrap; gap: 24px; justify-content: center; padding: 28px 0; }
     .stat-divider { display: none; }
@@ -1220,6 +1235,21 @@
       document.getElementById('scroll-cue').classList.add('hidden');
     }
   }, { passive: true });
+</script>
+<!-- Admin state toggle — only with ?admin=1 -->
+<div class="state-toggle" id="state-toggle">
+  <button class="active" onclick="setState('new')">New</button>
+  <button onclick="setState('beta_nowatch')">Beta</button>
+  <button onclick="setState('beta')">Beta+watch</button>
+  <button onclick="setState('returning_nowatch')">Return</button>
+  <button onclick="setState('returning')">Return+watch</button>
+  <button onclick="setState('power')">Power</button>
+</div>
+<script nonce="{{ csp_nonce }}">
+  // Show state toggle only for admin
+  if (new URLSearchParams(window.location.search).has('admin')) {
+    document.getElementById('state-toggle').classList.add('visible');
+  }
 </script>
 <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
 {% if posthog_key %}
