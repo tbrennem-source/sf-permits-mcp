@@ -747,9 +747,9 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
         lines.append(f"**🆕 {count} new {noun} filed**")
         for p in new_permits[:3]:
             pn = p.get("permit_number", "")
-            pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
-            pt = _title_permit_type(p.get("permit_type_definition") or "Building Permit")[:40]
-            fd = _fmt_date(p.get("filed_date"))
+            pn_link = f"[{pn}](/tools/station-predictor?permit={pn}) [[DBI ↗]](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
+            pt = (p.get("permit_type_definition") or "Building Permit")[:40]
+            fd = (p.get("filed_date") or "")[:10]
             cost = p.get("revised_cost") or p.get("estimated_cost") or 0
             cost_str = f" · ${cost:,.0f}" if cost else ""
             lines.append(f"- {pn_link} — {pt} · filed {fd}{cost_str}")
@@ -764,9 +764,9 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
         lines.append(f"**✅ {count} {noun} issued**")
         for p in recently_issued[:3]:
             pn = p.get("permit_number", "")
-            pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
-            pt = _title_permit_type(p.get("permit_type_definition") or "")[:40]
-            issued = _fmt_date(p.get("issued_date"))
+            pn_link = f"[{pn}](/tools/station-predictor?permit={pn}) [[DBI ↗]](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
+            pt = (p.get("permit_type_definition") or "")[:40]
+            issued = (p.get("issued_date") or "")[:10]
             lines.append(f"- {pn_link} — {pt} · issued {issued}")
         if count > 3:
             lines.append(f"- *…and {count - 3} more*")
@@ -779,9 +779,9 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
         lines.append(f"**🏁 {count} {noun} completed**")
         for p in recently_completed[:3]:
             pn = p.get("permit_number", "")
-            pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
-            pt = _title_permit_type(p.get("permit_type_definition") or "")[:40]
-            completed = _fmt_date(p.get("completed_date"))
+            pn_link = f"[{pn}](/tools/station-predictor?permit={pn}) [[DBI ↗]](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
+            pt = (p.get("permit_type_definition") or "")[:40]
+            completed = (p.get("completed_date") or "")[:10]
             lines.append(f"- {pn_link} — {pt} · completed {completed}")
         if count > 3:
             lines.append(f"- *…and {count - 3} more*")
@@ -895,13 +895,12 @@ def _format_permit_detail(p: dict) -> str:
     """Format a single permit as markdown."""
     lines = []
     pn = p['permit_number']
-    pn_url = f"https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn}"
+    station_url = f"/tools/station-predictor?permit={pn}"
     from src.report_links import ReportLinks
     details_url = ReportLinks.dbi_permit_details(pn)
-    lines.append(f"**Permit Number:** [{pn}]({pn_url}) | [DBI Permit Details]({details_url})")
-    raw_type = p.get('permit_type_definition') or p.get('permit_type') or 'Unknown'
-    lines.append(f"**Type:** {_title_permit_type(raw_type)}")
-    lines.append(f"**Status:** {(p.get('status') or 'Unknown').title()}")
+    lines.append(f"**Permit Number:** [{pn}]({station_url}) | [View on DBI →]({details_url})")
+    lines.append(f"**Type:** {p.get('permit_type_definition') or p.get('permit_type') or 'Unknown'}")
+    lines.append(f"**Status:** {p.get('status') or 'Unknown'}")
     if p.get("status_date"):
         lines[-1] += f" (as of {_fmt_date(p['status_date'])})"
     if p.get("description"):
@@ -1172,7 +1171,7 @@ async def permit_lookup(
             for p in permits[:20]:
                 pn = p.get("permit_number", "")
                 # Hyperlink permit number to DBI tracker
-                pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})" if pn else "—"
+                pn_link = f"[{pn}](/tools/station-predictor?permit={pn}) [[DBI ↗]](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})" if pn else "—"
                 pt = (p.get("permit_type_definition") or "")[:35]
                 st = p.get("status") or "—"
                 fd = p.get("filed_date") or "—"
