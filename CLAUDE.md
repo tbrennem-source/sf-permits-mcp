@@ -483,9 +483,9 @@ This project participates in Tim's standard session protocols. These are defined
 
 **CHECKCHAT** — Session close protocol for **solo sessions** (single agent, design QA, hotfix). Six steps: VERIFY, DOCUMENT, CAPTURE, SHIP, PREP NEXT, BLOCKED ITEMS REPORT.
 
-**CHECKQUAD** — Session close protocol for **quad sprint terminals** (T1-T4). Lighter than CHECKCHAT, artifact-first. Five steps: MERGE, ARTIFACT (session report), CAPTURE (per-terminal files), HYGIENE CHECK, SIGNAL DONE. Delegates documentation/shipping to T0. See dforge `swarm-coordination` template for full protocol.
+**CHECKQUAD** — Session close protocol for **quad sprint terminals** (T1-T4). Lighter than CHECKCHAT, artifact-first. **Step 0: ESCAPE CWD** — `cd` to main repo root BEFORE the MERGE step. Then: MERGE, ARTIFACT (session report), CAPTURE (per-terminal files), HYGIENE CHECK, SIGNAL DONE. Delegates documentation/shipping to T0. See dforge `swarm-coordination` template for full protocol.
 
-**CHECKQUAD-T0** — Session close protocol for **quad sprint orchestrator** (T0). Heavier than CHECKCHAT, consolidates all terminals. Seven steps: COLLECT, VERIFY, VISUAL QA, CONSOLIDATE, DOCUMENT, HARVEST (dforge lessons), SHIP+PROMOTE.
+**CHECKQUAD-T0** — Session close protocol for **quad sprint orchestrator** (T0). Heavier than CHECKCHAT, consolidates all terminals. **T0 NEVER enters a worktree** — it operates from main repo root throughout. Seven steps: COLLECT, VERIFY, VISUAL QA, CONSOLIDATE, DOCUMENT, HARVEST (dforge lessons), SHIP+PROMOTE. **Worktree cleanup (`git worktree prune` + branch deletion) is the LAST step of SHIP+PROMOTE**, after all sessions are closed.
 
 **Black Box Session Protocol (2 stages):**
 
@@ -551,8 +551,9 @@ Use ONLY token components and CSS custom properties. Log new components to docs/
 For sprints with 8+ tasks spanning multiple domains. 4 CC terminals × 4 agents each. Tim operates T0 (orchestrator terminal) which launches and coordinates T1-T4.
 
 ```
-T0 (Tim — orchestrator, no agents)
+T0 (Tim — orchestrator, no agents, NEVER in a worktree)
 ├── Pre-flight: verify clean state, tests, prod health, baselines
+│   └── Stale worktree check: git worktree list → prune → delete merged branches
 ├── Launch T1-T4 by pasting prompts into 4 CC terminals
 ├── Monitor: all agents FOREGROUND, watch for failures
 ├── After all terminals finish:
@@ -560,7 +561,8 @@ T0 (Tim — orchestrator, no agents)
 │   ├── File ownership audit (diff against ownership matrix)
 │   ├── Full test suite (one run, not per-terminal)
 │   ├── Prod gate: python scripts/prod_gate.py --quiet
-│   └── Promote: git checkout prod && git merge main && git push origin prod
+│   ├── Promote: git checkout prod && git merge main && git push origin prod
+│   └── Worktree cleanup (LAST step): git worktree prune && delete merged branches
 └── Report to Chief
 
 T1 (CC Terminal 1 — e.g., infrastructure)     — spawns 4 agents, merges internally

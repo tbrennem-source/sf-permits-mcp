@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-28T05:00:06.476488+00:00",
-  "total_routes": 176,
+  "generated_at": "2026-02-28T13:37:33.843214+00:00",
+  "total_routes": 181,
   "routes": [
     {
       "path": "/robots.txt",
@@ -345,6 +345,15 @@
       "function_name": "admin_perf"
     },
     {
+      "path": "/admin/health",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_health"
+    },
+    {
       "path": "/api/prep/create",
       "methods": [
         "POST"
@@ -559,6 +568,42 @@
       "auth_level": "cron",
       "template": null,
       "function_name": "api_qa_feedback"
+    },
+    {
+      "path": "/api/predict-next/<permit_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_predict_next_stations"
+    },
+    {
+      "path": "/api/stuck-permit/<permit_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_stuck_permit"
+    },
+    {
+      "path": "/api/what-if",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_what_if"
+    },
+    {
+      "path": "/api/delay-cost",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_delay_cost"
     },
     {
       "path": "/api/qa-tour-verdicts",
@@ -1613,7 +1658,7 @@
   "auth_summary": {
     "public": 46,
     "auth": 35,
-    "admin": 33,
-    "cron": 62
+    "admin": 34,
+    "cron": 66
   }
 }
