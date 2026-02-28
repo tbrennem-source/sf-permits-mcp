@@ -757,6 +757,181 @@ def api_qa_feedback():
     return jsonify({"ok": True})
 
 
+# ---------------------------------------------------------------------------
+# Intelligence tools (Sprint 85-A)
+# ---------------------------------------------------------------------------
+
+@bp.route("/api/predict-next/<permit_number>")
+def api_predict_next_stations(permit_number):
+    """Predict the next review stations for an active SF permit.
+
+    Requires authentication. Returns markdown-formatted prediction as JSON.
+
+    GET /api/predict-next/<permit_number>
+
+    Returns JSON:
+      {
+        "permit_number": str,
+        "result": str  (markdown)
+      }
+    or {"error": "..."} with 401/500.
+    """
+    from web.helpers import login_required as _login_required
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    permit_number = permit_number.strip()
+    if not permit_number:
+        return jsonify({"error": "permit_number required"}), 400
+
+    try:
+        from src.tools.predict_next_stations import predict_next_stations
+        result = run_async(predict_next_stations(permit_number))
+        return jsonify({"permit_number": permit_number, "result": result})
+    except Exception as e:
+        logging.exception("api_predict_next_stations failed for %s", permit_number)
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/api/stuck-permit/<permit_number>")
+def api_stuck_permit(permit_number):
+    """Diagnose why a permit is stuck and return a ranked intervention playbook.
+
+    Requires authentication. Returns markdown-formatted playbook as JSON.
+
+    GET /api/stuck-permit/<permit_number>
+
+    Returns JSON:
+      {
+        "permit_number": str,
+        "result": str  (markdown playbook)
+      }
+    or {"error": "..."} with 401/500.
+    """
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    permit_number = permit_number.strip()
+    if not permit_number:
+        return jsonify({"error": "permit_number required"}), 400
+
+    try:
+        from src.tools.stuck_permit import diagnose_stuck_permit
+        result = run_async(diagnose_stuck_permit(permit_number))
+        return jsonify({"permit_number": permit_number, "result": result})
+    except Exception as e:
+        logging.exception("api_stuck_permit failed for %s", permit_number)
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/api/what-if", methods=["POST"])
+def api_what_if():
+    """Compare how project variations change timeline, fees, and revision risk.
+
+    Requires authentication. Accepts JSON body.
+
+    POST /api/what-if
+    Body:
+      {
+        "base_description": str,   (required)
+        "variations": [            (optional, default [])
+          {"label": str, "description": str},
+          ...
+        ]
+      }
+
+    Returns JSON:
+      {
+        "result": str  (markdown comparison table)
+      }
+    or {"error": "..."} with 400/401/500.
+    """
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+    base_description = data.get("base_description", "").strip()
+    if not base_description:
+        return jsonify({"error": "base_description required"}), 400
+
+    variations = data.get("variations", [])
+    if not isinstance(variations, list):
+        return jsonify({"error": "variations must be a list"}), 400
+
+    try:
+        from src.tools.what_if_simulator import simulate_what_if
+        result = run_async(simulate_what_if(
+            base_description=base_description,
+            variations=variations,
+        ))
+        return jsonify({"result": result})
+    except Exception as e:
+        logging.exception("api_what_if failed")
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/api/delay-cost", methods=["POST"])
+def api_delay_cost():
+    """Calculate financial cost of permit processing delays.
+
+    Requires authentication. Accepts JSON body.
+
+    POST /api/delay-cost
+    Body:
+      {
+        "permit_type": str,              (required, e.g. "adu", "restaurant")
+        "monthly_carrying_cost": float,  (required, > 0)
+        "neighborhood": str,             (optional)
+        "triggers": [str, ...]           (optional)
+      }
+
+    Returns JSON:
+      {
+        "result": str  (markdown cost breakdown)
+      }
+    or {"error": "..."} with 400/401/500.
+    """
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+    permit_type = data.get("permit_type", "").strip()
+    if not permit_type:
+        return jsonify({"error": "permit_type required"}), 400
+
+    monthly_carrying_cost = data.get("monthly_carrying_cost")
+    if monthly_carrying_cost is None:
+        return jsonify({"error": "monthly_carrying_cost required"}), 400
+    try:
+        monthly_carrying_cost = float(monthly_carrying_cost)
+    except (TypeError, ValueError):
+        return jsonify({"error": "monthly_carrying_cost must be a number"}), 400
+    if monthly_carrying_cost <= 0:
+        return jsonify({"error": "monthly_carrying_cost must be greater than zero"}), 400
+
+    neighborhood = data.get("neighborhood") or None
+    triggers = data.get("triggers") or None
+    if triggers is not None and not isinstance(triggers, list):
+        return jsonify({"error": "triggers must be a list"}), 400
+
+    try:
+        from src.tools.cost_of_delay import calculate_delay_cost
+        result = run_async(calculate_delay_cost(
+            permit_type=permit_type,
+            monthly_carrying_cost=monthly_carrying_cost,
+            neighborhood=neighborhood,
+            triggers=triggers,
+        ))
+        return jsonify({"result": result})
+    except Exception as e:
+        logging.exception("api_delay_cost failed")
+        return jsonify({"error": str(e)}), 500
+
+
 @bp.route("/api/qa-tour-verdicts")
 def api_qa_tour_verdicts():
     """Return accepted tour verdicts for a page, so the tour can skip them."""
