@@ -899,8 +899,8 @@ def _format_permit_detail(p: dict) -> str:
     from src.report_links import ReportLinks
     details_url = ReportLinks.dbi_permit_details(pn)
     lines.append(f"**Permit Number:** [{pn}]({station_url}) | [View on DBI →]({details_url})")
-    lines.append(f"**Type:** {p.get('permit_type_definition') or p.get('permit_type') or 'Unknown'}")
-    lines.append(f"**Status:** {p.get('status') or 'Unknown'}")
+    lines.append(f"**Type:** {_title_permit_type(p.get('permit_type_definition') or p.get('permit_type') or 'Unknown')}")
+    lines.append(f"**Status:** {_title_permit_type(p.get('status') or 'Unknown')}")
     if p.get("status_date"):
         lines[-1] += f" (as of {_fmt_date(p['status_date'])})"
     if p.get("description"):

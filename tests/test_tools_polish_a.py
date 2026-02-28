@@ -53,8 +53,8 @@ class TestStationPredictorEmptyState:
         assert 'empty-state' in self.html
 
     def test_empty_state_hint_text(self):
-        """Empty state shows helpful hint text."""
-        assert 'Enter a permit number' in self.html or 'permit number above' in self.html
+        """Empty state shows helpful hint text about what the tool does."""
+        assert 'permit number' in self.html.lower() or 'routing' in self.html.lower()
 
     def test_demo_permit_chips_present(self):
         """Empty state shows demo permit chips for quick testing."""

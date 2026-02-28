@@ -221,11 +221,12 @@ class TestDemoPage:
         html = rv.data.decode()
         assert "entity" in html.lower() or "Entity" in html
 
-    def test_demo_has_cta_with_invite_code(self, client):
-        """/demo has a CTA linking to signup with friends-gridcare invite code."""
+    def test_demo_has_cta_without_hardcoded_invite_code(self, client):
+        """/demo CTA links to /auth/login without exposing a hardcoded invite code."""
         rv = client.get("/demo")
         html = rv.data.decode()
-        assert "friends-gridcare" in html
+        # Invite code was removed — security fix
+        assert "friends-gridcare" not in html
         assert "/auth/login" in html
 
     def test_demo_has_architecture_stats(self, client):
@@ -236,8 +237,8 @@ class TestDemoPage:
         assert "30" in html  # 30 MCP tools
         assert "576K" in html  # relationship edges
 
-    def test_demo_has_try_it_cta(self, client):
-        """/demo has 'Try it yourself' CTA text."""
+    def test_demo_has_cta_section(self, client):
+        """/demo has a CTA section encouraging users to get started."""
         rv = client.get("/demo")
         html = rv.data.decode()
-        assert "Try it yourself" in html
+        assert "Ready to search your property?" in html or "Get Started" in html
