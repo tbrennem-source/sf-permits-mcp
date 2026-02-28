@@ -1,5 +1,26 @@
 # Changelog
 
+## QS9 T4 + Hotfix Session — Cleanup, CSRF Hardening, Admin Tools (2026-02-28)
+
+### QS9 T4: Sprint 85 Cleanup (4 agents)
+- **Agent A (API routes):** 4 new JSON endpoints in `web/routes_api.py`: `GET /api/predict-next/<permit>`, `GET /api/stuck-permit/<permit>`, `POST /api/what-if`, `POST /api/delay-cost` — wrapping the 4 intelligence tools for web consumption
+- **Agent B (Scenario consolidation):** Merged 147 unique scenarios from 37 per-agent files into `scenarios-pending-review.md`, deleted per-agent files
+- **Agent C (Stale file cleanup):** Deleted 45 stale files (old sprint prompts, mockup drafts, `landing-v5.html`, redundant scripts)
+- **Agent D (Docs update):** README updated (30→34 tools), `docs/ARCHITECTURE.md` updated, CHANGELOG structured
+
+### CSRF Hardening Hotfix
+- **Root cause:** Flask TESTING mode disables CSRF middleware — forms missing `csrf_token` pass all tests but 403 in production
+- **3-layer fix applied across ~25 files:**
+  1. HTML forms: `<input type="hidden" name="csrf_token" value="{{ csrf_token }}">` in all POST forms
+  2. HTMX: Global `htmx:configRequest` listener in `web/templates/fragments/head_obsidian.html` — all `hx-post` requests now include `X-CSRFToken` header automatically
+  3. fetch()/XHR: Explicit `X-CSRFToken` header added to all POST fetch calls
+- **`/api/activity/track` exempted** from CSRF — `sendBeacon` cannot set custom headers
+- **`scripts/design_lint.py`:** Added `check_missing_csrf()` — high-severity check flags POST forms missing `csrf_token`
+
+### Admin Tools Fixes
+- **Tour auto-launch bug fixed:** `qa_tour` cookie persistence removed — tour now only launches when `?tour=1` is explicitly in the URL
+- **Feedback panel cleared on sync:** `admin-feedback.js` now auto-prunes `synced: true` items from localStorage on page load; `renderHistory()` shows only pending (unsynced) items; count badge reflects pending count only
+
 ## QS8 — Quad Sprint 8: Performance + Intelligence Tools (2026-02-27)
 
 ### T1: Infrastructure + Observability

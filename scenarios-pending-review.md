@@ -8,6 +8,49 @@
 
 _Last reviewed: Sprint 68-A (2026-02-26)_
 _Consolidated: Sprint 85-B (2026-02-27) — 116 unique scenarios, 27 duplicates flagged_
+_Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
+
+---
+
+## SUGGESTED SCENARIO: post-form-csrf-protection
+**Source:** CSRF hotfix session (nav.html, head_obsidian.html)
+**User:** authenticated user (any role)
+**Starting state:** User is logged in and interacts with a POST form (e.g., logout, feedback, plan upload)
+**Goal:** Submit the form and complete the action
+**Expected outcome:** Form submits successfully; no 403 error; action completes
+**Edge cases seen in code:** TESTING mode disables CSRF — tests pass even when csrf_token is missing; production fails
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: htmx-post-action-csrf
+**Source:** CSRF hotfix — HTMX hx-post requests
+**User:** authenticated user
+**Starting state:** User is on any page using HTMX for server interactions (search, feedback, toggles)
+**Goal:** Trigger an HTMX POST action
+**Expected outcome:** Request succeeds; X-CSRFToken header included automatically; action completes
+**Edge cases seen in code:** Templates not using head_obsidian.html do not inherit the global listener
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: admin-tour-url-only
+**Source:** admin-tour.js cookie persistence bug
+**User:** admin
+**Starting state:** Admin previously visited a page with ?tour=1; now navigates elsewhere without ?tour=1
+**Goal:** Browse normally without the QA tour appearing
+**Expected outcome:** Tour does not launch; no cookie persists tour state across page loads
+**Edge cases seen in code:** Stale qa_tour cookie must be actively cleared on load
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: qa-feedback-panel-pending-only
+**Source:** admin-feedback.js synced-item prune
+**User:** admin
+**Starting state:** Admin submits QA feedback; feedback syncs to server successfully
+**Goal:** See only unresolved/pending feedback in the panel
+**Expected outcome:** Synced items disappear from the panel after sync; count badge shows pending count only; on next page load, synced items are pruned from localStorage
+**Edge cases seen in code:** Items that fail to sync remain visible until manually cleared via "Clear local"
+**CC confidence:** medium
+**Status:** PENDING REVIEW
 
 ---
 
@@ -2018,4 +2061,14 @@ _Consolidated: Sprint 85-B (2026-02-27) — 116 unique scenarios, 27 duplicates 
 **Expected outcome:** With Redis enabled, the counter survives the dyno restart; user's next 2 requests succeed and the 3rd is blocked until the window expires
 **Edge cases seen in code:** Without Redis, in-memory state is lost on restart — documented as known limitation in SCALING.md
 **CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Load test surfaces p95 regression before prod deploy
+**Source:** Sprint 84-D — scripts/load_test.py
+**User:** admin
+**Starting state:** A new build is on staging; no load has been applied yet
+**Goal:** Catch latency regression before the build hits production users
+**Expected outcome:** Running load_test.py against staging reports p95 > acceptable threshold; deploy is held; root cause identified in logs
+**Edge cases seen in code:** Script exits 1 when error rate exceeds 5% — useful as a deploy gate signal
+**CC confidence:** medium
 **Status:** PENDING REVIEW
