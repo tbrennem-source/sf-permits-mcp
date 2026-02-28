@@ -23,8 +23,7 @@
         <input type="text" class="qa-panel__input" id="qa-input" placeholder="Type feedback, press Enter..." autocomplete="off">
       </div>
       <div class="qa-panel__actions">
-        <button class="qa-panel__btn" id="qa-export">Export JSON</button>
-        <button class="qa-panel__btn qa-panel__btn--danger" id="qa-clear">Clear all</button>
+        <button class="qa-panel__btn qa-panel__btn--danger" id="qa-clear">Clear local</button>
       </div>
     </div>
   `;
@@ -107,7 +106,6 @@
   var count = document.getElementById('qa-count');
   var toggle = document.getElementById('qa-toggle');
   var body = document.getElementById('qa-body');
-  var exportBtn = document.getElementById('qa-export');
   var clearBtn = document.getElementById('qa-clear');
 
   function renderHistory() {
@@ -172,17 +170,6 @@
   document.querySelector('.qa-panel__header').addEventListener('click', function() {
     body.classList.toggle('collapsed');
     toggle.textContent = body.classList.contains('collapsed') ? '+' : '−';
-  });
-
-  // Export
-  exportBtn.addEventListener('click', function() {
-    var blob = new Blob([JSON.stringify(feedbackItems, null, 2)], {type: 'application/json'});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'qa-feedback-' + new Date().toISOString().slice(0,10) + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
   });
 
   // Clear
