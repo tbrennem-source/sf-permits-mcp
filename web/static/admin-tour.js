@@ -27,18 +27,22 @@
     if (!allStops.length) return;
 
     // Fetch existing verdicts from DB to filter out accepted
+    // Use ?tour=all to force-show all stops (bypass accepted filter)
+    var showAll = new URLSearchParams(window.location.search).has('all');
     fetch('/api/qa-tour-verdicts?page=' + encodeURIComponent(window.location.pathname))
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) {
-        if (data && data.accepted && data.accepted.length) {
+        if (!showAll && data && data.accepted && data.accepted.length) {
           // Filter out stops whose feedback text matches an accepted verdict
           stops = allStops.filter(function(stop) {
             return !data.accepted.some(function(accepted) {
               return accepted.indexOf(stop.feedback.slice(0, 40)) !== -1;
             });
           });
+          console.log('[tour] filtered:', allStops.length, '→', stops.length, 'stops (accepted:', data.accepted.length, ')');
         } else {
           stops = allStops;
+          console.log('[tour] showing all', stops.length, 'stops', showAll ? '(forced via ?all)' : '');
         }
         if (stops.length) {
           initTour();
