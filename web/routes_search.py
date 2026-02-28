@@ -30,6 +30,7 @@ from web.helpers import (
     parse_search_query,
     build_empty_result_guidance,
 )
+from web.tier_gate import has_tier
 
 bp = Blueprint("search", __name__)
 logger = logging.getLogger(__name__)
@@ -327,6 +328,15 @@ def ask():
 
     # If modifier is set, skip classification — go straight to draft_response
     if modifier:
+        _user_mod = g.get("user")
+        if _user_mod and not has_tier(_user_mod, 'beta'):
+            teaser_html = render_template(
+                "fragments/tier_gate_teaser_inline.html",
+                required_tier='beta',
+                current_tier=_user_mod.get('subscription_tier', 'free'),
+                user=_user_mod,
+            )
+            return teaser_html, 200
         return _ask_draft_response(query, {"query": query}, modifier=modifier)
 
     # Smart Analyze button: analyze=1 is always posted by the button,
@@ -364,6 +374,24 @@ def ask():
     ):
         intent = "draft_response"
         entities = {"query": query}
+
+    # Tier gate: AI synthesis intents require beta or higher.
+    # Data lookup intents (permit, address, complaint, parcel, person) pass through freely.
+    _AI_INTENTS = {"draft_response", "analyze_project", "general_question"}
+    _effective_intent = intent if intent in (
+        "lookup_permit", "search_complaint", "search_address",
+        "search_parcel", "search_person", "validate_plans",
+    ) else "ai_synthesis"
+    if _effective_intent == "ai_synthesis":
+        user = g.get("user")
+        if user and not has_tier(user, 'beta'):
+            teaser_html = render_template(
+                "fragments/tier_gate_teaser_inline.html",
+                required_tier='beta',
+                current_tier=user.get('subscription_tier', 'free'),
+                user=user,
+            )
+            return teaser_html, 200
 
     try:
         if intent == "lookup_permit":

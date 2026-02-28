@@ -49,3 +49,59 @@
 **Edge cases seen in code:** _TIER_LEVELS dict uses numeric ordering; _user_tier_level() defaults unknown tiers to 0; the check is >= not ==
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+
+# Sprint 89-4B — Suggested Scenarios (Agent 4B)
+
+## SUGGESTED SCENARIO: Free user hits portfolio tier gate
+**Source:** Sprint 89 — Tier-Gated Content Application
+**User:** homeowner
+**Starting state:** User has free tier account, clicks Portfolio in nav
+**Goal:** View their property portfolio
+**Expected outcome:** Sees portfolio page with upgrade teaser — clear value prop,
+  CTA to upgrade to beta, not a hard 403 error. The page returns 200 so HTMX
+  and nav continue to work correctly.
+**Edge cases seen in code:** tier_locked=True still returns 200 so HTMX works correctly;
+  empty properties/summary dicts passed to avoid template errors in teaser mode
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Free user sees morning brief header but body is gated
+**Source:** Sprint 89 — Brief Tier Gate
+**User:** homeowner
+**Starting state:** Free tier account, navigates to /brief
+**Goal:** View their morning brief
+**Expected outcome:** Sees the brief page with the morning greeting ("Good morning..."),
+  but the property data sections are replaced by a beta upgrade teaser with clear
+  value proposition (full severity analysis, AI risk assessment). Not a 403.
+**Edge cases seen in code:** Brief header is always rendered; teaser replaces the
+  content body between the header and freshness footer
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Free user asks a question, sees AI teaser in search results
+**Source:** Sprint 89 — AI Consultation Tier Gate
+**User:** homeowner
+**Starting state:** Free tier, types a general question in the /ask search box
+**Goal:** Get AI analysis of their permit situation
+**Expected outcome:** Sees teaser card in search results panel explaining the beta
+  AI feature, with upgrade CTA. Not a blank response, not an error, not a redirect.
+  Data lookups (permit number, address search) still work without gating.
+**Edge cases seen in code:** AI synthesis intents (draft_response, general_question)
+  are gated; data lookup intents (lookup_permit, search_address, search_complaint,
+  search_parcel, search_person, validate_plans) bypass the gate entirely
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Beta user sees full AI consultation
+**Source:** Sprint 89 — Tier-Gated Content Application
+**User:** expediter
+**Starting state:** Beta tier account
+**Goal:** Get AI analysis via /ask
+**Expected outcome:** Full AI response (draft_response template) — no teaser, no tier gate.
+  Modifier quick-actions (shorter, cite_sources, get_meeting) also work without gating.
+**Edge cases seen in code:** has_tier(user, 'beta') returns True for both beta and
+  premium users; modifier path also checks tier before calling _ask_draft_response
+**CC confidence:** high
+**Status:** PENDING REVIEW
