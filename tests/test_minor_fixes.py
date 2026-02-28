@@ -94,16 +94,14 @@ def test_demo_html_has_mobile_callout_fix():
 # ---------------------------------------------------------------------------
 
 def test_landing_stats_counter_target():
-    """landing.html counting animation targets 1137816 (1,137,816 permits)."""
+    """Stats bar removed in QS12-T1A — landing.html no longer has counting animation."""
     with open(LANDING_TEMPLATE, "r") as fh:
         source = fh.read()
 
-    # Look for the data-target attribute on the counting element
-    match = re.search(r'data-target="(\d+)"', source)
-    assert match, "No data-target attribute found on counting element in landing.html"
-    target = int(match.group(1))
-    assert target == 1137816, (
-        f"Stats counter target is {target}, expected 1137816"
+    # Stats bar was removed; credibility line replaced it
+    assert "1,137,816" not in source, "Old stats bar count should be removed from landing.html"
+    assert "credibility-line" in source or "Updated nightly" in source, (
+        "Credibility line should be present instead of stats bar"
     )
 
 
