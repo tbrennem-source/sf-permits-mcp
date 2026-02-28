@@ -3,10 +3,33 @@
 <!-- Do not edit scenario-design-guide.md directly -->
 <!-- This file is reviewed and drained each planning session -->
 <!-- Drained Sprint 68-A: 102 scenarios reviewed, 48 accepted, 30 merged, 22 rejected, 2 deferred -->
-<!-- QS6 (Sprints 74-77): 87 scenarios added by 16 agents across 4 sprints — awaiting planning review -->
+<!-- Sprint 85-B consolidation: 38 per-agent files merged, deduped, and deleted -->
 <!-- See scenarios-reviewed-sprint68.md for full review log -->
 
 _Last reviewed: Sprint 68-A (2026-02-26)_
+_Consolidated: Sprint 85-B (2026-02-27) — 116 unique scenarios, 27 duplicates flagged_
+
+---
+
+## Summary Table
+
+| Category | Count |
+|---|---|
+| Search & Public Access | 18 |
+| Property Intelligence & Reports | 12 |
+| Admin & Operations | 22 |
+| Performance & Infrastructure | 20 |
+| Onboarding & Auth | 14 |
+| Security | 8 |
+| Design System & UI | 8 |
+| MCP Tools (Permit Intelligence) | 21 |
+| Data Ingest & Pipeline | 7 |
+| **Total unique** | **130** |
+| Duplicates flagged | 27 |
+
+---
+
+## SEARCH & PUBLIC ACCESS
 
 ## SUGGESTED SCENARIO: Anonymous visitor sees live data counts on landing page
 **Source:** Sprint 69 S1 — landing.html rewrite + /api/stats endpoint
@@ -17,116 +40,130 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** If /api/stats fails or DB is unavailable, fallback numbers already baked into HTML render correctly. Numbers don't show "undefined" or "NaN".
 **CC confidence:** high
 **Status:** PENDING REVIEW
+**DUPLICATE OF:** SCENARIO 37 (Anonymous user discovers site via landing page) + SCENARIO 73 (ADU landing page shows pre-computed permit stats) — flagged by QS7-4D. Rewritten version below preferred.
+
+---
+
+## SUGGESTED SCENARIO: Data counts endpoint returns fresh platform statistics with graceful fallback
+**Source:** Sprint 69 S1 — /api/stats endpoint (rewritten by QS7-4D)
+**User:** architect
+**Starting state:** The platform data counts have not been requested externally in the last hour.
+**Goal:** Fetch current data volume statistics for display or integration (permits indexed, entities resolved, inspections tracked).
+**Expected outcome:** A data counts request returns integer values for each major data category (permits, routing records, entities, inspections). A timestamp indicates data freshness. A second identical request within the cache window returns the same values without re-querying the database. If the database is unavailable, the response returns pre-configured fallback values rather than an error.
+**Edge cases seen in code:** Rate limiting applies per-IP; DB unavailable returns hardcoded values not nulls
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
 
 ## SUGGESTED SCENARIO: Landing page search bar submits to /search endpoint
 **Source:** Sprint 69 S1 — landing.html hero search form
 **User:** homeowner
 **Starting state:** On the sfpermits.ai landing page, not logged in.
 **Goal:** Search for a property by address to see permit history.
-**Expected outcome:** Typing an address in the search bar and pressing Enter (or clicking Search) navigates to /search?q=<query>. Search results page renders with results or a "no results" message.
+**Expected outcome:** Typing an address in the search bar and pressing Enter (or clicking Search) navigates to search results. Search results page renders with results or a "no results" message.
 **Edge cases seen in code:** Empty query redirects to /. Suggested address codes (1455 Market St) are clickable and pre-fill the input. Search is rate limited at 15 requests/window.
 **CC confidence:** high
 **Status:** PENDING REVIEW
+**DUPLICATE OF:** SCENARIO 37 (search box present) + SCENARIO 38 (anonymous user searches and sees public results)
 
-## SUGGESTED SCENARIO: Design system CSS loads without breaking existing authenticated pages
-**Source:** Sprint 69 S1 — design-system.css with body.obsidian scoping
+---
+
+## SUGGESTED SCENARIO: Landing page is usable on a phone without horizontal scrolling
+**Source:** Sprint 69 S1 — landing.html responsive design (rewritten by QS7-4D)
+**User:** homeowner
+**Starting state:** Viewing sfpermits.ai on a phone-sized viewport.
+**Goal:** Use the landing page comfortably on mobile — search for an address, read about the platform, understand the CTA.
+**Expected outcome:** All content is accessible without side-scrolling. The search bar is reachable and tappable. Capability highlights are browsable (horizontal swipe or vertical stack). Data stats are readable. All interactive elements are large enough to tap comfortably.
+**Edge cases seen in code:** Capability cards use scroll-snap for horizontal swiping; header actions collapse at small widths
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Design system styles are isolated to new pages and do not alter existing authenticated pages
+**Source:** Sprint 69 S1 — design-system.css scoping (rewritten by QS7-4D)
 **User:** expediter
-**Starting state:** Logged-in user viewing /account or /brief or any authenticated page.
-**Goal:** Navigate normally — design system CSS is loaded globally but must not alter existing page styles.
-**Expected outcome:** Authenticated pages render exactly as before. No color changes, no layout shifts, no font changes. The body.obsidian class is only on the landing page; other pages don't have it.
-**Edge cases seen in code:** style.css now has @import for design-system.css. Existing :root vars in inline styles may conflict with design system :root — but component classes are all scoped under body.obsidian.
+**Starting state:** Logged-in user viewing their dashboard, morning brief, or account page after a design system CSS update.
+**Goal:** Navigate normally — any new CSS introduced for the landing page must not visually alter authenticated app pages.
+**Expected outcome:** All previously-working authenticated pages render exactly as before: no color changes, no font changes, no layout shifts. New design system classes only affect pages that explicitly opt in.
+**Edge cases seen in code:** Global :root vars can leak across pages if not scoped; test at 375px and 1280px
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: /api/stats returns cached data counts
-**Source:** Sprint 69 S1 — routes_api.py /api/stats endpoint
-**User:** architect
-**Starting state:** /api/stats has not been called in the last hour.
-**Goal:** Fetch current data counts for display or integration.
-**Expected outcome:** GET /api/stats returns JSON with permits, routing_records, entities, inspections, last_refresh, today_changes. All values are integers (except last_refresh which is ISO string or null). Second call within 1 hour returns cached results. Rate limited at 60 requests/min.
-**Edge cases seen in code:** DB unavailable returns hardcoded fallback values. Rate limit returns 429.
+---
+
+## SUGGESTED SCENARIO: Anonymous search shows routing progress for active permits
+**Source:** Sprint 69-S2 search intelligence (rewritten by QS7-4D)
+**User:** homeowner
+**Starting state:** Anonymous visitor on sfpermits.ai, not logged in
+**Goal:** Search an address and understand how far along active permits are in city review
+**Expected outcome:** Search results show permit cards plus a property intelligence panel with colored progress indicators showing how far each active permit has progressed through review stations. Station names are visible. No login required to see this summary view.
+**Edge cases seen in code:** Property with no active permits (empty routing), property with many permits (capped display), routing data timeout (2-second deadline returns graceful empty state)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Intelligence panel loads after initial page without blocking permit results
+**Source:** Sprint 69-S2 search results progressive enhancement (rewritten by QS7-4D)
+**User:** homeowner
+**Starting state:** Anonymous visitor searches an address
+**Goal:** See permit results immediately while intelligence enrichment loads asynchronously
+**Expected outcome:** Permit result cards render on the initial page load. An intelligence panel (routing progress, entity names, complaints/violations summary) appears in a separate panel and loads independently. A loading state is visible while the intel is being fetched. If intel fails to load, the permit cards remain fully functional.
+**Edge cases seen in code:** HTMX failure (page still usable without intel); intelligence timeout shows a retry then an empty state
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Anonymous visitor sees entity names on search but not the full network
+**Source:** Sprint 69-S2 intel_preview gated content (rewritten by QS7-4D)
+**User:** homeowner
+**Starting state:** Anonymous visitor views search results with the intelligence panel loaded
+**Goal:** Understand who the key decision-makers are on a property's permits
+**Expected outcome:** Top entities (contractor, architect, owner) are shown by name, role, and a permit count that establishes their experience level. A prompt to log in to see the full entity relationship network is present. The complete network graph, station velocity charts, and severity scores are not shown to anonymous users.
+**Edge cases seen in code:** Property with no contacts data (entity section hidden); all contacts are generic/blank (filtered out)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Search results remain usable when intelligence enrichment times out
+**Source:** Sprint 69-S2 address search timeout handling (rewritten by QS7-4D)
+**User:** homeowner
+**Starting state:** Anonymous visitor searches an address; backend intelligence queries are slow
+**Goal:** Still see the basic permit list even when property intelligence enrichment cannot complete in time
+**Expected outcome:** Permit cards always load and are the primary content. If the intelligence panel cannot load within its deadline, it shows a loading indicator with one auto-retry. If retry also times out, the panel shows a compact empty state. No error page, no broken layout, no JavaScript console errors visible to the user.
+**Edge cases seen in code:** SODA API down (complaints/violations count stays 0); DuckDB connection fails (all enrichment catches exceptions); partial data returned (intel panel shows what succeeded)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Mobile search results expandable intelligence
+**Source:** Sprint 69-S2 mobile responsive layout
+**User:** homeowner
+**Starting state:** Anonymous visitor on mobile device (< 1024px) views search results
+**Goal:** Access property intelligence without leaving the page
+**Expected outcome:** Intelligence panel is hidden by default on mobile. A reveal button is visible below permit cards. Tapping it expands the intel section inline. Content loads on first expansion.
+**Edge cases seen in code:** No block/lot resolved (toggle button hidden), viewport resize between mobile and desktop (JS media query handler switches display)
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Landing page renders correctly on mobile (375px)
-**Source:** Sprint 69 S1 — landing.html responsive design
-**User:** homeowner
-**Starting state:** Viewing sfpermits.ai on a phone (375px viewport).
-**Goal:** Use the landing page comfortably on mobile — search, read capabilities, understand the platform.
-**Expected outcome:** Single column layout. Hero section stacks (no split). Search bar stacks vertically. Capability cards are in a horizontal scroll strip. Stats show in 2x2 grid. No horizontal overflow. All tap targets are at least 44px.
-**Edge cases seen in code:** Capability cards use scroll-snap for horizontal swiping. Header actions might get cramped — 480px breakpoint reduces font size.
-**CC confidence:** high
-**Status:** PENDING REVIEW
+---
 
-## SUGGESTED SCENARIO: Portfolio brief contains accurate project statistics
-**Source:** docs/portfolio-brief.md (Sprint 69 S4)
+## SUGGESTED SCENARIO: Search crawlers are guided to index public content and excluded from private routes
+**Source:** web/app.py robots.txt (Sprint 69 S4) (rewritten by QS7-4D)
 **User:** admin
-**Starting state:** Portfolio brief document exists in the repository
-**Goal:** Verify that all statistics cited in the portfolio brief match actual codebase metrics
-**Expected outcome:** Test count, tool count, entity count, sprint count, and other numbers in the portfolio brief match the values derivable from the codebase (pytest collection count, server.py tool registrations, CHANGELOG sprint headers, etc.)
-**Edge cases seen in code:** Numbers change every sprint — the brief must be updated or use ranges
+**Starting state:** Search engine crawler visits the site for the first time.
+**Goal:** Ensure public permit and methodology pages are indexable while admin, auth, and internal routes are not crawled.
+**Expected outcome:** A robots.txt file is publicly accessible and contains clear crawl directives. Public pages (landing, search, methodology, about-data) are permitted. Admin, cron, auth, and account sections are disallowed. A sitemap reference is included for search engine discovery.
+**Edge cases seen in code:** Allow: / directive precedence must come before Disallow lines for correct interpreter behavior
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Model release probes cover all capability categories
-**Source:** docs/model-release-probes.md (Sprint 69 S4)
-**User:** admin
-**Starting state:** Model release probes document exists with 14 probes across 6 categories
-**Goal:** Validate that the probe set covers all major capabilities of the sfpermits.ai platform
-**Expected outcome:** At least 2 probes per category (permit prediction, vision analysis, multi-source synthesis, entity reasoning, specification quality, domain knowledge), each with prompt text, expected capability, and scoring criteria
-**Edge cases seen in code:** New tools or capabilities added in future sprints should trigger new probes
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: PWA manifest enables add-to-homescreen
-**Source:** web/static/manifest.json (Sprint 69 S4)
-**User:** homeowner
-**Starting state:** User visits sfpermits.ai on a mobile device
-**Goal:** Add sfpermits.ai to their phone's home screen for quick access
-**Expected outcome:** The browser offers an "Add to Home Screen" prompt (or the option is available in the browser menu). The installed app opens in standalone mode with the correct theme color (#22D3EE) and app name ("SF Permits")
-**Edge cases seen in code:** Icons are placeholders — real branded icons needed before this is production-ready. iOS requires additional meta tags in the HTML head.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: robots.txt allows public pages while blocking admin routes
-**Source:** web/app.py ROBOTS_TXT constant (Sprint 69 S4)
-**User:** admin
-**Starting state:** Search engine crawler visits /robots.txt
-**Goal:** Ensure search engines can index public pages but not admin, auth, or API routes
-**Expected outcome:** GET /robots.txt returns 200 with Allow: / and Disallow directives for /admin/, /cron/, /api/, /auth/, /demo, /account, /brief, /projects. Includes Sitemap reference.
-**Edge cases seen in code:** The Allow: / must come before Disallow lines for proper precedence. Some crawlers interpret robots.txt differently.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Technical visitor reads methodology page
-**Source:** web/templates/methodology.html (Sprint 69 S3)
-**User:** architect
-**Starting state:** Visitor lands on sfpermits.ai and wants to understand the data quality before trusting estimates
-**Goal:** Read the methodology page and understand how timeline estimates, fee calculations, and entity resolution work
-**Expected outcome:** Visitor finds 8 methodology sections with real technical depth (>2,500 words), data provenance table with SODA endpoints, entity resolution flowchart, worked timeline example, and an honest limitations section. Visitor gains confidence in the tool's transparency.
-**Edge cases seen in code:** Mobile view replaces CSS flowchart with numbered list; station velocity data may be unavailable (fallback model documented)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Visitor navigates to about-data page
-**Source:** web/templates/about_data.html (Sprint 69 S3)
-**User:** homeowner
-**Starting state:** Visitor sees "About the Data" link in navigation
-**Goal:** Understand what data sfpermits.ai uses and how fresh it is
-**Expected outcome:** Visitor sees complete data inventory table with 13+ datasets, record counts, and SODA endpoint IDs. Nightly pipeline schedule shows 6 pipeline steps with times. Knowledge base section explains the 4-tier system. QA section shows 3,300+ tests and 73 behavioral scenarios.
-**Edge cases seen in code:** Planning data refreshes weekly not nightly; property data refreshes annually
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Tim shares demo URL in Zoom call
-**Source:** web/templates/demo.html + web/routes_misc.py (Sprint 69 S3)
-**User:** admin
-**Starting state:** Tim opens /demo in a browser before a Zoom call with potential client
-**Goal:** Show all intelligence layers for a real SF property in one screen, without needing to click anything
-**Expected outcome:** Page loads with pre-queried data for demo address showing: permit history table, routing progress bars, timeline estimate visualization, connected entities list, complaints/violations summary. Annotation callouts explain each section's data source. Everything visible on load (no HTMX, no click-to-reveal).
-**Edge cases seen in code:** Database unavailable produces graceful degradation with empty states; ?density=max reduces padding for information-dense presentation; timeline falls back to hardcoded example if DB unavailable
-**CC confidence:** high
-**Status:** PENDING REVIEW
+---
 
 ## SUGGESTED SCENARIO: Search engine indexes methodology and about-data
 **Source:** web/routes_misc.py sitemap (Sprint 69 S3)
@@ -137,291 +174,10 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Demo page intentionally excluded from sitemap to keep it unlisted
 **CC confidence:** high
 **Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Anonymous search shows routing progress
-**Source:** Sprint 69-S2 search intelligence (/lookup/intel-preview)
-**User:** homeowner
-**Starting state:** Anonymous visitor on sfpermits.ai, not logged in
-**Goal:** Search an address and understand how far along active permits are in review
-**Expected outcome:** Search results show permit list plus intelligence panel with colored progress bars showing "X of Y stations cleared" for each active permit. Station names visible. No login required.
-**Edge cases seen in code:** Property with no active permits (empty routing), property with >10 permits (capped), routing data timeout (2-second deadline)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Intelligence panel loads asynchronously
-**Source:** Sprint 69-S2 search results HTMX progressive enhancement
-**User:** homeowner
-**Starting state:** Anonymous visitor searches an address
-**Goal:** See permit results immediately, then intelligence loads after
-**Expected outcome:** Permit result cards render first (fast). Intelligence panel appears in sidebar (desktop) or expandable section (mobile) via HTMX after initial page load. Loading spinner visible while intel loads.
-**Edge cases seen in code:** HTMX fails to load (page still usable without intel), intelligence timeout returns retry spinner once then gives up
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Anonymous visitor sees entity names but not full network
-**Source:** Sprint 69-S2 intel_preview.html gated content
-**User:** homeowner
-**Starting state:** Anonymous visitor views search results with intelligence panel
-**Goal:** See who the key players are on a property's permits
-**Expected outcome:** Top 3 entities shown by name, role, and SF permit count (e.g., "Architect: Smith & Associates (47 SF permits)"). "See full network analysis" link goes to login gate. Full entity network graph, station velocity, and severity scores are NOT shown.
-**Edge cases seen in code:** Property with no contacts data (entity section hidden), all contacts are "N/A" (filtered out)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Search results degrade gracefully on intel timeout
-**Source:** Sprint 69-S2 _gather_intel timeout logic
-**User:** homeowner
-**Starting state:** Anonymous visitor searches an address, backend intelligence queries are slow
-**Goal:** Still see permit results even if intelligence fails
-**Expected outcome:** Permit cards always appear. If intelligence gathering exceeds 2-second deadline, intel panel shows "Loading..." spinner with one auto-retry. If retry also times out, panel shows empty state. No error page, no broken layout.
-**Edge cases seen in code:** SODA API down (complaints/violations count stays 0), DuckDB connection fails (_gather_intel catches all exceptions), partial data returned (has_intelligence based on any non-empty section)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Mobile search results expandable intelligence
-**Source:** Sprint 69-S2 mobile responsive layout
-**User:** homeowner
-**Starting state:** Anonymous visitor on mobile device (< 1024px) views search results
-**Goal:** Access property intelligence without leaving the page
-**Expected outcome:** Intelligence panel is hidden by default on mobile. "View property intelligence" button is visible below permit cards. Tapping it expands the intel section inline. HTMX loads content on first expansion.
-**Edge cases seen in code:** No block/lot resolved (toggle button hidden), viewport resize between mobile and desktop (JS media query handler switches display)
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Circuit breaker auto-skips enrichment queries after repeated timeouts
-**Source:** QS3-B — CircuitBreaker in src/db.py + permit_lookup.py integration
-**User:** expediter | architect
-**Starting state:** Three consecutive permit lookups have timed out on the inspections query (database under heavy load)
-**Goal:** Subsequent permit lookups should remain fast and responsive despite the degraded database
-**Expected outcome:** After 3 failures within 2 minutes, the circuit breaker opens for the "inspections" category. Subsequent permit lookups skip the inspections query entirely and show "temporarily unavailable (circuit breaker open)" instead. After 5 minutes cooldown, the circuit breaker closes and the next lookup retries the inspections query. Successful query resets the failure count.
-**Edge cases seen in code:** Different enrichment categories (contacts, addenda, related_team, planning_records, boiler_permits) have independent circuit breakers. A circuit breaker opening for one category does not affect others.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Health endpoint shows circuit breaker states and cron heartbeat age
-**Source:** QS3-B — /health enhancement in web/app.py
-**User:** admin
-**Starting state:** Admin monitoring the health endpoint, cron heartbeat running every 15 minutes
-**Goal:** Quickly assess system health including circuit breaker states and cron worker liveness
-**Expected outcome:** GET /health returns JSON with "circuit_breakers" dict showing each category as "closed" or "open (N failures, reopens in Xm)". Also includes "cron_heartbeat_age_minutes" (float) and "cron_heartbeat_status" (OK/WARNING/CRITICAL). Heartbeat age > 30 min = WARNING, > 120 min = CRITICAL, no data = NO_DATA.
-**Edge cases seen in code:** In DuckDB dev mode, heartbeat query gracefully falls back when cron_log table doesn't exist (returns NO_DATA). Circuit breaker status is empty dict when no failures have been recorded.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Pipeline summary shows elapsed time per nightly step
-**Source:** QS3-B — _timed_step wrapper + GET /cron/pipeline-summary
-**User:** admin
-**Starting state:** Nightly pipeline has completed its most recent run
-**Goal:** Review which pipeline steps are slow or erroring to diagnose operational issues
-**Expected outcome:** GET /cron/pipeline-summary returns JSON with per-step entries including job_type, elapsed_seconds, status (ok/error), and timestamps. The nightly pipeline response includes a "step_timings" dict with elapsed seconds for each post-processing step. Steps that error still record their elapsed time.
-**Edge cases seen in code:** Pipeline summary is read-only with no auth. Step timing survives exceptions — _timed_step catches errors and still records elapsed. The main SODA fetch has its own cron_log tracking.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: PostHog tracks page views for anonymous visitors without blocking page load
-**Source:** QS3-D PostHog integration (web/helpers.py, web/app.py, landing.html)
-**User:** homeowner | new visitor
-**Starting state:** POSTHOG_API_KEY env var is set on production. Anonymous visitor loads the landing page.
-**Goal:** Analytics tracking captures page views and search events without degrading page load performance.
-**Expected outcome:** PostHog JS loads asynchronously (async attribute). Server-side after_request hook fires posthog_track() for page views and search events. If POSTHOG_API_KEY is not set, both JS snippet and server hook are complete no-ops — zero overhead. Page renders identically with or without PostHog configured.
-**Edge cases seen in code:** PostHog capture fails silently (exception swallowed), /static/ and /health paths excluded from tracking, anonymous users tracked as "anonymous" distinct_id
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Feature flag permit_prep_enabled gates Permit Prep feature rollout
-**Source:** QS3-D PostHog feature flags (web/helpers.py, web/app.py)
-**User:** admin | expediter
-**Starting state:** POSTHOG_API_KEY is set. PostHog dashboard has permit_prep_enabled flag configured for specific user IDs.
-**Goal:** Permit Prep features are only visible to users whose PostHog feature flags include permit_prep_enabled=True.
-**Expected outcome:** g.posthog_flags is populated in before_request for authenticated users (populated from PostHog API). Anonymous users always get empty flags dict. Templates can check g.posthog_flags.get("permit_prep_enabled") to conditionally render Permit Prep UI. If PostHog is not configured, flags are always empty — features default to hidden.
-**Edge cases seen in code:** PostHog get_all_flags() returns None (coerced to {}), PostHog API timeout (swallowed, returns {}), flag key not in dict (template uses .get() with default)
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: User creates Permit Prep checklist for an existing permit and sees categorized document requirements
-**Source:** web/permit_prep.py, web/routes_property.py
-**User:** expediter | architect
-**Starting state:** User is logged in. A permit exists in the database.
-**Goal:** Generate a document checklist to track what's needed for permit submission.
-**Expected outcome:** User navigates to /prep/<permit_number>. System calls predict_permits and required_documents to generate a categorized checklist. Items are grouped into Required Plans, Application Forms, Supplemental Documents, and Agency-Specific. All items start with "Required" status. Progress bar shows 0% addressed.
-**Edge cases seen in code:** Permit not found in DB (falls back to "general alterations" description), tool failure (falls back to 3 minimal items), duplicate checklist creation (returns existing)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: User toggles document status from Required to Submitted and progress bar updates
-**Source:** web/routes_api.py PATCH /api/prep/item/<id>, web/templates/fragments/prep_item.html
-**User:** expediter | architect
-**Starting state:** User has an active Permit Prep checklist with items in "Required" status.
-**Goal:** Track that a document has been submitted.
-**Expected outcome:** User clicks "Submitted" radio button on an item. HTMX PATCH request updates the item status in-place. The item card updates to show blue "Submitted" styling. Progress bar updates to reflect the new count.
-**Edge cases seen in code:** Invalid status value rejected, wrong user ownership rejected (returns 404), concurrent updates on same item
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Preview Mode shows predicted checklist for a permit without saving
-**Source:** web/permit_prep.py preview_checklist(), /api/prep/preview/<permit>
-**User:** homeowner | architect
-**Starting state:** User is logged in but has not yet created a checklist for this permit.
-**Goal:** See what documents would be required before committing to a checklist.
-**Expected outcome:** GET /api/prep/preview/<permit> returns a JSON response with is_preview=true, items grouped by category, and prediction metadata (form, review path, agencies). No checklist row is created in the database. User can then decide to create a real checklist.
-**Edge cases seen in code:** Permit not in database (uses fallback description), prediction tool timeout
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Morning brief shows permits with incomplete checklists
-**Source:** web/brief.py _get_prep_summary()
-**User:** expediter
-**Starting state:** User has one or more Permit Prep checklists with items still in "Required" status.
-**Goal:** See at a glance which permits need attention during the morning brief.
-**Expected outcome:** Morning brief data includes prep_summary with a list of checklists showing permit_number, total_items, completed_items, and missing_required counts. Permits with missing items are highlighted.
-**Edge cases seen in code:** prep_checklists table doesn't exist yet (returns empty list gracefully), user has no checklists (returns empty list)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Anonymous user clicking Prep Checklist is redirected to login then back to /prep
-**Source:** web/routes_property.py /prep/<permit>, web/helpers.py login_required
-**User:** homeowner
-**Starting state:** User is not logged in. Viewing public search results.
-**Goal:** Access a Permit Prep checklist for a specific permit.
-**Expected outcome:** User clicks "Prep Checklist" button on search results. Since /prep requires authentication, they are redirected to /auth/login. After logging in, they should be able to navigate to /prep/<permit_number> to see their checklist.
-**Edge cases seen in code:** login_required redirects to auth.auth_login (no next parameter currently — user must manually navigate back)
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: Production handles concurrent users without pool exhaustion
-**Source:** QS4-B Task B-1 (pool monitoring + env override)
-**User:** admin
-**Starting state:** 50+ concurrent users hitting sfpermits.ai during peak hours
-**Goal:** Verify that the connection pool handles concurrent load without exhaustion or errors
-**Expected outcome:** All requests complete successfully; /health pool stats show used_count stays below maxconn; no connection timeout errors in logs
-**Edge cases seen in code:** Pool at Railway limit (5 workers x 20 = 100 connections = Postgres max); DB_POOL_MAX env var override for capacity tuning
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Railway zero-downtime deploy uses readiness probe
-**Source:** QS4-B Task B-2 (/health/ready endpoint)
-**User:** admin
-**Starting state:** New container starting during Railway deployment
-**Goal:** Verify that /health/ready returns 503 until DB pool, tables, and migrations are all verified, then returns 200
-**Expected outcome:** Railway routes traffic to new container only after /health/ready returns 200; old container continues serving until new one is ready
-**Edge cases seen in code:** Missing tables return 503 with list of what's missing; 5-second statement_timeout prevents readiness probe from hanging
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Connection pool stats visible in health monitoring
-**Source:** QS4-B Task B-3 (pool stats in /health)
-**User:** admin
-**Starting state:** Production system running with active connections
-**Goal:** View connection pool utilization via /health endpoint for capacity planning
-**Expected outcome:** /health response includes pool.maxconn, pool.used_count, pool.pool_size; values update in real-time as connections are checked out/returned
-**Edge cases seen in code:** DuckDB backend returns status "no_pool" since it has no connection pool; pool internals accessed via _pool/_used attributes which may change between psycopg2 versions
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Admin views station SLA compliance and identifies bottleneck departments
-**Source:** QS4-A /admin/metrics dashboard
-**User:** admin
-**Starting state:** Admin is logged in, metrics data has been ingested
-**Goal:** View which review stations are meeting their SLA targets and identify departments causing delays
-**Expected outcome:** Dashboard shows station-level SLA percentages with color coding (green >= 80%, amber 60-79%, red < 60%), sorted by volume, enabling admin to identify bottleneck stations
-**Edge cases seen in code:** NULL stations are excluded; zero-total stations handled to avoid division by zero; DuckDB BOOLEAN vs Postgres BOOLEAN for met_cal_sla
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Station velocity query returns cached results in under 100ms
-**Source:** QS4-A station_velocity_v2 caching layer
-**User:** expediter | architect
-**Starting state:** Velocity cache has been populated by nightly cron job
-**Goal:** Get station processing time estimates without waiting for a 3.9M-row addenda query
-**Expected outcome:** Pre-computed velocity data returned from station_velocity_v2 table; falls back to 'all' period if requested period has no data; returns None gracefully on cache miss
-**Edge cases seen in code:** Stale cache handled by nightly refresh; fallback from 'current' to 'all' period; CURRENT_WIDEN_DAYS=180 fallback when sample count < 30
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Nightly pipeline includes metrics refresh alongside permit data
-**Source:** QS4-A run_ingestion() pipeline integration
-**User:** admin
-**Starting state:** Nightly ingestion pipeline runs on schedule
-**Goal:** Ensure metrics datasets (issuance, review, planning) are refreshed during the main pipeline run, not only via separate cron endpoints
-**Expected outcome:** run_ingestion() calls all 3 metrics ingest functions after dwelling_completions, keeping metrics data in sync with permit data
-**Edge cases seen in code:** Metrics ingest runs outside the try block's feature-flag guards (always runs); individual metrics cron endpoints still available for manual refreshes
-**CC confidence:** high
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: Property report loads cached parcel data
-
-**Source:** QS5-A parcel_summary cache integration in report.py
-**User:** expediter | homeowner
-**Starting state:** parcel_summary table has a row for block/lot with tax_value, zoning_code, use_definition
-**Goal:** View a property report without waiting for SODA API tax data call
-**Expected outcome:** Property profile section shows assessed value, zoning, and use definition from cache; SODA property tax API call is skipped; complaints and violations still fetched live
-**Edge cases seen in code:** parcel_summary row exists but all tax fields are NULL; concurrent cron refresh while report is loading
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Nightly parcel refresh materializes counts
-
-**Source:** QS5-A cron refresh-parcel-summary endpoint
-**User:** admin
-**Starting state:** permits, tax_rolls, complaints, violations, boiler_permits, inspections tables populated
-**Goal:** Run nightly cron job to materialize one-row-per-parcel summary with counts from 5+ source tables
-**Expected outcome:** parcel_summary populated with correct permit_count, open_permit_count, complaint_count, violation_count, boiler_permit_count, inspection_count; canonical_address is UPPER-cased; tax_value computed from land + improvement; health_tier joined from property_health
-**Edge cases seen in code:** parcel with no tax_rolls data (NULL tax fields); parcel with no complaints/violations (zero counts); property_health table doesn't exist yet (NULL health_tier)
-## SUGGESTED SCENARIO: Incremental permit ingest reduces orphan rate
-**Source:** QS5-B ingest_recent_permits + backfill
-**User:** admin
-**Starting state:** permit_changes has 52% orphan rate (permits detected by nightly tracker but not in bulk permits table)
-**Goal:** Reduce orphan rate by ingesting recently-filed permits before change detection runs
-**Expected outcome:** After incremental ingest runs nightly, orphan rate in permit_changes drops below 10% because recently-filed permits are already in the permits table when detect_changes() runs
-**Edge cases seen in code:** SODA API may return 0 records during quiet periods; pagination needed for >10K results; must not run concurrently with full_ingest
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Nightly pipeline runs incremental ingest before change detection
-**Source:** QS5-B pipeline ordering in run_nightly()
-**User:** admin
-**Starting state:** Nightly cron job triggers run_nightly() which detects permit changes
-**Goal:** Prevent false "new_permit" entries by ensuring recently-filed permits are in the DB before change detection compares against it
-**Expected outcome:** Pipeline sequence is: incremental ingest → fetch SODA changes → detect_changes(). The incremental ingest step is non-fatal — if it fails, change detection still runs.
-**Edge cases seen in code:** Incremental ingest must not run if full_ingest completed recently (sequencing guard via cron_log check); DuckDB vs Postgres SQL differences handled by existing patterns
-
-## SUGGESTED SCENARIO: Orphan inspection rate DQ check
-**Source:** web/data_quality.py _check_orphan_inspections (QS5-C)
-**User:** admin
-**Starting state:** Admin viewing Data Quality dashboard with inspections and permits tables populated
-**Goal:** Verify that orphan inspection rate is calculated correctly and displayed with appropriate severity
-**Expected outcome:** Orphan rate shown as percentage with green (<5%), yellow (5-15%), or red (>15%) status; only permit-type inspections counted (complaint inspections excluded)
-**Edge cases seen in code:** 68K complaint inspections use complaint numbers as reference_number (not permit numbers) — must be filtered out to avoid inflated orphan rate
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Trade permit pipeline health check
-**Source:** web/data_quality.py _check_trade_permit_counts (QS5-C)
-**User:** admin
-**Starting state:** Admin viewing Data Quality dashboard with trade permit tables present
-**Goal:** Verify that boiler and fire permit pipeline health is monitored
-**Expected outcome:** Green status when both tables have data; red status flagging which specific table(s) are empty if pipeline is broken
-**Edge cases seen in code:** Both tables could be empty simultaneously; fire_permits has no block/lot columns so can't join to parcel graph
-
-## SUGGESTED SCENARIO: Admin reviews stale task inventory
-**Source:** QS5-D task hygiene diagnostic sweep
-**User:** admin
-**Starting state:** Admin has access to Chief brain state with 50+ open tasks accumulated over multiple sprints
-**Goal:** Review infrastructure tasks to determine which are completed, superseded, or still needed
-**Expected outcome:** Stale tasks are closed with evidence, current tasks are updated with accurate descriptions, and new focused follow-ups are created for items needing verification on prod/staging
-**Edge cases seen in code:** Tasks may reference features that were built under different task numbers (e.g., #207 "orphaned test files" was wrong — source files exist). Task descriptions may be stale while the underlying work was completed in a different sprint.
-**CC confidence:** high
-**Status:** PENDING REVIEW
+**DUPLICATE OF:** Near-duplicate of "Search crawlers are guided to index public content" above — both cover robots.txt/sitemap behavior. Prefer the rewritten version above.
 
 ---
-<!-- Sprint 77-1 scenarios — appended 2026-02-26 -->
 
-## SUGGESTED SCENARIO: Property report skips gracefully when DuckDB not ingested
-
-**Source:** tests/e2e/test_severity_scenarios.py — TestPropertyReport
-**User:** expediter
-**Starting state:** Fresh checkout; DuckDB lacks the permits table
-**Goal:** Developer runs E2E tests to validate local environment
-**Expected outcome:** Property report tests skip with a clear message ("DuckDB permits table absent — run python -m src.ingest") rather than failing with a raw traceback or unhelpful assertion error
-**Edge cases seen in code:** Route returns 500 with DuckDB CatalogException when table is missing; test distinguishes this from a real app bug
 ## SUGGESTED SCENARIO: authenticated address search returns permit results
 **Source:** tests/e2e/test_search_scenarios.py / web/routes_search.py (Sprint 77-3)
 **User:** expediter
@@ -434,29 +190,8 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 
 ---
 
-## SUGGESTED SCENARIO: Demo page serves property intelligence without auth
-
-**Source:** web/routes_misc.py — /demo route; tests/e2e/test_severity_scenarios.py
-**User:** homeowner (anonymous visitor)
-**Starting state:** User has not logged in; arrives at /demo from a marketing link
-**Goal:** Preview property intelligence before creating an account
-**Expected outcome:** Demo page loads with pre-populated 1455 Market St data. Contains permit data, structured headings, and meaningful content. density=max parameter is accepted without error.
-**Edge cases seen in code:** density_max param toggles a higher-density view; unexpected param values should not error
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: Morning brief lookback parameter accepts any valid range
-
-**Source:** web/routes_misc.py — /brief route; web/templates/brief.html lookback toggle
-**User:** expediter
-**Starting state:** Authenticated expediter on the morning brief page
-**Goal:** Switch lookback window using URL parameter
-**Expected outcome:** All valid values (1, 7, 30, 90) return HTTP 200. Values outside 1-90 are clamped. Non-integer values default to 1. Active lookback button reflects current selection.
-**Edge cases seen in code:** max(1, min(int(lookback), 90)) — ValueError on non-numeric input defaults to 1
 ## SUGGESTED SCENARIO: permit number lookup returns meaningful response
-**Source:** tests/e2e/test_search_scenarios.py / web/routes_search.py `_ask_permit_lookup` (Sprint 77-3)
+**Source:** tests/e2e/test_search_scenarios.py / web/routes_search.py (Sprint 77-3)
 **User:** expediter
 **Starting state:** User is logged in. A permit-style number is entered into search.
 **Goal:** Look up a specific permit by its number and see the permit detail or a "not found" message.
@@ -467,16 +202,8 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 
 ---
 
-## SUGGESTED SCENARIO: Anonymous users cannot access brief or portfolio
-
-**Source:** web/helpers.py — login_required; SCENARIO-40
-**User:** homeowner (anonymous / not logged in)
-**Starting state:** User is not authenticated; navigates directly to /brief or /portfolio
-**Goal:** Access permit data without logging in
-**Expected outcome:** Both /brief and /portfolio redirect to the login page. No partial page content shown. Post-login redirect preserves intended destination.
-**Edge cases seen in code:** /portfolio and /brief listed in login_required route list in app.py
 ## SUGGESTED SCENARIO: empty search query handled gracefully
-**Source:** tests/e2e/test_search_scenarios.py / web/routes_public.py `public_search` (Sprint 77-3)
+**Source:** tests/e2e/test_search_scenarios.py / web/routes_public.py (Sprint 77-3)
 **User:** homeowner
 **Starting state:** User (authenticated or anonymous) submits a search with an empty query string.
 **Goal:** The app handles the empty query without crashing.
@@ -488,8 +215,7 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 ---
 
 ## SUGGESTED SCENARIO: Search query for address returns results or graceful empty state
-
-**Source:** web/routes_public.py — /search route; SCENARIO-38
+**Source:** web/routes_public.py — /search route; SCENARIO-38 (Sprint 77-1)
 **User:** homeowner
 **Starting state:** Anonymous or authenticated user enters partial address ("market")
 **Goal:** Find permits at a known address
@@ -497,202 +223,130 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Empty q= param is handled; XSS injection in q= is sanitized (SCENARIO-34)
 **CC confidence:** high
 **Status:** PENDING REVIEW
-<!-- Sprint 77-2: Admin + Security Scenarios (2026-02-26) -->
 
-## SUGGESTED SCENARIO: Admin ops hub gated by role
-**Source:** tests/e2e/test_admin_scenarios.py — TestAdminOpsPage, web/routes_admin.py
-**User:** admin
-**Starting state:** Authenticated admin user, all other non-admin users also logged in
-**Goal:** Only admin users can reach the admin ops hub; non-admins and anonymous visitors are blocked
-**Expected outcome:**
-- Admin user: page loads, shows ops hub content (pipeline, quality, activity, feedback sections)
-- Non-admin authenticated user: blocked with 403 or redirected away from the ops hub
-- Anonymous visitor: redirected to login page before seeing any admin content
-**Edge cases seen in code:** abort(403) used directly — no intermediate redirect for non-admins
-**CC confidence:** high
-**Status:** PENDING REVIEW
+---
 
-## SUGGESTED SCENARIO: SQL injection payload handled gracefully in search
-**Source:** tests/e2e/test_admin_scenarios.py — TestSQLInjectionSearch, web/app.py
+## SUGGESTED SCENARIO: natural language address query resolves correctly
+**Source:** web/helpers.py parse_search_query, web/routes_public.py public_search (QS8-T3-B)
 **User:** homeowner
-**Starting state:** Anonymous or authenticated user, normal browser session
-**Goal:** Malicious SQL injection payloads in the search query do not crash the server or expose data
-**Expected outcome:**
-- Server returns 200 or 400, never 500
-- No Python traceback appears in the response body
-- No raw database error message visible to the user
-- Result is empty search results or a graceful message
-**Edge cases seen in code:** Combined XSS + SQL payload also sanitized — script tag does not appear in rendered HTML
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Directory traversal attempt returns safe response
-**Source:** tests/e2e/test_admin_scenarios.py — TestDirectoryTraversal
-**User:** homeowner
-**Starting state:** Anonymous user, crafts a URL with ../ sequences
-**Goal:** Attacker tries to read system files by traversing path segments
-**Expected outcome:**
-- Response does not contain /etc/passwd file contents
-- Response status is 404 or a redirect, never 500
-- Flask/Werkzeug's path normalization neutralizes the traversal before routing
-**Edge cases seen in code:** /report/../../../etc/passwd, /static/../../../etc/passwd, /../etc/passwd all tested
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Content-Security-Policy header on every page response
-**Source:** tests/e2e/test_admin_scenarios.py — TestCSPHeaders, web/security.py
-**User:** homeowner
-**Starting state:** Any page request (landing, search, login, health, methodology)
-**Goal:** Every HTTP response includes a Content-Security-Policy header
-**Expected outcome:**
-- Content-Security-Policy header present on all page responses
-- Header includes default-src directive as baseline restriction
-- frame-ancestors none in CSP or X-Frame-Options DENY present (prevents clickjacking)
-- X-Content-Type-Options nosniff present, Referrer-Policy header set
-**Edge cases seen in code:** CSP-Report-Only nonce-based policy also sent when per-request nonce generated
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Anonymous user rate-limited on rapid search requests
-**Source:** tests/e2e/test_admin_scenarios.py — TestAnonymousRateLimiting, web/app.py
-**User:** homeowner
-**Starting state:** Anonymous visitor (no session), makes many rapid GET requests to search
-**Goal:** Rate limiting fires to prevent scraping or abuse after sustained rapid requests
-**Expected outcome:**
-- After 15+ requests within 60 seconds from the same IP, server returns 429 or rate-limit message
-- The rate-limit response is friendly (not a raw server error, no traceback)
-- Body text mentions waiting or rate-limiting, not Internal Server Error
-**Edge cases seen in code:** Rate bucket is per-IP (X-Forwarded-For header); resets after 60 seconds; TESTING mode may reset buckets
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: plan analysis upload form is present for authenticated users
-**Source:** tests/e2e/test_search_scenarios.py / web/templates/index.html (Sprint 77-3)
-**User:** architect
-**Starting state:** User is logged in as an architect or any authenticated role.
-**Goal:** Find and interact with the plan analysis upload form.
-**Expected outcome:** The authenticated dashboard shows a file input element that accepts .pdf files. The plan/upload/analyze section is mentioned in the page content.
-**Edge cases seen in code:** File input has `accept=".pdf"` to restrict to PDF only. Max size is 400 MB.
+**Starting state:** User is on search and types a natural language query that contains a street address embedded in prose
+**Goal:** Find permit records for their property using a plain-English description like "permits at 123 Market St"
+**Expected outcome:** Permit records for 123 Market St are returned, not a "no results" page, even though the query wasn't a bare address
+**Edge cases seen in code:** Intent router may classify as "analyze_project" if query contains action verbs — NLP parser upgrades to "search_address" when it finds street_number + street_name
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
 ---
 
-## SUGGESTED SCENARIO: methodology page is substantive and publicly accessible
-**Source:** tests/e2e/test_search_scenarios.py / web/routes_misc.py (Sprint 77-3)
-**User:** homeowner (anonymous)
-**Starting state:** No authentication. User navigates directly to /methodology.
-**Goal:** Read about how SF Permits AI works — data sources, entity resolution, plan analysis.
-**Expected outcome:** Page returns HTTP 200. Page contains at least 3 section headings. Mentions data sources, entity or search methodology, and plan analysis/AI vision. Page is not a stub.
-**Edge cases seen in code:** Methodology page has a dedicated #plan-analysis section.
-
-<!-- Sprint 77-4: Auth + Mobile Scenarios (Agent 77-4) -->
-
-## SUGGESTED SCENARIO: Anonymous landing page renders with search and hero
-**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestAnonymousLanding
-**User:** homeowner
-**Starting state:** User is not logged in; navigates to the root URL
-**Goal:** Understand what sfpermits.ai offers before signing up
-**Expected outcome:** Page renders with an h1 heading, a search input, and at least one reference to "permit" in the body content. A CTA to sign up or log in is present.
-**Edge cases seen in code:** Landing vs Index templates — anonymous users see landing.html, authenticated see index.html. Both must render the search bar.
+## SUGGESTED SCENARIO: neighborhood-scoped search shows guidance
+**Source:** web/helpers.py parse_search_query, build_empty_result_guidance (QS8-T3-B)
+**User:** expediter
+**Starting state:** User searches "kitchen remodel in the Mission" with no specific address
+**Goal:** Filter permit results to Mission neighborhood, or get helpful guidance on how to search
+**Expected outcome:** Either filtered results are shown OR, if no results, contextual suggestions are shown that match the query intent (neighborhood + permit type)
+**Edge cases seen in code:** "Mission" alias maps to "Mission" neighborhood; "in the Mission" prep phrase is stripped before passing residual text as description_search
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Protected routes enforce login redirect for anonymous visitors
-**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestAuthRedirects
+---
+
+## SUGGESTED SCENARIO: zero results shows demo link and contextual suggestions
+**Source:** web/routes_public.py public_search, web/helpers.py build_empty_result_guidance (QS8-T3-B)
 **User:** homeowner
-**Starting state:** User is not logged in; attempts to navigate directly to /brief, /portfolio, or /account
-**Goal:** Access a protected feature without being authenticated
-**Expected outcome:** User is redirected to the login page. The login page renders with an email input. No protected content is exposed.
-**Edge cases seen in code:** /auth/login itself must be publicly accessible (status 200). The redirect chain should always land on login, not a 500 or blank page.
+**Starting state:** User searches for something that returns no permit records
+**Goal:** Get guidance on what to try next, not a dead end
+**Expected outcome:** Page shows "No permits found", a contextual "Did you mean?" hint if applicable, example search links matching the query intent, and a link to /demo
+**Edge cases seen in code:** build_empty_result_guidance inspects parsed dict to generate query-specific suggestions (not generic boilerplate)
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Mobile viewport has no horizontal overflow on key pages
-**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestMobileNoHorizontalScroll
-**User:** homeowner
-**Starting state:** User opens the app on a 375px-wide mobile device (iPhone SE / standard mobile)
-**Goal:** Browse the landing page, demo, login, and beta-request page without side-scrolling
-**Expected outcome:** document.body.scrollWidth <= window.innerWidth on all checked pages. No content is clipped or requires horizontal scrolling.
-**Edge cases seen in code:** /demo and /beta-request pages are content-heavy and most likely to overflow if images or wide tables are not constrained.
-**CC confidence:** high
-**Status:** PENDING REVIEW
+---
 
-## SUGGESTED SCENARIO: Mobile navigation is accessible at 375px
-**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestMobileNavigation
-**User:** homeowner
-**Starting state:** User is on a 375px-wide viewport, either anonymous (landing) or authenticated (dashboard)
-**Goal:** Access the site navigation without a wide screen
-**Expected outcome:** A hamburger menu toggle, <nav> element, or navigation links in the header are present and accessible. Authenticated users see the nav after login.
-**Edge cases seen in code:** Desktop nav may collapse entirely at mobile widths; hamburger button must remain tappable and visible.
+## SUGGESTED SCENARIO: year filter extracted from natural language query
+**Source:** web/helpers.py parse_search_query (_YEAR_RE) (QS8-T3-B)
+**User:** expediter
+**Starting state:** User types "new construction SoMa 2024"
+**Goal:** Find new construction permits in South of Market filed in 2024
+**Expected outcome:** NLP parser extracts neighborhood ("South of Market"), permit type ("new construction"), and year filter (2024-01-01 onwards)
+**Edge cases seen in code:** Year must be in 2018-2030 range; year is extracted BEFORE address to prevent "2022" being parsed as a street number
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Beta request form renders and accepts input without JS errors
-**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestBetaRequestForm
-**User:** homeowner
-**Starting state:** User has not yet been invited; navigates to /beta-request
-**Goal:** Request beta access by filling out the form
-**Expected outcome:** Page returns HTTP 200. Form has email input, name input (or text input), a reason/message field, and a submit button. Filling all visible fields produces no JavaScript errors. Honeypot and rate limiting are backend-only and do not appear in the UI.
-**Edge cases seen in code:** Honeypot field must not be visible to real users. Rate limit (3 requests/IP/hour) fires only on repeated POST submissions, not on page load.
-<!-- Sprint 75-1 scenarios — appended 2026-02-26 -->
+---
 
-## SUGGESTED SCENARIO: Authenticated dashboard displays search, quick actions, and recent items in Obsidian card layout
-
-**Source:** web/templates/index.html Sprint 75-1 redesign
-**User:** expediter | homeowner | architect
-**Starting state:** User is logged in and visits the dashboard (/)
-**Goal:** Quickly orient to available tools and start a search or action
-**Expected outcome:** Dashboard shows a centered layout with a search card at top, quick action buttons (Analyze a project, Look up a permit, Upload plans, Draft a reply), a recent searches card, a watchlist card, and a stats row — all in glass-card containers. Search input uses Obsidian styling. No horizontal overflow at any viewport width.
-**Edge cases seen in code:** If user has no recent searches, recent card shows placeholder text. If user has a primary address set, a personalized "Check [address]" quick action appears.
-**CC confidence:** high
+## SUGGESTED SCENARIO: result badges distinguish address vs permit vs description matches
+**Source:** web/helpers.py rank_search_results (QS8-T3-B)
+**User:** expediter
+**Starting state:** Search returns a mix of exact address matches, permit number matches, and description keyword matches
+**Goal:** Quickly identify which results are the most relevant
+**Expected outcome:** Each result has a badge ("Address Match", "Permit", or "Description") and results are sorted with address matches first, then permit number matches, then description matches
+**Edge cases seen in code:** badge is computed per result; ties within same type maintain original order
+**CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Navigation collapses to hamburger menu on mobile viewport
+---
 
-**Source:** web/templates/fragments/nav.html Sprint 75-1 redesign
-**User:** expediter | homeowner | architect
-**Starting state:** User visits any authenticated page on a mobile device (viewport ≤768px)
-**Goal:** Access navigation links without the nav overflowing or wrapping
-**Expected outcome:** Desktop badge row is hidden. A hamburger icon (3 horizontal lines) appears in the top-right. Tapping it reveals a slide-down panel with all nav items stacked vertically (min 48px height per item). Tapping outside the panel or tapping the hamburger again closes the panel. All items accessible: Search, Brief, Portfolio, Projects, My Analyses, Permit Prep, Consultants, Bottlenecks, Admin (if admin), Account, Logout.
-**Edge cases seen in code:** Panel closes on tap-outside via document click handler. Hamburger transforms to X when open (CSS animation on spans). Sign-up chips appear for locked features.
-<!-- Sprint 75-2 scenarios — appended 2026-02-26 -->
+## PROPERTY INTELLIGENCE & REPORTS
 
-## SUGGESTED SCENARIO: beta approval sends welcome email with magic link
-
-**Source:** web/auth.py — send_beta_welcome_email(), web/routes_admin.py — admin_approve_beta()
+## SUGGESTED SCENARIO: Portfolio brief contains accurate project statistics
+**Source:** docs/portfolio-brief.md (Sprint 69 S4)
 **User:** admin
-**Starting state:** Admin is logged in; a beta request exists in "pending" status; SMTP is configured
-**Goal:** Approve a beta request and notify the new user
-**Expected outcome:** New user receives a branded HTML email with a one-click sign-in button; email contains a valid magic link URL; admin sees "Approved and sent welcome email" confirmation; if SMTP fails, fallback plain magic link email is sent instead
-**Edge cases seen in code:** SMTP failure triggers fallback to send_magic_link(); dev mode (no SMTP_HOST) logs to console and returns True; already-approved requests return "not found" redirect
+**Starting state:** Portfolio brief document exists in the repository
+**Goal:** Verify that all statistics cited in the portfolio brief match actual codebase metrics
+**Expected outcome:** Test count, tool count, entity count, sprint count, and other numbers in the portfolio brief match the values derivable from the codebase (pytest collection count, server.py tool registrations, CHANGELOG sprint headers, etc.)
+**Edge cases seen in code:** Numbers change every sprint — the brief must be updated or use ranges
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: new beta user completes 3-step onboarding
+---
 
-**Source:** web/routes_misc.py — /welcome route, web/templates/welcome.html
+## SUGGESTED SCENARIO: Technical visitor reads methodology page
+**Source:** web/templates/methodology.html (Sprint 69 S3) (rewritten by QS7-4D)
+**User:** architect
+**Starting state:** Visitor lands on sfpermits.ai and wants to understand the data quality before trusting estimates
+**Goal:** Read the methodology page and understand how timeline estimates, fee calculations, and entity resolution work
+**Expected outcome:** Visitor finds substantive methodology sections (at minimum: data sources, entity resolution, timeline modeling, limitations), a data provenance table with source identifiers, and at least one worked example. Visitor gains confidence in the tool's transparency.
+**Edge cases seen in code:** Mobile view replaces CSS flowchart with numbered list; station velocity data may be unavailable (fallback model documented)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Visitor navigates to about-data page
+**Source:** web/templates/about_data.html (Sprint 69 S3) (rewritten by QS7-4D)
 **User:** homeowner
-**Starting state:** User has just received beta approval email and clicked the magic sign-in link; onboarding_complete is FALSE in DB
-**Goal:** Get oriented to the app (search, report, watchlist) and start using it
-**Expected outcome:** /welcome shows 3-step page with search, property report, and watchlist cards; user can navigate to any step via CTA buttons; clicking "Start searching now" or the skip link fires POST /onboarding/dismiss which sets onboarding_complete = TRUE in DB; subsequent visits to /welcome redirect to dashboard instead of showing onboarding again
-**Edge cases seen in code:** Unauthenticated access redirects to login; if onboarding_complete already TRUE, immediate redirect to /; dismiss is fire-and-forget (non-blocking JS fetch); banner dismiss (HTMX) and page dismiss both use same endpoint
+**Starting state:** Visitor sees a data transparency link in navigation
+**Goal:** Understand what data sfpermits.ai uses and how fresh it is
+**Expected outcome:** Visitor sees a complete data inventory with dataset names, record volumes, and freshness schedule. Nightly pipeline schedule is described. Knowledge base tiers are explained. QA coverage statistics are present.
+**Edge cases seen in code:** Planning data refreshes weekly not nightly; property data refreshes annually
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-<!-- Sprint 75-3 scenarios — appended 2026-02-26 -->
+---
 
-## SUGGESTED SCENARIO: Account page renders with Obsidian dark theme
-
-**Source:** web/templates/account.html Obsidian migration (Sprint 75-3)
-**User:** expediter | homeowner | architect
-**Starting state:** User is authenticated and navigates to their account page
-**Goal:** View account settings, watched addresses, and plan analyses in the Obsidian dark theme
-**Expected outcome:** Page loads with dark background, JetBrains Mono headings, IBM Plex Sans body text, card sections clearly separated, no white/light background visible
-**Edge cases seen in code:** Admin users see tab bar with Settings/Admin tabs; non-admins see settings directly without tab bar. Both paths must render correctly under Obsidian.
+## SUGGESTED SCENARIO: Tim shares demo URL with potential clients before signing up
+**Source:** web/templates/demo.html + public demo route (Sprint 69 S3) (rewritten by QS7-4D)
+**User:** admin
+**Starting state:** Tim opens the demo page in a browser before showing it to a prospective client
+**Goal:** Show all intelligence layers for a real SF property in one screen, without the client needing to interact with the UI
+**Expected outcome:** Page loads with pre-queried data for a demo address showing permit history, routing progress, timeline estimate, connected entities, and complaints/violations. Everything is visible on load without clicking. An annotation or label explains each section.
+**Edge cases seen in code:** Database unavailable produces graceful degradation with empty states; a density parameter reduces padding for information-dense presentation
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-<!-- Sprint 75-4 scenarios — appended 2026-02-26 -->
+---
+
+## SUGGESTED SCENARIO: Demo page serves property intelligence without auth
+**Source:** web/routes_misc.py — /demo route; tests/e2e/test_severity_scenarios.py (Sprint 77-1)
+**User:** homeowner (anonymous visitor)
+**Starting state:** User has not logged in; arrives at /demo from a marketing link
+**Goal:** Preview property intelligence before creating an account
+**Expected outcome:** Demo page loads with pre-populated 1455 Market St data. Contains permit data, structured headings, and meaningful content. density=max parameter is accepted without error.
+**Edge cases seen in code:** density_max param toggles a higher-density view; unexpected param values should not error
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
 
 ## SUGGESTED SCENARIO: Demo page shows severity tier for active permits
 **Source:** web/routes_misc.py _get_demo_data() + web/templates/demo.html severity badges (Sprint 75-4)
@@ -705,30 +359,237 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Status:** PENDING REVIEW
 
 ---
-<!-- Sprint 76-1 scenarios — appended 2026-02-26 -->
 
-## SUGGESTED SCENARIO: sequence timeline from permit routing history
-**Source:** src/tools/estimate_timeline.py — estimate_sequence_timeline()
-**User:** expediter
-**Starting state:** A permit with a known application number has addenda routing records in the database. Station velocity data exists in station_velocity_v2 for at least some of those stations.
-**Goal:** The expediter wants to understand how long the permit's specific review route will take, given the actual stations it has been routed through (not a generic estimate based on permit type).
-**Expected outcome:** The response includes a per-station breakdown showing each station's p50 velocity, status (done/stalled/pending), whether it's running in parallel with another station, and a total estimate in days with a confidence level. Stations with no velocity data are listed as skipped.
-**Edge cases seen in code:** If no addenda exist for the permit number, returns null (no estimate). If the station_velocity_v2 table doesn't exist yet, still returns a result with the station sequence but 0 total days and "low" confidence.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: parallel station detection in sequence model
-**Source:** src/tools/estimate_timeline.py — estimate_sequence_timeline() parallel detection logic
-**User:** expediter
-**Starting state:** A permit has been routed to two or more stations simultaneously (same arrive date). Both stations have velocity data.
-**Goal:** The timeline estimate correctly treats concurrent review stations as parallel (not additive), so the total estimate reflects real-world review time.
-**Expected outcome:** The total_estimate_days uses the max p50 of the parallel group, not the sum. The station entries have is_parallel=true for the stations that overlap. The total is lower than if all stations were summed sequentially.
-**Edge cases seen in code:** Parallel detection compares date portions (first 10 chars) of first_arrive timestamps. Stations with the same arrive date are grouped as parallel. Only the p50 of the longest station in the group contributes to the total.
+## SUGGESTED SCENARIO: Property report loads cached parcel data
+**Source:** QS5-A parcel_summary cache integration in report.py
+**User:** expediter | homeowner
+**Starting state:** parcel_summary table has a row for block/lot with tax_value, zoning_code, use_definition
+**Goal:** View a property report without waiting for SODA API tax data call
+**Expected outcome:** Property profile section shows assessed value, zoning, and use definition from cache; SODA property tax API call is skipped; complaints and violations still fetched live
+**Edge cases seen in code:** parcel_summary row exists but all tax fields are NULL; concurrent cron refresh while report is loading
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
 ---
-<!-- Sprint 76-4 scenarios — appended 2026-02-26 -->
+
+## SUGGESTED SCENARIO: property report loads fast for large parcels
+**Source:** web/report.py _get_contacts_batch/_get_inspections_batch (QS8-T1-A)
+**User:** expediter
+**Starting state:** A parcel with 40+ permits (e.g., large commercial building) exists in the database. Each permit has multiple contacts and inspections.
+**Goal:** Load the property report page without waiting 10+ seconds.
+**Expected outcome:** Report renders in under 3 seconds. All permit contacts and inspections are present and correctly attributed to each permit.
+**Edge cases seen in code:** Empty permit list returns empty contacts/inspections maps without any DB call. Permits with no contacts get an empty list (not an error). Permits with no permit_number are skipped in the batch.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: property report contacts are role-ordered per permit
+**Source:** web/report.py _get_contacts_batch ORDER BY role priority (QS8-T1-A)
+**User:** expediter
+**Starting state:** A permit has contacts with roles: contractor, engineer, applicant.
+**Goal:** View the property report and see contacts listed in a consistent order.
+**Expected outcome:** Applicant appears first, then contractor, then engineer, then others. Order is consistent regardless of how data was inserted.
+**Edge cases seen in code:** CASE WHEN ordering handles NULL/empty role strings via COALESCE — they sort last.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: SODA data is served from cache on rapid re-render
+**Source:** web/report.py _soda_cache (15-min TTL) (QS8-T1-A)
+**User:** expediter
+**Starting state:** A property report was recently loaded (< 15 minutes ago). SODA API is available.
+**Goal:** Load the same property report again (e.g., browser back-forward navigation or admin review).
+**Expected outcome:** Second load is noticeably faster. SODA API is not called again. Complaints, violations, and property data are identical to the first load.
+**Edge cases seen in code:** Cache is keyed by endpoint_id:block:lot — different parcels never share cache entries. Cache is module-level so it persists for the process lifetime.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: stale SODA cache is refreshed after TTL expires
+**Source:** web/report.py _SODA_CACHE_TTL = 900 (QS8-T1-A)
+**User:** expediter
+**Starting state:** A property report was loaded 16 minutes ago. A new complaint was filed since then.
+**Goal:** Load the property report and see the new complaint.
+**Expected outcome:** SODA API is called fresh. The new complaint appears in the report. Old cached data is replaced.
+**Edge cases seen in code:** TTL checked via time.monotonic() — not affected by system clock changes. Expired entries are replaced, not deleted first.
+**CC confidence:** low
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Severity badge visible on permit lookup
+**Source:** web/routes_search.py (_ask_permit_lookup + _get_severity_for_permit) (Sprint 76-3)
+**User:** expediter
+**Starting state:** User is logged in and searches for a specific permit number that is in the permits DB
+**Goal:** Quickly assess the risk level of a permit without reading the full details
+**Expected outcome:** A colored tier badge (CRITICAL / HIGH / MEDIUM / LOW / GREEN) appears alongside the permit result, reflecting the permit's computed severity score
+**Edge cases seen in code:** Severity computation fails gracefully — if DB is unavailable or scoring raises, the badge is simply omitted rather than breaking the search result
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: morning brief shows pipeline health stats
+**Source:** web/brief.py — _get_pipeline_stats(), get_morning_brief() (QS8-T1-B)
+**User:** admin
+**Starting state:** Nightly cron has run at least once; cron_log has records
+**Goal:** User opens morning brief and sees pipeline health summary (avg job duration, 24h success/fail counts)
+**Expected outcome:** Brief data includes pipeline_stats with recent_jobs list and 24h counts; average duration is computed from successful runs; non-fatal if cron_log is empty or unavailable
+**Edge cases seen in code:** If DB unavailable, pipeline_stats returns {} — brief still renders without it
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## ADMIN & OPERATIONS
+
+## SUGGESTED SCENARIO: Admin views station SLA compliance and identifies bottleneck departments
+**Source:** QS4-A /admin/metrics dashboard
+**User:** admin
+**Starting state:** Admin is logged in, metrics data has been ingested
+**Goal:** View which review stations are meeting their SLA targets and identify departments causing delays
+**Expected outcome:** Dashboard shows station-level SLA percentages with color coding (green >= 80%, amber 60-79%, red < 60%), sorted by volume, enabling admin to identify bottleneck stations
+**Edge cases seen in code:** NULL stations are excluded; zero-total stations handled to avoid division by zero; DuckDB BOOLEAN vs Postgres BOOLEAN for met_cal_sla
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Station velocity query returns cached results in under 100ms
+**Source:** QS4-A station_velocity_v2 caching layer
+**User:** expediter | architect
+**Starting state:** Velocity cache has been populated by nightly cron job
+**Goal:** Get station processing time estimates without waiting for a 3.9M-row addenda query
+**Expected outcome:** Pre-computed velocity data returned from station_velocity_v2 table; falls back to 'all' period if requested period has no data; returns None gracefully on cache miss
+**Edge cases seen in code:** Stale cache handled by nightly refresh; fallback from 'current' to 'all' period; CURRENT_WIDEN_DAYS=180 fallback when sample count < 30
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Nightly pipeline includes metrics refresh alongside permit data
+**Source:** QS4-A run_ingestion() pipeline integration
+**User:** admin
+**Starting state:** Nightly ingestion pipeline runs on schedule
+**Goal:** Ensure metrics datasets (issuance, review, planning) are refreshed during the main pipeline run, not only via separate cron endpoints
+**Expected outcome:** run_ingestion() calls all 3 metrics ingest functions after dwelling_completions, keeping metrics data in sync with permit data
+**Edge cases seen in code:** Metrics ingest runs outside the try block's feature-flag guards (always runs); individual metrics cron endpoints still available for manual refreshes
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Admin views request performance dashboard
+**Source:** web/routes_admin.py (admin_perf route), web/templates/admin_perf.html (Sprint 74-1)
+**User:** admin
+**Starting state:** Admin is logged in. The app has been running for at least a few minutes and some requests have been sampled into request_metrics (slow requests > 200ms or 10% random sample).
+**Goal:** Admin wants to understand which endpoints are slowest and what the overall latency profile looks like.
+**Expected outcome:** Admin sees p50/p95/p99 latency stat blocks at the top, a table of the 10 slowest endpoints by p95, and a volume table showing traffic by path. Empty state messages appear if no data has been collected yet.
+**Edge cases seen in code:** If the request_metrics table is empty (fresh deploy), all stat blocks show 0ms and both tables show an empty state message rather than errors.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Request metrics are sampled automatically
+**Source:** web/app.py (_slow_request_log after_request hook) (Sprint 74-1)
+**User:** admin
+**Starting state:** Admin is observing the system. Any user makes requests to the app.
+**Goal:** Admin wants request performance data to accumulate passively without manual instrumentation.
+**Expected outcome:** Requests slower than 200ms are always recorded. Approximately 10% of all other requests are recorded via random sampling. Recording never causes a request to fail — DB errors in metric capture are swallowed silently and the response still returns normally.
+**Edge cases seen in code:** The metric insert happens only when g._request_start is set (i.e., request went through _set_start_time). Static file requests that bypass the before_request hook will not be recorded.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Health endpoint shows circuit breaker states and cron heartbeat age
+**Source:** QS3-B — /health enhancement in web/app.py
+**User:** admin
+**Starting state:** Admin monitoring the health endpoint, cron heartbeat running every 15 minutes
+**Goal:** Quickly assess system health including circuit breaker states and cron worker liveness
+**Expected outcome:** GET /health returns JSON with "circuit_breakers" dict showing each category as "closed" or "open (N failures, reopens in Xm)". Also includes "cron_heartbeat_age_minutes" (float) and "cron_heartbeat_status" (OK/WARNING/CRITICAL). Heartbeat age > 30 min = WARNING, > 120 min = CRITICAL, no data = NO_DATA.
+**Edge cases seen in code:** In DuckDB dev mode, heartbeat query gracefully falls back when cron_log table doesn't exist (returns NO_DATA). Circuit breaker status is empty dict when no failures have been recorded.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Health endpoint reports circuit breaker states and cron worker liveness
+**Source:** QS3-B — /health enhancement (rewritten by QS7-4D)
+**User:** admin
+**Starting state:** Admin is monitoring system health; cron heartbeat job runs on a regular schedule
+**Goal:** Quickly assess whether enrichment queries are degraded and whether the cron worker is alive
+**Expected outcome:** The health response includes the current state of each enrichment circuit breaker (closed/open, how many failures, when it reopens). It also includes how long ago the cron worker last reported in, with a status indicator (OK / WARNING / CRITICAL) based on elapsed time.
+**Edge cases seen in code:** In local dev mode (DuckDB), heartbeat query gracefully falls back when cron_log table doesn't exist; circuit breaker status is empty when no failures have been recorded
+**CC confidence:** high
+**Status:** PENDING REVIEW
+**DUPLICATE OF:** Substantively same as "Health endpoint shows circuit breaker states and cron heartbeat age" above. Prefer rewritten version.
+
+---
+
+## SUGGESTED SCENARIO: Pipeline summary shows elapsed time per nightly step
+**Source:** QS3-B — _timed_step wrapper + GET /cron/pipeline-summary
+**User:** admin
+**Starting state:** Nightly pipeline has completed its most recent run
+**Goal:** Review which pipeline steps are slow or erroring to diagnose operational issues
+**Expected outcome:** GET /cron/pipeline-summary returns JSON with per-step entries including job_type, elapsed_seconds, status (ok/error), and timestamps. The nightly pipeline response includes a "step_timings" dict with elapsed seconds for each post-processing step. Steps that error still record their elapsed time.
+**Edge cases seen in code:** Pipeline summary is read-only with no auth. Step timing survives exceptions — _timed_step catches errors and still records elapsed. The main SODA fetch has its own cron_log tracking.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: PostHog tracks page views for anonymous visitors without blocking page load
+**Source:** QS3-D PostHog integration (web/helpers.py, web/app.py, landing.html)
+**User:** homeowner | new visitor
+**Starting state:** POSTHOG_API_KEY env var is set on production. Anonymous visitor loads the landing page.
+**Goal:** Analytics tracking captures page views and search events without degrading page load performance.
+**Expected outcome:** PostHog JS loads asynchronously (async attribute). Server-side after_request hook fires posthog_track() for page views and search events. If POSTHOG_API_KEY is not set, both JS snippet and server hook are complete no-ops — zero overhead. Page renders identically with or without PostHog configured.
+**Edge cases seen in code:** PostHog capture fails silently (exception swallowed), /static/ and /health paths excluded from tracking, anonymous users tracked as "anonymous" distinct_id
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Feature flag permit_prep_enabled gates Permit Prep feature rollout
+**Source:** QS3-D PostHog feature flags (web/helpers.py, web/app.py)
+**User:** admin | expediter
+**Starting state:** POSTHOG_API_KEY is set. PostHog dashboard has permit_prep_enabled flag configured for specific user IDs.
+**Goal:** Permit Prep features are only visible to users whose PostHog feature flags include permit_prep_enabled=True.
+**Expected outcome:** g.posthog_flags is populated in before_request for authenticated users (populated from PostHog API). Anonymous users always get empty flags dict. Templates can check g.posthog_flags.get("permit_prep_enabled") to conditionally render Permit Prep UI. If PostHog is not configured, flags are always empty — features default to hidden.
+**Edge cases seen in code:** PostHog get_all_flags() returns None (coerced to {}), PostHog API timeout (swallowed, returns {}), flag key not in dict (template uses .get() with default)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Severity cache populated by nightly cron
+**Source:** web/routes_cron.py (cron_refresh_severity_cache), scripts/release.py (severity_cache DDL) (Sprint 76-3)
+**User:** admin
+**Starting state:** severity_cache table exists but is empty (fresh deploy or manual flush)
+**Goal:** Populate the cache with scores for all active permits so search results load quickly
+**Expected outcome:** POST /cron/refresh-severity-cache with correct CRON_SECRET bearer token processes up to 500 permits, upserts score/tier/drivers for each, and returns a JSON response with permits_scored count and elapsed time
+**Edge cases seen in code:** Batch limited to 500 per run to prevent Railway timeouts; individual permit errors are counted separately and do not abort the batch
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: daily API usage aggregation rolls up to summary table
+**Source:** web/cost_tracking.py aggregate_daily_usage + web/routes_cron.py cron_aggregate_api_usage (Sprint 76-2)
+**User:** admin
+**Starting state:** api_usage table has entries from yesterday's activity (user queries, plan analyses).
+**Goal:** Nightly cron job runs POST /cron/aggregate-api-usage to produce a daily summary for the dashboard.
+**Expected outcome:** api_daily_summary table has a row for yesterday with correct total_calls, total_cost_usd, and endpoint breakdown. Subsequent runs are idempotent (UPSERT). Admin cost dashboard reflects up-to-date daily totals.
+**Edge cases seen in code:** Missing api_usage table handled gracefully (returns inserted=False, no crash). Optional ?date=YYYY-MM-DD param for back-filling. Defaults to yesterday.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
 
 ## SUGGESTED SCENARIO: admin navigates ops dashboard across tabs
 **Source:** admin_ops.html Obsidian migration (Sprint 76-4)
@@ -741,55 +602,116 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Status:** PENDING REVIEW
 
 ---
-<!-- Sprint 76-3 scenarios — appended 2026-02-26 -->
 
-## SUGGESTED SCENARIO: Severity badge visible on permit lookup
-
-**Source:** web/routes_search.py (_ask_permit_lookup + _get_severity_for_permit), web/templates/fragments/severity_badge.html
-**User:** expediter
-**Starting state:** User is logged in and searches for a specific permit number that is in the permits DB
-**Goal:** Quickly assess the risk level of a permit without reading the full details
-**Expected outcome:** A colored tier badge (CRITICAL / HIGH / MEDIUM / LOW / GREEN) appears alongside the permit result, reflecting the permit's computed severity score
-**Edge cases seen in code:** Severity computation fails gracefully — if DB is unavailable or scoring raises, the badge is simply omitted rather than breaking the search result
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-
-## SUGGESTED SCENARIO: Severity cache populated by nightly cron
-
-**Source:** web/routes_cron.py (cron_refresh_severity_cache), scripts/release.py (severity_cache DDL)
+## SUGGESTED SCENARIO: signals cron endpoint logs to cron_log
+**Source:** web/routes_cron.py — cron_signals() (QS8-T1-B)
 **User:** admin
-**Starting state:** severity_cache table exists but is empty (fresh deploy or manual flush)
-**Goal:** Populate the cache with scores for all active permits so search results load quickly
-**Expected outcome:** POST /cron/refresh-severity-cache with correct CRON_SECRET bearer token processes up to 500 permits, upserts score/tier/drivers for each, and returns a JSON response with permits_scored count and elapsed time
-**Edge cases seen in code:** Batch limited to 500 per run to prevent Railway timeouts; individual permit errors are counted separately and do not abort the batch
+**Starting state:** CRON_SECRET configured; signals pipeline operational
+**Goal:** Scheduler calls POST /cron/signals to run signal detection
+**Expected outcome:** Job start logged as 'running', completion logged as 'success' or 'failed' with elapsed time; response includes ok, status, elapsed_seconds; failure does not crash the endpoint (returns ok=False)
+**Edge cases seen in code:** cron_log insert failure is non-fatal (logged as warning); pipeline exception returns HTTP 500 with ok=False
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
 ---
-<!-- Sprint 76-2 scenarios — appended 2026-02-26 -->
 
-## SUGGESTED SCENARIO: cost kill switch blocks AI routes without affecting browsing
-
-**Source:** web/app.py _kill_switch_guard + web/cost_tracking.py (Sprint 76-2)
-**User:** homeowner
-**Starting state:** Admin has activated the API kill switch (daily spend exceeded $20). User is browsing the site and tries to use the AI analysis tool.
-**Goal:** User submits a project description to the /ask or /analyze endpoint while kill switch is active.
-**Expected outcome:** User receives a clear error message saying AI features are temporarily unavailable (cost protection), with a prompt to try again later. All non-AI pages (home, property reports, search) continue to function normally.
-**Edge cases seen in code:** Kill switch check happens in before_request hook before rate limiter or view function runs. JSON 503 response with kill_switch=True field. Health endpoint never blocked.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: daily API usage aggregation rolls up to summary table
-
-**Source:** web/cost_tracking.py aggregate_daily_usage + web/routes_cron.py cron_aggregate_api_usage (Sprint 76-2)
+## SUGGESTED SCENARIO: velocity-refresh cron endpoint logs to cron_log
+**Source:** web/routes_cron.py — cron_velocity_refresh() (QS8-T1-B)
 **User:** admin
-**Starting state:** api_usage table has entries from yesterday's activity (user queries, plan analyses).
-**Goal:** Nightly cron job runs POST /cron/aggregate-api-usage to produce a daily summary for the dashboard.
-**Expected outcome:** api_daily_summary table has a row for yesterday with correct total_calls, total_cost_usd, and endpoint breakdown. Subsequent runs are idempotent (UPSERT). Admin cost dashboard reflects up-to-date daily totals.
-**Edge cases seen in code:** Missing api_usage table handled gracefully (returns inserted=False, no crash). Optional ?date=YYYY-MM-DD param for back-filling. Defaults to yesterday.
+**Starting state:** CRON_SECRET configured; addenda table populated with routing data
+**Goal:** Scheduler calls POST /cron/velocity-refresh to refresh station velocity baselines
+**Expected outcome:** Velocity refresh runs, transitions and congestion sub-steps also attempted (non-fatal); all logged to cron_log; response includes rows_inserted, stations, transitions; partial failures (transitions/congestion) don't fail overall job
+**Edge cases seen in code:** transitions failure logged as transitions_error key in response; congestion failure same pattern
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: pipeline stats unavailable at first deploy
+**Source:** web/brief.py — _get_pipeline_stats() (QS8-T1-B)
+**User:** admin
+**Starting state:** Fresh deploy, cron_log table empty or not yet populated
+**Goal:** Admin opens morning brief before any cron jobs have run
+**Expected outcome:** Brief still renders; pipeline_stats is empty dict ({}); no error shown to user
+**Edge cases seen in code:** Exception caught silently, returns {}
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Admin reviews stale task inventory
+**Source:** QS5-D task hygiene diagnostic sweep (rewritten by QS7-4D)
+**User:** admin
+**Starting state:** Many open tasks have accumulated over multiple sprints, some referencing features that were already delivered.
+**Goal:** Review open tasks, close those that are done, and create focused follow-ups for items that remain outstanding.
+**Expected outcome:** Admin can distinguish between: tasks completed (close with evidence), tasks superseded by later work (close with note), and tasks still needed (update description to current understanding). After the review, the open task count is meaningfully reduced and remaining tasks have accurate descriptions.
+**Edge cases seen in code:** Task descriptions may refer to sprint numbers or feature names that predate current architecture
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Admin ops hub gated by role
+**Source:** tests/e2e/test_admin_scenarios.py — TestAdminOpsPage (Sprint 77-2)
+**User:** admin
+**Starting state:** Authenticated admin user, all other non-admin users also logged in
+**Goal:** Only admin users can reach the admin ops hub; non-admins and anonymous visitors are blocked
+**Expected outcome:** Admin user: page loads, shows ops hub content (pipeline, quality, activity, feedback sections). Non-admin authenticated user: blocked with 403 or redirected away from the ops hub. Anonymous visitor: redirected to login page before seeing any admin content.
+**Edge cases seen in code:** abort(403) used directly — no intermediate redirect for non-admins
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Morning brief lookback parameter accepts any valid range
+**Source:** web/routes_misc.py — /brief route; web/templates/brief.html lookback toggle (Sprint 77-1)
+**User:** expediter
+**Starting state:** Authenticated expediter on the morning brief page
+**Goal:** Switch lookback window using URL parameter
+**Expected outcome:** All valid values (1, 7, 30, 90) return HTTP 200. Values outside 1-90 are clamped. Non-integer values default to 1. Active lookback button reflects current selection.
+**Edge cases seen in code:** max(1, min(int(lookback), 90)) — ValueError on non-numeric input defaults to 1
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## PERFORMANCE & INFRASTRUCTURE
+
+## SUGGESTED SCENARIO: Production handles concurrent users without pool exhaustion
+**Source:** QS4-B Task B-1 (pool monitoring + env override)
+**User:** admin
+**Starting state:** 50+ concurrent users hitting sfpermits.ai during peak hours
+**Goal:** Verify that the connection pool handles concurrent load without exhaustion or errors
+**Expected outcome:** All requests complete successfully; /health pool stats show used_count stays below maxconn; no connection timeout errors in logs
+**Edge cases seen in code:** Pool at Railway limit (5 workers x 20 = 100 connections = Postgres max); DB_POOL_MAX env var override for capacity tuning
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Railway zero-downtime deploy uses readiness probe
+**Source:** QS4-B Task B-2 (/health/ready endpoint)
+**User:** admin
+**Starting state:** New container starting during Railway deployment
+**Goal:** Verify that /health/ready returns 503 until DB pool, tables, and migrations are all verified, then returns 200
+**Expected outcome:** Railway routes traffic to new container only after /health/ready returns 200; old container continues serving until new one is ready
+**Edge cases seen in code:** Missing tables return 503 with list of what's missing; 5-second statement_timeout prevents readiness probe from hanging
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Connection pool stats visible in health monitoring
+**Source:** QS4-B Task B-3 (pool stats in /health)
+**User:** admin
+**Starting state:** Production system running with active connections
+**Goal:** View connection pool utilization via /health endpoint for capacity planning
+**Expected outcome:** /health response includes pool.maxconn, pool.used_count, pool.pool_size; values update in real-time as connections are checked out/returned
+**Edge cases seen in code:** DuckDB backend returns status "no_pool" since it has no connection pool; pool internals accessed via _pool/_used attributes which may change between psycopg2 versions
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
 
 ## SUGGESTED SCENARIO: Pool exhaustion surfaces diagnostic warning
 **Source:** src/db.py get_connection() PoolError handler (Sprint 74-4)
@@ -801,6 +723,8 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
+---
+
 ## SUGGESTED SCENARIO: Pool health visible in health endpoint response
 **Source:** src/db.py get_pool_stats() + get_pool_health() (Sprint 74-4)
 **User:** admin
@@ -810,6 +734,8 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** When pool is None or pool.closed=True, healthy=False with all counts at 0
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
 
 ## SUGGESTED SCENARIO: Custom pool parameters take effect via env vars
 **Source:** src/db.py _get_pool() DB_POOL_MIN, DB_CONNECT_TIMEOUT (Sprint 74-4)
@@ -821,6 +747,8 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
+---
+
 ## SUGGESTED SCENARIO: Statement timeout configurable per deployment context
 **Source:** src/db.py get_connection() DB_STATEMENT_TIMEOUT (Sprint 74-4)
 **User:** admin
@@ -831,8 +759,57 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
+---
+
+## SUGGESTED SCENARIO: Circuit breaker skips slow enrichment queries after repeated timeouts
+**Source:** QS3-B — CircuitBreaker in src/db.py + permit_lookup integration (rewritten by QS7-4D)
+**User:** expediter | architect
+**Starting state:** Three consecutive permit lookups have timed out on the same type of enrichment query (e.g., inspections) due to database load
+**Goal:** Subsequent permit lookups remain fast and responsive despite the degraded database condition
+**Expected outcome:** After a threshold of failures within a short window, that enrichment category is skipped automatically. Subsequent lookups show a "temporarily unavailable" note for that section instead of waiting for a timeout. After a cooldown period, the next lookup retries the enrichment. A successful enrichment resets the failure tracking.
+**Edge cases seen in code:** Different enrichment categories (contacts, addenda, related_team, planning_records, boiler_permits) have independent circuit breakers
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: SODA API circuit breaker opens after repeated failures
+**Source:** src/soda_client.py — CircuitBreaker integration with SODAClient.query() (QS8-T1-C)
+**User:** homeowner | expediter
+**Starting state:** SODA API is returning 503 errors or timing out on every request
+**Goal:** User searches for permit data; app should not hang or surface raw errors
+**Expected outcome:** After the failure threshold is reached, all SODA queries return empty results immediately without making network calls. The UI degrades gracefully (shows no results) rather than returning error pages or stalling.
+**Edge cases seen in code:** 4xx errors (e.g., bad dataset ID) do NOT trip the circuit — only 5xx and network errors count as failures
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: SODA circuit breaker auto-recovers after cooldown
+**Source:** src/soda_client.py — CircuitBreaker.is_open() half-open transition (QS8-T1-C)
+**User:** expediter
+**Starting state:** Circuit breaker was opened due to SODA API failures; recovery_timeout seconds have passed
+**Goal:** Resume normal permit data queries without manual restart
+**Expected outcome:** The next query after the cooldown window acts as a probe. If it succeeds, the circuit closes and normal queries resume. If it fails, the circuit reopens and the cooldown restarts.
+**Edge cases seen in code:** Half-open state allows exactly one probe — not multiple concurrent probes
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: 4xx SODA errors do not trigger circuit breaker
+**Source:** src/soda_client.py — HTTPStatusError handling in query() (QS8-T1-C)
+**User:** expediter
+**Starting state:** A tool passes an invalid dataset ID or malformed SoQL query to the SODA client
+**Goal:** Bad queries surface as errors without poisoning the circuit breaker for healthy queries
+**Expected outcome:** HTTPStatusError is raised to the caller as before; failure_count stays at 0; subsequent queries to valid endpoints succeed normally
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
 ## SUGGESTED SCENARIO: Load test shows staging can handle launch traffic
-**Source:** scripts/load_test.py
+**Source:** scripts/load_test.py (Sprint 74-2)
 **User:** admin
 **Starting state:** Staging app is running; load_test.py available in scripts/
 **Goal:** Verify the app sustains 10 concurrent users for 30 seconds without errors on the landing, search, and health pages
@@ -841,8 +818,10 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
+---
+
 ## SUGGESTED SCENARIO: Load test CLI filters to a single scenario
-**Source:** scripts/load_test.py
+**Source:** scripts/load_test.py (Sprint 74-2)
 **User:** admin
 **Starting state:** App is deployed; user wants to isolate health check performance
 **Goal:** Run load test on health endpoint only with custom concurrency
@@ -851,8 +830,10 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
+---
+
 ## SUGGESTED SCENARIO: Load test captures timeout errors correctly
-**Source:** scripts/load_test.py
+**Source:** scripts/load_test.py (Sprint 74-2)
 **User:** admin
 **Starting state:** A scenario endpoint is timing out (e.g., DB overload)
 **Goal:** Load test should record timeout errors rather than crashing
@@ -861,844 +842,34 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: security audit runs without crashing when tools are missing
-**Source:** scripts/security_audit.py — run_bandit / run_pip_audit graceful degradation
+---
+
+## SUGGESTED SCENARIO: Response time visible in response headers
+**Source:** QS8-T1-D / web/app.py _add_response_time_header
 **User:** admin
-**Starting state:** CI environment where bandit and/or pip-audit are not installed
-**Goal:** Run the security audit script and get a usable report even when tools are absent
-**Expected outcome:** Script completes (exit 0), report clearly marks missing tools as SKIPPED, no stack trace or unhandled exception
-**Edge cases seen in code:** tool not on PATH returns rc=-1 from run_command; check_tool_available guards both scanners independently
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: security audit exits 1 on HIGH severity bandit finding
-**Source:** scripts/security_audit.py — main() exit code logic
-**User:** admin
-**Starting state:** Codebase has a bandit HIGH severity issue (e.g., subprocess shell=True)
-**Goal:** CI job fails and draws attention to the finding
-**Expected outcome:** Script exits with code 1; report contains "FAIL" status; HIGH issue details present with filename, line number, test ID
-**Edge cases seen in code:** bandit exits 1 even when only LOW issues found — exit code alone cannot distinguish severity; script re-parses JSON counts
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: security audit produces artifact on every run including failures
-**Source:** .github/workflows/security.yml — continue-on-error + upload-artifact with if: always()
-**User:** admin
-**Starting state:** Security audit finds HIGH issues (audit step returns exit 1)
-**Goal:** Review the detailed report even when the CI job is marked failed
-**Expected outcome:** GitHub Actions artifact "security-audit-report-<run_id>" is uploaded and available for download; report contains full issue details
-**Edge cases seen in code:** continue-on-error on audit step + explicit fail step pattern ensures report upload always runs before job marks failed
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: weekly security scan runs on Sunday without manual trigger
-**Source:** .github/workflows/security.yml — schedule cron trigger
-**User:** admin
-**Starting state:** No new commits; cron fires on schedule
-**Goal:** Catch newly disclosed vulnerabilities in dependencies between development cycles
-**Expected outcome:** Workflow runs at 06:00 UTC Sunday, both bandit and pip-audit execute against current installed packages, report artifact is stored for 90 days
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Admin views request performance dashboard
-
-**Source:** web/routes_admin.py (admin_perf route), web/templates/admin_perf.html (Sprint 74-1)
-**User:** admin
-**Starting state:** Admin is logged in. The app has been running for at least a few minutes and some requests have been sampled into request_metrics (slow requests > 200ms or 10% random sample).
-**Goal:** Admin wants to understand which endpoints are slowest and what the overall latency profile looks like.
-**Expected outcome:** Admin sees p50/p95/p99 latency stat blocks at the top, a table of the 10 slowest endpoints by p95, and a volume table showing traffic by path. Empty state messages appear if no data has been collected yet.
-**Edge cases seen in code:** If the request_metrics table is empty (fresh deploy), all stat blocks show 0ms and both tables show an empty state message rather than errors.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Request metrics are sampled automatically
-
-**Source:** web/app.py (_slow_request_log after_request hook) (Sprint 74-1)
-**User:** admin
-**Starting state:** Admin is observing the system. Any user makes requests to the app.
-**Goal:** Admin wants request performance data to accumulate passively without manual instrumentation.
-**Expected outcome:** Requests slower than 200ms are always recorded. Approximately 10% of all other requests are recorded via random sampling. Recording never causes a request to fail — DB errors in metric capture are swallowed silently and the response still returns normally.
-**Edge cases seen in code:** The metric insert happens only when `g._request_start` is set (i.e., request went through `_set_start_time`). Static file requests that bypass the before_request hook will not be recorded.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Design token ghost CTA meets WCAG AA
-**Source:** DESIGN_TOKENS.md ghost CTA accessibility fix
-**User:** architect | homeowner
-**Starting state:** User is on any page with ghost CTA links (property report, search results)
-**Goal:** Click a ghost CTA to navigate
-**Expected outcome:** Ghost CTA text is visible and legible at rest state (--text-secondary, 5.2:1 contrast), turns teal on hover. Passes WCAG AA for interactive text.
-**Edge cases seen in code:** Old templates may still use --text-tertiary for CTAs — migration needed
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Table sort indicators reflect active sort state
-**Source:** DESIGN_TOKENS.md obs-table sort indicators
-**User:** expediter | architect
-**Starting state:** User is viewing a data table with sortable columns (inspection history, permit list)
-**Goal:** Sort the table by clicking a column header
-**Expected outcome:** Chevron indicator appears on sortable columns in --text-tertiary. Active sort column shows teal chevron pointing up (asc) or down (desc). Clicking toggles direction. Only one column active at a time.
-**Edge cases seen in code:** Tables with no data should show empty state row, not sort controls
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Tabs switch content without full page reload
-**Source:** DESIGN_TOKENS.md tabs component
-**User:** expediter | admin
-**Starting state:** User is on a page with tabbed views (e.g., inspection history with Recent/Failed/All tabs)
-**Goal:** Switch between tab views
-**Expected outcome:** Active tab shows --text-primary with teal underline. Inactive tabs show --text-tertiary. Content panel swaps via HTMX without full page reload. On phone, tabs scroll horizontally if they overflow.
-**Edge cases seen in code:** Tab count badges should update when content changes
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Load more pagination appends results
-**Source:** DESIGN_TOKENS.md pagination / load more component
-**User:** expediter | homeowner
-**Starting state:** User is viewing a list with more than 20 results
-**Goal:** See additional results
-**Expected outcome:** "Showing 20 of 142" count displayed. "Show more →" ghost CTA loads next batch via HTMX append. Count updates. When no more results, button disappears. Skeleton placeholder shown during loading.
-**Edge cases seen in code:** If only 20 or fewer results, no pagination UI shown at all
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Toast notification with undo on watch action
-**Source:** DESIGN_TOKENS.md toast component
-**User:** expediter | homeowner
-**Starting state:** User is on a property page or search results
-**Goal:** Add a property to watchlist and see confirmation
-**Expected outcome:** "Watch added" toast appears top-center with green left border. Includes "Undo" link. Auto-dismisses after 5 seconds. Pauses on hover. Undo link reverses the action and dismisses toast immediately.
-**Edge cases seen in code:** Multiple rapid actions should stack toasts vertically, not replace
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Pre-computed brief loads sub-second
-**Source:** Instant Site Architecture spec (Chief Task #349)
-**User:** expediter
-**Starting state:** User is logged in with 40+ watched properties, first load of the day
-**Goal:** View morning brief quickly on mobile at job site
-**Expected outcome:** Brief page loads in under 200ms from page_cache. Shows "Updated X min ago" badge. Manual refresh button available (rate-limited to 1 per 5 min). All property cards, status dots, and sections render from pre-computed JSON.
-**Edge cases seen in code:** Cache miss on first-ever visit should compute and cache, not error. User with 0 watches gets clean empty state.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Share analysis email modal uses dark theme
-**Source:** results.html design token migration
-**User:** expediter
-**Starting state:** User has completed a permit analysis with an analysis_id
-**Goal:** Share the analysis with a team member via email
-**Expected outcome:** Share bar appears below results. Clicking "Email to your team" opens a modal with dark background (obsidian), monospaced email inputs, and teal focus rings. Entering valid email(s) and clicking Send delivers the share link. Modal closes on success.
-**Edge cases seen in code:** Empty email input shows validation error. More than 5 recipients blocked. Invalid email format shows inline error message. Cancel closes modal without sending.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Methodology card readable at rest
-**Source:** results.html design token migration — WCAG AA concern
-**User:** expediter
-**Starting state:** User has run a search and the results tabs are visible
-**Goal:** Read methodology disclosure labels without needing to interact
-**Expected outcome:** "How we calculated this" summary text is visible at rest (--text-secondary contrast, not faded tertiary). On hover the text turns teal (--accent). On expand, methodology body shows formula steps in monospace and data sources in footer.
-**Edge cases seen in code:** Methodology toggle checkbox persists open/closed state via localStorage. If methodology data is absent for a tab, no card is shown.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Demo page CTA matches design system
-**Source:** demo.html design token migration
-**User:** homeowner
-**Starting state:** Anonymous user arrives at /demo via landing page
-**Goal:** Get interested and click through to sign up
-**Expected outcome:** "Get Started →" CTA renders as a ghost-cta link (underline on hover, teal on hover), not a solid blue button. Clicking navigates to auth/login. Demo data cards render with dark obsidian backgrounds and readable text.
-**Edge cases seen in code:** Demo page requires demo data from the route — if no permit data, shows "No permit data available" empty state.
-
-## SUGGESTED SCENARIO: nav recovery chip prompts sign-up for gated features
-**Source:** web/templates/fragments/nav.html nav-signup-chip
-**User:** homeowner
-**Starting state:** User is anonymous (not signed in), viewing any public page
-**Goal:** User wants to understand what Brief/Portfolio/Projects offer before committing to sign up
-**Expected outcome:** Nav shows Brief, Portfolio, Projects with a small "Sign up" indicator badge; clicking navigates to the login/signup flow; the badge communicates value without fully blocking access to the navigation label
-**Edge cases seen in code:** Three separate features (Brief, Portfolio, Projects) each have independent gate checks — if one is unlocked, others may still show the chip
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: nav active state persists on page reload
-**Source:** web/templates/fragments/nav.html active_page variable
-**User:** expediter
-**Starting state:** User is authenticated and on the Search page
-**Goal:** User reloads the page and expects to remain oriented in the nav
-**Expected outcome:** The Search nav badge renders with active styling (teal accent, highlighted border) after reload; no nav item flickers or loses active state during load
-**Edge cases seen in code:** active_page is a server-side variable; JS nav-badge-loading class is added on click — if the click triggers a full page load, the loading state should clear when the new page renders
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: 404 page search bar recovers user session
-**Source:** web/templates/error.html 404 variant
-**User:** homeowner
-**Starting state:** User follows a stale link or mistyped URL and lands on a 404 page
-**Goal:** User wants to continue using the site without going "back" manually
-**Expected outcome:** The 404 page shows a functional search bar; user can type an SF address and submit to get to real search results; the "Back to home" ghost CTA also works as an alternative exit
-**Edge cases seen in code:** Search form uses GET method to "/" — must not interfere with any HTMX-powered search on the main page; search query should be preserved in URL
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: error page variants render correct code and message
-**Source:** web/templates/error.html error_type conditionals
-**User:** admin
-**Starting state:** The Flask app raises different error types (rate_limit=429, kill_switch=503, 403, 404, generic 500)
-**Goal:** Admin wants to verify that each error variant renders appropriate user-facing messaging
-**Expected outcome:** Each error_type shows the matching HTTP status code in large mono font, a semantically correct label, and a friendly message matching the error context; generic 500 shows "Something went wrong. We're looking into it."
-**Edge cases seen in code:** Generic else branch handles any non-typed error; detail parameter is conditionally shown only for rate_limit and generic errors (not kill_switch or 403 to avoid leaking internal info)
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: login_prompt ghost CTA visible in watch context
-**Source:** web/templates/fragments/login_prompt.html
-**User:** homeowner
-**Starting state:** Anonymous user visits a property report page that includes a watch button
-**Goal:** User sees the login prompt and understands they need to sign in to watch a property
-**Expected outcome:** "Sign in to watch →" renders as a subtle but legible ghost CTA link; on hover the text transitions to teal accent; clicking navigates to the sign-in page
-**Edge cases seen in code:** Previous implementation had a `<span class="login-prompt">` wrapper that could inherit unwanted styles from parent containers; new ghost-cta version has no wrapper
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Portfolio page shows property cards in obsidian dark theme
-**Source:** web/templates/portfolio.html obsidian migration
-**User:** expediter | homeowner
-**Starting state:** User is authenticated and has watched properties on their portfolio
-**Goal:** View the portfolio page to see watched properties with current status
-**Expected outcome:** Portfolio page renders with dark obsidian-themed property cards showing property address, current permit status, last activity date, and status indicator dot. Summary stats (total watched, active, attention) appear at top. Filter chips allow switching between All/Active/Attention/Stale views.
-**Edge cases seen in code:** Empty state (no watched properties) shows distinct CTA prompting user to search for a property to watch. Filter with 0 results shows per-filter empty message, not a crash.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Project detail shows role-appropriate invite section
-**Source:** web/templates/project_detail.html obsidian migration
-**User:** expediter | architect | admin
-**Starting state:** User is a project owner or admin viewing a project detail page
-**Goal:** Invite a collaborator to the project
-**Expected outcome:** An invite form with email input is visible only to project owners and admins. Sending an invite to a valid email shows success feedback. Sending to an invalid email shows error feedback. Regular members see no invite section.
-**Edge cases seen in code:** Admin override via g.user.is_admin — site admins can invite on any project regardless of project role.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Project detail links analyses to correct reports
-**Source:** web/templates/project_detail.html analysis list
-**User:** expediter | architect
-**Starting state:** User has a project with one or more linked plan analyses
-**Goal:** Navigate from the project detail page to a specific analysis
-**Expected outcome:** Analyses section shows each linked analysis as a clickable link with description (or address fallback, or "Untitled Analysis"). Clicking navigates to the correct analysis page. "No analyses linked" empty state shown when project has no analyses.
-**Edge cases seen in code:** Analysis with null description falls back to address, then to "Untitled Analysis". created_at date displayed in "Jan 01, 2025" format.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Search result cards use obsidian design tokens on authenticated home page
-**Source:** web/templates/index.html obsidian migration
-**User:** expediter | homeowner
-**Starting state:** User is authenticated and performs a permit search
-**Goal:** Read search results clearly on dark obsidian-themed page
-**Expected outcome:** Search result cards use the obsidian dark surface (no white/light cards). Accent color for links and interactive elements is cyan-teal (not legacy blue). Font hierarchy is clear — addresses/permit numbers in display font, metadata in body font. Error state (empty results, server error) renders in red signal color using token variable.
-**Edge cases seen in code:** Loading bar and progress dots use signal-cyan accent. Personalization form (priorities, experience) uses cyan chip highlight when selected.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Brief cache freshness indicator shows last update time
-**Source:** web/templates/brief.html cache freshness UI
-**User:** expediter | homeowner
-**Starting state:** User has watched properties; brief was pre-computed and cached
-**Goal:** Understand how fresh the brief data is without hunting for timestamps
-**Expected outcome:** A subtle status dot (green) with timestamp appears near the page header, showing when data was last updated. If a refresh button is available, it is styled as a ghost CTA with "Refresh →" label.
-**Edge cases seen in code:** When brief.cached_at is None, the cache freshness row is hidden entirely. When brief.can_refresh is False, no refresh button appears.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Stale data warning prompts user to act
-**Source:** web/templates/brief.html stale data warning block
-**User:** expediter | homeowner
-**Starting state:** Brief data is stale (last refresh was many hours ago)
-**Goal:** User should understand their brief may be missing recent changes
-**Expected outcome:** An amber warning banner appears below the subtitle, explaining how many hours ago the last refresh ran. If a catchup backfill was used, a note about recovered changes appears.
-**Edge cases seen in code:** Warning only shows when brief.last_refresh.is_stale is true. Message mentions hours_ago (integer truncated).
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: All-quiet state with no recent activity
-**Source:** web/templates/brief.html all-quiet-card block
-**User:** homeowner
-**Starting state:** User has watched properties but none have had activity in the selected lookback period
-**Goal:** User checks brief expecting updates, finds none
-**Expected outcome:** A distinct "All quiet" card appears (not an error, not a blank page), explaining no activity in the selected period. Contextual links to expand the lookback window are shown (e.g., "Try last 90 days"). A link to search for permits is offered.
-**Edge cases seen in code:** Card only shows when no changes, health, inspections, new_filings, team_activity, expiring, or regulatory_alerts exist. Different copy for 1-day vs 7-day vs 90-day lookback.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Property report renders risk assessment with severity colors
-**Source:** web/templates/report.html — risk assessment section migration
-**User:** expediter
-**Starting state:** User navigates to a property report for a parcel with known complaints or violations.
-**Goal:** Quickly identify the severity and nature of risks at this property.
-**Expected outcome:** Risk items display with color-coded left borders (red for high, amber for moderate, blue for low) and matching severity chips. Each risk item shows title, description, and optional cross-reference link to the relevant section. "No known risks" state shows a green-bordered card with "Clear" chip.
-**Edge cases seen in code:** Properties with no risk_assessment show fallback "No known risks" card. KB citations render as small teal chips when present.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Permit history table shows expandable details inline
-**Source:** web/templates/report.html — permit history section
-**User:** expediter
-**Starting state:** User views a property report with multiple permits; some permits have contacts, inspections, or routing data.
-**Goal:** Drill into a specific permit without leaving the page.
-**Expected outcome:** Clicking "Details →" on a permit row expands an inline panel showing contacts (with entity links), recent inspections (with pass/fail coloring), and plan review routing (progress bar + station-by-station results). Clicking again collapses the panel.
-**Edge cases seen in code:** Permits without contacts/inspections/routing show no Details button. Routing stalled stations show red risk-flag. Routing "All clear" shows green checkmark.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Complaint and violation cards display status with semantic coloring
-**Source:** web/templates/report.html — complaints and violations section
-**User:** expediter
-**Starting state:** User views a property report for a parcel with open complaints and violations on file.
-**Goal:** Assess the severity and current status of each complaint or violation at a glance.
-**Expected outcome:** Each complaint/violation shows as a glass card with case number (linked to DBI portal), status chip (Open = amber, Closed = green, etc.), filing date, and description. Empty state displays italic "No complaints on file" message.
-**Edge cases seen in code:** Status chips fall back to default (ghost) styling for unrecognized status strings. Complaint numbers link to external city portal.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Property profile data rows render in obsidian design with correct font split
-**Source:** web/templates/report.html — property profile section
-**User:** homeowner
-**Starting state:** User views the property profile section of a report.
-**Goal:** Read property details (address, zoning, assessed value, etc.) in a clean readable format.
-**Expected outcome:** Each data row shows label in sans font (IBM Plex Sans) and value in mono font (JetBrains Mono). Rows are separated by glass-border lines. Zoning value is a hyperlink to the SF Planning Code. No information is truncated or misaligned on mobile.
-**Edge cases seen in code:** Null/missing values show em-dash (—) placeholder. On mobile viewport, data rows stack label above value (column direction).
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Consultant recommendation section shows tiered callout based on risk signal
-**Source:** web/templates/report.html — consultant recommendation section
-**User:** homeowner
-**Starting state:** User views a property report where the consultant_signal is "strongly_recommended" due to active complaints and permit complexity.
-**Goal:** Understand whether they need a consultant and find one.
-**Expected outcome:** Callout box renders with appropriate color and urgency (warm = blue, recommended = amber, strongly_recommended = red, essential = red with thicker border). A "Find a consultant →" link passes block/lot and signal context. Contributing factors list renders below the callout.
-**Edge cases seen in code:** Section hidden entirely when signal is "cold". Neighborhood and complaint flags appended to consultant finder URL when available.
-
-## SUGGESTED SCENARIO: Auth login page shows magic link confirmation state
-**Source:** web/templates/auth_login.html — migrated auth page
-**User:** homeowner | expediter | architect
-**Starting state:** User is on the login page and has not yet requested a link
-**Goal:** Sign in using magic link
-**Expected outcome:** User enters email, submits form, and the form state hides — replaced by a confirmation state showing the submitted email address and "Check your email" message. "Use a different email" link restores the form without a page reload.
-**Edge cases seen in code:** If server returns a success message, the JS should auto-show the sent state. If required invite_code field is missing or invalid, server renders error message inline with red left-border style.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Beta request form uses obsidian design system
-**Source:** web/templates/beta_request.html — migrated template
-**User:** homeowner
-**Starting state:** User is not invited and visits /beta-request
-**Goal:** Request beta access
-**Expected outcome:** Page renders with obsidian dark background, centered glass-card, monospace wordmark above. Form fields (email, name, reason textarea) use dark glass-border inputs. Submit button is ghost/outline style — not filled blue. On success, green left-border inline message appears. On error, red left-border inline message appears.
-**Edge cases seen in code:** Honeypot field must remain hidden (aria-hidden, display:none) and not styled.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Feedback widget FAB opens modal with chip type selector
-**Source:** web/templates/fragments/feedback_widget.html — migrated fragment
-**User:** expediter | homeowner | admin
-**Starting state:** User is on any authenticated page with the feedback widget included
-**Goal:** Submit feedback via the FAB
-**Expected outcome:** FAB (bottom-right) shows SVG icon, dark glass background. Clicking opens a modal with three chip selectors (Bug, Suggestion, Question). Active chip has teal border. Textarea and action buttons use token components. On submit, "Feedback sent" toast appears top-center. Modal auto-closes after 3 seconds.
-**Edge cases seen in code:** Clicking the backdrop or pressing Escape closes modal. Screenshot capture hides modal, shows overlay, then restores modal.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Watch button shows undo toast on property add
-**Source:** web/templates/fragments/watch_button.html — migrated fragment
-**User:** expediter | homeowner
-**Starting state:** User is viewing a property page or search result with a watch button
-**Goal:** Add a property to watchlist
-**Expected outcome:** Watch button uses dark glass action-btn style. On success, a toast appears with property label and "Undo" link. Clicking Undo fires a best-effort remove request. Toast auto-dismisses after 5 seconds.
-**Edge cases seen in code:** toast.js must be loaded in the page for showToast() to be available. If not loaded, watch still succeeds via HTMX — just no toast.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: toast.js showToast stacks multiple notifications
-**Source:** web/static/toast.js — new standalone file
-**User:** expediter
-**Starting state:** User performs multiple rapid actions (e.g., adding multiple watches)
-**Goal:** See confirmation for each action
-**Expected outcome:** Each showToast() call appends a new toast to the DOM. Multiple toasts stack vertically at top-center. Each auto-dismisses independently. Pausing on any one does not affect the others' timers.
-**Edge cases seen in code:** If action callback is provided, clicking "Undo" fires callback then dismisses. Duration option allows callers to override the 5-second default.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-# QS8-T2-A: Station Predictor Scenarios
-
-## SUGGESTED SCENARIO: expediter checks next station for active permit
-
-**Source:** src/tools/predict_next_stations.py — predict_next_stations tool
-**User:** expediter
-**Starting state:** Permit is active, has been routed through at least one station (BLDG completed), currently sitting at SFFD with an arrive date 10 days ago
-**Goal:** Understand which stations the permit will visit next and how long each typically takes
-**Expected outcome:** Tool returns current station (SFFD with dwell time), top 3 predicted next stations with transition probabilities and p50 durations, and a total estimated remaining time
-**Edge cases seen in code:** If fewer than 5 similar permits have transitioned from the current station, no predictions are shown — tool explains why
+**Starting state:** App is running, any page is requested
+**Goal:** Measure and observe server-side response time without needing server logs
+**Expected outcome:** Every HTTP response (2xx, 4xx, 5xx) includes X-Response-Time header with value in milliseconds (e.g., "47.2ms"); value increases proportionally with DB-heavy pages vs. static pages
+**Edge cases seen in code:** Header uses time.time() wall clock, not monotonic; value is always >= 0; present on 404 and health check responses
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
 ---
 
-## SUGGESTED SCENARIO: homeowner asks about stalled permit
-
-**Source:** src/tools/predict_next_stations.py — STALL_THRESHOLD_DAYS = 60 logic
+## SUGGESTED SCENARIO: Static content pages cached at CDN/browser level
+**Source:** QS8-T1-D / web/app.py add_cache_headers
 **User:** homeowner
-**Starting state:** Permit has been at CP-ZOC (Planning/Zoning) for 75 days with no finish_date recorded
-**Goal:** Find out if their permit is stuck and what to do about it
-**Expected outcome:** Tool surfaces "STALLED" indicator on the current station card, shows how many days the permit has been at that station, and recommends following up with DBI. Predictions for next stations are still shown based on historical transitions.
-**Edge cases seen in code:** Stall threshold is configurable (STALL_THRESHOLD_DAYS = 60). Permits just over the threshold get the warning; those below do not.
+**Starting state:** User visits /methodology, /about-data, or /demo for the first time
+**Goal:** Content loads quickly on repeat visits without hitting the origin server
+**Expected outcome:** Response includes Cache-Control: public, max-age=3600, stale-while-revalidate=86400; browser/CDN serves from cache for up to 1 hour; stale content served up to 24 hours while revalidating
+**Edge cases seen in code:** Cache header only set on 200 responses (not errors); auth pages, API endpoints, and search routes do NOT receive this header
 **CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: permit already complete — no action needed
-
-**Source:** src/tools/predict_next_stations.py — COMPLETE_STATUSES short-circuit
-**User:** homeowner | expediter
-**Starting state:** Permit status is "complete" or "issued"
-**Goal:** Check what happens next (doesn't know it's already done)
-**Expected outcome:** Tool returns a clear message that the permit has completed all review stations, shows the issued/completed date if available. Does NOT attempt to build transition predictions.
-**Edge cases seen in code:** Status values checked: "complete", "issued", "approved", "cancelled", "withdrawn" — all treated as terminal
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: permit not yet in plan review — no routing data
-
-**Source:** src/tools/predict_next_stations.py — empty addenda short-circuit
-**User:** homeowner
-**Starting state:** Permit was recently filed (< 2 weeks ago) and has no addenda records yet
-**Goal:** Ask what stations the permit will go through
-**Expected outcome:** Tool returns "No routing data available" with an explanation that the permit may not have entered plan review yet. Does not error out or return an empty page.
-**Edge cases seen in code:** Distinction between permit-not-found (permit table miss) and no-addenda (permit exists but addenda table has no rows for it)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: neighborhood-stratified prediction vs. city-wide fallback
-
-**Source:** src/tools/predict_next_stations.py — _build_transition_matrix neighborhood fallback
-**User:** expediter
-**Starting state:** Permit is in a neighborhood with sufficient historical data (e.g., Mission — many similar permits). Separately, a permit in a rare neighborhood with very few historical records.
-**Goal:** Get predictions that are relevant to the permit's actual location context
-**Expected outcome:** For Mission: predictions are labeled as "based on historical routing patterns from permits in Mission" (neighborhood-filtered). For rare neighborhood: falls back to all similar permit types city-wide, labeled accordingly. Both cases return predictions if transition data exists.
-**Edge cases seen in code:** Neighborhood fallback triggered when _build_transition_matrix returns empty dict for neighborhood query
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: expediter diagnoses critically stalled permit at plan check
-**Source:** src/tools/stuck_permit.py — diagnose_stuck_permit
-**User:** expediter
-**Starting state:** Permit has been at BLDG plan check station for 95 days. Historical p90 for BLDG is 60 days. No comments have been issued.
-**Goal:** Understand why the permit is stalled and what to do next
-**Expected outcome:** Tool returns a playbook identifying BLDG as critically stalled (past p90), recommending expediter contact DBI plan check counter with specific address and phone number, severity score reflects age/staleness
-**Edge cases seen in code:** Heuristic fallback when no velocity baseline exists for a station (>90d = critically stalled, >45d = stalled); stations missing from station_velocity_v2 still get flagged
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: homeowner learns to respond to plan check comments
-**Source:** src/tools/stuck_permit.py — _diagnose_station, review_results detection
-**User:** homeowner
-**Starting state:** Permit routing shows "Comments Issued" review result at BLDG station. 1 revision cycle completed.
-**Goal:** Understand what the comments mean and what action to take
-**Expected outcome:** Playbook identifies comment-issued status as highest priority intervention, recommends revising plans and resubmitting via EPR (Electronic Plan Review), includes EPR URL
-**Edge cases seen in code:** Revision cycle count (addenda_number >= 2) triggers additional warning about multiple rounds; 3+ cycles triggers expediter/architect recommendation
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: architect checks inter-agency hold at SFFD
-**Source:** src/tools/stuck_permit.py — INTER_AGENCY_STATIONS, _get_agency_key
-**User:** architect
-**Starting state:** Permit routed to SFFD station 50 days ago. p75 baseline for SFFD is 30 days.
-**Goal:** Know who to contact and what to say
-**Expected outcome:** Playbook identifies SFFD as stalled inter-agency station, provides SFFD Permit Division contact info (phone, address, URL), recommends contacting SFFD directly rather than DBI
-**Edge cases seen in code:** Multiple inter-agency stations (e.g. SFFD + HEALTH simultaneously) each get separate diagnosis entries ranked by severity; CP-ZOC (Planning) maps to Planning Department not DBI
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: expediter checks a healthy permit that is on track
-**Source:** src/tools/stuck_permit.py — _diagnose_station normal status, _format_playbook
-**User:** expediter
-**Starting state:** Permit has been at BLDG for 10 days. Historical p50 for BLDG is 15 days.
-**Goal:** Confirm permit routing is proceeding normally
-**Expected outcome:** Playbook shows "OK" routing status, no CRITICAL or STALLED labels, no urgent intervention steps, dwell shown relative to p50 baseline for reassurance
-**Edge cases seen in code:** Permit with no addenda data yet (not entered plan check queue) returns empty station list with advisory message about plan check queue status
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: homeowner looks up a permit number that doesn't exist
-**Source:** src/tools/stuck_permit.py — permit not found branch
-**User:** homeowner
-**Starting state:** User enters an incorrect or old permit number
-**Goal:** Understand the permit cannot be found
-**Expected outcome:** Tool returns a clear "not found" message with the queried permit number and a link to the DBI permit tracking portal (dbiweb02.sfgov.org) so the user can verify the number themselves
-**Edge cases seen in code:** DB error during connection (e.g., connection pool exhausted) returns a formatted error message with permit number preserved, not a raw exception traceback
-**CC confidence:** high
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: what-if comparison on scope expansion
-
-**Source:** src/tools/what_if_simulator.py
-**User:** expediter
-**Starting state:** Expediter has a base kitchen remodel project ($80K) and client is considering adding a bathroom.
-**Goal:** Quickly compare how adding a bathroom changes timeline, fees, and revision risk without pulling up each tool separately.
-**Expected outcome:** A comparison table showing base vs. variation side-by-side; review path, p50 timeline, estimated DBI fees, and revision risk are all populated. Delta section calls out meaningful changes (e.g., review path shift from OTC to In-house if triggered).
-**Edge cases seen in code:** When underlying tools return errors for a variation, the row shows "N/A" in affected columns rather than crashing; the simulation still completes.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: what-if simulation with no variations (base only)
-
-**Source:** src/tools/what_if_simulator.py
-**User:** homeowner
-**Starting state:** Homeowner asks about a kitchen remodel but doesn't specify any variations.
-**Goal:** Get the baseline permit picture without needing to provide variations.
-**Expected outcome:** Simulator runs with just the base scenario, produces a 1-row table, no "Delta vs. Base" section appears, and output still includes all column values (permits, review path, timeline, fees, risk).
-**Edge cases seen in code:** Empty variations list is valid input; no delta section should be rendered.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: what-if detects OTC-to-in-house review path shift
-
-**Source:** src/tools/what_if_simulator.py — _evaluate_scenario + delta section
-**User:** expediter
-**Starting state:** Base project is OTC-eligible (simple kitchen remodel). Variation adds scope that triggers in-house review (e.g., change of use, structural work).
-**Goal:** Identify that the scope change moves the project out of OTC path, which has significant timeline implications.
-**Expected outcome:** Delta section explicitly calls out "OTC → In-house" review path change and notes it "may add weeks". Both table rows show different Review Path values.
-**Edge cases seen in code:** Only flagged when both base and variation have non-N/A review paths; partial data (one N/A) is silently skipped in the delta.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: what-if with cost-free description uses default valuation
-
-**Source:** src/tools/what_if_simulator.py — _evaluate_scenario cost parsing
-**User:** homeowner
-**Starting state:** Homeowner describes a project without mentioning a dollar amount ("kitchen remodel in the Mission").
-**Goal:** Get a rough fee estimate even without explicit cost information.
-**Expected outcome:** Simulator falls back to $50K default valuation for fee estimation; output still includes an estimated fee (not N/A). A note or the table still renders.
-**Edge cases seen in code:** Both "$80K" and "80k" and "$80,000" are recognized; missing cost triggers $50K fallback defined in _evaluate_scenario.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: what-if tool gracefully handles sub-tool database errors
-
-**Source:** src/tools/what_if_simulator.py — _evaluate_scenario try/except blocks
-**User:** expediter
-**Starting state:** Local DuckDB database is not initialized or is locked (e.g., parallel test run).
-**Goal:** Simulator still returns usable output even when one or more sub-tools fail due to DB unavailability.
-**Expected outcome:** Affected cells show "N/A". Notes section lists which sub-tools encountered errors. No exception is raised to the caller. Other cells that succeeded show valid data.
-**Edge cases seen in code:** Each of the four sub-tool calls is wrapped in try/except; errors are accumulated in result["notes"] and surfaced in a "Data Notes" section at the end of the output.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: expediter uses cost of delay to justify expediting fee
-**Source:** src/tools/cost_of_delay.py — calculate_delay_cost
-**User:** expediter
-**Starting state:** Expediter has a restaurant permit client spending $80K/month on a closed location
-**Goal:** Quantify the dollar value of shaving 30 days off the permit timeline
-**Expected outcome:** Tool returns a formatted table showing carrying cost + revision risk cost per scenario. Break-even section shows daily delay cost. Expediter can use the daily rate to justify their expediting premium to the client.
-**Edge cases seen in code:** revision_prob * revision_delay * daily_cost compounds even for p25 (best case) — this means there is always some expected revision cost regardless of timeline scenario
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: homeowner asks how much it costs to wait on a kitchen remodel permit
-**Source:** src/tools/cost_of_delay.py — calculate_delay_cost
-**User:** homeowner
-**Starting state:** Homeowner is renting elsewhere at $5,000/month while waiting for kitchen remodel permit
-**Goal:** Understand the total financial exposure of a kitchen remodel permit delay
-**Expected outcome:** Tool returns best/likely/worst-case costs. Likely (p50 = 21 days) shows ~$3,450 carrying cost. OTC-eligible note appears since kitchen remodel can go OTC. Mitigation strategies include pre-application consultation.
-**Edge cases seen in code:** OTC_ELIGIBLE_TYPES set — kitchen_remodel is in it, so the OTC note must appear
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: developer evaluates cost impact of CEQA trigger on new construction
-**Source:** src/tools/cost_of_delay.py — triggers parameter
-**User:** architect
-**Starting state:** Architect is scoping a new construction project that may trigger CEQA environmental review
-**Goal:** See the cost difference between base timeline and CEQA-triggered timeline
-**Expected outcome:** With triggers=['ceqa'], the p50 and p90 timelines are escalated by ~180 days. The cost table shows dramatically higher totals. The trigger note "CEQA environmental review" appears in the output.
-**Edge cases seen in code:** TRIGGER_DELAYS maps ceqa to 180 days — largest single trigger escalation. Only applies when DB fallback is used (db_available=False).
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: tool gracefully degrades when permit database is unavailable
-**Source:** src/tools/cost_of_delay.py — _get_timeline_estimates fallback
-**User:** expediter
-**Starting state:** MCP server running in environment without DuckDB permit database
-**Goal:** Get a cost of delay estimate for a commercial_ti permit
-**Expected outcome:** Tool returns output using hard-coded historical averages (clearly noted in Methodology section with "Note: Live permit database unavailable" message). All sections present: table, break-even, mitigation, methodology.
-**Edge cases seen in code:** db_available flag drives the note in Methodology section. Fallback timelines for all 13 permit types baked in.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: daily_delay_cost one-liner used in brief or property report
-**Source:** src/tools/cost_of_delay.py — daily_delay_cost helper
-**User:** expediter
-**Starting state:** User has a project with known monthly carrying costs
-**Goal:** Get a single-sentence summary of the daily delay cost for use in a client email or brief
-**Expected outcome:** Returns exactly one line: "Every day of permit delay costs you $X/day" formatted with appropriate K/M suffix.
-**Edge cases seen in code:** $30,440/month → ~$1,000/day. $304,400/month → ~$10K/day. Zero/negative returns error.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-# Scenarios — QS8-T3-A: Multi-step Onboarding + PREMIUM Tier + Feature Flags
-
-## SUGGESTED SCENARIO: homeowner completes 3-step onboarding wizard
-
-**Source:** web/routes_auth.py, web/templates/onboarding_step1.html
-**User:** homeowner
-**Starting state:** New user just verified their magic link for the first time; no role set, no watches, onboarding_complete=False
-**Goal:** Complete the onboarding flow to get oriented with the product
-**Expected outcome:** Role saved to profile, demo property added to portfolio, onboarding_complete=True, user lands on dashboard
-**Edge cases seen in code:** User can skip step 2 (no watch created); all roles validated server-side; re-running onboarding via ?redo=1 is supported
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: expediter skips role selection and still advances
-
-**Source:** web/routes_auth.py (onboarding_step1 has skip link to step 2)
-**User:** expediter
-**Starting state:** User is on step 1 of onboarding
-**Goal:** Skip role selection and go directly to step 2 without choosing a role
-**Expected outcome:** User proceeds to step 2 (watch property) without error; role remains unset in DB; no data loss
-**Edge cases seen in code:** Skip link bypasses POST entirely — no validation happens; role stays NULL in DB
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: user adds demo property in step 2 and sees it in portfolio
-
-**Source:** web/routes_auth.py (onboarding_step2_save), web/auth.py (add_watch)
-**User:** homeowner
-**Starting state:** User is on step 2 of onboarding; no watch items exist
-**Goal:** Click "Add to portfolio" for 1455 Market St
-**Expected outcome:** Watch item created for 1455 Market St (type=address); user advances to step 3; property appears in portfolio/account page
-**Edge cases seen in code:** add_watch is idempotent — clicking twice doesn't duplicate the watch; add_watch failure is non-fatal (redirects anyway)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: beta user automatically gets PREMIUM tier access
-
-**Source:** web/feature_gate.py (get_user_tier, _is_beta_premium)
-**User:** expediter (beta invite code holder)
-**Starting state:** User created account with invite code starting with "sfp-beta-" or "sfp-amy-" or "sfp-team-"
-**Goal:** Access premium-gated features (plan_analysis_full, entity_deep_dive, etc.)
-**Expected outcome:** gate_context() returns is_premium=True; can_plan_analysis_full=True; no paywall shown; seamless experience identical to paid users
-**Edge cases seen in code:** is_admin check comes before PREMIUM check — admin tier always wins; subscription_tier='premium' in DB also grants PREMIUM regardless of invite code
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: feature flags default open during beta; all authenticated users access premium features
-
-**Source:** web/feature_gate.py (FEATURE_REGISTRY TODO comments)
-**User:** homeowner
-**Starting state:** Regular authenticated user with no special invite code; subscription_tier='free'
-**Goal:** Access plan_analysis_full, entity_deep_dive, export_pdf, api_access, priority_support
-**Expected outcome:** All 5 features accessible during beta period (FEATURE_REGISTRY defaults to AUTHENTICATED); no upgrade prompt; TODO comments in code mark the transition point
-**Edge cases seen in code:** When beta ends, raising tier to PREMIUM will gate these for non-premium users; this is a deliberate gradual reveal pattern
-**CC confidence:** high
-**Status:** PENDING REVIEW
-# Scenarios — QS8 T3-B: Search NLP Parser + Empty Result Guidance + Result Ranking
-
-## SUGGESTED SCENARIO: natural language address query resolves correctly
-
-**Source:** web/helpers.py parse_search_query, web/routes_public.py public_search
-**User:** homeowner
-**Starting state:** User is on /search and types a natural language query that contains a street address embedded in prose
-**Goal:** Find permit records for their property using a plain-English description like "permits at 123 Market St"
-**Expected outcome:** Permit records for 123 Market St are returned, not a "no results" page, even though the query wasn't a bare address
-**Edge cases seen in code:** Intent router may classify as "analyze_project" if query contains action verbs — NLP parser upgrades to "search_address" when it finds street_number + street_name
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: neighborhood-scoped search shows guidance
-
-**Source:** web/helpers.py parse_search_query, build_empty_result_guidance
-**User:** expediter
-**Starting state:** User searches "kitchen remodel in the Mission" with no specific address
-**Goal:** Filter permit results to Mission neighborhood, or get helpful guidance on how to search
-**Expected outcome:** Either filtered results are shown OR, if no results, contextual suggestions are shown that match the query intent (neighborhood + permit type)
-**Edge cases seen in code:** "Mission" alias maps to "Mission" neighborhood; "in the Mission" prep phrase is stripped before passing residual text as description_search
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: zero results shows demo link and contextual suggestions
-
-**Source:** web/routes_public.py public_search, web/helpers.py build_empty_result_guidance
-**User:** homeowner
-**Starting state:** User searches for something that returns no permit records
-**Goal:** Get guidance on what to try next, not a dead end
-**Expected outcome:** Page shows "No permits found", a contextual "Did you mean?" hint if applicable, example search links matching the query intent, and a link to /demo
-**Edge cases seen in code:** build_empty_result_guidance inspects parsed dict to generate query-specific suggestions (not generic boilerplate)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: year filter extracted from natural language query
-
-**Source:** web/helpers.py parse_search_query (_YEAR_RE)
-**User:** expediter
-**Starting state:** User types "new construction SoMa 2024"
-**Goal:** Find new construction permits in South of Market filed in 2024
-**Expected outcome:** parse_search_query returns neighborhood="South of Market", permit_type="new construction", date_from="2024-01-01"
-**Edge cases seen in code:** Year must be in 2018-2030 range; year is extracted BEFORE address to prevent "2022" being parsed as a street number
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: result badges distinguish address vs permit vs description matches
-
-**Source:** web/helpers.py rank_search_results
-**User:** expediter
-**Starting state:** Search returns a mix of exact address matches, permit number matches, and description keyword matches
-**Goal:** Quickly identify which results are the most relevant
-**Expected outcome:** Each result has a badge ("Address Match", "Permit", or "Description") and results are sorted with address matches first, then permit number matches, then description matches
-**Edge cases seen in code:** badge is computed per result; _rank_score removed before returning; ties within same type maintain original order
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-# Scenarios Pending Review — QS8-T3-C
-
-## SUGGESTED SCENARIO: Expediter finds all active electrical permits at an address
-**Source:** src/ingest.py — ingest_electrical_permits, _normalize_electrical_permit
-**User:** expediter
-**Starting state:** Electrical permits have been ingested into the permits table with permit_type='electrical'
-**Goal:** Find all active electrical permits at a property to understand current electrical work scope
-**Expected outcome:** Search returns electrical permits with correct address, status, description, and filing/issue dates; permit_type is clearly identified as electrical
-**Edge cases seen in code:** zip_code field aliased to zipcode column — searches by zip must handle this; neighborhood and supervisor_district are NULL for electrical permits (not in source dataset)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Homeowner checks plumbing permit status after water heater replacement
-**Source:** src/ingest.py — ingest_plumbing_permits, _normalize_plumbing_permit
-**User:** homeowner
-**Starting state:** Plumbing permit filed and issued; data ingested into permits table with permit_type='plumbing'
-**Goal:** Confirm their plumbing permit was issued and completed so they can close out with the contractor
-**Expected outcome:** Permit lookup returns plumbing permit with filed_date, issued_date, completed_date, and status; parcel_number and unit fields (present in source data) are not exposed since they don't exist in the permits schema
-**Edge cases seen in code:** parcel_number and unit fields exist in SODA dataset but are dropped during normalization — users asking for parcel_number won't find it via permit lookup
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Property inspector looks up boiler permit history for a commercial building
-**Source:** src/ingest.py — ingest_boiler_permits, _normalize_boiler_permit
-**User:** expediter
-**Starting state:** Boiler permits have been ingested into the boiler_permits table (separate from the main permits table)
-**Goal:** Find all boiler permits at a commercial property to verify boiler equipment compliance history
-**Expected outcome:** Boiler permits are returned with boiler_type, boiler_serial_number, model, expiration_date, and application_date; results are from boiler_permits table (distinct from building/electrical/plumbing permits)
-**Edge cases seen in code:** Boiler permits are NOT in the shared permits table — tools querying permits table only will miss them; neighborhood and supervisor_district fields are available (unlike electrical permits)
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Expediter verifies permit data freshness across all permit types
-**Source:** src/ingest.py — run_ingestion, ingest_log table
-**User:** expediter
-**Starting state:** Full ingest pipeline has been run; ingest_log has entries for all dataset types
-**Goal:** Confirm when electrical, plumbing, and boiler permit data was last refreshed to assess data currency for a client report
-**Expected outcome:** System shows last-updated timestamps for electrical (ftty-kx6y), plumbing (a6aw-rudh), and boiler (5dp4-gtxk) datasets via ingest_log; times are human-readable and indicate same-day freshness after a nightly run
-**Edge cases seen in code:** Each ingest run uses INSERT OR REPLACE on ingest_log — re-running updates the timestamp; boiler permits use DELETE+re-insert pattern (not INSERT OR REPLACE) so partial failures leave no data
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Admin triggers selective re-ingest of only electrical permits from CLI
-**Source:** src/ingest.py — main() argparse block, --electrical-permits flag
-**User:** admin
-**Starting state:** Full database is populated but electrical permit data may be stale
-**Goal:** Re-ingest only electrical permits without touching other datasets to save time
-**Expected outcome:** Running `python -m src.ingest --electrical-permits` updates only electrical permit records; building, plumbing, boiler, and all other tables are unchanged; ingest_log shows updated timestamp only for electrical endpoint
-**Edge cases seen in code:** do_all logic: if ANY specific flag is passed, do_all=False and only flagged datasets run; --boiler flag controls boiler permits (not --boiler-permits); --plumbing-permits controls plumbing permits (separate from --plumbing which controls plumbing inspections)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-# Scenarios Pending Review — QS8-T3-D (E2E Onboarding + Performance)
-
-## SUGGESTED SCENARIO: welcome page onboarding flow for new user
-
-**Source:** tests/e2e/test_onboarding_scenarios.py — TestWelcomePage
-**User:** homeowner
-**Starting state:** User has just verified their magic-link email for the first time. `onboarding_complete` is False in their user record.
-**Goal:** User wants to get started using sfpermits.ai — understand what it does and how to add their first address.
-**Expected outcome:** User lands on /welcome, sees 3-step onboarding guidance (search, report, watchlist), can proceed to the main app without being locked in a loop.
-**Edge cases seen in code:** If `user.get("onboarding_complete")` is True, /welcome redirects to index — so returning users don't see the page again.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: demo page previews property intelligence without login
-
-**Source:** tests/e2e/test_onboarding_scenarios.py — TestDemoPageAnonymous
-**User:** homeowner
-**Starting state:** Anonymous visitor arrives at /demo (e.g. from a Zoom demo link or marketing email).
-**Goal:** Visitor wants to see what sfpermits.ai looks like without creating an account.
-**Expected outcome:** /demo renders with 1455 Market St data pre-loaded — permits, severity tier, timeline estimate, neighborhood. No login prompt required. density=max parameter shows maximum data density.
-**Edge cases seen in code:** Demo data is cached for 15 minutes (_DEMO_CACHE_TTL=900). If DuckDB permits table is empty, page still renders using hardcoded timeline fallback.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: methodology page explains calculations for skeptical users
-
-**Source:** tests/e2e/test_onboarding_scenarios.py — TestMethodologyPage
-**User:** expediter
-**Starting state:** User has seen a severity tier on a property report and wants to understand how it was calculated.
-**Goal:** User navigates to /methodology to verify the scoring approach is defensible.
-**Expected outcome:** Page loads publicly (no auth), has multiple sections covering severity scoring, timeline estimation, entity resolution, and data sources.
-**Edge cases seen in code:** Page is a static template render — no DB queries. Should be very fast.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: beta request form as organic signup path
-
-**Source:** tests/e2e/test_onboarding_scenarios.py — TestBetaRequestForm
-**User:** homeowner
-**Starting state:** User tries to sign up but no invite code configured or code is invalid. Route logic redirects them to /beta-request.
-**Goal:** User wants to request access to sfpermits.ai without an invite code.
-**Expected outcome:** Form renders with email + reason fields. Honeypot field is invisible. Valid submission shows confirmation message. Invalid email (no @) returns 400 not 500.
-**Edge cases seen in code:** Honeypot field named `website` — bots that fill it get silently "success" response. Rate limiting by IP. Empty reason field returns 400.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
----
-
-## SUGGESTED SCENARIO: portfolio empty state guidance for new user
-
-**Source:** tests/e2e/test_onboarding_scenarios.py — TestPortfolioEmptyState
-**User:** homeowner
-**Starting state:** Newly onboarded user has not yet added any watch items.
-**Goal:** User navigates to /portfolio expecting to see their watched properties.
-**Expected outcome:** Page renders without crash. Shows an empty state with guidance on how to add a watch item — not a blank page or uncaught exception. Anonymous users are redirected to login.
-**CC confidence:** medium
 **Status:** PENDING REVIEW
 
 ---
 
 ## SUGGESTED SCENARIO: health endpoint responds under 500ms for Railway probe
-
-**Source:** tests/e2e/test_performance_scenarios.py — TestHealthEndpoint
+**Source:** tests/e2e/test_performance_scenarios.py — TestHealthEndpoint (QS8-T3-D)
 **User:** admin
 **Starting state:** Railway health probe hits /health every ~30s. Response time determines instance health status.
 **Goal:** System needs to respond reliably within Railway's health-check window.
@@ -1710,12 +881,11 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 ---
 
 ## SUGGESTED SCENARIO: search results within 2s latency budget
-
-**Source:** tests/e2e/test_performance_scenarios.py — TestSearchPerformance
+**Source:** tests/e2e/test_performance_scenarios.py — TestSearchPerformance (QS8-T3-D)
 **User:** expediter
 **Starting state:** User types a street name into the search box on the landing page.
 **Goal:** User expects results to appear quickly — ideally under 1s, definitely under 2s.
-**Expected outcome:** /search?q=<address> returns 200 or redirect within 2s. Sprint 69 Hotfix added graceful degradation on query timeouts — 30s statement_timeout prevents hangs.
+**Expected outcome:** Search returns 200 or redirect within 2s. Sprint 69 Hotfix added graceful degradation on query timeouts — 30s statement_timeout prevents hangs.
 **Edge cases seen in code:** If DuckDB is not populated (CI/fresh checkout), search returns empty quickly. Postgres with missing pgvector index causes slow semantic search.
 **CC confidence:** high
 **Status:** PENDING REVIEW
@@ -1723,115 +893,859 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 ---
 
 ## SUGGESTED SCENARIO: rapid page navigation does not produce 500 errors
-
-**Source:** tests/e2e/test_performance_scenarios.py — TestRapidNavigationResilience
+**Source:** tests/e2e/test_performance_scenarios.py — TestRapidNavigationResilience (QS8-T3-D)
 **User:** expediter
 **Starting state:** User clicks quickly between multiple pages (landing, methodology, about-data, demo, beta-request).
 **Goal:** System handles burst navigation without connection pool exhaustion or session corruption.
 **Expected outcome:** None of the 5 pages return 500. All pages return 200 or redirect. Flask sessions and g.user remain consistent across rapid sequential requests.
-**Edge cases seen in code:** DB_POOL_MAX defaults to 20. If Flask is configured with threaded=True (used in tests), concurrent requests share the pool. DuckDB only allows one write connection at a time.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: property report loads fast for large parcels
-**Source:** web/report.py _get_contacts_batch/_get_inspections_batch
-**User:** expediter
-**Starting state:** A parcel with 40+ permits (e.g., large commercial building) exists in the database. Each permit has multiple contacts and inspections.
-**Goal:** Load the property report page without waiting 10+ seconds.
-**Expected outcome:** Report renders in under 3 seconds. All permit contacts and inspections are present and correctly attributed to each permit.
-**Edge cases seen in code:** Empty permit list returns empty contacts/inspections maps without any DB call. Permits with no contacts get an empty list (not an error). Permits with no permit_number are skipped in the batch.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: property report contacts are role-ordered per permit
-**Source:** web/report.py _get_contacts_batch ORDER BY role priority
-**User:** expediter
-**Starting state:** A permit has contacts with roles: contractor, engineer, applicant.
-**Goal:** View the property report and see contacts listed in a consistent order.
-**Expected outcome:** Applicant appears first, then contractor, then engineer, then others. Order is consistent regardless of how data was inserted.
-**Edge cases seen in code:** CASE WHEN ordering handles NULL/empty role strings via COALESCE — they sort last.
+**Edge cases seen in code:** DB_POOL_MAX defaults to 20. DuckDB only allows one write connection at a time.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: SODA data is served from cache on rapid re-render
-**Source:** web/report.py _soda_cache (15-min TTL)
+---
+
+## SUGGESTED SCENARIO: Pre-computed brief loads sub-second
+**Source:** Instant Site Architecture spec (Chief Task #349)
 **User:** expediter
-**Starting state:** A property report was recently loaded (< 15 minutes ago). SODA API is available.
-**Goal:** Load the same property report again (e.g., browser back-forward navigation or admin review).
-**Expected outcome:** Second load is noticeably faster. SODA API is not called again. Complaints, violations, and property data are identical to the first load.
-**Edge cases seen in code:** Cache is keyed by endpoint_id:block:lot — different parcels never share cache entries. Cache is module-level so it persists for the process lifetime.
+**Starting state:** User is logged in with 40+ watched properties, first load of the day
+**Goal:** View morning brief quickly on mobile at job site
+**Expected outcome:** Brief page loads in under 200ms from page_cache. Shows "Updated X min ago" badge. Manual refresh button available (rate-limited to 1 per 5 min). All property cards, status dots, and sections render from pre-computed JSON.
+**Edge cases seen in code:** Cache miss on first-ever visit should compute and cache, not error. User with 0 watches gets clean empty state.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: stale SODA cache is refreshed after TTL expires
-**Source:** web/report.py _SODA_CACHE_TTL = 900
-**User:** expediter
-**Starting state:** A property report was loaded 16 minutes ago. A new complaint was filed since then.
-**Goal:** Load the property report and see the new complaint.
-**Expected outcome:** SODA API is called fresh. The new complaint appears in the report. Old cached data is replaced.
-**Edge cases seen in code:** TTL checked via time.monotonic() — not affected by system clock changes. Expired entries are replaced, not deleted first.
-**CC confidence:** low
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: morning brief shows pipeline health stats
-**Source:** web/brief.py — _get_pipeline_stats(), get_morning_brief()
-**User:** admin
-**Starting state:** Nightly cron has run at least once; cron_log has records
-**Goal:** User opens morning brief and sees pipeline health summary (avg job duration, 24h success/fail counts)
-**Expected outcome:** Brief data includes pipeline_stats with recent_jobs list and 24h counts; average duration is computed from successful runs; non-fatal if cron_log is empty or unavailable
-**Edge cases seen in code:** If DB unavailable, pipeline_stats returns {} — brief still renders without it
-**CC confidence:** high
-**Status:** PENDING REVIEW
+---
 
-## SUGGESTED SCENARIO: signals cron endpoint logs to cron_log
-**Source:** web/routes_cron.py — cron_signals()
-**User:** admin
-**Starting state:** CRON_SECRET configured; signals pipeline operational
-**Goal:** Scheduler calls POST /cron/signals to run signal detection
-**Expected outcome:** Job start logged as 'running', completion logged as 'success' or 'failed' with elapsed time; response includes ok, status, elapsed_seconds; failure does not crash the endpoint (returns ok=False)
-**Edge cases seen in code:** cron_log insert failure is non-fatal (logged as warning); pipeline exception returns HTTP 500 with ok=False
-**CC confidence:** high
-**Status:** PENDING REVIEW
+## ONBOARDING & AUTH
 
-## SUGGESTED SCENARIO: velocity-refresh cron endpoint logs to cron_log
-**Source:** web/routes_cron.py — cron_velocity_refresh()
-**User:** admin
-**Starting state:** CRON_SECRET configured; addenda table populated with routing data
-**Goal:** Scheduler calls POST /cron/velocity-refresh to refresh station velocity baselines
-**Expected outcome:** Velocity refresh runs, transitions and congestion sub-steps also attempted (non-fatal); all logged to cron_log; response includes rows_inserted, stations, transitions; partial failures (transitions/congestion) don't fail overall job
-**Edge cases seen in code:** transitions failure logged as transitions_error key in response; congestion failure same pattern
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: pipeline stats unavailable at first deploy
-**Source:** web/brief.py — _get_pipeline_stats()
-**User:** admin
-**Starting state:** Fresh deploy, cron_log table empty or not yet populated
-**Goal:** Admin opens morning brief before any cron jobs have run
-**Expected outcome:** Brief still renders; pipeline_stats is empty dict ({}); no error shown to user
-**Edge cases seen in code:** Exception caught silently, returns {}
+## SUGGESTED SCENARIO: App can be installed to a phone home screen
+**Source:** web/static/manifest.json (Sprint 69 S4) (rewritten by QS7-4D)
+**User:** homeowner
+**Starting state:** User visits sfpermits.ai on a mobile device (iOS or Android) using a supported browser.
+**Goal:** Save sfpermits.ai to their home screen for quick daily access.
+**Expected outcome:** The browser signals that the app is installable (install prompt or browser menu option available). Once installed, the app opens in a standalone window without browser chrome. The app name, icon, and color theme are consistent with the brand.
+**Edge cases seen in code:** Icons currently placeholder — branded icons needed; iOS requires additional <meta> tags separate from manifest
 **CC confidence:** medium
 **Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: SODA API circuit breaker opens after repeated failures
-**Source:** src/soda_client.py — CircuitBreaker integration with SODAClient.query()
+
+---
+
+## SUGGESTED SCENARIO: User creates a Permit Prep checklist for an existing permit and sees categorized document requirements
+**Source:** web/permit_prep.py, web/routes_property.py (rewritten by QS7-4D)
+**User:** expediter | architect
+**Starting state:** User is logged in. A permit exists in the database.
+**Goal:** Generate a document tracking checklist for a permit submission.
+**Expected outcome:** User can initiate a checklist for a known permit. The checklist shows document requirements grouped by category (e.g., Required Plans, Application Forms, Supplemental Documents, Agency-Specific). All items start in a "Required" state. A progress indicator shows 0% addressed.
+**Edge cases seen in code:** Permit not found in DB (falls back to general project type); tool failure (falls back to minimal item set); creating a checklist for a permit that already has one returns the existing checklist
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: User marks a document as submitted and the checklist progress updates
+**Source:** web/routes_api.py — prep item status toggle (rewritten by QS7-4D)
+**User:** expediter | architect
+**Starting state:** User has an active Permit Prep checklist with items in "Required" status.
+**Goal:** Record that a document has been submitted to the city.
+**Expected outcome:** User changes an item's status (e.g., to "Submitted"). The item card updates to reflect the new status. The overall checklist progress indicator updates to show the new completion percentage. The change is persisted so it survives a page reload.
+**Edge cases seen in code:** Invalid status value rejected; wrong user ownership rejected; concurrent updates on same item
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Preview Mode shows predicted document requirements without saving a checklist
+**Source:** web/permit_prep.py preview_checklist() (rewritten by QS7-4D)
+**User:** homeowner | architect
+**Starting state:** User is logged in but has not yet created a checklist for this permit.
+**Goal:** See what documents would be required before committing to creating a tracked checklist.
+**Expected outcome:** A preview shows the predicted document requirements grouped by category, with the review path and agencies involved. No checklist is created in the database as a result of viewing the preview. The user can then choose to create a real checklist from the preview.
+**Edge cases seen in code:** Permit not in database (uses fallback description); prediction tool timeout; preview data not persisted
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Morning brief flags permits with incomplete prep checklists
+**Source:** web/brief.py _get_prep_summary() (rewritten by QS7-4D)
+**User:** expediter
+**Starting state:** User has one or more Permit Prep checklists with items still in "Required" status.
+**Goal:** See at a glance which permits need document attention during the daily review.
+**Expected outcome:** Morning brief includes a permit prep section listing each permit with an active checklist, showing how many items are outstanding. Permits with missing required documents are surfaced as needing attention.
+**Edge cases seen in code:** prep_checklists table doesn't exist yet (returns empty list gracefully); user has no checklists (section is absent, not an error)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Unauthenticated user who tries to access a Permit Prep checklist is guided to log in
+**Source:** web/routes_property.py /prep/<permit> (rewritten by QS7-4D)
+**User:** homeowner
+**Starting state:** User is viewing public search results and is not logged in.
+**Goal:** Access a Permit Prep checklist for a specific permit to start tracking required documents.
+**Expected outcome:** When the user attempts to open a checklist, they are redirected to the login page. The login page is clearly presented and functional. After logging in, the user can navigate to their checklist.
+**Edge cases seen in code:** Currently no automatic post-login redirect back to the checklist — user must navigate manually after login; this is a known gap
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: beta approval sends welcome email with magic link
+**Source:** web/auth.py — send_beta_welcome_email(), web/routes_admin.py — admin_approve_beta() (Sprint 75-2)
+**User:** admin
+**Starting state:** Admin is logged in; a beta request exists in "pending" status; SMTP is configured
+**Goal:** Approve a beta request and notify the new user
+**Expected outcome:** New user receives a branded HTML email with a one-click sign-in button; email contains a valid magic link URL; admin sees "Approved and sent welcome email" confirmation; if SMTP fails, fallback plain magic link email is sent instead
+**Edge cases seen in code:** SMTP failure triggers fallback to send_magic_link(); dev mode (no SMTP_HOST) logs to console and returns True; already-approved requests return "not found" redirect
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: new beta user completes 3-step onboarding
+**Source:** web/routes_misc.py — /welcome route, web/templates/welcome.html (Sprint 75-2)
+**User:** homeowner
+**Starting state:** User has just received beta approval email and clicked the magic sign-in link; onboarding_complete is FALSE in DB
+**Goal:** Get oriented to the app (search, report, watchlist) and start using it
+**Expected outcome:** /welcome shows 3-step page with search, property report, and watchlist cards; user can navigate to any step via CTA buttons; clicking "Start searching now" or the skip link dismisses onboarding; subsequent visits redirect to dashboard
+**Edge cases seen in code:** Unauthenticated access redirects to login; if onboarding_complete already TRUE, immediate redirect to /; dismiss is fire-and-forget (non-blocking JS fetch)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: homeowner completes 3-step onboarding wizard
+**Source:** web/routes_auth.py, web/templates/onboarding_step1.html (QS8-T3-A)
+**User:** homeowner
+**Starting state:** New user just verified their magic link for the first time; no role set, no watches, onboarding_complete=False
+**Goal:** Complete the onboarding flow to get oriented with the product
+**Expected outcome:** Role saved to profile, demo property added to portfolio, onboarding_complete=True, user lands on dashboard
+**Edge cases seen in code:** User can skip step 2 (no watch created); all roles validated server-side; re-running onboarding via ?redo=1 is supported
+**CC confidence:** high
+**Status:** PENDING REVIEW
+**DUPLICATE OF:** "new beta user completes 3-step onboarding" above — same core flow from different agent perspectives.
+
+---
+
+## SUGGESTED SCENARIO: beta user automatically gets PREMIUM tier access
+**Source:** web/feature_gate.py (get_user_tier, _is_beta_premium) (QS8-T3-A)
+**User:** expediter (beta invite code holder)
+**Starting state:** User created account with invite code starting with "sfp-beta-" or "sfp-amy-" or "sfp-team-"
+**Goal:** Access premium-gated features (plan_analysis_full, entity_deep_dive, etc.)
+**Expected outcome:** gate_context() returns is_premium=True; can_plan_analysis_full=True; no paywall shown; seamless experience identical to paid users
+**Edge cases seen in code:** is_admin check comes before PREMIUM check — admin tier always wins; subscription_tier='premium' in DB also grants PREMIUM regardless of invite code
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Charis signs up with invite code and reaches the dashboard
+**Source:** QS4-D Task D-3 — Beta launch polish
+**User:** architect
+**Starting state:** User visits login with invite code
+**Goal:** New beta user signs up and reaches the authenticated dashboard
+**Expected outcome:** User enters email and invite code, receives magic link, clicks link, lands on authenticated index page with search and brief access
+**Edge cases seen in code:** Three-tier signup: shared_link bypasses invite, valid code grants access, no code redirects to beta request form
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Anonymous users cannot access brief or portfolio
+**Source:** web/helpers.py — login_required; SCENARIO-40 (Sprint 77-1)
+**User:** homeowner (anonymous / not logged in)
+**Starting state:** User is not authenticated; navigates directly to /brief or /portfolio
+**Goal:** Access permit data without logging in
+**Expected outcome:** Both /brief and /portfolio redirect to the login page. No partial page content shown. Post-login redirect preserves intended destination.
+**Edge cases seen in code:** /portfolio and /brief listed in login_required route list in app.py
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: portfolio empty state guidance for new user
+**Source:** tests/e2e/test_onboarding_scenarios.py — TestPortfolioEmptyState (QS8-T3-D)
+**User:** homeowner
+**Starting state:** Newly onboarded user has not yet added any watch items.
+**Goal:** User navigates to /portfolio expecting to see their watched properties.
+**Expected outcome:** Page renders without crash. Shows an empty state with guidance on how to add a watch item — not a blank page or uncaught exception. Anonymous users are redirected to login.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SECURITY
+
+## SUGGESTED SCENARIO: CSP violations from inline styles are captured in report-only mode without breaking pages
+**Source:** QS4-D Task D-1 — CSP-Report-Only with nonces
+**User:** admin
+**Starting state:** Pages load correctly with enforced CSP using unsafe-inline
+**Goal:** Monitor which templates generate CSP violations when nonce-based policy is applied, without breaking any pages
+**Expected outcome:** Browser sends violation reports to /api/csp-report when inline styles/scripts lack nonces; pages render normally because Report-Only doesn't enforce
+**Edge cases seen in code:** Templates from external CDNs (unpkg, jsdelivr, Google Fonts) need explicit allow-listing in CSP-RO
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: POST form submission without CSRF token is rejected with 403
+**Source:** QS4-D Task D-2 — CSRF protection middleware
 **User:** homeowner | expediter
-**Starting state:** SODA API is returning 503 errors or timing out on every request
-**Goal:** User searches for permit data; app should not hang or surface raw errors
-**Expected outcome:** After the failure threshold is reached, all SODA queries return empty results immediately without making network calls. The UI degrades gracefully (shows no results) rather than returning error pages or stalling.
-**Edge cases seen in code:** 4xx errors (e.g., bad dataset ID) do NOT trip the circuit — only 5xx and network errors count as failures
+**Starting state:** User is on any page with a POST form
+**Goal:** Prevent cross-site request forgery attacks on state-changing endpoints
+**Expected outcome:** POST requests without a valid csrf_token form field or X-CSRFToken header receive 403 Forbidden; GET requests are unaffected; cron endpoints with Bearer auth skip CSRF
+**Edge cases seen in code:** HTMX requests use X-CSRFToken header via hx-headers attribute on body; feedback widget, watch forms, and account settings all need tokens
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: SODA circuit breaker auto-recovers after cooldown
-**Source:** src/soda_client.py — CircuitBreaker.is_open() half-open transition
-**User:** expediter
-**Starting state:** Circuit breaker was opened due to SODA API failures; recovery_timeout seconds have passed
-**Goal:** Resume normal permit data queries without manual restart
-**Expected outcome:** The next query after the cooldown window acts as a probe. If it succeeds, the circuit closes and normal queries resume. If it fails, the circuit reopens and the cooldown restarts.
-**Edge cases seen in code:** Half-open state allows exactly one probe — not multiple concurrent probes
+---
+
+## SUGGESTED SCENARIO: SQL injection payload handled gracefully in search
+**Source:** tests/e2e/test_admin_scenarios.py — TestSQLInjectionSearch (Sprint 77-2)
+**User:** homeowner
+**Starting state:** Anonymous or authenticated user, normal browser session
+**Goal:** Malicious SQL injection payloads in the search query do not crash the server or expose data
+**Expected outcome:** Server returns 200 or 400, never 500. No Python traceback appears in the response body. No raw database error message visible to the user. Result is empty search results or a graceful message.
+**Edge cases seen in code:** Combined XSS + SQL payload also sanitized — script tag does not appear in rendered HTML
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Directory traversal attempt returns safe response
+**Source:** tests/e2e/test_admin_scenarios.py — TestDirectoryTraversal (Sprint 77-2)
+**User:** homeowner
+**Starting state:** Anonymous user, crafts a URL with ../ sequences
+**Goal:** Attacker tries to read system files by traversing path segments
+**Expected outcome:** Response does not contain /etc/passwd file contents. Response status is 404 or a redirect, never 500. Flask/Werkzeug's path normalization neutralizes the traversal before routing.
+**Edge cases seen in code:** /report/../../../etc/passwd, /static/../../../etc/passwd, /../etc/passwd all tested
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Content-Security-Policy header on every page response
+**Source:** tests/e2e/test_admin_scenarios.py — TestCSPHeaders, web/security.py (Sprint 77-2)
+**User:** homeowner
+**Starting state:** Any page request (landing, search, login, health, methodology)
+**Goal:** Every HTTP response includes a Content-Security-Policy header
+**Expected outcome:** Content-Security-Policy header present on all page responses. Header includes default-src directive as baseline restriction. frame-ancestors none in CSP or X-Frame-Options DENY present (prevents clickjacking). X-Content-Type-Options nosniff present, Referrer-Policy header set.
+**Edge cases seen in code:** CSP-Report-Only nonce-based policy also sent when per-request nonce generated
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Anonymous user rate-limited on rapid search requests
+**Source:** tests/e2e/test_admin_scenarios.py — TestAnonymousRateLimiting (Sprint 77-2)
+**User:** homeowner
+**Starting state:** Anonymous visitor (no session), makes many rapid GET requests to search
+**Goal:** Rate limiting fires to prevent scraping or abuse after sustained rapid requests
+**Expected outcome:** After 15+ requests within 60 seconds from the same IP, server returns 429 or rate-limit message. The rate-limit response is friendly (not a raw server error, no traceback). Body text mentions waiting or rate-limiting.
+**Edge cases seen in code:** Rate bucket is per-IP (X-Forwarded-For header); resets after 60 seconds; TESTING mode may reset buckets
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: security audit runs without crashing when tools are missing
+**Source:** scripts/security_audit.py — run_bandit / run_pip_audit graceful degradation (Sprint 74-3)
+**User:** admin
+**Starting state:** CI environment where bandit and/or pip-audit are not installed
+**Goal:** Run the security audit script and get a usable report even when tools are absent
+**Expected outcome:** Script completes (exit 0), report clearly marks missing tools as SKIPPED, no stack trace or unhandled exception
+**Edge cases seen in code:** tool not on PATH returns rc=-1 from run_command; check_tool_available guards both scanners independently
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: security audit exits 1 on HIGH severity bandit finding
+**Source:** scripts/security_audit.py — main() exit code logic (Sprint 74-3)
+**User:** admin
+**Starting state:** Codebase has a bandit HIGH severity issue (e.g., subprocess shell=True)
+**Goal:** CI job fails and draws attention to the finding
+**Expected outcome:** Script exits with code 1; report contains "FAIL" status; HIGH issue details present with filename, line number, test ID
+**Edge cases seen in code:** bandit exits 1 even when only LOW issues found — exit code alone cannot distinguish severity; script re-parses JSON counts
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## DESIGN SYSTEM & UI
+
+## SUGGESTED SCENARIO: Consistent Obsidian design from landing through dashboard
+**Source:** QS4-C Obsidian design migration (index.html + brief.html)
+**User:** expediter | homeowner | architect
+**Starting state:** User is on the landing page (not logged in)
+**Goal:** Experience a visually consistent design when transitioning from landing page through login to the authenticated dashboard
+**Expected outcome:** Landing page, index/search page, and morning brief all share the same color palette (deep navy backgrounds, cyan accents, IBM Plex Sans body text, JetBrains Mono headings), with no jarring visual shifts between pages
+**Edge cases seen in code:** Nav fragment uses legacy alias vars that must resolve to Obsidian tokens; body.obsidian class must be present for design-system.css to activate
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Morning brief health indicators use signal colors
+**Source:** QS4-C Obsidian design migration (brief.html signal colors)
+**User:** expediter
+**Starting state:** User has watched properties with varying health statuses (on_track, slower, behind, at_risk)
+**Goal:** Quickly scan the morning brief and identify which properties need attention based on color coding
+**Expected outcome:** Health indicators use distinct colors to distinguish on_track, slower/behind, and at_risk statuses, matching the Obsidian design system's signal color palette
+**Edge cases seen in code:** Health status classes use CSS custom properties which now alias to signal colors via head_obsidian.html
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Design token ghost CTA meets WCAG AA
+**Source:** DESIGN_TOKENS.md ghost CTA accessibility fix
+**User:** architect | homeowner
+**Starting state:** User is on any page with ghost CTA links (property report, search results)
+**Goal:** Click a ghost CTA to navigate
+**Expected outcome:** Ghost CTA text is visible and legible at rest state (--text-secondary, 5.2:1 contrast), turns teal on hover. Passes WCAG AA for interactive text.
+**Edge cases seen in code:** Old templates may still use --text-tertiary for CTAs — migration needed
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Tabs switch content without full page reload
+**Source:** DESIGN_TOKENS.md tabs component
+**User:** expediter | admin
+**Starting state:** User is on a page with tabbed views (e.g., inspection history with Recent/Failed/All tabs)
+**Goal:** Switch between tab views
+**Expected outcome:** Active tab shows --text-primary with teal underline. Inactive tabs show --text-tertiary. Content panel swaps without full page reload. On phone, tabs scroll horizontally if they overflow.
+**Edge cases seen in code:** Tab count badges should update when content changes
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Load more pagination appends results
+**Source:** DESIGN_TOKENS.md pagination / load more component
+**User:** expediter | homeowner
+**Starting state:** User is viewing a list with more than 20 results
+**Goal:** See additional results
+**Expected outcome:** "Showing 20 of 142" count displayed. "Show more →" ghost CTA loads next batch via HTMX append. Count updates. When no more results, button disappears. Skeleton placeholder shown during loading.
+**Edge cases seen in code:** If only 20 or fewer results, no pagination UI shown at all
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Toast notification with undo on watch action
+**Source:** DESIGN_TOKENS.md toast component
+**User:** expediter | homeowner
+**Starting state:** User is on a property page or search results
+**Goal:** Add a property to watchlist and see confirmation
+**Expected outcome:** "Watch added" toast appears top-center. Includes "Undo" link. Auto-dismisses after 5 seconds. Pauses on hover. Undo link reverses the action and dismisses toast immediately.
+**Edge cases seen in code:** Multiple rapid actions should stack toasts vertically, not replace
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Authenticated dashboard displays search, quick actions, and recent items
+**Source:** web/templates/index.html Sprint 75-1 redesign
+**User:** expediter | homeowner | architect
+**Starting state:** User is logged in and visits the dashboard
+**Goal:** Quickly orient to available tools and start a search or action
+**Expected outcome:** Dashboard shows a search card at top, quick action buttons (Analyze a project, Look up a permit, Upload plans, Draft a reply), a recent searches card, a watchlist card, and a stats row. Search input uses Obsidian styling. No horizontal overflow at any viewport width.
+**Edge cases seen in code:** If user has no recent searches, recent card shows placeholder text. If user has a primary address set, a personalized "Check [address]" quick action appears.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Navigation collapses to hamburger menu on mobile viewport
+**Source:** web/templates/fragments/nav.html Sprint 75-1 redesign
+**User:** expediter | homeowner | architect
+**Starting state:** User visits any authenticated page on a mobile device (viewport ≤768px)
+**Goal:** Access navigation links without the nav overflowing or wrapping
+**Expected outcome:** Desktop badge row is hidden. A hamburger icon (3 horizontal lines) appears. Tapping it reveals a slide-down panel with all nav items stacked vertically. Tapping outside the panel or tapping the hamburger again closes the panel.
+**Edge cases seen in code:** Panel closes on tap-outside via document click handler. Hamburger transforms to X when open. Sign-up chips appear for locked features.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Mobile viewport has no horizontal overflow on key pages
+**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestMobileNoHorizontalScroll (Sprint 77-4)
+**User:** homeowner
+**Starting state:** User opens the app on a 375px-wide mobile device (iPhone SE / standard mobile)
+**Goal:** Browse the landing page, demo, login, and beta-request page without side-scrolling
+**Expected outcome:** document.body.scrollWidth <= window.innerWidth on all checked pages. No content is clipped or requires horizontal scrolling.
+**Edge cases seen in code:** /demo and /beta-request pages are content-heavy and most likely to overflow if images or wide tables are not constrained.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## MCP TOOLS (PERMIT INTELLIGENCE)
+
+## SUGGESTED SCENARIO: expediter checks next station for active permit
+**Source:** src/tools/predict_next_stations.py — predict_next_stations tool (QS8-T2-A)
+**User:** expediter
+**Starting state:** Permit is active, has been routed through at least one station (BLDG completed), currently sitting at SFFD with an arrive date 10 days ago
+**Goal:** Understand which stations the permit will visit next and how long each typically takes
+**Expected outcome:** Tool returns current station (SFFD with dwell time), top 3 predicted next stations with transition probabilities and p50 durations, and a total estimated remaining time
+**Edge cases seen in code:** If fewer than 5 similar permits have transitioned from the current station, no predictions are shown — tool explains why
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: homeowner asks about stalled permit (station predictor)
+**Source:** src/tools/predict_next_stations.py — STALL_THRESHOLD_DAYS (QS8-T2-A)
+**User:** homeowner
+**Starting state:** Permit has been at CP-ZOC (Planning/Zoning) for 75 days with no finish_date recorded
+**Goal:** Find out if their permit is stuck and what to do about it
+**Expected outcome:** Tool surfaces "STALLED" indicator on the current station card, shows how many days the permit has been at that station, and recommends following up with DBI. Predictions for next stations are still shown based on historical transitions.
+**Edge cases seen in code:** Stall threshold is configurable (STALL_THRESHOLD_DAYS = 60). Permits just over the threshold get the warning; those below do not.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: permit already complete — no action needed
+**Source:** src/tools/predict_next_stations.py — COMPLETE_STATUSES short-circuit (QS8-T2-A)
+**User:** homeowner | expediter
+**Starting state:** Permit status is "complete" or "issued"
+**Goal:** Check what happens next (doesn't know it's already done)
+**Expected outcome:** Tool returns a clear message that the permit has completed all review stations, shows the issued/completed date if available. Does NOT attempt to build transition predictions.
+**Edge cases seen in code:** Status values checked: "complete", "issued", "approved", "cancelled", "withdrawn" — all treated as terminal
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: permit not yet in plan review — no routing data
+**Source:** src/tools/predict_next_stations.py — empty addenda short-circuit (QS8-T2-A)
+**User:** homeowner
+**Starting state:** Permit was recently filed (< 2 weeks ago) and has no addenda records yet
+**Goal:** Ask what stations the permit will go through
+**Expected outcome:** Tool returns "No routing data available" with an explanation that the permit may not have entered plan review yet. Does not error out or return an empty page.
+**Edge cases seen in code:** Distinction between permit-not-found (permit table miss) and no-addenda (permit exists but addenda table has no rows for it)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: neighborhood-stratified prediction vs. city-wide fallback
+**Source:** src/tools/predict_next_stations.py — _build_transition_matrix neighborhood fallback (QS8-T2-A)
+**User:** expediter
+**Starting state:** Permit is in a neighborhood with sufficient historical data (e.g., Mission — many similar permits). Separately, a permit in a rare neighborhood with very few historical records.
+**Goal:** Get predictions that are relevant to the permit's actual location context
+**Expected outcome:** For Mission: predictions are labeled as "based on historical routing patterns from permits in Mission" (neighborhood-filtered). For rare neighborhood: falls back to all similar permit types city-wide, labeled accordingly. Both cases return predictions if transition data exists.
+**Edge cases seen in code:** Neighborhood fallback triggered when _build_transition_matrix returns empty dict for neighborhood query
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: expediter diagnoses critically stalled permit at plan check
+**Source:** src/tools/stuck_permit.py — diagnose_stuck_permit (QS8-T2-B)
+**User:** expediter
+**Starting state:** Permit has been at BLDG plan check station for 95 days. Historical p90 for BLDG is 60 days. No comments have been issued.
+**Goal:** Understand why the permit is stalled and what to do next
+**Expected outcome:** Tool returns a playbook identifying BLDG as critically stalled (past p90), recommending expediter contact DBI plan check counter with specific address and phone number, severity score reflects age/staleness
+**Edge cases seen in code:** Heuristic fallback when no velocity baseline exists for a station (>90d = critically stalled, >45d = stalled); stations missing from station_velocity_v2 still get flagged
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: homeowner learns to respond to plan check comments
+**Source:** src/tools/stuck_permit.py — _diagnose_station, review_results detection (QS8-T2-B)
+**User:** homeowner
+**Starting state:** Permit routing shows "Comments Issued" review result at BLDG station. 1 revision cycle completed.
+**Goal:** Understand what the comments mean and what action to take
+**Expected outcome:** Playbook identifies comment-issued status as highest priority intervention, recommends revising plans and resubmitting via EPR (Electronic Plan Review), includes EPR URL
+**Edge cases seen in code:** Revision cycle count (addenda_number >= 2) triggers additional warning about multiple rounds; 3+ cycles triggers expediter/architect recommendation
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: architect checks inter-agency hold at SFFD
+**Source:** src/tools/stuck_permit.py — INTER_AGENCY_STATIONS, _get_agency_key (QS8-T2-B)
+**User:** architect
+**Starting state:** Permit routed to SFFD station 50 days ago. p75 baseline for SFFD is 30 days.
+**Goal:** Know who to contact and what to say
+**Expected outcome:** Playbook identifies SFFD as stalled inter-agency station, provides SFFD Permit Division contact info (phone, address, URL), recommends contacting SFFD directly rather than DBI
+**Edge cases seen in code:** Multiple inter-agency stations (e.g. SFFD + HEALTH simultaneously) each get separate diagnosis entries ranked by severity; CP-ZOC (Planning) maps to Planning Department not DBI
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: expediter checks a healthy permit that is on track
+**Source:** src/tools/stuck_permit.py — _diagnose_station normal status, _format_playbook (QS8-T2-B)
+**User:** expediter
+**Starting state:** Permit has been at BLDG for 10 days. Historical p50 for BLDG is 15 days.
+**Goal:** Confirm permit routing is proceeding normally
+**Expected outcome:** Playbook shows "OK" routing status, no CRITICAL or STALLED labels, no urgent intervention steps, dwell shown relative to p50 baseline for reassurance
+**Edge cases seen in code:** Permit with no addenda data yet (not entered plan check queue) returns empty station list with advisory message about plan check queue status
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: homeowner looks up a permit number that doesn't exist
+**Source:** src/tools/stuck_permit.py — permit not found branch (QS8-T2-B)
+**User:** homeowner
+**Starting state:** User enters an incorrect or old permit number
+**Goal:** Understand the permit cannot be found
+**Expected outcome:** Tool returns a clear "not found" message with the queried permit number and a link to the DBI permit tracking portal so the user can verify the number themselves
+**Edge cases seen in code:** DB error during connection (e.g., connection pool exhausted) returns a formatted error message with permit number preserved, not a raw exception traceback
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if comparison on scope expansion
+**Source:** src/tools/what_if_simulator.py (QS8-T2-C)
+**User:** expediter
+**Starting state:** Expediter has a base kitchen remodel project ($80K) and client is considering adding a bathroom.
+**Goal:** Quickly compare how adding a bathroom changes timeline, fees, and revision risk without pulling up each tool separately.
+**Expected outcome:** A comparison table showing base vs. variation side-by-side; review path, p50 timeline, estimated DBI fees, and revision risk are all populated. Delta section calls out meaningful changes (e.g., review path shift from OTC to In-house if triggered).
+**Edge cases seen in code:** When underlying tools return errors for a variation, the row shows "N/A" in affected columns rather than crashing; the simulation still completes.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if simulation with no variations (base only)
+**Source:** src/tools/what_if_simulator.py (QS8-T2-C)
+**User:** homeowner
+**Starting state:** Homeowner asks about a kitchen remodel but doesn't specify any variations.
+**Goal:** Get the baseline permit picture without needing to provide variations.
+**Expected outcome:** Simulator runs with just the base scenario, produces a 1-row table, no "Delta vs. Base" section appears, and output still includes all column values (permits, review path, timeline, fees, risk).
+**Edge cases seen in code:** Empty variations list is valid input; no delta section should be rendered.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if detects OTC-to-in-house review path shift
+**Source:** src/tools/what_if_simulator.py — _evaluate_scenario + delta section (QS8-T2-C)
+**User:** expediter
+**Starting state:** Base project is OTC-eligible (simple kitchen remodel). Variation adds scope that triggers in-house review (e.g., change of use, structural work).
+**Goal:** Identify that the scope change moves the project out of OTC path, which has significant timeline implications.
+**Expected outcome:** Delta section explicitly calls out "OTC → In-house" review path change and notes it "may add weeks". Both table rows show different Review Path values.
+**Edge cases seen in code:** Only flagged when both base and variation have non-N/A review paths; partial data (one N/A) is silently skipped in the delta.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: what-if tool gracefully handles sub-tool database errors
+**Source:** src/tools/what_if_simulator.py — _evaluate_scenario try/except blocks (QS8-T2-C)
+**User:** expediter
+**Starting state:** Local DuckDB database is not initialized or is locked (e.g., parallel test run).
+**Goal:** Simulator still returns usable output even when one or more sub-tools fail due to DB unavailability.
+**Expected outcome:** Affected cells show "N/A". Notes section lists which sub-tools encountered errors. No exception is raised to the caller. Other cells that succeeded show valid data.
+**Edge cases seen in code:** Each of the four sub-tool calls is wrapped in try/except; errors are accumulated in result["notes"] and surfaced in a "Data Notes" section at the end of the output.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: expediter uses cost of delay to justify expediting fee
+**Source:** src/tools/cost_of_delay.py — calculate_delay_cost (QS8-T2-D)
+**User:** expediter
+**Starting state:** Expediter has a restaurant permit client spending $80K/month on a closed location
+**Goal:** Quantify the dollar value of shaving 30 days off the permit timeline
+**Expected outcome:** Tool returns a formatted table showing carrying cost + revision risk cost per scenario. Break-even section shows daily delay cost. Expediter can use the daily rate to justify their expediting premium to the client.
+**Edge cases seen in code:** revision_prob * revision_delay * daily_cost compounds even for p25 (best case) — there is always some expected revision cost regardless of timeline scenario
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: homeowner asks how much it costs to wait on a kitchen remodel permit
+**Source:** src/tools/cost_of_delay.py — calculate_delay_cost (QS8-T2-D)
+**User:** homeowner
+**Starting state:** Homeowner is renting elsewhere at $5,000/month while waiting for kitchen remodel permit
+**Goal:** Understand the total financial exposure of a kitchen remodel permit delay
+**Expected outcome:** Tool returns best/likely/worst-case costs. Likely (p50 = 21 days) shows ~$3,450 carrying cost. OTC-eligible note appears since kitchen remodel can go OTC. Mitigation strategies include pre-application consultation.
+**Edge cases seen in code:** OTC_ELIGIBLE_TYPES set — kitchen_remodel is in it, so the OTC note must appear
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: tool gracefully degrades when permit database is unavailable
+**Source:** src/tools/cost_of_delay.py — _get_timeline_estimates fallback (QS8-T2-D)
+**User:** expediter
+**Starting state:** MCP server running in environment without DuckDB permit database
+**Goal:** Get a cost of delay estimate for a commercial_ti permit
+**Expected outcome:** Tool returns output using hard-coded historical averages (clearly noted in Methodology section with "Note: Live permit database unavailable" message). All sections present: table, break-even, mitigation, methodology.
+**Edge cases seen in code:** db_available flag drives the note in Methodology section. Fallback timelines for all 13 permit types baked in.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: sequence timeline from permit routing history
+**Source:** src/tools/estimate_timeline.py — estimate_sequence_timeline() (Sprint 76-1)
+**User:** expediter
+**Starting state:** A permit with a known application number has addenda routing records in the database. Station velocity data exists in station_velocity_v2 for at least some of those stations.
+**Goal:** The expediter wants to understand how long the permit's specific review route will take, given the actual stations it has been routed through (not a generic estimate based on permit type).
+**Expected outcome:** The response includes a per-station breakdown showing each station's p50 velocity, status (done/stalled/pending), whether it's running in parallel with another station, and a total estimate in days with a confidence level. Stations with no velocity data are listed as skipped.
+**Edge cases seen in code:** If no addenda exist for the permit number, returns null (no estimate). If the station_velocity_v2 table doesn't exist yet, still returns a result with the station sequence but 0 total days and "low" confidence.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: parallel station detection in sequence model
+**Source:** src/tools/estimate_timeline.py — estimate_sequence_timeline() parallel detection logic (Sprint 76-1)
+**User:** expediter
+**Starting state:** A permit has been routed to two or more stations simultaneously (same arrive date). Both stations have velocity data.
+**Goal:** The timeline estimate correctly treats concurrent review stations as parallel (not additive), so the total estimate reflects real-world review time.
+**Expected outcome:** The total_estimate_days uses the max p50 of the parallel group, not the sum. The station entries have is_parallel=true for the stations that overlap. The total is lower than if all stations were summed sequentially.
+**Edge cases seen in code:** Parallel detection compares date portions (first 10 chars) of first_arrive timestamps. Stations with the same arrive date are grouped as parallel. Only the p50 of the longest station in the group contributes to the total.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Model release probes cover all capability categories
+**Source:** docs/model-release-probes.md (Sprint 69 S4)
+**User:** admin
+**Starting state:** Model release probes document exists with 14 probes across 6 categories
+**Goal:** Validate that the probe set covers all major capabilities of the sfpermits.ai platform
+**Expected outcome:** At least 2 probes per category (permit prediction, vision analysis, multi-source synthesis, entity reasoning, specification quality, domain knowledge), each with prompt text, expected capability, and scoring criteria
+**Edge cases seen in code:** New tools or capabilities added in future sprints should trigger new probes
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## DATA INGEST & PIPELINE
+
+## SUGGESTED SCENARIO: Nightly parcel refresh materializes counts
+**Source:** QS5-A cron refresh-parcel-summary endpoint
+**User:** admin
+**Starting state:** permits, tax_rolls, complaints, violations, boiler_permits, inspections tables populated
+**Goal:** Run nightly cron job to materialize one-row-per-parcel summary with counts from 5+ source tables
+**Expected outcome:** parcel_summary populated with correct permit_count, open_permit_count, complaint_count, violation_count, boiler_permit_count, inspection_count; canonical_address is UPPER-cased; tax_value computed from land + improvement; health_tier joined from property_health
+**Edge cases seen in code:** parcel with no tax_rolls data (NULL tax fields); parcel with no complaints/violations (zero counts); property_health table doesn't exist yet (NULL health_tier)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Incremental permit ingest reduces orphan rate
+**Source:** QS5-B ingest_recent_permits + backfill
+**User:** admin
+**Starting state:** permit_changes has 52% orphan rate (permits detected by nightly tracker but not in bulk permits table)
+**Goal:** Reduce orphan rate by ingesting recently-filed permits before change detection runs
+**Expected outcome:** After incremental ingest runs nightly, orphan rate in permit_changes drops below 10% because recently-filed permits are already in the permits table when detect_changes() runs
+**Edge cases seen in code:** SODA API may return 0 records during quiet periods; pagination needed for >10K results; must not run concurrently with full_ingest
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Nightly pipeline runs incremental ingest before change detection
+**Source:** QS5-B pipeline ordering in run_nightly()
+**User:** admin
+**Starting state:** Nightly cron job triggers run_nightly() which detects permit changes
+**Goal:** Prevent false "new_permit" entries by ensuring recently-filed permits are in the DB before change detection compares against it
+**Expected outcome:** Pipeline sequence is: incremental ingest → fetch SODA changes → detect_changes(). The incremental ingest step is non-fatal — if it fails, change detection still runs.
+**Edge cases seen in code:** Incremental ingest must not run if full_ingest completed recently (sequencing guard via cron_log check); DuckDB vs Postgres SQL differences handled by existing patterns
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Orphan inspection rate DQ check
+**Source:** web/data_quality.py _check_orphan_inspections (QS5-C)
+**User:** admin
+**Starting state:** Admin viewing Data Quality dashboard with inspections and permits tables populated
+**Goal:** Verify that orphan inspection rate is calculated correctly and displayed with appropriate severity
+**Expected outcome:** Orphan rate shown as percentage with green (<5%), yellow (5-15%), or red (>15%) status; only permit-type inspections counted (complaint inspections excluded)
+**Edge cases seen in code:** 68K complaint inspections use complaint numbers as reference_number (not permit numbers) — must be filtered out to avoid inflated orphan rate
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Trade permit pipeline health check
+**Source:** web/data_quality.py _check_trade_permit_counts (QS5-C)
+**User:** admin
+**Starting state:** Admin viewing Data Quality dashboard with trade permit tables present
+**Goal:** Verify that boiler and fire permit pipeline health is monitored
+**Expected outcome:** Green status when both tables have data; red status flagging which specific table(s) are empty if pipeline is broken
+**Edge cases seen in code:** Both tables could be empty simultaneously; fire_permits has no block/lot columns so can't join to parcel graph
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Expediter finds all active electrical permits at an address
+**Source:** src/ingest.py — ingest_electrical_permits, _normalize_electrical_permit (QS8-T3-C)
+**User:** expediter
+**Starting state:** Electrical permits have been ingested into the permits table with permit_type='electrical'
+**Goal:** Find all active electrical permits at a property to understand current electrical work scope
+**Expected outcome:** Search returns electrical permits with correct address, status, description, and filing/issue dates; permit_type is clearly identified as electrical
+**Edge cases seen in code:** zip_code field aliased to zipcode column — searches by zip must handle this; neighborhood and supervisor_district are NULL for electrical permits (not in source dataset)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Admin triggers selective re-ingest of only electrical permits from CLI
+**Source:** src/ingest.py — main() argparse block, --electrical-permits flag (QS8-T3-C)
+**User:** admin
+**Starting state:** Full database is populated but electrical permit data may be stale
+**Goal:** Re-ingest only electrical permits without touching other datasets to save time
+**Expected outcome:** Running `python -m src.ingest --electrical-permits` updates only electrical permit records; building, plumbing, boiler, and all other tables are unchanged; ingest_log shows updated timestamp only for electrical endpoint
+**Edge cases seen in code:** do_all logic: if ANY specific flag is passed, do_all=False and only flagged datasets run; --boiler flag controls boiler permits (not --boiler-permits)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## ADDITIONAL SCENARIOS (not categorized above)
+
+## SUGGESTED SCENARIO: cost kill switch blocks AI routes without affecting browsing
+**Source:** web/app.py _kill_switch_guard + web/cost_tracking.py (Sprint 76-2)
+**User:** homeowner
+**Starting state:** Admin has activated the API kill switch (daily spend exceeded $20). User is browsing the site and tries to use the AI analysis tool.
+**Goal:** User submits a project description to the /ask or /analyze endpoint while kill switch is active.
+**Expected outcome:** User receives a clear error message saying AI features are temporarily unavailable (cost protection), with a prompt to try again later. All non-AI pages (home, property reports, search) continue to function normally.
+**Edge cases seen in code:** Kill switch check happens in before_request hook before rate limiter or view function runs. JSON 503 response with kill_switch=True field. Health endpoint never blocked.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+**DUPLICATE OF:** SCENARIO 32 (Kill switch blocks AI endpoints and returns 503 — approved Sprint 68-A)
+
+---
+
+## SUGGESTED SCENARIO: Property report skips gracefully when DuckDB not ingested
+**Source:** tests/e2e/test_severity_scenarios.py — TestPropertyReport (Sprint 77-1)
+**User:** expediter
+**Starting state:** Fresh checkout; DuckDB lacks the permits table
+**Goal:** Developer runs E2E tests to validate local environment
+**Expected outcome:** Property report tests skip with a clear message ("DuckDB permits table absent — run python -m src.ingest") rather than failing with a raw traceback or unhelpful assertion error
+**Edge cases seen in code:** Route returns 500 with DuckDB CatalogException when table is missing; test distinguishes this from a real app bug
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: plan analysis upload form is present for authenticated users
+**Source:** tests/e2e/test_search_scenarios.py / web/templates/index.html (Sprint 77-3)
+**User:** architect
+**Starting state:** User is logged in as an architect or any authenticated role.
+**Goal:** Find and interact with the plan analysis upload form.
+**Expected outcome:** The authenticated dashboard shows a file input element that accepts .pdf files. The plan/upload/analyze section is mentioned in the page content.
+**Edge cases seen in code:** File input has accept=".pdf" to restrict to PDF only. Max size is 400 MB.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: methodology page is substantive and publicly accessible
+**Source:** tests/e2e/test_search_scenarios.py / web/routes_misc.py (Sprint 77-3)
+**User:** homeowner (anonymous)
+**Starting state:** No authentication. User navigates directly to /methodology.
+**Goal:** Read about how SF Permits AI works — data sources, entity resolution, plan analysis.
+**Expected outcome:** Page returns HTTP 200. Page contains at least 3 section headings. Mentions data sources, entity or search methodology, and plan analysis/AI vision. Page is not a stub.
+**Edge cases seen in code:** Methodology page has a dedicated #plan-analysis section.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Anonymous landing page renders with search and hero
+**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestAnonymousLanding (Sprint 77-4)
+**User:** homeowner
+**Starting state:** User is not logged in; navigates to the root URL
+**Goal:** Understand what sfpermits.ai offers before signing up
+**Expected outcome:** Page renders with an h1 heading, a search input, and at least one reference to "permit" in the body content. A CTA to sign up or log in is present.
+**Edge cases seen in code:** Landing vs Index templates — anonymous users see landing.html, authenticated see index.html. Both must render the search bar.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Beta request form renders and accepts input without JS errors
+**Source:** tests/e2e/test_auth_mobile_scenarios.py — TestBetaRequestForm (Sprint 77-4)
+**User:** homeowner
+**Starting state:** User has not yet been invited; navigates to /beta-request
+**Goal:** Request beta access by filling out the form
+**Expected outcome:** Page returns HTTP 200. Form has email input, name input (or text input), a reason/message field, and a submit button. Filling all visible fields produces no JavaScript errors. Honeypot and rate limiting are backend-only and do not appear in the UI.
+**Edge cases seen in code:** Honeypot field must not be visible to real users. Rate limit (3 requests/IP/hour) fires only on repeated POST submissions, not on page load.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Share analysis email modal uses dark theme
+**Source:** results.html design token migration
+**User:** expediter
+**Starting state:** User has completed a permit analysis with an analysis_id
+**Goal:** Share the analysis with a team member via email
+**Expected outcome:** Share bar appears below results. Clicking "Email to your team" opens a modal with dark background (obsidian), monospaced email inputs, and teal focus rings. Entering valid email(s) and clicking Send delivers the share link. Modal closes on success.
+**Edge cases seen in code:** Empty email input shows validation error. More than 5 recipients blocked. Invalid email format shows inline error message. Cancel closes modal without sending.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: security audit produces artifact on every run including failures
+**Source:** .github/workflows/security.yml — continue-on-error + upload-artifact with if: always() (Sprint 74-3)
+**User:** admin
+**Starting state:** Security audit finds HIGH issues (audit step returns exit 1)
+**Goal:** Review the detailed report even when the CI job is marked failed
+**Expected outcome:** GitHub Actions artifact "security-audit-report-<run_id>" is uploaded and available for download; report contains full issue details
+**Edge cases seen in code:** continue-on-error on audit step + explicit fail step pattern ensures report upload always runs before job marks failed
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: weekly security scan runs on Sunday without manual trigger
+**Source:** .github/workflows/security.yml — schedule cron trigger (Sprint 74-3)
+**User:** admin
+**Starting state:** No new commits; cron fires on schedule
+**Goal:** Catch newly disclosed vulnerabilities in dependencies between development cycles
+**Expected outcome:** Workflow runs at 06:00 UTC Sunday, both bandit and pip-audit execute against current installed packages, report artifact is stored for 90 days
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Google Fonts loaded once via shared fragment
+**Source:** QS4-C head_obsidian.html shared fragment
+**User:** all
+**Starting state:** Any Obsidian-migrated page is loaded
+**Goal:** Page loads efficiently without duplicate font requests
+**Expected outcome:** Google Fonts (IBM Plex Sans, JetBrains Mono) are loaded via a single shared fragment (head_obsidian.html) included by all migrated templates, rather than each template having its own font link — reducing duplicate network requests and ensuring font consistency
+**Edge cases seen in code:** design-system.css also has an @import for Google Fonts; the fragment uses preconnect hints for faster loading
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: feature flags default open during beta; all authenticated users access premium features
+**Source:** web/feature_gate.py (FEATURE_REGISTRY TODO comments) (QS8-T3-A)
+**User:** homeowner
+**Starting state:** Regular authenticated user with no special invite code; subscription_tier='free'
+**Goal:** Access plan_analysis_full, entity_deep_dive, export_pdf, api_access, priority_support
+**Expected outcome:** All 5 features accessible during beta period; no upgrade prompt; TODO comments in code mark the transition point
+**Edge cases seen in code:** When beta ends, raising tier to PREMIUM will gate these for non-premium users; this is a deliberate gradual reveal pattern
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
 
 ## SUGGESTED SCENARIO: Circuit breaker thresholds configurable per deployment
-**Source:** src/soda_client.py — SODA_CB_THRESHOLD and SODA_CB_TIMEOUT env vars
+**Source:** src/soda_client.py — SODA_CB_THRESHOLD and SODA_CB_TIMEOUT env vars (QS8-T1-C)
 **User:** admin
 **Starting state:** Default thresholds (5 failures, 60s cooldown) are too aggressive for a slow network environment
 **Goal:** Operator adjusts circuit breaker sensitivity without code changes
@@ -1840,71 +1754,63 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: 4xx SODA errors do not trigger circuit breaker
-**Source:** src/soda_client.py — HTTPStatusError handling in query()
-**User:** expediter
-**Starting state:** A tool passes an invalid dataset ID or malformed SoQL query to the SODA client
-**Goal:** Bad queries surface as errors without poisoning the circuit breaker for healthy queries
-**Expected outcome:** HTTPStatusError is raised to the caller as before; failure_count stays at 0; subsequent queries to valid endpoints succeed normally
-**CC confidence:** high
-**Status:** PENDING REVIEW
-## SUGGESTED SCENARIO: Response time visible in response headers
-**Source:** QS8-T1-D / web/app.py _add_response_time_header
-**User:** admin
-**Starting state:** App is running, any page is requested
-**Goal:** Measure and observe server-side response time without needing server logs
-**Expected outcome:** Every HTTP response (2xx, 4xx, 5xx) includes X-Response-Time header with value in milliseconds (e.g., "47.2ms"); value increases proportionally with DB-heavy pages vs. static pages
-**Edge cases seen in code:** Header uses time.time() wall clock, not monotonic; value is always >= 0; present on 404 and health check responses
-**CC confidence:** high
-**Status:** PENDING REVIEW
+---
 
-## SUGGESTED SCENARIO: Static content pages cached at CDN/browser level
-**Source:** QS8-T1-D / web/app.py add_cache_headers
-**User:** homeowner
-**Starting state:** User visits /methodology, /about-data, or /demo for the first time
-**Goal:** Content loads quickly on repeat visits without hitting the origin server
-**Expected outcome:** Response includes Cache-Control: public, max-age=3600, stale-while-revalidate=86400; browser/CDN serves from cache for up to 1 hour; stale content served up to 24 hours while revalidating
-**Edge cases seen in code:** Cache header only set on 200 responses (not errors); auth pages, API endpoints, and search routes do NOT receive this header; /pricing also included in the static page list
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Health endpoint reports pool connection state
+## SUGGESTED SCENARIO: Health endpoint reports pool connection state (enhanced)
 **Source:** QS8-T1-D / web/app.py /health route enhancement
 **User:** admin
 **Starting state:** App connected to PostgreSQL with active connection pool
 **Goal:** Diagnose connection pool health without needing direct DB access
 **Expected outcome:** GET /health returns pool_stats with backend, minconn, maxconn, pool_size, used_count, and health sub-object; cache_stats shows page_cache row count and oldest entry age; both fields present even when pool is unused (DuckDB fallback returns no_pool status)
-**Edge cases seen in code:** DuckDB backend returns {"status": "no_pool", "backend": "duckdb"} for pool_stats; cache_stats falls back to {"error": "unavailable"} on any DB exception; cache_stats.oldest_entry_age_minutes is null on DuckDB
+**Edge cases seen in code:** DuckDB backend returns {"status": "no_pool", "backend": "duckdb"} for pool_stats; cache_stats falls back to {"error": "unavailable"} on any DB exception
 **CC confidence:** medium
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: DB pool max tunable for high-traffic deployments
-**Source:** QS8-T1-D / src/db.py DB_POOL_MAX documentation
-**User:** admin
-**Starting state:** App running on Railway with default DB_POOL_MAX=20, experiencing connection pool exhaustion under load
-**Goal:** Scale connection pool without code changes
-**Expected outcome:** Setting DB_POOL_MAX env var to 40 (or any value) overrides the default; app restarts and creates pool with new max; pool exhaustion errors reduce; /health reports new maxconn value in pool_stats
-**Edge cases seen in code:** Pool is a lazy singleton; changing env var requires restart; increasing beyond 50 requires PgBouncer (Railway pgvector DB limit)
-**CC confidence:** low
-**Status:** PENDING REVIEW
+---
 
-## SUGGESTED SCENARIO: Property intel page renders summary cards for known-data parcel
-**Source:** web/templates/report.html rebuild from property-intel.html mockup
-**User:** expediter | homeowner
-**Starting state:** User navigates to /report/{block}/{lot} for a parcel with permit history
-**Goal:** Quickly understand the property's permit/complaint/risk status at a glance
-**Expected outcome:** Three intel summary cards show: total permit count, total complaint count, and risk factor count; cards with non-zero values use danger/warning styling; clicking a card scrolls to the relevant section; page renders without errors
-**Edge cases seen in code:** Properties with zero complaints still show the complaints card with "0"; intel grid collapses on mobile viewports
+## SUGGESTED SCENARIO: Homeowner checks plumbing permit status after water heater replacement
+**Source:** src/ingest.py — ingest_plumbing_permits, _normalize_plumbing_permit (QS8-T3-C)
+**User:** homeowner
+**Starting state:** Plumbing permit filed and issued; data ingested into permits table with permit_type='plumbing'
+**Goal:** Confirm their plumbing permit was issued and completed so they can close out with the contractor
+**Expected outcome:** Permit lookup returns plumbing permit with filed_date, issued_date, completed_date, and status; parcel_number and unit fields (present in source data) are not exposed since they don't exist in the permits schema
+**Edge cases seen in code:** parcel_number and unit fields exist in SODA dataset but are dropped during normalization — users asking for parcel_number won't find it via permit lookup
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: Permit item expand panel shows routing progress
-**Source:** web/templates/report.html — permit-item__expand with routing data
+---
+
+## SUGGESTED SCENARIO: Property inspector looks up boiler permit history for a commercial building
+**Source:** src/ingest.py — ingest_boiler_permits, _normalize_boiler_permit (QS8-T3-C)
+**User:** expediter
+**Starting state:** Boiler permits have been ingested into the boiler_permits table (separate from the main permits table)
+**Goal:** Find all boiler permits at a commercial property to verify boiler equipment compliance history
+**Expected outcome:** Boiler permits are returned with boiler_type, boiler_serial_number, model, expiration_date, and application_date; results are from boiler_permits table (distinct from building/electrical/plumbing permits)
+**Edge cases seen in code:** Boiler permits are NOT in the shared permits table — tools querying permits table only will miss them
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: developer evaluates cost impact of CEQA trigger on new construction
+**Source:** src/tools/cost_of_delay.py — triggers parameter (QS8-T2-D)
+**User:** architect
+**Starting state:** Architect is scoping a new construction project that may trigger CEQA environmental review
+**Goal:** See the cost difference between base timeline and CEQA-triggered timeline
+**Expected outcome:** With triggers=['ceqa'], the p50 and p90 timelines are escalated by ~180 days. The cost table shows dramatically higher totals. The trigger note "CEQA environmental review" appears in the output.
+**Edge cases seen in code:** TRIGGER_DELAYS maps ceqa to 180 days — largest single trigger escalation. Only applies when DB fallback is used (db_available=False).
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Table sort indicators reflect active sort state
+**Source:** DESIGN_TOKENS.md obs-table sort indicators
 **User:** expediter | architect
-**Starting state:** User is on property report page for a permit in plan review
-**Goal:** Check which plan review stations have been approved vs. are pending/stalled
-**Expected outcome:** Clicking a permit item expands a panel showing plan review routing: progress bar, station count, stalled stations with days indicator, pending station names, and latest activity; collapsing/re-expanding works correctly
-**Edge cases seen in code:** Permits without routing data (routing=None) don't show expand button; stalled stations shown with amber styling
+**Starting state:** User is viewing a data table with sortable columns (inspection history, permit list)
+**Goal:** Sort the table by clicking a column header
+**Expected outcome:** Chevron indicator appears on sortable columns. Active sort column shows teal chevron pointing up (asc) or down (desc). Clicking toggles direction. Only one column active at a time.
+**Edge cases seen in code:** Tables with no data should show empty state row, not sort controls
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
