@@ -317,16 +317,7 @@
   section { position: relative; z-index: 1; padding: 0 24px; }
   .section-inner { max-width: 1000px; margin: 0 auto; }
 
-  .stats-section { padding-top: 140px; padding-bottom: 100px; }
-  .stats-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
-    padding: 40px 0;
-  }
-  .stat-item { text-align: center; flex: 1; }
-  .stat-item .number { font-family: var(--mono); font-size: clamp(22px, 3vw, 36px); font-weight: 300; line-height: 1; }
-  .stat-item .label { font-size: 12px; font-weight: 400; color: var(--text-tertiary); margin-top: 8px; }
-  .stat-divider { width: 1px; height: 40px; background: var(--glass-border); flex-shrink: 0; }
+  /* stats bar removed (Sprint 94) — replaced by credibility line at bottom */
 
   .capabilities-section { padding-bottom: 120px; }
   .cap-list { list-style: none; }
@@ -450,10 +441,51 @@
     text-align: center; color: var(--text-primary);
     margin-bottom: 48px;
   }
+
+  /* Full-width Gantt section */
+  .showcase-gantt-section {
+    padding-top: 80px; padding-bottom: 0;
+  }
+  .showcase-gantt-section .section-inner {
+    max-width: 1000px; margin: 0 auto;
+  }
+  .showcase-gantt-fullwidth {
+    width: 100%;
+    max-width: none;
+  }
+  .showcase-gantt-fullwidth .showcase-card {
+    width: 100%;
+    max-width: none;
+  }
+  .intelligence-layer-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+  }
+
+  /* Gantt mobile: horizontal scroll */
+  @media (max-width: 480px) {
+    .showcase-gantt-fullwidth .showcase-card__body {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      min-height: 300px;
+      /* subtle right shadow to hint scroll — uses glass tint, not raw color */
+      box-shadow: inset -40px 0 20px -10px var(--obsidian-mid);
+    }
+    .showcase-gantt-fullwidth .showcase-card__body > * {
+      min-width: 380px;
+    }
+  }
+
+  /* 5-card grid below Gantt */
   .showcase-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg, 24px);
   }
   .showcase-card {
     background: var(--obsidian-mid);
@@ -726,15 +758,24 @@
   }
 
   @media (max-width: 768px) {
-    .stats-row { flex-wrap: wrap; gap: 24px; justify-content: center; padding: 28px 0; }
-    .stat-divider { display: none; }
-    .stat-item { flex: 0 0 40%; }
-    .showcase-grid { grid-template-columns: 1fr; }
+    .showcase-grid { grid-template-columns: repeat(2, 1fr); }
     .showcase-section { padding-top: 60px; padding-bottom: 60px; }
+    .showcase-gantt-section { padding-top: 60px; }
     .demo-body { padding: 20px 16px; }
     .demo-row { flex-direction: column; align-items: flex-start; gap: 4px; }
   }
-  @media (max-width: 480px) { .stat-item { flex: 0 0 100%; } }
+  @media (max-width: 480px) {
+    .showcase-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Credibility line */
+  .credibility-line {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin: var(--space-lg, 24px) 0;
+  }
 </style>
 <link rel="stylesheet" href="{{ url_for('static', filename='mcp-demo.css') }}" nonce="{{ csp_nonce }}">
 </head>
@@ -852,37 +893,20 @@
   </a>
 </section>
 
-<section class="stats-section">
+<!-- Full-width Gantt section — first intelligence showcase visitors see -->
+<section class="showcase-gantt-section" id="intelligence">
   <div class="section-inner">
-    <div class="stats-row reveal">
-      <div class="stat-item">
-        <div class="number"><span class="counting" data-target="1137816">0</span></div>
-        <div class="label">SF building permits</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="number">22</div>
-        <div class="label">City data sources</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="number" style="font-size: clamp(18px, 2.5vw, 28px);">Nightly</div>
-        <div class="label">Updated from city records</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="number" style="font-size: clamp(18px, 2.5vw, 28px);">Free</div>
-        <div class="label">During beta</div>
-      </div>
+    <div class="intelligence-layer-label reveal">Routing Intelligence</div>
+    <div class="showcase-gantt-fullwidth reveal reveal-delay-1">
+      {% if showcase and showcase.get("station_timeline") %}{% include "components/showcase_gantt.html" %}{% endif %}
     </div>
   </div>
 </section>
 
-<section class="showcase-section" id="intelligence">
+<section class="showcase-section">
   <div class="section-inner">
     <h2 class="reveal">See what permit intelligence looks like</h2>
-    <div class="showcase-grid">
-      {% if showcase and showcase.get("station_timeline") %}{% include "components/showcase_gantt.html" %}{% endif %}
+    <div class="showcase-grid" id="showcase-grid">
       {% if showcase and showcase.get("stuck_permit") %}{% include "components/showcase_stuck.html" %}{% endif %}
       {% if showcase and showcase.get("whatif") %}{% include "components/showcase_whatif.html" %}{% endif %}
       {% if showcase and showcase.get("revision_risk") %}{% include "components/showcase_risk.html" %}{% endif %}
@@ -898,9 +922,11 @@
   </div>
 </section>
 
+<p class="credibility-line">Updated nightly from 22 city data sources · Free during beta</p>
+
 <div class="footer reveal">
   <p style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto;">
-    Built on public data from SF Department of Building Inspection, Planning Department, and 20 other city agencies. Updated nightly. Not affiliated with the City of San Francisco.
+    Built on public data from SF Department of Building Inspection, Planning Department, and 20 other city agencies. Not affiliated with the City of San Francisco.
   </p>
   <div class="footer-links">
     <a href="/methodology">Methodology</a><span class="sep">·</span>
@@ -1276,7 +1302,7 @@
           </span>
         </div>`;
     });
-    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="#" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">Based on 1,137,816 SF building permits →</a></div>';
+    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="#" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">Based on 1.1M+ SF building permits →</a></div>';
     html += '</div>';
     dropdown.insertAdjacentHTML('afterbegin', html);
     dropdown.classList.add('open');

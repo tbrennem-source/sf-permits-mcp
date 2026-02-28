@@ -50,12 +50,13 @@ class TestLandingPage:
         # Showcase section replaces old capabilities — check for showcase structure
         assert "showcase-grid" in html or "showcase-section" in html or "intelligence" in html
 
-    def test_landing_has_stats(self, client):
-        """Landing page shows data credibility stats."""
+    def test_landing_has_credibility_line(self, client):
+        """Landing page shows data credibility line (Sprint 94: stats bar replaced by bottom line)."""
         rv = client.get("/")
         html = rv.data.decode()
-        assert "SF building permits" in html
-        assert "City data sources" in html
+        # Stats bar removed — credibility line at page bottom replaces it
+        assert "Updated nightly" in html
+        assert "22 city data sources" in html
 
     def test_landing_has_sign_in_link(self, client):
         """Landing page has sign in / get started links."""
