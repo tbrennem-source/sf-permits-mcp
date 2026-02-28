@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-28T18:48:13.392008+00:00",
-  "total_routes": 192,
+  "generated_at": "2026-02-28T21:08:48.811089+00:00",
+  "total_routes": 195,
   "routes": [
     {
       "path": "/robots.txt",
@@ -939,6 +939,15 @@
       "function_name": "onboarding_complete"
     },
     {
+      "path": "/onboarding/skip",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "onboarding_skip"
+    },
+    {
       "path": "/onboarding/dismiss",
       "methods": [
         "POST"
@@ -1731,6 +1740,24 @@
       "auth_level": "public",
       "template": "tools/cost_of_delay.html",
       "function_name": "tools_cost_of_delay"
+    },
+    {
+      "path": "/tools/entity-network",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "tools/entity_network.html",
+      "function_name": "tools_entity_network"
+    },
+    {
+      "path": "/tools/revision-risk",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "tools/revision_risk.html",
+      "function_name": "tools_revision_risk"
     }
   ],
   "user_journeys": {
@@ -1755,8 +1782,8 @@
     ]
   },
   "auth_summary": {
-    "public": 51,
-    "auth": 38,
+    "public": 53,
+    "auth": 39,
     "admin": 37,
     "cron": 66
   }

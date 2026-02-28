@@ -71,3 +71,20 @@
 - All colors from `--obsidian`, `--accent`, `--signal-green`, `--dot-green`, `--text-*` token palette
 - Fonts: `--mono` for data/CTAs/inputs, `--sans` for prose/headings per role assignment table
 - No inline non-token hex values
+
+## Sprint 93 — T4: Gate Analytics + Email Template Migration
+
+### Added
+
+- **`web/gate_analytics.py`** — PostHog event helpers:
+  - `track_gate_impression(user, required_tier, current_tier, page)` — tier gate impression event
+  - `track_onboarding_complete(user, role, property_address)` — onboarding completion event
+  - `track_onboarding_skip(user, step)` — onboarding skip event
+  - All functions gracefully handle anonymous users (user=None) and missing PostHog config
+
+### Changed
+
+- **`web/templates/brief_email.html`** — Migrated to brand email palette (#0a0e1a bg, #00d4c8 accent)
+- **`web/templates/invite_email.html`** — Replaced #4f8ff7 blue with brand teal #00d4c8
+- **`web/templates/notification_email.html`** — Replaced #1e3a5f/#2563eb with brand dark/teal
+- **`web/templates/report_email.html`** — All section colors migrated to brand palette
