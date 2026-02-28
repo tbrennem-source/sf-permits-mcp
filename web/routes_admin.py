@@ -391,6 +391,7 @@ def admin_ops_fragment(tab):
             "sources": "LUCK Sources",
             "regulatory": "Regulatory Watch",
             "intel": "Intelligence",
+            "syshealth": "System Health",
         }
         result = _fragment_timeout_fallback(tab_labels.get(tab, tab.title()))
     finally:
@@ -487,6 +488,10 @@ def _render_ops_tab(tab: str):
         return render_template("admin_regulatory_watch.html", user=g.user,
                                items=items, current_status=status_filter,
                                fragment=True)
+
+    elif tab == "syshealth":
+        # Delegate to the dedicated /admin/health handler (reuses its logic)
+        return admin_health()
 
     # === SESSION A: Activity Intelligence ===
     elif tab == "intel":
@@ -1313,4 +1318,98 @@ def admin_perf():
         top_slowest=top_slowest,
         volume_rows=volume_rows,
         overall_percentiles=overall_percentiles,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Admin: System Health fragment (Sprint 82-B)
+# ---------------------------------------------------------------------------
+
+@bp.route("/admin/health")
+@login_required
+def admin_health():
+    """HTMX fragment: pool, SODA circuit breaker, and page cache stats.
+
+    Designed to be polled every 30s from the admin ops hub.
+    Admin-only endpoint — 403 for non-admins.
+    """
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    log = logging.getLogger(__name__)
+
+    # --- Pool stats ---
+    try:
+        from src.db import get_pool_health
+        pool = get_pool_health()
+    except Exception as e:
+        log.warning("admin_health: pool stats failed: %s", e)
+        pool = {"healthy": False, "min": 0, "max": 0, "in_use": 0, "available": 0}
+
+    # --- SODA circuit breaker ---
+    try:
+        from src.soda_client import get_soda_cb_status
+        cb = get_soda_cb_status()
+    except Exception as e:
+        log.warning("admin_health: SODA CB stats failed: %s", e)
+        cb = {"state": "unknown", "failure_count": 0, "failure_threshold": 5}
+
+    # --- DB circuit breaker (per-category) ---
+    try:
+        from src.db import circuit_breaker as db_cb
+        db_cb_status = db_cb.get_status()
+    except Exception as e:
+        log.warning("admin_health: DB CB stats failed: %s", e)
+        db_cb_status = {}
+
+    # --- Page cache stats ---
+    cache = {"row_count": 0, "active_count": 0, "oldest_age": None}
+    try:
+        from src.db import get_connection, BACKEND
+        from datetime import datetime, timezone
+        conn = get_connection()
+        try:
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT COUNT(*), "
+                        "  COUNT(*) FILTER (WHERE invalidated_at IS NULL), "
+                        "  MIN(computed_at) "
+                        "FROM page_cache"
+                    )
+                    row = cur.fetchone()
+            else:
+                row = conn.execute(
+                    "SELECT COUNT(*), "
+                    "  COUNT(*) FILTER (WHERE invalidated_at IS NULL), "
+                    "  MIN(computed_at) "
+                    "FROM page_cache"
+                ).fetchone()
+            if row and row[0]:
+                cache["row_count"] = int(row[0])
+                cache["active_count"] = int(row[1]) if row[1] is not None else 0
+                oldest_dt = row[2]
+                if oldest_dt:
+                    if isinstance(oldest_dt, str):
+                        from datetime import datetime
+                        oldest_dt = datetime.fromisoformat(oldest_dt)
+                    now = (datetime.now(timezone.utc)
+                           if getattr(oldest_dt, "tzinfo", None)
+                           else datetime.now())
+                    age_min = int((now - oldest_dt).total_seconds() / 60)
+                    if age_min >= 60:
+                        cache["oldest_age"] = f"{age_min // 60}h {age_min % 60}m ago"
+                    else:
+                        cache["oldest_age"] = f"{age_min}m ago"
+        finally:
+            conn.close()
+    except Exception as e:
+        log.warning("admin_health: cache stats failed: %s", e)
+
+    return render_template(
+        "fragments/admin_health.html",
+        pool=pool,
+        cb=cb,
+        db_cb_status=db_cb_status,
+        cache=cache,
     )
