@@ -1,0 +1,408 @@
+{#
+  MCP Demo Chat Transcript Component
+  Animated chat showing Claude using sfpermits.ai tools.
+
+  Rotation order (locked): Demo 2 → Demo 1 → Demo 6
+  Transcript source: docs/mcp-demo-transcripts.md
+
+  Usage: {% include 'components/mcp_demo.html' %}
+  Requires: mcp-demo.css, mcp-demo.js
+#}
+
+<section class="mcp-demo-section" id="mcp-demo">
+  <div class="obs-container">
+
+    <h2 class="mcp-demo-section__title">What your AI sees</h2>
+
+    <div class="mcp-demo-terminal">
+      {# Terminal title bar #}
+      <div class="mcp-demo-terminal__bar">
+        <span class="mcp-demo-terminal__dot mcp-demo-terminal__dot--red"></span>
+        <span class="mcp-demo-terminal__dot mcp-demo-terminal__dot--amber"></span>
+        <span class="mcp-demo-terminal__dot mcp-demo-terminal__dot--green"></span>
+        <span class="mcp-demo-terminal__label">claude + sfpermits.ai</span>
+      </div>
+
+      {# Chat body #}
+      <div class="mcp-demo-chat" id="mcp-demo-chat">
+
+        {# ═══════════════════════════════════════════════════════════════
+           DEMO 2: What-If Scope Comparison (LEADS)
+           ═══════════════════════════════════════════════════════════════ #}
+        <div class="mcp-demo-slide active" data-demo="0">
+
+          {# User message #}
+          <div class="mcp-msg mcp-msg--user">
+            <div class="mcp-msg__bubble">What's the difference in timeline if I add a bathroom remodel to my kitchen permit?</div>
+          </div>
+
+          {# Tool call badge #}
+          <div class="mcp-tool-badges">
+            <span class="mcp-tool-badge">
+              <span class="mcp-tool-badge__icon">&#9889;</span>
+              what_if_simulator
+            </span>
+          </div>
+
+          {# Claude response #}
+          <div class="mcp-msg mcp-msg--claude">
+            <span class="mcp-msg__label">sfpermits.ai</span>
+            <div class="mcp-msg__bubble">
+              <div class="mcp-typed">
+                <div class="mcp-typed-line">Here's the comparison for your kitchen-only scope versus kitchen + bathroom + wall removal:</div>
+              </div>
+
+              {# Desktop table #}
+              <table class="mcp-response-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Kitchen Only</th>
+                    <th>Kitchen + Bath + Wall</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mcp-cell-label">Estimated Cost</td>
+                    <td>$45,000</td>
+                    <td>$185,000</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Review Path</td>
+                    <td class="mcp-val--green">OTC (Over Counter)</td>
+                    <td>In-House</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Agencies</td>
+                    <td>1 (DBI)</td>
+                    <td class="mcp-val--amber">7 (DBI, Planning, SFFD, DPH, SFPUC, DPW, Structural)</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Timeline (p50)</td>
+                    <td class="mcp-val--green">~2 weeks</td>
+                    <td class="mcp-val--red">70 days</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Timeline (p75)</td>
+                    <td>~3 weeks</td>
+                    <td class="mcp-val--red">113 days</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">DBI Fees</td>
+                    <td>$1,200</td>
+                    <td>$6,487</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Plans Signed By</td>
+                    <td>Contractor OK</td>
+                    <td>Licensed Architect required</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">ADA Required</td>
+                    <td>No</td>
+                    <td class="mcp-val--amber">Yes &mdash; path of travel</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Revision Risk</td>
+                    <td class="mcp-val--green">Low</td>
+                    <td class="mcp-val--red">High (24.6%)</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {# Mobile stacked cards #}
+              <div class="mcp-stacked-cards">
+                <div class="mcp-stacked-card">
+                  <div class="mcp-stacked-card__title">Kitchen Only</div>
+                  <div class="data-row"><span class="data-row__label">Estimated Cost</span><span class="data-row__value">$45,000</span></div>
+                  <div class="data-row"><span class="data-row__label">Review Path</span><span class="data-row__value mcp-val--green">OTC</span></div>
+                  <div class="data-row"><span class="data-row__label">Agencies</span><span class="data-row__value">1 (DBI)</span></div>
+                  <div class="data-row"><span class="data-row__label">Timeline (p50)</span><span class="data-row__value mcp-val--green">~2 weeks</span></div>
+                  <div class="data-row"><span class="data-row__label">Timeline (p75)</span><span class="data-row__value">~3 weeks</span></div>
+                  <div class="data-row"><span class="data-row__label">DBI Fees</span><span class="data-row__value">$1,200</span></div>
+                  <div class="data-row"><span class="data-row__label">Plans Signed By</span><span class="data-row__value">Contractor OK</span></div>
+                  <div class="data-row"><span class="data-row__label">ADA Required</span><span class="data-row__value">No</span></div>
+                  <div class="data-row"><span class="data-row__label">Revision Risk</span><span class="data-row__value mcp-val--green">Low</span></div>
+                </div>
+                <div class="mcp-stacked-card">
+                  <div class="mcp-stacked-card__title">Kitchen + Bath + Wall</div>
+                  <div class="data-row"><span class="data-row__label">Estimated Cost</span><span class="data-row__value">$185,000</span></div>
+                  <div class="data-row"><span class="data-row__label">Review Path</span><span class="data-row__value">In-House</span></div>
+                  <div class="data-row"><span class="data-row__label">Agencies</span><span class="data-row__value mcp-val--amber">7 agencies</span></div>
+                  <div class="data-row"><span class="data-row__label">Timeline (p50)</span><span class="data-row__value mcp-val--red">70 days</span></div>
+                  <div class="data-row"><span class="data-row__label">Timeline (p75)</span><span class="data-row__value mcp-val--red">113 days</span></div>
+                  <div class="data-row"><span class="data-row__label">DBI Fees</span><span class="data-row__value">$6,487</span></div>
+                  <div class="data-row"><span class="data-row__label">Plans Signed By</span><span class="data-row__value">Licensed Architect</span></div>
+                  <div class="data-row"><span class="data-row__label">ADA Required</span><span class="data-row__value mcp-val--amber">Yes</span></div>
+                  <div class="data-row"><span class="data-row__label">Revision Risk</span><span class="data-row__value mcp-val--red">High (24.6%)</span></div>
+                </div>
+              </div>
+
+              <div class="mcp-typed">
+                <div class="mcp-typed-line"><strong>The wall removal is the trigger.</strong> Removing a wall requires structural calculations, which pulls you from OTC into in-house review. That single change adds 7 agencies and ~56 days to your timeline.</div>
+              </div>
+              <div class="mcp-typed" style="margin-top: var(--space-3);">
+                <div class="mcp-typed-line"><strong>Strategy:</strong> Consider splitting into two permits &mdash; kitchen first (OTC, issued in days), then wall + bath as a second permit. You can often start kitchen work while the second permit is in review.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# ═══════════════════════════════════════════════════════════════
+           DEMO 1: Stuck Permit Diagnosis
+           ═══════════════════════════════════════════════════════════════ #}
+        <div class="mcp-demo-slide" data-demo="1">
+
+          {# User message #}
+          <div class="mcp-msg mcp-msg--user">
+            <div class="mcp-msg__bubble">Permit 202412237330 has been sitting for 7 months. Can you tell me what's going on?</div>
+          </div>
+
+          {# Tool call badge #}
+          <div class="mcp-tool-badges">
+            <span class="mcp-tool-badge">
+              <span class="mcp-tool-badge__icon">&#9889;</span>
+              diagnose_stuck_permit
+            </span>
+          </div>
+
+          {# Claude response #}
+          <div class="mcp-msg mcp-msg--claude">
+            <span class="mcp-msg__label">sfpermits.ai</span>
+            <div class="mcp-expand-wrapper" data-collapsible="true">
+              <div class="mcp-msg__bubble">
+                <div class="mcp-typed">
+                  <div class="mcp-typed-line"><strong>CRITICAL &mdash; 4 SIMULTANEOUS BLOCKS</strong> on permit 202412237330 (Laundromat &rarr; Childcare Conversion, $200K)</div>
+                </div>
+                <div class="mcp-typed">
+                  <div class="mcp-typed-line">This permit is stuck at 4 stations at once. That's rare and serious.</div>
+                </div>
+                <div class="mcp-typed" style="margin-top: var(--space-2);">
+                  <div class="mcp-typed-line"><strong>Active blocks:</strong></div>
+                </div>
+
+                {# Desktop table #}
+                <table class="mcp-response-table">
+                  <thead>
+                    <tr>
+                      <th>Station</th>
+                      <th>Status</th>
+                      <th>Reviewer</th>
+                      <th>Issue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="mcp-cell-label">BLDG</td>
+                      <td>2nd round of comments</td>
+                      <td>Jeff Ibarra</td>
+                      <td>Occupancy load calc missing</td>
+                    </tr>
+                    <tr>
+                      <td class="mcp-cell-label">MECH</td>
+                      <td>Comments issued</td>
+                      <td>Ray Chen</td>
+                      <td>Ventilation design insufficient for childcare use</td>
+                    </tr>
+                    <tr>
+                      <td class="mcp-cell-label">SFFD</td>
+                      <td>Comments issued</td>
+                      <td>M. Torres</td>
+                      <td>Fire suppression plan incomplete</td>
+                    </tr>
+                    <tr>
+                      <td class="mcp-cell-label">CP-ZOC</td>
+                      <td class="mcp-val--red">223 days &mdash; no action</td>
+                      <td>Wesley Wong</td>
+                      <td class="mcp-val--red">Change of use requires conditional use hearing</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {# Mobile stacked cards #}
+                <div class="mcp-stacked-cards">
+                  <div class="mcp-stacked-card">
+                    <div class="mcp-stacked-card__title">BLDG &mdash; Jeff Ibarra</div>
+                    <div class="data-row"><span class="data-row__label">Status</span><span class="data-row__value">2nd round comments</span></div>
+                    <div class="data-row"><span class="data-row__label">Issue</span><span class="data-row__value">Occupancy load calc missing</span></div>
+                  </div>
+                  <div class="mcp-stacked-card">
+                    <div class="mcp-stacked-card__title">MECH &mdash; Ray Chen</div>
+                    <div class="data-row"><span class="data-row__label">Status</span><span class="data-row__value">Comments issued</span></div>
+                    <div class="data-row"><span class="data-row__label">Issue</span><span class="data-row__value">Ventilation insufficient</span></div>
+                  </div>
+                  <div class="mcp-stacked-card">
+                    <div class="mcp-stacked-card__title">SFFD &mdash; M. Torres</div>
+                    <div class="data-row"><span class="data-row__label">Status</span><span class="data-row__value">Comments issued</span></div>
+                    <div class="data-row"><span class="data-row__label">Issue</span><span class="data-row__value">Fire suppression incomplete</span></div>
+                  </div>
+                  <div class="mcp-stacked-card">
+                    <div class="mcp-stacked-card__title mcp-val--red">CP-ZOC &mdash; Wesley Wong</div>
+                    <div class="data-row"><span class="data-row__label">Status</span><span class="data-row__value mcp-val--red">223 days &mdash; no action</span></div>
+                    <div class="data-row"><span class="data-row__label">Issue</span><span class="data-row__value mcp-val--red">Conditional use hearing needed</span></div>
+                  </div>
+                </div>
+
+                <div class="mcp-typed" style="margin-top: var(--space-3);">
+                  <div class="mcp-typed-line"><strong>The real problem:</strong> CP-ZOC (Planning's Zoning &amp; Occupancy Change desk) has had this for 223 days without a final determination. The other 3 stations are waiting on CP-ZOC to clear before they'll issue final approvals.</div>
+                </div>
+
+                <div class="mcp-typed" style="margin-top: var(--space-3);">
+                  <div class="mcp-typed-line"><strong>Intervention playbook:</strong></div>
+                </div>
+                <div class="mcp-typed">
+                  <div class="mcp-typed-line">1. <strong>Address BLDG + MECH + SFFD comments NOW</strong> &mdash; respond to all 3 agencies in one resubmission. Don't wait for CP-ZOC to clear first.</div>
+                </div>
+                <div class="mcp-typed">
+                  <div class="mcp-typed-line">2. <strong>Call Planning (628-652-7600) about CP-ZOC. Ask for Wesley Wong.</strong> This project needs a conditional use hearing scheduled &mdash; that's the blocker.</div>
+                </div>
+                <div class="mcp-typed">
+                  <div class="mcp-typed-line">3. <strong>Upload corrected sheets with revision clouds (EPR-025).</strong> Each comment cycle without revision clouds adds 2-3 weeks to BLDG review.</div>
+                </div>
+                <div class="mcp-typed" style="margin-top: var(--space-3);">
+                  <div class="mcp-typed-line"><strong>Timeline impact:</strong> Each comment-response cycle adds 6-8 weeks. With 4 simultaneous blocks, you're looking at 4-6 months minimum if you start now.</div>
+                </div>
+              </div>
+              <button class="mcp-expand-btn" onclick="this.parentElement.classList.add('expanded');this.parentElement.classList.remove('collapsible');">See full analysis &#8595;</button>
+            </div>
+          </div>
+        </div>
+
+        {# ═══════════════════════════════════════════════════════════════
+           DEMO 6: Cost of Delay
+           ═══════════════════════════════════════════════════════════════ #}
+        <div class="mcp-demo-slide" data-demo="2">
+
+          {# User message #}
+          <div class="mcp-msg mcp-msg--user">
+            <div class="mcp-msg__bubble">My restaurant renovation has a $15,000/month carry cost. How much is this permit delay going to cost me?</div>
+          </div>
+
+          {# Tool call badge #}
+          <div class="mcp-tool-badges">
+            <span class="mcp-tool-badge">
+              <span class="mcp-tool-badge__icon">&#9889;</span>
+              estimate_timeline
+            </span>
+          </div>
+
+          {# Claude response #}
+          <div class="mcp-msg mcp-msg--claude">
+            <span class="mcp-msg__label">sfpermits.ai</span>
+            <div class="mcp-msg__bubble">
+              <div class="mcp-typed">
+                <div class="mcp-typed-line">With a $15,000/month carrying cost ($500/day), here's the financial exposure for your restaurant alteration permit:</div>
+              </div>
+
+              {# Desktop table #}
+              <table class="mcp-response-table">
+                <thead>
+                  <tr>
+                    <th>Scenario</th>
+                    <th>Days</th>
+                    <th>Carrying Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mcp-cell-label">Best case (p25)</td>
+                    <td>35 days</td>
+                    <td>$17,500</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Typical (p50)</td>
+                    <td>70 days</td>
+                    <td class="mcp-val--amber">$35,000</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Conservative (p75)</td>
+                    <td>113 days</td>
+                    <td class="mcp-val--amber">$56,500</td>
+                  </tr>
+                  <tr>
+                    <td class="mcp-cell-label">Worst case (p90)</td>
+                    <td>174 days</td>
+                    <td class="mcp-val--red">$87,000</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {# Mobile stacked cards #}
+              <div class="mcp-stacked-cards">
+                <div class="mcp-stacked-card">
+                  <div class="mcp-stacked-card__title">Best case (p25)</div>
+                  <div class="data-row"><span class="data-row__label">Days</span><span class="data-row__value">35</span></div>
+                  <div class="data-row"><span class="data-row__label">Carrying Cost</span><span class="data-row__value">$17,500</span></div>
+                </div>
+                <div class="mcp-stacked-card">
+                  <div class="mcp-stacked-card__title">Typical (p50)</div>
+                  <div class="data-row"><span class="data-row__label">Days</span><span class="data-row__value">70</span></div>
+                  <div class="data-row"><span class="data-row__label">Carrying Cost</span><span class="data-row__value mcp-val--amber">$35,000</span></div>
+                </div>
+                <div class="mcp-stacked-card">
+                  <div class="mcp-stacked-card__title">Conservative (p75)</div>
+                  <div class="data-row"><span class="data-row__label">Days</span><span class="data-row__value">113</span></div>
+                  <div class="data-row"><span class="data-row__label">Carrying Cost</span><span class="data-row__value mcp-val--amber">$56,500</span></div>
+                </div>
+                <div class="mcp-stacked-card">
+                  <div class="mcp-stacked-card__title">Worst case (p90)</div>
+                  <div class="data-row"><span class="data-row__label">Days</span><span class="data-row__value">174</span></div>
+                  <div class="data-row"><span class="data-row__label">Carrying Cost</span><span class="data-row__value mcp-val--red">$87,000</span></div>
+                </div>
+              </div>
+
+              <div class="mcp-typed" style="margin-top: var(--space-3);">
+                <div class="mcp-typed-line"><strong>Probability-weighted expected cost: $41,375</strong></div>
+              </div>
+
+              <div class="mcp-typed" style="margin-top: var(--space-3);">
+                <div class="mcp-typed-line"><span class="mcp-val--amber">&#9888;&#65039; SFFD-HQ bottleneck alert:</span> SFFD-HQ is currently running 86% slower than baseline &mdash; average 34 days at this station vs. the typical 18. Restaurant permits route through SFFD-HQ for fire suppression review. If your plans have any suppression work, budget for the conservative (p75) scenario, not p50.</div>
+              </div>
+
+              <div class="mcp-typed" style="margin-top: var(--space-3);">
+                <div class="mcp-typed-line"><strong>Recommendation:</strong> Budget for $56,500 in carrying costs (p75), not $35,000. If SFFD comments come back with corrections, you're looking at one additional cycle &mdash; add $21,000 to your contingency.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>{# /mcp-demo-chat #}
+
+      {# Navigation controls #}
+      <div class="mcp-demo-controls">
+        <button class="mcp-demo-arrow" id="mcp-demo-prev" aria-label="Previous demo">&larr;</button>
+        <div class="mcp-demo-dots">
+          <button class="mcp-demo-dot active" data-slide="0" aria-label="Demo 1"></button>
+          <button class="mcp-demo-dot" data-slide="1" aria-label="Demo 2"></button>
+          <button class="mcp-demo-dot" data-slide="2" aria-label="Demo 3"></button>
+        </div>
+        <button class="mcp-demo-arrow" id="mcp-demo-next" aria-label="Next demo">&rarr;</button>
+      </div>
+
+    </div>{# /mcp-demo-terminal #}
+
+    {# CTA section #}
+    <div class="mcp-demo-cta">
+      <a href="#connect" class="mcp-demo-cta__btn">Connect your AI</a>
+
+      <div class="mcp-demo-steps">
+        <div class="mcp-demo-step">
+          <div class="mcp-demo-step__number">01</div>
+          <div class="mcp-demo-step__title">Connect</div>
+          <div class="mcp-demo-step__desc">Add sfpermits.ai to your AI assistant</div>
+        </div>
+        <div class="mcp-demo-step">
+          <div class="mcp-demo-step__number">02</div>
+          <div class="mcp-demo-step__title">Ask</div>
+          <div class="mcp-demo-step__desc">Ask about any SF property or permit</div>
+        </div>
+        <div class="mcp-demo-step">
+          <div class="mcp-demo-step__number">03</div>
+          <div class="mcp-demo-step__title">Get Intelligence</div>
+          <div class="mcp-demo-step__desc">Receive data-backed analysis with specific actions</div>
+        </div>
+      </div>
+    </div>
+
+  </div>{# /obs-container #}
+</section>
