@@ -14,6 +14,7 @@ from flask import (
 from web.helpers import (
     login_required, _is_rate_limited, _resolve_block_lot, NEIGHBORHOODS,
 )
+from web.tier_gate import has_tier
 
 bp = Blueprint("property", __name__)
 
@@ -534,6 +535,20 @@ def portfolio():
     """Portfolio dashboard — property card grid with health indicators."""
     from web.portfolio import get_portfolio
 
+    # Tier gate: free users see upgrade teaser instead of full portfolio
+    if not has_tier(g.user, 'beta'):
+        return render_template(
+            "portfolio.html",
+            tier_locked=True,
+            required_tier='beta',
+            current_tier=g.user.get('subscription_tier', 'free'),
+            user=g.user,
+            properties=[],
+            summary={},
+            filter_by='all',
+            sort_by='recent',
+        ), 200
+
     filter_by = request.args.get("filter", "all")
     sort_by = request.args.get("sort", "recent")
 
@@ -560,6 +575,7 @@ def portfolio():
         properties.sort(key=lambda p: p["latest_activity"] or "", reverse=True)
 
     return render_template("portfolio.html",
+                           tier_locked=False,
                            properties=properties,
                            summary=data["summary"],
                            filter_by=filter_by,

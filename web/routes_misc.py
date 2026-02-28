@@ -13,6 +13,7 @@ from flask import (
 )
 
 from web.helpers import login_required
+from web.tier_gate import has_tier
 
 bp = Blueprint("misc", __name__)
 
@@ -33,6 +34,9 @@ def brief():
         lookback_days = max(1, min(int(lookback), 90))
     except ValueError:
         lookback_days = 1
+    # Tier gate: free users see upgrade teaser instead of full brief content
+    tier_locked = not has_tier(g.user, 'beta')
+
     primary_addr = get_primary_address(g.user["user_id"])
     cache_key = f"brief:{g.user['user_id']}:{lookback_days}"
     brief_data = get_cached_or_compute(
@@ -44,7 +48,10 @@ def brief():
     brief_data['cached_at'] = brief_data.get('_cached_at')
     brief_data['can_refresh'] = True
     return render_template("brief.html", user=g.user, brief=brief_data,
-                           active_page="brief")
+                           active_page="brief",
+                           tier_locked=tier_locked,
+                           required_tier='beta',
+                           current_tier=g.user.get('subscription_tier', 'free'))
 
 
 @bp.route("/brief/refresh", methods=["POST"])
