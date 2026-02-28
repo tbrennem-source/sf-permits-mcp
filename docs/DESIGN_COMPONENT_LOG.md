@@ -390,3 +390,84 @@ Displays a beta upgrade teaser card that fits inside an existing page element.
 
 **CSS:** All custom properties. Badge uses `--signal-blue`, `--mono`. Title uses `--sans`, `--text-xl`. CTA uses `--accent`, `--obsidian`. Card uses `--obsidian-mid`, `--glass-border`, `--radius-md`.
 **Notes:** Companion to `tier_gate_teaser.html` (full-page). This version has no DOCTYPE/html tags so it can be safely injected via HTMX `hx-swap="innerHTML"`. Used by routes_search.py /ask endpoint to gate AI synthesis intents.
+
+---
+
+## Sprint QS11 Components
+
+### Signal Color Alpha Tints (Approved Pattern)
+**Sprint:** QS11 / T1-agent-1B
+**File:** `web/templates/components/showcase_*.html`
+**Usage:** Showcase component badge backgrounds and status bar fills — 11 instances across 4 components
+**Status:** NEW
+**CSS:**
+```css
+/* Red tint — backgrounds/borders for critical/error states */
+background: rgba(239, 68, 68, 0.08);   /* --dot-red at 8% opacity */
+background: rgba(239, 68, 68, 0.10);   /* --dot-red at 10% opacity */
+border: 1px solid rgba(239, 68, 68, 0.20);  /* --dot-red at 20% opacity */
+border: 1px solid rgba(239, 68, 68, 0.25);  /* --dot-red at 25% opacity */
+
+/* Green tint — backgrounds/borders for approved/success states */
+background: rgba(34, 197, 94, 0.18);   /* --dot-green at 18% opacity */
+border: 1px solid rgba(34, 197, 94, 0.30);  /* --dot-green at 30% opacity */
+
+/* Amber tint — backgrounds/borders for warning/comment states */
+background: rgba(245, 158, 11, 0.18);  /* --dot-amber at 18% opacity */
+border: 1px solid rgba(245, 158, 11, 0.30); /* --dot-amber at 30% opacity */
+```
+**Notes:** The design lint flags these as non-token rgba colors. They ARE derived from the approved signal/dot tokens (--dot-red: #ef4444 = rgba(239,68,68,1); --dot-green: #22c55e = rgba(34,197,94,1); --dot-amber: #f59e0b = rgba(245,158,11,1)). These alpha tints are approved for use as surface backgrounds and border colors in showcase-specific contexts. The pattern follows existing usage in the codebase (e.g., `rgba(94, 234, 212, 0.08)` for `--accent-glow`, `rgba(251, 191, 36, 0.08)` for amber stale warning).
+
+### Gantt Bar (Station Timeline)
+**Sprint:** QS11 / T1-agent-1B
+**File:** `web/templates/components/showcase_gantt.html`
+**Usage:** Showcase gantt chart — 1 component, 8 station bars
+**Status:** NEW
+**HTML:**
+```html
+<div class="gantt-grid">
+  <div class="gantt-label">PERMIT-CTR</div>
+  <div class="gantt-track">
+    <div class="gantt-bar gantt-bar--approved" style="left: 0%; width: 1.6%;">
+      <span class="gantt-bar-reviewer">M. Chen</span>
+    </div>
+  </div>
+</div>
+```
+**CSS:** grid 90px+1fr; bars use absolute positioning inside tracks; status colors via --dot-* alpha tints; entrance animation via showcase-gantt.js (scaleX from 0→1 on IntersectionObserver).
+**Notes:** CSS-only, no canvas/SVG. Width % = station.width_pct proportional to total permit duration. Staggered entrance animation 80ms + 100ms/station.
+
+### Severity Badge (Critical/High/Medium)
+**Sprint:** QS11 / T1-agent-1B
+**File:** `web/templates/components/showcase_stuck.html`, `showcase_risk.html`
+**Usage:** Showcase components — 2 instances
+**Status:** NEW
+**HTML:**
+```html
+<span class="stuck-severity-badge">
+  <span class="stuck-severity-dot"></span>
+  CRITICAL — 4 SIMULTANEOUS BLOCKS
+</span>
+```
+**CSS:** inline-flex; --mono font; --signal-red text; rgba(239,68,68,0.1) background; 1px solid rgba(239,68,68,0.25) border; --radius-sm.
+**Notes:** Extends the chip/status-dot pattern for larger severity callouts. Uses status-dot for the dot indicator.
+
+### Entity Network SVG Graph (Mini)
+**Sprint:** QS11 / T1-agent-1B
+**File:** `web/templates/components/showcase_entity.html`
+**Usage:** Landing page showcase — 1 instance
+**Status:** NEW
+**HTML:**
+```html
+<div class="entity-graph-container">
+  <svg class="entity-svg" viewBox="0 0 400 225">
+    <line x1="200" y1="112" x2="80" y2="55" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <g class="entity-node-central entity-node" style="opacity:0; transition:opacity 0.6s ease;">
+      <circle cx="200" cy="112" r="32" fill="rgba(94,234,212,0.12)" stroke="rgba(94,234,212,0.4)" stroke-width="1.5"/>
+      <text fill="#5eead4">1 Market St</text>
+    </g>
+  </svg>
+</div>
+```
+**CSS:** aspect-ratio 16/9, max-height 240px, --glass background, --glass-border border. Nodes: contractor nodes use amber tint, architect nodes use blue tint. Entrance animation via showcase-entity.js (opacity 0→1, staggered 120ms/node).
+**Notes:** Pure SVG, no D3. viewBox 400×225. Central node is teal (--accent). Entrance animation uses IntersectionObserver.

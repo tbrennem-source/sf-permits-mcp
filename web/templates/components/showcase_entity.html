@@ -1,0 +1,202 @@
+{# showcase_entity.html — Entity Network Mini-Graph #}
+{# Receives: showcase.entity_network #}
+{% set entity = showcase.entity_network %}
+<div class="showcase-entity glass-card"
+     data-track="showcase-view"
+     data-showcase="entity"
+     style="padding: var(--space-6);">
+  <style>
+    .entity-title {
+      font-family: var(--sans);
+      font-size: var(--text-lg);
+      font-weight: 400;
+      color: var(--text-primary);
+      margin: 0 0 var(--space-2) 0;
+    }
+    .entity-subtitle {
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-5);
+    }
+    .entity-graph-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      max-height: 240px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: var(--space-5);
+    }
+    .entity-svg {
+      width: 100%;
+      height: 100%;
+    }
+    /* SVG node styles via inline */
+    .entity-node-central circle {
+      fill: rgba(94, 234, 212, 0.15);
+      stroke: rgba(94, 234, 212, 0.5);
+      stroke-width: 1.5;
+    }
+    .entity-node-central text {
+      fill: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 400;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .entity-node-secondary circle {
+      stroke-width: 1;
+    }
+    .entity-node-secondary text {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 300;
+      text-anchor: middle;
+    }
+    .entity-node-secondary .node-count {
+      font-size: 8px;
+      dominant-baseline: middle;
+    }
+    .entity-edge-label {
+      font-family: var(--mono);
+      font-size: 8px;
+      fill: rgba(255, 255, 255, 0.25);
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .entity-legend {
+      display: flex;
+      gap: var(--space-5);
+      margin-bottom: var(--space-5);
+      flex-wrap: wrap;
+    }
+    .entity-legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--sans);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+    }
+    .entity-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .entity-legend-dot--contractor {
+      background: rgba(251, 191, 36, 0.6);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+    .entity-legend-dot--architect {
+      background: rgba(96, 165, 250, 0.6);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+    }
+    .entity-cta-row {
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: flex-end;
+    }
+  </style>
+
+  <h3 class="entity-title">Entity Network</h3>
+  <p class="entity-subtitle">
+    <span style="font-family: var(--mono); color: var(--text-primary);">{{ entity.address }}</span>
+    · {{ entity.total_permits }} permits · professionals connected to this property
+  </p>
+
+  <div class="entity-graph-container" id="entity-graph-{{ loop.index if loop is defined else '1' }}">
+    <svg class="entity-svg" viewBox="0 0 400 225" xmlns="http://www.w3.org/2000/svg"
+         data-nodes='{{ entity.nodes | tojson }}'
+         data-central='{{ entity.central_node | tojson }}'
+         aria-label="Entity network graph for {{ entity.address }}">
+      <!-- Edges — drawn first so nodes render on top -->
+      <!-- Central to node 1 (top-left) -->
+      <line x1="200" y1="112" x2="80" y2="55"
+            stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text class="entity-edge-label" x="130" y="76">contractor</text>
+
+      <!-- Central to node 2 (top-right) -->
+      <line x1="200" y1="112" x2="320" y2="55"
+            stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text class="entity-edge-label" x="270" y="76">architect</text>
+
+      <!-- Central to node 3 (bottom-left) -->
+      <line x1="200" y1="112" x2="80" y2="175"
+            stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text class="entity-edge-label" x="130" y="152">contractor</text>
+
+      <!-- Central to node 4 (bottom-right) -->
+      <line x1="200" y1="112" x2="320" y2="175"
+            stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text class="entity-edge-label" x="270" y="152">architect</text>
+
+      <!-- Central node -->
+      <g class="entity-node-central entity-node" data-id="central" style="opacity: 0; transition: opacity 0.6s ease;">
+        <circle cx="200" cy="112" r="32"
+                fill="rgba(94, 234, 212, 0.12)"
+                stroke="rgba(94, 234, 212, 0.4)"
+                stroke-width="1.5"/>
+        <text x="200" y="107"
+              font-family="'JetBrains Mono', monospace"
+              font-size="10" font-weight="400"
+              fill="#5eead4" text-anchor="middle">{{ entity.central_node.label }}</text>
+        <text x="200" y="120"
+              font-family="'JetBrains Mono', monospace"
+              font-size="9" font-weight="300"
+              fill="rgba(94, 234, 212, 0.7)" text-anchor="middle">{{ entity.central_node.permit_count }} permits</text>
+      </g>
+
+      {% for node in entity.nodes %}
+      {% if loop.index == 1 %}{% set cx = 80 %}{% set cy = 55 %}
+      {% elif loop.index == 2 %}{% set cx = 320 %}{% set cy = 55 %}
+      {% elif loop.index == 3 %}{% set cx = 80 %}{% set cy = 175 %}
+      {% else %}{% set cx = 320 %}{% set cy = 175 %}{% endif %}
+      {% set node_r = (14 + (node.size_pct / 100 * 14)) | int %}
+      {% set fill_color = "rgba(251, 191, 36, 0.12)" if node.role == "contractor" else "rgba(96, 165, 250, 0.12)" %}
+      {% set stroke_color = "rgba(251, 191, 36, 0.4)" if node.role == "contractor" else "rgba(96, 165, 250, 0.4)" %}
+      {% set text_color = "#fbbf24" if node.role == "contractor" else "#60a5fa" %}
+      <g class="entity-node-secondary entity-node" data-id="{{ node.id }}"
+         style="opacity: 0; transition: opacity 0.6s ease {{ loop.index * 0.15 }}s;">
+        <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ node_r }}"
+                fill="{{ fill_color }}" stroke="{{ stroke_color }}" stroke-width="1"/>
+        <text x="{{ cx }}" y="{{ cy - 2 }}"
+              font-family="'JetBrains Mono', monospace"
+              font-size="8" font-weight="300"
+              fill="{{ text_color }}" text-anchor="middle">{{ node.label | truncate(16, True, '') }}</text>
+        <text x="{{ cx }}" y="{{ cy + 9 }}"
+              font-family="'JetBrains Mono', monospace"
+              font-size="8" font-weight="300"
+              fill="rgba(255,255,255,0.4)" text-anchor="middle" class="node-count">{{ node.permit_count }} permits</text>
+      </g>
+      {% endfor %}
+    </svg>
+  </div>
+
+  <div class="entity-legend">
+    <div class="entity-legend-item">
+      <span class="entity-legend-dot entity-legend-dot--contractor"></span>
+      <span>Contractor</span>
+    </div>
+    <div class="entity-legend-item">
+      <span class="entity-legend-dot entity-legend-dot--architect"></span>
+      <span>Architect</span>
+    </div>
+    <div class="entity-legend-item">
+      <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--accent);">{{ entity.address }}</span>
+      <span>· central node</span>
+    </div>
+  </div>
+
+  <div class="entity-cta-row">
+    <a href="/tools/entity-network?address={{ entity.address | urlencode }}"
+       class="ghost-cta"
+       data-track="showcase-click"
+       data-showcase="entity">Click to explore full network →</a>
+  </div>
+</div>

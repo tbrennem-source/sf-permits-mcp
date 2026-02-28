@@ -1,0 +1,256 @@
+{
+  "station_timeline": {
+    "permit": "202509155257",
+    "description": "Commercial kitchen remodel — Mission District restaurant",
+    "total_days": 183,
+    "current_station": "CPB",
+    "stations": [
+      {
+        "name": "PERMIT-CTR",
+        "label": "Permit Center",
+        "days": 3,
+        "status": "approved",
+        "reviewer": "M. Chen",
+        "start_month": 0.0,
+        "width_pct": 1.6
+      },
+      {
+        "name": "CP-ZOC",
+        "label": "Planning / Zoning",
+        "days": 22,
+        "status": "comments",
+        "reviewer": "Wesley Wong",
+        "start_month": 0.1,
+        "width_pct": 12.0
+      },
+      {
+        "name": "BLDG",
+        "label": "Building",
+        "days": 45,
+        "status": "approved",
+        "reviewer": "A. Ramirez",
+        "start_month": 0.8,
+        "width_pct": 24.6
+      },
+      {
+        "name": "PAD-STR",
+        "label": "Structural",
+        "days": 18,
+        "status": "approved",
+        "reviewer": "D. Park",
+        "start_month": 2.3,
+        "width_pct": 9.8
+      },
+      {
+        "name": "MECH",
+        "label": "Mechanical",
+        "days": 31,
+        "status": "comments",
+        "reviewer": "R. Torres",
+        "start_month": 2.9,
+        "width_pct": 16.9
+      },
+      {
+        "name": "SFFD-HQ",
+        "label": "Fire Dept",
+        "days": 28,
+        "status": "approved",
+        "reviewer": "K. Williams",
+        "start_month": 3.7,
+        "width_pct": 15.3
+      },
+      {
+        "name": "DPW-BSM",
+        "label": "Public Works",
+        "days": 14,
+        "status": "approved",
+        "reviewer": "L. Johnson",
+        "start_month": 4.6,
+        "width_pct": 7.7
+      },
+      {
+        "name": "CPB",
+        "label": "Final Processing",
+        "days": 22,
+        "status": "current",
+        "reviewer": "In queue",
+        "start_month": 5.4,
+        "width_pct": 12.0,
+        "is_current": true
+      }
+    ],
+    "axis_labels": ["Month 0", "Month 1", "Month 2", "Month 3", "Month 4", "Month 5", "Month 6"]
+  },
+  "stuck_permit": {
+    "permit": "202412237330",
+    "address": "2847 Mission St",
+    "description": "Full restaurant buildout — new commercial kitchen",
+    "severity": "CRITICAL",
+    "block_count": 4,
+    "days_stuck": 67,
+    "blocks": [
+      {
+        "station": "BLDG",
+        "station_label": "Building",
+        "status": "comments",
+        "reviewer": "Jeff Ibarra",
+        "round": "2nd round of comments",
+        "date_issued": "Nov 14, 2024",
+        "comment_count": 8
+      },
+      {
+        "station": "MECH",
+        "station_label": "Mechanical",
+        "status": "comments",
+        "reviewer": "Sandra Lee",
+        "round": "1st round of comments",
+        "date_issued": "Nov 19, 2024",
+        "comment_count": 5
+      },
+      {
+        "station": "CP-ZOC",
+        "station_label": "Planning",
+        "status": "waiting",
+        "reviewer": "Wesley Wong",
+        "round": "Awaiting resubmittal",
+        "date_issued": "Oct 28, 2024",
+        "comment_count": 3
+      },
+      {
+        "station": "SFFD-HQ",
+        "station_label": "Fire Dept",
+        "status": "comments",
+        "reviewer": "M. Patterson",
+        "round": "1st round of comments",
+        "date_issued": "Dec 2, 2024",
+        "comment_count": 4
+      }
+    ],
+    "playbook": [
+      "Address BLDG + MECH + SFFD comments NOW — respond to all agencies in one resubmission",
+      "Call Planning (628-652-7600) about CP-ZOC. Ask for Wesley Wong.",
+      "Upload corrected sheets with revision clouds (EPR-025)"
+    ],
+    "timeline_impact": "Each comment-response cycle adds 6-8 weeks"
+  },
+  "whatif": {
+    "scenario_a": {
+      "label": "KITCHEN ONLY",
+      "cost": "$45,000",
+      "review_path": "OTC",
+      "review_path_detail": "Over-the-counter",
+      "agencies": 1,
+      "timeline_p50": "~2 weeks",
+      "timeline_p75": "~3 weeks",
+      "fees": "$1,200",
+      "plans_signed_by": "Owner",
+      "ada_required": false,
+      "revision_risk": "Low (8%)"
+    },
+    "scenario_b": {
+      "label": "KITCHEN + BATH + WALL",
+      "cost": "$185,000",
+      "review_path": "In-House",
+      "review_path_detail": "Full plan review",
+      "agencies": 7,
+      "timeline_p50": "70 days",
+      "timeline_p75": "113 days",
+      "fees": "$6,487",
+      "plans_signed_by": "Licensed Architect",
+      "ada_required": true,
+      "revision_risk": "High (47%)"
+    },
+    "strategy": "Consider splitting into two permits: kitchen equipment only (OTC, ~2 weeks) + structural/bath work (in-house). Saves 8-10 weeks on the kitchen portion."
+  },
+  "revision_risk": {
+    "demo": "restaurant-mission",
+    "risk_pct": 24.6,
+    "severity": "HIGH",
+    "sample_size": 21596,
+    "sample_description": "similar commercial kitchen permits",
+    "top_triggers": [
+      "Incomplete grease interceptor sizing",
+      "Missing Type I hood fire suppression details",
+      "DPH health permit requirements not addressed",
+      "Inadequate ventilation calculations",
+      "ADA path-of-travel missing or insufficient"
+    ],
+    "timeline_impact_days": 51,
+    "budget_base": "$250,000",
+    "budget_recommended": "$321,250",
+    "budget_note": "Includes 15% contingency for correction-cycle delays"
+  },
+  "entity_network": {
+    "address": "1 Market St",
+    "total_permits": 63,
+    "central_node": {
+      "label": "1 Market St",
+      "permit_count": 63
+    },
+    "nodes": [
+      {
+        "id": "n1",
+        "label": "Hathaway Dinwiddie",
+        "role": "contractor",
+        "permit_count": 31,
+        "size_pct": 100
+      },
+      {
+        "id": "n2",
+        "label": "Gensler Architecture",
+        "role": "architect",
+        "permit_count": 24,
+        "size_pct": 77
+      },
+      {
+        "id": "n3",
+        "label": "Bechtel Corp",
+        "role": "contractor",
+        "permit_count": 18,
+        "size_pct": 58
+      },
+      {
+        "id": "n4",
+        "label": "SmithGroup",
+        "role": "architect",
+        "permit_count": 9,
+        "size_pct": 29
+      }
+    ]
+  },
+  "cost_of_delay": {
+    "demo": "restaurant-15k",
+    "monthly_cost": 15000,
+    "daily_cost": 500,
+    "scenarios": [
+      {
+        "label": "Best case",
+        "percentile": "p25",
+        "days": 35,
+        "cost": 17500
+      },
+      {
+        "label": "Typical",
+        "percentile": "p50",
+        "days": 70,
+        "cost": 35000
+      },
+      {
+        "label": "Conservative",
+        "percentile": "p75",
+        "days": 113,
+        "cost": 56500
+      },
+      {
+        "label": "Worst case",
+        "percentile": "p90",
+        "days": 174,
+        "cost": 87000
+      }
+    ],
+    "expected_cost": 41375,
+    "warning_station": "SFFD-HQ",
+    "warning_text": "SFFD-HQ is running 86% slower than baseline",
+    "recommendation": "Budget for p75, not p50"
+  }
+}
