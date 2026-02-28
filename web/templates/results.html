@@ -374,7 +374,56 @@
     .methodology-toggle { display: none; }
     .share-bar { display: none; }
 }
+
+/* Triage intelligence signal badges (analysis results view) */
+.triage-signals-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) 0 var(--space-4);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--glass-border);
+}
+.triage-signals-bar__label {
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+.triage-sig-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    padding: 2px 8px;
+    border-radius: 9999px;
+    border: 1px solid;
+}
+.triage-sig-badge--green {
+    color: #22c55e; background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.20);
+}
+.triage-sig-badge--amber {
+    color: #f59e0b; background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.20);
+}
+.triage-sig-badge--red {
+    color: #ef4444; background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.20);
+}
+.triage-sig-badge__dot {
+    width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0;
+}
+.triage-sig-badge--green .triage-sig-badge__dot { background: #22c55e; }
+.triage-sig-badge--amber .triage-sig-badge__dot { background: #f59e0b; }
+.triage-sig-badge--red   .triage-sig-badge__dot { background: #ef4444; }
+.triage-reviewer-label {
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+}
 </style>
+{% set triage_signals = triage_signals if triage_signals is defined else [] %}
 {% set TAB_META = {
     "predict": {"label": "Permits", "panel": "panel-predict"},
     "fees": {"label": "Fees", "panel": "panel-fees"},
@@ -397,6 +446,26 @@
 {% set order = section_order or ["predict", "timeline", "fees", "docs", "risk"] %}
 {% if has_team %}
     {% set order = order + ["team"] %}
+{% endif %}
+
+{# ===== Triage signals bar (shown when address search has active permits) ===== #}
+{% if triage_signals %}
+<div class="triage-signals-bar">
+    <span class="triage-signals-bar__label">Triage</span>
+    {% for sig in triage_signals %}
+        {% if sig.current_station and sig.days_at_station is not none %}
+        <span class="triage-sig-badge triage-sig-badge--{{ sig.threshold_class or 'green' }}"
+              title="Permit {{ sig.permit_number }} — {{ sig.days_at_station }} days at {{ sig.current_station }}{% if sig.station_median %} (median {{ sig.station_median | int }}d){% endif %}">
+            <span class="triage-sig-badge__dot"></span>
+            {{ sig.days_at_station }}d at {{ sig.current_station }}
+            {% if sig.is_stuck %} &#x26A0;{% endif %}
+        </span>
+        {% endif %}
+        {% if sig.reviewer and sig.current_station %}
+        <span class="triage-reviewer-label">Reviewer: {{ sig.reviewer }}</span>
+        {% endif %}
+    {% endfor %}
+</div>
 {% endif %}
 
 {# Show methodology toggle (localStorage-persisted) #}

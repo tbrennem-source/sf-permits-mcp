@@ -51,6 +51,72 @@
     background: rgba(248, 113, 113, 0.07);
     border-color: rgba(248, 113, 113, 0.25);
 }
+/* Triage intelligence signals (search_results authenticated view) */
+.triage-section {
+    margin: var(--space-4) 0;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--glass-border);
+}
+.triage-section-label {
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.triage-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+.triage-row:last-child { border-bottom: none; }
+.triage-row__permit {
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    min-width: 110px;
+}
+.triage-station-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: var(--text-xs);
+    padding: 2px 7px;
+    border-radius: 9999px;
+    border: 1px solid;
+}
+.triage-station-badge--green {
+    color: #22c55e; background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.20);
+}
+.triage-station-badge--amber {
+    color: #f59e0b; background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.20);
+}
+.triage-station-badge--red {
+    color: #ef4444; background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.20);
+}
+.triage-station-badge__dot {
+    width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0;
+}
+.triage-station-badge--green .triage-station-badge__dot { background: #22c55e; }
+.triage-station-badge--amber .triage-station-badge__dot { background: #f59e0b; }
+.triage-station-badge--red .triage-station-badge__dot   { background: #ef4444; }
+.triage-stuck {
+    font-family: var(--mono); font-size: var(--text-xs);
+    color: #ef4444; display: inline-flex; align-items: center; gap: 4px;
+}
+.triage-reviewer {
+    font-family: var(--mono); font-size: var(--text-xs);
+    color: var(--text-secondary);
+}
 </style>
 {# Default context vars — callers that don't pass these get safe no-op values #}
 {% set project_context = project_context if project_context is defined else none %}
@@ -58,6 +124,7 @@
 {% set active_businesses = active_businesses if active_businesses is defined else [] %}
 {% set show_quick_actions = show_quick_actions if show_quick_actions is defined else false %}
 {% set address_intel = address_intel if address_intel is defined else none %}
+{% set triage_signals = triage_signals if triage_signals is defined else [] %}
 <div class="result-card search-result-card glass-card">
     <div class="search-echo" style="display: flex; justify-content: space-between; align-items: center;">
         <span>{{ query_echo }}</span>
@@ -227,6 +294,38 @@
             <div class="intel-col-detail">No permit data</div>
             {% endif %}
         </div>
+    </div>
+    {% endif %}
+
+    {# ===== Triage Intelligence Signals ===== #}
+    {% if triage_signals %}
+    <div class="triage-section">
+        <div class="triage-section-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Triage signals
+        </div>
+        {% for sig in triage_signals %}
+        <div class="triage-row">
+            <span class="triage-row__permit">{{ sig.permit_number }}</span>
+            {% if sig.current_station and sig.days_at_station is not none %}
+            <span class="triage-station-badge triage-station-badge--{{ sig.threshold_class or 'green' }}" title="{{ sig.days_at_station }} days at {{ sig.current_station }}">
+                <span class="triage-station-badge__dot"></span>
+                {{ sig.days_at_station }}d at {{ sig.current_station }}
+            </span>
+            {% elif sig.current_station %}
+            <span class="triage-reviewer">At {{ sig.current_station }}</span>
+            {% endif %}
+            {% if sig.is_stuck %}
+            <span class="triage-stuck">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Stuck
+            </span>
+            {% endif %}
+            {% if sig.reviewer %}
+            <span class="triage-reviewer">Reviewer: {{ sig.reviewer }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
     </div>
     {% endif %}
 

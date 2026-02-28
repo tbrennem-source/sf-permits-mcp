@@ -39,6 +39,7 @@ from web.helpers import (
     RATE_LIMIT_MAX_ANALYZE,
     parse_search_query,
     build_empty_result_guidance,
+    compute_triage_signals,
 )
 
 bp = Blueprint("public", __name__)
@@ -221,6 +222,19 @@ def public_search():
     # E3: Check for violation context
     violation_context = request.args.get("context") == "violation"
 
+    # Compute triage intelligence signals for the search results
+    triage_signals = []
+    if not no_results:
+        try:
+            triage_signals = compute_triage_signals(
+                street_number=search_street_number,
+                street_name=search_street_name,
+                block=resolved_block,
+                lot=resolved_lot,
+            )
+        except Exception:
+            triage_signals = []  # signals are enhancements — never block the page
+
     return render_template(
         "search_results_public.html",
         query=query_str,
@@ -233,6 +247,7 @@ def public_search():
         lot=resolved_lot,
         empty_guidance=empty_guidance,
         parsed_query=parsed,
+        triage_signals=triage_signals,
     )
 
 
