@@ -1,10 +1,18 @@
 /* Admin QA Feedback Widget
-   Only activates when ?admin=1 is in the URL.
+   Activates when ?admin=1 is in the URL (sets a session cookie).
+   Once activated, persists across all pages until cookie is cleared.
    Floating panel: type feedback, hit Enter, get a new box.
-   All feedback saved to localStorage + POST to /api/qa-feedback (if endpoint exists).
+   All feedback saved to localStorage + POST to /api/qa-feedback.
 */
 (function() {
-  if (!new URLSearchParams(window.location.search).has('admin')) return;
+  // Set cookie if ?admin=1 present, so it persists across navigation
+  if (new URLSearchParams(window.location.search).has('admin')) {
+    document.cookie = 'qa_admin=1;path=/;max-age=86400';  // 24 hours
+  }
+  // Check URL param OR cookie
+  var isAdmin = new URLSearchParams(window.location.search).has('admin')
+    || document.cookie.split(';').some(function(c) { return c.trim().startsWith('qa_admin='); });
+  if (!isAdmin) return;
 
   var feedbackItems = JSON.parse(localStorage.getItem('qa-feedback') || '[]');
 

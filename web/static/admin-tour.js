@@ -1,11 +1,17 @@
 /* Admin QA Tour — guided walkthrough of recent fixes
-   Activates with ?admin=1&tour=1 in the URL.
+   Activates with ?admin=1&tour=1 (sets cookies for persistence).
    Loads tour stops from /api/qa-tour or inline data.
    Each stop: element selector, feedback quote, fix description.
 */
 (function() {
   var params = new URLSearchParams(window.location.search);
-  if (!params.has('admin') || !params.has('tour')) return;
+  // Set cookies if params present
+  if (params.has('admin')) document.cookie = 'qa_admin=1;path=/;max-age=86400';
+  if (params.has('tour')) document.cookie = 'qa_tour=1;path=/;max-age=86400';
+  // Check URL params OR cookies
+  var isAdmin = params.has('admin') || document.cookie.split(';').some(function(c) { return c.trim().startsWith('qa_admin='); });
+  var isTour = params.has('tour') || document.cookie.split(';').some(function(c) { return c.trim().startsWith('qa_tour='); });
+  if (!isAdmin || !isTour) return;
 
   // Tour stops — each one highlights an element and shows the feedback
   var stops = [];

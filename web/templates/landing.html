@@ -1246,10 +1246,10 @@
   <button onclick="setState('power')">Power User</button>
 </div>
 <script nonce="{{ csp_nonce }}">
-  // Show state toggle only for admin
-  if (new URLSearchParams(window.location.search).has('admin')) {
-    document.getElementById('state-toggle').classList.add('visible');
-  }
+  // Show state toggle for admin (URL param or cookie)
+  var isAdm = new URLSearchParams(window.location.search).has('admin')
+    || document.cookie.split(';').some(function(c) { return c.trim().startsWith('qa_admin='); });
+  if (isAdm) document.getElementById('state-toggle').classList.add('visible');
 </script>
 <script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js" defer></script>
 <script nonce="{{ csp_nonce }}" src="/static/admin-tour.js" defer></script>
