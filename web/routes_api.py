@@ -755,3 +755,47 @@ def api_qa_feedback():
             return jsonify({"error": "save failed"}), 500
 
     return jsonify({"ok": True})
+
+
+@bp.route("/api/qa-tour-verdicts")
+def api_qa_tour_verdicts():
+    """Return accepted tour verdicts for a page, so the tour can skip them."""
+    from src.db import get_connection
+
+    page = request.args.get("page", "/")
+    accepted = []
+
+    try:
+        conn = get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """SELECT message FROM feedback
+                   WHERE feedback_type = 'qa_note'
+                   AND message LIKE %s
+                   AND page_url LIKE %s
+                   ORDER BY created_at DESC""",
+                ('[TOUR ACCEPT]%', '%' + page + '%')
+            )
+            accepted = [r[0] for r in cur.fetchall()]
+        finally:
+            conn.close()
+    except Exception:
+        try:
+            conn = get_connection()
+            try:
+                rows = conn.execute(
+                    """SELECT message FROM feedback
+                       WHERE feedback_type = 'qa_note'
+                       AND message LIKE ?
+                       AND page_url LIKE ?
+                       ORDER BY created_at DESC""",
+                    ['[TOUR ACCEPT]%', '%' + page + '%']
+                ).fetchall()
+                accepted = [r[0] for r in rows]
+            finally:
+                conn.close()
+        except Exception:
+            pass
+
+    return jsonify({"accepted": accepted})

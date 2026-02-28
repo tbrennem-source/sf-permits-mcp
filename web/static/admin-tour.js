@@ -16,21 +16,50 @@
   // Tour stops — each one highlights an element and shows the feedback
   var stops = [];
 
-  // Try to load from server, fall back to inline
-  fetch('/api/qa-tour?page=' + encodeURIComponent(window.location.pathname))
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(data) {
-      if (data && data.stops && data.stops.length) {
-        stops = data.stops;
-      } else {
-        stops = getInlineStops();
-      }
-      if (stops.length) initTour();
-    })
-    .catch(function() {
-      stops = getInlineStops();
-      if (stops.length) initTour();
-    });
+  // Load stops, then filter out already-accepted ones
+  var allStops = [];
+
+  function loadAndFilter() {
+    // Get inline stops first
+    allStops = getInlineStops();
+    if (!allStops.length) return;
+
+    // Fetch existing verdicts from DB to filter out accepted
+    fetch('/api/qa-tour-verdicts?page=' + encodeURIComponent(window.location.pathname))
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (data && data.accepted && data.accepted.length) {
+          // Filter out stops whose feedback text matches an accepted verdict
+          stops = allStops.filter(function(stop) {
+            return !data.accepted.some(function(accepted) {
+              return accepted.indexOf(stop.feedback.slice(0, 40)) !== -1;
+            });
+          });
+        } else {
+          stops = allStops;
+        }
+        if (stops.length) {
+          initTour();
+        } else {
+          // All stops accepted — show a brief "all clear" message
+          showAllClear();
+        }
+      })
+      .catch(function() {
+        stops = allStops;
+        if (stops.length) initTour();
+      });
+  }
+
+  function showAllClear() {
+    var msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:10001;background:#12121a;border:1px solid rgba(52,211,153,0.25);border-radius:12px;padding:16px 24px;font-family:"IBM Plex Sans",sans-serif;font-size:13px;color:rgba(255,255,255,0.75);box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+    msg.innerHTML = '<span style="color:#34d399;">✓</span> All tour stops accepted — no open items on this page.';
+    document.body.appendChild(msg);
+    setTimeout(function() { msg.style.opacity = '0'; msg.style.transition = 'opacity 0.5s'; setTimeout(function() { msg.remove(); }, 600); }, 3000);
+  }
+
+  loadAndFilter();
 
   function getInlineStops() {
     // Hardcoded stops for landing page — generated from QA feedback
