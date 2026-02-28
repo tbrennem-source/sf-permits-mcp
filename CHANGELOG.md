@@ -3177,3 +3177,230 @@ UPDATE entities SET entity_type = 'consultant' WHERE entity_type = 'expediter';
 - Aggregation cold-cache penalty: 10-14s on large datasets (warm cache: ~600ms)
 - 13.3M total records across 22 datasets
 
+## Sprint 82-A — Register 4 intelligence tools in MCP server (30→34 tools)
+
+### Changed
+- `src/server.py`: Registered 4 Phase 9 intelligence tools built in QS8/Sprint 80:
+  - `predict_next_stations` (from `src.tools.predict_next_stations`) — What's Next station predictor; uses historical transition probabilities and velocity estimates
+  - `diagnose_stuck_permit` (from `src.tools.stuck_permit`) — Stuck permit intervention playbook; diagnoses dwell time, revision backlog, inter-agency holds
+  - `simulate_what_if` (from `src.tools.what_if_simulator`) — Side-by-side project variation comparison (timeline, fees, review path, revision risk)
+  - `calculate_delay_cost` (from `src.tools.cost_of_delay`) — Financial cost of permit processing delays with carrying cost and revision risk
+- Tool count: 30 → 34
+- Phase label: Phase 9 (permit intelligence — station prediction, stuck permits, simulation, delay cost)
+
+### Tests
+- `pytest -k "server"`: 1 passed
+- `python -c "from src.server import mcp"`: import succeeds, all 34 tools registered
+## Sprint 82-B — Admin System Health Panel
+
+### Added
+- **`/admin/health` endpoint** (web/routes_admin.py): New HTMX fragment endpoint returning a 3-card system health panel. Admin-only (403 for non-admins). Uses `get_pool_health()` from `src/db.py`, `get_soda_cb_status()` from `src/soda_client.py`, and direct `page_cache` table queries.
+- **`fragments/admin_health.html`** (web/templates/fragments/admin_health.html): New fragment template with:
+  - **Pool card**: connections in use / available / max with a fill bar (color shifts amber at 70%, red at 90%); healthy/unhealthy status row
+  - **Circuit Breaker card**: SODA CB state dot (green=closed, amber=half-open, red=open) + failure count; DB per-category CB status
+  - **Cache card**: page_cache total rows, active (non-invalidated) count, oldest entry age
+  - HTMX `hx-trigger="every 30s"` auto-refresh on outer div
+  - Design token compliant: `--mono`/`--sans` split, token colors only, token spacing. Lint score: **5/5**
+- **"System Health" tab** in admin ops hub (web/templates/admin_ops.html): New `syshealth` tab added to the tab bar; routes through existing `_render_ops_tab` dispatcher.
+- **`get_soda_cb_status()`** (src/soda_client.py): New function returning SODA circuit breaker state from a module-level `_soda_circuit_breaker` singleton. Enables observability without instantiating a throw-away SODAClient.
+
+### Tests
+- **`tests/test_admin_health.py`**: 7 new tests
+  - `test_admin_health_requires_auth` — unauthenticated gets 302 or 403
+  - `test_admin_health_non_admin_forbidden` — regular user gets 403
+  - `test_admin_health_admin_ok` — admin gets 200
+  - `test_admin_health_shows_pool_stats` — pool card content present
+  - `test_admin_health_shows_cache_count` — cache card content present
+  - `test_admin_health_shows_circuit_breaker` — CB card content present
+  - `test_admin_health_tab_in_ops` — System Health tab present in ops hub HTML
+# CHANGELOG — Sprint 82-C
+
+## fix: prod gate ratchet tracks specific failing checks (Sprint 82-C)
+
+**Date:** 2026-02-27
+
+### Problem
+The hotfix ratchet in `scripts/prod_gate.py` triggered HOLD on any consecutive score-3 sprint, regardless of whether the *same issues* were present. QS8 got HOLD because QS7 was also score-3, even though the failing checks were completely different.
+
+### Fix
+`scripts/prod_gate.py` — ratchet logic rewritten:
+
+1. **On score <= 3:** Write failing check names to a new `## Failing checks` section in `qa-results/HOTFIX_REQUIRED.md` (in addition to the existing issues narrative).
+2. **On next score-3 run:** Parse the `## Failing checks` section from the previous file. Compare via set intersection.
+3. **Ratchet triggers (HOLD):** Only when at least one of the same check names is still failing.
+4. **Ratchet resets (PROMOTE):** When failing checks are entirely different — overwrite the hotfix file with the new check names, no HOLD.
+5. **No previous file:** First occurrence, no ratchet (previous behavior preserved).
+6. **Score >= 4:** Hotfix file deleted as before (issues resolved).
+
+The HOLD reason message now names the specific overlapping checks, making it clear what needs to be fixed.
+
+### Tests Added
+`tests/test_prod_gate_ratchet.py` — 13 new tests:
+
+- `TestRatchetTriggersOnSameChecks`: ratchet fires on exact match + partial overlap
+- `TestRatchetResetsOnDifferentChecks`: no ratchet on different checks; file overwritten; legacy files without structured section do not trigger
+- `TestNoRatchetOnFirstOccurrence`: no file = first occurrence = PROMOTE + file created
+- `TestRatchetClearsAfterAllGreen`: score 4 and score 5 both clear the file; cleared file means next score-3 is treated as first occurrence
+- `TestReadPreviousFailingChecks`: parse helper correctly reads multiple checks, returns empty for missing/malformed files
+
+### Files Changed
+- `scripts/prod_gate.py` — ratchet block rewritten (~80 lines)
+- `tests/test_prod_gate_ratchet.py` — new file, 13 tests (all passing)
+# Sprint 85-A — Intelligence API Endpoints
+
+## Added
+
+### 4 New JSON API Endpoints (web/routes_api.py)
+
+**GET /api/predict-next/<permit_number>**
+- Calls `predict_next_stations(permit_number)` and returns markdown as JSON
+- Requires authenticated session; returns 401 if unauthenticated
+- Response: `{"permit_number": str, "result": str}`
+
+**GET /api/stuck-permit/<permit_number>**
+- Calls `diagnose_stuck_permit(permit_number)` and returns markdown playbook as JSON
+- Requires authenticated session; returns 401 if unauthenticated
+- Response: `{"permit_number": str, "result": str}`
+
+**POST /api/what-if**
+- Accepts JSON body: `{base_description, variations?}`
+- Calls `simulate_what_if(base_description, variations)` and returns comparison table as JSON
+- Validates: base_description required and non-empty; variations must be a list
+- Requires authenticated session; returns 401 if unauthenticated
+- Response: `{"result": str}`
+
+**POST /api/delay-cost**
+- Accepts JSON body: `{permit_type, monthly_carrying_cost, neighborhood?, triggers?}`
+- Calls `calculate_delay_cost(permit_type, monthly_carrying_cost, ...)` and returns cost breakdown as JSON
+- Validates: permit_type required; monthly_carrying_cost required, numeric, > 0; triggers must be a list if provided
+- Requires authenticated session; returns 401 if unauthenticated
+- Response: `{"result": str}`
+
+### Tests (tests/test_api_intelligence.py)
+- 26 tests across 4 endpoint groups
+- Auth gate tests (401 on unauthenticated access)
+- Input validation tests (400 on missing/invalid fields)
+- Happy-path tests with mocked tool responses
+- Error handling tests (500 on tool exception)
+- Method enforcement (405 on GET to POST-only endpoints)
+# CHANGELOG — Sprint 85-C: Stale File Cleanup
+
+## Summary
+
+Deleted 45 stale/obsolete files accumulated from Sprints 3-78, plus prototype artifacts.
+
+## Files Deleted
+
+### sprint-prompts/ — 40 stale sprint prompt files
+
+**qs3-* (4 files):**
+- sprint-prompts/qs3-a-permit-prep.md
+- sprint-prompts/qs3-b-ops-hardening.md
+- sprint-prompts/qs3-c-testing.md
+- sprint-prompts/qs3-d-analytics.md
+
+**qs4-* (4 files):**
+- sprint-prompts/qs4-a-metrics-ui.md
+- sprint-prompts/qs4-b-performance.md
+- sprint-prompts/qs4-c-obsidian-migration.md
+- sprint-prompts/qs4-d-security-polish.md
+
+**qs5-* (5 files):**
+- sprint-prompts/qs5-a-parcels.md
+- sprint-prompts/qs5-b-backfill.md
+- sprint-prompts/qs5-c-bridges.md
+- sprint-prompts/qs5-d-hygiene.md
+- sprint-prompts/qs5-swarm.md
+
+**qs7-* (5 files):**
+- sprint-prompts/qs7-spec-v2.md
+- sprint-prompts/qs7-t0-orchestrator.md
+- sprint-prompts/qs7-t1-speed.md
+- sprint-prompts/qs7-t2-public-templates.md
+- sprint-prompts/qs7-t3-auth-templates.md
+- sprint-prompts/qs7-t4-testing.md
+
+**sprint-64 through sprint-67 (4 files):**
+- sprint-prompts/sprint-64-reliability.md
+- sprint-prompts/sprint-65-data.md
+- sprint-prompts/sprint-66-intelligence.md
+- sprint-prompts/sprint-67-ux-testing.md
+
+**sprint-68-* (4 files):**
+- sprint-prompts/sprint-68a-scenario-drain.md
+- sprint-prompts/sprint-68b-reliability.md
+- sprint-prompts/sprint-68c-cron-brief.md
+- sprint-prompts/sprint-68d-cleanup-docs.md
+
+**sprint-69-* (5 files):**
+- sprint-prompts/sprint-69-hotfix-search.md
+- sprint-prompts/sprint-69-session1-design-landing.md
+- sprint-prompts/sprint-69-session2-search-intel.md
+- sprint-prompts/sprint-69-session3-content-pages.md
+- sprint-prompts/sprint-69-session4-portfolio-pwa.md
+
+**sprint-74 through sprint-78 (8 files):**
+- sprint-prompts/sprint-74-perf.md
+- sprint-prompts/sprint-75-ux-beta.md
+- sprint-prompts/sprint-76-intelligence.md
+- sprint-prompts/sprint-77-e2e-testing.md
+- sprint-prompts/sprint-78-design-migration.md
+- sprint-prompts/sprint-78-foundation.md
+- sprint-prompts/sprint-78-spec-v3.md
+- sprint-prompts/sprint-78-spec.md
+
+### Other stale artifacts (5 files)
+
+- `.claude/hooks/.stop_hook_fired` — hook state artifact (ephemeral, should not persist)
+- `scenarios-reviewed-sprint69.md` — Sprint 69 reviewed scenarios (stale, already incorporated)
+- `web/static/landing-v5.html` — prototype landing page (superseded by mockups/landing.html)
+- `scripts/public_qa_checks.py` — Sprint 69 QA script (no Python imports found)
+- `scripts/sprint69_visual_qa.py` — Sprint 69 visual QA script (no Python imports found)
+
+## Retained (current/recent)
+
+sprint-prompts/ now contains only:
+- qs8-* (6 files) — current quad sprint
+- qs9-* (7 files) — active sprint
+- sprint-79-* through sprint-82-* (4 files) — recent sprints
+
+## Verification
+
+- `ls sprint-prompts/qs3-* sprint-prompts/sprint-68* sprint-prompts/sprint-69-* 2>/dev/null | wc -l` → 0
+- `test -f web/static/landing-v5.html` → DELETED
+- No Python imports found for deleted scripts (grep confirmed)
+# CHANGELOG — Sprint 85-D: Docs Consolidation
+
+## Sprint 85-D — Documentation Update (2026-02-27)
+
+### README.md
+- Updated tool count: 21 → 34
+- Added Phase 8 tools to tool table: predict_next_stations, diagnose_stuck_permit, simulate_what_if, calculate_delay_cost
+- Updated Key Numbers: 4,357+ tests, 34 tools, 59 PostgreSQL tables, 47 tier1 JSON files
+- Added Phase 6-8 to architecture diagram
+- Added Phase 6-8 to Project Phases checklist
+- Updated Current State section with QS8/Sprint 79/Sprint 81 results
+
+### docs/ARCHITECTURE.md
+- Updated system overview diagram: 21 → 34 tools, added Phase 6/7/8 branches
+- Added Phase 6 description: permit_severity, property_health
+- Added Phase 7 description: run_query, read_source, search_source, schema_info, list_tests, similar_projects
+- Added Phase 8 Intelligence Tools section: detailed descriptions of all 4 new tools with algorithms
+  - predict_next_stations: Markov transition model, neighborhood-filtered, stall detection
+  - diagnose_stuck_permit: dwell vs p50/p75/p90 baselines, 14 inter-agency station codes, ranked playbook
+  - simulate_what_if: parallel asyncio.gather() orchestration of 4 sub-tools, delta section
+  - calculate_delay_cost: carrying cost + revision risk, 13 permit types, live timeline integration
+- Updated Key Modules tool file inventory: 21 → 34 files
+- Added CircuitBreaker note to Phase 1 description
+- Added severity.py, station_velocity_v2.py, signals/ to module list
+
+### CHANGELOG.md
+- Added QS8 (Sprint 79 + Sprint 81) consolidated entry at top
+- Added QS5 (Sprint 79 data quality + incremental ingest) consolidated entry
+- Removed raw per-agent dump appended at lines 3058+ (QS8-T1 through T3 raw files)
+
+### Per-agent CHANGELOG files deleted (36 files)
+- CHANGELOG-qs4-a.md through qs4-d.md (content already in CHANGELOG.md)
+- CHANGELOG-qs5-a.md through qs5-d.md (consolidated into CHANGELOG.md)
+- CHANGELOG-qs8-t1-a.md through qs8-t3-d.md (consolidated into CHANGELOG.md)
+- CHANGELOG-sprint-74-1.md through sprint-77-4.md (content already in CHANGELOG.md)

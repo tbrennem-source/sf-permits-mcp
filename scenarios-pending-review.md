@@ -1816,3 +1816,119 @@ _Consolidated: Sprint 85-B (2026-02-27) — 116 unique scenarios, 27 duplicates 
 
 
 ---
+## SUGGESTED SCENARIO: MCP client discovers all 34 tools
+**Source:** src/server.py — Phase 9 tool registration
+**User:** expediter
+**Starting state:** MCP client connects to the SF Permits MCP server
+**Goal:** Client wants to discover all available tools including the 4 new intelligence tools
+**Expected outcome:** Client receives a tool list containing predict_next_stations, diagnose_stuck_permit, simulate_what_if, and calculate_delay_cost alongside the existing 30 tools (34 total)
+**Edge cases seen in code:** Server must import all 4 tools without error on startup; any missing dependency causes the entire server to fail to load
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Intelligence tool returns formatted markdown via MCP
+**Source:** src/server.py — simulate_what_if and calculate_delay_cost registration
+**User:** expediter
+**Starting state:** MCP client has connected and discovered tools; user provides a project description with two variations
+**Goal:** User calls simulate_what_if to compare scoping options before filing a permit application
+**Expected outcome:** Tool returns a markdown comparison table with timeline, fee, review path, and revision risk columns for each variation — consumable by Claude in a planning conversation
+**Edge cases seen in code:** Simulator calls predict_permits, estimate_timeline, estimate_fees, revision_risk internally — any sub-tool failure degrades gracefully to "N/A" in the table
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Admin views DB pool utilization in real-time
+
+**Source:** web/routes_admin.py — /admin/health endpoint (Sprint 82-B)
+**User:** admin
+**Starting state:** Admin is logged in; production app is under moderate load with several active DB connections
+**Goal:** Admin wants to assess whether the DB connection pool is under pressure without querying infrastructure directly
+**Expected outcome:** Admin sees a pool card showing connections in use vs. available vs. max, with a fill bar reflecting current utilization. Card highlights visually when utilization is ≥ 70%. Panel auto-refreshes every 30 seconds without manual reload.
+**Edge cases seen in code:** Pool is None (app just started or DuckDB mode) — card renders with 0/0 without crashing. Pool is exhausted (in_use == max) — bar fills to 100%, card shows danger border.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin sees SODA circuit breaker state change
+
+**Source:** src/soda_client.py — _soda_circuit_breaker singleton + web/routes_admin.py (Sprint 82-B)
+**User:** admin
+**Starting state:** SODA API has started returning errors; circuit breaker has accumulated failures and transitioned to "open" state
+**Goal:** Admin wants to know if the external SODA data API is degraded so they can inform users or take action
+**Expected outcome:** System Health panel shows the SODA circuit breaker card with a red dot and "OPEN" state label. After the recovery timeout elapses, state changes to "HALF-OPEN" (amber dot), then back to "CLOSED" (green dot) on the next successful probe. The 30-second auto-refresh picks up the state change without page reload.
+**Edge cases seen in code:** CircuitBreaker is per-module singleton — state persists across requests within a process; workers may have divergent state.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Prod gate promotes when new issues differ from previous sprint
+**Source:** scripts/prod_gate.py — hotfix ratchet logic
+**User:** admin
+**Starting state:** Previous sprint got score 3 with "Test Suite" failing. HOTFIX_REQUIRED.md exists recording "Test Suite". This sprint's builds fix the test suite but introduce a lint trend issue.
+**Goal:** Understand whether the prod gate will block or allow promotion.
+**Expected outcome:** Gate returns PROMOTE with mandatory hotfix, not HOLD. The ratchet does not trigger because the failing check changed from "Test Suite" to "Lint Trend". The hotfix file is overwritten to record the new failing check.
+**Edge cases seen in code:** Partial overlap (some same, some new) still triggers ratchet. Legacy HOTFIX_REQUIRED.md files without the "## Failing checks" structured section do not trigger the ratchet.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Prod gate holds when same issue persists across sprints
+**Source:** scripts/prod_gate.py — hotfix ratchet logic
+**User:** admin
+**Starting state:** Previous sprint got score 3 with "Migration Safety" failing. HOTFIX_REQUIRED.md exists recording "Migration Safety". This sprint still has migration safety issues and scores 3 again.
+**Goal:** Understand whether the prod gate will escalate to HOLD.
+**Expected outcome:** Gate returns HOLD with reason citing the overlapping check ("Migration Safety"). The ratchet message is clear that it is a repeat failure of the same specific check, not merely a consecutive score-3 sprint.
+**Edge cases seen in code:** Score 4+ in any sprint between the two score-3 runs deletes HOTFIX_REQUIRED.md, so the ratchet resets — the second score-3 after a clean sprint is treated as first occurrence.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: API client fetches next station prediction for active permit
+**Source:** web/routes_api.py — GET /api/predict-next/<permit_number>
+**User:** expediter
+**Starting state:** User is logged in; permit 202201234567 is active with addenda routing records
+**Goal:** Retrieve a structured prediction of the permit's next review stations via API
+**Expected outcome:** 200 JSON response with permit_number and result (markdown) fields; prediction includes probability, p50 days for top 3 next stations
+**Edge cases seen in code:** Permit not found returns markdown error message (not 404); permit with no addenda returns "No routing data available" in the result markdown
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: API rejects unauthenticated request with 401
+**Source:** web/routes_api.py — all 4 intelligence endpoints
+**User:** homeowner
+**Starting state:** User is not logged in (no session cookie)
+**Goal:** Call any intelligence API endpoint without authentication
+**Expected outcome:** 401 JSON response with {"error": "unauthorized"}; no tool execution occurs
+**Edge cases seen in code:** All 4 endpoints (predict-next, stuck-permit, what-if, delay-cost) share identical auth check pattern
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: What-if endpoint compares base vs variation scenarios
+**Source:** web/routes_api.py — POST /api/what-if
+**User:** architect
+**Starting state:** User is logged in; wants to compare kitchen remodel vs kitchen+bathroom addition
+**Goal:** POST base_description and one variation to see side-by-side permit, timeline, fee, and revision risk comparison
+**Expected outcome:** 200 JSON with result field containing markdown comparison table; delta summary shows changes in review path, timeline, and fees between base and variation
+**Edge cases seen in code:** Empty base_description returns 400; variations must be a list (not a string); omitting variations entirely is valid and evaluates only the base scenario
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: new developer finds clean sprint-prompts directory
+**Source:** Sprint 85-C stale file cleanup
+**User:** expediter
+**Starting state:** New developer clones the repo and opens sprint-prompts/ for context
+**Goal:** Quickly understand current and recent sprint history without wading through obsolete files
+**Expected outcome:** Only current/recent sprint prompts are visible (qs8-*, qs9-*, sprint-79 through sprint-82); no qs3-*, qs4-*, qs5-*, qs7-*, sprint-64 through sprint-69, or sprint-74 through sprint-78 files are present
+**Edge cases seen in code:** Stale sprint files from 2+ generations back (qs3, sprint-64) were mixed in with active ones — cleanup needed explicit retention rules to avoid deleting current qs8/qs9/sprint-79-82 files
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: New developer reads README and finds accurate project stats
+**Source:** README.md update (Sprint 85-D docs consolidation)
+**User:** architect | expediter
+**Starting state:** Developer opens README.md on a fresh checkout to understand project scope
+**Goal:** Quickly understand how many tools exist, how many tests pass, and what phases are complete
+**Expected outcome:** README accurately states 34 tools, 4357+ tests, and all phases 1-8 complete; no stale numbers from earlier sprints
+**Edge cases seen in code:** README previously showed 21 tools and outdated test counts; stale docs cause developer confusion about what's actually shipped
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Architecture doc describes all 34 tools with one-line summaries
+**Source:** docs/ARCHITECTURE.md update (Sprint 85-D docs consolidation)
+**User:** architect | expediter
+**Starting state:** Developer opens ARCHITECTURE.md to understand which tool to use for a given task
+**Goal:** Find the right MCP tool by scanning the tool inventory
+**Expected outcome:** ARCHITECTURE.md lists all 34 tools with file paths and one-line descriptions; Phase 8 tools (predict_next_stations, diagnose_stuck_permit, simulate_what_if, calculate_delay_cost) are clearly described with their algorithms and data sources
+**Edge cases seen in code:** Architecture doc previously showed 21 tools and was missing Phase 6-8 tools entirely
+**CC confidence:** high
+**Status:** PENDING REVIEW
