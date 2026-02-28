@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sfpermits.ai — Prototype v5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --obsidian: #0a0a0f;
+    --obsidian-mid: #12121a;
+    --obsidian-light: #1a1a26;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --text-primary: rgba(255, 255, 255, 0.92);
+    --text-secondary: rgba(255, 255, 255, 0.45);
+    --text-tertiary: rgba(255, 255, 255, 0.25);
+    --accent: #5eead4;
+    --accent-glow: rgba(94, 234, 212, 0.08);
+    --amber: #fbbf24;
+    --red-soft: #f87171;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
+  body {
+    font-family: var(--sans); background: var(--obsidian); color: var(--text-primary);
+    overflow-x: hidden; -webkit-font-smoothing: antialiased;
+  }
+  .ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .ambient::before {
+    content: ''; position: absolute; top: -40%; left: -20%; width: 80%; height: 80%;
+    background: radial-gradient(ellipse, rgba(94, 234, 212, 0.03) 0%, transparent 70%);
+    animation: drift 25s ease-in-out infinite;
+  }
+  @keyframes drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(40px, 20px); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ═══ HERO ═══ */
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 24px;
+  }
+  .hero-wordmark {
+    font-family: var(--mono); font-size: clamp(11px, 1.2vw, 13px); font-weight: 300;
+    letter-spacing: 0.35em; text-transform: uppercase; color: var(--text-tertiary);
+    margin-bottom: 48px;
+    opacity: 0; animation: fadeIn 2s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .hero-headline {
+    font-family: var(--sans); font-size: clamp(30px, 4.8vw, 60px); font-weight: 300;
+    line-height: 1.15; text-align: center; max-width: 660px;
+    opacity: 0; animation: fadeIn 2s 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .hero-headline em { font-style: normal; color: var(--accent); font-weight: 400; }
+  .hero-sub {
+    font-size: clamp(14px, 1.5vw, 16px); font-weight: 300; color: var(--text-secondary);
+    margin-top: 24px; text-align: center; max-width: 400px; line-height: 1.6;
+    opacity: 0; animation: fadeIn 2s 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* ═══ SEARCH ═══ */
+  .search-container {
+    margin-top: 48px; width: 100%; max-width: 520px; position: relative;
+    opacity: 0; animation: fadeIn 2s 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .search-bar { position: relative; }
+  .search-bar input {
+    width: 100%; padding: 16px 22px; padding-right: 50px;
+    font-family: var(--mono); font-size: 14px; font-weight: 300;
+    color: var(--text-primary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: 12px; outline: none;
+    transition: border-color 0.4s, background 0.4s, box-shadow 0.4s, border-radius 0.2s;
+  }
+  .search-bar input::placeholder { color: var(--text-tertiary); font-weight: 300; }
+  .search-bar input:focus {
+    border-color: rgba(94, 234, 212, 0.3); background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 40px var(--accent-glow);
+  }
+  .search-bar.dropdown-open input { border-radius: 12px 12px 0 0; border-bottom-color: var(--glass-border); }
+  .search-bar .search-icon {
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+    color: var(--text-tertiary); transition: color 0.3s;
+  }
+  .search-bar input:focus ~ .search-icon { color: var(--accent); }
+
+  /* Keyboard hint */
+  .search-bar .kbd-hint {
+    position: absolute; right: 44px; top: 50%; transform: translateY(-50%);
+    font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    padding: 2px 6px; border-radius: 4px;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .search-bar input:focus ~ .kbd-hint { opacity: 0; }
+  .search-bar input:not(:focus):placeholder-shown ~ .kbd-hint { opacity: 0.6; }
+
+  .example-link {
+    text-align: center; margin-top: 14px;
+    opacity: 0; animation: fadeIn 2s 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .example-link a {
+    font-family: var(--mono); font-size: 11px; font-weight: 300;
+    color: var(--text-tertiary); text-decoration: none; cursor: pointer;
+    transition: color 0.3s;
+  }
+  .example-link a:hover { color: var(--text-secondary); }
+  .example-link.hidden { display: none; }
+
+  /* ═══ DROPDOWN ═══ */
+  .search-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border); border-top: none;
+    border-radius: 0 0 12px 12px; overflow-y: auto; overflow-x: hidden;
+    max-height: 0; opacity: 0;
+    transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+    z-index: 10;
+    scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent;
+  }
+  .search-dropdown.open { max-height: 380px; opacity: 1; }
+
+  .dropdown-section { padding-top: 4px; }
+  .dropdown-section + .dropdown-section { border-top: 1px solid var(--glass-border); }
+  .dropdown-section.hidden { display: none; }
+
+  .dropdown-label {
+    padding: 10px 22px 4px;
+    font-family: var(--mono); font-size: 10px; font-weight: 400;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dropdown-label .label-count {
+    font-size: 10px; letter-spacing: 0; text-transform: none; opacity: 0.6;
+  }
+
+  .dropdown-item {
+    padding: 9px 22px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: background 0.12s;
+  }
+  .dropdown-item:hover { background: var(--glass); }
+  .dropdown-item.hidden { display: none; }
+
+  .dropdown-item .item-icon { flex-shrink: 0; color: var(--text-tertiary); transition: color 0.12s; }
+  .dropdown-item:hover .item-icon { color: var(--accent); }
+
+  .dropdown-item .item-address {
+    font-family: var(--mono); font-size: 13px; font-weight: 300;
+    color: var(--text-secondary); transition: color 0.12s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dropdown-item:hover .item-address { color: var(--text-primary); }
+
+  /* Match highlighting */
+  .dropdown-item .item-address mark {
+    background: none; color: var(--accent); font-weight: 400;
+  }
+
+  .dropdown-item .item-badge {
+    margin-left: auto; display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .dropdown-item .item-type {
+    font-size: 10px; font-weight: 400; color: var(--text-tertiary);
+    background: var(--glass); border: 1px solid var(--glass-border);
+    padding: 1px 7px; border-radius: 3px; white-space: nowrap;
+    transition: color 0.12s, border-color 0.12s;
+  }
+  .dropdown-item:hover .item-type { color: var(--text-secondary); border-color: rgba(255,255,255,0.1); }
+
+  /* Status dot */
+  .dropdown-item .item-status {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .item-status.status-green { background: var(--accent); }
+  .item-status.status-amber { background: var(--amber); }
+  .item-status.status-red { background: var(--red-soft); }
+
+  /* Footer link in dropdown */
+  .dropdown-footer {
+    padding: 10px 22px 12px;
+    border-top: 1px solid var(--glass-border);
+    text-align: center;
+  }
+  .dropdown-footer a {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .dropdown-footer a:hover { color: var(--accent); }
+
+  /* No results */
+  .dropdown-empty {
+    padding: 20px 22px; text-align: center;
+    font-size: 13px; color: var(--text-tertiary);
+    display: none;
+  }
+
+  .scroll-cue {
+    position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+    opacity: 0; animation: fadeIn 2s 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.5s;
+  }
+  .scroll-cue.hidden { opacity: 0 !important; }
+  .scroll-line {
+    width: 1px; height: 28px; margin: 0 auto;
+    background: linear-gradient(to bottom, var(--text-tertiary), transparent);
+    animation: pulse-line 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse-line { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+
+  /* ═══ SECTIONS ═══ */
+  section { position: relative; z-index: 1; padding: 0 24px; }
+  .section-inner { max-width: 1000px; margin: 0 auto; }
+
+  .stats-section { padding-top: 140px; padding-bottom: 100px; }
+  .stats-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
+    padding: 40px 0;
+  }
+  .stat-item { text-align: center; flex: 1; }
+  .stat-item .number { font-family: var(--mono); font-size: clamp(22px, 3vw, 36px); font-weight: 300; line-height: 1; }
+  .stat-item .label { font-size: 12px; font-weight: 400; color: var(--text-tertiary); margin-top: 8px; }
+  .stat-divider { width: 1px; height: 40px; background: var(--glass-border); flex-shrink: 0; }
+
+  .capabilities-section { padding-bottom: 120px; }
+  .cap-list { list-style: none; }
+  .cap-item {
+    display: grid; grid-template-columns: 48px 1fr auto; align-items: baseline; gap: 20px;
+    padding: 28px 0; border-bottom: 1px solid var(--glass-border); cursor: default; transition: background 0.3s;
+  }
+  .cap-item:first-child { border-top: 1px solid var(--glass-border); }
+  .cap-item:hover {
+    background: linear-gradient(90deg, var(--accent-glow), transparent 60%);
+    margin: 0 -16px; padding-left: 16px; padding-right: 16px;
+  }
+  .cap-num { font-family: var(--mono); font-size: 12px; color: var(--text-tertiary); }
+  .cap-content h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .cap-content p { font-size: 13px; font-weight: 300; color: var(--text-secondary); line-height: 1.55; max-width: 520px; }
+  .cap-stat { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
+
+  .demo-section { padding-bottom: 120px; }
+  .demo-container { background: var(--obsidian-mid); border: 1px solid var(--glass-border); border-radius: 14px; overflow: hidden; }
+  .demo-header { padding: 16px 24px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 10px; }
+  .demo-dots { display: flex; gap: 5px; }
+  .demo-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--glass-border); }
+  .demo-url { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); margin-left: 8px; }
+  .demo-body { padding: 32px 28px; }
+  .demo-address { font-family: var(--mono); font-size: 13px; margin-bottom: 28px; }
+  .demo-address .addr-accent { color: var(--accent); }
+  .demo-address .addr-type {
+    font-size: 11px; color: var(--text-tertiary); background: var(--glass);
+    border: 1px solid var(--glass-border); padding: 2px 8px; border-radius: 4px;
+    margin-left: 10px; vertical-align: middle;
+  }
+  .demo-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--glass-border);
+    opacity: 0; transform: translateX(-8px);
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .demo-row.visible { opacity: 1; transform: translateX(0); }
+  .demo-row .row-label { font-size: 13px; color: var(--text-secondary); }
+  .demo-row .row-value { font-family: var(--mono); font-size: 12px; }
+  .status-active { color: var(--accent); }
+  .status-warn { color: var(--amber); }
+  .status-alert { color: var(--red-soft); }
+  .demo-progress { margin-top: 24px; opacity: 0; transition: opacity 0.8s 0.5s; }
+  .demo-progress.visible { opacity: 1; }
+  .demo-progress .progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .demo-progress .progress-label span { font-size: 11px; color: var(--text-tertiary); font-family: var(--mono); }
+  .progress-track { height: 2px; background: var(--glass); border-radius: 1px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
+    border-radius: 1px; transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .progress-fill.animate { width: 62%; }
+  .demo-cta { margin-top: 24px; text-align: center; opacity: 0; transition: opacity 0.6s 1s; }
+  .demo-cta.visible { opacity: 1; }
+  .demo-cta span {
+    font-size: 12px; color: var(--text-tertiary); font-family: var(--mono);
+    letter-spacing: 0.04em; cursor: pointer; padding-bottom: 1px;
+    border-bottom: 1px solid transparent; transition: color 0.3s, border-color 0.3s;
+  }
+  .demo-cta span:hover { color: var(--accent); border-color: var(--accent); }
+
+  .footer { position: relative; z-index: 1; padding: 0 24px 80px; text-align: center; }
+  .footer-links { font-size: 12px; color: var(--text-tertiary); }
+  .footer-links a {
+    color: var(--text-secondary); text-decoration: none;
+    border-bottom: 1px solid var(--glass-border); padding-bottom: 1px;
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
+  .footer-links .sep { margin: 0 12px; color: var(--glass-border); }
+
+  /* State toggle (prototype only) */
+  .state-toggle {
+    position: fixed; bottom: 24px; right: 24px; z-index: 100;
+    display: flex; gap: 1px; border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--glass-border);
+  }
+  .state-toggle button {
+    padding: 8px 14px; font-family: var(--mono); font-size: 11px;
+    background: var(--obsidian-mid); color: var(--text-tertiary);
+    border: none; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  .state-toggle button:hover { background: var(--obsidian-light); }
+  .state-toggle button.active { background: var(--accent-glow); color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .stats-row { flex-wrap: wrap; gap: 24px; justify-content: center; padding: 28px 0; }
+    .stat-divider { display: none; }
+    .stat-item { flex: 0 0 40%; }
+    .cap-item { grid-template-columns: 1fr; gap: 6px; }
+    .cap-num { display: none; }
+    .cap-stat { font-size: 11px; margin-top: 4px; }
+    .demo-body { padding: 20px 16px; }
+    .demo-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  }
+  @media (max-width: 480px) { .stat-item { flex: 0 0 100%; } }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<section class="hero">
+  <div class="hero-wordmark">sfpermits.ai</div>
+  <h1 class="hero-headline">Permit intelligence,<br><em>distilled</em></h1>
+  <p class="hero-sub">18.4 million San Francisco government records. One search.</p>
+
+  <div class="search-container">
+    <div class="search-bar" id="search-bar">
+      <input type="text" id="search-input" placeholder="Search any SF address" autocomplete="off">
+      <span class="kbd-hint">/</span>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="search-dropdown" id="search-dropdown">
+      <div class="dropdown-empty" id="dropdown-empty">No matches in your properties or history</div>
+    </div>
+    <div class="example-link" id="example-link">
+      <a onclick="showExamples()">or try an example</a>
+    </div>
+  </div>
+
+  <div class="scroll-cue" id="scroll-cue"><div class="scroll-line"></div></div>
+</section>
+
+<section class="stats-section">
+  <div class="section-inner">
+    <div class="stats-row reveal">
+      <div class="stat-item">
+        <div class="number"><span class="counting" data-target="1137816">0</span></div>
+        <div class="label">Permits tracked</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="number"><span class="counting" data-target="3920710">0</span></div>
+        <div class="label">Routing records</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="number"><span class="counting" data-target="1014670">0</span></div>
+        <div class="label">Entities resolved</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="number">22</div>
+        <div class="label">Data sources</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="capabilities-section">
+  <div class="section-inner">
+    <ul class="cap-list">
+      <li class="cap-item reveal"><span class="cap-num">01</span><div class="cap-content"><h3>Timeline Estimation</h3><p>Station-sum model from real routing data. Know how long each review step actually takes.</p></div><span class="cap-stat">PPC avg 174d</span></li>
+      <li class="cap-item reveal reveal-delay-1"><span class="cap-num">02</span><div class="cap-content"><h3>Entity Network</h3><p>1.8M contacts resolved across building, electrical, and plumbing permits. See who works with whom.</p></div><span class="cap-stat">576K edges</span></li>
+      <li class="cap-item reveal reveal-delay-2"><span class="cap-num">03</span><div class="cap-content"><h3>AI Plan Analysis</h3><p>Upload drawings. Vision AI checks EPR compliance and flags issues before DBI does.</p></div><span class="cap-stat">EPR checks</span></li>
+      <li class="cap-item reveal reveal-delay-3"><span class="cap-num">04</span><div class="cap-content"><h3>Routing Progress</h3><p>Which stations your permit has cleared, which are pending, and which are stalled.</p></div><span class="cap-stat">Real-time</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="demo-section">
+  <div class="section-inner">
+    <div class="reveal" id="demo-trigger">
+      <div class="demo-container">
+        <div class="demo-header">
+          <div class="demo-dots"><span></span><span></span><span></span></div>
+          <div class="demo-url" id="demo-url">sfpermits.ai/lookup?q=1455+Market+St</div>
+        </div>
+        <div class="demo-body">
+          <div class="demo-address" id="demo-address"><span class="addr-accent">1455 Market St</span> <span class="addr-type">Commercial</span></div>
+          <div class="demo-row" data-delay="0"><span class="row-label">Active permits</span><span class="row-value status-active">3 in review</span></div>
+          <div class="demo-row" data-delay="100"><span class="row-label">Routing progress</span><span class="row-value status-active">BLDG ✓ · SFFD ✓ · PPC pending</span></div>
+          <div class="demo-row" data-delay="200"><span class="row-label">Est. remaining</span><span class="row-value status-warn">4–7 months</span></div>
+          <div class="demo-row" data-delay="300"><span class="row-label">Open complaints</span><span class="row-value status-alert">2 active</span></div>
+          <div class="demo-row" data-delay="400"><span class="row-label">Lead architect</span><span class="row-value">Smith & Associates · 47 permits</span></div>
+          <div class="demo-progress"><div class="progress-label"><span>Plan review</span><span>5 / 8 stations</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+          <div class="demo-cta"><span>Full property intelligence →</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="footer reveal">
+  <div class="footer-links">
+    <a href="#">Methodology</a><span class="sep">·</span>
+    <a href="#">About the data</a><span class="sep">·</span>
+    <a href="#">How estimates work</a>
+  </div>
+</div>
+
+<div class="state-toggle">
+  <button class="active" onclick="setState('new')">New visitor</button>
+  <button onclick="setState('returning')">Returning</button>
+  <button onclick="setState('power')">Power user</button>
+</div>
+
+<script>
+  // ═══ DATA ═══
+
+  // Simulated watched properties (power user has 90)
+  const watchedProperties = [
+    { addr: '487 Noe St', type: 'Kitchen remodel', status: 'amber', activity: 'PPC stalled 12d' },
+    { addr: '1122 Folsom St', type: 'Commercial TI', status: 'red', activity: '2 new complaints' },
+    { addr: '225 Bush St', type: 'Seismic retrofit', status: 'green', activity: 'BLDG approved today' },
+    { addr: '88 1st St', type: 'New construction', status: 'green', activity: 'On track' },
+    { addr: '301 Howard St', type: 'Restaurant buildout', status: 'amber', activity: 'DPH pending 28d' },
+    { addr: '150 Van Ness Ave', type: 'Office conversion', status: 'green', activity: '6/8 stations cleared' },
+    { addr: '2001 Market St', type: 'ADU', status: 'green', activity: 'Issued last week' },
+    { addr: '3412 Mission St', type: 'Storefront', status: 'amber', activity: 'Plan check comments' },
+    { addr: '555 California St', type: 'Elevator modernization', status: 'green', activity: 'On track' },
+    { addr: '1700 Owens St', type: 'Lab buildout', status: 'green', activity: '4/6 stations cleared' },
+    { addr: '735 Market St', type: 'Commercial TI', status: 'amber', activity: 'Revision submitted' },
+    { addr: '50 Beale St', type: 'Fire alarm upgrade', status: 'green', activity: 'SFFD approved' },
+    { addr: '1800 Bryant St', type: 'Warehouse conversion', status: 'red', activity: 'NOV issued' },
+    { addr: '475 Brannan St', type: 'Office remodel', status: 'green', activity: 'On track' },
+    { addr: '2222 Sutter St', type: 'Medical office', status: 'amber', activity: 'CPC review pending' },
+    // ... imagine 75 more
+  ];
+
+  const recentSearches = [
+    { addr: '487 Noe St', type: 'Kitchen remodel' },
+    { addr: '1122 Folsom St', type: 'Commercial TI' },
+    { addr: '225 Bush St', type: 'Seismic retrofit' },
+    { addr: '3639 18th St', type: 'Bathroom remodel' },
+    { addr: '950 Mason St', type: 'Elevator modernization' },
+  ];
+
+  const exampleAddresses = [
+    { addr: '1455 Market St', type: 'Commercial' },
+    { addr: '3639 18th St', type: 'Kitchen remodel' },
+    { addr: '201 Spear St', type: 'New construction' },
+    { addr: '742 Shotwell St', type: 'ADU' },
+    { addr: '950 Mason St', type: 'Seismic retrofit' },
+    { addr: '2175 Market St', type: 'Restaurant buildout' },
+  ];
+
+  const pinSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+  const clockSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const eyeSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+  let currentState = 'new';
+  const input = document.getElementById('search-input');
+  const dropdown = document.getElementById('search-dropdown');
+  const searchBar = document.getElementById('search-bar');
+  const exLink = document.getElementById('example-link');
+  const emptyMsg = document.getElementById('dropdown-empty');
+
+  // ═══ RENDER ═══
+
+  function highlightMatch(text, query) {
+    if (!query) return text;
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return text;
+    return text.slice(0, idx) + '<mark>' + text.slice(idx, idx + query.length) + '</mark>' + text.slice(idx + query.length);
+  }
+
+  function renderItem(item, icon, query, showStatus) {
+    const statusDot = showStatus && item.status
+      ? `<span class="item-status status-${item.status}" title="${item.activity || ''}"></span>`
+      : '';
+    return `
+      <div class="dropdown-item" onmousedown="selectAddress('${item.addr}', '${item.type}')">
+        <span class="item-icon">${icon}</span>
+        <span class="item-address">${highlightMatch(item.addr, query)}</span>
+        <span class="item-badge">
+          ${statusDot}
+          <span class="item-type">${item.type}</span>
+        </span>
+      </div>`;
+  }
+
+  function renderDropdown(query) {
+    let html = '';
+    let totalVisible = 0;
+    const q = (query || '').toLowerCase().trim();
+
+    if (currentState === 'new') {
+      // New visitors: only show examples, only when explicitly asked or filtering
+      const filtered = exampleAddresses.filter(a =>
+        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
+      );
+      if (filtered.length > 0) {
+        html += `<div class="dropdown-section"><div class="dropdown-label">Example addresses</div>`;
+        filtered.forEach(a => { html += renderItem(a, pinSVG, q, false); });
+        html += `</div>`;
+        totalVisible = filtered.length;
+      }
+    }
+
+    if (currentState === 'returning') {
+      // Recent searches
+      const recentFiltered = recentSearches.filter(a =>
+        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
+      ).slice(0, q ? 5 : 3);
+      if (recentFiltered.length > 0) {
+        html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
+        recentFiltered.forEach(a => { html += renderItem(a, clockSVG, q, false); });
+        html += `</div>`;
+        totalVisible += recentFiltered.length;
+      }
+      // Show fewer examples
+      if (!q) {
+        html += `<div class="dropdown-section"><div class="dropdown-label">Try an address</div>`;
+        exampleAddresses.slice(0, 2).forEach(a => { html += renderItem(a, pinSVG, q, false); });
+        html += `</div>`;
+        totalVisible += 2;
+      }
+    }
+
+    if (currentState === 'power') {
+      // PRIORITY 1: Filter watched properties
+      const watchedFiltered = watchedProperties.filter(a =>
+        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
+      );
+
+      // Show "needs attention" first (red, amber), then green — capped
+      const needsAttention = watchedFiltered.filter(a => a.status === 'red' || a.status === 'amber');
+      const onTrack = watchedFiltered.filter(a => a.status === 'green');
+
+      if (q) {
+        // Filtering: show all matches, up to 7
+        const shown = watchedFiltered.slice(0, 7);
+        if (shown.length > 0) {
+          const matchLabel = watchedFiltered.length > 7
+            ? `${shown.length} of ${watchedFiltered.length} matches`
+            : `${shown.length} match${shown.length === 1 ? '' : 'es'}`;
+          html += `<div class="dropdown-section"><div class="dropdown-label">Watching <span class="label-count">${matchLabel}</span></div>`;
+          shown.forEach(a => { html += renderItem(a, eyeSVG, q, true); });
+          html += `</div>`;
+          totalVisible += shown.length;
+        }
+
+        // PRIORITY 2: Recent searches (exclude already-shown watched)
+        const watchedAddrs = new Set(watchedProperties.map(a => a.addr));
+        const recentOnly = recentSearches.filter(a =>
+          !watchedAddrs.has(a.addr) &&
+          (a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q))
+        ).slice(0, 3);
+        if (recentOnly.length > 0) {
+          html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
+          recentOnly.forEach(a => { html += renderItem(a, clockSVG, q, false); });
+          html += `</div>`;
+          totalVisible += recentOnly.length;
+        }
+      } else {
+        // No query: show hot list
+        // Needs attention (up to 3)
+        const hotItems = needsAttention.slice(0, 3);
+        if (hotItems.length > 0) {
+          html += `<div class="dropdown-section"><div class="dropdown-label">Needs attention <span class="label-count">${needsAttention.length} total</span></div>`;
+          hotItems.forEach(a => { html += renderItem(a, eyeSVG, '', true); });
+          html += `</div>`;
+          totalVisible += hotItems.length;
+        }
+
+        // Recent (up to 3, excluding watched)
+        const watchedAddrs = new Set(watchedProperties.map(a => a.addr));
+        const recentOnly = recentSearches.filter(a => !watchedAddrs.has(a.addr)).slice(0, 3);
+        if (recentOnly.length > 0) {
+          html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
+          recentOnly.forEach(a => { html += renderItem(a, clockSVG, '', false); });
+          html += `</div>`;
+          totalVisible += recentOnly.length;
+        }
+
+        // Footer: link to full portfolio
+        html += `<div class="dropdown-footer"><a href="#">All ${watchedProperties.length} watched properties →</a></div>`;
+      }
+    }
+
+    // Empty state for typed queries with no matches
+    emptyMsg.style.display = (q && totalVisible === 0 && currentState !== 'new') ? 'block' : 'none';
+
+    // Remove old sections (keep empty msg)
+    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
+    dropdown.insertAdjacentHTML('afterbegin', html);
+  }
+
+  // ═══ INTERACTIONS ═══
+
+  function openDropdown() {
+    renderDropdown(input.value);
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  function closeDropdown() {
+    setTimeout(() => {
+      dropdown.classList.remove('open');
+      searchBar.classList.remove('dropdown-open');
+    }, 150);
+  }
+
+  function showExamples() {
+    input.focus();
+    renderDropdown('');
+    dropdown.classList.add('open');
+    searchBar.classList.add('dropdown-open');
+  }
+
+  input.addEventListener('focus', () => {
+    if (currentState !== 'new') {
+      openDropdown();
+    }
+  });
+  input.addEventListener('blur', closeDropdown);
+  input.addEventListener('input', () => {
+    renderDropdown(input.value);
+    if (input.value.length > 0 || currentState !== 'new') {
+      dropdown.classList.add('open');
+      searchBar.classList.add('dropdown-open');
+    }
+  });
+
+  // Keyboard shortcut: / to focus search
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== input) {
+      e.preventDefault();
+      input.focus();
+    }
+  });
+
+  function selectAddress(addr, type) {
+    input.value = addr;
+    closeDropdown();
+    input.blur();
+    document.getElementById('demo-address').innerHTML =
+      `<span class="addr-accent">${addr}</span> <span class="addr-type">${type}</span>`;
+    document.getElementById('demo-url').textContent =
+      `sfpermits.ai/lookup?q=${addr.replace(/ /g, '+')}`;
+  }
+
+  function setState(s) {
+    currentState = s;
+    input.value = '';
+    dropdown.classList.remove('open');
+    searchBar.classList.remove('dropdown-open');
+    exLink.classList.toggle('hidden', s !== 'new');
+    document.querySelectorAll('.state-toggle button').forEach(btn => {
+      const match = (s === 'new' && btn.textContent.includes('New'))
+        || (s === 'returning' && btn.textContent.includes('Return'))
+        || (s === 'power' && btn.textContent.includes('Power'));
+      btn.classList.toggle('active', match);
+    });
+  }
+
+  // ═══ OBSERVERS ═══
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        entry.target.querySelectorAll('.counting').forEach(el => {
+          if (!el.dataset.started) { el.dataset.started = 'true'; animateCount(el); }
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  function animateCount(el) {
+    const target = parseInt(el.dataset.target), duration = 2000, start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target).toLocaleString('en-US');
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const demoObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const rows = entry.target.querySelectorAll('.demo-row');
+        const progress = entry.target.querySelector('.demo-progress');
+        const fill = entry.target.querySelector('.progress-fill');
+        const cta = entry.target.querySelector('.demo-cta');
+        rows.forEach((row, i) => {
+          setTimeout(() => row.classList.add('visible'), 200 + (parseInt(row.dataset.delay) || i * 100));
+        });
+        setTimeout(() => { progress.classList.add('visible'); setTimeout(() => fill.classList.add('animate'), 150); }, 700);
+        setTimeout(() => cta.classList.add('visible'), 900);
+        demoObs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.25 });
+  const dt = document.getElementById('demo-trigger');
+  if (dt) demoObs.observe(dt);
+
+  let scrolled = false;
+  window.addEventListener('scroll', () => {
+    if (!scrolled && window.scrollY > 80) {
+      scrolled = true;
+      document.getElementById('scroll-cue').classList.add('hidden');
+    }
+  }, { passive: true });
+</script>
+
+</body>
+</html>

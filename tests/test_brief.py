@@ -254,7 +254,7 @@ def test_brief_loads_when_logged_in(client):
     rv = client.get("/brief")
     assert rv.status_code == 200
     html = rv.data.decode()
-    assert "Good Morning" in html
+    assert "Good morning" in html
 
 
 def test_brief_empty_watch_list(client):

@@ -213,11 +213,11 @@ def lookup_intel_preview():
     intel = _gather_intel(block, lot)
 
     if intel.get("timeout") and not intel.get("has_intelligence"):
-        # Return a spinner that auto-retries once
+        # Return a spinner that auto-retries every 2 seconds
         return (
             '<div class="intel-loading" '
             'hx-post="/lookup/intel-preview" '
-            'hx-trigger="load delay:2s" '
+            'hx-trigger="revealed delay:1s" '
             f'hx-vals=\'{{"block": "{block}", "lot": "{lot}"}}\' '
             'hx-swap="outerHTML">'
             '<div class="intel-spinner"></div>'

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-26T22:35:09.975456+00:00",
-  "total_routes": 147,
+  "generated_at": "2026-02-28T05:00:06.476488+00:00",
+  "total_routes": 176,
   "routes": [
     {
       "path": "/robots.txt",
@@ -19,6 +19,24 @@
       "auth_level": "public",
       "template": null,
       "function_name": "health"
+    },
+    {
+      "path": "/health/schema",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "health_schema"
+    },
+    {
+      "path": "/health/ready",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "health_ready"
     },
     {
       "path": "/admin/send-invite",
@@ -309,6 +327,69 @@
       "function_name": "admin_qa_screenshot"
     },
     {
+      "path": "/admin/metrics",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_metrics"
+    },
+    {
+      "path": "/admin/perf",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_perf"
+    },
+    {
+      "path": "/api/prep/create",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_prep_create"
+    },
+    {
+      "path": "/api/prep/<permit_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_prep_get"
+    },
+    {
+      "path": "/api/prep/item/<int:item_id>",
+      "methods": [
+        "PATCH"
+      ],
+      "auth_level": "cron",
+      "template": "fragments/prep_item.html",
+      "function_name": "api_prep_item_update"
+    },
+    {
+      "path": "/api/prep/preview/<permit_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_prep_preview"
+    },
+    {
+      "path": "/api/timeline/<permit_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_timeline_sequence"
+    },
+    {
       "path": "/api/stats",
       "methods": [
         "GET"
@@ -471,6 +552,24 @@
       "function_name": "api_user_points"
     },
     {
+      "path": "/api/qa-feedback",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_qa_feedback"
+    },
+    {
+      "path": "/api/qa-tour-verdicts",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "api_qa_tour_verdicts"
+    },
+    {
       "path": "/auth/login",
       "methods": [
         "GET"
@@ -615,6 +714,15 @@
       "function_name": "account_fragment_admin"
     },
     {
+      "path": "/account/prep",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "account_prep.html",
+      "function_name": "account_prep"
+    },
+    {
       "path": "/account/primary-address",
       "methods": [
         "POST"
@@ -696,6 +804,69 @@
       "function_name": "email_unsubscribe"
     },
     {
+      "path": "/onboarding",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "unknown"
+    },
+    {
+      "path": "/onboarding/step/1",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "onboarding_step1.html",
+      "function_name": "onboarding_step1"
+    },
+    {
+      "path": "/onboarding/step/1/save",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "onboarding_step1_save"
+    },
+    {
+      "path": "/onboarding/step/2",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "onboarding_step2.html",
+      "function_name": "onboarding_step2"
+    },
+    {
+      "path": "/onboarding/step/2/save",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "onboarding_step2_save"
+    },
+    {
+      "path": "/onboarding/step/3",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "onboarding_step3.html",
+      "function_name": "onboarding_step3"
+    },
+    {
+      "path": "/onboarding/step/3/complete",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "onboarding_complete"
+    },
+    {
       "path": "/onboarding/dismiss",
       "methods": [
         "POST"
@@ -712,6 +883,24 @@
       "auth_level": "cron",
       "template": null,
       "function_name": "cron_status"
+    },
+    {
+      "path": "/cron/heartbeat",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_heartbeat"
+    },
+    {
+      "path": "/cron/pipeline-summary",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "pipeline_summary"
     },
     {
       "path": "/cron/nightly",
@@ -976,6 +1165,51 @@
       "function_name": "cron_ingest_planning_review_metrics"
     },
     {
+      "path": "/cron/refresh-parcel-summary",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_refresh_parcel_summary"
+    },
+    {
+      "path": "/cron/ingest-recent-permits",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_ingest_recent_permits"
+    },
+    {
+      "path": "/cron/refresh-severity-cache",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_refresh_severity_cache"
+    },
+    {
+      "path": "/cron/aggregate-api-usage",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_aggregate_api_usage"
+    },
+    {
+      "path": "/cron/compute-caches",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "cron_compute_caches"
+    },
+    {
       "path": "/brief",
       "methods": [
         "GET"
@@ -983,6 +1217,15 @@
       "auth_level": "auth",
       "template": "brief.html",
       "function_name": "brief"
+    },
+    {
+      "path": "/brief/refresh",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "brief_refresh"
     },
     {
       "path": "/dashboard/bottlenecks",
@@ -1049,6 +1292,15 @@
       "function_name": "about_data"
     },
     {
+      "path": "/welcome",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "welcome.html",
+      "function_name": "welcome"
+    },
+    {
       "path": "/demo",
       "methods": [
         "GET"
@@ -1056,6 +1308,15 @@
       "auth_level": "public",
       "template": "demo.html",
       "function_name": "demo"
+    },
+    {
+      "path": "/prep/<permit_number>",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": null,
+      "function_name": "permit_prep"
     },
     {
       "path": "/consultants",
@@ -1350,9 +1611,9 @@
     ]
   },
   "auth_summary": {
-    "public": 43,
-    "auth": 25,
-    "admin": 31,
-    "cron": 48
+    "public": 46,
+    "auth": 35,
+    "admin": 33,
+    "cron": 62
   }
 }
