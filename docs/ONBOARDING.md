@@ -144,6 +144,27 @@ Flask + HTMX. Most interactivity is done via HTMX partial page updates rather th
 ### Vision / Plan Analysis (src/vision/)
 Uses Claude's Vision API to analyze architectural drawings. This is the most complex subsystem — read `docs/ARCHITECTURE.md` section on vision before diving in.
 
+## Database Connection Pool Configuration
+
+The app uses a `psycopg2.ThreadedConnectionPool` for PostgreSQL connections in production. All settings are controlled via environment variables — no code changes required.
+
+| Env Var | Default | Description |
+|---|---|---|
+| `DB_POOL_MIN` | `5` | Minimum persistent connections kept alive in the pool |
+| `DB_POOL_MAX` | `50` | Maximum total connections the pool can open simultaneously |
+| `DB_CONNECT_TIMEOUT` | `10` | Seconds before a new connection attempt times out |
+| `DB_STATEMENT_TIMEOUT` | `30s` | Per-query timeout for web requests (skipped for cron workers) |
+| `DB_POOL_WARN_THRESHOLD` | `0.8` | Fraction of `DB_POOL_MAX` at which a pool exhaustion WARNING is logged (0.8 = 80%) |
+
+### Tuning Guidelines
+
+- **Default** (`DB_POOL_MAX=50`) handles ~50 simultaneous DB-bound gunicorn workers.
+- **High traffic** (>50 concurrent users): raise `DB_POOL_MAX` to 80-100 and enable PgBouncer.
+- **Pool exhaustion warning**: when `≥80%` of connections are in use, a `WARNING` is emitted to the app log with current utilization stats. This is the signal to increase the pool or investigate slow queries.
+- **Diagnostics**: `GET /health` returns `pool_stats` including `used_count`, `pool_size`, and `maxconn`.
+
+Set these via Railway dashboard → sfpermits-ai service → Variables. No restart required (Railway auto-restarts on variable changes).
+
 ## Things to Never Do
 
 - **Never commit `.env`, API keys, or secrets.** Check `git diff --staged` before every commit.

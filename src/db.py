@@ -35,15 +35,22 @@ _pool = None
 
 
 def _get_pool():
-    """Get or create the PostgreSQL connection pool (lazy singleton)."""
+    """Get or create the PostgreSQL connection pool (lazy singleton).
+
+    Pool defaults (overridable via env vars):
+      DB_POOL_MIN=5           — minimum persistent connections
+      DB_POOL_MAX=50          — maximum connections (raise for >50 concurrent users)
+      DB_CONNECT_TIMEOUT=10   — seconds before a new connection attempt times out
+      DB_POOL_WARN_THRESHOLD  — fraction [0.0-1.0] of max_conn that triggers an
+                                exhaustion warning (default 0.8 = 80%)
+    """
     global _pool
     if _pool is None:
         import psycopg2.pool
-        _minconn = int(os.environ.get("DB_POOL_MIN", "2"))
-        # Increase DB_POOL_MAX for >50 concurrent users. See Chief #364.
-        # Default max=20 handles ~20 simultaneous DB-bound requests (gunicorn workers
-        # share the pool). At high traffic, increase to 40-50 and enable PgBouncer.
-        _maxconn = int(os.environ.get("DB_POOL_MAX", "20"))
+        _minconn = int(os.environ.get("DB_POOL_MIN", "5"))
+        # Default max=50 handles ~50 simultaneous DB-bound requests (gunicorn workers
+        # share the pool). At very high traffic, raise further and enable PgBouncer.
+        _maxconn = int(os.environ.get("DB_POOL_MAX", "50"))
         _connect_timeout = int(os.environ.get("DB_CONNECT_TIMEOUT", "10"))
         _pool = psycopg2.pool.ThreadedConnectionPool(
             minconn=_minconn,
@@ -56,6 +63,33 @@ def _get_pool():
             _minconn, _maxconn, _connect_timeout,
         )
     return _pool
+
+
+def _check_pool_exhaustion_warning(pool) -> None:
+    """Emit a WARNING log when pool utilization exceeds the configured threshold.
+
+    Threshold is controlled by DB_POOL_WARN_THRESHOLD (default 0.8 = 80%).
+    Reads internal psycopg2 pool attributes defensively — if the attributes
+    are missing (psycopg2 internals changed), the check is skipped silently.
+    """
+    try:
+        warn_threshold = float(os.environ.get("DB_POOL_WARN_THRESHOLD", "0.8"))
+        maxconn = pool.maxconn
+        used_count = len(pool._used) if hasattr(pool, "_used") else 0
+        utilization = used_count / maxconn if maxconn > 0 else 0.0
+        if utilization >= warn_threshold:
+            logger.warning(
+                "DB pool near exhaustion: %d/%d connections in use (%.0f%% >= %.0f%% threshold). "
+                "Consider increasing DB_POOL_MAX (current=%d) or enabling PgBouncer.",
+                used_count,
+                maxconn,
+                utilization * 100,
+                warn_threshold * 100,
+                maxconn,
+            )
+    except Exception:
+        # Never let the warning check crash the request path
+        logger.debug("Could not check pool exhaustion", exc_info=True)
 
 
 def get_pool_health() -> dict:
@@ -177,6 +211,8 @@ def get_connection(db_path: str | None = None):
         try:
             pool = _get_pool()
             raw_conn = pool.getconn()
+            # Warn if pool utilization is high (after acquiring, so count includes this conn)
+            _check_pool_exhaustion_warning(pool)
             # Set statement_timeout for web requests; skip for cron workers
             if not os.environ.get("CRON_WORKER", "").lower() == "true":
                 _stmt_timeout = os.environ.get("DB_STATEMENT_TIMEOUT", "30s")
