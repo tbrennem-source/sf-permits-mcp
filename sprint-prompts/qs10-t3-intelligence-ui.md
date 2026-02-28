@@ -1,5 +1,7 @@
 # QS10 Terminal 3: Intelligence Tool Web UI
 
+> **EXECUTE IMMEDIATELY.** You are a terminal orchestrator. Read this prompt, run Pre-Flight, then spawn ALL 4 agents in parallel using the Agent tool (subagent_type="general-purpose", model="sonnet", isolation="worktree"). Do NOT summarize or ask for confirmation — execute now. After all agents complete, run the Post-Agent merge ceremony (A→B→C→D order), then CHECKQUAD.
+
 **Sprint:** QS10 — Intelligence Tool Standalone Pages
 **Chief Task:** #360
 **Theme:** Build 4 standalone web tool pages surfacing the intelligence API endpoints already live in `web/routes_api.py`.

@@ -1,5 +1,7 @@
 # QS10 Terminal 2: Admin QA Tools
 
+> **EXECUTE IMMEDIATELY.** You are a terminal orchestrator. Read this prompt, run Pre-Flight, then spawn agents using the Agent tool (subagent_type="general-purpose", model="sonnet", isolation="worktree"). Agent 2A first, wait for completion, then Agent 2B. Do NOT summarize or ask for confirmation — execute now. After both agents complete, run the Post-Agent merge ceremony, then CHECKQUAD.
+
 **Sprint:** QS10 — Phase A Visual QA Foundation + Intelligence UI + Beta Onboarding
 **Terminal theme:** Admin QA Tools — Persona Impersonation + Accept/Reject Log
 **Agents:** 2 (sequential — 2B starts ONLY after 2A completes)

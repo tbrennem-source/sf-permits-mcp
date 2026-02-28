@@ -1,5 +1,7 @@
 # QS10 T1: Visual QA Phase A — QA Pipeline Extensions
 
+> **EXECUTE IMMEDIATELY.** You are a terminal orchestrator. Read this prompt, run Pre-Flight, then spawn ALL agents listed below using the Agent tool (subagent_type="general-purpose", model="sonnet", isolation="worktree"). Do NOT summarize or ask for confirmation — execute now. After all agents complete, run the Post-Agent merge ceremony, then CHECKQUAD.
+
 **Sprint:** QS10
 **Terminal:** T1 — Visual QA Phase A
 **Theme:** Extend existing QA scripts with structural diff, computed CSS checks, and vision gate

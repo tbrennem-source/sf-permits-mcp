@@ -1,5 +1,7 @@
 # QS10 Terminal 4: Beta Onboarding + First Tier Gate (Sprint 89)
 
+> **EXECUTE IMMEDIATELY.** You are a terminal orchestrator. Read this prompt, run Pre-Flight, then spawn Agent 4A using the Agent tool (subagent_type="general-purpose", model="sonnet", isolation="worktree"). Wait for 4A to complete. Merge 4A to main. Then spawn Agent 4B. Do NOT summarize or ask for confirmation — execute now. After both agents complete, run Post-Agent merge, then CHECKQUAD.
+
 You are the orchestrator for Sprint 89. Spawn 2 SEQUENTIAL build agents — Agent 4A must FULLY COMPLETE (commit + branch pushed) before you spawn Agent 4B. Agent 4B depends on 4A's `web/tier_gate.py` decorator. Do NOT run the full test suite — T0 handles that in the merge ceremony.
 
 ## Pre-Flight (30 seconds — T0 already verified tests + prod health)
