@@ -816,3 +816,39 @@ border: 1px solid rgba(245, 158, 11, 0.30); /* --dot-amber at 30% opacity */
 .mcp-demo__tool-item--active { background: var(--accent-glow); color: var(--accent); }
 ```
 **Notes:** Animated via `mcp-demo.js` — chat bubbles fade in sequentially on IntersectionObserver trigger. CTA links to /auth/login with `data-track="mcp-demo-cta"` for PostHog.
+
+### Landing Page Mobile Nav Bar
+**Sprint:** QS11 / Sprint 97 mobile fixes
+**File:** `web/templates/landing.html` (inline `<style>` + `<nav>`)
+**Usage:** Landing page only — phone-width navigation bar (≤480px) that replaces the invisible 11px "Sign in" link
+**Status:** NEW
+**HTML:**
+```html
+<nav class="mobile-nav" aria-label="Mobile navigation">
+  <a href="/" class="mobile-nav__brand">sfpermits.ai</a>
+  <ul class="mobile-nav__links">
+    <li><a href="/search">Search</a></li>
+    <li><a href="/demo">Demo</a></li>
+    <li><a href="/methodology">How</a></li>
+    <li><a href="/auth/login">Sign in</a></li>
+  </ul>
+</nav>
+```
+**CSS:**
+```css
+@media (max-width: 480px) {
+  .mobile-nav { display: flex; align-items: center; justify-content: space-between;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: color-mix(in srgb, var(--obsidian) 92%, transparent);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--glass-border);
+    padding: 0 16px; height: 52px; }
+  .mobile-nav__brand { font-family: var(--mono); font-size: 12px; font-weight: 300;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-secondary);
+    text-decoration: none; display: flex; align-items: center; height: 52px; }
+  .mobile-nav__links a { font-family: var(--mono); font-size: 11px; font-weight: 300;
+    color: var(--text-secondary); display: flex; align-items: center; height: 52px;
+    padding: 0 10px; }
+}
+@media (min-width: 481px) { .mobile-nav { display: none; } }
+```
+**Notes:** Fixed bar at top of viewport. Height 52px provides ≥44px touch targets (Apple HIG). Uses `color-mix()` with `--obsidian` token for the semi-transparent background. Pushes hero content down via `body { padding-top: 52px }` in the same media query. Only exists on landing.html — other pages use `nav.html` / `nav-float`.

@@ -745,6 +745,78 @@
 </div>
 {% endif %}
 
+<!-- MOBILE NAV — phone only (≤480px), minimal bar with ≥44px touch targets -->
+<style nonce="{{ csp_nonce }}">
+@media (max-width: 480px) {
+  .mobile-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    background: color-mix(in srgb, var(--obsidian) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0 16px;
+    height: 52px;
+  }
+  .mobile-nav__brand {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    height: 52px; /* full bar height = 52px touch target */
+  }
+  .mobile-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    list-style: none;
+  }
+  .mobile-nav__links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    height: 52px; /* full bar height = 52px touch target */
+    padding: 0 10px;
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+  .mobile-nav__links a:hover,
+  .mobile-nav__links a:focus {
+    color: #5eead4;
+  }
+  /* Push hero content down to avoid overlap with fixed nav */
+  body { padding-top: 52px; }
+  .hero { min-height: calc(92vh - 52px); min-height: calc(92dvh - 52px); }
+}
+/* Hide on desktop — only show phone nav at ≤480px */
+@media (min-width: 481px) {
+  .mobile-nav { display: none; }
+}
+</style>
+<nav class="mobile-nav" aria-label="Mobile navigation">
+  <a href="/" class="mobile-nav__brand">sfpermits.ai</a>
+  <ul class="mobile-nav__links">
+    <li><a href="/search">Search</a></li>
+    <li><a href="/demo">Demo</a></li>
+    <li><a href="/methodology">How</a></li>
+    <li><a href="/auth/login">Sign in</a></li>
+  </ul>
+</nav>
+
 <div class="ambient"></div>
 
 <!-- SIGN IN — visible but quiet -->
