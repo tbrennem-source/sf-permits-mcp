@@ -390,3 +390,57 @@ Displays a beta upgrade teaser card that fits inside an existing page element.
 
 **CSS:** All custom properties. Badge uses `--signal-blue`, `--mono`. Title uses `--sans`, `--text-xl`. CTA uses `--accent`, `--obsidian`. Card uses `--obsidian-mid`, `--glass-border`, `--radius-md`.
 **Notes:** Companion to `tier_gate_teaser.html` (full-page). This version has no DOCTYPE/html tags so it can be safely injected via HTMX `hx-swap="innerHTML"`. Used by routes_search.py /ask endpoint to gate AI synthesis intents.
+
+---
+
+### Tier Gate Overlay (Full-Page Blur + CTA)
+
+**Sprint:** QS11 T4
+**File:** `web/templates/components/tier_gate_overlay.html`, `web/static/css/tier-gate.css`, `web/static/js/tier-gate.js`
+**Usage:** Included at the bottom of any gated page template. Renders a fixed full-viewport overlay with blur on the main content when `tier_locked=True`. Zero DOM impact when `tier_locked=False`.
+**Status:** NEW
+
+**HTML (partial — include at bottom of gated templates):**
+```html
+{% if tier_locked %}
+<div class="tier-gate-overlay"
+     data-track="tier-gate-impression"
+     data-tier-required="{{ tier_required }}"
+     data-tier-current="{{ tier_current }}">
+  <div class="tier-gate-card glass-card">
+    <h3>See this for your property</h3>
+    <p>Get full access to permit intelligence for your address.</p>
+    <a href="/beta/join" class="ghost-cta tier-gate-cta" data-track="tier-gate-click">
+      Get access &rarr;
+    </a>
+    <p class="tier-gate-subtext">Free during beta. Takes 30 seconds.</p>
+  </div>
+</div>
+{% endif %}
+```
+
+**CSS (key rules — see tier-gate.css for full file):**
+```css
+.tier-locked-content {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.3s ease;
+}
+.tier-gate-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.3);
+}
+.tier-gate-card {
+  max-width: 420px;
+  padding: var(--space-8);
+  text-align: center;
+}
+```
+
+**Notes:** Extends `glass-card` (token component) and `ghost-cta` (token component). Blur is 8px — intentional: tantalizing but unreadable. JS (`tier-gate.js`) adds `.tier-locked-content` to the first `main`, `.obs-container`, or `.obs-container-wide` found in the DOM. Analytics via `data-track` attributes on overlay impression and CTA click. Template context vars: `tier_locked` (bool), `tier_required` (str), `tier_current` (str) — expected from the context processor built by Agent 4A.
