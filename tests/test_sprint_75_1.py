@@ -188,11 +188,13 @@ def test_index_has_glass_card(index_html):
     assert "glass-card" in index_html, "index.html missing glass-card class"
 
 
-def test_index_has_quick_actions_section(index_html):
-    """index.html must have quick actions card."""
-    assert "Quick Actions" in index_html or "dash-actions-card" in index_html, (
-        "index.html missing quick actions section"
-    )
+def test_index_has_search_or_brief_section(index_html):
+    """index.html must have a primary content section (search, brief, or onboarding)."""
+    assert (
+        "dash-search-card" in index_html
+        or "brief-card" in index_html
+        or "onboard-card" in index_html
+    ), "index.html missing primary content section"
 
 
 def test_index_has_obsidian_input(index_html):
@@ -202,10 +204,10 @@ def test_index_has_obsidian_input(index_html):
     )
 
 
-def test_index_has_obsidian_btn_primary(index_html):
-    """Go button must use obsidian-btn-primary class."""
-    assert "obsidian-btn-primary" in index_html, (
-        "index.html Go button missing obsidian-btn-primary class"
+def test_index_has_search_button(index_html):
+    """Search submit button must be present in the index page."""
+    assert "search-btn" in index_html or "obsidian-btn-primary" in index_html, (
+        "index.html missing search submit button"
     )
 
 

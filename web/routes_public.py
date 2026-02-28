@@ -67,12 +67,48 @@ def index():
 
     upload_error = request.args.get("upload_error")
 
+    # Watch count and change summary for brief-first dashboard
+    watch_count = 0
+    changes_count = 0
+    urgent_count = 0
+    brief_items = []
+    try:
+        from src.db import query as db_query
+        user_id = g.user.get("user_id")
+        if user_id:
+            wc_rows = db_query(
+                "SELECT COUNT(*) FROM watch_items WHERE user_id = %s AND is_active = TRUE",
+                (user_id,),
+            )
+            watch_count = wc_rows[0][0] if wc_rows else 0
+
+            if watch_count > 0:
+                # Count changes in the past 7 days via permit_changes
+                try:
+                    cc_rows = db_query(
+                        "SELECT COUNT(DISTINCT pc.permit_number) "
+                        "FROM permit_changes pc "
+                        "JOIN watch_items wi ON wi.permit_number = pc.permit_number "
+                        "WHERE wi.user_id = %s AND wi.is_active = TRUE "
+                        "AND pc.detected_at >= NOW() - INTERVAL '7 days'",
+                        (user_id,),
+                    )
+                    changes_count = cc_rows[0][0] if cc_rows else 0
+                except Exception:
+                    changes_count = 0
+    except Exception as e:
+        logging.warning("Dashboard watch count failed: %s", e)
+
     return render_template(
         "index.html",
         neighborhoods=NEIGHBORHOODS,
         user_report_url=user_report_url,
         user_report_address=user_report_address,
         upload_error=upload_error,
+        watch_count=watch_count,
+        changes_count=changes_count,
+        urgent_count=urgent_count,
+        brief_items=brief_items,
     )
 
 

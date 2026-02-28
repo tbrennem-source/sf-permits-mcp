@@ -4,19 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow"><!-- Remove after beta -->
-    <title>sfpermits.ai — SF Permit Analysis</title>
+    <title>sfpermits.ai — SF Permit Intelligence</title>
     {% include "fragments/head_obsidian.html" %}
     <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
     <style nonce="{{ csp_nonce }}">
 
-        /* ── Dashboard layout (obs-container is defined in design-system.css) ── */
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
+        /* ── Page body ───────────────────────────────────────────────── */
+        .page-body {
+            padding-top: 56px;
+            padding-bottom: var(--space-20);
         }
 
-        /* ── Dashboard sections ──────────────────────────────────────────── */
+        /* ── Dashboard layout ────────────────────────────────────────── */
         .dash-main {
             padding: var(--space-8) 0 var(--space-16);
             display: flex;
@@ -24,140 +23,7 @@
             gap: var(--space-6);
         }
 
-        /* Search card */
-        .dash-search-card {
-            padding: var(--space-8);
-        }
-        .dash-search-heading {
-            font-family: var(--mono);
-            font-size: clamp(1.4rem, 1.2rem + 1.5vw, 2.2rem);
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: var(--space-6);
-            letter-spacing: -0.02em;
-            line-height: 1.2;
-        }
-        .dash-search-heading .cyan { color: var(--signal-cyan); }
-
-        /* Quick actions card */
-        .dash-actions-card {
-            padding: var(--space-6);
-        }
-        .dash-section-label {
-            font-family: var(--sans);
-            font-size: var(--text-sm);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-            margin-bottom: var(--space-4);
-        }
-        .dash-actions-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-3);
-        }
-        @media (max-width: 768px) {
-            .dash-actions-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: var(--space-3);
-            }
-        }
-        @media (max-width: 375px) {
-            .dash-actions-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Recent items card */
-        .dash-recent-card {
-            padding: var(--space-6);
-        }
-        .dash-recent-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-4);
-        }
-        @media (max-width: 1024px) {
-            .dash-recent-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        @media (max-width: 640px) {
-            .dash-recent-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .recent-chip {
-            background: var(--bg-elevated);
-            border: 1px solid rgba(255,255,255, 0.06);
-            border-radius: 10px;
-            padding: var(--space-4);
-            cursor: pointer;
-            text-decoration: none;
-            display: block;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .recent-chip:hover {
-            border-color: rgba(255,255,255, 0.14);
-            background: rgba(255,255,255, 0.04);
-        }
-        .recent-chip-address {
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            font-weight: 400;
-            color: var(--text-primary);
-            margin-bottom: var(--space-1);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .recent-chip-date {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-tertiary);
-        }
-        .recent-empty {
-            font-family: var(--sans);
-            color: var(--text-secondary);
-            font-size: var(--text-sm);
-            font-style: italic;
-        }
-
-        /* Watched Properties empty state */
-        .dash-watch-card {
-            padding: var(--space-6);
-            text-align: center;
-        }
-        .dash-empty-text {
-            font-family: var(--sans);
-            color: var(--text-secondary);
-            font-size: var(--text-sm);
-            margin-bottom: var(--space-4);
-        }
-
-        /* Stats row */
-        .dash-stats-card {
-            padding: var(--space-6);
-        }
-        .dash-stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--space-6);
-        }
-        @media (max-width: 768px) {
-            .dash-stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        @media (max-width: 400px) {
-            .dash-stats-row {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        /* ──────────────────────────────────────────────────────────────── */
+        /* ── Impersonate banner ──────────────────────────────────────── */
         .impersonate-banner {
             background: rgba(251, 191, 36, 0.12);
             border-bottom: 1px solid rgba(251, 191, 36, 0.3);
@@ -172,83 +38,659 @@
             border: 1px solid rgba(251, 191, 36, 0.3);
             color: var(--signal-amber);
             padding: 2px 8px;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-family: var(--mono);
             font-size: var(--text-xs);
             margin-left: 8px;
         }
 
-        .btn-watch {
-            background: none;
-            border: 1px solid rgba(255,255,255,0.06);
+        /* ── Search card ─────────────────────────────────────────────── */
+        .dash-search-card {
+            padding: var(--space-8);
+        }
+
+        .dash-search-heading {
+            font-family: var(--sans);
+            font-size: clamp(1.3rem, 1.0rem + 1.2vw, 2rem);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: var(--space-5);
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+        }
+
+        .dash-search-heading .accent {
+            color: var(--accent);
+        }
+
+        /* Search form */
+        .search-form {
+            max-width: 100%;
+            margin: 0 0 var(--space-3);
+        }
+
+        .search-box-wrapper {
+            display: flex;
+            gap: 0;
+        }
+
+        .search-box-wrapper .obsidian-input {
+            flex: 1;
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+            border-right: none;
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 300;
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: var(--space-4) var(--space-5);
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        .search-box-wrapper .obsidian-input:focus {
+            border-color: var(--accent-ring);
+            z-index: 1;
+        }
+
+        .search-btn {
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: var(--space-4) var(--space-6);
+            width: auto;
+            min-width: 72px;
+            flex-shrink: 0;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
             color: var(--text-secondary);
-            padding: 4px 12px;
-            border-radius: 6px;
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-left: none;
             cursor: pointer;
-            font-family: var(--mono);
-            font-size: var(--text-xs);
+            transition: color 0.2s, border-color 0.2s;
         }
-        .btn-watch:hover { color: var(--signal-amber); border-color: rgba(251, 191, 36, 0.3); }
-        .watch-active {
-            color: var(--signal-amber);
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            display: inline-flex;
+
+        .search-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent-ring);
+        }
+
+        /* Recent searches (inline chips) */
+        .recent-searches-row {
+            display: none;
             align-items: center;
-            gap: 6px;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+            margin-top: var(--space-2);
         }
-        .btn-unwatch {
+
+        .recent-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            font-weight: 400;
+            flex-shrink: 0;
+        }
+
+        .recent-chip {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            padding: 3px 10px;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+            white-space: nowrap;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recent-chip:hover {
+            color: var(--text-primary);
+            border-color: var(--glass-hover);
+        }
+
+        .recent-clear {
             background: none;
             border: none;
+            color: var(--text-tertiary);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            cursor: pointer;
+            padding: 2px 4px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .recent-clear:hover { color: var(--text-secondary); }
+
+        /* Search loading + results */
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: block; }
+
+        .search-loading {
+            padding: var(--space-6) 0;
+            text-align: center;
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            gap: var(--space-2);
+        }
+
+        .loading-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+            animation: dot-blink 1.4s ease-in-out infinite;
+        }
+
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dot-blink {
+            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+            40%            { opacity: 1;   transform: scale(1.2); }
+        }
+
+        .loading-text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin-top: var(--space-3);
+        }
+
+        /* Search results markdown output */
+        #search-results {
+            margin-top: var(--space-4);
+        }
+
+        .result-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .result-card h1 { font-family: var(--sans); font-size: var(--text-lg); font-weight: 400; margin: 0 0 var(--space-4); color: var(--accent); }
+        .result-card h2 { font-family: var(--sans); font-size: var(--text-base); font-weight: 400; margin: var(--space-5) 0 var(--space-3); color: var(--text-primary); }
+        .result-card h3 { font-family: var(--sans); font-size: var(--text-sm); font-weight: 400; margin: var(--space-4) 0 var(--space-2); color: var(--text-secondary); }
+        .result-card p  { font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary); margin: var(--space-2) 0; line-height: 1.6; }
+        .result-card ul, .result-card ol { margin: var(--space-2) 0; padding-left: var(--space-6); }
+        .result-card li { font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary); margin: var(--space-1) 0; }
+        .result-card strong { color: var(--text-primary); }
+        .result-card a    { color: var(--accent); text-decoration: none; }
+        .result-card a:hover { text-decoration: underline; }
+
+        .result-card table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: var(--space-3) 0;
+        }
+
+        .result-card th, .result-card td {
+            text-align: left;
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+            font-size: var(--text-xs);
+        }
+
+        .result-card th {
+            font-family: var(--mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+            font-weight: 400;
+        }
+
+        .result-card td {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+        }
+
+        .result-card .pass { color: var(--signal-green); }
+        .result-card .fail { color: var(--signal-red); }
+        .result-card .warn { color: var(--signal-amber); }
+
+        /* ── Onboarding banner (first login) ─────────────────────────── */
+        .onboarding-banner {
+            background: var(--accent-glow);
+            border: 1px solid var(--accent-ring);
+            border-radius: var(--radius-md);
+            padding: var(--space-4) var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+        }
+
+        .onboarding-banner__text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        .onboarding-banner__text strong {
+            color: var(--signal-green);
+            font-weight: 500;
+        }
+
+        .onboarding-banner__dismiss {
+            background: none;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            border-radius: var(--radius-sm);
             color: var(--text-secondary);
             cursor: pointer;
-            font-size: var(--text-xs);
-            padding: 2px;
-        }
-        .btn-unwatch:hover { color: var(--signal-red); }
-        .watch-container { display: inline-block; }
-        .login-prompt { font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary); }
-        .login-prompt a { color: var(--signal-cyan); text-decoration: none; }
-        .login-prompt a:hover { text-decoration: underline; }
-
-        main {
-            padding: 40px 0 80px;
-        }
-
-        h1 {
-            font-family: var(--mono);
-            font-size: var(--text-xl);
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
             font-family: var(--sans);
-            color: var(--text-secondary);
-            font-size: var(--text-sm);
-            margin-bottom: 32px;
+            font-size: var(--text-xs);
+            padding: var(--space-1) var(--space-3);
+            flex-shrink: 0;
+            transition: color 0.15s, border-color 0.15s;
         }
 
+        .onboarding-banner__dismiss:hover {
+            color: var(--text-primary);
+            border-color: var(--signal-green);
+        }
+
+        /* ── Brief summary card (has watches) ────────────────────────── */
+        .brief-card {
+            padding: var(--space-6);
+        }
+
+        .brief-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .brief-greeting {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--text-secondary);
+        }
+
+        .brief-greeting strong {
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+
+        .brief-stats {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            display: flex;
+            gap: var(--space-4);
+        }
+
+        .brief-stats__val { color: var(--text-secondary); }
+
+        /* Action queue rows (from portfolio mockup) */
+        .aq-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            padding: 10px var(--space-3);
+            margin: 0 calc(-1 * var(--space-3));
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--glass-border);
+            text-decoration: none;
+        }
+
+        .aq-item:last-child { border-bottom: none; }
+        .aq-item:hover { background: var(--glass); }
+
+        .aq-item__dot {
+            width: 6px;
+            height: 6px;
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+
+        .aq-item__body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .aq-item__headline {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+
+        .aq-item__detail {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        .aq-item__actions {
+            display: flex;
+            gap: var(--space-2);
+            margin-top: var(--space-2);
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+        }
+
+        .aq-item:hover .aq-item__actions {
+            max-height: 36px;
+            opacity: 1;
+        }
+
+        .aq-action {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--text-tertiary);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: 3px 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color 0.15s, border-color 0.15s;
+            text-decoration: none;
+        }
+
+        .aq-action:hover { color: var(--accent); border-color: var(--accent-ring); }
+
+        .aq-item__time {
+            font-family: var(--mono);
+            font-size: 10px;
+            flex-shrink: 0;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+
+        .aq-item__time--red    { color: var(--signal-red); }
+        .aq-item__time--amber  { color: var(--signal-amber); }
+        .aq-item__time--green  { color: var(--signal-green); }
+        .aq-item__time--muted  { color: var(--text-tertiary); }
+
+        .aq-item__arrow {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-tertiary);
+            opacity: 0;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .aq-item:hover .aq-item__arrow { opacity: 1; color: var(--accent); }
+
+        /* ── Onboarding card (no watches) ────────────────────────────── */
+        .onboard-card {
+            padding: var(--space-8) var(--space-6);
+        }
+
+        .onboard-headline {
+            font-family: var(--sans);
+            font-size: var(--text-xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+            line-height: 1.4;
+        }
+
+        .onboard-body {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: var(--space-5);
+            max-width: 520px;
+        }
+
+        .onboard-steps {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+        }
+
+        .onboard-step {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+        }
+
+        .onboard-step__num {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .onboard-step__text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .onboard-step__text strong {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        /* ── Your property card (user has primary address) ────────────── */
+        .property-card {
+            padding: var(--space-5) var(--space-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+        }
+
+        .property-card__label {
+            font-family: var(--mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-1);
+        }
+
+        .property-card__address {
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--text-primary);
+        }
+
+        /* ── Recent searches section ──────────────────────────────────── */
+        .recent-section {
+            padding: var(--space-5) var(--space-6);
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-3);
+        }
+
+        .recent-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-2);
+        }
+
+        @media (max-width: 768px) {
+            .recent-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .recent-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: background 0.12s, border-color 0.12s;
+            text-decoration: none;
+        }
+
+        .recent-item:hover {
+            background: var(--glass);
+            border-color: var(--glass-hover);
+        }
+
+        .recent-item__text {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .recent-item:hover .recent-item__text {
+            color: var(--text-primary);
+        }
+
+        .recent-item__arrow {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-tertiary);
+            opacity: 0;
+            transition: opacity 0.12s;
+            flex-shrink: 0;
+        }
+
+        .recent-item:hover .recent-item__arrow {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        /* ── Ghost CTA (CANON: no filled buttons) ────────────────────── */
+        .ghost-cta {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .ghost-cta:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        /* ── Freshness indicator ──────────────────────────────────────── */
+        .freshness {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding-top: var(--space-3);
+        }
+
+        .freshness-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: var(--radius-full);
+            background: var(--dot-green);
+            flex-shrink: 0;
+        }
+
+        /* ── Analyze / Lookup / Plans tool sections ───────────────────── */
+        .tool-section {
+            display: none;
+        }
+
+        .tool-section.visible {
+            display: block;
+        }
+
+        .section-divider {
+            border-top: 1px solid var(--glass-border);
+            margin: var(--space-4) 0;
+        }
+
+        .section-title {
+            font-family: var(--sans);
+            font-size: var(--text-xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .section-subtitle {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-6);
+        }
+
+        /* ── Form elements (for hidden tool sections) ─────────────────── */
         .form-card {
-            background: var(--bg-surface);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: var(--card-radius, 12px);
-            box-shadow: var(--card-shadow, 0 4px 24px rgba(0,0,0, 0.3));
-            padding: 28px;
-            margin-bottom: 16px;
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            margin-bottom: var(--space-4);
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: var(--space-5);
         }
 
         @media (min-width: 640px) {
             .form-grid {
                 grid-template-columns: 1fr 1fr;
             }
+
             .form-grid .full-width {
                 grid-column: 1 / -1;
             }
@@ -260,308 +702,225 @@
             font-size: var(--text-xs);
             font-weight: 400;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: var(--space-2);
             text-transform: uppercase;
             letter-spacing: 0.06em;
         }
 
-        input, select, textarea {
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
             width: 100%;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 8px;
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
             color: var(--text-primary);
-            padding: 12px 16px;
+            padding: var(--space-3) var(--space-4);
             font-size: var(--text-sm);
             font-family: var(--mono);
             font-weight: 300;
             transition: border-color 0.2s;
+            box-sizing: border-box;
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: rgba(34, 211, 238, 0.3);
+            border-color: var(--accent-ring);
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+        textarea { resize: vertical; min-height: 100px; }
 
-        .btn {
-            background: var(--signal-cyan);
-            color: var(--bg-deep);
-            border: 1px solid transparent;
-            border-radius: 8px;
-            padding: 14px 32px;
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, opacity 0.2s;
-            width: 100%;
-        }
-
-        .btn:hover { opacity: 0.85; }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn .spinner {
-            display: none;
-        }
-
-        .htmx-request .btn .spinner {
-            display: inline-block;
-        }
-
-        .htmx-request .btn .label {
-            display: none;
-        }
-
-        /* JS-toggled loading state — HTMX 2.x puts .htmx-request on the
-           hx-indicator target, not the triggering form/button, so we use
-           a .loading class toggled by beforeRequest/afterRequest listeners. */
-        form.loading .btn .spinner { display: inline-block; }
-        form.loading .btn .label   { display: none; }
-        /* Pulse the Go button while waiting for /ask response */
-        form.loading .search-btn {
-            animation: pulse 0.9s ease-in-out infinite;
-            background: var(--accent-hover, #3a7de8);
-        }
-
-        /* Results area */
-        #results {
-            margin-top: 16px;
-        }
-
-        .results-tabs {
-            display: flex;
-            gap: 4px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            margin-bottom: 24px;
-            overflow-x: auto;
-        }
-
-        .tab {
-            padding: 10px 18px;
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            font-weight: 400;
-            color: var(--text-secondary);
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .tab:hover { color: var(--text-primary); }
-        .tab.active {
-            color: var(--signal-cyan);
-            border-bottom-color: var(--signal-cyan);
-        }
-
-        .tab-panel {
-            display: none;
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
-        .result-card {
-            background: var(--bg-surface);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: var(--card-radius, 12px);
-            box-shadow: var(--card-shadow, 0 4px 24px rgba(0,0,0, 0.3));
-            padding: 28px;
-        }
-
-        /* Markdown output styling */
-        .result-card h1 { font-size: 1.3rem; margin: 0 0 16px; color: var(--signal-cyan); }
-        .result-card h2 { font-size: var(--text-lg); margin: 20px 0 10px; color: var(--text-primary); }
-        .result-card h3 { font-size: 0.95rem; margin: 16px 0 8px; color: var(--text-secondary); }
-        .result-card p { margin: 8px 0; }
-        .result-card ul, .result-card ol { margin: 8px 0; padding-left: 24px; }
-        .result-card li { margin: 4px 0; }
-        .result-card strong { color: var(--text-primary); }
-        .result-card a { color: var(--signal-cyan); text-decoration: none; }
-        .result-card a:hover { text-decoration: underline; }
-
-        .result-card table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 12px 0;
-        }
-
-        .result-card th, .result-card td {
-            text-align: left;
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .result-card th {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-            font-weight: 400;
-        }
-
-        .error {
-            color: var(--signal-red);
-            background: rgba(248, 113, 113, 0.1);
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(248, 113, 113, 0.2);
-        }
-
-        .info {
-            color: var(--text-secondary);
-            background: var(--bg-elevated);
-            padding: 12px 16px;
-            border-radius: 8px;
-        }
-
-        /* Loading indicator */
-        .htmx-indicator {
-            display: none;
-        }
-
-        .htmx-request .htmx-indicator {
-            display: block;
-        }
-
-        .loading-bar {
-            background: var(--bg-surface);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: var(--card-radius, 12px);
-            box-shadow: var(--card-shadow, 0 4px 24px rgba(0,0,0, 0.3));
-            padding: 40px;
-            text-align: center;
-        }
-
-        .loading-bar .dots {
-            display: inline-block;
-            font-size: 1.5rem;
-            color: var(--signal-cyan);
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .loading-bar p {
-            font-family: var(--sans);
-            color: var(--text-secondary);
-            margin-top: 12px;
-            font-size: var(--text-sm);
-        }
-
-        /* Hourglass spinner for plan analysis */
-        .hourglass-spinner {
-            font-size: 48px;
-            animation: spin 2s linear infinite;
-            display: inline-block;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .progress-dots {
+        /* Glass action button (for form submits) */
+        .glass-btn {
             display: inline-flex;
-            gap: 8px;
-        }
-
-        .progress-dots .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--signal-cyan);
-            border-radius: 50%;
-            animation: dot-pulse 1.4s ease-in-out infinite;
-        }
-
-        .progress-dots .dot:nth-child(2) { animation-delay: 0.2s; }
-        .progress-dots .dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes dot-pulse {
-            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-            40% { opacity: 1; transform: scale(1.2); }
-        }
-
-        footer {
-            border-top: 1px solid rgba(255,255,255,0.06);
-            padding: 20px 0;
-            text-align: center;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
             color: var(--text-secondary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3) var(--space-5);
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+        }
+
+        .glass-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent-ring);
+        }
+
+        .glass-btn .spinner { display: none; }
+        form.loading .glass-btn .spinner { display: inline; }
+        form.loading .glass-btn .label   { display: none; }
+
+        .glass-btn--full { width: 100%; justify-content: center; }
+
+        /* Outline button (scan buttons for plan analysis) */
+        .outline-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
             font-family: var(--mono);
             font-size: var(--text-xs);
+            font-weight: 400;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: var(--space-2) var(--space-4);
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+            white-space: nowrap;
         }
 
-        /* Presets */
-        .presets {
-            margin-bottom: 20px;
+        .outline-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent-ring);
         }
 
+        .outline-btn--active {
+            color: var(--accent);
+            border-color: var(--accent-ring);
+            background: var(--accent-glow);
+        }
+
+        .outline-btn .spinner { display: none; }
+        .outline-btn.loading .spinner { display: inline; }
+        .outline-btn.loading .label   { display: none; }
+
+        /* Presets row */
         .presets-label {
             font-family: var(--mono);
             font-size: var(--text-xs);
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: var(--space-2);
         }
 
         .preset-chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: var(--space-2);
+            margin-bottom: var(--space-5);
         }
 
         .preset-chip {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
             color: var(--text-secondary);
-            padding: 6px 14px;
-            border-radius: 20px;
+            padding: var(--space-1) var(--space-4);
+            border-radius: var(--radius-full);
             font-family: var(--mono);
             font-size: var(--text-xs);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: border-color 0.15s, color 0.15s;
         }
 
         .preset-chip:hover {
-            border-color: rgba(34, 211, 238, 0.3);
+            border-color: var(--accent-ring);
             color: var(--text-primary);
         }
 
-        /* Section divider */
-        .section-divider {
-            border-top: 1px solid rgba(255,255,255,0.06);
-            margin: 48px 0 32px;
+        /* Priority chips */
+        .priority-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-5);
         }
 
-        .section-title {
-            font-family: var(--sans);
-            font-size: var(--text-xl);
-            font-weight: 400;
-            color: var(--text-primary);
-            margin-bottom: 8px;
+        .priority-chip {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .priority-chip:hover { border-color: var(--accent-ring); color: var(--text-primary); }
+        .priority-chip.selected { background: var(--accent-glow); border-color: var(--accent-ring); color: var(--accent); }
+
+        /* Experience toggle */
+        .experience-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: var(--space-5);
+        }
+
+        .experience-option {
+            flex: 1;
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            text-align: center;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .experience-option:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+        .experience-option:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-left: none; }
+        .experience-option:hover  { color: var(--text-primary); }
+        .experience-option.selected { background: var(--accent-glow); border-color: var(--accent-ring); color: var(--accent); }
+
+        /* Personalize toggle */
+        .personalize-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            cursor: pointer;
+            padding: var(--space-2) 0;
+            transition: opacity 0.15s;
+        }
+
+        .personalize-toggle:hover { opacity: 0.8; }
+
+        .personalize-toggle .toggle-icon {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+
+        .personalize-toggle.open .toggle-icon { transform: rotate(90deg); }
+
+        .personalize-section { display: none; padding-top: var(--space-4); border-top: 1px solid var(--glass-border); margin-top: var(--space-2); }
+        .personalize-section.open { display: block; }
+
+        /* Team grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+        }
+
+        @media (min-width: 640px) {
+            .team-grid { grid-template-columns: 1fr 1fr 1fr; }
         }
 
         /* File upload */
         .file-upload-area {
             position: relative;
-            border: 2px dashed rgba(255,255,255,0.06);
-            border-radius: 10px;
-            padding: 32px 20px;
+            border: 2px dashed var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: var(--space-8) var(--space-5);
             text-align: center;
             cursor: pointer;
             transition: border-color 0.2s, background 0.2s;
@@ -569,8 +928,8 @@
 
         .file-upload-area:hover,
         .file-upload-area.drag-over {
-            border-color: rgba(34, 211, 238, 0.3);
-            background: rgba(34, 211, 238, 0.04);
+            border-color: var(--accent-ring);
+            background: var(--accent-glow);
         }
 
         .file-input {
@@ -586,37 +945,30 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: var(--space-2);
             font-family: var(--sans);
             color: var(--text-secondary);
             pointer-events: none;
-        }
-
-        .file-icon {
-            font-size: 2rem;
-            margin-bottom: 4px;
+            font-size: var(--text-sm);
         }
 
         .file-hint {
             font-family: var(--mono);
             font-size: var(--text-xs);
-            color: var(--text-secondary);
-            opacity: 0.7;
+            color: var(--text-tertiary);
         }
 
-        .file-upload-label.has-file {
-            color: var(--signal-green);
-        }
+        .file-upload-label.has-file { color: var(--signal-green); }
+
+        /* Icon size helpers */
+        .icon-lg  { font-size: 2rem; }
+        .icon-md  { font-size: 1.5rem; }
 
         /* Checkbox */
-        .checkbox-row {
-            margin-top: -8px;
-        }
-
         .checkbox-label {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: var(--space-3);
             font-family: var(--sans);
             font-size: var(--text-sm);
             color: var(--text-secondary);
@@ -627,1496 +979,1092 @@
         }
 
         .checkbox-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--signal-cyan);
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+            flex-shrink: 0;
         }
 
-        /* Secondary button variant */
-        .btn-secondary {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            color: var(--text-primary);
-        }
+        /* Plan button tooltip */
+        .plan-btn-wrap { position: relative; flex: 1; min-width: 80px; }
 
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.08);
-        }
-
-        .btn-secondary:active,
-        .btn-secondary.btn-active {
-            background: var(--signal-cyan);
-            border-color: var(--signal-cyan);
-            color: var(--bg-deep);
-        }
-
-        /* Outline button variant (border-only, no fill) */
-        .btn-outline {
-            background: transparent;
-            border: 1px solid rgba(34, 211, 238, 0.3);
-            color: var(--signal-cyan);
-        }
-        .btn-outline:hover {
-            background: rgba(34, 211, 238, 0.08);
-        }
-        .btn-outline:active,
-        .btn-outline.btn-active {
-            background: var(--signal-cyan);
-            border-color: var(--signal-cyan);
-            color: var(--bg-deep);
-        }
-
-        /* Locked button — future billing gate (grayed out with lock icon + tooltip) */
-        .btn-locked {
-            opacity: 0.45;
-            cursor: not-allowed;
-            position: relative;
-        }
-        .btn-locked::after {
-            content: '\1F512';
-            margin-left: 6px;
-            font-size: 0.75em;
-        }
-        .btn-locked:hover {
-            background: transparent;
-        }
-
-        /* Pill button — small modifier actions */
-        .btn-pill {
-            display: inline-flex; align-items: center;
-            padding: 4px 12px; border-radius: 20px;
-            font-family: var(--mono);
-            font-size: var(--text-xs); font-weight: 400;
-            background: transparent; border: 1px solid rgba(255,255,255,0.06);
-            color: var(--text-secondary); cursor: pointer;
-            transition: border-color 0.15s, color 0.15s;
-        }
-        .btn-pill:hover {
-            border-color: rgba(34, 211, 238, 0.3); color: var(--signal-cyan);
-        }
-        .btn-pill.htmx-request {
-            pointer-events: none;
-            border-color: rgba(34, 211, 238, 0.3);
-            color: var(--signal-cyan);
-            animation: pill-pulse 0.8s ease-in-out infinite;
-        }
-        @keyframes pill-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .btn-pill.loading {
-            pointer-events: none;
-            border-color: rgba(34, 211, 238, 0.3);
-            color: var(--signal-cyan);
-            animation: pill-pulse 0.8s ease-in-out infinite;
-        }
-
-        /* Plan analysis button tooltips */
-        .plan-btn-wrap {
-            position: relative;
-        }
         .plan-btn-tooltip {
             display: none;
             position: absolute;
-            bottom: calc(100% + 10px);
+            bottom: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%);
-            background: var(--bg-elevated);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 8px;
-            padding: 10px 14px;
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3) var(--space-4);
             font-family: var(--sans);
             font-size: var(--text-xs);
-            color: var(--text-primary);
+            color: var(--text-secondary);
             line-height: 1.5;
-            width: 240px;
+            width: 220px;
             z-index: 20;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
             pointer-events: none;
         }
-        .plan-btn-tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 6px solid transparent;
-            border-top-color: rgba(255,255,255,0.06);
-        }
-        .plan-btn-wrap:hover .plan-btn-tooltip {
-            display: block;
-        }
+
+        .plan-btn-wrap:hover .plan-btn-tooltip { display: block; }
+
         @media (max-width: 640px) {
             .plan-btn-tooltip { display: none !important; }
         }
 
-        /* Validation result status colors */
-        .result-card .pass { color: var(--signal-green); }
-        .result-card .fail { color: var(--signal-red); }
-        .result-card .warn { color: var(--signal-amber); }
+        /* Hourglass spinner */
+        .hourglass-spinner { font-size: 40px; animation: spin 2s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Collapsible personalization section */
-        .personalize-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: none;
-            border: none;
-            color: var(--signal-cyan);
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            cursor: pointer;
-            padding: 10px 0;
-            margin: 4px 0 0;
-            transition: color 0.2s;
-        }
+        /* Lookup mode toggle */
+        .lookup-fields { }
 
-        .personalize-toggle:hover { opacity: 0.8; }
-
-        .personalize-toggle .toggle-icon {
-            font-size: 0.7rem;
-            transition: transform 0.2s;
-        }
-
-        .personalize-toggle.open .toggle-icon {
-            transform: rotate(90deg);
-        }
-
-        .personalize-section {
-            display: none;
-            padding-top: 16px;
-            margin-top: 8px;
-            border-top: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .personalize-section.open { display: block; }
-
-        .personalize-section .section-label {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            font-weight: 400;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 10px;
-        }
-
-        .personalize-section .section-hint {
-            font-family: var(--sans);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-            opacity: 0.7;
-            margin-bottom: 12px;
-        }
-
-        /* Priority chips (multi-select) */
-        .priority-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 24px;
-        }
-
-        .priority-chip {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .priority-chip:hover {
-            border-color: rgba(34, 211, 238, 0.3);
-            color: var(--text-primary);
-        }
-
-        .priority-chip.selected {
-            background: rgba(34, 211, 238, 0.08);
-            border-color: rgba(34, 211, 238, 0.3);
-            color: var(--signal-cyan);
-        }
-
-        /* Experience toggle */
-        .experience-toggle {
-            display: flex;
-            gap: 0;
-            margin-bottom: 24px;
-        }
-
-        .experience-option {
-            flex: 1;
-            padding: 10px 16px;
-            font-family: var(--mono);
-            font-size: var(--text-xs);
+        /* ── Footer ───────────────────────────────────────────────────── */
+        .page-footer {
+            border-top: 1px solid var(--glass-border);
+            padding: var(--space-6) 0;
             text-align: center;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
+            color: var(--text-tertiary);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
         }
 
-        .experience-option:first-child {
-            border-radius: 8px 0 0 8px;
+        /* ── Responsive ───────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .dash-search-card { padding: var(--space-5); }
+            .brief-card { padding: var(--space-4) var(--space-4); }
+            .brief-header { flex-direction: column; gap: var(--space-2); }
+            .brief-stats { gap: var(--space-3); }
+            .onboard-card { padding: var(--space-6) var(--space-4); }
+            .property-card { flex-direction: column; align-items: flex-start; }
+            .recent-section { padding: var(--space-4); }
         }
 
-        .experience-option:last-child {
-            border-radius: 0 8px 8px 0;
-            border-left: none;
-        }
-
-        .experience-option:hover {
-            color: var(--text-primary);
-        }
-
-        .experience-option.selected {
-            background: rgba(34, 211, 238, 0.08);
-            border-color: rgba(34, 211, 238, 0.3);
-            color: var(--signal-cyan);
-        }
-
-        /* Team fields */
-        .team-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        @media (min-width: 640px) {
-            .team-grid {
-                grid-template-columns: 1fr 1fr 1fr;
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
             }
+            .reveal { opacity: 1; transform: none; }
         }
 
-        .team-grid label {
-            margin-bottom: 4px;
-        }
-
-        .team-grid input {
-            font-size: var(--text-sm);
-        }
-
-        .field-hint {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-            opacity: 0.6;
-            margin-top: 4px;
-        }
-
-        /* Hero search box */
-        .search-form {
-            max-width: 100%;
-            margin: 0 0 var(--space-4);
-        }
-
-        .search-box-wrapper {
-            display: flex;
-            gap: 0;
-        }
-
-        .search-box-wrapper .obsidian-input {
-            flex: 1;
-            border-radius: 8px 0 0 8px;
-            border-right: none;
-        }
-
-        .search-box-wrapper .obsidian-input:focus {
-            z-index: 1;
-        }
-
-        .search-btn {
-            border-radius: 0 8px 8px 0 !important;
-            padding: var(--space-3) var(--space-6);
-            width: auto !important;
-            min-width: 80px;
-            flex-shrink: 0;
-        }
-
-        .quick-actions {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-
-        .actions-divider {
-            width: 80%;
-            max-width: 360px;
-            height: 1px;
-            background: rgba(255,255,255,0.06);
-            margin: 10px auto 6px;
-        }
-
-        .recent-label {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-secondary);
-            font-weight: 400;
-            align-self: center;
-        }
-
-        .recent-clear {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            cursor: pointer;
-            padding: 2px 6px;
-            align-self: center;
-            opacity: 0.6;
-        }
-        .recent-clear:hover { opacity: 1; }
-
-        .search-echo {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .search-result-card {
-            margin-bottom: 24px;
-        }
-
-        /* Collapsible tool sections */
-        .tool-section {
-            display: none;
-        }
-
-        .tool-section.visible {
-            display: block;
-        }
     </style>
 </head>
 <body class="obsidian">
+
 {% if is_staging %}
-<!-- SESSION A: STAGING BANNER -->
-<div id="staging-banner" style="background: var(--signal-amber); color: var(--bg-deep); text-align: center; padding: 8px 16px; font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.06em; position: relative; z-index: 9999;">
-  STAGING ENVIRONMENT &mdash; changes here do not affect production
+<div style="background: var(--signal-amber); color: var(--obsidian); text-align: center; padding: 8px 16px; font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.06em; position: relative; z-index: 9999;">
+    STAGING ENVIRONMENT &mdash; changes here do not affect production
 </div>
 {% endif %}
-    {% if session.get('impersonating') %}
-    <div class="impersonate-banner">
-        Viewing as {{ session.impersonating }}
-        <form method="POST" action="/auth/stop-impersonate" style="display:inline;">
-            <button type="submit" class="impersonate-stop">Stop</button>
-        </form>
+
+{% if session.get('impersonating') %}
+<div class="impersonate-banner">
+    Viewing as {{ session.impersonating }}
+    <form method="POST" action="/auth/stop-impersonate" style="display:inline;">
+        <button type="submit" class="impersonate-stop">Stop</button>
+    </form>
+</div>
+{% endif %}
+
+{% set active_page = 'search' %}
+{% include 'fragments/nav.html' %}
+
+<div class="page-body">
+<div class="obs-container">
+<main class="dash-main">
+
+    {# ── First-login onboarding banner ─────────────────────────────── #}
+    {% if session.get('show_onboarding_banner') and not session.get('onboarding_dismissed') %}
+    <div id="onboarding-banner" class="onboarding-banner">
+        <div class="onboarding-banner__text">
+            <strong>Welcome to sfpermits.ai.</strong>
+            Search any SF address to see its permit history, team, and routing status.
+        </div>
+        <button
+            class="onboarding-banner__dismiss"
+            hx-post="/onboarding/dismiss"
+            hx-target="#onboarding-banner"
+            hx-swap="outerHTML">
+            Dismiss
+        </button>
     </div>
     {% endif %}
-    {% set active_page = 'search' %}
-    {% include 'fragments/nav.html' %}
 
-    <main>
-        <div class="obs-container dash-main">
+    {# ── Search card ───────────────────────────────────────────────── #}
+    <div class="glass-card dash-search-card">
+        <h1 class="dash-search-heading">
+            Search <span class="accent">18.4 million</span> San Francisco government records.
+        </h1>
 
-            {# SESSION E: First-login onboarding banner #}
-            {% if session.get('show_onboarding_banner') and not session.get('onboarding_dismissed') %}
-            <div id="onboarding-banner"
-                 style="background: var(--accent-glow); border: 1px solid var(--accent-ring); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap;">
-                <div>
-                    <strong style="color: var(--signal-green);">Welcome to sfpermits.ai!</strong>
-                    <span style="font-family: var(--sans); color: var(--text-secondary); font-size: var(--text-sm); margin-left: 8px;">Start by searching an address or describing your project.</span>
-                </div>
-                <button
-                    hx-post="/onboarding/dismiss"
-                    hx-target="#onboarding-banner"
-                    hx-swap="outerHTML"
-                    style="background: none; border: 1px solid rgba(52,211,153,0.4); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-family: var(--sans); font-size: var(--text-xs); padding: 6px 12px;">
-                    Dismiss
-                </button>
+        <form class="search-form"
+              hx-post="/ask"
+              hx-target="#search-results"
+              hx-indicator="#search-loading">
+            <input type="hidden" name="draft" id="draft-mode" value="0">
+            <div class="search-box-wrapper">
+                <input type="text" name="q" id="search-q"
+                    class="obsidian-input"
+                    placeholder="Address, permit number, or any question about SF permits..."
+                    autocomplete="off" autofocus>
+                <button type="submit" class="search-btn">&rarr;</button>
             </div>
-            {% endif %}
+        </form>
 
-            {# ── Search card ─────────────────────────────────────────────── #}
-            <div class="glass-card dash-search-card">
-                <h1 class="dash-search-heading">What do you need to know about <span class="cyan">SF permits</span>?</h1>
-                <form class="search-form"
-                      hx-post="/ask"
-                      hx-target="#search-results"
-                      hx-indicator="#search-loading">
-                    <input type="hidden" name="draft" id="draft-mode" value="0">
-                    <div class="search-box-wrapper">
-                        <input type="text" name="q" id="search-q"
-                            class="obsidian-input"
-                            placeholder="Permit number, address, client question, or anything about SF permits..."
-                            autocomplete="off" autofocus>
-                        <button type="submit" class="obsidian-btn obsidian-btn-primary search-btn">
-                            <span class="label">Go</span>
-                            <span class="spinner">...</span>
-                        </button>
-                    </div>
-                </form>
-                <div id="recent-searches" class="quick-actions" style="display:none;">
-                    <span class="recent-label">Recent</span>
-                    <!-- chips injected by JS -->
-                    <button class="recent-clear" onclick="_clearRecentSearches()" title="Clear recent searches">&times;</button>
+        {# Primary address quick-search — only shown if set #}
+        {% if g.user and g.user.primary_street_number and g.user.primary_street_name %}
+        <div style="margin-top: var(--space-2);">
+            <button class="recent-chip"
+                onclick="document.getElementById('search-q').value='{{ g.user.primary_street_number }} {{ g.user.primary_street_name }}'; htmx.trigger(document.querySelector('.search-form'), 'submit');"
+                title="Check your primary address">
+                Check {{ g.user.primary_street_number }} {{ g.user.primary_street_name }} &rarr;
+            </button>
+        </div>
+        {% endif %}
+
+        <div id="recent-searches" class="recent-searches-row">
+            <span class="recent-label">Recent</span>
+            <!-- chips injected by JS -->
+            <button class="recent-clear" onclick="_clearRecentSearches()" title="Clear recent searches">&times;</button>
+        </div>
+
+        <div id="search-loading" class="htmx-indicator">
+            <div class="search-loading">
+                <div class="loading-dots">
+                    <span></span><span></span><span></span>
                 </div>
-                <div class="actions-divider" id="actions-divider" style="display:none;"></div>
-
-                <div id="search-loading" class="htmx-indicator" style="margin-top: var(--space-4);">
-                    <div class="loading-bar">
-                        <div class="dots">...</div>
-                        <p>Searching permits...</p>
-                    </div>
-                </div>
-
-                <div id="search-results"></div>
+                <p class="loading-text">Searching permits...</p>
             </div>
+        </div>
 
-            {# ── Quick actions card ──────────────────────────────────────── #}
-            <div class="glass-card dash-actions-card">
-                <div class="dash-section-label">Quick Actions</div>
-                <div class="dash-actions-row">
-                    {% if g.user and g.user.primary_street_number and g.user.primary_street_name %}
-                    <button class="obsidian-btn obsidian-btn-outline"
-                        onclick="document.getElementById('search-q').value='{{ g.user.primary_street_number }} {{ g.user.primary_street_name }}'; htmx.trigger(document.querySelector('.search-form'), 'submit');">
-                        Check {{ g.user.primary_street_number }} {{ g.user.primary_street_name }}
-                    </button>
+        <div id="search-results"></div>
+    </div>
+
+    {# ── Brief / Watches card ──────────────────────────────────────── #}
+    {# State 1: User has watched properties — show brief summary #}
+    {% if watch_count and watch_count > 0 %}
+    <div class="glass-card brief-card reveal">
+        <div class="brief-header">
+            <div class="brief-greeting">
+                {% if watch_count == 1 %}
+                    <strong>1 property</strong> in your watchlist.
+                {% else %}
+                    <strong>{{ watch_count }} properties</strong> in your watchlist.
+                {% endif %}
+                {% if changes_count and changes_count > 0 %}
+                    {{ changes_count }} change{{ 's' if changes_count != 1 else '' }} since yesterday.
+                {% endif %}
+            </div>
+            <div class="brief-stats">
+                <span><span class="brief-stats__val">{{ watch_count }}</span> watching</span>
+                {% if urgent_count and urgent_count > 0 %}
+                <span><span class="brief-stats__val" style="color:var(--signal-red);">{{ urgent_count }}</span> urgent</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Show action items from brief data if any #}
+        {% if brief_items %}
+            {% for item in brief_items[:5] %}
+            <a class="aq-item" href="{{ item.url or '/brief' }}">
+                <span class="aq-item__dot" style="background: var(--dot-{{ item.severity or 'green' }});"></span>
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">{{ item.headline }}</div>
+                    {% if item.detail %}
+                    <div class="aq-item__detail">{{ item.detail }}</div>
                     {% endif %}
-                    <button class="obsidian-btn obsidian-btn-outline" onclick="revealSection('analyze')">Analyze a project</button>
-                    <button class="obsidian-btn obsidian-btn-outline" onclick="revealSection('lookup')">Look up a permit</button>
-                    <button class="obsidian-btn obsidian-btn-outline" onclick="revealSection('analyze-plans')">Upload plans</button>
-                    <button class="obsidian-btn obsidian-btn-outline" onclick="_enterDraftMode()">Draft a reply</button>
+                    <div class="aq-item__actions">
+                        <a href="{{ item.url or '/brief' }}" class="aq-action">View details</a>
+                        {% if item.report_url %}
+                        <a href="{{ item.report_url }}" class="aq-action">Property report</a>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+                {% if item.time_label %}
+                <span class="aq-item__time aq-item__time--{{ item.severity or 'muted' }}">{{ item.time_label }}</span>
+                {% endif %}
+                <span class="aq-item__arrow">&rarr;</span>
+            </a>
+            {% endfor %}
+        {% else %}
+        {# No specific items — show a simple call to action #}
+        <div style="padding: var(--space-3) 0; border-bottom: 1px solid var(--glass-border);">
+            <a href="/brief" class="ghost-cta">Open your morning brief &rarr;</a>
+        </div>
+        {% endif %}
 
-            {# ── Recent items card ───────────────────────────────────────── #}
-            <div class="glass-card dash-recent-card" id="dash-recent-section">
-                <div class="dash-section-label">Recent Searches</div>
-                <div class="dash-recent-grid" id="dash-recent-grid">
-                    <span class="recent-empty">Your recent searches will appear here.</span>
-                </div>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: var(--space-3); flex-wrap: wrap; gap: var(--space-3);">
+            <a href="/brief" class="ghost-cta">Full brief &rarr;</a>
+            <a href="/portfolio" class="ghost-cta">Portfolio view &rarr;</a>
+        </div>
+    </div>
 
-            {# ── Watched Properties card ─────────────────────────────────── #}
+    {# Your property shortcut if primary address set #}
+    {% if user_report_url %}
+    <div class="glass-card property-card reveal">
+        <div>
+            <div class="property-card__label">Your property</div>
+            <div class="property-card__address">{{ user_report_address }}</div>
+        </div>
+        <a href="{{ user_report_url }}" class="ghost-cta">View property report &rarr;</a>
+    </div>
+    {% endif %}
+
+    {# State 2: No watches — show onboarding card #}
+    {% else %}
+    <div class="glass-card onboard-card reveal">
+        <h2 class="onboard-headline">Watch your first property.</h2>
+        <p class="onboard-body">
+            Search any San Francisco address above. When you find a property or permit that matters to you, watch it — and we'll surface changes in your morning brief.
+        </p>
+
+        <div class="onboard-steps">
+            <div class="onboard-step">
+                <span class="onboard-step__num">1</span>
+                <span class="onboard-step__text">
+                    <strong>Search an address</strong> — any SF property, permit number, or question
+                </span>
+            </div>
+            <div class="onboard-step">
+                <span class="onboard-step__num">2</span>
+                <span class="onboard-step__text">
+                    <strong>Watch the property</strong> — click Watch on any result to add it to your list
+                </span>
+            </div>
+            <div class="onboard-step">
+                <span class="onboard-step__num">3</span>
+                <span class="onboard-step__text">
+                    <strong>Check your brief</strong> — permit changes, new filings, stalled permits — every morning
+                </span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: var(--space-5); flex-wrap: wrap;">
+            <a href="/brief" class="ghost-cta">View your brief &rarr;</a>
             {% if user_report_url %}
-            <div class="glass-card" style="padding: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;">
-                <div>
-                    <div class="dash-section-label" style="margin-bottom: var(--space-2);">Your Property</div>
-                    <div style="font-size: var(--text-base); font-weight: 600; color: var(--text-primary);">{{ user_report_address }}</div>
-                </div>
-                <a href="{{ user_report_url }}" class="obsidian-btn obsidian-btn-primary" style="white-space: nowrap;">
-                    View Property Report &rarr;
-                </a>
-            </div>
-            {% else %}
-            <div class="glass-card dash-watch-card">
-                <div class="dash-section-label" style="text-align: left; margin-bottom: var(--space-4);">Watched Properties</div>
-                <p class="dash-empty-text">Add properties to your watchlist to see them here.</p>
-                <a href="/account" class="obsidian-btn obsidian-btn-outline" style="display: inline-flex;">Manage Watchlist</a>
-            </div>
+            <a href="{{ user_report_url }}" class="ghost-cta">{{ user_report_address }} &rarr;</a>
             {% endif %}
+            <a href="/account" class="ghost-cta">Manage account &rarr;</a>
+        </div>
+    </div>
+    {% endif %}
 
-            {# ── Quick Stats row ─────────────────────────────────────────── #}
-            <div class="glass-card dash-stats-card">
-                <div class="dash-section-label" style="margin-bottom: var(--space-6);">Quick Stats</div>
-                <div class="dash-stats-row">
-                    <div class="stat-block">
-                        <div class="stat-number">{{ watch_count | default(0) }}</div>
-                        <div class="stat-label">Permits Watched</div>
-                    </div>
-                    <div class="stat-block">
-                        <div class="stat-number">{{ changes_this_week | default(0) }}</div>
-                        <div class="stat-label">Changes This Week</div>
-                    </div>
-                    <div class="stat-block">
-                        <div class="stat-number">1.1M+</div>
-                        <div class="stat-label">SF Permits Indexed</div>
-                    </div>
-                    <div class="stat-block">
-                        <div class="stat-number">30</div>
-                        <div class="stat-label">Analysis Tools</div>
-                    </div>
-                </div>
+    {# ── Recent searches ───────────────────────────────────────────── #}
+    <div class="glass-card recent-section reveal" id="dash-recent-section" style="display:none;">
+        <div class="section-label">Recent searches</div>
+        <div class="recent-grid" id="dash-recent-grid">
+            <!-- populated by JS -->
+        </div>
+        <div style="text-align: right; padding-top: var(--space-3);">
+            <button class="ghost-cta" onclick="_clearRecentSearches()" style="border: none; background: none; cursor: pointer; font-size: var(--text-xs); font-family: var(--mono);">Clear &times;</button>
+        </div>
+    </div>
+
+    {# ── Freshness ─────────────────────────────────────────────────── #}
+    <div class="freshness reveal">
+        <span class="freshness-dot"></span>
+        Permit data updated nightly &middot; 1.1M+ SF records indexed
+    </div>
+
+    {# ── Hidden tool sections (revealed by search results) ─────────── #}
+
+    <!-- Analyze Project Section (hidden by default) -->
+    <div class="tool-section" id="section-analyze">
+        <div class="section-divider"></div>
+        <h2 class="section-title">Analyze a Project</h2>
+        <p class="section-subtitle">Describe your project and get permit predictions, fee estimates, timelines, document checklists, and revision risk.</p>
+
+        <div class="form-card">
+            <div class="presets-label">Quick start with a sample project:</div>
+            <div class="preset-chips">
+                <button class="preset-chip" onclick="loadPreset('kitchen')">Kitchen Remodel</button>
+                <button class="preset-chip" onclick="loadPreset('adu')">ADU Conversion</button>
+                <button class="preset-chip" onclick="loadPreset('commercial')">Commercial TI</button>
+                <button class="preset-chip" onclick="loadPreset('restaurant')">Restaurant</button>
+                <button class="preset-chip" onclick="loadPreset('historic')">Historic Reno</button>
             </div>
 
-            <!-- === Analyze Project Section (hidden by default) === -->
-            <div class="tool-section" id="section-analyze">
+            <form hx-post="/analyze"
+                  hx-target="#analyze-results"
+                  hx-indicator="#analyze-loading"
+                  class="form-grid">
 
-            <div class="section-divider"></div>
-            <h2 class="section-title">Analyze a Project</h2>
-            <p class="subtitle">Describe your project and get instant permit predictions, fee estimates, timelines, document checklists, and revision risk assessments.</p>
+                <div class="full-width">
+                    <label for="description">Project Description</label>
+                    <textarea id="description" name="description"
+                        placeholder="e.g., Gut renovation of residential kitchen, removing a non-bearing wall, relocating gas line, new electrical panel."></textarea>
+                </div>
 
-            <div class="form-card">
-                <div class="presets">
-                    <div class="presets-label">Quick start with a sample project:</div>
-                    <div class="preset-chips">
-                        <button class="preset-chip" onclick="loadPreset('kitchen')">Kitchen Remodel</button>
-                        <button class="preset-chip" onclick="loadPreset('adu')">ADU Conversion</button>
-                        <button class="preset-chip" onclick="loadPreset('commercial')">Commercial TI</button>
-                        <button class="preset-chip" onclick="loadPreset('restaurant')">Restaurant</button>
-                        <button class="preset-chip" onclick="loadPreset('historic')">Historic Reno</button>
+                <div>
+                    <label for="address">Address (optional)</label>
+                    <input type="text" id="address" name="address" placeholder="e.g., 123 Main St">
+                </div>
+
+                <div>
+                    <label for="neighborhood">Neighborhood</label>
+                    <select id="neighborhood" name="neighborhood">
+                        <option value="">Select neighborhood...</option>
+                        {% for n in neighborhoods %}
+                        {% if n %}
+                        <option value="{{ n }}">{{ n }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="cost">Estimated Cost ($)</label>
+                    <input type="number" id="cost" name="cost" placeholder="e.g., 85000" min="0" step="1">
+                </div>
+
+                <div>
+                    <label for="sqft">Square Footage (optional)</label>
+                    <input type="number" id="sqft" name="sqft" placeholder="e.g., 1200" min="0">
+                </div>
+
+                <div>
+                    <label for="carrying_cost">Monthly Carrying Cost ($) <span style="font-size:0.8em;color:var(--text-tertiary);">(optional)</span></label>
+                    <input type="number" id="carrying_cost" name="carrying_cost" placeholder="e.g., 5000" min="0" step="100">
+                </div>
+
+                <!-- Personalization -->
+                <div class="full-width">
+                    <button type="button" class="personalize-toggle" onclick="togglePersonalize()">
+                        <span class="toggle-icon">▶</span>
+                        <span>Help us give you a better analysis</span>
+                    </button>
+                </div>
+
+                <div class="full-width personalize-section" id="personalize-section">
+                    <div class="section-label" style="margin-bottom: var(--space-2);">What matters most to you?</div>
+                    <div class="priority-chips">
+                        <button type="button" class="priority-chip" data-value="timeline" onclick="toggleChip(this)">Timeline</button>
+                        <button type="button" class="priority-chip" data-value="cost" onclick="toggleChip(this)">Cost</button>
+                        <button type="button" class="priority-chip" data-value="corrections" onclick="toggleChip(this)">Avoiding corrections</button>
+                        <button type="button" class="priority-chip" data-value="requirements" onclick="toggleChip(this)">Understanding requirements</button>
+                        <button type="button" class="priority-chip" data-value="exploring" onclick="toggleChip(this)">Just exploring</button>
+                    </div>
+                    <input type="hidden" name="priorities" id="priorities-input" value="">
+
+                    <div style="margin-bottom: var(--space-5);">
+                        <label for="target_date">When do you want to start construction?</label>
+                        <input type="date" id="target_date" name="target_date" style="max-width: 240px;">
+                    </div>
+
+                    <div class="section-label" style="margin-bottom: var(--space-2);">Your project team</div>
+                    <div style="font-family: var(--sans); font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: var(--space-3);">
+                        We'll check their SF permit track record across 1M+ entities.
+                    </div>
+                    <div class="team-grid">
+                        <div>
+                            <label for="contractor_name">General Contractor</label>
+                            <input type="text" id="contractor_name" name="contractor_name" placeholder="Contractor or company">
+                        </div>
+                        <div>
+                            <label for="architect_name">Architect / Engineer</label>
+                            <input type="text" id="architect_name" name="architect_name" placeholder="Architect or engineer">
+                        </div>
+                        <div>
+                            <label for="consultant_name">Land Use Consultant</label>
+                            <input type="text" id="consultant_name" name="consultant_name" placeholder="Land use consultant">
+                        </div>
+                    </div>
+
+                    <div class="section-label" style="margin-bottom: var(--space-2);">Experience level</div>
+                    <div class="experience-toggle">
+                        <button type="button" class="experience-option" data-value="first_time" onclick="selectExperience(this)">First time filing in SF</button>
+                        <button type="button" class="experience-option" data-value="experienced" onclick="selectExperience(this)">Done this before</button>
+                    </div>
+                    <input type="hidden" name="experience_level" id="experience-input" value="unspecified">
+
+                    <div>
+                        <label for="additional_context">Anything else we should know?</label>
+                        <textarea id="additional_context" name="additional_context" rows="3"
+                            placeholder="Historic building, existing violations, unusual site conditions..."></textarea>
                     </div>
                 </div>
 
-                <form hx-post="/analyze"
-                      hx-target="#results"
-                      hx-indicator="#loading"
-                      class="form-grid">
+                <div class="full-width">
+                    <button type="submit" class="glass-btn glass-btn--full">
+                        <span class="label">Analyze Project</span>
+                        <span class="spinner">Analyzing...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
 
-                    <div class="full-width">
-                        <label for="description">Project Description</label>
-                        <textarea id="description" name="description"
-                            placeholder="e.g., Gut renovation of residential kitchen, removing a non-bearing wall, relocating gas line, new electrical panel."></textarea>
-                    </div>
+        <div id="analyze-loading" class="htmx-indicator">
+            <div class="search-loading">
+                <div class="loading-dots"><span></span><span></span><span></span></div>
+                <p class="loading-text">Running 5 permit analysis tools...</p>
+            </div>
+        </div>
 
-                    <div>
-                        <label for="address">Address (optional)</label>
-                        <input type="text" id="address" name="address"
-                            placeholder="e.g., 123 Main St">
-                    </div>
+        <div id="analyze-results"></div>
+    </div><!-- /section-analyze -->
 
-                    <div>
-                        <label for="neighborhood">Neighborhood</label>
-                        <select id="neighborhood" name="neighborhood">
-                            <option value="">Select neighborhood...</option>
-                            {% for n in neighborhoods %}
-                            {% if n %}
-                            <option value="{{ n }}">{{ n }}</option>
-                            {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
+    <!-- Analyze Plans Section (hidden by default) -->
+    <div class="tool-section" id="section-analyze-plans">
+        <div class="section-divider"></div>
+        <h2 class="section-title">Analyze Plans (AI Vision)</h2>
+        <p class="section-subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. AI Analysis and Full Analysis use AI vision to annotate your plans with EPR issues, code references, and compliance checks.</p>
 
-                    <div>
-                        <label for="cost">Estimated Cost ($)</label>
-                        <input type="number" id="cost" name="cost"
-                            placeholder="e.g., 85000" min="0" step="1">
-                    </div>
+        {% if upload_error %}
+        <div style="margin-bottom:var(--space-4);padding:var(--space-3) var(--space-4);background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:var(--radius-sm);font-family:var(--sans);font-size:var(--text-sm);color:var(--signal-red);">
+            {{ upload_error }}
+        </div>
+        {% endif %}
 
-                    <div>
-                        <label for="sqft">Square Footage (optional)</label>
-                        <input type="number" id="sqft" name="sqft"
-                            placeholder="e.g., 1200" min="0">
-                    </div>
+        <div class="form-card">
+            <form hx-post="/analyze-plans"
+                  hx-target="#analyze-plans-results"
+                  hx-indicator="#analyze-plans-loading"
+                  hx-encoding="multipart/form-data"
+                  class="form-grid">
 
-                    {# === SESSION C: Cost of Delay === #}
-                    <div>
-                        <label for="carrying_cost">Monthly Carrying Cost ($) <span style="font-size:0.8em;color:var(--text-muted, #888);">(optional)</span></label>
-                        <input type="number" id="carrying_cost" name="carrying_cost"
-                            placeholder="e.g., 5000" min="0" step="100">
-                        <small style="color:var(--text-muted, #888);font-size:0.75rem;">Rent, mortgage, storage during construction</small>
-                    </div>
-                    {# === END SESSION C === #}
-
-                    <!-- Personalization toggle -->
-                    <div class="full-width">
-                        <button type="button" class="personalize-toggle" onclick="togglePersonalize()">
-                            <span class="toggle-icon">▶</span>
-                            <span>Help us give you a better analysis</span>
-                        </button>
-                    </div>
-
-                    <!-- Collapsible personalization section -->
-                    <div class="full-width personalize-section" id="personalize-section">
-
-                        <!-- B1: Priorities -->
-                        <div class="section-label">What matters most to you?</div>
-                        <div class="priority-chips">
-                            <button type="button" class="priority-chip" data-value="timeline" onclick="toggleChip(this)">⏲ Timeline</button>
-                            <button type="button" class="priority-chip" data-value="cost" onclick="toggleChip(this)">💰 Cost</button>
-                            <button type="button" class="priority-chip" data-value="corrections" onclick="toggleChip(this)">✅ Avoiding corrections</button>
-                            <button type="button" class="priority-chip" data-value="requirements" onclick="toggleChip(this)">📋 Understanding requirements</button>
-                            <button type="button" class="priority-chip" data-value="exploring" onclick="toggleChip(this)">🔍 Just exploring</button>
+                <div class="full-width">
+                    <label for="analyze-planfile">PDF Plan Set</label>
+                    <div class="file-upload-area" id="analyze-drop-zone">
+                        <input type="file" id="analyze-planfile" name="planfile" accept=".pdf"
+                            class="file-input" onchange="updateAnalyzeFileLabel(this)">
+                        <div class="file-upload-label" id="analyze-file-label">
+                            <span class="icon-lg">📄</span>
+                            <span>Drag &amp; drop a PDF here, or <strong>click to browse</strong></span>
+                            <span class="file-hint">Max 400 MB &mdash; .pdf only</span>
                         </div>
-                        <!-- Hidden input to carry selected priorities -->
-                        <input type="hidden" name="priorities" id="priorities-input" value="">
+                    </div>
+                </div>
 
-                        <!-- B2: Target date -->
-                        <div style="margin-bottom: 24px;">
-                            <label for="target_date">When do you want to start construction?</label>
-                            <input type="date" id="target_date" name="target_date"
-                                style="max-width: 250px;">
-                        </div>
+                <input type="hidden" name="quick_check" id="quick-check-hidden" value="on">
+                <input type="hidden" name="analysis_mode" id="analysis-mode-hidden" value="sample">
 
-                        <!-- B3: Team -->
-                        <div class="section-label">Your project team</div>
-                        <div class="section-hint">We'll check their SF permit track record across 1M+ entities.</div>
-                        <div class="team-grid">
-                            <div>
-                                <label for="contractor_name">General Contractor</label>
-                                <input type="text" id="contractor_name" name="contractor_name"
-                                    placeholder="Contractor or company name">
-                            </div>
-                            <div>
-                                <label for="architect_name">Architect / Engineer</label>
-                                <input type="text" id="architect_name" name="architect_name"
-                                    placeholder="Architect or engineer name">
-                            </div>
-                            <div>
-                                <label for="consultant_name">Land Use Consultant</label>
-                                <input type="text" id="consultant_name" name="consultant_name"
-                                    placeholder="Land use consultant name">
-                            </div>
-                        </div>
+                <div class="full-width">
+                    <button type="button" class="personalize-toggle" id="plan-options-toggle" onclick="togglePlanOptions()">
+                        <span class="toggle-icon">▶</span>
+                        <span>More options</span>
+                    </button>
+                </div>
 
-                        <!-- B4: Experience level -->
-                        <div class="section-label">Experience level</div>
-                        <div class="experience-toggle">
-                            <button type="button" class="experience-option" data-value="first_time" onclick="selectExperience(this)">🆕 First time filing in SF</button>
-                            <button type="button" class="experience-option" data-value="experienced" onclick="selectExperience(this)">🔄 Done this before</button>
-                        </div>
-                        <input type="hidden" name="experience_level" id="experience-input" value="unspecified">
-
-                        <!-- B5: Additional context -->
+                <div class="full-width personalize-section" id="plan-options-section">
+                    <div style="display:grid; gap:var(--space-5);">
                         <div>
-                            <label for="additional_context">Anything else we should know?</label>
-                            <textarea id="additional_context" name="additional_context" rows="3"
-                                placeholder="Historic building, existing violations, unusual site conditions, specific worries, questions you want answered..."></textarea>
+                            <label for="project_description">Project Description</label>
+                            <textarea id="project_description" name="project_description"
+                                      placeholder="e.g., Interior remodel of 2-story residential..."
+                                      rows="3"></textarea>
                         </div>
-
+                        <div>
+                            <label for="permit_type">Permit Type</label>
+                            <select id="permit_type" name="permit_type">
+                                <option value="">-- Select --</option>
+                                <option value="alterations">Alterations</option>
+                                <option value="new_construction">New Construction</option>
+                                <option value="demolition">Demolition</option>
+                                <option value="additions">Additions</option>
+                            </select>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+                            <div>
+                                <label for="property_address">Property Address</label>
+                                <input type="text" id="property_address" name="property_address" placeholder="e.g., 123 Main St">
+                            </div>
+                            <div>
+                                <label for="permit_number_input">Permit Number</label>
+                                <input type="text" id="permit_number_input" name="permit_number" placeholder="e.g., 202401015678">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="submission_stage">Submission Stage</label>
+                            <select id="submission_stage" name="submission_stage">
+                                <option value="">-- Select --</option>
+                                <option value="preliminary">Preliminary Plan Check</option>
+                                <option value="permit">Permit Application (full set)</option>
+                                <option value="resubmittal">Resubmittal (addressing comments)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="is_addendum" id="analyze-is-addendum">
+                                <span>This is a Site Permit Addendum (allows up to 350 MB)</span>
+                            </label>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="full-width">
-                        <button type="submit" class="btn">
-                            <span class="label">Analyze Project</span>
+                <!-- Four analysis buttons -->
+                <div class="full-width" style="display:flex; gap:var(--space-2); flex-wrap:wrap;">
+                    <div class="plan-btn-wrap">
+                        <button type="submit" class="outline-btn outline-btn--active" id="quick-check-btn" style="width:100%;">
+                            <span class="label">Quick Check</span>
+                            <span class="spinner">Checking...</span>
+                        </button>
+                        <div class="plan-btn-tooltip"><strong>Instant metadata scan</strong><br>File size, page dimensions, fonts, encryption. No AI — results in seconds.</div>
+                    </div>
+                    <div class="plan-btn-wrap">
+                        <button type="button" class="outline-btn" id="compliance-check-btn" style="width:100%;" onclick="submitComplianceCheck(this)">
+                            <span class="label">Compliance</span>
                             <span class="spinner">Analyzing...</span>
                         </button>
+                        <div class="plan-btn-tooltip"><strong>AI title block verification</strong><br>Addresses, sheet numbers, professional stamps. ~30 seconds.</div>
                     </div>
-                </form>
-            </div>
-
-            <div id="loading" class="htmx-indicator">
-                <div class="loading-bar">
-                    <div class="dots">...</div>
-                    <p>Running 5 permit analysis tools — this takes a few seconds</p>
-                </div>
-            </div>
-
-            <div id="results"></div>
-
-            </div><!-- /section-analyze -->
-
-            <!-- === Analyze Plans Section (hidden by default) === -->
-            <div class="tool-section" id="section-analyze-plans">
-
-            <div class="section-divider"></div>
-
-            <h2 class="section-title">Analyze Plans (AI Vision)</h2>
-            <p class="subtitle">Upload a PDF plan set. Quick Check scans metadata instantly. AI Analysis and Full Analysis use AI vision to annotate your plans with EPR issues, code references, dimensions, and compliance checks.</p>
-
-            {% if upload_error %}
-            <div style="margin-bottom:16px;padding:12px 16px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;font-family:var(--sans);font-size:var(--text-sm);color:var(--signal-red);">
-                {{ upload_error }}
-            </div>
-            {% endif %}
-
-            <div class="form-card">
-                <form hx-post="/analyze-plans"
-                      hx-target="#analyze-plans-results"
-                      hx-indicator="#analyze-plans-loading"
-                      hx-encoding="multipart/form-data"
-                      class="form-grid">
-
-                    <div class="full-width">
-                        <label for="analyze-planfile">PDF Plan Set</label>
-                        <div class="file-upload-area" id="analyze-drop-zone">
-                            <input type="file" id="analyze-planfile" name="planfile" accept=".pdf"
-                                class="file-input" onchange="updateAnalyzeFileLabel(this)">
-                            <div class="file-upload-label" id="analyze-file-label">
-                                <span class="file-icon">📄</span>
-                                <span>Drag & drop a PDF here, or <strong>click to browse</strong></span>
-                                <span class="file-hint">Max 400 MB &mdash; .pdf only</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Hidden inputs for mode selection -->
-                    <input type="hidden" name="quick_check" id="quick-check-hidden" value="on">
-                    <input type="hidden" name="analysis_mode" id="analysis-mode-hidden" value="sample">
-
-                    <!-- "More options" toggle — uses existing personalize-toggle pattern -->
-                    <div class="full-width">
-                        <button type="button" class="personalize-toggle" id="plan-options-toggle" onclick="togglePlanOptions()">
-                            <span class="toggle-icon">▶</span>
-                            <span>More options</span>
+                    <div class="plan-btn-wrap">
+                        <button type="button" class="outline-btn" id="ai-analysis-btn" style="width:100%;" onclick="submitAIAnalysis(this)">
+                            <span class="label">AI Analysis</span>
+                            <span class="spinner">Analyzing...</span>
                         </button>
+                        <div class="plan-btn-tooltip"><strong>AI markup on sample pages</strong><br>EPR issues, annotations, code references. ~1-2 minutes.</div>
                     </div>
-
-                    <!-- Collapsible options section -->
-                    <div class="full-width personalize-section" id="plan-options-section">
-                        <div style="display:grid; gap:20px;">
-                            <div>
-                                <label for="project_description">Project Description</label>
-                                <textarea id="project_description" name="project_description"
-                                          placeholder="e.g., Interior remodel of 2-story residential, adding bathroom and kitchen..."
-                                          rows="3" class="form-input"></textarea>
-                            </div>
-
-                            <div>
-                                <label for="permit_type">Permit Type</label>
-                                <select id="permit_type" name="permit_type" class="form-input">
-                                    <option value="">-- Select --</option>
-                                    <option value="alterations">Alterations</option>
-                                    <option value="new_construction">New Construction</option>
-                                    <option value="demolition">Demolition</option>
-                                    <option value="additions">Additions</option>
-                                </select>
-                            </div>
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                                <div>
-                                    <label for="property_address">Property Address</label>
-                                    <input type="text" id="property_address" name="property_address"
-                                           placeholder="e.g., 123 Main St"
-                                           class="form-input">
-                                </div>
-                                <div>
-                                    <label for="permit_number_input">Permit Number</label>
-                                    <input type="text" id="permit_number_input" name="permit_number"
-                                           placeholder="e.g., 202401015678"
-                                           class="form-input">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label for="submission_stage">Submission Stage</label>
-                                <select id="submission_stage" name="submission_stage" class="form-input">
-                                    <option value="">-- Select --</option>
-                                    <option value="preliminary">Preliminary Plan Check</option>
-                                    <option value="permit">Permit Application (full set)</option>
-                                    <option value="resubmittal">Resubmittal (addressing comments)</option>
-                                </select>
-                            </div>
-
-                            <div class="checkbox-row">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="is_addendum" id="analyze-is-addendum">
-                                    <span>This is a Site Permit Addendum (allows up to 350 MB)</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Four action buttons with hover tooltips -->
-                    <div class="full-width" style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
-                            <button type="submit" class="btn btn-outline btn-active" id="quick-check-btn" style="width:100%;">
-                                <span class="label">Quick Check</span>
-                                <span class="spinner">Checking...</span>
-                            </button>
-                            <div class="plan-btn-tooltip">
-                                <strong>Instant metadata scan</strong><br>
-                                Checks file size, page dimensions, fonts, encryption, bookmarks, and filename conventions. No AI &mdash; results in seconds.
-                            </div>
-                        </div>
-                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
-                            <button type="button" class="btn btn-outline" id="compliance-check-btn" style="width:100%;"
-                                    onclick="submitComplianceCheck(this)">
-                                <span class="label">Compliance</span>
-                                <span class="spinner">Analyzing…</span>
-                            </button>
-                            <div class="plan-btn-tooltip">
-                                <strong>AI title block verification</strong><br>
-                                Scans sample pages for addresses, sheet numbers, professional stamps, and set consistency. ~30 seconds.
-                            </div>
-                        </div>
-                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
-                            <button type="button" class="btn btn-outline" id="ai-analysis-btn" style="width:100%;"
-                                    onclick="submitAIAnalysis(this)">
-                                <span class="label">AI Analysis</span>
-                                <span class="spinner">Analyzing…</span>
-                            </button>
-                            <div class="plan-btn-tooltip">
-                                <strong>AI markup on sample pages</strong><br>
-                                Full AI vision analysis &mdash; EPR issues, annotations, hatching, code references, and compliance checks on a representative sample of pages. ~1-2 minutes.
-                            </div>
-                        </div>
-                        <div style="flex:1; min-width:100px; position:relative;" class="plan-btn-wrap">
-                            <button type="button" class="btn btn-outline" id="full-analysis-btn" style="width:100%;"
-                                    onclick="submitFullAnalysis(this)">
-                                <span class="label">Full Analysis</span>
-                                <span class="spinner">Analyzing…</span>
-                            </button>
-                            <div class="plan-btn-tooltip">
-                                <strong>AI markup on every page</strong><br>
-                                Same as AI Analysis but processes every page in the set. Best for final review before submission. ~3-5 minutes for large sets.
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <div id="analyze-plans-loading" class="htmx-indicator">
-                <div style="text-align: center; padding: 40px;">
-                    <div class="hourglass-spinner">⏳</div>
-                    <p style="font-size: var(--text-lg); margin-top: 16px; font-weight: 500;">
-                        Running quick metadata check...
-                    </p>
-                    <p style="opacity: 0.7; font-size: var(--text-sm); margin-top: 8px;">
-                        This usually takes just a few seconds.
-                    </p>
-                    <div class="progress-dots" style="margin-top: 12px;">
-                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    <div class="plan-btn-wrap">
+                        <button type="button" class="outline-btn" id="full-analysis-btn" style="width:100%;" onclick="submitFullAnalysis(this)">
+                            <span class="label">Full Analysis</span>
+                            <span class="spinner">Analyzing...</span>
+                        </button>
+                        <div class="plan-btn-tooltip"><strong>AI markup on every page</strong><br>Same as AI Analysis but processes every page. ~3-5 minutes.</div>
                     </div>
                 </div>
+            </form>
+        </div>
+
+        <div id="analyze-plans-loading" class="htmx-indicator">
+            <div style="text-align: center; padding: var(--space-10);">
+                <div class="hourglass-spinner">⏳</div>
+                <p class="loading-text" style="margin-top: var(--space-4);">Running quick metadata check...</p>
+                <p style="font-family: var(--sans); font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-2);">This usually takes just a few seconds.</p>
             </div>
+        </div>
 
-            <script nonce="{{ csp_nonce }}">
-            // Force loading indicator for analyze-plans file upload
-            (function() {
-                // Run immediately when script executes, don't wait for DOMContentLoaded
-                function setupAnalyzePlansLoading() {
-                    const form = document.querySelector('form[hx-post="/analyze-plans"]');
-                    const loadingIndicator = document.getElementById('analyze-plans-loading');
-                    const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+        <script nonce="{{ csp_nonce }}">
+        (function() {
+            function setupAnalyzePlansLoading() {
+                var form = document.querySelector('form[hx-post="/analyze-plans"]');
+                var loadingIndicator = document.getElementById('analyze-plans-loading');
+                if (!form || !loadingIndicator) return;
 
-                    if (!form || !loadingIndicator || !submitButton) {
-                        console.warn('[Analyze Plans] Could not find form, indicator, or button');
-                        return;
-                    }
+                form.addEventListener('submit', function() {
+                    loadingIndicator.style.display = 'block';
+                    var qcBtn = document.getElementById('quick-check-btn');
+                    if (qcBtn && !qcBtn.disabled) _lockPlanButtons(qcBtn);
+                    setTimeout(function() {
+                        loadingIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                });
 
-                    console.log('[Analyze Plans] Loading indicator setup complete');
+                form.addEventListener('htmx:beforeRequest', function() {
+                    loadingIndicator.style.display = 'block';
+                });
 
-                    // Primary handler: Form submit event (MOST RELIABLE)
-                    form.addEventListener('submit', function(e) {
-                        console.log('[Analyze Plans] Form submit event fired');
-                        // Show indicator IMMEDIATELY
-                        loadingIndicator.style.display = 'block';
-                        // _lockPlanButtons already handles button states when called
-                        // from submitComplianceCheck/submitFullAnalysis.
-                        // For Quick Check (default submit), lock here:
-                        var qcBtn = document.getElementById('quick-check-btn');
-                        if (qcBtn && !qcBtn.disabled) {
-                            _lockPlanButtons(qcBtn);
-                        }
-                        // Scroll loading indicator into view
-                        setTimeout(function() {
-                            loadingIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 100);
+                function resetAnalysisBtns() {
+                    ['quick-check-btn','compliance-check-btn','ai-analysis-btn','full-analysis-btn'].forEach(function(id) {
+                        var b = document.getElementById(id);
+                        if (!b) return;
+                        b.classList.remove('outline-btn--active');
+                        b.disabled = false;
+                        b.style.opacity = '';
+                        var label = b.querySelector('.label');
+                        var spinner = b.querySelector('.spinner');
+                        if (label) label.style.display = '';
+                        if (spinner) spinner.style.display = '';
                     });
-
-                    // Secondary handler: HTMX events (if HTMX processes it)
-                    form.addEventListener('htmx:beforeRequest', function() {
-                        console.log('[Analyze Plans] HTMX beforeRequest event fired');
-                        loadingIndicator.style.display = 'block';
-                    });
-
-                    function resetAnalysisBtns() {
-                        var allBtns = [
-                            document.getElementById('quick-check-btn'),
-                            document.getElementById('compliance-check-btn'),
-                            document.getElementById('ai-analysis-btn'),
-                            document.getElementById('full-analysis-btn'),
-                        ];
-                        allBtns.forEach(function(b) {
-                            if (!b) return;
-                            b.classList.remove('btn-active');
-                            b.disabled = false;
-                            b.style.opacity = '';
-                            // Restore label/spinner visibility
-                            var label = b.querySelector('.label');
-                            var spinner = b.querySelector('.spinner');
-                            if (label) label.style.display = '';
-                            if (spinner) spinner.style.display = '';
-                        });
-                        // Restore Quick Check as default active (solid blue)
-                        var qcBtn = document.getElementById('quick-check-btn');
-                        if (qcBtn) qcBtn.classList.add('btn-active');
-                    }
-
-                    form.addEventListener('htmx:afterSwap', function() {
-                        console.log('[Analyze Plans] HTMX afterSwap event fired');
-                        loadingIndicator.style.display = 'none';
-                        resetAnalysisBtns();
-                        // Reset quick_check to default (Quick Check is the default action)
-                        var qcField = document.getElementById('quick-check-hidden');
-                        if (qcField) qcField.value = 'on';
-                        var amField = document.getElementById('analysis-mode-hidden');
-                        if (amField) amField.value = 'sample';
-                    });
-
-                    // Error handler — show user-visible feedback on failures
-                    form.addEventListener('htmx:responseError', function(evt) {
-                        console.error('[Analyze Plans] HTMX error:', evt.detail);
-                        loadingIndicator.style.display = 'none';
-                        resetAnalysisBtns();
-                        // Show user-visible error message
-                        var resultsDiv = document.getElementById('analyze-plans-results');
-                        if (resultsDiv) {
-                            resultsDiv.innerHTML = '<div style="text-align:center;padding:32px;color:var(--signal-red);">' +
-                                '<p style="font-size:var(--text-lg);font-weight:500;">Analysis request failed</p>' +
-                                '<p style="margin-top:8px;color:var(--text-secondary);font-size:var(--text-sm);">The server may be busy. Please try again.</p></div>';
-                        }
-                    });
+                    var qcBtn = document.getElementById('quick-check-btn');
+                    if (qcBtn) qcBtn.classList.add('outline-btn--active');
                 }
 
-                // Try to run immediately
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', setupAnalyzePlansLoading);
-                } else {
-                    // DOM already loaded
-                    setupAnalyzePlansLoading();
-                }
-            })();
-            </script>
+                form.addEventListener('htmx:afterSwap', function() {
+                    loadingIndicator.style.display = 'none';
+                    resetAnalysisBtns();
+                    var qcField = document.getElementById('quick-check-hidden');
+                    if (qcField) qcField.value = 'on';
+                    var amField = document.getElementById('analysis-mode-hidden');
+                    if (amField) amField.value = 'sample';
+                });
 
-            <div id="analyze-plans-results"></div>
+                form.addEventListener('htmx:responseError', function(evt) {
+                    loadingIndicator.style.display = 'none';
+                    resetAnalysisBtns();
+                    var resultsDiv = document.getElementById('analyze-plans-results');
+                    if (resultsDiv) {
+                        resultsDiv.innerHTML = '<div style="text-align:center;padding:var(--space-8);color:var(--signal-red);">' +
+                            '<p style="font-family:var(--sans);font-size:var(--text-sm);">Analysis request failed. The server may be busy. Please try again.</p></div>';
+                    }
+                });
+            }
 
-            {% if g.user %}
-            <div style="text-align:center;margin-top:16px;">
-                <a href="/account/analyses" style="font-family:var(--mono);color:var(--text-secondary);text-decoration:none;font-size:var(--text-xs);">
-                    View your analysis history &rarr;
-                </a>
-            </div>
-            {% endif %}
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setupAnalyzePlansLoading);
+            } else {
+                setupAnalyzePlansLoading();
+            }
+        })();
+        </script>
 
-            </div><!-- /section-analyze-plans -->
+        <div id="analyze-plans-results"></div>
 
-            <!-- === Permit Lookup Section (hidden by default) === -->
-            <div class="tool-section" id="section-lookup">
+        {% if g.user %}
+        <div style="text-align:right;margin-top:var(--space-4);">
+            <a href="/account/analyses" class="ghost-cta">View your analysis history &rarr;</a>
+        </div>
+        {% endif %}
+    </div><!-- /section-analyze-plans -->
 
-            <div class="section-divider"></div>
+    <!-- Permit Lookup Section (hidden by default) -->
+    <div class="tool-section" id="section-lookup">
+        <div class="section-divider"></div>
+        <h2 class="section-title">Permit Lookup</h2>
+        <p class="section-subtitle">Search by permit number, address, or parcel to see status, team, inspections, and related permits.</p>
 
-            <h2 class="section-title">Permit Lookup</h2>
-            <p class="subtitle">Search by permit number, address, or parcel to see status, team, inspections, and related permits.</p>
+        <div class="form-card">
+            <form hx-post="/lookup"
+                  hx-target="#lookup-results"
+                  hx-indicator="#lookup-loading"
+                  class="form-grid">
 
-            <div class="form-card">
-                <form hx-post="/lookup"
-                      hx-target="#lookup-results"
-                      hx-indicator="#lookup-loading"
-                      class="form-grid">
-
-                    <!-- Mode toggle -->
-                    <div class="full-width">
-                        <div class="experience-toggle lookup-mode-toggle">
-                            <button type="button" class="experience-option selected" data-mode="number" onclick="selectLookupMode(this)">🔢 Permit Number</button>
-                            <button type="button" class="experience-option" data-mode="address" onclick="selectLookupMode(this)">📍 Address</button>
-                            <button type="button" class="experience-option" data-mode="parcel" onclick="selectLookupMode(this)">🗺 Block / Lot</button>
-                        </div>
-                        <input type="hidden" name="lookup_mode" id="lookup-mode-input" value="number">
+                <div class="full-width">
+                    <div class="experience-toggle lookup-mode-toggle">
+                        <button type="button" class="experience-option selected" data-mode="number" onclick="selectLookupMode(this)">Permit Number</button>
+                        <button type="button" class="experience-option" data-mode="address" onclick="selectLookupMode(this)">Address</button>
+                        <button type="button" class="experience-option" data-mode="parcel" onclick="selectLookupMode(this)">Block / Lot</button>
                     </div>
-
-                    <!-- Permit Number input -->
-                    <div class="full-width lookup-fields" id="lookup-number-fields">
-                        <label for="permit_number">Permit Number</label>
-                        <input type="text" id="permit_number" name="permit_number"
-                            placeholder="e.g., 202301015555 or M012345">
-                    </div>
-
-                    <!-- Address inputs -->
-                    <div class="lookup-fields" id="lookup-address-fields" style="display:none;">
-                        <label for="street_number">Street Number</label>
-                        <input type="text" id="street_number" name="street_number"
-                            placeholder="e.g., 123">
-                    </div>
-                    <div class="lookup-fields" id="lookup-address-fields-2" style="display:none;">
-                        <label for="street_name">Street Name</label>
-                        <input type="text" id="street_name" name="street_name"
-                            placeholder="e.g., Main">
-                    </div>
-
-                    <!-- Block/Lot inputs -->
-                    <div class="lookup-fields" id="lookup-parcel-fields" style="display:none;">
-                        <label for="block">Block</label>
-                        <input type="text" id="block" name="block"
-                            placeholder="e.g., 3512">
-                    </div>
-                    <div class="lookup-fields" id="lookup-parcel-fields-2" style="display:none;">
-                        <label for="lot">Lot</label>
-                        <input type="text" id="lot" name="lot"
-                            placeholder="e.g., 001">
-                    </div>
-
-                    <div class="full-width">
-                        <button type="submit" class="btn btn-secondary">
-                            <span class="label">Look Up Permit</span>
-                            <span class="spinner">Searching...</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <div id="lookup-loading" class="htmx-indicator">
-                <div style="text-align: center; padding: 40px;">
-                    <div class="hourglass-spinner">⏳</div>
-                    <p style="font-size: var(--text-lg); margin-top: 16px; font-weight: 500;">
-                        Searching permits...
-                    </p>
-                    <p style="opacity: 0.7; font-size: var(--text-sm); margin-top: 8px;">
-                        Searching 1.1M permits across 22 datasets
-                    </p>
-                    <div class="progress-dots" style="margin-top: 12px;">
-                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                    </div>
+                    <input type="hidden" name="lookup_mode" id="lookup-mode-input" value="number">
                 </div>
+
+                <div class="full-width lookup-fields" id="lookup-number-fields">
+                    <label for="permit_number">Permit Number</label>
+                    <input type="text" id="permit_number" name="permit_number" placeholder="e.g., 202301015555 or M012345">
+                </div>
+
+                <div class="lookup-fields" id="lookup-address-fields" style="display:none;">
+                    <label for="street_number">Street Number</label>
+                    <input type="text" id="street_number" name="street_number" placeholder="e.g., 123">
+                </div>
+                <div class="lookup-fields" id="lookup-address-fields-2" style="display:none;">
+                    <label for="street_name">Street Name</label>
+                    <input type="text" id="street_name" name="street_name" placeholder="e.g., Main">
+                </div>
+
+                <div class="lookup-fields" id="lookup-parcel-fields" style="display:none;">
+                    <label for="block">Block</label>
+                    <input type="text" id="block" name="block" placeholder="e.g., 3512">
+                </div>
+                <div class="lookup-fields" id="lookup-parcel-fields-2" style="display:none;">
+                    <label for="lot">Lot</label>
+                    <input type="text" id="lot" name="lot" placeholder="e.g., 001">
+                </div>
+
+                <div class="full-width">
+                    <button type="submit" class="glass-btn glass-btn--full">
+                        <span class="label">Look Up Permit</span>
+                        <span class="spinner">Searching...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="lookup-loading" class="htmx-indicator">
+            <div class="search-loading">
+                <div class="loading-dots"><span></span><span></span><span></span></div>
+                <p class="loading-text">Searching 1.1M permits across 22 datasets...</p>
             </div>
-
-            <div id="lookup-results"></div>
-
-            </div><!-- /section-lookup -->
         </div>
-    </main>
 
-    <footer>
-        <div class="obs-container" style="padding-top: var(--space-6); padding-bottom: var(--space-6); border-top: 1px solid rgba(255,255,255,0.06); text-align: center; color: var(--text-secondary); font-size: var(--text-sm);">
-            sfpermits.ai &mdash; powered by djarvis &mdash; SF permit data from data.sfgov.org
-        </div>
-    </footer>
+        <div id="lookup-results"></div>
+    </div><!-- /section-lookup -->
 
-    <script nonce="{{ csp_nonce }}">
-        const PRESETS = {
-            kitchen: {
-                description: "Gut renovation of residential kitchen in Noe Valley, removing a non-bearing wall, relocating gas line, new electrical panel. Budget $85K.",
-                neighborhood: "Noe Valley",
-                cost: "85000",
-                sqft: "",
-                address: "",
-            },
-            adu: {
-                description: "Convert existing detached garage to ADU with kitchenette and bathroom in the Sunset District. 450 sq ft, new plumbing/electrical, $180K budget.",
-                neighborhood: "Sunset/Parkside",
-                cost: "180000",
-                sqft: "450",
-                address: "",
-            },
-            commercial: {
-                description: "Office tenant improvement in Financial District, 3,500 sq ft. New walls, HVAC modifications, lighting, ADA-compliant restrooms. Budget $350K.",
-                neighborhood: "Financial District/South Beach",
-                cost: "350000",
-                sqft: "3500",
-                address: "",
-            },
-            restaurant: {
-                description: "Convert vacant retail space to restaurant with Type I hood, grease interceptor, 49 seats, full commercial kitchen. Mission District, $250K budget.",
-                neighborhood: "Mission",
-                cost: "250000",
-                sqft: "",
-                address: "",
-            },
-            historic: {
-                description: "Major renovation of Article 10 landmark building in Pacific Heights. Seismic retrofit, new MEP systems, ADA compliance, restore historic facade. 8,000 sq ft, $2.5M budget.",
-                neighborhood: "Pacific Heights",
-                cost: "2500000",
-                sqft: "8000",
-                address: "",
-            },
-        };
+</main>
+</div>
+</div>
 
-        function loadPreset(key) {
-            const p = PRESETS[key];
-            document.getElementById("description").value = p.description;
-            document.getElementById("address").value = p.address;
-            document.getElementById("cost").value = p.cost;
-            document.getElementById("sqft").value = p.sqft;
-            const sel = document.getElementById("neighborhood");
-            for (let i = 0; i < sel.options.length; i++) {
-                if (sel.options[i].value === p.neighborhood) {
+<footer class="page-footer">
+    <div class="obs-container">
+        sfpermits.ai &mdash; SF permit data from data.sfgov.org
+    </div>
+</footer>
+
+<script nonce="{{ csp_nonce }}">
+
+    // ── Preset data for Analyze Project ─────────────────────────────────
+    var PRESETS = {
+        kitchen: {
+            description: "Gut renovation of residential kitchen in Noe Valley, removing a non-bearing wall, relocating gas line, new electrical panel. Budget $85K.",
+            neighborhood: "Noe Valley",
+            cost: "85000",
+            sqft: "",
+            address: "",
+        },
+        adu: {
+            description: "Convert existing detached garage to ADU with kitchenette and bathroom in the Sunset District. 450 sq ft, new plumbing/electrical, $180K budget.",
+            neighborhood: "Sunset/Parkside",
+            cost: "180000",
+            sqft: "450",
+            address: "",
+        },
+        commercial: {
+            description: "Office tenant improvement in Financial District, 3,500 sq ft. New walls, HVAC modifications, lighting, ADA-compliant restrooms. Budget $350K.",
+            neighborhood: "Financial District/South Beach",
+            cost: "350000",
+            sqft: "3500",
+            address: "",
+        },
+        restaurant: {
+            description: "Convert vacant retail space to restaurant with Type I hood, grease interceptor, 49 seats, full commercial kitchen. Mission District, $250K budget.",
+            neighborhood: "Mission",
+            cost: "250000",
+            sqft: "",
+            address: "",
+        },
+        historic: {
+            description: "Major renovation of Article 10 landmark building in Pacific Heights. Seismic retrofit, new MEP systems, ADA compliance, restore historic facade. 8,000 sq ft, $2.5M budget.",
+            neighborhood: "Pacific Heights",
+            cost: "2500000",
+            sqft: "8000",
+            address: "",
+        },
+    };
+
+    function loadPreset(key) {
+        var p = PRESETS[key];
+        if (!p) return;
+        document.getElementById("description").value = p.description;
+        document.getElementById("address").value = p.address;
+        document.getElementById("cost").value = p.cost;
+        document.getElementById("sqft").value = p.sqft;
+        var sel = document.getElementById("neighborhood");
+        for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === p.neighborhood) {
+                sel.selectedIndex = i;
+                break;
+            }
+        }
+    }
+
+    // ── Reveal a tool section ────────────────────────────────────────────
+    function revealSection(name) {
+        var section = document.getElementById("section-" + name);
+        if (!section) return;
+        section.classList.add("visible");
+        setTimeout(function() {
+            section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 50);
+    }
+
+    // ── Draft mode ───────────────────────────────────────────────────────
+    function _enterDraftMode() {
+        document.getElementById('draft-mode').value = '1';
+        var q = document.getElementById('search-q');
+        q.placeholder = 'Paste a client question or email here...';
+        q.value = '';
+        q.focus();
+    }
+
+    document.addEventListener('htmx:afterRequest', function(evt) {
+        var dm = document.getElementById('draft-mode');
+        if (dm && dm.value === '1') {
+            dm.value = '0';
+            document.getElementById('search-q').placeholder =
+                'Address, permit number, or any question about SF permits...';
+        }
+    });
+
+    // ── Pre-fill the analyze form from search results ────────────────────
+    function prefillAnalyze(data) {
+        if (data.address) document.getElementById("address").value = data.address;
+        if (data.description) document.getElementById("description").value = data.description;
+        if (data.estimated_cost) document.getElementById("cost").value = Math.round(data.estimated_cost);
+        if (data.square_footage) document.getElementById("sqft").value = Math.round(data.square_footage);
+        if (data.neighborhood) {
+            var sel = document.getElementById("neighborhood");
+            for (var i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === data.neighborhood) {
                     sel.selectedIndex = i;
                     break;
                 }
             }
         }
+        revealSection("analyze");
+    }
 
-        // Tab switching
-        document.addEventListener("click", function(e) {
-            if (e.target.classList.contains("tab")) {
-                const panel = e.target.dataset.panel;
-                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-                document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-                e.target.classList.add("active");
-                document.getElementById(panel).classList.add("active");
-            }
-        });
-
-        // Loading state for buttons — HTMX 2.x puts .htmx-request on the
-        // hx-indicator target, not the triggering element. We toggle .loading
-        // on the trigger so CSS can show spinners / pulse animations.
-        document.body.addEventListener('htmx:beforeRequest', function(evt) {
-            var elt = evt.detail.elt;
-            if (elt.tagName === 'FORM' && elt.hasAttribute('hx-indicator')) {
-                elt.classList.add('loading');
-            }
-            if (elt.classList.contains('btn-pill')) {
-                elt.classList.add('loading');
-            }
-        });
-        document.body.addEventListener('htmx:afterRequest', function(evt) {
-            var elt = evt.detail.elt;
-            if (elt.tagName === 'FORM' && elt.hasAttribute('hx-indicator')) {
-                elt.classList.remove('loading');
-            }
-            if (elt.classList.contains('btn-pill')) {
-                elt.classList.remove('loading');
-            }
-        });
-
-        // File upload label
-        function updateFileLabel(input) {
-            const label = document.getElementById("file-label");
-            if (input.files && input.files[0]) {
-                const f = input.files[0];
-                const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
-                label.innerHTML = '<span class="file-icon">✅</span>'
-                    + '<span><strong>' + f.name + '</strong></span>'
-                    + '<span class="file-hint">' + sizeMB + ' MB</span>';
-                label.classList.add("has-file");
-            } else {
-                label.innerHTML = '<span class="file-icon">📄</span>'
-                    + '<span>Drag & drop a PDF here, or <strong>click to browse</strong></span>'
-                    + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
-                label.classList.remove("has-file");
+    // ── Auto-submit if ?q= present ───────────────────────────────────────
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var q = params.get("q");
+        if (q) {
+            var input = document.getElementById("search-q");
+            if (input) {
+                input.value = q;
+                setTimeout(function() {
+                    htmx.trigger(document.querySelector(".search-form"), "submit");
+                }, 100);
             }
         }
+    })();
 
-        // Analyze plans file upload label
-        function updateAnalyzeFileLabel(input) {
-            const label = document.getElementById("analyze-file-label");
-            if (input.files && input.files[0]) {
-                const f = input.files[0];
-                const sizeMB = (f.size / (1024 * 1024)).toFixed(1);
-                label.innerHTML = '<span class="file-icon">✅</span>'
-                    + '<span><strong>' + f.name + '</strong></span>'
-                    + '<span class="file-hint">' + sizeMB + ' MB</span>';
-                label.classList.add("has-file");
-            } else {
-                label.innerHTML = '<span class="file-icon">📄</span>'
-                    + '<span>Drag & drop a PDF here, or <strong>click to browse</strong></span>'
-                    + '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
-                label.classList.remove("has-file");
-            }
+    // ── HTMX loading state ───────────────────────────────────────────────
+    document.body.addEventListener('htmx:beforeRequest', function(evt) {
+        var elt = evt.detail.elt;
+        if (elt.tagName === 'FORM' && elt.hasAttribute('hx-indicator')) {
+            elt.classList.add('loading');
         }
-
-        // Toggle plan options section (progressive disclosure)
-        function togglePlanOptions() {
-            const btn = document.getElementById("plan-options-toggle");
-            const section = document.getElementById("plan-options-section");
-            btn.classList.toggle("open");
-            section.classList.toggle("open");
+    });
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        var elt = evt.detail.elt;
+        if (elt.tagName === 'FORM' && elt.hasAttribute('hx-indicator')) {
+            elt.classList.remove('loading');
         }
+    });
 
-        // Disable all 4 plan analysis buttons, show spinner on the active one
-        function _lockPlanButtons(activeBtn) {
-            var allBtns = [
-                document.getElementById('quick-check-btn'),
-                document.getElementById('compliance-check-btn'),
-                document.getElementById('ai-analysis-btn'),
-                document.getElementById('full-analysis-btn'),
-            ];
-            allBtns.forEach(function(b) {
-                if (!b) return;
-                b.disabled = true;
-                b.classList.remove('btn-active');
-                if (b !== activeBtn) {
-                    b.style.opacity = '0.4';
-                }
+    // ── Analyze file label ───────────────────────────────────────────────
+    function updateAnalyzeFileLabel(input) {
+        var label = document.getElementById("analyze-file-label");
+        if (input.files && input.files[0]) {
+            var f = input.files[0];
+            var sizeMB = (f.size / (1024 * 1024)).toFixed(1);
+            label.innerHTML = '<span class="icon-md">\u2705</span>' +
+                '<span><strong>' + f.name + '</strong></span>' +
+                '<span class="file-hint">' + sizeMB + ' MB</span>';
+            label.classList.add("has-file");
+        } else {
+            label.innerHTML = '<span class="icon-lg">\uD83D\uDCC4</span>' +
+                '<span>Drag &amp; drop a PDF here, or <strong>click to browse</strong></span>' +
+                '<span class="file-hint">Max 400 MB &mdash; .pdf only</span>';
+            label.classList.remove("has-file");
+        }
+    }
+
+    // ── Drag & drop for analyze plans ────────────────────────────────────
+    var analyzeDropZone = document.getElementById("analyze-drop-zone");
+    if (analyzeDropZone) {
+        ["dragenter", "dragover"].forEach(function(evt) {
+            analyzeDropZone.addEventListener(evt, function(e) {
+                e.preventDefault();
+                analyzeDropZone.classList.add("drag-over");
             });
-            // Make the active button solid blue and show spinner
-            activeBtn.classList.add('btn-active');
-            activeBtn.style.opacity = '1';
-            var label = activeBtn.querySelector('.label');
-            var spinner = activeBtn.querySelector('.spinner');
-            if (label) label.style.display = 'none';
-            if (spinner) spinner.style.display = 'inline-block';
-        }
-
-        // Scroll loading indicator into view
-        function _scrollToLoading() {
-            var el = document.getElementById('analyze-plans-loading');
-            if (el) setTimeout(function() {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-        }
-
-        // Submit form in Compliance Check mode
-        function submitComplianceCheck(btn) {
-            _lockPlanButtons(btn);
-            document.getElementById('quick-check-hidden').value = '';
-            document.getElementById('analysis-mode-hidden').value = 'compliance';
-            var loadingMsg = document.querySelector('#analyze-plans-loading p');
-            if (loadingMsg) {
-                loadingMsg.textContent = "Running compliance check \u2014 verifying title blocks (~30s)...";
-            }
-            var form = document.querySelector('form[hx-post="/analyze-plans"]');
-            if (form) form.requestSubmit();
-            _scrollToLoading();
-        }
-
-        // Submit form in AI Analysis mode (sample pages)
-        function submitAIAnalysis(btn) {
-            _lockPlanButtons(btn);
-            document.getElementById('quick-check-hidden').value = '';
-            document.getElementById('analysis-mode-hidden').value = 'sample';
-            var loadingMsg = document.querySelector('#analyze-plans-loading p');
-            if (loadingMsg) {
-                loadingMsg.textContent = "Running AI analysis on sample pages \u2014 annotations, EPR checks, hatching (~1-2 min)...";
-            }
-            var form = document.querySelector('form[hx-post="/analyze-plans"]');
-            if (form) form.requestSubmit();
-            _scrollToLoading();
-        }
-
-        // Submit form in Full Analysis mode (all pages)
-        function submitFullAnalysis(btn) {
-            _lockPlanButtons(btn);
-            document.getElementById('quick-check-hidden').value = '';
-            document.getElementById('analysis-mode-hidden').value = 'full';
-            var loadingMsg = document.querySelector('#analyze-plans-loading p');
-            if (loadingMsg) {
-                loadingMsg.textContent = "Running full AI analysis on ALL pages \u2014 this may take 3-5 minutes for large plan sets...";
-            }
-            var form = document.querySelector('form[hx-post="/analyze-plans"]');
-            if (form) form.requestSubmit();
-            _scrollToLoading();
-        }
-
-        // Personalization section toggle
-        function togglePersonalize() {
-            const btn = document.querySelector(".personalize-toggle");
-            const section = document.getElementById("personalize-section");
-            btn.classList.toggle("open");
-            section.classList.toggle("open");
-        }
-
-        // Priority chip multi-select
-        function toggleChip(el) {
-            el.classList.toggle("selected");
-            updatePriorities();
-        }
-
-        function updatePriorities() {
-            const selected = document.querySelectorAll(".priority-chip.selected");
-            const values = Array.from(selected).map(el => el.dataset.value);
-            document.getElementById("priorities-input").value = values.join(",");
-        }
-
-        // Experience level toggle (scoped to parent)
-        function selectExperience(el) {
-            el.parentElement.querySelectorAll(".experience-option").forEach(btn => btn.classList.remove("selected"));
-            el.classList.add("selected");
-            document.getElementById("experience-input").value = el.dataset.value;
-        }
-
-        // Lookup mode switching
-        function selectLookupMode(el) {
-            // Update toggle buttons
-            document.querySelectorAll(".lookup-mode-toggle .experience-option").forEach(btn => btn.classList.remove("selected"));
-            el.classList.add("selected");
-            const mode = el.dataset.mode;
-            document.getElementById("lookup-mode-input").value = mode;
-
-            // Show/hide field groups
-            const numberFields = document.getElementById("lookup-number-fields");
-            const addressFields = document.getElementById("lookup-address-fields");
-            const addressFields2 = document.getElementById("lookup-address-fields-2");
-            const parcelFields = document.getElementById("lookup-parcel-fields");
-            const parcelFields2 = document.getElementById("lookup-parcel-fields-2");
-
-            numberFields.style.display = mode === "number" ? "" : "none";
-            addressFields.style.display = mode === "address" ? "" : "none";
-            addressFields2.style.display = mode === "address" ? "" : "none";
-            parcelFields.style.display = mode === "parcel" ? "" : "none";
-            parcelFields2.style.display = mode === "parcel" ? "" : "none";
-        }
-
-        // --- Conversational search helpers ---
-
-        // Reveal a tool section and scroll to it
-        function revealSection(name) {
-            const section = document.getElementById("section-" + name);
-            if (!section) return;
-            section.classList.add("visible");
-            // Smooth scroll to section after brief delay for CSS transition
-            setTimeout(() => {
-                section.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 50);
-        }
-
-        // Enter draft-reply mode: set hidden flag and focus search
-        function _enterDraftMode() {
-            document.getElementById('draft-mode').value = '1';
-            var q = document.getElementById('search-q');
-            q.placeholder = 'Paste a client question or email here...';
-            q.value = '';
-            q.focus();
-        }
-
-        // Reset draft mode after form submission
-        document.addEventListener('htmx:afterRequest', function(evt) {
-            var dm = document.getElementById('draft-mode');
-            if (dm && dm.value === '1') {
-                dm.value = '0';
-                document.getElementById('search-q').placeholder =
-                    'Permit number, address, client question, or anything about SF permits...';
-            }
         });
+        ["dragleave", "drop"].forEach(function(evt) {
+            analyzeDropZone.addEventListener(evt, function(e) {
+                analyzeDropZone.classList.remove("drag-over");
+            });
+        });
+    }
 
-        // Pre-fill the analyze form from search results
-        function prefillAnalyze(data) {
-            if (data.address) document.getElementById("address").value = data.address;
-            if (data.description) document.getElementById("description").value = data.description;
-            if (data.estimated_cost) document.getElementById("cost").value = Math.round(data.estimated_cost);
-            if (data.square_footage) document.getElementById("sqft").value = Math.round(data.square_footage);
-            if (data.neighborhood) {
-                const sel = document.getElementById("neighborhood");
-                for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value === data.neighborhood) {
-                        sel.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-            // Reveal and scroll to the analyze section
-            revealSection("analyze");
+    // ── Plan analysis button management ─────────────────────────────────
+    function _lockPlanButtons(activeBtn) {
+        var ids = ['quick-check-btn','compliance-check-btn','ai-analysis-btn','full-analysis-btn'];
+        ids.forEach(function(id) {
+            var b = document.getElementById(id);
+            if (!b) return;
+            b.disabled = true;
+            b.classList.remove('outline-btn--active');
+            if (b !== activeBtn) b.style.opacity = '0.4';
+        });
+        activeBtn.classList.add('outline-btn--active');
+        activeBtn.style.opacity = '1';
+        var label = activeBtn.querySelector('.label');
+        var spinner = activeBtn.querySelector('.spinner');
+        if (label) label.style.display = 'none';
+        if (spinner) spinner.style.display = 'inline';
+    }
+
+    function _scrollToAnalyzeLoading() {
+        var el = document.getElementById('analyze-plans-loading');
+        if (el) setTimeout(function() {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    }
+
+    function submitComplianceCheck(btn) {
+        _lockPlanButtons(btn);
+        document.getElementById('quick-check-hidden').value = '';
+        document.getElementById('analysis-mode-hidden').value = 'compliance';
+        var form = document.querySelector('form[hx-post="/analyze-plans"]');
+        if (form) form.requestSubmit();
+        _scrollToAnalyzeLoading();
+    }
+
+    function submitAIAnalysis(btn) {
+        _lockPlanButtons(btn);
+        document.getElementById('quick-check-hidden').value = '';
+        document.getElementById('analysis-mode-hidden').value = 'sample';
+        var form = document.querySelector('form[hx-post="/analyze-plans"]');
+        if (form) form.requestSubmit();
+        _scrollToAnalyzeLoading();
+    }
+
+    function submitFullAnalysis(btn) {
+        _lockPlanButtons(btn);
+        document.getElementById('quick-check-hidden').value = '';
+        document.getElementById('analysis-mode-hidden').value = 'full';
+        var form = document.querySelector('form[hx-post="/analyze-plans"]');
+        if (form) form.requestSubmit();
+        _scrollToAnalyzeLoading();
+    }
+
+    function togglePlanOptions() {
+        var btn = document.getElementById("plan-options-toggle");
+        var section = document.getElementById("plan-options-section");
+        btn.classList.toggle("open");
+        section.classList.toggle("open");
+    }
+
+    // ── Personalization section ──────────────────────────────────────────
+    function togglePersonalize() {
+        var btn = document.querySelector(".personalize-toggle");
+        var section = document.getElementById("personalize-section");
+        btn.classList.toggle("open");
+        section.classList.toggle("open");
+    }
+
+    function toggleChip(el) {
+        el.classList.toggle("selected");
+        var selected = document.querySelectorAll(".priority-chip.selected");
+        var values = Array.from(selected).map(function(e) { return e.dataset.value; });
+        document.getElementById("priorities-input").value = values.join(",");
+    }
+
+    function selectExperience(el) {
+        el.parentElement.querySelectorAll(".experience-option").forEach(function(btn) {
+            btn.classList.remove("selected");
+        });
+        el.classList.add("selected");
+        document.getElementById("experience-input").value = el.dataset.value;
+    }
+
+    // ── Lookup mode switching ────────────────────────────────────────────
+    function selectLookupMode(el) {
+        document.querySelectorAll(".lookup-mode-toggle .experience-option").forEach(function(btn) {
+            btn.classList.remove("selected");
+        });
+        el.classList.add("selected");
+        var mode = el.dataset.mode;
+        document.getElementById("lookup-mode-input").value = mode;
+
+        document.getElementById("lookup-number-fields").style.display = mode === "number" ? "" : "none";
+        document.getElementById("lookup-address-fields").style.display = mode === "address" ? "" : "none";
+        document.getElementById("lookup-address-fields-2").style.display = mode === "address" ? "" : "none";
+        document.getElementById("lookup-parcel-fields").style.display = mode === "parcel" ? "" : "none";
+        document.getElementById("lookup-parcel-fields-2").style.display = mode === "parcel" ? "" : "none";
+    }
+
+    // ── Auto-reveal section from URL hash ────────────────────────────────
+    (function() {
+        var hash = window.location.hash;
+        if (hash === '#plan-upload' || hash === '#analyze-plans' || hash === '#section-analyze-plans') {
+            revealSection('analyze-plans');
         }
+    })();
 
-        // Auto-submit if ?q= parameter is present (e.g. from admin quick search)
-        (function() {
-            var params = new URLSearchParams(window.location.search);
-            var q = params.get("q");
-            if (q) {
-                var input = document.getElementById("search-q");
-                if (input) {
-                    input.value = q;
-                    // Trigger HTMX submit after a brief delay for HTMX init
-                    setTimeout(function() {
+    // ── Recent Searches (localStorage) ───────────────────────────────────
+    var _RS_KEY = "sf_recent_searches";
+    var _RS_MAX = 10;
+
+    function _saveRecentSearch(q) {
+        q = (q || "").trim();
+        if (!q) return;
+        var list = [];
+        try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
+        list = list.filter(function(item) { return item.toLowerCase() !== q.toLowerCase(); });
+        list.unshift(q);
+        if (list.length > _RS_MAX) list = list.slice(0, _RS_MAX);
+        localStorage.setItem(_RS_KEY, JSON.stringify(list));
+    }
+
+    function _renderRecentSearches() {
+        var inlineContainer = document.getElementById("recent-searches");
+        var dashSection = document.getElementById("dash-recent-section");
+        var grid = document.getElementById("dash-recent-grid");
+        var list = [];
+        try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
+
+        // Inline chips (inside search card)
+        if (inlineContainer) {
+            inlineContainer.querySelectorAll(".recent-chip").forEach(function(el) { el.remove(); });
+            if (list.length === 0) {
+                inlineContainer.style.display = "none";
+            } else {
+                var clearBtn = inlineContainer.querySelector(".recent-clear");
+                list.slice(0, 5).forEach(function(q) {
+                    var btn = document.createElement("button");
+                    btn.className = "recent-chip";
+                    btn.textContent = q.length > 28 ? q.substring(0, 26) + "..." : q;
+                    btn.title = q;
+                    btn.onclick = function() {
+                        document.getElementById("draft-mode").value = "0";
+                        var sq = document.getElementById("search-q");
+                        sq.value = q;
                         htmx.trigger(document.querySelector(".search-form"), "submit");
-                    }, 100);
-                }
+                    };
+                    inlineContainer.insertBefore(btn, clearBtn);
+                });
+                inlineContainer.style.display = "flex";
             }
-        })();
-
-        // Drag-and-drop visual feedback
-        const dropZone = document.getElementById("drop-zone");
-        if (dropZone) {
-            ["dragenter", "dragover"].forEach(evt => {
-                dropZone.addEventListener(evt, e => {
-                    e.preventDefault();
-                    dropZone.classList.add("drag-over");
-                });
-            });
-            ["dragleave", "drop"].forEach(evt => {
-                dropZone.addEventListener(evt, e => {
-                    dropZone.classList.remove("drag-over");
-                });
-            });
         }
 
-        // ── Recent Searches (localStorage) ──────────────────────────
-        var _RS_KEY = "sf_recent_searches";
-        var _RS_MAX = 10;
-
-        function _saveRecentSearch(q) {
-            q = (q || "").trim();
-            if (!q) return;
-            var list = [];
-            try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
-            // Remove duplicate (case-insensitive)
-            list = list.filter(function(item) { return item.toLowerCase() !== q.toLowerCase(); });
-            list.unshift(q);
-            if (list.length > _RS_MAX) list = list.slice(0, _RS_MAX);
-            localStorage.setItem(_RS_KEY, JSON.stringify(list));
-        }
-
-        function _renderRecentSearches() {
-            var container = document.getElementById("recent-searches");
-            var grid = document.getElementById("dash-recent-grid");
-            var list = [];
-            try { list = JSON.parse(localStorage.getItem(_RS_KEY)) || []; } catch(e) {}
-
-            // Legacy inline recent-searches bar (within search card)
-            if (container) {
-                container.querySelectorAll(".preset-chip").forEach(function(el) { el.remove(); });
-                var divider = document.getElementById("actions-divider");
-                if (list.length === 0) { container.style.display = "none"; if (divider) divider.style.display = "none"; }
-                else {
-                    if (divider) divider.style.display = "block";
-                    var clearBtn = container.querySelector(".recent-clear");
-                    list.forEach(function(q) {
-                        var btn = document.createElement("button");
-                        btn.className = "preset-chip";
-                        btn.textContent = q.length > 30 ? q.substring(0, 28) + "..." : q;
-                        btn.title = q;
-                        btn.onclick = function() {
-                            var dm = document.getElementById("draft-mode");
-                            if (dm) { dm.value = "0"; }
-                            var sq = document.getElementById("search-q");
-                            sq.placeholder = "Permit number, address, client question, or anything about SF permits...";
-                            sq.value = q;
-                            htmx.trigger(document.querySelector(".search-form"), "submit");
-                        };
-                        container.insertBefore(btn, clearBtn);
-                    });
-                    container.style.display = "flex";
-                }
-            }
-
-            // New dashboard recent items grid
-            if (grid) {
+        // Dashboard recent section (below brief/onboarding)
+        if (dashSection && grid) {
+            if (list.length === 0) {
+                dashSection.style.display = "none";
+            } else {
+                dashSection.style.display = "block";
                 grid.innerHTML = "";
-                if (list.length === 0) {
-                    grid.innerHTML = '<span class="recent-empty">Your recent searches will appear here.</span>';
-                } else {
-                    // Show up to 6 recent searches as cards
-                    var show = list.slice(0, 6);
-                    show.forEach(function(q) {
-                        var a = document.createElement("a");
-                        a.className = "recent-chip";
-                        a.href = "#";
-                        a.innerHTML = '<div class="recent-chip-address">' + (q.length > 40 ? q.substring(0,38) + "..." : q) + '</div>' +
-                            '<div class="recent-chip-date">Recent search</div>';
-                        a.onclick = function(e) {
-                            e.preventDefault();
-                            var dm = document.getElementById("draft-mode");
-                            if (dm) { dm.value = "0"; }
-                            var sq = document.getElementById("search-q");
-                            sq.value = q;
-                            sq.scrollIntoView({ behavior: "smooth", block: "center" });
-                            htmx.trigger(document.querySelector(".search-form"), "submit");
-                        };
-                        grid.appendChild(a);
-                    });
-                }
+                list.slice(0, 6).forEach(function(q) {
+                    var el = document.createElement("div");
+                    el.className = "recent-item";
+                    el.innerHTML = '<span class="recent-item__text">' + (q.length > 38 ? q.substring(0, 36) + "..." : q) + '</span>' +
+                        '<span class="recent-item__arrow">&rarr;</span>';
+                    el.onclick = function() {
+                        document.getElementById("draft-mode").value = "0";
+                        var sq = document.getElementById("search-q");
+                        sq.value = q;
+                        sq.scrollIntoView({ behavior: "smooth", block: "center" });
+                        htmx.trigger(document.querySelector(".search-form"), "submit");
+                    };
+                    grid.appendChild(el);
+                });
             }
         }
+    }
 
-        function _clearRecentSearches() {
-            localStorage.removeItem(_RS_KEY);
-            _renderRecentSearches();
+    function _clearRecentSearches() {
+        localStorage.removeItem(_RS_KEY);
+        _renderRecentSearches();
+    }
+
+    // Save on form submit
+    document.querySelector(".search-form").addEventListener("htmx:configRequest", function(evt) {
+        var q = (evt.detail.parameters.q || "").trim();
+        if (q) {
+            _saveRecentSearch(q);
+            setTimeout(_renderRecentSearches, 50);
         }
+    });
 
-        // Save search on form submit
-        document.querySelector(".search-form").addEventListener("htmx:configRequest", function(evt) {
-            var q = (evt.detail.parameters.q || "").trim();
-            if (q) {
-                _saveRecentSearch(q);
-                // Re-render after a tick so chip appears even before results come back
-                setTimeout(_renderRecentSearches, 50);
+    // Render on page load
+    _renderRecentSearches();
+
+    // ── Reveal animation ─────────────────────────────────────────────────
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
             }
         });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
 
-        // Render on page load
-        _renderRecentSearches();
+    document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
 
-        // Auto-reveal section from URL hash (e.g., /#plan-upload)
-        (function() {
-            var hash = window.location.hash;
-            if (hash === '#plan-upload' || hash === '#analyze-plans' || hash === '#section-analyze-plans') {
-                revealSection('analyze-plans');
-            }
-        })();
-    </script>
-    {% include 'fragments/feedback_widget.html' %}
-    <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
-    <!-- PostHog analytics (async, non-blocking) -->
-    {% if posthog_key %}
-    <script async nonce="{{ csp_nonce }}">
-      !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-      posthog.init('{{ posthog_key }}', {api_host: '{{ posthog_host }}'});
-    </script>
-    {% endif %}
+</script>
+
+{% include 'fragments/feedback_widget.html' %}
+<script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
+<script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js" defer></script>
+<script nonce="{{ csp_nonce }}" src="/static/admin-tour.js" defer></script>
+
+{% if posthog_key %}
+<script async nonce="{{ csp_nonce }}">
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init('{{ posthog_key }}', {api_host: '{{ posthog_host }}'});
+</script>
+{% endif %}
+
 </body>
 </html>
