@@ -371,6 +371,68 @@
 
 ---
 
+### Risk Gauge (Revision Risk tool)
+**Sprint:** QS11-T3-3C
+**File:** `web/templates/tools/revision_risk.html`
+**Usage:** Single instance — primary output of the Revision Risk tool showing revision probability.
+**Status:** NEW
+**HTML:**
+```html
+<div class="gauge-card">
+  <p class="gauge-card-title">Revision Probability</p>
+  <div class="gauge-row">
+    <div class="gauge-number risk-low">12<span>%</span></div>
+    <div class="gauge-bar-area">
+      <div class="gauge-bar-track">
+        <div class="gauge-bar-fill risk-low" style="width:12%"></div>
+      </div>
+      <div class="gauge-labels">
+        <span class="gauge-label">0%</span>
+        <span class="gauge-label">25%</span>
+        <span class="gauge-label">50%+</span>
+      </div>
+    </div>
+  </div>
+  <p class="gauge-verdict"><strong class="risk-low">Low risk</strong> — ...</p>
+</div>
+```
+**CSS:**
+```css
+.gauge-number.risk-low    { color: var(--signal-green); }
+.gauge-number.risk-medium { color: var(--signal-amber); }
+.gauge-number.risk-high   { color: var(--signal-red); }
+.gauge-bar-fill.risk-low    { background: var(--signal-green); }
+.gauge-bar-fill.risk-medium { background: var(--signal-amber); }
+.gauge-bar-fill.risk-high   { background: var(--signal-red); }
+```
+**Notes:** Three-zone colour coding: green < 15%, amber 15–25%, red > 25%. Bar animates via requestAnimationFrame after DOM settles. Gauge classes applied by JS based on probability value.
+
+---
+
+### Entity Type Chip (Entity Network tool)
+**Sprint:** QS11-T3-3C
+**File:** `web/templates/tools/entity_network.html`
+**Usage:** Entity detail sidebar — one chip per selected node showing professional role.
+**Status:** NEW
+**HTML:**
+```html
+<span class="entity-type-chip architect">architect</span>
+<span class="entity-type-chip contractor">contractor</span>
+<span class="entity-type-chip engineer">engineer</span>
+<span class="entity-type-chip owner">owner</span>
+```
+**CSS:**
+```css
+.entity-type-chip { display: inline-block; font-family: var(--mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 3px; margin-bottom: var(--space-4); }
+.entity-type-chip.contractor  { color: var(--signal-amber);  background: rgba(251,191,36,0.12); }
+.entity-type-chip.architect   { color: var(--accent);         background: var(--accent-glow); }
+.entity-type-chip.engineer    { color: var(--signal-blue);    background: rgba(96,165,250,0.10); }
+.entity-type-chip.owner       { color: var(--signal-green);   background: rgba(52,211,153,0.10); }
+```
+**Notes:** Parallel pattern to severity-chip and status-chip. Uses class name matching the entity type string returned from the API. rgba backgrounds derived from signal-* token hex values at reduced opacity.
+
+---
+
 ### Tier Gate Inline Card (HTMX Fragment)
 
 **Sprint:** 89-4B

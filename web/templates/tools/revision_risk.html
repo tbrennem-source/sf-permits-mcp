@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revision Risk — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        body {
+            background: var(--obsidian);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            padding: var(--space-10) 0 var(--space-8);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: var(--space-8);
+        }
+
+        .page-header h1 {
+            font-family: var(--sans);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2);
+        }
+
+        .page-header p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin: 0;
+            max-width: 600px;
+        }
+
+        /* ── Layout ──────────────────────────────────────────────── */
+        .risk-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: var(--space-6);
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .risk-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Input form ──────────────────────────────────────────── */
+        .form-panel {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .form-section-title {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-4);
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+            margin-bottom: var(--space-5);
+        }
+
+        .form-field:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        .form-select,
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--text-primary);
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+            appearance: none;
+        }
+
+        .form-select:focus,
+        .form-input:focus {
+            border-color: var(--accent-ring);
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
+        .form-select::placeholder,
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* Select arrow */
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '\25BE';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            pointer-events: none;
+            font-size: 10px;
+        }
+
+        .form-separator {
+            height: 1px;
+            background: var(--glass-border);
+            margin: var(--space-5) 0;
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--obsidian);
+            background: var(--accent);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 11px 20px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-align: center;
+            margin-top: var(--space-5);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            opacity: 0.88;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ── Loading state ───────────────────────────────────────── */
+        .loading-bar {
+            display: none;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-4) 0;
+        }
+
+        .loading-bar.visible {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--glass-border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        /* ── Results panel ───────────────────────────────────────── */
+        .results-panel {
+            min-height: 320px;
+        }
+
+        /* Empty state */
+        .results-empty {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 320px;
+            gap: var(--space-3);
+            padding: var(--space-8);
+        }
+
+        .results-empty-icon {
+            font-size: 2rem;
+            opacity: 0.3;
+        }
+
+        .results-empty-text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            text-align: center;
+            max-width: 280px;
+        }
+
+        /* Result cards area */
+        .results-content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        /* ── Risk gauge card ─────────────────────────────────────── */
+        .gauge-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .gauge-card-title {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-5);
+        }
+
+        .gauge-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-6);
+        }
+
+        .gauge-number {
+            font-family: var(--mono);
+            font-size: var(--text-3xl);
+            font-weight: 300;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .gauge-number.risk-low    { color: var(--signal-green); }
+        .gauge-number.risk-medium { color: var(--signal-amber); }
+        .gauge-number.risk-high   { color: var(--signal-red); }
+
+        .gauge-bar-area {
+            flex: 1;
+        }
+
+        .gauge-bar-track {
+            height: 8px;
+            background: var(--obsidian-light);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gauge-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .gauge-bar-fill.risk-low    { background: var(--signal-green); }
+        .gauge-bar-fill.risk-medium { background: var(--signal-amber); }
+        .gauge-bar-fill.risk-high   { background: var(--signal-red); }
+
+        .gauge-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: var(--space-1);
+        }
+
+        .gauge-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+
+        .gauge-verdict {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin-top: var(--space-4);
+        }
+
+        .gauge-verdict strong {
+            font-family: var(--sans);
+            font-weight: 500;
+        }
+
+        .gauge-verdict strong.risk-low    { color: var(--signal-green); }
+        .gauge-verdict strong.risk-medium { color: var(--signal-amber); }
+        .gauge-verdict strong.risk-high   { color: var(--signal-red); }
+
+        /* ── Triggers card ───────────────────────────────────────── */
+        .triggers-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .card-title {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-4);
+        }
+
+        .trigger-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .trigger-item {
+            display: flex;
+            gap: var(--space-3);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .trigger-item:last-child {
+            border-bottom: none;
+        }
+
+        .trigger-num {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--accent);
+            flex-shrink: 0;
+            width: 20px;
+            padding-top: 2px;
+        }
+
+        .trigger-body {}
+
+        .trigger-name {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .trigger-desc {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ── Timeline impact card ────────────────────────────────── */
+        .timeline-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .timeline-impact-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .timeline-days-badge {
+            font-family: var(--mono);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--signal-amber);
+            flex-shrink: 0;
+        }
+
+        .timeline-bar-container {
+            flex: 1;
+        }
+
+        .timeline-bar-bg {
+            height: 6px;
+            background: var(--obsidian-light);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .timeline-bar-fill {
+            height: 100%;
+            background: var(--signal-amber);
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .timeline-bar-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-top: var(--space-1);
+        }
+
+        /* ── Mitigation card ─────────────────────────────────────── */
+        .mitigation-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .mitigation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mitigation-item {
+            display: flex;
+            gap: var(--space-3);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .mitigation-item:last-child {
+            border-bottom: none;
+        }
+
+        .mitigation-check {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--signal-green);
+            flex-shrink: 0;
+        }
+
+        .mitigation-text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Error */
+        .error-notice {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--signal-red);
+            background: rgba(248,113,113,0.06);
+            border: 1px solid rgba(248,113,113,0.2);
+            border-radius: var(--radius-sm);
+            padding: var(--space-3) var(--space-4);
+            margin-bottom: var(--space-4);
+            display: none;
+        }
+
+        .error-notice.visible {
+            display: block;
+        }
+
+        .error-notice a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .error-notice a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                padding: var(--space-8) 0 var(--space-6);
+                margin-bottom: var(--space-6);
+            }
+
+            .form-panel {
+                padding: var(--space-5);
+            }
+
+            .gauge-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-4);
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include "fragments/nav.html" %}
+
+    <main>
+        <div class="obs-container">
+            <header class="page-header">
+                <h1>Revision Risk</h1>
+                <p>Predict the probability of plan corrections and learn which triggers to address before submittal.</p>
+            </header>
+
+            <div id="error-notice" class="error-notice" role="alert"></div>
+
+            <div class="risk-layout">
+                <!-- Input form -->
+                <div class="form-panel">
+                    <p class="form-section-title">Project Details</p>
+
+                    <form id="risk-form" novalidate>
+                        <div class="form-field">
+                            <label class="form-label" for="permit-type">Permit type</label>
+                            <div class="select-wrapper">
+                                <select id="permit-type" name="permit_type" class="form-select">
+                                    <option value="">Select a permit type</option>
+                                    <option value="adu">ADU — Accessory Dwelling Unit</option>
+                                    <option value="new-construction">New construction</option>
+                                    <option value="addition">Addition / expansion</option>
+                                    <option value="interior-alteration">Interior alteration</option>
+                                    <option value="change-of-use">Change of use</option>
+                                    <option value="residential-remodel">Residential remodel</option>
+                                    <option value="commercial-tenant-improvement">Commercial tenant improvement</option>
+                                    <option value="restaurant">Restaurant / food service</option>
+                                    <option value="sign">Sign permit</option>
+                                    <option value="roof">Roof / reroof</option>
+                                    <option value="demolition">Demolition</option>
+                                    <option value="mechanical">Mechanical / HVAC</option>
+                                    <option value="electrical">Electrical</option>
+                                    <option value="plumbing">Plumbing</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="neighborhood">Neighborhood</label>
+                            <div class="select-wrapper">
+                                <select id="neighborhood" name="neighborhood" class="form-select">
+                                    <option value="">Any neighborhood</option>
+                                    <option value="Mission">Mission</option>
+                                    <option value="Castro">Castro</option>
+                                    <option value="Noe Valley">Noe Valley</option>
+                                    <option value="SoMa">SoMa</option>
+                                    <option value="Hayes Valley">Hayes Valley</option>
+                                    <option value="Haight-Ashbury">Haight-Ashbury</option>
+                                    <option value="Richmond">Richmond</option>
+                                    <option value="Sunset">Sunset</option>
+                                    <option value="Nob Hill">Nob Hill</option>
+                                    <option value="Pacific Heights">Pacific Heights</option>
+                                    <option value="Marina">Marina</option>
+                                    <option value="North Beach">North Beach</option>
+                                    <option value="Chinatown">Chinatown</option>
+                                    <option value="Financial District">Financial District</option>
+                                    <option value="Tenderloin">Tenderloin</option>
+                                    <option value="Bayview">Bayview</option>
+                                    <option value="Potrero Hill">Potrero Hill</option>
+                                    <option value="Dogpatch">Dogpatch</option>
+                                    <option value="Excelsior">Excelsior</option>
+                                    <option value="Glen Park">Glen Park</option>
+                                    <option value="Bernal Heights">Bernal Heights</option>
+                                    <option value="Twin Peaks">Twin Peaks</option>
+                                    <option value="West Portal">West Portal</option>
+                                    <option value="Inner Sunset">Inner Sunset</option>
+                                    <option value="Outer Sunset">Outer Sunset</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="project-type">Project description <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-tertiary);">optional</span></label>
+                            <input
+                                type="text"
+                                id="project-type"
+                                name="project_type"
+                                class="form-input"
+                                placeholder="e.g. kitchen remodel with structural changes"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="submit-btn">
+                            Assess revision risk &rarr;
+                        </button>
+                    </form>
+
+                    <div class="loading-bar" id="loading-bar">
+                        <div class="loading-spinner"></div>
+                        <span class="loading-text">Analyzing risk factors&hellip;</span>
+                    </div>
+                </div>
+
+                <!-- Results panel -->
+                <div class="results-panel" id="results-panel">
+                    <div class="results-empty" id="results-empty">
+                        <div class="results-empty-icon">&#9650;</div>
+                        <p class="results-empty-text">Select a permit type and run the assessment to see revision risk, top triggers, and mitigation strategies.</p>
+                    </div>
+                    <div class="results-content" id="results-content" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script nonce="{{ csp_nonce }}">
+    (function () {
+        'use strict';
+
+        var form         = document.getElementById('risk-form');
+        var submitBtn    = document.getElementById('submit-btn');
+        var loadingBar   = document.getElementById('loading-bar');
+        var errorNotice  = document.getElementById('error-notice');
+        var resultsEmpty = document.getElementById('results-empty');
+        var resultsContent = document.getElementById('results-content');
+        var csrfMeta     = document.querySelector('meta[name="csrf-token"]');
+
+        // ── Auto-fill from ?demo=restaurant-mission ────────────────
+        (function autoFill() {
+            var params = new URLSearchParams(window.location.search);
+            var demo = params.get('demo');
+            if (demo === 'restaurant-mission') {
+                var permitSel = document.getElementById('permit-type');
+                var nbrSel    = document.getElementById('neighborhood');
+                var projInput = document.getElementById('project-type');
+                if (permitSel) permitSel.value = 'restaurant';
+                if (nbrSel)    nbrSel.value    = 'Mission';
+                if (projInput) projInput.value = 'New restaurant with full kitchen and exterior signage';
+                setTimeout(runAssessment, 80);
+            }
+        })();
+
+        // ── Helpers ────────────────────────────────────────────────
+        function escapeHtml(t) {
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(String(t)));
+            return d.innerHTML;
+        }
+
+        function setLoading(on) {
+            submitBtn.disabled = on;
+            loadingBar.classList.toggle('visible', on);
+            if (on) { submitBtn.textContent = 'Analyzing\u2026'; }
+            else    { submitBtn.textContent = 'Assess revision risk \u2192'; }
+        }
+
+        function showError(msg, is401) {
+            if (is401) {
+                errorNotice.innerHTML = 'Please <a href="/auth/login">log in</a> to use the Revision Risk tool.';
+            } else {
+                errorNotice.textContent = msg;
+            }
+            errorNotice.classList.add('visible');
+        }
+
+        function clearError() {
+            errorNotice.classList.remove('visible');
+            errorNotice.textContent = '';
+        }
+
+        function riskClass(pct) {
+            if (pct < 15) return 'risk-low';
+            if (pct < 25) return 'risk-medium';
+            return 'risk-high';
+        }
+
+        function riskLabel(pct) {
+            if (pct < 15) return 'Low risk';
+            if (pct < 25) return 'Moderate risk';
+            return 'High risk';
+        }
+
+        // ── Render risk gauge ──────────────────────────────────────
+        function renderGauge(pct) {
+            var cls   = riskClass(pct);
+            var label = riskLabel(pct);
+            var barW  = Math.min(pct, 100);
+
+            return '<div class="gauge-card">' +
+                     '<p class="gauge-card-title">Revision Probability</p>' +
+                     '<div class="gauge-row">' +
+                       '<div class="gauge-number ' + cls + '">' + escapeHtml(pct) + '<span style="font-size:var(--text-lg);">%</span></div>' +
+                       '<div class="gauge-bar-area">' +
+                         '<div class="gauge-bar-track">' +
+                           '<div class="gauge-bar-fill ' + cls + '" id="gauge-fill" style="width:0%"></div>' +
+                         '</div>' +
+                         '<div class="gauge-labels">' +
+                           '<span class="gauge-label">0%</span>' +
+                           '<span class="gauge-label">25%</span>' +
+                           '<span class="gauge-label">50%+</span>' +
+                         '</div>' +
+                       '</div>' +
+                     '</div>' +
+                     '<p class="gauge-verdict"><strong class="' + cls + '">' + escapeHtml(label) + '</strong> &mdash; ' +
+                       (pct < 15
+                         ? 'Plans are likely to pass review without corrections.'
+                         : pct < 25
+                           ? 'Some risk of plan corrections. Address the triggers below before submittal.'
+                           : 'High likelihood of plan corrections. Review all triggers carefully.') +
+                     '</p>' +
+                   '</div>';
+        }
+
+        // ── Render trigger list ────────────────────────────────────
+        function renderTriggers(triggers) {
+            if (!triggers || triggers.length === 0) return '';
+            var items = triggers.slice(0, 5).map(function (t, i) {
+                return '<li class="trigger-item">' +
+                         '<span class="trigger-num">0' + (i + 1) + '</span>' +
+                         '<div class="trigger-body">' +
+                           '<div class="trigger-name">' + escapeHtml(t.name || t) + '</div>' +
+                           (t.description ? '<div class="trigger-desc">' + escapeHtml(t.description) + '</div>' : '') +
+                         '</div>' +
+                       '</li>';
+            }).join('');
+
+            return '<div class="triggers-card">' +
+                     '<p class="card-title">Top Correction Triggers</p>' +
+                     '<ol class="trigger-list">' + items + '</ol>' +
+                   '</div>';
+        }
+
+        // ── Render timeline impact ─────────────────────────────────
+        function renderTimeline(days) {
+            if (!days) return '';
+            var pct = Math.min((days / 60) * 100, 100);  // cap at 60 days = full bar
+            return '<div class="timeline-card">' +
+                     '<p class="card-title">Timeline Impact</p>' +
+                     '<div class="timeline-impact-row">' +
+                       '<div class="timeline-days-badge">+' + escapeHtml(days) + '<span style="font-size:var(--text-base);color:var(--text-secondary);"> days avg</span></div>' +
+                       '<div class="timeline-bar-container">' +
+                         '<div class="timeline-bar-bg">' +
+                           '<div class="timeline-bar-fill" id="timeline-fill" style="width:0%"></div>' +
+                         '</div>' +
+                         '<div class="timeline-bar-label">Average delay from plan corrections</div>' +
+                       '</div>' +
+                     '</div>' +
+                   '</div>';
+        }
+
+        // ── Render mitigation strategies ───────────────────────────
+        function renderMitigation(strategies) {
+            if (!strategies || strategies.length === 0) return '';
+            var items = strategies.map(function (s) {
+                return '<li class="mitigation-item">' +
+                         '<span class="mitigation-check">&#10003;</span>' +
+                         '<span class="mitigation-text">' + escapeHtml(s) + '</span>' +
+                       '</li>';
+            }).join('');
+
+            return '<div class="mitigation-card">' +
+                     '<p class="card-title">Mitigation Strategies</p>' +
+                     '<ul class="mitigation-list">' + items + '</ul>' +
+                   '</div>';
+        }
+
+        // ── Render full results ────────────────────────────────────
+        function renderResults(data) {
+            var pct        = data.revision_probability || 0;
+            var triggers   = data.correction_triggers  || [];
+            var timelineDays = data.timeline_impact_days || null;
+            var strategies = data.mitigation_strategies || [];
+
+            var html = renderGauge(pct) +
+                       renderTriggers(triggers) +
+                       renderTimeline(timelineDays) +
+                       renderMitigation(strategies);
+
+            resultsContent.innerHTML = html;
+            resultsContent.style.display = '';
+            resultsEmpty.style.display = 'none';
+
+            // Animate bars after DOM settles
+            requestAnimationFrame(function () {
+                var gaugeFill = document.getElementById('gauge-fill');
+                if (gaugeFill) gaugeFill.style.width = Math.min(pct, 100) + '%';
+
+                var tlFill = document.getElementById('timeline-fill');
+                if (tlFill && timelineDays) {
+                    tlFill.style.width = Math.min((timelineDays / 60) * 100, 100) + '%';
+                }
+            });
+        }
+
+        // ── Show empty / error state ───────────────────────────────
+        function showEmptyState() {
+            resultsContent.style.display = 'none';
+            resultsContent.innerHTML = '';
+            resultsEmpty.style.display = '';
+        }
+
+        // ── Main assessment ────────────────────────────────────────
+        function runAssessment() {
+            var permitType  = document.getElementById('permit-type').value.trim();
+            if (!permitType) {
+                document.getElementById('permit-type').focus();
+                return;
+            }
+
+            var neighborhood = document.getElementById('neighborhood').value.trim() || null;
+            var projectType  = document.getElementById('project-type').value.trim()  || null;
+
+            clearError();
+            setLoading(true);
+            showEmptyState();
+
+            var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+            fetch('/api/revision-risk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    permit_type:  permitType,
+                    neighborhood: neighborhood,
+                    project_type: projectType,
+                }),
+            })
+            .then(function (resp) {
+                if (resp.status === 401) {
+                    setLoading(false);
+                    showError('Unauthorized', true);
+                    return null;
+                }
+                return resp.json();
+            })
+            .then(function (data) {
+                if (data === null) return;
+                setLoading(false);
+
+                if (data.error) {
+                    showError(data.error, false);
+                    return;
+                }
+
+                renderResults(data);
+            })
+            .catch(function () {
+                setLoading(false);
+                showError('Network error — please try again.', false);
+            });
+        }
+
+        // ── Events ─────────────────────────────────────────────────
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            runAssessment();
+        });
+
+    })();
+    </script>
+{% include 'fragments/feedback_widget.html' %}
+<script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js" defer></script>
+<script nonce="{{ csp_nonce }}" src="/static/admin-tour.js" defer></script>
+</body>
+</html>

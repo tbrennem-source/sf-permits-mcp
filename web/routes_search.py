@@ -1651,3 +1651,23 @@ def tools_cost_of_delay():
         return redirect("/auth/login")
     return render_template("tools/cost_of_delay.html")
 
+
+# ---------------------------------------------------------------------------
+# Entity Network — /tools/entity-network (Sprint QS11-T3-3C)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/entity-network")
+def tools_entity_network():
+    """Entity Network: visualize professional relationships around a property."""
+    return render_template("tools/entity_network.html")
+
+
+# ---------------------------------------------------------------------------
+# Revision Risk — /tools/revision-risk (Sprint QS11-T3-3C)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/revision-risk")
+def tools_revision_risk():
+    """Revision Risk: predict probability of plan corrections."""
+    return render_template("tools/revision_risk.html")
+
