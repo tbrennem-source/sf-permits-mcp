@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Station Predictor — sfpermits.ai</title>
+    <title>Entity Network — sfpermits.ai</title>
     {% include "fragments/head_obsidian.html" %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" nonce="{{ csp_nonce }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/share.css') }}">
@@ -36,8 +36,7 @@
             max-width: 560px;
         }
 
-        /* Input form card */
-        .predictor-form-card {
+        .form-card {
             background: var(--obsidian-mid);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
@@ -46,7 +45,7 @@
             transition: border-color 0.3s;
         }
 
-        .predictor-form-card:hover {
+        .form-card:hover {
             border-color: var(--glass-hover);
         }
 
@@ -67,7 +66,7 @@
             align-items: stretch;
         }
 
-        .permit-input {
+        .entity-input {
             flex: 1;
             padding: 14px 20px;
             font-family: var(--mono);
@@ -82,18 +81,18 @@
             min-width: 0;
         }
 
-        .permit-input::placeholder {
+        .entity-input::placeholder {
             color: var(--text-tertiary);
             font-weight: 300;
         }
 
-        .permit-input:focus {
+        .entity-input:focus {
             border-color: var(--accent-ring);
             background: rgba(255, 255, 255, 0.06);
             box-shadow: 0 0 40px var(--accent-glow);
         }
 
-        .predict-btn {
+        .analyze-btn {
             font-family: var(--mono);
             font-size: var(--text-sm);
             font-weight: 400;
@@ -110,22 +109,16 @@
             gap: var(--space-2);
         }
 
-        .predict-btn:hover {
+        .analyze-btn:hover {
             border-color: var(--glass-hover);
             color: var(--text-primary);
         }
 
-        .predict-btn:disabled {
+        .analyze-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .predict-btn.loading {
-            color: var(--accent);
-            border-color: var(--accent-ring);
-        }
-
-        /* Loading spinner */
         .spinner {
             display: inline-block;
             width: 12px;
@@ -140,7 +133,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Results area */
         .results-area {
             background: var(--obsidian-mid);
             border: 1px solid var(--glass-border);
@@ -172,14 +164,6 @@
             margin: 0 0 var(--space-4) 0;
         }
 
-        .results-permit-number {
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            color: var(--accent);
-            margin: 0 0 var(--space-6) 0;
-        }
-
-        /* Markdown output styling */
         .results-content {
             font-family: var(--sans);
             font-size: var(--text-base);
@@ -224,34 +208,11 @@
             color: var(--accent);
         }
 
-        .results-content pre {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            padding: var(--space-6);
-            overflow-x: auto;
-        }
-
-        .results-content pre code {
-            background: none;
-            border: none;
-            padding: 0;
-            color: var(--text-primary);
-        }
-
         .results-content strong {
             font-weight: 500;
             color: var(--text-primary);
         }
 
-        .results-content blockquote {
-            border-left: 2px solid var(--accent-ring);
-            margin: 0 0 var(--space-4) 0;
-            padding: var(--space-3) var(--space-6);
-            color: var(--text-secondary);
-        }
-
-        /* Error state */
         .error-message {
             font-family: var(--sans);
             font-size: var(--text-sm);
@@ -280,7 +241,6 @@
             opacity: 0.75;
         }
 
-        /* Mobile */
         @media (max-width: 480px) {
             .page-header {
                 padding: var(--space-8) 0 var(--space-6);
@@ -290,7 +250,7 @@
                 flex-direction: column;
             }
 
-            .predict-btn {
+            .analyze-btn {
                 width: 100%;
                 justify-content: center;
                 padding: var(--space-4) var(--space-6);
@@ -304,32 +264,32 @@
     <main>
         <div class="obs-container">
             <div class="page-header">
-                <h1>Station Predictor</h1>
-                <p>See the likely next review stations for any active SF permit.</p>
+                <h1>Entity Network</h1>
+                <p>Explore contractor and permit agent networks — see who works together and identify key relationships.</p>
             </div>
 
-            <div class="predictor-form-card">
-                <label class="form-label" for="permit-number-input">Permit Number</label>
+            <div class="form-card">
+                <label class="form-label" for="entity-input">Contractor or Agent Name</label>
                 <div class="input-row">
                     <input
                         type="text"
-                        id="permit-number-input"
-                        class="permit-input"
-                        placeholder="e.g. 202401015555"
+                        id="entity-input"
+                        class="entity-input"
+                        placeholder="e.g. Smith Construction or agent name"
                         autocomplete="off"
                         autocorrect="off"
                         autocapitalize="off"
                         spellcheck="false"
                     >
-                    <button id="predict-btn" class="predict-btn" onclick="runPrediction()">
-                        <span id="btn-text">Predict next stations →</span>
+                    <button id="analyze-btn" class="analyze-btn" onclick="runNetworkAnalysis()" type="button">
+                        <span id="btn-text">Analyze network →</span>
                         <span id="btn-spinner" class="spinner" style="display:none;"></span>
                     </button>
                 </div>
             </div>
 
             <div id="results" class="results-area">
-                <p class="results-hint">Enter a permit number above to see predicted routing.</p>
+                <p class="results-hint">Enter a contractor or agent name to explore their permit network.</p>
             </div>
 
             {% include "components/share_button.html" %}
@@ -339,36 +299,34 @@
     <script src="{{ url_for('static', filename='js/share.js') }}" defer></script>
     <script nonce="{{ csp_nonce }}">
     (function () {
-        var input = document.getElementById('permit-number-input');
-        var btn = document.getElementById('predict-btn');
+        var input = document.getElementById('entity-input');
+        var btn = document.getElementById('analyze-btn');
         var btnText = document.getElementById('btn-text');
         var btnSpinner = document.getElementById('btn-spinner');
         var results = document.getElementById('results');
 
-        // Allow pressing Enter in the input to submit
         if (input) {
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
-                    runPrediction();
+                    runNetworkAnalysis();
                 }
             });
         }
 
-        window.runPrediction = function () {
-            var permitNumber = (input ? input.value : '').trim();
-            if (!permitNumber) {
-                showError('Please enter a permit number.');
+        window.runNetworkAnalysis = function () {
+            var entityName = (input ? input.value : '').trim();
+            if (!entityName) {
+                showError('Please enter a contractor or agent name.');
                 return;
             }
 
             setLoading(true);
 
-            fetch('/api/predict-next/' + encodeURIComponent(permitNumber), {
+            fetch('/api/entity-network?q=' + encodeURIComponent(entityName), {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ?
-                        document.querySelector('meta[name="csrf-token"]').getAttribute('content') : ''
+                    'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || ''
                 }
             })
             .then(function (response) {
@@ -384,9 +342,9 @@
                     showError(data.error);
                     return;
                 }
-                showResult(data.permit_number, data.result);
+                showResult(data.result || JSON.stringify(data, null, 2));
             })
-            .catch(function (err) {
+            .catch(function () {
                 showError('Unable to reach the server. Please try again.');
             })
             .finally(function () {
@@ -398,27 +356,23 @@
             if (!btn) return;
             btn.disabled = active;
             if (active) {
-                btn.classList.add('loading');
                 if (btnText) btnText.textContent = 'Analyzing...';
                 if (btnSpinner) btnSpinner.style.display = 'inline-block';
             } else {
-                btn.classList.remove('loading');
-                if (btnText) btnText.textContent = 'Predict next stations \u2192';
+                if (btnText) btnText.textContent = 'Analyze network \u2192';
                 if (btnSpinner) btnSpinner.style.display = 'none';
             }
         }
 
-        function showResult(permitNumber, markdownText) {
+        function showResult(markdownText) {
             var html = '';
             try {
                 html = typeof marked !== 'undefined' ? marked.parse(markdownText) : escapeHtml(markdownText);
             } catch (e) {
                 html = '<pre>' + escapeHtml(markdownText) + '</pre>';
             }
-
             results.innerHTML =
-                '<p class="results-label">Predicted Routing</p>' +
-                '<p class="results-permit-number">' + escapeHtml(permitNumber) + '</p>' +
+                '<p class="results-label">Network Analysis</p>' +
                 '<div class="results-content">' + html + '</div>';
         }
 

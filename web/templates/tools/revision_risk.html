@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Station Predictor — sfpermits.ai</title>
+    <title>Revision Risk — sfpermits.ai</title>
     {% include "fragments/head_obsidian.html" %}
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" nonce="{{ csp_nonce }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/share.css') }}">
@@ -36,8 +36,7 @@
             max-width: 560px;
         }
 
-        /* Input form card */
-        .predictor-form-card {
+        .form-card {
             background: var(--obsidian-mid);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
@@ -46,7 +45,7 @@
             transition: border-color 0.3s;
         }
 
-        .predictor-form-card:hover {
+        .form-card:hover {
             border-color: var(--glass-hover);
         }
 
@@ -93,7 +92,7 @@
             box-shadow: 0 0 40px var(--accent-glow);
         }
 
-        .predict-btn {
+        .assess-btn {
             font-family: var(--mono);
             font-size: var(--text-sm);
             font-weight: 400;
@@ -110,22 +109,16 @@
             gap: var(--space-2);
         }
 
-        .predict-btn:hover {
+        .assess-btn:hover {
             border-color: var(--glass-hover);
             color: var(--text-primary);
         }
 
-        .predict-btn:disabled {
+        .assess-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .predict-btn.loading {
-            color: var(--accent);
-            border-color: var(--accent-ring);
-        }
-
-        /* Loading spinner */
         .spinner {
             display: inline-block;
             width: 12px;
@@ -140,7 +133,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Results area */
+        /* Risk gauge section */
         .results-area {
             background: var(--obsidian-mid);
             border: 1px solid var(--glass-border);
@@ -179,7 +172,6 @@
             margin: 0 0 var(--space-6) 0;
         }
 
-        /* Markdown output styling */
         .results-content {
             font-family: var(--sans);
             font-size: var(--text-base);
@@ -224,34 +216,11 @@
             color: var(--accent);
         }
 
-        .results-content pre {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            padding: var(--space-6);
-            overflow-x: auto;
-        }
-
-        .results-content pre code {
-            background: none;
-            border: none;
-            padding: 0;
-            color: var(--text-primary);
-        }
-
         .results-content strong {
             font-weight: 500;
             color: var(--text-primary);
         }
 
-        .results-content blockquote {
-            border-left: 2px solid var(--accent-ring);
-            margin: 0 0 var(--space-4) 0;
-            padding: var(--space-3) var(--space-6);
-            color: var(--text-secondary);
-        }
-
-        /* Error state */
         .error-message {
             font-family: var(--sans);
             font-size: var(--text-sm);
@@ -280,7 +249,6 @@
             opacity: 0.75;
         }
 
-        /* Mobile */
         @media (max-width: 480px) {
             .page-header {
                 padding: var(--space-8) 0 var(--space-6);
@@ -290,7 +258,7 @@
                 flex-direction: column;
             }
 
-            .predict-btn {
+            .assess-btn {
                 width: 100%;
                 justify-content: center;
                 padding: var(--space-4) var(--space-6);
@@ -304,11 +272,11 @@
     <main>
         <div class="obs-container">
             <div class="page-header">
-                <h1>Station Predictor</h1>
-                <p>See the likely next review stations for any active SF permit.</p>
+                <h1>Revision Risk</h1>
+                <p>Assess the likelihood of revision requests and common correction categories for any SF permit.</p>
             </div>
 
-            <div class="predictor-form-card">
+            <div class="form-card">
                 <label class="form-label" for="permit-number-input">Permit Number</label>
                 <div class="input-row">
                     <input
@@ -321,15 +289,15 @@
                         autocapitalize="off"
                         spellcheck="false"
                     >
-                    <button id="predict-btn" class="predict-btn" onclick="runPrediction()">
-                        <span id="btn-text">Predict next stations →</span>
+                    <button id="assess-btn" class="assess-btn" onclick="runRiskAssessment()" type="button">
+                        <span id="btn-text">Assess revision risk →</span>
                         <span id="btn-spinner" class="spinner" style="display:none;"></span>
                     </button>
                 </div>
             </div>
 
             <div id="results" class="results-area">
-                <p class="results-hint">Enter a permit number above to see predicted routing.</p>
+                <p class="results-hint">Enter a permit number above to see revision risk assessment.</p>
             </div>
 
             {% include "components/share_button.html" %}
@@ -340,21 +308,20 @@
     <script nonce="{{ csp_nonce }}">
     (function () {
         var input = document.getElementById('permit-number-input');
-        var btn = document.getElementById('predict-btn');
+        var btn = document.getElementById('assess-btn');
         var btnText = document.getElementById('btn-text');
         var btnSpinner = document.getElementById('btn-spinner');
         var results = document.getElementById('results');
 
-        // Allow pressing Enter in the input to submit
         if (input) {
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
-                    runPrediction();
+                    runRiskAssessment();
                 }
             });
         }
 
-        window.runPrediction = function () {
+        window.runRiskAssessment = function () {
             var permitNumber = (input ? input.value : '').trim();
             if (!permitNumber) {
                 showError('Please enter a permit number.');
@@ -363,12 +330,11 @@
 
             setLoading(true);
 
-            fetch('/api/predict-next/' + encodeURIComponent(permitNumber), {
+            fetch('/api/revision-risk/' + encodeURIComponent(permitNumber), {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ?
-                        document.querySelector('meta[name="csrf-token"]').getAttribute('content') : ''
+                    'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || ''
                 }
             })
             .then(function (response) {
@@ -384,9 +350,9 @@
                     showError(data.error);
                     return;
                 }
-                showResult(data.permit_number, data.result);
+                showResult(data.permit_number || permitNumber, data.result || JSON.stringify(data, null, 2));
             })
-            .catch(function (err) {
+            .catch(function () {
                 showError('Unable to reach the server. Please try again.');
             })
             .finally(function () {
@@ -398,12 +364,10 @@
             if (!btn) return;
             btn.disabled = active;
             if (active) {
-                btn.classList.add('loading');
                 if (btnText) btnText.textContent = 'Analyzing...';
                 if (btnSpinner) btnSpinner.style.display = 'inline-block';
             } else {
-                btn.classList.remove('loading');
-                if (btnText) btnText.textContent = 'Predict next stations \u2192';
+                if (btnText) btnText.textContent = 'Assess revision risk \u2192';
                 if (btnSpinner) btnSpinner.style.display = 'none';
             }
         }
@@ -415,9 +379,8 @@
             } catch (e) {
                 html = '<pre>' + escapeHtml(markdownText) + '</pre>';
             }
-
             results.innerHTML =
-                '<p class="results-label">Predicted Routing</p>' +
+                '<p class="results-label">Revision Risk Assessment</p>' +
                 '<p class="results-permit-number">' + escapeHtml(permitNumber) + '</p>' +
                 '<div class="results-content">' + html + '</div>';
         }

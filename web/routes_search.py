@@ -1651,3 +1651,27 @@ def tools_cost_of_delay():
         return redirect("/auth/login")
     return render_template("tools/cost_of_delay.html")
 
+
+# ---------------------------------------------------------------------------
+# Entity Network — /tools/entity-network (Sprint QS10-T3-3D)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/entity-network")
+def tools_entity_network():
+    """Entity Network: explore contractor and permit agent relationship networks."""
+    if not g.user:
+        return redirect("/auth/login")
+    return render_template("tools/entity_network.html")
+
+
+# ---------------------------------------------------------------------------
+# Revision Risk — /tools/revision-risk (Sprint QS10-T3-3D)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/revision-risk")
+def tools_revision_risk():
+    """Revision Risk: assess likelihood of revision requests for any SF permit."""
+    if not g.user:
+        return redirect("/auth/login")
+    return render_template("tools/revision_risk.html")
+

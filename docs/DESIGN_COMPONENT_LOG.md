@@ -390,3 +390,31 @@ Displays a beta upgrade teaser card that fits inside an existing page element.
 
 **CSS:** All custom properties. Badge uses `--signal-blue`, `--mono`. Title uses `--sans`, `--text-xl`. CTA uses `--accent`, `--obsidian`. Card uses `--obsidian-mid`, `--glass-border`, `--radius-md`.
 **Notes:** Companion to `tier_gate_teaser.html` (full-page). This version has no DOCTYPE/html tags so it can be safely injected via HTMX `hx-swap="innerHTML"`. Used by routes_search.py /ask endpoint to gate AI synthesis intents.
+
+---
+
+### Share Container + Share Button
+**Sprint:** QS10-T3-3D
+**File:** `web/templates/components/share_button.html`, `web/static/css/share.css`, `web/static/js/share.js`
+**Usage:** All 6 intelligence tool pages (station_predictor, stuck_permit, what_if, cost_of_delay, entity_network, revision_risk). Renders after the results area on each tool page.
+**Status:** NEW
+**HTML:**
+```html
+<div class="share-container" data-track="share-view">
+  <button class="share-btn ghost-cta" type="button" data-track="share-click"
+          data-share-title="SF Permit Intelligence"
+          data-share-text="Check out this permit analysis from sfpermits.ai">
+    <span class="share-icon" aria-hidden="true">&nearrow;</span>
+    Send this to your contractor
+  </button>
+  <span class="share-copied" role="status" aria-live="polite" style="display:none;">Link copied!</span>
+</div>
+```
+**CSS:**
+```css
+.share-container { display: flex; align-items: center; gap: var(--space-4); margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--glass-border); }
+.share-btn { /* extends ghost-cta */ display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--mono); font-size: var(--text-sm); font-weight: 300; color: var(--text-secondary); background: none; border: none; cursor: pointer; padding-bottom: 1px; border-bottom: 1px solid transparent; transition: color 0.3s, border-color 0.3s; letter-spacing: 0.04em; }
+.share-btn:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.share-copied { font-family: var(--mono); font-size: var(--text-xs); color: var(--signal-green); }
+```
+**Notes:** Uses Web Share API on mobile (native share sheet), clipboard copy on desktop with textarea execCommand fallback. No hardcoded hex — uses only CSS custom properties. share.js is loaded with `defer` attribute on each tool page. `share-btn` is a variant of `ghost-cta` pattern — extends it with `display:inline-flex` for icon alignment.
