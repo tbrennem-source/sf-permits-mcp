@@ -58,7 +58,7 @@ Write tests/test_pool_tuning.py:
 - test_pool_config_from_env_vars
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-84-a.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-84-a.md:
 - Scenario: App logs warning when DB pool nears exhaustion
 - Scenario: Admin increases pool size via env var without code change
 
@@ -106,7 +106,7 @@ Write tests/test_cache_headers.py:
 - test_html_page_no_cache_control
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-84-b.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-84-b.md:
 - Scenario: Browser caches CSS for 24 hours after first load
 - Scenario: HTML pages are never served from browser cache
 
@@ -142,7 +142,14 @@ COMMIT to your worktree branch ONLY.
 - web/helpers.py (find _rate_buckets and rate limiting functions)
 
 ### Context
-REDIS_URL set on Railway (internal only). Must work WITH and WITHOUT Redis.
+REDIS_URL is set on Railway (internal only — not reachable from local dev). Must work WITH and WITHOUT Redis.
+
+### First 60 seconds: verify REDIS_URL awareness
+```python
+import os
+redis_url = os.environ.get("REDIS_URL")
+print(f"REDIS_URL set: {bool(redis_url)}")
+# Expected: False locally, True on Railway. Your code must handle both.
 
 ### Build
 1. Add redis>=5.0.0 and fakeredis>=2.20.0 to pyproject.toml
@@ -160,7 +167,7 @@ Write tests/test_redis_rate_limiter.py (use fakeredis):
 - test_fallback_to_memory_when_redis_down
 
 ### Scenarios
-Write 3 scenarios to scenarios-pending-review-sprint-84-c.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-84-c.md:
 - Scenario: Rate limit enforced consistently across multiple Gunicorn workers
 - Scenario: Rate limiter degrades gracefully when Redis is down
 - Scenario: Rate limit resets after time window expires
@@ -211,7 +218,7 @@ python -c "import scripts.load_test"
 wc -l docs/SCALING.md
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-84-d.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-84-d.md:
 - Scenario: Load test identifies bottleneck before it hits production users
 - Scenario: New developer finds scaling guide and configures pool size
 

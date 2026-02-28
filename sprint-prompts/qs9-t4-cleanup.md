@@ -67,7 +67,7 @@ Write tests/test_api_intelligence.py:
 - test_delay_cost_returns_json
 
 ### Scenarios
-Write 3 scenarios to scenarios-pending-review-sprint-85-a.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-85-a.md:
 - Scenario: API client fetches next station prediction for active permit
 - Scenario: API rejects unauthenticated request with 401
 - Scenario: What-if endpoint compares base vs variation scenarios
@@ -160,7 +160,7 @@ ls sprint-prompts/qs3-* sprint-prompts/sprint-68* sprint-prompts/sprint-69-* 2>/
 test -f web/static/landing-v5.html && echo "EXISTS" || echo "DELETED"
 
 ### Scenarios
-Write 1 scenario to scenarios-pending-review-sprint-85-c.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-85-c.md:
 - Scenario: New developer finds clean sprint-prompts/ with only current/recent sprints
 
 ### CHECKCHAT
@@ -212,7 +212,7 @@ grep -i "intelligence" docs/ARCHITECTURE.md  # New section
 ls CHANGELOG-qs*.md 2>/dev/null | wc -l  # 0
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-85-d.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-85-d.md:
 - Scenario: New developer reads README and finds accurate project stats
 - Scenario: Architecture doc describes all 34 tools with one-line summaries
 

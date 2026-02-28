@@ -52,7 +52,7 @@ COMMIT to your worktree branch ONLY.
 source .venv/bin/activate && pytest tests/test_landing.py -v --tb=short
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-83-a.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-83-a.md:
 - Scenario: Landing page displays key feature descriptions to new visitor
 - Scenario: Landing page shows data credibility stats
 
@@ -102,7 +102,7 @@ pytest tests/test_page_cache.py -v --tb=short
 pytest tests/test_auth.py tests/test_brief.py tests/test_page_cache.py -v --tb=short
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-83-b.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-83-b.md:
 - Scenario: Page cache returns cached result on second request
 - Scenario: Page cache cleanup prevents cross-test contamination
 
@@ -149,7 +149,7 @@ source .venv/bin/activate
 pytest tests/test_brief_cache.py tests/test_sprint_79_3.py -v --tb=short
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-83-c.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-83-c.md:
 - Scenario: Cron endpoint rejects unauthenticated requests with 403
 - Scenario: Cron endpoint returns 404 when CRON_WORKER not set (guard behavior)
 
@@ -185,7 +185,7 @@ COMMIT to your worktree branch ONLY.
 5. Fix minor issues in test_sprint_79_d.py if any
 
 ### Scenarios
-Write 1 scenario to scenarios-pending-review-sprint-83-d.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-83-d.md:
 - Scenario: Post-sprint cleanup removes all merged worktree branches
 
 ### CHECKCHAT

@@ -188,11 +188,29 @@ git worktree prune
 git branch --merged main | grep worktree-agent | xargs git branch -d 2>/dev/null
 ```
 
-## Rules
+## Escalation Rules (Flag 1 — overnight autonomy guardrails)
 
-- Do NOT debug complex failures past 3 attempts
+**Merge conflicts:**
+- Append-only file conflict (scenarios, CHANGELOG) → resolve by keeping both sides
+- Production file conflict (2+ terminals touched same file) → STOP. Do NOT force-merge. Write BLOCKED report.
+
+**Terminal responsiveness:**
+- If a terminal hasn't pushed after 30 minutes and its worktree branches have commits → merge the branches yourself
+- If a terminal hasn't pushed after 30 minutes and NO worktree commits → mark as SKIP, merge remaining terminals
+
+**Test failures after merge:**
+- Pre-existing failures (DuckDB contention, test_landing stale) → document, continue
+- New failures in <5 test files → investigate up to 3 attempts per failure, fix if mechanical
+- New failures in >5 test files → STOP. Do NOT promote. Write BLOCKED report with failure list.
+
+**Broken links:**
+- 0 broken → proceed
+- 1-3 broken → document as Chief tasks, still promote
+- >3 broken → HOLD promotion, write report
+
+**General:**
 - Do NOT make design decisions
 - Do NOT modify production files outside merge ceremony
-- Do NOT force-push
-- If blocked: document everything, leave report, do NOT promote
+- Do NOT force-push or destructive git operations
+- If blocked on anything not covered above → STOP, write report, do NOT promote
 - Tim wakes up to a complete report either way

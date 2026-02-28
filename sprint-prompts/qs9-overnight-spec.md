@@ -171,6 +171,14 @@ If REDIS_URL is NOT available:
 
 **Cross-terminal conflicts: ZERO.**
 
+## Cross-Terminal Dependencies: NONE
+
+All 4 terminals operate on independent subsystems:
+- T1 (server.py, admin routes) does NOT depend on T3 (db.py pool changes)
+- T3 (Redis in helpers.py) does NOT depend on T2 (test fixes)
+- T4 (API routes) imports same src/tools/ as T1 — no code dependency between them
+- T2 (test fixes) is self-contained
+
 ---
 
 ## Merge Strategy

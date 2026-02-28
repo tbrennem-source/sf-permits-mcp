@@ -39,7 +39,7 @@ PROTOCOL — every agent follows this sequence:
 1. READ — read all files listed in "Read First"
 2. BUILD — implement the tasks
 3. TEST — run pytest, fix failures
-4. SCENARIOS — write 2-5 behavioral scenarios to your per-agent scenarios file
+4. SCENARIOS — write 0-1 scenarios to your per-agent scenarios file (hardening sprint — only write a scenario if your work introduces genuinely novel product behavior)
 5. QA — for CLI-only work: pytest is sufficient. For UI/template work: describe what needs visual verification in your CHECKCHAT.
 6. DESIGN TOKEN COMPLIANCE — if you created/modified any template: run `python scripts/design_lint.py --changed --quiet`
 7. CHECKCHAT — write a summary with: what shipped, tests added, scenarios written, any BLOCKED items, Visual QA Checklist (list items needing human spot-check)
@@ -76,7 +76,9 @@ COMMIT to your worktree branch ONLY.
 - src/tools/cost_of_delay.py (function signature + docstring)
 
 ### Build
-Register these 4 tools following the EXACT pattern used by existing tools:
+These 4 tools ALREADY EXIST in the codebase (built in QS8, Sprint 80). They have implementations and tests. Your job is ONLY to register them in server.py — NOT to build them.
+
+Register following the EXACT pattern used by existing tools:
 1. predict_next_stations (from src.tools.predict_next_stations)
 2. diagnose_stuck_permit (from src.tools.stuck_permit)
 3. simulate_what_if (from src.tools.what_if_simulator)
@@ -89,7 +91,7 @@ python -c "from src.server import mcp; print(f'Tools registered')"
 pytest tests/ -x -q --tb=short --ignore=tests/test_tools.py --ignore=tests/e2e -k "server" 2>&1 | tail -5
 
 ### Scenarios
-Write 2-3 scenarios to scenarios-pending-review-sprint-82-a.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-82-a.md:
 - Scenario: MCP client discovers all 34 tools
 - Scenario: Intelligence tool returns formatted markdown via MCP
 
@@ -156,7 +158,7 @@ Run after build: python scripts/design_lint.py --files web/templates/fragments/a
 Target: 5/5. Fix any violations before committing.
 
 ### Scenarios
-Write 3-4 scenarios to scenarios-pending-review-sprint-82-b.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-82-b.md:
 - Scenario: Admin sees DB pool utilization in real-time
 - Scenario: Circuit breaker state change visible on admin dashboard
 - Scenario: Admin notices stale cache and triggers invalidation
@@ -216,7 +218,7 @@ Write tests/test_prod_gate_ratchet.py:
 - test_ratchet_clears_after_all_green
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-sprint-82-c.md:
+Write 0-1 scenarios to scenarios-pending-review-sprint-82-c.md:
 - Scenario: Prod gate promotes when new issues differ from previous sprint
 - Scenario: Prod gate holds when same issue persists across sprints
 
