@@ -233,9 +233,9 @@
       if (meta.length) {
         html.push('<div class="gantt-station-meta">' + meta.join(' · ') + '</div>');
       }
-      html.push('</div>'); // gantt-station-main
 
       html.push('<div class="gantt-station-badge gantt-status-' + esc(s.status) + '">' + statusLabel(s.status) + '</div>');
+      html.push('</div>'); // gantt-station-main
 
       // Expandable detail panel
       html.push('<div class="gantt-detail" id="gantt-detail-' + i + '" aria-hidden="true">');

@@ -691,9 +691,9 @@
             <!-- Empty state -->
             <div id="empty-state" class="results-area">
                 <div class="empty-state">
-                    <p class="empty-state-hint">Enter a permit number to diagnose delays and get intervention steps.</p>
+                    <p class="empty-state-hint">Enter an SF permit number to diagnose delays, identify blocked stations, and get a ranked intervention playbook with agency contact info.</p>
                     <div class="demo-permits" aria-label="Demo permit numbers">
-                        <button class="demo-permit-chip" onclick="fillDemo('202501015257')" type="button">202501015257</button>
+                        <button class="demo-permit-chip" onclick="fillDemo('202509155257')" type="button">202509155257</button>
                         <button class="demo-permit-chip" onclick="fillDemo('202401019876')" type="button">202401019876</button>
                         <button class="demo-permit-chip" onclick="fillDemo('202303014433')" type="button">202303014433</button>
                     </div>
@@ -993,7 +993,10 @@
                         // Linkify phone numbers and URLs
                         var linked = escHtml(c)
                             .replace(/\(415\)\s*\d{3}-\d{4}/g, function (m) {
-                                return '<a href="tel:+1' + m.replace(/\D/g, '') + '">' + m + '</a>';
+                                return '<a href="tel:+1' + m.replace(/\D/g, '') + '" style="color:var(--accent);font-weight:500;">' + m + '</a>';
+                            })
+                            .replace(/https?:\/\/[\w./\-?=&#%]+/g, function (m) {
+                                return '<a href="' + m + '" target="_blank" rel="noopener" style="color:var(--accent);">' + m + '</a>';
                             });
                         html += linked + '<br>';
                     });
@@ -1031,6 +1034,7 @@
             var severity = parseSeverity(markdown);
             var stationBlocks = parseStationBlocks(markdown);
             var steps = parseInterventionSteps(markdown);
+            var hasStructured = stationBlocks.length > 0 || steps.length > 0;
 
             var html = '';
 
@@ -1047,20 +1051,34 @@
                 html += buildPlaybookSteps(steps);
             }
 
-            // Timeline impact note
-            html += '<div class="timeline-impact">'
-                + '<div class="timeline-impact-label">Timeline impact</div>'
-                + '<p class="timeline-impact-text">Each comment-response cycle adds 6–8 weeks to the total review timeline. Resubmitting promptly and completely is the single highest-leverage action.</p>'
-                + '</div>';
+            // Timeline impact note (only when structured content is present)
+            if (hasStructured) {
+                html += '<div class="timeline-impact">'
+                    + '<div class="timeline-impact-label">Timeline impact</div>'
+                    + '<p class="timeline-impact-text">Each comment-response cycle adds 6–8 weeks to the total review timeline. Resubmitting promptly and completely is the single highest-leverage action.</p>'
+                    + '</div>';
+            }
 
-            // Full markdown (as fallback and additional context)
+            // Full markdown: always show; use collapsible when structured content exists
             var parsedMd = '';
             try {
                 parsedMd = (typeof marked !== 'undefined') ? marked.parse(markdown) : '<pre>' + escHtml(markdown) + '</pre>';
             } catch (e) {
                 parsedMd = '<pre>' + escHtml(markdown) + '</pre>';
             }
-            html += '<div class="playbook-content">' + parsedMd + '</div>';
+
+            if (hasStructured) {
+                // Collapsible full detail section
+                html += '<div style="margin-top:var(--space-6);border-top:1px solid var(--glass-border);padding-top:var(--space-4);">'
+                    + '<button type="button" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\';this.textContent=this.nextElementSibling.style.display===\'none\'?\'Full diagnostic report \u25BA\':\'Full diagnostic report \u25C4\';" '
+                    + 'style="background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;padding:0;">Full diagnostic report \u25BA</button>'
+                    + '<div style="display:none;">'
+                    + '<div class="playbook-content">' + parsedMd + '</div>'
+                    + '</div>'
+                    + '</div>';
+            } else {
+                html += '<div class="playbook-content">' + parsedMd + '</div>';
+            }
 
             showResults(html);
         }
