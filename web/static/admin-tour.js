@@ -247,7 +247,7 @@
       if (e.target.classList && e.target.classList.contains('tour-comment')) {
         if (e.key === 'Enter') {
           e.preventDefault();
-          verdictStop('accept');  // Enter in comment = accept with comment
+          verdictStop(pendingVerdict || 'accept');
         }
         return;
       }
@@ -318,13 +318,16 @@
       '</div>';
   }
 
+  var pendingVerdict = null;
+
   window.verdictStop = function(verdict) {
     var stop = stops[currentStop];
     var commentEl = document.getElementById('tour-comment-' + currentStop);
     var comment = commentEl ? commentEl.value.trim() : '';
 
-    // Require a note on reject
+    // Require a note on reject — stash the verdict so Enter submits it
     if (verdict === 'reject' && !comment) {
+      pendingVerdict = 'reject';
       if (commentEl) {
         commentEl.placeholder = 'Please add a note — what needs fixing?';
         commentEl.style.borderColor = '#f87171';
@@ -332,6 +335,7 @@
       }
       return;
     }
+    pendingVerdict = null;
 
     stop.verdict = verdict;
     stop.comment = comment;
