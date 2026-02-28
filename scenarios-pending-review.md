@@ -1887,3 +1887,53 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** Pool is a lazy singleton; changing env var requires restart; increasing beyond 50 requires PgBouncer (Railway pgvector DB limit)
 **CC confidence:** low
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property intel page renders summary cards for known-data parcel
+**Source:** web/templates/report.html rebuild from property-intel.html mockup
+**User:** expediter | homeowner
+**Starting state:** User navigates to /report/{block}/{lot} for a parcel with permit history
+**Goal:** Quickly understand the property's permit/complaint/risk status at a glance
+**Expected outcome:** Three intel summary cards show: total permit count, total complaint count, and risk factor count; cards with non-zero values use danger/warning styling; clicking a card scrolls to the relevant section; page renders without errors
+**Edge cases seen in code:** Properties with zero complaints still show the complaints card with "0"; intel grid collapses on mobile viewports
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Permit item expand panel shows routing progress
+**Source:** web/templates/report.html — permit-item__expand with routing data
+**User:** expediter | architect
+**Starting state:** User is on property report page for a permit in plan review
+**Goal:** Check which plan review stations have been approved vs. are pending/stalled
+**Expected outcome:** Clicking a permit item expands a panel showing plan review routing: progress bar, station count, stalled stations with days indicator, pending station names, and latest activity; collapsing/re-expanding works correctly
+**Edge cases seen in code:** Permits without routing data (routing=None) don't show expand button; stalled stations shown with amber styling
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property intel page shows entity network from permit contacts
+**Source:** web/templates/report.html — entity-row section from all_entities aggregation
+**User:** expediter | homeowner
+**Starting state:** Property has permits with contact data (architects, contractors)
+**Goal:** See who has worked on this property
+**Expected outcome:** "Project team" section shows unique contacts from all permits; each row shows name, role, and permit count; names link to entity search; duplicate contacts across multiple permits deduplicated; properties with no contacts show "No contacts on file"
+**Edge cases seen in code:** Up to 8 entities shown, with "View all contacts in permit details" ghost-cta if > 8; deduplication based on canonical_name
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property report actions-needed section surfaces high-risk items
+**Source:** web/templates/report.html — actions-section with action_items from risk_assessment
+**User:** homeowner | expediter
+**Starting state:** Property has risk_assessment with high or moderate severity items
+**Goal:** Immediately see what requires attention without reading the full risk assessment
+**Expected outcome:** "Needs attention" section appears above the permit list showing up to 5 high/moderate risk items; each item has a color-coded dot (red=high, amber=moderate) and concise title; clicking links to the risk assessment section; section absent when no high/moderate risks exist
+**Edge cases seen in code:** Only high and moderate risks shown (not low); maximum 5 items shown
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Owner mode adds remediation roadmap to property report
+**Source:** web/templates/report.html — section-remediation conditional block
+**User:** homeowner
+**Starting state:** Authenticated user whose primary address matches the property, or ?owner=1 parameter set
+**Goal:** Get actionable remediation steps for moderate+ risk issues
+**Expected outcome:** Owner banner appears at top; if remediation_roadmap data present, "Remediation roadmap" section renders with risk cards, options (effort type, cost range, timeline, steps), and source citations; section absent for non-owner views
+**Edge cases seen in code:** Owner detection via detect_owner() — matches primary_address or explicit ?owner=1 param; remediation_roadmap only populated when is_owner=True
+**CC confidence:** high
+**Status:** PENDING REVIEW
