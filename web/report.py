@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import logging
+import time
 from typing import Any
 
 from src.db import get_connection, BACKEND
@@ -31,6 +32,14 @@ logger = logging.getLogger(__name__)
 # Placeholder style: %s for Postgres, ? for DuckDB
 _PH = "%s" if BACKEND == "postgres" else "?"
 
+# ---------------------------------------------------------------------------
+# SODA response cache (15-minute TTL)
+# ---------------------------------------------------------------------------
+
+# Structure: cache_key -> (timestamp, data)
+_soda_cache: dict[str, tuple[float, Any]] = {}
+_SODA_CACHE_TTL = 900  # 15 minutes in seconds
+
 # Zoning codes considered restrictive (single-family residential)
 _RESTRICTIVE_ZONES = {"RH-1", "RH-1(D)", "RH-1(S)", "RH-1D", "RH-1S"}
 
@@ -40,7 +49,14 @@ _RESTRICTIVE_ZONES = {"RH-1", "RH-1(D)", "RH-1(S)", "RH-1D", "RH-1S"}
 # ---------------------------------------------------------------------------
 
 async def _fetch_complaints(client: SODAClient, block: str, lot: str) -> list[dict]:
-    """Fetch DBI complaints for a parcel from SODA API."""
+    """Fetch DBI complaints for a parcel from SODA API (with 15-min cache)."""
+    cache_key = f"gm2e-bten:{block}:{lot}"
+    cached = _soda_cache.get(cache_key)
+    if cached is not None:
+        ts, data = cached
+        if time.monotonic() - ts < _SODA_CACHE_TTL:
+            return data
+
     safe_block = block.replace("'", "''")
     safe_lot = lot.replace("'", "''")
     results = await client.query(
@@ -49,11 +65,20 @@ async def _fetch_complaints(client: SODAClient, block: str, lot: str) -> list[di
         order="date_filed DESC",
         limit=50,
     )
-    return results or []
+    data = results or []
+    _soda_cache[cache_key] = (time.monotonic(), data)
+    return data
 
 
 async def _fetch_violations(client: SODAClient, block: str, lot: str) -> list[dict]:
-    """Fetch DBI violations/NOVs for a parcel from SODA API."""
+    """Fetch DBI violations/NOVs for a parcel from SODA API (with 15-min cache)."""
+    cache_key = f"nbtm-fbw5:{block}:{lot}"
+    cached = _soda_cache.get(cache_key)
+    if cached is not None:
+        ts, data = cached
+        if time.monotonic() - ts < _SODA_CACHE_TTL:
+            return data
+
     safe_block = block.replace("'", "''")
     safe_lot = lot.replace("'", "''")
     results = await client.query(
@@ -62,11 +87,20 @@ async def _fetch_violations(client: SODAClient, block: str, lot: str) -> list[di
         order="date_filed DESC",
         limit=50,
     )
-    return results or []
+    data = results or []
+    _soda_cache[cache_key] = (time.monotonic(), data)
+    return data
 
 
 async def _fetch_property(client: SODAClient, block: str, lot: str) -> list[dict]:
-    """Fetch property tax roll records for a parcel from SODA API."""
+    """Fetch property tax roll records for a parcel from SODA API (with 15-min cache)."""
+    cache_key = f"wv5m-vpq2:{block}:{lot}"
+    cached = _soda_cache.get(cache_key)
+    if cached is not None:
+        ts, data = cached
+        if time.monotonic() - ts < _SODA_CACHE_TTL:
+            return data
+
     safe_block = block.replace("'", "''")
     safe_lot = lot.replace("'", "''")
     results = await client.query(
@@ -75,7 +109,79 @@ async def _fetch_property(client: SODAClient, block: str, lot: str) -> list[dict
         order="closed_roll_year DESC",
         limit=5,
     )
-    return results or []
+    data = results or []
+    _soda_cache[cache_key] = (time.monotonic(), data)
+    return data
+
+
+# ---------------------------------------------------------------------------
+# Batch DB helpers (replaces per-permit N+1 calls)
+# ---------------------------------------------------------------------------
+
+def _get_contacts_batch(conn, permit_numbers: list[str]) -> dict[str, list]:
+    """Fetch contacts for multiple permits in a single query.
+
+    Returns dict mapping permit_number -> list of contact dicts.
+    Uses the same JOIN and column set as _get_contacts() in permit_lookup.py.
+    """
+    if not permit_numbers:
+        return {}
+
+    # Build IN clause with correct placeholders per backend
+    placeholders = ", ".join([_PH] * len(permit_numbers))
+    sql = f"""
+        SELECT c.permit_number, c.role, c.name, c.firm_name, c.entity_id,
+               e.canonical_name, e.canonical_firm, e.permit_count
+        FROM contacts c
+        LEFT JOIN entities e ON c.entity_id = e.entity_id
+        WHERE c.permit_number IN ({placeholders})
+        ORDER BY
+            c.permit_number,
+            CASE LOWER(COALESCE(c.role, ''))
+                WHEN 'applicant' THEN 1
+                WHEN 'contractor' THEN 2
+                WHEN 'architect' THEN 3
+                WHEN 'engineer' THEN 4
+                ELSE 5
+            END
+    """
+    rows = _exec(conn, sql, permit_numbers)
+
+    result: dict[str, list] = {}
+    cols = ["role", "name", "firm_name", "entity_id",
+            "canonical_name", "canonical_firm", "permit_count"]
+    for row in rows:
+        pnum = row[0]
+        contact = {cols[i]: row[i + 1] for i in range(len(cols))}
+        result.setdefault(pnum, []).append(contact)
+    return result
+
+
+def _get_inspections_batch(conn, permit_numbers: list[str]) -> dict[str, list]:
+    """Fetch inspections for multiple permits in a single query.
+
+    Returns dict mapping permit_number -> list of inspection dicts.
+    Uses the same column set as _get_inspections() in permit_lookup.py.
+    """
+    if not permit_numbers:
+        return {}
+
+    placeholders = ", ".join([_PH] * len(permit_numbers))
+    sql = f"""
+        SELECT reference_number, scheduled_date, inspector, result, inspection_description
+        FROM inspections
+        WHERE reference_number IN ({placeholders})
+        ORDER BY reference_number, scheduled_date DESC
+    """
+    rows = _exec(conn, sql, permit_numbers)
+
+    result: dict[str, list] = {}
+    cols = ["scheduled_date", "inspector", "result", "description"]
+    for row in rows:
+        pnum = row[0]
+        inspection = {cols[i]: row[i + 1] for i in range(len(cols))}
+        result.setdefault(pnum, []).append(inspection)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -769,18 +875,22 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
     try:
         permits = _lookup_by_block_lot(conn, block, lot)
 
-        # Enrich each permit with contacts and inspections
+        # Enrich each permit with contacts and inspections (batch — 2 queries total)
+        pnums = [p["permit_number"] for p in permits if p.get("permit_number")]
+        try:
+            contacts_map = _get_contacts_batch(conn, pnums)
+        except Exception:
+            contacts_map = {}
+        try:
+            inspections_map = _get_inspections_batch(conn, pnums)
+        except Exception:
+            inspections_map = {}
+
         for permit in permits:
             pnum = permit.get("permit_number", "")
+            permit["contacts"] = contacts_map.get(pnum, [])
+            permit["inspections"] = inspections_map.get(pnum, [])
             if pnum:
-                try:
-                    permit["contacts"] = _get_contacts(conn, pnum)
-                except Exception:
-                    permit["contacts"] = []
-                try:
-                    permit["inspections"] = _get_inspections(conn, pnum)
-                except Exception:
-                    permit["inspections"] = []
                 permit["link"] = ReportLinks.permit(pnum)
 
         # Enrich active permits with routing progress
