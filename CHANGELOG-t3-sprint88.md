@@ -45,3 +45,24 @@
   - Accessibility: viewport meta, auth handling, loading state, empty state
   - Route tests: unauthenticated redirect (PASS), authenticated render (xfail — g.user integration)
 - Design lint score: **5/5** (0 violations)
+## Agent 3C — What-If Simulator UI
+
+- Added `/tools/what-if` page (`web/templates/tools/what_if.html`)
+  - Standalone page with base project textarea and up to 3 optional variation pairs
+  - Variation blocks show/hide via JavaScript; Add Variation button disabled at max (3)
+  - JSON POST to `/api/what-if` with `X-CSRFToken` header from `meta[name="csrf-token"]`
+  - Results rendered via `marked.js` as a markdown comparison table
+  - Loading state indicator while simulation runs
+  - Inline 401 handler shows login prompt; other errors show inline error message
+  - Single-column layout at 375px mobile width; sticky results panel at desktop
+  - Fully token-compliant: `--mono` for data inputs, `--sans` for headings/labels
+- Added `tools_what_if()` route to `web/routes_search.py` (appended at EOF)
+  - Redirects unauthenticated users to `/auth/login`
+  - Added `redirect` to Flask import in `routes_search.py`
+- Added `tests/test_what_if_ui.py` (22 tests: 21 passing, 1 xfail)
+  - Template structure checks (head_obsidian, nav, title, results div)
+  - CSRF/JSON POST verification
+  - No hardcoded hex in styles
+  - Token compliance (--mono, --sans, obsidian-mid surface)
+  - Route: unauthenticated redirect (PASS), authenticated render (xfail — g.user requires full before_request chain)
+- Design lint score: 5/5 (0 violations)

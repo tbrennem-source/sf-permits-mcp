@@ -1596,3 +1596,17 @@ def tools_stuck_permit():
     if not g.user:
         return redirect("/auth/login")
     return render_template("tools/stuck_permit.html")
+
+
+
+# ---------------------------------------------------------------------------
+# What-If Simulator — /tools/what-if (Sprint QS10-T3-3C)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/what-if")
+def tools_what_if():
+    """What-If Simulator: compare project variation impacts on timeline and fees."""
+    if not g.user:
+        return redirect("/auth/login")
+    return render_template("tools/what_if.html")
+

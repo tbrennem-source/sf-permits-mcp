@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What-If Simulator — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" nonce="{{ csp_nonce }}"></script>
+    <style nonce="{{ csp_nonce }}">
+        .what-if-page {
+            background: var(--obsidian);
+            min-height: 100vh;
+            padding-bottom: 64px;
+        }
+
+        .what-if-header {
+            padding: 40px 0 32px;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 32px;
+        }
+
+        .what-if-header h1 {
+            font-family: var(--sans);
+            font-size: clamp(1.5rem, 2.5vw, 2rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 8px;
+        }
+
+        .what-if-header .subtitle {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .what-if-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .what-if-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-panel {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .form-section-title {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 0 0 12px;
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .search-textarea {
+            width: 100%;
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .search-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-textarea::placeholder {
+            color: var(--text-tertiary);
+            font-family: var(--mono);
+        }
+
+        .variation-input {
+            width: 100%;
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-primary);
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .variation-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .variation-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .variation-block {
+            background: var(--obsidian);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .variation-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .variation-label-text {
+            font-family: var(--sans);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .variation-remove-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: var(--text-xs);
+            font-family: var(--sans);
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .variation-remove-btn:hover {
+            color: var(--text-primary);
+            background: var(--glass);
+        }
+
+        .variation-field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-separator {
+            height: 1px;
+            background: var(--glass-border);
+            margin: 20px 0;
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            background: none;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            border-color: var(--glass-hover);
+            background: var(--glass);
+        }
+
+        .btn-ghost:disabled {
+            color: var(--text-tertiary);
+            border-color: var(--glass-border);
+            cursor: not-allowed;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--obsidian);
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .action-btn:hover {
+            opacity: 0.88;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading indicator */
+        .loading-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            padding: 20px;
+        }
+
+        .loading-indicator.is-visible {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--glass-border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results panel */
+        .results-panel {
+            position: sticky;
+            top: 80px;
+        }
+
+        .results-area {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 200px;
+        }
+
+        .results-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: var(--text-tertiary);
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            text-align: center;
+            gap: 8px;
+        }
+
+        .results-empty-icon {
+            font-size: 2rem;
+            opacity: 0.5;
+        }
+
+        /* Rendered markdown content */
+        .results-content {
+            color: var(--text-primary);
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            line-height: 1.6;
+        }
+
+        .results-content h1,
+        .results-content h2,
+        .results-content h3 {
+            color: var(--text-primary);
+            font-family: var(--sans);
+            margin-top: 1.25em;
+            margin-bottom: 0.5em;
+        }
+
+        .results-content h2 {
+            font-size: var(--text-base);
+            font-weight: 600;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .results-content table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            margin: 12px 0;
+        }
+
+        .results-content th {
+            background: var(--obsidian-light);
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+            white-space: nowrap;
+        }
+
+        .results-content td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            vertical-align: top;
+        }
+
+        .results-content tr:last-child td {
+            border-bottom: none;
+        }
+
+        .results-content tr:hover td {
+            background: var(--glass);
+        }
+
+        .results-content p {
+            margin: 0.5em 0;
+        }
+
+        .results-content ul,
+        .results-content ol {
+            padding-left: 1.25em;
+            margin: 0.5em 0;
+        }
+
+        .results-content strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .results-content code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--obsidian-light);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        /* Error state */
+        .error-message {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .error-message a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .error-message a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile full-width layout adjustments */
+        @media (max-width: 768px) {
+            .what-if-header {
+                padding: 24px 0 20px;
+                margin-bottom: 20px;
+            }
+
+            .results-panel {
+                position: static;
+            }
+
+            .form-panel,
+            .results-area {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body class="what-if-page">
+    {% include "fragments/nav.html" %}
+
+    <main>
+        <div class="obs-container">
+            <div class="what-if-header">
+                <h1>What-If Simulator</h1>
+                <p class="subtitle">Compare how project variations change timeline, fees, and revision risk.</p>
+            </div>
+
+            <div class="what-if-layout">
+                <!-- Left: Input Form -->
+                <div class="form-panel">
+                    <form id="what-if-form" autocomplete="off">
+
+                        <!-- Base Project -->
+                        <p class="form-section-title">Base Project</p>
+                        <label class="form-label" for="base-description">Describe your project</label>
+                        <textarea
+                            id="base-description"
+                            name="base_description"
+                            class="search-textarea"
+                            placeholder="e.g. ADU in the backyard, 500 sq ft, Noe Valley"
+                            rows="4"
+                            required
+                        ></textarea>
+
+                        <div class="form-separator"></div>
+
+                        <!-- Variations -->
+                        <p class="form-section-title">Variations to Compare <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></p>
+
+                        <div id="variations-container">
+                            <!-- Variation 1 — always visible -->
+                            <div class="variation-block" id="variation-0">
+                                <div class="variation-block-header">
+                                    <span class="variation-label-text">Variation A</span>
+                                </div>
+                                <div class="variation-field-group">
+                                    <input
+                                        type="text"
+                                        class="variation-input"
+                                        data-variation-label="0"
+                                        placeholder="Label (e.g. &quot;With solar&quot;)"
+                                    >
+                                    <textarea
+                                        class="search-textarea variation-desc"
+                                        data-variation-desc="0"
+                                        placeholder="Describe what's different from the base project"
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Variation 2 — hidden by default -->
+                            <div class="variation-block" id="variation-1" style="display:none;">
+                                <div class="variation-block-header">
+                                    <span class="variation-label-text">Variation B</span>
+                                    <button type="button" class="variation-remove-btn" data-remove="1">Remove</button>
+                                </div>
+                                <div class="variation-field-group">
+                                    <input
+                                        type="text"
+                                        class="variation-input"
+                                        data-variation-label="1"
+                                        placeholder="Label (e.g. &quot;Add second unit&quot;)"
+                                    >
+                                    <textarea
+                                        class="search-textarea variation-desc"
+                                        data-variation-desc="1"
+                                        placeholder="Describe what's different from the base project"
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Variation 3 — hidden by default -->
+                            <div class="variation-block" id="variation-2" style="display:none;">
+                                <div class="variation-block-header">
+                                    <span class="variation-label-text">Variation C</span>
+                                    <button type="button" class="variation-remove-btn" data-remove="2">Remove</button>
+                                </div>
+                                <div class="variation-field-group">
+                                    <input
+                                        type="text"
+                                        class="variation-input"
+                                        data-variation-label="2"
+                                        placeholder="Label (e.g. &quot;Change of use&quot;)"
+                                    >
+                                    <textarea
+                                        class="search-textarea variation-desc"
+                                        data-variation-desc="2"
+                                        placeholder="Describe what's different from the base project"
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="add-variation-btn" class="btn-ghost">
+                            + Add variation
+                        </button>
+
+                        <button type="submit" class="action-btn" id="submit-btn">
+                            Run simulation →
+                        </button>
+                    </form>
+
+                    <div class="loading-indicator" id="loading-indicator">
+                        <div class="loading-spinner"></div>
+                        <span>Simulating variations...</span>
+                    </div>
+                </div>
+
+                <!-- Right: Results -->
+                <div class="results-panel">
+                    <div class="results-area" id="results">
+                        <div class="results-empty-state" id="results-empty">
+                            <div class="results-empty-icon">&mdash;</div>
+                            <p>Describe your project and run the simulation to see how variations compare.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script nonce="{{ csp_nonce }}">
+    (function () {
+        'use strict';
+
+        // ── Variation show/hide logic ─────────────────────────────────────────
+        var MAX_VARIATIONS = 3;
+        var visibleCount = 1; // Variation A is always shown
+
+        var addBtn = document.getElementById('add-variation-btn');
+
+        function updateAddButton() {
+            addBtn.disabled = (visibleCount >= MAX_VARIATIONS);
+        }
+
+        addBtn.addEventListener('click', function () {
+            if (visibleCount >= MAX_VARIATIONS) return;
+            var next = document.getElementById('variation-' + visibleCount);
+            if (next) {
+                next.style.display = '';
+                visibleCount++;
+            }
+            updateAddButton();
+        });
+
+        // Remove buttons
+        document.querySelectorAll('.variation-remove-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idx = parseInt(btn.getAttribute('data-remove'), 10);
+                var block = document.getElementById('variation-' + idx);
+                if (block) {
+                    block.style.display = 'none';
+                    // Clear values
+                    block.querySelector('[data-variation-label]').value = '';
+                    block.querySelector('[data-variation-desc]').value = '';
+                    visibleCount = Math.max(1, visibleCount - 1);
+                    updateAddButton();
+                }
+            });
+        });
+
+        // ── Form submission ───────────────────────────────────────────────────
+        var form = document.getElementById('what-if-form');
+        var submitBtn = document.getElementById('submit-btn');
+        var loadingEl = document.getElementById('loading-indicator');
+        var resultsEl = document.getElementById('results');
+        var emptyStateEl = document.getElementById('results-empty');
+
+        function getVariations() {
+            var variations = [];
+            for (var i = 0; i < MAX_VARIATIONS; i++) {
+                var block = document.getElementById('variation-' + i);
+                if (!block || block.style.display === 'none') continue;
+                var labelInput = block.querySelector('[data-variation-label]');
+                var descInput = block.querySelector('[data-variation-desc]');
+                var label = labelInput ? labelInput.value.trim() : '';
+                var description = descInput ? descInput.value.trim() : '';
+                if (label || description) {
+                    variations.push({
+                        label: label || ('Variation ' + String.fromCharCode(65 + i)),
+                        description: description
+                    });
+                }
+            }
+            return variations;
+        }
+
+        function setLoading(isLoading) {
+            submitBtn.disabled = isLoading;
+            loadingEl.classList.toggle('is-visible', isLoading);
+            if (isLoading) {
+                submitBtn.textContent = 'Simulating...';
+            } else {
+                submitBtn.textContent = 'Run simulation \u2192';
+            }
+        }
+
+        function showError(message, is401) {
+            var html = '';
+            if (is401) {
+                html = '<div class="error-message">Please <a href="/auth/login">log in</a> to use the What-If Simulator.</div>';
+            } else {
+                html = '<div class="error-message">' + escapeHtml(message) + '</div>';
+            }
+            resultsEl.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        function renderResult(markdown) {
+            var html = marked.parse(markdown);
+            resultsEl.innerHTML = '<div class="results-content">' + html + '</div>';
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var baseDescription = document.getElementById('base-description').value.trim();
+            if (!baseDescription) {
+                document.getElementById('base-description').focus();
+                return;
+            }
+
+            var variations = getVariations();
+            var csrfToken = document.querySelector('meta[name="csrf-token"]');
+            var token = csrfToken ? csrfToken.getAttribute('content') : '';
+
+            setLoading(true);
+
+            fetch('/api/what-if', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': token
+                },
+                body: JSON.stringify({
+                    base_description: baseDescription,
+                    variations: variations
+                })
+            })
+            .then(function (response) {
+                if (response.status === 401) {
+                    setLoading(false);
+                    showError('Unauthorized', true);
+                    return null;
+                }
+                return response.json();
+            })
+            .then(function (data) {
+                if (data === null) return;
+                setLoading(false);
+                if (data.error) {
+                    showError(data.error, false);
+                } else if (data.result) {
+                    renderResult(data.result);
+                } else {
+                    showError('No results returned. Please try again.', false);
+                }
+            })
+            .catch(function (err) {
+                setLoading(false);
+                showError('Request failed. Check your connection and try again.', false);
+            });
+        });
+
+        // Initialize button state
+        updateAddButton();
+    })();
+    </script>
+</body>
+</html>
