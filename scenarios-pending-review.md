@@ -2186,3 +2186,191 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Edge cases seen in code:** Atomic write (tmp + rename) prevents partial writes on crash.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: station predictor happy path — active permit
+**Source:** station_predictor.html / tools_station_predictor route
+**User:** expediter
+**Starting state:** Authenticated user has a permit number for a currently active permit in the DBI system.
+**Goal:** Quickly see which review stations the permit will likely pass through next, to plan client communication and set expectations.
+**Expected outcome:** Predicted routing stations are displayed in formatted markdown. The result shows the permit number back to the user and a sequence of likely upcoming stations with any relevant commentary.
+**Edge cases seen in code:** API returns {"permit_number": str, "result": str (markdown)} — result must be parsed and rendered as markdown, not raw text.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: station predictor — unauthenticated access redirects to login
+**Source:** station_predictor.html / tools_station_predictor route
+**User:** homeowner
+**Starting state:** Unauthenticated user navigates directly to the Station Predictor URL.
+**Goal:** Access the station predictor tool.
+**Expected outcome:** User is redirected to the login page without seeing any permit data. After logging in, they can return to the tool.
+**Edge cases seen in code:** Route checks g.user and redirects to /auth/login if falsy. The client-side JavaScript also handles 401 API responses with a "Please log in" message for any JS-initiated calls before the redirect fires.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: station predictor — invalid or nonexistent permit number
+**Source:** station_predictor.html / tools_station_predictor route
+**User:** expediter
+**Starting state:** Authenticated user enters a permit number that does not exist in the system or is malformed.
+**Goal:** Get routing prediction for what turns out to be an invalid permit.
+**Expected outcome:** An error message is displayed in the results area. The tool does not crash. User can enter a different permit number and try again without page reload.
+**Edge cases seen in code:** API returns {"error": "..."} on failure; client-side showError() renders it. Empty input triggers a client-side validation message before the fetch fires.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: station predictor — markdown result rendering
+**Source:** station_predictor.html / tools_station_predictor route
+**User:** architect
+**Starting state:** Authenticated user submits a valid permit number. The API returns a richly formatted markdown response with headers, bullets, and code spans for station names.
+**Goal:** Read the predicted routing in a clear, formatted view.
+**Expected outcome:** Markdown is rendered as HTML — headers appear as styled headings, bullet lists render as bullets, station code spans appear in monospace. Raw markdown text is never shown to the user.
+**Edge cases seen in code:** Template uses marked.js with a fallback to <pre> if marked is unavailable. Code spans styled with --mono font family and --accent color.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: station predictor — Enter key submits the form
+**Source:** station_predictor.html / tools_station_predictor route
+**User:** expediter
+**Starting state:** Authenticated user has typed a permit number into the input field.
+**Goal:** Submit the prediction request by pressing Enter rather than clicking the button.
+**Expected outcome:** The prediction fires when Enter is pressed in the permit number field, identical to clicking the button. This matches the expected keyboard workflow for power users.
+**Edge cases seen in code:** keydown listener on the input checks for e.key === 'Enter' and calls runPrediction().
+# Agent 3B — Scenarios (Sprint QS10-T3)
+
+## SUGGESTED SCENARIO: expediter diagnoses a stalled permit
+**Source:** stuck_permit.html / tools_stuck_permit route
+**User:** expediter
+**Starting state:** Expediter is logged in. They have a permit number for a project that has not moved in 90+ days.
+**Goal:** Understand why the permit is stuck and get a prioritized list of actions to unstick it.
+**Expected outcome:** User enters permit number, submits, and receives a ranked intervention playbook in readable form explaining probable delay causes and concrete next steps. Response renders correctly with no raw markdown visible.
+**Edge cases seen in code:** API returns markdown text in `result` field — marked.js parses it; if marked not loaded, a pre-formatted fallback is shown.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: unauthenticated user attempts to use stuck permit analyzer
+**Source:** tools_stuck_permit route (auth guard) / 401 handling in stuck_permit.html
+**User:** homeowner
+**Starting state:** User is not logged in (no active session). They navigate directly to the stuck permit analyzer tool.
+**Goal:** Access the analyzer to diagnose their permit.
+**Expected outcome:** User is redirected to the login page without seeing the tool UI. If they somehow reach the page and trigger the API call without session, a login prompt appears in the results area (not a raw 401 error).
+**Edge cases seen in code:** Route-level redirect (302) for unauthenticated GET; JS 401 handler renders auth prompt inline for any race conditions.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: user enters an invalid or unknown permit number
+**Source:** stuck_permit.html error handling
+**User:** homeowner
+**Starting state:** User is logged in. They type an invalid or non-existent permit number and click Diagnose.
+**Goal:** Get information about their permit even with an incorrect number.
+**Expected outcome:** User sees a clear error message (not a crash or blank screen) indicating the analysis failed. The error message is rendered in the results area with contextual styling.
+**Edge cases seen in code:** API may return 500 with `{"error": "..."}` — JS catch block renders the error.message; empty permit number short-circuits before making the API call.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: user navigates to stuck permit analyzer on mobile
+**Source:** stuck_permit.html responsive styles
+**User:** expediter
+**Starting state:** User is on a mobile device (375px viewport), logged in.
+**Goal:** Use the stuck permit analyzer on the go.
+**Expected outcome:** Input field and diagnose button stack vertically and fill the full width. Page renders without horizontal overflow. Results playbook is readable.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: playbook renders rich markdown with headers and lists
+**Source:** stuck_permit.html — marked.js integration + .playbook-content styles
+**User:** architect
+**Starting state:** User is logged in. The stuck permit API returns a multi-section markdown playbook with headers, bullet lists, and bold text.
+**Goal:** Read a structured intervention plan for their client's delayed permit.
+**Expected outcome:** Markdown is parsed and displayed as formatted HTML — headers use the sans-serif type stack, code spans use monospace, bullet lists are indented. No raw markdown characters (**, ##, *, `) are visible to the user.
+## SUGGESTED SCENARIO: what-if base project only, no variations
+**Source:** what_if.html / tools_what_if route
+**User:** expediter
+**Starting state:** Authenticated user on the What-If Simulator page with no input
+**Goal:** Analyze a base project description to understand its permit implications without comparing variations
+**Expected outcome:** After entering a base project description and submitting, the simulator returns a structured analysis of the project's expected timeline, fees, and revision risk without requiring any variation input
+**Edge cases seen in code:** Variations array can be empty — API accepts base_description alone; empty variations are excluded from the JSON body
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: what-if comparison with two variations
+**Source:** what_if.html / tools_what_if route
+**User:** architect
+**Starting state:** Authenticated user on the What-If Simulator page; user is evaluating two design options for a client's project
+**Goal:** Compare how two different project scopes (e.g., ADU with and without solar panels) would differ in timeline, fees, and revision risk
+**Expected outcome:** After entering a base description and two labeled variations, the simulator returns a side-by-side comparison table showing how each variation changes the projected timeline, fees, and revision risk relative to the base
+**Edge cases seen in code:** Variations with empty label get auto-labeled (A, B, C); max 3 variations enforced in UI
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: what-if unauthenticated access redirects to login
+**Source:** tools_what_if route in web/routes_search.py
+**User:** homeowner
+**Starting state:** User is not logged in and navigates directly to the What-If Simulator URL
+**Goal:** Access the What-If Simulator
+**Expected outcome:** User is redirected to the login page; after logging in, they can access the simulator
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: what-if 401 error shows login prompt inline
+**Source:** what_if.html — fetch error handling
+**User:** expediter
+**Starting state:** Authenticated user's session expires while on the What-If Simulator page
+**Goal:** Submit a simulation after session expiry
+**Expected outcome:** The simulator displays a friendly prompt to log in again (inline in the results area) rather than a cryptic error or a full page redirect
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: what-if variation add/remove flow
+**Source:** what_if.html — variation JS logic
+**User:** architect
+**Starting state:** Authenticated user on the What-If Simulator with one variation visible (Variation A)
+**Goal:** Add a second and third variation, remove the second, then submit with only the first and third
+**Expected outcome:** The Add Variation button is disabled after three variations are shown; removing a variation hides it and clears its fields; the simulation submission includes only the variations that are currently visible and have content
+**Edge cases seen in code:** Max 3 variations; remove button clears field values; visible count tracked to gate Add button
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: developer calculates delay cost for ADU project
+**Source:** cost_of_delay.html / tools_cost_of_delay route
+**User:** developer
+**Starting state:** Developer is logged in and has a pending ADU permit with known monthly carrying costs (mortgage, opportunity cost).
+**Goal:** Understand the total financial exposure from SF permit processing delays on their ADU project.
+**Expected outcome:** Calculator accepts permit type "adu" and a monthly cost, calls the API, and renders a markdown breakdown of estimated delay costs with timeline percentiles.
+**Edge cases seen in code:** API returns 400 if monthly_carrying_cost is 0 or negative — client-side validation must block submission before reaching the server.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: unauthenticated user blocked at gate
+**Source:** tools_cost_of_delay route (g.user check + 401 handling in JS)
+**User:** homeowner
+**Starting state:** Visitor is not logged in and navigates directly to /tools/cost-of-delay.
+**Goal:** Access the Cost of Delay Calculator.
+**Expected outcome:** User is redirected to the login page (server-side redirect before the page renders). If they somehow reach the page and submit the form, a "you must be logged in" message appears inline with a link to log in.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: expediter adds neighborhood and delay triggers for precise estimate
+**Source:** cost_of_delay.html — optional neighborhood and triggers inputs
+**User:** expediter
+**Starting state:** Expediter is logged in with a restaurant project in the Mission with known risk factors (active complaint, change of use).
+**Goal:** Get a more accurate delay cost estimate by providing optional context.
+**Expected outcome:** Form accepts neighborhood "Mission" and triggers "active complaint, change of use" as comma-separated values; API receives them as an array; result reflects the higher-risk scenario.
+**Edge cases seen in code:** Triggers are split on comma and filtered for empty strings before JSON serialization.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: user submits with zero monthly cost
+**Source:** cost_of_delay.html — client-side validation on monthly_carrying_cost
+**User:** homeowner
+**Starting state:** Homeowner is logged in and fills out the form with permit type "kitchen remodel" but enters "0" for monthly carrying cost.
+**Goal:** Submit the form.
+**Expected outcome:** Form does not submit. An inline error message appears below the monthly cost field stating the value must be greater than zero. No network request is made.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: result renders markdown cost breakdown
+**Source:** cost_of_delay.html — marked.parse() call on API result
+**User:** developer
+**Starting state:** Developer is logged in and submits a valid request (permit type "commercial", monthly cost $8000, neighborhood "SoMa").
+**Goal:** Read the AI-generated cost breakdown.
+**Expected outcome:** The results area becomes visible. The markdown response is rendered as structured HTML — headings, bullet lists, bold currency values — not as raw markdown text.
+**CC confidence:** high
+**Status:** PENDING REVIEW

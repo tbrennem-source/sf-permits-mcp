@@ -1,5 +1,100 @@
 # Changelog
 
+## QS10 T3 — Intelligence Tool UI (2026-02-28)
+
+## Agent 3A — Station Predictor UI
+
+- Added `/tools/station-predictor` page (`web/templates/tools/station_predictor.html`)
+  - Obsidian-themed design using only DESIGN_TOKENS.md CSS custom properties
+  - Permit number input (--mono font, glass-style input)
+  - JavaScript fetch to `/api/predict-next/<permit_number>` GET endpoint
+  - Markdown rendering via marked.js with escapeHtml fallback
+  - Loading state (spinner + "Analyzing..." text)
+  - Error state (signal-red styled error box)
+  - Auth error state (401 → "Please log in" prompt with /auth/login link)
+  - Empty hint state
+  - Enter-key support for form submission
+  - Mobile-responsive at 375px (stacked column layout)
+- Added `tools_station_predictor` route to `web/routes_search.py` (appended at EOF)
+  - Redirects unauthenticated users to `/auth/login`
+  - Renders `tools/station_predictor.html` for authenticated users
+  - Added `redirect` to Flask imports
+- Added `tests/test_station_predictor_ui.py` (23 tests: 22 passing, 1 xfail)
+  - 21 template-string tests (no Jinja/Flask rendering needed)
+  - 2 route-level tests via Flask test client
+## Agent 3B — Stuck Permit Analyzer UI (Sprint QS10-T3)
+
+- Added `/tools/stuck-permit` page (`web/templates/tools/stuck_permit.html`)
+  - Page header with h1 "Stuck Permit Analyzer" and subtitle
+  - Monospace permit number input with focus glow and placeholder
+  - "Diagnose permit →" action button
+  - JS fetch → `GET /api/stuck-permit/<permit_number>`
+  - Loading indicator with amber status dot animation during fetch
+  - marked.js markdown rendering for playbook result
+  - 401 response shows inline login prompt (not redirect)
+  - 500/network error renders error message in signal-red
+  - Empty state hint before first query
+  - Mobile-responsive: stacked input/button at 375px
+  - Enter key submission support
+  - All colors via design token CSS custom properties (no hardcoded hex)
+  - CSP nonce on all inline `<style>` and `<script>` tags
+  - CSRF meta tag handled by head_obsidian.html include
+- Added `tools_stuck_permit` route to `web/routes_search.py` (appended at EOF)
+  - Auth guard: unauthenticated → redirect to `/auth/login`
+  - Added `redirect` to flask import line
+- Added `tests/test_stuck_permit_ui.py` (23 tests: 22 passed, 1 xfailed)
+  - Template structure checks: head include, nav include, results div, API reference
+  - Token compliance: no hardcoded hex in style blocks
+  - Font role: `--mono` usage verified
+  - Accessibility: viewport meta, auth handling, loading state, empty state
+  - Route tests: unauthenticated redirect (PASS), authenticated render (xfail — g.user integration)
+- Design lint score: **5/5** (0 violations)
+## Agent 3C — What-If Simulator UI
+
+- Added `/tools/what-if` page (`web/templates/tools/what_if.html`)
+  - Standalone page with base project textarea and up to 3 optional variation pairs
+  - Variation blocks show/hide via JavaScript; Add Variation button disabled at max (3)
+  - JSON POST to `/api/what-if` with `X-CSRFToken` header from `meta[name="csrf-token"]`
+  - Results rendered via `marked.js` as a markdown comparison table
+  - Loading state indicator while simulation runs
+  - Inline 401 handler shows login prompt; other errors show inline error message
+  - Single-column layout at 375px mobile width; sticky results panel at desktop
+  - Fully token-compliant: `--mono` for data inputs, `--sans` for headings/labels
+- Added `tools_what_if()` route to `web/routes_search.py` (appended at EOF)
+  - Redirects unauthenticated users to `/auth/login`
+  - Added `redirect` to Flask import in `routes_search.py`
+- Added `tests/test_what_if_ui.py` (22 tests: 21 passing, 1 xfail)
+  - Template structure checks (head_obsidian, nav, title, results div)
+  - CSRF/JSON POST verification
+  - No hardcoded hex in styles
+  - Token compliance (--mono, --sans, obsidian-mid surface)
+  - Route: unauthenticated redirect (PASS), authenticated render (xfail — g.user requires full before_request chain)
+- Design lint score: 5/5 (0 violations)
+## Agent 3D — Cost of Delay Calculator UI
+
+- Added `/tools/cost-of-delay` page (`web/templates/tools/cost_of_delay.html`)
+  - Standalone page with `obs-container` layout, `glass-card` form, `action-btn` submit
+  - Four form fields: permit type (required), monthly carrying cost (required, validated > 0), neighborhood (optional), delay triggers (optional, comma-separated)
+  - Client-side validation: blocks submission if monthly cost is zero or negative, shows inline error
+  - JSON fetch to `POST /api/delay-cost` with `X-CSRFToken` header from `meta[name="csrf-token"]`
+  - `marked.js` renders API result (markdown) as structured HTML in `#results` div
+  - 401 auth error: inline prompt with link to login page
+  - Loading state ("Calculating...") with disabled submit during in-flight request
+  - All styles use only DESIGN_TOKENS.md custom properties — zero hardcoded hex
+  - Mobile-responsive: single-column layout at 375px, full-width inputs and button
+  - Optional fields clearly labeled with `optional-tag` chip
+- Added `tools_cost_of_delay()` route to `web/routes_search.py` at EOF
+  - Added `redirect` to Flask imports in routes_search.py
+  - Unauthenticated users redirected to `/auth/login`
+- Added `tests/test_cost_of_delay_ui.py` (30 tests, 1 xfail)
+  - Template structure: includes, title, results div, API reference
+  - Form fields: permit type, monthly cost, neighborhood, triggers
+  - JS behavior: JSON POST, CSRF, client-side validation, marked.js
+  - Design tokens: no hardcoded hex in styles, --mono, --sans, --obsidian, --text-* tokens
+  - Route tests: redirect for unauthenticated (302), redirect target contains "login"
+  - xfail: authenticated render (g.user requires full before_request chain)
+- Design lint score: **5/5** — zero violations
+
 ## QS9 T4 + Hotfix Session — Cleanup, CSRF Hardening, Admin Tools (2026-02-28)
 
 ### QS9 T4: Sprint 85 Cleanup (4 agents)

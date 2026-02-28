@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-28T13:37:33.843214+00:00",
-  "total_routes": 181,
+  "generated_at": "2026-02-28T18:48:13.392008+00:00",
+  "total_routes": 192,
   "routes": [
     {
       "path": "/robots.txt",
@@ -352,6 +352,33 @@
       "auth_level": "admin",
       "template": null,
       "function_name": "admin_health"
+    },
+    {
+      "path": "/admin/impersonate",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_impersonate"
+    },
+    {
+      "path": "/admin/reset-impersonation",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_reset_impersonation"
+    },
+    {
+      "path": "/admin/qa-decision",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_qa_decision"
     },
     {
       "path": "/api/prep/create",
@@ -919,6 +946,42 @@
       "auth_level": "public",
       "template": null,
       "function_name": "onboarding_dismiss"
+    },
+    {
+      "path": "/beta/join",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": null,
+      "function_name": "beta_join"
+    },
+    {
+      "path": "/beta/onboarding/welcome",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "onboarding/welcome.html",
+      "function_name": "beta_onboarding_welcome"
+    },
+    {
+      "path": "/beta/onboarding/add-property",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "onboarding/add_property.html",
+      "function_name": "beta_onboarding_add_property"
+    },
+    {
+      "path": "/beta/onboarding/severity-preview",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "auth",
+      "template": "onboarding/severity_preview.html",
+      "function_name": "beta_onboarding_severity_preview"
     },
     {
       "path": "/cron/status",
@@ -1632,6 +1695,42 @@
       "auth_level": "public",
       "template": "search_reveal.html",
       "function_name": "ask"
+    },
+    {
+      "path": "/tools/station-predictor",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "tools/station_predictor.html",
+      "function_name": "tools_station_predictor"
+    },
+    {
+      "path": "/tools/stuck-permit",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "tools/stuck_permit.html",
+      "function_name": "tools_stuck_permit"
+    },
+    {
+      "path": "/tools/what-if",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "tools/what_if.html",
+      "function_name": "tools_what_if"
+    },
+    {
+      "path": "/tools/cost-of-delay",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "tools/cost_of_delay.html",
+      "function_name": "tools_cost_of_delay"
     }
   ],
   "user_journeys": {
@@ -1656,9 +1755,9 @@
     ]
   },
   "auth_summary": {
-    "public": 46,
-    "auth": 35,
-    "admin": 34,
+    "public": 51,
+    "auth": 38,
+    "admin": 37,
     "cron": 66
   }
 }
