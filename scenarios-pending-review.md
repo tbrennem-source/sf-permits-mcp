@@ -1999,3 +1999,35 @@ _Consolidated: Sprint 85-B (2026-02-27) — 116 unique scenarios, 27 duplicates 
 **Edge cases seen in code:** A branch can be merged into main but still have an active worktree checked out (git will refuse deletion with `+` prefix marker in --merged output); prunable worktrees (nested inside other worktrees) are flagged but only cleared by prune, not by branch deletion
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: Test hygiene hook warns on anti-patterns
+**Source:** scripts/test_hygiene.py, .claude/hooks/test-hygiene-hook.sh
+**User:** admin
+**Starting state:** Agent is writing a new test file to tests/ directory
+**Goal:** Prevent cross-test contamination from os.environ assignments, sys.path.insert, importlib.reload, and bare 'from app import' patterns
+**Expected outcome:** When agent writes a test file containing anti-patterns, the hook fires a non-blocking stderr warning identifying each violation with a fix suggestion; the write proceeds (exit 0); agent is informed but not blocked
+**Edge cases seen in code:** os.environ.get() and monkeypatch lines must not trigger false positives; non-test files (src/, web/) must be silently ignored; the hook must handle malformed JSON gracefully
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: CHECKQUAD terminal close produces structured artifact
+**Source:** dforge swarm-coordination template — CHECKQUAD protocol
+**User:** admin
+**Starting state:** Quad sprint terminal has finished all agent work; agents have committed to worktree branches and reported COMPLETE
+**Goal:** Close the terminal session with a structured session artifact that T0 can systematically review
+**Expected outcome:** Terminal merges agent branches, writes qa-drop/qsN-tN-session.md with Agent Results table (PASS/FAIL per agent), Merge Conflicts, File Ownership Violations, Test Surprises, Gotchas Discovered, and Impediments sections; concatenates per-agent scenario and changelog files into per-terminal files; runs test hygiene audit; prints CHECKQUAD banner; does NOT update canonical STATUS.md/CHANGELOG.md or ship to Chief
+**Edge cases seen in code:** Session artifact must contain PASS/FAIL lines to satisfy the stop hook; terminal must write '## CHECKCHAT' header to trigger the hook gate; per-terminal files (scenarios-pending-review-tN.md) must not collide with canonical files
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: CHECKQUAD-T0 harvests dforge lessons from session artifacts
+**Source:** dforge swarm-coordination template — CHECKQUAD-T0 Step 6: HARVEST
+**User:** admin
+**Starting state:** All quad sprint terminals have completed CHECKQUAD and pushed to main; session artifacts exist in qa-drop/
+**Goal:** Systematically extract generalizable patterns from terminal session artifacts into dforge lessons
+**Expected outcome:** T0 reads all qa-drop/qsN-t*-session.md files; identifies dforge-worthy patterns from Gotchas Discovered, Test Surprises, and Merge Conflicts sections; applies criteria (would help different project, agents would repeat without guidance, cost >10 min to diagnose); proposes lessons in standard dforge format
+**Edge cases seen in code:** Some gotchas are project-specific (DuckDB syntax) vs generalizable (env leak patterns); T0 must distinguish between the two
+**CC confidence:** medium
+**Status:** PENDING REVIEW

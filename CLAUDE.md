@@ -481,15 +481,19 @@ This project participates in Tim's standard session protocols. These are defined
 
 **RELAY** — QA loop. After building, CC runs QA scripts using **Playwright headless Chromium** for any step involving page navigation or UI rendering. Do NOT substitute pytest or curl for browser verification — launch a real browser, navigate pages, take screenshots to `qa-results/screenshots/`. CLI-only steps (imports, DB queries, pytest) can use Python/bash directly. Loops until all tests PASS or are marked BLOCKED. New QA scripts go to `qa-drop/`.
 
-**CHECKCHAT** — Session close protocol. Six steps: VERIFY (RELAY gate — check `qa-results/` for unprocessed files, run RELAY if needed; tests pass; design token compliance if UI work), DOCUMENT (update STATUS/CHANGELOG), CAPTURE (append scenarios; update DESIGN_COMPONENT_LOG.md if new components created), SHIP (push to Chief), PREP NEXT (surface next work items), BLOCKED ITEMS REPORT.
+**CHECKCHAT** — Session close protocol for **solo sessions** (single agent, design QA, hotfix). Six steps: VERIFY, DOCUMENT, CAPTURE, SHIP, PREP NEXT, BLOCKED ITEMS REPORT.
+
+**CHECKQUAD** — Session close protocol for **quad sprint terminals** (T1-T4). Lighter than CHECKCHAT, artifact-first. Five steps: MERGE, ARTIFACT (session report), CAPTURE (per-terminal files), HYGIENE CHECK, SIGNAL DONE. Delegates documentation/shipping to T0. See dforge `swarm-coordination` template for full protocol.
+
+**CHECKQUAD-T0** — Session close protocol for **quad sprint orchestrator** (T0). Heavier than CHECKCHAT, consolidates all terminals. Seven steps: COLLECT, VERIFY, VISUAL QA, CONSOLIDATE, DOCUMENT, HARVEST (dforge lessons), SHIP+PROMOTE.
 
 **Black Box Session Protocol (2 stages):**
 
-**Stage 1 — termCC (Terminal Claude Code):** READ (including DESIGN_TOKENS.md if UI work) → BUILD → TEST → SCENARIOS → QA (termRelay, including token compliance if UI work) → CHECKCHAT. CHECKCHAT output includes a Visual QA Checklist section listing items for human spot-check.
+**Stage 1 — termCC (Terminal Claude Code):** READ → BUILD → TEST → SCENARIOS → QA (termRelay) → session close. Solo sessions use CHECKCHAT. Quad sprint terminals use CHECKQUAD. T0 orchestrator uses CHECKQUAD-T0.
 
-**Stage 2 — DeskCC (Desktop Claude Code):** DeskRelay visual checks → CHECKCHAT. Stage 2 CHECKCHAT is lightweight (commit QA results, note follow-ups, no code changes expected).
+**Stage 2 — DeskCC (Desktop Claude Code):** DeskRelay visual checks → CHECKCHAT (lightweight).
 
-Both stages always end with CHECKCHAT. QA is not optional. Scenarios are not optional. CHECKCHAT is not optional.
+QA is not optional. Scenarios are not optional. Session close protocol is not optional.
 
 > See `~/.claude/CLAUDE.md` for the full protocol definitions. This section activates them.
 > See `BLACKBOX_PROTOCOL.md` for the full Black Box session structure and DeskRelay prompt generation rules.
@@ -499,6 +503,7 @@ Both stages always end with CHECKCHAT. QA is not optional. Scenarios are not opt
 ## Deployment Manifest: DEPLOYMENT_MANIFEST.yaml
 ## RELAY: active
 ## CHECKCHAT: active
+## CHECKQUAD: active (see dforge swarm-coordination template)
 
 ---
 
@@ -638,9 +643,9 @@ Only needed in the per-agent `qsN-X-*.md` files (not the swarm prompt). Handles 
 
 **Stage 1 — termCC (Terminal Claude Code):**
 
-For swarm sprints, the orchestrator (CC0) spawns all build agents in parallel via Task tool. Each agent independently follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → VISUAL REVIEW → CHECKCHAT
+For swarm sprints, the orchestrator (CC0) spawns all build agents in parallel via Task tool. Each agent independently follows: READ → SAFETY TAG → BUILD → TEST → SCENARIOS → QA (termRelay) → VISUAL REVIEW → session close (CHECKQUAD for quad sprint terminals, CHECKCHAT for solo sessions).
 
-After all agents complete, the orchestrator: MERGE → SINGLE TEST RUN → PUSH → CONSOLIDATE ARTIFACTS → REPORT.
+After all agents complete, the orchestrator runs CHECKQUAD-T0: COLLECT → VERIFY → VISUAL QA → CONSOLIDATE → DOCUMENT → HARVEST → SHIP+PROMOTE.
 
 **Visual Review (Phase 6.5):** After Playwright screenshots, run automated visual scoring. Use `scripts/visual_qa.py` (preferred) or send screenshots to Claude Vision. Score each page 1-5. ≥3.0 = PASS. ≤2.0 = escalate to DeskRelay. This is standard, not optional.
 
@@ -655,7 +660,7 @@ Both stages always end with CHECKCHAT. Stage 2 CHECKCHAT is lightweight (commit 
 
 ## 13. Enforcement Hooks
 
-Four hooks in `.claude/hooks/` enforce Black Box Protocol compliance. They are configured in `.claude/settings.json`.
+Five hooks in `.claude/hooks/` enforce Black Box Protocol compliance. They are configured in `.claude/settings.json`.
 
 **Do NOT disable or modify hooks without Tim's explicit approval.**
 
@@ -663,10 +668,11 @@ Four hooks in `.claude/hooks/` enforce Black Box Protocol compliance. They are c
 
 | Hook | Event | Purpose | Exit Code |
 |------|-------|---------|-----------|
-| `stop-checkchat.sh` | Stop | Blocks CHECKCHAT without screenshots, QA results, and scenarios | 2 = block |
+| `stop-checkchat.sh` | Stop | Blocks CHECKCHAT/CHECKQUAD without screenshots, QA results, and scenarios | 2 = block |
 | `plan-accountability.sh` | (called by stop hook) | Audits descoped/blocked items for evidence | 1 = fail |
 | `block-playwright.sh` | PreToolUse:Bash | Forces Playwright execution into QA subagents | 2 = block |
 | `detect-descope.sh` | PostToolUse:Write | Warns on descoping language in QA/CHECKCHAT files | 0 (warning only) |
+| `test-hygiene-hook.sh` | PostToolUse:Write | Warns on anti-patterns in test files (env leaks, dual imports) | 0 (warning only) |
 
 ### How They Work
 
