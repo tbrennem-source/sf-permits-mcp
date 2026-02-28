@@ -41,6 +41,20 @@
 - **The Pre-Sprint Design Brief (CLAUDE.md) is mandatory.** Check mockups, check docs, confirm with Tim.
 - **When Tim says "read the docs" — he means ALL of them:** CANON, PRINCIPALS, TOKENS, design-spec.md, Chief DESIGN_SYSTEM.md, mockups dir, memory file. Missing one costs hours.
 
+### How to start a Design QA session
+Type this into a fresh CC terminal:
+```
+Design QA session. Pull all new qa_note feedback from the DB, check staging for issues, and fix. Add tour stops for every fix. Read docs/DESIGN_FEEDBACK_LOG.md and the memory file first.
+```
+The agent will: read this file, read memory, query the feedback DB, fix issues, add tour stops, push to staging.
+
+### Admin tools
+- `?admin=1` on any staging/prod URL → feedback widget + persona toggle (persists via cookie 24h)
+- `?admin=1&tour=1` → guided tour of recent fixes with Accept/Reject/Comment
+- Feedback saves to `feedback` table with `feedback_type='qa_note'`
+- Tour stops are in `web/static/admin-tour.js` → `getInlineStops()` function
+- Tim can also give feedback in CC chat — agent adds as tour stop directly
+
 ### Pages with approved mockups (as of 2026-02-27)
 | Mockup | Template | Status |
 |--------|----------|--------|
