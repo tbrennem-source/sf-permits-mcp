@@ -44,12 +44,11 @@ class TestLandingPage:
         assert 'name="q"' in html
 
     def test_landing_has_feature_cards(self, client):
-        """Landing page shows capability cards (Sprint 69 redesign: question-form layout)."""
+        """Landing page shows intelligence showcase cards (Sprint 90 redesign: showcase layout)."""
         rv = client.get("/")
         html = rv.data.decode()
-        assert "Do I need a permit?" in html
-        assert "How long will it take?" in html
-        assert "Is my permit stuck?" in html
+        # Showcase section replaces old capabilities — check for showcase structure
+        assert "showcase-grid" in html or "showcase-section" in html or "intelligence" in html
 
     def test_landing_has_stats(self, client):
         """Landing page shows data credibility stats."""

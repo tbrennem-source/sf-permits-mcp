@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-28T21:08:48.811089+00:00",
-  "total_routes": 195,
+  "generated_at": "2026-02-28T21:27:01.701823+00:00",
+  "total_routes": 196,
   "routes": [
     {
       "path": "/robots.txt",
@@ -640,6 +640,15 @@
       "auth_level": "cron",
       "template": null,
       "function_name": "api_qa_tour_verdicts"
+    },
+    {
+      "path": "/api/share",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "cron",
+      "template": null,
+      "function_name": "create_share"
     },
     {
       "path": "/auth/login",
@@ -1785,6 +1794,6 @@
     "public": 53,
     "auth": 39,
     "admin": 37,
-    "cron": 66
+    "cron": 67
   }
 }
