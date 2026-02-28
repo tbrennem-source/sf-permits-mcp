@@ -1016,8 +1016,9 @@ def inject_csp_nonce():
 
 @app.before_request
 def _start_timer():
-    """Record request start time for slow-request detection."""
+    """Record request start time for slow-request detection and response timing."""
     g._request_start = time.monotonic()
+    g._request_start_wall = time.time()
 
 
 @app.before_request
@@ -1228,6 +1229,21 @@ def add_cache_headers(response):
     return response
 
 
+@app.after_request
+def _add_response_time_header(response):
+    """Add X-Response-Time header to every response.
+
+    Uses g._request_start_wall (wall-clock set by _start_timer before_request hook).
+    Expressed in milliseconds, rounded to 1 decimal place. Uses time.time() to avoid
+    interfering with time.monotonic() call counts in the slow-request hook.
+    """
+    start = getattr(g, "_request_start_wall", None)
+    if start is not None:
+        elapsed_ms = (time.time() - start) * 1000
+        response.headers["X-Response-Time"] = f"{elapsed_ms:.1f}ms"
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Health check (stays in app.py — infrastructure route)
 # ---------------------------------------------------------------------------
@@ -1289,9 +1305,48 @@ def health():
             try:
                 from src.db import get_pool_stats
                 info["pool"] = get_pool_stats()
+                info["pool_stats"] = info["pool"]  # alias for clarity
             except Exception:
                 info["pool"] = {"error": "unavailable"}
+                info["pool_stats"] = {"error": "unavailable"}
             # === END QS4-B ===
+
+            # === QS8-T1-D: CACHE STATS ===
+            try:
+                cache_stats: dict = {"backend": BACKEND}
+                if BACKEND == "postgres":
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT COUNT(*), MIN(computed_at) FROM page_cache "
+                            "WHERE invalidated_at IS NULL"
+                        )
+                        row = cur.fetchone()
+                        cache_stats["row_count"] = row[0] if row else 0
+                        if row and row[1]:
+                            from datetime import datetime, timezone as _tz
+                            oldest = row[1]
+                            if hasattr(oldest, "tzinfo") and oldest.tzinfo is None:
+                                oldest = oldest.replace(tzinfo=_tz.utc)
+                            cache_stats["oldest_entry_age_minutes"] = round(
+                                (datetime.now(_tz.utc) - oldest).total_seconds() / 60, 1
+                            )
+                        else:
+                            cache_stats["oldest_entry_age_minutes"] = None
+                else:
+                    try:
+                        row = conn.execute(
+                            "SELECT COUNT(*), MIN(computed_at) FROM page_cache "
+                            "WHERE invalidated_at IS NULL"
+                        ).fetchone()
+                        cache_stats["row_count"] = row[0] if row else 0
+                        cache_stats["oldest_entry_age_minutes"] = None
+                    except Exception:
+                        cache_stats["row_count"] = 0
+                        cache_stats["oldest_entry_age_minutes"] = None
+                info["cache_stats"] = cache_stats
+            except Exception:
+                info["cache_stats"] = {"error": "unavailable"}
+            # === END QS8-T1-D ===
 
             # === QS3-B: HEALTH ENHANCEMENT ===
             # Add circuit breaker status

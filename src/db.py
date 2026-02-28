@@ -40,6 +40,9 @@ def _get_pool():
     if _pool is None:
         import psycopg2.pool
         _minconn = int(os.environ.get("DB_POOL_MIN", "2"))
+        # Increase DB_POOL_MAX for >50 concurrent users. See Chief #364.
+        # Default max=20 handles ~20 simultaneous DB-bound requests (gunicorn workers
+        # share the pool). At high traffic, increase to 40-50 and enable PgBouncer.
         _maxconn = int(os.environ.get("DB_POOL_MAX", "20"))
         _connect_timeout = int(os.environ.get("DB_CONNECT_TIMEOUT", "10"))
         _pool = psycopg2.pool.ThreadedConnectionPool(
