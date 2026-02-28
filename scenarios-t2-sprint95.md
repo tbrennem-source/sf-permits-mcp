@@ -146,3 +146,42 @@
 **Edge cases seen in code:** 404 response triggers informative redirect suggestion, not generic error
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: demo page callouts don't overflow on mobile
+**Source:** web/templates/demo.html — @media (max-width: 480px) callout fix
+**User:** homeowner
+**Starting state:** First-time visitor lands on /demo from a mobile device (375px viewport)
+**Goal:** Read the feature callout annotations without horizontal scrolling
+**Expected outcome:** All .callout elements stack vertically, no overflow, readable within viewport
+**Edge cases seen in code:** .arch-grid also collapses to 1-col at 480px
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: login page communicates no-password trust before submit
+**Source:** web/templates/auth_login.html — .auth-trust row
+**User:** new-visitor
+**Starting state:** User navigated to /auth/login for the first time
+**Goal:** Feel confident submitting their email without setting a password
+**Expected outcome:** Trust signal row "no password · no credit card · SF permit data" is visible before the submit button; subtitle explains a secure link will be sent
+**Edge cases seen in code:** Trust row uses --text-secondary, not --text-tertiary (readable)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: beta request page signals expected wait time
+**Source:** web/templates/beta_request.html — .auth-trust row
+**User:** new-visitor
+**Starting state:** User fills out beta request form
+**Goal:** Know what happens next without emailing for status
+**Expected outcome:** Trust signal row "reviewed in 1–2 days · no spam" visible above submit; required field markers use CSS class not inline style
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: demo CTA does not leak internal invite codes
+**Source:** web/templates/demo.html — CTA link
+**User:** new-visitor
+**Starting state:** User reaches bottom of demo page
+**Goal:** Click "Get Started" CTA without bypassing beta gate
+**Expected outcome:** CTA links to /auth/login or /request-access, NOT to a URL containing hardcoded invite_code parameter
+**Edge cases seen in code:** Removed ?invite_code=friends-gridcare from CTA href
+**CC confidence:** high
+**Status:** PENDING REVIEW

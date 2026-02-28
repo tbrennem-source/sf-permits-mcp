@@ -104,3 +104,30 @@ The revision_risk.html template was rendering broken because the entire `<style 
 ### Tests
 - Created `tests/test_tool_ux_remaining.py`: 82 new tests
 - Updated `tests/test_tools_new.py`: 7 assertions updated to match new designs
+
+---
+
+# CHANGELOG — T2 Sprint 95 (Auth + Supporting Pages UX)
+
+## Agent 2D — auth_login, beta_request, demo, consultants polish
+
+### demo.html
+- Mobile overflow fix: added `.callout { display: block; max-width: 100%; box-sizing: border-box; }` and `.arch-grid { grid-template-columns: 1fr; }` at 480px
+- Rewrote all 6 callout annotations to use user-facing language (removed internal refs: dataset IDs, module names)
+- CTA copy: "Ready to search your property?" with cleaner supporting text
+- **Security fix**: Removed hardcoded `?invite_code=friends-gridcare` from CTA link — this exposed an invite code publicly, bypassing the beta gate
+
+### auth_login.html
+- Added `.auth-trust` trust signals row: "no password · no credit card · SF permit data"
+- Tightened subtitle copy for clarity
+
+### beta_request.html
+- Added `.auth-trust` trust signals row: "reviewed in 1–2 days · no spam"
+- Replaced inline `style="color: var(--signal-red);"` on required markers with `.field-req` CSS class
+
+### Tests
+- Created `tests/test_auth_ux_fixes.py`: 26 tests, 21 pass + 5 skip gracefully on auth redirect
+- Updated `tests/test_qs4_b_perf.py`: 2 stale assertions updated (old CTA text, removed invite code)
+
+### Design lint
+- Score: 5/5 — zero violations across 3 changed templates
