@@ -79,6 +79,10 @@
     margin-top: 16px; text-align: center;
     opacity: 0; animation: fadeIn 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+  .hero-cred__punch {
+    color: var(--accent); font-weight: 400;
+    opacity: 0; animation: fadeIn 1.2s 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
   .beta-badge {
     display: none;
     font-family: var(--mono); font-size: 9px; font-weight: 400;
@@ -468,7 +472,7 @@
 <section class="hero">
   <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">beta</span></div>
   <h1 class="hero-headline">Permit intelligence,<br><em>distilled</em></h1>
-  <p class="hero-cred"><span style="white-space:nowrap;">18.4 million San Francisco government records.</span> <span style="white-space:nowrap;">One search.</span></p>
+  <p class="hero-cred"><span style="white-space:nowrap;">18.4 million San Francisco government records.</span> <span class="hero-cred__punch" style="white-space:nowrap;">One search.</span></p>
 
   <div class="search-container">
     <form class="search-bar" id="search-bar" action="/search" method="GET">
