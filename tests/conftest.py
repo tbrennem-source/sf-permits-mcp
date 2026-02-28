@@ -233,3 +233,41 @@ def _clear_rate_state():
         _daily_cache.clear()
     except (ImportError, Exception):
         pass
+
+
+# ---------------------------------------------------------------------------
+# Function-scoped DB-path guard
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _restore_db_path():
+    """Save and restore src.db._DUCKDB_PATH and BACKEND around every test.
+
+    Some tests (e.g. test_qs3_a_permit_prep.py) call importlib.reload(src.db),
+    which resets _DUCKDB_PATH back to the environment default (the real DuckDB
+    file path).  Without this fixture, the session-scoped _isolated_test_db
+    temp path is lost for all subsequent tests — causing the TEST GUARD to
+    block every get_connection() call, which is silently swallowed inside
+    get_cached_or_compute(), making the page_cache appear to never persist.
+
+    Runs after every test (yield teardown) to restore the path that was
+    active before the test started.
+    """
+    try:
+        import src.db as db_mod
+        saved_path = db_mod._DUCKDB_PATH
+        saved_backend = db_mod.BACKEND
+        saved_db_url = db_mod.DATABASE_URL
+    except (ImportError, Exception):
+        yield
+        return
+
+    yield
+
+    try:
+        import src.db as db_mod
+        db_mod._DUCKDB_PATH = saved_path
+        db_mod.BACKEND = saved_backend
+        db_mod.DATABASE_URL = saved_db_url
+    except (ImportError, Exception):
+        pass
