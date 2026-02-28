@@ -299,11 +299,12 @@
   .scroll-cue__arrow {
     animation: bounce-down 2s ease-in-out infinite;
     color: var(--accent);
+    width: 20px; height: 20px;
   }
-  @keyframes pulse-line { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+  @keyframes pulse-line { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
   @keyframes bounce-down {
-    0%, 100% { transform: translateY(0); opacity: 0.3; }
-    50% { transform: translateY(6px); opacity: 0.7; }
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(6px); opacity: 1; }
   }
 
   /* ═══ SECTIONS ═══ */
@@ -465,7 +466,7 @@
 </div>
 
 <section class="hero">
-  <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">beta</span></div>
+  <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">beta tester</span></div>
   <h1 class="hero-headline">Permit intelligence,<br><em>distilled</em></h1>
   <p class="hero-cred">18.4 million San Francisco government records.<br>One search.</p>
 
@@ -479,7 +480,7 @@
     </div>
     <div class="example-link" id="example-link" style="display:none;"></div>
     <div class="below-search">
-      <div class="below-search__sub" id="below-sub"><a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a></div>
+      <div class="below-search__sub" id="below-sub"><a href="#cap-permits">Permits</a> · <a href="#cap-timeline">Timeline</a> · <a href="#cap-stuck">Track</a> · <a href="#cap-hire">Hire</a></div>
       <div class="below-search__watched" id="below-watched"></div>
       <div class="below-search__context" id="below-context">try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a></div>
     </div>
@@ -487,7 +488,7 @@
 
   <a href="#cap-permits" class="scroll-cue" id="scroll-cue" style="text-decoration:none;cursor:pointer;">
     <span class="scroll-cue__text" id="scroll-text">See how it works</span>
-    <svg class="scroll-cue__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+    <svg class="scroll-cue__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
   </a>
 </section>
 
@@ -807,7 +808,7 @@
         }
 
         // Footer: link to full portfolio
-        html += `<div class="dropdown-footer"><a href="#">All ${watchedProperties.length} watched properties →</a></div>`;
+        html += `<div class="dropdown-footer"><a href="/portfolio">All ${watchedProperties.length} watched properties →</a></div>`;
       }
     }
 
@@ -1096,7 +1097,7 @@
   const states = {
     new: {
       placeholder: 'Enter an SF address or describe your project',
-      sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
+      sub: '<a href="#cap-permits">Permits</a> · <a href="#cap-timeline">Timeline</a> · <a href="#cap-stuck">Track</a> · <a href="#cap-hire">Hire</a>',
       watched: '',
       context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'See how it works'
@@ -1124,14 +1125,14 @@
     },
     beta: {
       placeholder: 'Enter an SF address or describe your project',
-      sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
+      sub: '<a href="#cap-permits">Permits</a> · <a href="#cap-timeline">Timeline</a> · <a href="#cap-stuck">Track</a> · <a href="#cap-hire">Hire</a>',
       watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/search?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
       context: 'try: <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'See what you can do'
     },
     beta_nowatch: {
       placeholder: 'Enter an SF address or describe your project',
-      sub: '<a href="#cap-permits">Do I need a permit?</a> · <a href="#cap-timeline">How long will it take?</a> · <a href="#cap-stuck">Is my permit stuck?</a>',
+      sub: '<a href="#cap-permits">Permits</a> · <a href="#cap-timeline">Timeline</a> · <a href="#cap-stuck">Track</a> · <a href="#cap-hire">Hire</a>',
       watched: '',
       context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showProjectTypes(event)">kitchen remodel</a> · <a onmouseenter="showPermitQuestions(event)">common permit questions</a>',
       scroll: 'See what you can do'
