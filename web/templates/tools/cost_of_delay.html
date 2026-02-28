@@ -15,8 +15,11 @@
             min-height: 100vh;
         }
 
+        /* ── Page header ────────────────────────────────────────────── */
         .page-header {
-            padding: var(--space-16) 0 var(--space-10);
+            padding: var(--space-16) 0 var(--space-8);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: var(--space-8);
         }
 
         .page-header h1 {
@@ -24,24 +27,65 @@
             font-size: var(--text-2xl);
             font-weight: 300;
             color: var(--text-primary);
-            margin: 0 0 var(--space-3);
+            margin: 0 0 var(--space-3) 0;
         }
 
-        .page-header p {
+        .page-header .subtitle {
             font-family: var(--sans);
             font-size: var(--text-base);
             color: var(--text-secondary);
             margin: 0;
-            max-width: 600px;
         }
 
+        .demo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: color 0.3s, border-color 0.3s;
+            margin-top: var(--space-3);
+        }
+        .demo-link:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* ── Two-column layout ───────────────────────────────────────── */
+        .calc-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: var(--space-8);
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .calc-layout {
+                grid-template-columns: 1fr;
+            }
+            .page-header {
+                padding: var(--space-10) 0 var(--space-6);
+            }
+        }
+
+        /* ── Form panel ──────────────────────────────────────────────── */
         .calculator-form {
-            padding: var(--space-8);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            position: sticky;
+            top: 80px;
+            transition: border-color 0.3s;
         }
 
         .form-grid {
-            display: grid;
-            gap: var(--space-6);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
         }
 
         .form-field {
@@ -65,7 +109,8 @@
             font-weight: 300;
         }
 
-        .form-input {
+        .form-input,
+        .form-select {
             width: 100%;
             padding: 12px 16px;
             font-family: var(--mono);
@@ -80,12 +125,27 @@
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
+        .form-select {
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.3)'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        .form-select option {
+            background: var(--obsidian-mid);
+            color: var(--text-primary);
+        }
+
         .form-input::placeholder {
             color: var(--text-tertiary);
             font-weight: 300;
         }
 
-        .form-input:focus {
+        .form-input:focus,
+        .form-select:focus {
             border-color: var(--accent-ring);
             box-shadow: 0 0 20px var(--accent-glow);
         }
@@ -94,6 +154,7 @@
             border-color: rgba(248, 113, 113, 0.5);
         }
 
+        /* Currency input wrapper */
         .currency-wrapper {
             position: relative;
         }
@@ -111,7 +172,7 @@
         }
 
         .currency-input {
-            padding-left: 28px;
+            padding-left: 26px;
         }
 
         .inline-error {
@@ -126,10 +187,7 @@
             display: block;
         }
 
-        .form-actions {
-            margin-top: var(--space-8);
-        }
-
+        /* ── Calculate button ────────────────────────────────────────── */
         .action-btn {
             font-family: var(--mono);
             font-size: var(--text-sm);
@@ -141,6 +199,8 @@
             padding: 10px 24px;
             cursor: pointer;
             transition: border-color 0.3s, color 0.3s, background 0.3s;
+            width: 100%;
+            margin-top: var(--space-3);
         }
 
         .action-btn:hover:not(:disabled) {
@@ -154,50 +214,274 @@
             cursor: not-allowed;
         }
 
-        .loading-state {
-            display: none;
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            color: var(--accent);
-            margin-left: var(--space-4);
-        }
-
-        .loading-state.visible {
-            display: inline;
-        }
-
-        .results-area {
-            margin-top: var(--space-8);
-        }
-
-        .results-area.glass-card {
-            background: var(--obsidian-mid);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            padding: var(--space-8);
+        /* ── Loading state ───────────────────────────────────────────── */
+        .loading-area {
             display: none;
         }
 
-        .results-area.glass-card.visible {
+        .loading-area.visible {
             display: block;
         }
 
-        /* Markdown-rendered result styles */
-        .result-content h1,
-        .result-content h2,
-        .result-content h3 {
+        .loading-label {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent);
+            margin-bottom: var(--space-6);
+        }
+
+        .skeleton {
+            background: var(--glass);
+            border-radius: var(--radius-sm);
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+        .skeleton--heading { height: 20px; }
+        .skeleton--text { height: 12px; }
+        .skeleton--dot { width: 6px; height: 6px; border-radius: var(--radius-full); }
+        .skeleton-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--glass-border);
+            gap: var(--space-4);
+        }
+        @keyframes skeleton-pulse {
+            0%, 100% { opacity: 0.04; }
+            50% { opacity: 0.10; }
+        }
+
+        /* ── Empty state ─────────────────────────────────────────────── */
+        .empty-state {
+            padding: var(--space-12) var(--space-8);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .empty-state__icon {
+            font-family: var(--mono);
+            font-size: var(--text-2xl);
+            color: var(--text-ghost);
+            margin-bottom: var(--space-4);
+        }
+
+        .empty-state__title {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-3);
+        }
+
+        .empty-state__desc {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            margin: 0 0 var(--space-6);
+        }
+
+        /* ── Results panel ───────────────────────────────────────────── */
+        .results-panel {
+            display: none;
+        }
+
+        .results-panel.visible {
+            display: block;
+        }
+
+        /* Expected cost highlight card */
+        .expected-cost-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+
+        .expected-cost-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin: 0 0 var(--space-2) 0;
+        }
+
+        .expected-cost-value {
+            font-family: var(--mono);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-2) 0;
+        }
+
+        .expected-cost-sublabel {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Percentile table */
+        .percentile-table-wrap {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-6);
+            overflow: hidden;
+        }
+
+        .percentile-table-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: var(--space-4) var(--space-6) 0;
+        }
+
+        .percentile-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+        }
+
+        .percentile-table th {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            text-align: left;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .percentile-table td {
+            padding: 10px var(--space-4);
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--glass-border);
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+        }
+
+        .percentile-table td:first-child {
+            font-family: var(--sans);
+            color: var(--text-secondary);
+        }
+
+        .percentile-table td.val-mono {
+            color: var(--text-primary);
+        }
+
+        .percentile-table td.val-cost {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .percentile-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .percentile-table .row-likely td {
+            background: var(--obsidian-light);
+        }
+
+        /* Bottleneck alert badge */
+        .bottleneck-alert {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-4) var(--space-6);
+            margin-bottom: var(--space-6);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+        }
+
+        .bottleneck-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--dot-amber);
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+
+        .bottleneck-alert__label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--signal-amber);
+            margin: 0 0 var(--space-1) 0;
+        }
+
+        .bottleneck-alert__body {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Recommendation callout */
+        .recommendation-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid var(--signal-green);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: var(--space-5) var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+
+        .recommendation-card__label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--signal-green);
+            margin: 0 0 var(--space-2) 0;
+        }
+
+        .recommendation-card__body {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-primary);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Full markdown detail */
+        .result-markdown {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+        }
+
+        .result-markdown h1,
+        .result-markdown h2,
+        .result-markdown h3 {
             font-family: var(--sans);
             font-weight: 400;
             color: var(--text-primary);
             margin-top: var(--space-6);
             margin-bottom: var(--space-3);
         }
+        .result-markdown h1 { font-size: var(--text-xl); margin-top: 0; }
+        .result-markdown h2 { font-size: var(--text-lg); border-bottom: 1px solid var(--glass-border); padding-bottom: var(--space-2); }
+        .result-markdown h3 { font-size: var(--text-base); }
 
-        .result-content h1 { font-size: var(--text-xl); }
-        .result-content h2 { font-size: var(--text-lg); }
-        .result-content h3 { font-size: var(--text-base); }
-
-        .result-content p {
+        .result-markdown p {
             font-family: var(--sans);
             font-size: var(--text-base);
             color: var(--text-secondary);
@@ -205,15 +489,13 @@
             margin: var(--space-3) 0;
         }
 
-        .result-content strong {
+        .result-markdown strong {
             font-family: var(--mono);
-            font-size: var(--text-base);
             font-weight: 500;
             color: var(--text-primary);
         }
 
-        .result-content ul,
-        .result-content ol {
+        .result-markdown ul, .result-markdown ol {
             font-family: var(--sans);
             font-size: var(--text-base);
             color: var(--text-secondary);
@@ -222,7 +504,7 @@
             margin: var(--space-3) 0;
         }
 
-        .result-content code {
+        .result-markdown code {
             font-family: var(--mono);
             font-size: var(--text-sm);
             color: var(--accent);
@@ -232,13 +514,13 @@
             padding: 1px 5px;
         }
 
-        .result-content hr {
+        .result-markdown hr {
             border: none;
             border-top: 1px solid var(--glass-border);
             margin: var(--space-6) 0;
         }
 
-        .result-content table {
+        .result-markdown table {
             width: 100%;
             border-collapse: collapse;
             font-family: var(--mono);
@@ -246,7 +528,7 @@
             margin: var(--space-4) 0;
         }
 
-        .result-content th {
+        .result-markdown th {
             font-family: var(--sans);
             font-size: var(--text-sm);
             font-weight: 500;
@@ -256,16 +538,21 @@
             border-bottom: 1px solid var(--glass-border);
         }
 
-        .result-content td {
+        .result-markdown td {
             color: var(--text-primary);
             padding: var(--space-2) var(--space-3);
-            border-bottom: 1px solid rgba(255,255,255,0.04);
+            border-bottom: 1px solid var(--glass-border);
         }
 
+        /* ── Error / auth states ─────────────────────────────────────── */
         .auth-error-box {
             font-family: var(--sans);
             font-size: var(--text-base);
             color: var(--signal-red);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
         }
 
         .auth-error-box a {
@@ -277,23 +564,9 @@
             text-decoration: underline;
         }
 
-        /* Mobile — single column */
         @media (max-width: 768px) {
-            .page-header {
-                padding: var(--space-10) 0 var(--space-6);
-            }
-
             .calculator-form {
-                padding: var(--space-6);
-            }
-
-            .results-area.glass-card {
-                padding: var(--space-6);
-            }
-
-            .action-btn {
-                width: 100%;
-                text-align: center;
+                position: static;
             }
         }
     </style>
@@ -305,81 +578,181 @@
         <div class="obs-container">
             <header class="page-header">
                 <h1>Cost of Delay Calculator</h1>
-                <p>Calculate the financial cost of SF permit processing delays for your project.</p>
+                <p class="subtitle">Quantify the financial impact of SF permit processing time on your project — before you file.</p>
+                <a href="?demo=restaurant-15k" class="demo-link">Try demo: Restaurant at $15K/month &rarr;</a>
             </header>
 
-            <div class="glass-card calculator-form">
-                <form id="delay-form" novalidate>
-                    <div class="form-grid">
+            <div class="calc-layout">
+                <!-- Left: Input form -->
+                <div>
+                    <div class="glass-card calculator-form">
+                        <form id="delay-form" novalidate>
+                            <div class="form-grid">
 
-                        <div class="form-field">
-                            <label for="permit-type">Permit Type</label>
-                            <input
-                                type="text"
-                                id="permit-type"
-                                class="form-input"
-                                placeholder="e.g. adu, restaurant, commercial remodel"
-                                autocomplete="off"
-                                required
-                            >
-                        </div>
+                                <div class="form-field">
+                                    <label for="permit-type">Permit Type</label>
+                                    <select id="permit-type" class="form-select" required>
+                                        <option value="" disabled selected>Select permit type&hellip;</option>
+                                        <option value="restaurant">Restaurant / Food Service</option>
+                                        <option value="commercial_ti">Commercial Tenant Improvement</option>
+                                        <option value="change_of_use">Change of Use</option>
+                                        <option value="new_construction">New Construction</option>
+                                        <option value="adu">Accessory Dwelling Unit (ADU)</option>
+                                        <option value="adaptive_reuse">Adaptive Reuse</option>
+                                        <option value="seismic">Seismic Retrofit</option>
+                                        <option value="general_alteration">General Alteration</option>
+                                        <option value="kitchen_remodel">Kitchen Remodel</option>
+                                        <option value="bathroom_remodel">Bathroom Remodel</option>
+                                        <option value="alterations">Alterations</option>
+                                        <option value="otc">Over-the-Counter (OTC)</option>
+                                    </select>
+                                </div>
 
-                        <div class="form-field">
-                            <label for="monthly-cost">Monthly Carrying Cost</label>
-                            <div class="currency-wrapper">
-                                <span class="currency-prefix">$</span>
-                                <input
-                                    type="number"
-                                    id="monthly-cost"
-                                    class="form-input currency-input"
-                                    placeholder="e.g. 5000"
-                                    min="0.01"
-                                    step="any"
-                                    required
-                                >
+                                <div class="form-field">
+                                    <label for="monthly-cost">Monthly Carrying Cost</label>
+                                    <div class="currency-wrapper">
+                                        <span class="currency-prefix">$</span>
+                                        <input
+                                            type="number"
+                                            id="monthly-cost"
+                                            class="form-input currency-input"
+                                            placeholder="15000"
+                                            min="0.01"
+                                            step="any"
+                                            required
+                                        >
+                                    </div>
+                                    <span id="cost-error" class="inline-error">Monthly carrying cost must be greater than zero.</span>
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="neighborhood">
+                                        Neighborhood
+                                        <span class="optional-tag">optional</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="neighborhood"
+                                        class="form-input"
+                                        placeholder="e.g. Mission, Noe Valley, SoMa"
+                                        autocomplete="off"
+                                    >
+                                </div>
+
+                                <div class="form-field">
+                                    <label for="triggers">
+                                        Delay Triggers
+                                        <span class="optional-tag">optional — comma-separated</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="triggers"
+                                        class="form-input"
+                                        placeholder="e.g. planning_review, historic, dph_review"
+                                        autocomplete="off"
+                                    >
+                                </div>
+
                             </div>
-                            <span id="cost-error" class="inline-error">Monthly carrying cost must be greater than zero.</span>
+
+                            <button type="submit" id="submit-btn" class="action-btn">
+                                Calculate cost &rarr;
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right: Results -->
+                <div>
+                    <!-- Loading skeleton -->
+                    <div class="loading-area" id="loading-area">
+                        <div class="loading-label">Calculating delay costs&hellip;</div>
+                        <div class="skeleton skeleton--heading" style="width: 50%; margin-bottom: 20px;"></div>
+                        <div class="skeleton-row">
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                        </div>
+                        <div class="skeleton-row">
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 60px;"></div>
+                            <div class="skeleton skeleton--text" style="width: 80px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-state__icon">&mdash;</div>
+                        <h2 class="empty-state__title">Calculate your delay exposure</h2>
+                        <p class="empty-state__desc">Enter your permit type and monthly carrying cost to see the p25/p50/p75/p90 cost breakdown with bottleneck alerts.</p>
+                        <a href="?demo=restaurant-15k" class="demo-link">See demo: Restaurant at $15K/month &rarr;</a>
+                    </div>
+
+                    <!-- Results panel -->
+                    <div class="results-panel" id="results" role="region" aria-live="polite">
+
+                        <!-- Expected cost highlight -->
+                        <div class="expected-cost-card" id="expected-cost-card" style="display:none;">
+                            <p class="expected-cost-label">Expected cost (p50 + revision risk)</p>
+                            <p class="expected-cost-value" id="expected-cost-value"></p>
+                            <p class="expected-cost-sublabel" id="expected-cost-sublabel"></p>
                         </div>
 
-                        <div class="form-field">
-                            <label for="neighborhood">
-                                Neighborhood
-                                <span class="optional-tag">optional</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="neighborhood"
-                                class="form-input"
-                                placeholder="e.g. Mission, Noe Valley, SoMa"
-                                autocomplete="off"
-                            >
+                        <!-- Bottleneck alert -->
+                        <div class="bottleneck-alert" id="bottleneck-alert" style="display:none;">
+                            <div class="bottleneck-dot"></div>
+                            <div>
+                                <p class="bottleneck-alert__label">Bottleneck Warning</p>
+                                <p class="bottleneck-alert__body" id="bottleneck-text"></p>
+                            </div>
                         </div>
 
-                        <div class="form-field">
-                            <label for="triggers">
-                                Known Delay Triggers
-                                <span class="optional-tag">optional — comma-separated</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="triggers"
-                                class="form-input"
-                                placeholder="e.g. active complaints, incomplete drawings"
-                                autocomplete="off"
-                            >
+                        <!-- Percentile table -->
+                        <div class="percentile-table-wrap" id="percentile-table-wrap" style="display:none;">
+                            <p class="percentile-table-label">Financial Exposure by Scenario</p>
+                            <table class="percentile-table" id="percentile-table">
+                                <thead>
+                                    <tr>
+                                        <th>Scenario</th>
+                                        <th>Days</th>
+                                        <th>Carrying Cost</th>
+                                        <th>+ Revision Risk</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="percentile-tbody">
+                                </tbody>
+                            </table>
                         </div>
+
+                        <!-- Recommendation callout -->
+                        <div class="recommendation-card" id="recommendation-card" style="display:none;">
+                            <p class="recommendation-card__label">Recommendation</p>
+                            <p class="recommendation-card__body" id="recommendation-text"></p>
+                        </div>
+
+                        <!-- Full markdown detail -->
+                        <div class="result-markdown" id="result-markdown" style="display:none;"></div>
 
                     </div>
 
-                    <div class="form-actions">
-                        <button type="submit" id="submit-btn" class="action-btn">Calculate cost &rarr;</button>
-                        <span id="loading" class="loading-state">Calculating...</span>
-                    </div>
-                </form>
-            </div>
-
-            <div id="results" class="results-area glass-card" role="region" aria-live="polite">
-                <div id="result-content" class="result-content"></div>
+                    <!-- Auth / error state -->
+                    <div id="error-area" style="display:none;"></div>
+                </div>
             </div>
 
         </div>
@@ -387,38 +760,55 @@
 
     <script nonce="{{ csp_nonce }}">
     (function () {
-        var form        = document.getElementById('delay-form');
-        var submitBtn   = document.getElementById('submit-btn');
-        var loadingEl   = document.getElementById('loading');
-        var resultsEl   = document.getElementById('results');
-        var resultContent = document.getElementById('result-content');
-        var costInput   = document.getElementById('monthly-cost');
-        var costError   = document.getElementById('cost-error');
-        var permitInput = document.getElementById('permit-type');
+        'use strict';
 
-        function showLoading(on) {
-            submitBtn.disabled = on;
-            loadingEl.classList.toggle('visible', on);
+        // ── Demo data ──────────────────────────────────────────────────────────
+        var DEMO_DATA = {
+            'restaurant-15k': {
+                permitType: 'restaurant',
+                monthlyCost: '15000',
+                neighborhood: 'Mission',
+                triggers: ''
+            }
+        };
+
+        // ── DOM refs ───────────────────────────────────────────────────────────
+        var form = document.getElementById('delay-form');
+        var submitBtn = document.getElementById('submit-btn');
+        var loadingArea = document.getElementById('loading-area');
+        var emptyState = document.getElementById('empty-state');
+        var resultsPanel = document.getElementById('results');
+        var errorArea = document.getElementById('error-area');
+        var costInput = document.getElementById('monthly-cost');
+        var costError = document.getElementById('cost-error');
+        var permitSelect = document.getElementById('permit-type');
+
+        var expectedCostCard = document.getElementById('expected-cost-card');
+        var expectedCostValue = document.getElementById('expected-cost-value');
+        var expectedCostSublabel = document.getElementById('expected-cost-sublabel');
+        var bottleneckAlert = document.getElementById('bottleneck-alert');
+        var bottleneckText = document.getElementById('bottleneck-text');
+        var percentileTableWrap = document.getElementById('percentile-table-wrap');
+        var percentileTbody = document.getElementById('percentile-tbody');
+        var recommendationCard = document.getElementById('recommendation-card');
+        var recommendationText = document.getElementById('recommendation-text');
+        var resultMarkdown = document.getElementById('result-markdown');
+
+        // ── Auto-fill from ?demo= param ────────────────────────────────────────
+        var urlParams = new URLSearchParams(window.location.search);
+        var demoKey = urlParams.get('demo');
+        if (demoKey && DEMO_DATA[demoKey]) {
+            var d = DEMO_DATA[demoKey];
+            permitSelect.value = d.permitType;
+            costInput.value = d.monthlyCost;
+            document.getElementById('neighborhood').value = d.neighborhood;
+            document.getElementById('triggers').value = d.triggers;
+            setTimeout(function () {
+                form.dispatchEvent(new Event('submit', { cancelable: true }));
+            }, 400);
         }
 
-        function showResults(html) {
-            resultContent.innerHTML = html;
-            resultsEl.classList.add('visible');
-        }
-
-        function showError(message) {
-            resultContent.innerHTML =
-                '<div class="auth-error-box">' + escapeHtml(message) + '</div>';
-            resultsEl.classList.add('visible');
-        }
-
-        function showAuthError() {
-            resultContent.innerHTML =
-                '<div class="auth-error-box">You must be logged in to use this tool. ' +
-                '<a href="/auth/login">Log in</a> to continue.</div>';
-            resultsEl.classList.add('visible');
-        }
-
+        // ── Helpers ────────────────────────────────────────────────────────────
         function escapeHtml(str) {
             var div = document.createElement('div');
             div.appendChild(document.createTextNode(str));
@@ -438,17 +828,164 @@
         }
 
         costInput.addEventListener('input', function () {
-            if (costError.classList.contains('visible')) {
-                validateCost();
-            }
+            if (costError.classList.contains('visible')) validateCost();
         });
 
+        // ── UI state ───────────────────────────────────────────────────────────
+        function showLoading() {
+            submitBtn.disabled = true;
+            loadingArea.classList.add('visible');
+            emptyState.style.display = 'none';
+            resultsPanel.classList.remove('visible');
+            errorArea.style.display = 'none';
+        }
+
+        function hideLoading() {
+            submitBtn.disabled = false;
+            loadingArea.classList.remove('visible');
+        }
+
+        function showError(message, is401) {
+            hideLoading();
+            errorArea.style.display = 'block';
+            if (is401) {
+                errorArea.innerHTML =
+                    '<div class="auth-error-box">You must be logged in to use this tool. ' +
+                    '<a href="/auth/login">Log in</a> to continue.</div>';
+            } else {
+                errorArea.innerHTML =
+                    '<div class="auth-error-box">' + escapeHtml(message || 'An error occurred. Please try again.') + '</div>';
+            }
+        }
+
+        // ── Parse markdown for structured data ────────────────────────────────
+        function parsePercentileRows(md) {
+            // Extract Financial Exposure table rows
+            var rows = [];
+            var lines = md.split('\n');
+            var inTable = false;
+            var headerDone = false;
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!inTable) {
+                    if (/Financial Exposure/.test(line)) { inTable = true; continue; }
+                    continue;
+                }
+                // Skip table header row
+                if (/^\|.*Scenario.*\|/.test(line)) { continue; }
+                // Skip separator row
+                if (/^\|[\s\-|]+\|$/.test(line)) { headerDone = true; continue; }
+                // Stop at blank or next section
+                if (!line || /^#/.test(line)) break;
+                // Parse data row
+                var cells = line.split('|').map(function(c) { return c.replace(/\*+/g, '').trim(); }).filter(Boolean);
+                if (cells.length >= 4) {
+                    rows.push({
+                        scenario: cells[0],
+                        days: cells[1],
+                        carrying: cells[2],
+                        revision: cells[3],
+                        total: cells[4] || ''
+                    });
+                }
+            }
+            return rows;
+        }
+
+        function extractExpectedCost(md) {
+            // Look for p50 total in the table
+            var match = md.match(/Likely \(p50\)[^|]*\|[^|]*\|[^|]*\|[^|]*\|\s*\*\*([^*]+)\*\*/);
+            if (match) return match[1].trim();
+            // Fallback: find break-even cost line
+            var be = md.match(/\*\*([\$\d\.KM,]+\/day)\*\*/);
+            return be ? be[1] : null;
+        }
+
+        function extractRecommendation(md) {
+            // Look for "Budget for p75" or similar recommendation text
+            var match = md.match(/(?:Budget|Plan|Recommend)[^.!?]*[.!?]/i);
+            if (match) return match[0];
+            // Generic fallback from break-even analysis section
+            var beMatch = md.match(/Break-Even Analysis[\s\S]*?(\*\*[^\n]+\*\*[^\n]*)/);
+            if (beMatch) return beMatch[1].replace(/\*\*/g, '');
+            return null;
+        }
+
+        function extractBottleneckInfo(md, permitType) {
+            // Check for trigger notes or bottleneck mentions
+            var triggerMatch = md.match(/Active Delay Triggers:[\s\S]*?(?=\n##|\n\n##|$)/);
+            if (triggerMatch) {
+                var bullets = triggerMatch[0].match(/- ([^\n]+)/g);
+                if (bullets && bullets.length) {
+                    return bullets.map(function(b) { return b.replace(/^- /, ''); }).join('; ');
+                }
+            }
+            // Permit-type-specific slow station note
+            var slowTypes = { 'restaurant': 'DPH-HQ averages +86% longer than DBI baseline', 'commercial_ti': 'ADA review adds +2-4 weeks on average', 'new_construction': 'Planning review adds +4-8 weeks for most new construction' };
+            return slowTypes[permitType] || null;
+        }
+
+        // ── Render structured results ──────────────────────────────────────────
+        function renderResults(markdown, permitType) {
+            hideLoading();
+            emptyState.style.display = 'none';
+            errorArea.style.display = 'none';
+
+            // Expected cost card
+            var expectedCost = extractExpectedCost(markdown);
+            if (expectedCost) {
+                expectedCostValue.textContent = expectedCost;
+                expectedCostSublabel.textContent = 'Probability-weighted total at likely (p50) timeline with revision risk';
+                expectedCostCard.style.display = 'block';
+            }
+
+            // Bottleneck alert
+            var bottleneck = extractBottleneckInfo(markdown, permitType);
+            if (bottleneck) {
+                bottleneckText.textContent = bottleneck;
+                bottleneckAlert.style.display = 'flex';
+            }
+
+            // Percentile table
+            var pRows = parsePercentileRows(markdown);
+            if (pRows.length > 0) {
+                var tbodyHtml = '';
+                for (var i = 0; i < pRows.length; i++) {
+                    var r = pRows[i];
+                    var isLikely = r.scenario.toLowerCase().indexOf('likely') >= 0 || r.scenario.toLowerCase().indexOf('p50') >= 0;
+                    tbodyHtml += '<tr' + (isLikely ? ' class="row-likely"' : '') + '>';
+                    tbodyHtml += '<td>' + escapeHtml(r.scenario) + (isLikely ? ' <span style="color:var(--text-tertiary);font-size:var(--text-xs);">(expected)</span>' : '') + '</td>';
+                    tbodyHtml += '<td class="val-mono">' + escapeHtml(r.days) + '</td>';
+                    tbodyHtml += '<td class="val-mono">' + escapeHtml(r.carrying) + '</td>';
+                    tbodyHtml += '<td class="val-mono">' + escapeHtml(r.revision) + '</td>';
+                    tbodyHtml += '<td class="val-cost">' + escapeHtml(r.total) + '</td>';
+                    tbodyHtml += '</tr>';
+                }
+                percentileTbody.innerHTML = tbodyHtml;
+                percentileTableWrap.style.display = 'block';
+            }
+
+            // Recommendation callout
+            var rec = extractRecommendation(markdown);
+            if (!rec) rec = 'Budget for the p75 scenario, not p50 — the gap between them is your true financial risk premium.';
+            recommendationText.textContent = rec;
+            recommendationCard.style.display = 'block';
+
+            // Full markdown
+            resultMarkdown.innerHTML = marked.parse(markdown);
+            resultMarkdown.style.display = 'block';
+
+            resultsPanel.classList.add('visible');
+        }
+
+        // ── Form submit ────────────────────────────────────────────────────────
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            var permitType = permitInput.value.trim();
+            var permitType = permitSelect.value;
             if (!permitType) {
-                permitInput.focus();
+                permitSelect.focus();
                 return;
             }
 
@@ -459,16 +996,15 @@
 
             var monthlyCost = parseFloat(costInput.value);
             var neighborhood = document.getElementById('neighborhood').value.trim() || null;
-            var triggersRaw = document.getElementById('triggers').value;
+            var triggersRaw = document.getElementById('triggers').value.trim();
             var triggers = triggersRaw
-                ? triggersRaw.split(',').map(function (s) { return s.trim(); }).filter(Boolean)
+                ? triggersRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
                 : null;
 
-            var token = document.querySelector('meta[name="csrf-token"]');
-            var csrfToken = token ? token.getAttribute('content') : '';
+            var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
-            showLoading(true);
-            resultsEl.classList.remove('visible');
+            showLoading();
 
             fetch('/api/delay-cost', {
                 method: 'POST',
@@ -485,28 +1021,26 @@
             })
             .then(function (resp) {
                 if (resp.status === 401) {
-                    showLoading(false);
-                    showAuthError();
+                    showError('', true);
                     return null;
                 }
                 return resp.json();
             })
             .then(function (data) {
                 if (data === null) return;
-                showLoading(false);
                 if (data.error) {
-                    showError(data.error);
+                    showError(data.error, false);
                 } else if (data.result) {
-                    showResults(marked.parse(data.result));
+                    renderResults(data.result, permitType);
                 } else {
-                    showError('Unexpected response. Please try again.');
+                    showError('Unexpected response. Please try again.', false);
                 }
             })
-            .catch(function (err) {
-                showLoading(false);
-                showError('Network error. Please try again.');
+            .catch(function () {
+                showError('Network error. Please try again.', false);
             });
         });
+
     })();
     </script>
 {% include 'fragments/feedback_widget.html' %}
