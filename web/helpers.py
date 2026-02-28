@@ -822,3 +822,247 @@ def invalidate_cache(pattern: str) -> None:
                 conn.close()
             except Exception:
                 pass
+
+
+# ---------------------------------------------------------------------------
+# Triage intelligence signals for search result cards
+# ---------------------------------------------------------------------------
+
+# Hardcoded station median days (p50 baseline) for when DB velocity data is
+# unavailable.  These are reasonable defaults derived from known SF permit
+# processing patterns.
+_STATION_MEDIANS: dict[str, float] = {
+    "BLDG": 30.0,
+    "BLDG-E": 30.0,
+    "BLDG-P": 30.0,
+    "BLDG-M": 30.0,
+    "BLDG-S": 30.0,
+    "SFFD-HQ": 45.0,
+    "SFFD": 45.0,
+    "CP-ZOC": 60.0,
+    "CP-ENV": 60.0,
+    "PLAN": 60.0,
+    "PLANNING": 60.0,
+    "MECH-E": 25.0,
+    "ELEC": 25.0,
+    "HEALTH": 30.0,
+    "DPW-BSM": 30.0,
+}
+_STATION_MEDIAN_DEFAULT = 30.0
+
+
+def _get_station_median_db(conn, station: str, backend: str) -> float:
+    """Fetch p50 days for a station from station_velocity_v2, fallback to defaults."""
+    if not station:
+        return _STATION_MEDIAN_DEFAULT
+    try:
+        _PH = "%s" if backend == "postgres" else "?"
+        sql = (
+            f"SELECT p50_days FROM station_velocity_v2 "
+            f"WHERE station = {_PH} AND metric_type = 'initial' "
+            f"AND p50_days IS NOT NULL "
+            f"LIMIT 1"
+        )
+        if backend != "postgres":
+            rows = conn.execute(sql, [station]).fetchall()
+        else:
+            with conn.cursor() as cur:
+                cur.execute(sql, [station])
+                rows = cur.fetchall()
+        if rows and rows[0][0] is not None:
+            return float(rows[0][0])
+    except Exception:
+        pass
+    # Fall back to hardcoded defaults
+    return _STATION_MEDIANS.get(station.upper(), _STATION_MEDIAN_DEFAULT)
+
+
+def classify_days_threshold(days: int, median: float) -> str:
+    """Return 'green', 'amber', or 'red' based on days vs median.
+
+    green  = < median (on track)
+    amber  = >= median and < 2x median (elevated)
+    red    = >= 2x median (stuck)
+    """
+    if days < median:
+        return "green"
+    if days < median * 2:
+        return "amber"
+    return "red"
+
+
+def compute_triage_signals(
+    street_number: str | None = None,
+    street_name: str | None = None,
+    block: str | None = None,
+    lot: str | None = None,
+    permit_number: str | None = None,
+    max_permits: int = 5,
+) -> list[dict]:
+    """Compute triage intelligence signals for search result permit cards.
+
+    For each active permit found at the given address/parcel, returns a dict:
+        permit_number    (str)
+        status           (str)           — permit status
+        description      (str)           — short description
+        filed_date       (str|None)
+        current_station  (str|None)      — most recent open station
+        days_at_station  (int|None)      — days since arrive at current station
+        station_median   (float|None)    — p50 baseline for that station
+        threshold_class  (str|None)      — 'green', 'amber', or 'red'
+        is_stuck         (bool)          — True if days > 2x median
+        reviewer         (str|None)      — plan_checked_by on most recent addenda row
+        station_arrive   (str|None)      — ISO date string of station arrival
+
+    Returns [] on any error (signals are enhancements, never blockers).
+    """
+    from datetime import date as _date
+    try:
+        from src.db import get_connection, BACKEND
+    except Exception:
+        return []
+
+    conn = None
+    try:
+        conn = get_connection()
+        _PH = "%s" if BACKEND == "postgres" else "?"
+
+        def _exec(sql: str, params=None):
+            if BACKEND == "postgres":
+                with conn.cursor() as cur:
+                    cur.execute(sql, params or [])
+                    return cur.fetchall()
+            else:
+                return conn.execute(sql, params or []).fetchall()
+
+        # --- 1. Resolve which permits to analyse ---
+        rows = []
+
+        if permit_number:
+            rows = _exec(
+                f"SELECT permit_number, status, description, filed_date "
+                f"FROM permits WHERE permit_number = {_PH} LIMIT 1",
+                [permit_number],
+            )
+        elif block and lot:
+            rows = _exec(
+                f"SELECT permit_number, status, description, filed_date "
+                f"FROM permits WHERE block = {_PH} AND lot = {_PH} "
+                f"ORDER BY filed_date DESC NULLS LAST LIMIT {max_permits}",
+                [block.strip(), lot.strip()],
+            )
+        elif street_number and street_name:
+            # Match by street number + name prefix (case-insensitive)
+            name_like = street_name.strip().upper().split()[0] + "%"
+            rows = _exec(
+                f"SELECT permit_number, status, description, filed_date "
+                f"FROM permits "
+                f"WHERE UPPER(street_number) = {_PH} "
+                f"AND UPPER(street_name) LIKE {_PH} "
+                f"ORDER BY filed_date DESC NULLS LAST LIMIT {max_permits}",
+                [street_number.strip().upper(), name_like],
+            )
+
+        permits = []
+        for row in rows:
+            permits.append({
+                "permit_number": row[0],
+                "status": row[1],
+                "description": row[2],
+                "filed_date": str(row[3])[:10] if row[3] else None,
+            })
+
+        if not permits:
+            return []
+
+        today = _date.today()
+        signals = []
+
+        for p in permits:
+            pnum = p["permit_number"]
+            signal: dict = {
+                "permit_number": pnum,
+                "status": p.get("status"),
+                "description": (p.get("description") or "")[:120],
+                "filed_date": p.get("filed_date"),
+                "current_station": None,
+                "days_at_station": None,
+                "station_median": None,
+                "threshold_class": None,
+                "is_stuck": False,
+                "reviewer": None,
+                "station_arrive": None,
+            }
+
+            # --- 2. Get most recent open station ---
+            try:
+                station_rows = _exec(
+                    f"SELECT station, arrive, plan_checked_by "
+                    f"FROM addenda "
+                    f"WHERE application_number = {_PH} "
+                    f"AND station IS NOT NULL "
+                    f"AND finish_date IS NULL "
+                    f"ORDER BY arrive DESC NULLS LAST LIMIT 1",
+                    [pnum],
+                )
+                if station_rows:
+                    station = station_rows[0][0]
+                    arrive_raw = station_rows[0][1]
+                    signal["reviewer"] = station_rows[0][2] or None
+
+                    # Parse arrive date
+                    arrive_date = None
+                    if arrive_raw is not None:
+                        try:
+                            from datetime import date as _d, datetime as _dt
+                            if isinstance(arrive_raw, _d) and not isinstance(arrive_raw, _dt):
+                                arrive_date = arrive_raw
+                            elif isinstance(arrive_raw, _dt):
+                                arrive_date = arrive_raw.date()
+                            else:
+                                arrive_date = _d.fromisoformat(str(arrive_raw)[:10])
+                        except (ValueError, TypeError):
+                            arrive_date = None
+
+                    signal["current_station"] = station
+                    if arrive_date:
+                        signal["station_arrive"] = arrive_date.isoformat()
+                        signal["days_at_station"] = (today - arrive_date).days
+
+                    # Get median for this station
+                    if station:
+                        median = _get_station_median_db(conn, station, BACKEND)
+                        signal["station_median"] = median
+                        if signal["days_at_station"] is not None:
+                            signal["threshold_class"] = classify_days_threshold(
+                                signal["days_at_station"], median
+                            )
+                            signal["is_stuck"] = signal["days_at_station"] >= median * 2
+
+                else:
+                    # No open station — try most recent completed station for reviewer
+                    reviewer_rows = _exec(
+                        f"SELECT plan_checked_by FROM addenda "
+                        f"WHERE application_number = {_PH} "
+                        f"AND plan_checked_by IS NOT NULL "
+                        f"ORDER BY finish_date DESC NULLS LAST LIMIT 1",
+                        [pnum],
+                    )
+                    if reviewer_rows:
+                        signal["reviewer"] = reviewer_rows[0][0] or None
+
+            except Exception:
+                pass  # addenda query failed — graceful degradation
+
+            signals.append(signal)
+
+        return signals
+
+    except Exception:
+        return []
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
