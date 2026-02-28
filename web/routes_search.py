@@ -11,7 +11,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
-from flask import Blueprint, g, render_template, request
+from flask import Blueprint, g, redirect, render_template, request
 
 from src.tools.intent_router import classify as classify_intent
 from src.tools.knowledge_base import get_knowledge_base
@@ -1573,3 +1573,15 @@ def _render_rag_results(query: str, results: list[dict]) -> str:
         results=cleaned_results,
         is_expert=_is_expert_user(),
     )
+
+
+# ---------------------------------------------------------------------------
+# Cost of Delay Calculator — /tools/cost-of-delay (Sprint QS10-T3-3D)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/cost-of-delay")
+def tools_cost_of_delay():
+    """Cost of Delay Calculator: financial impact of permit processing delays."""
+    if not g.user:
+        return redirect("/auth/login")
+    return render_template("tools/cost_of_delay.html")
