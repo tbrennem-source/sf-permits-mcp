@@ -1,7 +1,7 @@
 # QS9 — Overnight Hardening Quad Sprint
 
 **Date:** 2026-02-27 (overnight)
-**Type:** Quad sprint (3 terminals × 4 agents = 12 agents)
+**Type:** Quad sprint (4 terminals × 4 agents = 16 agents)
 **Status:** READY TO LAUNCH
 **Risk level:** LOW — no template changes, no design decisions, mechanical/infrastructure work
 **Experiment:** Tim sleeps, T0 monitors and merges
@@ -182,12 +182,38 @@ T3 is independent but merges last because infra changes are safest to verify las
 
 ---
 
+## Terminal 4: Cleanup + Documentation + API Routes
+
+**Theme:** Consolidate artifacts, expose tools via API, clean stale files, update docs.
+
+### Agents
+
+| Agent | Task | Files Owned |
+|-------|------|-------------|
+| 4A | Expose 4 intelligence tools as /api/ JSON endpoints | `web/routes_api.py` |
+| 4B | Consolidate 100+ scenarios, deduplicate, categorize | `scenarios-pending-review.md`, `scenario-design-guide.md` (read-only), delete per-agent files |
+| 4C | Delete stale sprint prompts + prototype artifacts | `sprint-prompts/` (old files), `web/static/landing-v5.html` |
+| 4D | Update README, ARCHITECTURE, CHANGELOG with QS7-QS8 results | `README.md`, `docs/ARCHITECTURE.md`, `CHANGELOG.md`, delete per-agent CHANGELOG files |
+
+---
+
+## Merge Strategy
+
+**Order: T1 → T3 → T2 → T4** (registration → scaling → tests → cleanup last)
+
+T4 must merge LAST because:
+- 4B consolidates scenario files that other terminals may create
+- 4D consolidates CHANGELOG files that other terminals may create
+- 4C deletes files — safest as final operation
+
+---
+
 ## Overnight Protocol
 
-1. Tim launches T1-T3, walks away
+1. Tim launches T1-T4, walks away
 2. T0 monitors via this session
 3. As terminals finish, T0 verifies their push
-4. Once all 3 pushed: T0 runs merge ceremony (pull, test suite, prod gate)
+4. Once all 4 pushed: T0 runs merge ceremony (pull, test suite, prod gate)
 5. If all green: T0 promotes to prod, posts report to Chief
 6. If failures: T0 documents what failed, does NOT promote, leaves report for Tim
 7. Tim wakes up to either "promoted, here's the report" or "blocked on X, here's what I tried"

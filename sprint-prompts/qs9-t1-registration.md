@@ -11,14 +11,13 @@ git log --oneline -3
 echo "T1 start: $(git rev-parse --short HEAD)"
 ```
 
-## File Ownership
+## File Ownership (3 agents — consolidation moved to T4)
 
 | Agent | Files Owned |
 |-------|-------------|
 | A | `src/server.py` |
 | B | `web/routes_admin.py`, `web/templates/fragments/admin_health.html` (NEW) |
 | C | `scripts/prod_gate.py` |
-| D | `scenarios-pending-review.md`, `CHANGELOG.md`, delete `*-qs8-*.md` and `*-qs7-*.md` per-agent files |
 
 ## Launch All 4 Agents (FOREGROUND, parallel)
 
@@ -173,64 +172,6 @@ fix: prod gate ratchet tracks specific failing checks, not overall score (QS9-T1
 
 ---
 
-### Agent D: Consolidate Per-Agent Output Files
-
-```
-Task(subagent_type="general-purpose", model="sonnet", isolation="worktree", prompt="""
-You are ALREADY in a git worktree. Do NOT use EnterWorktree. Do NOT run git checkout main.
-CRITICAL: NEVER run 'git checkout main' or 'git merge'. NEVER push to main.
-COMMIT to your worktree branch ONLY.
-
-## YOUR TASK: Consolidate QS7+QS8 per-agent scenario and changelog files
-
-### File Ownership
-- scenarios-pending-review.md
-- CHANGELOG.md
-- All files matching scenarios-pending-review-qs*.md and CHANGELOG-qs*.md (DELETE after consolidation)
-- All files matching scenarios-pending-review-sprint-*.md (DELETE after consolidation)
-
-### Read First
-- ls the root directory for all per-agent files:
-  scenarios-pending-review-qs8-t1-*.md, scenarios-pending-review-qs8-t2-*.md, etc.
-  CHANGELOG-qs8-t1-*.md, etc.
-  scenarios-pending-review-qs7-*.md (if any)
-- scenarios-pending-review.md (current main file — append to this)
-- CHANGELOG.md (current main file — append to this)
-
-### Build
-
-Task D-1: Consolidate scenarios:
-- Read each scenarios-pending-review-qs*.md and scenarios-pending-review-sprint-*.md file
-- Deduplicate: if a scenario already exists in the main file (match on title), skip it
-- Append unique scenarios to scenarios-pending-review.md
-- Delete all per-agent scenario files after consolidation
-
-Task D-2: Consolidate changelogs:
-- Read each CHANGELOG-qs*.md file
-- Append entries to CHANGELOG.md under appropriate sprint headers
-- Delete all per-agent changelog files after consolidation
-
-Task D-3: Verify no orphans:
-- ls for any remaining per-agent files
-- Report count in commit message
-
-### Test
-```bash
-ls scenarios-pending-review-*.md 2>/dev/null | wc -l  # Should be 0
-ls CHANGELOG-qs*.md 2>/dev/null | wc -l  # Should be 0
-grep -c "SUGGESTED SCENARIO" scenarios-pending-review.md  # Count total scenarios
-```
-
-### Output Files
-None — this agent consolidates into shared files (it's the consolidator).
-
-### Commit
-chore: consolidate QS7+QS8 per-agent output files — [N] scenarios, [M] changelog entries (QS9-T1-D)
-""")
-```
-
----
-
 ## Post-Agent: Merge + Push
 
 ```bash
@@ -239,7 +180,8 @@ git checkout main && git pull origin main
 git merge <agent-a-branch> --no-edit
 git merge <agent-b-branch> --no-edit
 git merge <agent-c-branch> --no-edit
-git merge <agent-d-branch> --no-edit
+cat scenarios-pending-review-qs9-t1-*.md >> scenarios-pending-review.md 2>/dev/null
+cat CHANGELOG-qs9-t1-*.md >> CHANGELOG.md 2>/dev/null
 git push origin main
 ```
 
@@ -250,6 +192,5 @@ T1 (Registration + Admin) COMPLETE
   A: Tool registration:      [PASS/FAIL] (30→34 tools)
   B: Admin health panel:     [PASS/FAIL]
   C: Prod gate ratchet fix:  [PASS/FAIL]
-  D: File consolidation:     [PASS/FAIL] ([N] scenarios, [M] changelogs consolidated)
   Pushed: [commit hash]
 ```
