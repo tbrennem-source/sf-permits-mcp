@@ -213,13 +213,45 @@ T4 must merge LAST because:
 1. Tim launches T1-T4, walks away
 2. T0 monitors via this session
 3. As terminals finish, T0 verifies their push
-4. Once all 4 pushed: T0 runs merge ceremony (pull, test suite, prod gate)
+4. Once all 4 pushed: T0 runs merge ceremony:
+   a. `git pull origin main`
+   b. Full test suite: `pytest tests/ -x -q --tb=short --ignore=tests/test_tools.py --ignore=tests/e2e`
+   c. Design lint: `python scripts/design_lint.py --changed --quiet`
+   d. Prod gate: `python scripts/prod_gate.py --quiet`
+   e. **Visual QA scoring (MANDATORY):**
+      ```bash
+      # Score all pages — captures baseline for design session
+      TEST_LOGIN_SECRET=$(railway variables --json 2>&1 | python3 -c "import sys,json; print(json.load(sys.stdin).get('TEST_LOGIN_SECRET',''))") \
+        python scripts/visual_qa.py \
+          --url https://sfpermits-ai-staging-production.up.railway.app \
+          --sprint qs9 \
+          --capture-goldens
+      ```
+      Pages scoring ≤2.0 → add to Chief task list for design session.
+   f. **Broken link scan (MANDATORY):**
+      ```bash
+      # Crawl staging for dead links
+      pytest tests/e2e/test_links.py -v --tb=short 2>&1 | tee qa-results/qs9-link-check.md
+      ```
+      Any broken links → document in report, add to Chief task list.
+   g. Force-add QA artifacts: `git add -f qa-results/qs9-* qa-results/screenshots/ qa-results/filmstrips/`
 5. If all green: T0 promotes to prod, posts report to Chief
 6. If failures: T0 documents what failed, does NOT promote, leaves report for Tim
-7. Tim wakes up to either "promoted, here's the report" or "blocked on X, here's what I tried"
+7. Tim wakes up to either "promoted + visual scores + link report" or "blocked on X"
 
 **T0 does NOT:**
 - Debug complex failures past 3 attempts
 - Make design decisions
 - Modify files outside the merge ceremony
 - Force-push or destructive git operations
+
+## Visual QA is now standard for EVERY sprint
+
+This is not optional. The merge ceremony must include:
+1. `scripts/visual_qa.py` — scores every page 1-5 across 3 viewports
+2. Broken link scan — crawls all internal links
+3. Results committed to `qa-results/`
+4. Pages ≤2.0 → Chief task for design session
+5. Broken links → Chief task for immediate fix
+
+This becomes the baseline that Tim's design sessions improve against.

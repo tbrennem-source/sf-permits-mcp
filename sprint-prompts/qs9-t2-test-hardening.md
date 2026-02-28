@@ -41,24 +41,23 @@ COMMIT to your worktree branch ONLY.
 - tests/test_landing.py (find test_landing_has_feature_cards and test_landing_has_stats)
 - web/templates/landing.html (current landing page — what text actually appears?)
 
-### Problem
-Two tests assert text from before Sprint 69's landing rebuild:
-- test_landing_has_feature_cards: asserts "Permit Search" — this text no longer exists
-- test_landing_has_stats: asserts "Permits tracked" — this text no longer exists
-
 ### Build
-1. Read the current landing.html template
-2. Find what text/elements ARE present (headings, key phrases, structural elements)
+1. Read current landing.html
+2. Find what text/elements ARE present
 3. Update the two failing tests to assert on actual content
-4. Keep the test intent: "landing page has feature descriptions" and "landing page has data stats"
-5. Do NOT delete the tests — update their assertions
+4. Keep the test intent — just fix the assertions
+5. Do NOT delete tests — update them
 
 ### Test
-```bash
-source .venv/bin/activate
-pytest tests/test_landing.py -v --tb=short 2>&1 | tail -20
-# All tests should pass
-```
+source .venv/bin/activate && pytest tests/test_landing.py -v --tb=short
+
+### Scenarios
+Write 2 scenarios to scenarios-pending-review-qs9-t2-a.md:
+- Scenario: Landing page displays key feature descriptions to new visitor
+- Scenario: Landing page shows data credibility stats
+
+### CHECKCHAT
+Summary: tests fixed, all passing, scenarios written. Visual QA Checklist: N/A — test-only change.
 
 ### Output Files
 - scenarios-pending-review-qs9-t2-a.md
@@ -83,39 +82,39 @@ COMMIT to your worktree branch ONLY.
 
 ### File Ownership
 - tests/test_page_cache.py
-- tests/conftest.py (ONLY the _clear_page_cache or cleanup fixture — do NOT touch _isolated_test_db)
+- tests/conftest.py (ONLY the cleanup fixture — do NOT touch _isolated_test_db)
 
 ### Problem
-test_page_cache.py passes in isolation (16/16) but test_cache_hit_returns_cached fails in the full suite. Root cause: a preceding test leaves stale data in the session-scoped temp DuckDB. The cleanup fixture only deletes rows matching 'test:%' and 'brief:%' but another test inserts rows with different key patterns.
+test_page_cache.py passes in isolation (16/16) but test_cache_hit_returns_cached fails in full suite. A preceding test leaves stale data in the session-scoped temp DuckDB.
 
 ### Build
+Make cleanup more robust — either:
+- DELETE FROM page_cache before each test class (not just test:%/brief:% patterns)
+- Or use unique cache keys per test via uuid prefix
 
-Task B-1: Make page_cache cleanup more robust in test_page_cache.py:
-- Before each test class: DELETE FROM page_cache (clear ALL rows, not just pattern-matched)
-- Use a class-scoped or function-scoped fixture that truncates the table
-- Alternative: use unique cache keys per test via uuid prefix: f"test:{uuid4().hex[:8]}:miss"
-
-Task B-2: Verify the fix works in a simulated full-suite context:
-```bash
-# Run page_cache tests after running some other test file (simulates full suite ordering)
+Verify fix works after other tests:
 pytest tests/test_auth.py tests/test_page_cache.py -v --tb=short
 pytest tests/test_web.py tests/test_page_cache.py -v --tb=short
-```
 
 ### Test
-```bash
 source .venv/bin/activate
-# Must pass BOTH in isolation AND after other tests
 pytest tests/test_page_cache.py -v --tb=short
 pytest tests/test_auth.py tests/test_brief.py tests/test_page_cache.py -v --tb=short
-```
+
+### Scenarios
+Write 2 scenarios to scenarios-pending-review-qs9-t2-b.md:
+- Scenario: Page cache returns cached result on second request
+- Scenario: Page cache cleanup prevents cross-test contamination
+
+### CHECKCHAT
+Summary: flakiness fixed, verified in multi-file context, scenarios written. Visual QA Checklist: N/A.
 
 ### Output Files
 - scenarios-pending-review-qs9-t2-b.md
 - CHANGELOG-qs9-t2-b.md
 
 ### Commit
-fix: eliminate page_cache test flakiness — robust cleanup between test classes (QS9-T2-B)
+fix: eliminate page_cache test flakiness — robust cleanup between tests (QS9-T2-B)
 """)
 ```
 
@@ -137,28 +136,25 @@ COMMIT to your worktree branch ONLY.
 - Any tests/test_cron_*.py files
 
 ### Problem
-Flask app has a CRON_GUARD before_request hook that returns 404 for /cron/* endpoints unless CRON_WORKER=1 env var is set. Tests that hit cron endpoints without setting this get 404 instead of expected 403 (auth) or 200 (success).
+CRON_GUARD returns 404 for /cron/* without CRON_WORKER=1. Tests that miss this get 404 instead of expected 403/200.
 
 ### Build
-
-Task C-1: Grep all test files for /cron/ endpoint calls:
-```bash
-grep -rn "client.post.*cron\|client.get.*cron" tests/ | grep -v ".pyc"
-```
-
-Task C-2: For every test that calls a /cron/ endpoint:
-- Verify it has `monkeypatch.setenv("CRON_WORKER", "1")`
-- If missing, add it
-- Exception: tests that INTENTIONALLY test the CRON_GUARD behavior (test that /cron/ returns 404 without CRON_WORKER)
-
-Task C-3: Run all affected test files to verify fixes.
+1. Grep all test files for /cron/ endpoint calls
+2. For every test hitting /cron/: verify monkeypatch.setenv("CRON_WORKER", "1") exists
+3. If missing, add it
+4. Exception: tests intentionally testing CRON_GUARD behavior
 
 ### Test
-```bash
 source .venv/bin/activate
-pytest tests/test_brief_cache.py tests/test_sprint_79_3.py -v --tb=short 2>&1 | tail -20
-# Also run any test_cron_*.py files found
-```
+pytest tests/test_brief_cache.py tests/test_sprint_79_3.py -v --tb=short
+
+### Scenarios
+Write 2 scenarios to scenarios-pending-review-qs9-t2-c.md:
+- Scenario: Cron endpoint rejects unauthenticated requests with 403
+- Scenario: Cron endpoint returns 404 when CRON_WORKER not set (guard behavior)
+
+### CHECKCHAT
+Summary: [N] tests fixed, all cron tests passing, scenarios written. Visual QA Checklist: N/A.
 
 ### Output Files
 - scenarios-pending-review-qs9-t2-c.md
@@ -181,50 +177,25 @@ COMMIT to your worktree branch ONLY.
 
 ## YOUR TASK: Clean up stale worktrees and branches
 
-### Problem
-46+ stale worktree branches from sprints 58-81 accumulated. They clutter git branch output and may hold stale DuckDB locks.
-
 ### Build
+1. git worktree prune
+2. git branch --merged main | grep worktree-agent | list count
+3. Delete merged branches: git branch --merged main | grep worktree-agent | xargs git branch -d
+4. Report unmerged branches (DO NOT delete — report only)
+5. Fix minor issues in test_sprint_79_d.py if any
 
-Task D-1: Document current state:
-```bash
-git worktree list | wc -l
-git branch | grep worktree-agent | wc -l
-```
+### Scenarios
+Write 1 scenario to scenarios-pending-review-qs9-t2-d.md:
+- Scenario: Post-sprint cleanup removes all merged worktree branches
 
-Task D-2: Prune dead worktrees (directories already removed):
-```bash
-git worktree prune
-```
-
-Task D-3: List branches that are safe to delete (already merged to main):
-```bash
-git branch --merged main | grep worktree-agent
-```
-
-Task D-4: Delete merged agent branches:
-```bash
-git branch --merged main | grep worktree-agent | xargs git branch -d
-```
-
-Task D-5: Report any UNMERGED branches (DO NOT delete these — report only):
-```bash
-git branch --no-merged main | grep worktree-agent
-```
-
-Task D-6: Fix any minor test issues in test_sprint_79_d.py if they exist.
-
-### Test
-```bash
-git worktree list | wc -l  # Should be much smaller
-git branch | grep worktree-agent | wc -l  # Should be 0 or near 0
-```
+### CHECKCHAT
+Summary: [N] branches deleted, [M] worktrees pruned, [K] unmerged branches reported. Visual QA Checklist: N/A.
 
 ### Output Files
-- CHANGELOG-qs9-t2-d.md (document how many branches/worktrees cleaned)
+- CHANGELOG-qs9-t2-d.md
 
 ### Commit
-chore: clean up 46+ stale worktree branches from sprints 58-81 (QS9-T2-D)
+chore: clean up stale worktree branches from sprints 58-81 (QS9-T2-D)
 """)
 ```
 
@@ -252,5 +223,6 @@ T2 (Test Hardening) COMPLETE
   B: Page cache flakiness:   [PASS/FAIL]
   C: CRON_WORKER audit:      [PASS/FAIL] ([N] tests fixed)
   D: Worktree cleanup:       [PASS/FAIL] ([N] branches deleted)
+  Scenarios: [N] across 4 files
   Pushed: [commit hash]
 ```
