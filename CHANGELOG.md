@@ -1,5 +1,39 @@
 # Changelog
 
+## QS11 — Intelligence-Forward Beta (2026-02-28)
+
+16 agents across 4 terminals. 81 files changed, 17,860 insertions, 544 new tests.
+
+### T1 — Landing Page Intelligence Showcase + MCP Demo (Sprint 90)
+- 6 pre-computed intelligence showcase components on landing page (Gantt, Stuck, What-If, Risk, Entity, Delay)
+- Animated MCP demo section with 3-demo rotation (What-If → Stuck → Delay), typing animation, mobile collapse
+- Showcase data prep script (scripts/generate_showcase_data.py) generates JSON fixtures from curated permits
+- Landing page restructured: capabilities section replaced by showcases, static demo replaced by MCP demo
+- PostHog analytics: data-track attributes on showcase views, clicks, MCP demo engagement
+
+### T2 — Page Migration Blitz (Sprint 91)
+- 13 templates migrated to Obsidian design system, all 5/5 lint
+- Search flow: search_results_public.html, results.html, search_results.html
+- Property + tools: report.html, station_predictor.html, stuck_permit.html
+- Auth: auth_login.html, beta_request.html, consultants.html
+- Tools + supporting: what_if.html, cost_of_delay.html, methodology.html, demo.html
+
+### T3 — Intelligence Tool Page Polish + Share Mechanic (Sprint 92)
+- Station Predictor: interactive Gantt chart (gantt-interactive.js), click-to-expand station details, ?permit= auto-fill
+- Stuck Permit: severity dashboard, block cards, intervention playbook with phone numbers, ?permit= auto-fill
+- What-If: two-panel comparison form, red/green delta table, strategy callout, ?demo= auto-fill
+- Cost of Delay: percentile table (p25-p90), expected cost card, SFFD bottleneck alert, ?demo= auto-fill
+- NEW: /tools/entity-network — D3 force-directed graph, entity search, node expansion
+- NEW: /tools/revision-risk — risk gauge, correction triggers, mitigation strategies
+- Share mechanic: "Send this to your contractor" button on all 6 tool pages (Web Share API + clipboard fallback)
+
+### T4 — Tier Gating + Onboarding Polish (Sprint 93)
+- Tier gate teaser mode: requires_tier(teaser=True) renders blur overlay instead of hard redirect
+- 8px blur overlay UI (tier_gate_overlay.html, tier-gate.css, tier-gate.js)
+- Onboarding wizard polished: progress dots, personalized welcome, CSS celebration, skip option
+- Gate analytics: PostHog events for tier gate impressions, onboarding completion/skip
+- 4 email templates migrated to brand palette (brief, invite, notification, report)
+
 ## QS10 T3 — Intelligence Tool UI (2026-02-28)
 
 ## Agent 3A — Station Predictor UI
