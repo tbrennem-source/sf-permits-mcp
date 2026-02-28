@@ -199,7 +199,10 @@
     }
 
     // 4. Animate typed lines and tables sequentially
-    var bubble = slide.querySelector('.mcp-msg__bubble');
+    // NOTE: must target the Claude bubble specifically — the first .mcp-msg__bubble
+    // is the user message bubble which contains no typed lines. Querying the user
+    // bubble returns an empty NodeList so nothing animates.
+    var bubble = slide.querySelector('.mcp-msg--claude .mcp-msg__bubble');
     if (bubble) {
       // Get all animatable children in order
       var children = bubble.querySelectorAll('.mcp-typed-line, .mcp-response-table, .mcp-stacked-cards');
