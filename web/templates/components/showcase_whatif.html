@@ -1,0 +1,181 @@
+{# showcase_whatif.html — What-If Comparison #}
+{# Receives: showcase.whatif #}
+{% set whatif = showcase.whatif %}
+<div class="showcase-whatif glass-card"
+     data-track="showcase-view"
+     data-showcase="whatif"
+     style="padding: var(--space-6);">
+  <style>
+    .whatif-title {
+      font-family: var(--sans);
+      font-size: var(--text-lg);
+      font-weight: 400;
+      color: var(--text-primary);
+      margin: 0 0 var(--space-2) 0;
+    }
+    .whatif-subtitle {
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-5);
+    }
+    .whatif-table-wrap {
+      overflow-x: auto;
+      margin-bottom: var(--space-5);
+    }
+    .whatif-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+    }
+    .whatif-table th {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: var(--space-2) var(--space-3);
+      border-bottom: 1px solid var(--glass-border);
+      text-align: left;
+    }
+    .whatif-table th:first-child {
+      color: var(--text-secondary);
+      width: 35%;
+    }
+    .whatif-table th.col-a {
+      color: var(--signal-green);
+    }
+    .whatif-table th.col-b {
+      color: var(--signal-amber);
+    }
+    .whatif-table td {
+      padding: 8px var(--space-3);
+      border-bottom: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+    .whatif-table td.row-label {
+      font-family: var(--sans);
+      color: var(--text-secondary);
+    }
+    .whatif-table td.val-good {
+      font-family: var(--mono);
+      color: var(--signal-green);
+      font-size: var(--text-sm);
+    }
+    .whatif-table td.val-bad {
+      font-family: var(--mono);
+      color: var(--signal-amber);
+      font-size: var(--text-sm);
+    }
+    .whatif-table td.val-neutral {
+      font-family: var(--mono);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+    .whatif-table tr:last-child td {
+      border-bottom: none;
+    }
+    .whatif-strategy {
+      background: rgba(94, 234, 212, 0.05);
+      border: 1px solid rgba(94, 234, 212, 0.15);
+      border-radius: var(--radius-sm);
+      padding: var(--space-4);
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: var(--space-5);
+    }
+    .whatif-strategy-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--space-2);
+    }
+    .whatif-cta-row {
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: flex-end;
+    }
+  </style>
+
+  <h3 class="whatif-title">What-If Comparison</h3>
+  <p class="whatif-subtitle">Scope change impact on timeline, fees, and review path</p>
+
+  <div class="whatif-table-wrap">
+    <table class="whatif-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="col-a">{{ whatif.scenario_a.label }}</th>
+          <th class="col-b">{{ whatif.scenario_b.label }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-label">Construction cost</td>
+          <td class="val-good">{{ whatif.scenario_a.cost }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.cost }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">Review path</td>
+          <td class="val-good">{{ whatif.scenario_a.review_path }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.review_path }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">Agencies</td>
+          <td class="val-good">{{ whatif.scenario_a.agencies }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.agencies }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">Timeline (p50)</td>
+          <td class="val-good">{{ whatif.scenario_a.timeline_p50 }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.timeline_p50 }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">Timeline (p75)</td>
+          <td class="val-good">{{ whatif.scenario_a.timeline_p75 }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.timeline_p75 }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">DBI fees</td>
+          <td class="val-good">{{ whatif.scenario_a.fees }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.fees }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">Plans signed by</td>
+          <td class="val-good">{{ whatif.scenario_a.plans_signed_by }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.plans_signed_by }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">ADA required</td>
+          <td class="val-good">{{ 'Yes' if whatif.scenario_a.ada_required else 'No' }}</td>
+          <td class="val-bad">{{ 'Yes' if whatif.scenario_b.ada_required else 'No' }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">Revision risk</td>
+          <td class="val-good">{{ whatif.scenario_a.revision_risk }}</td>
+          <td class="val-bad">{{ whatif.scenario_b.revision_risk }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="whatif-strategy">
+    <div class="whatif-strategy-label">Strategy</div>
+    {{ whatif.strategy }}
+  </div>
+
+  <div class="whatif-cta-row">
+    <a href="/tools/what-if?demo=kitchen-vs-full"
+       class="ghost-cta"
+       data-track="showcase-click"
+       data-showcase="whatif">Try it yourself →</a>
+  </div>
+</div>

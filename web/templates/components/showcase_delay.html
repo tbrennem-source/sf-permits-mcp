@@ -1,0 +1,185 @@
+{# showcase_delay.html — Cost of Delay Calculator #}
+{# Receives: showcase.cost_of_delay #}
+{% set delay = showcase.cost_of_delay %}
+<div class="showcase-delay glass-card"
+     data-track="showcase-view"
+     data-showcase="delay"
+     style="padding: var(--space-6);">
+  <style>
+    .delay-title {
+      font-family: var(--sans);
+      font-size: var(--text-lg);
+      font-weight: 400;
+      color: var(--text-primary);
+      margin: 0 0 var(--space-2) 0;
+    }
+    .delay-subtitle {
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-5);
+    }
+    .delay-input-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+      flex-wrap: wrap;
+    }
+    .delay-input-label {
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+    .delay-input-value {
+      font-family: var(--mono);
+      font-size: var(--text-base);
+      font-weight: 400;
+      color: var(--text-primary);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      min-width: 100px;
+    }
+    .delay-warning {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: var(--radius-sm);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-5);
+      font-family: var(--mono);
+      font-size: var(--text-xs);
+      color: var(--signal-red);
+    }
+    .delay-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      margin-bottom: var(--space-5);
+    }
+    .delay-table th {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      text-align: left;
+      padding: var(--space-2) var(--space-3);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .delay-table td {
+      padding: 9px var(--space-3);
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .delay-table td.delay-val {
+      font-family: var(--mono);
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+    }
+    .delay-table td.delay-cost {
+      font-family: var(--mono);
+      font-size: var(--text-sm);
+      font-weight: 400;
+      color: var(--signal-amber);
+    }
+    .delay-table tr:last-child td {
+      border-bottom: none;
+    }
+    .delay-expected {
+      background: rgba(94, 234, 212, 0.06);
+      border: 1px solid rgba(94, 234, 212, 0.18);
+      border-radius: var(--radius-sm);
+      padding: var(--space-4);
+      margin-bottom: var(--space-5);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+    .delay-expected-label {
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+    .delay-expected-value {
+      font-family: var(--mono);
+      font-size: var(--text-xl);
+      font-weight: 300;
+      color: var(--accent);
+    }
+    .delay-recommendation {
+      font-family: var(--mono);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-5);
+    }
+    .delay-cta-row {
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: flex-end;
+    }
+  </style>
+
+  <h3 class="delay-title">Cost of Delay Calculator</h3>
+  <p class="delay-subtitle">Financial impact of permit timeline on your project</p>
+
+  <div class="delay-input-row">
+    <span class="delay-input-label">Monthly carrying cost</span>
+    <span class="delay-input-value">${{ "{:,}".format(delay.monthly_cost) }}</span>
+    <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);">
+      = ${{ "{:,}".format(delay.daily_cost) }}/day
+    </span>
+  </div>
+
+  <div class="delay-warning">
+    <span class="status-dot status-dot--red"></span>
+    {{ delay.warning_text }}
+  </div>
+
+  <table class="delay-table">
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Percentile</th>
+        <th>Days</th>
+        <th>Carrying cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for scenario in delay.scenarios %}
+      <tr>
+        <td>{{ scenario.label }}</td>
+        <td class="delay-val">{{ scenario.percentile }}</td>
+        <td class="delay-val">{{ scenario.days }}</td>
+        <td class="delay-cost">${{ "{:,}".format(scenario.cost) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="delay-expected">
+    <span class="delay-expected-label">Probability-weighted expected cost</span>
+    <span class="delay-expected-value">${{ "{:,}".format(delay.expected_cost) }}</span>
+  </div>
+
+  <div class="delay-recommendation">
+    {{ delay.recommendation }}
+  </div>
+
+  <div class="delay-cta-row">
+    <a href="/tools/cost-of-delay?demo={{ delay.demo }}"
+       class="ghost-cta"
+       data-track="showcase-click"
+       data-showcase="delay">Try it yourself →</a>
+  </div>
+</div>
