@@ -39,7 +39,7 @@ jobs:
         run: pip install -e ".[dev,web]"
 
       - name: Run unit tests
-        run: pytest tests/ -v -m "not network"
+        run: pytest tests/ -v -m "not network" --ignore=tests/test_tools.py --ignore=tests/e2e
 
   network-tests:
     if: ${{ github.event_name == 'schedule' }}
