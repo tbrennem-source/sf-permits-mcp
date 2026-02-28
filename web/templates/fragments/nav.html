@@ -366,6 +366,7 @@
                 {% if g.user %}
                 <a href="/account" class="nav-badge {% if active_page == 'account' %}nav-badge-active{% endif %}">{{ g.user.display_name or g.user.email }}</a>
                 <form action="/auth/logout" method="post" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button class="nav-badge" type="submit">Logout</button>
                 </form>
                 {% else %}
@@ -425,6 +426,7 @@
             {% if g.user %}
             <a href="/account" class="{% if active_page == 'account' %}nav-badge-active{% endif %}">{{ g.user.display_name or g.user.email }}</a>
             <form action="/auth/logout" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <button type="submit">Logout</button>
             </form>
             {% else %}
