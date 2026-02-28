@@ -1,5 +1,97 @@
 # Changelog
 
+## QS8 — Quad Sprint 8: Performance + Intelligence Tools (2026-02-27)
+
+### T1: Infrastructure + Observability
+
+#### T1-A: Batch DB Queries + SODA Caching (web/report.py)
+- Property report N+1 fix: replaced per-permit loop (88 serial queries for 44-permit parcel) with 2 batch queries
+- `_get_contacts_batch()` — single IN-list query grouped by permit_number
+- `_get_inspections_batch()` — single IN-list query grouped by permit_number
+- Module-level SODA response cache (15-min TTL, time.monotonic()) for `_fetch_complaints`, `_fetch_violations`, `_fetch_property`
+- 11 new tests (test_sprint_79_1.py)
+
+#### T1-B: Brief Pipeline Stats + Cron Observability
+- `_get_pipeline_stats()` in `web/brief.py` — queries cron_log for last 5 runs, avg duration, 24h success/fail counts
+- `POST /cron/signals` enhanced: cron_log start/completion logging, response includes elapsed_seconds
+- `POST /cron/velocity-refresh` enhanced: same cron_log pattern, station transitions + congestion refresh preserved
+- 11 new tests (test_sprint_79_3.py)
+
+#### T1-C: SODA Circuit Breaker (src/soda_client.py)
+- New `CircuitBreaker` class: three states (closed, open, half-open) with configurable threshold/timeout
+- `SODA_CB_THRESHOLD` env var (default: 5), `SODA_CB_TIMEOUT` env var (default: 60s)
+- Integrated into `SODAClient.query()`: short-circuit on open, record_success on 2xx, record_failure on timeout/NetworkError/5xx
+- 4xx responses do NOT trip circuit breaker
+- 19 new tests (test_sprint_79_4.py)
+
+#### T1-D: Cache-Control + Response Timing + Pool Health (web/app.py)
+- `X-Response-Time` header on every HTTP response (wall-clock via time.time())
+- `cache_stats` field in `/health` JSON: backend, row_count (active page_cache rows), oldest_entry_age_minutes
+- `pool_stats` alias added to `/health` for API clarity
+- DB_POOL_MAX documentation comment in src/db.py
+- 10 new tests (test_sprint_79_d.py)
+
+### T2: Intelligence Tools (4 new MCP tools)
+
+#### T2-A: predict_next_stations (`src/tools/predict_next_stations.py`)
+- New async MCP tool: predicts what review stations a permit will visit next
+- Markov-style transition matrix from 3 years of similar permits (neighborhood-filtered, type fallback)
+- Output: current station + dwell time, probability table, all-clear estimate, confidence level (High/Medium/Low)
+- Stall detection: >60 days with no activity flagged
+- 41 new tests (test_station_predictor.py)
+
+#### T2-B: diagnose_stuck_permit (`src/tools/stuck_permit.py`)
+- New async MCP tool: diagnoses why a permit is stalled + generates ranked intervention playbook
+- Per-station dwell vs p50/p75/p90 baselines from station_velocity_v2; heuristic fallback (>45d=stalled, >90d=critical)
+- 14 inter-agency station codes (SFFD, HEALTH, Planning, DPW, SFPUC, HIS, ABE) with contact info
+- Severity: CRITICAL/STALLED/NORMAL; playbook ranked by urgency (IMMEDIATE > HIGH > MEDIUM > LOW)
+- 34 new tests (test_stuck_permit.py)
+
+#### T2-C: simulate_what_if (`src/tools/what_if_simulator.py`)
+- New MCP tool: runs base project + N variations through 4 existing tools in parallel via asyncio.gather()
+- Sub-tools: predict_permits, estimate_timeline, estimate_fees, revision_risk
+- Comparison table + Delta section (review path changes, timeline shifts, fee deltas)
+- Cost parsing from natural language: $80K, 80k, $80,000 all recognized
+- 38 new tests (test_what_if_simulator.py)
+
+#### T2-D: calculate_delay_cost (`src/tools/cost_of_delay.py`)
+- New MCP tool: financial cost-of-delay analysis (financial exposure table at p25/p50/p90)
+- Carrying cost + revision risk cost per scenario; break-even analysis; OTC eligibility note
+- 13 permit types with calibrated fallback timelines; trigger escalations (planning_review, ceqa, historic)
+- 42 new tests (test_cost_of_delay.py)
+
+**T2 total: 4 new MCP tools, 155 new tests**
+
+### T3: UX + Product Features
+
+#### T3-A: Multi-step Onboarding Wizard + PREMIUM Tier + Feature Flags
+- 3-step onboarding wizard: role selector → demo property watch → morning brief preview
+- Routes: GET/POST /onboarding/step/1-3 in web/routes_auth.py
+- PREMIUM tier added to FeatureTier enum; beta grant via invite prefix (sfp-beta-, sfp-amy-, sfp-team-)
+- 5 new feature flags in FEATURE_REGISTRY (plan_analysis_full, entity_deep_dive, export_pdf, api_access, priority_support)
+- 23 new tests (test_sprint_81_1.py)
+
+#### T3-B: Search NLP Parser + Empty Result Guidance + Result Ranking
+- `parse_search_query()` in web/helpers.py: extracts neighborhood (60+ aliases), address, permit type, year from free-text
+- `build_empty_result_guidance()`: context-aware suggestions + "Did you mean?" hint for 0-result searches
+- `rank_search_results()`: priority scoring (100=exact address, 90=permit number, 50=description)
+- Integrated into routes_public.py and routes_search.py
+- 44 new tests (test_sprint_81_2.py)
+
+#### T3-C: Electrical/Plumbing/Boiler Permit Ingest Tests
+- 51 new tests covering ingest functions for electrical, plumbing, and boiler permits
+- Verified pre-existing ingest functions: ingest_electrical_permits(), ingest_plumbing_permits(), ingest_boiler_permits()
+- Cross-type isolation, idempotent re-run, CLI flag verification
+
+#### T3-D: E2E Onboarding + Performance Tests + Demo Seed Script
+- 14 Playwright E2E tests: onboarding wizard, demo page, methodology, about-data, beta form, portfolio (test_onboarding_scenarios.py)
+- 12 Playwright E2E tests: response time budgets (health <500ms, landing <1s, demo <2s), security headers (test_performance_scenarios.py)
+- `scripts/seed_demo.py`: idempotent demo seed (3 watch items, 5 recent searches) for presentations and QA
+
+**QS8 total: ~327 new tests across 12 agents**
+
+---
+
 ## Design Token Migration — Portfolio + Index (2026-02-27)
 
 - `portfolio.html`: complete rewrite to obsidian design tokens — glass-card property cards, status-dot indicators, filter chips, stat-number/stat-label summary, signal-cyan accent replacing legacy blue
@@ -151,6 +243,35 @@
 ### Orchestrator fixes
 - Renamed "DeskRelay HANDOFF" → "Visual QA Checklist" across CLAUDE.md, BLACKBOX_PROTOCOL.md, sprint prompts
 - Fixed CSRF `_generate_csrf_token()` graceful outside request context (email rendering)
+
+---
+
+## QS5 — Quad Sprint 5: Data Quality + Incremental Ingest (2026-02-26)
+
+### QS5-A: Materialized Parcels Table
+- `parcel_summary` table: one-row-per-parcel cache with counts from permits, complaints, violations, boiler_permits, inspections + tax data + health tier
+- `POST /cron/refresh-parcel-summary` — CRON_SECRET-protected endpoint (UPSERT Postgres / DELETE+INSERT DuckDB)
+- `web/report.py` cache integration: `_get_parcel_summary()` queries cache, skips SODA API call on hit
+- DDL in 3 locations: scripts/release.py, web/app.py startup migrations, src/db.py init_user_schema
+- 14 new tests (test_qs5_a_parcels.py)
+
+### QS5-B: Permit Changes Backfill + Incremental Ingest
+- `ingest_recent_permits()` in src/ingest.py — incremental upsert via SODA API (ON CONFLICT DO UPDATE)
+- `POST /cron/ingest-recent-permits` — CRON_SECRET-protected, sequencing guard prevents concurrent full ingest
+- `backfill_orphan_permits()` in scripts/nightly_changes.py — batch-50 SODA backfill for orphan permit_changes
+- Incremental ingest runs as Step 0 in nightly pipeline (non-fatal)
+- 12 new tests (test_qs5_b_backfill.py)
+
+### QS5-C: Trade Permit Bridge + Orphan Inspections
+- Root cause investigation: 68,092 of 68,116 "orphan" inspections are complaint-type (DBI complaint IDs, expected)
+- `_check_orphan_inspections()` in web/data_quality.py: filters to reference_number_type='permit', thresholds green/yellow/red
+- `_check_trade_permit_counts()`: verifies boiler_permits + fire_permits tables have data
+- `boiler_permits` + `fire_permits` added to EXPECTED_TABLES in web/app.py
+- 16 new tests (test_qs5_c_bridges.py)
+
+### QS5-D: Task Hygiene Diagnostic Sweep
+- Read-only investigation of 12 stale Chief tasks; 8 closed, 2 kept open (P3), 1 task updated, 1 new task created
+- No code changes
 
 ---
 
@@ -3055,822 +3176,4 @@ UPDATE entities SET entity_type = 'consultant' WHERE entity_type = 'expediter';
 - Baseline SODA API latency: ~450-650ms per query
 - Aggregation cold-cache penalty: 10-14s on large datasets (warm cache: ~600ms)
 - 13.3M total records across 22 datasets
-# CHANGELOG — QS8-T2-A: What's Next Station Predictor
 
-## Sprint: QS8 Terminal 2 Agent A
-## Date: 2026-02-27
-## Branch: worktree-agent-aabebfd3
-
----
-
-## What Was Built
-
-### New: `src/tools/predict_next_stations.py`
-
-Async MCP tool that predicts what review stations an SF permit will visit next.
-
-**Function:** `async def predict_next_stations(permit_number: str) -> str`
-
-**Algorithm:**
-1. Query permit metadata (type, neighborhood, status) from `permits` table
-2. Query this permit's addenda routing history (deduped by station/addenda_number)
-3. Find current active station (arrived but no finish_date)
-4. Build Markov-style transition probability matrix from 3 years of similar permits
-   - Tries neighborhood-filtered first (e.g., Mission permits only)
-   - Falls back to type-only if neighborhood has insufficient data
-5. Compute top-3 predicted next stations ranked by historical transition frequency
-6. Enrich each prediction with velocity data (p50/p75) from `station_velocity_v2`
-7. Return formatted markdown with: current station, predictions table, all-clear estimate, confidence
-
-**Output includes:**
-- Current station with dwell time + STALLED warning if >60 days with no activity
-- Probability table: station | probability | typical duration | range
-- "All-clear estimate" (sequential sum of p50 durations for predicted stations)
-- Prediction confidence: High (≥100 samples), Medium (≥30), Low (<30)
-
-**Edge cases handled:**
-- Permit not found → helpful error with correction guidance
-- No addenda data → "No routing data available" message
-- Complete/issued/cancelled permit → "completed all review stations" message
-- No transition data for current station → explains why prediction isn't available
-- get_connection() failure → catches exception, returns error message string
-
----
-
-### New: `tests/test_station_predictor.py`
-
-41 tests covering:
-
-| Class | Count | Coverage |
-|-------|-------|---------|
-| `TestFormatDays` | 7 | Edge cases for day formatting helper |
-| `TestLabel` | 2 | Known + unknown station code labels |
-| `TestFindCurrentStation` | 5 | Empty, all-finished, one-unfinished, multi-unfinished, no-arrive |
-| `TestComputeDwellDays` | 4 | None arrive, recent, old, timestamp format |
-| `TestComputeTopPredictions` | 6 | Empty transitions, below-threshold, top-n, probabilities, sort order, labels |
-| `TestFormatOutput` | 7 | No history, all-finished, current station, stall warning, predictions, all-clear, confidence |
-| `TestPredictNextStationsAsync` | 8 | Permit not found, complete, no addenda, in-progress, stalled, error handling, markdown return, predictions table |
-| Module-level | 2 | Import sanity, async function check |
-
-**All 41 tests: PASSING**
-
----
-
-## Pre-existing File Note
-
-`src/tools/station_predictor.py` pre-existed as a cron/refresh utility (contains `refresh_station_transitions()` and `predict_remaining_path()` for the station_transitions table, postgres-only). Per agent rules (no modifying existing files), the new MCP-facing async tool was placed in `src/tools/predict_next_stations.py`. The orchestrator should consider whether to consolidate or alias during merge.
-
-The test file is named `tests/test_station_predictor.py` as specified in the sprint prompt, and tests the new `predict_next_stations` module.
-
----
-
-## Files Created
-
-- `src/tools/predict_next_stations.py` (new, 717 lines)
-- `tests/test_station_predictor.py` (new, 631 lines)
-- `scenarios-pending-review-qs8-t2-a.md` (per-agent output file)
-- `CHANGELOG-qs8-t2-a.md` (this file)
-
-## Files NOT Modified
-
-Per sprint rules, no existing files were modified. Server registration (`src/server.py`) is left for the orchestrator's merge step.
-
----
-
-## Test Results
-
-```
-41 passed in 0.12s
-```
-
-All tests pass with mocked DB connections — no live database required.
-# CHANGELOG — QS8-T2-B: Stuck Permit Intervention Playbook
-
-## Added
-
-### src/tools/stuck_permit.py (NEW)
-
-New async tool `diagnose_stuck_permit(permit_number: str) -> str` — diagnoses why a
-permit is stalled in the plan check routing queue and generates a ranked markdown
-intervention playbook.
-
-**Core logic:**
-- Fetches permit data and active addenda routing stations from the database
-- For each station: calculates dwell time (days since arrival) and compares to
-  p50/p75/p90 baselines from the `station_velocity_v2` table
-- Flags "stalled" if dwell > p75, "critically stalled" if dwell > p90
-- Falls back to heuristics (>45d = stalled, >90d = critically) when no baseline exists
-- Detects stuck patterns: comments issued (review_results contains "comment"),
-  inter-agency holds (SFFD/HEALTH/Planning/DPW/HIS), multiple revision cycles
-  (addenda_number >= 2), 30+ day inactivity
-
-**Inter-agency classification:**
-- 14 inter-agency station codes mapped to agency names (SFFD, HEALTH-*, CP-ZOC,
-  DPW-BSM, DPW-BUF, SFPUC, SFPUC-PRG, HIS, ABE)
-- 6 BLDG-family stations for DBI plan check routing
-- Agency contact info (phone, URL, notes) for DBI, SFFD, HEALTH, Planning, DPW, HIS
-
-**Playbook output (markdown):**
-- Header: permit number, address, description, status, severity score, routing status
-- Filed/issued dates with days-ago context
-- Station Diagnosis section: one entry per active station sorted by severity,
-  showing dwell vs p50/p75/p90 baselines with CRITICAL/STALLED/NORMAL labels
-- Intervention Steps: ranked by urgency (IMMEDIATE > HIGH > MEDIUM > LOW) with
-  agency contact details for each step
-- Revision History section if revision_count >= 1 (3+ cycles: expediter advisory)
-- Footer with generation date and EPR portal link
-
-**Graceful degradation:**
-- Permit not found → formatted "not found" message with DBI portal link
-- No addenda data → advisory that permit may not yet be in plan check queue
-- DB connection error → formatted error message with permit number preserved
-
-**Backends:** DuckDB and Postgres compatible via BACKEND/placeholder pattern
-from `src.db`.
-
-### tests/test_stuck_permit.py (NEW)
-
-34 tests — all passing. No live DB or network access (all DB calls mocked).
-
-**Unit tests (no async):**
-- `_parse_date` — string, date object, None inputs
-- `_calc_dwell_days` — normal and None arrive inputs
-- `_overall_status` — worst-case aggregation across stations
-- `_severity_label` — CRITICAL/STALLED/NORMAL mapping
-- `_diagnose_station` — 8 scenarios: critically stalled BLDG, stalled BLDG,
-  stalled SFFD inter-agency, comments issued, healthy, no velocity heuristic,
-  Planning inter-agency (CP-ZOC), revision cycle detection
-- `_get_agency_key` — SFFD, HEALTH, Planning, DPW, DBI (default) mappings
-- `_format_address` — full address, missing parts
-- `INTER_AGENCY_STATIONS` — 6 expected stations present
-- `BLDG_STATIONS` — none overlap with INTER_AGENCY_STATIONS
-
-**Integration tests (async, full playbook):**
-- Permit not found → "Not Found" in result
-- Critically stalled BLDG → CRITICAL label, DBI recommendation
-- Inter-agency hold (SFFD) → agency name and "Contact" in result
-- Comments issued → EPR resubmission recommendation
-- Multiple revision cycles (3) → Revision History section
-- Healthy permit → no CRITICAL label
-- No addenda data → graceful empty station message
-- DB error → formatted error message (not raw exception)
-# CHANGELOG — QS8-T2-C: What-If Permit Simulator
-
-## Added
-
-### `src/tools/what_if_simulator.py` (new)
-
-New tool: **`simulate_what_if(base_description, variations)`**
-
-Orchestrates four existing tools (predict_permits, estimate_timeline, estimate_fees, revision_risk)
-across a base project + N variations, running them in parallel via `asyncio.gather()`, and returns
-a formatted markdown comparison table.
-
-**Key features:**
-- Parallel scenario evaluation — all scenarios run concurrently, not sequentially
-- Markdown extraction helpers parse headline values from each sub-tool's output:
-  - `_extract_permits` — permit type / form summary
-  - `_extract_review_path` — OTC vs. In-house
-  - `_extract_p50` / `_extract_p75` — timeline percentiles
-  - `_extract_total_fee` — Total DBI Fees from Table 1A-A row
-  - `_extract_revision_risk` — risk level + rate
-- Cost parsing from natural language: `$80K`, `80k`, `$80,000` all recognized; missing cost defaults to $50K
-- Graceful degradation: sub-tool errors populate affected cells with "N/A" and surface error notes at end of output
-- Delta section: compares each variation to base, calls out review path changes, timeline shifts, fee deltas
-- Module-level sub-tool imports to support clean patch-based mocking in tests
-- All sub-tool imports at module level (not inside the async function) — avoids import-time side effects on mock patching
-
-**Output format:**
-```
-# What-If Permit Simulator
-
-**Base project:** Kitchen remodel in the Mission, $80K
-**Scenarios evaluated:** 3 (1 base + 2 variation(s))
-
-## Comparison Table
-| Scenario | Description | Permits | Review Path | Timeline (p50) | Timeline (p75) | Est. DBI Fees | Revision Risk |
-|---|---|---|---|---|---|---|---|
-| **Base** | Kitchen remodel... | Alteration (3 App) | OTC | 45 days | 75 days | $3,013 | MODERATE (18.5%) |
-| **Add bathroom** | Kitchen + bath... | Alteration (3 App) | In-house | 90 days | 130 days | $4,520 | MODERATE (18.5%) |
-
-## Delta vs. Base
-### Add bathroom
-- **Review path:** OTC → In-house (significant change — may add weeks)
-- **Timeline (p50):** 45 days → 90 days
-- **Fees:** $3,013 → $4,520
-```
-
-### `tests/test_what_if_simulator.py` (new)
-
-38 tests across 6 test classes:
-
-- `TestExtractPermits` (3 tests) — extraction helpers for permit summary
-- `TestExtractReviewPath` (4 tests) — OTC / In-house detection
-- `TestExtractP50` / `TestExtractP75` (5 tests) — timeline extraction
-- `TestExtractTotalFee` (3 tests) — fee extraction including table row pattern
-- `TestExtractRevisionRisk` (4 tests) — risk level + rate extraction
-- `TestSimulateWhatIfBasic` (6 tests) — happy path with mocked sub-tools
-- `TestSimulateWhatIfEdgeCases` (8 tests) — error handling, missing fields, truncation, call counts
-- `TestSimulateWhatIfCostParsing` (3 tests) — dollar/K cost notation
-- `TestSimulateWhatIfReturnType` (2 tests) — return type and table structure
-
-All tests use `unittest.mock.patch` + `AsyncMock` targeting `src.tools.what_if_simulator.*` module-level names.
-Uses `asyncio.run()` for Python 3.14 compatibility (not deprecated `get_event_loop()`).
-
-## Test Results
-
-```
-38 passed in 0.12s
-```
-
-## Files Created
-
-| File | Lines | Description |
-|------|-------|-------------|
-| `src/tools/what_if_simulator.py` | ~360 | Tool implementation |
-| `tests/test_what_if_simulator.py` | ~460 | 38 tests |
-
-## Notes
-
-- `what_if_simulator` is NOT yet registered in `src/server.py` — orchestrator handles tool registration.
-- Sub-tool imports are at module level to support mocking; this means importing the module will import all four sub-tools. This is intentional and consistent with how other tools are structured.
-# QS8-T2-D Changelog
-
-## [QS8-T2-D] Cost of Delay Calculator Tool
-
-**Date:** 2026-02-27
-**Agent:** T2-D (QS8)
-**Branch:** worktree-agent-ad958e30
-
-### Added
-
-#### `src/tools/cost_of_delay.py` (NEW)
-
-New MCP tool providing financial cost-of-delay analysis for SF permit processing.
-
-**Public API:**
-
-```python
-async def calculate_delay_cost(
-    permit_type: str,
-    monthly_carrying_cost: float,
-    neighborhood: Optional[str] = None,
-    triggers: Optional[list] = None,
-) -> str
-```
-
-Returns a formatted markdown string with:
-- Financial exposure table (Best/Likely/Worst scenarios at p25/p50/p90)
-- Carrying cost per scenario (monthly_cost × timeline_days / 30.44)
-- Revision risk cost per scenario (P(revision) × revision_delay × daily_cost)
-- Break-even analysis (daily cost of delay including revision risk)
-- OTC eligibility note (when permit type qualifies for same-day processing)
-- Mitigation strategies (specific to permit type)
-- Methodology section (data sources, formulas)
-
-```python
-def daily_delay_cost(monthly_carrying_cost: float) -> str
-```
-
-One-liner helper: "Every day of permit delay costs you $X/day"
-
-**Key design decisions:**
-- Uses `estimate_timeline` for live p25/p50/p90 data when DB available
-- Falls back to calibrated historical averages (13 permit types) when DB unavailable
-- Trigger escalations (planning_review, ceqa, historic, etc.) applied to fallback timelines only
-- Module-level `estimate_timeline = None` sentinel enables clean test patching
-- All permit-type data (revision probability, delay days, OTC eligibility) in module-level constants
-
-**Permit types supported:** restaurant, commercial_ti, change_of_use, new_construction, adu, adaptive_reuse, seismic, general_alteration, kitchen_remodel, bathroom_remodel, alterations, otc, no_plans (+ unknown types fall back to defaults)
-
-#### `tests/test_cost_of_delay.py` (NEW)
-
-42 tests covering:
-- `TestDailyDelayCost` (6 tests) — basic/round numbers/small/large/zero/negative
-- `TestFormatCurrency` (5 tests) — small/thousands/millions/boundary/under-10k
-- `TestGetRevisionInfo` (4 tests) — restaurant high risk/OTC low risk/unknown/new construction
-- `TestGetTimelineEstimates` (4 tests) — restaurant/OTC/new construction/unknown
-- `TestGetPermitTypeLabel` (3 tests) — restaurant/ADU/unknown
-- Async `calculate_delay_cost` tests (17 tests) — happy path, table structure, math, error handling, OTC note, triggers, mitigation, methodology, break-even, neighborhood, daily oneliner, live timeline parsing, unknown type, small/large costs, multiple triggers
-- `TestConstants` (3 tests) — OTC set membership, probability range, all positive
-
-All 42 tests pass.
-
-### Test Results
-
-```
-============================= 42 passed in 0.10s ==============================
-```
-# CHANGELOG — QS8-T3-A: Multi-step Onboarding Wizard + PREMIUM Tier + Feature Flags
-
-**Sprint:** QS8 Terminal 3 Agent A
-**Date:** 2026-02-27
-**Files owned:**
-- `web/routes_auth.py` (modified)
-- `web/feature_gate.py` (modified)
-- `web/templates/onboarding_step1.html` (NEW)
-- `web/templates/onboarding_step2.html` (NEW)
-- `web/templates/onboarding_step3.html` (NEW)
-- `tests/test_sprint_81_1.py` (NEW)
-
----
-
-## Added
-
-### Multi-step Onboarding Wizard (Task A-1)
-
-Replaced the single-page welcome card with a 3-step guided onboarding wizard.
-
-**Step 1 — Role Selector** (`/onboarding/step/1`)
-- Role choices: homeowner, architect, expediter, contractor
-- Card-based selector with radio inputs; selected card highlighted with accent border
-- Server-side validation rejects invalid roles with inline error
-- Saves role to `users.role` in DB via `UPDATE users SET role = %s`
-- Skip link bypasses to step 2 without setting role
-
-**Step 2 — Watch Demo Property** (`/onboarding/step/2`)
-- Pre-filled 1455 Market St (Civic Center demo parcel) with mock stats
-- "Add to portfolio" action creates a watch item via `add_watch()` (idempotent)
-- "Skip" action advances to step 3 without creating watch
-- Both paths redirect to step 3
-
-**Step 3 — Morning Brief Preview** (`/onboarding/step/3`)
-- Sample brief card showing permit status changes, stall alerts, new filings
-- "Go to Dashboard" CTA POSTs to `/onboarding/step/3/complete`
-- Complete action: sets `onboarding_complete=TRUE` in DB, clears session banner flag
-
-**Routes added to `web/routes_auth.py`:**
-- `GET /onboarding` → alias for step 1
-- `GET /onboarding/step/1` — role selector
-- `POST /onboarding/step/1/save` — save role, redirect to step 2
-- `GET /onboarding/step/2` — demo property watch
-- `POST /onboarding/step/2/save` — add watch or skip, redirect to step 3
-- `GET /onboarding/step/3` — brief preview
-- `POST /onboarding/step/3/complete` — mark complete, redirect to dashboard
-
-**Design:** All 3 templates use Obsidian tokens exclusively:
-- `--mono` for data (addresses, permit numbers, step labels, CTAs)
-- `--sans` for prose (descriptions, benefit copy, hero text)
-- `glass-card` component for property preview and brief preview
-- `--accent` (#5eead4) for progress dots, active selections, CTA button fill
-- Progress dot indicators (10px circles): active=accent, done=signal-green
-- No hardcoded hex values; all color references via CSS custom properties
-
----
-
-### PREMIUM Tier (Task A-2)
-
-**`web/feature_gate.py` — FeatureTier enum:**
-- Added `PREMIUM = "premium"` between `AUTHENTICATED` and `ADMIN`
-- `_TIER_ORDER` updated: FREE=0, AUTHENTICATED=1, PREMIUM=2, ADMIN=3
-
-**Beta PREMIUM grant logic (`_is_beta_premium`):**
-- Users with `subscription_tier='premium'` in DB → PREMIUM
-- Users with invite codes prefixed `sfp-beta-`, `sfp-amy-`, `sfp-team-` → PREMIUM
-- Admin check always wins (takes ADMIN tier, not PREMIUM)
-
-**`get_user_tier()` updated** to check `_is_beta_premium()` before falling back to AUTHENTICATED.
-
-**`gate_context()` updated** to include `is_premium` flag:
-```python
-"is_premium": _TIER_ORDER[tier] >= _TIER_ORDER[FeatureTier.PREMIUM]
-```
-
----
-
-### Feature Flag Expansion (Task A-3)
-
-**5 new entries in `FEATURE_REGISTRY`:**
-
-| Feature | Current Tier | Intent |
-|---------|-------------|--------|
-| `plan_analysis_full` | AUTHENTICATED | TODO: raise to PREMIUM post-beta |
-| `entity_deep_dive` | AUTHENTICATED | TODO: raise to PREMIUM post-beta |
-| `export_pdf` | AUTHENTICATED | TODO: raise to PREMIUM post-beta |
-| `api_access` | AUTHENTICATED | TODO: raise to PREMIUM post-beta |
-| `priority_support` | AUTHENTICATED | TODO: raise to PREMIUM post-beta |
-
-All 5 default to `AUTHENTICATED` during beta so current users see no change. TODO comments mark the transition point for when beta ends.
-
----
-
-### Tests (23 passing)
-
-**`tests/test_sprint_81_1.py`:**
-
-| Test Class | Tests |
-|-----------|-------|
-| `TestOnboardingStep1` | 5 tests: renders, auth gate, saves role, rejects invalid role, DB persistence |
-| `TestOnboardingStep2` | 3 tests: renders, creates watch item, skip advances without watch |
-| `TestOnboardingStep3` | 2 tests: renders with sample brief, complete marks DB |
-| `TestPremiumTier` | 9 tests: tier exists, ordering, admin wins, invite prefixes, DB field, gate_context flags |
-| `TestFeatureFlags` | 5 tests: all features registered, beta access, anon blocked, can_* flags in context |
-
----
-
-## Pre-existing failure (not caused by this agent)
-
-- `tests/test_landing.py::TestLandingPage::test_landing_has_feature_cards` — asserts "Permit Search" in landing HTML; landing was rebuilt from mockup in Sprint 69 and this string no longer exists. Pre-dates this sprint's changes.
-# CHANGELOG — QS8 T3-B: Search NLP Parser + Empty Result Guidance + Result Ranking
-
-## [QS8-T3-B] 2026-02-27
-
-### Added
-
-**B-1: Natural language query parser (`web/helpers.py`)**
-
-- New `parse_search_query(q: str) -> dict` function
-- Extracts structured fields from free-text search queries using regex + keyword matching (no ML)
-- Supported extractions:
-  - `neighborhood`: matches 60+ SF neighborhood aliases (SoMa, Mission, Haight, etc.) with preposition phrase detection ("in the Mission", "near SoMa")
-  - `street_number` + `street_name`: handles alpha streets ("Market St") and numbered streets ("6th Ave", "16th St")
-  - `permit_type`: 30+ keyword phrases mapped to canonical types (new construction, alterations, adu, seismic, etc.)
-  - `date_from`: year 2018-2030 extracted and mapped to ISO date string (e.g. "2024" → "2024-01-01")
-  - `description_search`: residual unmatched text after all extractions
-- Year extracted BEFORE address to prevent years like "2022" from being mistaken for street numbers
-- Neighborhood aliases matched longest-first to avoid false partial matches
-
-**B-2: Empty result guidance (`web/helpers.py`)**
-
-- New `build_empty_result_guidance(q: str, parsed: dict) -> dict` function
-- Returns context-aware suggestions when a search produces 0 results:
-  - Query-specific suggestions based on what the NLP parser found (neighborhood, permit type)
-  - `did_you_mean` hint when text looks like a street name missing a house number
-  - Always includes `show_demo_link: True` pointing to `/demo`
-- Template updated (`web/templates/search_results_public.html`) to render:
-  - "Did you mean?" callout above the main guidance card
-  - Contextual suggestions section inside guidance card
-  - Link to `/demo` as "Not sure what to search?" CTA
-
-**B-3: Result ranking (`web/helpers.py`)**
-
-- New `rank_search_results(results, query, parsed) -> list` function
-- Priority ranking:
-  - Score 100: Exact address match (street_number + street_name match parsed query)
-  - Score 90: Permit number found in query string
-  - Score 50: Description keyword overlap with `description_search`
-- Each result gets a `match_badge` key: `"Address Match"`, `"Permit"`, or `"Description"`
-- Internal `_rank_score` removed from output before returning
-
-**Route integration**
-
-- `web/routes_public.py`: `public_search` now calls `parse_search_query` and passes `empty_guidance` + `parsed_query` to template; uses NLP-extracted address when intent router misses it
-- `web/routes_search.py`: `/ask` handler calls `parse_search_query` to upgrade "general_question" or "analyze_project" intents to "search_address" when NLP finds an address embedded in the query; merges neighborhood into analyze entities
-
-### Tests
-
-- `tests/test_sprint_81_2.py`: 44 tests covering:
-  - Neighborhood extraction (6 cases including aliases, preposition phrases)
-  - Address extraction (5 cases including numbered streets, prepositional phrases)
-  - Permit type extraction (6 cases)
-  - Year extraction (6 cases including range boundary and conflict with address parser)
-  - Combined multi-field queries (7 cases)
-  - Empty result guidance (5 cases)
-  - Result ranking (7 cases including badge assignment, ordering, internal key cleanup)
-
-### Files Modified
-
-| File | Change |
-|------|--------|
-| `web/helpers.py` | +`parse_search_query`, `rank_search_results`, `build_empty_result_guidance`; +`import re`; ~350 lines added |
-| `web/routes_public.py` | Import new helpers, integrate NLP parser into `public_search`, pass `empty_guidance` to template |
-| `web/routes_search.py` | Import new helpers, add NLP enhancement block in `/ask` handler |
-| `web/templates/search_results_public.html` | Add `did_you_mean`, contextual suggestions, and demo link to no-results block |
-| `tests/test_sprint_81_2.py` | New — 44 tests (all passing) |
-# CHANGELOG — QS8-T3-C: Electrical/Plumbing/Boiler Permit Ingest Tests
-
-## [QS8-T3-C] — 2026-02-27
-
-### Added
-
-**tests/test_sprint_81_3.py** — 51 new tests covering electrical, plumbing, and boiler permit ingest functions
-
-- `_normalize_boiler_permit()` — full field mapping, NULL handling, missing permit_number fallback, zip_code field name verification (uses `zip_code` not `zipcode`)
-- `_normalize_electrical_permit()` — permit_type constant integrity, tuple length verification (26 columns)
-- `_normalize_plumbing_permit()` — permit_type constant integrity, tuple length verification (26 columns)
-- `ingest_electrical_permits()` — mock SODA client round-trip, INSERT verification, ingest_log entry, empty dataset, idempotent re-run
-- `ingest_plumbing_permits()` — mock SODA client round-trip, INSERT verification, ingest_log entry, empty dataset, idempotent re-run
-- `ingest_boiler_permits()` — mock SODA client round-trip, all 17 fields stored, DELETE+re-insert behavior, ingest_log entry, empty dataset
-- CLI flags: `--electrical-permits`, `--plumbing-permits`, `--boiler` existence verified via source inspection
-- `run_ingestion()` signature: `electrical_permits`, `plumbing_permits`, `boiler` kwargs verified present and defaulting to `True`
-- Cross-type isolation: electrical vs plumbing in shared `permits` table; boiler in separate `boiler_permits` table
-
-### Audit: Pre-existing functions (no new code needed)
-
-Discovered that all three ingest functions already existed in `src/ingest.py`:
-- `ingest_electrical_permits()` (line 1136) — endpoint `ftty-kx6y`
-- `ingest_plumbing_permits()` (line 1169) — endpoint `a6aw-rudh`
-- `ingest_boiler_permits()` (line 1441) — endpoint `5dp4-gtxk`
-
-CLI flags and `run_ingestion()` wiring were also already present. Task spec listed stale SODA endpoint IDs (sb82-77pd, p7e6-mr2g, iif8-dssv) — production endpoints differ but are correct in the codebase.
-
-### Test Results
-
-- **51 tests added, 51 passing**
-- Pre-existing failure: `test_landing.py::TestLandingPage::test_landing_has_feature_cards` — confirmed pre-existing (fails without our changes)
-- No regressions introduced
-# CHANGELOG — QS8-T3-D: E2E Onboarding + Performance Tests + Demo Seed Script
-
-## Sprint: QS8 Terminal 3, Agent D
-## Date: 2026-02-27
-## Branch: worktree-agent-aad095bf
-
----
-
-## New: tests/e2e/test_onboarding_scenarios.py
-
-Added 8 Playwright E2E tests covering the onboarding and content-page user journeys:
-
-- `TestWelcomePage::test_welcome_page_renders_for_new_user` — /welcome loads for authenticated user, contains onboarding content
-- `TestWelcomePage::test_onboarding_dismissible` — user can navigate away from /welcome without loop
-- `TestDemoPageAnonymous::test_demo_page_loads_without_auth` — /demo returns 200 for anonymous visitors
-- `TestDemoPageAnonymous::test_demo_page_shows_property_data` — demo renders 1455 Market St data
-- `TestDemoPageAnonymous::test_demo_page_has_structured_content` — demo has headings (not flat text blob)
-- `TestMethodologyPage::test_methodology_page_has_multiple_sections` — /methodology has 2+ headings
-- `TestMethodologyPage::test_methodology_page_no_auth_required` — /methodology is public
-- `TestAboutDataPage::test_about_data_page_has_dataset_inventory` — /about-data contains dataset references
-- `TestAboutDataPage::test_about_data_no_auth_required` — /about-data is public
-- `TestBetaRequestForm::test_beta_request_form_renders` — email input present
-- `TestBetaRequestForm::test_beta_request_form_submits` — valid submission produces no 500
-- `TestBetaRequestForm::test_beta_request_invalid_email_rejected` — invalid email returns 400/422
-- `TestPortfolioEmptyState::test_portfolio_empty_state_for_new_user` — empty portfolio shows guidance
-- `TestPortfolioEmptyState::test_portfolio_anonymous_redirect` — anon users redirected from /portfolio
-
-Follows established E2E patterns from test_severity_scenarios.py:
-- Playwright skip guard (only runs when file is targeted or E2E_PLAYWRIGHT=1)
-- `_screenshot()` helper (best-effort, never fails tests)
-- `auth_page` and `page` fixtures from conftest.py
-- Screenshot output to `qa-results/screenshots/e2e/`
-
----
-
-## New: tests/e2e/test_performance_scenarios.py
-
-Added 9 Playwright E2E tests covering response time budgets and security headers:
-
-- `TestHealthEndpoint::test_health_endpoint_under_500ms` — /health responds in <500ms
-- `TestHealthEndpoint::test_health_endpoint_returns_json` — /health returns valid JSON with status field
-- `TestLandingPagePerformance::test_landing_page_under_1s` — / renders in <1s (warm)
-- `TestMethodologyPerformance::test_methodology_under_1s` — /methodology renders in <1s
-- `TestDemoPagePerformance::test_demo_page_under_2s` — /demo renders in <2s (cached)
-- `TestSearchPerformance::test_search_returns_under_2s` — /search?q=... returns in <2s
-- `TestRapidNavigationResilience::test_no_500_errors_on_rapid_navigation` — 5 pages visited quickly, no 500s
-- `TestRapidNavigationResilience::test_no_500_errors_on_authenticated_pages` — auth pages handle rapid nav
-- `TestSecurityHeaders::test_csp_headers_on_all_pages` — CSP header check (warn-only)
-- `TestSecurityHeaders::test_x_frame_options_header` — clickjacking protection check (warn-only)
-- `TestStaticAssetCaching::test_static_assets_cached` — CSS/JS have Cache-Control or ETag (warn-only)
-- `TestStaticAssetCaching::test_static_css_returns_200` — at least one CSS file returns 200
-
-Timing approach:
-- Uses `time.monotonic()` around `page.goto()` for accurate measurement
-- Warm-up request before measured request (primes Flask startup and DB cache)
-- Security header checks are warn-only (headers may be set at CDN/proxy layer)
-
----
-
-## New: scripts/seed_demo.py
-
-Idempotent demo seed script for Zoom presentations and QA:
-
-- `--email` (required): target user email
-- `--dry-run` flag: prints actions without writing
-- Supports both DuckDB (local) and Postgres (production) via `src.db.BACKEND`
-- Step 1: Find or create user via `web.auth.get_user_by_email` / `create_user`
-- Step 2: Add 3 watch items via `web.auth.add_watch` (idempotent via `check_watch`)
-  - 1455 Market St — Block 3507 / Lot 004 — South of Market
-  - 146 Lake St — Block 1386 / Lot 025 — Inner Richmond
-  - 125 Mason St — Block 0312 / Lot 005 — Tenderloin
-- Step 3: Append 5 demo recent searches to `activity_log` table
-- Prints clear summary of what was added vs. skipped
-
-Usage:
-```bash
-source .venv/bin/activate
-python scripts/seed_demo.py --email tbrennem@gmail.com
-python scripts/seed_demo.py --email demo@sfpermits.ai --dry-run
-```
-
----
-
-## Test Impact
-
-- **New E2E tests**: 22+ Playwright tests across 2 files
-- **Main test suite**: No impact — E2E tests are skip-guarded
-- **Script verification**: `python -c "import scripts.seed_demo"` passes cleanly
-- **Module imports**: All 3 new files import without errors in .venv
-
-## Files Changed
-
-| File | Action |
-|------|--------|
-| `tests/e2e/test_onboarding_scenarios.py` | NEW |
-| `tests/e2e/test_performance_scenarios.py` | NEW |
-| `scripts/seed_demo.py` | NEW |
-| `scenarios-pending-review-qs8-t3-d.md` | NEW (per-agent output) |
-| `CHANGELOG-qs8-t3-d.md` | NEW (per-agent output) |
-# CHANGELOG — QS8-T1-A: Batch DB Queries + SODA Caching
-
-## [QS8-T1-A] — 2026-02-27
-
-### Performance: Property Report N+1 Fix (web/report.py)
-
-**Problem:** Property report for a 44-permit parcel took ~11.6s. Root cause: `_get_contacts()` and `_get_inspections()` called once per permit in a loop = 88 serial DB queries.
-
-**Solution:** Replaced per-permit loop with 2 batch queries.
-
-#### New functions in `web/report.py`
-
-**`_get_contacts_batch(conn, permit_numbers: list[str]) -> dict[str, list]`**
-- Single `SELECT ... WHERE permit_number IN (...)` with LEFT JOIN to entities
-- Returns `{permit_number: [contact_dict, ...]}` grouped by permit
-- Handles both DuckDB (`?`) and Postgres (`%s`) placeholders via `_PH`
-- Role ordering preserved: applicant → contractor → architect → engineer → other
-
-**`_get_inspections_batch(conn, permit_numbers: list[str]) -> dict[str, list]`**
-- Single `SELECT ... WHERE reference_number IN (...)` on inspections table
-- Returns `{permit_number: [inspection_dict, ...]}` grouped by permit
-- Ordered by scheduled_date DESC per permit
-
-**`get_property_report()` loop change:**
-```python
-# BEFORE (N+1 — 88 queries for 44 permits):
-for permit in permits:
-    permit["contacts"] = _get_contacts(conn, pnum)
-    permit["inspections"] = _get_inspections(conn, pnum)
-
-# AFTER (2 queries total):
-pnums = [p["permit_number"] for p in permits if p.get("permit_number")]
-contacts_map = _get_contacts_batch(conn, pnums)
-inspections_map = _get_inspections_batch(conn, pnums)
-for permit in permits:
-    permit["contacts"] = contacts_map.get(pnum, [])
-    permit["inspections"] = inspections_map.get(pnum, [])
-```
-
-#### SODA Response Caching
-
-**Module-level cache:** `_soda_cache: dict[str, tuple[float, Any]] = {}`
-- TTL: 900 seconds (15 minutes)
-- Cache key format: `{endpoint_id}:{block}:{lot}`
-- Applies to: `_fetch_complaints`, `_fetch_violations`, `_fetch_property`
-- Uses `time.monotonic()` — immune to system clock changes
-
-**Impact:** Repeat renders of the same parcel within 15 minutes skip 3 SODA API calls.
-
-### Tests Added
-
-**`tests/test_sprint_79_1.py`** — 11 new tests:
-- `test_get_contacts_batch_returns_grouped_dict` — verifies dict keyed by permit_number
-- `test_get_contacts_batch_empty_list` — empty input returns {}
-- `test_get_contacts_batch_unknown_permit` — missing permit returns []
-- `test_get_contacts_batch_role_ordering` — applicant before contractor
-- `test_get_inspections_batch_returns_grouped_dict` — same grouping pattern
-- `test_get_inspections_batch_empty_list`
-- `test_get_inspections_batch_unknown_permit`
-- `test_soda_cache_hit_skips_api_call` — API called once, second call uses cache
-- `test_soda_cache_expired_makes_new_api_call` — stale entry triggers fresh call
-- `test_soda_cache_violations_hit_skips_api_call`
-- `test_soda_cache_property_hit_skips_api_call`
-
-### Files Changed
-- `web/report.py` — batch helpers, SODA cache, loop replacement
-- `tests/test_sprint_79_1.py` — new (11 tests, all passing)
-## QS8-T1-B: Brief Pipeline Stats + Signals/Velocity Cron Endpoints
-
-**Files changed:** `web/brief.py`, `web/routes_cron.py`, `tests/test_sprint_79_3.py`
-
-### Task B-1: Pipeline stats in get_morning_brief()
-
-Added `_get_pipeline_stats()` function to `web/brief.py`:
-- Queries `cron_log` for the last 5 nightly job runs (elapsed time, status)
-- Computes average duration across completed jobs
-- Counts success/failed jobs in the last 24 hours
-- Returns dict with: `recent_jobs`, `avg_duration_seconds`, `last_24h_success`,
-  `last_24h_failed`, `last_24h_jobs`
-- Non-fatal: returns `{}` on any DB error
-- Included in `get_morning_brief()` return dict under key `"pipeline_stats"`
-
-### Task B-2: /cron/signals — cron_log observability
-
-Enhanced the existing `POST /cron/signals` endpoint in `web/routes_cron.py`:
-- Logs job start to `cron_log` with `status='running'` before pipeline executes
-- Logs completion with `status='success'` or `status='failed'` + elapsed time
-- Response now includes: `ok`, `status`, `elapsed_seconds` alongside pipeline stats
-- Error handling: pipeline failure returns `ok=False, status='failed'` (HTTP 500)
-
-### Task B-3: /cron/velocity-refresh — cron_log observability
-
-Enhanced the existing `POST /cron/velocity-refresh` endpoint in `web/routes_cron.py`:
-- Same cron_log start/completion logging pattern as signals endpoint
-- Preserves existing station transitions + congestion refresh (non-fatal sub-steps)
-- Response now includes: `ok`, `status`, `elapsed_seconds` alongside refresh stats
-
-### Tests
-
-Added `tests/test_sprint_79_3.py` with 11 tests:
-- `test_pipeline_stats_included_in_brief` — brief dict has pipeline_stats key
-- `test_pipeline_stats_empty_on_db_error` — non-fatal, returns {} on failure
-- `test_cron_signals_requires_auth` — 403 without token
-- `test_cron_signals_requires_auth_bad_token` — 403 with wrong token
-- `test_cron_signals_runs_severity` — pipeline invoked, ok=True response
-- `test_cron_signals_returns_error_on_pipeline_failure` — ok=False on error
-- `test_cron_velocity_refresh_requires_auth` — 403 without token
-- `test_cron_velocity_refresh_requires_auth_bad_token` — 403 with wrong token
-- `test_cron_velocity_refresh_runs` — refresh + transitions invoked, ok=True
-- `test_cron_velocity_refresh_returns_error_on_failure` — ok=False on error
-- `test_cron_velocity_refresh_transitions_failure_non_fatal` — partial failure ok
-# CHANGELOG — QS8-T1-C: SODA Circuit Breaker
-
-## [QS8-T1-C] — 2026-02-27
-
-### Added
-
-#### `src/soda_client.py`
-- New `CircuitBreaker` class with three states: `closed` (normal), `open` (failing), `half-open` (probing after cooldown)
-- `CircuitBreaker.is_open()` — returns True when requests should be short-circuited; automatically transitions `open → half-open` after `recovery_timeout` seconds
-- `CircuitBreaker.record_success()` — resets breaker to closed, clears failure count
-- `CircuitBreaker.record_failure()` — increments failure count; opens circuit at threshold; re-opens from half-open state if probe fails
-- `SODAClient.circuit_breaker` instance — one circuit breaker per client, initialized from env vars at startup
-- `SODA_CB_THRESHOLD` env var — failure count before opening (default: 5)
-- `SODA_CB_TIMEOUT` env var — seconds before half-open recovery probe (default: 60)
-- `SODAClient.query()` integration:
-  - Short-circuits with `return []` when circuit is open (graceful degradation)
-  - Calls `record_success()` on successful HTTP 2xx response
-  - Calls `record_failure()` on `httpx.TimeoutException`, `httpx.NetworkError`, and HTTP 5xx responses
-  - 4xx errors (caller bugs) do NOT increment failure count
-- Structured logging for circuit state transitions (open/closed/half-open)
-
-#### `tests/test_sprint_79_4.py`
-- 19 tests covering:
-  - `test_circuit_breaker_starts_closed`
-  - `test_opens_exactly_at_threshold`
-  - `test_failure_count_increments`
-  - `test_default_threshold_is_five`
-  - `test_transitions_to_half_open_after_timeout`
-  - `test_stays_open_before_timeout`
-  - `test_half_open_resets_to_closed_on_success`
-  - `test_half_open_reopens_on_failure`
-  - `test_success_resets_failure_count`
-  - `test_success_on_closed_is_noop`
-  - `test_returns_empty_list_when_open`
-  - `test_no_http_call_when_circuit_open`
-  - `test_records_success_on_200_response`
-  - `test_records_failure_on_timeout`
-  - `test_circuit_opens_after_repeated_timeouts`
-  - `test_records_failure_on_5xx`
-  - `test_4xx_does_not_trip_circuit`
-  - `test_default_threshold_from_env`
-  - `test_default_values_without_env`
-# CHANGELOG — QS8-T1-D: Cache-Control + Response Timing + Pool Health
-
-## Sprint 79 / QS8-T1-D
-
-### Added
-
-- **X-Response-Time header** on every HTTP response (Task D-2)
-  - New `_add_response_time_header` after_request hook in `web/app.py`
-  - Measures wall-clock time via `time.time()` (avoids interfering with
-    `time.monotonic()` call counts used by the slow-request hook)
-  - Format: `X-Response-Time: 12.3ms`
-  - Added `g._request_start_wall = time.time()` to `_start_timer` before_request
-
-- **pool_stats alias in /health** (Task D-3, partial)
-  - `pool_stats` key added as alias for existing `pool` field for API clarity
-
-- **cache_stats in /health** (Task D-3)
-  - New `cache_stats` field in `/health` JSON response
-  - Reports: `backend`, `row_count` (active page_cache rows), `oldest_entry_age_minutes`
-  - Supports both Postgres and DuckDB backends
-
-- **DB_POOL_MAX documentation comment** (Task D-4)
-  - Added explanatory comment in `src/db.py` near `_get_pool()` pool creation
-  - Documents when to increase (`DB_POOL_MAX` env var) and links to Chief #364
-
-### Tests
-
-- `tests/test_sprint_79_d.py` — 10 new tests, all passing:
-  - `test_methodology_has_cache_control`
-  - `test_about_data_has_cache_control`
-  - `test_demo_has_cache_control`
-  - `test_non_static_page_no_cache_control`
-  - `test_response_timing_header_present`
-  - `test_response_timing_header_on_health`
-  - `test_response_timing_header_on_404`
-  - `test_health_includes_pool_stats`
-  - `test_health_includes_cache_stats`
-  - `test_health_cache_stats_has_row_count`
-
-### Notes
-
-- Cache-Control headers for `/methodology`, `/about-data`, `/demo`, `/pricing` were
-  already implemented in `web/app.py` (the `add_cache_headers` after_request hook).
-  No duplication added in `routes_misc.py` — the hook approach is correct architecture.
-- `X-Response-Time` uses `time.time()` not `time.monotonic()` to avoid breaking
-  the `TestSlowRequestLogging.test_slow_request_logs_warning` test which mocks
-  `time.monotonic()` with a fixed alternating pattern.
-
-### Files Changed
-
-- `web/app.py` — `_start_timer`, `add_cache_headers`, `/health` route, new `_add_response_time_header`
-- `src/db.py` — documentation comment in `_get_pool()`
-- `tests/test_sprint_79_d.py` — new test file (10 tests)
