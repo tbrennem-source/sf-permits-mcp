@@ -2072,3 +2072,13 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Edge cases seen in code:** Script exits 1 when error rate exceeds 5% — useful as a deploy gate signal
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Test suite maintains isolation when one test reloads a module
+**Source:** Sprint 83-B — conftest.py _restore_db_path autouse fixture
+**User:** admin
+**Starting state:** Test A calls importlib.reload(src.db) as part of its app fixture setup, which resets module-level globals like _DUCKDB_PATH
+**Goal:** Subsequent tests should not inherit the leaked state from Test A's module reload
+**Expected outcome:** Test B runs with the correct session-scoped temp DuckDB path regardless of test ordering; _DUCKDB_PATH, BACKEND, and DATABASE_URL are restored after every test via autouse fixture
+**Edge cases seen in code:** The bare `except Exception: pass` in get_cached_or_compute() was silently swallowing the TEST_GUARD RuntimeError when _DUCKDB_PATH pointed at the real DB — making every cache miss look like a hit miss with no error output
+**CC confidence:** high
+**Status:** PENDING REVIEW
