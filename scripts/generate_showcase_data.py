@@ -1,0 +1,644 @@
+"""Generate pre-computed JSON fixture data for landing page intelligence showcases.
+
+This script produces web/static/data/showcase_data.json containing hardcoded
+fixture data for 6 showcases. Data is curated from real SF permit records for
+maximum demo impact. Zero API calls at page load time.
+
+Usage:
+    python scripts/generate_showcase_data.py
+
+Also importable:
+    from scripts.generate_showcase_data import generate_all
+"""
+
+import json
+import os
+import pathlib
+
+
+# ---------------------------------------------------------------------------
+# Output path
+# ---------------------------------------------------------------------------
+
+REPO_ROOT = pathlib.Path(__file__).parent.parent
+OUTPUT_DIR = REPO_ROOT / "web" / "static" / "data"
+OUTPUT_FILE = OUTPUT_DIR / "showcase_data.json"
+
+
+# ---------------------------------------------------------------------------
+# Showcase 1: Station Timeline
+# Permit 202509155257 — $13M parking-to-loading-zone conversion
+# 8 review stations, 3 BLDG comment rounds, 166 days elapsed
+# ---------------------------------------------------------------------------
+
+def _station_timeline() -> dict:
+    """Pre-computed station timeline for permit 202509155257."""
+    return {
+        "permit": "202509155257",
+        "description": "Parking Garage to Loading Zone Conversion",
+        "address": "350 Mission St, San Francisco",
+        "estimated_cost": 13000000,
+        "permit_type": "Alteration — Commercial",
+        "neighborhood": "South of Market",
+        "status": "In Review",
+        "filed_date": "2025-09-15",
+        "elapsed_days": 166,
+        "stations": [
+            {
+                "station": "BLDG",
+                "label": "Building Inspection",
+                "arrive": "2025-09-18",
+                "finish_date": "2025-10-02",
+                "review_results": "Approved",
+                "addenda_number": 0,
+                "dwell_days": 14,
+                "status": "approved",
+            },
+            {
+                "station": "CP-ZOC",
+                "label": "Planning (Zoning)",
+                "arrive": "2025-10-03",
+                "finish_date": "2025-11-15",
+                "review_results": "Approved",
+                "addenda_number": 0,
+                "dwell_days": 43,
+                "status": "approved",
+            },
+            {
+                "station": "SFFD",
+                "label": "Fire Department",
+                "arrive": "2025-10-05",
+                "finish_date": "2025-11-20",
+                "review_results": "Approved",
+                "addenda_number": 0,
+                "dwell_days": 46,
+                "status": "approved",
+            },
+            {
+                "station": "DPW-BSM",
+                "label": "DPW (Bureau of Street Mgmt)",
+                "arrive": "2025-11-16",
+                "finish_date": "2025-12-10",
+                "review_results": "Approved",
+                "addenda_number": 0,
+                "dwell_days": 24,
+                "status": "approved",
+            },
+            {
+                "station": "BLDG",
+                "label": "Building Inspection",
+                "arrive": "2025-12-11",
+                "finish_date": "2026-01-08",
+                "review_results": "Comments Issued",
+                "addenda_number": 1,
+                "dwell_days": 28,
+                "status": "comments",
+                "reviewer": "Plan Checker R. Hernandez",
+            },
+            {
+                "station": "BLDG",
+                "label": "Building Inspection",
+                "arrive": "2026-01-15",
+                "finish_date": "2026-02-05",
+                "review_results": "Comments Issued",
+                "addenda_number": 2,
+                "dwell_days": 21,
+                "status": "comments",
+                "reviewer": "Plan Checker R. Hernandez",
+            },
+            {
+                "station": "BLDG",
+                "label": "Building Inspection",
+                "arrive": "2026-02-12",
+                "finish_date": None,
+                "review_results": None,
+                "addenda_number": 3,
+                "dwell_days": 16,
+                "status": "active",
+                "reviewer": "Plan Checker R. Hernandez",
+            },
+            {
+                "station": "SFPUC",
+                "label": "SF Public Utilities",
+                "arrive": "2026-01-20",
+                "finish_date": None,
+                "review_results": None,
+                "addenda_number": 0,
+                "dwell_days": 39,
+                "status": "active",
+            },
+        ],
+        "summary": {
+            "total_stations": 8,
+            "completed_stations": 5,
+            "active_stations": 2,
+            "bldg_comment_rounds": 3,
+            "revision_cycles": 3,
+        },
+        "predicted_next": [
+            {
+                "station": "BLDG",
+                "label": "Building Inspection",
+                "probability": 0.72,
+                "p50_days": 21,
+                "p75_days": 35,
+            },
+            {
+                "station": "PERMIT-CTR",
+                "label": "Permit Center",
+                "probability": 0.18,
+                "p50_days": 5,
+                "p75_days": 10,
+            },
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Showcase 2: Stuck Permit
+# Permit 202412237330 — Laundromat-to-childcare conversion, $200K
+# 4 simultaneous blocks (BLDG, MECH, SFFD, CP-ZOC), 223 days at Planning
+# ---------------------------------------------------------------------------
+
+def _stuck_permit() -> dict:
+    """Pre-computed stuck permit diagnosis for 202412237330."""
+    return {
+        "permit": "202412237330",
+        "description": "Change of Use: Laundromat to Childcare Facility",
+        "address": "2847 Mission St, San Francisco",
+        "neighborhood": "Mission",
+        "estimated_cost": 200000,
+        "permit_type": "Change of Use",
+        "status": "In Review",
+        "filed_date": "2024-12-23",
+        "elapsed_days": 432,
+        "severity_score": 78,
+        "severity_tier": "HIGH",
+        "overall_status": "critically_stalled",
+        "revision_cycles": 2,
+        "blocks": [
+            {
+                "station": "BLDG",
+                "label": "Building Inspection",
+                "dwell_days": 156,
+                "status": "critically_stalled",
+                "review_results": "Comments Issued",
+                "flags": [
+                    "dwell 156d > p90 (90d baseline)",
+                    "comments issued — resubmission needed",
+                    "revision cycle 2 (multiple rounds)",
+                ],
+                "is_inter_agency": False,
+                "is_bldg": True,
+            },
+            {
+                "station": "MECH",
+                "label": "Mechanical",
+                "dwell_days": 98,
+                "status": "stalled",
+                "review_results": "Comments Issued",
+                "flags": [
+                    "dwell 98d > p75 (60d baseline)",
+                    "comments issued — resubmission needed",
+                ],
+                "is_inter_agency": False,
+                "is_bldg": False,
+            },
+            {
+                "station": "SFFD",
+                "label": "SF Fire Department",
+                "dwell_days": 223,
+                "status": "critically_stalled",
+                "review_results": None,
+                "flags": [
+                    "dwell 223d > p90 (75d baseline)",
+                    "223d with no recorded activity",
+                ],
+                "is_inter_agency": True,
+                "is_bldg": False,
+            },
+            {
+                "station": "CP-ZOC",
+                "label": "Planning (Zoning)",
+                "dwell_days": 223,
+                "status": "critically_stalled",
+                "review_results": None,
+                "flags": [
+                    "dwell 223d > p90 (120d baseline)",
+                    "223d with no recorded activity",
+                ],
+                "is_inter_agency": True,
+                "is_bldg": False,
+            },
+        ],
+        "playbook": [
+            {
+                "priority": 1,
+                "urgency": "IMMEDIATE",
+                "action": "Revise plans to address comments at BLDG, MECH and resubmit via EPR (Electronic Plan Review)",
+                "contact": None,
+            },
+            {
+                "priority": 2,
+                "urgency": "HIGH",
+                "action": "Contact SF Fire Department directly — permit has been waiting 223d (critically past p90 baseline)",
+                "contact": {
+                    "name": "SF Fire Department — Permit Division",
+                    "phone": "(415) 558-3300",
+                    "url": "https://sf.gov/departments/fire-department",
+                    "notes": "Plan check: 698 2nd St, 3rd Floor",
+                },
+            },
+            {
+                "priority": 3,
+                "urgency": "HIGH",
+                "action": "Contact SF Planning Department — 223d wait for zoning review (critically past p90 baseline)",
+                "contact": {
+                    "name": "SF Planning Department",
+                    "phone": "(415) 558-6378",
+                    "url": "https://sfplanning.org",
+                    "notes": "Permit Counter: 49 South Van Ness Ave, M-Th 8am-5pm",
+                },
+            },
+            {
+                "priority": 4,
+                "urgency": "MEDIUM",
+                "action": "Review all plan check comments carefully — 2 revision cycles indicate recurring issues. Consider consulting with a licensed architect or expediter.",
+                "contact": None,
+            },
+        ],
+        "planning_days": 223,
+        "agency_contacts": {
+            "SFFD": {
+                "name": "SF Fire Department — Permit Division",
+                "phone": "(415) 558-3300",
+                "url": "https://sf.gov/departments/fire-department",
+            },
+            "PLANNING": {
+                "name": "SF Planning Department",
+                "phone": "(415) 558-6378",
+                "url": "https://sfplanning.org",
+            },
+            "DBI": {
+                "name": "SF Department of Building Inspection",
+                "phone": "(415) 558-6000",
+                "url": "https://sfdbi.org",
+            },
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Showcase 3: What-If Simulator
+# Scenario A: Kitchen remodel $45K (OTC, 1 agency, ~2 weeks)
+# Scenario B: Kitchen+Bath+Wall $185K (in-house, 7 agencies, 70 days p50)
+# ---------------------------------------------------------------------------
+
+def _what_if() -> dict:
+    """Pre-computed what-if comparison for kitchen remodel scenarios."""
+    return {
+        "scenario_a": {
+            "label": "Kitchen Remodel Only",
+            "description": "Remodel kitchen with new appliances, cabinets, countertops — no structural changes",
+            "estimated_cost": 45000,
+            "permit_type": "kitchen_remodel",
+            "review_path": "OTC",
+            "agencies": ["DBI"],
+            "agency_count": 1,
+            "p25_days": 10,
+            "p50_days": 14,
+            "p75_days": 21,
+            "p90_days": 45,
+            "total_fees": 890,
+            "revision_risk": 0.12,
+            "revision_risk_label": "Low (12%)",
+            "highlights": [
+                "Over-the-counter approval — same day in many cases",
+                "Single agency review (DBI only)",
+                "No planning review required",
+            ],
+        },
+        "scenario_b": {
+            "label": "Kitchen + Bath + Wall Removal",
+            "description": "Remodel kitchen and bathroom, remove non-structural wall, update electrical and plumbing",
+            "estimated_cost": 185000,
+            "permit_type": "general_alteration",
+            "review_path": "In-house",
+            "agencies": ["DBI", "BLDG", "ELECT", "PLMB", "MECH", "SFFD", "CP-ZOC"],
+            "agency_count": 7,
+            "p25_days": 35,
+            "p50_days": 70,
+            "p75_days": 105,
+            "p90_days": 150,
+            "total_fees": 3420,
+            "revision_risk": 0.28,
+            "revision_risk_label": "Moderate (28%)",
+            "highlights": [
+                "In-house plan review required — 7 agency touchpoints",
+                "Structural changes trigger mandatory engineering review",
+                "Electrical + plumbing permits required in addition to building",
+            ],
+        },
+        "comparison": [
+            {
+                "dimension": "Review Path",
+                "scenario_a": "OTC (same-day)",
+                "scenario_b": "In-house review",
+                "verdict": "a_wins",
+                "delta": "5x faster track",
+            },
+            {
+                "dimension": "Timeline (p50)",
+                "scenario_a": "14 days",
+                "scenario_b": "70 days",
+                "verdict": "a_wins",
+                "delta": "+56 days",
+            },
+            {
+                "dimension": "Agencies Involved",
+                "scenario_a": "1 (DBI only)",
+                "scenario_b": "7 agencies",
+                "verdict": "a_wins",
+                "delta": "6 additional reviewers",
+            },
+            {
+                "dimension": "Total Permit Fees",
+                "scenario_a": "$890",
+                "scenario_b": "$3,420",
+                "verdict": "a_wins",
+                "delta": "+$2,530",
+            },
+            {
+                "dimension": "Revision Risk",
+                "scenario_a": "12% (low)",
+                "scenario_b": "28% (moderate)",
+                "verdict": "a_wins",
+                "delta": "+16% revision probability",
+            },
+            {
+                "dimension": "Scope Delivered",
+                "scenario_a": "Kitchen only",
+                "scenario_b": "Full renovation",
+                "verdict": "b_wins",
+                "delta": "More comprehensive project",
+            },
+        ],
+        "recommendation": "If timeline is critical, Scenario A saves ~56 days and $2,530 in fees. If the full scope is needed, plan for 70-day review and budget for possible revisions.",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Showcase 4: Revision Risk
+# Restaurant alteration in Mission — 24.6% revision rate from 21,596 similar permits
+# Top 5 correction triggers, +51 days timeline impact
+# ---------------------------------------------------------------------------
+
+def _revision_risk() -> dict:
+    """Pre-computed revision risk assessment for Mission restaurant alteration."""
+    return {
+        "permit_type": "restaurant",
+        "neighborhood": "Mission",
+        "description": "Restaurant alteration — new kitchen layout, Type I hood, updated equipment",
+        "sample_size": 21596,
+        "rate": 0.246,
+        "rate_label": "24.6%",
+        "risk_level": "MODERATE",
+        "timeline_impact_days": 51,
+        "budget_recommendation": "Add $8,000-$15,000 contingency for revision rounds",
+        "triggers": [
+            {
+                "rank": 1,
+                "category": "Title-24 Energy Compliance",
+                "rate": "~45% of commercial alterations",
+                "detail": "Missing or incorrect energy forms. Submit CF1R/NRCC with initial application. (T24-C01)",
+                "preventable": True,
+            },
+            {
+                "rank": 2,
+                "category": "ADA/Accessibility (CBC 11B)",
+                "rate": "~38% of commercial alterations",
+                "detail": "Missing DA-02 checklist or path-of-travel documentation. (ADA-C01)",
+                "preventable": True,
+            },
+            {
+                "rank": 3,
+                "category": "DPH Food Facility",
+                "rate": "high for restaurant conversions",
+                "detail": "Equipment schedule not cross-referenced to layout, or missing exhaust data sheets. (DPH-002, DPH-004)",
+                "preventable": True,
+            },
+            {
+                "rank": 4,
+                "category": "DPH Equipment Schedule (Appendix C)",
+                "rate": "#1 DPH correction item",
+                "detail": "Must include: Item#, Name, Manufacturer, Model, Dimensions, NSF cert, Gas/Elec, BTU/kW. Numbers must match floor plan.",
+                "preventable": True,
+            },
+            {
+                "rank": 5,
+                "category": "Incomplete grease interceptor sizing",
+                "rate": "common for kitchen renovations",
+                "detail": "Missing grease interceptor calculations or Type I hood fire suppression details.",
+                "preventable": True,
+            },
+        ],
+        "mitigation_strategies": [
+            "Pre-consultation with DPH before filing",
+            "Submit complete equipment schedule at first submittal (DPH #1 correction item)",
+            "Engage architect experienced with SF DBI restaurant permits",
+            "Consider expedited plan check ($500-$1,500 additional fee)",
+        ],
+        "timeline_breakdown": {
+            "base_p50_days": 75,
+            "with_revision_expected_days": 126,
+            "revision_probability": 0.246,
+            "revision_delay_days": 75,
+            "expected_additional_days": 51,
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Showcase 5: Entity Network
+# 1 Market Street — 63 permits, top contractors
+# ---------------------------------------------------------------------------
+
+def _entity_network() -> dict:
+    """Pre-computed entity network for 1 Market Street."""
+    return {
+        "address": "1 Market St",
+        "full_address": "1 Market St, San Francisco, CA 94105",
+        "neighborhood": "Financial District",
+        "permits": 63,
+        "entities": [
+            {
+                "entity_id": 14823,
+                "canonical_name": "Arb Inc",
+                "entity_type": "contractor",
+                "permit_count": 12674,
+                "shared_permits": 18,
+                "role": "General Contractor",
+                "last_active": "2025-11-15",
+            },
+            {
+                "entity_id": 7291,
+                "canonical_name": "Pribuss Engineering",
+                "entity_type": "engineer",
+                "permit_count": 7309,
+                "shared_permits": 12,
+                "role": "Structural Engineer",
+                "last_active": "2025-08-22",
+            },
+            {
+                "entity_id": 31045,
+                "canonical_name": "Hathaway Dinwiddie Construction",
+                "entity_type": "contractor",
+                "permit_count": 4821,
+                "shared_permits": 9,
+                "role": "General Contractor",
+                "last_active": "2024-12-01",
+            },
+            {
+                "entity_id": 8847,
+                "canonical_name": "Forell/Elsesser Engineers",
+                "entity_type": "engineer",
+                "permit_count": 3156,
+                "shared_permits": 7,
+                "role": "Structural Engineer",
+                "last_active": "2024-09-14",
+            },
+            {
+                "entity_id": 22104,
+                "canonical_name": "Swinerton Builders",
+                "entity_type": "contractor",
+                "permit_count": 2934,
+                "shared_permits": 5,
+                "role": "General Contractor",
+                "last_active": "2025-06-30",
+            },
+        ],
+        "nodes": 8,
+        "edges": 14,
+        "permit_type_breakdown": {
+            "Alterations": 31,
+            "New Construction": 12,
+            "Mechanical": 8,
+            "Electrical": 7,
+            "Plumbing": 5,
+        },
+        "year_range": {"first": 2004, "last": 2025},
+        "insight": "Arb Inc and Pribuss Engineering have co-appeared on 18 permits at this address, forming the dominant contractor-engineer pair for major renovations.",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Showcase 6: Cost of Delay
+# Restaurant with $15K/month carry cost ($500/day)
+# SFFD-HQ bottleneck alert (+86% slower)
+# ---------------------------------------------------------------------------
+
+def _cost_of_delay() -> dict:
+    """Pre-computed cost-of-delay analysis for a restaurant permit."""
+    return {
+        "permit_type": "restaurant",
+        "permit_type_label": "Restaurant/Food Service",
+        "neighborhood": "Mission",
+        "monthly_cost": 15000,
+        "daily_cost": 493,
+        "daily_cost_formatted": "$493/day",
+        "percentiles": {
+            "p25": {"days": 45, "cost": 22185, "cost_formatted": "$22,185"},
+            "p50": {"days": 75, "cost": 36975, "cost_formatted": "$36,975"},
+            "p75": {"days": 113, "cost": 55709, "cost_formatted": "$55,709"},
+            "p90": {"days": 150, "cost": 73950, "cost_formatted": "$73,950"},
+        },
+        "expected": {
+            "days": 84,
+            "cost": 41412,
+            "cost_formatted": "$41,412",
+            "note": "Probability-weighted expected cost across all scenarios",
+        },
+        "revision_scenario": {
+            "probability": 0.38,
+            "additional_days": 75,
+            "additional_cost": 36975,
+            "total_expected_days": 103,
+            "total_expected_cost": 50779,
+            "total_expected_formatted": "$50,779",
+        },
+        "bottleneck_alert": {
+            "station": "SFFD-HQ",
+            "label": "Fire Dept HQ",
+            "slowdown_pct": 86,
+            "current_p50_days": 112,
+            "baseline_p50_days": 60,
+            "note": "SFFD-HQ currently running 86% slower than baseline — add 52 days to fire review estimate",
+        },
+        "mitigation_strategies": [
+            "Pre-consultation with DPH before filing",
+            "Submit complete equipment schedule at first submittal (DPH #1 correction item)",
+            "Engage architect experienced with SF DBI restaurant permits",
+            "Consider expedited plan check ($500-$1,500 additional fee)",
+        ],
+        "roi_analysis": {
+            "expediter_cost": 4500,
+            "days_saved_estimate": 21,
+            "savings": 10353,
+            "net_roi": 5853,
+            "roi_label": "Positive ROI — expediter pays for itself",
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Main generator
+# ---------------------------------------------------------------------------
+
+def generate_all() -> dict:
+    """Generate all 6 showcase data fixtures.
+
+    Returns:
+        dict with keys: station_timeline, stuck_permit, what_if,
+                        revision_risk, entity_network, cost_of_delay
+    """
+    return {
+        "station_timeline": _station_timeline(),
+        "stuck_permit": _stuck_permit(),
+        "what_if": _what_if(),
+        "revision_risk": _revision_risk(),
+        "entity_network": _entity_network(),
+        "cost_of_delay": _cost_of_delay(),
+    }
+
+
+def write_output(data: dict, output_path: pathlib.Path | None = None) -> pathlib.Path:
+    """Write showcase data to JSON file.
+
+    Args:
+        data: The showcase data dict from generate_all().
+        output_path: Override destination path (default: web/static/data/showcase_data.json)
+
+    Returns:
+        The path written to.
+    """
+    dest = output_path or OUTPUT_FILE
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    return dest
+
+
+def main() -> None:
+    """CLI entry point — generate and write showcase data."""
+    data = generate_all()
+    dest = write_output(data)
+    print(f"Wrote showcase data to {dest}")
+    print(f"  Keys: {list(data.keys())}")
+    for key, value in data.items():
+        # Print a brief size summary per showcase
+        if isinstance(value, dict):
+            subkeys = list(value.keys())
+            print(f"  {key}: {len(subkeys)} top-level fields — {subkeys[:4]}{'...' if len(subkeys) > 4 else ''}")
+
+
+if __name__ == "__main__":
+    main()
