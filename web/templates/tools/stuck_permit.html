@@ -17,7 +17,7 @@
         }
 
         .page-header {
-            padding: var(--space-16) 0 var(--space-8);
+            padding: var(--space-12) 0 var(--space-8);
         }
 
         .page-header h1 {
@@ -33,23 +33,48 @@
             font-size: var(--text-base);
             color: var(--text-secondary);
             margin: 0;
+            max-width: 560px;
         }
 
+        /* Input section */
         .input-section {
-            margin-bottom: var(--space-8);
+            margin-bottom: var(--space-6);
+        }
+
+        .form-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+            transition: border-color 0.3s;
+        }
+
+        .form-card:hover {
+            border-color: var(--glass-hover);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-3);
         }
 
         .input-row {
             display: flex;
-            gap: var(--space-4);
-            align-items: flex-start;
+            gap: var(--space-3);
+            align-items: stretch;
         }
 
         .permit-input {
             flex: 1;
-            padding: 16px 22px;
+            padding: 14px 20px;
             font-family: var(--mono);
-            font-size: 14px;
+            font-size: var(--text-base);
             font-weight: 300;
             color: var(--text-primary);
             background: var(--glass);
@@ -57,6 +82,7 @@
             border-radius: var(--radius-md);
             outline: none;
             transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+            min-width: 0;
         }
 
         .permit-input::placeholder {
@@ -78,44 +104,42 @@
             background: var(--glass);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-sm);
-            padding: 16px 24px;
+            padding: 0 var(--space-6);
             cursor: pointer;
             white-space: nowrap;
             transition: border-color 0.3s, color 0.3s, background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
         }
 
         .diagnose-btn:hover {
             border-color: var(--glass-hover);
             color: var(--text-primary);
-            background: var(--obsidian-light);
         }
 
         .diagnose-btn:disabled {
-            color: var(--text-tertiary);
+            opacity: 0.5;
             cursor: not-allowed;
-            opacity: 0.6;
         }
 
-        .loading-indicator {
-            display: none;
-            align-items: center;
-            gap: var(--space-3);
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            color: var(--text-secondary);
-            margin-top: var(--space-4);
+        .diagnose-btn.loading {
+            color: var(--signal-amber);
+            border-color: rgba(251, 191, 36, 0.30);
         }
 
-        .loading-indicator.is-visible {
-            display: flex;
-        }
-
+        /* Loading dot */
         .loading-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: var(--radius-full);
             background: var(--signal-amber);
             animation: pulse-dot 1s ease-in-out infinite alternate;
+            display: none;
+        }
+
+        .diagnose-btn.loading .loading-dot {
+            display: inline-block;
         }
 
         @keyframes pulse-dot {
@@ -123,72 +147,357 @@
             to   { opacity: 1; }
         }
 
-        .results-area {
-            margin-top: var(--space-8);
+        /* Skeleton loading */
+        .skeleton-screen {
+            display: none;
         }
 
-        .results-area.glass-card {
+        .skeleton-screen.is-visible {
+            display: block;
+        }
+
+        .skeleton-severity-row {
+            display: flex;
+            gap: var(--space-4);
+            align-items: center;
+            margin-bottom: var(--space-6);
+        }
+
+        .skeleton-badge {
+            width: 80px;
+            height: 28px;
+            background: var(--glass);
+            border-radius: var(--radius-sm);
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        .skeleton-bar {
+            height: 10px;
+            background: var(--glass);
+            border-radius: var(--radius-full);
+            margin-bottom: var(--space-3);
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        .skeleton-card {
+            background: var(--glass);
+            border-radius: var(--radius-sm);
+            height: 80px;
+            margin-bottom: var(--space-3);
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes skeleton-pulse {
+            0%, 100% { opacity: 0.4; }
+            50%       { opacity: 0.8; }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-10) var(--space-6);
+        }
+
+        .empty-state-hint {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            margin: 0 0 var(--space-6) 0;
+        }
+
+        .demo-permits {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-permit-chip {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            padding: var(--space-1) var(--space-3);
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .demo-permit-chip:hover {
+            color: var(--accent);
+            border-color: var(--accent-ring);
+        }
+
+        /* Results area */
+        .results-area {
             background: var(--obsidian-mid);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
             padding: var(--space-8);
             transition: border-color 0.3s;
+            min-height: 120px;
         }
 
-        .results-area.glass-card:hover {
+        .results-area:hover {
             border-color: var(--glass-hover);
         }
 
-        .results-area.glass-card:empty {
-            display: none;
+        /* Severity dashboard */
+        .severity-dashboard {
+            margin-bottom: var(--space-8);
+            padding-bottom: var(--space-6);
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .empty-hint {
-            font-family: var(--sans);
-            font-size: var(--text-base);
-            color: var(--text-secondary);
-            text-align: center;
-            padding: var(--space-12) 0;
+        .severity-dashboard-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            flex-wrap: wrap;
         }
 
-        .error-message {
+        .severity-badge {
             font-family: var(--mono);
             font-size: var(--text-sm);
-            color: var(--signal-red);
-            padding: var(--space-4);
-            background: rgba(248, 113, 113, 0.06);
-            border: 1px solid rgba(248, 113, 113, 0.15);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: var(--space-2) var(--space-4);
             border-radius: var(--radius-sm);
+            border: 1px solid;
         }
 
-        .auth-prompt {
-            text-align: center;
-            padding: var(--space-8) 0;
+        .severity-badge-green {
+            color: var(--signal-green);
+            background: rgba(52, 211, 153, 0.08);
+            border-color: rgba(52, 211, 153, 0.25);
         }
 
-        .auth-prompt p {
-            font-family: var(--sans);
-            font-size: var(--text-base);
+        .severity-badge-amber {
+            color: var(--signal-amber);
+            background: rgba(251, 191, 36, 0.08);
+            border-color: rgba(251, 191, 36, 0.25);
+        }
+
+        .severity-badge-red {
+            color: var(--signal-red);
+            background: rgba(248, 113, 113, 0.08);
+            border-color: rgba(248, 113, 113, 0.25);
+        }
+
+        .severity-meta {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
             color: var(--text-secondary);
+        }
+
+        .severity-permit-number {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent);
+            margin-left: auto;
+        }
+
+        /* Section label */
+        .section-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             margin: 0 0 var(--space-4) 0;
         }
 
-        .auth-prompt a {
+        /* Block cards */
+        .block-cards {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-bottom: var(--space-8);
+        }
+
+        .block-card {
+            padding: var(--space-4) var(--space-5);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid;
+        }
+
+        .block-card-critical {
+            background: rgba(248, 113, 113, 0.06);
+            border-left-color: var(--signal-red);
+        }
+
+        .block-card-stalled {
+            background: rgba(251, 191, 36, 0.06);
+            border-left-color: var(--signal-amber);
+        }
+
+        .block-card-normal {
+            background: var(--glass);
+            border-left-color: var(--glass-border);
+        }
+
+        .block-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-2);
+            flex-wrap: wrap;
+        }
+
+        .block-card-station {
             font-family: var(--mono);
             font-size: var(--text-sm);
-            font-weight: 300;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+
+        .block-card-status-chip {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 1px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        .chip-critical { color: var(--signal-red);    background: rgba(248, 113, 113, 0.12); }
+        .chip-stalled  { color: var(--signal-amber);  background: rgba(251, 191, 36, 0.12); }
+        .chip-normal   { color: var(--text-secondary); background: var(--glass); }
+
+        .block-card-meta {
+            display: flex;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+        }
+
+        .block-card-meta-item {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+
+        .block-card-flags {
+            margin-top: var(--space-2);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .block-card-flag {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
             color: var(--text-secondary);
-            border-bottom: 1px solid transparent;
-            text-decoration: none;
-            transition: color 0.3s, border-color 0.3s;
         }
 
-        .auth-prompt a:hover {
+        /* Intervention playbook */
+        .playbook-section {
+            margin-bottom: var(--space-8);
+        }
+
+        .playbook-steps {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .playbook-step {
+            display: flex;
+            gap: var(--space-4);
+            padding: var(--space-4) var(--space-5);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            transition: border-color 0.2s;
+        }
+
+        .playbook-step:hover {
+            border-color: var(--glass-hover);
+        }
+
+        .playbook-step-number {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-tertiary);
+            min-width: 20px;
+            flex-shrink: 0;
+        }
+
+        .playbook-step-body {
+            flex: 1;
+        }
+
+        .playbook-step-urgency {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-bottom: var(--space-2);
+            display: inline-block;
+        }
+
+        .urgency-immediate { color: var(--signal-red);    background: rgba(248,113,113,0.12); }
+        .urgency-high      { color: var(--signal-amber);  background: rgba(251,191,36,0.12); }
+        .urgency-medium    { color: var(--signal-blue);   background: rgba(96,165,250,0.12); }
+        .urgency-low       { color: var(--text-secondary); background: var(--glass); }
+
+        .playbook-step-action {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .playbook-step-contact {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+        }
+
+        .playbook-step-contact a {
             color: var(--accent);
-            border-bottom-color: var(--accent);
+            text-decoration: none;
         }
 
-        /* Markdown playbook rendering */
+        .playbook-step-contact a:hover {
+            opacity: 0.8;
+        }
+
+        /* Timeline impact note */
+        .timeline-impact {
+            background: rgba(251, 191, 36, 0.04);
+            border: 1px solid rgba(251, 191, 36, 0.15);
+            border-radius: var(--radius-sm);
+            padding: var(--space-4) var(--space-5);
+            margin-bottom: var(--space-8);
+        }
+
+        .timeline-impact-label {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--signal-amber);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-2);
+        }
+
+        .timeline-impact-text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Markdown fallback for full playbook */
         .playbook-content {
             font-family: var(--sans);
             font-size: var(--text-base);
@@ -246,29 +555,46 @@
             font-weight: 500;
         }
 
-        /* Stuck state indicator row */
-        .status-indicator-row {
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-            margin-bottom: var(--space-6);
-            padding-bottom: var(--space-6);
-            border-bottom: 1px solid var(--glass-border);
+        .playbook-content hr {
+            border: none;
+            border-top: 1px solid var(--glass-border);
+            margin: var(--space-6) 0;
         }
 
-        .status-label {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            font-weight: 400;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .permit-number-display {
+        /* Error state */
+        .error-message {
             font-family: var(--mono);
             font-size: var(--text-sm);
-            color: var(--text-primary);
+            color: var(--signal-red);
+            padding: var(--space-4);
+            background: rgba(248, 113, 113, 0.06);
+            border: 1px solid rgba(248, 113, 113, 0.15);
+            border-radius: var(--radius-sm);
+        }
+
+        .auth-prompt {
+            text-align: center;
+            padding: var(--space-8) 0;
+        }
+
+        .auth-prompt p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin: 0 0 var(--space-4) 0;
+        }
+
+        .auth-prompt a {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 300;
+            color: var(--accent);
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .auth-prompt a:hover {
+            opacity: 0.8;
         }
 
         /* Mobile */
@@ -283,18 +609,28 @@
 
             .diagnose-btn {
                 width: 100%;
-                text-align: center;
+                justify-content: center;
+                padding: var(--space-4) var(--space-6);
+            }
+
+            .severity-dashboard-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .severity-permit-number {
+                margin-left: 0;
+            }
+
+            .block-card-meta {
+                flex-direction: column;
+                gap: var(--space-1);
             }
         }
 
         @media (max-width: 375px) {
             .permit-input {
-                padding: 14px 16px;
-                font-size: 13px;
-            }
-
-            .diagnose-btn {
-                padding: 14px 16px;
+                font-size: var(--text-sm);
             }
         }
     </style>
@@ -310,34 +646,57 @@
             </header>
 
             <div class="input-section">
-                <div class="input-row">
-                    <input
-                        type="text"
-                        id="permit-number-input"
-                        class="permit-input"
-                        placeholder="Enter permit number (e.g. 202301015555)"
-                        autocomplete="off"
-                        maxlength="20"
-                        aria-label="Permit number"
-                    >
-                    <button
-                        class="diagnose-btn"
-                        id="diagnose-btn"
-                        onclick="diagnosedPermit()"
-                        type="button"
-                    >
-                        Diagnose permit →
-                    </button>
-                </div>
-                <div class="loading-indicator" id="loading-indicator" aria-live="polite">
-                    <span class="loading-dot"></span>
-                    <span>Analyzing permit — this may take a moment&hellip;</span>
+                <div class="form-card">
+                    <label class="form-label" for="permit-number-input">Permit Number</label>
+                    <div class="input-row">
+                        <input
+                            type="text"
+                            id="permit-number-input"
+                            class="permit-input"
+                            placeholder="Enter permit number (e.g. 202301015555)"
+                            autocomplete="off"
+                            maxlength="20"
+                            aria-label="Permit number"
+                        >
+                        <button
+                            class="diagnose-btn"
+                            id="diagnose-btn"
+                            onclick="diagnosedPermit()"
+                            type="button"
+                            aria-label="Diagnose permit"
+                        >
+                            <span class="loading-dot" aria-hidden="true"></span>
+                            <span id="btn-text">Diagnose →</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Empty state shown before any query -->
-            <div id="empty-state" class="empty-hint">
-                Enter a permit number to diagnose delays and get intervention steps.
+            <!-- Skeleton loading screen -->
+            <div id="skeleton-screen" class="skeleton-screen" aria-hidden="true">
+                <div class="results-area">
+                    <div class="severity-dashboard">
+                        <div class="skeleton-severity-row">
+                            <div class="skeleton-badge"></div>
+                            <div class="skeleton-bar" style="width:120px;margin:0;"></div>
+                        </div>
+                        <div class="skeleton-bar" style="width:80%;"></div>
+                    </div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card" style="height:60px;"></div>
+                </div>
+            </div>
+
+            <!-- Empty state -->
+            <div id="empty-state" class="results-area">
+                <div class="empty-state">
+                    <p class="empty-state-hint">Enter a permit number to diagnose delays and get intervention steps.</p>
+                    <div class="demo-permits" aria-label="Demo permit numbers">
+                        <button class="demo-permit-chip" onclick="fillDemo('202501015257')" type="button">202501015257</button>
+                        <button class="demo-permit-chip" onclick="fillDemo('202401019876')" type="button">202401019876</button>
+                        <button class="demo-permit-chip" onclick="fillDemo('202303014433')" type="button">202303014433</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Results area — hidden until populated -->
@@ -347,63 +706,363 @@
 
     <script nonce="{{ csp_nonce }}">
     (function() {
-        // Configure marked.js to use standard options
+        // Configure marked.js
         if (typeof marked !== 'undefined') {
             marked.setOptions({ breaks: true, gfm: true });
         }
 
+        var input = document.getElementById('permit-number-input');
+        var btn = document.getElementById('diagnose-btn');
+        var btnText = document.getElementById('btn-text');
+        var resultsDiv = document.getElementById('results');
+        var emptyState = document.getElementById('empty-state');
+        var skeletonScreen = document.getElementById('skeleton-screen');
+
+        // ── Auto-fill from ?permit= query param ──────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            var permitParam = params.get('permit');
+            if (permitParam && input) {
+                input.value = permitParam.trim();
+                diagnosedPermit();
+            }
+        });
+
+        // Enter key support
+        if (input) {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    window.diagnosedPermit();
+                }
+            });
+        }
+
+        // Demo chip fill
+        window.fillDemo = function (permit) {
+            if (input) input.value = permit;
+            diagnosedPermit();
+        };
+
+        // ── Utility ───────────────────────────────────────────────────────────
         function getCSRFToken() {
             var meta = document.querySelector('meta[name="csrf-token"]');
             return meta ? meta.getAttribute('content') : '';
         }
 
+        function escHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // ── Loading state ─────────────────────────────────────────────────────
         function setLoading(isLoading) {
-            var btn = document.getElementById('diagnose-btn');
-            var indicator = document.getElementById('loading-indicator');
             if (btn) btn.disabled = isLoading;
-            if (indicator) {
-                if (isLoading) {
-                    indicator.classList.add('is-visible');
-                } else {
-                    indicator.classList.remove('is-visible');
+            if (isLoading) {
+                btn.classList.add('loading');
+                if (btnText) btnText.textContent = 'Analyzing\u2026';
+                if (skeletonScreen) skeletonScreen.classList.add('is-visible');
+                if (emptyState) emptyState.style.display = 'none';
+                if (resultsDiv) resultsDiv.style.display = 'none';
+            } else {
+                btn.classList.remove('loading');
+                if (btnText) btnText.textContent = 'Diagnose \u2192';
+                if (skeletonScreen) skeletonScreen.classList.remove('is-visible');
+            }
+        }
+
+        // ── Parse severity from markdown ──────────────────────────────────────
+        function parseSeverity(markdown) {
+            if (/CRITICAL/i.test(markdown)) return 'critical';
+            if (/STALLED/i.test(markdown)) return 'stalled';
+            return 'normal';
+        }
+
+        function parseBlockCount(markdown) {
+            var match = markdown.match(/(\d+)\s*station/i);
+            return match ? parseInt(match[1], 10) : 0;
+        }
+
+        // ── Parse intervention steps from markdown ────────────────────────────
+        /**
+         * Extracts numbered intervention steps from the "## Intervention Steps"
+         * section of the playbook markdown.
+         * Returns array of { urgency, action, contactLines }.
+         */
+        function parseInterventionSteps(markdown) {
+            var steps = [];
+            var inSteps = false;
+            var lines = markdown.split('\n');
+            var currentStep = null;
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+
+                if (/^##\s+Intervention Steps/i.test(line)) {
+                    inSteps = true;
+                    continue;
                 }
+                if (inSteps && /^##\s/.test(line)) {
+                    // Entered next section
+                    if (currentStep) steps.push(currentStep);
+                    break;
+                }
+                if (!inSteps) continue;
+
+                // Numbered step: "1. [IMMEDIATE] Some action text"
+                var stepMatch = line.match(/^(\d+)\.\s+\[([A-Z]+)\]\s+(.*)/);
+                if (stepMatch) {
+                    if (currentStep) steps.push(currentStep);
+                    currentStep = {
+                        number: parseInt(stepMatch[1], 10),
+                        urgency: stepMatch[2].toLowerCase(),
+                        action: stepMatch[3].trim(),
+                        contactLines: [],
+                    };
+                    continue;
+                }
+
+                // Contact lines indented with "   - "
+                var contactMatch = line.match(/^\s{3}-\s+(.*)/);
+                if (contactMatch && currentStep) {
+                    currentStep.contactLines.push(contactMatch[1].trim());
+                }
+            }
+
+            if (currentStep) steps.push(currentStep);
+            return steps;
+        }
+
+        // ── Parse station blocks from markdown ───────────────────────────────
+        /**
+         * Extracts station diagnosis entries from "## Station Diagnosis" section.
+         * Returns array of { station, status, dwell, flags }.
+         */
+        function parseStationBlocks(markdown) {
+            var blocks = [];
+            var inDiagnosis = false;
+            var lines = markdown.split('\n');
+            var current = null;
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+
+                if (/^##\s+Station Diagnosis/i.test(line)) {
+                    inDiagnosis = true;
+                    continue;
+                }
+                if (inDiagnosis && /^##\s/.test(line)) {
+                    if (current) blocks.push(current);
+                    break;
+                }
+                if (!inDiagnosis) continue;
+
+                // Section headings: "### **BLDG** — [STALLED] — 45d"
+                var headMatch = line.match(/^###\s+\*\*(.+?)\*\*.*\[(CRITICAL|STALLED|NORMAL)\].*?(\d+)d/i);
+                if (headMatch) {
+                    if (current) blocks.push(current);
+                    current = {
+                        station: headMatch[1].trim(),
+                        status: headMatch[2].toLowerCase(),
+                        dwell: parseInt(headMatch[3], 10),
+                        flags: [],
+                    };
+                    continue;
+                }
+
+                // Flag lines: "- dwell 45d > p75 (30d baseline)"
+                var flagMatch = line.match(/^-\s+(.*)/);
+                if (flagMatch && current) {
+                    current.flags.push(flagMatch[1].trim());
+                }
+            }
+
+            if (current) blocks.push(current);
+            return blocks;
+        }
+
+        // ── Build severity dashboard HTML ─────────────────────────────────────
+        function buildSeverityDashboard(severity, permitNumber, stationCount) {
+            var badgeClass = {
+                critical: 'severity-badge-red',
+                stalled:  'severity-badge-amber',
+                normal:   'severity-badge-green',
+            }[severity] || 'severity-badge-green';
+
+            var label = {
+                critical: 'CRITICAL',
+                stalled:  'STALLED',
+                normal:   'ON TRACK',
+            }[severity] || 'UNKNOWN';
+
+            var meta = stationCount > 0 ? stationCount + ' station' + (stationCount !== 1 ? 's' : '') + ' blocked' : '';
+
+            return '<div class="severity-dashboard">'
+                + '<div class="severity-dashboard-row">'
+                + '<div class="severity-badge ' + badgeClass + '">' + label + '</div>'
+                + (meta ? '<div class="severity-meta">' + escHtml(meta) + '</div>' : '')
+                + '<div class="severity-permit-number">' + escHtml(permitNumber) + '</div>'
+                + '</div>'
+                + '</div>';
+        }
+
+        // ── Build block cards HTML ─────────────────────────────────────────────
+        function buildBlockCards(stationBlocks) {
+            if (!stationBlocks.length) return '';
+
+            var html = '<p class="section-label">Station Diagnosis</p>';
+            html += '<div class="block-cards">';
+
+            stationBlocks.forEach(function (block) {
+                var cardClass = 'block-card ';
+                var chipClass = 'block-card-status-chip ';
+                var chipLabel = '';
+
+                if (block.status === 'critically_stalled' || block.status === 'critical') {
+                    cardClass += 'block-card-critical';
+                    chipClass += 'chip-critical';
+                    chipLabel = 'CRITICAL';
+                } else if (block.status === 'stalled') {
+                    cardClass += 'block-card-stalled';
+                    chipClass += 'chip-stalled';
+                    chipLabel = 'STALLED';
+                } else {
+                    cardClass += 'block-card-normal';
+                    chipClass += 'chip-normal';
+                    chipLabel = 'NORMAL';
+                }
+
+                html += '<div class="' + cardClass + '">';
+                html += '<div class="block-card-header">';
+                html += '<span class="block-card-station">' + escHtml(block.station) + '</span>';
+                html += '<span class="' + chipClass + '">' + chipLabel + '</span>';
+                html += '</div>';
+
+                if (block.dwell) {
+                    html += '<div class="block-card-meta">';
+                    html += '<span class="block-card-meta-item">' + block.dwell + ' days at station</span>';
+                    html += '</div>';
+                }
+
+                if (block.flags && block.flags.length) {
+                    html += '<div class="block-card-flags">';
+                    block.flags.forEach(function (f) {
+                        html += '<div class="block-card-flag">— ' + escHtml(f) + '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                html += '</div>'; // block-card
+            });
+
+            html += '</div>'; // block-cards
+            return html;
+        }
+
+        // ── Build playbook steps HTML ──────────────────────────────────────────
+        function buildPlaybookSteps(steps) {
+            if (!steps.length) return '';
+
+            var html = '<div class="playbook-section">';
+            html += '<p class="section-label">Intervention Playbook</p>';
+            html += '<div class="playbook-steps">';
+
+            steps.forEach(function (step) {
+                var urgencyClass = {
+                    immediate: 'urgency-immediate',
+                    high:      'urgency-high',
+                    medium:    'urgency-medium',
+                    low:       'urgency-low',
+                }[step.urgency] || 'urgency-low';
+
+                html += '<div class="playbook-step">';
+                html += '<div class="playbook-step-number">' + step.number + '.</div>';
+                html += '<div class="playbook-step-body">';
+                html += '<div class="playbook-step-urgency ' + urgencyClass + '">' + step.urgency.toUpperCase() + '</div>';
+                html += '<div class="playbook-step-action">' + escHtml(step.action) + '</div>';
+
+                if (step.contactLines.length) {
+                    html += '<div class="playbook-step-contact">';
+                    step.contactLines.forEach(function (c) {
+                        // Linkify phone numbers and URLs
+                        var linked = escHtml(c)
+                            .replace(/\(415\)\s*\d{3}-\d{4}/g, function (m) {
+                                return '<a href="tel:+1' + m.replace(/\D/g, '') + '">' + m + '</a>';
+                            });
+                        html += linked + '<br>';
+                    });
+                    html += '</div>';
+                }
+
+                html += '</div>'; // playbook-step-body
+                html += '</div>'; // playbook-step
+            });
+
+            html += '</div>'; // playbook-steps
+            html += '</div>'; // playbook-section
+            return html;
+        }
+
+        // ── Show results ───────────────────────────────────────────────────────
+        function showResults(html) {
+            if (emptyState) emptyState.style.display = 'none';
+            if (resultsDiv) {
+                resultsDiv.style.display = '';
+                resultsDiv.innerHTML = html;
             }
         }
 
         function showEmpty() {
-            document.getElementById('empty-state').style.display = '';
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('results').innerHTML = '';
-        }
-
-        function showResults(html) {
-            document.getElementById('empty-state').style.display = 'none';
-            var resultsDiv = document.getElementById('results');
-            resultsDiv.style.display = '';
-            resultsDiv.innerHTML = html;
-        }
-
-        function renderMarkdown(text) {
-            if (typeof marked !== 'undefined') {
-                return marked.parse(text);
+            if (emptyState) emptyState.style.display = '';
+            if (resultsDiv) {
+                resultsDiv.style.display = 'none';
+                resultsDiv.innerHTML = '';
             }
-            // Fallback: wrap in pre
-            return '<pre class="playbook-content">' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
         }
 
-        function renderError(message) {
-            return '<div class="error-message">' + message + '</div>';
+        function renderResult(data, permitNumber) {
+            var markdown = data.result || '';
+            var severity = parseSeverity(markdown);
+            var stationBlocks = parseStationBlocks(markdown);
+            var steps = parseInterventionSteps(markdown);
+
+            var html = '';
+
+            // Severity dashboard
+            html += buildSeverityDashboard(severity, data.permit_number || permitNumber, stationBlocks.length);
+
+            // Block cards (if structured data available)
+            if (stationBlocks.length > 0) {
+                html += buildBlockCards(stationBlocks);
+            }
+
+            // Intervention playbook (structured steps)
+            if (steps.length > 0) {
+                html += buildPlaybookSteps(steps);
+            }
+
+            // Timeline impact note
+            html += '<div class="timeline-impact">'
+                + '<div class="timeline-impact-label">Timeline impact</div>'
+                + '<p class="timeline-impact-text">Each comment-response cycle adds 6–8 weeks to the total review timeline. Resubmitting promptly and completely is the single highest-leverage action.</p>'
+                + '</div>';
+
+            // Full markdown (as fallback and additional context)
+            var parsedMd = '';
+            try {
+                parsedMd = (typeof marked !== 'undefined') ? marked.parse(markdown) : '<pre>' + escHtml(markdown) + '</pre>';
+            } catch (e) {
+                parsedMd = '<pre>' + escHtml(markdown) + '</pre>';
+            }
+            html += '<div class="playbook-content">' + parsedMd + '</div>';
+
+            showResults(html);
         }
 
-        function renderAuthPrompt() {
-            return '<div class="auth-prompt">' +
-                '<p>This tool requires a free account.</p>' +
-                '<a href="/auth/login">Log in or create account &rarr;</a>' +
-                '</div>';
-        }
-
+        // ── Main handler ──────────────────────────────────────────────────────
         window.diagnosedPermit = function() {
-            var input = document.getElementById('permit-number-input');
             if (!input) return;
 
             var permitNumber = input.value.trim();
@@ -425,7 +1084,12 @@
             .then(function(response) {
                 if (response.status === 401) {
                     setLoading(false);
-                    showResults(renderAuthPrompt());
+                    showResults(
+                        '<div class="auth-prompt">'
+                        + '<p>This tool requires a free account.</p>'
+                        + '<a href="/auth/login">Log in or create account &rarr;</a>'
+                        + '</div>'
+                    );
                     return null;
                 }
                 if (!response.ok) {
@@ -438,29 +1102,13 @@
             .then(function(data) {
                 if (!data) return;
                 setLoading(false);
-
-                var html = '<div class="status-indicator-row">' +
-                    '<span class="status-label">Permit</span>' +
-                    '<span class="permit-number-display">' + (data.permit_number || permitNumber) + '</span>' +
-                    '<span class="status-dot status-dot--amber" title="Delay detected" style="margin-left:auto;"></span>' +
-                    '<span class="status-text--amber" style="font-family:var(--mono);font-size:var(--text-sm);">analyzing delays</span>' +
-                    '</div>' +
-                    '<div class="playbook-content">' + renderMarkdown(data.result || '') + '</div>';
-
-                showResults(html);
+                renderResult(data, permitNumber);
             })
             .catch(function(err) {
                 setLoading(false);
-                showResults(renderError(err.message || 'An unexpected error occurred. Please try again.'));
+                showResults('<div class="error-message">' + escHtml(err.message || 'An unexpected error occurred. Please try again.') + '</div>');
             });
         };
-
-        // Allow Enter key to submit
-        document.getElementById('permit-number-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                window.diagnosedPermit();
-            }
-        });
     })();
     </script>
 {% include 'fragments/feedback_widget.html' %}
