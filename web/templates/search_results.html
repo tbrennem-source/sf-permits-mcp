@@ -198,7 +198,7 @@
                 <span style="font-size:var(--text-xs);font-weight:400;color:var(--text-secondary);">total</span>
             </div>
             <div class="intel-col-detail">
-                {% if address_intel.active_permits %}{{ address_intel.active_permits }} active{% else %}None active{% endif %}{% if address_intel.latest_permit_type %} · {{ address_intel.latest_permit_type }}{% endif %}
+                {% if address_intel.active_permits %}{{ address_intel.active_permits }} active{% else %}None active{% endif %}{% if address_intel.latest_permit_type %} · {{ address_intel.latest_permit_type | title_permit }}{% endif %}
             </div>
             {% if address_intel.routing_total and address_intel.routing_total > 0 %}
             <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--glass-border);">
@@ -217,7 +217,7 @@
                     {% elif address_intel.routing_latest_result and 'comment' in address_intel.routing_latest_result|lower %}
                     <span style="color:var(--signal-amber);">💬</span>
                     {% endif %}
-                    {{ address_intel.routing_latest_station }}{% if address_intel.routing_latest_date %} · {{ address_intel.routing_latest_date }}{% endif %}
+                    {{ address_intel.routing_latest_station }}{% if address_intel.routing_latest_date %} · {{ address_intel.routing_latest_date | format_date }}{% endif %}
                 </div>
                 {% endif %}
             </div>

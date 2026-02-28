@@ -61,6 +61,34 @@ def _to_pst_filter(dt):
     return dt.astimezone(ZoneInfo("America/Los_Angeles"))
 
 
+@app.template_filter("format_date")
+def _format_date_filter(value):
+    """Format an ISO date string (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS.sss) as 'Mon D, YYYY'.
+
+    Returns empty string for None/empty values.
+    """
+    if not value:
+        return ""
+    from datetime import datetime as _dt
+    raw = str(value)[:10]  # Truncate to YYYY-MM-DD
+    try:
+        parsed = _dt.strptime(raw, "%Y-%m-%d")
+        return parsed.strftime("%b %-d, %Y")
+    except (ValueError, TypeError):
+        return raw
+
+
+@app.template_filter("title_permit")
+def _title_permit_filter(value):
+    """Title-case a permit type string from the DB.
+
+    Handles mixed-case values like 'otc alterations permit' → 'Otc Alterations Permit'.
+    """
+    if not value:
+        return ""
+    return str(value).strip().title()
+
+
 @app.template_filter("friendly_error")
 def _friendly_error_filter(msg):
     """Convert raw Python errors to user-friendly messages."""
