@@ -66,3 +66,27 @@
   - Token compliance (--mono, --sans, obsidian-mid surface)
   - Route: unauthenticated redirect (PASS), authenticated render (xfail — g.user requires full before_request chain)
 - Design lint score: 5/5 (0 violations)
+## Agent 3D — Cost of Delay Calculator UI
+
+- Added `/tools/cost-of-delay` page (`web/templates/tools/cost_of_delay.html`)
+  - Standalone page with `obs-container` layout, `glass-card` form, `action-btn` submit
+  - Four form fields: permit type (required), monthly carrying cost (required, validated > 0), neighborhood (optional), delay triggers (optional, comma-separated)
+  - Client-side validation: blocks submission if monthly cost is zero or negative, shows inline error
+  - JSON fetch to `POST /api/delay-cost` with `X-CSRFToken` header from `meta[name="csrf-token"]`
+  - `marked.js` renders API result (markdown) as structured HTML in `#results` div
+  - 401 auth error: inline prompt with link to login page
+  - Loading state ("Calculating...") with disabled submit during in-flight request
+  - All styles use only DESIGN_TOKENS.md custom properties — zero hardcoded hex
+  - Mobile-responsive: single-column layout at 375px, full-width inputs and button
+  - Optional fields clearly labeled with `optional-tag` chip
+- Added `tools_cost_of_delay()` route to `web/routes_search.py` at EOF
+  - Added `redirect` to Flask imports in routes_search.py
+  - Unauthenticated users redirected to `/auth/login`
+- Added `tests/test_cost_of_delay_ui.py` (30 tests, 1 xfail)
+  - Template structure: includes, title, results div, API reference
+  - Form fields: permit type, monthly cost, neighborhood, triggers
+  - JS behavior: JSON POST, CSRF, client-side validation, marked.js
+  - Design tokens: no hardcoded hex in styles, --mono, --sans, --obsidian, --text-* tokens
+  - Route tests: redirect for unauthenticated (302), redirect target contains "login"
+  - xfail: authenticated render (g.user requires full before_request chain)
+- Design lint score: **5/5** — zero violations

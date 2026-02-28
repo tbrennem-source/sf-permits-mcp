@@ -1610,3 +1610,16 @@ def tools_what_if():
         return redirect("/auth/login")
     return render_template("tools/what_if.html")
 
+
+
+# ---------------------------------------------------------------------------
+# Cost of Delay Calculator — /tools/cost-of-delay (Sprint QS10-T3-3D)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/cost-of-delay")
+def tools_cost_of_delay():
+    """Cost of Delay Calculator: financial impact of permit processing delays."""
+    if not g.user:
+        return redirect("/auth/login")
+    return render_template("tools/cost_of_delay.html")
+

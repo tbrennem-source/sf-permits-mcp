@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost of Delay Calculator — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" nonce="{{ csp_nonce }}"></script>
+    <style nonce="{{ csp_nonce }}">
+        body {
+            background: var(--obsidian);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            padding: var(--space-16) 0 var(--space-10);
+        }
+
+        .page-header h1 {
+            font-family: var(--sans);
+            font-size: var(--text-2xl);
+            font-weight: 300;
+            color: var(--text-primary);
+            margin: 0 0 var(--space-3);
+        }
+
+        .page-header p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            margin: 0;
+            max-width: 600px;
+        }
+
+        .calculator-form {
+            padding: var(--space-8);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: var(--space-6);
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .form-field label {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .form-field label .optional-tag {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-left: var(--space-2);
+            font-weight: 300;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--text-primary);
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 300;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-ring);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .form-input.input-error {
+            border-color: rgba(248, 113, 113, 0.5);
+        }
+
+        .currency-wrapper {
+            position: relative;
+        }
+
+        .currency-prefix {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 300;
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .currency-input {
+            padding-left: 28px;
+        }
+
+        .inline-error {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--signal-red);
+            margin-top: var(--space-1);
+            display: none;
+        }
+
+        .inline-error.visible {
+            display: block;
+        }
+
+        .form-actions {
+            margin-top: var(--space-8);
+        }
+
+        .action-btn {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-secondary);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: 10px 24px;
+            cursor: pointer;
+            transition: border-color 0.3s, color 0.3s, background 0.3s;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            border-color: var(--glass-hover);
+            color: var(--text-primary);
+            background: var(--obsidian-light);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading-state {
+            display: none;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent);
+            margin-left: var(--space-4);
+        }
+
+        .loading-state.visible {
+            display: inline;
+        }
+
+        .results-area {
+            margin-top: var(--space-8);
+        }
+
+        .results-area.glass-card {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-8);
+            display: none;
+        }
+
+        .results-area.glass-card.visible {
+            display: block;
+        }
+
+        /* Markdown-rendered result styles */
+        .result-content h1,
+        .result-content h2,
+        .result-content h3 {
+            font-family: var(--sans);
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-top: var(--space-6);
+            margin-bottom: var(--space-3);
+        }
+
+        .result-content h1 { font-size: var(--text-xl); }
+        .result-content h2 { font-size: var(--text-lg); }
+        .result-content h3 { font-size: var(--text-base); }
+
+        .result-content p {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin: var(--space-3) 0;
+        }
+
+        .result-content strong {
+            font-family: var(--mono);
+            font-size: var(--text-base);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .result-content ul,
+        .result-content ol {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--text-secondary);
+            line-height: 1.65;
+            padding-left: var(--space-6);
+            margin: var(--space-3) 0;
+        }
+
+        .result-content code {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            color: var(--accent);
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 3px;
+            padding: 1px 5px;
+        }
+
+        .result-content hr {
+            border: none;
+            border-top: 1px solid var(--glass-border);
+            margin: var(--space-6) 0;
+        }
+
+        .result-content table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            margin: var(--space-4) 0;
+        }
+
+        .result-content th {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: left;
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .result-content td {
+            color: var(--text-primary);
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .auth-error-box {
+            font-family: var(--sans);
+            font-size: var(--text-base);
+            color: var(--signal-red);
+        }
+
+        .auth-error-box a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .auth-error-box a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile — single column */
+        @media (max-width: 768px) {
+            .page-header {
+                padding: var(--space-10) 0 var(--space-6);
+            }
+
+            .calculator-form {
+                padding: var(--space-6);
+            }
+
+            .results-area.glass-card {
+                padding: var(--space-6);
+            }
+
+            .action-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include "fragments/nav.html" %}
+
+    <main>
+        <div class="obs-container">
+            <header class="page-header">
+                <h1>Cost of Delay Calculator</h1>
+                <p>Calculate the financial cost of SF permit processing delays for your project.</p>
+            </header>
+
+            <div class="glass-card calculator-form">
+                <form id="delay-form" novalidate>
+                    <div class="form-grid">
+
+                        <div class="form-field">
+                            <label for="permit-type">Permit Type</label>
+                            <input
+                                type="text"
+                                id="permit-type"
+                                class="form-input"
+                                placeholder="e.g. adu, restaurant, commercial remodel"
+                                autocomplete="off"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-field">
+                            <label for="monthly-cost">Monthly Carrying Cost</label>
+                            <div class="currency-wrapper">
+                                <span class="currency-prefix">$</span>
+                                <input
+                                    type="number"
+                                    id="monthly-cost"
+                                    class="form-input currency-input"
+                                    placeholder="e.g. 5000"
+                                    min="0.01"
+                                    step="any"
+                                    required
+                                >
+                            </div>
+                            <span id="cost-error" class="inline-error">Monthly carrying cost must be greater than zero.</span>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="neighborhood">
+                                Neighborhood
+                                <span class="optional-tag">optional</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="neighborhood"
+                                class="form-input"
+                                placeholder="e.g. Mission, Noe Valley, SoMa"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="form-field">
+                            <label for="triggers">
+                                Known Delay Triggers
+                                <span class="optional-tag">optional — comma-separated</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="triggers"
+                                class="form-input"
+                                placeholder="e.g. active complaints, incomplete drawings"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="submit-btn" class="action-btn">Calculate cost &rarr;</button>
+                        <span id="loading" class="loading-state">Calculating...</span>
+                    </div>
+                </form>
+            </div>
+
+            <div id="results" class="results-area glass-card" role="region" aria-live="polite">
+                <div id="result-content" class="result-content"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script nonce="{{ csp_nonce }}">
+    (function () {
+        var form        = document.getElementById('delay-form');
+        var submitBtn   = document.getElementById('submit-btn');
+        var loadingEl   = document.getElementById('loading');
+        var resultsEl   = document.getElementById('results');
+        var resultContent = document.getElementById('result-content');
+        var costInput   = document.getElementById('monthly-cost');
+        var costError   = document.getElementById('cost-error');
+        var permitInput = document.getElementById('permit-type');
+
+        function showLoading(on) {
+            submitBtn.disabled = on;
+            loadingEl.classList.toggle('visible', on);
+        }
+
+        function showResults(html) {
+            resultContent.innerHTML = html;
+            resultsEl.classList.add('visible');
+        }
+
+        function showError(message) {
+            resultContent.innerHTML =
+                '<div class="auth-error-box">' + escapeHtml(message) + '</div>';
+            resultsEl.classList.add('visible');
+        }
+
+        function showAuthError() {
+            resultContent.innerHTML =
+                '<div class="auth-error-box">You must be logged in to use this tool. ' +
+                '<a href="/auth/login">Log in</a> to continue.</div>';
+            resultsEl.classList.add('visible');
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        function validateCost() {
+            var val = parseFloat(costInput.value);
+            if (!costInput.value || isNaN(val) || val <= 0) {
+                costInput.classList.add('input-error');
+                costError.classList.add('visible');
+                return false;
+            }
+            costInput.classList.remove('input-error');
+            costError.classList.remove('visible');
+            return true;
+        }
+
+        costInput.addEventListener('input', function () {
+            if (costError.classList.contains('visible')) {
+                validateCost();
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var permitType = permitInput.value.trim();
+            if (!permitType) {
+                permitInput.focus();
+                return;
+            }
+
+            if (!validateCost()) {
+                costInput.focus();
+                return;
+            }
+
+            var monthlyCost = parseFloat(costInput.value);
+            var neighborhood = document.getElementById('neighborhood').value.trim() || null;
+            var triggersRaw = document.getElementById('triggers').value;
+            var triggers = triggersRaw
+                ? triggersRaw.split(',').map(function (s) { return s.trim(); }).filter(Boolean)
+                : null;
+
+            var token = document.querySelector('meta[name="csrf-token"]');
+            var csrfToken = token ? token.getAttribute('content') : '';
+
+            showLoading(true);
+            resultsEl.classList.remove('visible');
+
+            fetch('/api/delay-cost', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    permit_type: permitType,
+                    monthly_carrying_cost: monthlyCost,
+                    neighborhood: neighborhood,
+                    triggers: triggers
+                })
+            })
+            .then(function (resp) {
+                if (resp.status === 401) {
+                    showLoading(false);
+                    showAuthError();
+                    return null;
+                }
+                return resp.json();
+            })
+            .then(function (data) {
+                if (data === null) return;
+                showLoading(false);
+                if (data.error) {
+                    showError(data.error);
+                } else if (data.result) {
+                    showResults(marked.parse(data.result));
+                } else {
+                    showError('Unexpected response. Please try again.');
+                }
+            })
+            .catch(function (err) {
+                showLoading(false);
+                showError('Network error. Please try again.');
+            });
+        });
+    })();
+    </script>
+</body>
+</html>
