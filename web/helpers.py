@@ -108,7 +108,12 @@ NEIGHBORHOODS = [
 
 
 # ---------------------------------------------------------------------------
-# Simple in-memory rate limiter (per-IP, resets on deploy)
+# Rate limiter — Redis-backed with in-memory fallback
+#
+# When REDIS_URL is set (Railway production), requests are counted in Redis
+# using INCR + EXPIRE so counts are shared across all Gunicorn workers.
+# When REDIS_URL is not set (local dev) or Redis is unreachable, the limiter
+# falls back to an in-process dict that resets on deploy.
 # ---------------------------------------------------------------------------
 _rate_buckets: dict[str, list[float]] = defaultdict(list)
 
@@ -120,17 +125,82 @@ RATE_LIMIT_MAX_LOOKUP = 15    # /lookup requests per window (lightweight)
 RATE_LIMIT_MAX_ASK = 20       # /ask requests per window (conversational search)
 RATE_LIMIT_MAX_AUTH = 5       # /auth/send-link requests per window
 
+# Cached Redis client — None means "not available, use in-memory"
+_redis_client = None
+_redis_checked = False
+
+
+def _get_redis_client():
+    """Return a connected Redis client, or None if unavailable.
+
+    Result is cached after the first successful connect attempt so that the
+    socket overhead is paid once per process, not per request.  If the initial
+    connect or ping fails (e.g. local dev where REDIS_URL is not set) we cache
+    the None so subsequent calls skip the import/connect overhead.
+    """
+    global _redis_client, _redis_checked
+    if _redis_checked:
+        return _redis_client
+
+    _redis_checked = True
+    redis_url = os.environ.get("REDIS_URL")
+    if not redis_url:
+        _redis_client = None
+        return None
+
+    try:
+        import redis as _redis_lib
+        client = _redis_lib.from_url(redis_url, socket_connect_timeout=1)
+        client.ping()
+        _redis_client = client
+    except Exception:
+        _redis_client = None
+
+    return _redis_client
+
+
+def check_rate_limit(key: str, limit: int, window_seconds: int) -> bool:
+    """Return True if the request is allowed, False if the rate limit is exceeded.
+
+    Uses Redis INCR + EXPIRE for a sliding counter window when Redis is
+    available.  Falls back to the in-memory _rate_buckets dict otherwise.
+
+    Args:
+        key: Unique key identifying the rate-limit bucket (e.g. ``"rl:ip:1.2.3.4"``).
+        limit: Maximum number of requests allowed in *window_seconds*.
+        window_seconds: Length of the time window in seconds.
+    """
+    client = _get_redis_client()
+    if client is not None:
+        try:
+            pipe = client.pipeline()
+            pipe.incr(key)
+            pipe.expire(key, window_seconds)
+            result = pipe.execute()
+            count = result[0]
+            return count <= limit
+        except Exception:
+            pass  # Redis error — fall through to in-memory
+
+    # In-memory fallback (per-process, resets on deploy)
+    now = time.monotonic()
+    bucket = _rate_buckets[key]
+    _rate_buckets[key] = [t for t in bucket if now - t < window_seconds]
+    if len(_rate_buckets[key]) >= limit:
+        return False
+    _rate_buckets[key].append(now)
+    return True
+
 
 def _is_rate_limited(ip: str, max_requests: int) -> bool:
-    """Return True if ip has exceeded max_requests in the current window."""
-    now = time.monotonic()
-    bucket = _rate_buckets[ip]
-    # Prune old entries
-    _rate_buckets[ip] = [t for t in bucket if now - t < RATE_LIMIT_WINDOW]
-    if len(_rate_buckets[ip]) >= max_requests:
-        return True
-    _rate_buckets[ip].append(now)
-    return False
+    """Return True if ip has exceeded max_requests in the current window.
+
+    Delegates to check_rate_limit() so the Redis-backed path is used when
+    available.  Existing callers pass ``(ip, max_requests)`` and receive the
+    same semantics as before (True = rate limited, False = allowed).
+    """
+    key = f"rl:ip:{ip}"
+    return not check_rate_limit(key, max_requests, RATE_LIMIT_WINDOW)
 
 
 # ---------------------------------------------------------------------------
