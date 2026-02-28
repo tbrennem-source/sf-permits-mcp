@@ -135,10 +135,10 @@ def authed_client():
 class TestStationPredictorRoute:
     """Route-level tests via Flask test client."""
 
-    def test_route_redirects_unauthenticated(self, client):
-        """GET /tools/station-predictor redirects to login if not authenticated."""
+    def test_route_accessible_unauthenticated(self, client):
+        """GET /tools/station-predictor returns 200 for anonymous users (no login redirect)."""
         rv = client.get("/tools/station-predictor")
-        assert rv.status_code in (302, 301)
+        assert rv.status_code == 200
 
     @pytest.mark.xfail(reason="g.user requires full before_request chain — needs integration fixture")
     def test_route_renders_for_authenticated_user(self, authed_client):

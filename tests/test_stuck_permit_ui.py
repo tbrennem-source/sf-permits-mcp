@@ -123,9 +123,10 @@ def authed_client():
 
 
 class TestStuckPermitRoute:
-    def test_route_redirects_unauthenticated(self, client):
+    def test_route_accessible_unauthenticated(self, client):
+        """GET /tools/stuck-permit returns 200 for anonymous users (no login redirect)."""
         rv = client.get("/tools/stuck-permit")
-        assert rv.status_code in (302, 301)
+        assert rv.status_code == 200
 
     @pytest.mark.xfail(reason="g.user requires full before_request chain — needs integration fixture")
     def test_route_renders_for_authenticated_user(self, authed_client):

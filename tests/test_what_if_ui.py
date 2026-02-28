@@ -116,9 +116,10 @@ def authed_client():
 
 
 class TestWhatIfRoute:
-    def test_route_redirects_unauthenticated(self, client):
+    def test_route_accessible_unauthenticated(self, client):
+        """GET /tools/what-if returns 200 for anonymous users (no login redirect)."""
         rv = client.get("/tools/what-if")
-        assert rv.status_code in (302, 301)
+        assert rv.status_code == 200
 
     @pytest.mark.xfail(reason="g.user requires full before_request chain")
     def test_route_renders_for_authenticated_user(self, authed_client):

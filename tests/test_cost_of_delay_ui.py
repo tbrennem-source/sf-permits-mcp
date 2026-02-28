@@ -152,16 +152,16 @@ def authed_client():
 
 
 class TestCostOfDelayRoute:
-    def test_route_redirects_unauthenticated(self, client):
-        """Unauthenticated request to /tools/cost-of-delay redirects to login."""
+    def test_route_accessible_unauthenticated(self, client):
+        """Unauthenticated request to /tools/cost-of-delay returns 200 (no redirect)."""
         rv = client.get("/tools/cost-of-delay")
-        assert rv.status_code in (302, 301)
+        assert rv.status_code == 200
 
-    def test_route_redirect_target_is_login(self, client):
-        """Unauthenticated redirect sends user to /auth/login."""
+    def test_route_no_redirect_for_anonymous(self, client):
+        """Anonymous user is NOT redirected to login from /tools/cost-of-delay."""
         rv = client.get("/tools/cost-of-delay")
-        location = rv.headers.get('Location', '')
-        assert 'login' in location or 'auth' in location
+        assert rv.status_code != 301
+        assert rv.status_code != 302
 
     @pytest.mark.xfail(reason="g.user requires full before_request chain (user lookup from DB) not available in test_client TESTING mode")
     def test_route_renders_for_authenticated_user(self, authed_client):

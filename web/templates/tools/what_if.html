@@ -467,6 +467,24 @@
         .error-box a:hover {
             text-decoration: underline;
         }
+
+        /* Anonymous user soft CTA */
+        .anon-cta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            margin-top: var(--space-6);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+        }
+
+        .anon-cta-text {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+        }
     </style>
 </head>
 <body>
@@ -634,6 +652,13 @@
 
             <!-- Error state -->
             <div class="error-box" id="error-box" style="display:none;"></div>
+
+            {% if not g.user %}
+            <div class="anon-cta" id="anon-cta">
+                <span class="anon-cta-text">Simulate your own projects &mdash;</span>
+                <a href="/beta/join" class="ghost-cta">Sign up free &rarr;</a>
+            </div>
+            {% endif %}
 
         </div>
     </main>

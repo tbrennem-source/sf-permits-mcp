@@ -1608,9 +1608,10 @@ def _render_rag_results(query: str, results: list[dict]) -> str:
 
 @bp.route("/tools/station-predictor")
 def tools_station_predictor():
-    """Station Predictor: predicted next review stations for a permit."""
-    if not g.user:
-        return redirect("/auth/login")
+    """Station Predictor: predicted next review stations for a permit.
+
+    Accessible without login — anonymous users see demo data + soft CTA.
+    """
     return render_template("tools/station_predictor.html")
 
 
@@ -1620,9 +1621,10 @@ def tools_station_predictor():
 
 @bp.route("/tools/stuck-permit")
 def tools_stuck_permit():
-    """Stuck Permit Analyzer: diagnose delays and get intervention playbook."""
-    if not g.user:
-        return redirect("/auth/login")
+    """Stuck Permit Analyzer: diagnose delays and get intervention playbook.
+
+    Accessible without login — anonymous users see demo data + soft CTA.
+    """
     return render_template("tools/stuck_permit.html")
 
 
@@ -1633,9 +1635,10 @@ def tools_stuck_permit():
 
 @bp.route("/tools/what-if")
 def tools_what_if():
-    """What-If Simulator: compare project variation impacts on timeline and fees."""
-    if not g.user:
-        return redirect("/auth/login")
+    """What-If Simulator: compare project variation impacts on timeline and fees.
+
+    Accessible without login — anonymous users see demo data + soft CTA.
+    """
     return render_template("tools/what_if.html")
 
 
@@ -1646,9 +1649,10 @@ def tools_what_if():
 
 @bp.route("/tools/cost-of-delay")
 def tools_cost_of_delay():
-    """Cost of Delay Calculator: financial impact of permit processing delays."""
-    if not g.user:
-        return redirect("/auth/login")
+    """Cost of Delay Calculator: financial impact of permit processing delays.
+
+    Accessible without login — anonymous users see demo data + soft CTA.
+    """
     return render_template("tools/cost_of_delay.html")
 
 
