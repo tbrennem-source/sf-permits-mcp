@@ -1451,3 +1451,439 @@ _Last reviewed: Sprint 68-A (2026-02-26)_
 **Edge cases seen in code:** $30,440/month → ~$1,000/day. $304,400/month → ~$10K/day. Zero/negative returns error.
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+# Scenarios — QS8-T3-A: Multi-step Onboarding + PREMIUM Tier + Feature Flags
+
+## SUGGESTED SCENARIO: homeowner completes 3-step onboarding wizard
+
+**Source:** web/routes_auth.py, web/templates/onboarding_step1.html
+**User:** homeowner
+**Starting state:** New user just verified their magic link for the first time; no role set, no watches, onboarding_complete=False
+**Goal:** Complete the onboarding flow to get oriented with the product
+**Expected outcome:** Role saved to profile, demo property added to portfolio, onboarding_complete=True, user lands on dashboard
+**Edge cases seen in code:** User can skip step 2 (no watch created); all roles validated server-side; re-running onboarding via ?redo=1 is supported
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: expediter skips role selection and still advances
+
+**Source:** web/routes_auth.py (onboarding_step1 has skip link to step 2)
+**User:** expediter
+**Starting state:** User is on step 1 of onboarding
+**Goal:** Skip role selection and go directly to step 2 without choosing a role
+**Expected outcome:** User proceeds to step 2 (watch property) without error; role remains unset in DB; no data loss
+**Edge cases seen in code:** Skip link bypasses POST entirely — no validation happens; role stays NULL in DB
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: user adds demo property in step 2 and sees it in portfolio
+
+**Source:** web/routes_auth.py (onboarding_step2_save), web/auth.py (add_watch)
+**User:** homeowner
+**Starting state:** User is on step 2 of onboarding; no watch items exist
+**Goal:** Click "Add to portfolio" for 1455 Market St
+**Expected outcome:** Watch item created for 1455 Market St (type=address); user advances to step 3; property appears in portfolio/account page
+**Edge cases seen in code:** add_watch is idempotent — clicking twice doesn't duplicate the watch; add_watch failure is non-fatal (redirects anyway)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: beta user automatically gets PREMIUM tier access
+
+**Source:** web/feature_gate.py (get_user_tier, _is_beta_premium)
+**User:** expediter (beta invite code holder)
+**Starting state:** User created account with invite code starting with "sfp-beta-" or "sfp-amy-" or "sfp-team-"
+**Goal:** Access premium-gated features (plan_analysis_full, entity_deep_dive, etc.)
+**Expected outcome:** gate_context() returns is_premium=True; can_plan_analysis_full=True; no paywall shown; seamless experience identical to paid users
+**Edge cases seen in code:** is_admin check comes before PREMIUM check — admin tier always wins; subscription_tier='premium' in DB also grants PREMIUM regardless of invite code
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: feature flags default open during beta; all authenticated users access premium features
+
+**Source:** web/feature_gate.py (FEATURE_REGISTRY TODO comments)
+**User:** homeowner
+**Starting state:** Regular authenticated user with no special invite code; subscription_tier='free'
+**Goal:** Access plan_analysis_full, entity_deep_dive, export_pdf, api_access, priority_support
+**Expected outcome:** All 5 features accessible during beta period (FEATURE_REGISTRY defaults to AUTHENTICATED); no upgrade prompt; TODO comments in code mark the transition point
+**Edge cases seen in code:** When beta ends, raising tier to PREMIUM will gate these for non-premium users; this is a deliberate gradual reveal pattern
+**CC confidence:** high
+**Status:** PENDING REVIEW
+# Scenarios — QS8 T3-B: Search NLP Parser + Empty Result Guidance + Result Ranking
+
+## SUGGESTED SCENARIO: natural language address query resolves correctly
+
+**Source:** web/helpers.py parse_search_query, web/routes_public.py public_search
+**User:** homeowner
+**Starting state:** User is on /search and types a natural language query that contains a street address embedded in prose
+**Goal:** Find permit records for their property using a plain-English description like "permits at 123 Market St"
+**Expected outcome:** Permit records for 123 Market St are returned, not a "no results" page, even though the query wasn't a bare address
+**Edge cases seen in code:** Intent router may classify as "analyze_project" if query contains action verbs — NLP parser upgrades to "search_address" when it finds street_number + street_name
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: neighborhood-scoped search shows guidance
+
+**Source:** web/helpers.py parse_search_query, build_empty_result_guidance
+**User:** expediter
+**Starting state:** User searches "kitchen remodel in the Mission" with no specific address
+**Goal:** Filter permit results to Mission neighborhood, or get helpful guidance on how to search
+**Expected outcome:** Either filtered results are shown OR, if no results, contextual suggestions are shown that match the query intent (neighborhood + permit type)
+**Edge cases seen in code:** "Mission" alias maps to "Mission" neighborhood; "in the Mission" prep phrase is stripped before passing residual text as description_search
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: zero results shows demo link and contextual suggestions
+
+**Source:** web/routes_public.py public_search, web/helpers.py build_empty_result_guidance
+**User:** homeowner
+**Starting state:** User searches for something that returns no permit records
+**Goal:** Get guidance on what to try next, not a dead end
+**Expected outcome:** Page shows "No permits found", a contextual "Did you mean?" hint if applicable, example search links matching the query intent, and a link to /demo
+**Edge cases seen in code:** build_empty_result_guidance inspects parsed dict to generate query-specific suggestions (not generic boilerplate)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: year filter extracted from natural language query
+
+**Source:** web/helpers.py parse_search_query (_YEAR_RE)
+**User:** expediter
+**Starting state:** User types "new construction SoMa 2024"
+**Goal:** Find new construction permits in South of Market filed in 2024
+**Expected outcome:** parse_search_query returns neighborhood="South of Market", permit_type="new construction", date_from="2024-01-01"
+**Edge cases seen in code:** Year must be in 2018-2030 range; year is extracted BEFORE address to prevent "2022" being parsed as a street number
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: result badges distinguish address vs permit vs description matches
+
+**Source:** web/helpers.py rank_search_results
+**User:** expediter
+**Starting state:** Search returns a mix of exact address matches, permit number matches, and description keyword matches
+**Goal:** Quickly identify which results are the most relevant
+**Expected outcome:** Each result has a badge ("Address Match", "Permit", or "Description") and results are sorted with address matches first, then permit number matches, then description matches
+**Edge cases seen in code:** badge is computed per result; _rank_score removed before returning; ties within same type maintain original order
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+# Scenarios Pending Review — QS8-T3-C
+
+## SUGGESTED SCENARIO: Expediter finds all active electrical permits at an address
+**Source:** src/ingest.py — ingest_electrical_permits, _normalize_electrical_permit
+**User:** expediter
+**Starting state:** Electrical permits have been ingested into the permits table with permit_type='electrical'
+**Goal:** Find all active electrical permits at a property to understand current electrical work scope
+**Expected outcome:** Search returns electrical permits with correct address, status, description, and filing/issue dates; permit_type is clearly identified as electrical
+**Edge cases seen in code:** zip_code field aliased to zipcode column — searches by zip must handle this; neighborhood and supervisor_district are NULL for electrical permits (not in source dataset)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Homeowner checks plumbing permit status after water heater replacement
+**Source:** src/ingest.py — ingest_plumbing_permits, _normalize_plumbing_permit
+**User:** homeowner
+**Starting state:** Plumbing permit filed and issued; data ingested into permits table with permit_type='plumbing'
+**Goal:** Confirm their plumbing permit was issued and completed so they can close out with the contractor
+**Expected outcome:** Permit lookup returns plumbing permit with filed_date, issued_date, completed_date, and status; parcel_number and unit fields (present in source data) are not exposed since they don't exist in the permits schema
+**Edge cases seen in code:** parcel_number and unit fields exist in SODA dataset but are dropped during normalization — users asking for parcel_number won't find it via permit lookup
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Property inspector looks up boiler permit history for a commercial building
+**Source:** src/ingest.py — ingest_boiler_permits, _normalize_boiler_permit
+**User:** expediter
+**Starting state:** Boiler permits have been ingested into the boiler_permits table (separate from the main permits table)
+**Goal:** Find all boiler permits at a commercial property to verify boiler equipment compliance history
+**Expected outcome:** Boiler permits are returned with boiler_type, boiler_serial_number, model, expiration_date, and application_date; results are from boiler_permits table (distinct from building/electrical/plumbing permits)
+**Edge cases seen in code:** Boiler permits are NOT in the shared permits table — tools querying permits table only will miss them; neighborhood and supervisor_district fields are available (unlike electrical permits)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Expediter verifies permit data freshness across all permit types
+**Source:** src/ingest.py — run_ingestion, ingest_log table
+**User:** expediter
+**Starting state:** Full ingest pipeline has been run; ingest_log has entries for all dataset types
+**Goal:** Confirm when electrical, plumbing, and boiler permit data was last refreshed to assess data currency for a client report
+**Expected outcome:** System shows last-updated timestamps for electrical (ftty-kx6y), plumbing (a6aw-rudh), and boiler (5dp4-gtxk) datasets via ingest_log; times are human-readable and indicate same-day freshness after a nightly run
+**Edge cases seen in code:** Each ingest run uses INSERT OR REPLACE on ingest_log — re-running updates the timestamp; boiler permits use DELETE+re-insert pattern (not INSERT OR REPLACE) so partial failures leave no data
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Admin triggers selective re-ingest of only electrical permits from CLI
+**Source:** src/ingest.py — main() argparse block, --electrical-permits flag
+**User:** admin
+**Starting state:** Full database is populated but electrical permit data may be stale
+**Goal:** Re-ingest only electrical permits without touching other datasets to save time
+**Expected outcome:** Running `python -m src.ingest --electrical-permits` updates only electrical permit records; building, plumbing, boiler, and all other tables are unchanged; ingest_log shows updated timestamp only for electrical endpoint
+**Edge cases seen in code:** do_all logic: if ANY specific flag is passed, do_all=False and only flagged datasets run; --boiler flag controls boiler permits (not --boiler-permits); --plumbing-permits controls plumbing permits (separate from --plumbing which controls plumbing inspections)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+# Scenarios Pending Review — QS8-T3-D (E2E Onboarding + Performance)
+
+## SUGGESTED SCENARIO: welcome page onboarding flow for new user
+
+**Source:** tests/e2e/test_onboarding_scenarios.py — TestWelcomePage
+**User:** homeowner
+**Starting state:** User has just verified their magic-link email for the first time. `onboarding_complete` is False in their user record.
+**Goal:** User wants to get started using sfpermits.ai — understand what it does and how to add their first address.
+**Expected outcome:** User lands on /welcome, sees 3-step onboarding guidance (search, report, watchlist), can proceed to the main app without being locked in a loop.
+**Edge cases seen in code:** If `user.get("onboarding_complete")` is True, /welcome redirects to index — so returning users don't see the page again.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: demo page previews property intelligence without login
+
+**Source:** tests/e2e/test_onboarding_scenarios.py — TestDemoPageAnonymous
+**User:** homeowner
+**Starting state:** Anonymous visitor arrives at /demo (e.g. from a Zoom demo link or marketing email).
+**Goal:** Visitor wants to see what sfpermits.ai looks like without creating an account.
+**Expected outcome:** /demo renders with 1455 Market St data pre-loaded — permits, severity tier, timeline estimate, neighborhood. No login prompt required. density=max parameter shows maximum data density.
+**Edge cases seen in code:** Demo data is cached for 15 minutes (_DEMO_CACHE_TTL=900). If DuckDB permits table is empty, page still renders using hardcoded timeline fallback.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: methodology page explains calculations for skeptical users
+
+**Source:** tests/e2e/test_onboarding_scenarios.py — TestMethodologyPage
+**User:** expediter
+**Starting state:** User has seen a severity tier on a property report and wants to understand how it was calculated.
+**Goal:** User navigates to /methodology to verify the scoring approach is defensible.
+**Expected outcome:** Page loads publicly (no auth), has multiple sections covering severity scoring, timeline estimation, entity resolution, and data sources.
+**Edge cases seen in code:** Page is a static template render — no DB queries. Should be very fast.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: beta request form as organic signup path
+
+**Source:** tests/e2e/test_onboarding_scenarios.py — TestBetaRequestForm
+**User:** homeowner
+**Starting state:** User tries to sign up but no invite code configured or code is invalid. Route logic redirects them to /beta-request.
+**Goal:** User wants to request access to sfpermits.ai without an invite code.
+**Expected outcome:** Form renders with email + reason fields. Honeypot field is invisible. Valid submission shows confirmation message. Invalid email (no @) returns 400 not 500.
+**Edge cases seen in code:** Honeypot field named `website` — bots that fill it get silently "success" response. Rate limiting by IP. Empty reason field returns 400.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: portfolio empty state guidance for new user
+
+**Source:** tests/e2e/test_onboarding_scenarios.py — TestPortfolioEmptyState
+**User:** homeowner
+**Starting state:** Newly onboarded user has not yet added any watch items.
+**Goal:** User navigates to /portfolio expecting to see their watched properties.
+**Expected outcome:** Page renders without crash. Shows an empty state with guidance on how to add a watch item — not a blank page or uncaught exception. Anonymous users are redirected to login.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: health endpoint responds under 500ms for Railway probe
+
+**Source:** tests/e2e/test_performance_scenarios.py — TestHealthEndpoint
+**User:** admin
+**Starting state:** Railway health probe hits /health every ~30s. Response time determines instance health status.
+**Goal:** System needs to respond reliably within Railway's health-check window.
+**Expected outcome:** /health returns 200 with valid JSON containing a status field in under 500ms. If health check takes >500ms consistently, Railway marks instance unhealthy and restarts it.
+**Edge cases seen in code:** Pool exhaustion (PoolError) causes health to fail. statement_timeout is set per connection.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: search results within 2s latency budget
+
+**Source:** tests/e2e/test_performance_scenarios.py — TestSearchPerformance
+**User:** expediter
+**Starting state:** User types a street name into the search box on the landing page.
+**Goal:** User expects results to appear quickly — ideally under 1s, definitely under 2s.
+**Expected outcome:** /search?q=<address> returns 200 or redirect within 2s. Sprint 69 Hotfix added graceful degradation on query timeouts — 30s statement_timeout prevents hangs.
+**Edge cases seen in code:** If DuckDB is not populated (CI/fresh checkout), search returns empty quickly. Postgres with missing pgvector index causes slow semantic search.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+---
+
+## SUGGESTED SCENARIO: rapid page navigation does not produce 500 errors
+
+**Source:** tests/e2e/test_performance_scenarios.py — TestRapidNavigationResilience
+**User:** expediter
+**Starting state:** User clicks quickly between multiple pages (landing, methodology, about-data, demo, beta-request).
+**Goal:** System handles burst navigation without connection pool exhaustion or session corruption.
+**Expected outcome:** None of the 5 pages return 500. All pages return 200 or redirect. Flask sessions and g.user remain consistent across rapid sequential requests.
+**Edge cases seen in code:** DB_POOL_MAX defaults to 20. If Flask is configured with threaded=True (used in tests), concurrent requests share the pool. DuckDB only allows one write connection at a time.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: property report loads fast for large parcels
+**Source:** web/report.py _get_contacts_batch/_get_inspections_batch
+**User:** expediter
+**Starting state:** A parcel with 40+ permits (e.g., large commercial building) exists in the database. Each permit has multiple contacts and inspections.
+**Goal:** Load the property report page without waiting 10+ seconds.
+**Expected outcome:** Report renders in under 3 seconds. All permit contacts and inspections are present and correctly attributed to each permit.
+**Edge cases seen in code:** Empty permit list returns empty contacts/inspections maps without any DB call. Permits with no contacts get an empty list (not an error). Permits with no permit_number are skipped in the batch.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: property report contacts are role-ordered per permit
+**Source:** web/report.py _get_contacts_batch ORDER BY role priority
+**User:** expediter
+**Starting state:** A permit has contacts with roles: contractor, engineer, applicant.
+**Goal:** View the property report and see contacts listed in a consistent order.
+**Expected outcome:** Applicant appears first, then contractor, then engineer, then others. Order is consistent regardless of how data was inserted.
+**Edge cases seen in code:** CASE WHEN ordering handles NULL/empty role strings via COALESCE — they sort last.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: SODA data is served from cache on rapid re-render
+**Source:** web/report.py _soda_cache (15-min TTL)
+**User:** expediter
+**Starting state:** A property report was recently loaded (< 15 minutes ago). SODA API is available.
+**Goal:** Load the same property report again (e.g., browser back-forward navigation or admin review).
+**Expected outcome:** Second load is noticeably faster. SODA API is not called again. Complaints, violations, and property data are identical to the first load.
+**Edge cases seen in code:** Cache is keyed by endpoint_id:block:lot — different parcels never share cache entries. Cache is module-level so it persists for the process lifetime.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: stale SODA cache is refreshed after TTL expires
+**Source:** web/report.py _SODA_CACHE_TTL = 900
+**User:** expediter
+**Starting state:** A property report was loaded 16 minutes ago. A new complaint was filed since then.
+**Goal:** Load the property report and see the new complaint.
+**Expected outcome:** SODA API is called fresh. The new complaint appears in the report. Old cached data is replaced.
+**Edge cases seen in code:** TTL checked via time.monotonic() — not affected by system clock changes. Expired entries are replaced, not deleted first.
+**CC confidence:** low
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: morning brief shows pipeline health stats
+**Source:** web/brief.py — _get_pipeline_stats(), get_morning_brief()
+**User:** admin
+**Starting state:** Nightly cron has run at least once; cron_log has records
+**Goal:** User opens morning brief and sees pipeline health summary (avg job duration, 24h success/fail counts)
+**Expected outcome:** Brief data includes pipeline_stats with recent_jobs list and 24h counts; average duration is computed from successful runs; non-fatal if cron_log is empty or unavailable
+**Edge cases seen in code:** If DB unavailable, pipeline_stats returns {} — brief still renders without it
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: signals cron endpoint logs to cron_log
+**Source:** web/routes_cron.py — cron_signals()
+**User:** admin
+**Starting state:** CRON_SECRET configured; signals pipeline operational
+**Goal:** Scheduler calls POST /cron/signals to run signal detection
+**Expected outcome:** Job start logged as 'running', completion logged as 'success' or 'failed' with elapsed time; response includes ok, status, elapsed_seconds; failure does not crash the endpoint (returns ok=False)
+**Edge cases seen in code:** cron_log insert failure is non-fatal (logged as warning); pipeline exception returns HTTP 500 with ok=False
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: velocity-refresh cron endpoint logs to cron_log
+**Source:** web/routes_cron.py — cron_velocity_refresh()
+**User:** admin
+**Starting state:** CRON_SECRET configured; addenda table populated with routing data
+**Goal:** Scheduler calls POST /cron/velocity-refresh to refresh station velocity baselines
+**Expected outcome:** Velocity refresh runs, transitions and congestion sub-steps also attempted (non-fatal); all logged to cron_log; response includes rows_inserted, stations, transitions; partial failures (transitions/congestion) don't fail overall job
+**Edge cases seen in code:** transitions failure logged as transitions_error key in response; congestion failure same pattern
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: pipeline stats unavailable at first deploy
+**Source:** web/brief.py — _get_pipeline_stats()
+**User:** admin
+**Starting state:** Fresh deploy, cron_log table empty or not yet populated
+**Goal:** Admin opens morning brief before any cron jobs have run
+**Expected outcome:** Brief still renders; pipeline_stats is empty dict ({}); no error shown to user
+**Edge cases seen in code:** Exception caught silently, returns {}
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: SODA API circuit breaker opens after repeated failures
+**Source:** src/soda_client.py — CircuitBreaker integration with SODAClient.query()
+**User:** homeowner | expediter
+**Starting state:** SODA API is returning 503 errors or timing out on every request
+**Goal:** User searches for permit data; app should not hang or surface raw errors
+**Expected outcome:** After the failure threshold is reached, all SODA queries return empty results immediately without making network calls. The UI degrades gracefully (shows no results) rather than returning error pages or stalling.
+**Edge cases seen in code:** 4xx errors (e.g., bad dataset ID) do NOT trip the circuit — only 5xx and network errors count as failures
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: SODA circuit breaker auto-recovers after cooldown
+**Source:** src/soda_client.py — CircuitBreaker.is_open() half-open transition
+**User:** expediter
+**Starting state:** Circuit breaker was opened due to SODA API failures; recovery_timeout seconds have passed
+**Goal:** Resume normal permit data queries without manual restart
+**Expected outcome:** The next query after the cooldown window acts as a probe. If it succeeds, the circuit closes and normal queries resume. If it fails, the circuit reopens and the cooldown restarts.
+**Edge cases seen in code:** Half-open state allows exactly one probe — not multiple concurrent probes
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Circuit breaker thresholds configurable per deployment
+**Source:** src/soda_client.py — SODA_CB_THRESHOLD and SODA_CB_TIMEOUT env vars
+**User:** admin
+**Starting state:** Default thresholds (5 failures, 60s cooldown) are too aggressive for a slow network environment
+**Goal:** Operator adjusts circuit breaker sensitivity without code changes
+**Expected outcome:** Setting SODA_CB_THRESHOLD=3 and SODA_CB_TIMEOUT=120 in Railway env vars changes behavior at app startup — lower failure tolerance, longer cooldown
+**Edge cases seen in code:** Values are parsed as int() at client instantiation, not lazily — restart required for changes to take effect
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: 4xx SODA errors do not trigger circuit breaker
+**Source:** src/soda_client.py — HTTPStatusError handling in query()
+**User:** expediter
+**Starting state:** A tool passes an invalid dataset ID or malformed SoQL query to the SODA client
+**Goal:** Bad queries surface as errors without poisoning the circuit breaker for healthy queries
+**Expected outcome:** HTTPStatusError is raised to the caller as before; failure_count stays at 0; subsequent queries to valid endpoints succeed normally
+**CC confidence:** high
+**Status:** PENDING REVIEW
+## SUGGESTED SCENARIO: Response time visible in response headers
+**Source:** QS8-T1-D / web/app.py _add_response_time_header
+**User:** admin
+**Starting state:** App is running, any page is requested
+**Goal:** Measure and observe server-side response time without needing server logs
+**Expected outcome:** Every HTTP response (2xx, 4xx, 5xx) includes X-Response-Time header with value in milliseconds (e.g., "47.2ms"); value increases proportionally with DB-heavy pages vs. static pages
+**Edge cases seen in code:** Header uses time.time() wall clock, not monotonic; value is always >= 0; present on 404 and health check responses
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Static content pages cached at CDN/browser level
+**Source:** QS8-T1-D / web/app.py add_cache_headers
+**User:** homeowner
+**Starting state:** User visits /methodology, /about-data, or /demo for the first time
+**Goal:** Content loads quickly on repeat visits without hitting the origin server
+**Expected outcome:** Response includes Cache-Control: public, max-age=3600, stale-while-revalidate=86400; browser/CDN serves from cache for up to 1 hour; stale content served up to 24 hours while revalidating
+**Edge cases seen in code:** Cache header only set on 200 responses (not errors); auth pages, API endpoints, and search routes do NOT receive this header; /pricing also included in the static page list
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Health endpoint reports pool connection state
+**Source:** QS8-T1-D / web/app.py /health route enhancement
+**User:** admin
+**Starting state:** App connected to PostgreSQL with active connection pool
+**Goal:** Diagnose connection pool health without needing direct DB access
+**Expected outcome:** GET /health returns pool_stats with backend, minconn, maxconn, pool_size, used_count, and health sub-object; cache_stats shows page_cache row count and oldest entry age; both fields present even when pool is unused (DuckDB fallback returns no_pool status)
+**Edge cases seen in code:** DuckDB backend returns {"status": "no_pool", "backend": "duckdb"} for pool_stats; cache_stats falls back to {"error": "unavailable"} on any DB exception; cache_stats.oldest_entry_age_minutes is null on DuckDB
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: DB pool max tunable for high-traffic deployments
+**Source:** QS8-T1-D / src/db.py DB_POOL_MAX documentation
+**User:** admin
+**Starting state:** App running on Railway with default DB_POOL_MAX=20, experiencing connection pool exhaustion under load
+**Goal:** Scale connection pool without code changes
+**Expected outcome:** Setting DB_POOL_MAX env var to 40 (or any value) overrides the default; app restarts and creates pool with new max; pool exhaustion errors reduce; /health reports new maxconn value in pool_stats
+**Edge cases seen in code:** Pool is a lazy singleton; changing env var requires restart; increasing beyond 50 requires PgBouncer (Railway pgvector DB limit)
+**CC confidence:** low
+**Status:** PENDING REVIEW
