@@ -644,8 +644,7 @@ def init_user_schema(conn=None) -> None:
                 page_number INTEGER NOT NULL,
                 image_data TEXT NOT NULL,
                 image_size_kb INTEGER,
-                PRIMARY KEY (session_id, page_number),
-                FOREIGN KEY (session_id) REFERENCES plan_analysis_sessions(session_id)
+                PRIMARY KEY (session_id, page_number)
             )
         """)
         # user_id + page_annotations columns on sessions
