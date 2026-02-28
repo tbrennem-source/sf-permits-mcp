@@ -120,6 +120,16 @@ def inject_environment():
     }
 
 
+@app.context_processor
+def inject_tier_gate():
+    """Make tier gate state available in all templates (set by requires_tier teaser mode)."""
+    return {
+        "tier_locked": getattr(g, "tier_locked", False),
+        "tier_required": getattr(g, "tier_required", None),
+        "tier_current": getattr(g, "tier_current", None),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Startup migrations (idempotent, run once per deploy)
 # ---------------------------------------------------------------------------
