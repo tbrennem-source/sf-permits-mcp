@@ -8,543 +8,677 @@
     {% include "fragments/head_obsidian.html" %}
     <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
     <style nonce="{{ csp_nonce }}">
-        /* ── Portfolio layout ────────────────────────────────────────── */
-        .portfolio-main {
-            padding: var(--space-8) 0 var(--space-16);
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-6);
-        }
+        .page-body { padding-top: 56px; }
 
-        /* Summary stats */
-        .summary-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--space-4);
+        /* Portfolio header */
+        .portfolio-header {
+            display: flex; align-items: baseline; justify-content: space-between;
+            padding: var(--space-6, 24px) 0 var(--space-4, 16px);
         }
-        @media (max-width: 640px) {
-            .summary-row { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
-        }
-        @media (max-width: 360px) {
-            .summary-row { grid-template-columns: 1fr 1fr; }
-        }
-
-        /* Filter bar */
-        .filter-bar {
-            display: flex;
-            gap: var(--space-2);
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .filter-chip {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            font-weight: 400;
+        .portfolio-greeting {
+            font-family: var(--sans); font-size: 1.125rem; font-weight: 300;
             color: var(--text-secondary);
-            background: var(--bg-glass);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 9999px;
-            padding: 4px 12px;
+        }
+        .portfolio-greeting strong { font-weight: 400; color: var(--text-primary); }
+        .portfolio-stats {
+            font-family: var(--mono); font-size: 0.75rem; color: var(--text-tertiary);
+            display: flex; gap: 16px;
+        }
+        .portfolio-stats .ps-val { color: var(--text-secondary); }
+
+        /* Action queue — the hero */
+        .action-queue { margin-bottom: 24px; }
+        .aq-item {
+            display: flex; align-items: flex-start; gap: 16px;
+            padding: 10px 16px;
+            margin: 0 -16px;
+            border-radius: 6px;
             cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+        }
+        .aq-item:last-child { border-bottom: none; }
+        .aq-item:hover { background: rgba(255,255,255,0.04); }
+
+        .aq-item__dot {
+            width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0;
+            margin-top: 6px;
+        }
+        .aq-item__body { flex: 1; min-width: 0; }
+        .aq-item__headline {
+            font-family: var(--sans); font-size: 0.875rem; font-weight: 400;
+            color: var(--text-primary);
+        }
+        .aq-item__detail {
+            font-family: var(--mono); font-size: 0.75rem; color: var(--text-tertiary);
+            margin-top: 1px;
+        }
+        .aq-item__actions {
+            display: flex; gap: 8px; margin-top: 8px;
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s, margin 0.2s;
+        }
+        .aq-item:hover .aq-item__actions {
+            max-height: 40px; opacity: 1; margin-top: 8px;
+        }
+        .aq-action {
+            font-family: var(--mono); font-size: 10px; font-weight: 400;
+            color: var(--text-secondary); background: var(--obsidian-mid, #12121a);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: 6px;
+            padding: 3px 8px; cursor: pointer; white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
             text-decoration: none;
-            transition: border-color 0.2s, color 0.2s;
+            display: inline-block;
+        }
+        .aq-action:hover { color: var(--accent, #5eead4); border-color: rgba(94,234,212,0.30); }
+
+        .aq-item__time {
+            font-family: var(--mono); font-size: 10px;
+            flex-shrink: 0; white-space: nowrap; margin-top: 2px;
+        }
+        .aq-item__time--red { color: var(--signal-red, #f87171); }
+        .aq-item__time--amber { color: var(--signal-amber, #fbbf24); }
+        .aq-item__time--green { color: var(--signal-green, #34d399); }
+        .aq-item__time--muted { color: var(--text-tertiary); }
+        .aq-item__arrow {
+            font-family: var(--mono); font-size: 12px; color: var(--text-tertiary);
+            opacity: 0; transition: opacity 0.15s;
+            flex-shrink: 0; margin-top: 2px;
+        }
+        .aq-item:hover .aq-item__arrow { opacity: 1; color: var(--accent, #5eead4); }
+
+        /* Permit table */
+        .permit-table { margin-bottom: 24px; }
+        .pt-header {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .pt-filter {
+            display: flex; gap: 8px;
+        }
+        .pt-chip {
+            font-family: var(--mono); font-size: 10px; font-weight: 400;
+            color: var(--text-tertiary); background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 3px 8px; border-radius: 9999px;
+            cursor: pointer; transition: border-color 0.2s, color 0.2s;
+            text-decoration: none;
+        }
+        .pt-chip:hover { border-color: rgba(255,255,255,0.10); color: var(--text-secondary); }
+        .pt-chip--active { border-color: rgba(94,234,212,0.30); color: var(--accent, #5eead4); background: rgba(94,234,212,0.08); }
+
+        .pt-row {
+            display: grid; grid-template-columns: 14px 1.4fr 0.8fr 1fr 0.6fr 14px;
+            align-items: center; gap: 12px;
+            padding: 9px 12px;
+            margin: 0 -12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px;
+            cursor: pointer; transition: background 0.12s;
+        }
+        .pt-row:hover { background: rgba(255,255,255,0.04); }
+        .pt-row--header {
+            cursor: default; padding: 6px 12px;
+        }
+        .pt-row--header:hover { background: none; }
+        .pt-row--header span {
+            font-family: var(--mono); font-size: 9px; font-weight: 400;
+            letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary);
+        }
+
+        .pt-addr {
+            font-family: var(--mono); font-size: 0.875rem; font-weight: 300;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            transition: color 0.15s;
+            text-decoration: none; display: block;
+        }
+        .pt-row:hover .pt-addr { color: var(--accent, #5eead4); }
+
+        .pt-type {
+            font-family: var(--sans); font-size: 0.75rem; color: var(--text-secondary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .pt-station {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .pt-station__bar { flex: 1; }
+        .pt-station__frac {
+            font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        /* Mini gantt */
+        .mini-gantt {
+            display: flex; height: 4px; border-radius: 2px; overflow: hidden;
+            gap: 1px; flex: 1;
+        }
+        .mini-gantt__seg {
+            height: 100%; border-radius: 1px;
+        }
+        .mini-gantt__seg--done { background: var(--signal-green, #34d399); }
+        .mini-gantt__seg--active { background: var(--signal-amber, #fbbf24); animation: pulse-seg 2s ease-in-out infinite; }
+        .mini-gantt__seg--pending { background: rgba(255,255,255,0.06); }
+        .mini-gantt__seg--stalled { background: var(--signal-red, #f87171); animation: pulse-seg 2s ease-in-out infinite; }
+        @keyframes pulse-seg { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+        /* Simple progress bar for properties without routing data */
+        .simple-progress {
+            display: flex; height: 4px; border-radius: 2px; overflow: hidden; flex: 1;
+        }
+        .simple-progress__fill {
+            height: 100%; border-radius: 2px;
+        }
+        .simple-progress__bg {
+            flex: 1; background: rgba(255,255,255,0.06);
+        }
+
+        .pt-status {
+            font-family: var(--mono); font-size: 0.75rem;
             white-space: nowrap;
         }
-        .filter-chip:hover {
-            color: var(--text-primary);
-            border-color: rgba(255,255,255,0.14);
-        }
-        .filter-chip.active {
-            color: var(--signal-cyan);
-            border-color: rgba(34, 211, 238, 0.3);
-            background: rgba(34, 211, 238, 0.06);
-        }
-        .sort-select {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            background: var(--bg-elevated);
-            color: var(--text-secondary);
-            border: 1px solid rgba(255,255,255,0.06);
-            padding: 5px 10px;
-            border-radius: 6px;
-            margin-left: auto;
-            outline: none;
-            cursor: pointer;
-        }
+        .status-text--red { color: var(--signal-red, #f87171); }
+        .status-text--amber { color: var(--signal-amber, #fbbf24); }
+        .status-text--green { color: var(--signal-green, #34d399); }
+        .status-text--muted { color: var(--text-tertiary); }
 
-        /* Property grid */
-        .property-grid {
-            display: grid;
-            gap: var(--space-4);
-            grid-template-columns: 1fr;
+        .pt-arrow {
+            font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+            opacity: 0; transition: opacity 0.12s;
         }
-        @media (min-width: 700px) {
-            .property-grid { grid-template-columns: 1fr 1fr; }
-        }
+        .pt-row:hover .pt-arrow { opacity: 1; color: var(--accent, #5eead4); }
 
-        /* Property card */
-        .property-card {
-            background: var(--bg-surface);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: var(--card-radius, 12px);
-            padding: var(--space-6);
-            position: relative;
-            cursor: pointer;
-            transition: border-color 0.2s;
+        /* Quick actions bar */
+        .quick-actions {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 24px;
         }
-        .property-card:hover {
-            border-color: rgba(255,255,255,0.12);
-        }
-        /* Left-edge health indicator using status-dot color */
-        .property-card.health-at_risk  { border-left: 3px solid var(--signal-red); }
-        .property-card.health-behind   { border-left: 3px solid var(--signal-amber); }
-        .property-card.health-slower   { border-left: 3px solid var(--signal-amber); }
-        .property-card.health-on_track { border-left: 3px solid var(--signal-green); }
-
-        /* Card header row */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: var(--space-2);
-        }
-        .card-address {
-            font-family: var(--mono);
-            font-size: var(--text-sm);
-            font-weight: 400;
-            color: var(--text-primary);
-        }
-        .card-address a {
-            color: var(--text-primary);
+        .qa-btn {
+            font-family: var(--mono); font-size: 0.75rem; font-weight: 400;
+            color: var(--text-secondary); background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: 6px;
+            padding: 6px 12px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
             text-decoration: none;
-            transition: color 0.2s;
         }
-        .card-address a:hover { color: var(--signal-cyan); }
+        .qa-btn:hover {
+            border-color: rgba(94,234,212,0.30); color: var(--accent, #5eead4);
+            background: rgba(94,234,212,0.08);
+        }
+        .qa-btn__icon { font-size: 12px; }
 
-        /* Health indicator */
-        .health-indicator {
-            display: flex;
-            align-items: center;
-            gap: var(--space-1);
-            flex-shrink: 0;
+        /* Divider */
+        .divider {
+            border: none; border-top: 1px solid rgba(255,255,255,0.06);
+            margin: 0;
         }
-        .health-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 9999px;
+
+        /* Section label */
+        .section-label {
+            font-family: var(--mono); font-size: 9px; font-weight: 400;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-tertiary); margin-bottom: 12px;
+        }
+
+        /* Freshness */
+        .freshness {
+            font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
+            display: flex; align-items: center; gap: 8px;
+            padding: 24px 0 16px;
+        }
+        .freshness-dot {
+            width: 5px; height: 5px; border-radius: 9999px;
+            background: var(--signal-green, #34d399);
+            display: inline-block; flex-shrink: 0;
+        }
+
+        /* Status dots */
+        .status-dot {
+            width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0;
             display: inline-block;
-            flex-shrink: 0;
-            margin-top: 3px;
         }
-        .health-dot.on_track  { background: var(--signal-green); }
-        .health-dot.slower    { background: var(--signal-amber); }
-        .health-dot.behind    { background: var(--signal-amber); }
-        .health-dot.at_risk   { background: var(--signal-red); }
-        .health-dot.complete  { background: var(--text-tertiary); }
+        .status-dot--red { background: var(--dot-red, #ef4444); }
+        .status-dot--amber { background: var(--dot-amber, #f59e0b); }
+        .status-dot--green { background: var(--dot-green, #22c55e); }
+        .status-dot--muted { background: var(--text-tertiary); }
 
-        .health-text {
-            font-family: var(--mono);
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-weight: 400;
+        /* Ghost CTA */
+        .ghost-cta {
+            font-family: var(--mono); font-size: 0.875rem; font-weight: 300;
+            color: var(--text-secondary); text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: color 0.3s, border-color 0.3s;
         }
-        .health-text.at_risk  { color: var(--signal-red); }
-        .health-text.behind   { color: var(--signal-amber); }
-        .health-text.slower   { color: var(--signal-amber); }
-        .health-text.on_track { color: var(--signal-green); }
-        .health-text.complete { color: var(--text-tertiary); }
-
-        /* Card metadata */
-        .card-health-reason {
-            font-family: var(--sans);
-            font-size: var(--text-xs);
-            font-style: italic;
-            margin-bottom: var(--space-2);
-        }
-        .health-at_risk .card-health-reason  { color: var(--signal-red); }
-        .health-behind  .card-health-reason  { color: var(--signal-amber); }
-        .health-slower  .card-health-reason  { color: var(--signal-amber); }
-
-        .card-recency {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            margin-bottom: var(--space-1);
-        }
-        .card-recency.fresh { color: var(--signal-green); }
-        .card-recency.stale { color: var(--text-secondary); }
-
-        .card-neighborhood {
-            font-family: var(--sans);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-            margin-bottom: var(--space-2);
-        }
-
-        .card-stats {
-            display: flex;
-            gap: var(--space-4);
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-            margin-bottom: var(--space-2);
-        }
-
-        /* Tags */
-        .tag-pill {
-            display: inline-block;
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            background: rgba(34, 211, 238, 0.06);
-            color: var(--signal-cyan);
-            border: 1px solid rgba(34, 211, 238, 0.2);
-            padding: 1px 7px;
-            border-radius: 3px;
-            margin-right: var(--space-1);
-        }
-
-        /* Expanded permit list */
-        .permit-list {
-            margin-top: var(--space-4);
-            border-top: 1px solid rgba(255,255,255,0.06);
-            padding-top: var(--space-4);
-            display: none;
-        }
-        .property-card.expanded .permit-list { display: block; }
-
-        /* Permit rows in expanded view */
-        .permit-row {
-            padding: var(--space-2) 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-        }
-        .permit-row:last-child { border-bottom: none; }
-
-        .permit-status {
-            display: inline-block;
-            padding: 1px 7px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .permit-status.filed    { background: rgba(34, 211, 238, 0.1);  color: var(--signal-cyan); }
-        .permit-status.issued   { background: rgba(52, 211, 153, 0.1);  color: var(--signal-green); }
-        .permit-status.complete { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
-        .permit-status.triage   { background: rgba(251, 191, 36, 0.1);  color: var(--signal-amber); }
-
-        /* Enforcement row */
-        .enforce-row {
-            display: flex;
-            gap: var(--space-3);
-            align-items: center;
-            margin-bottom: var(--space-3);
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            flex-wrap: wrap;
-        }
-        .enforce-label {
-            color: var(--text-secondary);
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-        .enforce-badge {
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 400;
-        }
-        .enforce-badge.clear   { background: rgba(52,211,153,0.1);  color: var(--signal-green); }
-        .enforce-badge.alert   { background: rgba(248,113,113,0.1);  color: var(--signal-red); }
-        .enforce-badge.unknown { background: rgba(255,255,255,0.04); color: var(--text-secondary); }
-
-        /* Routing progress */
-        .routing-section { margin-bottom: var(--space-3); }
-        .routing-label {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-            margin-bottom: var(--space-1);
-        }
-        .routing-bar-wrap {
-            background: var(--bg-elevated);
-            border-radius: 3px;
-            height: 4px;
-            overflow: hidden;
-            margin-bottom: var(--space-1);
-        }
-        .routing-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.4s;
-        }
-        .routing-fill-ok  { background: var(--signal-green); }
-        .routing-fill-mid { background: var(--signal-amber); }
-        .routing-fill-low { background: var(--signal-cyan); }
-        .routing-stations {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-        }
-        .routing-alert {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            margin-top: var(--space-1);
-        }
-        .routing-alert.stalled { color: var(--signal-red); }
-        .routing-alert.held    { color: var(--signal-amber); }
+        .ghost-cta:hover { color: var(--accent, #5eead4); border-color: var(--accent, #5eead4); }
 
         /* Empty state */
         .portfolio-empty {
             text-align: center;
-            padding: var(--space-16) var(--space-6);
+            padding: 64px 24px;
         }
         .portfolio-empty h2 {
             font-family: var(--sans);
-            font-size: var(--text-lg);
+            font-size: 1.125rem;
             font-weight: 400;
             color: var(--text-primary);
-            margin-bottom: var(--space-2);
+            margin-bottom: 8px;
         }
         .portfolio-empty p {
             font-family: var(--sans);
             color: var(--text-secondary);
-            font-size: var(--text-sm);
+            font-size: 0.875rem;
             max-width: 420px;
-            margin: 0 auto var(--space-6);
+            margin: 0 auto 24px;
         }
         .portfolio-empty-actions {
             display: flex;
-            gap: var(--space-3);
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
+        .obsidian-btn {
+            font-family: var(--mono); font-size: 0.875rem; font-weight: 300;
+            padding: 10px 20px; border-radius: 6px;
+            cursor: pointer; text-decoration: none; display: inline-block;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .obsidian-btn-primary {
+            background: var(--accent, #5eead4); color: #0a0a0f;
+            border: 1px solid var(--accent, #5eead4);
+        }
+        .obsidian-btn-primary:hover { background: rgba(94,234,212,0.85); }
+        .obsidian-btn-outline {
+            background: transparent; color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.14);
+        }
+        .obsidian-btn-outline:hover { border-color: rgba(255,255,255,0.30); color: var(--text-primary); }
 
-        /* Card expand animation */
-        @keyframes card-expand-pulse { from { opacity: 1; } to { opacity: 0.5; } }
-        .property-card.expanding {
-            animation: card-expand-pulse 0.35s ease-in-out 2 alternate;
+        /* obs-container */
+        .obs-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        /* Timeline loading */
-        .timeline-loading {
-            font-family: var(--mono);
-            font-size: var(--text-xs);
-            color: var(--text-secondary);
-            padding: var(--space-2) 0;
-            font-style: italic;
-        }
+        /* Reveal animations */
+        .reveal { opacity: 0; transform: translateY(12px); transition: opacity 0.5s ease, transform 0.5s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
 
-        @media (max-width: 500px) {
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .filter-chip { text-align: center; }
-            .sort-select { margin-left: 0; width: 100%; }
+        @media (max-width: 768px) {
+            .portfolio-header { flex-direction: column; gap: 8px; }
+            .pt-row { grid-template-columns: 10px 1fr 0.7fr 14px; }
+            .pt-row--header span:nth-child(4),
+            .pt-row--header span:nth-child(5),
+            .pt-row > :nth-child(4),
+            .pt-row > :nth-child(5) { display: none; }
+            .quick-actions { flex-wrap: wrap; }
         }
     </style>
 </head>
 <body class="obsidian">
     {% set active_page = 'portfolio' %}
     {% include 'fragments/nav.html' %}
-    <main>
-        <div class="obs-container portfolio-main">
-            <div>
-                <h1 style="font-family: var(--sans); font-size: var(--text-xl); font-weight: 300; color: var(--text-primary); margin-bottom: var(--space-1);">Portfolio</h1>
-                <p style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">{{ summary.total_properties }} properties &middot; {{ summary.total_active_permits }} active permits</p>
-            </div>
 
-            {% if properties %}
-            <!-- Summary stats row -->
-            <div class="summary-row">
-                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
-                    <div class="stat-number" style="font-size: var(--text-xl);">{{ summary.total_properties }}</div>
-                    <div class="stat-label">Properties</div>
-                </div>
-                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
-                    <div class="stat-number" style="font-size: var(--text-xl); color: {% if summary.action_needed > 0 %}var(--signal-red){% else %}var(--signal-green){% endif %};">{{ summary.action_needed }}</div>
-                    <div class="stat-label">Action Needed</div>
-                </div>
-                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
-                    <div class="stat-number" style="font-size: var(--text-xl); color: {% if summary.in_review > 0 %}var(--signal-amber){% else %}var(--text-primary){% endif %};">{{ summary.in_review }}</div>
-                    <div class="stat-label">In Review</div>
-                </div>
-                <div class="glass-card" style="padding: var(--space-4) var(--space-6); text-align: center;">
-                    <div class="stat-number" style="font-size: var(--text-xl);">${{ "{:,.0f}".format(summary.total_value / 1000000) }}M</div>
-                    <div class="stat-label">Portfolio Value</div>
-                </div>
-            </div>
+    {% if is_staging %}
+    <div style="background: var(--signal-amber, #fbbf24); color: #0a0a0f; text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; position: relative; z-index: 9999;">
+        STAGING ENVIRONMENT
+    </div>
+    {% endif %}
 
-            <!-- Filter / sort bar -->
-            <div class="filter-bar">
-                <a href="/portfolio" class="filter-chip {{ 'active' if not filter_by or filter_by == 'all' }}">All</a>
-                <a href="/portfolio?filter=action_needed&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'action_needed' }}">Action Needed</a>
-                <a href="/portfolio?filter=in_review&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'in_review' }}">In Review</a>
-                <a href="/portfolio?filter=active&sort={{ sort_by }}" class="filter-chip {{ 'active' if filter_by == 'active' }}">Active</a>
-                <select class="sort-select" onchange="window.location.href='/portfolio?filter={{ filter_by or 'all' }}&sort='+this.value">
-                    <option value="recent" {{ 'selected' if sort_by == 'recent' or not sort_by }}>Recent Activity</option>
-                    <option value="cost_desc" {{ 'selected' if sort_by == 'cost_desc' }}>Highest Cost</option>
-                    <option value="stale" {{ 'selected' if sort_by == 'stale' }}>Most Stale</option>
-                    <option value="health" {{ 'selected' if sort_by == 'health' }}>Worst Health</option>
-                </select>
-            </div>
+    <div class="page-body">
+    <div class="obs-container">
 
-            <!-- Property Grid -->
-            <div class="property-grid">
-                {% for prop in properties %}
-                <div class="property-card health-{{ prop.worst_health }}" onclick="toggleCard(this)">
-                    <div class="card-header">
-                        <div class="card-address">
-                            <a href="/report/{{ prop.block }}/{{ prop.lot }}" onclick="event.stopPropagation()">{{ prop.address }}</a>
-                        </div>
-                        <span class="health-indicator">
-                            <span class="health-dot {{ prop.worst_health }}"></span>
-                            <span class="health-text {{ prop.worst_health }}">{{ prop.worst_health | replace('_', ' ') | title }}</span>
-                        </span>
-                    </div>
-                    {% if prop.health_reason and prop.worst_health != 'on_track' %}
-                    <div class="card-health-reason">{{ prop.health_reason }}</div>
-                    {% endif %}
-                    {% if prop.days_since_activity is not none %}
-                    <div class="card-recency {% if prop.days_since_activity <= 7 %}fresh{% else %}stale{% endif %}">
-                        {% if prop.days_since_activity == 0 %}Activity today
-                        {% elif prop.days_since_activity == 1 %}Activity yesterday
-                        {% elif prop.days_since_activity <= 7 %}Activity {{ prop.days_since_activity }}d ago
-                        {% else %}Last activity {{ prop.days_since_activity }}d ago
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    {% if prop.neighborhood %}
-                    <div class="card-neighborhood">{{ prop.neighborhood }}</div>
-                    {% endif %}
-                    <div class="card-stats">
-                        <span>{{ prop.active_count }} active</span>
-                        <span>{{ prop.permits | length }} total</span>
-                        {% if prop.total_cost %}
-                        <span>${{ "{:,.0f}".format(prop.total_cost) }}</span>
-                        {% endif %}
-                        {% if prop.latest_activity %}
-                        <span>Last: {{ prop.latest_activity }}</span>
-                        {% endif %}
-                    </div>
-                    {% if prop.tags %}
-                    <div style="margin-bottom: var(--space-1);">
-                        {% for tag in prop.tags.split(',') if tag.strip() %}
-                        <span class="tag-pill">{{ tag.strip() }}</span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    {% if prop.last_inspection %}
-                    <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">
-                        Last inspection: {{ prop.last_inspection.type }} &mdash;
-                        <span style="color: {{ 'var(--signal-green)' if prop.last_inspection.result == 'PASSED' else 'var(--signal-red)' if prop.last_inspection.result == 'FAILED' else 'var(--text-secondary)' }}">
-                            {{ prop.last_inspection.result or 'Pending' }}
-                        </span>
-                        ({{ prop.last_inspection.date }})
-                    </div>
-                    {% endif %}
+    {% if properties %}
 
-                    <!-- Expanded permit list -->
-                    <div class="permit-list">
-
-                        <!-- Enforcement summary -->
-                        {% if prop.open_violations is not none or prop.open_complaints is not none %}
-                        <div class="enforce-row">
-                            <span class="enforce-label">Enforcement</span>
-                            {% set viol = prop.open_violations %}
-                            {% set comp = prop.open_complaints %}
-                            {% if (viol is not none and viol > 0) or (comp is not none and comp > 0) %}
-                                {% if viol is not none and viol > 0 %}
-                                <span class="enforce-badge alert">{{ viol }} violation{{ 's' if viol != 1 }}</span>
-                                {% endif %}
-                                {% if comp is not none and comp > 0 %}
-                                <span class="enforce-badge alert">{{ comp }} complaint{{ 's' if comp != 1 }}</span>
-                                {% endif %}
-                            {% elif viol == 0 and comp == 0 %}
-                                <span class="enforce-badge clear">No open enforcement</span>
-                            {% else %}
-                                <span class="enforce-badge unknown">Unknown</span>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Routing progress (plan check) -->
-                        {% if prop.routing %}
-                        {% set r = prop.routing %}
-                        <div class="routing-section">
-                            <div class="routing-label">Plan Check &middot; {{ r.permit_number }}</div>
-                            <div class="routing-bar-wrap">
-                                <div class="routing-bar-fill {% if r.completion_pct >= 75 %}routing-fill-ok{% elif r.completion_pct >= 40 %}routing-fill-mid{% else %}routing-fill-low{% endif %}"
-                                     style="width: {{ r.completion_pct }}%;"></div>
-                            </div>
-                            <div class="routing-stations">
-                                {{ r.completed_stations }}/{{ r.total_stations }} stations ({{ r.completion_pct }}%)
-                                {% if r.pending_station_names %}
-                                 &middot; Waiting: {{ r.pending_station_names | join(', ') }}
-                                {% endif %}
-                            </div>
-                            {% if r.stalled_stations %}
-                            <div class="routing-alert stalled">Stalled &gt;30d: {{ r.stalled_stations | join(', ') }}</div>
-                            {% endif %}
-                            {% if r.held_stations %}
-                            <div class="routing-alert held">On hold: {{ r.held_stations | join(', ') }}</div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        {% for pm in prop.permits %}
-                        <div class="permit-row">
-                            <span class="permit-status {{ pm.status }}">{{ pm.status }}</span>
-                            <strong style="color: var(--text-primary);">{{ pm.permit_number }}</strong> &mdash; <span style="color: var(--text-secondary);">{{ pm.permit_type }}</span>
-                            {% if pm.cost %}<span style="color: var(--text-secondary);"> &middot; ${{ "{:,.0f}".format(pm.cost) }}</span>{% endif %}
-                            <div style="font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1);">{{ pm.description }}</div>
-                        </div>
-                        {% endfor %}
-
-                        <!-- Inspection timeline (lazy-loaded when card is expanded) -->
-                        <div id="timeline-{{ prop.block }}-{{ prop.lot }}"
-                             hx-get="/portfolio/timeline/{{ prop.block }}/{{ prop.lot }}"
-                             hx-trigger="revealed"
-                             hx-swap="innerHTML">
-                            <div class="timeline-loading">Loading inspection history...</div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Load more (if portfolio has many properties) -->
-            {% if properties | length >= 20 %}
-            <div class="load-more" style="display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-6) 0;">
-                <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">Showing {{ properties | length }} properties</span>
-                <a href="/portfolio?filter={{ filter_by or 'all' }}&sort={{ sort_by or 'recent' }}&all=1" class="ghost-cta" style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid transparent; transition: color 0.3s, border-color 0.3s;">Show all &rarr;</a>
-            </div>
-            {% endif %}
-
+    <!-- HEADER -->
+    <div class="portfolio-header reveal">
+        <div class="portfolio-greeting">
+            {% set urgent_count = properties | selectattr('worst_health', 'in', ['at_risk', 'behind']) | list | length %}
+            {% if urgent_count > 0 %}
+                <strong>Good morning.</strong> {{ urgent_count }} {{ 'property needs' if urgent_count == 1 else 'properties need' }} attention.
             {% else %}
-            <!-- Empty state -->
-            <div class="glass-card portfolio-empty">
-                <h2>Your portfolio is empty</h2>
-                <p>Start watching properties to track permit activity, health indicators, inspection timelines, and smart alerts &mdash; all in one place.</p>
-                <div class="portfolio-empty-actions">
-                    <a href="/search" class="obsidian-btn obsidian-btn-primary">Search for a property &rarr;</a>
-                    <a href="/account" class="obsidian-btn obsidian-btn-outline">Import by name &rarr;</a>
-                </div>
-            </div>
+                <strong>Good morning.</strong> All properties are on track.
             {% endif %}
         </div>
-    </main>
+        <div class="portfolio-stats">
+            <span><span class="ps-val">{{ summary.total_properties }}</span> watching</span>
+            <span><span class="ps-val">{{ summary.total_active_permits }}</span> active</span>
+            {% if summary.action_needed > 0 %}
+            <span><span class="ps-val" style="color: var(--signal-red);">{{ summary.action_needed }}</span> urgent</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions reveal reveal-delay-1">
+        <a href="/brief" class="qa-btn"><span class="qa-btn__icon">✉</span> Morning brief</a>
+        <a href="/search" class="qa-btn"><span class="qa-btn__icon">+</span> New property lookup</a>
+        <a href="/search" class="qa-btn"><span class="qa-btn__icon">✦</span> Ask AI</a>
+        <a href="/portfolio?filter=action_needed&sort={{ sort_by }}" class="qa-btn"><span class="qa-btn__icon">⇅</span> Check stalled permits</a>
+    </div>
+
+    <!-- ACTION QUEUE — properties needing attention -->
+    {% set action_items = properties | selectattr('worst_health', 'in', ['at_risk', 'behind', 'slower']) | list %}
+    {% if action_items %}
+    <section class="action-queue reveal reveal-delay-1">
+        <div class="section-label">Needs attention</div>
+
+        {% for prop in action_items[:5] %}
+        {% set health = prop.worst_health %}
+        <div class="aq-item" onclick="window.location='/report/{{ prop.block }}/{{ prop.lot }}'">
+            <span class="aq-item__dot" style="background: {{ 'var(--dot-red)' if health == 'at_risk' else 'var(--dot-amber)' }};"></span>
+            <div class="aq-item__body">
+                <div class="aq-item__headline">
+                    {% if health == 'at_risk' %}
+                        {% if prop.open_violations and prop.open_violations > 0 %}
+                            {{ prop.open_violations }} open violation{{ 's' if prop.open_violations != 1 }} at {{ prop.address }}
+                        {% elif prop.open_complaints and prop.open_complaints > 0 %}
+                            {{ prop.open_complaints }} open complaint{{ 's' if prop.open_complaints != 1 }} at {{ prop.address }}
+                        {% elif prop.routing and prop.routing.stalled_stations %}
+                            {{ prop.routing.stalled_stations | join(', ') }} stalled at {{ prop.address }}
+                        {% else %}
+                            Action needed at {{ prop.address }}
+                        {% endif %}
+                    {% elif health == 'behind' %}
+                        {% if prop.routing and prop.routing.stalled_stations %}
+                            {{ prop.routing.stalled_stations[0] }} pending at {{ prop.address }}
+                        {% else %}
+                            Behind schedule at {{ prop.address }}
+                        {% endif %}
+                    {% else %}
+                        Moving slower than expected at {{ prop.address }}
+                    {% endif %}
+                </div>
+                <div class="aq-item__detail">
+                    {% if prop.permits %}
+                        {{ prop.permits[0].permit_type or 'Permit' }}
+                        {% if prop.routing %}
+                            &middot; {{ prop.routing.completed_stations }}/{{ prop.routing.total_stations }} stations cleared
+                        {% elif prop.active_count > 0 %}
+                            &middot; {{ prop.active_count }} active permit{{ 's' if prop.active_count != 1 }}
+                        {% endif %}
+                    {% endif %}
+                    {% if prop.health_reason %}
+                        &middot; <span style="color: {{ 'var(--signal-red)' if health == 'at_risk' else 'var(--signal-amber)' }};">{{ prop.health_reason }}</span>
+                    {% endif %}
+                </div>
+                <div class="aq-item__actions">
+                    <a href="/report/{{ prop.block }}/{{ prop.lot }}" class="aq-action" onclick="event.stopPropagation()">View report</a>
+                    <a href="/search?q={{ prop.address | urlencode }}" class="aq-action" onclick="event.stopPropagation()">Search address</a>
+                </div>
+            </div>
+            {% if prop.days_since_activity is not none %}
+            <span class="aq-item__time {{ 'aq-item__time--red' if health == 'at_risk' else 'aq-item__time--amber' }}">
+                {% if prop.days_since_activity == 0 %}today
+                {% elif prop.days_since_activity == 1 %}yesterday
+                {% elif prop.days_since_activity <= 7 %}{{ prop.days_since_activity }}d ago
+                {% else %}{{ prop.days_since_activity }}d stalled
+                {% endif %}
+            </span>
+            {% endif %}
+            <span class="aq-item__arrow">&rarr;</span>
+        </div>
+        {% endfor %}
+
+        {% set on_track_items = properties | selectattr('worst_health', 'equalto', 'on_track') | list %}
+        {% for prop in on_track_items[:2] %}
+        <div class="aq-item" onclick="window.location='/report/{{ prop.block }}/{{ prop.lot }}'">
+            <span class="aq-item__dot" style="background: var(--dot-green);"></span>
+            <div class="aq-item__body">
+                <div class="aq-item__headline">
+                    {% if prop.active_count == 0 and prop.permits %}
+                        {% set last_permit = prop.permits[0] %}
+                        {{ prop.address }} — {{ last_permit.status | title }}
+                    {% else %}
+                        {{ prop.address }} — on track
+                    {% endif %}
+                </div>
+                <div class="aq-item__detail">
+                    {% if prop.permits %}{{ prop.permits[0].permit_type }}{% endif %}
+                    {% if prop.routing %}&middot; {{ prop.routing.completed_stations }}/{{ prop.routing.total_stations }} stations cleared{% endif %}
+                </div>
+                <div class="aq-item__actions">
+                    <a href="/report/{{ prop.block }}/{{ prop.lot }}" class="aq-action" onclick="event.stopPropagation()">View report</a>
+                    <a href="/search?q={{ prop.address | urlencode }}" class="aq-action" onclick="event.stopPropagation()">Search address</a>
+                </div>
+            </div>
+            {% if prop.days_since_activity is not none %}
+            <span class="aq-item__time aq-item__time--green">
+                {% if prop.days_since_activity == 0 %}today
+                {% elif prop.days_since_activity == 1 %}yesterday
+                {% else %}{{ prop.days_since_activity }}d ago
+                {% endif %}
+            </span>
+            {% endif %}
+            <span class="aq-item__arrow">&rarr;</span>
+        </div>
+        {% endfor %}
+    </section>
+
+    <hr class="divider">
+    {% endif %}
+
+    <!-- PERMIT TABLE -->
+    <section class="permit-table reveal reveal-delay-2" style="padding-top: 24px;">
+        <div class="pt-header">
+            <div class="section-label" style="margin-bottom: 0;">Active permits</div>
+            <div class="pt-filter">
+                <a href="/portfolio?filter=all&sort={{ sort_by }}" class="pt-chip {{ 'pt-chip--active' if filter_by == 'all' or not filter_by }}">All</a>
+                <a href="/portfolio?filter=action_needed&sort={{ sort_by }}" class="pt-chip {{ 'pt-chip--active' if filter_by == 'action_needed' }}">Stalled</a>
+                <a href="/portfolio?filter=in_review&sort={{ sort_by }}" class="pt-chip {{ 'pt-chip--active' if filter_by == 'in_review' }}">In review</a>
+                <a href="/portfolio?filter=active&sort={{ sort_by }}" class="pt-chip {{ 'pt-chip--active' if filter_by == 'active' }}">Active</a>
+            </div>
+        </div>
+
+        <div class="pt-row pt-row--header">
+            <span></span>
+            <span>Address</span>
+            <span>Type</span>
+            <span>Progress</span>
+            <span>Status</span>
+            <span></span>
+        </div>
+
+        {% for prop in properties[:14] %}
+        {% set health = prop.worst_health %}
+        {% set dot_class = 'status-dot--red' if health == 'at_risk' else ('status-dot--amber' if health in ('behind', 'slower') else 'status-dot--green') %}
+        {% set status_class = 'status-text--red' if health == 'at_risk' else ('status-text--amber' if health in ('behind', 'slower') else 'status-text--green') %}
+
+        <div class="pt-row" onclick="window.location='/report/{{ prop.block }}/{{ prop.lot }}'">
+            <span class="status-dot {{ dot_class }}"></span>
+            <a href="/report/{{ prop.block }}/{{ prop.lot }}" class="pt-addr" onclick="event.stopPropagation()">{{ prop.address }}</a>
+            <span class="pt-type">{{ prop.permits[0].permit_type if prop.permits else '' }}</span>
+            <span class="pt-station">
+                {% if prop.routing %}
+                    {# Mini-gantt from real routing data #}
+                    <div class="mini-gantt">
+                        {% set total_st = prop.routing.total_stations %}
+                        {% set done_st = prop.routing.completed_stations %}
+                        {% set stalled_names = prop.routing.stalled_stations or [] %}
+                        {% set held_names = prop.routing.held_stations or [] %}
+                        {% set pending_names = prop.routing.pending_station_names or [] %}
+                        {% for i in range(total_st) %}
+                            {% if i < done_st %}
+                                <span class="mini-gantt__seg mini-gantt__seg--done" style="flex:1"></span>
+                            {% elif (pending_names | length > 0) and (i == done_st) %}
+                                {% set active_station = pending_names[0] if pending_names else '' %}
+                                {% if active_station in stalled_names or active_station in held_names %}
+                                    <span class="mini-gantt__seg mini-gantt__seg--stalled" style="flex:1" title="{{ active_station }}"></span>
+                                {% else %}
+                                    <span class="mini-gantt__seg mini-gantt__seg--active" style="flex:1" title="{{ active_station }}"></span>
+                                {% endif %}
+                            {% else %}
+                                <span class="mini-gantt__seg mini-gantt__seg--pending" style="flex:1"></span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="pt-station__frac">{{ prop.routing.completed_stations }}/{{ prop.routing.total_stations }}</span>
+                {% else %}
+                    {# Simple progress bar from permit status #}
+                    {% set active_p = prop.active_count %}
+                    {% set total_p = prop.permits | length %}
+                    {% set pct = (active_p / total_p * 100) | int if total_p > 0 else 0 %}
+                    <div class="simple-progress">
+                        <div class="simple-progress__fill"
+                             style="width: {{ pct }}%; background: {{ 'var(--signal-green)' if health == 'on_track' else ('var(--signal-amber)' if health in ('behind', 'slower') else 'var(--signal-red)') }};"></div>
+                        <div class="simple-progress__bg"></div>
+                    </div>
+                    <span class="pt-station__frac">{{ active_p }}/{{ total_p }}</span>
+                {% endif %}
+            </span>
+            <span class="pt-status {{ status_class }}">
+                {% if health == 'at_risk' %}
+                    {% if prop.routing and prop.routing.stalled_stations %}
+                        {{ prop.routing.stalled_stations[0] }} stalled
+                    {% elif prop.open_violations %}
+                        {{ prop.open_violations }} violation{{ 's' if prop.open_violations != 1 }}
+                    {% else %}
+                        At risk
+                    {% endif %}
+                {% elif health in ('behind', 'slower') %}
+                    {% if prop.routing and prop.routing.stalled_stations %}
+                        {{ prop.routing.stalled_stations[0] }}
+                    {% elif prop.routing and prop.routing.pending_station_names %}
+                        {{ prop.routing.pending_station_names[0] }}
+                    {% else %}
+                        {{ 'Behind' if health == 'behind' else 'Slower' }}
+                    {% endif %}
+                {% else %}
+                    {% set last_permit = prop.permits[0] if prop.permits else none %}
+                    {% if last_permit and last_permit.status == 'issued' %}
+                        Issued
+                    {% elif prop.active_count == 0 %}
+                        Complete
+                    {% else %}
+                        On track
+                    {% endif %}
+                {% endif %}
+            </span>
+            <span class="pt-arrow">&rarr;</span>
+        </div>
+        {% endfor %}
+
+        {% if properties | length > 14 %}
+        <div style="text-align: center; padding: 12px 0;">
+            <a href="/portfolio?filter={{ filter_by or 'all' }}&sort={{ sort_by or 'recent' }}&all=1" class="ghost-cta">All {{ properties | length }} active permits &rarr;</a>
+        </div>
+        {% endif %}
+    </section>
+
+    <hr class="divider">
+
+    <!-- UPCOMING / HEADS UP — properties with inspection or activity data -->
+    {% set recent_props = properties | sort(attribute='latest_activity', reverse=True) | list %}
+    {% if recent_props %}
+    <section class="upcoming reveal reveal-delay-3" style="padding-top: 24px; margin-bottom: 24px;">
+        <div class="section-label">Recent activity</div>
+
+        {% for prop in recent_props[:4] %}
+        {% if prop.days_since_activity is not none %}
+        <div class="up-item" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; margin: 0 -12px; border-radius: 6px; transition: background 0.12s; cursor: pointer;"
+             onclick="window.location='/report/{{ prop.block }}/{{ prop.lot }}'">
+            <span style="font-family: var(--mono); font-size: 0.75rem; width: 50px; flex-shrink: 0;
+                         color: {{ 'var(--signal-red)' if prop.days_since_activity <= 3 else ('var(--signal-amber)' if prop.days_since_activity <= 14 else 'var(--text-secondary)') }};">
+                {% if prop.days_since_activity == 0 %}today
+                {% elif prop.days_since_activity == 1 %}1 day
+                {% elif prop.days_since_activity <= 7 %}{{ prop.days_since_activity }}d
+                {% else %}{{ prop.days_since_activity }}d
+                {% endif %}
+            </span>
+            <span style="font-family: var(--sans); font-size: 0.875rem; font-weight: 300; color: var(--text-secondary); flex: 1;">
+                <strong style="font-weight: 400; color: var(--text-primary);">{{ prop.address }}</strong>
+                {% if prop.last_inspection and prop.last_inspection.type %}
+                    &mdash; {{ prop.last_inspection.type | lower | capitalize }}
+                    {% if prop.last_inspection.result %}
+                        <span style="color: {{ 'var(--signal-green)' if prop.last_inspection.result == 'PASSED' else ('var(--signal-red)' if prop.last_inspection.result == 'FAILED' else 'var(--text-secondary)') }};">{{ prop.last_inspection.result | lower }}</span>
+                    {% endif %}
+                {% elif prop.permits %}
+                    &mdash; {{ prop.permits[0].status | lower }}
+                {% endif %}
+            </span>
+            <span style="flex-shrink: 0; opacity: 0; transition: opacity 0.15s;" class="up-cta">
+                <a href="/report/{{ prop.block }}/{{ prop.lot }}" class="aq-action" onclick="event.stopPropagation()">View report</a>
+            </span>
+            <span style="font-family: var(--mono); font-size: 11px; color: var(--text-secondary); opacity: 0; transition: opacity 0.12s;" class="up-arrow">&rarr;</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="portfolio-empty">
+        <h2>Your portfolio is empty</h2>
+        <p>Start watching properties to track permit activity, health indicators, inspection timelines, and smart alerts &mdash; all in one place.</p>
+        <div class="portfolio-empty-actions">
+            <a href="/search" class="obsidian-btn obsidian-btn-primary">Search for a property &rarr;</a>
+            <a href="/account" class="obsidian-btn obsidian-btn-outline">Manage account &rarr;</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- FRESHNESS -->
+    <div class="freshness reveal">
+        <span class="freshness-dot"></span>
+        Data updated nightly &middot; <a href="/about-data" style="color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid transparent; transition: color 0.2s, border-color 0.2s;">sources &rarr;</a>
+    </div>
+
+    </div>
+    </div>
+
+    <script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js"></script>
+    <script nonce="{{ csp_nonce }}" src="/static/admin-tour.js"></script>
     <script nonce="{{ csp_nonce }}">
-    function toggleCard(card) {
-        var isExpanding = !card.classList.contains('expanded');
-        card.classList.toggle('expanded');
-        if (isExpanding) {
-            card.classList.add('expanding');
-            setTimeout(function() { card.classList.remove('expanding'); }, 750);
-            htmx.process(card);
-        }
-    }
+    // Reveal animation
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Up-item hover: show CTA and arrow
+    document.querySelectorAll('.up-item').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            const cta = item.querySelector('.up-cta');
+            const arrow = item.querySelector('.up-arrow');
+            if (cta) cta.style.opacity = '1';
+            if (arrow) arrow.style.opacity = '1';
+        });
+        item.addEventListener('mouseleave', () => {
+            const cta = item.querySelector('.up-cta');
+            const arrow = item.querySelector('.up-arrow');
+            if (cta) cta.style.opacity = '0';
+            if (arrow) arrow.style.opacity = '0';
+        });
+    });
+
+    // Up-item hover: background
+    document.querySelectorAll('.up-item').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            item.style.background = 'rgba(255,255,255,0.04)';
+        });
+        item.addEventListener('mouseleave', () => {
+            item.style.background = '';
+        });
+    });
     </script>
+
+    {% if posthog_key %}
+    <script async nonce="{{ csp_nonce }}">
+      !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+      posthog.init('{{ posthog_key }}', {api_host: '{{ posthog_host }}'});
+    </script>
+    {% endif %}
+
 </body>
 </html>
