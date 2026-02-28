@@ -727,27 +727,93 @@ def main():
         reason = f"Effective score {effective_score}/5 — clean, auto-promote to prod"
 
     # --- Hotfix ratchet ---
-    # If score 3 (promote with mandatory hotfix), write HOTFIX_REQUIRED.md
-    # If HOTFIX_REQUIRED.md already exists from a previous promotion,
-    # the same issues are still present → downgrade to HOLD
+    # If score 3 (promote with mandatory hotfix), write HOTFIX_REQUIRED.md with the
+    # names of failing checks. On the next run at score 3, compare check names:
+    # - Same checks still failing → ratchet triggers → HOLD
+    # - Different checks failing → different issues, reset ratchet, no HOLD
+    # - First occurrence → no ratchet (nothing to compare against)
     hotfix_file = "qa-results/HOTFIX_REQUIRED.md"
     hotfix_ratchet_triggered = False
 
+    # Collect the names of checks currently failing (score <= 3 with issues)
+    current_failing_checks = sorted([
+        name for name, score, msg, issues in results
+        if isinstance(score, int) and score <= 3 and issues
+    ])
+
+    def _read_previous_failing_checks(path):
+        """Parse check names from an existing HOTFIX_REQUIRED.md.
+
+        Looks for lines matching:
+            ## Failing checks
+            - check_name
+        Returns a sorted list of check names, or an empty list if the section
+        is missing or the file cannot be read.
+        """
+        try:
+            with open(path) as f:
+                content = f.read()
+        except OSError:
+            return []
+
+        # Find the "## Failing checks" section and collect bullet items.
+        # The section header is followed by a blank line before the bullets.
+        match = re.search(r"## Failing checks\n\n?((?:- .+\n?)*)", content)
+        if not match:
+            return []
+        checks = []
+        for line in match.group(1).strip().split("\n"):
+            line = line.strip()
+            if line.startswith("- "):
+                checks.append(line[2:].strip())
+        return sorted(checks)
+
     if effective_score == 3 and not hard_holds:
         if os.path.exists(hotfix_file):
-            # Ratchet: hotfix was required last time and still not fixed
-            hotfix_ratchet_triggered = True
-            verdict = "HOLD"
-            reason = f"Hotfix ratchet: score 3 again without fixing previous hotfix — downgraded to HOLD"
+            previous_failing_checks = _read_previous_failing_checks(hotfix_file)
+            if previous_failing_checks and set(current_failing_checks) & set(previous_failing_checks):
+                # At least one of the same checks is still failing → ratchet triggers
+                overlapping = sorted(set(current_failing_checks) & set(previous_failing_checks))
+                hotfix_ratchet_triggered = True
+                verdict = "HOLD"
+                reason = (
+                    f"Hotfix ratchet: {len(overlapping)} check(s) still failing from previous sprint "
+                    f"({', '.join(overlapping)}) — downgraded to HOLD"
+                )
+            else:
+                # Different checks failing (or no structured history) — reset ratchet
+                # Overwrite the hotfix file with the new failing checks
+                hotfix_issues = [(name, msg) for name, score, msg, issues in results
+                                 if isinstance(score, int) and score <= 3 and issues]
+                os.makedirs(os.path.dirname(hotfix_file), exist_ok=True)
+                with open(hotfix_file, "w") as f:
+                    f.write("# HOTFIX REQUIRED\n\n")
+                    f.write(f"**Created:** {time.strftime('%Y-%m-%d %H:%M UTC')}\n")
+                    f.write(f"**Deadline:** 48 hours from creation\n")
+                    f.write(f"**Score:** {effective_score}/5\n\n")
+                    f.write("## Failing checks\n\n")
+                    for name in current_failing_checks:
+                        f.write(f"- {name}\n")
+                    f.write("\n## Issues requiring hotfix\n\n")
+                    for name, msg in hotfix_issues:
+                        f.write(f"- **{name}:** {msg}\n")
+                    f.write("\n## Resolution\n\nFix issues, re-run `python scripts/prod_gate.py`. "
+                            "Delete this file when score improves to 4+.\n")
+                    f.write("\n_Note: Previous hotfix file replaced — different checks are now failing._\n")
         else:
             # First time at score 3 — write hotfix requirement
-            hotfix_issues = [(name, msg) for name, score, msg, issues in results if score <= 3 and issues]
+            hotfix_issues = [(name, msg) for name, score, msg, issues in results
+                             if isinstance(score, int) and score <= 3 and issues]
+            os.makedirs(os.path.dirname(hotfix_file), exist_ok=True)
             with open(hotfix_file, "w") as f:
                 f.write("# HOTFIX REQUIRED\n\n")
                 f.write(f"**Created:** {time.strftime('%Y-%m-%d %H:%M UTC')}\n")
                 f.write(f"**Deadline:** 48 hours from creation\n")
                 f.write(f"**Score:** {effective_score}/5\n\n")
-                f.write("## Issues requiring hotfix\n\n")
+                f.write("## Failing checks\n\n")
+                for name in current_failing_checks:
+                    f.write(f"- {name}\n")
+                f.write("\n## Issues requiring hotfix\n\n")
                 for name, msg in hotfix_issues:
                     f.write(f"- **{name}:** {msg}\n")
                 f.write("\n## Resolution\n\nFix issues, re-run `python scripts/prod_gate.py`. "
@@ -793,9 +859,10 @@ def main():
     lines.append("")
 
     if hotfix_ratchet_triggered:
-        lines.append("> **HOTFIX RATCHET:** This is the second consecutive promotion at score 3 ")
-        lines.append("> without resolving the hotfix. Downgraded to HOLD. Fix the issues in ")
-        lines.append("> `qa-results/HOTFIX_REQUIRED.md` before promoting.")
+        lines.append("> **HOTFIX RATCHET:** The same check(s) that required a hotfix last sprint ")
+        lines.append("> are still failing. Downgraded to HOLD. Fix the overlapping issues in ")
+        lines.append("> `qa-results/HOTFIX_REQUIRED.md` before promoting. Note: if *different* checks ")
+        lines.append("> had failed this sprint the ratchet would NOT have triggered.")
         lines.append("")
 
     # Release notes section
@@ -888,7 +955,7 @@ def main():
     lines.append("| 2/5 | HOLD — Tim reviews before prod |")
     lines.append("| 1/5 | HOLD — Tim reviews before prod |")
     lines.append("| Auth/Secret | Always HOLD regardless of score |")
-    lines.append("| Hotfix ratchet | Score 3 twice without fix → downgrade to HOLD |")
+    lines.append("| Hotfix ratchet | Same checks fail twice in a row → downgrade to HOLD (different checks = reset) |")
     lines.append("")
     lines.append("*Scoring uses weighted category minimums (safety 1.0x: tests, deps, migration safety; "
                  "data 1.0x: health, freshness, smoke; ops 0.8x: routes, perf, cron health; "
