@@ -8,50 +8,126 @@
     {% include "fragments/head_obsidian.html" %}
     <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
     <style nonce="{{ csp_nonce }}">
-        .container { max-width: 900px; margin: 0 auto; padding: 0 var(--space-6); }
-        /* header styles provided by fragments/nav.html */
-        /* badge-active provided by fragments/nav.html */
-        main { padding: var(--space-10) 0 var(--space-20); }
-        h1 { font-family: var(--sans); font-weight: 400; font-size: var(--text-xl); margin-bottom: var(--space-1); color: var(--text-primary); }
-        .subtitle { color: var(--text-secondary); margin-bottom: var(--space-6); font-size: var(--text-sm); font-family: var(--sans); }
-
-        /* Summary cards */
-        .summary-row {
-            display: flex; gap: var(--space-3); margin-bottom: var(--space-7, 28px); flex-wrap: wrap;
+        /* ── Layout ── */
+        .brief-body { padding-top: 56px; }
+        .brief-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
         }
-        .summary-card {
-            background: var(--obsidian-mid); border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); flex: 1; min-width: 120px;
-            text-align: center; transition: border-color 0.3s;
-        }
-        .summary-card:hover { border-color: var(--glass-hover); }
-        .summary-number { font-family: var(--mono); font-size: 1.8rem; font-weight: 300; color: var(--text-primary); }
-        .summary-label { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
-        .summary-card.alert .summary-number { color: var(--signal-red); }
-        .summary-card.warn .summary-number { color: var(--signal-amber); }
-        .summary-card.ok .summary-number { color: var(--signal-green); }
+        main { padding: var(--space-8) 0 var(--space-20); }
 
-        /* Sections */
-        .section {
-            background: var(--obsidian-mid); border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md); padding: var(--space-6); margin-bottom: var(--space-6);
-            transition: border-color 0.3s;
+        /* ── Brief header ── */
+        .brief-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            padding: var(--space-6) 0 var(--space-3);
+            flex-wrap: wrap;
+            gap: var(--space-3);
         }
-        .section:hover { border-color: var(--glass-hover); }
-        .section h2 { font-family: var(--sans); font-weight: 400; font-size: var(--text-lg); margin-bottom: var(--space-4); color: var(--accent); }
-        .section-empty { color: var(--text-secondary); font-style: italic; font-size: var(--text-sm); font-family: var(--sans); }
+        .brief-greeting {
+            font-family: var(--sans);
+            font-size: var(--text-lg);
+            font-weight: 300;
+            color: var(--text-secondary);
+        }
+        .brief-greeting strong {
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+        .brief-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
+        .brief-date {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+        }
 
-        /* Lookback toggle */
-        .lookback-toggle { display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap; }
+        /* ── Cache freshness badge ── */
+        .brief-freshness {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) 0 var(--space-4);
+        }
+        .brief-freshness__label {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        /* ── Summary strip — N Properties · N Changed · N Enforcement ── */
+        .brief-summary-strip {
+            display: flex;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+            flex-wrap: wrap;
+        }
+        .bss-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            flex: 1;
+            min-width: 90px;
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.1s;
+        }
+        .bss-item:hover { border-color: var(--glass-hover); transform: translateY(-1px); }
+        .bss-item.filter-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+        .bss-num {
+            font-family: var(--mono);
+            font-size: clamp(1.4rem, 2.5vw, 1.75rem);
+            font-weight: 300;
+            line-height: 1;
+            color: var(--text-primary);
+        }
+        .bss-num--alert { color: var(--signal-red); }
+        .bss-num--warn  { color: var(--signal-amber); }
+        .bss-num--ok    { color: var(--signal-green); }
+        .bss-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-top: var(--space-1);
+        }
+
+        /* ── Lookback toggle ── */
+        .lookback-toggle {
+            display: flex;
+            gap: var(--space-2);
+            margin-bottom: var(--space-5);
+            flex-wrap: wrap;
+        }
         .lookback-btn {
-            padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border);
-            background: var(--obsidian-light); color: var(--text-secondary); cursor: pointer;
-            font-size: var(--text-xs); font-family: var(--mono); text-decoration: none; transition: border-color 0.2s, color 0.2s;
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: var(--text-xs);
+            font-family: var(--mono);
+            text-decoration: none;
+            transition: border-color 0.2s, color 0.2s;
         }
         .lookback-btn:hover { border-color: var(--glass-hover); color: var(--text-primary); }
-        .lookback-btn.active { background: var(--accent); color: var(--obsidian); border-color: var(--accent); }
+        .lookback-btn.active { border-color: var(--accent-ring); color: var(--accent); background: var(--accent-glow); }
         .lookback-btn.loading {
-            color: var(--accent) !important;
+            color: var(--accent);
             animation: lookback-pulse 0.5s ease-in-out infinite alternate;
         }
         @keyframes lookback-pulse {
@@ -59,186 +135,10 @@
             to   { border-color: var(--accent); }
         }
 
-        /* Clickable summary cards */
-        .summary-card[data-filter] { cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
-        .summary-card[data-filter]:hover { border-color: var(--accent); transform: translateY(-1px); }
-        .summary-card.filter-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-
-        /* Property card filter state */
-        .prop-card.filter-hidden { display: none; }
-
-        /* Change cards */
-        .change-card {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: var(--space-3) 0; border-bottom: 1px solid var(--glass-border);
-        }
-        .change-card:last-child { border-bottom: none; }
-        .change-meta { display: flex; flex-direction: column; }
-        .change-permit { font-weight: 500; font-size: var(--text-base); font-family: var(--sans); }
-        .change-permit a { color: var(--text-primary); text-decoration: none; }
-        .change-permit a:hover { color: var(--accent); text-decoration: underline; }
-        .change-detail { font-size: var(--text-sm); color: var(--text-secondary); font-family: var(--sans); }
-        .status-badge {
-            display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm);
-            font-size: var(--text-xs); font-weight: 500; text-transform: uppercase;
-            font-family: var(--mono);
-        }
-        .status-filed { background: var(--accent-glow); color: var(--accent); }
-        .status-approved { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
-        .status-issued { background: rgba(52, 211, 153, 0.2); color: var(--signal-green); }
-        .status-completed { background: rgba(52, 211, 153, 0.3); color: var(--signal-green); }
-        .status-expired, .status-cancelled { background: rgba(248, 113, 113, 0.15); color: var(--signal-red); }
-        .status-activity { background: var(--accent-glow); color: var(--accent); }
-        .status-on_track { background: rgba(52, 211, 153, 0.12); color: var(--signal-green); }
-        .status-slower { background: rgba(251, 191, 36, 0.12); color: var(--signal-amber); }
-        .status-behind { background: rgba(251, 191, 36, 0.2); color: var(--signal-amber); }
-        .status-at_risk { background: rgba(248, 113, 113, 0.15); color: var(--signal-red); }
-        .status-arrow { color: var(--text-secondary); margin: 0 var(--space-1); }
-
-        /* Health bars */
-        .health-item {
-            padding: var(--space-3) 0; border-bottom: 1px solid var(--glass-border);
-        }
-        .health-item:last-child { border-bottom: none; }
-        .health-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-1); }
-        .health-label { font-family: var(--sans); font-weight: 400; font-size: var(--text-sm); }
-        .health-label a { color: var(--text-primary); text-decoration: none; }
-        .health-label a:hover { color: var(--accent); text-decoration: underline; }
-        .health-status {
-            font-family: var(--mono); font-size: var(--text-xs); font-weight: 400; text-transform: uppercase;
-            padding: 2px 8px; border-radius: var(--radius-sm); letter-spacing: 0.04em;
-        }
-        .health-on_track { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
-        .health-slower { background: rgba(251, 191, 36, 0.12); color: var(--signal-amber); }
-        .health-behind { background: rgba(251, 191, 36, 0.2); color: var(--signal-amber); }
-        .health-at_risk { background: rgba(248, 113, 113, 0.25); color: var(--signal-red); }
-        .progress-track {
-            height: 4px; background: var(--glass); border-radius: 2px;
-            position: relative; overflow: hidden; margin-top: var(--space-1);
-        }
-        .progress-fill {
-            height: 100%; border-radius: 2px; transition: width 0.3s;
-            background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
-        }
-        .progress-fill.on_track { background: linear-gradient(90deg, var(--signal-green), rgba(52, 211, 153, 0.4)); }
-        .progress-fill.slower { background: linear-gradient(90deg, var(--signal-amber), rgba(251, 191, 36, 0.4)); }
-        .progress-fill.behind { background: linear-gradient(90deg, var(--signal-amber), rgba(251, 191, 36, 0.4)); }
-        .progress-fill.at_risk { background: linear-gradient(90deg, var(--signal-red), rgba(248, 113, 113, 0.4)); }
-        .health-detail { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); font-family: var(--mono); }
-
-        /* Plan review result badges */
-        .plan-result-approved { background: rgba(52, 211, 153, 0.15); color: var(--signal-green); }
-        .plan-result-comments { background: rgba(251, 191, 36, 0.15); color: var(--signal-amber); }
-        .plan-result-other { background: var(--glass); color: var(--text-secondary); }
-        .plan-result-routed { background: var(--accent-glow); color: var(--accent); }
-
-        /* Inspection results */
-        .insp-pass { color: var(--signal-green); }
-        .insp-fail { color: var(--signal-red); }
-        .insp-other { color: var(--text-secondary); }
-
-        /* Expiring */
-        .expire-urgent { color: var(--signal-red); font-weight: 600; font-family: var(--mono); }
-        .expire-warning { color: var(--signal-amber); font-family: var(--mono); }
-
-        /* Onboarding empty state */
-        .onboarding {
-            text-align: center;
-            padding: var(--space-12) var(--space-6);
-        }
-        .onboarding h2 { color: var(--text-primary); font-family: var(--sans); font-weight: 400; font-size: var(--text-xl); margin-bottom: var(--space-3); }
-        .onboarding p { color: var(--text-secondary); font-family: var(--sans); margin-bottom: var(--space-5); max-width: 480px; margin-left: auto; margin-right: auto; }
-        .onboarding .btn {
-            display: inline-block;
-            padding: 10px 24px;
-            background: var(--accent);
-            color: var(--obsidian);
-            text-decoration: none;
-            border-radius: var(--radius-sm);
-            font-family: var(--mono);
-            font-weight: 400;
-            font-size: var(--text-sm);
-        }
-        .onboarding .btn:hover { opacity: 0.9; }
-
-        /* Reviewed (dismiss) */
-        .btn-dismiss {
-            background: none; border: 1px solid var(--glass-border); color: var(--text-secondary);
-            padding: 3px 10px; border-radius: var(--radius-sm); cursor: pointer;
-            font-size: var(--text-xs); font-family: var(--mono); margin-left: var(--space-2);
-            transition: border-color 0.2s, color 0.2s;
-        }
-        .btn-dismiss:hover { border-color: var(--signal-green); color: var(--signal-green); }
-
-        /* Property snapshot grid */
-        .property-snapshot-grid {
-            display: grid; gap: var(--space-4); grid-template-columns: 1fr;
-        }
-        @media (min-width: 640px) {
-            .property-snapshot-grid { grid-template-columns: 1fr 1fr; }
-        }
-        .prop-card {
-            background: var(--obsidian-light); border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md); padding: var(--space-4);
-            transition: border-color 0.2s;
-        }
-        .prop-card:hover { border-color: var(--glass-hover); }
-        .prop-card.health-at_risk { border-left: 3px solid var(--signal-red); }
-        .prop-card.health-behind { border-left: 3px solid var(--signal-amber); }
-        .prop-card.health-slower { border-left: 3px solid rgba(251,191,36,0.5); }
-        .prop-card.health-on_track { border-left: 3px solid var(--signal-green); }
-        .prop-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-1);
-        }
-        .prop-address {
-            font-family: var(--mono); font-weight: 400; font-size: var(--text-base); color: var(--text-primary); text-decoration: none;
-        }
-        .prop-address:hover { color: var(--accent); }
-        .health-dot {
-            display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-full); margin-right: var(--space-1);
-        }
-        .health-dot.on_track { background: var(--dot-green); }
-        .health-dot.slower { background: var(--dot-amber); }
-        .health-dot.behind { background: var(--dot-amber); }
-        .health-dot.at_risk { background: var(--dot-red); }
-        .health-text {
-            font-family: var(--mono); font-size: var(--text-xs); font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .health-text.on_track { color: var(--signal-green); }
-        .health-text.slower { color: var(--signal-amber); }
-        .health-text.behind { color: var(--signal-amber); }
-        .health-text.at_risk { color: var(--signal-red); }
-        .prop-health-reason {
-            font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-1);
-            font-style: italic; font-family: var(--sans);
-        }
-        .prop-card.health-at_risk .prop-health-reason { color: var(--signal-red); opacity: 0.8; }
-        .prop-card.health-behind .prop-health-reason { color: var(--signal-amber); opacity: 0.9; }
-        .prop-card.health-slower .prop-health-reason { color: var(--signal-amber); opacity: 0.7; }
-        .prop-recency { font-family: var(--mono); font-size: var(--text-xs); margin-bottom: var(--space-1); }
-        .prop-recency.fresh { color: var(--signal-green); }
-        .prop-recency.stale { color: var(--text-secondary); }
-        .prop-stats { font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-2); font-family: var(--sans); }
-        .prop-enforcement { margin-bottom: var(--space-2); }
-        .enforcement-badge {
-            display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm);
-            font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
-        }
-        .enforcement-badge.clear { background: rgba(52,211,153,0.12); color: var(--signal-green); }
-        .enforcement-badge.alert { background: rgba(248,113,113,0.15); color: var(--signal-red); }
-        .enforcement-badge.unknown { color: var(--text-secondary); font-style: italic; font-size: var(--text-xs); }
-        .prop-routing { margin-top: var(--space-2); }
-        .routing-label { font-family: var(--sans); font-size: var(--text-sm); color: var(--text-primary); margin-bottom: var(--space-1); }
-        .routing-alert { font-family: var(--mono); font-size: var(--text-xs); margin-top: var(--space-1); }
-        .routing-alert.stalled { color: var(--signal-red); }
-        .routing-alert.held { color: var(--signal-amber); }
-        .routing-pending { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); }
-        .routing-velocity { font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); font-style: italic; }
-
-        /* Stale data warning */
+        /* ── Stale data warning ── */
         .data-stale-warning {
-            background: rgba(251, 191, 36, 0.08);
-            border: 1px solid rgba(251, 191, 36, 0.25);
+            background: rgba(251, 191, 36, 0.06);
+            border: 1px solid rgba(251, 191, 36, 0.20);
             border-radius: var(--radius-sm);
             padding: 10px var(--space-4);
             margin-bottom: var(--space-4);
@@ -247,643 +147,1143 @@
             font-family: var(--sans);
         }
 
-        /* All quiet empty state */
-        .all-quiet-card {
+        /* ── Glass card section ── */
+        .brief-section {
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            margin-bottom: var(--space-5);
+            transition: border-color 0.3s;
+        }
+        .brief-section:hover { border-color: var(--glass-hover); }
+        .brief-section__title {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-4);
+        }
+        .brief-section__title--alert { color: var(--signal-red); }
+        .brief-section__title--warn  { color: var(--signal-amber); }
+        .brief-section__title--ok    { color: var(--signal-green); }
+        .brief-section__empty {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        /* ── Action queue item (portfolio pattern) ── */
+        .aq-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            padding: 10px 0;
+            border-bottom: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: background 0.15s;
+            margin: 0 calc(-1 * var(--space-3));
+            padding-left: var(--space-3);
+            padding-right: var(--space-3);
+            border-radius: var(--radius-sm);
+        }
+        .aq-item:last-child { border-bottom: none; }
+        .aq-item:hover { background: var(--glass); }
+
+        .aq-item__dot {
+            width: 6px;
+            height: 6px;
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+        .aq-item__dot--red   { background: var(--dot-red); }
+        .aq-item__dot--amber { background: var(--dot-amber); }
+        .aq-item__dot--green { background: var(--dot-green); }
+        .aq-item__dot--blue  { background: var(--signal-blue); }
+        .aq-item__dot--muted { background: var(--text-tertiary); }
+
+        .aq-item__body { flex: 1; min-width: 0; }
+        .aq-item__headline {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .aq-item__headline a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .aq-item__headline a:hover { color: var(--accent); }
+        .aq-item__detail {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .aq-item__actions {
+            display: flex;
+            gap: var(--space-2);
+            margin-top: var(--space-2);
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s, margin 0.2s;
+        }
+        .aq-item:hover .aq-item__actions {
+            max-height: 40px;
+            opacity: 1;
+        }
+        .aq-action {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--text-tertiary);
+            background: var(--obsidian-mid);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            padding: 3px 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
+            text-decoration: none;
+        }
+        .aq-action:hover { color: var(--accent); border-color: var(--accent-ring); }
+
+        /* Dismiss button — mark reviewed */
+        .aq-dismiss {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-tertiary);
+            background: none;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            padding: 3px 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .aq-dismiss:hover { color: var(--signal-green); border-color: rgba(52, 211, 153, 0.3); }
+
+        .aq-item__time {
+            font-family: var(--mono);
+            font-size: 10px;
+            flex-shrink: 0;
+            white-space: nowrap;
+            margin-top: 4px;
+        }
+        .aq-item__time--red   { color: var(--signal-red); }
+        .aq-item__time--amber { color: var(--signal-amber); }
+        .aq-item__time--green { color: var(--signal-green); }
+        .aq-item__time--muted { color: var(--text-tertiary); }
+        .aq-item__time--blue  { color: var(--signal-blue); }
+
+        .aq-item__arrow {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-tertiary);
+            opacity: 0;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+        .aq-item:hover .aq-item__arrow { opacity: 1; color: var(--accent); }
+
+        /* Status transition badge (old → new) */
+        .status-badge {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: var(--radius-sm);
+            font-size: var(--text-xs);
+            font-family: var(--mono);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .status-filed      { background: var(--accent-glow);               color: var(--accent); }
+        .status-approved   { background: rgba(52, 211, 153, 0.12);         color: var(--signal-green); }
+        .status-issued     { background: rgba(52, 211, 153, 0.18);         color: var(--signal-green); }
+        .status-completed  { background: rgba(52, 211, 153, 0.22);         color: var(--signal-green); }
+        .status-expired,
+        .status-cancelled  { background: rgba(248, 113, 113, 0.12);        color: var(--signal-red); }
+        .status-activity   { background: var(--accent-glow);               color: var(--accent); }
+        .status-on_track   { background: rgba(52, 211, 153, 0.10);         color: var(--signal-green); }
+        .status-slower     { background: rgba(251, 191, 36, 0.10);         color: var(--signal-amber); }
+        .status-behind     { background: rgba(251, 191, 36, 0.18);         color: var(--signal-amber); }
+        .status-at_risk    { background: rgba(248, 113, 113, 0.12);        color: var(--signal-red); }
+        .status-arrow      { color: var(--text-tertiary); margin: 0 var(--space-1); font-family: var(--mono); }
+
+        /* Plan review result variants */
+        .plan-result-approved { background: rgba(52, 211, 153, 0.12); color: var(--signal-green); }
+        .plan-result-comments { background: rgba(251, 191, 36, 0.12); color: var(--signal-amber); }
+        .plan-result-other    { background: var(--glass);              color: var(--text-secondary); }
+        .plan-result-routed   { background: var(--accent-glow);        color: var(--accent); }
+
+        /* Inspection pass/fail */
+        .insp-pass { color: var(--signal-green); }
+        .insp-fail { color: var(--signal-red); }
+
+        /* Regulatory impact badges */
+        .impact-badge {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            padding: 1px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+        .impact-high     { background: rgba(248, 113, 113, 0.12); color: var(--signal-red); }
+        .impact-moderate { background: rgba(251, 191, 36, 0.12);  color: var(--signal-amber); }
+        .impact-low      { background: var(--accent-glow);         color: var(--accent); }
+
+        /* Expiring */
+        .expire-urgent  { color: var(--signal-red);   font-family: var(--mono); font-size: var(--text-xs); }
+        .expire-warning { color: var(--signal-amber);  font-family: var(--mono); font-size: var(--text-xs); }
+
+        /* ── Property snapshot grid ── */
+        .prop-grid {
+            display: grid;
+            gap: var(--space-4);
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 640px) {
+            .prop-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .prop-card {
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            transition: border-color 0.2s;
+        }
+        .prop-card:hover { border-color: var(--glass-hover); }
+        .prop-card.health-at_risk { border-left: 3px solid var(--signal-red); }
+        .prop-card.health-behind  { border-left: 3px solid var(--signal-amber); }
+        .prop-card.health-slower  { border-left: 3px solid rgba(251, 191, 36, 0.4); }
+        .prop-card.health-on_track { border-left: 3px solid var(--signal-green); }
+        .prop-card.filter-hidden  { display: none; }
+
+        .prop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-1);
+        }
+        .prop-address {
+            font-family: var(--mono);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-primary);
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .prop-address:hover { color: var(--accent); }
+
+        .health-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: var(--radius-full);
+            margin-right: var(--space-1);
+        }
+        .health-dot.on_track { background: var(--dot-green); }
+        .health-dot.slower   { background: var(--dot-amber); }
+        .health-dot.behind   { background: var(--dot-amber); }
+        .health-dot.at_risk  { background: var(--dot-red); }
+
+        .health-text {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .health-text.on_track { color: var(--signal-green); }
+        .health-text.slower   { color: var(--signal-amber); }
+        .health-text.behind   { color: var(--signal-amber); }
+        .health-text.at_risk  { color: var(--signal-red); }
+
+        .prop-health-reason {
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-1);
+            font-style: italic;
+            font-family: var(--sans);
+        }
+        .prop-card.health-at_risk .prop-health-reason { color: var(--signal-red);   opacity: 0.8; }
+        .prop-card.health-behind  .prop-health-reason { color: var(--signal-amber); opacity: 0.9; }
+
+        .prop-recency {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            margin-bottom: var(--space-1);
+        }
+        .prop-recency.fresh { color: var(--signal-green); }
+        .prop-recency.stale { color: var(--text-tertiary); }
+
+        .prop-stats {
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-2);
+            font-family: var(--sans);
+        }
+
+        .enforcement-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            font-weight: 400;
+        }
+        .enforcement-badge.clear   { background: rgba(52, 211, 153, 0.10); color: var(--signal-green); }
+        .enforcement-badge.alert   { background: rgba(248, 113, 113, 0.12); color: var(--signal-red); }
+        .enforcement-badge.unknown { color: var(--text-tertiary); font-style: italic; }
+
+        .prop-routing { margin-top: var(--space-2); }
+        .routing-label {
+            font-family: var(--sans);
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-1);
+        }
+        .routing-alert {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            margin-top: var(--space-1);
+        }
+        .routing-alert.stalled { color: var(--signal-red); }
+        .routing-alert.held    { color: var(--signal-amber); }
+        .routing-pending,
+        .routing-velocity {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-top: var(--space-1);
+        }
+
+        /* ── Permit health bars ── */
+        .health-item {
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .health-item:last-child { border-bottom: none; }
+        .health-item__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-1);
+        }
+        .health-item__label {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+        .health-item__label a { color: var(--text-primary); text-decoration: none; }
+        .health-item__label a:hover { color: var(--accent); }
+        .health-status-badge {
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .health-on_track { background: rgba(52, 211, 153, 0.10); color: var(--signal-green); }
+        .health-slower   { background: rgba(251, 191, 36, 0.10);  color: var(--signal-amber); }
+        .health-behind   { background: rgba(251, 191, 36, 0.18);  color: var(--signal-amber); }
+        .health-at_risk  { background: rgba(248, 113, 113, 0.12); color: var(--signal-red); }
+        .progress-track {
+            height: 3px;
+            background: var(--glass);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: var(--space-1);
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.4s;
+        }
+        .progress-fill.on_track { background: var(--signal-green); }
+        .progress-fill.slower   { background: var(--signal-amber); }
+        .progress-fill.behind   { background: var(--signal-amber); }
+        .progress-fill.at_risk  { background: var(--signal-red); }
+        .health-item__detail {
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            margin-top: var(--space-1);
+            font-family: var(--mono);
+        }
+
+        /* ── Property synopsis ── */
+        .synopsis-stats {
+            display: flex;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+            flex-wrap: wrap;
+        }
+        .synopsis-stat {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+            padding: var(--space-3) var(--space-4);
+            background: var(--obsidian-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+        }
+        .synopsis-stat__num {
+            font-family: var(--mono);
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-primary);
+        }
+        .synopsis-stat__label {
+            font-family: var(--mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        /* ── All-quiet empty state ── */
+        .all-quiet {
             background: var(--accent-glow);
             border: 1px solid var(--accent-ring);
             border-radius: var(--radius-md);
-            padding: var(--space-6);
-            margin-bottom: var(--space-6);
+            padding: var(--space-8) var(--space-6);
+            margin-bottom: var(--space-5);
             text-align: center;
         }
-        .all-quiet-card .all-quiet-icon { font-size: var(--text-xl); margin-bottom: var(--space-2); }
-        .all-quiet-card .all-quiet-title { font-family: var(--sans); font-weight: 400; color: var(--text-primary); margin-bottom: var(--space-1); }
-        .all-quiet-card .all-quiet-body { color: var(--text-secondary); font-family: var(--sans); font-size: var(--text-sm); max-width: 480px; margin: 0 auto; }
-
-        /* Cache freshness row */
-        .cache-freshness {
-            display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);
+        .all-quiet__icon { font-size: var(--text-xl); margin-bottom: var(--space-2); }
+        .all-quiet__title {
+            font-family: var(--sans);
+            font-weight: 300;
+            font-size: var(--text-lg);
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
         }
-        .cache-freshness__time {
-            font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);
+        .all-quiet__body {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            max-width: 440px;
+            margin: 0 auto;
+        }
+        .all-quiet__body a { color: var(--accent); }
+
+        /* ── Onboarding empty state (no watches) ── */
+        .onboarding-empty {
+            text-align: center;
+            padding: var(--space-12) var(--space-6);
+        }
+        .onboarding-empty h2 {
+            font-family: var(--sans);
+            font-weight: 300;
+            font-size: var(--text-xl);
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+        }
+        .onboarding-empty p {
+            font-family: var(--sans);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            max-width: 440px;
+            margin: 0 auto var(--space-5);
         }
 
-        /* Regulatory alert impact badges */
-        .impact-high { background: rgba(248,113,113,0.15); color: var(--signal-red); }
-        .impact-moderate { background: rgba(251,191,36,0.15); color: var(--signal-amber); }
-        .impact-low { background: var(--accent-glow); color: var(--accent); }
-        .impact-badge {
-            font-family: var(--mono); font-size: var(--text-xs); padding: 1px 6px;
-            border-radius: 3px; text-transform: uppercase; font-weight: 400;
-        }
-
-        /* Email pref link */
+        /* ── Email preferences link ── */
         .email-pref-link {
-            color: var(--text-secondary); font-family: var(--mono); font-size: var(--text-xs); text-decoration: none;
+            font-family: var(--mono);
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            text-decoration: none;
         }
         .email-pref-link:hover { color: var(--accent); }
+
+        /* ── Freshness footer ── */
+        .brief-footer-freshness {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-10) 0 var(--space-4);
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-ghost);
+        }
+
+        /* ── Scroll reveal ── */
+        .reveal {
+            opacity: 0;
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible { opacity: 1; transform: none; }
+        .reveal-delay-1 { transition-delay: 0.07s; }
+        .reveal-delay-2 { transition-delay: 0.14s; }
+        .reveal-delay-3 { transition-delay: 0.21s; }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .brief-header { flex-direction: column; gap: var(--space-1); }
+            .brief-summary-strip { gap: var(--space-2); }
+            .bss-item { min-width: 70px; padding: var(--space-2) var(--space-3); }
+        }
     </style>
 </head>
-<body class="obsidian">
+<body class="obsidian brief-body">
     {% include 'fragments/nav.html' %}
 
     <main>
-        <div class="container">
-            <h1>Good Morning{% if user.display_name %}, {{ user.display_name }}{% endif %}</h1>
-            <p class="subtitle">
-                {% if brief.property_synopsis %}
-                    Monitoring <strong>{{ brief.property_synopsis.address }}</strong>
-                    {% if brief.property_synopsis.neighborhood %} &middot; {{ brief.property_synopsis.neighborhood }}{% endif %}
-                    &middot;
-                {% endif %}
-                {{ brief.lookback_days }} day{{ 's' if brief.lookback_days > 1 else '' }} lookback
-                {% if brief.last_refresh %}
-                    &middot; Data as of {{ brief.last_refresh.last_success_date }}
-                {% endif %}
-            </p>
+    <div class="brief-container">
 
-            {% if brief.cached_at %}
-            <div class="cache-freshness">
-                <span class="status-dot status-dot--green" title="Cached"></span>
-                <span class="cache-freshness__time">Updated {{ brief.cached_at[:16] }}</span>
+        <!-- ── HEADER ── -->
+        <div class="brief-header reveal">
+            <div class="brief-greeting">
+                <strong>Good morning{% if user.display_name %}, {{ user.display_name }}{% endif %}.</strong>
+                {% if brief.summary.at_risk_count and brief.summary.at_risk_count > 0 %}
+                    {{ brief.summary.at_risk_count }} item{{ 's' if brief.summary.at_risk_count != 1 else '' }} need attention.
+                {% elif brief.summary.changes_count and brief.summary.changes_count > 0 %}
+                    {{ brief.summary.changes_count }} change{{ 's' if brief.summary.changes_count != 1 else '' }} since yesterday.
+                {% else %}
+                    Everything looks quiet.
+                {% endif %}
+            </div>
+            <div class="brief-meta">
+                <span class="brief-date">
+                    {% if brief.last_refresh %}
+                        {{ brief.last_refresh.last_success_date }}
+                    {% endif %}
+                </span>
+                {% if brief.cached_at %}
+                <span>&middot;</span>
+                <span class="status-dot status-dot--green" title="Cached data"></span>
+                <span>Updated {{ brief.cached_at[:16] }}</span>
                 {% if brief.can_refresh %}
-                <form method="post" action="{{ url_for('misc.brief_refresh') }}" style="display: inline;">
-                    <button type="submit" class="ghost-cta" style="font-size: var(--text-xs);">Refresh &rarr;</button>
+                <form method="post" action="{{ url_for('misc.brief_refresh') }}" style="display: inline; margin: 0;">
+                    <button type="submit" class="ghost-cta" style="font-size: var(--text-xs); padding: 0;">Refresh &rarr;</button>
                 </form>
                 {% endif %}
-            </div>
-            {% endif %}
-
-            {% if brief.last_refresh and brief.last_refresh.is_stale %}
-            <div class="data-stale-warning">
-                ⚠ Data may be incomplete &mdash; last refresh was {{ brief.last_refresh.hours_ago|int }} hours ago.
-                {% if brief.last_refresh.was_catchup %}Some changes were recovered via backfill.{% endif %}
-            </div>
-            {% endif %}
-
-            <!-- Lookback toggle (always visible at top) -->
-            <div class="lookback-toggle">
-                <a href="/brief?lookback=1" class="lookback-btn {{ 'active' if brief.lookback_days == 1 else '' }}">Today</a>
-                <a href="/brief?lookback=7" class="lookback-btn {{ 'active' if brief.lookback_days == 7 else '' }}">Last 7 days</a>
-                <a href="/brief?lookback=30" class="lookback-btn {{ 'active' if brief.lookback_days == 30 else '' }}">Last 30 days</a>
-                <a href="/brief?lookback=90" class="lookback-btn {{ 'active' if brief.lookback_days == 90 else '' }}">Last 90 days</a>
-            </div>
-
-            {% if brief.property_synopsis %}
-            <!-- Property Synopsis -->
-            <div class="section" style="margin-bottom: var(--space-7, 28px);">
-                <h2>Your Property</h2>
-                <div class="summary-row" style="margin-bottom: var(--space-4);">
-                    <div class="summary-card">
-                        <div class="summary-number">{{ brief.property_synopsis.total_permits }}</div>
-                        <div class="summary-label">Total Permits</div>
-                    </div>
-                    <div class="summary-card {{ 'ok' if brief.property_synopsis.active_count > 0 else '' }}">
-                        <div class="summary-number">{{ brief.property_synopsis.active_count }}</div>
-                        <div class="summary-label">Active</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="summary-number">{{ brief.property_synopsis.completed_count }}</div>
-                        <div class="summary-label">Completed</div>
-                    </div>
-                </div>
-                {% if brief.property_synopsis.latest_permit %}
-                <div style="margin-bottom: var(--space-3);">
-                    <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em;">Most Recent</span>
-                    <div style="margin-top: var(--space-1);">
-                        <a href="/?q={{ brief.property_synopsis.latest_permit.permit_number }}"
-                           style="font-family: var(--mono); color: var(--accent); text-decoration: none; font-weight: 400;">
-                            {{ brief.property_synopsis.latest_permit.permit_number }}
-                        </a>
-                        &middot;
-                        <span class="status-badge status-{{ brief.property_synopsis.latest_permit.status|lower }}">
-                            {{ brief.property_synopsis.latest_permit.status }}
-                        </span>
-                        &middot; {{ brief.property_synopsis.latest_permit.type }}
-                        {% if brief.property_synopsis.latest_permit.filed_date %}
-                        &middot; Filed {{ brief.property_synopsis.latest_permit.filed_date }}
-                        {% endif %}
-                    </div>
-                    {% if brief.property_synopsis.latest_permit.description %}
-                    <div style="font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-1);">
-                        {{ brief.property_synopsis.latest_permit.description }}
-                    </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-                {% if brief.property_synopsis.top_types %}
-                <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);">
-                    <span style="text-transform: uppercase; letter-spacing: 0.06em;">Permit Types:</span>
-                    {% for ptype, count in brief.property_synopsis.top_types %}
-                        {{ ptype }} ({{ count }}){% if not loop.last %},{% endif %}
-                    {% endfor %}
-                </div>
-                {% endif %}
-                {% if brief.property_synopsis.block and brief.property_synopsis.lot %}
-                <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-2);">
-                    Block {{ brief.property_synopsis.block }}, Lot {{ brief.property_synopsis.lot }}
-                    {% if brief.property_synopsis.earliest_date and brief.property_synopsis.latest_date %}
-                    &middot; Permit history: {{ brief.property_synopsis.earliest_date }} &ndash; {{ brief.property_synopsis.latest_date }}
-                    {% endif %}
-                </div>
-                <div style="margin-top: var(--space-3);">
-                    <a href="/report/{{ brief.property_synopsis.block }}/{{ brief.property_synopsis.lot }}"
-                       class="ghost-cta">View Property Report &rarr;</a>
-                </div>
                 {% endif %}
             </div>
-            {% endif %}
+        </div>
 
-            {% if brief.summary.total_watches == 0 and not brief.property_synopsis %}
-            <!-- SESSION E: Empty state — no watches yet -->
-            <div class="section onboarding" id="brief-empty-state">
+        {% if brief.last_refresh and brief.last_refresh.is_stale %}
+        <div class="data-stale-warning reveal">
+            Data may be incomplete &mdash; last refresh was {{ brief.last_refresh.hours_ago|int }} hours ago.
+            {% if brief.last_refresh.was_catchup %}Some changes were recovered via backfill.{% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ── LOOKBACK TOGGLE ── -->
+        <div class="lookback-toggle reveal reveal-delay-1">
+            <a href="/brief?lookback=1"  class="lookback-btn {{ 'active' if brief.lookback_days == 1 else '' }}">Today</a>
+            <a href="/brief?lookback=7"  class="lookback-btn {{ 'active' if brief.lookback_days == 7 else '' }}">7 days</a>
+            <a href="/brief?lookback=30" class="lookback-btn {{ 'active' if brief.lookback_days == 30 else '' }}">30 days</a>
+            <a href="/brief?lookback=90" class="lookback-btn {{ 'active' if brief.lookback_days == 90 else '' }}">90 days</a>
+        </div>
+
+        {% if brief.summary.total_watches == 0 and not brief.property_synopsis %}
+        <!-- ── ONBOARDING EMPTY STATE ── -->
+        <div class="brief-section reveal">
+            <div class="onboarding-empty">
                 <h2>No morning brief yet</h2>
                 <p>
-                    Add your first property watch to start receiving daily permit status updates,
+                    Watch your first property to start receiving daily permit status updates,
                     inspection results, and enforcement alerts.
                 </p>
-                <a href="/search" class="btn">Search for a property &rarr;</a>
+                <a href="/search" class="ghost-cta" style="font-size: var(--text-sm);">Search for a property &rarr;</a>
             </div>
-            {% elif brief.summary.total_watches > 0 or brief.property_synopsis %}
+        </div>
 
-            <!-- Summary cards (clickable — filter property grid) -->
-            <div class="summary-row">
-                <div class="summary-card" data-filter="all">
-                    <div class="summary-number">{{ brief.summary.total_properties or brief.summary.total_watches }}</div>
-                    <div class="summary-label">{{ 'Property' if (brief.summary.total_properties or brief.summary.total_watches) == 1 else 'Properties' }}</div>
+        {% elif brief.summary.total_watches > 0 or brief.property_synopsis %}
+
+        <!-- ── SUMMARY STRIP ── -->
+        <div class="brief-summary-strip reveal reveal-delay-1">
+            <div class="bss-item" data-filter="all">
+                <div class="bss-num">{{ brief.summary.total_properties or brief.summary.total_watches }}</div>
+                <div class="bss-label">{{ 'Property' if (brief.summary.total_properties or brief.summary.total_watches) == 1 else 'Properties' }}</div>
+            </div>
+            <div class="bss-item" data-filter="changed">
+                <div class="bss-num {% if brief.summary.changes_count > 0 %}bss-num--ok{% endif %}">{{ brief.summary.changes_count }}</div>
+                <div class="bss-label">Changed</div>
+            </div>
+            <div class="bss-item" data-filter="enforcement">
+                <div class="bss-num {% if brief.summary.get('enforcement_count', 0) > 0 %}bss-num--alert{% endif %}">{{ brief.summary.get('enforcement_count', 0) }}</div>
+                <div class="bss-label">Enforcement</div>
+            </div>
+            <div class="bss-item" data-filter="inspections">
+                <div class="bss-num {% if brief.summary.inspections_count > 0 %}bss-num--warn{% endif %}">{{ brief.summary.inspections_count }}</div>
+                <div class="bss-label">Inspections</div>
+            </div>
+            <div class="bss-item" data-filter="expiring">
+                <div class="bss-num {% if brief.summary.expiring_count > 0 %}bss-num--warn{% endif %}">{{ brief.summary.expiring_count }}</div>
+                <div class="bss-label">Expiring</div>
+            </div>
+        </div>
+
+        <!-- ── PROPERTY SYNOPSIS (if primary address set) ── -->
+        {% if brief.property_synopsis %}
+        <div class="brief-section reveal reveal-delay-1">
+            <div class="brief-section__title">Your Property</div>
+            <div class="synopsis-stats">
+                <div class="synopsis-stat">
+                    <div class="synopsis-stat__num">{{ brief.property_synopsis.total_permits }}</div>
+                    <div class="synopsis-stat__label">Total Permits</div>
                 </div>
-                <div class="summary-card {{ 'ok' if brief.summary.changes_count > 0 else '' }}" data-filter="changed">
-                    <div class="summary-number">{{ brief.summary.changes_count }}</div>
-                    <div class="summary-label">Changed</div>
+                <div class="synopsis-stat">
+                    <div class="synopsis-stat__num">{{ brief.property_synopsis.active_count }}</div>
+                    <div class="synopsis-stat__label">Active</div>
                 </div>
-                <div class="summary-card {{ 'alert' if brief.summary.get('enforcement_count', 0) > 0 else '' }}" data-filter="enforcement">
-                    <div class="summary-number">{{ brief.summary.get('enforcement_count', 0) }}</div>
-                    <div class="summary-label">Enforcement</div>
-                </div>
-                <div class="summary-card {{ 'warn' if brief.summary.inspections_count > 0 else '' }}" data-filter="inspections">
-                    <div class="summary-number">{{ brief.summary.inspections_count }}</div>
-                    <div class="summary-label">Inspections</div>
-                </div>
-                <div class="summary-card {{ 'warn' if brief.summary.expiring_count > 0 else '' }}" data-filter="expiring">
-                    <div class="summary-number">{{ brief.summary.expiring_count }}</div>
-                    <div class="summary-label">Expiring</div>
+                <div class="synopsis-stat">
+                    <div class="synopsis-stat__num">{{ brief.property_synopsis.completed_count }}</div>
+                    <div class="synopsis-stat__label">Completed</div>
                 </div>
             </div>
+            {% if brief.property_synopsis.latest_permit %}
+            <div style="margin-bottom: var(--space-3);">
+                <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-1);">Most Recent</div>
+                <span style="font-family: var(--mono); font-size: var(--text-sm);">
+                    <a href="/?q={{ brief.property_synopsis.latest_permit.permit_number }}" style="color: var(--accent); text-decoration: none;">{{ brief.property_synopsis.latest_permit.permit_number }}</a>
+                </span>
+                &middot;
+                <span class="status-badge status-{{ brief.property_synopsis.latest_permit.status|lower }}">{{ brief.property_synopsis.latest_permit.status }}</span>
+                &middot;
+                <span style="font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary);">{{ brief.property_synopsis.latest_permit.type }}</span>
+                {% if brief.property_synopsis.latest_permit.filed_date %}
+                &middot; <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);">Filed {{ brief.property_synopsis.latest_permit.filed_date }}</span>
+                {% endif %}
+                {% if brief.property_synopsis.latest_permit.description %}
+                <div style="font-family: var(--sans); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1);">{{ brief.property_synopsis.latest_permit.description }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if brief.property_synopsis.top_types %}
+            <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: var(--space-2);">
+                {% for ptype, count in brief.property_synopsis.top_types %}{{ ptype }} ({{ count }}){% if not loop.last %} &middot; {% endif %}{% endfor %}
+            </div>
+            {% endif %}
+            {% if brief.property_synopsis.block and brief.property_synopsis.lot %}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-2);">
+                <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);">
+                    Block {{ brief.property_synopsis.block }}, Lot {{ brief.property_synopsis.lot }}
+                    {% if brief.property_synopsis.earliest_date and brief.property_synopsis.latest_date %}
+                    &middot; {{ brief.property_synopsis.earliest_date }} &ndash; {{ brief.property_synopsis.latest_date }}
+                    {% endif %}
+                </span>
+                <a href="/report/{{ brief.property_synopsis.block }}/{{ brief.property_synopsis.lot }}" class="ghost-cta">View Report &rarr;</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
 
-            <!-- Section 1: What Changed -->
-            <div class="section" id="section-changes">
-                <h2>What Changed</h2>
-                {% if brief.changes %}
-                {% for c in brief.changes %}
-                <div class="change-card" id="change-{{ loop.index }}">
-                    {% if c.change_type == 'activity' %}
-                    {# Property-level activity (from SODA status_date, not permit_changes log) #}
-                    <div class="change-meta">
-                        <span class="change-permit">
-                            <a href="{{ c.label|default('') and '/?q=' + (c.street_number + ' ' + c.street_name)|urlencode or '#' }}" title="Look up property">{{ c.label }}</a>
-                        </span>
-                        <span class="change-detail">
-                            {% if c.permit_number %}{{ c.permit_number }} &middot; {% endif %}
-                            {% if c.latest_permit_status %}{{ c.latest_permit_status|upper }}{% endif %}
-                            {% if c.permit_type %} &middot; {{ c.permit_type }}{% endif %}
-                        </span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap;">
-                        {% if c.latest_permit_status %}
-                        <span class="status-badge status-{{ c.latest_permit_status|lower }}">{{ c.latest_permit_status }}</span>
-                        {% endif %}
-                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">{{ c.days_since_activity }}d ago</span>
-                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">&middot; {{ c.active_permits }} active of {{ c.total_permits }}</span>
-                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">✓</button>
-                    </div>
+        <!-- ── WHAT CHANGED (action queue) ── -->
+        <div class="brief-section reveal reveal-delay-1" id="section-changes">
+            {% set has_attention = brief.changes and brief.changes | selectattr('health', 'in', ['at_risk', 'behind']) | list %}
+            <div class="brief-section__title {% if has_attention %}brief-section__title--warn{% endif %}">
+                What Changed
+                {% if brief.changes %}<span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); font-weight: 300; letter-spacing: 0;">— {{ brief.changes | length }}</span>{% endif %}
+            </div>
+
+            {% if brief.changes %}
+            {% for c in brief.changes %}
+            <div class="aq-item" id="change-{{ loop.index }}">
+                {% if c.change_type == 'activity' %}
+                    {# Determine dot color from health #}
+                    {% if c.health in ('at_risk', 'behind') %}
+                    <span class="aq-item__dot aq-item__dot--amber"></span>
+                    {% elif c.health == 'on_track' %}
+                    <span class="aq-item__dot aq-item__dot--green"></span>
                     {% else %}
-                    {# Permit-level status transition (from permit_changes detection log) #}
-                    <div class="change-meta">
-                        <span class="change-permit">
-                            <a href="/?q={{ c.permit_number }}" title="Look up permit details">{{ c.label or c.permit_number }}</a>
-                        </span>
-                        <span class="change-detail">
+                    <span class="aq-item__dot aq-item__dot--muted"></span>
+                    {% endif %}
+                    <div class="aq-item__body">
+                        <div class="aq-item__headline">
+                            <a href="{{ '/?q=' + (c.street_number ~ ' ' ~ c.street_name) | urlencode if c.street_number else '#' }}">{{ c.label or (c.street_number ~ ' ' ~ c.street_name) }}</a>
+                        </div>
+                        <div class="aq-item__detail">
+                            {% if c.latest_permit_status %}{{ c.latest_permit_status | upper }}{% endif %}
+                            {% if c.permit_type %} &middot; {{ c.permit_type }}{% endif %}
+                            {% if c.active_permits is not none %} &middot; {{ c.active_permits }} active of {{ c.total_permits }}{% endif %}
+                            {% if c.health_reason %} &middot; {{ c.health_reason }}{% endif %}
+                        </div>
+                        <div class="aq-item__actions">
+                            <a href="{{ '/?q=' + (c.street_number ~ ' ' ~ c.street_name) | urlencode if c.street_number else '#' }}" class="aq-action">View permits</a>
+                            <button class="aq-dismiss" onclick="this.closest('.aq-item').style.opacity='0.3';this.remove();">Mark reviewed</button>
+                        </div>
+                    </div>
+                    <span class="aq-item__time {% if c.days_since_activity == 0 %}aq-item__time--green{% elif c.days_since_activity <= 3 %}aq-item__time--amber{% else %}aq-item__time--muted{% endif %}">
+                        {% if c.days_since_activity == 0 %}today{% elif c.days_since_activity == 1 %}yesterday{% else %}{{ c.days_since_activity }}d ago{% endif %}
+                    </span>
+                {% else %}
+                    {# Permit-level status transition #}
+                    {% if c.new_status|lower in ('expired', 'cancelled', 'revoked') %}
+                    <span class="aq-item__dot aq-item__dot--red"></span>
+                    {% elif c.new_status|lower in ('issued', 'approved', 'completed') %}
+                    <span class="aq-item__dot aq-item__dot--green"></span>
+                    {% elif c.new_status|lower in ('filed', 'in review', 'plancheck') %}
+                    <span class="aq-item__dot aq-item__dot--blue"></span>
+                    {% else %}
+                    <span class="aq-item__dot aq-item__dot--muted"></span>
+                    {% endif %}
+                    <div class="aq-item__body">
+                        <div class="aq-item__headline">
+                            <a href="/?q={{ c.permit_number }}">{{ c.label or c.permit_number }}</a>
+                        </div>
+                        <div class="aq-item__detail">
                             {{ c.permit_number }}
                             {% if c.street_number %} &middot; {{ c.street_number }} {{ c.street_name }}{% endif %}
-                            {% if c.neighborhood %} &middot; {{ c.neighborhood }}{% endif %}
                             {% if c.permit_type %} &middot; {{ c.permit_type }}{% endif %}
-                        </span>
+                        </div>
+                        <div class="aq-item__actions">
+                            <a href="/?q={{ c.permit_number }}" class="aq-action">View permit</a>
+                            <button class="aq-dismiss" onclick="this.closest('.aq-item').style.opacity='0.3';this.remove();">Mark reviewed</button>
+                        </div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap;">
+                    <div style="display: flex; align-items: center; gap: var(--space-1); flex-shrink: 0; margin-top: 2px; flex-wrap: nowrap;">
                         {% if c.old_status %}
-                        <span class="status-badge status-{{ c.old_status|lower }}">{{ c.old_status }}</span>
+                        <span class="status-badge status-{{ c.old_status|lower }}" style="font-size: var(--text-xs);">{{ c.old_status }}</span>
                         <span class="status-arrow">&rarr;</span>
                         {% endif %}
-                        <span class="status-badge status-{{ c.new_status|lower }}">{{ c.new_status }}</span>
-                        {% if c.change_date %}
-                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">{{ c.change_date }}</span>
-                        {% endif %}
-                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">✓</button>
+                        <span class="status-badge status-{{ c.new_status|lower }}" style="font-size: var(--text-xs);">{{ c.new_status }}</span>
                     </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">
-                    No status changes on your watched items in this period.
-                    {% if brief.lookback_days == 1 %}Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> for a wider view.{% endif %}
-                </p>
                 {% endif %}
+                <span class="aq-item__arrow">&rarr;</span>
             </div>
+            {% endfor %}
 
-            <!-- Section 1.5: Plan Review Activity -->
-            {% if brief.plan_reviews %}
-            <div class="section">
-                <h2>Plan Review Activity</h2>
-                {% for pr in brief.plan_reviews %}
-                <div class="change-card">
-                    <div class="change-meta">
-                        <span class="change-permit">
-                            <a href="/?q={{ pr.permit_number }}">{{ pr.label or pr.permit_number }}</a>
-                        </span>
-                        <span class="change-detail">{{ pr.change_date }}</span>
-                    </div>
-                    <div class="change-detail">
-                        <strong>{{ pr.station }}</strong>
-                        {% if pr.department %}<span style="color:var(--text-secondary);"> ({{ pr.department }})</span>{% endif %}
-                        {% if pr.reviewer %} &middot; {{ pr.reviewer }}{% endif %}
-                    </div>
-                    <div>
-                        {% if pr.result == 'Approved' %}
-                        <span class="status-badge plan-result-approved">{{ pr.result }}</span>
-                        {% elif pr.result == 'Issued Comments' %}
-                        <span class="status-badge plan-result-comments">{{ pr.result }}</span>
-                        {% elif pr.result %}
-                        <span class="status-badge plan-result-other">{{ pr.result }}</span>
-                        {% else %}
-                        <span class="status-badge plan-result-routed">Routed</span>
-                        {% endif %}
-                    </div>
-                    {% if pr.notes %}
-                    <div style="margin-top: var(--space-1); font-family: var(--sans); font-size: var(--text-sm); color: var(--text-secondary);">{{ pr.notes }}</div>
-                    {% endif %}
-                    {# Routing context + velocity #}
-                    {% if pr.routing_completion_pct is defined and pr.routing_completion_pct is not none %}
-                    <div style="margin-top: var(--space-1);">
-                        <div style="display:flex;align-items:center;gap:var(--space-2);">
-                            <div class="progress-track" style="flex:1;">
-                                <div class="progress-fill {{ 'on_track' if pr.routing_completion_pct >= 50 else 'slower' }}"
-                                     style="width:{{ pr.routing_completion_pct }}%"></div>
-                            </div>
-                            <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);white-space:nowrap;">
-                                {{ pr.routing_completed_stations }}/{{ pr.routing_total_stations }} stations
-                            </span>
-                        </div>
-                        {% if pr.station_typical_label %}
-                        <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);margin-top:var(--space-1);">
-                            {{ pr.station }} typically takes {{ pr.station_typical_label }}
-                        </div>
-                        {% endif %}
-                        {% if pr.routing_pending_stations %}
-                        <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);margin-top:var(--space-1);">
-                            Waiting on: {{ pr.routing_pending_stations | join(', ') }}
-                        </div>
-                        {% endif %}
-                        {# Sprint 60B: Station path prediction #}
-                        {% if pr.predicted_next %}
-                        <div style="font-family:var(--mono);font-size:var(--text-xs);color:var(--accent);margin-top:var(--space-1);">
-                            Predicted next: {{ pr.predicted_next }}
-                            {% if pr.predicted_next_days %} (~{{ pr.predicted_next_days }} days){% endif %}
-                            {% if pr.predicted_remaining_days %} &middot; Est. {{ pr.predicted_remaining_days }} days remaining{% endif %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {# ===== Your Properties — always visible when property cards exist ===== #}
-            {% if brief.property_cards %}
-            <div class="section" id="section-properties" style="margin-bottom: var(--space-7, 28px);">
-                <h2>Your Properties</h2>
-                <div class="property-snapshot-grid" id="property-grid">
-                    {% for prop in brief.property_cards %}
-                    <div class="prop-card health-{{ prop.worst_health }}"
-                         {% if prop.days_since_activity is not none and prop.days_since_activity <= brief.lookback_days %}data-changed="true"{% endif %}
-                         {% if prop.enforcement_total and prop.enforcement_total > 0 %}data-enforcement="true"{% endif %}
-                         {% if prop.worst_health in ('at_risk', 'behind') %}data-at-risk="true"{% endif %}>
-                        <div class="prop-header">
-                            <a href="{{ prop.search_url }}" class="prop-address">
-                                {{ prop.label or prop.address }}
-                            </a>
-                            <span class="health-indicator">
-                                <span class="health-dot {{ prop.worst_health }}"></span>
-                                <span class="health-text {{ prop.worst_health }}">{{ prop.worst_health | replace('_', ' ') }}</span>
-                            </span>
-                        </div>
-                        {% if prop.health_reason and prop.worst_health != 'on_track' %}
-                        <div class="prop-health-reason">{{ prop.health_reason }}</div>
-                        {% endif %}
-                        {% if prop.days_since_activity is not none %}
-                        <div class="prop-recency {% if prop.days_since_activity <= 7 %}fresh{% elif prop.days_since_activity <= 30 %}stale{% else %}stale{% endif %}">
-                            {% if prop.days_since_activity == 0 %}&#x1f7e2; Activity today
-                            {% elif prop.days_since_activity == 1 %}&#x1f7e2; Activity yesterday
-                            {% elif prop.days_since_activity <= 7 %}&#x1f7e2; Activity {{ prop.days_since_activity }}d ago
-                            {% elif prop.days_since_activity <= 30 %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
-                            {% else %}&#x25cb; Last activity {{ prop.days_since_activity }}d ago
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        <div class="prop-stats">
-                            {{ prop.active_permits }} active of {{ prop.total_permits }} permits
-                            {% if prop.neighborhood %} &middot; {{ prop.neighborhood }}{% endif %}
-                            {% if prop.parcels_display %} &middot; {{ prop.parcels_display }}{% endif %}
-                        </div>
-                        {# Enforcement badge #}
-                        <div class="prop-enforcement">
-                            {% if prop.enforcement_total is none %}
-                            <span class="enforcement-badge unknown">&mdash; Enforcement data not available</span>
-                            {% elif prop.enforcement_total == 0 %}
-                            <span class="enforcement-badge clear">✓ No open violations or complaints</span>
-                            {% else %}
-                            <span class="enforcement-badge alert">⚠
-                                {% if prop.open_violations %}{{ prop.open_violations }} violation{{ 's' if prop.open_violations != 1 else '' }}{% endif %}{% if prop.open_violations and prop.open_complaints %} + {% endif %}{% if prop.open_complaints %}{{ prop.open_complaints }} complaint{{ 's' if prop.open_complaints != 1 else '' }}{% endif %}
-                            </span>
-                            {% endif %}
-                        </div>
-                        {# Routing progress #}
-                        {% if prop.routing %}
-                        <div class="prop-routing">
-                            <div class="routing-label">
-                                Plan Review: {{ prop.routing.completed_stations }} of {{ prop.routing.total_stations }} stations ({{ prop.routing.completion_pct }}%)
-                            </div>
-                            <div class="progress-track">
-                                <div class="progress-fill {{ 'on_track' if prop.routing.completion_pct >= 50 else 'slower' }}"
-                                     style="width:{{ prop.routing.completion_pct }}%"></div>
-                            </div>
-                            {% if prop.routing.stalled_stations %}
-                            <div class="routing-alert stalled">⚠ Stalled: {{ prop.routing.stalled_stations | join(', ') }}</div>
-                            {% endif %}
-                            {% if prop.routing.held_stations %}
-                            <div class="routing-alert held">⏱ Held: {{ prop.routing.held_stations | join(', ') }}</div>
-                            {% endif %}
-                            {% if prop.routing.pending_station_names %}
-                            <div class="routing-pending">Waiting on: {{ prop.routing.pending_station_names | join(', ') }}</div>
-                            {% endif %}
-                            {% if prop.routing.velocity %}
-                            <div class="routing-velocity">
-                                {% for v in prop.routing.velocity %}{{ v.station }}: typically {{ v.typical }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
             {% else %}
-            {# Fallback if no property cards — show simplified quiet message #}
-            {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.regulatory_alerts %}
-            {% if all_empty %}
-            <div class="all-quiet-card">
-                <div class="all-quiet-icon">&#x2705;</div>
-                <div class="all-quiet-title">All quiet on your watched items</div>
-                <div class="all-quiet-body">
-                    {% if brief.lookback_days == 1 %}No activity today. Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a> or <a href="/brief?lookback=30" style="color:var(--accent);">last 30 days</a> for a wider view.{% elif brief.lookback_days < 90 %}No activity in the last {{ brief.lookback_days }} days. {% if brief.lookback_days <= 30 %}Try <a href="/brief?lookback=90" style="color:var(--accent);">last 90 days</a>.{% endif %}{% else %}No activity in the last 90 days.{% endif %}
-                </div>
-                <div style="margin-top: var(--space-4);">
-                    <a href="/" class="ghost-cta">Search for permits to watch &rarr;</a>
-                </div>
-            </div>
+            <p class="brief-section__empty">
+                No status changes on your watched items in this period.
+                {% if brief.lookback_days == 1 %}Try <a href="/brief?lookback=7" style="color: var(--accent);">last 7 days</a> for a wider view.{% endif %}
+            </p>
             {% endif %}
-            {% endif %}
+        </div>
 
-            <!-- Section 2: Permit Health -->
-            <div class="section">
-                <h2>Permit Health</h2>
-                {% if brief.health %}
-                {% for h in brief.health %}
-                <div class="health-item">
-                    <div class="health-header">
-                        <span class="health-label">
-                            <a href="/?q={{ h.permit_number }}" title="Look up permit details">{{ h.label or h.permit_number }}</a>
-                        </span>
-                        <span class="health-status health-{{ h.status }}">{{ h.status|replace('_', ' ') }}</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill {{ h.status }}"
-                             style="width: {{ [h.pct_of_typical, 100] | min }}%"></div>
-                    </div>
-                    <div class="health-detail">
-                        {{ h.elapsed_days }} days elapsed &middot;
-                        typical: {{ h.p50 }} days &middot;
-                        {{ h.pct_of_typical }}% of typical
-                        ({{ h.sample_size }} similar permits)
-                    </div>
-                </div>
-                {% endfor %}
+        <!-- ── PLAN REVIEW ACTIVITY ── -->
+        {% if brief.plan_reviews %}
+        <div class="brief-section reveal reveal-delay-2">
+            <div class="brief-section__title">Plan Review Activity — {{ brief.plan_reviews | length }}</div>
+            {% for pr in brief.plan_reviews %}
+            <div class="aq-item">
+                {% if pr.result == 'Approved' %}
+                <span class="aq-item__dot aq-item__dot--green"></span>
+                {% elif pr.result == 'Issued Comments' %}
+                <span class="aq-item__dot aq-item__dot--amber"></span>
                 {% else %}
-                <p class="section-empty">
-                    No active watched permits to track. Watch a specific permit number to see health tracking here.
-                </p>
+                <span class="aq-item__dot aq-item__dot--blue"></span>
                 {% endif %}
-            </div>
-
-            <!-- Section 3: Inspection Results -->
-            <div class="section" id="section-inspections">
-                <h2>Inspection Results</h2>
-                {% if brief.inspections %}
-                {% for insp in brief.inspections %}
-                <div class="change-card" id="insp-{{ loop.index }}">
-                    <div class="change-meta">
-                        <span class="change-permit">
-                            <a href="/?q={{ insp.permit_number }}" title="Look up permit details">{{ insp.label or insp.permit_number }}</a>
-                        </span>
-                        <span class="change-detail">
-                            {{ insp.description or 'Inspection' }}
-                            {% if insp.inspector %} &middot; {{ insp.inspector }}{% endif %}
-                            &middot; {{ insp.date }}
-                        </span>
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">
+                        <a href="/?q={{ pr.permit_number }}">{{ pr.label or pr.permit_number }}</a>
                     </div>
-                    <div style="display:flex;align-items:center;">
-                        <span class="status-badge {% if insp.is_pass %}status-approved{% elif insp.is_fail %}status-expired{% else %}{% endif %}">
-                            {{ insp.result or 'Pending' }}
-                        </span>
-                        <button class="btn-dismiss" onclick="this.closest('.change-card').style.opacity='0.3';this.remove();" title="Mark reviewed">✓</button>
+                    <div class="aq-item__detail">
+                        {{ pr.station }}{% if pr.department %} ({{ pr.department }}){% endif %}{% if pr.reviewer %} &middot; {{ pr.reviewer }}{% endif %}
+                        &middot; {{ pr.change_date }}
                     </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">
-                    No recent inspections on your watched permits.
-                    {% if brief.lookback_days == 1 %}Try <a href="/brief?lookback=7" style="color:var(--accent);">last 7 days</a>.{% endif %}
-                </p>
-                {% endif %}
-            </div>
-
-            <!-- Section 4: New Filings -->
-            <div class="section">
-                <h2>New Filings at Watched Locations</h2>
-                {% if brief.new_filings %}
-                {% for f in brief.new_filings %}
-                <div class="change-card">
-                    <div class="change-meta">
-                        <span class="change-permit">
-                            <a href="/?q={{ f.permit_number }}" title="Look up permit details">{{ f.permit_number }}</a>
-                        </span>
-                        <span class="change-detail">
-                            {{ f.street_number }} {{ f.street_name }}
-                            {% if f.neighborhood %} &middot; {{ f.neighborhood }}{% endif %}
-                            {% if f.permit_type %} &middot; {{ f.permit_type }}{% endif %}
-                        </span>
-                    </div>
-                    <div>
-                        <span class="status-badge status-filed">new</span>
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">No new permits filed at your watched addresses or parcels.</p>
-                {% endif %}
-            </div>
-
-            <!-- Section 5: Team Activity -->
-            <div class="section">
-                <h2>Team Activity</h2>
-                {% if brief.team_activity %}
-                {% for t in brief.team_activity %}
-                <div class="change-card">
-                    <div class="change-meta">
-                        <span class="change-permit">{{ t.entity_name }} ({{ t.role }})</span>
-                        <span class="change-detail">
-                            <a href="/?q={{ t.permit_number }}" style="color:var(--text-secondary);text-decoration:none;">{{ t.permit_number }}</a> &middot;
-                            {{ t.street_number }} {{ t.street_name }}
-                            {% if t.neighborhood %} &middot; {{ t.neighborhood }}{% endif %}
-                            {% if t.permit_type %} &middot; {{ t.permit_type }}{% endif %}
-                        </span>
-                    </div>
-                    <div>
-                        <span class="status-badge status-{{ t.status|lower }}">{{ t.status }}</span>
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">No new activity from your watched contractors, architects, or consultants.</p>
-                {% endif %}
-            </div>
-
-            <!-- Section 6: Expiring Permits -->
-            <div class="section" id="section-expiring">
-                <h2>Expiring Permits</h2>
-                {% if brief.expiring %}
-                {% for e in brief.expiring %}
-                <div class="change-card">
-                    <div class="change-meta">
-                        <span class="change-permit">
-                            <a href="/?q={{ e.permit_number }}" title="Look up permit details">{{ e.label or e.permit_number }}</a>
-                        </span>
-                        <span class="change-detail">
-                            {{ e.street_number }} {{ e.street_name }}
-                            {% if e.neighborhood %} &middot; {{ e.neighborhood }}{% endif %}
-                            &middot; Issued: {{ e.issued_date }}
-                        </span>
-                    </div>
-                    <div>
-                        {% if e.is_expired %}
-                        <span class="expire-urgent">EXPIRED ({{ -e.expires_in }} days ago)</span>
-                        {% else %}
-                        <span class="expire-warning">Expires in {{ e.expires_in }} days</span>
+                    {% if pr.routing_completion_pct is defined and pr.routing_completion_pct is not none %}
+                    <div style="margin-top: var(--space-2);">
+                        <div class="progress-label" style="margin-bottom: 4px;">
+                            <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);">{{ pr.routing_completed_stations }}/{{ pr.routing_total_stations }} stations</span>
+                            {% if pr.station_typical_label %}
+                            <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);">{{ pr.station }}: typically {{ pr.station_typical_label }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill {% if pr.routing_completion_pct >= 50 %}on_track{% else %}slower{% endif %}" style="width: {{ pr.routing_completion_pct }}%"></div>
+                        </div>
+                        {% if pr.predicted_next %}
+                        <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--accent); margin-top: var(--space-1);">
+                            Next: {{ pr.predicted_next }}{% if pr.predicted_next_days %} (~{{ pr.predicted_next_days }}d){% endif %}{% if pr.predicted_remaining_days %} &middot; ~{{ pr.predicted_remaining_days }}d remaining{% endif %}
+                        </div>
                         {% endif %}
                     </div>
+                    {% endif %}
+                    <div class="aq-item__actions">
+                        <a href="/?q={{ pr.permit_number }}" class="aq-action">View permit</a>
+                    </div>
                 </div>
-                {% endfor %}
-                {% else %}
-                <p class="section-empty">No permits approaching their Table B expiration deadline.</p>
-                {% endif %}
+                <div style="flex-shrink: 0; margin-top: 2px;">
+                    {% if pr.result == 'Approved' %}
+                    <span class="status-badge plan-result-approved" style="font-size: var(--text-xs);">{{ pr.result }}</span>
+                    {% elif pr.result == 'Issued Comments' %}
+                    <span class="status-badge plan-result-comments" style="font-size: var(--text-xs);">{{ pr.result }}</span>
+                    {% elif pr.result %}
+                    <span class="status-badge plan-result-other" style="font-size: var(--text-xs);">{{ pr.result }}</span>
+                    {% else %}
+                    <span class="status-badge plan-result-routed" style="font-size: var(--text-xs);">Routed</span>
+                    {% endif %}
+                </div>
+                <span class="aq-item__arrow">&rarr;</span>
             </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-            <!-- Section 7: Regulatory Alerts -->
-            {% if brief.regulatory_alerts %}
-            <div class="section">
-                <h2>Regulatory Watch</h2>
-                {% for a in brief.regulatory_alerts %}
-                <div class="change-card">
-                    <div class="change-meta">
-                        <span class="change-permit">{{ a.title }}</span>
-                        <span class="change-detail">
-                            {{ a.source_type | replace('_', ' ') | title }} &mdash; {{ a.source_id }}
-                            {% if a.filed_date %} &middot; Filed {{ a.filed_date }}{% endif %}
+        <!-- ── YOUR PROPERTIES (snapshot grid) ── -->
+        {% if brief.property_cards %}
+        <div class="brief-section reveal reveal-delay-2" id="section-properties">
+            <div class="brief-section__title">Your Properties — {{ brief.property_cards | length }}</div>
+            <div class="prop-grid" id="property-grid">
+                {% for prop in brief.property_cards %}
+                <div class="prop-card health-{{ prop.worst_health }}"
+                     {% if prop.days_since_activity is not none and prop.days_since_activity <= brief.lookback_days %}data-changed="true"{% endif %}
+                     {% if prop.enforcement_total and prop.enforcement_total > 0 %}data-enforcement="true"{% endif %}
+                     {% if prop.worst_health in ('at_risk', 'behind') %}data-at-risk="true"{% endif %}>
+                    <div class="prop-header">
+                        <a href="{{ prop.search_url }}" class="prop-address">{{ prop.label or prop.address }}</a>
+                        <span>
+                            <span class="health-dot {{ prop.worst_health }}"></span>
+                            <span class="health-text {{ prop.worst_health }}">{{ prop.worst_health | replace('_', ' ') }}</span>
                         </span>
                     </div>
-                    <div style="display:flex;gap:var(--space-1);align-items:center;">
-                        <span class="impact-badge {% if a.impact_level == 'high' %}impact-high{% elif a.impact_level == 'moderate' %}impact-moderate{% else %}impact-low{% endif %}">{{ a.impact_level }}</span>
-                        <span style="font-family:var(--mono);font-size:var(--text-xs);color:var(--text-secondary);">{{ a.status }}</span>
+                    {% if prop.health_reason and prop.worst_health != 'on_track' %}
+                    <div class="prop-health-reason">{{ prop.health_reason }}</div>
+                    {% endif %}
+                    {% if prop.days_since_activity is not none %}
+                    <div class="prop-recency {% if prop.days_since_activity <= 7 %}fresh{% else %}stale{% endif %}">
+                        {% if prop.days_since_activity == 0 %}Activity today
+                        {% elif prop.days_since_activity == 1 %}Activity yesterday
+                        {% elif prop.days_since_activity <= 7 %}Activity {{ prop.days_since_activity }}d ago
+                        {% else %}Last activity {{ prop.days_since_activity }}d ago
+                        {% endif %}
                     </div>
+                    {% endif %}
+                    <div class="prop-stats">
+                        {{ prop.active_permits }} active of {{ prop.total_permits }} permits
+                        {% if prop.neighborhood %} &middot; {{ prop.neighborhood }}{% endif %}
+                        {% if prop.parcels_display %} &middot; {{ prop.parcels_display }}{% endif %}
+                    </div>
+                    <div>
+                        {% if prop.enforcement_total is none %}
+                        <span class="enforcement-badge unknown">&mdash; Enforcement data unavailable</span>
+                        {% elif prop.enforcement_total == 0 %}
+                        <span class="enforcement-badge clear">No open violations or complaints</span>
+                        {% else %}
+                        <span class="enforcement-badge alert">
+                            {% if prop.open_violations %}{{ prop.open_violations }} violation{{ 's' if prop.open_violations != 1 else '' }}{% endif %}{% if prop.open_violations and prop.open_complaints %} + {% endif %}{% if prop.open_complaints %}{{ prop.open_complaints }} complaint{{ 's' if prop.open_complaints != 1 else '' }}{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if prop.routing %}
+                    <div class="prop-routing">
+                        <div class="routing-label">Plan Review: {{ prop.routing.completed_stations }} of {{ prop.routing.total_stations }} stations ({{ prop.routing.completion_pct }}%)</div>
+                        <div class="progress-track">
+                            <div class="progress-fill {% if prop.routing.completion_pct >= 50 %}on_track{% else %}slower{% endif %}" style="width: {{ prop.routing.completion_pct }}%"></div>
+                        </div>
+                        {% if prop.routing.stalled_stations %}
+                        <div class="routing-alert stalled">Stalled: {{ prop.routing.stalled_stations | join(', ') }}</div>
+                        {% endif %}
+                        {% if prop.routing.held_stations %}
+                        <div class="routing-alert held">Held: {{ prop.routing.held_stations | join(', ') }}</div>
+                        {% endif %}
+                        {% if prop.routing.pending_station_names %}
+                        <div class="routing-pending">Waiting on: {{ prop.routing.pending_station_names | join(', ') }}</div>
+                        {% endif %}
+                        {% if prop.routing.velocity %}
+                        <div class="routing-velocity">{% for v in prop.routing.velocity %}{{ v.station }}: {{ v.typical }}{% if not loop.last %} &middot; {% endif %}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
-                {% if g and g.user and g.user.is_admin %}
-                <div style="text-align:right;margin-top:var(--space-2);">
-                    <a href="/admin/regulatory-watch" class="ghost-cta" style="font-size:var(--text-xs);">Manage watch items &rarr;</a>
+            </div>
+        </div>
+        {% else %}
+        {# All-quiet fallback when no property cards #}
+        {% set all_empty = not brief.changes and not brief.health and not brief.inspections and not brief.new_filings and not brief.team_activity and not brief.expiring and not brief.regulatory_alerts %}
+        {% if all_empty %}
+        <div class="all-quiet reveal">
+            <div class="all-quiet__icon">&#x2705;</div>
+            <div class="all-quiet__title">All quiet on your watched items</div>
+            <div class="all-quiet__body">
+                {% if brief.lookback_days == 1 %}No activity today. Try <a href="/brief?lookback=7">last 7 days</a> or <a href="/brief?lookback=30">last 30 days</a> for a wider view.
+                {% elif brief.lookback_days < 90 %}No activity in the last {{ brief.lookback_days }} days. {% if brief.lookback_days <= 30 %}Try <a href="/brief?lookback=90">last 90 days</a>.{% endif %}
+                {% else %}No activity in the last 90 days.{% endif %}
+            </div>
+            <div style="margin-top: var(--space-4);">
+                <a href="/" class="ghost-cta">Search for permits to watch &rarr;</a>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- ── PERMIT HEALTH ── -->
+        <div class="brief-section reveal reveal-delay-2">
+            <div class="brief-section__title {% if brief.health and brief.health | selectattr('status', 'in', ['at_risk', 'behind']) | list %}brief-section__title--warn{% endif %}">Permit Health</div>
+            {% if brief.health %}
+            {% for h in brief.health %}
+            <div class="health-item">
+                <div class="health-item__header">
+                    <span class="health-item__label">
+                        <a href="/?q={{ h.permit_number }}">{{ h.label or h.permit_number }}</a>
+                    </span>
+                    <span class="health-status-badge health-{{ h.status }}">{{ h.status | replace('_', ' ') }}</span>
                 </div>
+                <div class="progress-track">
+                    <div class="progress-fill {{ h.status }}" style="width: {{ [h.pct_of_typical, 100] | min }}%"></div>
+                </div>
+                <div class="health-item__detail">
+                    {{ h.elapsed_days }}d elapsed &middot; typical: {{ h.p50 }}d &middot; {{ h.pct_of_typical }}% of typical ({{ h.sample_size }} similar permits)
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="brief-section__empty">No active watched permits to track. Watch a specific permit number to see health tracking here.</p>
+            {% endif %}
+        </div>
+
+        <!-- ── INSPECTION RESULTS ── -->
+        <div class="brief-section reveal reveal-delay-2" id="section-inspections">
+            <div class="brief-section__title {% if brief.inspections %}brief-section__title--warn{% endif %}">
+                Inspection Results{% if brief.inspections %} — {{ brief.inspections | length }}{% endif %}
+            </div>
+            {% if brief.inspections %}
+            {% for insp in brief.inspections %}
+            <div class="aq-item" id="insp-{{ loop.index }}">
+                {% if insp.is_pass %}
+                <span class="aq-item__dot aq-item__dot--green"></span>
+                {% elif insp.is_fail %}
+                <span class="aq-item__dot aq-item__dot--red"></span>
+                {% else %}
+                <span class="aq-item__dot aq-item__dot--muted"></span>
                 {% endif %}
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">
+                        <a href="/?q={{ insp.permit_number }}">{{ insp.label or insp.permit_number }}</a>
+                    </div>
+                    <div class="aq-item__detail">
+                        {{ insp.description or 'Inspection' }}{% if insp.inspector %} &middot; {{ insp.inspector }}{% endif %} &middot; {{ insp.date }}
+                    </div>
+                    <div class="aq-item__actions">
+                        <a href="/?q={{ insp.permit_number }}" class="aq-action">View permit</a>
+                        <button class="aq-dismiss" onclick="this.closest('.aq-item').style.opacity='0.3';this.remove();">Mark reviewed</button>
+                    </div>
+                </div>
+                <span class="status-badge {% if insp.is_pass %}status-approved{% elif insp.is_fail %}status-expired{% endif %}" style="font-size: var(--text-xs); flex-shrink: 0; margin-top: 2px;">{{ insp.result or 'Pending' }}</span>
+                <span class="aq-item__arrow">&rarr;</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="brief-section__empty">
+                No recent inspections on your watched permits.
+                {% if brief.lookback_days == 1 %}Try <a href="/brief?lookback=7" style="color: var(--accent);">last 7 days</a>.{% endif %}
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- ── NEW FILINGS ── -->
+        {% if brief.new_filings or brief.summary.new_filings_count > 0 %}
+        <div class="brief-section reveal reveal-delay-2">
+            <div class="brief-section__title">New Filings{% if brief.new_filings %} — {{ brief.new_filings | length }}{% endif %}</div>
+            {% if brief.new_filings %}
+            {% for f in brief.new_filings %}
+            <div class="aq-item">
+                <span class="aq-item__dot aq-item__dot--blue"></span>
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">
+                        <a href="/?q={{ f.permit_number }}">{{ f.permit_number }}</a>
+                    </div>
+                    <div class="aq-item__detail">
+                        {{ f.street_number }} {{ f.street_name }}{% if f.neighborhood %} &middot; {{ f.neighborhood }}{% endif %}{% if f.permit_type %} &middot; {{ f.permit_type }}{% endif %}
+                    </div>
+                    <div class="aq-item__actions">
+                        <a href="/?q={{ f.permit_number }}" class="aq-action">View filing</a>
+                    </div>
+                </div>
+                <span class="status-badge status-filed" style="font-size: var(--text-xs); flex-shrink: 0; margin-top: 2px;">new</span>
+                <span class="aq-item__arrow">&rarr;</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="brief-section__empty">No new permits filed at your watched addresses or parcels.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ── TEAM ACTIVITY ── -->
+        {% if brief.team_activity %}
+        <div class="brief-section reveal reveal-delay-3">
+            <div class="brief-section__title">Team Activity — {{ brief.team_activity | length }}</div>
+            {% for t in brief.team_activity %}
+            <div class="aq-item">
+                <span class="aq-item__dot aq-item__dot--muted"></span>
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">{{ t.entity_name }} <span style="color: var(--text-secondary); font-size: var(--text-xs); font-family: var(--mono);">({{ t.role }})</span></div>
+                    <div class="aq-item__detail">
+                        <a href="/?q={{ t.permit_number }}" style="color: var(--text-secondary); text-decoration: none;">{{ t.permit_number }}</a> &middot; {{ t.street_number }} {{ t.street_name }}{% if t.neighborhood %} &middot; {{ t.neighborhood }}{% endif %}{% if t.permit_type %} &middot; {{ t.permit_type }}{% endif %}
+                    </div>
+                    <div class="aq-item__actions">
+                        <a href="/?q={{ t.permit_number }}" class="aq-action">View permit</a>
+                    </div>
+                </div>
+                <span class="status-badge status-{{ t.status|lower }}" style="font-size: var(--text-xs); flex-shrink: 0; margin-top: 2px;">{{ t.status }}</span>
+                <span class="aq-item__arrow">&rarr;</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ── EXPIRING PERMITS ── -->
+        <div class="brief-section reveal reveal-delay-3" id="section-expiring">
+            <div class="brief-section__title {% if brief.expiring %}brief-section__title--warn{% endif %}">
+                Expiring Permits{% if brief.expiring %} — {{ brief.expiring | length }}{% endif %}
+            </div>
+            {% if brief.expiring %}
+            {% for e in brief.expiring %}
+            <div class="aq-item">
+                {% if e.is_expired %}
+                <span class="aq-item__dot aq-item__dot--red"></span>
+                {% else %}
+                <span class="aq-item__dot aq-item__dot--amber"></span>
+                {% endif %}
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">
+                        <a href="/?q={{ e.permit_number }}">{{ e.label or e.permit_number }}</a>
+                    </div>
+                    <div class="aq-item__detail">
+                        {{ e.street_number }} {{ e.street_name }}{% if e.neighborhood %} &middot; {{ e.neighborhood }}{% endif %} &middot; Issued {{ e.issued_date }}
+                    </div>
+                    <div class="aq-item__actions">
+                        <a href="/?q={{ e.permit_number }}" class="aq-action">View permit</a>
+                    </div>
+                </div>
+                {% if e.is_expired %}
+                <span class="expire-urgent" style="flex-shrink: 0; margin-top: 2px;">EXPIRED {{ -e.expires_in }}d ago</span>
+                {% else %}
+                <span class="expire-warning" style="flex-shrink: 0; margin-top: 2px;">{{ e.expires_in }}d remaining</span>
+                {% endif %}
+                <span class="aq-item__arrow">&rarr;</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="brief-section__empty">No permits approaching their Table B expiration deadline.</p>
+            {% endif %}
+        </div>
+
+        <!-- ── REGULATORY WATCH ── -->
+        {% if brief.regulatory_alerts %}
+        <div class="brief-section reveal reveal-delay-3">
+            <div class="brief-section__title brief-section__title--warn">Regulatory Watch — {{ brief.regulatory_alerts | length }}</div>
+            {% for a in brief.regulatory_alerts %}
+            <div class="aq-item">
+                {% if a.impact_level == 'high' %}
+                <span class="aq-item__dot aq-item__dot--red"></span>
+                {% elif a.impact_level == 'moderate' %}
+                <span class="aq-item__dot aq-item__dot--amber"></span>
+                {% else %}
+                <span class="aq-item__dot aq-item__dot--blue"></span>
+                {% endif %}
+                <div class="aq-item__body">
+                    <div class="aq-item__headline">{{ a.title }}</div>
+                    <div class="aq-item__detail">
+                        {{ a.source_type | replace('_', ' ') | title }} &mdash; {{ a.source_id }}{% if a.filed_date %} &middot; {{ a.filed_date }}{% endif %}
+                    </div>
+                </div>
+                <div style="display: flex; gap: var(--space-1); align-items: center; flex-shrink: 0; margin-top: 2px;">
+                    <span class="impact-badge impact-{{ a.impact_level }}">{{ a.impact_level }}</span>
+                    <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);">{{ a.status }}</span>
+                </div>
+                <span class="aq-item__arrow">&rarr;</span>
+            </div>
+            {% endfor %}
+            {% if g and g.user and g.user.is_admin %}
+            <div style="text-align: right; margin-top: var(--space-3);">
+                <a href="/admin/regulatory-watch" class="ghost-cta" style="font-size: var(--text-xs);">Manage watch items &rarr;</a>
             </div>
             {% endif %}
-
-            <!-- Email preferences hint -->
-            <div style="text-align:center;margin-top:var(--space-4);">
-                <a href="/account" class="email-pref-link">
-                    Manage email preferences &middot; Get this brief in your inbox
-                </a>
-            </div>
-
-            {% endif %}{# end of total_watches > 0 or property_synopsis #}
         </div>
+        {% endif %}
+
+        <!-- ── EMAIL PREFERENCES ── -->
+        <div style="text-align: center; padding: var(--space-4) 0;" class="reveal">
+            <a href="/account" class="email-pref-link">Manage email preferences &middot; Get this brief in your inbox</a>
+        </div>
+
+        {% endif %}{# end total_watches > 0 or property_synopsis #}
+
+        <!-- ── FRESHNESS FOOTER ── -->
+        <div class="brief-footer-freshness">
+            <span class="status-dot status-dot--green"></span>
+            {% if brief.last_refresh %}Data as of {{ brief.last_refresh.last_success_date }} &middot; Updated nightly{% else %}Updated nightly{% endif %}
+        </div>
+
+    </div>{# /brief-container #}
     </main>
+
     {% include 'fragments/feedback_widget.html' %}
-<script nonce="{{ csp_nonce }}">
-// Lookback button loading pulse on click
-document.querySelectorAll('.lookback-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        if (this.classList.contains('active')) return;
-        this.classList.add('loading');
+    <script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js"></script>
+    <script nonce="{{ csp_nonce }}" src="/static/admin-tour.js"></script>
+    <script nonce="{{ csp_nonce }}">
+    // Lookback button pulse on click
+    document.querySelectorAll('.lookback-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (this.classList.contains('active')) return;
+            this.classList.add('loading');
+        });
     });
-});
 
-// Clickable summary cards — filter property grid
-(function() {
-    var activeFilter = null;
-    var cards = document.querySelectorAll('.summary-card[data-filter]');
-    var grid = document.getElementById('property-grid');
-    if (!grid) return;
-    var props = grid.querySelectorAll('.prop-card');
+    // Summary strip filter — hide/show property cards
+    (function() {
+        var activeFilter = null;
+        var strips = document.querySelectorAll('.bss-item[data-filter]');
+        var grid = document.getElementById('property-grid');
+        if (!grid) return;
+        var props = grid.querySelectorAll('.prop-card');
 
-    function applyFilter(filterName) {
-        if (filterName === activeFilter) {
-            // Toggle off — show all
-            activeFilter = null;
-            cards.forEach(function(c) { c.classList.remove('filter-active'); });
-            props.forEach(function(p) { p.classList.remove('filter-hidden'); });
-            return;
+        function applyFilter(name) {
+            if (name === activeFilter) {
+                activeFilter = null;
+                strips.forEach(function(s) { s.classList.remove('filter-active'); });
+                props.forEach(function(p) { p.classList.remove('filter-hidden'); });
+                return;
+            }
+            activeFilter = name;
+            strips.forEach(function(s) { s.classList.toggle('filter-active', s.dataset.filter === name); });
+            props.forEach(function(p) {
+                var show = false;
+                if (name === 'all')         show = true;
+                else if (name === 'changed')     show = p.hasAttribute('data-changed');
+                else if (name === 'enforcement') show = p.hasAttribute('data-enforcement');
+                else if (name === 'at-risk')     show = p.hasAttribute('data-at-risk');
+                else show = true;
+                p.classList.toggle('filter-hidden', !show);
+            });
+            var section = document.getElementById('section-properties');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        activeFilter = filterName;
-        cards.forEach(function(c) { c.classList.toggle('filter-active', c.dataset.filter === filterName); });
-        props.forEach(function(p) {
-            var show = false;
-            if (filterName === 'all') show = true;
-            else if (filterName === 'changed') show = p.hasAttribute('data-changed');
-            else if (filterName === 'enforcement') show = p.hasAttribute('data-enforcement');
-            else if (filterName === 'at-risk') show = p.hasAttribute('data-at-risk');
-            else show = true;
-            p.classList.toggle('filter-hidden', !show);
-        });
-        // Scroll to property grid
-        var section = document.getElementById('section-properties');
-        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
 
-    cards.forEach(function(card) {
-        card.addEventListener('click', function() {
-            applyFilter(this.dataset.filter);
+        strips.forEach(function(s) {
+            s.addEventListener('click', function() { applyFilter(this.dataset.filter); });
         });
-    });
-})();
-</script>
+    })();
+
+    // Scroll reveal
+    (function() {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+        document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
+    })();
+    </script>
 </body>
 </html>
