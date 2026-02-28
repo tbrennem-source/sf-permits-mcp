@@ -53,7 +53,8 @@ class TestEntityNetworkRoute:
         """Template should include a results container element."""
         resp = client.get("/tools/entity-network")
         body = resp.data.decode("utf-8")
-        assert 'id="results"' in body
+        # Updated QS12: id changed from "results" to "results-area" in UX polish
+        assert 'id="results"' in body or 'id="results-area"' in body
 
     def test_entity_network_has_analyze_button(self, client):
         """Template should include analyze button."""
@@ -114,19 +115,23 @@ class TestRevisionRiskRoute:
         """Template should render the assessment form input."""
         resp = client.get("/tools/revision-risk")
         body = resp.data.decode("utf-8")
-        assert 'id="permit-number-input"' in body or 'id="assess-btn"' in body
+        # Updated QS12: redesigned from permit-number-input to permit-type select
+        assert ('id="permit-number-input"' in body or 'id="assess-btn"' in body
+                or 'id="permit-type"' in body or 'id="submit-btn"' in body)
 
     def test_revision_risk_has_permit_input(self, client):
-        """Template should include permit number input field."""
+        """Template should include a permit input field or permit type selector."""
         resp = client.get("/tools/revision-risk")
         body = resp.data.decode("utf-8")
-        assert 'id="permit-number-input"' in body
+        # Updated QS12: redesigned to permit-type select (more accurate tool input)
+        assert 'id="permit-number-input"' in body or 'id="permit-type"' in body
 
     def test_revision_risk_has_assess_button(self, client):
-        """Template should include the assess button."""
+        """Template should include the assess/submit button."""
         resp = client.get("/tools/revision-risk")
         body = resp.data.decode("utf-8")
-        assert 'id="assess-btn"' in body or "runRiskAssessment" in body
+        # Updated QS12: button id changed from assess-btn to submit-btn
+        assert 'id="assess-btn"' in body or 'id="submit-btn"' in body or "runRiskAssessment" in body
 
     def test_revision_risk_has_share_button(self, client):
         """Template should include share button component."""
@@ -138,7 +143,9 @@ class TestRevisionRiskRoute:
         """Template should render empty/hint state element."""
         resp = client.get("/tools/revision-risk")
         body = resp.data.decode("utf-8")
-        assert "results-hint" in body or "Enter a permit number" in body
+        # Updated QS12: redesigned empty state with empty-state class + demo suggestion
+        assert ("results-hint" in body or "Enter a permit number" in body
+                or "empty-state" in body or "Predict revision" in body)
 
     def test_revision_risk_results_content_present(self, client):
         """Template should render results container."""
@@ -147,11 +154,13 @@ class TestRevisionRiskRoute:
         assert 'id="results"' in body or "results-content" in body
 
     def test_revision_risk_demo_param_auto_fill(self, client):
-        """?demo= param page loads fine — input element must be present."""
-        resp = client.get("/tools/revision-risk?demo=restaurant-mission")
+        """?permit_type= param page loads fine — input element must be present."""
+        resp = client.get("/tools/revision-risk?permit_type=restaurant")
         assert resp.status_code == 200
         body = resp.data.decode("utf-8")
-        assert 'id="permit-number-input"' in body or 'id="assess-btn"' in body
+        # Updated QS12: redesigned to use permit-type select instead of permit-number-input
+        assert ('id="permit-number-input"' in body or 'id="assess-btn"' in body
+                or 'id="permit-type"' in body or 'id="submit-btn"' in body)
 
     def test_revision_risk_has_analysis_logic(self, client):
         """Template should contain risk assessment logic."""
@@ -163,7 +172,8 @@ class TestRevisionRiskRoute:
         """Template should contain trigger/results area."""
         resp = client.get("/tools/revision-risk")
         body = resp.data.decode("utf-8")
-        assert "results-area" in body or "results-hint" in body
+        # Updated QS12: results panel id changed; results-area or results-panel both valid
+        assert "results-area" in body or "results-hint" in body or "results-panel" in body or 'id="results"' in body
 
     def test_revision_risk_has_share_js(self, client):
         """Template should link share.js."""
