@@ -7,10 +7,12 @@
   var params = new URLSearchParams(window.location.search);
   // Set cookies if params present
   if (params.has('admin')) document.cookie = 'qa_admin=1;path=/;max-age=86400';
-  if (params.has('tour')) document.cookie = 'qa_tour=1;path=/;max-age=86400';
-  // Check URL params OR cookies
+  // Clear any stale qa_tour cookie — tour only runs when ?tour=1 is in the URL
+  document.cookie = 'qa_tour=;path=/;max-age=0';
+  // tour cookie intentionally not persisted — tour only runs when ?tour=1 is in the URL
+  // Check URL params OR cookies (admin persists, tour does not)
   var isAdmin = params.has('admin') || document.cookie.split(';').some(function(c) { return c.trim().startsWith('qa_admin='); });
-  var isTour = params.has('tour') || document.cookie.split(';').some(function(c) { return c.trim().startsWith('qa_tour='); });
+  var isTour = params.has('tour');
   if (!isAdmin || !isTour) return;
 
   // Tour stops — each one highlights an element and shows the feedback
