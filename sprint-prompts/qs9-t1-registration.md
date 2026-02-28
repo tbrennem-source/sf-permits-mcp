@@ -1,6 +1,6 @@
 # QS9 Terminal 1: Tool Registration + Admin Health
 
-You are the orchestrator for QS9-T1. Spawn 3 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
+You are the orchestrator for Sprint 82. Spawn 3 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
 
 ## Pre-Flight (30 seconds)
 
@@ -31,8 +31,8 @@ RULES:
 - EARLY COMMIT RULE: First commit within 10 minutes.
 - DESCOPE RULE: Mark BLOCKED with reason. Do NOT silently reduce scope.
 - OUTPUT FILES (per-agent — NEVER write to shared files directly):
-  * scenarios-pending-review-qs9-t1-{agent}.md (write 2-5 scenarios per feature)
-  * CHANGELOG-qs9-t1-{agent}.md
+  * scenarios-pending-review-sprint-82-{agent}.md (write 2-5 scenarios per feature)
+  * CHANGELOG-sprint-82-{agent}.md
 - TEST COMMAND: source .venv/bin/activate && pytest tests/ -x -q --tb=short --ignore=tests/test_tools.py --ignore=tests/e2e 2>&1 | tail -10
 
 PROTOCOL — every agent follows this sequence:
@@ -89,7 +89,7 @@ python -c "from src.server import mcp; print(f'Tools registered')"
 pytest tests/ -x -q --tb=short --ignore=tests/test_tools.py --ignore=tests/e2e -k "server" 2>&1 | tail -5
 
 ### Scenarios
-Write 2-3 scenarios to scenarios-pending-review-qs9-t1-a.md:
+Write 2-3 scenarios to scenarios-pending-review-sprint-82-a.md:
 - Scenario: MCP client discovers all 34 tools
 - Scenario: Intelligence tool returns formatted markdown via MCP
 
@@ -97,11 +97,11 @@ Write 2-3 scenarios to scenarios-pending-review-qs9-t1-a.md:
 Write a summary including: tools registered, test results, scenarios written, Visual QA Checklist (N/A — no UI).
 
 ### Output Files
-- scenarios-pending-review-qs9-t1-a.md
-- CHANGELOG-qs9-t1-a.md
+- scenarios-pending-review-sprint-82-a.md
+- CHANGELOG-sprint-82-a.md
 
 ### Commit
-feat: register 4 intelligence tools in MCP server (30→34 tools) (QS9-T1-A)
+feat: register 4 intelligence tools in MCP server (30→34 tools) (Sprint 82-A)
 """)
 ```
 
@@ -156,7 +156,7 @@ Run after build: python scripts/design_lint.py --files web/templates/fragments/a
 Target: 5/5. Fix any violations before committing.
 
 ### Scenarios
-Write 3-4 scenarios to scenarios-pending-review-qs9-t1-b.md:
+Write 3-4 scenarios to scenarios-pending-review-sprint-82-b.md:
 - Scenario: Admin sees DB pool utilization in real-time
 - Scenario: Circuit breaker state change visible on admin dashboard
 - Scenario: Admin notices stale cache and triggers invalidation
@@ -170,11 +170,11 @@ Visual QA Checklist:
 - [ ] HTMX auto-refresh works (wait 30s, verify update)
 
 ### Output Files
-- scenarios-pending-review-qs9-t1-b.md
-- CHANGELOG-qs9-t1-b.md
+- scenarios-pending-review-sprint-82-b.md
+- CHANGELOG-sprint-82-b.md
 
 ### Commit
-feat: admin health panel — pool + circuit breaker + cache stats (QS9-T1-B)
+feat: admin health panel — pool + circuit breaker + cache stats (Sprint 82-B)
 """)
 ```
 
@@ -216,7 +216,7 @@ Write tests/test_prod_gate_ratchet.py:
 - test_ratchet_clears_after_all_green
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t1-c.md:
+Write 2 scenarios to scenarios-pending-review-sprint-82-c.md:
 - Scenario: Prod gate promotes when new issues differ from previous sprint
 - Scenario: Prod gate holds when same issue persists across sprints
 
@@ -224,11 +224,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t1-c.md:
 Write summary: ratchet logic fixed, tests added, scenarios written. Visual QA Checklist: N/A — CLI tool.
 
 ### Output Files
-- scenarios-pending-review-qs9-t1-c.md
-- CHANGELOG-qs9-t1-c.md
+- scenarios-pending-review-sprint-82-c.md
+- CHANGELOG-sprint-82-c.md
 
 ### Commit
-fix: prod gate ratchet tracks specific failing checks, not overall score (QS9-T1-C)
+fix: prod gate ratchet tracks specific failing checks, not overall score (Sprint 82-C)
 """)
 ```
 
@@ -250,8 +250,8 @@ source .venv/bin/activate
 python scripts/design_lint.py --files web/templates/fragments/admin_health.html --quiet
 
 # Concatenate per-agent output files
-cat scenarios-pending-review-qs9-t1-*.md >> scenarios-pending-review.md 2>/dev/null
-cat CHANGELOG-qs9-t1-*.md >> CHANGELOG.md 2>/dev/null
+cat scenarios-pending-review-sprint-82-*.md >> scenarios-pending-review.md 2>/dev/null
+cat CHANGELOG-sprint-82-*.md >> CHANGELOG.md 2>/dev/null
 
 # Push
 git push origin main

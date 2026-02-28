@@ -1,6 +1,6 @@
 # QS9 Terminal 3: Scaling Infrastructure
 
-You are the orchestrator for QS9-T3. Spawn 4 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
+You are the orchestrator for Sprint 84. Spawn 4 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
 
 ## Pre-Flight (30 seconds)
 
@@ -58,7 +58,7 @@ Write tests/test_pool_tuning.py:
 - test_pool_config_from_env_vars
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t3-a.md:
+Write 2 scenarios to scenarios-pending-review-sprint-84-a.md:
 - Scenario: App logs warning when DB pool nears exhaustion
 - Scenario: Admin increases pool size via env var without code change
 
@@ -66,11 +66,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t3-a.md:
 Summary: defaults changed, warning added, docs updated, tests passing. Visual QA Checklist: N/A.
 
 ### Output Files
-- scenarios-pending-review-qs9-t3-a.md
-- CHANGELOG-qs9-t3-a.md
+- scenarios-pending-review-sprint-84-a.md
+- CHANGELOG-sprint-84-a.md
 
 ### Commit
-feat: increase DB pool defaults (min=5, max=50) + exhaustion warnings (QS9-T3-A)
+feat: increase DB pool defaults (min=5, max=50) + exhaustion warnings (Sprint 84-A)
 """)
 ```
 
@@ -106,7 +106,7 @@ Write tests/test_cache_headers.py:
 - test_html_page_no_cache_control
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t3-b.md:
+Write 2 scenarios to scenarios-pending-review-sprint-84-b.md:
 - Scenario: Browser caches CSS for 24 hours after first load
 - Scenario: HTML pages are never served from browser cache
 
@@ -114,11 +114,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t3-b.md:
 Summary: headers added, tests passing. Visual QA Checklist: N/A — headers only, no visual change.
 
 ### Output Files
-- scenarios-pending-review-qs9-t3-b.md
-- CHANGELOG-qs9-t3-b.md
+- scenarios-pending-review-sprint-84-b.md
+- CHANGELOG-sprint-84-b.md
 
 ### Commit
-feat: Cache-Control headers on static assets (QS9-T3-B)
+feat: Cache-Control headers on static assets (Sprint 84-B)
 """)
 ```
 
@@ -160,7 +160,7 @@ Write tests/test_redis_rate_limiter.py (use fakeredis):
 - test_fallback_to_memory_when_redis_down
 
 ### Scenarios
-Write 3 scenarios to scenarios-pending-review-qs9-t3-c.md:
+Write 3 scenarios to scenarios-pending-review-sprint-84-c.md:
 - Scenario: Rate limit enforced consistently across multiple Gunicorn workers
 - Scenario: Rate limiter degrades gracefully when Redis is down
 - Scenario: Rate limit resets after time window expires
@@ -169,11 +169,11 @@ Write 3 scenarios to scenarios-pending-review-qs9-t3-c.md:
 Summary: Redis integration done, fallback works, tests passing. Visual QA Checklist: N/A.
 
 ### Output Files
-- scenarios-pending-review-qs9-t3-c.md
-- CHANGELOG-qs9-t3-c.md
+- scenarios-pending-review-sprint-84-c.md
+- CHANGELOG-sprint-84-c.md
 
 ### Commit
-feat: Redis-backed rate limiter with in-memory fallback (QS9-T3-C)
+feat: Redis-backed rate limiter with in-memory fallback (Sprint 84-C)
 """)
 ```
 
@@ -211,7 +211,7 @@ python -c "import scripts.load_test"
 wc -l docs/SCALING.md
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t3-d.md:
+Write 2 scenarios to scenarios-pending-review-sprint-84-d.md:
 - Scenario: Load test identifies bottleneck before it hits production users
 - Scenario: New developer finds scaling guide and configures pool size
 
@@ -219,11 +219,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t3-d.md:
 Summary: load test created, SCALING.md written. Visual QA Checklist: N/A.
 
 ### Output Files
-- scenarios-pending-review-qs9-t3-d.md
-- CHANGELOG-qs9-t3-d.md
+- scenarios-pending-review-sprint-84-d.md
+- CHANGELOG-sprint-84-d.md
 
 ### Commit
-feat: load test script + scaling documentation (QS9-T3-D)
+feat: load test script + scaling documentation (Sprint 84-D)
 """)
 ```
 
@@ -238,8 +238,8 @@ git merge <agent-a-branch> --no-edit
 git merge <agent-b-branch> --no-edit
 git merge <agent-c-branch> --no-edit
 git merge <agent-d-branch> --no-edit
-cat scenarios-pending-review-qs9-t3-*.md >> scenarios-pending-review.md 2>/dev/null
-cat CHANGELOG-qs9-t3-*.md >> CHANGELOG.md 2>/dev/null
+cat scenarios-pending-review-sprint-84-*.md >> scenarios-pending-review.md 2>/dev/null
+cat CHANGELOG-sprint-84-*.md >> CHANGELOG.md 2>/dev/null
 git push origin main
 ```
 

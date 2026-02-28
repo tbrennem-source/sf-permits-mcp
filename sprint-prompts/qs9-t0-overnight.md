@@ -29,12 +29,12 @@ Check every 3-5 minutes:
 git pull origin main && git log --oneline -30 | head -30
 ```
 
-Look for commits containing: QS9-T1, QS9-T2, QS9-T3, QS9-T4. Each terminal pushes once after merging its agents. Track which terminals have pushed:
+Look for commits containing: Sprint 82, Sprint 83, Sprint 84, Sprint 85. Each terminal pushes once after merging its agents. Track which terminals have pushed:
 
-- [ ] T1 pushed (look for: "QS9-T1" in commit messages)
-- [ ] T2 pushed (look for: "QS9-T2" in commit messages)
-- [ ] T3 pushed (look for: "QS9-T3" in commit messages)
-- [ ] T4 pushed (look for: "QS9-T4" in commit messages)
+- [ ] T1 pushed (look for: "Sprint 82" in commit messages)
+- [ ] T2 pushed (look for: "Sprint 83" in commit messages)
+- [ ] T3 pushed (look for: "Sprint 84" in commit messages)
+- [ ] T4 pushed (look for: "Sprint 85" in commit messages)
 
 **Do NOT proceed to Step 2 until all 4 have pushed.** If a terminal hasn't pushed after 30 minutes, check if its worktree branches have commits (it may have finished but failed to push). If worktree branches have commits, merge them yourself.
 

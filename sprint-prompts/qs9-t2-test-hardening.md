@@ -1,6 +1,6 @@
 # QS9 Terminal 2: Test Hardening
 
-You are the orchestrator for QS9-T2. Spawn 4 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
+You are the orchestrator for Sprint 83. Spawn 4 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
 
 ## Pre-Flight (30 seconds)
 
@@ -52,7 +52,7 @@ COMMIT to your worktree branch ONLY.
 source .venv/bin/activate && pytest tests/test_landing.py -v --tb=short
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t2-a.md:
+Write 2 scenarios to scenarios-pending-review-sprint-83-a.md:
 - Scenario: Landing page displays key feature descriptions to new visitor
 - Scenario: Landing page shows data credibility stats
 
@@ -60,11 +60,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t2-a.md:
 Summary: tests fixed, all passing, scenarios written. Visual QA Checklist: N/A — test-only change.
 
 ### Output Files
-- scenarios-pending-review-qs9-t2-a.md
-- CHANGELOG-qs9-t2-a.md
+- scenarios-pending-review-sprint-83-a.md
+- CHANGELOG-sprint-83-a.md
 
 ### Commit
-fix: update stale landing test assertions for Sprint 69 redesign (QS9-T2-A)
+fix: update stale landing test assertions for Sprint 69 redesign (Sprint 83-A)
 """)
 ```
 
@@ -102,7 +102,7 @@ pytest tests/test_page_cache.py -v --tb=short
 pytest tests/test_auth.py tests/test_brief.py tests/test_page_cache.py -v --tb=short
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t2-b.md:
+Write 2 scenarios to scenarios-pending-review-sprint-83-b.md:
 - Scenario: Page cache returns cached result on second request
 - Scenario: Page cache cleanup prevents cross-test contamination
 
@@ -110,11 +110,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t2-b.md:
 Summary: flakiness fixed, verified in multi-file context, scenarios written. Visual QA Checklist: N/A.
 
 ### Output Files
-- scenarios-pending-review-qs9-t2-b.md
-- CHANGELOG-qs9-t2-b.md
+- scenarios-pending-review-sprint-83-b.md
+- CHANGELOG-sprint-83-b.md
 
 ### Commit
-fix: eliminate page_cache test flakiness — robust cleanup between tests (QS9-T2-B)
+fix: eliminate page_cache test flakiness — robust cleanup between tests (Sprint 83-B)
 """)
 ```
 
@@ -149,7 +149,7 @@ source .venv/bin/activate
 pytest tests/test_brief_cache.py tests/test_sprint_79_3.py -v --tb=short
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t2-c.md:
+Write 2 scenarios to scenarios-pending-review-sprint-83-c.md:
 - Scenario: Cron endpoint rejects unauthenticated requests with 403
 - Scenario: Cron endpoint returns 404 when CRON_WORKER not set (guard behavior)
 
@@ -157,11 +157,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t2-c.md:
 Summary: [N] tests fixed, all cron tests passing, scenarios written. Visual QA Checklist: N/A.
 
 ### Output Files
-- scenarios-pending-review-qs9-t2-c.md
-- CHANGELOG-qs9-t2-c.md
+- scenarios-pending-review-sprint-83-c.md
+- CHANGELOG-sprint-83-c.md
 
 ### Commit
-fix: add CRON_WORKER env var to all cron endpoint tests (QS9-T2-C)
+fix: add CRON_WORKER env var to all cron endpoint tests (Sprint 83-C)
 """)
 ```
 
@@ -185,17 +185,17 @@ COMMIT to your worktree branch ONLY.
 5. Fix minor issues in test_sprint_79_d.py if any
 
 ### Scenarios
-Write 1 scenario to scenarios-pending-review-qs9-t2-d.md:
+Write 1 scenario to scenarios-pending-review-sprint-83-d.md:
 - Scenario: Post-sprint cleanup removes all merged worktree branches
 
 ### CHECKCHAT
 Summary: [N] branches deleted, [M] worktrees pruned, [K] unmerged branches reported. Visual QA Checklist: N/A.
 
 ### Output Files
-- CHANGELOG-qs9-t2-d.md
+- CHANGELOG-sprint-83-d.md
 
 ### Commit
-chore: clean up stale worktree branches from sprints 58-81 (QS9-T2-D)
+chore: clean up stale worktree branches from sprints 58-81 (Sprint 83-D)
 """)
 ```
 
@@ -210,8 +210,8 @@ git merge <agent-a-branch> --no-edit
 git merge <agent-b-branch> --no-edit
 git merge <agent-c-branch> --no-edit
 git merge <agent-d-branch> --no-edit
-cat scenarios-pending-review-qs9-t2-*.md >> scenarios-pending-review.md 2>/dev/null
-cat CHANGELOG-qs9-t2-*.md >> CHANGELOG.md 2>/dev/null
+cat scenarios-pending-review-sprint-83-*.md >> scenarios-pending-review.md 2>/dev/null
+cat CHANGELOG-sprint-83-*.md >> CHANGELOG.md 2>/dev/null
 git push origin main
 ```
 

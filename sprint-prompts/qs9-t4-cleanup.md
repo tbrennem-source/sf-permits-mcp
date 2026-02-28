@@ -1,6 +1,6 @@
 # QS9 Terminal 4: Cleanup + Documentation + API Routes
 
-You are the orchestrator for QS9-T4. Spawn 4 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
+You are the orchestrator for Sprint 85. Spawn 4 parallel build agents, collect results, merge, push to main. Do NOT run the full test suite — T0 handles that.
 
 ## Pre-Flight (30 seconds)
 
@@ -67,7 +67,7 @@ Write tests/test_api_intelligence.py:
 - test_delay_cost_returns_json
 
 ### Scenarios
-Write 3 scenarios to scenarios-pending-review-qs9-t4-a.md:
+Write 3 scenarios to scenarios-pending-review-sprint-85-a.md:
 - Scenario: API client fetches next station prediction for active permit
 - Scenario: API rejects unauthenticated request with 401
 - Scenario: What-if endpoint compares base vs variation scenarios
@@ -76,11 +76,11 @@ Write 3 scenarios to scenarios-pending-review-qs9-t4-a.md:
 Summary: 4 API endpoints created, auth enforced, tests passing. Visual QA Checklist: N/A — JSON API only.
 
 ### Output Files
-- scenarios-pending-review-qs9-t4-a.md
-- CHANGELOG-qs9-t4-a.md
+- scenarios-pending-review-sprint-85-a.md
+- CHANGELOG-sprint-85-a.md
 
 ### Commit
-feat: expose 4 intelligence tools as JSON API endpoints (QS9-T4-A)
+feat: expose 4 intelligence tools as JSON API endpoints (Sprint 85-A)
 """)
 ```
 
@@ -122,7 +122,7 @@ grep -c "SUGGESTED SCENARIO" scenarios-pending-review.md
 Summary: [N] unique scenarios, [M] duplicates flagged, [K] per-agent files deleted. Visual QA Checklist: N/A.
 
 ### Commit
-chore: consolidate 100+ scenarios — [N] unique, [M] duplicates flagged (QS9-T4-B)
+chore: consolidate 100+ scenarios — [N] unique, [M] duplicates flagged (Sprint 85-B)
 """)
 ```
 
@@ -160,18 +160,18 @@ ls sprint-prompts/qs3-* sprint-prompts/sprint-68* sprint-prompts/sprint-69-* 2>/
 test -f web/static/landing-v5.html && echo "EXISTS" || echo "DELETED"
 
 ### Scenarios
-Write 1 scenario to scenarios-pending-review-qs9-t4-c.md:
+Write 1 scenario to scenarios-pending-review-sprint-85-c.md:
 - Scenario: New developer finds clean sprint-prompts/ with only current/recent sprints
 
 ### CHECKCHAT
 Summary: [N] files deleted. Visual QA Checklist: N/A.
 
 ### Output Files
-- scenarios-pending-review-qs9-t4-c.md
-- CHANGELOG-qs9-t4-c.md
+- scenarios-pending-review-sprint-85-c.md
+- CHANGELOG-sprint-85-c.md
 
 ### Commit
-chore: delete [N] stale files — old sprint prompts + prototype artifacts (QS9-T4-C)
+chore: delete [N] stale files — old sprint prompts + prototype artifacts (Sprint 85-C)
 """)
 ```
 
@@ -212,7 +212,7 @@ grep -i "intelligence" docs/ARCHITECTURE.md  # New section
 ls CHANGELOG-qs*.md 2>/dev/null | wc -l  # 0
 
 ### Scenarios
-Write 2 scenarios to scenarios-pending-review-qs9-t4-d.md:
+Write 2 scenarios to scenarios-pending-review-sprint-85-d.md:
 - Scenario: New developer reads README and finds accurate project stats
 - Scenario: Architecture doc describes all 34 tools with one-line summaries
 
@@ -220,11 +220,11 @@ Write 2 scenarios to scenarios-pending-review-qs9-t4-d.md:
 Summary: docs updated, per-agent files consolidated + deleted. Visual QA Checklist: N/A.
 
 ### Output Files
-- scenarios-pending-review-qs9-t4-d.md
-- CHANGELOG-qs9-t4-d.md
+- scenarios-pending-review-sprint-85-d.md
+- CHANGELOG-sprint-85-d.md
 
 ### Commit
-docs: update README, ARCHITECTURE, CHANGELOG — 34 tools, 3782+ tests (QS9-T4-D)
+docs: update README, ARCHITECTURE, CHANGELOG — 34 tools, 3782+ tests (Sprint 85-D)
 """)
 ```
 
@@ -240,8 +240,8 @@ git merge <agent-a-branch> --no-edit
 git merge <agent-d-branch> --no-edit
 git merge <agent-b-branch> --no-edit
 git merge <agent-c-branch> --no-edit
-cat scenarios-pending-review-qs9-t4-*.md >> scenarios-pending-review.md 2>/dev/null
-cat CHANGELOG-qs9-t4-*.md >> CHANGELOG.md 2>/dev/null
+cat scenarios-pending-review-sprint-85-*.md >> scenarios-pending-review.md 2>/dev/null
+cat CHANGELOG-sprint-85-*.md >> CHANGELOG.md 2>/dev/null
 git push origin main
 ```
 
