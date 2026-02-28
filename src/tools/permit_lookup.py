@@ -1,11 +1,42 @@
 """Tool: permit_lookup — Look up permits by number, address, or parcel and show related permits."""
 
 import logging
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from src.db import get_connection, BACKEND, circuit_breaker
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Display helpers
+# ---------------------------------------------------------------------------
+
+def _fmt_date(value: str | None) -> str:
+    """Format an ISO date string (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS.sss) as 'Mon DD, YYYY'.
+
+    Returns '—' for None/empty values. Falls back to YYYY-MM-DD[:10] if parsing fails.
+    """
+    if not value:
+        return "—"
+    raw = str(value)[:10]  # Truncate to YYYY-MM-DD
+    try:
+        dt = datetime.strptime(raw, "%Y-%m-%d")
+        return dt.strftime("%b %-d, %Y")
+    except (ValueError, TypeError):
+        return raw or "—"
+
+
+def _title_permit_type(value: str | None) -> str:
+    """Title-case a permit type string from the DB.
+
+    SF permit DB stores mixed-case values like 'otc alterations permit'
+    or 'New Construction Wood Frame'. Normalizes to Title Case.
+    """
+    if not value:
+        return ""
+    return value.strip().title()
+
 
 # ---------------------------------------------------------------------------
 # SQL helpers
@@ -684,7 +715,7 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
             pn = a.get("permit_number", "")
             station = a.get("station") or "—"
             reviewer = a.get("reviewer") or "—"
-            fd = str(a.get("finish_date") or "")[:10]
+            fd = _fmt_date(a.get("finish_date"))
             rev = a.get("addenda_number")
             rev_str = f" · rev {rev}" if rev is not None else ""
             lines.append(f"- ✅ **{station}** approved by {reviewer} · {fd}{rev_str}")
@@ -694,14 +725,14 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
             pn = a.get("permit_number", "")
             station = a.get("station") or "—"
             reviewer = a.get("reviewer") or "—"
-            fd = str(a.get("finish_date") or "")[:10]
+            fd = _fmt_date(a.get("finish_date"))
             lines.append(f"- 💬 **{station}** issued comments by {reviewer} · {fd}")
 
         # Show other completions
         for a in other[:2]:
             station = a.get("station") or "—"
             result = a.get("result") or "completed"
-            fd = str(a.get("finish_date") or "")[:10]
+            fd = _fmt_date(a.get("finish_date"))
             lines.append(f"- {station} — {result} · {fd}")
 
         shown = min(len(approved), 4) + min(len(comments), 3) + min(len(other), 2)
@@ -717,8 +748,8 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
         for p in new_permits[:3]:
             pn = p.get("permit_number", "")
             pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
-            pt = (p.get("permit_type_definition") or "Building Permit")[:40]
-            fd = (p.get("filed_date") or "")[:10]
+            pt = _title_permit_type(p.get("permit_type_definition") or "Building Permit")[:40]
+            fd = _fmt_date(p.get("filed_date"))
             cost = p.get("revised_cost") or p.get("estimated_cost") or 0
             cost_str = f" · ${cost:,.0f}" if cost else ""
             lines.append(f"- {pn_link} — {pt} · filed {fd}{cost_str}")
@@ -734,8 +765,8 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
         for p in recently_issued[:3]:
             pn = p.get("permit_number", "")
             pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
-            pt = (p.get("permit_type_definition") or "")[:40]
-            issued = (p.get("issued_date") or "")[:10]
+            pt = _title_permit_type(p.get("permit_type_definition") or "")[:40]
+            issued = _fmt_date(p.get("issued_date"))
             lines.append(f"- {pn_link} — {pt} · issued {issued}")
         if count > 3:
             lines.append(f"- *…and {count - 3} more*")
@@ -749,8 +780,8 @@ def _summarize_recent_activity(permits: list[dict], days: int = 30,
         for p in recently_completed[:3]:
             pn = p.get("permit_number", "")
             pn_link = f"[{pn}](https://dbiweb02.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber={pn})"
-            pt = (p.get("permit_type_definition") or "")[:40]
-            completed = (p.get("completed_date") or "")[:10]
+            pt = _title_permit_type(p.get("permit_type_definition") or "")[:40]
+            completed = _fmt_date(p.get("completed_date"))
             lines.append(f"- {pn_link} — {pt} · completed {completed}")
         if count > 3:
             lines.append(f"- *…and {count - 3} more*")
@@ -787,9 +818,8 @@ def _format_addenda(addenda: list[dict]) -> str:
         rev_str = str(rev) if rev is not None else "---"
         reviewer = a.get("reviewer") or "---"
         result = a.get("result") or "---"
-        finish = a.get("finish_date") or "---"
-        if finish and len(finish) > 10:
-            finish = finish[:10]
+        finish_raw = a.get("finish_date")
+        finish = _fmt_date(finish_raw) if finish_raw else "---"
         notes = a.get("notes") or "---"
         if len(notes) > 80:
             notes = notes[:80] + "..."
@@ -813,7 +843,7 @@ def _format_planning_records(records: list[dict]) -> str:
         rid = r.get("record_id") or "—"
         rtype = (r.get("record_type") or "—")[:30]
         status = r.get("record_status") or "—"
-        opened = str(r.get("open_date") or "—")[:10]
+        opened = _fmt_date(r.get("open_date")) if r.get("open_date") else "—"
         planner = r.get("assigned_planner") or "—"
         desc = (r.get("description") or "—")[:60]
         if len(r.get("description") or "") > 60:
@@ -834,7 +864,7 @@ def _format_boiler_permits(boilers: list[dict]) -> str:
         pnum = b.get("permit_number") or "—"
         btype = (b.get("boiler_type") or "—")[:30]
         status = b.get("status") or "—"
-        exp = str(b.get("expiration_date") or "—")[:10]
+        exp = _fmt_date(b.get("expiration_date")) if b.get("expiration_date") else "—"
         desc = (b.get("description") or "—")[:60]
         if len(b.get("description") or "") > 60:
             desc += "..."
@@ -869,10 +899,11 @@ def _format_permit_detail(p: dict) -> str:
     from src.report_links import ReportLinks
     details_url = ReportLinks.dbi_permit_details(pn)
     lines.append(f"**Permit Number:** [{pn}]({pn_url}) | [DBI Permit Details]({details_url})")
-    lines.append(f"**Type:** {p.get('permit_type_definition') or p.get('permit_type') or 'Unknown'}")
-    lines.append(f"**Status:** {p.get('status') or 'Unknown'}")
+    raw_type = p.get('permit_type_definition') or p.get('permit_type') or 'Unknown'
+    lines.append(f"**Type:** {_title_permit_type(raw_type)}")
+    lines.append(f"**Status:** {(p.get('status') or 'Unknown').title()}")
     if p.get("status_date"):
-        lines[-1] += f" (as of {p['status_date']})"
+        lines[-1] += f" (as of {_fmt_date(p['status_date'])})"
     if p.get("description"):
         desc = p["description"][:200]
         if len(p["description"]) > 200:
@@ -882,13 +913,13 @@ def _format_permit_detail(p: dict) -> str:
     # Dates
     dates = []
     if p.get("filed_date"):
-        dates.append(f"Filed: {p['filed_date']}")
+        dates.append(f"Filed: {_fmt_date(p['filed_date'])}")
     if p.get("issued_date"):
-        dates.append(f"Issued: {p['issued_date']}")
+        dates.append(f"Issued: {_fmt_date(p['issued_date'])}")
     if p.get("approved_date"):
-        dates.append(f"Approved: {p['approved_date']}")
+        dates.append(f"Approved: {_fmt_date(p['approved_date'])}")
     if p.get("completed_date"):
-        dates.append(f"Completed: {p['completed_date']}")
+        dates.append(f"Completed: {_fmt_date(p['completed_date'])}")
     if dates:
         lines.append(f"**Dates:** {' | '.join(dates)}")
 
@@ -1017,16 +1048,27 @@ def _format_permit_list(permits: list[dict], search_desc: str) -> str:
         "| Permit # | Type | Status | Filed | Cost | Description |",
         "|----------|------|--------|-------|------|-------------|",
     ]
+    has_missing_cost = False
     for p in permits:
         pnum = p.get("permit_number", "")
-        ptype = (p.get("permit_type_definition") or "")[:30]
-        status = p.get("status") or "—"
-        filed = p.get("filed_date") or "—"
-        cost = f"${p['estimated_cost']:,.0f}" if p.get("estimated_cost") else "—"
+        ptype = _title_permit_type(p.get("permit_type_definition") or "")[:35]
+        status = (p.get("status") or "—").title()
+        filed = _fmt_date(p.get("filed_date"))
+        if p.get("estimated_cost"):
+            cost = f"${p['estimated_cost']:,.0f}"
+        else:
+            cost = "—"
+            has_missing_cost = True
         desc = (p.get("description") or "")[:50]
         if len(p.get("description", "")) > 50:
             desc += "..."
         lines.append(f"| {pnum} | {ptype} | {status} | {filed} | {cost} | {desc} |")
+
+    if has_missing_cost:
+        lines.append(
+            "\n*Cost shows — for permit types where SF DBI does not require a cost "
+            "estimate (e.g., electrical, plumbing, and mechanical permits).*"
+        )
 
     lines.append(f"\n*Source: sfpermits.ai local database ({BACKEND})*")
     return "\n".join(lines)

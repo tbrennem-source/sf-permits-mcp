@@ -91,8 +91,9 @@ def test_format_detail_basic():
     }
     md = _format_permit_detail(p)
     assert "202301015555" in md
-    assert "otc alterations permit" in md
-    assert "issued" in md
+    # Permit type is title-cased in output (sprint 95 UX fix)
+    assert "Otc Alterations Permit" in md
+    assert "Issued" in md  # Status is title-cased
     assert "$85,000" in md
     assert "123 Main St" in md
     assert "Mission" in md
@@ -583,7 +584,8 @@ async def test_permit_lookup_by_number_found(mock_get_conn):
 
     assert "202301015555" in result
     assert "Permit Details" in result
-    assert "otc alterations permit" in result
+    # Permit type is title-cased in output (sprint 95 UX fix)
+    assert "Otc Alterations Permit" in result
     assert "$85,000" in result
     assert "Project Team" in result
     assert "John Smith" in result
