@@ -61,6 +61,12 @@ from src.tools.project_intel import run_query, read_source, search_source, schem
 # Phase 8 tools (permit intelligence)
 from src.tools.similar_projects import similar_projects
 
+# Phase 9 tools (permit intelligence — station prediction, stuck permits, simulation, delay cost)
+from src.tools.predict_next_stations import predict_next_stations
+from src.tools.stuck_permit import diagnose_stuck_permit
+from src.tools.what_if_simulator import simulate_what_if
+from src.tools.cost_of_delay import calculate_delay_cost
+
 # Create MCP server
 mcp = FastMCP(
     "SF Permits",
@@ -144,6 +150,12 @@ mcp.tool()(list_tests)
 
 # Phase 8 tools (permit intelligence)
 mcp.tool()(similar_projects)
+
+# Phase 9 tools (permit intelligence — station prediction, stuck permits, simulation, delay cost)
+mcp.tool()(predict_next_stations)
+mcp.tool()(diagnose_stuck_permit)
+mcp.tool()(simulate_what_if)
+mcp.tool()(calculate_delay_cost)
 
 
 if __name__ == "__main__":
