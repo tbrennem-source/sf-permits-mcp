@@ -643,3 +643,9 @@ def demo():
     data = dict(_get_demo_data())  # copy to avoid mutating cache
     data["density_max"] = request.args.get("density") == "max"
     return render_template("demo.html", **data)
+
+
+@bp.route("/demo/guided")
+def demo_guided():
+    """Self-guided walkthrough page for stakeholder demos."""
+    return render_template("demo_guided.html")
