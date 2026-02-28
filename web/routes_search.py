@@ -11,7 +11,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
-from flask import Blueprint, g, render_template, request
+from flask import Blueprint, g, redirect, render_template, request, url_for
 
 from src.tools.intent_router import classify as classify_intent
 from src.tools.knowledge_base import get_knowledge_base
@@ -1573,3 +1573,14 @@ def _render_rag_results(query: str, results: list[dict]) -> str:
         results=cleaned_results,
         is_expert=_is_expert_user(),
     )
+
+# ---------------------------------------------------------------------------
+# Station Predictor — /tools/station-predictor (Sprint QS10-T3-3A)
+# ---------------------------------------------------------------------------
+
+@bp.route("/tools/station-predictor")
+def tools_station_predictor():
+    """Station Predictor: predicted next review stations for a permit."""
+    if not g.user:
+        return redirect(url_for("auth.login"))
+    return render_template("tools/station_predictor.html")
