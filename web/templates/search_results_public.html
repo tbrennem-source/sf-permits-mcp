@@ -1,646 +1,648 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ query }} — sfpermits.ai</title>
-    <link rel="stylesheet" href="/static/design-system.css">
-    <link rel="stylesheet" href="/static/mobile.css">
-    <style nonce="{{ csp_nonce }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ query }} — sfpermits.ai</title>
+<meta name="description" content="SF building permit search results for {{ query }}. Free permit lookup powered by 1.1M+ records.">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#5eead4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style nonce="{{ csp_nonce }}">
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --obsidian: #0a0a0f;
+    --obsidian-mid: #12121a;
+    --obsidian-light: #1a1a26;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-hover: rgba(255, 255, 255, 0.10);
+    --text-primary: rgba(255, 255, 255, 0.92);
+    --text-secondary: rgba(255, 255, 255, 0.55);
+    --text-tertiary: rgba(255, 255, 255, 0.30);
+    --text-ghost: rgba(255, 255, 255, 0.15);
+    --accent: #5eead4;
+    --accent-glow: rgba(94, 234, 212, 0.08);
+    --accent-ring: rgba(94, 234, 212, 0.30);
+    --signal-green: #34d399;
+    --signal-amber: #fbbf24;
+    --signal-red: #f87171;
+    --signal-blue: #60a5fa;
+    --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --text-xs: clamp(0.65rem, 0.6rem + 0.2vw, 0.75rem);
+    --text-sm: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+    --text-base: clamp(0.8125rem, 0.75rem + 0.3vw, 1rem);
+    --text-lg: clamp(0.875rem, 0.8rem + 0.4vw, 1.125rem);
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-full: 9999px;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px;
+    --space-4: 16px; --space-5: 20px; --space-6: 24px;
+    --space-8: 32px; --space-10: 40px;
+  }
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
+  body {
+    font-family: var(--sans); background: var(--obsidian); color: var(--text-primary);
+    overflow-x: hidden; -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* ═══ NAV ═══ */
+  .nav-float {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    padding: 12px var(--space-6);
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .nav-float__wordmark {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 300;
+    letter-spacing: 0.35em; text-transform: uppercase; color: var(--text-tertiary);
+    text-decoration: none;
+  }
+  .nav-float__wordmark:hover { color: var(--text-secondary); }
+  .nav-float__links { display: flex; align-items: center; gap: var(--space-6); }
+  .nav-float__link {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 400;
+    color: var(--text-secondary); text-decoration: none; transition: color 0.3s;
+  }
+  .nav-float__link:hover { color: var(--accent); }
+  .nav-float__cta {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-tertiary); text-decoration: none;
+    padding: 5px 12px; border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .nav-float__cta:hover { color: var(--accent); border-color: var(--accent-ring); }
 
-        body {
-            font-family: var(--sans);
-            background: var(--bg-deep);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
+  .page-body { padding-top: 56px; }
+  .obs-container { max-width: 1000px; margin: 0 auto; padding: 0 var(--space-6); }
 
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+  /* ═══ SEARCH HEADER ═══ */
+  .search-header { padding: var(--space-6) 0 var(--space-4); }
+  .search-bar { position: relative; max-width: 520px; }
+  .search-input {
+    width: 100%; padding: 14px 20px; padding-right: 44px;
+    font-family: var(--mono); font-size: 14px; font-weight: 300;
+    color: var(--text-primary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-md); outline: none;
+    transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+  }
+  .search-input::placeholder { color: var(--text-tertiary); font-weight: 300; }
+  .search-input:focus {
+    border-color: var(--accent-ring); background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 40px var(--accent-glow);
+  }
+  .search-bar .search-icon {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-tertiary); transition: color 0.3s;
+  }
+  .search-input:focus ~ .search-icon { color: var(--accent); }
 
-        /* ── Header ── */
-        header {
-            border-bottom: var(--card-border);
-            padding: 16px 0;
-            background: var(--bg-surface);
-        }
-        header .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo {
-            font-family: var(--mono);
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--signal-cyan);
-            text-decoration: none;
-        }
-        .logo-suffix {
-            color: var(--text-tertiary);
-        }
-        .header-actions { display: flex; align-items: center; gap: 10px; }
-        .btn {
-            font-family: var(--sans);
-            font-size: 0.85rem;
-            padding: 8px 18px;
-            border-radius: var(--card-radius);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .btn-ghost {
-            background: none;
-            border: 1px solid rgba(255,255,255, 0.1);
-            color: var(--text-secondary);
-        }
-        .btn-ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255, 0.2); }
-        .btn-accent {
-            background: var(--gradient-accent);
-            border: none;
-            color: #fff;
-        }
-        .btn-accent:hover { opacity: 0.9; }
+  .search-meta {
+    font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary);
+    margin-top: var(--space-3);
+    display: flex; align-items: center; gap: var(--space-4);
+  }
+  .search-meta__count { color: var(--text-secondary); }
 
-        /* ── Search Bar ── */
-        .search-section {
-            padding: 20px 0;
-            border-bottom: var(--card-border);
-            background: var(--bg-deep);
-        }
-        .search-form {
-            display: flex;
-            gap: 0;
-            background: var(--bg-surface);
-            border: 1px solid rgba(255,255,255, 0.08);
-            border-radius: 10px;
-            overflow: hidden;
-            transition: border-color 0.2s;
-        }
-        .search-form:focus-within { border-color: var(--signal-cyan); }
-        .search-form input[type="text"] {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-family: var(--mono);
-            font-size: 1rem;
-            padding: 14px 18px;
-            outline: none;
-            min-width: 0;
-        }
-        .search-form input::placeholder { color: var(--text-tertiary); }
-        .search-form button {
-            background: var(--gradient-accent);
-            border: none;
-            color: #fff;
-            padding: 14px 24px;
-            font-family: var(--sans);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .search-form button:hover { opacity: 0.9; }
+  /* ═══ FILTER CHIPS ═══ */
+  .filter-row {
+    display: flex; gap: var(--space-2); flex-wrap: wrap;
+    margin-bottom: var(--space-4);
+  }
+  .filter-chip {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-tertiary); background: var(--glass);
+    border: 1px solid var(--glass-border);
+    padding: 4px 10px; border-radius: var(--radius-full);
+    cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    text-decoration: none;
+  }
+  .filter-chip:hover { border-color: var(--glass-hover); color: var(--text-secondary); }
+  .filter-chip--active {
+    border-color: var(--accent-ring); color: var(--accent);
+    background: var(--accent-glow);
+  }
 
-        /* ── Two-column Layout ── */
-        .results-layout {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-            padding: 24px 0;
-        }
-        @media (min-width: 1024px) {
-            .results-layout {
-                grid-template-columns: 3fr 2fr;
-            }
-            .intel-column {
-                position: sticky;
-                top: 24px;
-                align-self: start;
-            }
-        }
+  /* ═══ AI SUGGESTION ═══ */
+  .ai-suggest {
+    background: var(--accent-glow);
+    border: 1px solid var(--accent-ring);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-6);
+    display: flex; align-items: center; gap: var(--space-4);
+    cursor: pointer; text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .ai-suggest:hover {
+    background: rgba(94, 234, 212, 0.12);
+    border-color: rgba(94, 234, 212, 0.4);
+  }
+  .ai-suggest__icon { font-size: 16px; flex-shrink: 0; }
+  .ai-suggest__text {
+    font-family: var(--sans); font-size: var(--text-base); font-weight: 300;
+    color: var(--text-primary); flex: 1;
+  }
+  .ai-suggest__text em { font-style: normal; color: var(--accent); }
+  .ai-suggest__arrow { font-family: var(--mono); font-size: 12px; color: var(--accent); }
 
-        /* ── Results Column ── */
-        .results-heading {
-            font-family: var(--mono);
-            font-size: 0.8rem;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 16px;
-        }
+  /* ═══ RESULTS ═══ */
+  .results-list { padding-bottom: var(--space-8); }
 
-        /* ── Permit Cards ── */
-        .permit-card {
-            background: var(--bg-surface);
-            border: var(--card-border);
-            border-radius: var(--card-radius);
-            padding: 20px;
-            margin-bottom: 12px;
-            box-shadow: var(--card-shadow);
-            transition: border-color 0.15s;
-        }
-        .permit-card:hover { border-color: rgba(255,255,255, 0.12); }
-        .permit-card-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .status-dot.green { background: var(--signal-green); }
-        .status-dot.amber { background: var(--signal-amber); }
-        .status-dot.red { background: var(--signal-red); }
-        .status-dot.blue { background: var(--signal-blue); }
-        .permit-type-badge {
-            font-family: var(--mono);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: rgba(96, 165, 250, 0.12);
-            color: var(--signal-blue);
-            font-weight: 500;
-        }
+  .results-content {
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    transition: border-color 0.3s;
+  }
 
-        /* ── Permit card result HTML override ── */
-        .permit-results-content { font-size: 0.9rem; }
-        .permit-results-content h1 { font-size: 1.1rem; margin-bottom: 12px; font-family: var(--mono); }
-        .permit-results-content h2 { font-size: 1rem; margin: 16px 0 8px; color: var(--text-secondary); }
-        .permit-results-content h3 { font-size: 0.9rem; margin: 12px 0 6px; color: var(--text-secondary); }
-        .permit-results-content table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .permit-results-content th { text-align: left; padding: 6px 10px; color: var(--text-tertiary); font-weight: 500; border-bottom: 1px solid rgba(255,255,255, 0.06); }
-        .permit-results-content td { padding: 6px 10px; vertical-align: top; }
-        .permit-results-content a { color: var(--signal-cyan); text-decoration: none; }
-        .permit-results-content a:hover { text-decoration: underline; }
-        .permit-results-content strong { color: var(--text-primary); }
-        .permit-results-content hr { border: none; border-top: 1px solid rgba(255,255,255, 0.06); margin: 16px 0; }
-        .permit-results-content p { margin-bottom: 8px; }
-        .permit-results-content ul, .permit-results-content ol { margin-left: 20px; margin-bottom: 8px; }
+  /* Markdown result HTML styling */
+  .results-content h1 {
+    font-family: var(--mono); font-size: var(--text-lg); font-weight: 300;
+    color: var(--text-primary); margin-bottom: var(--space-3);
+  }
+  .results-content h2 {
+    font-family: var(--sans); font-size: var(--text-base); font-weight: 400;
+    color: var(--text-secondary); margin: var(--space-5) 0 var(--space-2);
+  }
+  .results-content h3 {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 500;
+    color: var(--text-secondary); margin: var(--space-4) 0 var(--space-2);
+  }
+  .results-content table {
+    width: 100%; border-collapse: collapse; font-size: var(--text-sm);
+    margin-bottom: var(--space-3);
+  }
+  .results-content th {
+    text-align: left; padding: 6px 10px;
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .results-content td {
+    padding: 8px 10px; vertical-align: top;
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+  .results-content tr:last-child td { border-bottom: none; }
+  .results-content a { color: var(--accent); text-decoration: none; }
+  .results-content a:hover { text-decoration: underline; }
+  .results-content strong { color: var(--text-primary); font-weight: 400; }
+  .results-content hr {
+    border: none; height: 1px; margin: var(--space-4) 0;
+    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  }
+  .results-content p {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary); margin-bottom: var(--space-2); line-height: 1.6;
+  }
+  .results-content ul, .results-content ol {
+    margin-left: 20px; margin-bottom: var(--space-2);
+    font-size: var(--text-sm); color: var(--text-secondary);
+  }
+  .results-content li { margin-bottom: 4px; font-weight: 300; }
 
-        /* ── Intel Panel Styles (used in fragment) ── */
-        .intel-panel {
-            background: var(--bg-surface);
-            border: var(--card-border);
-            border-radius: var(--card-radius);
-            padding: 20px;
-            box-shadow: var(--card-shadow);
-        }
-        .intel-section {
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(255,255,255, 0.04);
-        }
-        .intel-section:first-child { padding-top: 0; }
-        .intel-section:last-of-type { border-bottom: none; }
-        .intel-heading {
-            font-family: var(--mono);
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .intel-icon { font-size: 0.9rem; }
-        .intel-value { font-size: 0.88rem; color: var(--text-secondary); }
-        .intel-link {
-            font-size: 0.8rem;
-            color: var(--signal-cyan);
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 8px;
-        }
-        .intel-link:hover { text-decoration: underline; }
-        .intel-muted { color: var(--text-tertiary); font-size: 0.85rem; }
+  /* ═══ INTEL PANEL (two-column on desktop) ═══ */
+  .results-layout {
+    display: grid; grid-template-columns: 1fr;
+    gap: var(--space-6); padding-bottom: var(--space-8);
+  }
+  @media (min-width: 900px) {
+    .results-layout { grid-template-columns: 3fr 2fr; }
+    .intel-sidebar { position: sticky; top: 72px; align-self: start; }
+  }
 
-        /* Routing progress */
-        .routing-item { margin-bottom: 12px; }
-        .routing-item:last-child { margin-bottom: 0; }
-        .routing-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-        }
-        .routing-permit {
-            font-family: var(--mono);
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .routing-status {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: 600;
-        }
-        .routing-status.status-issued { background: rgba(52,211,153,0.15); color: var(--signal-green); }
-        .routing-status.status-filed { background: rgba(251,191,36,0.15); color: var(--signal-amber); }
-        .routing-status.status-approved { background: rgba(96,165,250,0.15); color: var(--signal-blue); }
-        .routing-status.status-plancheck { background: rgba(251,191,36,0.15); color: var(--signal-amber); }
-        .routing-desc {
-            font-size: 0.8rem;
-            color: var(--text-tertiary);
-            margin-bottom: 6px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .progress-bar-container {
-            height: 4px;
-            background: rgba(255,255,255, 0.06);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 4px;
-        }
-        .progress-bar {
-            height: 100%;
-            border-radius: 2px;
-            background: var(--gradient-accent);
-            transition: width 0.5s ease;
-        }
-        .routing-meta {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-        }
+  .intel-panel {
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+  }
+  .intel-section {
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+  .intel-section:first-child { padding-top: 0; }
+  .intel-section:last-of-type { border-bottom: none; }
+  .intel-heading {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-secondary); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: var(--space-3);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .intel-icon { font-size: 14px; }
+  .intel-value {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary);
+  }
+  .intel-link {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 300;
+    color: var(--accent); text-decoration: none;
+    display: inline-block; margin-top: var(--space-2);
+    padding-bottom: 1px; border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .intel-link:hover { border-bottom-color: var(--accent); }
+  .intel-muted { color: var(--text-tertiary); font-size: var(--text-sm); font-weight: 300; }
 
-        /* Entities */
-        .entity-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
-        }
-        .entity-role {
-            font-family: var(--mono);
-            font-size: 0.7rem;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            min-width: 80px;
-        }
-        .entity-name { color: var(--text-primary); font-weight: 500; }
-        .entity-count { color: var(--text-tertiary); font-size: 0.8rem; }
+  /* Routing progress */
+  .routing-item { margin-bottom: var(--space-3); }
+  .routing-item:last-child { margin-bottom: 0; }
+  .routing-header { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px; }
+  .routing-permit {
+    font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary);
+  }
+  .routing-status {
+    font-family: var(--mono); font-size: 10px; font-weight: 400;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 1px 6px; border-radius: 3px;
+  }
+  .routing-status.status-issued { background: rgba(52,211,153,0.12); color: var(--signal-green); }
+  .routing-status.status-filed { background: rgba(251,191,36,0.12); color: var(--signal-amber); }
+  .routing-status.status-approved { background: rgba(96,165,250,0.12); color: var(--signal-blue); }
+  .routing-status.status-plancheck { background: rgba(251,191,36,0.12); color: var(--signal-amber); }
+  .routing-desc {
+    font-family: var(--sans); font-size: var(--text-xs); font-weight: 300;
+    color: var(--text-tertiary); margin-bottom: 6px;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .progress-bar-container {
+    height: 2px; background: var(--glass); border-radius: 1px;
+    overflow: hidden; margin-bottom: 4px;
+  }
+  .progress-bar {
+    height: 100%; border-radius: 1px;
+    background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
+    transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .routing-meta {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+  }
 
-        /* Enforcement */
-        .enforcement-stats { display: flex; flex-direction: column; gap: 6px; }
-        .enforcement-stat { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
-        .stat-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .stat-dot.dot-amber { background: var(--signal-amber); }
-        .stat-dot.dot-red { background: var(--signal-red); }
+  /* Entities */
+  .entity-row {
+    display: flex; align-items: center; gap: var(--space-2);
+    margin-bottom: 6px; font-size: var(--text-sm);
+  }
+  .entity-role {
+    font-family: var(--mono); font-size: 10px; font-weight: 400;
+    color: var(--text-tertiary); text-transform: uppercase;
+    min-width: 72px; letter-spacing: 0.04em;
+  }
+  .entity-name { color: var(--text-primary); font-weight: 400; }
+  .entity-count { color: var(--text-tertiary); font-size: var(--text-xs); }
 
-        /* CTA */
-        .intel-cta {
-            padding-top: 16px;
-            text-align: center;
-        }
-        .intel-cta-btn {
-            display: inline-block;
-            background: var(--gradient-accent);
-            color: #fff;
-            padding: 10px 24px;
-            border-radius: var(--card-radius);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .intel-cta-btn:hover { opacity: 0.9; }
-        .intel-cta-sub {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-top: 6px;
-        }
+  /* Enforcement */
+  .enforcement-stats { display: flex; flex-direction: column; gap: 6px; }
+  .enforcement-stat { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
+  .stat-dot {
+    width: 6px; height: 6px; border-radius: var(--radius-full); flex-shrink: 0;
+  }
+  .stat-dot.dot-amber { background: var(--signal-amber); }
+  .stat-dot.dot-red { background: var(--signal-red); }
 
-        /* Intel loading/empty */
-        .intel-loading {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-tertiary);
-            font-size: 0.85rem;
-        }
-        .intel-spinner {
-            width: 24px;
-            height: 24px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-top-color: var(--signal-cyan);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 8px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .intel-empty-state { padding: 16px; }
+  /* Intel CTA */
+  .intel-cta { padding-top: var(--space-4); text-align: center; }
+  .intel-cta-btn {
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-tertiary); text-decoration: none;
+    padding: 8px 16px; border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    transition: color 0.3s, border-color 0.3s;
+    display: inline-block;
+  }
+  .intel-cta-btn:hover { color: var(--accent); border-color: var(--accent-ring); }
+  .intel-cta-sub {
+    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+    margin-top: var(--space-2);
+  }
 
-        /* ── Violation Context Banner ── */
-        .violation-banner {
-            background: rgba(248,113,113,0.08);
-            border: 1px solid rgba(248,113,113,0.25);
-            border-radius: var(--card-radius);
-            padding: 14px 18px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .violation-banner-icon { font-size: 1.2rem; }
-        .violation-banner strong { color: var(--signal-red); }
-        .violation-banner span { color: var(--text-secondary); font-size: 0.85rem; }
-        .violation-banner a { color: var(--signal-cyan); text-decoration: none; }
+  /* Intel loading */
+  .intel-loading {
+    text-align: center; padding: var(--space-6);
+    color: var(--text-tertiary); font-size: var(--text-sm);
+  }
+  .intel-spinner {
+    width: 20px; height: 20px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto var(--space-2);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .intel-empty-state { padding: var(--space-4); }
 
-        /* ── No Results ── */
-        .no-results {
-            text-align: center;
-            padding: 48px 20px;
-        }
-        .no-results h3 {
-            font-family: var(--mono);
-            font-size: 1.1rem;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        .no-results p { color: var(--text-secondary); font-size: 0.9rem; }
+  /* ═══ VIOLATION BANNER ═══ */
+  .violation-banner {
+    background: rgba(248,113,113,0.06);
+    border: 1px solid rgba(248,113,113,0.20);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-5);
+    display: flex; align-items: center; gap: var(--space-3);
+  }
+  .violation-banner__icon { font-size: 14px; }
+  .violation-banner strong {
+    font-family: var(--mono); font-size: var(--text-sm); font-weight: 400;
+    color: var(--signal-red);
+  }
+  .violation-banner span {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary);
+  }
+  .violation-banner a { color: var(--accent); text-decoration: none; }
+  .violation-banner a:hover { text-decoration: underline; }
 
-        .guidance-card {
-            background: var(--bg-surface);
-            border: var(--card-border);
-            border-radius: var(--card-radius);
-            padding: 24px;
-            margin-bottom: 16px;
-        }
-        .guidance-card h3 {
-            font-family: var(--mono);
-            font-size: 0.9rem;
-            margin-bottom: 16px;
-        }
-        .guidance-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-        }
-        .guidance-label {
-            font-family: var(--mono);
-            font-size: 0.65rem;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 8px;
-        }
-        .guidance-link {
-            color: var(--signal-cyan);
-            text-decoration: none;
-            font-size: 0.88rem;
-            display: block;
-            margin-bottom: 4px;
-        }
-        .guidance-link:hover { text-decoration: underline; }
+  /* ═══ NO RESULTS ═══ */
+  .no-results {
+    text-align: center; padding: var(--space-10) var(--space-5);
+  }
+  .no-results h3 {
+    font-family: var(--mono); font-size: var(--text-lg); font-weight: 300;
+    color: var(--text-primary); margin-bottom: var(--space-2);
+  }
+  .no-results p {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary);
+  }
 
-        /* ── Prep Checklist Button (disabled placeholder) ── */
-        .btn-disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
+  .guidance-card {
+    background: var(--obsidian-mid);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    margin-bottom: var(--space-4);
+  }
+  .guidance-card h3 {
+    font-family: var(--mono); font-size: var(--text-sm); font-weight: 400;
+    color: var(--text-secondary); margin-bottom: var(--space-4);
+  }
+  .guidance-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-4);
+  }
+  .guidance-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 400;
+    color: var(--text-tertiary); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: var(--space-2);
+  }
+  .guidance-link {
+    font-family: var(--mono); font-size: var(--text-sm); font-weight: 300;
+    color: var(--accent); text-decoration: none;
+    display: block; margin-bottom: 4px;
+    padding-bottom: 1px; border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .guidance-link:hover { border-bottom-color: var(--accent); }
 
-        /* ── Mobile Intel Toggle ── */
-        .mobile-intel-toggle {
-            display: none;
-        }
-        @media (max-width: 1023px) {
-            .mobile-intel-toggle {
-                display: block;
-                width: 100%;
-                background: var(--bg-surface);
-                border: var(--card-border);
-                border-radius: var(--card-radius);
-                padding: 14px 18px;
-                color: var(--text-secondary);
-                font-family: var(--sans);
-                font-size: 0.9rem;
-                font-weight: 500;
-                cursor: pointer;
-                text-align: left;
-                margin-bottom: 16px;
-            }
-            .mobile-intel-toggle:hover { border-color: rgba(255,255,255, 0.12); }
-            .mobile-intel-toggle::after {
-                content: '\\25BC';
-                float: right;
-                font-size: 0.7rem;
-                transition: transform 0.2s;
-            }
-            .mobile-intel-toggle.open::after {
-                transform: rotate(180deg);
-            }
-            .intel-column {
-                display: none;
-            }
-            .intel-column.open {
-                display: block;
-            }
-        }
-        @media (min-width: 1024px) {
-            .mobile-intel-toggle { display: none; }
-        }
+  .guidance-note {
+    margin-top: var(--space-5); padding-top: var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+  }
+  .guidance-note p {
+    font-family: var(--sans); font-size: var(--text-sm); font-weight: 300;
+    color: var(--text-secondary);
+  }
+  .guidance-cta {
+    margin-top: var(--space-4); text-align: center;
+  }
 
-        /* ── Footer ── */
-        footer {
-            border-top: var(--card-border);
-            padding: 24px 0;
-            text-align: center;
-        }
-        footer p {
-            font-size: 0.78rem;
-            color: var(--text-tertiary);
-        }
-        footer a { color: var(--signal-cyan); text-decoration: none; }
+  /* ═══ FRESHNESS ═══ */
+  .freshness {
+    font-family: var(--mono); font-size: 11px; color: var(--text-ghost);
+    text-align: center; padding: var(--space-10) 0;
+    display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  }
+  .freshness-dot {
+    width: 6px; height: 6px; border-radius: var(--radius-full);
+    background: var(--signal-green); display: inline-block;
+  }
 
-        /* ── Mobile Responsive ── */
-        @media (max-width: 768px) {
-            .container { padding: 0 16px; }
-            .search-form { flex-direction: column; }
-            .search-form input[type="text"] { padding: 14px; }
-            .search-form button { padding: 14px; min-height: 48px; }
-            .permit-card { padding: 16px; }
-            .header-actions { gap: 6px; }
-            .btn { padding: 7px 14px; font-size: 0.8rem; }
-            .entity-row { flex-wrap: wrap; }
-            .entity-role { min-width: auto; }
-        }
-    </style>
-    <script nonce="{{ csp_nonce }}" src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
+  /* ═══ MOBILE INTEL TOGGLE ═══ */
+  .mobile-intel-toggle {
+    display: none; width: 100%;
+    font-family: var(--mono); font-size: var(--text-xs); font-weight: 400;
+    color: var(--text-tertiary); background: var(--glass);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4); cursor: pointer;
+    text-align: left; margin-bottom: var(--space-4);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .mobile-intel-toggle:hover { border-color: var(--glass-hover); color: var(--text-secondary); }
+  .mobile-intel-toggle::after {
+    content: '\25BC'; float: right; font-size: 9px; transition: transform 0.2s;
+  }
+  .mobile-intel-toggle.open::after { transform: rotate(180deg); }
+  @media (max-width: 899px) {
+    .mobile-intel-toggle { display: block; }
+    .intel-sidebar { display: none; }
+    .mobile-intel { display: none; }
+    .mobile-intel.open { display: block; }
+  }
+
+  /* ═══ REVEAL ═══ */
+  .reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 768px) {
+    .obs-container { padding: 0 var(--space-4); }
+    .nav-float__links .nav-float__link { display: none; }
+    .entity-row { flex-wrap: wrap; }
+    .entity-role { min-width: auto; }
+  }
+  @media (max-width: 480px) {
+    .obs-container { padding: 0 var(--space-4); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+<script nonce="{{ csp_nonce }}" src="https://unpkg.com/htmx.org@2.0.4" crossorigin="anonymous"></script>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <a href="/" class="logo">sfpermits<span class="logo-suffix">.ai</span></a>
-            <div class="header-actions">
-                <a href="/auth/login" class="btn btn-ghost">Sign in</a>
-                <a href="/auth/login" class="btn btn-accent">Get started free</a>
-            </div>
-        </div>
-    </header>
 
-    <div class="search-section">
-        <div class="container">
-            <form class="search-form" action="/search" method="GET">
-                <input type="text" name="q" value="{{ query }}" placeholder="Search by address, permit #, or block/lot..." autocomplete="off">
-                <button type="submit">Search</button>
-            </form>
+<!-- NAV -->
+<nav class="nav-float">
+  <a href="/" class="nav-float__wordmark">sfpermits.ai</a>
+  <div class="nav-float__links">
+    <a href="/methodology" class="nav-float__link">Methodology</a>
+    <a href="/auth/login" class="nav-float__cta">Sign in</a>
+  </div>
+</nav>
+
+<div class="page-body">
+<div class="obs-container">
+
+  <!-- SEARCH -->
+  <form action="/search" method="GET" class="search-header reveal">
+    <div class="search-bar">
+      <input type="text" name="q" class="search-input" value="{{ query }}" placeholder="Address, permit #, or block/lot..." autocomplete="off">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+  </form>
+
+  {% if violation_context %}
+  <div class="violation-banner reveal reveal-delay-1">
+    <span class="violation-banner__icon">&#x26A0;&#xFE0F;</span>
+    <div>
+      <strong>Violation Lookup Mode</strong>
+      <span>Showing enforcement data first. <a href="/auth/login">Sign up free</a> for full history.</span>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if error %}
+  <!-- ERROR STATE -->
+  <div class="no-results reveal reveal-delay-1">
+    <h3>Something went wrong</h3>
+    <p>{{ error }}</p>
+  </div>
+
+  {% elif no_results %}
+  <!-- NO RESULTS -->
+  <div class="no-results reveal reveal-delay-1">
+    <h3>No permits found</h3>
+    <p>No permit records matched "{{ query }}"</p>
+  </div>
+
+  <div class="guidance-card reveal reveal-delay-2">
+    <h3>{% if nl_query %}How to use sfpermits.ai{% else %}Try searching by{% endif %}</h3>
+    <div class="guidance-grid">
+      <div>
+        <div class="guidance-label">Street Address</div>
+        <a href="/search?q=614+6th+Ave" class="guidance-link">614 6th Ave</a>
+        <a href="/search?q=75+Robin+Hood+Dr" class="guidance-link">75 Robin Hood Dr</a>
+      </div>
+      <div>
+        <div class="guidance-label">Permit Number</div>
+        <a href="/search?q=202401015555" class="guidance-link">202401015555</a>
+      </div>
+      <div>
+        <div class="guidance-label">Block / Lot</div>
+        <a href="/search?q=3512/001" class="guidance-link">3512/001</a>
+      </div>
+    </div>
+    {% if nl_query %}
+    <div class="guidance-note">
+      <p>sfpermits.ai searches SF building permit records. Sign up free to access AI-powered project analysis.</p>
+    </div>
+    {% endif %}
+    <div class="guidance-cta">
+      <a href="/auth/login" class="intel-cta-btn">Sign up free for full access</a>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- RESULTS -->
+
+  <!-- AI Suggestion -->
+  <a href="/search?q=what+permits+do+I+need+at+{{ query | urlencode }}" class="ai-suggest reveal reveal-delay-1">
+    <span class="ai-suggest__icon">&#10024;</span>
+    <span class="ai-suggest__text">Planning a project at <em>{{ query }}</em>? Ask AI what permits you'll need</span>
+    <span class="ai-suggest__arrow">&rarr;</span>
+  </a>
+
+  {% if block and lot %}
+  <!-- Two-column layout with intel sidebar -->
+  <div class="results-layout">
+    <div>
+      <div class="results-content reveal reveal-delay-2">
+        {{ result_html | safe }}
+      </div>
+
+      <!-- Mobile: expandable intel -->
+      <button class="mobile-intel-toggle" onclick="this.classList.toggle('open'); document.getElementById('mobile-intel').classList.toggle('open');">
+        Property intelligence
+      </button>
+      <div id="mobile-intel" class="mobile-intel">
+        <div class="intel-loading"
+             hx-post="/lookup/intel-preview"
+             hx-trigger="intersect once"
+             hx-vals='{"block": "{{ block }}", "lot": "{{ lot }}"}'
+             hx-swap="outerHTML">
+          <div class="intel-spinner"></div>
+          <p>Loading intelligence...</p>
         </div>
+      </div>
     </div>
 
-    <div class="container">
-        {% if violation_context %}
-        <div class="violation-banner" style="margin-top: 20px;">
-            <span class="violation-banner-icon">&#x26A0;&#xFE0F;</span>
-            <div>
-                <strong>Violation Lookup Mode</strong>
-                <span>Showing enforcement data first. <a href="/auth/login">Sign up free</a> for full history.</span>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if error %}
-        <div class="no-results">
-            <h3>Something went wrong</h3>
-            <p>{{ error }}</p>
-        </div>
-
-        {% elif no_results %}
-        <div class="no-results">
-            <h3>No permits found</h3>
-            <p>No permit records matched "{{ query }}".</p>
-        </div>
-
-        <div class="guidance-card">
-            <h3>{% if nl_query %}How to use sfpermits.ai{% else %}Try searching by{% endif %}</h3>
-            <div class="guidance-grid">
-                <div>
-                    <div class="guidance-label">Street Address</div>
-                    <a href="/search?q=614+6th+Ave" class="guidance-link">614 6th Ave</a>
-                    <a href="/search?q=75+Robin+Hood+Dr" class="guidance-link">75 Robin Hood Dr</a>
-                </div>
-                <div>
-                    <div class="guidance-label">Permit Number</div>
-                    <a href="/search?q=202401015555" class="guidance-link">202401015555</a>
-                </div>
-                <div>
-                    <div class="guidance-label">Block / Lot</div>
-                    <a href="/search?q=3512/001" class="guidance-link">3512/001</a>
-                </div>
-            </div>
-            {% if nl_query %}
-            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04);">
-                <p style="color: var(--text-secondary); font-size: 0.85rem;">
-                    sfpermits.ai searches SF building permit records. Sign up free to access AI-powered project analysis.
-                </p>
-            </div>
-            {% endif %}
-            <div style="margin-top: 16px; text-align: center;">
-                <a href="/auth/login" class="intel-cta-btn">Sign up free for full access</a>
-            </div>
-        </div>
-
-        {% else %}
-        {# ── Results + Intel two-column layout ── #}
-        <div class="results-layout">
-            <div class="results-column">
-                <div class="results-heading">Showing permits for "{{ query }}"</div>
-                <div class="permit-card">
-                    <div class="permit-results-content">
-                        {{ result_html | safe }}
-                    </div>
-                    {% if permit_number %}
-                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.04);">
-                        <a href="/prep/{{ permit_number }}" class="btn btn-ghost">Prep Checklist</a>
-                    </div>
-                    {% endif %}
-                </div>
-
-                {# ── Mobile: expandable intel toggle ── #}
-                {% if block and lot %}
-                <button class="mobile-intel-toggle" onclick="this.classList.toggle('open'); document.getElementById('mobile-intel').classList.toggle('open');">
-                    View property intelligence
-                </button>
-                <div id="mobile-intel" class="intel-column">
-                    <div class="intel-loading"
-                         hx-post="/lookup/intel-preview"
-                         hx-trigger="intersect once"
-                         hx-vals='{"block": "{{ block }}", "lot": "{{ lot }}"}'
-                         hx-swap="outerHTML">
-                        <div class="intel-spinner"></div>
-                        <p>Loading intelligence...</p>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-
-            {# ── Desktop: sticky intel sidebar ── #}
-            {% if block and lot %}
-            <div class="intel-column desktop-intel">
-                <div class="intel-loading"
-                     id="intel-preview-desktop"
-                     hx-post="/lookup/intel-preview"
-                     hx-trigger="load"
-                     hx-vals='{"block": "{{ block }}", "lot": "{{ lot }}"}'
-                     hx-swap="outerHTML">
-                    <div class="intel-spinner"></div>
-                    <p>Loading property intelligence...</p>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        {% endif %}
+    <!-- Desktop: sticky intel sidebar -->
+    <div class="intel-sidebar">
+      <div class="intel-loading"
+           hx-post="/lookup/intel-preview"
+           hx-trigger="load"
+           hx-vals='{"block": "{{ block }}", "lot": "{{ lot }}"}'
+           hx-swap="outerHTML">
+        <div class="intel-spinner"></div>
+        <p>Loading property intelligence...</p>
+      </div>
     </div>
+  </div>
 
-    <footer>
-        <div class="container">
-            <p>Built on San Francisco open data &mdash; <a href="/health">System status</a></p>
-        </div>
-    </footer>
-    <script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
-    <script nonce="{{ csp_nonce }}">
-        // Hide desktop intel on mobile, show mobile version
-        (function() {
-            var mq = window.matchMedia('(min-width: 1024px)');
-            function handleResize(e) {
-                var desktopIntel = document.querySelector('.desktop-intel');
-                var mobileToggle = document.querySelector('.mobile-intel-toggle');
-                if (!desktopIntel) return;
-                if (e.matches) {
-                    desktopIntel.style.display = '';
-                    if (mobileToggle) mobileToggle.style.display = 'none';
-                } else {
-                    desktopIntel.style.display = 'none';
-                    if (mobileToggle) mobileToggle.style.display = '';
-                }
-            }
-            mq.addEventListener('change', handleResize);
-            handleResize(mq);
-        })();
-    </script>
+  {% else %}
+  <!-- Single column (no intel) -->
+  <div class="results-content reveal reveal-delay-2">
+    {{ result_html | safe }}
+  </div>
+  {% endif %}
+
+  <!-- FRESHNESS -->
+  <div class="freshness reveal reveal-delay-3">
+    <span class="freshness-dot"></span>
+    Updated nightly from SF open data
+  </div>
+
+  {% endif %}
+
+</div>
+</div>
+
+<script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
+<script nonce="{{ csp_nonce }}">
+  // Scroll reveal
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
+
+  // Mobile intel toggle — hide desktop on mobile
+  (function() {
+    var mq = window.matchMedia('(min-width: 900px)');
+    function handleResize(e) {
+      var sidebar = document.querySelector('.intel-sidebar');
+      var toggle = document.querySelector('.mobile-intel-toggle');
+      if (!sidebar) return;
+      sidebar.style.display = e.matches ? '' : 'none';
+      if (toggle) toggle.style.display = e.matches ? 'none' : '';
+    }
+    mq.addEventListener('change', handleResize);
+    handleResize(mq);
+  })();
+</script>
+
 </body>
 </html>
