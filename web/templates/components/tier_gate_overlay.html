@@ -1,0 +1,37 @@
+{# Tier gate overlay — full-page blur + CTA for teaser mode.
+   Include at the bottom of any gated page template.
+
+   Context vars (injected by context processor):
+     tier_locked:    bool  — True when the page is gated for this user
+     tier_required:  str   — 'beta' or 'premium'
+     tier_current:   str   — user's current tier (e.g. 'free', 'beta')
+
+   When tier_locked is True:
+     - This overlay renders as a fixed, full-viewport dialog
+     - JS in tier-gate.js adds .tier-locked-content to the main container,
+       which blurs page content (8px) so users can see structure but not read data
+
+   When tier_locked is False:
+     - Nothing renders — zero DOM impact on gated pages for entitled users
+#}
+{% if tier_locked %}
+<div class="tier-gate-overlay"
+     data-track="tier-gate-impression"
+     data-tier-required="{{ tier_required }}"
+     data-tier-current="{{ tier_current }}">
+  <div class="tier-gate-card glass-card">
+
+    <h3>See this for your property</h3>
+    <p>Get full access to permit intelligence for your address.</p>
+
+    <a href="/beta/join"
+       class="ghost-cta tier-gate-cta"
+       data-track="tier-gate-click">
+      Get access &rarr;
+    </a>
+
+    <p class="tier-gate-subtext">Free during beta. Takes 30 seconds.</p>
+
+  </div>
+</div>
+{% endif %}

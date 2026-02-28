@@ -1,0 +1,104 @@
+/*
+ * Tier Gate Overlay — blur + CTA for teaser mode
+ *
+ * When a free user visits a gated page, the page content renders normally
+ * but is covered by this overlay. The main container gets .tier-locked-content
+ * applied via JS (tier-gate.js), which blurs it 8px — tantalizing but unreadable.
+ *
+ * Token compliance: all colors, fonts, spacing from DESIGN_TOKENS.md.
+ * No ad-hoc hex values. All spacing uses --space-N numeric scale.
+ */
+
+/* ── Blurred page content (applied by JS when overlay is active) ─────────── */
+
+.tier-locked-content {
+  filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.3s ease;
+}
+
+/* ── Fixed backdrop ──────────────────────────────────────────────────────── */
+
+.tier-gate-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ── Dialog card ─────────────────────────────────────────────────────────── */
+/*
+ * Extends .glass-card from DESIGN_TOKENS.md with overlay-specific sizing.
+ * .glass-card provides: obsidian-mid background, glass-border, radius-md, padding.
+ * We override padding and add max-width + text-align here.
+ */
+
+.tier-gate-card {
+  max-width: 420px;
+  width: 100%;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.tier-gate-card h3 {
+  font-family: var(--sans);
+  font-size: var(--text-xl);
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  line-height: 1.3;
+}
+
+.tier-gate-card p {
+  font-family: var(--sans);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-6) 0;
+  line-height: 1.6;
+}
+
+/* ── CTA ─────────────────────────────────────────────────────────────────── */
+/*
+ * Extends .ghost-cta from DESIGN_TOKENS.md.
+ * .ghost-cta provides: --mono font, secondary color, underline-on-hover, accent on hover.
+ * We add display/padding overrides to make it a more prominent block CTA for this context.
+ */
+
+.tier-gate-cta {
+  display: inline-block;
+  font-size: var(--text-base);
+  padding: var(--space-3) var(--space-6);
+}
+
+/* ── Subtext ─────────────────────────────────────────────────────────────── */
+/*
+ * Note: --text-tertiary is WCAG AA exempt per DESIGN_TOKENS.md for non-interactive
+ * informational text. This subtext is decorative/reassurance copy, not interactive.
+ */
+
+.tier-gate-subtext {
+  font-family: var(--sans);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-top: var(--space-4) !important;
+  margin-bottom: 0 !important;
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .tier-gate-card {
+    margin: 0 var(--space-4);
+    padding: var(--space-6);
+  }
+
+  .tier-gate-cta {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
