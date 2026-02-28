@@ -524,8 +524,29 @@
     <p>No permit records matched "{{ query }}"</p>
   </div>
 
+  {% if empty_guidance and empty_guidance.did_you_mean %}
+  <div class="guidance-card reveal reveal-delay-2" style="margin-bottom: var(--space-4);">
+    <p style="font-family: var(--sans); font-size: var(--text-sm); font-weight: 300; color: var(--accent);">
+      {{ empty_guidance.did_you_mean }}
+    </p>
+  </div>
+  {% endif %}
+
   <div class="guidance-card reveal reveal-delay-2">
     <h3>{% if nl_query %}How to use sfpermits.ai{% else %}Try searching by{% endif %}</h3>
+
+    {% if empty_guidance and empty_guidance.suggestions %}
+    <div class="guidance-grid" style="margin-bottom: var(--space-4);">
+      {% for s in empty_guidance.suggestions %}
+      <div>
+        <div class="guidance-label">Suggested search</div>
+        <a href="{{ s.url }}" class="guidance-link">{{ s.label }}</a>
+        {% if s.hint %}<p style="font-family: var(--sans); font-size: var(--text-xs); font-weight: 300; color: var(--text-tertiary); margin-top: 4px;">{{ s.hint }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="guidance-grid">
       <div>
         <div class="guidance-label">Street Address</div>
@@ -544,6 +565,11 @@
     {% if nl_query %}
     <div class="guidance-note">
       <p>sfpermits.ai searches SF building permit records. Sign up free to access AI-powered project analysis.</p>
+    </div>
+    {% endif %}
+    {% if empty_guidance and empty_guidance.show_demo_link %}
+    <div class="guidance-note">
+      <p>Not sure what to search? <a href="/demo" style="color: var(--accent); text-decoration: none;">Try our interactive demo</a> to see what sfpermits.ai can find.</p>
     </div>
     {% endif %}
     <div class="guidance-cta">

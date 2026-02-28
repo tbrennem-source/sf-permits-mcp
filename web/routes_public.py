@@ -36,6 +36,8 @@ from web.helpers import (
     _rate_limited_plans,
     BRAND_CONFIG,
     RATE_LIMIT_MAX_ANALYZE,
+    parse_search_query,
+    build_empty_result_guidance,
 )
 
 bp = Blueprint("public", __name__)
@@ -89,7 +91,10 @@ def public_search():
     if g.user:
         return redirect(f"/?q={query_str}")
 
-    # Parse the query to extract address components
+    # --- NLP parse: extract structured fields from query ---
+    parsed = parse_search_query(query_str)
+
+    # Also run intent classifier for backward compat / intent routing
     result = classify_intent(query_str, [n for n in NEIGHBORHOODS if n])
     intent = result.intent
     entities = result.entities
@@ -122,6 +127,14 @@ def public_search():
                 block=block,
                 lot=lot,
             ))
+        elif parsed.get("street_number") and parsed.get("street_name"):
+            # NLP parser extracted an address that intent classifier missed
+            search_street_number = parsed["street_number"]
+            search_street_name = parsed["street_name"]
+            result_md = run_async(permit_lookup(
+                street_number=search_street_number,
+                street_name=search_street_name,
+            ))
         else:
             # Default: try as an address lookup
             result_md = run_async(permit_lookup(street_name=query_str))
@@ -137,6 +150,7 @@ def public_search():
             no_results=False,
             result_html="",
             nl_query=False,
+            empty_guidance=None,
         )
 
     # Resolve block/lot from address for intel preview
@@ -147,6 +161,11 @@ def public_search():
                 resolved_block, resolved_lot = bl[0], bl[1]
         except Exception:
             pass
+
+    # Build empty result guidance when search returns nothing
+    empty_guidance = None
+    if no_results:
+        empty_guidance = build_empty_result_guidance(query_str, parsed)
 
     # E3: Check for violation context
     violation_context = request.args.get("context") == "violation"
@@ -161,6 +180,8 @@ def public_search():
         nl_query=nl_query,
         block=resolved_block,
         lot=resolved_lot,
+        empty_guidance=empty_guidance,
+        parsed_query=parsed,
     )
 
 
