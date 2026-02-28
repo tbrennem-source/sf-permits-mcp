@@ -1,0 +1,21 @@
+## Agent 3A — Station Predictor UI
+
+- Added `/tools/station-predictor` page (`web/templates/tools/station_predictor.html`)
+  - Obsidian-themed design using only DESIGN_TOKENS.md CSS custom properties
+  - Permit number input (--mono font, glass-style input)
+  - JavaScript fetch to `/api/predict-next/<permit_number>` GET endpoint
+  - Markdown rendering via marked.js with escapeHtml fallback
+  - Loading state (spinner + "Analyzing..." text)
+  - Error state (signal-red styled error box)
+  - Auth error state (401 → "Please log in" prompt with /auth/login link)
+  - Empty hint state
+  - Enter-key support for form submission
+  - Mobile-responsive at 375px (stacked column layout)
+- Added `tools_station_predictor` route to `web/routes_search.py` (appended at EOF)
+  - Redirects unauthenticated users to `/auth/login`
+  - Renders `tools/station_predictor.html` for authenticated users
+  - Added `redirect` to Flask imports
+- Added `tests/test_station_predictor_ui.py` (23 tests: 22 passing, 1 xfail)
+  - 21 template-string tests (no Jinja/Flask rendering needed)
+  - 2 route-level tests via Flask test client
+- Design lint score: **5/5** (0 violations)
