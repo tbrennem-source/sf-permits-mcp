@@ -278,6 +278,10 @@ def sitemap():
         "/methodology",
         "/about-data",
         "/demo",
+        "/join-beta",
+        "/docs",
+        "/privacy",
+        "/terms",
     ]
     base = "https://sfpermits.ai"
     now = datetime.now().strftime("%Y-%m-%d")

@@ -12,6 +12,39 @@
 <link rel="apple-touch-icon" href="/static/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Open Graph -->
+<meta property="og:title" content="sfpermits.ai — SF Permit Intelligence">
+<meta property="og:description" content="San Francisco's first AI permit intelligence platform. Search 1.1M+ permits, predict timelines, analyze plan sets.">
+<meta property="og:image" content="{{ request.host_url }}static/og-card.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.host_url }}">
+<meta property="og:site_name" content="sfpermits.ai">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="sfpermits.ai — SF Permit Intelligence">
+<meta name="twitter:description" content="San Francisco's first AI permit intelligence platform. Search 1.1M+ permits, predict timelines, analyze plan sets.">
+<meta name="twitter:image" content="{{ request.host_url }}static/og-card.png">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "sfpermits.ai",
+  "description": "San Francisco's first AI permit intelligence platform. Search 1.1M+ permits, predict timelines, analyze plan sets.",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://sfpermits.ai",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+
 <style nonce="{{ csp_nonce }}">
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   :root {

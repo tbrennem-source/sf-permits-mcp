@@ -961,16 +961,23 @@ from src.tools.team_lookup import generate_team_profile  # noqa: E402, F401
 ROBOTS_TXT = """\
 User-agent: *
 Allow: /
+Allow: /demo/guided
+Allow: /join-beta
+Allow: /docs
+Allow: /methodology
+Allow: /about-data
+Allow: /privacy
+Allow: /terms
+Allow: /sitemap.xml
+Disallow: /search
+Disallow: /tools
+Disallow: /portfolio
+Disallow: /dashboard
 Disallow: /admin/
 Disallow: /cron/
 Disallow: /api/
 Disallow: /auth/
-Disallow: /demo
-Disallow: /account
-Disallow: /brief
-Disallow: /projects
-
-Sitemap: https://sfpermits-ai-production.up.railway.app/sitemap.xml
+Sitemap: https://sfpermits.ai/sitemap.xml
 """
 
 _BLOCKED_PATHS = {
