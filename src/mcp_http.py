@@ -1,7 +1,13 @@
 """HTTP transport entry point for SF Permits MCP server.
 
-Exposes the same 27 tools as the stdio server, but over Streamable HTTP
+Exposes public-facing permit data tools over Streamable HTTP
 for Claude.ai custom connector access.
+
+SECURITY NOTE: Only safe, read-only public-data tools are registered here.
+Project intelligence tools (run_query, read_source, search_source, schema_info,
+list_tests) and list_feedback are EXCLUDED from the HTTP endpoint because they
+expose internal DB, source code, and user data. Those tools are available only
+via the stdio transport (local MCP / Claude Code).
 
 Uses mcp[cli] package (same as Chief MCP server — proven claude.ai compatibility).
 
@@ -18,12 +24,13 @@ Connect from Claude.ai:
 import logging
 import os
 import secrets
+import time
 
 from mcp.server.fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
 
-# Import all tool functions (same as server.py)
+# Import safe, public-data tool functions only
 from src.tools.search_permits import search_permits
 from src.tools.get_permit_details import get_permit_details
 from src.tools.permit_stats import permit_stats
@@ -45,10 +52,14 @@ from src.tools.analyze_plans import analyze_plans
 from src.tools.recommend_consultants import recommend_consultants
 from src.tools.permit_lookup import permit_lookup
 from src.tools.search_addenda import search_addenda
-from src.tools.list_feedback import list_feedback
 
-# Phase 7 tools (project intelligence)
-from src.tools.project_intel import run_query, read_source, search_source, schema_info, list_tests
+# EXCLUDED from HTTP endpoint (security risk on public-facing server):
+# - run_query: arbitrary SQL against DB (exposes user data, all tables)
+# - read_source: reads source code files (exposes secrets, architecture)
+# - search_source: searches codebase (finds passwords, API keys)
+# - schema_info: exposes full DB schema (reconnaissance)
+# - list_tests: test file inventory (minor info leak)
+# - list_feedback: user feedback data (has emails, page URLs)
 
 # ── Create MCP server with HTTP transport config ──────────────────
 port = int(os.environ.get("PORT", 8001))
@@ -57,11 +68,9 @@ mcp = FastMCP(
     "SF Permits",
     instructions=(
         "SF Permits MCP server — query San Francisco public permitting data. "
-        "27 tools across 7 phases: live SODA API queries, entity network analysis, "
+        "28 tools: live SODA API queries, entity network analysis, "
         "permit decision tools, plan set validation, AI vision analysis, "
-        "addenda routing search across 3.9M+ records, and project intelligence "
-        "tools for read-only database queries, source code reading, codebase search, "
-        "schema introspection, and test inventory."
+        "and addenda routing search across 3.9M+ records."
     ),
     host="0.0.0.0",
     port=port,
@@ -69,7 +78,7 @@ mcp = FastMCP(
     streamable_http_path="/mcp",
 )
 
-# Register all 27 tools
+# Register 28 public-data tools (no project intelligence / internal tools)
 mcp.tool()(search_permits)
 mcp.tool()(get_permit_details)
 mcp.tool()(permit_stats)
@@ -91,16 +100,8 @@ mcp.tool()(analyze_plans)
 mcp.tool()(recommend_consultants)
 mcp.tool()(permit_lookup)
 mcp.tool()(search_addenda)
-mcp.tool()(list_feedback)
 
-# Phase 7 tools (project intelligence)
-mcp.tool()(run_query)
-mcp.tool()(read_source)
-mcp.tool()(search_source)
-mcp.tool()(schema_info)
-mcp.tool()(list_tests)
-
-# ── Bearer token auth middleware (stopgap until OAuth in QS13) ────
+# ── Request logging + optional auth middleware ────────────────────
 from starlette.requests import Request as StarletteRequest
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
@@ -108,9 +109,17 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 _MCP_AUTH_TOKEN = os.environ.get("MCP_AUTH_TOKEN", "")
 
+# Track request counts for monitoring
+_request_log = {"total": 0, "by_ip": {}, "started_at": time.time()}
 
-class BearerTokenMiddleware:
-    """ASGI middleware: reject unauthenticated /mcp requests when MCP_AUTH_TOKEN is set."""
+
+class RequestLoggingMiddleware:
+    """ASGI middleware: log all /mcp requests with IP, user-agent, and timing.
+
+    Also enforces bearer token auth when MCP_AUTH_TOKEN is set.
+    Every request is logged regardless of auth status — this is how we
+    detect unauthorized access attempts.
+    """
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -122,52 +131,80 @@ class BearerTokenMiddleware:
 
         path = scope.get("path", "")
 
-        # Skip auth for health/root endpoints
+        # Skip logging for health/root endpoints
         if path in ("/", "/health"):
             await self.app(scope, receive, send)
             return
 
-        # Skip auth if no token configured (backwards compatible)
-        if not _MCP_AUTH_TOKEN:
-            await self.app(scope, receive, send)
-            return
-
-        # Extract Authorization header
+        # Extract client info
         headers = dict(scope.get("headers", []))
-        auth_header = headers.get(b"authorization", b"").decode()
+        client = scope.get("client", ("unknown", 0))
+        ip = client[0] if client else "unknown"
+        user_agent = headers.get(b"user-agent", b"").decode()[:100]
+        method = scope.get("method", "?")
 
-        if not auth_header.startswith("Bearer "):
-            response = JSONResponse(
-                {"error": "Authentication required. Provide Authorization: Bearer <token>"},
-                status_code=401,
-            )
-            await response(scope, receive, send)
-            return
+        # Log every request
+        _request_log["total"] += 1
+        _request_log["by_ip"][ip] = _request_log["by_ip"].get(ip, 0) + 1
+        logger.info(
+            "MCP request: ip=%s method=%s path=%s ua=%s total=%d ip_count=%d",
+            ip, method, path, user_agent,
+            _request_log["total"], _request_log["by_ip"][ip],
+        )
 
-        provided_token = auth_header[7:]  # Strip "Bearer "
-        if not secrets.compare_digest(provided_token, _MCP_AUTH_TOKEN):
-            response = JSONResponse(
-                {"error": "Invalid authentication token"},
-                status_code=403,
-            )
-            await response(scope, receive, send)
-            return
+        # Rate limit: 100 requests per IP per hour (rough — resets on restart)
+        if _request_log["by_ip"][ip] > 100:
+            uptime_hours = (time.time() - _request_log["started_at"]) / 3600
+            if uptime_hours < 1:
+                logger.warning("RATE LIMIT: ip=%s hit %d requests in %.1f hours",
+                               ip, _request_log["by_ip"][ip], uptime_hours)
+                response = JSONResponse(
+                    {"error": "Rate limit exceeded. Try again later."},
+                    status_code=429,
+                )
+                await response(scope, receive, send)
+                return
+
+        # Bearer token auth (if configured)
+        if _MCP_AUTH_TOKEN:
+            auth_header = headers.get(b"authorization", b"").decode()
+            if not auth_header.startswith("Bearer "):
+                logger.warning("AUTH FAIL: ip=%s path=%s — no bearer token", ip, path)
+                response = JSONResponse(
+                    {"error": "Authentication required."},
+                    status_code=401,
+                )
+                await response(scope, receive, send)
+                return
+            provided_token = auth_header[7:]
+            if not secrets.compare_digest(provided_token, _MCP_AUTH_TOKEN):
+                logger.warning("AUTH FAIL: ip=%s path=%s — invalid token", ip, path)
+                response = JSONResponse(
+                    {"error": "Invalid authentication token"},
+                    status_code=403,
+                )
+                await response(scope, receive, send)
+                return
 
         await self.app(scope, receive, send)
 
 
 if _MCP_AUTH_TOKEN:
-    logger.info("MCP bearer token auth enabled")
+    logger.info("MCP bearer token auth enabled (blocks claude.ai — remove MCP_AUTH_TOKEN to allow)")
 else:
-    logger.warning("MCP_AUTH_TOKEN not set — MCP server is unauthenticated")
+    logger.info("MCP server open — request logging active, rate limiting at 100/hr per IP")
 
 
 # ── Health check endpoint (for Railway) ───────────────────────────
 async def health_check(request: StarletteRequest) -> JSONResponse:
+    uptime_hours = round((time.time() - _request_log["started_at"]) / 3600, 1)
     return JSONResponse({
         "status": "healthy",
         "server": "SF Permits MCP",
-        "tools": 27,
+        "tools": 28,
+        "requests_total": _request_log["total"],
+        "unique_ips": len(_request_log["by_ip"]),
+        "uptime_hours": uptime_hours,
     })
 
 
@@ -183,9 +220,8 @@ if __name__ == "__main__":
     async def main():
         app = mcp.streamable_http_app()
 
-        # Wrap with bearer token auth if configured
-        if _MCP_AUTH_TOKEN:
-            app = BearerTokenMiddleware(app)
+        # Always wrap with logging middleware (also handles auth if MCP_AUTH_TOKEN set)
+        app = RequestLoggingMiddleware(app)
 
         config = uvicorn.Config(
             app,
