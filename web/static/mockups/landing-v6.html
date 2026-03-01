@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sfpermits.ai — Landing v6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        obsidian:    { DEFAULT: '#0a0a0f', mid: '#12121a', light: '#1a1a26' },
+        glass:       { DEFAULT: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.06)', hover: 'rgba(255,255,255,0.08)' },
+        accent:      { DEFAULT: '#5eead4', glow: 'rgba(94,234,212,0.08)', ring: 'rgba(94,234,212,0.2)' },
+        signal:      { green: '#4ade80', amber: '#fbbf24', red: '#f87171' },
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['IBM Plex Sans', '-apple-system', 'sans-serif'],
+      },
+    }
+  }
+}
+</script>
+<style>
+  /* Only things Tailwind can't do: keyframes, scrollbar, ambient gradient */
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
+  body { -webkit-font-smoothing: antialiased; }
+  @keyframes drift { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(40px,20px); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 0.3; transform: scaleY(1); } 50% { opacity: 0.8; transform: scaleY(1.3); } }
+  .ambient::before {
+    content: ''; position: absolute; top: -40%; left: -20%; width: 80%; height: 80%;
+    background: radial-gradient(ellipse, rgba(94,234,212,0.03) 0%, transparent 70%);
+    animation: drift 25s ease-in-out infinite;
+  }
+  .fade-in { opacity: 0; animation: fadeIn 1s cubic-bezier(0.16,1,0.3,1) forwards; }
+  .fade-d1 { animation-delay: 0.1s; }
+  .fade-d2 { animation-delay: 0.2s; }
+  .fade-d3 { animation-delay: 0.35s; }
+  .fade-d4 { animation-delay: 0.4s; }
+  .fade-d5 { animation-delay: 1.2s; }
+  .fade-d6 { animation-delay: 2s; }
+  .scroll-line::after {
+    content: ''; display: block; width: 1px; height: 24px;
+    background: rgba(255,255,255,0.06); margin: 8px auto 0;
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  /* Gantt bar segments */
+  .bar-done     { background: rgba(74,222,128,0.7); }
+  .bar-active   { background: #fbbf24; opacity: 0.85; }
+  .bar-stalled  { background: #f87171; opacity: 0.85; }
+  .bar-projected {
+    background: repeating-linear-gradient(90deg,
+      rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 4px,
+      transparent 4px, transparent 8px);
+  }
+  /* Environment borders — thin outline around entire viewport */
+  .env-staging { box-shadow: inset 0 0 0 2px #fbbf24; }
+  .env-honeypot { box-shadow: inset 0 0 0 2px #f87171; }
+  .env-prod { /* no outline */ }
+  /* Persona color coding for QA navigation */
+  .persona-homeowner { box-shadow: inset 0 0 0 2px #5eead4; }
+  .persona-architect { box-shadow: inset 0 0 0 2px #818cf8; }
+  .persona-expediter { box-shadow: inset 0 0 0 2px #fbbf24; }
+  .persona-new-visitor { box-shadow: inset 0 0 0 2px #f472b6; }
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-d1 { transition-delay: 0.1s; }
+  .reveal-d2 { transition-delay: 0.2s; }
+  .reveal-d3 { transition-delay: 0.3s; }
+</style>
+</head>
+
+<body class="bg-obsidian text-white/90 font-sans overflow-x-hidden">
+<div class="ambient fixed inset-0 z-0 pointer-events-none overflow-hidden"></div>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════ -->
+<section class="relative z-10 min-h-[85vh] flex flex-col items-center justify-center px-6 pb-12">
+  <div class="font-mono text-[clamp(11px,1.2vw,13px)] font-light tracking-[0.35em] uppercase text-white/25 mb-12 fade-in fade-d1">
+    sfpermits.ai
+  </div>
+  <h1 class="font-sans text-[clamp(28px,4.5vw,56px)] font-light leading-[1.15] text-center max-w-[680px] fade-in fade-d2"
+      x-data="{
+        lines: ['decoded by AI', 'predicted before you file', 'so you never fly blind', 'before your contractor knows', 'clarity in an opaque process', 'without the guesswork'],
+        picked: ''
+      }"
+      x-init="picked = lines[Math.floor(Math.random() * lines.length)]">
+    San Francisco permits,<br>
+    <em class="not-italic text-accent font-normal" x-text="picked">decoded by AI</em>
+  </h1>
+  <p class="font-mono text-[clamp(11px,1.1vw,13px)] font-light tracking-wide text-white/25 mt-5 text-center fade-in fade-d3">
+    1.1M permits · 18M records · real-time tracking
+  </p>
+  <div class="mt-12 w-full max-w-[520px] relative fade-in fade-d4">
+    <input class="w-full py-4 px-5 pr-12 font-mono text-sm font-light text-white/90 bg-glass border border-glass-border rounded-xl outline-none transition-all duration-300 focus:border-accent-ring focus:shadow-[0_0_40px_rgba(94,234,212,0.08)] placeholder:text-white/25"
+           placeholder="Search any SF address or permit number" autofocus>
+  </div>
+  <!-- Expandable teaser questions -->
+  <div class="mt-6 w-full max-w-[560px] fade-in fade-d5" x-data="{ open: null }">
+    <!-- Question row -->
+    <div class="flex justify-center gap-1 md:gap-2 flex-wrap text-center">
+      <button @click="open = open === 'time' ? null : 'time'"
+              class="font-mono text-xs px-2 py-1 rounded-md transition-all cursor-pointer"
+              :class="open === 'time' ? 'text-accent bg-accent-glow' : 'text-white/45 hover:text-accent'">
+        How long will it take?
+      </button>
+      <span class="text-white/15 self-center">·</span>
+      <button @click="open = open === 'risk' ? null : 'risk'"
+              class="font-mono text-xs px-2 py-1 rounded-md transition-all cursor-pointer"
+              :class="open === 'risk' ? 'text-accent bg-accent-glow' : 'text-white/45 hover:text-accent'">
+        Will I get sent back?
+      </button>
+      <span class="text-white/15 self-center">·</span>
+      <button @click="open = open === 'stuck' ? null : 'stuck'"
+              class="font-mono text-xs px-2 py-1 rounded-md transition-all cursor-pointer"
+              :class="open === 'stuck' ? 'text-accent bg-accent-glow' : 'text-white/45 hover:text-accent'">
+        Is my permit stuck?
+      </button>
+    </div>
+
+    <!-- HOW LONG teaser -->
+    <div x-show="open === 'time'" x-transition.opacity x-transition.duration.200ms
+         class="mt-4 bg-glass border border-glass-border rounded-lg p-4 text-left">
+      <div class="flex items-start gap-3">
+        <span class="font-mono text-[28px] font-light text-accent leading-none mt-0.5">4.2</span>
+        <div class="flex-1">
+          <div class="font-sans text-sm font-light text-white/70 leading-relaxed">
+            <strong class="text-white/90 font-normal">Average kitchen remodel: 4.2 months.</strong>
+            But filing in January vs October can add 76 days. SFPUC is currently backed up — 47 permits in queue.
+          </div>
+          <div class="flex items-center gap-4 mt-3">
+            <a href="javascript:void(0)" class="font-mono text-[11px] text-accent hover:underline">Search your address →</a>
+            <a href="#gantt" class="font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors">See the timeline ↓</a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-glass-border font-mono text-[9px] text-white/20">
+        Based on 1.1M permits · Updated nightly · Station velocity model
+      </div>
+    </div>
+
+    <!-- SENT BACK teaser -->
+    <div x-show="open === 'risk'" x-transition.opacity x-transition.duration.200ms
+         class="mt-4 bg-glass border border-glass-border rounded-lg p-4 text-left">
+      <div class="flex items-start gap-3">
+        <span class="font-mono text-[28px] font-light text-signal-red leading-none mt-0.5">73%</span>
+        <div class="flex-1">
+          <div class="font-sans text-sm font-light text-white/70 leading-relaxed">
+            <strong class="text-white/90 font-normal">73% of kitchen remodels get sent back.</strong>
+            Top reason: missing fire suppression details. Each revision adds 3–6 weeks
+            and an estimated $5K–$15K in carrying costs.
+          </div>
+          <div class="flex items-center gap-4 mt-3">
+            <a href="javascript:void(0)" class="font-mono text-[11px] text-accent hover:underline">Check your project →</a>
+            <a href="#risk" class="font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors">See revision risks ↓</a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-glass-border font-mono text-[9px] text-white/20">
+        Revision patterns from 1.1M permits · Risk factors by project type
+      </div>
+    </div>
+
+    <!-- STUCK teaser -->
+    <div x-show="open === 'stuck'" x-transition.opacity x-transition.duration.200ms
+         class="mt-4 bg-glass border border-glass-border rounded-lg p-4 text-left">
+      <div class="flex items-start gap-3">
+        <span class="font-mono text-[28px] font-light text-signal-amber leading-none mt-0.5">47</span>
+        <div class="flex-1">
+          <div class="font-sans text-sm font-light text-white/70 leading-relaxed">
+            <strong class="text-white/90 font-normal">47 permits stalled at SFPUC right now.</strong>
+            Average wait: 14 days. We track queue depth at every station in real time
+            so you know exactly where you stand.
+          </div>
+          <div class="flex items-center gap-4 mt-3">
+            <a href="javascript:void(0)" class="font-mono text-[11px] text-accent hover:underline">Check your permit →</a>
+            <a href="#stuck" class="font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors">See queue data ↓</a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-glass-border font-mono text-[9px] text-white/20">
+        Queue data updated every 6 hours · 8 review stations tracked per permit
+      </div>
+    </div>
+  </div>
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 fade-in fade-d6">
+    <span class="font-mono text-[10px] text-white/25 tracking-[0.1em] uppercase">Scroll to see what we know</span>
+    <svg class="w-4 h-4 text-accent animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     01 · PROJECT TIMELINE (GANTT)
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="gantt">
+<div class="max-w-[1060px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">01 — project timeline</div>
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    Your contractor says <em class="not-italic text-accent font-normal">6 months</em>.<br>
+    The data says <span class="text-signal-amber">9</span>.
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    We track every permit through every review station. When stations run in parallel,
+    we show it. When one is stalled and blocking everything downstream, we flag it.
+  </p>
+
+  <!-- GANTT CHART -->
+  <div class="bg-glass border border-glass-border rounded-lg overflow-hidden mb-4 reveal reveal-d2" x-data="{ cpOnly: false }">
+
+    <!-- Title bar with critical path toggle -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-glass-border">
+      <div class="flex items-center gap-3">
+        <a href="javascript:void(0)" class="font-mono text-[13px] font-light text-accent hover:underline">1122 Folsom St</a>
+        <span class="font-mono text-xs text-white/45 tracking-wide hidden md:inline">Commercial TI · 3 permits</span>
+      </div>
+      <button @click="cpOnly = !cpOnly"
+              class="flex items-center gap-2 font-mono text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer border-accent/30 text-accent bg-accent-glow hover:border-accent hover:bg-accent/10">
+        <span class="relative w-6 h-3 rounded-full transition-colors" :class="cpOnly ? 'bg-accent' : 'bg-accent/30'">
+          <span class="absolute top-0.5 w-2 h-2 rounded-full transition-all" :class="cpOnly ? 'left-3.5 bg-obsidian' : 'left-0.5 bg-accent/60'"></span>
+        </span>
+        <span>Critical Path</span>
+      </button>
+    </div>
+
+    <!-- Legend -->
+    <div class="flex gap-4 px-4 py-2 border-b border-glass-border flex-wrap">
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25">
+        <span class="w-3.5 h-1 rounded-sm bar-done"></span> Done
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25">
+        <span class="w-3.5 h-1 rounded-sm bar-active"></span> In review
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25">
+        <span class="w-3.5 h-1 rounded-sm bar-stalled"></span> Stalled
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25">
+        <span class="w-3.5 h-1 rounded-sm bar-projected"></span> Projected
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25">
+        <span class="w-3.5 h-px border-l-2 border-signal-amber/25 ml-1 inline-block" style="height:10px"></span> Parallel
+      </div>
+    </div>
+
+    <!-- Month axis -->
+    <div class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] py-1.5 border-b border-glass-border">
+      <span></span>
+      <div class="flex justify-between pr-2 font-mono text-[9px] text-white/25 tracking-wide">
+        <span>Oct 24</span><span>Nov</span><span>Dec</span><span>Jan 25</span>
+        <span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+      </div>
+    </div>
+
+    <!-- Gantt body -->
+    <div class="relative">
+      <!-- Today marker -->
+      <div class="absolute top-0 bottom-0 w-px bg-accent/35 z-[2]" style="left: calc(140px + (100% - 148px) * 0.58);">
+        <span class="absolute -top-0.5 left-1/2 -translate-x-1/2 font-mono text-[8px] text-accent bg-obsidian px-1">today</span>
+      </div>
+
+      <!-- ─── BUILDING PERMIT (critical path) ─── -->
+      <div class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] px-3 pt-2 pb-1 bg-signal-amber/[0.02]">
+        <span class="font-mono text-[10px] font-normal tracking-[0.08em] uppercase text-signal-amber">
+          Building · 202410082341
+          <span class="text-[8px] tracking-[0.1em] bg-signal-amber/10 border border-signal-amber/15 px-1.5 py-px rounded-sm ml-2">critical path</span>
+        </span>
+      </div>
+
+      <!-- Intake -->
+      <a href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[28px] border-b border-white/[0.03] hover:bg-glass transition-colors group"
+         x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+        <div class="flex items-center gap-2 px-3 py-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-signal-green/70 shrink-0"></span>
+          <div>
+            <div class="font-mono text-[11px] font-light">Intake</div>
+            <div class="font-sans text-[9px] text-white/25 hidden md:block">Filing & triage</div>
+          </div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3.5 rounded-[3px] flex items-center overflow-hidden" style="left: 1%; width: 4%;">
+            <span class="h-full bar-done" style="width: 100%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">3d ✓</span>
+          </div>
+          <!-- Tooltip -->
+          <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[3%] bg-obsidian-mid border border-glass-border rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+            Intake · Completed in 3 days (avg 4d) · <span class="text-accent">View details →</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Plan Check -->
+      <a href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[28px] border-b border-white/[0.03] hover:bg-glass transition-colors"
+         x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+        <div class="flex items-center gap-2 px-3 py-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-signal-green/70 shrink-0"></span>
+          <div>
+            <div class="font-mono text-[11px] font-light">Plan Check</div>
+            <div class="font-sans text-[9px] text-white/25 hidden md:block">Distribution</div>
+          </div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3.5 rounded-[3px] flex items-center overflow-hidden" style="left: 5%; width: 5%;">
+            <span class="h-full bar-done" style="width: 100%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">5d ✓</span>
+          </div>
+          <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[7%] bg-obsidian-mid border border-glass-border rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+            Plan Check Distribution · 5 days (avg 6d) · <span class="text-accent">View details →</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- ═══ PARALLEL REVIEW BLOCK ═══ -->
+      <div class="border-l-2 border-signal-amber/15 ml-3">
+
+        <!-- Parallel label -->
+        <div class="px-5 py-1 font-mono text-[9px] text-white/25 tracking-[0.06em] flex items-center gap-1.5">
+          <svg class="w-2.5 h-2.5 text-signal-amber/40" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1" stroke="currentColor" fill="none" stroke-width="1"/></svg>
+          concurrent review — all 5 stations run in parallel
+        </div>
+
+        <!-- BLDG (parallel, done — not on critical path) -->
+        <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors"
+           x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+          <div class="flex items-center gap-2 pl-6 pr-3 py-0.5">
+            <span class="w-1 h-1 rounded-full bg-signal-green/70 shrink-0"></span>
+            <div>
+              <div class="font-mono text-[10px] font-light">BLDG</div>
+              <div class="font-sans text-[9px] text-white/25 hidden md:block">Building review</div>
+            </div>
+          </div>
+          <div class="relative h-full py-1">
+            <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 11%; width: 14%;">
+              <span class="h-full bar-done" style="width: 100%;"></span>
+              <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">22d ✓</span>
+            </div>
+            <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[18%] bg-obsidian-mid border border-glass-border rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+              Building Review · 22 days (avg 18d) · <span class="text-accent">View station →</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- SFPUC (parallel, STALLED — critical path bottleneck) -->
+        <a href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors bg-signal-red/[0.03]"
+           x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+          <div class="flex items-center gap-2 pl-6 pr-3 py-0.5">
+            <span class="w-1 h-1 rounded-full bg-signal-red shrink-0"></span>
+            <div>
+              <div class="font-mono text-[10px] font-light text-signal-amber">SFPUC</div>
+              <div class="font-sans text-[9px] text-white/25 hidden md:block">Water/sewer</div>
+            </div>
+          </div>
+          <div class="relative h-full py-1">
+            <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden shadow-[0_0_6px_rgba(251,191,36,0.12)]" style="left: 11%; width: 22%;">
+              <span class="h-full bar-stalled" style="width: 65%;"></span>
+              <span class="h-full bar-projected" style="width: 35%;"></span>
+              <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-signal-red whitespace-nowrap">18d — stalled</span>
+            </div>
+            <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[20%] bg-obsidian-mid border border-signal-red/20 rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+              ⚠ SFPUC stalled at 18d (avg 8d) · Blocking PPC → Approval · <span class="text-accent">View station →</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- CPB (parallel, done — not on critical path) -->
+        <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors"
+           x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+          <div class="flex items-center gap-2 pl-6 pr-3 py-0.5">
+            <span class="w-1 h-1 rounded-full bg-signal-green/70 shrink-0"></span>
+            <div>
+              <div class="font-mono text-[10px] font-light">CPB</div>
+              <div class="font-sans text-[9px] text-white/25 hidden md:block">City planning</div>
+            </div>
+          </div>
+          <div class="relative h-full py-1">
+            <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 11%; width: 10%;">
+              <span class="h-full bar-done" style="width: 100%;"></span>
+              <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">14d ✓</span>
+            </div>
+            <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[16%] bg-obsidian-mid border border-glass-border rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+              City Planning · 14 days (avg 15d) · <span class="text-accent">View →</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- SFFD (parallel, done — not on critical path) -->
+        <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors"
+           x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+          <div class="flex items-center gap-2 pl-6 pr-3 py-0.5">
+            <span class="w-1 h-1 rounded-full bg-signal-green/70 shrink-0"></span>
+            <div>
+              <div class="font-mono text-[10px] font-light">SFFD</div>
+              <div class="font-sans text-[9px] text-white/25 hidden md:block">Fire dept</div>
+            </div>
+          </div>
+          <div class="relative h-full py-1">
+            <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 11%; width: 8%;">
+              <span class="h-full bar-done" style="width: 100%;"></span>
+              <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">11d ✓</span>
+            </div>
+            <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[15%] bg-obsidian-mid border border-glass-border rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+              Fire Department · 11 days (avg 10d) · <span class="text-accent">View →</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- ACCESS (parallel, done — not on critical path) -->
+        <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors"
+           x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+          <div class="flex items-center gap-2 pl-6 pr-3 py-0.5">
+            <span class="w-1 h-1 rounded-full bg-signal-green/70 shrink-0"></span>
+            <div>
+              <div class="font-mono text-[10px] font-light">ACCESS</div>
+              <div class="font-sans text-[9px] text-white/25 hidden md:block">ADA review</div>
+            </div>
+          </div>
+          <div class="relative h-full py-1">
+            <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 11%; width: 6%;">
+              <span class="h-full bar-done" style="width: 100%;"></span>
+              <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">8d ✓</span>
+            </div>
+            <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[14%] bg-obsidian-mid border border-glass-border rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+              ADA Access Review · 8 days (avg 7d) · <span class="text-accent">View →</span>
+            </div>
+          </div>
+        </a>
+
+      </div><!-- end parallel block -->
+
+      <!-- PPC (waiting on SFPUC — critical) -->
+      <a href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[28px] border-b border-white/[0.03] hover:bg-glass transition-colors"
+         x-data="{ tip: false }" @mouseenter="tip = true" @mouseleave="tip = false">
+        <div class="flex items-center gap-2 px-3 py-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-glass-border shrink-0"></span>
+          <div>
+            <div class="font-mono text-[11px] font-light text-signal-amber">PPC</div>
+            <div class="font-sans text-[9px] text-white/25 hidden md:block">Final plan check</div>
+          </div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3.5 rounded-[3px] flex items-center overflow-hidden" style="left: 38%; width: 12%;">
+            <span class="h-full bar-projected" style="width: 100%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">~20d projected</span>
+          </div>
+          <div x-show="tip" x-transition.opacity class="absolute z-10 bottom-full mb-1 left-[44%] bg-obsidian-mid border border-glass-border rounded px-2.5 py-1.5 font-mono text-[10px] text-white/70 whitespace-nowrap shadow-lg">
+            PPC · Waiting on SFPUC to clear · Est. 20 days once unblocked · <span class="text-accent">View station →</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Approval -->
+      <a href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[28px] border-b border-white/[0.03] hover:bg-glass transition-colors">
+        <div class="flex items-center gap-2 px-3 py-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-glass-border shrink-0"></span>
+          <div>
+            <div class="font-mono text-[11px] font-light text-signal-amber">Approval</div>
+            <div class="font-sans text-[9px] text-white/25 hidden md:block">Issuance</div>
+          </div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3.5 rounded-[3px] flex items-center overflow-hidden" style="left: 52%; width: 6%;">
+            <span class="h-full bar-projected" style="width: 100%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">~10d</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- ─── ELECTRICAL (parallel, not critical) ─── -->
+      <div x-show="!cpOnly" x-transition class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] px-3 pt-2 pb-1">
+        <span class="font-mono text-[10px] font-normal tracking-[0.08em] uppercase text-white/25">
+          Electrical · 202410129874
+        </span>
+      </div>
+
+      <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors opacity-60 hover:opacity-100">
+        <div class="flex items-center gap-2 px-3 py-0.5">
+          <span class="w-1 h-1 rounded-full bg-signal-green/70 shrink-0"></span>
+          <div class="font-mono text-[10px] font-light">ELEC</div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 8%; width: 8%;">
+            <span class="h-full bar-done" style="width: 100%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">12d ✓</span>
+          </div>
+        </div>
+      </a>
+
+      <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors opacity-60 hover:opacity-100">
+        <div class="flex items-center gap-2 px-3 py-0.5">
+          <span class="w-1 h-1 rounded-full bg-signal-amber shrink-0"></span>
+          <div class="font-mono text-[10px] font-light">Inspect</div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 52%; width: 5%;">
+            <span class="h-full bar-active" style="width: 100%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">pending</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- ─── PLUMBING (parallel, not critical) ─── -->
+      <div x-show="!cpOnly" x-transition class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] px-3 pt-2 pb-1">
+        <span class="font-mono text-[10px] font-normal tracking-[0.08em] uppercase text-white/25">
+          Plumbing · 202411015501
+        </span>
+      </div>
+
+      <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors opacity-60 hover:opacity-100">
+        <div class="flex items-center gap-2 px-3 py-0.5">
+          <span class="w-1 h-1 rounded-full bg-signal-green/70 shrink-0"></span>
+          <div class="font-mono text-[10px] font-light">PLMB</div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 12%; width: 6%;">
+            <span class="h-full bar-done" style="width: 100%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">9d ✓</span>
+          </div>
+        </div>
+      </a>
+
+      <a x-show="!cpOnly" x-transition href="javascript:void(0)" class="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] items-center min-h-[26px] border-b border-white/[0.03] hover:bg-glass transition-colors opacity-60 hover:opacity-100">
+        <div class="flex items-center gap-2 px-3 py-0.5">
+          <span class="w-1 h-1 rounded-full bg-signal-amber shrink-0"></span>
+          <div class="font-mono text-[10px] font-light">DPH</div>
+        </div>
+        <div class="relative h-full py-1">
+          <div class="absolute top-1.5 h-3 rounded-[3px] flex items-center overflow-hidden" style="left: 40%; width: 10%;">
+            <span class="h-full bar-active" style="width: 55%;"></span>
+            <span class="h-full bar-projected" style="width: 45%;"></span>
+            <span class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 pl-1.5 font-mono text-[9px] text-white/25 whitespace-nowrap">6d in review</span>
+          </div>
+        </div>
+      </a>
+
+    </div><!-- /gantt body -->
+
+    <!-- Projection footer -->
+    <div class="flex items-baseline justify-between px-4 py-3 border-t border-glass-border">
+      <span class="font-sans text-xs text-white/45">Projected completion</span>
+      <div class="text-right">
+        <div class="font-mono text-base font-light text-signal-amber">Aug–Oct 2025</div>
+        <div class="font-mono text-[10px] text-white/25 mt-0.5">SFPUC stall adds ~10d · Critical: SFPUC → PPC → Approval</div>
+      </div>
+    </div>
+
+  </div><!-- /gantt -->
+
+  <!-- Callout -->
+  <div class="bg-signal-amber/5 border border-signal-amber/10 border-l-2 border-l-signal-amber rounded-lg px-5 py-4 mb-4 reveal reveal-d3">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <span class="mr-2">⚠</span>
+      <strong class="font-normal text-white/90">The SFPUC station is stalled at 18 days</strong> (station average: 8 days).
+      All 5 parallel review stations started together — BLDG, CPB, SFFD, and ACCESS finished.
+      SFPUC is the only one blocking the downstream PPC review.
+      <a href="javascript:void(0)" class="text-accent hover:underline ml-1">See SFPUC station status →</a>
+    </span>
+  </div>
+
+  <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 reveal reveal-d3">
+    <span class="w-1 h-1 rounded-full bg-signal-green/60"></span>
+    Data as of Mar 1, 2026 · Updated nightly · Station velocity model
+  </div>
+
+  <!-- Bridge to next section -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    But what if the timing had been different? <a href="#whatif" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See how filing date changes everything ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     02 · WHAT-IF ANALYSIS
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="whatif">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">02 — what-if analysis</div>
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    What if you'd filed <em class="not-italic text-accent font-normal">3 months earlier</em>?
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    Timing, scope, permit type — every variable changes your timeline.
+    Add a wall and you jump from OTC to full plan review. We model the difference.
+  </p>
+
+  <!-- Interactive scenario selector -->
+  <div x-data="{
+    scenario: 'earlier',
+    scenarios: {
+      earlier:  { label: '3 months earlier',     date: 'If filed October 2024',   days: 198, pct: 66, color: 'accent',       backlog: 'SFPUC: 19 permits ahead · avg 8d review',       savings: '76 fewer days', savingsDollars: 'est. savings TBD', note: 'Timing alone' },
+      today:    { label: 'If filed today',        date: 'Filed March 2026',        days: 241, pct: 81, color: 'signal-amber', backlog: 'SFPUC: 38 permits ahead · avg 11d review',      savings: '33 fewer days', savingsDollars: 'est. savings TBD', note: 'Current conditions' },
+      best:     { label: 'Best month (2 yr)',     date: 'If filed June 2024',      days: 162, pct: 54, color: 'accent',       backlog: 'SFPUC: 11 permits ahead · avg 6d review',       savings: '112 fewer days', savingsDollars: 'est. savings TBD', note: 'Optimal window' },
+      addwall:  { label: 'Add a wall',            date: 'Scope → full plan review', days: 274, pct: 92, color: 'signal-red', backlog: 'Adding a wall triggers full plan review + BLDG station', savings: 'OTC → full review', savingsDollars: 'OTC would be ~3 days', note: 'OTC threshold' },
+      skipwall: { label: 'Skip the wall',         date: 'Scope stays OTC-eligible', days: 3,   pct: 1,  color: 'accent',       backlog: 'Over-the-counter: no plan review stations required', savings: '271 fewer days', savingsDollars: 'Same day possible', note: 'Under OTC threshold' },
+      adu:      { label: 'ADU instead',            date: 'ADU conversion pathway',  days: 312, pct: 100, color: 'signal-red',  backlog: 'ADU adds Planning Commission + 2 extra stations',    savings: '38 more days', savingsDollars: 'Longest path', note: 'Different permit type' }
+    }
+  }" class="reveal reveal-d2">
+
+    <!-- Scenario tabs -->
+    <div class="flex gap-2 mb-4 flex-wrap">
+      <template x-for="(s, key) in scenarios" :key="key">
+        <button @click="scenario = key"
+                class="font-mono text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer"
+                :class="scenario === key
+                  ? 'border-accent-ring text-accent bg-accent-glow'
+                  : 'border-glass-border text-white/45 bg-glass hover:border-accent-ring hover:text-white/90'"
+                x-text="s.label"></button>
+      </template>
+    </div>
+
+    <!-- Comparison cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Current (always shown) -->
+      <div class="bg-glass border border-signal-red/15 rounded-lg p-5">
+        <div class="font-mono text-[10px] font-normal tracking-[0.1em] uppercase text-signal-red mb-3">Filed January 2025 (actual)</div>
+        <div class="font-mono text-[clamp(28px,3vw,36px)] font-light text-signal-red mb-1">274 days</div>
+        <div class="font-sans text-xs text-white/45 font-light">Projected total duration</div>
+        <div class="mt-4 h-1.5 rounded-full bg-glass-border overflow-hidden">
+          <div class="h-full rounded-full bg-signal-red/70" style="width: 92%;"></div>
+        </div>
+        <div class="mt-3 font-mono text-[11px] text-white/25">
+          SFPUC backlog: 47 permits ahead · avg 14d review
+        </div>
+      </div>
+      <!-- Scenario (dynamic) -->
+      <div class="bg-glass border rounded-lg p-5 transition-colors"
+           :class="scenarios[scenario].color === 'accent' ? 'border-accent-ring' : 'border-signal-amber/20'">
+        <div class="font-mono text-[10px] font-normal tracking-[0.1em] uppercase mb-3"
+             :class="scenarios[scenario].color === 'accent' ? 'text-accent' : 'text-signal-amber'"
+             x-text="scenarios[scenario].date"></div>
+        <div class="font-mono text-[clamp(28px,3vw,36px)] font-light mb-1"
+             :class="scenarios[scenario].color === 'accent' ? 'text-accent' : 'text-signal-amber'"
+             x-text="scenarios[scenario].days + ' days'"></div>
+        <div class="font-sans text-xs text-white/45 font-light">Projected total duration</div>
+        <div class="mt-4 h-1.5 rounded-full bg-glass-border overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-500"
+               :class="scenarios[scenario].color === 'accent' ? 'bg-accent/70' : 'bg-signal-amber/70'"
+               :style="'width:' + scenarios[scenario].pct + '%'"></div>
+        </div>
+        <div class="mt-3 font-mono text-[11px] text-white/25" x-text="scenarios[scenario].backlog"></div>
+      </div>
+    </div>
+
+    <!-- Savings callout (dynamic) -->
+    <div class="bg-glass border border-glass-border rounded-lg px-5 py-4 mt-4">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+          <strong class="font-normal text-white/90" x-text="scenarios[scenario].savings"></strong>
+          — <span class="text-white/25" x-text="scenarios[scenario].note"></span>
+          <a href="javascript:void(0)" class="text-accent hover:underline ml-1">Try what-if analysis →</a>
+        </span>
+        <span class="font-mono text-sm font-light"
+              :class="scenarios[scenario].color === 'signal-red' ? 'text-signal-red' : 'text-accent'"
+              x-text="scenarios[scenario].savingsDollars"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bridge to next section -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    Even with perfect timing, most projects hit another wall. <a href="#risk" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See the revision risk ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     03 · REVISION RISK
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="risk">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">03 — revision risk</div>
+
+  <div x-data="{
+    proj: 'kitchen',
+    projects: {
+      kitchen:  { label: 'Kitchen remodel', pct: 73, color: 'signal-amber', ctx: 'SoMa · Commercial', costHint: '$12,000–$18,000 in added delay costs', factors: [
+        { name: 'Fire suppression not on plans', pct: '+31%', level: 'red' },
+        { name: 'Energy compliance (Title 24) missing', pct: '+22%', level: 'amber' },
+        { name: 'Grease trap detail insufficient', pct: '+14%', level: 'amber' },
+        { name: 'ADA clearance conflicts', pct: '+6%', level: 'dim' }
+      ]},
+      adu:      { label: 'ADU conversion', pct: 91, color: 'signal-red', ctx: 'Citywide avg', costHint: '$22,000–$45,000 in added delay costs', factors: [
+        { name: 'Setback or lot coverage violation', pct: '+38%', level: 'red' },
+        { name: 'Missing fire separation details', pct: '+27%', level: 'red' },
+        { name: 'Utility connection conflicts', pct: '+19%', level: 'amber' },
+        { name: 'Parking replacement plan missing', pct: '+7%', level: 'dim' }
+      ]},
+      bathroom: { label: 'Bathroom remodel', pct: 42, color: 'accent', ctx: 'Residential avg', costHint: '$4,000–$8,000 in added delay costs', factors: [
+        { name: 'Vent fan ducting not to code', pct: '+18%', level: 'amber' },
+        { name: 'Water heater clearance issue', pct: '+12%', level: 'amber' },
+        { name: 'GFCI protection missing from plans', pct: '+8%', level: 'dim' },
+        { name: 'Tile waterproofing detail missing', pct: '+4%', level: 'dim' }
+      ]},
+      seismic:  { label: 'Seismic retrofit', pct: 68, color: 'signal-amber', ctx: 'Soft-story mandatory', costHint: '$18,000–$35,000 in added delay costs', factors: [
+        { name: 'Shear wall calculations incomplete', pct: '+28%', level: 'red' },
+        { name: 'Foundation bolt spacing errors', pct: '+21%', level: 'amber' },
+        { name: 'Existing condition survey inadequate', pct: '+13%', level: 'amber' },
+        { name: 'Tenant notification not filed', pct: '+6%', level: 'dim' }
+      ]}
+    }
+  }">
+
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    <span :class="projects[proj].color === 'signal-red' ? 'text-signal-red' : projects[proj].color === 'accent' ? 'text-accent' : 'text-signal-amber'" x-text="projects[proj].pct + '%'">73%</span> of <span x-text="projects[proj].label.toLowerCase()">kitchen remodels</span><br>get sent back at least once.
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-4 reveal reveal-d1">
+    We analyze revision patterns across 1.1M permits. Before you file,
+    know which stations reject most often and why.
+  </p>
+
+  <!-- Project type selector -->
+  <div class="flex gap-2 mb-6 flex-wrap reveal reveal-d1">
+    <template x-for="(p, key) in projects" :key="key">
+      <button @click="proj = key"
+              class="font-mono text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer"
+              :class="proj === key
+                ? 'border-accent-ring text-accent bg-accent-glow'
+                : 'border-glass-border text-white/45 bg-glass hover:border-accent-ring hover:text-white/90'"
+              x-text="p.label"></button>
+    </template>
+  </div>
+
+  <div class="bg-glass border border-glass-border rounded-lg p-5 mb-4 reveal reveal-d2">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="font-mono text-[clamp(32px,4vw,48px)] font-light transition-colors"
+             :class="projects[proj].color === 'signal-red' ? 'text-signal-red' : projects[proj].color === 'accent' ? 'text-accent' : 'text-signal-amber'"
+             x-text="projects[proj].pct + '%'">73%</div>
+        <div class="font-sans text-[13px] text-white/45">revision probability</div>
+      </div>
+      <div class="text-right">
+        <div class="font-mono text-[13px] text-white/45" x-text="projects[proj].label"></div>
+        <div class="font-mono text-[11px] text-white/25" x-text="projects[proj].ctx"></div>
+      </div>
+    </div>
+    <div class="h-1 rounded-full bg-glass-border mb-5 overflow-hidden">
+      <div class="h-full rounded-full bg-gradient-to-r from-signal-green via-signal-amber to-signal-red transition-all duration-500"
+           :style="'width:' + projects[proj].pct + '%'"></div>
+    </div>
+    <ul class="space-y-0">
+      <template x-for="(f, i) in projects[proj].factors" :key="i">
+        <li class="flex items-center gap-2.5 py-2 border-b border-white/[0.03] font-sans text-[13px] font-light text-white/45">
+          <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                :class="f.level === 'red' ? 'bg-signal-red' : f.level === 'amber' ? 'bg-signal-amber' : 'bg-white/25'"></span>
+          <a href="javascript:void(0)" class="hover:text-accent transition-colors" x-text="f.name"></a>
+          <span class="ml-auto font-mono text-xs"
+                :class="f.level === 'red' ? 'text-signal-red' : f.level === 'amber' ? 'text-signal-amber' : 'text-white/90'"
+                x-text="f.pct"></span>
+        </li>
+      </template>
+    </ul>
+  </div>
+
+  </div><!-- /x-data -->
+
+  <div class="bg-signal-amber/5 border border-signal-amber/10 border-l-2 border-l-signal-amber rounded-lg px-5 py-4 reveal reveal-d3"
+       x-data="{ proj: 'kitchen' }" @click.window="proj = $event.detail?.proj || proj">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <strong class="font-normal text-white/90">Each revision adds 3–6 weeks.</strong>
+      That's <span class="text-signal-red font-mono text-xs">$12,000–$18,000</span> in estimated carrying costs for a kitchen remodel.
+      Know the risks before you file. These patterns come from real rejection data.
+      <a href="javascript:void(0)" class="text-accent hover:underline ml-1">Check your project's risk →</a>
+    </span>
+  </div>
+
+  <!-- Bridge to next section -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    What does that delay actually cost in dollars? <a href="#cost" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See the real cost of delay ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     04 · COST OF DELAY
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="cost">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">04 — cost of delay</div>
+
+  <div x-data="{
+    persona: 'homeowner',
+    personas: {
+      homeowner:  { label: 'Homeowner',     daily: 285,   total: 5130,  rent: 2850, loan: 1425, lost: 855,  note: 'Mortgage + temp housing + contractor idle', delayDays: 18 },
+      smallbiz:   { label: 'Small business', daily: 847,   total: 15246, rent: 8470, loan: 4235, lost: 2541, note: 'Lease + loan interest + lost opening revenue', delayDays: 18 },
+      commercial: { label: 'Commercial TI',  daily: 2340,  total: 42120, rent: 23400, loan: 11700, lost: 7020, note: 'Class A lease carry + buildout crew standby', delayDays: 18 },
+      developer:  { label: 'New construction', daily: 8500, total: 153000, rent: 85000, loan: 51000, lost: 17000, note: 'Construction loan at $3.2M + carrying costs', delayDays: 18 }
+    }
+  }">
+
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    Every stalled day costs <span class="text-signal-red" x-text="'$' + personas[persona].daily.toLocaleString()">$285</span>.
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-4 reveal reveal-d1">
+    Rent doesn't stop while permits are stuck. Neither does your loan interest.
+    We calculate the real cost of every day of delay — for your situation.
+  </p>
+
+  <!-- Persona selector -->
+  <div class="flex gap-2 mb-6 flex-wrap reveal reveal-d1">
+    <template x-for="(p, key) in personas" :key="key">
+      <button @click="persona = key"
+              class="font-mono text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer"
+              :class="persona === key
+                ? 'border-accent-ring text-accent bg-accent-glow'
+                : 'border-glass-border text-white/45 bg-glass hover:border-accent-ring hover:text-white/90'"
+              x-text="p.label"></button>
+    </template>
+  </div>
+
+  <div class="bg-glass border border-glass-border rounded-lg p-6 text-center mb-4 reveal reveal-d2">
+    <div class="font-mono text-[clamp(36px,5vw,56px)] font-light text-signal-red" x-text="'$' + personas[persona].total.toLocaleString()"></div>
+    <div class="font-mono text-[13px] text-white/25 mt-1">
+      burned in <span x-text="personas[persona].delayDays"></span> days of delays ·
+      <span class="text-signal-red" x-text="'$' + personas[persona].daily.toLocaleString() + '/day'"></span>
+    </div>
+    <div class="font-mono text-[11px] text-white/25 mt-1" x-text="personas[persona].note"></div>
+    <div class="font-mono text-[9px] text-white/15 mt-2">Modeled estimate based on typical SF carrying costs · <a href="javascript:void(0)" class="text-white/25 hover:text-accent transition-colors underline">See methodology</a></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-5">
+      <a href="javascript:void(0)" class="text-center p-3 border border-glass-border rounded-md hover:border-accent-ring transition-colors group">
+        <div class="font-mono text-base font-light text-signal-red group-hover:text-accent transition-colors" x-text="'$' + personas[persona].rent.toLocaleString()"></div>
+        <div class="font-sans text-[10px] text-white/25">Rent / carrying cost</div>
+      </a>
+      <a href="javascript:void(0)" class="text-center p-3 border border-glass-border rounded-md hover:border-accent-ring transition-colors group">
+        <div class="font-mono text-base font-light text-signal-amber group-hover:text-accent transition-colors" x-text="'$' + personas[persona].loan.toLocaleString()"></div>
+        <div class="font-sans text-[10px] text-white/25">Loan interest</div>
+      </a>
+      <a href="javascript:void(0)" class="text-center p-3 border border-glass-border rounded-md hover:border-accent-ring transition-colors group">
+        <div class="font-mono text-base font-light group-hover:text-accent transition-colors" x-text="'$' + personas[persona].lost.toLocaleString()"></div>
+        <div class="font-sans text-[10px] text-white/25">Lost revenue / opportunity</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="bg-signal-red/5 border border-signal-red/10 border-l-2 border-l-signal-red rounded-lg px-5 py-4 reveal reveal-d3">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <strong class="font-normal text-white/90">Projects that address stalls proactively save an average of 40% on delay costs.</strong>
+      Knowing you're stuck is the first step. Knowing why — and who to talk to — is the fix.
+      <a href="javascript:void(0)" class="text-accent hover:underline ml-1">Calculate your cost of delay →</a>
+    </span>
+  </div>
+
+  </div><!-- /x-data -->
+
+  <!-- Bridge to next section -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    So where exactly are you in line? <a href="#stuck" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See your queue position ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     05 · QUEUE POSITION
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="stuck">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">05 — queue position</div>
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    You're <span class="text-signal-amber">#23</span> of 47<br>at SFPUC review.
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    We track queue depth at every station in real time.
+    Know where you stand, how fast the line is moving, and which stations are bottlenecked.
+  </p>
+
+  <div class="bg-glass border border-glass-border rounded-lg p-5 mb-4 reveal reveal-d2">
+    <div class="flex items-baseline gap-3 mb-4">
+      <span class="font-mono text-[clamp(28px,3.5vw,40px)] font-light text-signal-amber">#23</span>
+      <span class="font-mono text-sm text-white/25">of 47 at SFPUC · est. 8–12 days remaining</span>
+    </div>
+    <div class="mb-4">
+      <div class="flex h-2 rounded-full overflow-hidden bg-glass-border gap-px">
+        <div class="h-full rounded-sm bg-signal-green/70" style="width: 46%;"></div>
+        <div class="h-full rounded-sm bg-signal-amber" style="width: 3%;"></div>
+        <div class="h-full rounded-sm bg-glass-hover" style="width: 51%;"></div>
+      </div>
+      <div class="flex justify-between font-mono text-[9px] text-white/25 mt-1">
+        <span>22 reviewed</span>
+        <span class="text-signal-amber">▶ you</span>
+        <span>24 behind</span>
+      </div>
+    </div>
+
+    <ul class="space-y-0">
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="javascript:void(0)" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">BLDG</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-green/50" style="width: 40%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-white/45">28 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="javascript:void(0)" class="font-mono text-xs text-signal-red hover:text-accent transition-colors">SFPUC</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-red/60" style="width: 82%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-signal-red">47 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="javascript:void(0)" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">CPB</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-green/50" style="width: 35%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-white/45">22 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="javascript:void(0)" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">SFFD</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-amber/60" style="width: 55%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-signal-amber">35 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2">
+        <a href="javascript:void(0)" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">PPC</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-amber/60" style="width: 60%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-signal-amber">38 in queue</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 reveal reveal-d3">
+    <span class="w-1 h-1 rounded-full bg-signal-green/60"></span>
+    Queue data as of Mar 1, 2026 · Updated every 6 hours
+  </div>
+
+  <!-- Bridge to next section -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    And the people processing those queues? <a href="#network" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">We track them too ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     06 · NETWORK INTELLIGENCE
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="network">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">06 — network intelligence</div>
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    We know who reviews your plans.<br>
+    <em class="not-italic text-accent font-normal">And how fast they work.</em>
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    1M+ professionals tracked across 1.8M contact records. See reviewer track records,
+    contractor histories, and who has worked on your type of project before.
+  </p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 reveal reveal-d2">
+
+    <!-- Reviewer card: SFPUC reviewer (anonymized for public landing) -->
+    <a href="javascript:void(0)" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-signal-red/20 flex items-center justify-center font-mono text-[10px] text-signal-red/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">SFPUC Reviewer</div>
+          <div class="font-mono text-[10px] text-white/25">Water & sewer plan review</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-signal-red">14d</div>
+          <div class="font-sans text-[10px] text-white/25">avg review time</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">127</div>
+          <div class="font-sans text-[10px] text-white/25">reviews this year</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>station avg: 8d</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-signal-green/50" style="width: 57%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-signal-red/50" style="width: 100%;"></div></div>
+        <span>yours: 14d</span>
+      </div>
+    </a>
+
+    <!-- Reviewer card: BLDG reviewer (anonymized for public landing) -->
+    <a href="javascript:void(0)" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center font-mono text-[10px] text-accent/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">BLDG Reviewer</div>
+          <div class="font-mono text-[10px] text-white/25">Building code plan review</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-accent">7d</div>
+          <div class="font-sans text-[10px] text-white/25">avg review time</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">203</div>
+          <div class="font-sans text-[10px] text-white/25">reviews this year</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>station avg: 12d</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-signal-green/50" style="width: 100%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-accent/50" style="width: 58%;"></div></div>
+        <span>yours: 7d</span>
+      </div>
+    </a>
+
+    <!-- Professional card: Architect (anonymized for public landing) -->
+    <a href="javascript:void(0)" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center font-mono text-[10px] text-accent/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3m5-9h4m-4 4h4"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">Architect · 18% revision rate</div>
+          <div class="font-mono text-[10px] text-white/25">42 permits filed in SF</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-accent">18%</div>
+          <div class="font-sans text-[10px] text-white/25">revision rate</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">42</div>
+          <div class="font-sans text-[10px] text-white/25">permits filed</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>city avg: 34%</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-white/15" style="width: 100%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-accent/50" style="width: 53%;"></div></div>
+        <span>this one: 18%</span>
+      </div>
+    </a>
+
+    <!-- Professional card: Contractor (anonymized for public landing) -->
+    <a href="javascript:void(0)" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-signal-amber/10 flex items-center justify-center font-mono text-[10px] text-signal-amber/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.42 15.17l-5.59-3.43a.56.56 0 01-.22-.67l.05-.12L10.5 4.5l4.84 6.45.05.12a.56.56 0 01-.22.67l-5.59 3.43a.56.56 0 01-1.16 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 21h18"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">Contractor · 7.2 mo avg</div>
+          <div class="font-mono text-[10px] text-white/25">89 projects completed in SF</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-signal-amber">7.2 mo</div>
+          <div class="font-sans text-[10px] text-white/25">avg project duration</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">89</div>
+          <div class="font-sans text-[10px] text-white/25">projects completed</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>city avg: 9.1mo</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-white/15" style="width: 100%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-accent/50" style="width: 79%;"></div></div>
+        <span>this one: 7.2mo</span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="bg-glass border border-glass-border rounded-lg px-5 py-4 mt-4 reveal reveal-d3">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <strong class="font-normal text-white/90">576K professional relationships mapped.</strong>
+      Who has worked with whom, on what type of project, and what happened.
+      <a href="javascript:void(0)" class="text-accent hover:underline ml-1">Search professionals →</a>
+    </span>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-20 md:py-32 text-center px-6">
+<div class="max-w-[900px] mx-auto flex flex-col items-center">
+
+  <h2 class="font-sans text-[clamp(24px,3.5vw,42px)] font-light leading-[1.2] mb-4 reveal">
+    Stop guessing.<br><em class="not-italic text-accent font-normal">Start knowing.</em>
+  </h2>
+  <p class="font-sans text-sm font-light text-white/45 mb-8 reveal reveal-d1">
+    sfpermits.ai turns 18M public records into intelligence that saves
+    time, money, and frustration on every permit.
+  </p>
+  <a href="javascript:void(0)" class="inline-block py-3.5 px-9 font-mono text-[13px] font-normal text-obsidian bg-accent rounded-lg hover:shadow-[0_0_40px_rgba(94,234,212,0.08)] hover:-translate-y-px transition-all no-underline reveal reveal-d2">
+    Join the beta
+  </a>
+  <p class="font-mono text-[11px] text-white/25 mt-4 reveal reveal-d3">Free during beta · No credit card required</p>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     DEVELOPER: MCP DEMO (collapsible)
+     ═══════════════════════════════════════════ -->
+<section class="border-t border-glass-border py-12 px-6" x-data="{ open: false }">
+<div class="max-w-[900px] mx-auto">
+
+  <button @click="open = !open" class="flex items-center gap-2 font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors cursor-pointer w-full">
+    <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    Built for developers · 30 <span class="text-accent">MCP</span> tools via Streamable HTTP
+  </button>
+
+  <div x-show="open" x-transition class="mt-6">
+    <div class="bg-obsidian-mid border border-glass-border rounded-lg overflow-hidden">
+      <!-- Chat-like demo -->
+      <div class="px-4 py-3 border-b border-glass-border">
+        <span class="font-mono text-[10px] text-white/25 tracking-[0.1em] uppercase"><span class="text-accent">MCP</span> tool call demo</span>
+      </div>
+
+      <!-- User message -->
+      <div class="px-4 py-3 border-b border-glass-border">
+        <div class="font-mono text-[10px] text-accent/60 mb-1">claude →</div>
+        <div class="font-sans text-sm text-white/70 font-light">What's happening with the building permit at 1122 Folsom?</div>
+      </div>
+
+      <!-- Tool call -->
+      <div class="px-4 py-3 border-b border-glass-border bg-accent/[0.02]">
+        <div class="font-mono text-[10px] text-accent/40 mb-1">tool_use: get_permit_timeline</div>
+        <pre class="font-mono text-[11px] text-white/45 overflow-x-auto whitespace-pre"><code>{
+  "address": "1122 Folsom St",
+  "permit_type": "building",
+  "include_stations": true,
+  "include_velocity": true
+}</code></pre>
+      </div>
+
+      <!-- Tool result -->
+      <div class="px-4 py-3 border-b border-glass-border bg-accent/[0.02]">
+        <div class="font-mono text-[10px] text-accent/40 mb-1">tool_result</div>
+        <pre class="font-mono text-[11px] text-white/45 overflow-x-auto whitespace-pre"><code>{
+  "permit": "202410082341",
+  "status": "in_review",
+  "stations": {
+    "SFPUC": { "days": 18, "avg": 8, "status": "stalled" },
+    "BLDG":  { "days": 22, "avg": 18, "status": "complete" },
+    "CPB":   { "days": 14, "avg": 15, "status": "complete" }
+  },
+  "critical_path": ["SFPUC", "PPC", "Approval"],
+  "projected_completion": "Aug-Oct 2025"
+}</code></pre>
+      </div>
+
+      <!-- AI response -->
+      <div class="px-4 py-3">
+        <div class="font-mono text-[10px] text-accent/60 mb-1">claude ←</div>
+        <div class="font-sans text-sm text-white/70 font-light leading-relaxed">
+          The building permit at 1122 Folsom is <strong class="text-signal-red font-normal">stalled at SFPUC</strong> — 18 days vs an 8-day average.
+          All other parallel review stations have cleared. SFPUC is the only blocker before PPC final review.
+          Projected completion: <strong class="text-signal-amber font-normal">Aug–Oct 2025</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 flex items-center gap-4 flex-wrap">
+      <a href="javascript:void(0)" class="font-mono text-xs text-accent hover:underline">API documentation →</a>
+      <a href="javascript:void(0)" class="font-mono text-xs text-white/45 hover:text-accent transition-colors">Connect via MCP →</a>
+      <span class="font-mono text-[10px] text-white/25">30 tools · Streamable HTTP · <span class="text-accent">MCP</span> protocol · Free during beta</span>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- Footer -->
+<footer class="py-8 text-center border-t border-glass-border">
+  <div class="font-mono text-[11px] text-white/25">
+    sfpermits.ai · Built on public data from DataSF · Not affiliated with the City of San Francisco
+  </div>
+</footer>
+
+<!-- Scroll reveal observer + environment borders -->
+<script>
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Environment border: ?env=staging | ?env=honeypot | ?env=prod
+// Persona color:      ?persona=homeowner | ?persona=architect | ?persona=expediter | ?persona=new-visitor
+const params = new URLSearchParams(window.location.search);
+const env = params.get('env');
+const persona = params.get('persona');
+if (env) document.body.classList.add('env-' + env);
+if (persona) document.body.classList.add('persona-' + persona);
+</script>
+
+</body>
+</html>
