@@ -35,6 +35,142 @@ QA_STORAGE_DIR = os.environ.get("QA_STORAGE_DIR", "qa-results")
 
 
 # ---------------------------------------------------------------------------
+# Admin home dashboard
+# ---------------------------------------------------------------------------
+
+@bp.route("/admin")
+@login_required
+def admin_home():
+    """Admin home dashboard — system health, activity, feedback queue, user stats."""
+    if not g.user.get("is_admin"):
+        abort(403)
+    stats = _get_admin_home_stats()
+    return render_template("admin_home.html", user=g.user, **stats)
+
+
+def _get_admin_home_stats() -> dict:
+    """Gather dashboard statistics for the admin home page."""
+    from src.db import query
+
+    stats: dict = {
+        "user_count": 0,
+        "active_7d": 0,
+        "beta_pending": 0,
+        "watch_count": 0,
+        "feedback_count": 0,
+        "feedback_items": [],
+        "activity": [],
+        # Ingest / pipeline placeholders (no live pipeline query — shown as em-dash)
+        "ingest_permits": "—",
+        "ingest_inspections": "—",
+        "ingest_addenda": "—",
+        "ingest_planning": "—",
+        "ingest_signals": "—",
+        "ingest_velocity": "—",
+        "pipeline_elapsed": "—",
+        "pipeline_steps": 0,
+        "pipeline_errors": 0,
+        # DB / cost placeholders
+        "db_table_count": 59,
+        "db_row_summary": "5.6M rows",
+        "api_cost_today": "—",
+        "api_cost_pct": 0,
+        "data_gap_days": 0,
+    }
+
+    # User counts
+    try:
+        rows = query("SELECT COUNT(*) FROM users")
+        stats["user_count"] = rows[0][0] if rows else 0
+    except Exception:
+        pass
+
+    try:
+        rows = query(
+            "SELECT COUNT(*) FROM users WHERE last_active >= NOW() - INTERVAL '7 days'"
+        )
+        stats["active_7d"] = rows[0][0] if rows else 0
+    except Exception:
+        pass
+
+    # Beta requests pending
+    try:
+        rows = query("SELECT COUNT(*) FROM beta_requests WHERE status = 'pending'")
+        stats["beta_pending"] = rows[0][0] if rows else 0
+    except Exception:
+        pass
+
+    # Watch items
+    try:
+        rows = query("SELECT COUNT(*) FROM watch_items WHERE is_active = TRUE")
+        stats["watch_count"] = rows[0][0] if rows else 0
+    except Exception:
+        pass
+
+    # Feedback queue
+    try:
+        rows = query("SELECT COUNT(*) FROM feedback WHERE status = 'new'")
+        stats["feedback_count"] = rows[0][0] if rows else 0
+    except Exception:
+        pass
+
+    try:
+        rows = query(
+            "SELECT feedback_type, message, page_url FROM feedback "
+            "WHERE status = 'new' ORDER BY created_at DESC LIMIT 5"
+        )
+        stats["feedback_items"] = [
+            {"feedback_type": r[0], "message": r[1], "page_url": r[2]}
+            for r in rows
+        ]
+    except Exception:
+        pass
+
+    # Recent activity
+    try:
+        rows = query(
+            "SELECT al.action, al.created_at, u.email, u.display_name "
+            "FROM activity_log al "
+            "LEFT JOIN users u ON al.user_id = u.user_id "
+            "ORDER BY al.created_at DESC LIMIT 8"
+        )
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+
+        def _age(ts):
+            if ts is None:
+                return "—"
+            try:
+                if hasattr(ts, "tzinfo") and ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=timezone.utc)
+                delta = now - ts
+                secs = int(delta.total_seconds())
+                if secs < 60:
+                    return f"{secs}s ago"
+                if secs < 3600:
+                    return f"{secs // 60}m ago"
+                if secs < 86400:
+                    return f"{secs // 3600}h ago"
+                return f"{secs // 86400}d ago"
+            except Exception:
+                return "—"
+
+        stats["activity"] = [
+            {
+                "action": r[0],
+                "age": _age(r[1]),
+                "email": r[2],
+                "display_name": r[3],
+            }
+            for r in rows
+        ]
+    except Exception:
+        pass
+
+    return stats
+
+
+# ---------------------------------------------------------------------------
 # Admin: send invite
 # ---------------------------------------------------------------------------
 
