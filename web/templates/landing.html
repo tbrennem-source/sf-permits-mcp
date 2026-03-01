@@ -843,6 +843,22 @@
     .showcase-grid { display: block; }
     .story-section { padding: 24px 16px; }
     .story-headline { font-size: 1rem; }
+    /* Touch target fixes — Apple HIG minimum 44px, lenient floor 32px */
+    /* ghost-cta links: expand tap area via padding without changing visual weight */
+    .ghost-cta {
+      padding: 12px 0;
+      display: inline-block;
+    }
+    /* Footer links: expand tap area */
+    .footer-links a {
+      display: inline-block;
+      padding: 12px 4px;
+    }
+    /* Inline showcase example links — expand tap area */
+    .showcase-card__body a {
+      padding: 4px 0;
+      display: inline-block;
+    }
   }
 
   /* Credibility line */
@@ -938,10 +954,17 @@
 
 <div class="ambient"></div>
 
-<!-- SIGN IN — visible but quiet -->
-<div style="position: fixed; top: 16px; right: 24px; z-index: 60; opacity: 0; animation: fadeIn 2s 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+<!-- SIGN IN — visible but quiet (desktop only; mobile nav provides phone equivalent) -->
+<div style="position: fixed; top: 16px; right: 24px; z-index: 60; opacity: 0; animation: fadeIn 2s 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; display: none;" id="signin-float">
   <a href="/auth/login" style="font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#5eead4'" onmouseout="this.style.color=''">Sign in &rarr;</a>
 </div>
+<script nonce="{{ csp_nonce }}">
+  // Only show the floating sign-in link on non-phone viewports
+  // (phone has it in the mobile nav; this overlay is too small to tap on mobile)
+  if (window.innerWidth > 480) {
+    document.getElementById('signin-float').style.display = '';
+  }
+</script>
 
 <section class="hero">
   <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">Beta Tester</span></div>

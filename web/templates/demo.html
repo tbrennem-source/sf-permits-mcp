@@ -432,6 +432,10 @@
             .arch-grid { grid-template-columns: 1fr; }
             .stat-row { gap: var(--space-2); }
             .stat-pill { min-width: 70px; }
+            /* Prevent full-width cards from blowing out at phone width */
+            .card { box-sizing: border-box; max-width: 100%; }
+            /* Allow data tables to scroll horizontally rather than overflow page */
+            .table-scroll-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         }
 
         /* Density override */
@@ -489,6 +493,7 @@
                     <span class="callout">Live SF building permit data — 1.1M permits searchable by address, permit number, or contractor</span>
                     <div class="card-title">Permit History</div>
                     {% if permits %}
+                    <div class="table-scroll-wrapper">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -525,6 +530,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    </div>{# /table-scroll-wrapper #}
                     {% if permits|length > 15 %}
                     <p style="color: var(--text-tertiary); font-size: var(--text-sm); margin-top: var(--space-2);">
                         Showing 15 of {{ permits|length }} permits
