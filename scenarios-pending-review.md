@@ -2882,3 +2882,43 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Expected outcome:** After 3.6s, the scroll cue arrow fades in and is visible at 60% opacity — noticeable without dominating the hero section
 **CC confidence:** low
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: honeypot waitlist capture in HONEYPOT_MODE
+**Source:** web/app.py _honeypot_redirect + web/routes_misc.py join_beta
+**User:** homeowner
+**Starting state:** HONEYPOT_MODE=1 is set on the server; user navigates to /search or any non-exempt URL
+**Goal:** User wants to use the app but the site is in pre-launch honeypot mode
+**Expected outcome:** User is redirected to /join-beta capture page; they submit their email and receive a confirmation page showing queue position
+**Edge cases seen in code:** Bots filling the hidden 'website' field get silently dropped (200, no DB write); IP rate-limited at 3 req/hr
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: join-beta waitlist form submission
+**Source:** web/routes_misc.py join_beta_post
+**User:** homeowner
+**Starting state:** User is on /join-beta; has not previously signed up
+**Goal:** User wants to join the waitlist for early access
+**Expected outcome:** User fills email + optional name/role/address; submits; redirected to /join-beta/thanks showing their queue position
+**Edge cases seen in code:** Duplicate email silently updates existing record (ON CONFLICT DO UPDATE); admin notification email sent if ADMIN_EMAIL configured
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: out_of_scope intent blocks irrelevant searches
+**Source:** src/tools/intent_router.py + web/routes_public.py
+**User:** homeowner
+**Starting state:** User is on the public search page; not authenticated
+**Goal:** User mistakenly searches for a non-SF-permit topic (e.g. "weather in Oakland" or "how to get a dog license")
+**Expected outcome:** Search shows a friendly "out of our coverage area" guidance message explaining sfpermits.ai specializes in SF building permits, with suggestions to try an address or permit number instead
+**Edge cases seen in code:** Short queries (<2 words) and queries matching SF permit vocabulary are NOT flagged; only clear other-city or non-permit-topic queries trigger this
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: honeypot allows exempt paths through in HONEYPOT_MODE
+**Source:** web/app.py _honeypot_redirect
+**User:** admin
+**Starting state:** HONEYPOT_MODE=1; admin navigates to /admin/ pages
+**Goal:** Admin needs to access the admin dashboard during honeypot mode
+**Expected outcome:** Admin pages, /health, /cron/, /static/, and /join-beta itself are not redirected; only non-exempt user-facing routes redirect to capture page
+**Edge cases seen in code:** /demo/guided also exempt (used for stakeholder demos during pre-launch)
+**CC confidence:** high
+**Status:** PENDING REVIEW
