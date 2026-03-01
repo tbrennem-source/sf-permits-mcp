@@ -2883,208 +2883,32 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **CC confidence:** low
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: API docs page shows all 34 tools organized by category
-**Source:** qs13-t3 Agent 3A — /docs page with docs_generator.py
-**User:** architect | expediter
-**Starting state:** User has discovered sfpermits.ai and wants to understand its capabilities before connecting to Claude.ai
-**Goal:** Find out what tools are available and how to connect
-**Expected outcome:** /docs page renders with 34 tools organized across 7 categories, each tool showing description and parameters; quick-start section shows 3-step Claude.ai connection instructions
-**Edge cases seen in code:** Category counts are computed from TOOL_CATEGORIES list — if server.py adds new tools, docs_generator.py needs manual update
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Privacy policy clearly explains MCP server data handling
-**Source:** qs13-t3 Agent 3B — /privacy page
-**User:** homeowner | architect
-**Starting state:** User is considering connecting sfpermits.ai to Claude.ai and wants to understand what data the MCP server processes
-**Goal:** Understand how tool calls via Claude.ai are handled
-**Expected outcome:** /privacy page has a dedicated "MCP Server" section explaining that tool call metadata is logged but conversation content is not; page is accessible without login
-**Edge cases seen in code:** None — static content
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Terms page includes data accuracy disclaimer
-**Source:** qs13-t3 Agent 3B — /terms page
-**User:** homeowner | architect
-**Starting state:** User is about to make a permit decision based on sfpermits.ai timeline estimates
-**Goal:** Understand the data accuracy limitations before relying on estimates
-**Expected outcome:** /terms page shows a highlighted "not legal advice" notice box in the Data Accuracy section, explaining estimates are statistical and should be verified with DBI
-**Edge cases seen in code:** Notice box uses signal-amber left border — should be visually distinct
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Directory readiness QA script catches missing pages
-**Source:** qs13-t3 Agent 3C — scripts/qa_directory_readiness.py
-**User:** admin (internal)
-**Starting state:** Developer is preparing to submit to Anthropic connector directory
-**Goal:** Verify all required pages and endpoints are live before submission
-**Expected outcome:** `python scripts/qa_directory_readiness.py --quick` runs 14 checks and reports PASS for health, OAuth discovery, /docs, /privacy, /terms; reports SKIP for auth-required checks
-**Edge cases seen in code:** Script uses urllib (no requests dependency); --quick flag skips rate limit and OAuth flow tests that require many requests or a real browser
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: MCP OAuth client registration flow
-**Source:** QS13-T2 OAuth 2.1 implementation
-**User:** architect
-**Starting state:** User has never connected an MCP client to sfpermits.ai
-**Goal:** Register a new OAuth client and obtain an access token for use with Claude.ai
-**Expected outcome:** Dynamic registration succeeds, PKCE auth code flow completes, access token returned, tools accessible
-**Edge cases seen in code:** DuckDB backend short-circuits gracefully; AnyUrl objects must be cast to str for redirect_uri comparison
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Rate limit enforcement for demo scope
-**Source:** QS13-T2B rate limiter
-**User:** expediter
-**Starting state:** User has demo-scoped OAuth token, has made 10 MCP tool calls today
-**Goal:** Make an 11th tool call
-**Expected outcome:** 429 response with rate limit headers and upgrade CTA; previous 10 calls succeeded normally
-**Edge cases seen in code:** Reset fires at midnight UTC — calls made just before midnight don't carry over
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: run_query blocked from sensitive tables
-**Source:** QS13-T2C project_intel security hardening
+## SUGGESTED SCENARIO: Health endpoint detects stale nightly data
+**Source:** web/app.py health endpoint (QS13 preflight)
 **User:** admin
-**Starting state:** User submits SQL query targeting `users` or `mcp_oauth_tokens` table via run_query tool
-**Goal:** Extract user data or OAuth credentials
-**Expected outcome:** Tool returns "Access denied" message without executing query; permits table queries work normally
-**Edge cases seen in code:** Pattern matches FROM/JOIN/INTO — subquery aliases might evade if deeply nested
+**Starting state:** Nightly cron has not run for >25 hours
+**Goal:** Admin checks system health and sees degraded status
+**Expected outcome:** Health endpoint returns status "degraded" with cron_heartbeat_status "CRITICAL" and data_continuity showing gap days
+**Edge cases seen in code:** DuckDB backend skips gap detection; heartbeat row may not exist
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: read_source blocked from CLAUDE.md and sprint prompts
-**Source:** QS13-T2C path denylist
-**User:** architect
-**Starting state:** User asks MCP client to read CLAUDE.md or sprint-prompts/ directory contents
-**Goal:** Read internal project instructions or sprint implementation details
-**Expected outcome:** Tool returns "Access denied" message; normal source files (src/*.py) still readable
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: MCP server at 34-tool parity with stdio server
-**Source:** QS13-T2C tool parity
-**User:** expediter
-**Starting state:** User is connected to MCP HTTP server
-**Goal:** Use simulate_what_if, diagnose_stuck_permit, or calculate_delay_cost tools
-**Expected outcome:** All 7 previously-missing tools are now available and return valid results
-**Edge cases seen in code:** Tool count in health endpoint and instructions string must stay in sync
-## SUGGESTED SCENARIO: honeypot waitlist capture in HONEYPOT_MODE
-**Source:** web/app.py _honeypot_redirect + web/routes_misc.py join_beta
-**User:** homeowner
-**Starting state:** HONEYPOT_MODE=1 is set on the server; user navigates to /search or any non-exempt URL
-**Goal:** User wants to use the app but the site is in pre-launch honeypot mode
-**Expected outcome:** User is redirected to /join-beta capture page; they submit their email and receive a confirmation page showing queue position
-**Edge cases seen in code:** Bots filling the hidden 'website' field get silently dropped (200, no DB write); IP rate-limited at 3 req/hr
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: join-beta waitlist form submission
-**Source:** web/routes_misc.py join_beta_post
-**User:** homeowner
-**Starting state:** User is on /join-beta; has not previously signed up
-**Goal:** User wants to join the waitlist for early access
-**Expected outcome:** User fills email + optional name/role/address; submits; redirected to /join-beta/thanks showing their queue position
-**Edge cases seen in code:** Duplicate email silently updates existing record (ON CONFLICT DO UPDATE); admin notification email sent if ADMIN_EMAIL configured
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: out_of_scope intent blocks irrelevant searches
-**Source:** src/tools/intent_router.py + web/routes_public.py
-**User:** homeowner
-**Starting state:** User is on the public search page; not authenticated
-**Goal:** User mistakenly searches for a non-SF-permit topic (e.g. "weather in Oakland" or "how to get a dog license")
-**Expected outcome:** Search shows a friendly "out of our coverage area" guidance message explaining sfpermits.ai specializes in SF building permits, with suggestions to try an address or permit number instead
-**Edge cases seen in code:** Short queries (<2 words) and queries matching SF permit vocabulary are NOT flagged; only clear other-city or non-permit-topic queries trigger this
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: honeypot allows exempt paths through in HONEYPOT_MODE
-**Source:** web/app.py _honeypot_redirect
+## SUGGESTED SCENARIO: MCP access alert on new IP connection
+**Source:** src/mcp_http.py Telegram alerts (QS13 preflight)
 **User:** admin
-**Starting state:** HONEYPOT_MODE=1; admin navigates to /admin/ pages
-**Goal:** Admin needs to access the admin dashboard during honeypot mode
-**Expected outcome:** Admin pages, /health, /cron/, /static/, and /join-beta itself are not redirected; only non-exempt user-facing routes redirect to capture page
-**Edge cases seen in code:** /demo/guided also exempt (used for stakeholder demos during pre-launch)
+**Starting state:** MCP server is running with Telegram configured
+**Goal:** Admin is notified immediately when an unknown client connects
+**Expected outcome:** Telegram message with IP, user-agent, and request count within seconds of first request from new IP
+**Edge cases seen in code:** Alert suppressed if TELEGRAM_BOT_TOKEN not set; one alert per IP per restart (not spammy)
 **CC confidence:** high
 **Status:** PENDING REVIEW
 
-## SUGGESTED SCENARIO: MCP tool run_query blocked from accessing PII tables
-**Source:** src/tools/project_intel.py (_BLOCKED_TABLES, _check_table_allowlist)
+## SUGGESTED SCENARIO: Dangerous tools blocked on public MCP endpoint
+**Source:** src/mcp_http.py tool scoping (QS13 preflight)
 **User:** admin
-**Starting state:** Planning layer (Claude.ai with MCP) sends SQL query referencing users or beta_requests table
-**Goal:** Planning layer attempts to inspect user data or beta signups via run_query tool
-**Expected outcome:** Query is rejected with "Access denied" message before reaching the database; no user PII is returned
-**Edge cases seen in code:** Blocked tables include: users, auth_tokens, feedback, beta_requests, mcp_oauth_clients — all PII-bearing tables. Allowed tables: permits, contacts, entities, inspections, cron_log (operational/public data)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: read_source blocks access to CLAUDE.md and sprint prompts
-**Source:** src/tools/project_intel.py (_check_path_allowed)
-**User:** admin
-**Starting state:** Planning layer attempts to read CLAUDE.md or sprint-prompts/ via read_source tool
-**Goal:** Planning layer tries to access agent instructions or deployment configs
-**Expected outcome:** Access denied with explanation; file contents are not returned
-**Edge cases seen in code:** Blocked patterns: CLAUDE.md, sprint-prompts/, .claude/, .env. Path traversal (../) and absolute paths also blocked. Allowed: src/, web/, tests/, docs/ (source files)
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: new visitor completes beta signup flow end to end
-**Source:** web/routes_misc.py (join_beta, join_beta_post, join_beta_thanks)
-**User:** homeowner
-**Starting state:** HONEYPOT_MODE=1; visitor arrives at /search via organic search
-**Goal:** Visitor wants to search for permits for their property
-**Expected outcome:** Visitor is redirected to /join-beta with ref=search; fills email + role; submits form; lands on /join-beta/thanks with queue position shown; confirmation email queued
-**Edge cases seen in code:** Honeypot field (website) filled → silent 200, no DB write. Rate limit: 3 submissions per IP per hour. Invalid email → form re-renders with error, no DB write
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: admin views beta funnel analytics dashboard
-**Source:** web/routes_admin.py (admin_beta_funnel)
-**User:** admin
-**Starting state:** Beta signups exist in beta_requests table; admin is logged in
-**Goal:** Admin wants to understand signup conversion and intent distribution
-**Expected outcome:** Dashboard shows total, today, and 7-day signup counts; role breakdown table; referrer breakdown (which paths drove signups); top interest addresses
-**Edge cases seen in code:** DuckDB vs Postgres path difference in query execution. Empty table returns zeros (graceful). Non-admin (is_admin=False) sees 403
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: First-time visitor reads the landing narrative scroll
-**Source:** web/templates/landing.html — story-scroll redesign (QS13)
-**User:** homeowner
-**Starting state:** Visitor lands on sfpermits.ai for the first time, no prior knowledge of the tool
-**Goal:** Understand what the platform does by scrolling through the narrative sections
-**Expected outcome:** Visitor encounters a clear sequence: Gantt chart showing routing complexity → What-If comparison showing scope impact → Stuck permit showing risk → Cost of Delay showing financial stakes → Revision Risk gauge → Entity Network → CTA. Each section has a short narrative headline above the data card. By the end, visitor understands the product's value proposition and sees the "Join the beta" CTA.
-**Edge cases seen in code:** If showcase data is absent (no DB), sections with `{% if showcase %}` will silently skip — narrative headlines still render but cards are empty. This is graceful but may confuse visitors who see headlines without data.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Visitor clicks "Join the beta" CTA from story scroll
-**Source:** web/templates/landing.html — story-cta-section (QS13)
-**User:** homeowner
-**Starting state:** Visitor has scrolled through the 5 story sections and reached the CTA section
-**Goal:** Click "Join the beta →" to start the signup flow
-**Expected outcome:** Clicking the button navigates to /join-beta page. Button has visible hover state (teal glow) before click.
-**Edge cases seen in code:** /join-beta route must exist and return a valid page. If route is missing, visitor gets 404.
-**CC confidence:** high
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Expediter reads Gantt hover tooltip to see reviewer names
-**Source:** web/templates/components/showcase_gantt.html — title attribute on gantt-bar (QS13)
-**User:** expediter
-**Starting state:** Expediter is looking at the Gantt chart on the landing page
-**Goal:** Read the full reviewer name for a station without the name being cut off
-**Expected outcome:** Hovering over a Gantt bar shows a browser tooltip with the full reviewer name, dwell days, and whether it's the current station. The label column (station names) also shows full name on hover via title attribute.
-**Edge cases seen in code:** If reviewer name is empty string, tooltip shows empty. If dwell_days is 0 or None, the days part is omitted.
-**CC confidence:** medium
-**Status:** PENDING REVIEW
-
-## SUGGESTED SCENARIO: Mobile visitor scrolls landing page story sections
-**Source:** web/templates/landing.html — story-section mobile CSS (QS13)
-**User:** homeowner
-**Starting state:** Visitor on a 375px phone visiting the landing page
-**Goal:** Read through the story sections to understand the platform
-**Expected outcome:** Each story section fits within the viewport width with 24px padding. No horizontal scroll. Narrative headlines readable at 1rem. All showcase card content (numbers, badges, pipeline blocks) visible without truncation or overflow.
-**Edge cases seen in code:** Stuck pipeline uses flexbox that wraps at 420px. Entity graph SVG is fixed viewBox and scales with container. Gantt mobile column is 80px (reduced from 110px desktop).
+**Starting state:** MCP server exposes tools over HTTP
+**Goal:** Internal tools (run_query, read_source, schema_info) are not accessible via public endpoint
+**Expected outcome:** Only 28 safe tools returned by tools/list; project intelligence tools only available via local stdio transport
+**Edge cases seen in code:** Tool count mismatch if new tools added to server.py but not mcp_http.py
 **CC confidence:** high
 **Status:** PENDING REVIEW

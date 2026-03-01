@@ -3,10 +3,11 @@
 Exposes public-facing permit data tools over Streamable HTTP
 for Claude.ai custom connector access.
 
-SECURITY: Only safe, read-only public-data tools are registered here.
+SECURITY NOTE: Only safe, read-only public-data tools are registered here.
 Project intelligence tools (run_query, read_source, search_source, schema_info,
-list_tests) and list_feedback are EXCLUDED — they expose internal DB, source code,
-and user data. Those tools are available only via stdio transport (local Claude Code).
+list_tests) and list_feedback are EXCLUDED from the HTTP endpoint because they
+expose internal DB, source code, and user data. Those tools are available only
+via the stdio transport (local MCP / Claude Code).
 
 Uses mcp[cli] package (same as Chief MCP server — proven claude.ai compatibility).
 
@@ -22,16 +23,10 @@ Connect from Claude.ai:
 
 import logging
 import os
+import secrets
 import time
 
 from mcp.server.fastmcp import FastMCP
-
-# OAuth 2.1 is built but disabled — claude.ai doesn't support MCP OAuth yet.
-# Re-enable when Anthropic adds OAuth support to MCP integrations:
-#   from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
-#   from src.oauth_provider import SFPermitsAuthProvider
-#   from src.oauth_models import VALID_SCOPES
-# Protection layers active without OAuth: rate limiting, request logging, tool scoping.
 
 logger = logging.getLogger(__name__)
 
@@ -58,28 +53,15 @@ from src.tools.recommend_consultants import recommend_consultants
 from src.tools.permit_lookup import permit_lookup
 from src.tools.search_addenda import search_addenda
 
-# Phase 5.5 / 6 tools (severity, health — safe, read-only public data)
-from src.tools.permit_severity import permit_severity
-from src.tools.property_health import property_health
-
 # EXCLUDED from HTTP endpoint (security risk on public-facing server):
-# - run_query: arbitrary SQL against DB (exposes user tables, auth_tokens)
+# - run_query: arbitrary SQL against DB (exposes user data, all tables)
 # - read_source: reads source code files (exposes secrets, architecture)
-# - search_source: searches codebase (finds API keys, passwords)
+# - search_source: searches codebase (finds passwords, API keys)
 # - schema_info: exposes full DB schema (reconnaissance)
 # - list_tests: test file inventory (minor info leak)
 # - list_feedback: user feedback data (has emails, page URLs)
 
-# Phase 8 tools (similar projects)
-from src.tools.similar_projects import similar_projects
-
-# Phase 9 tools (station prediction, stuck permits, simulation, delay cost)
-from src.tools.predict_next_stations import predict_next_stations
-from src.tools.stuck_permit import diagnose_stuck_permit
-from src.tools.what_if_simulator import simulate_what_if
-from src.tools.cost_of_delay import calculate_delay_cost
-
-# ── Create MCP server with HTTP transport config ─────────────────
+# ── Create MCP server with HTTP transport config ──────────────────
 port = int(os.environ.get("PORT", 8001))
 
 mcp = FastMCP(
@@ -94,11 +76,6 @@ mcp = FastMCP(
     port=port,
     stateless_http=True,
     streamable_http_path="/mcp",
-    # OAuth disabled until claude.ai supports MCP OAuth 2.1.
-    # Protection: rate limiting + request logging + tool scoping.
-    # Re-enable:
-    #   auth_server_provider=SFPermitsAuthProvider(),
-    #   auth=AuthSettings(issuer_url="...", ...),
 )
 
 # Register 28 public-data tools (no project intelligence / internal tools)
@@ -124,141 +101,25 @@ mcp.tool()(recommend_consultants)
 mcp.tool()(permit_lookup)
 mcp.tool()(search_addenda)
 
-# Phase 5.5 / 6 tools (severity, health — safe public data)
-mcp.tool()(permit_severity)
-mcp.tool()(property_health)
-
-# Phase 8 tools (similar projects)
-mcp.tool()(similar_projects)
-
-# Phase 9 tools (station prediction, stuck permits, simulation, delay cost)
-mcp.tool()(predict_next_stations)
-mcp.tool()(diagnose_stuck_permit)
-mcp.tool()(simulate_what_if)
-mcp.tool()(calculate_delay_cost)
-
-
-# ── Rate limiting middleware ───────────────────────────────────────
+# ── Request logging + optional auth middleware ────────────────────
 from starlette.requests import Request as StarletteRequest
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 from starlette.types import ASGIApp, Receive, Scope, Send
-from src.mcp_rate_limiter import get_limiter, truncate_if_needed
 
-# Track request counts for security monitoring (in-memory, resets on restart)
-_request_log: dict = {"total": 0, "by_ip": {}, "started_at": time.time()}
+_MCP_AUTH_TOKEN = os.environ.get("MCP_AUTH_TOKEN", "")
 
-
-def _ensure_access_log_table():
-    """Create mcp_access_log table if it doesn't exist."""
-    try:
-        from src.db import get_connection, BACKEND
-        if BACKEND != "postgres":
-            return
-        conn = get_connection()
-        try:
-            conn.autocommit = True
-            with conn.cursor() as cur:
-                cur.execute("""
-                    CREATE TABLE IF NOT EXISTS mcp_access_log (
-                        id SERIAL PRIMARY KEY,
-                        ts TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                        ip VARCHAR(45) NOT NULL,
-                        method VARCHAR(10),
-                        path VARCHAR(200),
-                        user_agent VARCHAR(200),
-                        rate_limited BOOLEAN DEFAULT FALSE
-                    )
-                """)
-                # Index for daily report queries
-                cur.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_mcp_access_log_ts
-                    ON mcp_access_log (ts)
-                """)
-        finally:
-            conn.close()
-    except Exception as e:
-        logger.warning("Could not create mcp_access_log table: %s", e)
+# Track request counts for monitoring
+_request_log = {"total": 0, "by_ip": {}, "started_at": time.time()}
 
 
-def _log_access_to_db(ip: str, method: str, path: str, user_agent: str,
-                       rate_limited: bool = False):
-    """Write one access log row. Non-blocking — caller catches exceptions."""
-    from src.db import get_connection, BACKEND
-    if BACKEND != "postgres":
-        return
-    conn = get_connection()
-    try:
-        conn.autocommit = True
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO mcp_access_log (ip, method, path, user_agent, rate_limited) "
-                "VALUES (%s, %s, %s, %s, %s)",
-                (ip, method, path[:200], user_agent[:200], rate_limited),
-            )
-    finally:
-        conn.close()
+class RequestLoggingMiddleware:
+    """ASGI middleware: log all /mcp requests with IP, user-agent, and timing.
 
-
-# ── Real-time Telegram alerts for suspicious MCP activity ─────────
-_TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-_TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
-_alerted_ips: set = set()  # Don't spam — one alert per IP per restart
-
-
-def _send_telegram_alert(message: str):
-    """Fire-and-forget Telegram notification. Never blocks, never raises."""
-    if not _TELEGRAM_BOT_TOKEN or not _TELEGRAM_CHAT_ID:
-        return
-    try:
-        import urllib.request
-        import urllib.parse
-        url = (
-            f"https://api.telegram.org/bot{_TELEGRAM_BOT_TOKEN}/sendMessage?"
-            f"chat_id={_TELEGRAM_CHAT_ID}&parse_mode=Markdown&"
-            f"text={urllib.parse.quote(message)}"
-        )
-        urllib.request.urlopen(url, timeout=5)
-    except Exception:
-        pass  # Never let alerting block a request
-
-
-def _check_and_alert(ip: str, user_agent: str, rate_limited: bool = False):
-    """Real-time alerting: new IPs and rate limit hits."""
-    if rate_limited:
-        _send_telegram_alert(
-            f"🚨 *MCP Rate Limited*\n"
-            f"IP: `{ip}`\n"
-            f"UA: {user_agent[:60]}\n"
-            f"Requests: {_request_log['by_ip'].get(ip, '?')}"
-        )
-        return
-
-    # Alert on first request from a new IP
-    if ip not in _alerted_ips:
-        _alerted_ips.add(ip)
-        total_ips = len(_request_log["by_ip"])
-        _send_telegram_alert(
-            f"🔵 *New MCP client*\n"
-            f"IP: `{ip}`\n"
-            f"UA: {user_agent[:60]}\n"
-            f"Total unique IPs: {total_ips}"
-        )
-
-# Paths that bypass rate limiting (health + OAuth endpoints)
-_RATE_LIMIT_SKIP_PATHS = frozenset([
-    "/",
-    "/health",
-    "/.well-known/oauth-authorization-server",
-    "/register",
-    "/authorize",
-    "/token",
-    "/revoke",
-])
-
-
-class RateLimitMiddleware:
-    """ASGI middleware: per-token/IP rate limiting."""
+    Also enforces bearer token auth when MCP_AUTH_TOKEN is set.
+    Every request is logged regardless of auth status — this is how we
+    detect unauthorized access attempts.
+    """
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -270,78 +131,71 @@ class RateLimitMiddleware:
 
         path = scope.get("path", "")
 
-        # Skip rate limiting for health/OAuth endpoints
-        if path in _RATE_LIMIT_SKIP_PATHS:
+        # Skip logging for health/root endpoints
+        if path in ("/", "/health"):
             await self.app(scope, receive, send)
             return
 
-        # Extract headers once
+        # Extract client info
         headers = dict(scope.get("headers", []))
-
-        # Log every /mcp request for security monitoring
         client = scope.get("client", ("unknown", 0))
         ip = client[0] if client else "unknown"
         user_agent = headers.get(b"user-agent", b"").decode()[:100]
         method = scope.get("method", "?")
+
+        # Log every request
         _request_log["total"] += 1
         _request_log["by_ip"][ip] = _request_log["by_ip"].get(ip, 0) + 1
         logger.info(
-            "MCP request: ip=%s method=%s path=%s ua=%s total=%d",
-            ip, method, path, user_agent, _request_log["total"],
+            "MCP request: ip=%s method=%s path=%s ua=%s total=%d ip_count=%d",
+            ip, method, path, user_agent,
+            _request_log["total"], _request_log["by_ip"][ip],
         )
 
-        # Persist to DB + alert (non-blocking — failure doesn't block the request)
-        try:
-            _log_access_to_db(ip, method, path, user_agent)
-        except Exception:
-            pass
-        try:
-            _check_and_alert(ip, user_agent)
-        except Exception:
-            pass
+        # Rate limit: 100 requests per IP per hour (rough — resets on restart)
+        if _request_log["by_ip"][ip] > 100:
+            uptime_hours = (time.time() - _request_log["started_at"]) / 3600
+            if uptime_hours < 1:
+                logger.warning("RATE LIMIT: ip=%s hit %d requests in %.1f hours",
+                               ip, _request_log["by_ip"][ip], uptime_hours)
+                response = JSONResponse(
+                    {"error": "Rate limit exceeded. Try again later."},
+                    status_code=429,
+                )
+                await response(scope, receive, send)
+                return
 
-        # Extract bearer token or fall back to IP
-        auth_header = headers.get(b"authorization", b"").decode()
-        scope_str = None
-
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
-            rate_key = f"token:{token}"
-            # scope_str remains None — anonymous tier.
-            # In production the OAuth middleware has already validated the token;
-            # scope enforcement (professional/unlimited) is handled there.
-            # Using None here applies the safe anonymous limit as a floor for
-            # any request that reaches the rate limiter without scope context.
-        else:
-            # Anonymous: key by IP
-            client = scope.get("client")
-            ip = client[0] if client else "unknown"
-            rate_key = f"ip:{ip}"
-
-        limiter = get_limiter()
-        allowed, rl_headers = limiter.check_and_increment(rate_key, scope_str)
-
-        if not allowed:
-            try:
-                _log_access_to_db(ip, method, path, user_agent, rate_limited=True)
-                _check_and_alert(ip, user_agent, rate_limited=True)
-            except Exception:
-                pass
-            logger.warning("RATE LIMITED: ip=%s key=%s path=%s", ip, rate_key, path)
-            response = JSONResponse(
-                {"error": "Rate limit exceeded. Upgrade at https://sfpermits.ai/docs for more calls."},
-                status_code=429,
-                headers=rl_headers,
-            )
-            await response(scope, receive, send)
-            return
+        # Bearer token auth (if configured)
+        if _MCP_AUTH_TOKEN:
+            auth_header = headers.get(b"authorization", b"").decode()
+            if not auth_header.startswith("Bearer "):
+                logger.warning("AUTH FAIL: ip=%s path=%s — no bearer token", ip, path)
+                response = JSONResponse(
+                    {"error": "Authentication required."},
+                    status_code=401,
+                )
+                await response(scope, receive, send)
+                return
+            provided_token = auth_header[7:]
+            if not secrets.compare_digest(provided_token, _MCP_AUTH_TOKEN):
+                logger.warning("AUTH FAIL: ip=%s path=%s — invalid token", ip, path)
+                response = JSONResponse(
+                    {"error": "Invalid authentication token"},
+                    status_code=403,
+                )
+                await response(scope, receive, send)
+                return
 
         await self.app(scope, receive, send)
 
 
+if _MCP_AUTH_TOKEN:
+    logger.info("MCP bearer token auth enabled (blocks claude.ai — remove MCP_AUTH_TOKEN to allow)")
+else:
+    logger.info("MCP server open — request logging active, rate limiting at 100/hr per IP")
+
+
 # ── Health check endpoint (for Railway) ───────────────────────────
-
-
 async def health_check(request: StarletteRequest) -> JSONResponse:
     uptime_hours = round((time.time() - _request_log["started_at"]) / 3600, 1)
     return JSONResponse({
@@ -364,20 +218,11 @@ if __name__ == "__main__":
     import uvicorn
 
     async def main():
-        # Initialize access log table at startup
-        _ensure_access_log_table()
-
-        # OAuth schema init (disabled — re-enable with OAuth)
-        # from src.db import get_connection, init_oauth_schema, BACKEND
-        # if BACKEND == "postgres":
-        #     conn = get_connection()
-        #     try:
-        #         init_oauth_schema(conn)
-        #     finally:
-        #         conn.close()
-
         app = mcp.streamable_http_app()
-        app = RateLimitMiddleware(app)
+
+        # Always wrap with logging middleware (also handles auth if MCP_AUTH_TOKEN set)
+        app = RequestLoggingMiddleware(app)
+
         config = uvicorn.Config(
             app,
             host=mcp.settings.host,
