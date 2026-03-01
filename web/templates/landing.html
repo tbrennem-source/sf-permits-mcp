@@ -4,14 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>sfpermits.ai — San Francisco Building Permit Intelligence</title>
-<meta name="description" content="Free SF building permit lookup powered by 1.1M+ permits, 3.9M routing records, and AI analysis. See permit history, get timeline and fee estimates, and share project analysis with your contractor.">
+<meta name="description" content="San Francisco building permit intelligence. 1.1M+ permits, real-time station tracking, timeline prediction, and revision risk analysis.">
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#5eead4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="/static/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- Open Graph -->
 <meta property="og:title" content="sfpermits.ai — SF Permit Intelligence">
@@ -33,1673 +31,924 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "sfpermits.ai",
-  "description": "San Francisco's first AI permit intelligence platform. Search 1.1M+ permits, predict timelines, analyze plan sets.",
+  "description": "San Francisco's first AI permit intelligence platform.",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "url": "https://sfpermits.ai",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  }
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
 }
 </script>
 
-<style nonce="{{ csp_nonce }}">
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  :root {
-    --obsidian: #0a0a0f;
-    --obsidian-mid: #12121a;
-    --obsidian-light: #1a1a26;
-    --glass: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    --text-primary: rgba(255, 255, 255, 0.92);
-    --text-secondary: rgba(255, 255, 255, 0.45);
-    --text-tertiary: rgba(255, 255, 255, 0.25);
-    --accent: #5eead4;
-    --accent-glow: rgba(94, 234, 212, 0.08);
-    --amber: #fbbf24;
-    --red-soft: #f87171;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        obsidian:    { DEFAULT: '#0a0a0f', mid: '#12121a', light: '#1a1a26' },
+        glass:       { DEFAULT: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.06)', hover: 'rgba(255,255,255,0.08)' },
+        accent:      { DEFAULT: '#5eead4', glow: 'rgba(94,234,212,0.08)', ring: 'rgba(94,234,212,0.2)' },
+        signal:      { green: '#4ade80', amber: '#fbbf24', red: '#f87171' },
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['IBM Plex Sans', '-apple-system', 'sans-serif'],
+      },
+    }
   }
-  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
-  body {
-    font-family: var(--sans); background: var(--obsidian); color: var(--text-primary);
-    overflow-x: hidden; -webkit-font-smoothing: antialiased;
-  }
-  .ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+}
+</script>
+<style>
+  /* Keyframes, scrollbar, ambient gradient — things Tailwind cannot do */
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
+  body { -webkit-font-smoothing: antialiased; }
+  @keyframes drift { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(40px,20px); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes scrollPulse { 0%, 100% { opacity: 0.3; transform: scaleY(1); } 50% { opacity: 0.8; transform: scaleY(1.3); } }
   .ambient::before {
     content: ''; position: absolute; top: -40%; left: -20%; width: 80%; height: 80%;
-    background: radial-gradient(ellipse, rgba(94, 234, 212, 0.03) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(94,234,212,0.03) 0%, transparent 70%);
     animation: drift 25s ease-in-out infinite;
   }
-  @keyframes drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(40px, 20px); } }
-  @keyframes fadeIn { to { opacity: 1; } }
-
+  .fade-in { opacity: 0; animation: fadeIn 1s cubic-bezier(0.16,1,0.3,1) forwards; }
+  .fade-d1 { animation-delay: 0.1s; }
+  .fade-d2 { animation-delay: 0.2s; }
+  .fade-d3 { animation-delay: 0.35s; }
+  .fade-d4 { animation-delay: 0.4s; }
+  .fade-d5 { animation-delay: 1.2s; }
+  .fade-d6 { animation-delay: 2s; }
+  /* Gantt bar segments */
+  .bar-done      { background: rgba(74,222,128,0.7); }
+  .bar-approved  { background: rgba(74,222,128,0.7); }
+  .bar-active    { background: #fbbf24; opacity: 0.85; }
+  .bar-stalled   { background: #f87171; opacity: 0.85; }
+  .bar-projected {
+    background: repeating-linear-gradient(90deg,
+      rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 4px,
+      transparent 4px, transparent 8px);
+  }
+  /* Environment borders */
+  .env-staging   { box-shadow: inset 0 0 0 2px #fbbf24; }
+  .env-honeypot  { box-shadow: inset 0 0 0 2px #f87171; }
+  .env-prod      { /* no outline */ }
+  /* Persona color coding for QA navigation */
+  .persona-homeowner    { box-shadow: inset 0 0 0 2px #5eead4; }
+  .persona-architect    { box-shadow: inset 0 0 0 2px #818cf8; }
+  .persona-expediter    { box-shadow: inset 0 0 0 2px #fbbf24; }
+  .persona-new-visitor  { box-shadow: inset 0 0 0 2px #f472b6; }
+  /* Scroll reveal */
   .reveal {
-    opacity: 0; transform: translateY(24px);
-    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
   }
   .reveal.visible { opacity: 1; transform: translateY(0); }
-  .reveal-delay-1 { transition-delay: 0.1s; }
-  .reveal-delay-2 { transition-delay: 0.2s; }
-  .reveal-delay-3 { transition-delay: 0.3s; }
-
-  /* ═══ HERO ═══ */
-  .hero {
-    position: relative; z-index: 1;
-    min-height: 92vh; min-height: 92dvh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 0 24px;
-    padding-bottom: 48px;
-  }
-  .hero-wordmark {
-    font-family: var(--mono); font-size: clamp(11px, 1.2vw, 13px); font-weight: 300;
-    letter-spacing: 0.35em; text-transform: uppercase; color: var(--text-tertiary);
-    margin-bottom: 48px;
-    opacity: 0; animation: fadeIn 1s 0.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .hero-headline {
-    font-family: var(--sans); font-size: clamp(30px, 4.8vw, 60px); font-weight: 300;
-    line-height: 1.15; text-align: center; max-width: 660px;
-    opacity: 0; animation: fadeIn 1s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .hero-headline em { font-style: normal; color: var(--accent); font-weight: 400; }
-  .hero-cred {
-    font-family: var(--mono); font-size: clamp(10px, 1.1vw, 12px); font-weight: 300;
-    letter-spacing: 0.06em; color: var(--text-tertiary);
-    margin-top: 16px; text-align: center;
-    opacity: 0; animation: fadeIn 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .hero-cred__punch {
-    color: var(--accent); font-weight: 400;
-    opacity: 0; animation: fadeIn 1.2s 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .beta-badge {
-    display: none;
-    font-family: var(--mono); font-size: 9px; font-weight: 400;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--accent); background: var(--accent-glow);
-    border: 1px solid rgba(94, 234, 212, 0.15);
-    padding: 2px 8px; border-radius: var(--radius-full);
-    margin-left: 8px; vertical-align: middle;
-  }
-  .beta-badge.visible { display: inline; }
-
-  /* ═══ SEARCH ═══ */
-  .search-container {
-    margin-top: 48px; width: 100%; max-width: 520px; position: relative;
-    opacity: 0; animation: fadeIn 1s 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .search-bar { position: relative; }
-  .search-bar input {
-    width: 100%; padding: 16px 22px; padding-right: 50px;
-    font-family: var(--mono); font-size: 14px; font-weight: 300;
-    color: var(--text-primary); background: var(--glass);
-    border: 1px solid var(--glass-border); border-radius: 12px; outline: none;
-    transition: border-color 0.4s, background 0.4s, box-shadow 0.4s, border-radius 0.2s;
-  }
-  .search-bar input::placeholder { color: var(--text-tertiary); font-weight: 300; }
-  .search-bar input:focus {
-    border-color: rgba(94, 234, 212, 0.3); background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 40px var(--accent-glow);
-  }
-  .search-bar.dropdown-open input { border-radius: 12px 12px 0 0; border-bottom-color: var(--glass-border); }
-  .search-bar .search-icon {
-    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
-    color: var(--text-tertiary); transition: color 0.3s;
-  }
-  .search-bar input:focus ~ .search-icon { color: var(--accent); }
-
-  /* Keyboard hint */
-  .search-bar .kbd-hint {
-    position: absolute; right: 44px; top: 50%; transform: translateY(-50%);
-    font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
-    background: var(--glass); border: 1px solid var(--glass-border);
-    padding: 2px 6px; border-radius: 4px;
-    opacity: 0; transition: opacity 0.3s;
-    pointer-events: none;
-  }
-  .search-bar input:focus ~ .kbd-hint { opacity: 0; }
-  .search-bar input:not(:focus):placeholder-shown ~ .kbd-hint { opacity: 0.6; }
-
-  .below-search {
-    text-align: center; margin-top: 16px;
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  .below-search__sub {
-    font-family: var(--mono); font-size: 12px; font-weight: 300;
-    color: var(--text-tertiary); line-height: 1.5;
-    letter-spacing: 0.02em;
-    opacity: 0;
-    animation: emerge 1.5s 1.8s ease-out forwards;
-    transition: opacity 0.8s ease-out;
-  }
-  .below-search__sub a {
-    color: var(--text-secondary); text-decoration: none;
-    padding-bottom: 1px; border-bottom: 1px solid var(--glass-border);
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .below-search__sub a:hover {
-    color: var(--accent); border-bottom-color: var(--accent);
-  }
-  .below-search__watched {
-    font-family: var(--mono); font-size: 11px; font-weight: 300;
-    color: var(--text-secondary);
-    opacity: 0;
-    animation: emerge 1.5s 2.4s ease-out forwards;
-    transition: opacity 0.25s;
-  }
-  .below-search__watched:empty { display: none; }
-  .below-search__watched a {
-    color: var(--text-secondary); text-decoration: none; cursor: pointer;
-    transition: color 0.2s;
-  }
-  .below-search__watched a:hover { color: var(--accent); }
-  .below-search__context {
-    font-family: var(--mono); font-size: 11px; font-weight: 300;
-    color: var(--text-tertiary);
-    opacity: 0;
-    animation: emerge 1.5s 3.2s ease-out forwards;
-    transition: opacity 0.8s ease-out;
-  }
-  .below-search__context a {
-    color: var(--text-tertiary); text-decoration: none; cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
-    padding-bottom: 1px; border-bottom: 1px solid transparent;
-  }
-  .below-search__context a:hover { color: var(--accent); }
-  .below-search__context a.source-active {
-    color: var(--accent); border-bottom-color: var(--accent);
-  }
-  @keyframes emerge {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  .urgent-dot {
-    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-    vertical-align: middle; margin-right: 2px;
-    animation: urgent-pulse 2s ease-in-out infinite;
-  }
-  .urgent-dot--red { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.5); }
-  .urgent-dot--amber { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.4); }
-  @keyframes urgent-pulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.3); }
-  }
-  .example-link { display: none; }
-  .example-link.hidden { display: none; }
-
-  /* ═══ DROPDOWN ═══ */
-  .search-dropdown {
-    position: absolute; top: 100%; left: 0; right: 0;
-    background: var(--obsidian-mid);
-    border: 1px solid var(--glass-border); border-top: none;
-    border-radius: 0 0 12px 12px; overflow-y: auto; overflow-x: hidden;
-    max-height: 0; opacity: 0;
-    transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
-    z-index: 10;
-    scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent;
-  }
-  .search-dropdown.open { max-height: 380px; opacity: 1; }
-
-  .dropdown-section { padding-top: 4px; }
-  .dropdown-section + .dropdown-section { border-top: 1px solid var(--glass-border); }
-  .dropdown-section.hidden { display: none; }
-
-  .dropdown-label {
-    padding: 10px 22px 4px;
-    font-family: var(--mono); font-size: 10px; font-weight: 400;
-    letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .dropdown-label .label-count {
-    font-size: 10px; letter-spacing: 0; text-transform: none; opacity: 0.6;
-  }
-
-  .dropdown-item {
-    padding: 9px 22px; cursor: pointer;
-    display: flex; align-items: center; gap: 10px;
-    transition: background 0.12s;
-  }
-  .dropdown-item:hover { background: var(--glass); }
-  .dropdown-item.hidden { display: none; }
-
-  .dropdown-item .item-icon { flex-shrink: 0; color: var(--text-tertiary); transition: color 0.12s; }
-  .dropdown-item:hover .item-icon { color: var(--accent); }
-
-  .dropdown-item .item-address {
-    font-family: var(--mono); font-size: 13px; font-weight: 300;
-    color: var(--text-secondary); transition: color 0.12s;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .dropdown-item:hover .item-address { color: var(--text-primary); }
-
-  /* Match highlighting */
-  .dropdown-item .item-address mark {
-    background: none; color: var(--accent); font-weight: 400;
-  }
-
-  .dropdown-item .item-badge {
-    margin-left: auto; display: flex; align-items: center; gap: 6px;
-    flex-shrink: 0;
-  }
-
-  .dropdown-item .item-type {
-    font-size: 10px; font-weight: 400; color: var(--text-tertiary);
-    background: var(--glass); border: 1px solid var(--glass-border);
-    padding: 1px 7px; border-radius: 3px; white-space: nowrap;
-    transition: color 0.12s, border-color 0.12s;
-  }
-  .dropdown-item:hover .item-type { color: var(--text-secondary); border-color: rgba(255,255,255,0.1); }
-
-  /* Status dot */
-  .dropdown-item .item-status {
-    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
-  }
-  .item-status.status-green { background: var(--accent); }
-  .item-status.status-amber { background: var(--amber); }
-  .item-status.status-red { background: var(--red-soft); }
-
-  /* Footer link in dropdown */
-  .dropdown-footer {
-    padding: 10px 22px 12px;
-    border-top: 1px solid var(--glass-border);
-    text-align: center;
-  }
-  .dropdown-footer a {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-    text-decoration: none; transition: color 0.2s;
-  }
-  .dropdown-footer a:hover { color: var(--accent); }
-
-  /* No results */
-  .dropdown-empty {
-    padding: 20px 22px; text-align: center;
-    font-size: 13px; color: var(--text-tertiary);
-    display: none;
-  }
-
-  @keyframes fadeInCue { to { opacity: 0.6; } }
-  .scroll-cue {
-    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
-    opacity: 0; animation: fadeInCue 1s 3.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    transition: opacity 0.5s;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-  }
-  .scroll-cue.hidden { opacity: 0 !important; }
-  .scroll-cue.dropdown-active { visibility: hidden !important; }
-  .scroll-cue__text {
-    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
-    color: var(--accent); text-transform: uppercase;
-    animation: pulse-line 2.5s ease-in-out infinite;
-  }
-  .scroll-cue__arrow {
-    animation: bounce-down 2s ease-in-out infinite;
-    color: var(--accent);
-    width: 20px; height: 20px;
-  }
-  @keyframes pulse-line { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
-  @keyframes bounce-down {
-    0%, 100% { transform: translateY(0); opacity: 0.5; }
-    50% { transform: translateY(6px); opacity: 1; }
-  }
-
-  /* ═══ SECTIONS ═══ */
-  section { position: relative; z-index: 1; padding: 0 24px; }
-  .section-inner { max-width: 1000px; margin: 0 auto; }
-
-  /* stats bar removed (Sprint 94) — replaced by credibility line at bottom */
-
-  .capabilities-section { padding-bottom: 120px; }
-  .cap-list { list-style: none; }
-  .cap-item {
-    display: grid; grid-template-columns: 48px 1fr auto; align-items: baseline; gap: 20px;
-    padding: 28px 0; border-bottom: 1px solid var(--glass-border); cursor: default; transition: background 0.3s;
-  }
-  .cap-item:first-child { border-top: 1px solid var(--glass-border); }
-  .cap-item:hover {
-    background: linear-gradient(90deg, var(--accent-glow), transparent 60%);
-    margin: 0 -16px; padding-left: 16px; padding-right: 16px;
-  }
-  .cap-input-row {
-    display: flex; gap: 8px; margin-top: 10px; max-width: 400px;
-  }
-  .cap-input {
-    flex: 1; padding: 8px 12px;
-    font-family: var(--mono); font-size: 12px; font-weight: 300;
-    color: var(--text-primary); background: var(--glass);
-    border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
-    outline: none; transition: border-color 0.3s, box-shadow 0.3s;
-  }
-  .cap-input::placeholder { color: var(--text-tertiary); }
-  .cap-input:focus { border-color: var(--accent-ring); box-shadow: 0 0 20px var(--accent-glow); }
-  .cap-go {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-    background: var(--glass); border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
-    white-space: nowrap;
-  }
-  .cap-go:hover { color: var(--accent); border-color: var(--accent-ring); }
-  .cap-links {
-    display: flex; gap: 12px; margin-top: 8px;
-  }
-  .cap-links a {
-    font-family: var(--mono); font-size: 10px; color: var(--text-tertiary);
-    text-decoration: none; transition: color 0.2s;
-  }
-  .cap-links a:hover { color: var(--accent); }
-  .cap-num { font-family: var(--mono); font-size: 12px; color: var(--text-tertiary); }
-  .cap-content h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
-  .cap-content p { font-size: 13px; font-weight: 300; color: var(--text-secondary); line-height: 1.55; max-width: 520px; }
-  .cap-stat { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
-
-  .demo-section { padding-bottom: 120px; }
-  .demo-container { background: var(--obsidian-mid); border: 1px solid var(--glass-border); border-radius: 14px; overflow: hidden; }
-  .demo-header { padding: 16px 24px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 10px; }
-  .demo-dots { display: flex; gap: 5px; }
-  .demo-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--glass-border); }
-  .demo-url { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); margin-left: 8px; }
-  .demo-body { padding: 32px 28px; }
-  .demo-address { font-family: var(--mono); font-size: 13px; margin-bottom: 28px; }
-  .demo-address .addr-accent { color: var(--accent); }
-  .demo-address .addr-type {
-    font-size: 11px; color: var(--text-tertiary); background: var(--glass);
-    border: 1px solid var(--glass-border); padding: 2px 8px; border-radius: 4px;
-    margin-left: 10px; vertical-align: middle;
-  }
-  .demo-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 0; border-bottom: 1px solid var(--glass-border);
-    opacity: 0; transform: translateX(-8px);
-    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .demo-row.visible { opacity: 1; transform: translateX(0); }
-  .demo-row .row-label { font-size: 13px; color: var(--text-secondary); }
-  .demo-row .row-value { font-family: var(--mono); font-size: 12px; }
-  .status-active { color: var(--accent); }
-  .status-warn { color: var(--amber); }
-  .status-alert { color: var(--red-soft); }
-  .demo-progress { margin-top: 24px; opacity: 0; transition: opacity 0.8s 0.5s; }
-  .demo-progress.visible { opacity: 1; }
-  .demo-progress .progress-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
-  .demo-progress .progress-label span { font-size: 11px; color: var(--text-tertiary); font-family: var(--mono); }
-  .progress-track { height: 2px; background: var(--glass); border-radius: 1px; overflow: hidden; }
-  .progress-fill {
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, var(--accent), rgba(94, 234, 212, 0.4));
-    border-radius: 1px; transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .progress-fill.animate { width: 62%; }
-  .demo-cta { margin-top: 24px; text-align: center; opacity: 0; transition: opacity 0.6s 1s; }
-  .demo-cta.visible { opacity: 1; }
-  .demo-cta span {
-    font-size: 12px; color: var(--text-tertiary); font-family: var(--mono);
-    letter-spacing: 0.04em; cursor: pointer; padding-bottom: 1px;
-    border-bottom: 1px solid transparent; transition: color 0.3s, border-color 0.3s;
-  }
-  .demo-cta span:hover { color: var(--accent); border-color: var(--accent); }
-
-  .footer { position: relative; z-index: 1; padding: 0 24px 80px; text-align: center; }
-  .footer-links { font-size: 12px; color: var(--text-tertiary); }
-  .footer-links a {
-    color: var(--text-secondary); text-decoration: none;
-    border-bottom: 1px solid var(--glass-border); padding-bottom: 1px;
-    transition: color 0.3s, border-color 0.3s;
-  }
-  .footer-links a:hover { color: var(--accent); border-color: var(--accent); }
-  .footer-links .sep { margin: 0 12px; color: var(--glass-border); }
-
-  /* Admin state toggle — visible only with ?admin=1 */
-  .state-toggle {
-    position: fixed; bottom: 24px; right: 24px; z-index: 100;
-    display: none; gap: 1px; border-radius: 8px; overflow: hidden;
-    border: 1px solid var(--glass-border); flex-wrap: wrap; justify-content: flex-end;
-  }
-  .state-toggle.visible { display: flex; }
-  .state-toggle button {
-    padding: 8px 14px; font-family: var(--mono); font-size: 11px;
-    background: var(--obsidian-mid); color: var(--text-tertiary);
-    border: none; cursor: pointer; transition: background 0.2s, color 0.2s;
-  }
-  .state-toggle button:hover { background: var(--obsidian-light); }
-  .state-toggle button.active { background: var(--accent-glow); color: var(--accent); }
-
-  /* ═══ SHOWCASE SECTION (legacy — kept for any residual refs) ═══ */
-  .showcase-section { padding-top: 80px; padding-bottom: 80px; }
-
-  /* Full-width Gantt section */
-  .showcase-gantt-section {
-    padding-top: 80px; padding-bottom: 0;
-  }
-  .showcase-gantt-section .section-inner {
-    max-width: 1000px; margin: 0 auto;
-  }
-  .showcase-gantt-fullwidth {
-    width: 100%;
-    max-width: none;
-  }
-  .showcase-gantt-fullwidth .showcase-card {
-    width: 100%;
-    max-width: none;
-  }
-
-  /* ═══ STORY SCROLL ═══ */
-  .story-section {
-    padding: 80px 24px;
-    position: relative;
-    z-index: 1;
-  }
-  .story-section .section-inner {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  .story-headline {
-    font-family: var(--sans);
-    font-size: clamp(1.1rem, 2vw, 1.4rem);
-    font-weight: 300;
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-    line-height: 1.4;
-  }
-  .story-cta-section {
-    text-align: center;
-    padding-top: 60px;
-    padding-bottom: 60px;
-  }
-  .story-cta {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 300;
-    color: var(--accent);
-    text-decoration: none;
-    border: 1px solid rgba(94, 234, 212, 0.25);
-    border-radius: 8px;
-    padding: 14px 32px;
-    transition: background 0.2s, border-color 0.2s;
-    letter-spacing: 0.02em;
-  }
-  .story-cta:hover {
-    background: var(--accent-glow);
-    border-color: rgba(94, 234, 212, 0.5);
-  }
-
-  /* Dividers between story sections */
-  .story-section + .story-section {
-    border-top: 1px solid var(--glass-border);
-  }
-
-  .intelligence-layer-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    margin-bottom: 12px;
-  }
-
-  /* Gantt mobile: horizontal scroll */
-  @media (max-width: 480px) {
-    .showcase-gantt-fullwidth .showcase-card__body {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      min-height: 300px;
-      /* subtle right shadow to hint scroll — uses glass tint, not raw color */
-      box-shadow: inset -40px 0 20px -10px var(--obsidian-mid);
-    }
-    .showcase-gantt-fullwidth .showcase-card__body > * {
-      min-width: 380px;
-    }
-  }
-
-  /* showcase-grid — replaced by story scroll; kept for .showcase-card styles */
-  .showcase-grid {
-    display: block;
-  }
-  .showcase-card {
-    background: var(--obsidian-mid);
-    border: 1px solid var(--glass-border);
-    border-radius: 14px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: border-color 0.3s;
-  }
-  .showcase-card:hover { border-color: rgba(94, 234, 212, 0.18); }
-  .showcase-card__header {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 20px 20px 0;
-  }
-  .showcase-card__icon {
-    flex-shrink: 0; width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--accent-glow);
-    border: 1px solid rgba(94, 234, 212, 0.12);
-    border-radius: 8px;
-    color: var(--accent);
-    margin-top: 2px;
-  }
-  .showcase-card__meta { flex: 1; min-width: 0; }
-  .showcase-card__title {
-    font-family: var(--sans); font-size: 15px; font-weight: 500;
-    color: var(--text-primary); margin-bottom: 3px;
-  }
-  .showcase-card__subtitle {
-    font-size: 12px; color: var(--text-secondary); line-height: 1.4;
-  }
-  .showcase-card__body { padding: 16px 20px; flex: 1; }
-  .showcase-card__footer {
-    padding: 12px 20px 16px;
-    border-top: 1px solid var(--glass-border);
-  }
-  .showcase-card__cta {
-    font-family: var(--mono); font-size: 11px;
-    color: var(--text-tertiary); text-decoration: none;
-    transition: color 0.2s;
-  }
-  .showcase-card__cta:hover { color: var(--accent); }
-
-  /* Gantt bars */
-  .showcase-gantt__label {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-    margin-bottom: 12px;
-  }
-  .showcase-gantt__row {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 8px;
-  }
-  .showcase-gantt__station {
-    font-family: var(--mono); font-size: 11px; color: var(--text-secondary);
-    width: 36px; flex-shrink: 0;
-  }
-  .showcase-gantt__track {
-    flex: 1; height: 6px; background: var(--glass);
-    border-radius: 3px; overflow: hidden;
-  }
-  .showcase-gantt__bar {
-    height: 100%; border-radius: 3px;
-    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .showcase-gantt__bar--done { background: var(--accent); opacity: 0.7; }
-  .showcase-gantt__bar--pending { background: var(--signal-amber); }
-  .showcase-gantt__bar--upcoming { background: var(--glass-border); }
-  .showcase-gantt__days {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-    width: 32px; text-align: right; flex-shrink: 0;
-  }
-  .showcase-gantt__days--done { color: var(--accent); }
-  .showcase-gantt__days--warn { color: var(--signal-amber); }
-  .showcase-gantt__total {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-    margin-top: 12px;
-  }
-  .showcase-gantt__total strong { color: var(--text-primary); font-weight: 400; }
-
-  /* Routing tracker */
-  .showcase-routing__address {
-    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
-    margin-bottom: 12px;
-  }
-  .showcase-routing__num {
-    font-size: 10px; color: var(--text-tertiary);
-    background: var(--glass); border: 1px solid var(--glass-border);
-    padding: 1px 6px; border-radius: 3px; margin-left: 8px;
-  }
-  .showcase-routing__step {
-    display: flex; align-items: center; gap: 8px;
-    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
-  }
-  .showcase-routing__step:last-child { border-bottom: none; }
-  .showcase-routing__dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
-  .showcase-routing__dot--approved { background: var(--dot-green); }
-  .showcase-routing__dot--stalled { background: var(--dot-amber); }
-  .showcase-routing__dot--pending { background: var(--glass-border); }
-  .showcase-routing__name {
-    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
-    flex: 1;
-  }
-  .showcase-routing__status {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-  }
-  .showcase-routing__status--approved { color: var(--signal-green); }
-  .showcase-routing__status--stalled { color: var(--signal-amber); }
-  .showcase-routing__alert {
-    display: flex; align-items: center; gap: 6px;
-    margin-top: 10px; padding: 8px 10px;
-    background: rgba(251, 191, 36, 0.06);
-    border: 1px solid rgba(251, 191, 36, 0.15);
-    border-radius: 6px;
-    font-family: var(--mono); font-size: 11px; color: var(--signal-amber);
-  }
-
-  /* What-if */
-  .showcase-whatif__project {
-    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
-    margin-bottom: 12px;
-  }
-  .showcase-whatif__hood {
-    font-size: 10px; color: var(--text-tertiary);
-    background: var(--glass); border: 1px solid var(--glass-border);
-    padding: 1px 6px; border-radius: 3px; margin-left: 8px;
-  }
-  .showcase-whatif__row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 0; border-bottom: 1px solid var(--glass-border);
-    flex-wrap: wrap;
-  }
-  .showcase-whatif__row:last-child { border-bottom: none; }
-  .showcase-whatif__label {
-    font-family: var(--sans); font-size: 12px; color: var(--text-secondary); flex: 1;
-  }
-  .showcase-whatif__badge {
-    font-family: var(--mono); font-size: 10px;
-    padding: 2px 7px; border-radius: 3px; border: 1px solid;
-    flex-shrink: 0;
-  }
-  .showcase-whatif__badge--green { color: var(--accent); border-color: rgba(94, 234, 212, 0.25); }
-  .showcase-whatif__badge--amber { color: var(--signal-amber); border-color: rgba(251, 191, 36, 0.25); }
-  .showcase-whatif__timeline {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); flex-shrink: 0;
-  }
-  .showcase-whatif__cost {
-    font-family: var(--mono); font-size: 11px; color: var(--accent); flex-shrink: 0;
-  }
-
-  /* Risk */
-  .showcase-risk__header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px;
-  }
-  .showcase-risk__address {
-    font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
-  }
-  .showcase-risk__score {
-    font-family: var(--mono); font-size: 24px; font-weight: 300;
-    line-height: 1;
-  }
-  .showcase-risk__score small { font-size: 13px; color: var(--text-tertiary); }
-  .showcase-risk__score--high { color: var(--signal-red); }
-  .showcase-risk__score--medium { color: var(--signal-amber); }
-  .showcase-risk__score--low { color: var(--signal-green); }
-  .showcase-risk__signal {
-    display: flex; align-items: center; gap: 8px;
-    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
-    font-size: 12px;
-  }
-  .showcase-risk__signal:last-of-type { border-bottom: none; }
-  .showcase-risk__signal-dot {
-    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-  }
-  .showcase-risk__signal-dot--high { background: var(--dot-red); }
-  .showcase-risk__signal-dot--medium { background: var(--dot-amber); }
-  .showcase-risk__signal-dot--low { background: var(--dot-green); }
-  .showcase-risk__signal-label { flex: 1; color: var(--text-secondary); }
-  .showcase-risk__signal-value {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-  }
-  .showcase-risk__rec {
-    margin-top: 10px; padding: 8px 10px;
-    background: var(--accent-glow);
-    border: 1px solid rgba(94, 234, 212, 0.12);
-    border-radius: 6px;
-    font-family: var(--sans); font-size: 11px; color: var(--accent);
-  }
-
-  /* Entity */
-  .showcase-entity__name {
-    font-family: var(--sans); font-size: 13px; font-weight: 500;
-    color: var(--text-primary); margin-bottom: 8px;
-  }
-  .showcase-entity__stats {
-    display: flex; gap: 16px; margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-  .showcase-entity__stat {
-    font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
-  }
-  .showcase-entity__stat strong { color: var(--accent); font-weight: 400; }
-  .showcase-entity__permit {
-    display: flex; align-items: center; gap: 8px;
-    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
-    font-size: 12px;
-  }
-  .showcase-entity__permit:last-child { border-bottom: none; }
-  .showcase-entity__addr {
-    font-family: var(--mono); font-size: 11px; color: var(--text-secondary); flex: 1;
-  }
-  .showcase-entity__type { font-size: 11px; color: var(--text-tertiary); }
-  .showcase-entity__status {
-    font-family: var(--mono); font-size: 10px;
-    padding: 1px 6px; border-radius: 3px; border: 1px solid;
-    flex-shrink: 0;
-  }
-  .showcase-entity__status--done { color: var(--accent); border-color: rgba(94, 234, 212, 0.25); }
-  .showcase-entity__status--pending { color: var(--signal-amber); border-color: rgba(251, 191, 36, 0.25); }
-
-  /* Delay */
-  .showcase-delay__headline {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 8px;
-  }
-  .showcase-delay__project {
-    font-family: var(--sans); font-size: 12px; color: var(--text-secondary);
-  }
-  .showcase-delay__months {
-    font-family: var(--mono); font-size: 11px; color: var(--signal-amber);
-  }
-  .showcase-delay__total {
-    font-family: var(--mono); font-size: 28px; font-weight: 300;
-    color: var(--signal-red); margin-bottom: 12px; line-height: 1;
-  }
-  .showcase-delay__total span {
-    font-size: 11px; color: var(--text-tertiary);
-    font-family: var(--sans); font-weight: 400;
-    margin-left: 6px;
-  }
-  .showcase-delay__row {
-    display: flex; justify-content: space-between;
-    padding: 6px 0; border-bottom: 1px solid var(--glass-border);
-    font-size: 12px;
-  }
-  .showcase-delay__row:last-of-type { border-bottom: none; }
-  .showcase-delay__row-label { color: var(--text-secondary); }
-  .showcase-delay__row-amount { font-family: var(--mono); color: var(--text-primary); }
-  .showcase-delay__action {
-    margin-top: 10px;
-    font-family: var(--sans); font-size: 11px; color: var(--accent);
-    line-height: 1.5;
-  }
-
-  /* ═══ MCP DEMO SECTION ═══ */
-  .mcp-section { padding-top: 40px; padding-bottom: 100px; }
-
-  /* CSS var aliases for design token compliance */
-  :root {
-    --dot-green: #22c55e;
-    --dot-amber: #f59e0b;
-    --dot-red: #ef4444;
-    --signal-green: #34d399;
-    --signal-amber: #fbbf24;
-    --signal-red: #f87171;
-    --signal-blue: #60a5fa;
-  }
-
-  @media (max-width: 768px) {
-    .showcase-grid { display: block; }
-    .showcase-section { padding-top: 60px; padding-bottom: 60px; }
-    .showcase-gantt-section { padding-top: 60px; }
-    .story-section { padding: 40px 24px; }
-    .story-headline { font-size: 1.1rem; }
-    .demo-body { padding: 20px 16px; }
-    .demo-row { flex-direction: column; align-items: flex-start; gap: 4px; }
-  }
-  @media (max-width: 480px) {
-    .showcase-grid { display: block; }
-    .story-section { padding: 24px 16px; }
-    .story-headline { font-size: 1rem; }
-    /* Touch target fixes — Apple HIG minimum 44px, lenient floor 32px */
-    /* ghost-cta links: expand tap area via padding without changing visual weight */
-    .ghost-cta {
-      padding: 12px 0;
-      display: inline-block;
-    }
-    /* Footer links: expand tap area */
-    .footer-links a {
-      display: inline-block;
-      padding: 12px 4px;
-    }
-    /* Inline showcase example links — expand tap area */
-    .showcase-card__body a {
-      padding: 4px 0;
-      display: inline-block;
-    }
-  }
-
-  /* Credibility line */
-  .credibility-line {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-tertiary);
-    text-align: center;
-    margin: var(--space-lg, 24px) 0;
-  }
+  .reveal-d1 { transition-delay: 0.1s; }
+  .reveal-d2 { transition-delay: 0.2s; }
+  .reveal-d3 { transition-delay: 0.3s; }
 </style>
-<link rel="stylesheet" href="{{ url_for('static', filename='mcp-demo.css') }}" nonce="{{ csp_nonce }}">
 </head>
-<body data-honeypot="{{ 'true' if honeypot_mode else 'false' }}">
 
-{% if is_staging %}
-<div style="background: var(--amber); color: var(--obsidian); text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; position: relative; z-index: 9999;">
-  STAGING ENVIRONMENT
-</div>
-{% endif %}
+<body class="bg-obsidian text-white/90 font-sans overflow-x-hidden">
+<div class="ambient fixed inset-0 z-0 pointer-events-none overflow-hidden"></div>
 
-<!-- MOBILE NAV — phone only (≤480px), minimal bar with ≥44px touch targets -->
-<style nonce="{{ csp_nonce }}">
-@media (max-width: 480px) {
-  .mobile-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 200;
-    background: color-mix(in srgb, var(--obsidian) 92%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 0 16px;
-    height: 52px;
-  }
-  .mobile-nav__brand {
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 300;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.55);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    height: 52px; /* full bar height = 52px touch target */
-  }
-  .mobile-nav__links {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    list-style: none;
-  }
-  .mobile-nav__links a {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 300;
-    color: rgba(255, 255, 255, 0.55);
-    text-decoration: none;
-    letter-spacing: 0.04em;
-    display: flex;
-    align-items: center;
-    height: 52px; /* full bar height = 52px touch target */
-    padding: 0 10px;
-    transition: color 0.2s;
-    white-space: nowrap;
-  }
-  .mobile-nav__links a:hover,
-  .mobile-nav__links a:focus {
-    color: #5eead4;
-  }
-  /* Push hero content down to avoid overlap with fixed nav */
-  body { padding-top: 52px; }
-  .hero { min-height: calc(92vh - 52px); min-height: calc(92dvh - 52px); }
-}
-/* Hide on desktop — only show phone nav at ≤480px */
-@media (min-width: 481px) {
-  .mobile-nav { display: none; }
-}
-</style>
-<nav class="mobile-nav" aria-label="Mobile navigation">
-  <a href="/" class="mobile-nav__brand">sfpermits.ai</a>
-  <ul class="mobile-nav__links">
-    <li><a href="/search">Search</a></li>
-    <li><a href="/demo">Demo</a></li>
-    <li><a href="/methodology">How</a></li>
-    <li><a href="/auth/login">Sign in</a></li>
-  </ul>
+<!-- Minimal top nav -->
+<nav class="relative z-20 flex items-center justify-between px-6 py-4 fade-in fade-d1">
+  <span class="font-mono text-[11px] font-light tracking-[0.2em] uppercase text-white/25">sfpermits.ai</span>
+  <a href="/auth/login" class="font-mono text-[11px] text-white/45 hover:text-accent transition-colors">Sign in</a>
 </nav>
 
-<div class="ambient"></div>
-
-<!-- SIGN IN — visible but quiet (desktop only; mobile nav provides phone equivalent) -->
-<div style="position: fixed; top: 16px; right: 24px; z-index: 60; opacity: 0; animation: fadeIn 2s 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; display: none;" id="signin-float">
-  <a href="/auth/login" style="font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#5eead4'" onmouseout="this.style.color=''">Sign in &rarr;</a>
-</div>
-<script nonce="{{ csp_nonce }}">
-  // Only show the floating sign-in link on non-phone viewports
-  // (phone has it in the mobile nav; this overlay is too small to tap on mobile)
-  if (window.innerWidth > 480) {
-    document.getElementById('signin-float').style.display = '';
-  }
-</script>
-
-<section class="hero">
-  <div class="hero-wordmark">sfpermits.ai <span class="beta-badge" id="beta-badge">Beta Tester</span></div>
-  <h1 class="hero-headline">Permit intelligence,<br><em>distilled</em></h1>
-  <p class="hero-cred"><span style="white-space:nowrap;">18.4 million San Francisco government records.</span> <span class="hero-cred__punch" style="white-space:nowrap;">One search.</span></p>
-
-  <div class="search-container">
-    <form class="search-bar" id="search-bar" action="/search" method="GET">
-      <input type="text" name="q" id="search-input" placeholder="Address? Project? Question?" autocomplete="off">
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </form>
-    <div class="search-dropdown" id="search-dropdown">
-      <div class="dropdown-empty" id="dropdown-empty">No matches in your properties or history</div>
-    </div>
-    <div class="example-link" id="example-link" style="display:none;"></div>
-    <div class="below-search">
-      <div class="below-search__sub" id="below-sub"></div>
-      <div class="below-search__watched" id="below-watched"></div>
-      <div class="below-search__context" id="below-context">try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a></div>
-    </div>
+<!-- ═══════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════ -->
+<section class="relative z-10 min-h-[85vh] flex flex-col items-center justify-center px-6 pb-12">
+  <div class="font-mono text-[clamp(11px,1.2vw,13px)] font-light tracking-[0.35em] uppercase text-white/25 mb-12 fade-in fade-d1">
+    sfpermits.ai
   </div>
-
-  <a href="#intelligence" class="scroll-cue" id="scroll-cue" style="text-decoration:none;cursor:pointer;">
-    <span class="scroll-cue__text" id="scroll-text">See how it works</span>
-    <svg class="scroll-cue__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-  </a>
-</section>
-
-<!-- Full-width Gantt section — first intelligence showcase visitors see -->
-<section class="showcase-gantt-section" id="intelligence">
-  <div class="section-inner">
-    <div class="intelligence-layer-label reveal">Routing Intelligence</div>
-    <p class="story-headline reveal reveal-delay-1">This is what a permit goes through — 10 agencies, 242 days</p>
-    <div class="showcase-gantt-fullwidth reveal reveal-delay-2">
-      {% if showcase and showcase.get("station_timeline") %}{% include "components/showcase_gantt.html" %}{% endif %}
-    </div>
-  </div>
-</section>
-
-<section class="story-section reveal">
-  <div class="section-inner">
-    <p class="story-headline">A small scope change can double your timeline</p>
-    {% if showcase and showcase.get("whatif") %}{% include "components/showcase_whatif.html" %}{% endif %}
-  </div>
-</section>
-
-<section class="story-section reveal">
-  <div class="section-inner">
-    <p class="story-headline">1 in 4 permits gets sent back for revisions</p>
-    {% if showcase and showcase.get("revision_risk") %}{% include "components/showcase_risk.html" %}{% endif %}
-  </div>
-</section>
-
-<section class="story-section reveal">
-  <div class="section-inner">
-    <p class="story-headline">Every day stuck costs real money</p>
-    {% if showcase and showcase.get("cost_of_delay") %}{% include "components/showcase_delay.html" %}{% endif %}
-  </div>
-</section>
-
-<section class="story-section reveal">
-  <div class="section-inner">
-    <p class="story-headline">This permit has been stuck for 432 days. Is yours next?</p>
-    {% if showcase and showcase.get("stuck_permit") %}{% include "components/showcase_stuck.html" %}{% endif %}
-  </div>
-</section>
-
-<section class="story-section reveal">
-  <div class="section-inner">
-    <p class="story-headline">Find someone who's navigated this before</p>
-    {% if showcase and showcase.get("entity_network") %}{% include "components/showcase_entity.html" %}{% endif %}
-  </div>
-</section>
-
-<section class="story-section story-cta-section reveal">
-  <div class="section-inner" style="text-align: center;">
-    <p class="story-headline" style="margin-bottom: 32px;">Ready to see what's happening with your permit?</p>
-    <a href="/join-beta" class="story-cta">Join the beta →</a>
-  </div>
-</section>
-
-<section class="mcp-section" id="mcp-demo" data-track="mcp-demo-view">
-  <div class="section-inner">
-    {% include "components/mcp_demo.html" %}
-  </div>
-</section>
-
-<p class="credibility-line">Updated nightly from 22 city data sources · Free during beta</p>
-
-<div class="footer reveal">
-  <p style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px; line-height: 1.6; max-width: 480px; margin-left: auto; margin-right: auto;">
-    Built on public data from SF Department of Building Inspection, Planning Department, and 20 other city agencies. Not affiliated with the City of San Francisco.
+  <h1 class="font-sans text-[clamp(28px,4.5vw,56px)] font-light leading-[1.15] text-center max-w-[680px] fade-in fade-d2"
+      x-data="{
+        lines: ['decoded by AI', 'predicted before you file', 'so you never fly blind', 'before your contractor knows', 'clarity in an opaque process', 'without the guesswork'],
+        picked: ''
+      }"
+      x-init="picked = lines[Math.floor(Math.random() * lines.length)]">
+    San Francisco permits,<br>
+    <em class="not-italic text-accent font-normal" x-text="picked">decoded by AI</em>
+  </h1>
+  <p class="font-mono text-[clamp(11px,1.1vw,13px)] font-light tracking-wide text-white/25 mt-5 text-center fade-in fade-d3">
+    1.1M permits · 18M records · real-time tracking
   </p>
-  <div class="footer-links">
-    <a href="/methodology">Methodology</a><span class="sep">·</span>
-    <a href="/about-data">About the data</a><span class="sep">·</span>
-    <a href="/auth/login">Sign in</a>
+
+  <!-- Search bar -->
+  <div class="mt-12 w-full max-w-[520px] relative fade-in fade-d4">
+    <form action="/analyze" method="GET">
+      <input name="q"
+             class="w-full py-4 px-5 pr-12 font-mono text-sm font-light text-white/90 bg-glass border border-glass-border rounded-xl outline-none transition-all duration-300 focus:border-accent-ring focus:shadow-[0_0_40px_rgba(94,234,212,0.08)] placeholder:text-white/25"
+             placeholder="Search any SF address or permit number"
+             autofocus>
+    </form>
   </div>
+
+  <!-- Expandable teaser questions -->
+  <div class="mt-6 w-full max-w-[560px] fade-in fade-d5" x-data="{ open: null }">
+    <div class="flex justify-center gap-1 md:gap-2 flex-wrap text-center">
+      <button @click="open = open === 'time' ? null : 'time'"
+              class="font-mono text-xs px-2 py-1 rounded-md transition-all cursor-pointer"
+              :class="open === 'time' ? 'text-accent bg-accent-glow' : 'text-white/45 hover:text-accent'">
+        How long will it take?
+      </button>
+      <span class="text-white/15 self-center">·</span>
+      <button @click="open = open === 'risk' ? null : 'risk'"
+              class="font-mono text-xs px-2 py-1 rounded-md transition-all cursor-pointer"
+              :class="open === 'risk' ? 'text-accent bg-accent-glow' : 'text-white/45 hover:text-accent'">
+        Will I get sent back?
+      </button>
+      <span class="text-white/15 self-center">·</span>
+      <button @click="open = open === 'stuck' ? null : 'stuck'"
+              class="font-mono text-xs px-2 py-1 rounded-md transition-all cursor-pointer"
+              :class="open === 'stuck' ? 'text-accent bg-accent-glow' : 'text-white/45 hover:text-accent'">
+        Is my permit stuck?
+      </button>
+    </div>
+
+    <!-- HOW LONG teaser -->
+    <div x-show="open === 'time'" x-transition.opacity x-transition.duration.200ms
+         class="mt-4 bg-glass border border-glass-border rounded-lg p-4 text-left">
+      <div class="flex items-start gap-3">
+        <span class="font-mono text-[28px] font-light text-accent leading-none mt-0.5">4.2</span>
+        <div class="flex-1">
+          <div class="font-sans text-sm font-light text-white/70 leading-relaxed">
+            <strong class="text-white/90 font-normal">Average kitchen remodel: 4.2 months.</strong>
+            But filing in January vs October can add 76 days. SFPUC is currently backed up — 47 permits in queue.
+          </div>
+          <div class="flex items-center gap-4 mt-3">
+            <a href="/analyze" class="font-mono text-[11px] text-accent hover:underline">Search your address →</a>
+            <a href="#gantt" class="font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors">See the timeline ↓</a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-glass-border font-mono text-[9px] text-white/20">
+        Based on 1.1M permits · Updated nightly · Station velocity model
+      </div>
+    </div>
+
+    <!-- SENT BACK teaser -->
+    <div x-show="open === 'risk'" x-transition.opacity x-transition.duration.200ms
+         class="mt-4 bg-glass border border-glass-border rounded-lg p-4 text-left">
+      <div class="flex items-start gap-3">
+        <span class="font-mono text-[28px] font-light text-signal-red leading-none mt-0.5">73%</span>
+        <div class="flex-1">
+          <div class="font-sans text-sm font-light text-white/70 leading-relaxed">
+            <strong class="text-white/90 font-normal">73% of kitchen remodels get sent back.</strong>
+            Top reason: missing fire suppression details. Each revision adds 3–6 weeks
+            and an estimated $5K–$15K in carrying costs.
+          </div>
+          <div class="flex items-center gap-4 mt-3">
+            <a href="/analyze" class="font-mono text-[11px] text-accent hover:underline">Check your project →</a>
+            <a href="#risk" class="font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors">See revision risks ↓</a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-glass-border font-mono text-[9px] text-white/20">
+        Revision patterns from 1.1M permits · Risk factors by project type
+      </div>
+    </div>
+
+    <!-- STUCK teaser -->
+    <div x-show="open === 'stuck'" x-transition.opacity x-transition.duration.200ms
+         class="mt-4 bg-glass border border-glass-border rounded-lg p-4 text-left">
+      <div class="flex items-start gap-3">
+        <span class="font-mono text-[28px] font-light text-signal-amber leading-none mt-0.5">47</span>
+        <div class="flex-1">
+          <div class="font-sans text-sm font-light text-white/70 leading-relaxed">
+            <strong class="text-white/90 font-normal">47 permits stalled at SFPUC right now.</strong>
+            Average wait: 14 days. We track queue depth at every station in real time
+            so you know exactly where you stand.
+          </div>
+          <div class="flex items-center gap-4 mt-3">
+            <a href="/analyze" class="font-mono text-[11px] text-accent hover:underline">Check your permit →</a>
+            <a href="#stuck" class="font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors">See queue data ↓</a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-glass-border font-mono text-[9px] text-white/20">
+        Queue data updated every 6 hours · 8 review stations tracked per permit
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll cue -->
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 fade-in fade-d6">
+    <span class="font-mono text-[10px] text-white/25 tracking-[0.1em] uppercase">Scroll to see what we know</span>
+    <svg class="w-4 h-4 text-accent animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     01 · PROJECT TIMELINE (GANTT)
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="gantt">
+<div class="max-w-[1060px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">01 — project timeline</div>
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    Your contractor says <em class="not-italic text-accent font-normal">6 months</em>.<br>
+    The data says <span class="text-signal-amber">9</span>.
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    We track every permit through every review station. When stations run in parallel,
+    we show it. When one is stalled and blocking everything downstream, we flag it.
+  </p>
+
+  {% if showcase and showcase.station_timeline %}
+    {% include 'components/showcase_gantt.html' %}
+  {% else %}
+  <!-- Fallback when no showcase data -->
+  <div class="bg-glass border border-glass-border rounded-lg p-8 text-center mb-4 reveal reveal-d2">
+    <p class="font-mono text-sm text-white/25">Timeline data loading…</p>
+  </div>
+  {% endif %}
+
+  <!-- Callout -->
+  <div class="bg-signal-amber/5 border border-signal-amber/10 border-l-2 border-l-signal-amber rounded-lg px-5 py-4 mb-4 reveal reveal-d3">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <span class="mr-2">⚠</span>
+      {% if showcase and showcase.station_timeline %}
+      <strong class="font-normal text-white/90">{{ showcase.station_timeline.description or 'Parallel review stations run concurrently' }}</strong> —
+      when one station stalls, it can block everything downstream.
+      {% else %}
+      <strong class="font-normal text-white/90">Parallel stations run concurrently.</strong>
+      When one stalls, it blocks everything downstream.
+      {% endif %}
+      <a href="/analyze" class="text-accent hover:underline ml-1">Search your permit →</a>
+    </span>
+  </div>
+
+  <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 reveal reveal-d3">
+    <span class="w-1 h-1 rounded-full bg-signal-green/60"></span>
+    Data updated nightly · Station velocity model · 1.1M permits analyzed
+  </div>
+
+  <!-- Bridge -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    But what if the timing had been different? <a href="#whatif" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See how filing date changes everything ↓</a>
+  </div>
+
 </div>
+</section>
 
-<script nonce="{{ csp_nonce }}">
-  // ═══ DATA ═══
+<!-- ═══════════════════════════════════════
+     02 · WHAT-IF ANALYSIS
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="whatif">
+<div class="max-w-[900px] mx-auto px-6">
 
-  // Common "do I need a permit for..." — ranked by actual SF permit volume
-  const permitQuestions = [
-    { q: 'Do I need a permit for a kitchen remodel?', tag: '233K filed', tagColor: '', note: 'OTC if cosmetic, in-house if structural' },
-    { q: 'Do I need a permit to replace my roof?', tag: '150K filed', tagColor: '', note: 'Usually OTC for like-for-like' },
-    { q: 'Do I need a permit for a bathroom remodel?', tag: '105K filed', tagColor: '', note: 'OTC if cosmetic, in-house if plumbing moves' },
-    { q: 'Do I need a permit to replace windows?', tag: '78K filed', tagColor: 'amber', note: 'Yes — often skipped' },
-    { q: 'Do I need a permit to replace a water heater?', tag: '63K filed', tagColor: 'amber', note: 'Yes — most people skip this' },
-    { q: 'Do I need a permit for a garage conversion?', tag: '43K filed', tagColor: '', note: 'Always yes — change of use' },
-    { q: 'Do I need a permit to build a deck?', tag: '32K filed', tagColor: '', note: 'Yes if attached or elevated' },
-    { q: 'Do I need a permit for solar panels?', tag: '18K filed', tagColor: 'green', note: 'OTC eligible — same day' },
-    { q: 'Do I need a permit for an ADU?', tag: '4K filed', tagColor: 'green', note: 'Streamlined path since 2023' },
-    { q: 'Do I need a permit for an electrical panel upgrade?', tag: '3.9K filed', tagColor: 'amber', note: 'Yes — often missed' },
-  ];
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">02 — what-if analysis</div>
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    What if you'd filed <em class="not-italic text-accent font-normal">3 months earlier</em>?
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    Timing, scope, permit type — every variable changes your timeline.
+    Add a wall and you jump from OTC to full plan review. We model the difference.
+  </p>
 
-  const questionSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  <!-- Interactive scenario selector -->
+  <div x-data="{
+    scenario: 'earlier',
+    scenarios: {
+      earlier:  { label: '3 months earlier',     date: 'If filed October 2024',    days: 198, pct: 66,  color: 'accent',       backlog: 'SFPUC: 19 permits ahead · avg 8d review',       savings: '76 fewer days', note: 'Timing alone' },
+      today:    { label: 'If filed today',        date: 'Filed March 2026',         days: 241, pct: 81,  color: 'signal-amber', backlog: 'SFPUC: 38 permits ahead · avg 11d review',      savings: '33 fewer days', note: 'Current conditions' },
+      best:     { label: 'Best month (2 yr)',     date: 'If filed June 2024',       days: 162, pct: 54,  color: 'accent',       backlog: 'SFPUC: 11 permits ahead · avg 6d review',       savings: '112 fewer days', note: 'Optimal window' },
+      addwall:  { label: 'Add a wall',            date: 'Scope → full plan review', days: 274, pct: 92,  color: 'signal-red',   backlog: 'Adding a wall triggers full plan review + BLDG station', savings: 'OTC → full review', note: 'OTC threshold' },
+      skipwall: { label: 'Skip the wall',         date: 'Scope stays OTC-eligible', days: 3,   pct: 1,   color: 'accent',       backlog: 'Over-the-counter: no plan review stations required', savings: '271 fewer days', note: 'Under OTC threshold' },
+      adu:      { label: 'ADU instead',           date: 'ADU conversion pathway',   days: 312, pct: 100, color: 'signal-red',   backlog: 'ADU adds Planning Commission + 2 extra stations', savings: '38 more days', note: 'Different permit type' }
+    }
+  }" class="reveal reveal-d2">
 
-  // Simulated watched properties (power user has 90)
-  const watchedProperties = [
-    { addr: '487 Noe St', type: 'Kitchen remodel', status: 'amber', activity: 'PPC stalled 12d' },
-    { addr: '1122 Folsom St', type: 'Commercial TI', status: 'red', activity: '2 new complaints' },
-    { addr: '225 Bush St', type: 'Seismic retrofit', status: 'green', activity: 'BLDG approved today' },
-    { addr: '88 1st St', type: 'New construction', status: 'green', activity: 'On track' },
-    { addr: '301 Howard St', type: 'Restaurant buildout', status: 'amber', activity: 'DPH pending 28d' },
-    { addr: '150 Van Ness Ave', type: 'Office conversion', status: 'green', activity: '6/8 stations cleared' },
-    { addr: '2001 Market St', type: 'ADU', status: 'green', activity: 'Issued last week' },
-    { addr: '3412 Mission St', type: 'Storefront', status: 'amber', activity: 'Plan check comments' },
-    { addr: '555 California St', type: 'Elevator modernization', status: 'green', activity: 'On track' },
-    { addr: '1700 Owens St', type: 'Lab buildout', status: 'green', activity: '4/6 stations cleared' },
-    { addr: '735 Market St', type: 'Commercial TI', status: 'amber', activity: 'Revision submitted' },
-    { addr: '50 Beale St', type: 'Fire alarm upgrade', status: 'green', activity: 'SFFD approved' },
-    { addr: '1800 Bryant St', type: 'Warehouse conversion', status: 'red', activity: 'NOV issued' },
-    { addr: '475 Brannan St', type: 'Office remodel', status: 'green', activity: 'On track' },
-    { addr: '2222 Sutter St', type: 'Medical office', status: 'amber', activity: 'CPC review pending' },
-    // ... imagine 75 more
-  ];
+    <!-- Scenario tabs -->
+    <div class="flex gap-2 mb-4 flex-wrap">
+      <template x-for="(s, key) in scenarios" :key="key">
+        <button @click="scenario = key"
+                class="font-mono text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer"
+                :class="scenario === key
+                  ? 'border-accent-ring text-accent bg-accent-glow'
+                  : 'border-glass-border text-white/45 bg-glass hover:border-accent-ring hover:text-white/90'"
+                x-text="s.label"></button>
+      </template>
+    </div>
 
-  const recentSearches = [
-    { addr: '487 Noe St', type: 'Kitchen remodel' },
-    { addr: '1122 Folsom St', type: 'Commercial TI' },
-    { addr: '225 Bush St', type: 'Seismic retrofit' },
-    { addr: '3639 18th St', type: 'Bathroom remodel' },
-    { addr: '950 Mason St', type: 'Elevator modernization' },
-  ];
+    <!-- Comparison cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Current (actual) -->
+      <div class="bg-glass border border-signal-red/15 rounded-lg p-5">
+        <div class="font-mono text-[10px] font-normal tracking-[0.1em] uppercase text-signal-red mb-3">
+          {% if showcase and showcase.what_if and showcase.what_if.actual_label %}
+            {{ showcase.what_if.actual_label }}
+          {% else %}
+            Filed January 2025 (actual)
+          {% endif %}
+        </div>
+        <div class="font-mono text-[clamp(28px,3vw,36px)] font-light text-signal-red mb-1">
+          {% if showcase and showcase.what_if and showcase.what_if.actual_days %}
+            {{ showcase.what_if.actual_days }} days
+          {% else %}
+            274 days
+          {% endif %}
+        </div>
+        <div class="font-sans text-xs text-white/45 font-light">Projected total duration</div>
+        <div class="mt-4 h-1.5 rounded-full bg-glass-border overflow-hidden">
+          <div class="h-full rounded-full bg-signal-red/70" style="width: 92%;"></div>
+        </div>
+        <div class="mt-3 font-mono text-[11px] text-white/25">
+          SFPUC backlog: 47 permits ahead · avg 14d review
+        </div>
+      </div>
+      <!-- Scenario (dynamic) -->
+      <div class="bg-glass border rounded-lg p-5 transition-colors"
+           :class="scenarios[scenario].color === 'accent' ? 'border-accent-ring' : 'border-signal-amber/20'">
+        <div class="font-mono text-[10px] font-normal tracking-[0.1em] uppercase mb-3"
+             :class="scenarios[scenario].color === 'accent' ? 'text-accent' : 'text-signal-amber'"
+             x-text="scenarios[scenario].date"></div>
+        <div class="font-mono text-[clamp(28px,3vw,36px)] font-light mb-1"
+             :class="scenarios[scenario].color === 'accent' ? 'text-accent' : scenarios[scenario].color === 'signal-red' ? 'text-signal-red' : 'text-signal-amber'"
+             x-text="scenarios[scenario].days + ' days'"></div>
+        <div class="font-sans text-xs text-white/45 font-light">Projected total duration</div>
+        <div class="mt-4 h-1.5 rounded-full bg-glass-border overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-500"
+               :class="scenarios[scenario].color === 'accent' ? 'bg-accent/70' : scenarios[scenario].color === 'signal-red' ? 'bg-signal-red/70' : 'bg-signal-amber/70'"
+               :style="'width:' + scenarios[scenario].pct + '%'"></div>
+        </div>
+        <div class="mt-3 font-mono text-[11px] text-white/25" x-text="scenarios[scenario].backlog"></div>
+      </div>
+    </div>
 
-  const exampleAddresses = [
-    { addr: '1455 Market St', type: 'Commercial' },
-    { addr: '3639 18th St', type: 'Kitchen remodel' },
-    { addr: '201 Spear St', type: 'New construction' },
-    { addr: '742 Shotwell St', type: 'ADU' },
-    { addr: '950 Mason St', type: 'Seismic retrofit' },
-    { addr: '2175 Market St', type: 'Restaurant buildout' },
-  ];
-
-  const pinSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
-  const clockSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-  const eyeSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-
-  let currentState = 'new';
-  const input = document.getElementById('search-input');
-  const dropdown = document.getElementById('search-dropdown');
-  const searchBar = document.getElementById('search-bar');
-  const exLink = document.getElementById('example-link');
-  const emptyMsg = document.getElementById('dropdown-empty');
-
-  // ═══ RENDER ═══
-
-  function highlightMatch(text, query) {
-    if (!query) return text;
-    const idx = text.toLowerCase().indexOf(query.toLowerCase());
-    if (idx === -1) return text;
-    return text.slice(0, idx) + '<mark>' + text.slice(idx, idx + query.length) + '</mark>' + text.slice(idx + query.length);
-  }
-
-  function renderItem(item, icon, query, showStatus) {
-    const statusDot = showStatus && item.status
-      ? `<span class="item-status status-${item.status}" title="${item.activity || ''}"></span>`
-      : '';
-    return `
-      <div class="dropdown-item" onmousedown="selectAddress('${item.addr}', '${item.type}')">
-        <span class="item-icon">${icon}</span>
-        <span class="item-address">${highlightMatch(item.addr, query)}</span>
-        <span class="item-badge">
-          ${statusDot}
-          <span class="item-type">${item.type}</span>
+    <!-- Savings callout -->
+    <div class="bg-glass border border-glass-border rounded-lg px-5 py-4 mt-4">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+          <strong class="font-normal text-white/90" x-text="scenarios[scenario].savings"></strong>
+          — <span class="text-white/25" x-text="scenarios[scenario].note"></span>
+          <a href="/analyze" class="text-accent hover:underline ml-1">Try what-if analysis →</a>
         </span>
-      </div>`;
-  }
+      </div>
+    </div>
+  </div>
 
-  function renderDropdown(query) {
-    let html = '';
-    let totalVisible = 0;
-    const q = (query || '').toLowerCase().trim();
+  <!-- Bridge -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    Even with perfect timing, most projects hit another wall. <a href="#risk" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See the revision risk ↓</a>
+  </div>
 
-    if (currentState === 'new') {
-      // New visitors: only show examples, only when explicitly asked or filtering
-      const filtered = exampleAddresses.filter(a =>
-        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
-      );
-      if (filtered.length > 0) {
-        html += `<div class="dropdown-section"><div class="dropdown-label">Example addresses</div>`;
-        filtered.forEach(a => { html += renderItem(a, pinSVG, q, false); });
-        html += `</div>`;
-        totalVisible = filtered.length;
-      }
-    }
-
-    if (currentState === 'returning') {
-      // Recent searches
-      const recentFiltered = recentSearches.filter(a =>
-        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
-      ).slice(0, q ? 5 : 3);
-      if (recentFiltered.length > 0) {
-        html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
-        recentFiltered.forEach(a => { html += renderItem(a, clockSVG, q, false); });
-        html += `</div>`;
-        totalVisible += recentFiltered.length;
-      }
-      // Show fewer examples
-      if (!q) {
-        html += `<div class="dropdown-section"><div class="dropdown-label">Try an address</div>`;
-        exampleAddresses.slice(0, 2).forEach(a => { html += renderItem(a, pinSVG, q, false); });
-        html += `</div>`;
-        totalVisible += 2;
-      }
-    }
-
-    if (currentState === 'power') {
-      // PRIORITY 1: Filter watched properties
-      const watchedFiltered = watchedProperties.filter(a =>
-        !q || a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)
-      );
-
-      // Show "needs attention" first (red, amber), then green — capped
-      const needsAttention = watchedFiltered.filter(a => a.status === 'red' || a.status === 'amber');
-      const onTrack = watchedFiltered.filter(a => a.status === 'green');
-
-      if (q) {
-        // Filtering: show all matches, up to 7
-        const shown = watchedFiltered.slice(0, 7);
-        if (shown.length > 0) {
-          const matchLabel = watchedFiltered.length > 7
-            ? `${shown.length} of ${watchedFiltered.length} matches`
-            : `${shown.length} match${shown.length === 1 ? '' : 'es'}`;
-          html += `<div class="dropdown-section"><div class="dropdown-label">Watching <span class="label-count">${matchLabel}</span></div>`;
-          shown.forEach(a => { html += renderItem(a, eyeSVG, q, true); });
-          html += `</div>`;
-          totalVisible += shown.length;
-        }
-
-        // PRIORITY 2: Recent searches (exclude already-shown watched)
-        const watchedAddrs = new Set(watchedProperties.map(a => a.addr));
-        const recentOnly = recentSearches.filter(a =>
-          !watchedAddrs.has(a.addr) &&
-          (a.addr.toLowerCase().includes(q) || a.type.toLowerCase().includes(q))
-        ).slice(0, 3);
-        if (recentOnly.length > 0) {
-          html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
-          recentOnly.forEach(a => { html += renderItem(a, clockSVG, q, false); });
-          html += `</div>`;
-          totalVisible += recentOnly.length;
-        }
-      } else {
-        // No query: show hot list
-        // Needs attention (up to 3)
-        const hotItems = needsAttention.slice(0, 3);
-        if (hotItems.length > 0) {
-          html += `<div class="dropdown-section"><div class="dropdown-label">Needs attention <span class="label-count">${needsAttention.length} total</span></div>`;
-          hotItems.forEach(a => { html += renderItem(a, eyeSVG, '', true); });
-          html += `</div>`;
-          totalVisible += hotItems.length;
-        }
-
-        // Recent (up to 3, excluding watched)
-        const watchedAddrs = new Set(watchedProperties.map(a => a.addr));
-        const recentOnly = recentSearches.filter(a => !watchedAddrs.has(a.addr)).slice(0, 3);
-        if (recentOnly.length > 0) {
-          html += `<div class="dropdown-section"><div class="dropdown-label">Recent</div>`;
-          recentOnly.forEach(a => { html += renderItem(a, clockSVG, '', false); });
-          html += `</div>`;
-          totalVisible += recentOnly.length;
-        }
-
-        // Footer: link to full portfolio
-        html += `<div class="dropdown-footer"><a href="/portfolio">All ${watchedProperties.length} watched properties →</a></div>`;
-      }
-    }
-
-    // Empty state for typed queries with no matches
-    emptyMsg.style.display = (q && totalVisible === 0 && currentState !== 'new') ? 'block' : 'none';
-
-    // Remove old sections (keep empty msg)
-    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
-    dropdown.insertAdjacentHTML('afterbegin', html);
-  }
-
-  // ═══ INTERACTIONS ═══
-
-  // Hide scroll-cue whenever dropdown is open (prevents bleed-through glass)
-  var scrollCue = document.getElementById('scroll-cue');
-  new MutationObserver(function() {
-    if (!scrollCue) return;
-    if (dropdown.classList.contains('open')) {
-      scrollCue.classList.add('dropdown-active');
-    } else if (!scrollCue.classList.contains('hidden')) {
-      scrollCue.classList.remove('dropdown-active');
-    }
-  }).observe(dropdown, { attributes: true, attributeFilter: ['class'] });
-
-  function openDropdown() {
-    renderDropdown(input.value);
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-  }
-
-  let mouseInSearchZone = false;
-  let activeSource = null;
-
-  function setSourceActive(el) {
-    clearSourceActive();
-    activeSource = el;
-    if (el) el.classList.add('source-active');
-  }
-  function clearSourceActive() {
-    if (activeSource) activeSource.classList.remove('source-active');
-    activeSource = null;
-  }
-
-  // Search zone = search bar + dropdown only (tight)
-  searchBar.addEventListener('mouseenter', () => { mouseInSearchZone = true; });
-  searchBar.addEventListener('mouseleave', () => {
-    mouseInSearchZone = false;
-    // Small delay to check if mouse moved into dropdown
-    setTimeout(() => {
-      if (!mouseInSearchZone && document.activeElement !== input) {
-        closeDropdownNow();
-      }
-    }, 100);
-  });
-  dropdown.addEventListener('mouseenter', () => { mouseInSearchZone = true; });
-  dropdown.addEventListener('mouseleave', () => {
-    mouseInSearchZone = false;
-    setTimeout(() => {
-      if (!mouseInSearchZone && document.activeElement !== input) {
-        closeDropdownNow();
-      }
-    }, 100);
-  });
-
-  function closeDropdownNow() {
-    dropdown.classList.remove('open');
-    searchBar.classList.remove('dropdown-open');
-    clearSourceActive();
-    input.value = '';
-  }
-
-  function closeDropdown() {
-    setTimeout(() => {
-      if (!mouseInSearchZone) {
-        closeDropdownNow();
-      }
-    }, 150);
-  }
-
-  function showExamples() {
-    input.focus();
-    renderDropdown('');
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-  }
-
-  // Common project types for "kitchen remodel" hover
-  const projectTypes = [
-    { q: 'kitchen remodel — cosmetic only', note: 'Cabinets, counters, no plumbing moves', tag: 'OTC eligible', tagColor: 'green' },
-    { q: 'kitchen remodel — full gut', note: 'New layout, plumbing, electrical, possibly structural', tag: 'In-house review', tagColor: 'amber' },
-    { q: 'bathroom remodel', note: 'Fixtures, tile, possibly plumbing relocation', tag: '105K filed', tagColor: '' },
-    { q: 'bedroom addition', note: 'New square footage, structural + planning', tag: 'In-house review', tagColor: 'amber' },
-    { q: 'garage conversion', note: 'Change of use — always requires permit', tag: '43K filed', tagColor: '' },
-    { q: 'deck or patio', note: 'Attached or elevated requires permit', tag: '32K filed', tagColor: '' },
-    { q: 'seismic retrofit', note: 'Soft-story or foundation work', tag: 'Mandated', tagColor: 'amber' },
-    { q: 'ADU / in-law unit', note: 'Streamlined approval path since 2023', tag: 'Fast track', tagColor: 'green' },
-  ];
-
-  const hammerSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
-
-  function showProjectTypes(evt) {
-    if (evt && evt.target) setSourceActive(evt.target);
-    input.value = '';
-    input.focus();
-    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
-    emptyMsg.style.display = 'none';
-    let html = '<div class="dropdown-section"><div class="dropdown-label">Popular project types</div>';
-    projectTypes.forEach(pt => {
-      const tagStyle = pt.tagColor === 'amber'
-        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
-        : pt.tagColor === 'green'
-        ? 'color: var(--accent); border-color: rgba(94,234,212,0.25);'
-        : '';
-      html += `
-        <div class="dropdown-item" style="align-items: flex-start;" onmousedown="input.value='${pt.q}'; document.getElementById('search-bar').submit();">
-          <span class="item-icon" style="margin-top: 3px;">${hammerSVG}</span>
-          <span style="flex: 1; min-width: 0;">
-            <span class="item-address" style="display: block;">${pt.q}</span>
-            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${pt.note}</span>
-          </span>
-          <span class="item-badge"><span class="item-type" style="${tagStyle}">${pt.tag}</span></span>
-        </div>`;
-    });
-    html += '</div>';
-    dropdown.insertAdjacentHTML('afterbegin', html);
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-  }
-
-  function showAddressExamples(evt) {
-    if (evt && evt.target) setSourceActive(evt.target);
-    input.value = '';
-    input.focus();
-    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
-    emptyMsg.style.display = 'none';
-    let html = '<div class="dropdown-section"><div class="dropdown-label">Try an address</div>';
-    exampleAddresses.forEach(a => {
-      html += renderItem(a, pinSVG, '', false);
-    });
-    html += '</div>';
-    dropdown.insertAdjacentHTML('afterbegin', html);
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-  }
-
-  function prefillSearch(text) {
-    input.value = text;
-    input.focus();
-    renderDropdown(text);
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-  }
-
-  function showPermitQuestions(evt) {
-    if (evt && evt.target) setSourceActive(evt.target);
-    input.value = 'Do I need a permit for ';
-    input.focus();
-    // Render custom permit questions dropdown
-    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
-    emptyMsg.style.display = 'none';
-    let html = '<div class="dropdown-section"><div class="dropdown-label">Top SF permit questions <span class="label-count">ranked by volume</span></div>';
-    permitQuestions.forEach(pq => {
-      const tagStyle = pq.tagColor === 'amber'
-        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
-        : pq.tagColor === 'green'
-        ? 'color: var(--accent); border-color: rgba(94,234,212,0.25);'
-        : '';
-      const shortQ = pq.q.replace('Do I need a permit for ', '').replace('Do I need a permit to ', '');
-      html += `
-        <div class="dropdown-item" style="align-items: flex-start;" onmousedown="input.value='${pq.q}'; document.getElementById('search-bar').submit();">
-          <span class="item-icon" style="margin-top: 3px;">${questionSVG}</span>
-          <span style="flex: 1; min-width: 0;">
-            <span class="item-address" style="display: block;">${shortQ}</span>
-            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${pq.note}</span>
-          </span>
-          <span class="item-badge">
-            <span class="item-type" style="${tagStyle}">${pq.tag}</span>
-          </span>
-        </div>`;
-    });
-    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="#" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">Based on 1.1M+ SF building permits →</a></div>';
-    html += '</div>';
-    dropdown.insertAdjacentHTML('afterbegin', html);
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-    input.setSelectionRange(input.value.length, input.value.length);
-  }
-
-  const clockSVG2 = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-  const alertSVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-
-  const timelineData = [
-    { q: 'Kitchen remodel (OTC)', note: 'Cosmetic only — cabinets, counters, no plumbing', tag: '1 day', tagColor: 'green' },
-    { q: 'Kitchen remodel (in-house)', note: 'Structural, plumbing moves, electrical', tag: '45-90 days', tagColor: 'amber' },
-    { q: 'Bathroom remodel', note: 'Fixtures + tile, possibly plumbing relocation', tag: '30-60 days', tagColor: '' },
-    { q: 'ADU / in-law unit', note: 'Streamlined approval path since 2023', tag: '60-120 days', tagColor: 'amber' },
-    { q: 'Seismic retrofit', note: 'Soft-story or foundation work', tag: '90-180 days', tagColor: 'amber' },
-    { q: 'New construction', note: 'Full plan review required', tag: '6-18 months', tagColor: 'amber' },
-  ];
-
-  function showTimelines(evt) {
-    if (evt && evt.target) setSourceActive(evt.target);
-    input.value = '';
-    input.focus();
-    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
-    emptyMsg.style.display = 'none';
-    let html = '<div class="dropdown-section"><div class="dropdown-label">How long does it take? <span class="label-count">typical timelines</span></div>';
-    timelineData.forEach(t => {
-      const tagStyle = t.tagColor === 'amber'
-        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
-        : t.tagColor === 'green'
-        ? 'color: var(--accent); border-color: rgba(94,234,212,0.25);'
-        : '';
-      html += `
-        <div class="dropdown-item" style="align-items: flex-start;" onmousedown="input.value='${t.q}'; closeDropdown(); input.blur();">
-          <span class="item-icon" style="margin-top: 3px;">${clockSVG2}</span>
-          <span style="flex: 1; min-width: 0;">
-            <span class="item-address" style="display: block;">${t.q}</span>
-            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${t.note}</span>
-          </span>
-          <span class="item-badge"><span class="item-type" style="${tagStyle}">${t.tag}</span></span>
-        </div>`;
-    });
-    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="#" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">Enter your address for a neighborhood estimate \u2192</a></div>';
-    html += '</div>';
-    dropdown.insertAdjacentHTML('afterbegin', html);
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-  }
-
-  const stuckData = [
-    { station: 'PPC (Plan Review)', note: 'Longest station \u2014 often 3-6 months', tag: 'avg 174d', tagColor: 'amber' },
-    { station: 'SFFD (Fire)', note: 'Sprinkler plans need separate review', tag: 'avg 28d', tagColor: '' },
-    { station: 'CP-ZOC (Planning)', note: 'Conditional use triggers this station', tag: 'avg 45d', tagColor: 'amber' },
-    { station: 'DPH (Public Health)', note: 'Restaurant, food service, pool projects', tag: 'avg 35d', tagColor: '' },
-    { station: 'BLDG (Building)', note: 'Structural, mechanical, electrical review', tag: 'avg 21d', tagColor: '' },
-  ];
-
-  function showStuckPermit(evt) {
-    if (evt && evt.target) setSourceActive(evt.target);
-    input.value = '';
-    input.focus();
-    dropdown.querySelectorAll('.dropdown-section, .dropdown-footer').forEach(el => el.remove());
-    emptyMsg.style.display = 'none';
-    let html = '<div class="dropdown-section"><div class="dropdown-label">Common stall points <span class="label-count">by station</span></div>';
-    html += '<div class="dropdown-item" style="padding: 12px 22px; color: var(--text-secondary); font-size: 12px; font-family: var(--mono);">Enter a permit # or address to check yours</div>';
-    stuckData.forEach(s => {
-      const tagStyle = s.tagColor === 'amber'
-        ? 'color: var(--amber); border-color: rgba(251,191,36,0.25);'
-        : '';
-      html += `
-        <div class="dropdown-item" style="align-items: flex-start;">
-          <span class="item-icon" style="margin-top: 3px;">${alertSVG}</span>
-          <span style="flex: 1; min-width: 0;">
-            <span class="item-address" style="display: block;">${s.station}</span>
-            <span style="font-family: var(--sans); font-size: 10px; color: rgba(255,255,255,0.3); display: block; margin-top: 1px;">${s.note}</span>
-          </span>
-          <span class="item-badge"><span class="item-type" style="${tagStyle}">${s.tag}</span></span>
-        </div>`;
-    });
-    html += '<div style="padding: 8px 22px 10px; border-top: 1px solid var(--glass-border); text-align: center;"><a href="/about-data" style="font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.25); text-decoration: none;">What do these stations mean? \u2192</a></div>';
-    html += '</div>';
-    dropdown.insertAdjacentHTML('afterbegin', html);
-    dropdown.classList.add('open');
-    searchBar.classList.add('dropdown-open');
-  }
-
-  input.addEventListener('focus', () => {
-    if (currentState !== 'new') {
-      openDropdown();
-    }
-  });
-  input.addEventListener('blur', closeDropdown);
-  input.addEventListener('input', () => {
-    renderDropdown(input.value);
-    if (input.value.length > 0 || currentState !== 'new') {
-      dropdown.classList.add('open');
-      searchBar.classList.add('dropdown-open');
-    }
-  });
-
-  // Keyboard shortcut: / to focus search
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && document.activeElement !== input) {
-      e.preventDefault();
-      input.focus();
-    }
-  });
-
-  function selectAddress(addr, type) {
-    input.value = addr;
-    dropdown.classList.remove('open');
-    searchBar.classList.remove('dropdown-open');
-    document.getElementById('search-bar').submit();
-  }
-
-  const states = {
-    new: {
-      placeholder: 'Enter an SF address or describe your project',
-      sub: '',
-      watched: '',
-      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
-      scroll: 'See how it works'
-    },
-    returning: {
-      placeholder: 'Search any SF address',
-      sub: '',
-      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/?q=225+Bush+St">225 Bush — on track</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">2 watching →</a>',
-      context: 'try: <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
-      scroll: 'What\'s new this week'
-    },
-    returning_nowatch: {
-      placeholder: 'Search any SF address',
-      sub: '',
-      watched: '',
-      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
-      scroll: 'What\'s new this week'
-    },
-    power: {
-      placeholder: 'Search your properties or any address',
-      sub: '23 properties watched · 14 active · 3 need attention',
-      watched: '<span class="urgent-dot urgent-dot--red"></span>1122 Folsom — new complaint · <span class="urgent-dot urgent-dot--amber"></span>487 Noe — PPC stalled 12d · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">view all →</a>',
-      context: '',
-      scroll: 'Morning brief'
-    },
-    beta: {
-      placeholder: 'Enter an SF address or describe your project',
-      sub: '',
-      watched: '<span class="urgent-dot urgent-dot--amber"></span><a href="/?q=487+Noe+St">487 Noe — PPC stalled 12d</a> · <a href="/portfolio" style="color:rgba(255,255,255,0.3)">1 watching →</a>',
-      context: 'try: <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
-      scroll: 'See what you can do'
-    },
-    beta_nowatch: {
-      placeholder: 'Enter an SF address or describe your project',
-      sub: '',
-      watched: '',
-      context: 'try: <a onmouseenter="showAddressExamples(event)">487 Noe St</a> · <a onmouseenter="showPermitQuestions(event)">do I need a permit?</a>',
-      scroll: 'See what you can do'
-    }
-  };
-
-  function setState(s) {
-    currentState = s;
-    input.value = '';
-    dropdown.classList.remove('open');
-    searchBar.classList.remove('dropdown-open');
-
-    const st = states[s];
-    const belowSub = document.getElementById('below-sub');
-    const belowWatched = document.getElementById('below-watched');
-    const belowCtx = document.getElementById('below-context');
-    const scrollText = document.getElementById('scroll-text');
-
-    // Kill initial animations so toggle works
-    [belowSub, belowWatched, belowCtx].forEach(el => {
-      el.style.animation = 'none';
-      el.style.opacity = '0';
-    });
-    setTimeout(() => {
-      input.placeholder = st.placeholder;
-      belowSub.innerHTML = st.sub;
-      belowWatched.innerHTML = st.watched;
-      belowCtx.innerHTML = st.context;
-      if (scrollText) scrollText.textContent = st.scroll;
-      // Stagger the fade-ins
-      setTimeout(() => { if (st.sub) belowSub.style.opacity = '1'; }, 0);
-      setTimeout(() => { if (st.watched) belowWatched.style.opacity = '1'; }, 200);
-      setTimeout(() => { if (st.context) belowCtx.style.opacity = '1'; }, 400);
-
-      // Beta badge — show for beta states only
-      const badge = document.getElementById('beta-badge');
-      badge.classList.toggle('visible', s.startsWith('beta'));
-    }, 200);
-
-    document.querySelectorAll('.state-toggle button').forEach(btn => {
-      // Match button text to state name
-      const btnStates = {
-        'New Visitor': 'new',
-        'Beta Tester': 'beta_nowatch',
-        'Beta + Watching': 'beta',
-        'Returning': 'returning_nowatch',
-        'Returning + Watching': 'returning',
-        'Power User': 'power'
-      };
-      btn.classList.toggle('active', btnStates[btn.textContent.trim()] === s);
-    });
-  }
-
-  // ═══ OBSERVERS ═══
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        entry.target.querySelectorAll('.counting').forEach(el => {
-          if (!el.dataset.started) { el.dataset.started = 'true'; animateCount(el); }
-        });
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-  function animateCount(el) {
-    const target = parseInt(el.dataset.target), duration = 2000, start = performance.now();
-    function step(now) {
-      const p = Math.min((now - start) / duration, 1);
-      el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target).toLocaleString('en-US');
-      if (p < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-
-  let scrolled = false;
-  window.addEventListener('scroll', () => {
-    if (!scrolled && window.scrollY > 80) {
-      scrolled = true;
-      document.getElementById('scroll-cue').classList.add('hidden');
-    }
-  }, { passive: true });
-</script>
-<!-- Admin state toggle — only with ?admin=1 -->
-<div class="state-toggle" id="state-toggle">
-  <button class="active" onclick="setState('new')">New Visitor</button>
-  <button onclick="setState('beta_nowatch')">Beta Tester</button>
-  <button onclick="setState('beta')">Beta + Watching</button>
-  <button onclick="setState('returning_nowatch')">Returning</button>
-  <button onclick="setState('returning')">Returning + Watching</button>
-  <button onclick="setState('power')">Power User</button>
 </div>
-<script nonce="{{ csp_nonce }}">
-  // Show state toggle for admin (URL param or cookie)
-  var isAdm = new URLSearchParams(window.location.search).has('admin')
-    || document.cookie.split(';').some(function(c) { return c.trim().startsWith('qa_admin='); });
-  if (isAdm) document.getElementById('state-toggle').classList.add('visible');
-</script>
-<script nonce="{{ csp_nonce }}" src="/static/admin-feedback.js" defer></script>
-<script nonce="{{ csp_nonce }}" src="/static/admin-tour.js" defer></script>
-<script nonce="{{ csp_nonce }}" src="/static/activity-tracker.js" defer></script>
-<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/showcase-gantt.js') }}" defer></script>
-<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/showcase-entity.js') }}" defer></script>
-<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='mcp-demo.js') }}" defer></script>
-{% if posthog_key %}
-<script async nonce="{{ csp_nonce }}">
-  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-  posthog.init('{{ posthog_key }}', {api_host: '{{ posthog_host }}'});
-</script>
-{% endif %}
+</section>
 
-<script src="{{ url_for('static', filename='js/honeypot.js') }}"></script>
+<!-- ═══════════════════════════════════════
+     03 · REVISION RISK
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="risk">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">03 — revision risk</div>
+
+  <div x-data="{
+    proj: 'kitchen',
+    projects: {
+      kitchen:  { label: 'Kitchen remodel', pct: 73, color: 'signal-amber', ctx: 'SoMa · Commercial', factors: [
+        { name: 'Fire suppression not on plans', pct: '+31%', level: 'red' },
+        { name: 'Energy compliance (Title 24) missing', pct: '+22%', level: 'amber' },
+        { name: 'Grease trap detail insufficient', pct: '+14%', level: 'amber' },
+        { name: 'ADA clearance conflicts', pct: '+6%', level: 'dim' }
+      ]},
+      adu: { label: 'ADU conversion', pct: 91, color: 'signal-red', ctx: 'Citywide avg', factors: [
+        { name: 'Setback or lot coverage violation', pct: '+38%', level: 'red' },
+        { name: 'Missing fire separation details', pct: '+27%', level: 'red' },
+        { name: 'Utility connection conflicts', pct: '+19%', level: 'amber' },
+        { name: 'Parking replacement plan missing', pct: '+7%', level: 'dim' }
+      ]},
+      bathroom: { label: 'Bathroom remodel', pct: 42, color: 'accent', ctx: 'Residential avg', factors: [
+        { name: 'Vent fan ducting not to code', pct: '+18%', level: 'amber' },
+        { name: 'Water heater clearance issue', pct: '+12%', level: 'amber' },
+        { name: 'GFCI protection missing from plans', pct: '+8%', level: 'dim' },
+        { name: 'Tile waterproofing detail missing', pct: '+4%', level: 'dim' }
+      ]},
+      seismic: { label: 'Seismic retrofit', pct: 68, color: 'signal-amber', ctx: 'Soft-story mandatory', factors: [
+        { name: 'Shear wall calculations incomplete', pct: '+28%', level: 'red' },
+        { name: 'Foundation bolt spacing errors', pct: '+21%', level: 'amber' },
+        { name: 'Existing condition survey inadequate', pct: '+13%', level: 'amber' },
+        { name: 'Tenant notification not filed', pct: '+6%', level: 'dim' }
+      ]}
+    }
+  }">
+
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    <span :class="projects[proj].color === 'signal-red' ? 'text-signal-red' : projects[proj].color === 'accent' ? 'text-accent' : 'text-signal-amber'" x-text="projects[proj].pct + '%'">73%</span>
+    of <span x-text="projects[proj].label.toLowerCase()">kitchen remodels</span><br>get sent back at least once.
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-4 reveal reveal-d1">
+    We analyze revision patterns across 1.1M permits. Before you file,
+    know which stations reject most often and why.
+  </p>
+
+  <!-- Project type selector -->
+  <div class="flex gap-2 mb-6 flex-wrap reveal reveal-d1">
+    <template x-for="(p, key) in projects" :key="key">
+      <button @click="proj = key"
+              class="font-mono text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer"
+              :class="proj === key
+                ? 'border-accent-ring text-accent bg-accent-glow'
+                : 'border-glass-border text-white/45 bg-glass hover:border-accent-ring hover:text-white/90'"
+              x-text="p.label"></button>
+    </template>
+  </div>
+
+  <div class="bg-glass border border-glass-border rounded-lg p-5 mb-4 reveal reveal-d2">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="font-mono text-[clamp(32px,4vw,48px)] font-light transition-colors"
+             :class="projects[proj].color === 'signal-red' ? 'text-signal-red' : projects[proj].color === 'accent' ? 'text-accent' : 'text-signal-amber'"
+             x-text="projects[proj].pct + '%'">73%</div>
+        <div class="font-sans text-[13px] text-white/45">revision probability</div>
+      </div>
+      <div class="text-right">
+        <div class="font-mono text-[13px] text-white/45" x-text="projects[proj].label"></div>
+        <div class="font-mono text-[11px] text-white/25" x-text="projects[proj].ctx"></div>
+      </div>
+    </div>
+    <div class="h-1 rounded-full bg-glass-border mb-5 overflow-hidden">
+      <div class="h-full rounded-full bg-gradient-to-r from-signal-green via-signal-amber to-signal-red transition-all duration-500"
+           :style="'width:' + projects[proj].pct + '%'"></div>
+    </div>
+    <ul class="space-y-0">
+      <template x-for="(f, i) in projects[proj].factors" :key="i">
+        <li class="flex items-center gap-2.5 py-2 border-b border-white/[0.03] font-sans text-[13px] font-light text-white/45">
+          <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                :class="f.level === 'red' ? 'bg-signal-red' : f.level === 'amber' ? 'bg-signal-amber' : 'bg-white/25'"></span>
+          <a href="/analyze" class="hover:text-accent transition-colors" x-text="f.name"></a>
+          <span class="ml-auto font-mono text-xs"
+                :class="f.level === 'red' ? 'text-signal-red' : f.level === 'amber' ? 'text-signal-amber' : 'text-white/90'"
+                x-text="f.pct"></span>
+        </li>
+      </template>
+    </ul>
+  </div>
+
+  </div><!-- /x-data -->
+
+  <div class="bg-signal-amber/5 border border-signal-amber/10 border-l-2 border-l-signal-amber rounded-lg px-5 py-4 reveal reveal-d3">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <strong class="font-normal text-white/90">Each revision adds 3–6 weeks.</strong>
+      That's <span class="text-signal-red font-mono text-xs">$12,000–$18,000</span> in estimated carrying costs for a kitchen remodel.
+      Know the risks before you file.
+      <a href="/analyze" class="text-accent hover:underline ml-1">Check your project's risk →</a>
+    </span>
+  </div>
+
+  <!-- Bridge -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    What does that delay actually cost in dollars? <a href="#cost" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See the real cost of delay ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     04 · COST OF DELAY
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="cost">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">04 — cost of delay</div>
+
+  <div x-data="{
+    persona: 'homeowner',
+    personas: {
+      homeowner:  { label: 'Homeowner',       daily: 285,  total: 5130,   rent: 2850,  loan: 1425,  lost: 855,   note: 'Mortgage + temp housing + contractor idle', delayDays: 18 },
+      smallbiz:   { label: 'Small business',  daily: 847,  total: 15246,  rent: 8470,  loan: 4235,  lost: 2541,  note: 'Lease + loan interest + lost opening revenue', delayDays: 18 },
+      commercial: { label: 'Commercial TI',   daily: 2340, total: 42120,  rent: 23400, loan: 11700, lost: 7020,  note: 'Class A lease carry + buildout crew standby', delayDays: 18 },
+      developer:  { label: 'New construction', daily: 8500, total: 153000, rent: 85000, loan: 51000, lost: 17000, note: 'Construction loan at $3.2M + carrying costs', delayDays: 18 }
+    }
+  }">
+
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    Every stalled day costs <span class="text-signal-red" x-text="'$' + personas[persona].daily.toLocaleString()">$285</span>.
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-4 reveal reveal-d1">
+    Rent doesn't stop while permits are stuck. Neither does your loan interest.
+    We calculate the real cost of every day of delay — for your situation.
+  </p>
+
+  <!-- Persona selector -->
+  <div class="flex gap-2 mb-6 flex-wrap reveal reveal-d1">
+    <template x-for="(p, key) in personas" :key="key">
+      <button @click="persona = key"
+              class="font-mono text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer"
+              :class="persona === key
+                ? 'border-accent-ring text-accent bg-accent-glow'
+                : 'border-glass-border text-white/45 bg-glass hover:border-accent-ring hover:text-white/90'"
+              x-text="p.label"></button>
+    </template>
+  </div>
+
+  <div class="bg-glass border border-glass-border rounded-lg p-6 text-center mb-4 reveal reveal-d2">
+    <div class="font-mono text-[clamp(36px,5vw,56px)] font-light text-signal-red" x-text="'$' + personas[persona].total.toLocaleString()"></div>
+    <div class="font-mono text-[13px] text-white/25 mt-1">
+      burned in <span x-text="personas[persona].delayDays"></span> days of delays ·
+      <span class="text-signal-red" x-text="'$' + personas[persona].daily.toLocaleString() + '/day'"></span>
+    </div>
+    <div class="font-mono text-[11px] text-white/25 mt-1" x-text="personas[persona].note"></div>
+    <div class="font-mono text-[9px] text-white/15 mt-2">
+      Modeled estimate based on typical SF carrying costs ·
+      <a href="/methodology" class="text-white/25 hover:text-accent transition-colors underline">See methodology</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-5">
+      <div class="text-center p-3 border border-glass-border rounded-md">
+        <div class="font-mono text-base font-light text-signal-red" x-text="'$' + personas[persona].rent.toLocaleString()"></div>
+        <div class="font-sans text-[10px] text-white/25">Rent / carrying cost</div>
+      </div>
+      <div class="text-center p-3 border border-glass-border rounded-md">
+        <div class="font-mono text-base font-light text-signal-amber" x-text="'$' + personas[persona].loan.toLocaleString()"></div>
+        <div class="font-sans text-[10px] text-white/25">Loan interest</div>
+      </div>
+      <div class="text-center p-3 border border-glass-border rounded-md">
+        <div class="font-mono text-base font-light" x-text="'$' + personas[persona].lost.toLocaleString()"></div>
+        <div class="font-sans text-[10px] text-white/25">Lost revenue / opportunity</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-signal-red/5 border border-signal-red/10 border-l-2 border-l-signal-red rounded-lg px-5 py-4 reveal reveal-d3">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <strong class="font-normal text-white/90">Projects that address stalls proactively save an average of 40% on delay costs.</strong>
+      Knowing you're stuck is the first step. Knowing why — and who to talk to — is the fix.
+      <a href="/analyze" class="text-accent hover:underline ml-1">Calculate your cost of delay →</a>
+    </span>
+  </div>
+
+  </div><!-- /x-data -->
+
+  <!-- Bridge -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    So where exactly are you in line? <a href="#stuck" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">See your queue position ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     05 · QUEUE POSITION
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="stuck">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">05 — queue position</div>
+
+  {% set stuck = showcase.stuck_permit if showcase and showcase.stuck_permit else None %}
+
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    {% if stuck and stuck.queue_position %}
+    You're <span class="text-signal-amber">#{{ stuck.queue_position }}</span> of {{ stuck.queue_total }}<br>at {{ stuck.stalled_station or 'SFPUC' }} review.
+    {% else %}
+    You're <span class="text-signal-amber">#23</span> of 47<br>at SFPUC review.
+    {% endif %}
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    We track queue depth at every station in real time.
+    Know where you stand, how fast the line is moving, and which stations are bottlenecked.
+  </p>
+
+  <div class="bg-glass border border-glass-border rounded-lg p-5 mb-4 reveal reveal-d2">
+    <div class="flex items-baseline gap-3 mb-4">
+      <span class="font-mono text-[clamp(28px,3.5vw,40px)] font-light text-signal-amber">
+        {% if stuck and stuck.queue_position %}#{{ stuck.queue_position }}{% else %}#23{% endif %}
+      </span>
+      <span class="font-mono text-sm text-white/25">
+        of {% if stuck and stuck.queue_total %}{{ stuck.queue_total }}{% else %}47{% endif %} at SFPUC · est. 8–12 days remaining
+      </span>
+    </div>
+    <div class="mb-4">
+      <div class="flex h-2 rounded-full overflow-hidden bg-glass-border gap-px">
+        <div class="h-full rounded-sm bg-signal-green/70" style="width: 46%;"></div>
+        <div class="h-full rounded-sm bg-signal-amber" style="width: 3%;"></div>
+        <div class="h-full rounded-sm bg-glass-hover" style="width: 51%;"></div>
+      </div>
+      <div class="flex justify-between font-mono text-[9px] text-white/25 mt-1">
+        <span>22 reviewed</span>
+        <span class="text-signal-amber">▶ you</span>
+        <span>24 behind</span>
+      </div>
+    </div>
+
+    <!-- Station queue table -->
+    <ul class="space-y-0">
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="/analyze" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">BLDG</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-green/50" style="width: 40%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-white/45">28 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="/analyze" class="font-mono text-xs text-signal-red hover:text-accent transition-colors">SFPUC</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-red/60" style="width: 82%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-signal-red">47 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="/analyze" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">CPB</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-green/50" style="width: 35%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-white/45">22 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-b border-white/[0.03]">
+        <a href="/analyze" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">SFFD</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-amber/60" style="width: 55%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-signal-amber">35 in queue</span>
+      </li>
+      <li class="flex items-center justify-between py-2">
+        <a href="/analyze" class="font-mono text-xs text-white/90 hover:text-accent transition-colors">PPC</a>
+        <div class="flex-1 max-w-[200px] mx-4 h-1 rounded-full bg-glass-border overflow-hidden hidden md:block">
+          <div class="h-full rounded-full bg-signal-amber/60" style="width: 60%;"></div>
+        </div>
+        <span class="font-mono text-[11px] text-signal-amber">38 in queue</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 reveal reveal-d3">
+    <span class="w-1 h-1 rounded-full bg-signal-green/60"></span>
+    Queue data updated every 6 hours
+  </div>
+
+  <!-- Bridge -->
+  <div class="mt-8 font-sans text-sm font-light text-white/25 reveal reveal-d3">
+    And the people processing those queues? <a href="#network" class="text-white/45 hover:text-accent transition-colors border-b border-glass-border pb-px">We track them too ↓</a>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     06 · NETWORK INTELLIGENCE
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-16 md:py-24" id="network">
+<div class="max-w-[900px] mx-auto px-6">
+
+  <div class="font-mono text-[11px] font-normal tracking-[0.12em] uppercase text-white/25 mb-4 reveal">06 — network intelligence</div>
+  <h2 class="font-sans text-[clamp(22px,3vw,36px)] font-light leading-[1.25] max-w-[640px] mb-2 reveal">
+    We know who reviews your plans.<br>
+    <em class="not-italic text-accent font-normal">And how fast they work.</em>
+  </h2>
+  <p class="font-sans text-[clamp(13px,1.4vw,15px)] font-light text-white/45 leading-relaxed max-w-[560px] mb-8 reveal reveal-d1">
+    1M+ professionals tracked across 1.8M contact records. See reviewer track records,
+    contractor histories, and who has worked on your type of project before.
+  </p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 reveal reveal-d2">
+
+    <!-- Reviewer card: SFPUC (anonymized for public landing) -->
+    <a href="/analyze" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-signal-red/20 flex items-center justify-center font-mono text-[10px] text-signal-red/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">SFPUC Reviewer</div>
+          <div class="font-mono text-[10px] text-white/25">Water &amp; sewer plan review</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-signal-red">14d</div>
+          <div class="font-sans text-[10px] text-white/25">avg review time</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">127</div>
+          <div class="font-sans text-[10px] text-white/25">reviews this year</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>station avg: 8d</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-signal-green/50" style="width: 57%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-signal-red/50" style="width: 100%;"></div></div>
+        <span>yours: 14d</span>
+      </div>
+    </a>
+
+    <!-- Reviewer card: BLDG (anonymized) -->
+    <a href="/analyze" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center font-mono text-[10px] text-accent/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">BLDG Reviewer</div>
+          <div class="font-mono text-[10px] text-white/25">Building code plan review</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-accent">7d</div>
+          <div class="font-sans text-[10px] text-white/25">avg review time</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">203</div>
+          <div class="font-sans text-[10px] text-white/25">reviews this year</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>station avg: 12d</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-signal-green/50" style="width: 100%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-accent/50" style="width: 58%;"></div></div>
+        <span>yours: 7d</span>
+      </div>
+    </a>
+
+    <!-- Professional: Architect (anonymized) -->
+    <a href="/analyze" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center font-mono text-[10px] text-accent/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3m5-9h4m-4 4h4"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">Architect · 18% revision rate</div>
+          <div class="font-mono text-[10px] text-white/25">42 permits filed in SF</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-accent">18%</div>
+          <div class="font-sans text-[10px] text-white/25">revision rate</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">42</div>
+          <div class="font-sans text-[10px] text-white/25">permits filed</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>city avg: 34%</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-white/15" style="width: 100%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-accent/50" style="width: 53%;"></div></div>
+        <span>this one: 18%</span>
+      </div>
+    </a>
+
+    <!-- Professional: Contractor (anonymized) -->
+    <a href="/analyze" class="block bg-glass border border-glass-border rounded-lg p-4 hover:border-accent-ring transition-colors group">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="w-7 h-7 rounded-full bg-signal-amber/10 flex items-center justify-center font-mono text-[10px] text-signal-amber/60">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 21h18M9 3v18M15 3v18"/></svg>
+        </div>
+        <div>
+          <div class="font-sans text-[13px] font-normal group-hover:text-accent transition-colors">Contractor · 7.2 mo avg</div>
+          <div class="font-mono text-[10px] text-white/25">89 projects completed in SF</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <div class="font-mono text-base font-light text-signal-amber">7.2 mo</div>
+          <div class="font-sans text-[10px] text-white/25">avg project duration</div>
+        </div>
+        <div>
+          <div class="font-mono text-base font-light">89</div>
+          <div class="font-sans text-[10px] text-white/25">projects completed</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 font-mono text-[10px] text-white/25 mt-2 pt-2 border-t border-glass-border">
+        <span>city avg: 9.1mo</span>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-white/15" style="width: 100%;"></div></div>
+        <div class="flex-1 h-0.5 rounded-full bg-glass-border overflow-hidden"><div class="h-full rounded-full bg-accent/50" style="width: 79%;"></div></div>
+        <span>this one: 7.2mo</span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="bg-glass border border-glass-border rounded-lg px-5 py-4 mt-4 reveal reveal-d3">
+    <span class="font-sans text-[13px] font-light text-white/45 leading-relaxed">
+      <strong class="font-normal text-white/90">576K professional relationships mapped.</strong>
+      Who has worked with whom, on what type of project, and what happened.
+      <a href="/analyze" class="text-accent hover:underline ml-1">Search professionals →</a>
+    </span>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-20 md:py-32 text-center px-6">
+<div class="max-w-[900px] mx-auto flex flex-col items-center">
+
+  <h2 class="font-sans text-[clamp(24px,3.5vw,42px)] font-light leading-[1.2] mb-4 reveal">
+    Stop guessing.<br><em class="not-italic text-accent font-normal">Start knowing.</em>
+  </h2>
+  <p class="font-sans text-sm font-light text-white/45 mb-8 reveal reveal-d1">
+    sfpermits.ai turns 18M public records into intelligence that saves
+    time, money, and frustration on every permit.
+  </p>
+  <a href="/auth/login"
+     class="inline-block py-3.5 px-9 font-mono text-[13px] font-normal text-obsidian bg-accent rounded-lg hover:shadow-[0_0_40px_rgba(94,234,212,0.08)] hover:-translate-y-px transition-all no-underline reveal reveal-d2">
+    Join the beta
+  </a>
+  <p class="font-mono text-[11px] text-white/25 mt-4 reveal reveal-d3">Free during beta · No credit card required</p>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     DEVELOPER: MCP DEMO (collapsible)
+     ═══════════════════════════════════════ -->
+<section class="border-t border-glass-border py-12 px-6" x-data="{ open: false }">
+<div class="max-w-[900px] mx-auto">
+
+  <button @click="open = !open" class="flex items-center gap-2 font-mono text-[11px] text-white/25 hover:text-white/45 transition-colors cursor-pointer w-full">
+    <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    Built for developers · 30 <span class="text-accent">MCP</span> tools via Streamable HTTP
+  </button>
+
+  <div x-show="open" x-transition class="mt-6">
+    <div class="bg-obsidian-mid border border-glass-border rounded-lg overflow-hidden">
+      <div class="px-4 py-3 border-b border-glass-border">
+        <span class="font-mono text-[10px] text-white/25 tracking-[0.1em] uppercase"><span class="text-accent">MCP</span> tool call demo</span>
+      </div>
+      <div class="px-4 py-3 border-b border-glass-border">
+        <div class="font-mono text-[10px] text-accent/60 mb-1">claude →</div>
+        <div class="font-sans text-sm text-white/70 font-light">What's happening with the building permit at 1122 Folsom?</div>
+      </div>
+      <div class="px-4 py-3 border-b border-glass-border bg-accent/[0.02]">
+        <div class="font-mono text-[10px] text-accent/40 mb-1">tool_use: get_permit_timeline</div>
+        <pre class="font-mono text-[11px] text-white/45 overflow-x-auto whitespace-pre"><code>{
+  "address": "1122 Folsom St",
+  "permit_type": "building",
+  "include_stations": true,
+  "include_velocity": true
+}</code></pre>
+      </div>
+      <div class="px-4 py-3 border-b border-glass-border bg-accent/[0.02]">
+        <div class="font-mono text-[10px] text-accent/40 mb-1">tool_result</div>
+        <pre class="font-mono text-[11px] text-white/45 overflow-x-auto whitespace-pre"><code>{
+  "permit": "202410082341",
+  "status": "in_review",
+  "stations": {
+    "SFPUC": { "days": 18, "avg": 8, "status": "stalled" },
+    "BLDG":  { "days": 22, "avg": 18, "status": "complete" },
+    "CPB":   { "days": 14, "avg": 15, "status": "complete" }
+  },
+  "critical_path": ["SFPUC", "PPC", "Approval"],
+  "projected_completion": "Aug-Oct 2025"
+}</code></pre>
+      </div>
+      <div class="px-4 py-3">
+        <div class="font-mono text-[10px] text-accent/60 mb-1">claude ←</div>
+        <div class="font-sans text-sm text-white/70 font-light leading-relaxed">
+          The building permit at 1122 Folsom is <strong class="text-signal-red font-normal">stalled at SFPUC</strong> — 18 days vs an 8-day average.
+          All other parallel review stations have cleared. SFPUC is the only blocker before PPC final review.
+          Projected completion: <strong class="text-signal-amber font-normal">Aug–Oct 2025</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 flex items-center gap-4 flex-wrap">
+      <a href="/methodology" class="font-mono text-xs text-accent hover:underline">API documentation →</a>
+      <a href="https://sfpermits-mcp-api-production.up.railway.app/mcp" class="font-mono text-xs text-white/45 hover:text-accent transition-colors">Connect via MCP →</a>
+      <span class="font-mono text-[10px] text-white/25">30 tools · Streamable HTTP · <span class="text-accent">MCP</span> protocol · Free during beta</span>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- Footer -->
+<footer class="py-8 text-center border-t border-glass-border">
+  <div class="font-mono text-[11px] text-white/25">
+    sfpermits.ai · Built on public data from DataSF · Not affiliated with the City of San Francisco
+  </div>
+</footer>
+
+<!-- Scroll reveal observer + environment/persona borders -->
+<script>
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Environment border: ?env=staging | ?env=honeypot | ?env=prod
+// Persona color:      ?persona=homeowner | ?persona=architect | ?persona=expediter | ?persona=new-visitor
+const params = new URLSearchParams(window.location.search);
+const env = params.get('env');
+const persona = params.get('persona');
+if (env) document.body.classList.add('env-' + env);
+if (persona) document.body.classList.add('persona-' + persona);
+</script>
+
 </body>
 </html>

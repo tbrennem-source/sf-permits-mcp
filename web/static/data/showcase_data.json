@@ -1,268 +1,115 @@
 {
   "station_timeline": {
-    "permit": "202509155257",
-    "description": "Parking Garage to Loading Zone Conversion",
-    "address": "350 Mission St, San Francisco",
-    "estimated_cost": 13000000,
-    "permit_type": "Alteration \u2014 Commercial",
-    "neighborhood": "South of Market",
-    "status": "In Review",
-    "filed_date": "2025-09-15",
-    "elapsed_days": 166,
+    "permit": "202602115738",
+    "description": "replace 21 windows and 3 sliding doors. all doors and windows are like for like in size and operation. u-factor0.30. 10 windows are street visible. remove and replace 4100sqft siding with hardie v-grove siding.",
+    "address": "2111 Funston, San Francisco",
+    "estimated_cost": 159980,
+    "permit_type": "8",
+    "neighborhood": "West of Twin Peaks",
+    "status": "Issued",
+    "filed_date": "2026-02-11",
+    "elapsed_days": 18,
     "stations": [
       {
-        "station": "PERMIT-CTR",
-        "name": "PERMIT-CTR",
+        "station": "INTAKE",
+        "name": "INTAKE",
         "label": "Permit Center",
-        "arrive": "2025-09-15",
-        "finish_date": "2025-09-18",
-        "review_results": "Submitted",
+        "arrive": "2026-02-11",
+        "finish_date": "2026-02-11",
+        "review_results": "Administrative",
         "addenda_number": 0,
-        "dwell_days": 3,
+        "dwell_days": 0,
         "status": "approved",
         "is_current": false,
-        "reviewer": null,
+        "reviewer": "Senior Plan Checker",
         "start_month": 0.0,
-        "width_pct": 1.2396694214876034
-      },
-      {
-        "station": "BLDG",
-        "label": "Building Inspection",
-        "arrive": "2025-09-18",
-        "finish_date": "2025-10-02",
-        "review_results": "Approved",
-        "addenda_number": 0,
-        "dwell_days": 14,
-        "status": "approved",
-        "start_month": 0.0743801652892562,
-        "width_pct": 5.785123966942149,
-        "name": "BLDG",
-        "is_current": false,
-        "reviewer": null
+        "width_pct": 100.0
       },
       {
         "station": "CP-ZOC",
-        "label": "Planning (Zoning)",
-        "arrive": "2025-10-03",
-        "finish_date": "2025-11-15",
-        "review_results": "Approved",
-        "addenda_number": 0,
-        "dwell_days": 43,
-        "status": "approved",
-        "start_month": 0.42148760330578516,
-        "width_pct": 17.768595041322314,
         "name": "CP-ZOC",
-        "is_current": false,
-        "reviewer": null
-      },
-      {
-        "station": "SFFD",
-        "label": "Fire Department",
-        "arrive": "2025-10-05",
-        "finish_date": "2025-11-20",
+        "label": "Planning (Zoning)",
+        "arrive": "2026-02-11",
+        "finish_date": "2026-02-11",
         "review_results": "Approved",
         "addenda_number": 0,
-        "dwell_days": 46,
+        "dwell_days": 0,
         "status": "approved",
-        "start_month": 1.487603305785124,
-        "width_pct": 19.00826446280992,
-        "name": "SFFD",
         "is_current": false,
-        "reviewer": null
+        "reviewer": "Building Inspector",
+        "start_month": 0.0,
+        "width_pct": 100.0
       },
       {
-        "station": "DPW-BSM",
-        "label": "DPW (Bureau of Street Mgmt)",
-        "arrive": "2025-11-16",
-        "finish_date": "2025-12-10",
+        "station": "BLDG",
+        "name": "BLDG",
+        "label": "Building Inspection",
+        "arrive": "2026-02-11",
+        "finish_date": "2026-02-11",
         "review_results": "Approved",
         "addenda_number": 0,
-        "dwell_days": 24,
+        "dwell_days": 0,
         "status": "approved",
-        "start_month": 2.6280991735537187,
-        "width_pct": 9.917355371900827,
-        "name": "DPW-BSM",
         "is_current": false,
-        "reviewer": null
-      },
-      {
-        "station": "BLDG",
-        "label": "Building Inspection",
-        "arrive": "2025-12-11",
-        "finish_date": "2026-01-08",
-        "review_results": "Comments Issued",
-        "addenda_number": 1,
-        "dwell_days": 28,
-        "status": "comments",
-        "reviewer": "Plan Checker R. Hernandez",
-        "start_month": 3.2231404958677685,
-        "width_pct": 11.570247933884298,
-        "name": "BLDG",
-        "is_current": false
-      },
-      {
-        "station": "BLDG",
-        "label": "Building Inspection",
-        "arrive": "2026-01-15",
-        "finish_date": "2026-02-05",
-        "review_results": "Comments Issued",
-        "addenda_number": 2,
-        "dwell_days": 21,
-        "status": "comments",
-        "reviewer": "Plan Checker R. Hernandez",
-        "start_month": 3.9173553719008267,
-        "width_pct": 8.677685950413224,
-        "name": "BLDG",
-        "is_current": false
-      },
-      {
-        "station": "BLDG",
-        "label": "Building Inspection",
-        "arrive": "2026-02-12",
-        "finish_date": null,
-        "review_results": null,
-        "addenda_number": 3,
-        "dwell_days": 16,
-        "status": "active",
-        "reviewer": "Plan Checker R. Hernandez",
-        "start_month": 4.43801652892562,
-        "width_pct": 6.6115702479338845,
-        "name": "BLDG",
-        "is_current": true
-      },
-      {
-        "station": "SFPUC",
-        "label": "SF Public Utilities",
-        "arrive": "2026-01-20",
-        "finish_date": null,
-        "review_results": null,
-        "addenda_number": 0,
-        "dwell_days": 39,
-        "status": "active",
-        "start_month": 4.8347107438016526,
-        "width_pct": 16.115702479338843,
-        "name": "SFPUC",
-        "is_current": true,
-        "reviewer": null
+        "reviewer": "Plan Review Engineer",
+        "start_month": 0.0,
+        "width_pct": 100.0
       },
       {
         "station": "CPB",
         "name": "CPB",
         "label": "Central Permit Bureau",
-        "arrive": "2026-02-20",
-        "finish_date": null,
-        "review_results": null,
+        "arrive": "2026-02-11",
+        "finish_date": "2026-02-11",
+        "review_results": "Administrative",
         "addenda_number": 0,
-        "dwell_days": 8,
-        "status": "active",
-        "is_current": true,
-        "reviewer": "CPB Staff",
-        "start_month": 5.801652892561983,
-        "width_pct": 3.3057851239669422
+        "dwell_days": 0,
+        "status": "approved",
+        "is_current": false,
+        "reviewer": "Permit Technician",
+        "start_month": 0.0,
+        "width_pct": 100.0
       }
     ],
     "summary": {
-      "total_stations": 8,
-      "completed_stations": 5,
-      "active_stations": 2,
-      "bldg_comment_rounds": 3,
-      "revision_cycles": 3
+      "total_stations": 4,
+      "completed_stations": 4,
+      "active_stations": 0,
+      "bldg_comment_rounds": 0,
+      "revision_cycles": 0
     },
-    "predicted_next": [
-      {
-        "station": "BLDG",
-        "label": "Building Inspection",
-        "probability": 0.72,
-        "p50_days": 21,
-        "p75_days": 35
-      },
-      {
-        "station": "PERMIT-CTR",
-        "label": "Permit Center",
-        "probability": 0.18,
-        "p50_days": 5,
-        "p75_days": 10
-      }
-    ],
-    "total_days": 242,
+    "predicted_next": [],
+    "total_days": 18,
     "axis_labels": [
-      "Sep 2025",
-      "Oct",
-      "Nov",
-      "Dec",
-      "Jan 2026",
-      "Feb"
+      "Feb 2026"
     ]
   },
   "stuck_permit": {
-    "permit": "202412237330",
-    "description": "Change of Use: Laundromat to Childcare Facility",
-    "address": "2847 Mission St, San Francisco",
-    "neighborhood": "Mission",
-    "estimated_cost": 200000,
-    "permit_type": "Change of Use",
+    "permit": "201603031069",
+    "description": "remove and replace 1 existing fastback antenna with new microwave antennas and 1 bdu radio and coax cables. add 1 microwave dish, odu, coax cable for sprint. no changein height and no ground work proposed",
+    "address": "750 Phelps, San Francisco",
+    "neighborhood": "Bayview Hunters Point",
+    "estimated_cost": 7500,
+    "permit_type": "3",
     "status": "In Review",
-    "filed_date": "2024-12-23",
-    "elapsed_days": 432,
-    "severity_score": 78,
+    "filed_date": "2016-03-03",
+    "elapsed_days": 3650,
+    "severity_score": 99,
     "severity_tier": "CRITICAL",
     "overall_status": "critically_stalled",
-    "revision_cycles": 2,
+    "revision_cycles": 1,
     "blocks": [
-      {
-        "station": "BLDG",
-        "label": "Building Inspection",
-        "dwell_days": 156,
-        "status": "critically_stalled",
-        "review_results": "Comments Issued",
-        "reviewer": "Jeff Ibarra",
-        "round": "2nd round of comments",
-        "date_issued": "2024-10-15",
-        "flags": [
-          "dwell 156d > p90 (90d baseline)",
-          "comments issued \u2014 resubmission needed",
-          "revision cycle 2"
-        ]
-      },
-      {
-        "station": "MECH",
-        "label": "Mechanical",
-        "dwell_days": 98,
-        "status": "stalled",
-        "review_results": "Comments Issued",
-        "reviewer": "Ray Chen",
-        "round": "1st round of comments",
-        "date_issued": "2024-11-02",
-        "flags": [
-          "dwell 98d > p75 (60d baseline)",
-          "comments issued \u2014 resubmission needed"
-        ]
-      },
-      {
-        "station": "SFFD",
-        "label": "Fire Department",
-        "dwell_days": 87,
-        "status": "stalled",
-        "review_results": "Comments Issued",
-        "reviewer": "M. Torres",
-        "round": "1st round of comments",
-        "date_issued": "2024-10-28",
-        "flags": [
-          "fire suppression plan incomplete"
-        ]
-      },
       {
         "station": "CP-ZOC",
         "label": "Planning (Zoning)",
-        "dwell_days": 223,
+        "dwell_days": 3636,
         "status": "critically_stalled",
-        "review_results": "Pending",
-        "reviewer": "Wesley Wong",
-        "round": "Awaiting determination",
-        "date_issued": "2024-07-01",
+        "review_results": "Comments Issued",
+        "reviewer": "Senior Plan Checker",
+        "round": "1st round of comments",
+        "date_issued": "2016-03-17",
         "flags": [
-          "223 days \u2014 no final determination",
-          "conditional use hearing required"
+          "dwell 3636d \u2014 awaiting response"
         ]
       }
     ],
@@ -270,37 +117,20 @@
       {
         "priority": "IMMEDIATE",
         "step": 1,
-        "action": "Address BLDG + MECH + SFFD comments NOW \u2014 respond to all agencies in one resubmission",
+        "action": "Contact Planning (Zoning) to get status update on open review",
         "contact": "SF DBI: (415) 558-6000",
-        "detail": "Upload corrected sheets with revision clouds (EPR-025)"
-      },
-      {
-        "priority": "IMMEDIATE",
-        "step": 2,
-        "action": "Call Planning (628-652-7600) about CP-ZOC. Ask for Wesley Wong.",
-        "contact": "SF Planning: (628) 652-7600",
-        "detail": "This project needs a conditional use hearing scheduled \u2014 that is the blocker"
+        "detail": "Ask for the assigned plan checker and request a status call"
       },
       {
         "priority": "HIGH",
-        "step": 3,
+        "step": 2,
         "action": "Upload corrected sheets with revision clouds (EPR-025)",
         "contact": "SF DBI EPR portal",
-        "detail": "Each comment-response cycle without revision clouds adds 2-3 weeks to BLDG review"
+        "detail": "Each comment-response cycle without revision clouds adds 2-3 weeks to review"
       }
     ],
-    "planning_days": 223,
+    "planning_days": 3636,
     "agency_contacts": {
-      "SFFD": {
-        "name": "SF Fire Department \u2014 Permit Division",
-        "phone": "(415) 558-3300",
-        "url": "https://sf.gov/departments/fire-department"
-      },
-      "PLANNING": {
-        "name": "SF Planning Department",
-        "phone": "(415) 558-6378",
-        "url": "https://sfplanning.org"
-      },
       "DBI": {
         "name": "SF Department of Building Inspection",
         "phone": "(415) 558-6000",
@@ -308,8 +138,8 @@
       }
     },
     "severity": "CRITICAL",
-    "block_count": 4,
-    "days_stuck": 432,
+    "block_count": 1,
+    "days_stuck": 3650,
     "timeline_impact": "Each comment-response cycle adds 6-8 weeks"
   },
   "what_if": {
@@ -498,133 +328,103 @@
     "demo": "restaurant-mission"
   },
   "entity_network": {
-    "address": "1 Market St",
-    "full_address": "1 Market St, San Francisco, CA 94105",
-    "neighborhood": "Financial District",
-    "permits": 63,
+    "address": "SF Commercial District",
+    "full_address": "San Francisco, CA",
+    "neighborhood": "San Francisco",
+    "permits": 12674,
     "entities": [
       {
-        "entity_id": 14823,
-        "canonical_name": "Arb Inc",
+        "entity_id": 158351,
+        "canonical_name": "General Contractor",
         "entity_type": "contractor",
         "permit_count": 12674,
-        "shared_permits": 18,
+        "shared_permits": 1,
         "role": "General Contractor",
-        "last_active": "2025-11-15"
+        "last_active": "2026-03-01"
       },
       {
-        "entity_id": 7291,
-        "canonical_name": "Pribuss Engineering",
+        "entity_id": 158360,
+        "canonical_name": "Permit Holder",
+        "entity_type": "agent",
+        "permit_count": 1,
+        "shared_permits": 1,
+        "role": "Permit Holder",
+        "last_active": "2026-03-01"
+      },
+      {
+        "entity_id": 156597,
+        "canonical_name": "Engineering Firm",
         "entity_type": "engineer",
-        "permit_count": 7309,
-        "shared_permits": 12,
-        "role": "Structural Engineer",
-        "last_active": "2025-08-22"
+        "permit_count": 1,
+        "shared_permits": 1,
+        "role": "Engineering Firm",
+        "last_active": "2026-03-01"
       },
       {
-        "canonical_name": "Gensler",
-        "entity_id": 5241,
-        "entity_type": "architect",
-        "last_active": "2025-09-18",
-        "permit_count": 1843,
-        "role": "Architect of Record",
-        "shared_permits": 6
-      },
-      {
-        "entity_id": 31045,
-        "canonical_name": "Hathaway Dinwiddie Construction",
-        "entity_type": "contractor",
-        "permit_count": 4821,
-        "shared_permits": 9,
-        "role": "General Contractor",
-        "last_active": "2024-12-01"
-      },
-      {
-        "entity_id": 8847,
-        "canonical_name": "Forell/Elsesser Engineers",
+        "entity_id": 156598,
+        "canonical_name": "Engineering Firm",
         "entity_type": "engineer",
-        "permit_count": 3156,
-        "shared_permits": 7,
-        "role": "Structural Engineer",
-        "last_active": "2024-09-14"
-      },
-      {
-        "entity_id": 22104,
-        "canonical_name": "Swinerton Builders",
-        "entity_type": "contractor",
-        "permit_count": 2934,
-        "shared_permits": 5,
-        "role": "General Contractor",
-        "last_active": "2025-06-30"
+        "permit_count": 1,
+        "shared_permits": 1,
+        "role": "Engineering Firm",
+        "last_active": "2026-03-01"
       }
     ],
     "nodes": [
       {
-        "label": "Arb Inc",
-        "permit_count": 12674,
-        "entity_type": "contractor",
-        "role": "General Contractor",
+        "label": "Permit Holder",
+        "permit_count": 1,
+        "entity_type": "agent",
+        "role": "Permit Holder",
         "cx": 80,
         "cy": 55,
-        "r": 22,
-        "size_pct": 100,
+        "r": 8,
+        "size_pct": 0.007890168849613381,
         "edge_to": "central",
-        "shared_permits": 18
+        "shared_permits": 1
       },
       {
-        "label": "Pribuss Engineering",
-        "permit_count": 7309,
+        "label": "Engineering Firm",
+        "permit_count": 1,
         "entity_type": "engineer",
-        "role": "Structural Engineer",
+        "role": "Engineering Firm",
         "cx": 320,
         "cy": 55,
-        "r": 16,
-        "size_pct": 57.66924412182421,
+        "r": 8,
+        "size_pct": 0.007890168849613381,
         "edge_to": "central",
-        "shared_permits": 12
+        "shared_permits": 1
       },
       {
-        "label": "Gensler",
-        "permit_count": 1843,
-        "entity_type": "architect",
-        "role": "Architect of Record",
+        "label": "Engineering Firm",
+        "permit_count": 1,
+        "entity_type": "engineer",
+        "role": "Engineering Firm",
         "cx": 80,
         "cy": 170,
-        "r": 10,
-        "size_pct": 14.541581189837464,
+        "r": 8,
+        "size_pct": 0.007890168849613381,
         "edge_to": "central",
-        "shared_permits": 6
-      },
-      {
-        "label": "Hathaway Dinwiddie Construction",
-        "permit_count": 4821,
-        "entity_type": "contractor",
-        "role": "General Contractor",
-        "cx": 320,
-        "cy": 170,
-        "r": 13,
-        "size_pct": 38.038504023986114,
-        "edge_to": "central",
-        "shared_permits": 9
+        "shared_permits": 1
       }
     ],
-    "edges": 14,
+    "edges": 3,
     "permit_type_breakdown": {
-      "Alterations": 31,
-      "New Construction": 12,
-      "Mechanical": 8,
-      "Electrical": 7,
-      "Plumbing": 5
+      "Alterations": 6337,
+      "New Construction": 2534,
+      "Mechanical": 1647,
+      "Electrical": 1394,
+      "Plumbing": 760
     },
     "year_range": {
       "first": 2004,
-      "last": 2025
+      "last": 2026
     },
-    "insight": "Arb Inc and Pribuss Engineering have co-appeared on 18 permits at this address, forming the dominant contractor-engineer pair for major renovations.",
-    "total_permits": 63,
+    "insight": "This contractor has appeared on 12,674 permits in San Francisco, forming a dense network of co-appearances with engineering and architecture firms.",
+    "total_permits": 12674,
     "central_node": {
-      "label": "1 Market St",
-      "permit_count": 63,
+      "label": "General Contractor",
+      "permit_count": 12674,
       "cx": 200,
       "cy": 112,
       "r": 32

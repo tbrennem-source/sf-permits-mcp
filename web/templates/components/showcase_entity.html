@@ -1,68 +1,147 @@
-{# showcase_entity.html — Entity Network (text-first redesign) #}
-{# Receives: showcase.entity_network #}
-{% set entity = showcase.entity_network %}
-<div class="showcase-entity glass-card"
+{# showcase_entity.html — Entity Network (visual-first redesign) #}
+{# Receives: showcase.entity_network (via Jinja2 global from routes_public.py) #}
+{% set entity = showcase.entity_network if showcase else None %}
+{% if entity %}
+<div class="showcase-card showcase-entity"
      data-track="showcase-view"
-     data-showcase="entity"
-     style="padding: var(--space-8);">
+     data-showcase="entity">
   <style>
+    /* Intel label */
     .entity-intel-label {
       font-family: var(--mono);
       font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.10em;
       text-transform: uppercase;
       color: var(--text-tertiary);
-      margin-bottom: var(--space-6);
+      padding: var(--space-4) var(--space-5) 0;
+      margin-bottom: var(--space-1);
     }
-    .entity-pros {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-6);
-      margin-bottom: var(--space-6);
+
+    /* Address + permit count header */
+    .entity-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: 0 var(--space-5) var(--space-4);
     }
-    @media (max-width: 600px) {
-      .entity-pros { grid-template-columns: 1fr; }
-    }
-    .entity-pro {
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-sm);
-      padding: var(--space-5);
-      background: var(--glass);
-    }
-    .entity-pro__role {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-tertiary);
-      margin-bottom: var(--space-2);
-    }
-    .entity-pro__name {
-      font-family: var(--mono);
-      font-size: var(--text-base);
-      color: var(--text-primary);
-      font-weight: 400;
-      margin-bottom: var(--space-2);
-    }
-    .entity-pro__stat {
+    .entity-address {
       font-family: var(--mono);
       font-size: var(--text-sm);
       color: var(--text-secondary);
     }
-    .entity-pro__stat strong {
+    .entity-total {
+      font-family: var(--mono);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      white-space: nowrap;
+    }
+    .entity-total strong {
       color: var(--accent);
       font-weight: 400;
     }
-    .entity-summary {
-      font-family: var(--sans);
-      font-size: var(--text-sm);
-      color: var(--text-secondary);
-      line-height: 1.6;
-      margin-bottom: var(--space-6);
+
+    /* Entity rows */
+    .entity-list {
+      padding: 0 var(--space-5) var(--space-3);
     }
-    .entity-cta-row {
-      padding-top: var(--space-4);
+    .entity-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .entity-row:last-child { border-bottom: none; }
+
+    /* Role type dot */
+    .entity-type-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .entity-type-dot--contractor { background: var(--accent); }
+    .entity-type-dot--engineer   { background: var(--dot-amber); }
+    .entity-type-dot--architect  { background: var(--signal-blue); }
+
+    /* Entity name + role */
+    .entity-name-wrap { flex: 1; min-width: 0; }
+    .entity-name {
+      font-family: var(--mono);
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .entity-role {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    /* Permit count bar */
+    .entity-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+    .entity-bar-track {
+      width: 48px;
+      height: 3px;
+      background: var(--glass-border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .entity-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: var(--accent);
+      opacity: 0.6;
+    }
+    .entity-count {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+    }
+    .entity-count strong {
+      color: var(--accent);
+      font-weight: 400;
+    }
+
+    /* Co-appears chip */
+    .entity-shared {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 2px 6px;
+      flex-shrink: 0;
+    }
+
+    /* Insight line */
+    .entity-insight {
+      margin: 0 var(--space-5) var(--space-3);
+      font-family: var(--sans);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      line-height: 1.5;
+      padding: var(--space-3) var(--space-4);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+    }
+
+    /* Footer */
+    .entity-footer {
+      padding: var(--space-3) var(--space-5) var(--space-4);
       border-top: 1px solid var(--glass-border);
       display: flex;
       justify-content: flex-end;
@@ -71,33 +150,59 @@
 
   <div class="entity-intel-label">Network Intelligence</div>
 
-  <div class="entity-pros">
-    <div class="entity-pro">
-      <div class="entity-pro__role">Contractor</div>
-      <div class="entity-pro__name">Arb Inc</div>
-      <div class="entity-pro__stat"><strong>12,674</strong> SF permits</div>
-    </div>
-    <div class="entity-pro">
-      <div class="entity-pro__role">Engineer</div>
-      <div class="entity-pro__name">Pribuss Engineering</div>
-      <div class="entity-pro__stat"><strong>7,309</strong> SF permits</div>
-    </div>
-    <div class="entity-pro">
-      <div class="entity-pro__role">Architect</div>
-      <div class="entity-pro__name">Gensler</div>
-      <div class="entity-pro__stat"><strong>4,821</strong> SF permits</div>
-    </div>
+  {# Header: address + total permit count #}
+  <div class="entity-header">
+    <div class="entity-address">{{ entity.address }}</div>
+    {% if entity.total_permits or entity.permits %}
+    <div class="entity-total"><strong>{{ entity.total_permits or entity.permits }}</strong> permits on record</div>
+    {% endif %}
   </div>
 
-  <p class="entity-summary">
-    These professionals have worked on projects at {{ entity.address }}. We track
-    who builds what, how often they get approvals, and which teams work together.
-  </p>
+  {# Entity rows — top 4 from entities list #}
+  {% set entities_list = entity.entities or [] %}
+  {% if entities_list %}
+  {# Find max permit count for bar scaling #}
+  {% set max_permits = entities_list[0].permit_count if entities_list else 1 %}
+  <div class="entity-list">
+    {% for ent in entities_list[:4] %}
+    {% set bar_pct = ((ent.permit_count / max_permits) * 100) | round | int if max_permits > 0 else 50 %}
+    {% set dot_class = 'entity-type-dot--' ~ ent.entity_type if ent.entity_type in ['contractor', 'engineer', 'architect'] else 'entity-type-dot--contractor' %}
+    <div class="entity-row">
+      <span class="entity-type-dot {{ dot_class }}"></span>
+      <div class="entity-name-wrap">
+        <div class="entity-name">{{ ent.canonical_name }}</div>
+        <div class="entity-role">{{ ent.role or (ent.entity_type | title) }}</div>
+      </div>
+      <div class="entity-bar-wrap">
+        <div class="entity-bar-track">
+          <div class="entity-bar-fill" style="width: {{ [bar_pct, 6] | max }}%;"></div>
+        </div>
+        <div class="entity-count"><strong>{{ '{:,}'.format(ent.permit_count) }}</strong></div>
+      </div>
+      {% if ent.shared_permits %}
+      <span class="entity-shared">{{ ent.shared_permits }} shared</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-  <div class="entity-cta-row">
-    <a href="/tools/entity-network?address=1+MARKET"
-       class="ghost-cta"
+  {# Insight line if available #}
+  {% if entity.insight %}
+  <div class="entity-insight">{{ entity.insight | truncate(120, True, '…') }}</div>
+  {% endif %}
+
+  <div class="entity-footer">
+    <a href="/tools/entity-network?address={{ entity.address | urlencode }}"
+       class="showcase-card__cta"
        data-track="showcase-click"
-       data-showcase="entity">Find professionals for your project &rarr;</a>
+       data-showcase="entity">Find professionals for your project →</a>
   </div>
 </div>
+{% else %}
+<div class="showcase-card" style="padding: var(--space-6);">
+  <div style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-tertiary); font-style: italic;">
+    Network data unavailable
+  </div>
+</div>
+{% endif %}

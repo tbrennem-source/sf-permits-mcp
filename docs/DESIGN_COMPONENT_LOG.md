@@ -1056,3 +1056,80 @@ border: 1px solid rgba(245, 158, 11, 0.30); /* --dot-amber at 30% opacity */
 **Notes:** Larger ghost-style CTA button. Uses token colors (--accent, --accent-glow). Placed between the last story card and the MCP demo to capture conversion intent.
 
 ---
+
+### Showcase Data Station Block
+**Sprint:** QS14 (T3-C showcase card redesign)
+**File:** `web/templates/components/showcase_stuck.html`
+**Usage:** Stuck permit card — individual agency station status block in pipeline visualization
+**Status:** NEW
+**HTML:**
+```html
+<div class="stuck-station stuck-station--critical">
+  <span class="stuck-station-abbr">BLDG</span>
+  <span class="stuck-station-icon--critical">&#x2717;</span>
+  <span class="stuck-station-days stuck-station-days--critical">156d</span>
+</div>
+```
+**CSS:**
+```css
+.stuck-station {
+  flex: 1; min-width: 64px;
+  background: var(--obsidian-light);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+.stuck-station--critical {
+  border-color: rgba(239, 68, 68, 0.30);
+  background: rgba(239, 68, 68, 0.04);
+}
+```
+**Notes:** Pipeline station visualization for stuck permit diagnosis. Color signals: critical=red tint, stalled=amber tint, clear=default.
+
+### Showcase Scenario Comparison Column
+**Sprint:** QS14 (T3-C showcase card redesign)
+**File:** `web/templates/components/showcase_whatif.html`
+**Usage:** What-if card — two-column scenario comparison with timeline bars
+**Status:** NEW
+**HTML:**
+```html
+<div class="whatif-col whatif-col--a">
+  <div class="whatif-scenario-label">KITCHEN ONLY</div>
+  <div class="whatif-timeline">~2 weeks</div>
+  <div class="whatif-sub">$1,200 &middot; 1 (DBI only)</div>
+</div>
+```
+**CSS:**
+```css
+.whatif-col--a { background: rgba(52, 211, 153, 0.06); border: 1px solid rgba(52, 211, 153, 0.16); }
+.whatif-col--b { background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.16); }
+```
+**Notes:** 2-column scenario comparison. Green tint for OTC/fast path, amber tint for in-house/complex path.
+
+### Showcase Entity Row
+**Sprint:** QS14 (T3-C showcase card redesign)
+**File:** `web/templates/components/showcase_entity.html`
+**Usage:** Entity network card — professional row with permit count bar and type dot
+**Status:** NEW
+**HTML:**
+```html
+<div class="entity-row">
+  <span class="entity-type-dot entity-type-dot--contractor"></span>
+  <div class="entity-name-wrap">
+    <div class="entity-name">Arb Inc</div>
+    <div class="entity-role">General Contractor</div>
+  </div>
+  <div class="entity-bar-wrap">
+    <div class="entity-bar-track"><div class="entity-bar-fill" style="width: 100%;"></div></div>
+    <div class="entity-count"><strong>12,674</strong></div>
+  </div>
+</div>
+```
+**CSS:**
+```css
+.entity-type-dot--contractor { background: var(--accent); }
+.entity-type-dot--engineer   { background: var(--dot-amber); }
+.entity-type-dot--architect  { background: var(--signal-blue); }
+```
+**Notes:** Compact entity row with type-coded dot, name/role, proportional bar, count, and optional "shared" chip.
+
+---
