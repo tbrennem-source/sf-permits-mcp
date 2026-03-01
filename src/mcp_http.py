@@ -117,10 +117,78 @@ mcp.tool()(schema_info)
 mcp.tool()(list_tests)
 
 
-# ── Health check endpoint (for Railway) ───────────────────────────
+# ── Rate limiting middleware ───────────────────────────────────────
 from starlette.requests import Request as StarletteRequest
 from starlette.responses import JSONResponse
 from starlette.routing import Route
+from starlette.types import ASGIApp, Receive, Scope, Send
+from src.mcp_rate_limiter import get_limiter, truncate_if_needed
+
+# Paths that bypass rate limiting (health + OAuth endpoints)
+_RATE_LIMIT_SKIP_PATHS = frozenset([
+    "/",
+    "/health",
+    "/.well-known/oauth-authorization-server",
+    "/register",
+    "/authorize",
+    "/token",
+    "/revoke",
+])
+
+
+class RateLimitMiddleware:
+    """ASGI middleware: per-token/IP rate limiting."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+
+        # Skip rate limiting for health/OAuth endpoints
+        if path in _RATE_LIMIT_SKIP_PATHS:
+            await self.app(scope, receive, send)
+            return
+
+        # Extract bearer token or fall back to IP
+        headers = dict(scope.get("headers", []))
+        auth_header = headers.get(b"authorization", b"").decode()
+        scope_str = None
+
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            rate_key = f"token:{token}"
+            # scope_str remains None — anonymous tier.
+            # In production the OAuth middleware has already validated the token;
+            # scope enforcement (professional/unlimited) is handled there.
+            # Using None here applies the safe anonymous limit as a floor for
+            # any request that reaches the rate limiter without scope context.
+        else:
+            # Anonymous: key by IP
+            client = scope.get("client")
+            ip = client[0] if client else "unknown"
+            rate_key = f"ip:{ip}"
+
+        limiter = get_limiter()
+        allowed, rl_headers = limiter.check_and_increment(rate_key, scope_str)
+
+        if not allowed:
+            response = JSONResponse(
+                {"error": "Rate limit exceeded. Upgrade at https://sfpermits.ai/docs for more calls."},
+                status_code=429,
+                headers=rl_headers,
+            )
+            await response(scope, receive, send)
+            return
+
+        await self.app(scope, receive, send)
+
+
+# ── Health check endpoint (for Railway) ───────────────────────────
 
 
 async def health_check(request: StarletteRequest) -> JSONResponse:
@@ -153,6 +221,7 @@ if __name__ == "__main__":
             logger.info("DuckDB backend — skipping OAuth schema init")
 
         app = mcp.streamable_http_app()
+        app = RateLimitMiddleware(app)
         config = uvicorn.Config(
             app,
             host=mcp.settings.host,
