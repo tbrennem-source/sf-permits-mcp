@@ -150,8 +150,59 @@ from starlette.routing import Route
 from starlette.types import ASGIApp, Receive, Scope, Send
 from src.mcp_rate_limiter import get_limiter, truncate_if_needed
 
-# Track request counts for security monitoring
+# Track request counts for security monitoring (in-memory, resets on restart)
 _request_log: dict = {"total": 0, "by_ip": {}, "started_at": time.time()}
+
+
+def _ensure_access_log_table():
+    """Create mcp_access_log table if it doesn't exist."""
+    try:
+        from src.db import get_connection, BACKEND
+        if BACKEND != "postgres":
+            return
+        conn = get_connection()
+        try:
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS mcp_access_log (
+                        id SERIAL PRIMARY KEY,
+                        ts TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                        ip VARCHAR(45) NOT NULL,
+                        method VARCHAR(10),
+                        path VARCHAR(200),
+                        user_agent VARCHAR(200),
+                        rate_limited BOOLEAN DEFAULT FALSE
+                    )
+                """)
+                # Index for daily report queries
+                cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_mcp_access_log_ts
+                    ON mcp_access_log (ts)
+                """)
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.warning("Could not create mcp_access_log table: %s", e)
+
+
+def _log_access_to_db(ip: str, method: str, path: str, user_agent: str,
+                       rate_limited: bool = False):
+    """Write one access log row. Non-blocking — caller catches exceptions."""
+    from src.db import get_connection, BACKEND
+    if BACKEND != "postgres":
+        return
+    conn = get_connection()
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO mcp_access_log (ip, method, path, user_agent, rate_limited) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (ip, method, path[:200], user_agent[:200], rate_limited),
+            )
+    finally:
+        conn.close()
 
 # Paths that bypass rate limiting (health + OAuth endpoints)
 _RATE_LIMIT_SKIP_PATHS = frozenset([
@@ -183,19 +234,28 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
+        # Extract headers once
+        headers = dict(scope.get("headers", []))
+
         # Log every /mcp request for security monitoring
         client = scope.get("client", ("unknown", 0))
         ip = client[0] if client else "unknown"
-        user_agent = headers.get(b"user-agent", b"").decode()[:100] if (headers := dict(scope.get("headers", []))) else ""
+        user_agent = headers.get(b"user-agent", b"").decode()[:100]
+        method = scope.get("method", "?")
         _request_log["total"] += 1
         _request_log["by_ip"][ip] = _request_log["by_ip"].get(ip, 0) + 1
         logger.info(
             "MCP request: ip=%s method=%s path=%s ua=%s total=%d",
-            ip, scope.get("method", "?"), path, user_agent, _request_log["total"],
+            ip, method, path, user_agent, _request_log["total"],
         )
 
+        # Persist to DB (non-blocking — failure doesn't block the request)
+        try:
+            _log_access_to_db(ip, method, path, user_agent)
+        except Exception:
+            pass  # Never let logging failure block a request
+
         # Extract bearer token or fall back to IP
-        headers = dict(scope.get("headers", []))
         auth_header = headers.get(b"authorization", b"").decode()
         scope_str = None
 
@@ -217,6 +277,11 @@ class RateLimitMiddleware:
         allowed, rl_headers = limiter.check_and_increment(rate_key, scope_str)
 
         if not allowed:
+            try:
+                _log_access_to_db(ip, method, path, user_agent, rate_limited=True)
+            except Exception:
+                pass
+            logger.warning("RATE LIMITED: ip=%s key=%s path=%s", ip, rate_key, path)
             response = JSONResponse(
                 {"error": "Rate limit exceeded. Upgrade at https://sfpermits.ai/docs for more calls."},
                 status_code=429,
@@ -253,6 +318,9 @@ if __name__ == "__main__":
     import uvicorn
 
     async def main():
+        # Initialize access log table at startup
+        _ensure_access_log_table()
+
         # Initialize OAuth tables at startup
         from src.db import get_connection, init_oauth_schema, BACKEND
         if BACKEND == "postgres":
