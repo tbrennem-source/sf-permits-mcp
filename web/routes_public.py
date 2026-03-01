@@ -171,6 +171,28 @@ def public_search():
             parsed_query=parsed,
         )
 
+    # Out-of-scope queries: show friendly guidance instead of a failed lookup.
+    if intent == "out_of_scope":
+        return render_template(
+            "search_results_public.html",
+            query=query_str,
+            result_html="",
+            no_results=True,
+            error=None,
+            violation_context=False,
+            nl_query=True,
+            out_of_scope=True,
+            out_of_scope_message=(
+                "sfpermits.ai specializes in San Francisco building permits. "
+                "Try searching for a permit number, address (e.g. 123 Main St), "
+                "or project type (kitchen remodel, ADU, solar)."
+            ),
+            block=None,
+            lot=None,
+            empty_guidance=build_empty_result_guidance(query_str, parsed),
+            parsed_query=parsed,
+        )
+
     # Track block/lot for intel preview HTMX panel
     resolved_block = None
     resolved_lot = None

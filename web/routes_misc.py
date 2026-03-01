@@ -649,3 +649,133 @@ def demo():
 def demo_guided():
     """Self-guided walkthrough page for stakeholder demos."""
     return render_template("demo_guided.html")
+
+
+# ---------------------------------------------------------------------------
+# QS13: Honeypot capture page — /join-beta
+# ---------------------------------------------------------------------------
+
+_BETA_REQUEST_BUCKETS: dict = {}  # ip -> list of timestamps
+
+
+@bp.route("/join-beta", methods=["GET"])
+def join_beta():
+    """Honeypot capture page: waitlist signup shown to non-authenticated users.
+
+    In HONEYPOT_MODE=1, the middleware redirects most paths here so that
+    organic traffic lands on a waitlist form instead of a login wall.
+    """
+    ref = request.args.get("ref", "")
+    q = request.args.get("q", "")
+    return render_template("join_beta.html", ref=ref, q=q)
+
+
+@bp.route("/join-beta", methods=["POST"])
+def join_beta_post():
+    """Process the /join-beta waitlist form submission."""
+    import os as _os
+    import time as _time
+
+    # Honeypot spam check — bots fill the hidden 'website' field
+    website = request.form.get("website", "").strip()
+    if website:
+        # Silent drop — don't reveal the honeypot
+        logging.warning("join_beta honeypot triggered from IP %s", request.remote_addr)
+        return "", 200
+
+    email = request.form.get("email", "").strip().lower()
+    name = request.form.get("name", "").strip()
+    role = request.form.get("role", "").strip()
+    interest_address = request.form.get("interest_address", "").strip()
+    ref = request.form.get("ref", "").strip()
+
+    if not email or "@" not in email:
+        return render_template("join_beta.html", ref=ref, q="",
+                               error="Please enter a valid email address.")
+
+    # Rate limit: 3 signups per hour per IP
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "unknown")
+    ip = ip.split(",")[0].strip()
+    now = _time.time()
+    _BETA_REQUEST_BUCKETS.setdefault(ip, [])
+    _BETA_REQUEST_BUCKETS[ip] = [t for t in _BETA_REQUEST_BUCKETS[ip] if now - t < 3600]
+    if len(_BETA_REQUEST_BUCKETS[ip]) >= 3:
+        return render_template("join_beta.html", ref=ref, q="",
+                               error="Too many requests. Please try again later.")
+    _BETA_REQUEST_BUCKETS[ip].append(now)
+
+    # Write to DB
+    try:
+        from src.db import execute_write
+        execute_write(
+            """
+            INSERT INTO beta_requests
+                (email, name, role, interest_address, referrer, ip, status, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, 'pending', NOW())
+            ON CONFLICT (email) DO UPDATE SET
+                name = EXCLUDED.name,
+                role = EXCLUDED.role,
+                interest_address = EXCLUDED.interest_address,
+                referrer = EXCLUDED.referrer,
+                ip = EXCLUDED.ip
+            """,
+            (
+                email,
+                name or None,
+                role or None,
+                interest_address or None,
+                ref or None,
+                ip,
+            ),
+        )
+    except Exception as e:
+        logging.error("join_beta DB error: %s", e)
+
+    # Send confirmation email
+    try:
+        from web.auth import send_beta_confirmation_email
+        send_beta_confirmation_email(email)
+    except Exception as e:
+        logging.warning("join_beta confirmation email failed: %s", e)
+
+    # Send admin alert
+    try:
+        admin_email = _os.environ.get("ADMIN_EMAIL", "").strip()
+        if admin_email:
+            from web.auth import SMTP_HOST, SMTP_PORT, SMTP_FROM, SMTP_USER, SMTP_PASS
+            if SMTP_HOST:
+                import smtplib
+                from email.message import EmailMessage
+                msg = EmailMessage()
+                msg["Subject"] = f"New beta signup: {email}"
+                msg["From"] = f"SF Permits AI <{SMTP_FROM}>"
+                msg["To"] = admin_email
+                msg.set_content(
+                    f"Email: {email}\nName: {name}\nRole: {role}\n"
+                    f"Ref: {ref}\nAddress: {interest_address}\nIP: {ip}"
+                )
+                with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as srv:
+                    srv.starttls()
+                    if SMTP_USER:
+                        srv.login(SMTP_USER, SMTP_PASS or "")
+                    srv.send_message(msg)
+    except Exception as e:
+        logging.warning("join_beta admin alert failed: %s", e)
+
+    return redirect("/join-beta/thanks")
+
+
+@bp.route("/join-beta/thanks", methods=["GET"])
+def join_beta_thanks():
+    """Post-signup thank-you page with queue position."""
+    queue_position = 0
+    try:
+        from src.db import query_one
+        row = query_one(
+            "SELECT COUNT(*) FROM beta_requests WHERE status = %s",
+            ("pending",),
+        )
+        queue_position = row[0] if row else 0
+    except Exception:
+        pass
+    return render_template("join_beta_thanks.html", queue_position=queue_position)

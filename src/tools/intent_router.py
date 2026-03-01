@@ -249,6 +249,37 @@ SQFT_RE = re.compile(r'(\d[\d,]*)\s*(?:sq\.?\s*ft\.?|square\s*feet|sqft|sf)\b', 
 # Intent classification
 # ---------------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------------
+# Scope guard: SF permit signal vocabulary
+# ---------------------------------------------------------------------------
+
+_SF_PERMIT_SIGNALS = frozenset({
+    'permit', 'construction', 'remodel', 'build', 'renovation', 'electrical',
+    'plumbing', 'mechanical', 'alteration', 'demolition', 'adu', 'addition',
+    'inspection', 'contractor', 'architect', 'dbi', 'planning', 'zoning',
+    'building', 'structure', 'foundation', 'roof', 'window', 'door',
+    'kitchen', 'bathroom', 'garage', 'deck', 'fence', 'solar', 'hvac',
+    'complaint', 'violation', 'enforcement', 'nov', 'parcel', 'block', 'lot',
+    'entitlement', 'setback', 'variance', 'conditional',
+    'structural', 'seismic', 'sprinkler', 'elevator', 'shed', 'driveway',
+    'patio', 'hearing', 'inspector', 'expediter', 'tenant', 'residential',
+    'commercial', 'historic', 'encroachment', 'grading', 'excavation',
+})
+
+_OTHER_CITY_SIGNALS = frozenset({
+    'oakland', 'berkeley', 'san jose', 'los angeles', 'new york', 'chicago',
+    'seattle', 'portland', 'boston', 'nyc', 'washington', 'dc',
+    'miami', 'denver', 'phoenix', 'san diego', 'austin', 'dallas',
+})
+
+_NON_PERMIT_SIGNALS = frozenset({
+    'business license', 'dog permit', 'parking permit', 'liquor license',
+    'food permit', 'special event', 'film permit', 'street closure',
+    'dog license', 'firearm', 'tobacco',
+})
+
+
 def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
     """Classify a free-text query into an intent with extracted entities.
 
@@ -495,6 +526,31 @@ def classify(text: str, neighborhoods: list[str] | None = None) -> IntentResult:
             confidence=min(0.5 + analyze_score * 0.1, 0.9),
             entities=entities,
         )
+
+    # --- Priority 6.5: Scope guard — out_of_scope ---
+    # Fires only when no specific intent matched.  Detects queries that are
+    # clearly about other cities or non-permit topics (e.g. dog license,
+    # liquor license) so the UI can show focused guidance.
+    # Uses word-boundary matching to avoid false positives like "la" in "plan".
+    # Requires word_count >= 2 to avoid flagging very short queries.
+    if word_count >= 2 and len(text) > 5:
+        has_sf_signal = any(sig in text_lower for sig in _SF_PERMIT_SIGNALS)
+        has_address_hint = bool(re.search(r'\b\d+\s+[a-zA-Z]', text_lower))
+        has_permit_num = bool(re.search(r'\b\d{8,}\b', text_lower))
+        # Use word-boundary matching for city names to avoid "la" in "plan", "dc" in "deck"
+        has_other_city = any(
+            bool(re.search(r'\b' + re.escape(city) + r'\b', text_lower))
+            for city in _OTHER_CITY_SIGNALS
+        )
+        has_non_permit = any(term in text_lower for term in _NON_PERMIT_SIGNALS)
+
+        if not has_sf_signal and not has_address_hint and not has_permit_num:
+            if has_other_city or has_non_permit:
+                return IntentResult(
+                    intent="out_of_scope",
+                    confidence=0.85,
+                    entities={"query": text, "reason": "other_city_or_non_permit"},
+                )
 
     # --- Priority 7: General question ---
     return IntentResult(
