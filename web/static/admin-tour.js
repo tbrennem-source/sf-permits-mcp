@@ -152,6 +152,68 @@
       }
     ];
 
+    // QS13 — new content + capture pages
+    if (pathname === '/join-beta') return [
+      {
+        selector: 'input[type="email"], [name="email"]',
+        feedback: 'QS13 Sprint — beta capture page. First review.',
+        fix: 'Email capture form for honeypot waitlist. Collects email, name, role, and intent address.',
+        action: 'Check email input is prominent. Verify form submits to /join-beta (POST). Check honeypot field is hidden.'
+      },
+      {
+        selector: 'select[name="role"], [name="role"]',
+        feedback: 'QS13 Sprint — intent signal via role dropdown.',
+        fix: 'Role dropdown captures user intent (homeowner, contractor, expediter, architect, other). Ref param preserved from redirect.',
+        action: 'Check ?ref= param is in hidden field. Verify role options match expected persona types.'
+      }
+    ];
+    if (pathname === '/join-beta/thanks') return [
+      {
+        selector: '.queue-position, [class*="queue"], h1, h2',
+        feedback: 'QS13 Sprint — post-signup confirmation page.',
+        fix: 'Shows social proof: queue position (count of pending beta requests), confirmation message.',
+        action: 'Check queue position number renders. Verify page does not leak PII. Check noindex meta tag present.'
+      }
+    ];
+    if (pathname === '/docs') return [
+      {
+        selector: '.tool-category, .docs-hero, h1',
+        feedback: 'QS13 Sprint — public API documentation page.',
+        fix: 'Tool catalog: 34 tools across 7 categories. 3-step quick-start connection guide for claude.ai integration.',
+        action: 'Check categories render. Scroll to Quick Start section — should show 3 numbered steps. Check mobile layout at 375px.'
+      },
+      {
+        selector: '.quick-start, .connect-steps, .step',
+        feedback: 'QS13 Sprint — connection guide for MCP server.',
+        fix: 'Step 1: Open claude.ai Settings. Step 2: Add custom connector. Step 3: Paste MCP URL.',
+        action: 'Verify 3-step guide is visible. Check MCP URL shown matches DEPLOYMENT_MANIFEST.yaml entry.'
+      }
+    ];
+    if (pathname === '/privacy') return [
+      {
+        selector: 'h2, .section-header',
+        feedback: 'QS13 Sprint — privacy policy page.',
+        fix: 'Data handling policy. What We Collect section lists: email, IP, watch items, feedback, activity.',
+        action: 'Scroll to "What We Collect" — verify email and permit addresses are listed. Check contact email renders.'
+      }
+    ];
+    if (pathname === '/terms') return [
+      {
+        selector: 'h2, .section-header',
+        feedback: 'QS13 Sprint — terms of service page.',
+        fix: 'Beta disclaimer: service in beta, data may be inaccurate, no warranty. Acceptable use restrictions.',
+        action: 'Scroll to beta status section — should clarify this is beta software. Check liability disclaimer present.'
+      }
+    ];
+    if (pathname === '/admin/beta-funnel') return [
+      {
+        selector: '.funnel-stats, .stats-grid, table, h1',
+        feedback: 'QS13 Sprint — admin beta funnel analytics dashboard.',
+        fix: 'Shows: total signups, today count, week count, breakdown by role, breakdown by referrer, top interest addresses.',
+        action: 'Check stat cards render (total/today/week). Verify role and referrer breakdowns visible. Check export CSV link present.'
+      }
+    ];
+
     return [];
   }
 

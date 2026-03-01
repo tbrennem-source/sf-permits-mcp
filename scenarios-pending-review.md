@@ -3008,3 +3008,43 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Edge cases seen in code:** /demo/guided also exempt (used for stakeholder demos during pre-launch)
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: MCP tool run_query blocked from accessing PII tables
+**Source:** src/tools/project_intel.py (_BLOCKED_TABLES, _check_table_allowlist)
+**User:** admin
+**Starting state:** Planning layer (Claude.ai with MCP) sends SQL query referencing users or beta_requests table
+**Goal:** Planning layer attempts to inspect user data or beta signups via run_query tool
+**Expected outcome:** Query is rejected with "Access denied" message before reaching the database; no user PII is returned
+**Edge cases seen in code:** Blocked tables include: users, auth_tokens, feedback, beta_requests, mcp_oauth_clients — all PII-bearing tables. Allowed tables: permits, contacts, entities, inspections, cron_log (operational/public data)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: read_source blocks access to CLAUDE.md and sprint prompts
+**Source:** src/tools/project_intel.py (_check_path_allowed)
+**User:** admin
+**Starting state:** Planning layer attempts to read CLAUDE.md or sprint-prompts/ via read_source tool
+**Goal:** Planning layer tries to access agent instructions or deployment configs
+**Expected outcome:** Access denied with explanation; file contents are not returned
+**Edge cases seen in code:** Blocked patterns: CLAUDE.md, sprint-prompts/, .claude/, .env. Path traversal (../) and absolute paths also blocked. Allowed: src/, web/, tests/, docs/ (source files)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: new visitor completes beta signup flow end to end
+**Source:** web/routes_misc.py (join_beta, join_beta_post, join_beta_thanks)
+**User:** homeowner
+**Starting state:** HONEYPOT_MODE=1; visitor arrives at /search via organic search
+**Goal:** Visitor wants to search for permits for their property
+**Expected outcome:** Visitor is redirected to /join-beta with ref=search; fills email + role; submits form; lands on /join-beta/thanks with queue position shown; confirmation email queued
+**Edge cases seen in code:** Honeypot field (website) filled → silent 200, no DB write. Rate limit: 3 submissions per IP per hour. Invalid email → form re-renders with error, no DB write
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: admin views beta funnel analytics dashboard
+**Source:** web/routes_admin.py (admin_beta_funnel)
+**User:** admin
+**Starting state:** Beta signups exist in beta_requests table; admin is logged in
+**Goal:** Admin wants to understand signup conversion and intent distribution
+**Expected outcome:** Dashboard shows total, today, and 7-day signup counts; role breakdown table; referrer breakdown (which paths drove signups); top interest addresses
+**Edge cases seen in code:** DuckDB vs Postgres path difference in query execution. Empty table returns zeros (graceful). Non-admin (is_admin=False) sees 403
+**CC confidence:** high
+**Status:** PENDING REVIEW
