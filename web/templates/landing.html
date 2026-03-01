@@ -779,7 +779,7 @@
 </style>
 <link rel="stylesheet" href="{{ url_for('static', filename='mcp-demo.css') }}" nonce="{{ csp_nonce }}">
 </head>
-<body>
+<body data-honeypot="{{ 'true' if honeypot_mode else 'false' }}">
 
 {% if is_staging %}
 <div style="background: var(--amber); color: var(--obsidian); text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; position: relative; z-index: 9999;">
@@ -1570,5 +1570,6 @@
 </script>
 {% endif %}
 
+<script src="{{ url_for('static', filename='js/honeypot.js') }}"></script>
 </body>
 </html>
