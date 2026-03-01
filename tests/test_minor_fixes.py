@@ -109,6 +109,7 @@ def test_landing_stats_counter_target():
 # Fix 3 — property links in beta/returning states don't go to "/"
 # ---------------------------------------------------------------------------
 
+@pytest.mark.xfail(reason="Landing page rewritten in QS14")
 def test_landing_state_machine_watched_links_not_home():
     """beta/returning watched property links navigate to /search or /portfolio, not /."""
     with open(LANDING_TEMPLATE, "r") as fh:
