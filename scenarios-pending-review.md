@@ -2882,3 +2882,43 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Expected outcome:** After 3.6s, the scroll cue arrow fades in and is visible at 60% opacity — noticeable without dominating the hero section
 **CC confidence:** low
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: API docs page shows all 34 tools organized by category
+**Source:** qs13-t3 Agent 3A — /docs page with docs_generator.py
+**User:** architect | expediter
+**Starting state:** User has discovered sfpermits.ai and wants to understand its capabilities before connecting to Claude.ai
+**Goal:** Find out what tools are available and how to connect
+**Expected outcome:** /docs page renders with 34 tools organized across 7 categories, each tool showing description and parameters; quick-start section shows 3-step Claude.ai connection instructions
+**Edge cases seen in code:** Category counts are computed from TOOL_CATEGORIES list — if server.py adds new tools, docs_generator.py needs manual update
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Privacy policy clearly explains MCP server data handling
+**Source:** qs13-t3 Agent 3B — /privacy page
+**User:** homeowner | architect
+**Starting state:** User is considering connecting sfpermits.ai to Claude.ai and wants to understand what data the MCP server processes
+**Goal:** Understand how tool calls via Claude.ai are handled
+**Expected outcome:** /privacy page has a dedicated "MCP Server" section explaining that tool call metadata is logged but conversation content is not; page is accessible without login
+**Edge cases seen in code:** None — static content
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Terms page includes data accuracy disclaimer
+**Source:** qs13-t3 Agent 3B — /terms page
+**User:** homeowner | architect
+**Starting state:** User is about to make a permit decision based on sfpermits.ai timeline estimates
+**Goal:** Understand the data accuracy limitations before relying on estimates
+**Expected outcome:** /terms page shows a highlighted "not legal advice" notice box in the Data Accuracy section, explaining estimates are statistical and should be verified with DBI
+**Edge cases seen in code:** Notice box uses signal-amber left border — should be visually distinct
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Directory readiness QA script catches missing pages
+**Source:** qs13-t3 Agent 3C — scripts/qa_directory_readiness.py
+**User:** admin (internal)
+**Starting state:** Developer is preparing to submit to Anthropic connector directory
+**Goal:** Verify all required pages and endpoints are live before submission
+**Expected outcome:** `python scripts/qa_directory_readiness.py --quick` runs 14 checks and reports PASS for health, OAuth discovery, /docs, /privacy, /terms; reports SKIP for auth-required checks
+**Edge cases seen in code:** Script uses urllib (no requests dependency); --quick flag skips rate limit and OAuth flow tests that require many requests or a real browser
+**CC confidence:** medium
+**Status:** PENDING REVIEW
