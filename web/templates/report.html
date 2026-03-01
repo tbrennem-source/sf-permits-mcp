@@ -588,6 +588,17 @@
             <div class="intel-card__label">Risk factors</div>
             <div class="intel-card__detail">{% if high_risk_count.val > 0 %}{{ high_risk_count.val }} high severity{% elif total_risks > 0 %}{{ total_risks }} flagged{% else %}No flags{% endif %}</div>
         </a>
+
+        {%- if report.intelligence is defined and report.intelligence and report.intelligence.stuck_permits -%}
+        <a href="#section-intelligence" class="intel-card intel-card--danger">
+            <div class="intel-card__top">
+                <span class="intel-card__number status-text--red">{{ report.intelligence.stuck_permits | length }}</span>
+                <span class="intel-card__arrow">&rarr;</span>
+            </div>
+            <div class="intel-card__label">Stuck permits</div>
+            <div class="intel-card__detail">Intelligence analysis</div>
+        </a>
+        {%- endif -%}
     </div>
 
     {# ===== Actions Needed — high severity items ===== #}
@@ -1197,6 +1208,131 @@
         {% endif %}
     </section>
     <hr class="divider">
+    {% endif %}
+
+    {# ===== Intelligence ===== #}
+    {% if report.intelligence is defined and report.intelligence %}
+    {%- set intel = report.intelligence -%}
+    <hr class="divider">
+    <section class="reveal" style="padding: var(--space-8) 0;" id="section-intelligence">
+        <div class="section-label">Intelligence</div>
+
+        {# Stuck Permit Analysis #}
+        {% if intel.stuck_permits %}
+        <div style="margin-bottom: var(--space-6);">
+            <div style="font-family: var(--mono); font-size: var(--text-xs); font-weight: 400; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: var(--space-3);">Stuck permit analysis</div>
+            {% for diag in intel.stuck_permits %}
+            {%- set sev = diag.severity | lower if diag.severity else 'moderate' -%}
+            {%- set sev_class = 'high' if diag.severity in ('HIGH', 'CRITICAL') else 'moderate' -%}
+            <div class="risk-item risk-item--{{ sev_class }}" style="margin-bottom: var(--space-3);">
+                <div class="risk-item__header">
+                    <span class="severity-chip severity-chip--{{ sev_class }}">{{ diag.severity }}</span>
+                    <span class="risk-item__title">Permit {{ diag.permit_number }}</span>
+                </div>
+                {% if diag.stuck_stations %}
+                {% for s in diag.stuck_stations %}
+                <div class="risk-item__desc" style="margin-bottom: 4px;">
+                    <strong style="color: var(--text-primary); font-weight: 400;">{{ s.station }}</strong>:
+                    {{ s.days }} days
+                    {% if s.baseline_p50 and s.baseline_p50 > 0 %}
+                    &mdash; baseline {{ s.baseline_p50 }}d
+                    ({{ "%.1f"|format(s.days / s.baseline_p50) }}x)
+                    {% endif %}
+                    {% if s.status %}
+                    <span class="severity-chip severity-chip--{{ 'high' if s.status in ('STALLED', 'STUCK', 'CRITICAL') else 'moderate' }}" style="margin-left: var(--space-2);">{{ s.status }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% if diag.interventions and diag.interventions | length > 0 %}
+                <div class="risk-item__desc" style="margin-top: var(--space-2);">
+                    <strong style="color: var(--text-primary); font-weight: 400;">Recommended:</strong>
+                    {{ diag.interventions[0].action }}
+                    {% if diag.interventions[0].contact %}
+                    &mdash; {{ diag.interventions[0].contact }}
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Delay Cost Estimate #}
+        {% if intel.delay_estimate %}
+        <div style="margin-bottom: var(--space-6);">
+            <div style="font-family: var(--mono); font-size: var(--text-xs); font-weight: 400; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: var(--space-3);">Cost of delay</div>
+            <div class="glass-card" style="margin-bottom: var(--space-3);">
+                <div class="data-row" style="padding-top: 0;">
+                    <span class="data-row__label">Daily impact</span>
+                    <span class="data-row__value" style="font-family: var(--mono);">${{ "%.0f"|format(intel.delay_estimate.daily_cost) }}/day</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-row__label">Weekly impact</span>
+                    <span class="data-row__value" style="font-family: var(--mono);">${{ "%.0f"|format(intel.delay_estimate.weekly_cost) }}/week</span>
+                </div>
+            </div>
+            {% if intel.delay_estimate.scenarios %}
+            <div class="obs-table-wrap">
+                <table class="obs-table">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Duration</th>
+                            <th>Total impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in intel.delay_estimate.scenarios %}
+                        <tr>
+                            <td>{{ s.label }}</td>
+                            <td class="obs-table__mono">{{ s.months }} months</td>
+                            <td class="obs-table__mono">${{ "{:,.0f}".format(s.total_cost) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Similar Completed Projects #}
+        {% if intel.similar_projects %}
+        <div>
+            <div style="font-family: var(--mono); font-size: var(--text-xs); font-weight: 400; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: var(--space-3);">Similar completed projects</div>
+            {% for p in intel.similar_projects[:5] %}
+            <div class="permit-item" style="cursor: default; grid-template-columns: 1fr auto;">
+                <div>
+                    <div class="permit-item__number" style="margin-bottom: 2px;">
+                        <a href="{{ links.permit(p.permit_number) }}" target="_blank" rel="noopener">{{ p.permit_number }}</a>
+                        {% if p.neighborhood %}
+                        <span style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-secondary); margin-left: var(--space-2);">{{ p.neighborhood }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="permit-item__desc">
+                        {{ p.description[:80] if p.description else '—' }}{% if p.description and p.description | length > 80 %}&hellip;{% endif %}
+                    </div>
+                    {% if p.routing_path %}
+                    <div style="font-family: var(--mono); font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 2px;">
+                        {{ p.routing_path | join(' &rarr; ') }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="permit-item__status">
+                    {% if p.duration_days %}
+                    <div style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-secondary);">{{ p.duration_days }}d</div>
+                    {% endif %}
+                    {% if p.estimated_cost %}
+                    <div class="permit-item__date">${{ "{:,.0f}".format(p.estimated_cost) }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </section>
     {% endif %}
 
     {# ===== Nearby Activity ===== #}
