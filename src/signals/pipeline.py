@@ -144,11 +144,12 @@ def run_signal_pipeline(conn) -> dict:
     # 1. Ensure tables
     _ensure_signal_tables(conn)
 
-    # 2. Seed signal types
-    _seed_signal_types(conn)
-
-    # 3. Truncate
+    # 2. Truncate child tables FIRST (before seeding parent signal_types)
+    #    to avoid FK violation when DELETE FROM signal_types runs
     _truncate_signals(conn)
+
+    # 3. Seed signal types (safe now — child tables are empty)
+    _seed_signal_types(conn)
 
     # 4. Run detectors
     all_signals: list[Signal] = []

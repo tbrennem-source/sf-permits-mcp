@@ -1,10 +1,10 @@
-{# showcase_entity.html — Entity Network Mini-Graph (visual-first redesign) #}
+{# showcase_entity.html — Entity Network (text-first redesign) #}
 {# Receives: showcase.entity_network #}
 {% set entity = showcase.entity_network %}
 <div class="showcase-entity glass-card"
      data-track="showcase-view"
      data-showcase="entity"
-     style="padding: var(--space-6);">
+     style="padding: var(--space-8);">
   <style>
     .entity-intel-label {
       font-family: var(--mono);
@@ -13,53 +13,53 @@
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--text-tertiary);
-      margin-bottom: var(--space-4);
+      margin-bottom: var(--space-6);
     }
-    .entity-graph-container {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16/9;
-      max-height: 220px;
-      background: var(--glass);
+    .entity-pros {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 600px) {
+      .entity-pros { grid-template-columns: 1fr; }
+    }
+    .entity-pro {
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
-      overflow: hidden;
-      margin-bottom: var(--space-4);
+      padding: var(--space-5);
+      background: var(--glass);
     }
-    .entity-svg {
-      width: 100%;
-      height: 100%;
+    .entity-pro__role {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-2);
     }
-    /* Float animations for nodes */
-    @keyframes node-float-1 {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-4px); }
+    .entity-pro__name {
+      font-family: var(--mono);
+      font-size: var(--text-base);
+      color: var(--text-primary);
+      font-weight: 400;
+      margin-bottom: var(--space-2);
     }
-    @keyframes node-float-2 {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(4px); }
-    }
-    @keyframes node-float-3 {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-3px); }
-    }
-    @keyframes node-float-4 {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(3px); }
-    }
-    .entity-node-float-1 { animation: node-float-1 4.2s ease-in-out infinite; }
-    .entity-node-float-2 { animation: node-float-2 5.1s ease-in-out infinite; }
-    .entity-node-float-3 { animation: node-float-3 3.8s ease-in-out infinite; }
-    .entity-node-float-4 { animation: node-float-4 4.6s ease-in-out infinite; }
-    .entity-stats {
+    .entity-pro__stat {
       font-family: var(--mono);
       font-size: var(--text-sm);
       color: var(--text-secondary);
-      margin-bottom: var(--space-5);
     }
-    .entity-stats strong {
-      color: var(--text-primary);
+    .entity-pro__stat strong {
+      color: var(--accent);
       font-weight: 400;
+    }
+    .entity-summary {
+      font-family: var(--sans);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: var(--space-6);
     }
     .entity-cta-row {
       padding-top: var(--space-4);
@@ -71,116 +71,33 @@
 
   <div class="entity-intel-label">Network Intelligence</div>
 
-  <div class="entity-graph-container" id="entity-graph-{{ loop.index if loop is defined else '1' }}">
-    <svg class="entity-svg" viewBox="0 0 400 225" xmlns="http://www.w3.org/2000/svg"
-         aria-label="Entity network graph for {{ entity.address }}">
-
-      <!-- Edges — drawn first so nodes render on top -->
-      <!-- Central (200,112) → Node 1 top-left (80,55) -->
-      <line x1="200" y1="112" x2="80" y2="55"
-            stroke="var(--accent)" stroke-width="1" opacity="0.25"/>
-      <!-- Central → Node 2 top-right (320,55) -->
-      <line x1="200" y1="112" x2="320" y2="55"
-            stroke="var(--accent)" stroke-width="1" opacity="0.25"/>
-      <!-- Central → Node 3 bottom-left (80,170) -->
-      <line x1="200" y1="112" x2="80" y2="170"
-            stroke="var(--accent)" stroke-width="1" opacity="0.25"/>
-      <!-- Central → Node 4 bottom-right (320,170) -->
-      <line x1="200" y1="112" x2="320" y2="170"
-            stroke="var(--accent)" stroke-width="1" opacity="0.25"/>
-      <!-- Cross-edge: node 1 → node 2 (shared relationship) -->
-      <line x1="80" y1="55" x2="320" y2="55"
-            stroke="var(--accent)" stroke-width="0.5" opacity="0.12"/>
-      <!-- Cross-edge: node 3 → node 4 -->
-      <line x1="80" y1="170" x2="320" y2="170"
-            stroke="var(--accent)" stroke-width="0.5" opacity="0.12"/>
-
-      <!-- Central node — 1 Market St -->
-      <g class="entity-node entity-node-central" data-id="central">
-        <circle cx="200" cy="112" r="32"
-                fill="rgba(94, 234, 212, 0.12)"
-                stroke="rgba(94, 234, 212, 0.45)"
-                stroke-width="1.5"/>
-        <text x="200" y="107"
-              font-family="'JetBrains Mono', monospace"
-              font-size="10" font-weight="400"
-              fill="#5eead4" text-anchor="middle">1 Market St</text>
-        <text x="200" y="121"
-              font-family="'JetBrains Mono', monospace"
-              font-size="9" font-weight="300"
-              fill="rgba(94, 234, 212, 0.65)" text-anchor="middle">63 permits</text>
-      </g>
-
-      <!-- Node 1: Arb Inc (contractor, largest — r=22) -->
-      <g class="entity-node entity-node-secondary entity-node-float-1" data-id="node-1">
-        <circle cx="80" cy="55" r="22"
-                fill="rgba(251, 191, 36, 0.12)"
-                stroke="rgba(251, 191, 36, 0.4)"
-                stroke-width="1"/>
-        <text x="80" y="52"
-              font-family="'JetBrains Mono', monospace"
-              font-size="8" font-weight="300"
-              fill="#fbbf24" text-anchor="middle">Arb Inc</text>
-        <text x="80" y="63"
-              font-family="'JetBrains Mono', monospace"
-              font-size="7" font-weight="300"
-              fill="rgba(255,255,255,0.35)" text-anchor="middle">12,674 permits</text>
-      </g>
-
-      <!-- Node 2: Pribuss Engineering (engineer, medium — r=16) -->
-      <g class="entity-node entity-node-secondary entity-node-float-2" data-id="node-2">
-        <circle cx="320" cy="55" r="16"
-                fill="rgba(96, 165, 250, 0.12)"
-                stroke="rgba(96, 165, 250, 0.4)"
-                stroke-width="1"/>
-        <text x="320" y="52"
-              font-family="'JetBrains Mono', monospace"
-              font-size="7" font-weight="300"
-              fill="#60a5fa" text-anchor="middle">Pribuss Eng</text>
-        <text x="320" y="62"
-              font-family="'JetBrains Mono', monospace"
-              font-size="7" font-weight="300"
-              fill="rgba(255,255,255,0.35)" text-anchor="middle">7,309</text>
-      </g>
-
-      <!-- Node 3: Gensler (architect, small — r=10) -->
-      <g class="entity-node entity-node-secondary entity-node-float-3" data-id="node-3">
-        <circle cx="80" cy="170" r="10"
-                fill="rgba(96, 165, 250, 0.12)"
-                stroke="rgba(96, 165, 250, 0.35)"
-                stroke-width="1"/>
-        <text x="80" y="173"
-              font-family="'JetBrains Mono', monospace"
-              font-size="7" font-weight="300"
-              fill="#60a5fa" text-anchor="middle">Gensler</text>
-      </g>
-
-      <!-- Node 4: Hathaway Dinwiddie (contractor, medium — r=13) -->
-      <g class="entity-node entity-node-secondary entity-node-float-4" data-id="node-4">
-        <circle cx="320" cy="170" r="13"
-                fill="rgba(251, 191, 36, 0.12)"
-                stroke="rgba(251, 191, 36, 0.35)"
-                stroke-width="1"/>
-        <text x="320" y="167"
-              font-family="'JetBrains Mono', monospace"
-              font-size="7" font-weight="300"
-              fill="#fbbf24" text-anchor="middle">Hathaway</text>
-        <text x="320" y="177"
-              font-family="'JetBrains Mono', monospace"
-              font-size="7" font-weight="300"
-              fill="rgba(255,255,255,0.35)" text-anchor="middle">4,821</text>
-      </g>
-    </svg>
+  <div class="entity-pros">
+    <div class="entity-pro">
+      <div class="entity-pro__role">Contractor</div>
+      <div class="entity-pro__name">Arb Inc</div>
+      <div class="entity-pro__stat"><strong>12,674</strong> SF permits</div>
+    </div>
+    <div class="entity-pro">
+      <div class="entity-pro__role">Engineer</div>
+      <div class="entity-pro__name">Pribuss Engineering</div>
+      <div class="entity-pro__stat"><strong>7,309</strong> SF permits</div>
+    </div>
+    <div class="entity-pro">
+      <div class="entity-pro__role">Architect</div>
+      <div class="entity-pro__name">Gensler</div>
+      <div class="entity-pro__stat"><strong>4,821</strong> SF permits</div>
+    </div>
   </div>
 
-  <div class="entity-stats">
-    <strong>63 permits</strong> &middot; 12,674 connected projects
-  </div>
+  <p class="entity-summary">
+    These professionals have worked on projects at {{ entity.address }}. We track
+    who builds what, how often they get approvals, and which teams work together.
+  </p>
 
   <div class="entity-cta-row">
     <a href="/tools/entity-network?address=1+MARKET"
        class="ghost-cta"
        data-track="showcase-click"
-       data-showcase="entity">Explore network &rarr;</a>
+       data-showcase="entity">Find professionals for your project &rarr;</a>
   </div>
 </div>
