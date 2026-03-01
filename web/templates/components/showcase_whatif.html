@@ -1,130 +1,207 @@
-{# showcase_whatif.html — What-If Comparison (visual-first redesign) #}
-{# Receives: showcase.whatif #}
-{% set whatif = showcase.whatif %}
-<div class="showcase-whatif glass-card"
+{# showcase_whatif.html — What-If Scenario Comparison (visual-first redesign) #}
+{# Receives: showcase.whatif (via Jinja2 global from routes_public.py) #}
+{% set whatif = showcase.whatif if showcase else None %}
+{% if whatif and whatif.scenario_a and whatif.scenario_b %}
+{% set a = whatif.scenario_a %}
+{% set b = whatif.scenario_b %}
+<div class="showcase-card showcase-whatif"
      data-track="showcase-view"
-     data-showcase="whatif"
-     style="padding: var(--space-6);">
+     data-showcase="whatif">
   <style>
+    /* Intel label */
     .whatif-intel-label {
       font-family: var(--mono);
       font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.10em;
       text-transform: uppercase;
       color: var(--text-tertiary);
-      margin-bottom: var(--space-4);
+      padding: var(--space-4) var(--space-5) 0;
+      margin-bottom: var(--space-3);
     }
-    .whatif-compare {
+
+    /* Two-column comparison */
+    .whatif-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--space-3);
-      margin-bottom: var(--space-4);
+      padding: 0 var(--space-5) var(--space-4);
     }
     .whatif-col {
       border-radius: var(--radius-sm);
       padding: var(--space-4);
     }
     .whatif-col--a {
-      background: rgba(52, 211, 153, 0.07);
-      border: 1px solid rgba(52, 211, 153, 0.18);
+      background: rgba(52, 211, 153, 0.06);
+      border: 1px solid rgba(52, 211, 153, 0.16);
     }
     .whatif-col--b {
-      background: rgba(251, 191, 36, 0.07);
-      border: 1px solid rgba(251, 191, 36, 0.18);
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.16);
     }
-    .whatif-col-title {
-      font-family: var(--sans);
-      font-size: var(--text-xs);
+
+    /* Scenario label */
+    .whatif-scenario-label {
+      font-family: var(--mono);
+      font-size: 10px;
       font-weight: 400;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       margin-bottom: var(--space-2);
     }
-    .whatif-col--a .whatif-col-title {
-      color: var(--signal-green);
-    }
-    .whatif-col--b .whatif-col-title {
-      color: var(--signal-amber);
-    }
-    .whatif-big-number {
+    .whatif-col--a .whatif-scenario-label { color: var(--signal-green); }
+    .whatif-col--b .whatif-scenario-label { color: var(--signal-amber); }
+
+    /* Big timeline number */
+    .whatif-timeline {
       font-family: var(--mono);
-      font-size: clamp(1.75rem, 3vw, 2.25rem);
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
       font-weight: 300;
       line-height: 1;
       margin-bottom: var(--space-2);
     }
-    .whatif-col--a .whatif-big-number {
-      color: var(--signal-green);
-    }
-    .whatif-col--b .whatif-big-number {
-      color: var(--signal-amber);
-    }
+    .whatif-col--a .whatif-timeline { color: var(--signal-green); }
+    .whatif-col--b .whatif-timeline { color: var(--signal-amber); }
+
+    /* Sub-stats row */
     .whatif-sub {
       font-family: var(--mono);
       font-size: var(--text-xs);
       color: var(--text-secondary);
     }
-    .whatif-bars {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-3);
-      margin-bottom: var(--space-5);
-    }
+
+    /* Timeline progress bar */
     .whatif-bar-wrap {
-      height: 4px;
+      height: 3px;
       background: var(--glass-border);
       border-radius: var(--radius-full);
       overflow: hidden;
+      margin-top: var(--space-3);
     }
     .whatif-bar-fill {
       height: 100%;
       border-radius: var(--radius-full);
     }
-    .whatif-bar-fill--a {
-      width: 20%;
-      background: var(--signal-green);
+    .whatif-bar-fill--a { background: var(--signal-green); }
+    .whatif-bar-fill--b { background: var(--dot-amber); }
+
+    /* Delta row */
+    .whatif-delta-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 0 var(--space-5) var(--space-3);
+      flex-wrap: wrap;
     }
-    .whatif-bar-fill--b {
-      width: 100%;
-      background: var(--dot-amber);
+    .whatif-delta-chip {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--signal-amber);
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      border-radius: var(--radius-sm);
+      padding: 3px 8px;
     }
-    .whatif-cta-row {
-      padding-top: var(--space-4);
+    .whatif-strategy {
+      font-family: var(--sans);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Review path badges */
+    .whatif-path-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      border-radius: var(--radius-sm);
+      padding: 2px 6px;
+      margin-top: var(--space-2);
+    }
+    .whatif-path-badge--otc {
+      background: rgba(52, 211, 153, 0.10);
+      border: 1px solid rgba(52, 211, 153, 0.20);
+      color: var(--signal-green);
+    }
+    .whatif-path-badge--inhouse {
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      color: var(--signal-amber);
+    }
+
+    /* Footer */
+    .whatif-footer {
+      padding: var(--space-3) var(--space-5) var(--space-4);
       border-top: 1px solid var(--glass-border);
       display: flex;
       justify-content: flex-end;
+    }
+
+    @media (max-width: 420px) {
+      .whatif-grid { grid-template-columns: 1fr; }
     }
   </style>
 
   <div class="whatif-intel-label">Simulation Intelligence</div>
 
-  <div class="whatif-compare">
+  {# Two scenario columns #}
+  <div class="whatif-grid">
+    {# Scenario A — OTC / fast path #}
     <div class="whatif-col whatif-col--a">
-      <div class="whatif-col-title">Kitchen remodel</div>
-      <div class="whatif-big-number">2 weeks</div>
-      <div class="whatif-sub">$1,200 &middot; OTC</div>
+      <div class="whatif-scenario-label">{{ a.label }}</div>
+      <div class="whatif-timeline">{{ a.timeline_p50 }}</div>
+      <div class="whatif-sub">{{ a.fees }} · {{ a.agencies }}</div>
+      {% if a.review_path %}
+      <span class="whatif-path-badge whatif-path-badge--otc">{{ a.review_path }}</span>
+      {% endif %}
+      <div class="whatif-bar-wrap">
+        {# A is the shorter path — calculate bar % relative to B p50 #}
+        {% set a_days = a.p50_days | int %}
+        {% set b_days = b.p50_days | int %}
+        {% set a_pct = ((a_days / b_days) * 100) | round | int if b_days > 0 else 20 %}
+        <div class="whatif-bar-fill whatif-bar-fill--a" style="width: {{ [a_pct, 12] | max }}%;"></div>
+      </div>
     </div>
+
+    {# Scenario B — in-house / complex path #}
     <div class="whatif-col whatif-col--b">
-      <div class="whatif-col-title">Kitchen + Bath + Wall</div>
-      <div class="whatif-big-number">5 months</div>
-      <div class="whatif-sub">$6,487 &middot; In-house</div>
+      <div class="whatif-scenario-label">{{ b.label }}</div>
+      <div class="whatif-timeline">{{ b.timeline_p50 }}</div>
+      <div class="whatif-sub">{{ b.fees }} · {{ b.agencies }}</div>
+      {% if b.review_path %}
+      <span class="whatif-path-badge whatif-path-badge--inhouse">{{ b.review_path }}</span>
+      {% endif %}
+      <div class="whatif-bar-wrap">
+        <div class="whatif-bar-fill whatif-bar-fill--b" style="width: 100%;"></div>
+      </div>
     </div>
   </div>
 
-  <div class="whatif-bars">
-    <div class="whatif-bar-wrap">
-      <div class="whatif-bar-fill whatif-bar-fill--a"></div>
-    </div>
-    <div class="whatif-bar-wrap">
-      <div class="whatif-bar-fill whatif-bar-fill--b"></div>
-    </div>
+  {# Delta chips from comparison data #}
+  {% if whatif.comparison %}
+  <div class="whatif-delta-row">
+    {% for row in whatif.comparison %}
+    {% if row.verdict == 'a_wins' and row.delta and loop.index <= 3 %}
+    <span class="whatif-delta-chip">+{{ row.delta }}</span>
+    {% endif %}
+    {% endfor %}
+    {% if whatif.strategy %}
+    <span class="whatif-strategy">{{ whatif.strategy | truncate(60, True, '…') }}</span>
+    {% endif %}
   </div>
+  {% endif %}
 
-  <div class="whatif-cta-row">
+  <div class="whatif-footer">
     <a href="/tools/what-if?demo=kitchen-vs-full"
-       class="ghost-cta"
+       class="showcase-card__cta"
        data-track="showcase-click"
-       data-showcase="whatif">Compare your project &rarr;</a>
+       data-showcase="whatif">Compare your project →</a>
   </div>
 </div>
+{% else %}
+<div class="showcase-card" style="padding: var(--space-6);">
+  <div style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-tertiary); font-style: italic;">
+    Scenario data unavailable
+  </div>
+</div>
+{% endif %}

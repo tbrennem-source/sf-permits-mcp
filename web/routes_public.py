@@ -49,17 +49,31 @@ bp = Blueprint("public", __name__)
 # Index
 # ---------------------------------------------------------------------------
 
+DEFAULT_SHOWCASE = {
+    "station_timeline": None,
+    "stuck_permit": None,
+    "what_if": None,
+    "revision_risk": None,
+    "entity_network": None,
+    "cost_of_delay": None,
+}
+
+
 def _load_showcase_data():
-    """Load showcase_data.json for landing page cards. Returns {} on any error."""
+    """Load showcase_data.json for landing page cards. Returns defaults on any error."""
     showcase_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "web", "static", "data", "showcase_data.json",
     )
     try:
         with open(showcase_path) as f:
-            return json.load(f)
+            data = json.load(f)
+        # Ensure all expected keys exist; unknown extra keys (e.g. 'whatif') pass through
+        result = dict(DEFAULT_SHOWCASE)
+        result.update(data)
+        return result
     except (FileNotFoundError, json.JSONDecodeError, OSError):
-        return {}
+        return dict(DEFAULT_SHOWCASE)
 
 
 @bp.route("/")
@@ -551,6 +565,52 @@ def analyze():
         logging.warning("analysis_sessions save failed (non-fatal): %s", _save_err)
         analysis_id = None
 
+    # === QS14: Intelligence Wiring ===
+
+    # 6. Stuck Diagnosis — if we can identify a permit number from the address
+    stuck_diagnosis = None
+    try:
+        from web.intelligence_helpers import get_stuck_diagnosis_sync
+        if address:
+            from web.helpers import compute_triage_signals
+            addr_parts = address.split()
+            triage = compute_triage_signals(
+                street_number=addr_parts[0] if addr_parts else None,
+                street_name=" ".join(addr_parts[1:]) if len(addr_parts) > 1 else None,
+                max_permits=1,
+            )
+            if triage and triage[0].get("permit_number"):
+                stuck_diagnosis = get_stuck_diagnosis_sync(triage[0]["permit_number"])
+    except Exception as e:
+        logging.warning("Stuck diagnosis in analyze failed: %s", e)
+
+    results["stuck_diagnosis"] = stuck_diagnosis
+
+    # 7. Delay Cost — if we have monthly carrying cost
+    delay_cost = None
+    if monthly_carrying_cost:
+        try:
+            from web.intelligence_helpers import get_delay_cost_sync
+            delay_cost = get_delay_cost_sync(permit_type, monthly_carrying_cost, neighborhood)
+        except Exception as e:
+            logging.warning("Delay cost in analyze failed: %s", e)
+
+    results["delay_cost"] = delay_cost
+
+    # 8. Similar Projects
+    similar_projects = []
+    try:
+        from web.intelligence_helpers import get_similar_projects_sync
+        similar_projects = get_similar_projects_sync(
+            permit_type, neighborhood, estimated_cost
+        )
+    except Exception as e:
+        logging.warning("Similar projects in analyze failed: %s", e)
+
+    results["similar_projects"] = similar_projects
+
+    # === END QS14 ===
+
     return render_template(
         "results.html",
         results=results,
@@ -563,6 +623,10 @@ def analyze():
         analyze_permit_type=permit_type,
         analyze_neighborhood=neighborhood or "",
         analyze_cost=estimated_cost or "",
+        # QS14: Intelligence sections
+        stuck_diagnosis=stuck_diagnosis,
+        delay_cost=delay_cost,
+        similar_projects=similar_projects,
     )
 
 

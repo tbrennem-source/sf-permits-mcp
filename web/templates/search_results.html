@@ -130,6 +130,34 @@
     font-family: var(--mono); font-size: var(--text-xs);
     color: var(--text-secondary);
 }
+/* Stuck diagnosis badge — enriched triage signal from stuck_diagnosis dict */
+.triage-stuck-diagnosis {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--mono); font-size: var(--text-xs);
+    padding: 2px 6px; border-radius: 9999px; border: 1px solid;
+}
+.triage-stuck-diagnosis__dot {
+    width: 5px; height: 5px; border-radius: 9999px; flex-shrink: 0;
+}
+.triage-stuck-diagnosis--critical {
+    color: var(--signal-red); background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.22);
+}
+.triage-stuck-diagnosis--critical .triage-stuck-diagnosis__dot { background: var(--dot-red); }
+.triage-stuck-diagnosis--high {
+    color: var(--signal-amber); background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.22);
+}
+.triage-stuck-diagnosis--high .triage-stuck-diagnosis__dot { background: var(--dot-amber); }
+.triage-stuck-diagnosis--medium {
+    color: var(--signal-amber); background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.18);
+}
+.triage-stuck-diagnosis--medium .triage-stuck-diagnosis__dot { background: var(--dot-amber); }
+/* Violation / complaint inline tags */
+.triage-enforcement-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--mono); font-size: var(--text-xs);
+}
+.triage-enforcement-tag--violation { color: var(--signal-amber); }
+.triage-enforcement-tag--complaint { color: var(--signal-red); }
 </style>
 {# Default context vars — callers that don't pass these get safe no-op values #}
 {% set project_context = project_context if project_context is defined else none %}
@@ -336,6 +364,26 @@
             {% endif %}
             {% if sig.reviewer %}
             <span class="triage-reviewer">Reviewer: {{ sig.reviewer }}</span>
+            {% endif %}
+            {# ── Enriched triage signals (T1-A fields) — graceful degradation if absent ── #}
+            {% if sig.stuck_diagnosis %}
+            <span class="triage-stuck-diagnosis triage-stuck-diagnosis--{{ sig.stuck_diagnosis.severity or 'medium' }}"
+                  title="Stuck at {{ sig.stuck_diagnosis.station }} — {{ sig.stuck_diagnosis.days }} days ({{ sig.stuck_diagnosis.ratio }}x baseline)">
+                <span class="triage-stuck-diagnosis__dot"></span>
+                Stuck · {{ sig.stuck_diagnosis.station }} · {{ sig.stuck_diagnosis.days }}d ({{ sig.stuck_diagnosis.ratio }}x)
+            </span>
+            {% endif %}
+            {% if sig.violation_count and sig.violation_count > 0 %}
+            <span class="triage-enforcement-tag triage-enforcement-tag--violation" title="{{ sig.violation_count }} active violation{{ 's' if sig.violation_count != 1 else '' }}">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                {{ sig.violation_count }} violation{{ 's' if sig.violation_count != 1 else '' }}
+            </span>
+            {% endif %}
+            {% if sig.complaint_count and sig.complaint_count > 0 %}
+            <span class="triage-enforcement-tag triage-enforcement-tag--complaint" title="{{ sig.complaint_count }} open complaint{{ 's' if sig.complaint_count != 1 else '' }}">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                {{ sig.complaint_count }} complaint{{ 's' if sig.complaint_count != 1 else '' }}
+            </span>
             {% endif %}
         </div>
         {% endfor %}

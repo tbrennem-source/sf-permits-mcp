@@ -192,6 +192,56 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
     # QS8-T1-B: Pipeline stats (last 5 nightly durations + 24h success/fail)
     pipeline_stats = _get_pipeline_stats()
 
+    # === QS14: Stuck diagnosis alerts ===
+    stuck_alerts = []
+    try:
+        from web.intelligence_helpers import get_stuck_diagnosis_sync
+        # Check each watched permit for stuck status
+        watch_rows = query(
+            f"SELECT permit_number FROM watch_items WHERE user_id = {_ph()} AND is_active = TRUE",
+            (user_id,),
+        )
+        for row in (watch_rows or [])[:10]:  # max 10 to limit latency
+            pn = row[0]
+            if not pn:
+                continue
+            diag = get_stuck_diagnosis_sync(pn)
+            if diag and diag.get("severity") in ("HIGH", "CRITICAL"):
+                stuck_alerts.append({
+                    "permit_number": pn,
+                    "severity": diag.get("severity"),
+                    "station": diag.get("stuck_stations", [{}])[0].get("station", "Unknown") if diag.get("stuck_stations") else "Unknown",
+                    "days": diag.get("stuck_stations", [{}])[0].get("days", 0) if diag.get("stuck_stations") else 0,
+                    "action": diag.get("interventions", [{}])[0].get("action", "") if diag.get("interventions") else "",
+                })
+    except Exception as e:
+        logger.warning("Stuck alerts failed: %s", e)
+    # === END QS14 stuck ===
+
+    # === QS14: Delay cost alerts ===
+    delay_alerts = []
+    try:
+        from web.intelligence_helpers import get_delay_cost_sync
+        # For permits with known types, estimate delay cost
+        for alert in stuck_alerts[:3]:  # Only for top 3 stuck permits
+            pn = alert["permit_number"]
+            # Look up permit type
+            pt_rows = query(
+                f"SELECT permit_type_definition FROM permits WHERE permit_number = {_ph()} LIMIT 1",
+                (pn,),
+            )
+            pt = pt_rows[0][0] if pt_rows else "alterations"
+            delay = get_delay_cost_sync(pt, 5000.0)  # Default carrying cost
+            if delay:
+                delay_alerts.append({
+                    "permit_number": pn,
+                    "daily_cost": delay.get("daily_cost", 0),
+                    "weekly_cost": delay.get("weekly_cost", 0),
+                })
+    except Exception as e:
+        logger.warning("Delay alerts failed: %s", e)
+    # === END QS14 delay ===
+
     return {
         "changes": changes,
         "plan_reviews": plan_reviews,
@@ -231,6 +281,8 @@ def get_morning_brief(user_id: int, lookback_days: int = 1,
         },
         "lookback_days": lookback_days,
         "pipeline_health": pipeline_health,
+        "stuck_alerts": stuck_alerts,
+        "delay_alerts": delay_alerts,
     }
 
 

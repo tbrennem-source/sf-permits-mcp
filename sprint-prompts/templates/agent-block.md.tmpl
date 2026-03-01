@@ -1,0 +1,59 @@
+# Agent Block Template
+#
+# One of these per agent within a terminal prompt. T0 fills in the
+# sprint-specific content; the preamble and structure are identical.
+#
+# Placeholders:
+#   {{AGENT_ID}}           — e.g. T3-A
+#   {{AGENT_TITLE}}        — e.g. Gantt Fix + Landing-v6 Production Jinja2
+#   {{TOUCHES_TEMPLATES}}  — "true" or "false" (controls design tokens line)
+#   {{READ_LIST}}           — numbered list of files to read
+#   {{BUILD_SPEC}}          — detailed build instructions
+#   {{OUTPUT_FILES}}        — bullet list of files this agent creates/modifies
+#   {{DO_NOT_TOUCH}}        — bullet list of files this agent must NOT modify
+#   {{GOTCHAS_NOTE}}        — DB gotchas relevance note (or "Not directly relevant")
+#   {{TEST_COMMANDS}}       — pytest + smoke test commands
+#   {{COMMIT_COMMAND}}      — git add + git commit command
+
+# ─── BEGIN TEMPLATE ──────────────────────────────────────────────────
+
+### Agent {{AGENT_ID}}: {{AGENT_TITLE}}
+
+```
+You are ALREADY in a git worktree. Do NOT use EnterWorktree. Do NOT run git checkout main.
+Your working directory is your isolated worktree copy of the repo.
+CRITICAL: NEVER run git checkout main or git merge. Commit to YOUR branch only.
+{{#if TOUCHES_TEMPLATES}}
+If you modify any file in web/templates/ or web/static/, read docs/DESIGN_TOKENS.md first.
+Use ONLY token components and CSS custom properties. Log new components to docs/DESIGN_COMPONENT_LOG.md.
+{{/if}}
+
+# Task: {{AGENT_TITLE}}
+
+## Read First
+{{READ_LIST}}
+
+## What to Build
+{{BUILD_SPEC}}
+
+## Output Files
+{{OUTPUT_FILES}}
+
+## Do NOT Touch
+{{DO_NOT_TOUCH}}
+
+## DuckDB / Postgres Gotchas
+- INSERT OR REPLACE → ON CONFLICT DO UPDATE
+- ? placeholders → %s
+- conn.execute() → cursor.execute()
+- BACKEND is "postgres" in prod, "duckdb" locally
+{{GOTCHAS_NOTE}}
+
+## Test
+source .venv/bin/activate
+{{TEST_COMMANDS}}
+python -m pytest tests/ --ignore=tests/test_tools.py --ignore=tests/e2e -x -q --tb=short 2>&1 | tail -20
+
+## Commit
+{{COMMIT_COMMAND}}
+```

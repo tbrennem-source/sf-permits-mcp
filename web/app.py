@@ -1398,6 +1398,22 @@ def _add_response_time_header(response):
 
 
 # ---------------------------------------------------------------------------
+# Error handlers
+# ---------------------------------------------------------------------------
+
+@app.errorhandler(404)
+def not_found(e):
+    """Branded 404 page — token-compliant error template."""
+    return render_template("error.html", error_type="404"), 404
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    """Branded 403 page — access denied."""
+    return render_template("error.html", error_type="403"), 403
+
+
+# ---------------------------------------------------------------------------
 # Health check (stays in app.py — infrastructure route)
 # ---------------------------------------------------------------------------
 

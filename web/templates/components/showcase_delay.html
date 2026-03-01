@@ -1,73 +1,212 @@
 {# showcase_delay.html — Cost of Delay (visual-first redesign) #}
-{# Receives: showcase.cost_of_delay #}
-{% set delay = showcase.cost_of_delay %}
-<div class="showcase-delay glass-card"
+{# Receives: showcase.cost_of_delay (via Jinja2 global from routes_public.py) #}
+{% set delay = showcase.cost_of_delay if showcase else None %}
+{% if delay %}
+<div class="showcase-card showcase-delay"
      data-track="showcase-view"
-     data-showcase="delay"
-     style="padding: var(--space-6);">
+     data-showcase="delay">
   <style>
+    /* Intel label */
     .delay-intel-label {
       font-family: var(--mono);
       font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.10em;
       text-transform: uppercase;
       color: var(--text-tertiary);
-      margin-bottom: var(--space-4);
+      padding: var(--space-4) var(--space-5) 0;
+      margin-bottom: var(--space-2);
     }
+
+    /* Hero: daily cost */
     .delay-hero {
       display: flex;
       align-items: baseline;
       gap: var(--space-2);
-      margin-bottom: var(--space-3);
+      padding: 0 var(--space-5) var(--space-1);
     }
-    .delay-hero-number {
+    .delay-daily-number {
       font-family: var(--mono);
-      font-size: clamp(2.5rem, 5vw, 3rem);
+      font-size: clamp(2.4rem, 5vw, 3rem);
       font-weight: 300;
       color: var(--signal-amber);
       line-height: 1;
     }
-    .delay-hero-unit {
-      font-family: var(--mono);
-      font-size: var(--text-lg);
-      font-weight: 300;
-      color: var(--text-secondary);
-    }
-    .delay-expected-line {
+    .delay-daily-unit {
       font-family: var(--mono);
       font-size: var(--text-base);
-      color: var(--text-primary);
-      margin-bottom: var(--space-2);
+      font-weight: 300;
+      color: var(--text-secondary);
+      padding-bottom: 4px;
     }
     .delay-basis {
       font-family: var(--mono);
       font-size: var(--text-xs);
       color: var(--text-tertiary);
-      margin-bottom: var(--space-5);
+      padding: 0 var(--space-5) var(--space-4);
     }
-    .delay-cta-row {
-      padding-top: var(--space-4);
+
+    /* Scenario bars */
+    .delay-scenarios {
+      padding: 0 var(--space-5) var(--space-3);
+    }
+    .delay-scenario-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .delay-scenario-row:last-child { border-bottom: none; }
+
+    .delay-scenario-label {
+      font-family: var(--mono);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      width: 80px;
+      flex-shrink: 0;
+    }
+    .delay-scenario-bar-wrap {
+      flex: 1;
+      height: 4px;
+      background: var(--glass-border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .delay-scenario-bar {
+      height: 100%;
+      border-radius: var(--radius-full);
+    }
+    .delay-scenario-bar--best      { background: var(--signal-green); opacity: 0.7; }
+    .delay-scenario-bar--typical   { background: var(--signal-amber); opacity: 0.75; }
+    .delay-scenario-bar--conservative { background: var(--dot-amber); }
+    .delay-scenario-bar--worst     { background: var(--signal-red); }
+
+    .delay-scenario-cost {
+      font-family: var(--mono);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .delay-scenario-days {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Bottleneck alert */
+    .delay-alert {
+      margin: 0 var(--space-5) var(--space-3);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.16);
+      border-radius: var(--radius-sm);
+      padding: var(--space-3) var(--space-4);
+    }
+    .delay-alert-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--dot-amber);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .delay-alert-text {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--signal-amber);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .delay-footer {
+      padding: var(--space-3) var(--space-5) var(--space-4);
       border-top: 1px solid var(--glass-border);
       display: flex;
-      justify-content: flex-end;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    .delay-expected {
+      font-family: var(--mono);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+    }
+    .delay-expected strong {
+      color: var(--text-secondary);
+      font-weight: 400;
     }
   </style>
 
   <div class="delay-intel-label">Financial Intelligence</div>
 
+  {# Hero: daily cost rate #}
   <div class="delay-hero">
-    <span class="delay-hero-number">$500</span>
-    <span class="delay-hero-unit">/day</span>
+    <span class="delay-daily-number">{{ delay.daily_cost_formatted or ('$' ~ delay.daily_cost) }}</span>
+    <span class="delay-daily-unit">/day</span>
+  </div>
+  <div class="delay-basis">
+    Based on ${{ '{:,}'.format(delay.monthly_cost) }}/mo carrying cost &middot; {{ delay.permit_type_label or delay.permit_type | title }} &middot; {{ delay.neighborhood }}
   </div>
 
-  <div class="delay-expected-line">Expected total: $41,375</div>
-  <div class="delay-basis">Based on $15K/mo carrying cost</div>
+  {# Scenario bars #}
+  {% if delay.scenarios %}
+  {% set max_cost = delay.scenarios | map(attribute='cost') | max %}
+  <div class="delay-scenarios">
+    {% set bar_classes = ['best', 'typical', 'conservative', 'worst'] %}
+    {% for scenario in delay.scenarios %}
+    {% set bar_class = bar_classes[loop.index0] if loop.index0 < 4 else 'worst' %}
+    {% set bar_pct = ((scenario.cost / max_cost) * 100) | round | int if max_cost > 0 else 50 %}
+    <div class="delay-scenario-row">
+      <span class="delay-scenario-label">{{ scenario.label }}</span>
+      <div class="delay-scenario-bar-wrap">
+        <div class="delay-scenario-bar delay-scenario-bar--{{ bar_class }}" style="width: {{ [bar_pct, 6] | max }}%;"></div>
+      </div>
+      <span class="delay-scenario-cost">${{ '{:,}'.format(scenario.cost) }}</span>
+      <span class="delay-scenario-days">{{ scenario.days }}d</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-  <div class="delay-cta-row">
-    <a href="/tools/cost-of-delay?demo=restaurant-15k"
-       class="ghost-cta"
+  {# Bottleneck alert if present #}
+  {% if delay.bottleneck_alert %}
+  {% set ba = delay.bottleneck_alert %}
+  <div class="delay-alert">
+    <span class="delay-alert-dot"></span>
+    <span class="delay-alert-text">
+      {{ ba.label }} running {{ ba.slowdown_pct }}% slower than baseline — add ~{{ ba.current_p50_days - ba.baseline_p50_days }}d to fire review estimate
+    </span>
+  </div>
+  {% elif delay.warning_text %}
+  <div class="delay-alert">
+    <span class="delay-alert-dot"></span>
+    <span class="delay-alert-text">{{ delay.warning_text | truncate(100, True, '…') }}</span>
+  </div>
+  {% endif %}
+
+  <div class="delay-footer">
+    {% if delay.expected %}
+    <div class="delay-expected">
+      Expected total: <strong>{{ delay.expected.cost_formatted or ('$' ~ '{:,}'.format(delay.expected.cost)) }}</strong>
+    </div>
+    {% endif %}
+    <a href="/tools/cost-of-delay?demo={{ delay.demo or 'restaurant-15k' }}"
+       class="showcase-card__cta"
        data-track="showcase-click"
-       data-showcase="delay">Calculate your cost &rarr;</a>
+       data-showcase="delay">Calculate your cost →</a>
   </div>
 </div>
+{% else %}
+<div class="showcase-card" style="padding: var(--space-6);">
+  <div style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-tertiary); font-style: italic;">
+    Delay cost data unavailable
+  </div>
+</div>
+{% endif %}

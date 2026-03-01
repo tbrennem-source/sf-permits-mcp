@@ -1,52 +1,104 @@
-{# showcase_risk.html — Revision Risk Meter (visual-first redesign) #}
-{# Receives: showcase.revision_risk #}
-{% set risk = showcase.revision_risk %}
-<div class="showcase-risk glass-card"
+{# showcase_risk.html — Revision Risk Assessment (visual-first redesign) #}
+{# Receives: showcase.revision_risk (via Jinja2 global from routes_public.py) #}
+{% set risk = showcase.revision_risk if showcase else None %}
+{% if risk %}
+{# Normalize probability — handle both 0-1 float and label like "24.6%" #}
+{% set raw_rate = risk.rate if risk.rate is defined else 0 %}
+{% set pct_int  = (raw_rate * 100) | round | int if raw_rate <= 1.0 else raw_rate | round | int %}
+{% set rate_label = risk.rate_label or (pct_int | string + '%') %}
+{% set risk_level = (risk.risk_level or risk.severity or 'HIGH') | upper %}
+<div class="showcase-card showcase-risk"
      data-track="showcase-view"
-     data-showcase="risk"
-     style="padding: var(--space-6);">
+     data-showcase="risk">
   <style>
+    /* Intel label */
     .risk-intel-label {
       font-family: var(--mono);
       font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.10em;
       text-transform: uppercase;
       color: var(--text-tertiary);
-      margin-bottom: var(--space-4);
+      padding: var(--space-4) var(--space-5) 0;
+      margin-bottom: var(--space-3);
     }
-    .risk-gauge-layout {
+
+    /* Gauge + meta layout */
+    .risk-layout {
       display: flex;
       align-items: center;
       gap: var(--space-5);
-      margin-bottom: var(--space-4);
+      padding: 0 var(--space-5) var(--space-4);
     }
-    .risk-gauge-svg {
-      flex-shrink: 0;
+    .risk-gauge { flex-shrink: 0; }
+    .risk-meta  { flex: 1; min-width: 0; }
+
+    /* Risk level label under gauge */
+    .risk-level-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: var(--space-2);
     }
-    .risk-gauge-meta {
-      flex: 1;
-    }
-    .risk-context-label {
+    .risk-level-label--high     { color: var(--signal-amber); }
+    .risk-level-label--critical { color: var(--signal-red); }
+    .risk-level-label--low      { color: var(--signal-green); }
+
+    /* Context — permit type + neighborhood */
+    .risk-context {
       font-family: var(--sans);
       font-size: var(--text-sm);
       color: var(--text-secondary);
-      margin-bottom: var(--space-3);
       line-height: 1.5;
+      margin-bottom: var(--space-3);
     }
-    .risk-triggers-link {
-      font-family: var(--mono);
+
+    /* Trigger list */
+    .risk-triggers {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .risk-trigger-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--glass-border);
+      font-family: var(--sans);
       font-size: var(--text-xs);
-      color: var(--accent);
-      text-decoration: none;
-      border-bottom: 1px solid rgba(94, 234, 212, 0.3);
-      padding-bottom: 1px;
+      color: var(--text-secondary);
+      line-height: 1.4;
     }
-    .risk-triggers-link:hover {
-      border-bottom-color: var(--accent);
+    .risk-trigger-item:last-child { border-bottom: none; }
+    .risk-trigger-rank {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+      width: 16px;
+      text-align: right;
     }
-    .risk-cta-row {
-      padding-top: var(--space-4);
+
+    /* Timeline impact chip */
+    .risk-impact-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--signal-amber);
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      border-radius: var(--radius-sm);
+      padding: 3px 8px;
+      margin-bottom: var(--space-3);
+    }
+
+    /* Footer */
+    .risk-footer {
+      padding: var(--space-3) var(--space-5) var(--space-4);
       border-top: 1px solid var(--glass-border);
       display: flex;
       justify-content: flex-end;
@@ -55,29 +107,67 @@
 
   <div class="risk-intel-label">Predictive Intelligence</div>
 
-  <div class="risk-gauge-layout">
-    <svg class="risk-gauge-svg" viewBox="0 0 120 120" width="120" height="120" aria-label="Revision risk gauge: 24.6%">
-      <!-- Background track -->
-      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--glass-border)" stroke-width="8"/>
-      <!-- Filled arc — 24.6% of 314 ≈ 77, so dashoffset = 314 - 77 = 237 -->
-      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--dot-amber)" stroke-width="8"
-              stroke-dasharray="314" stroke-dashoffset="237" stroke-linecap="round"
-              transform="rotate(-90 60 60)"/>
-      <!-- Center percentage -->
-      <text x="60" y="65" text-anchor="middle" fill="var(--text-primary)"
-            font-family="var(--mono)" font-size="20" font-weight="300">24.6%</text>
-    </svg>
+  <div class="risk-layout">
+    {# SVG gauge — arc from top, colored by risk level #}
+    {% set circumference = 314 %}
+    {% set filled = (pct_int / 100 * circumference) | round | int %}
+    {% set dashoffset = circumference - filled %}
+    {% set arc_color = 'var(--signal-red)' if risk_level in ['CRITICAL', 'HIGH'] else ('var(--dot-amber)' if risk_level == 'MODERATE' else 'var(--signal-green)') %}
+    {% set text_color = 'var(--signal-red)' if risk_level in ['CRITICAL', 'HIGH'] else ('var(--signal-amber)' if risk_level == 'MODERATE' else 'var(--signal-green)') %}
+    <div class="risk-gauge">
+      <svg viewBox="0 0 120 120" width="100" height="100"
+           aria-label="Revision risk gauge: {{ rate_label }}">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--glass-border)" stroke-width="8"/>
+        <circle cx="60" cy="60" r="50" fill="none" stroke="{{ arc_color }}" stroke-width="8"
+                stroke-dasharray="{{ circumference }}" stroke-dashoffset="{{ dashoffset }}"
+                stroke-linecap="round" transform="rotate(-90 60 60)"/>
+        <text x="60" y="58" text-anchor="middle" fill="{{ text_color }}"
+              font-family="var(--mono)" font-size="18" font-weight="300">{{ rate_label }}</text>
+        <text x="60" y="74" text-anchor="middle" fill="var(--text-tertiary)"
+              font-family="var(--mono)" font-size="10">revision risk</text>
+      </svg>
+      <div class="risk-level-label risk-level-label--{{ risk_level | lower }}">{{ risk_level }}</div>
+    </div>
 
-    <div class="risk-gauge-meta">
-      <div class="risk-context-label">Restaurant alterations in the Mission</div>
-      <a href="/tools/revision-risk?demo=restaurant-mission" class="risk-triggers-link">5 common triggers</a>
+    <div class="risk-meta">
+      {# Context label #}
+      <div class="risk-context">
+        {{ risk.description | truncate(70, True, '…') if risk.description else (risk.permit_type | title ~ ' · ' ~ risk.neighborhood) }}
+      </div>
+
+      {# Timeline impact if available #}
+      {% if risk.timeline_impact_days %}
+      <div class="risk-impact-chip">
+        +{{ risk.timeline_impact_days }}d expected if revised
+      </div>
+      {% endif %}
+
+      {# Top 3 triggers #}
+      {% set triggers = risk.triggers or risk.top_triggers %}
+      {% if triggers %}
+      <ul class="risk-triggers">
+        {% for t in triggers[:3] %}
+        <li class="risk-trigger-item">
+          <span class="risk-trigger-rank">{{ t.rank }}</span>
+          <span>{{ t.category }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </div>
   </div>
 
-  <div class="risk-cta-row">
-    <a href="/tools/revision-risk?demo=restaurant-mission"
-       class="ghost-cta"
+  <div class="risk-footer">
+    <a href="/tools/revision-risk?demo={{ risk.demo or 'restaurant-mission' }}"
+       class="showcase-card__cta"
        data-track="showcase-click"
-       data-showcase="risk">Check your risk &rarr;</a>
+       data-showcase="risk">Check your risk →</a>
   </div>
 </div>
+{% else %}
+<div class="showcase-card" style="padding: var(--space-6);">
+  <div style="font-family: var(--mono); font-size: var(--text-sm); color: var(--text-tertiary); font-style: italic;">
+    Risk data unavailable
+  </div>
+</div>
+{% endif %}
