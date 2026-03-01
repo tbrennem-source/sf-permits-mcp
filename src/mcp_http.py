@@ -25,10 +25,13 @@ import os
 import time
 
 from mcp.server.fastmcp import FastMCP
-from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
 
-from src.oauth_provider import SFPermitsAuthProvider
-from src.oauth_models import VALID_SCOPES
+# OAuth 2.1 is built but disabled — claude.ai doesn't support MCP OAuth yet.
+# Re-enable when Anthropic adds OAuth support to MCP integrations:
+#   from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
+#   from src.oauth_provider import SFPermitsAuthProvider
+#   from src.oauth_models import VALID_SCOPES
+# Protection layers active without OAuth: rate limiting, request logging, tool scoping.
 
 logger = logging.getLogger(__name__)
 
@@ -76,10 +79,8 @@ from src.tools.stuck_permit import diagnose_stuck_permit
 from src.tools.what_if_simulator import simulate_what_if
 from src.tools.cost_of_delay import calculate_delay_cost
 
-# ── Create MCP server with HTTP transport config and OAuth 2.1 ────
+# ── Create MCP server with HTTP transport config ─────────────────
 port = int(os.environ.get("PORT", 8001))
-
-provider = SFPermitsAuthProvider()
 
 mcp = FastMCP(
     "SF Permits",
@@ -93,17 +94,11 @@ mcp = FastMCP(
     port=port,
     stateless_http=True,
     streamable_http_path="/mcp",
-    auth_server_provider=provider,
-    auth=AuthSettings(
-        issuer_url="https://sfpermits-mcp-api-production.up.railway.app",
-        resource_server_url="https://sfpermits-mcp-api-production.up.railway.app",
-        client_registration_options=ClientRegistrationOptions(
-            enabled=True,
-            valid_scopes=VALID_SCOPES,
-            default_scopes=["demo"],
-        ),
-        revocation_options=RevocationOptions(enabled=True),
-    ),
+    # OAuth disabled until claude.ai supports MCP OAuth 2.1.
+    # Protection: rate limiting + request logging + tool scoping.
+    # Re-enable:
+    #   auth_server_provider=SFPermitsAuthProvider(),
+    #   auth=AuthSettings(issuer_url="...", ...),
 )
 
 # Register 28 public-data tools (no project intelligence / internal tools)
@@ -321,16 +316,14 @@ if __name__ == "__main__":
         # Initialize access log table at startup
         _ensure_access_log_table()
 
-        # Initialize OAuth tables at startup
-        from src.db import get_connection, init_oauth_schema, BACKEND
-        if BACKEND == "postgres":
-            conn = get_connection()
-            try:
-                init_oauth_schema(conn)
-            finally:
-                conn.close()
-        else:
-            logger.info("DuckDB backend — skipping OAuth schema init")
+        # OAuth schema init (disabled — re-enable with OAuth)
+        # from src.db import get_connection, init_oauth_schema, BACKEND
+        # if BACKEND == "postgres":
+        #     conn = get_connection()
+        #     try:
+        #         init_oauth_schema(conn)
+        #     finally:
+        #         conn.close()
 
         app = mcp.streamable_http_app()
         app = RateLimitMiddleware(app)
