@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-02-28T21:27:01.701823+00:00",
-  "total_routes": 196,
+  "generated_at": "2026-03-01T04:45:27.251611+00:00",
+  "total_routes": 205,
   "routes": [
     {
       "path": "/robots.txt",
@@ -325,6 +325,24 @@
       "auth_level": "admin",
       "template": null,
       "function_name": "admin_qa_screenshot"
+    },
+    {
+      "path": "/admin/beta-funnel",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_beta_funnel"
+    },
+    {
+      "path": "/admin/beta-funnel/export",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "admin",
+      "template": null,
+      "function_name": "admin_beta_funnel_export"
     },
     {
       "path": "/admin/metrics",
@@ -1436,6 +1454,69 @@
       "function_name": "demo"
     },
     {
+      "path": "/demo/guided",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "demo_guided.html",
+      "function_name": "demo_guided"
+    },
+    {
+      "path": "/docs",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "docs.html",
+      "function_name": "api_docs"
+    },
+    {
+      "path": "/privacy",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "privacy.html",
+      "function_name": "privacy"
+    },
+    {
+      "path": "/terms",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "terms.html",
+      "function_name": "terms"
+    },
+    {
+      "path": "/join-beta",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "join_beta.html",
+      "function_name": "join_beta"
+    },
+    {
+      "path": "/join-beta",
+      "methods": [
+        "POST"
+      ],
+      "auth_level": "public",
+      "template": "join_beta.html",
+      "function_name": "join_beta_post"
+    },
+    {
+      "path": "/join-beta/thanks",
+      "methods": [
+        "GET"
+      ],
+      "auth_level": "public",
+      "template": "join_beta_thanks.html",
+      "function_name": "join_beta_thanks"
+    },
+    {
       "path": "/prep/<permit_number>",
       "methods": [
         "GET"
@@ -1791,9 +1872,9 @@
     ]
   },
   "auth_summary": {
-    "public": 53,
+    "public": 60,
     "auth": 39,
-    "admin": 37,
+    "admin": 39,
     "cron": 67
   }
 }
