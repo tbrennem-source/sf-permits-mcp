@@ -3048,3 +3048,43 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Edge cases seen in code:** DuckDB vs Postgres path difference in query execution. Empty table returns zeros (graceful). Non-admin (is_admin=False) sees 403
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: First-time visitor reads the landing narrative scroll
+**Source:** web/templates/landing.html — story-scroll redesign (QS13)
+**User:** homeowner
+**Starting state:** Visitor lands on sfpermits.ai for the first time, no prior knowledge of the tool
+**Goal:** Understand what the platform does by scrolling through the narrative sections
+**Expected outcome:** Visitor encounters a clear sequence: Gantt chart showing routing complexity → What-If comparison showing scope impact → Stuck permit showing risk → Cost of Delay showing financial stakes → Revision Risk gauge → Entity Network → CTA. Each section has a short narrative headline above the data card. By the end, visitor understands the product's value proposition and sees the "Join the beta" CTA.
+**Edge cases seen in code:** If showcase data is absent (no DB), sections with `{% if showcase %}` will silently skip — narrative headlines still render but cards are empty. This is graceful but may confuse visitors who see headlines without data.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Visitor clicks "Join the beta" CTA from story scroll
+**Source:** web/templates/landing.html — story-cta-section (QS13)
+**User:** homeowner
+**Starting state:** Visitor has scrolled through the 5 story sections and reached the CTA section
+**Goal:** Click "Join the beta →" to start the signup flow
+**Expected outcome:** Clicking the button navigates to /join-beta page. Button has visible hover state (teal glow) before click.
+**Edge cases seen in code:** /join-beta route must exist and return a valid page. If route is missing, visitor gets 404.
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Expediter reads Gantt hover tooltip to see reviewer names
+**Source:** web/templates/components/showcase_gantt.html — title attribute on gantt-bar (QS13)
+**User:** expediter
+**Starting state:** Expediter is looking at the Gantt chart on the landing page
+**Goal:** Read the full reviewer name for a station without the name being cut off
+**Expected outcome:** Hovering over a Gantt bar shows a browser tooltip with the full reviewer name, dwell days, and whether it's the current station. The label column (station names) also shows full name on hover via title attribute.
+**Edge cases seen in code:** If reviewer name is empty string, tooltip shows empty. If dwell_days is 0 or None, the days part is omitted.
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Mobile visitor scrolls landing page story sections
+**Source:** web/templates/landing.html — story-section mobile CSS (QS13)
+**User:** homeowner
+**Starting state:** Visitor on a 375px phone visiting the landing page
+**Goal:** Read through the story sections to understand the platform
+**Expected outcome:** Each story section fits within the viewport width with 24px padding. No horizontal scroll. Narrative headlines readable at 1rem. All showcase card content (numbers, badges, pipeline blocks) visible without truncation or overflow.
+**Edge cases seen in code:** Stuck pipeline uses flexbox that wraps at 420px. Entity graph SVG is fixed viewBox and scales with container. Gantt mobile column is 80px (reduced from 110px desktop).
+**CC confidence:** high
+**Status:** PENDING REVIEW
