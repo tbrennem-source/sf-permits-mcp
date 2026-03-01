@@ -1,0 +1,142 @@
+# T0 Orchestrator Template — Optimized Pre-Flight
+#
+# This template defines the parallel 3-track pre-flight procedure.
+# T0 reads this and follows the track structure to hit ~8 min pre-flight.
+#
+# Placeholders:
+#   {{SPRINT_ID}}       — e.g. QS15
+#   {{SPRINT_LOWER}}    — e.g. qs15
+#   {{SPRINT_GOAL}}     — one-line goal from spec
+#   {{SPEC_PATH}}       — Chief spec path
+#   {{TERMINAL_DEFS}}   — table of terminals + themes
+#   {{MERGE_ORDER}}     — e.g. T3 → T1 → T2 → T4
+#   {{MERGE_CEREMONY}}  — merge commands + test + promote
+#   {{EXIT_GATE}}       — sprint exit criteria
+
+# ─── BEGIN TEMPLATE ──────────────────────────────────────────────────
+
+> **EXECUTE IMMEDIATELY.** You are T0 orchestrator for {{SPRINT_ID}}. Do NOT summarize or ask for confirmation — execute the pre-flight, write the 4 terminal prompts, and present them for launch.
+
+# {{SPRINT_ID}} — T0 Orchestrator
+
+## Sprint Goal
+{{SPRINT_GOAL}}
+
+## Your Role
+You are T0. You NEVER enter a worktree. You operate from the main repo root. You:
+1. Run pre-flight (3 parallel tracks)
+2. Write 4 terminal prompts using templates in `sprint-prompts/templates/`
+3. Present prompts for Tim to paste into 4 CC terminals
+4. After all terminals complete: merge, test once, push, promote
+
+---
+
+## Pre-Flight — 3 Parallel Tracks (~8 min target)
+
+### Track A: Mechanical (launch FIRST, runs in background)
+
+```bash
+bash scripts/sprint_preflight.sh {{SPRINT_LOWER}} &
+```
+
+This runs git cleanup, test baseline (~4 min), health checks, and codebase
+snapshot as 4 parallel background jobs. Output goes to
+`sprint-prompts/{{SPRINT_LOWER}}-preflight-report.md`.
+
+**Do NOT wait for this to finish.** Immediately start Track B.
+
+### Track B: Read + Audit + Write Prompts (foreground, start immediately)
+
+1. Read the approved spec:
+   ```
+   chief_read_file("{{SPEC_PATH}}")
+   ```
+
+2. Read CLAUDE.md + memory file (skim — you know the patterns)
+
+3. **Codebase audit** — for EACH task in the spec, verify the target file exists
+   and the feature hasn't already been built. Use `grep -n` on actual files.
+   Kill ghost targets NOW, not after agents waste 20 min on them.
+
+4. Read the prompt templates:
+   - `sprint-prompts/templates/terminal-prompt.md.tmpl` — copy boilerplate
+   - `sprint-prompts/templates/agent-block.md.tmpl` — copy per-agent structure
+
+5. **Write T1, T2, T3 prompts immediately.** These do NOT depend on persona
+   findings or test results. Fill in the template placeholders with
+   sprint-specific content (agent definitions, ownership matrix, interface
+   contracts). The boilerplate (setup, gotchas, CHECKQUAD) is verbatim copy.
+
+### Track C: Persona Agents (background, collect later)
+
+Spawn these 4 agents in parallel via Task tool with `run_in_background: true`:
+
+| Agent Type | Focus |
+|---|---|
+| `persona-new-visitor` | Landing page first impression, search flow |
+| `persona-amy` | Expediter workflow, brief, property research |
+| `qa-ux-designer` | Layout/readability/nav scoring (1-5 per page) |
+| `qa-mobile` | 375px + 768px breakpoint testing |
+
+**Do NOT wait for persona results before writing T1-T3.**
+Persona findings only affect T4-D's fix list.
+
+### Convergence Gate (before writing T4)
+
+Before writing the T4 prompt:
+
+1. **Check Track A completed:**
+   ```bash
+   cat sprint-prompts/{{SPRINT_LOWER}}-preflight-report.md
+   ```
+   Verify: tests passed, prod healthy, no regressions.
+
+2. **Collect persona findings** from Track C into:
+   ```
+   qa-results/{{SPRINT_LOWER}}-preflight-audit.md
+   ```
+   Summarize top findings as P0/P1 fix targets.
+
+3. **Write T4 prompt** with persona findings embedded in T4-D's fix list.
+
+---
+
+## Terminal Definitions
+
+{{TERMINAL_DEFS}}
+
+## Read These First
+1. `chief_read_file("{{SPEC_PATH}}")` — the approved spec
+2. `CLAUDE.md` — project instructions
+3. Memory file — session patterns
+
+## Terminal Prompts to Write
+
+After pre-flight, write these 4 files using the templates. Each prompt must be
+self-contained (agent preamble, read list, tasks, interface contracts, test
+command, CHECKQUAD close). Include DuckDB/Postgres gotchas in every prompt.
+
+| File | Terminal | Theme |
+|---|---|---|
+| `sprint-prompts/{{SPRINT_LOWER}}-t1-*.md` | T1 | ... |
+| `sprint-prompts/{{SPRINT_LOWER}}-t2-*.md` | T2 | ... |
+| `sprint-prompts/{{SPRINT_LOWER}}-t3-*.md` | T3 | ... |
+| `sprint-prompts/{{SPRINT_LOWER}}-t4-*.md` | T4 | ... |
+
+## Merge Ceremony (after all terminals complete)
+
+```
+{{MERGE_ORDER}}
+```
+
+{{MERGE_CEREMONY}}
+
+## Sprint Exit Gate
+
+{{EXIT_GATE}}
+
+## CHECKQUAD-T0 (after merge ceremony)
+
+COLLECT → VERIFY → VISUAL QA → CONSOLIDATE → DOCUMENT → HARVEST → SHIP+PROMOTE → CLEAN
+
+Chief task drain: check all open sf-permits-mcp tasks, mark completed ones.

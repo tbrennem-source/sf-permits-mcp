@@ -1,0 +1,108 @@
+# Terminal Prompt Template
+#
+# T0 copies this skeleton and fills in {{PLACEHOLDERS}} per-sprint.
+# The boilerplate (~250 lines) is identical every sprint. Only the
+# agent definitions, ownership matrix, and interface contracts change.
+#
+# Placeholders:
+#   {{SPRINT_ID}}          — e.g. QS15
+#   {{SPRINT_LOWER}}       — e.g. qs15
+#   {{TERMINAL_ID}}        — e.g. T3
+#   {{TERMINAL_LOWER}}     — e.g. t3
+#   {{TERMINAL_THEME}}     — e.g. Launchable Landing Page
+#   {{TERMINAL_THEME_SHORT}} — e.g. landing
+#   {{DEPENDENCY_NOTE}}    — blank or "DEPENDENCY: T2 depends on T1..."
+#   {{FILE_OWNERSHIP_ROWS}} — pipe-table rows
+#   {{INTERFACE_CONTRACTS}} — section or blank
+#   {{AGENT_DEFINITIONS}}  — 4 agent blocks (use agent-block.md.tmpl)
+#   {{MERGE_ORDER}}        — e.g. T3-A → T3-B → T3-C → T3-D
+#   {{MERGE_COMMANDS}}     — git merge commands
+
+# ─── BEGIN TEMPLATE ──────────────────────────────────────────────────
+
+> **EXECUTE IMMEDIATELY.** You are {{TERMINAL_ID}} for {{SPRINT_ID}}. Do NOT summarize or ask for confirmation — execute now. Enter a worktree, spawn 4 agents, merge them, push your branch.
+
+# {{SPRINT_ID}} {{TERMINAL_ID}} — {{TERMINAL_THEME}}
+
+## Setup
+
+```bash
+cd /Users/timbrenneman/AIprojects/sf-permits-mcp
+git checkout main && git pull origin main
+```
+
+Then: `EnterWorktree` with name `{{SPRINT_LOWER}}-{{TERMINAL_LOWER}}`
+
+## Your Role
+
+You are {{TERMINAL_ID}}. You:
+1. Enter a worktree
+2. Spawn 4 agents in parallel via Task tool (all with `isolation: "worktree"`)
+3. Merge agent branches into your worktree branch
+4. Push your branch: `git push -u origin <branch>`
+5. CHECKQUAD close
+
+{{DEPENDENCY_NOTE}}
+
+## File Ownership Matrix
+
+| File | Owner |
+|---|---|
+{{FILE_OWNERSHIP_ROWS}}
+
+**No agent may modify files owned by another agent.**
+
+{{INTERFACE_CONTRACTS}}
+
+## DuckDB / Postgres Gotchas (INCLUDE in every agent prompt)
+
+- `INSERT OR REPLACE` → `ON CONFLICT DO UPDATE`
+- `?` placeholders → `%s`
+- `conn.execute()` → `cursor.execute()` (Postgres uses cursors)
+- Postgres transactions abort on any error — use autocommit for DDL
+- Use `from src.db import BACKEND, query, get_connection` — BACKEND is "postgres" in prod
+
+## Agent Definitions
+
+Spawn ALL 4 agents in parallel using the Task tool. Each agent call:
+- `subagent_type: "general-purpose"`
+- `model: "sonnet"`
+- `isolation: "worktree"`
+
+---
+
+{{AGENT_DEFINITIONS}}
+
+---
+
+## After All 4 Agents Complete
+
+### Merge Ceremony (internal to {{TERMINAL_ID}})
+
+Merge agents in order: {{MERGE_ORDER}}
+
+```bash
+{{MERGE_COMMANDS}}
+```
+
+If conflicts: resolve by keeping the agent's changes for files they own per the ownership matrix.
+
+### Push
+
+```bash
+git push -u origin $(git branch --show-current)
+```
+
+### CHECKQUAD Close
+
+**Step 0 — ESCAPE CWD:** `cd /Users/timbrenneman/AIprojects/sf-permits-mcp`
+
+1. **MERGE:** All 4 agent branches merged into your worktree branch
+2. **ARTIFACT:** Write a brief session report: what was built, any issues
+3. **CAPTURE:** Note any scenarios for scenarios-pending-review.md
+4. **HYGIENE CHECK:** Verify no files outside ownership matrix were modified
+5. **SIGNAL DONE:** Push branch, output "{{TERMINAL_ID}} COMPLETE — branch: <name>"
+
+```bash
+bash scripts/notify.sh terminal-done "{{TERMINAL_ID}} {{TERMINAL_THEME_SHORT}} complete"
+```

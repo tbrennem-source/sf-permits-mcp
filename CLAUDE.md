@@ -630,6 +630,34 @@ Merge order follows the dependency graph: infrastructure first, features second,
 
 **Sprint sizing:** 8-10 tasks per agent, estimate 15-30 min per agent (not 3-5 tasks and 2-3 hours).
 
+### Optimized Pre-Flight (QS15+)
+
+T0 pre-flight uses 3 parallel tracks to hit ~8 min (down from ~20 min):
+
+1. **Track A** — `bash scripts/sprint_preflight.sh qsN` (launch in background FIRST)
+   - Git cleanup (worktree prune, branch delete)
+   - Test baseline (pytest, ~4 min — the bottleneck, runs without blocking)
+   - Prod + staging + MCP health checks
+   - Codebase snapshot (routes, templates, tests, key function locations)
+   - Output: `sprint-prompts/qsN-preflight-report.md`
+
+2. **Track B** — Read spec + write prompts (start immediately, foreground)
+   - Read Chief spec + CLAUDE.md + memory
+   - Codebase audit (verify spec targets exist — kill ghost targets early)
+   - Write T1-T3 prompts from templates in `sprint-prompts/templates/`
+   - Templates eliminate ~250 lines of boilerplate per prompt (gotchas, setup, CHECKQUAD)
+
+3. **Track C** — Persona agents (spawn in background immediately)
+   - 4 agents: `persona-new-visitor`, `persona-amy`, `qa-ux-designer`, `qa-mobile`
+   - Findings only needed for T4-D fix list — do NOT gate T1-T3 on them
+
+**Convergence gate:** Before writing T4, wait for Track A (verify tests pass) and Track C (collect persona findings). Embed findings in T4-D's fix list.
+
+**Templates:** `sprint-prompts/templates/` contains 3 template files:
+- `terminal-prompt.md.tmpl` — boilerplate skeleton for terminal prompts
+- `agent-block.md.tmpl` — boilerplate for agent definitions
+- `t0-orchestrator.md.tmpl` — the optimized T0 procedure
+
 ### Model Routing
 
 - Orchestrator: Opus (strategic reasoning, conflict resolution)
