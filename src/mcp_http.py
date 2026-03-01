@@ -1,7 +1,12 @@
 """HTTP transport entry point for SF Permits MCP server.
 
-Exposes the same 34 tools as the stdio server, but over Streamable HTTP
+Exposes public-facing permit data tools over Streamable HTTP
 for Claude.ai custom connector access.
+
+SECURITY: Only safe, read-only public-data tools are registered here.
+Project intelligence tools (run_query, read_source, search_source, schema_info,
+list_tests) and list_feedback are EXCLUDED — they expose internal DB, source code,
+and user data. Those tools are available only via stdio transport (local Claude Code).
 
 Uses mcp[cli] package (same as Chief MCP server — proven claude.ai compatibility).
 
@@ -17,6 +22,7 @@ Connect from Claude.ai:
 
 import logging
 import os
+import time
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
@@ -26,7 +32,7 @@ from src.oauth_models import VALID_SCOPES
 
 logger = logging.getLogger(__name__)
 
-# Import all tool functions (same as server.py)
+# Import safe, public-data tool functions only
 from src.tools.search_permits import search_permits
 from src.tools.get_permit_details import get_permit_details
 from src.tools.permit_stats import permit_stats
@@ -48,14 +54,18 @@ from src.tools.analyze_plans import analyze_plans
 from src.tools.recommend_consultants import recommend_consultants
 from src.tools.permit_lookup import permit_lookup
 from src.tools.search_addenda import search_addenda
-from src.tools.list_feedback import list_feedback
 
-# Phase 5.5 / 6 tools (severity, health, operational intelligence)
+# Phase 5.5 / 6 tools (severity, health — safe, read-only public data)
 from src.tools.permit_severity import permit_severity
 from src.tools.property_health import property_health
 
-# Phase 7 tools (project intelligence)
-from src.tools.project_intel import run_query, read_source, search_source, schema_info, list_tests
+# EXCLUDED from HTTP endpoint (security risk on public-facing server):
+# - run_query: arbitrary SQL against DB (exposes user tables, auth_tokens)
+# - read_source: reads source code files (exposes secrets, architecture)
+# - search_source: searches codebase (finds API keys, passwords)
+# - schema_info: exposes full DB schema (reconnaissance)
+# - list_tests: test file inventory (minor info leak)
+# - list_feedback: user feedback data (has emails, page URLs)
 
 # Phase 8 tools (similar projects)
 from src.tools.similar_projects import similar_projects
@@ -75,11 +85,9 @@ mcp = FastMCP(
     "SF Permits",
     instructions=(
         "SF Permits MCP server — query San Francisco public permitting data. "
-        "34 tools across 8 phases: live SODA API queries, entity network analysis, "
+        "28 tools: live SODA API queries, entity network analysis, "
         "permit decision tools, plan set validation, AI vision analysis, "
-        "addenda routing search across 3.9M+ records, and project intelligence "
-        "tools for read-only database queries, source code reading, codebase search, "
-        "schema introspection, and test inventory."
+        "and addenda routing search across 3.9M+ records."
     ),
     host="0.0.0.0",
     port=port,
@@ -98,7 +106,7 @@ mcp = FastMCP(
     ),
 )
 
-# Register all 34 tools
+# Register 28 public-data tools (no project intelligence / internal tools)
 mcp.tool()(search_permits)
 mcp.tool()(get_permit_details)
 mcp.tool()(permit_stats)
@@ -120,18 +128,10 @@ mcp.tool()(analyze_plans)
 mcp.tool()(recommend_consultants)
 mcp.tool()(permit_lookup)
 mcp.tool()(search_addenda)
-mcp.tool()(list_feedback)
 
-# Phase 5.5 / 6 tools (severity, health, operational intelligence)
+# Phase 5.5 / 6 tools (severity, health — safe public data)
 mcp.tool()(permit_severity)
 mcp.tool()(property_health)
-
-# Phase 7 tools (project intelligence)
-mcp.tool()(run_query)
-mcp.tool()(read_source)
-mcp.tool()(search_source)
-mcp.tool()(schema_info)
-mcp.tool()(list_tests)
 
 # Phase 8 tools (similar projects)
 mcp.tool()(similar_projects)
@@ -149,6 +149,9 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.types import ASGIApp, Receive, Scope, Send
 from src.mcp_rate_limiter import get_limiter, truncate_if_needed
+
+# Track request counts for security monitoring
+_request_log: dict = {"total": 0, "by_ip": {}, "started_at": time.time()}
 
 # Paths that bypass rate limiting (health + OAuth endpoints)
 _RATE_LIMIT_SKIP_PATHS = frozenset([
@@ -179,6 +182,17 @@ class RateLimitMiddleware:
         if path in _RATE_LIMIT_SKIP_PATHS:
             await self.app(scope, receive, send)
             return
+
+        # Log every /mcp request for security monitoring
+        client = scope.get("client", ("unknown", 0))
+        ip = client[0] if client else "unknown"
+        user_agent = headers.get(b"user-agent", b"").decode()[:100] if (headers := dict(scope.get("headers", []))) else ""
+        _request_log["total"] += 1
+        _request_log["by_ip"][ip] = _request_log["by_ip"].get(ip, 0) + 1
+        logger.info(
+            "MCP request: ip=%s method=%s path=%s ua=%s total=%d",
+            ip, scope.get("method", "?"), path, user_agent, _request_log["total"],
+        )
 
         # Extract bearer token or fall back to IP
         headers = dict(scope.get("headers", []))
@@ -218,10 +232,14 @@ class RateLimitMiddleware:
 
 
 async def health_check(request: StarletteRequest) -> JSONResponse:
+    uptime_hours = round((time.time() - _request_log["started_at"]) / 3600, 1)
     return JSONResponse({
         "status": "healthy",
         "server": "SF Permits MCP",
-        "tools": 34,
+        "tools": 28,
+        "requests_total": _request_log["total"],
+        "unique_ips": len(_request_log["by_ip"]),
+        "uptime_hours": uptime_hours,
     })
 
 
