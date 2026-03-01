@@ -1,6 +1,6 @@
 """HTTP transport entry point for SF Permits MCP server.
 
-Exposes the same 27 tools as the stdio server, but over Streamable HTTP
+Exposes the same 34 tools as the stdio server, but over Streamable HTTP
 for Claude.ai custom connector access.
 
 Uses mcp[cli] package (same as Chief MCP server — proven claude.ai compatibility).
@@ -17,9 +17,12 @@ Connect from Claude.ai:
 
 import logging
 import os
-import secrets
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions, RevocationOptions
+
+from src.oauth_provider import SFPermitsAuthProvider
+from src.oauth_models import VALID_SCOPES
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +53,16 @@ from src.tools.list_feedback import list_feedback
 # Phase 7 tools (project intelligence)
 from src.tools.project_intel import run_query, read_source, search_source, schema_info, list_tests
 
-# ── Create MCP server with HTTP transport config ──────────────────
+# ── Create MCP server with HTTP transport config and OAuth 2.1 ────
 port = int(os.environ.get("PORT", 8001))
+
+provider = SFPermitsAuthProvider()
 
 mcp = FastMCP(
     "SF Permits",
     instructions=(
         "SF Permits MCP server — query San Francisco public permitting data. "
-        "27 tools across 7 phases: live SODA API queries, entity network analysis, "
+        "34 tools across 8 phases: live SODA API queries, entity network analysis, "
         "permit decision tools, plan set validation, AI vision analysis, "
         "addenda routing search across 3.9M+ records, and project intelligence "
         "tools for read-only database queries, source code reading, codebase search, "
@@ -67,9 +72,20 @@ mcp = FastMCP(
     port=port,
     stateless_http=True,
     streamable_http_path="/mcp",
+    auth_server_provider=provider,
+    auth=AuthSettings(
+        issuer_url="https://sfpermits-mcp-api-production.up.railway.app",
+        resource_server_url="https://sfpermits-mcp-api-production.up.railway.app",
+        client_registration_options=ClientRegistrationOptions(
+            enabled=True,
+            valid_scopes=VALID_SCOPES,
+            default_scopes=["demo"],
+        ),
+        revocation_options=RevocationOptions(enabled=True),
+    ),
 )
 
-# Register all 27 tools
+# Register all 34 tools
 mcp.tool()(search_permits)
 mcp.tool()(get_permit_details)
 mcp.tool()(permit_stats)
@@ -100,74 +116,18 @@ mcp.tool()(search_source)
 mcp.tool()(schema_info)
 mcp.tool()(list_tests)
 
-# ── Bearer token auth middleware (stopgap until OAuth in QS13) ────
-from starlette.requests import Request as StarletteRequest
-from starlette.responses import JSONResponse, Response
-from starlette.routing import Route
-from starlette.types import ASGIApp, Receive, Scope, Send
-
-_MCP_AUTH_TOKEN = os.environ.get("MCP_AUTH_TOKEN", "")
-
-
-class BearerTokenMiddleware:
-    """ASGI middleware: reject unauthenticated /mcp requests when MCP_AUTH_TOKEN is set."""
-
-    def __init__(self, app: ASGIApp) -> None:
-        self.app = app
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        path = scope.get("path", "")
-
-        # Skip auth for health/root endpoints
-        if path in ("/", "/health"):
-            await self.app(scope, receive, send)
-            return
-
-        # Skip auth if no token configured (backwards compatible)
-        if not _MCP_AUTH_TOKEN:
-            await self.app(scope, receive, send)
-            return
-
-        # Extract Authorization header
-        headers = dict(scope.get("headers", []))
-        auth_header = headers.get(b"authorization", b"").decode()
-
-        if not auth_header.startswith("Bearer "):
-            response = JSONResponse(
-                {"error": "Authentication required. Provide Authorization: Bearer <token>"},
-                status_code=401,
-            )
-            await response(scope, receive, send)
-            return
-
-        provided_token = auth_header[7:]  # Strip "Bearer "
-        if not secrets.compare_digest(provided_token, _MCP_AUTH_TOKEN):
-            response = JSONResponse(
-                {"error": "Invalid authentication token"},
-                status_code=403,
-            )
-            await response(scope, receive, send)
-            return
-
-        await self.app(scope, receive, send)
-
-
-if _MCP_AUTH_TOKEN:
-    logger.info("MCP bearer token auth enabled")
-else:
-    logger.warning("MCP_AUTH_TOKEN not set — MCP server is unauthenticated")
-
 
 # ── Health check endpoint (for Railway) ───────────────────────────
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+
+
 async def health_check(request: StarletteRequest) -> JSONResponse:
     return JSONResponse({
         "status": "healthy",
         "server": "SF Permits MCP",
-        "tools": 27,
+        "tools": 34,
     })
 
 
@@ -181,12 +141,18 @@ if __name__ == "__main__":
     import uvicorn
 
     async def main():
+        # Initialize OAuth tables at startup
+        from src.db import get_connection, init_oauth_schema, BACKEND
+        if BACKEND == "postgres":
+            conn = get_connection()
+            try:
+                init_oauth_schema(conn)
+            finally:
+                conn.close()
+        else:
+            logger.info("DuckDB backend — skipping OAuth schema init")
+
         app = mcp.streamable_http_app()
-
-        # Wrap with bearer token auth if configured
-        if _MCP_AUTH_TOKEN:
-            app = BearerTokenMiddleware(app)
-
         config = uvicorn.Config(
             app,
             host=mcp.settings.host,

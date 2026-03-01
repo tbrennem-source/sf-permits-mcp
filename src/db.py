@@ -974,9 +974,108 @@ def init_user_schema(conn=None) -> None:
         except Exception:
             pass
 
+        # QS13-T2A: OAuth 2.1 tables — MCP server authentication
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS mcp_oauth_clients (
+                client_id TEXT PRIMARY KEY,
+                client_secret TEXT,
+                redirect_uris TEXT[] NOT NULL DEFAULT '{}',
+                client_name TEXT,
+                scope TEXT DEFAULT 'demo',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS mcp_oauth_codes (
+                code TEXT PRIMARY KEY,
+                client_id TEXT NOT NULL REFERENCES mcp_oauth_clients(client_id),
+                redirect_uri TEXT NOT NULL,
+                scope TEXT DEFAULT 'demo',
+                code_challenge TEXT,
+                code_challenge_method TEXT DEFAULT 'S256',
+                expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS mcp_oauth_tokens (
+                token TEXT PRIMARY KEY,
+                token_type TEXT NOT NULL CHECK (token_type IN ('access', 'refresh')),
+                client_id TEXT NOT NULL REFERENCES mcp_oauth_clients(client_id),
+                scope TEXT DEFAULT 'demo',
+                expires_at TIMESTAMP NOT NULL,
+                refresh_token TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        for _oauth_idx in [
+            "CREATE INDEX IF NOT EXISTS idx_oauth_codes_client ON mcp_oauth_codes (client_id)",
+            "CREATE INDEX IF NOT EXISTS idx_oauth_tokens_client ON mcp_oauth_tokens (client_id)",
+            "CREATE INDEX IF NOT EXISTS idx_oauth_tokens_refresh ON mcp_oauth_tokens (refresh_token)",
+        ]:
+            try:
+                conn.execute(_oauth_idx)
+            except Exception:
+                pass
+
     finally:
         if close:
             conn.close()
+
+
+def init_oauth_schema(conn) -> None:
+    """Create OAuth 2.1 tables for the MCP server (standalone call at MCP startup).
+
+    Safe to call multiple times — all statements use IF NOT EXISTS.
+    Called from src/mcp_http.py __main__ to ensure tables exist before serving.
+    """
+    conn.autocommit = True
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS mcp_oauth_clients (
+                    client_id TEXT PRIMARY KEY,
+                    client_secret TEXT,
+                    redirect_uris TEXT[] NOT NULL DEFAULT '{}',
+                    client_name TEXT,
+                    scope TEXT DEFAULT 'demo',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS mcp_oauth_codes (
+                    code TEXT PRIMARY KEY,
+                    client_id TEXT NOT NULL REFERENCES mcp_oauth_clients(client_id),
+                    redirect_uri TEXT NOT NULL,
+                    scope TEXT DEFAULT 'demo',
+                    code_challenge TEXT,
+                    code_challenge_method TEXT DEFAULT 'S256',
+                    expires_at TIMESTAMP NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS mcp_oauth_tokens (
+                    token TEXT PRIMARY KEY,
+                    token_type TEXT NOT NULL CHECK (token_type IN ('access', 'refresh')),
+                    client_id TEXT NOT NULL REFERENCES mcp_oauth_clients(client_id),
+                    scope TEXT DEFAULT 'demo',
+                    expires_at TIMESTAMP NOT NULL,
+                    refresh_token TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            for _idx in [
+                "CREATE INDEX IF NOT EXISTS idx_oauth_codes_client ON mcp_oauth_codes (client_id)",
+                "CREATE INDEX IF NOT EXISTS idx_oauth_tokens_client ON mcp_oauth_tokens (client_id)",
+                "CREATE INDEX IF NOT EXISTS idx_oauth_tokens_refresh ON mcp_oauth_tokens (refresh_token)",
+            ]:
+                try:
+                    cur.execute(_idx)
+                except Exception:
+                    pass
+    finally:
+        conn.autocommit = False
 
 
 # ── Legacy DuckDB-only functions (for ingestion scripts) ──────────
