@@ -1287,7 +1287,7 @@ def _posthog_track_request(response):
     if request.path.startswith(("/static/", "/health", "/cron/", "/api/csp-report")):
         return response
 
-    user_id = str(g.user["user_id"]) if g.user else "anonymous"
+    user_id = str(g.user["user_id"]) if getattr(g, "user", None) else "anonymous"
     properties = {
         "path": request.path,
         "method": request.method,
