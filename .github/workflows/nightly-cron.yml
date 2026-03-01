@@ -32,6 +32,31 @@ jobs:
             exit 1
           fi
 
+      - name: Extract MCP access report
+        run: |
+          if [ -f /tmp/nightly_response.json ]; then
+            python3 -c "
+          import json
+          try:
+              data = json.load(open('/tmp/nightly_response.json'))
+              r = data.get('mcp_access_report', {})
+              total = r.get('total_requests_24h', 'N/A')
+              ips = r.get('unique_ips_24h', 'N/A')
+              limited = r.get('rate_limited_24h', 0)
+              top = r.get('top_ips', [])
+              lines = []
+              lines.append(f'MCP Access Report (24h)')
+              lines.append(f'  Requests: {total}  |  Unique IPs: {ips}  |  Rate limited: {limited}')
+              for t in top[:5]:
+                  lines.append(f'  {t[\"ip\"]}: {t[\"requests\"]} reqs — {t.get(\"user_agent\",\"\")[:50]}')
+              print('\n'.join(lines))
+              with open('/tmp/mcp_access_report.txt', 'w') as f:
+                  f.write('\n'.join(lines))
+          except Exception as e:
+              print(f'MCP access report extraction failed: {e}')
+          " 2>/dev/null || echo "MCP access report: not available"
+          fi
+
       - name: Wait for nightly sync processing
         run: sleep 30
 

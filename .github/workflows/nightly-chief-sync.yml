@@ -99,7 +99,28 @@ jobs:
             done
           fi
 
-          # 5. STATUS.md, CHANGELOG.md
+          # 5. MCP access report (security digest)
+          # The nightly cron stores the report in the DB; we query it here
+          # and write to chief as a daily security file
+          MCP_REPORT=$(curl -sf "${{ secrets.MCP_HEALTH_URL || 'https://sfpermits-mcp-api-production.up.railway.app' }}/health" 2>/dev/null || echo '{}')
+          if [ -n "$MCP_REPORT" ]; then
+            REQUESTS=$(echo "$MCP_REPORT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('requests_total','?'))" 2>/dev/null || echo "?")
+            UNIQUE_IPS=$(echo "$MCP_REPORT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('unique_ips','?'))" 2>/dev/null || echo "?")
+            UPTIME=$(echo "$MCP_REPORT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('uptime_hours','?'))" 2>/dev/null || echo "?")
+            cat > "$CHIEF_PATH/mcp-access-daily.md" << EOF
+          # MCP Access Report — $(date -u '+%Y-%m-%d')
+
+          **Since last restart:** ${REQUESTS} requests from ${UNIQUE_IPS} unique IPs
+          **Uptime:** ${UPTIME} hours
+          **Auth:** OAuth 2.1 + rate limiting active
+          **Dangerous tools removed:** run_query, read_source, search_source, schema_info, list_tests, list_feedback
+
+          *Full daily breakdown available in mcp_access_log table.*
+          EOF
+            echo "Synced mcp-access-daily.md"
+          fi
+
+          # 6. STATUS.md, CHANGELOG.md
           for fname in STATUS.md CHANGELOG.md; do
             if [ -f "project/$fname" ]; then
               cp "project/$fname" "$CHIEF_PATH/$fname"

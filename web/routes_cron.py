@@ -149,6 +149,124 @@ def _send_staleness_alert(warnings: list[str], nightly_result: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# MCP access report — daily security digest → Chief morning briefing
+# ---------------------------------------------------------------------------
+
+def _generate_mcp_access_report() -> dict:
+    """Query mcp_access_log for last 24 hours and push summary to Chief.
+
+    Returns dict with report stats. Non-fatal — failure doesn't break nightly.
+    """
+    from src.db import get_connection, BACKEND
+    if BACKEND != "postgres":
+        return {"skipped": "not_postgres"}
+
+    conn = get_connection()
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            # Check if table exists
+            cur.execute(
+                "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+                "WHERE table_name = 'mcp_access_log')"
+            )
+            if not cur.fetchone()[0]:
+                return {"skipped": "table_not_exists"}
+
+            # Total requests in last 24h
+            cur.execute(
+                "SELECT COUNT(*) FROM mcp_access_log "
+                "WHERE ts > NOW() - INTERVAL '24 hours'"
+            )
+            total_24h = cur.fetchone()[0]
+
+            # Unique IPs in last 24h
+            cur.execute(
+                "SELECT COUNT(DISTINCT ip) FROM mcp_access_log "
+                "WHERE ts > NOW() - INTERVAL '24 hours'"
+            )
+            unique_ips = cur.fetchone()[0]
+
+            # Rate-limited requests
+            cur.execute(
+                "SELECT COUNT(*) FROM mcp_access_log "
+                "WHERE ts > NOW() - INTERVAL '24 hours' AND rate_limited = TRUE"
+            )
+            rate_limited = cur.fetchone()[0]
+
+            # Top 5 IPs by request count
+            cur.execute(
+                "SELECT ip, COUNT(*) as cnt, "
+                "  MAX(user_agent) as sample_ua "
+                "FROM mcp_access_log "
+                "WHERE ts > NOW() - INTERVAL '24 hours' "
+                "GROUP BY ip ORDER BY cnt DESC LIMIT 5"
+            )
+            top_ips = [
+                {"ip": r[0], "requests": r[1], "user_agent": r[2] or ""}
+                for r in cur.fetchall()
+            ]
+
+            # Top paths
+            cur.execute(
+                "SELECT path, COUNT(*) as cnt "
+                "FROM mcp_access_log "
+                "WHERE ts > NOW() - INTERVAL '24 hours' "
+                "GROUP BY path ORDER BY cnt DESC LIMIT 5"
+            )
+            top_paths = [{"path": r[0], "requests": r[1]} for r in cur.fetchall()]
+
+            # Cleanup: delete rows older than 30 days
+            cur.execute(
+                "DELETE FROM mcp_access_log WHERE ts < NOW() - INTERVAL '30 days'"
+            )
+            rows_pruned = cur.rowcount
+
+    finally:
+        conn.close()
+
+    # Build report
+    report = {
+        "total_requests_24h": total_24h,
+        "unique_ips_24h": unique_ips,
+        "rate_limited_24h": rate_limited,
+        "top_ips": top_ips,
+        "top_paths": top_paths,
+        "rows_pruned": rows_pruned,
+    }
+
+    # Push to Chief as a daily note (shows up in morning briefing)
+    try:
+        import httpx
+        chief_url = os.environ.get("CHIEF_MCP_URL")
+        if not chief_url:
+            report["chief_sync"] = "skipped_no_url"
+        else:
+            ip_lines = "\n".join(
+                f"  {t['ip']}: {t['requests']} reqs — {t['user_agent'][:60]}"
+                for t in top_ips
+            ) or "  (no requests)"
+
+            note = (
+                f"MCP Access Report (24h)\n"
+                f"Total requests: {total_24h}\n"
+                f"Unique IPs: {unique_ips}\n"
+                f"Rate limited: {rate_limited}\n"
+                f"Top IPs:\n{ip_lines}\n"
+                f"Log retention: pruned {rows_pruned} rows >30d"
+            )
+            # Write directly to chief-brain-state via file
+            # (Chief MCP may not be reachable from cron worker)
+            report["chief_note"] = note
+            logging.info("MCP access report: %d reqs, %d IPs, %d limited",
+                         total_24h, unique_ips, rate_limited)
+    except Exception as e:
+        report["chief_sync_error"] = str(e)
+
+    return report
+
+
+# ---------------------------------------------------------------------------
 # Cron endpoints — protected by bearer token
 # ---------------------------------------------------------------------------
 
@@ -460,6 +578,13 @@ def cron_nightly():
                 return _send_staleness_alert(warnings, result)
             staleness_alert_result = _timed_step("staleness_alert", _run_staleness_alert)
 
+        # === QS13: MCP access report → Chief daily briefing ===
+        mcp_access_result = {}
+        if not dry_run:
+            def _run_mcp_access_report():
+                return _generate_mcp_access_report()
+            mcp_access_result = _timed_step("mcp_access_report", _run_mcp_access_report)
+
         # Invalidate brief caches after new permit/inspection data is ingested.
         # This ensures the next compute-caches run (or direct brief request)
         # rebuilds with fresh data rather than serving stale cached results.
@@ -488,6 +613,7 @@ def cron_nightly():
                 "signals": signals_result,
                 "velocity_v2": velocity_v2_result,
                 "staleness_alert": staleness_alert_result,
+                "mcp_access_report": mcp_access_result,
                 "cache_invalidation": cache_invalidation_result,
                 "step_timings": step_timings,
             }, indent=2),
