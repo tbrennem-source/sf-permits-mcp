@@ -1,5 +1,32 @@
 # Changelog
 
+## QS13 Preflight — Cron Fix, Security Hardening, Intelligence Review (2026-03-01)
+
+Solo session. 12 files changed across P0 infrastructure + P1 design + MCP security.
+
+### P0 — Cron & Monitoring
+- Fix 5 non-fatal nightly cron bugs: executemany, null addenda ID, COALESCE notify_email, triage host, signals FK violation
+- Fix CI blocker: 10 stale entity showcase tests (blocked ALL nightly crons for 4+ days)
+- Health endpoint returns "degraded" when heartbeat >25 hours + 7-day data gap detection
+- TRIAGE_API_HOST env var for cron worker → web app routing
+
+### P1 — Design & Documentation
+- Admin home page mockup (web/static/mockups/admin-home.html) — Tailwind v4 + Alpine.js
+- Cost data validation: 73% revision claim is 6x overstatement (actual: 12%), documented
+- 3 decisions: Tailwind v4 adoption, honeypot data strategy, defensible data claims
+
+### MCP Security Hardening
+- Remove 6 dangerous tools from HTTP endpoint (run_query, read_source, search_source, schema_info, list_tests, list_feedback)
+- mcp_access_log table: persistent request logging (IP, user-agent, path, 30-day retention)
+- Real-time Telegram alerts: new IP connections (blue) + rate limit hits (red)
+- Daily security digest in Chief morning briefing via nightly sync
+- OAuth 2.1 built and ready — disabled until claude.ai supports MCP OAuth
+- Rate limiting active (100 req/hr per IP)
+
+### Process
+- Monthly Intelligence Review process created (Chief spec)
+- 34 tools inventoried, 11 with no web presence, 5 proposals for next sprint
+
 ## QS12 — Demo-Ready: Visual Intelligence (2026-02-28)
 
 16 agents across 4 terminals. 78 files changed, 10,230 insertions, 439 new tests.

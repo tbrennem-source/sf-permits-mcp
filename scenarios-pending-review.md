@@ -2882,3 +2882,33 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Expected outcome:** After 3.6s, the scroll cue arrow fades in and is visible at 60% opacity — noticeable without dominating the hero section
 **CC confidence:** low
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Health endpoint detects stale nightly data
+**Source:** web/app.py health endpoint (QS13 preflight)
+**User:** admin
+**Starting state:** Nightly cron has not run for >25 hours
+**Goal:** Admin checks system health and sees degraded status
+**Expected outcome:** Health endpoint returns status "degraded" with cron_heartbeat_status "CRITICAL" and data_continuity showing gap days
+**Edge cases seen in code:** DuckDB backend skips gap detection; heartbeat row may not exist
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: MCP access alert on new IP connection
+**Source:** src/mcp_http.py Telegram alerts (QS13 preflight)
+**User:** admin
+**Starting state:** MCP server is running with Telegram configured
+**Goal:** Admin is notified immediately when an unknown client connects
+**Expected outcome:** Telegram message with IP, user-agent, and request count within seconds of first request from new IP
+**Edge cases seen in code:** Alert suppressed if TELEGRAM_BOT_TOKEN not set; one alert per IP per restart (not spammy)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Dangerous tools blocked on public MCP endpoint
+**Source:** src/mcp_http.py tool scoping (QS13 preflight)
+**User:** admin
+**Starting state:** MCP server exposes tools over HTTP
+**Goal:** Internal tools (run_query, read_source, schema_info) are not accessible via public endpoint
+**Expected outcome:** Only 28 safe tools returned by tools/list; project intelligence tools only available via local stdio transport
+**Edge cases seen in code:** Tool count mismatch if new tools added to server.py but not mcp_http.py
+**CC confidence:** high
+**Status:** PENDING REVIEW
