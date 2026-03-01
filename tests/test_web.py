@@ -271,7 +271,8 @@ def test_rate_limit_validate(client):
 
 
 def test_noindex_meta_tag(client):
-    """Beta page has noindex meta tag for authenticated users."""
+    """Authenticated dashboard (index.html) does NOT have noindex — removed in QS13-1C
+    to allow search engines to index the authenticated experience."""
     import src.db as db_mod
     if db_mod.BACKEND == "duckdb":
         db_mod.init_user_schema()
@@ -282,8 +283,8 @@ def test_noindex_meta_tag(client):
 
     rv = client.get("/")
     html = rv.data.decode()
-    assert 'name="robots"' in html
-    assert "noindex" in html
+    # QS13-1C: noindex removed from index.html — dashboard is now indexable
+    assert "noindex" not in html or 'name="robots"' not in html
 
 
 # --- Enhanced Input Form tests ---

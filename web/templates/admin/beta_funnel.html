@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Beta Funnel — Admin — sfpermits.ai</title>
+    <script nonce="{{ csp_nonce }}" src="/static/htmx.min.js"></script>
+    {% include "fragments/head_obsidian.html" %}
+</head>
+<body>
+<div class="page-body">
+<div style="max-width: 900px; margin: 2rem auto; padding: 0 1rem;">
+
+  <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <h1 style="font-family: var(--mono); font-size: 1.5rem; color: var(--text-primary); margin: 0 0 0.25rem;">Beta Funnel</h1>
+      <p style="font-family: var(--sans); font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">Signup capture + CTA attribution</p>
+    </div>
+    <a href="/admin/beta-funnel/export" class="ghost-cta" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Export CSV &rarr;</a>
+  </div>
+
+  <!-- Summary Stats -->
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+    <div class="glass-card" style="padding: 1.25rem; text-align: center;">
+      <div style="font-family: var(--mono); font-size: 2rem; color: var(--text-primary);">{{ stats.total }}</div>
+      <div style="font-family: var(--sans); font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.25rem;">Total Signups</div>
+    </div>
+    <div class="glass-card" style="padding: 1.25rem; text-align: center;">
+      <div style="font-family: var(--mono); font-size: 2rem; color: var(--text-primary);">{{ stats.today }}</div>
+      <div style="font-family: var(--sans); font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.25rem;">Today</div>
+    </div>
+    <div class="glass-card" style="padding: 1.25rem; text-align: center;">
+      <div style="font-family: var(--mono); font-size: 2rem; color: var(--text-primary);">{{ stats.week }}</div>
+      <div style="font-family: var(--sans); font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.25rem;">This Week</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+    <!-- By Role -->
+    <div class="glass-card" style="padding: 1.5rem;">
+      <h2 style="font-family: var(--mono); font-size: 0.9rem; color: var(--text-secondary); margin: 0 0 1rem; letter-spacing: 0.05em;">BY ROLE</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        {% for row in by_role %}
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+          <td style="font-family: var(--sans); font-size: 0.875rem; color: var(--text-primary); padding: 0.5rem 0;">{{ row.role or 'Not specified' }}</td>
+          <td style="font-family: var(--mono); font-size: 0.875rem; color: var(--text-secondary); text-align: right; padding: 0.5rem 0;">{{ row.count }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="2" style="font-family: var(--sans); font-size: 0.875rem; color: var(--text-tertiary); padding: 0.5rem 0;">No data yet</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- By Ref Source -->
+    <div class="glass-card" style="padding: 1.5rem;">
+      <h2 style="font-family: var(--mono); font-size: 0.9rem; color: var(--text-secondary); margin: 0 0 1rem; letter-spacing: 0.05em;">BY SOURCE</h2>
+      <table style="width: 100%; border-collapse: collapse;">
+        {% for row in by_ref %}
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+          <td style="font-family: var(--mono); font-size: 0.8rem; color: var(--text-primary); padding: 0.5rem 0;">{{ row.referrer or 'direct' }}</td>
+          <td style="font-family: var(--mono); font-size: 0.875rem; color: var(--text-secondary); text-align: right; padding: 0.5rem 0;">{{ row.count }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="2" style="font-family: var(--sans); font-size: 0.875rem; color: var(--text-tertiary); padding: 0.5rem 0;">No data yet</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+  <!-- Top Interest Addresses -->
+  {% if top_addresses %}
+  <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="font-family: var(--mono); font-size: 0.9rem; color: var(--text-secondary); margin: 0 0 1rem; letter-spacing: 0.05em;">TOP INTEREST ADDRESSES</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+      {% for addr in top_addresses %}
+      <span style="font-family: var(--mono); font-size: 0.78rem; color: var(--text-secondary); background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.3rem 0.6rem;">{{ addr }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+</div>
+</body>
+</html>

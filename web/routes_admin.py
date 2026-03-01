@@ -20,7 +20,7 @@ import tempfile as _tempfile
 
 from datetime import datetime
 from flask import (
-    Blueprint, Response, abort, g, jsonify, redirect, render_template,
+    Blueprint, Response, abort, current_app, g, jsonify, redirect, render_template,
     render_template_string, request, send_file, session, url_for,
 )
 
@@ -1011,6 +1011,148 @@ def admin_qa_screenshot(run_name, filename):
         abort(404)
 
     return send_file(screenshot_path, mimetype="image/png")
+
+
+# ---------------------------------------------------------------------------
+# Admin funnel dashboard
+# ---------------------------------------------------------------------------
+
+@bp.route("/admin/beta-funnel")
+@login_required
+def admin_beta_funnel():
+    """Admin funnel dashboard — beta signup analytics."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    from src.db import get_connection, BACKEND
+
+    total = today = week = 0
+    by_role = []
+    by_ref = []
+    top_addresses = []
+
+    try:
+        conn = get_connection()
+        if BACKEND == "postgres":
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM beta_requests")
+            total = cursor.fetchone()[0]
+
+            cursor.execute(
+                "SELECT COUNT(*) FROM beta_requests WHERE created_at >= NOW() - INTERVAL '1 day'"
+            )
+            today = cursor.fetchone()[0]
+
+            cursor.execute(
+                "SELECT COUNT(*) FROM beta_requests WHERE created_at >= NOW() - INTERVAL '7 days'"
+            )
+            week = cursor.fetchone()[0]
+
+            cursor.execute(
+                "SELECT role, COUNT(*) as count FROM beta_requests "
+                "GROUP BY role ORDER BY count DESC LIMIT 10"
+            )
+            by_role = [{"role": r[0], "count": r[1]} for r in cursor.fetchall()]
+
+            cursor.execute(
+                "SELECT referrer, COUNT(*) as count FROM beta_requests "
+                "GROUP BY referrer ORDER BY count DESC LIMIT 10"
+            )
+            by_ref = [{"referrer": r[0], "count": r[1]} for r in cursor.fetchall()]
+
+            cursor.execute(
+                "SELECT interest_address FROM beta_requests "
+                "WHERE interest_address IS NOT NULL AND interest_address != '' "
+                "GROUP BY interest_address ORDER BY COUNT(*) DESC LIMIT 10"
+            )
+            top_addresses = [r[0] for r in cursor.fetchall()]
+        else:
+            conn.execute("SELECT COUNT(*) FROM beta_requests")
+            total = conn.fetchone()[0]
+
+            conn.execute(
+                "SELECT COUNT(*) FROM beta_requests WHERE created_at >= NOW() - INTERVAL '1 day'"
+            )
+            today = conn.fetchone()[0]
+
+            conn.execute(
+                "SELECT COUNT(*) FROM beta_requests WHERE created_at >= NOW() - INTERVAL '7 days'"
+            )
+            week = conn.fetchone()[0]
+
+            conn.execute(
+                "SELECT role, COUNT(*) as count FROM beta_requests "
+                "GROUP BY role ORDER BY count DESC LIMIT 10"
+            )
+            by_role = [{"role": r[0], "count": r[1]} for r in conn.fetchall()]
+
+            conn.execute(
+                "SELECT referrer, COUNT(*) as count FROM beta_requests "
+                "GROUP BY referrer ORDER BY count DESC LIMIT 10"
+            )
+            by_ref = [{"referrer": r[0], "count": r[1]} for r in conn.fetchall()]
+
+            conn.execute(
+                "SELECT interest_address FROM beta_requests "
+                "WHERE interest_address IS NOT NULL AND interest_address != '' "
+                "GROUP BY interest_address ORDER BY COUNT(*) DESC LIMIT 10"
+            )
+            top_addresses = [r[0] for r in conn.fetchall()]
+    except Exception as e:
+        current_app.logger.error("Beta funnel query error: %s", e)
+
+    stats = {"total": total, "today": today, "week": week}
+    return render_template(
+        "admin/beta_funnel.html",
+        stats=stats,
+        by_role=by_role,
+        by_ref=by_ref,
+        top_addresses=top_addresses,
+        user=g.user,
+    )
+
+
+@bp.route("/admin/beta-funnel/export")
+@login_required
+def admin_beta_funnel_export():
+    """CSV export of all beta signups."""
+    if not g.user.get("is_admin"):
+        abort(403)
+
+    import csv
+    import io
+
+    from src.db import get_connection, BACKEND
+
+    rows = []
+    try:
+        conn = get_connection()
+        if BACKEND == "postgres":
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT email, name, role, interest_address, referrer, status, created_at "
+                "FROM beta_requests ORDER BY created_at DESC"
+            )
+            rows = cursor.fetchall()
+        else:
+            conn.execute(
+                "SELECT email, name, role, interest_address, referrer, status, created_at "
+                "FROM beta_requests ORDER BY created_at DESC"
+            )
+            rows = conn.fetchall()
+    except Exception as e:
+        current_app.logger.error("Beta funnel export error: %s", e)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["email", "name", "role", "interest_address", "referrer", "status", "created_at"])
+    writer.writerows(rows)
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=beta_signups.csv"},
+    )
 
 
 # ---------------------------------------------------------------------------
