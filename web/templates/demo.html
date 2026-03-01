@@ -422,7 +422,8 @@
 
         @media (max-width: 768px) {
             .arch-grid { grid-template-columns: repeat(2, 1fr); }
-            .demo-grid { grid-template-columns: 1fr; }
+            /* minmax(0, 1fr) prevents wide content (tables) from inflating the grid track */
+            .demo-grid { grid-template-columns: minmax(0, 1fr); }
             .hero .address { font-size: var(--text-xl); }
         }
 
