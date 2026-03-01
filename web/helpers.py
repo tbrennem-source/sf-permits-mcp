@@ -958,13 +958,13 @@ def compute_triage_signals(
 
         if permit_number:
             rows = _exec(
-                f"SELECT permit_number, status, description, filed_date "
+                f"SELECT permit_number, status, description, filed_date, block, lot "
                 f"FROM permits WHERE permit_number = {_PH} LIMIT 1",
                 [permit_number],
             )
         elif block and lot:
             rows = _exec(
-                f"SELECT permit_number, status, description, filed_date "
+                f"SELECT permit_number, status, description, filed_date, block, lot "
                 f"FROM permits WHERE block = {_PH} AND lot = {_PH} "
                 f"ORDER BY filed_date DESC NULLS LAST LIMIT {max_permits}",
                 [block.strip(), lot.strip()],
@@ -973,7 +973,7 @@ def compute_triage_signals(
             # Match by street number + name prefix (case-insensitive)
             name_like = street_name.strip().upper().split()[0] + "%"
             rows = _exec(
-                f"SELECT permit_number, status, description, filed_date "
+                f"SELECT permit_number, status, description, filed_date, block, lot "
                 f"FROM permits "
                 f"WHERE UPPER(street_number) = {_PH} "
                 f"AND UPPER(street_name) LIKE {_PH} "
@@ -988,6 +988,8 @@ def compute_triage_signals(
                 "status": row[1],
                 "description": row[2],
                 "filed_date": str(row[3])[:10] if row[3] else None,
+                "block": row[4] if len(row) > 4 else None,
+                "lot": row[5] if len(row) > 5 else None,
             })
 
         if not permits:
@@ -1010,6 +1012,10 @@ def compute_triage_signals(
                 "is_stuck": False,
                 "reviewer": None,
                 "station_arrive": None,
+                # Enhanced triage fields
+                "stuck_diagnosis": None,
+                "violation_count": 0,
+                "complaint_count": 0,
             }
 
             # --- 2. Get most recent open station ---
@@ -1071,6 +1077,72 @@ def compute_triage_signals(
 
             except Exception:
                 pass  # addenda query failed — graceful degradation
+
+            # --- 3. Stuck diagnosis (lightweight — check if days > 2x median) ---
+            try:
+                days = signal.get("days_at_station")
+                median = signal.get("station_median")
+                station = signal.get("current_station")
+                if days is not None and median is not None and median > 0 and days >= median * 2:
+                    ratio = days / median
+                    if ratio >= 5:
+                        severity = "critical"
+                    elif ratio >= 3:
+                        severity = "high"
+                    else:
+                        severity = "medium"
+                    signal["stuck_diagnosis"] = {
+                        "is_stuck": True,
+                        "severity": severity,
+                        "station": station,
+                        "days": days,
+                        "median": median,
+                        "ratio": round(ratio, 2),
+                    }
+                elif days is not None and median is not None and median > 0:
+                    ratio = days / median
+                    if ratio >= 1.5:
+                        severity = "low"
+                        signal["stuck_diagnosis"] = {
+                            "is_stuck": False,
+                            "severity": severity,
+                            "station": station,
+                            "days": days,
+                            "median": median,
+                            "ratio": round(ratio, 2),
+                        }
+            except Exception:
+                pass  # stuck diagnosis failed — leave as None
+
+            # --- 4. Violation count for this property ---
+            try:
+                p_block = p.get("block")
+                p_lot = p.get("lot")
+                if p_block and p_lot:
+                    viol_rows = _exec(
+                        f"SELECT COUNT(*) FROM violations "
+                        f"WHERE block = {_PH} AND lot = {_PH} AND status != 'closed'",
+                        [p_block, p_lot],
+                    )
+                    if viol_rows and viol_rows[0][0] is not None:
+                        signal["violation_count"] = int(viol_rows[0][0])
+            except Exception:
+                pass  # violation count failed — leave as 0
+
+            # --- 5. Complaint count for this property ---
+            try:
+                p_block = p.get("block")
+                p_lot = p.get("lot")
+                if p_block and p_lot:
+                    comp_rows = _exec(
+                        f"SELECT COUNT(*) FROM complaints "
+                        f"WHERE block = {_PH} AND lot = {_PH} AND status = 'open'",
+                        [p_block, p_lot],
+                    )
+                    if comp_rows and comp_rows[0][0] is not None:
+                        signal["complaint_count"] = int(comp_rows[0][0])
+            except Exception:
+                pass  # complaint count failed — leave as 0
 
             signals.append(signal)
 

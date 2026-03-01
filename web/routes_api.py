@@ -990,3 +990,171 @@ def create_share():
     data = request.get_json(silent=True) or {}
     url = data.get("url", request.url)
     return jsonify({"url": url, "shared": True})
+
+
+# ---------------------------------------------------------------------------
+# Intelligence API — HTMX fragment endpoints (QS14-T1-D)
+# ---------------------------------------------------------------------------
+
+@bp.route("/api/intelligence/stuck/<permit_number>")
+def api_intelligence_stuck(permit_number):
+    """Return stuck diagnosis as HTML fragment (HTMX) or JSON.
+
+    Public endpoint — no login required. Rate limited at 30 req/min per IP.
+
+    GET /api/intelligence/stuck/<permit_number>
+
+    Returns:
+      - Accept: application/json  → JSON dict with diagnosis fields
+      - Default (HTMX)            → HTML fragment (fragments/stuck_diagnosis.html)
+    """
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+    if ip:
+        ip = ip.split(",")[0].strip()
+    if _is_rate_limited(f"{ip}:intel:stuck", 30):
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "rate limited"}), 429
+        return '<div class="text-gray-500 text-sm">Rate limit exceeded — please wait a moment</div>', 429
+
+    permit_number = permit_number.strip()
+    if not permit_number:
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "permit_number required"}), 400
+        return '<div class="text-gray-500 text-sm">Permit number required</div>', 400
+
+    try:
+        from web.intelligence_helpers import get_stuck_diagnosis_sync
+        result = get_stuck_diagnosis_sync(permit_number)
+    except Exception:
+        logging.exception("api_intelligence_stuck failed for %s", permit_number)
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "internal error"}), 500
+        return '<div class="text-gray-500 text-sm">Unable to load diagnosis — please try again</div>', 500
+
+    if not result:
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "no diagnosis available"}), 404
+        return '<div class="text-gray-500 text-sm">No stuck diagnosis available</div>'
+
+    if request.headers.get("Accept") == "application/json":
+        return jsonify(result)
+
+    return render_template("fragments/stuck_diagnosis.html", diagnosis=result)
+
+
+@bp.route("/api/intelligence/delay")
+def api_intelligence_delay():
+    """Return delay cost estimate as HTML fragment (HTMX) or JSON.
+
+    Public endpoint — no login required. Rate limited at 30 req/min per IP.
+
+    GET /api/intelligence/delay?permit_type=...&monthly_cost=...&neighborhood=...
+
+    Query params:
+      - permit_type   (str, default "alterations")
+      - monthly_cost  (float, default 5000)
+      - neighborhood  (str, optional)
+
+    Returns:
+      - Accept: application/json  → JSON dict with delay cost fields
+      - Default (HTMX)            → HTML fragment (fragments/delay_cost.html)
+    """
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+    if ip:
+        ip = ip.split(",")[0].strip()
+    if _is_rate_limited(f"{ip}:intel:delay", 30):
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "rate limited"}), 429
+        return '<div class="text-gray-500 text-sm">Rate limit exceeded — please wait a moment</div>', 429
+
+    permit_type = request.args.get("permit_type", "alterations")
+    neighborhood = request.args.get("neighborhood") or None
+
+    try:
+        monthly_cost = float(request.args.get("monthly_cost", "5000"))
+    except (TypeError, ValueError):
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "monthly_cost must be a number"}), 400
+        return '<div class="text-gray-500 text-sm">Invalid monthly_cost parameter</div>', 400
+
+    if monthly_cost <= 0:
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "monthly_cost must be greater than zero"}), 400
+        return '<div class="text-gray-500 text-sm">monthly_cost must be greater than zero</div>', 400
+
+    try:
+        from web.intelligence_helpers import get_delay_cost_sync
+        result = get_delay_cost_sync(permit_type, monthly_cost, neighborhood)
+    except Exception:
+        logging.exception("api_intelligence_delay failed")
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "internal error"}), 500
+        return '<div class="text-gray-500 text-sm">Unable to calculate delay cost — please try again</div>', 500
+
+    if not result:
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "delay cost unavailable"}), 404
+        return '<div class="text-gray-500 text-sm">Delay cost unavailable</div>'
+
+    if request.headers.get("Accept") == "application/json":
+        return jsonify(result)
+
+    return render_template("fragments/delay_cost.html", delay=result)
+
+
+@bp.route("/api/intelligence/similar")
+def api_intelligence_similar():
+    """Return similar projects as HTML fragment (HTMX) or JSON.
+
+    Public endpoint — no login required. Rate limited at 30 req/min per IP.
+
+    GET /api/intelligence/similar?permit_type=...&neighborhood=...&cost=...
+
+    Query params:
+      - permit_type   (str, default "alterations")
+      - neighborhood  (str, optional)
+      - cost          (float, optional)
+
+    Returns:
+      - Accept: application/json  → JSON list of project dicts
+      - Default (HTMX)            → HTML fragment (fragments/similar_projects.html)
+    """
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+    if ip:
+        ip = ip.split(",")[0].strip()
+    if _is_rate_limited(f"{ip}:intel:similar", 30):
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "rate limited"}), 429
+        return '<div class="text-gray-500 text-sm">Rate limit exceeded — please wait a moment</div>', 429
+
+    permit_type = request.args.get("permit_type", "alterations")
+    neighborhood = request.args.get("neighborhood") or None
+
+    cost = None
+    cost_str = request.args.get("cost")
+    if cost_str:
+        try:
+            cost = float(cost_str)
+        except (TypeError, ValueError):
+            if request.headers.get("Accept") == "application/json":
+                return jsonify({"error": "cost must be a number"}), 400
+            return '<div class="text-gray-500 text-sm">Invalid cost parameter</div>', 400
+
+    try:
+        from web.intelligence_helpers import get_similar_projects_sync
+        results = get_similar_projects_sync(permit_type, neighborhood, cost)
+    except Exception:
+        logging.exception("api_intelligence_similar failed")
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"error": "internal error"}), 500
+        return '<div class="text-gray-500 text-sm">Unable to load similar projects — please try again</div>', 500
+
+    if not results:
+        if request.headers.get("Accept") == "application/json":
+            return jsonify([])
+        return '<div class="text-gray-500 text-sm">No similar projects found</div>'
+
+    if request.headers.get("Accept") == "application/json":
+        return jsonify(results)
+
+    return render_template("fragments/similar_projects.html", projects=results, methodology={})
