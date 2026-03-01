@@ -1,5 +1,34 @@
 # Changelog
 
+## QS13-T2 — OAuth 2.1 + MCP Server Hardening (2026-02-28)
+
+### T2 — OAuth 2.1 + Rate Limiting + Security (Sprint 99)
+
+**Agent 2A — OAuth 2.1 Server**
+- NEW `src/oauth_provider.py`: Full `OAuthAuthorizationServerProvider` implementation — 9 async methods covering client registration, auth code flow, token exchange, refresh rotation, and revocation
+- NEW `src/oauth_models.py`: Token constants, scope/rate tier mappings, `generate_token()` helper
+- `src/db.py`: Added 3 OAuth tables (`mcp_oauth_clients`, `mcp_oauth_codes`, `mcp_oauth_tokens`) + `init_oauth_schema()` function
+- `src/mcp_http.py`: Replaced `BearerTokenMiddleware` stopgap with full OAuth 2.1 via FastMCP `auth_server_provider=` + `AuthSettings`
+- MCP server now supports dynamic client registration, PKCE, token refresh, revocation
+
+**Agent 2B — Rate Limiting**
+- NEW `src/mcp_rate_limiter.py`: In-memory per-token/IP rate limiter with daily reset at midnight UTC
+- Tiers: anonymous=5/day (IP), demo=10/day, professional=1000/day, unlimited=no limit
+- `X-RateLimit-Limit/Remaining/Reset` headers on all /mcp responses
+- 429 response with upgrade CTA when limit exceeded
+- Response truncation at 20K estimated tokens with clear suffix message
+- `RateLimitMiddleware` wired into mcp_http.py ASGI stack
+
+**Agent 2C — Tool Audit + Security + Docs**
+- `src/mcp_http.py`: Added 7 missing tools (permit_severity, property_health, similar_projects, predict_next_stations, diagnose_stuck_permit, simulate_what_if, calculate_delay_cost) — MCP server now at parity with stdio server (34 tools)
+- `src/tools/project_intel.py`: `run_query` table allowlist (blocks users, auth_tokens, oauth tables, pg_* system tables); `read_source` path denylist (blocks CLAUDE.md, sprint-prompts/)
+- `src/tools/list_feedback.py`: `MCP_RESTRICT_FEEDBACK=1` env gate for demo scope restriction
+- `Dockerfile.mcp`: Removed `sprint-prompts/` and `CLAUDE.md` from container image
+- NEW `scripts/create_qa_account.py`: OAuth client registration script for QA
+- NEW `docs/MCP_TESTING.md`: Connection guide + 5 core test prompts + rate limit tiers
+
+**Tests added**: 32 new tests across `test_oauth.py`, `test_mcp_rate_limit.py`, `test_tool_audit.py`. Full suite: 4904 passed.
+
 ## QS12 — Demo-Ready: Visual Intelligence (2026-02-28)
 
 16 agents across 4 terminals. 78 files changed, 10,230 insertions, 439 new tests.

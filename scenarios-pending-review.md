@@ -2922,3 +2922,52 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Edge cases seen in code:** Script uses urllib (no requests dependency); --quick flag skips rate limit and OAuth flow tests that require many requests or a real browser
 **CC confidence:** medium
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: MCP OAuth client registration flow
+**Source:** QS13-T2 OAuth 2.1 implementation
+**User:** architect
+**Starting state:** User has never connected an MCP client to sfpermits.ai
+**Goal:** Register a new OAuth client and obtain an access token for use with Claude.ai
+**Expected outcome:** Dynamic registration succeeds, PKCE auth code flow completes, access token returned, tools accessible
+**Edge cases seen in code:** DuckDB backend short-circuits gracefully; AnyUrl objects must be cast to str for redirect_uri comparison
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Rate limit enforcement for demo scope
+**Source:** QS13-T2B rate limiter
+**User:** expediter
+**Starting state:** User has demo-scoped OAuth token, has made 10 MCP tool calls today
+**Goal:** Make an 11th tool call
+**Expected outcome:** 429 response with rate limit headers and upgrade CTA; previous 10 calls succeeded normally
+**Edge cases seen in code:** Reset fires at midnight UTC — calls made just before midnight don't carry over
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: run_query blocked from sensitive tables
+**Source:** QS13-T2C project_intel security hardening
+**User:** admin
+**Starting state:** User submits SQL query targeting `users` or `mcp_oauth_tokens` table via run_query tool
+**Goal:** Extract user data or OAuth credentials
+**Expected outcome:** Tool returns "Access denied" message without executing query; permits table queries work normally
+**Edge cases seen in code:** Pattern matches FROM/JOIN/INTO — subquery aliases might evade if deeply nested
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: read_source blocked from CLAUDE.md and sprint prompts
+**Source:** QS13-T2C path denylist
+**User:** architect
+**Starting state:** User asks MCP client to read CLAUDE.md or sprint-prompts/ directory contents
+**Goal:** Read internal project instructions or sprint implementation details
+**Expected outcome:** Tool returns "Access denied" message; normal source files (src/*.py) still readable
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: MCP server at 34-tool parity with stdio server
+**Source:** QS13-T2C tool parity
+**User:** expediter
+**Starting state:** User is connected to MCP HTTP server
+**Goal:** Use simulate_what_if, diagnose_stuck_permit, or calculate_delay_cost tools
+**Expected outcome:** All 7 previously-missing tools are now available and return valid results
+**Edge cases seen in code:** Tool count in health endpoint and instructions string must stay in sync
+**CC confidence:** high
+**Status:** PENDING REVIEW
