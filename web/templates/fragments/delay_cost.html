@@ -1,0 +1,29 @@
+{% if delay %}
+<div style="font-family:var(--sans,'IBM Plex Sans',sans-serif);">
+    <div style="font-family:var(--mono,'JetBrains Mono',monospace);font-size:1.5rem;font-weight:400;color:var(--signal-amber,#fbbf24);margin-bottom:4px;">
+        ${{ "%.0f"|format(delay.daily_cost) }}/day
+    </div>
+    <div style="font-size:0.8rem;color:var(--text-secondary,rgba(255,255,255,0.55));margin-bottom:10px;">
+        ${{ "%.0f"|format(delay.weekly_cost) }}/week
+        &middot;
+        ${{ "%.0f"|format(delay.monthly_cost) }}/month
+    </div>
+
+    {% if delay.scenarios %}
+    <div style="border-top:1px solid var(--glass-border,rgba(255,255,255,0.06));padding-top:10px;">
+        {% for s in delay.scenarios %}
+        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:0.85rem;margin-bottom:6px;">
+            <span style="color:var(--text-secondary,rgba(255,255,255,0.55));">{{ s.label }}</span>
+            <span style="font-family:var(--mono,'JetBrains Mono',monospace);color:var(--text-primary,rgba(255,255,255,0.92));">
+                {{ s.months }}mo &middot; ${{ "{:,.0f}".format(s.total_cost) }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div style="font-size:0.875rem;color:var(--text-secondary,rgba(255,255,255,0.55));">
+    Delay cost unavailable
+</div>
+{% endif %}
