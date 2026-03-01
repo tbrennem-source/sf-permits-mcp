@@ -1,33 +1,31 @@
 # Changelog
 
-## QS13-T2 — OAuth 2.1 + MCP Server Hardening (2026-02-28)
+## QS13 Preflight — Cron Fix, Security Hardening, Intelligence Review (2026-03-01)
 
-### T2 — OAuth 2.1 + Rate Limiting + Security (Sprint 99)
+Solo session. 12 files changed across P0 infrastructure + P1 design + MCP security.
 
-**Agent 2A — OAuth 2.1 Server**
-- NEW `src/oauth_provider.py`: Full `OAuthAuthorizationServerProvider` implementation — 9 async methods covering client registration, auth code flow, token exchange, refresh rotation, and revocation
-- NEW `src/oauth_models.py`: Token constants, scope/rate tier mappings, `generate_token()` helper
-- `src/db.py`: Added 3 OAuth tables (`mcp_oauth_clients`, `mcp_oauth_codes`, `mcp_oauth_tokens`) + `init_oauth_schema()` function
-- `src/mcp_http.py`: Replaced `BearerTokenMiddleware` stopgap with full OAuth 2.1 via FastMCP `auth_server_provider=` + `AuthSettings`
-- MCP server now supports dynamic client registration, PKCE, token refresh, revocation
+### P0 — Cron & Monitoring
+- Fix 5 non-fatal nightly cron bugs: executemany, null addenda ID, COALESCE notify_email, triage host, signals FK violation
+- Fix CI blocker: 10 stale entity showcase tests (blocked ALL nightly crons for 4+ days)
+- Health endpoint returns "degraded" when heartbeat >25 hours + 7-day data gap detection
+- TRIAGE_API_HOST env var for cron worker → web app routing
 
-**Agent 2B — Rate Limiting**
-- NEW `src/mcp_rate_limiter.py`: In-memory per-token/IP rate limiter with daily reset at midnight UTC
-- Tiers: anonymous=5/day (IP), demo=10/day, professional=1000/day, unlimited=no limit
-- `X-RateLimit-Limit/Remaining/Reset` headers on all /mcp responses
-- 429 response with upgrade CTA when limit exceeded
-- Response truncation at 20K estimated tokens with clear suffix message
-- `RateLimitMiddleware` wired into mcp_http.py ASGI stack
+### P1 — Design & Documentation
+- Admin home page mockup (web/static/mockups/admin-home.html) — Tailwind v4 + Alpine.js
+- Cost data validation: 73% revision claim is 6x overstatement (actual: 12%), documented
+- 3 decisions: Tailwind v4 adoption, honeypot data strategy, defensible data claims
 
-**Agent 2C — Tool Audit + Security + Docs**
-- `src/mcp_http.py`: Added 7 missing tools (permit_severity, property_health, similar_projects, predict_next_stations, diagnose_stuck_permit, simulate_what_if, calculate_delay_cost) — MCP server now at parity with stdio server (34 tools)
-- `src/tools/project_intel.py`: `run_query` table allowlist (blocks users, auth_tokens, oauth tables, pg_* system tables); `read_source` path denylist (blocks CLAUDE.md, sprint-prompts/)
-- `src/tools/list_feedback.py`: `MCP_RESTRICT_FEEDBACK=1` env gate for demo scope restriction
-- `Dockerfile.mcp`: Removed `sprint-prompts/` and `CLAUDE.md` from container image
-- NEW `scripts/create_qa_account.py`: OAuth client registration script for QA
-- NEW `docs/MCP_TESTING.md`: Connection guide + 5 core test prompts + rate limit tiers
+### MCP Security Hardening
+- Remove 6 dangerous tools from HTTP endpoint (run_query, read_source, search_source, schema_info, list_tests, list_feedback)
+- mcp_access_log table: persistent request logging (IP, user-agent, path, 30-day retention)
+- Real-time Telegram alerts: new IP connections (blue) + rate limit hits (red)
+- Daily security digest in Chief morning briefing via nightly sync
+- OAuth 2.1 built and ready — disabled until claude.ai supports MCP OAuth
+- Rate limiting active (100 req/hr per IP)
 
-**Tests added**: 32 new tests across `test_oauth.py`, `test_mcp_rate_limit.py`, `test_tool_audit.py`. Full suite: 4904 passed.
+### Process
+- Monthly Intelligence Review process created (Chief spec)
+- 34 tools inventoried, 11 with no web presence, 5 proposals for next sprint
 
 ## QS12 — Demo-Ready: Visual Intelligence (2026-02-28)
 
