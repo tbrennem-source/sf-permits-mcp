@@ -1057,6 +1057,49 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
         ]
         address = " ".join(part for part in parts if part)
 
+    # === QS14: Intelligence enrichment ===
+    intelligence = {"stuck_permits": [], "delay_estimate": None, "similar_projects": []}
+
+    try:
+        from web.intelligence_helpers import (
+            get_stuck_diagnosis_sync,
+            get_delay_cost_sync,
+            get_similar_projects_sync,
+        )
+
+        # Stuck diagnosis for up to 2 active permits
+        active_permits = [
+            p for p in permits
+            if p.get("permit_number")
+            and (p.get("status") or "").lower() in ("filed", "plancheck", "issued")
+        ][:2]
+
+        for permit in active_permits:
+            diag = get_stuck_diagnosis_sync(permit["permit_number"])
+            if diag:
+                intelligence["stuck_permits"].append(diag)
+
+        # Delay estimate based on most common permit type
+        if permits:
+            common_type = permits[0].get("permit_type_definition", "alterations")
+            # Use a default monthly cost for general estimation
+            delay = get_delay_cost_sync(common_type, 5000.0)
+            if delay:
+                intelligence["delay_estimate"] = delay
+
+        # Similar projects
+        if permits:
+            common_type = permits[0].get("permit_type_definition", "alterations")
+            est_cost = permits[0].get("estimated_cost")
+            similar = get_similar_projects_sync(
+                common_type, None, float(est_cost) if est_cost else None
+            )
+            intelligence["similar_projects"] = similar[:5]
+
+    except Exception as e:
+        logger.warning("Intelligence enrichment failed: %s", e)
+    # === END QS14 ===
+
     # ── 5. Assemble final report ──────────────────────────────────
     return {
         "block": block,
@@ -1076,4 +1119,6 @@ def get_property_report(block: str, lot: str, is_owner: bool = False) -> dict:
         "is_owner": is_owner,
         "whats_missing": whats_missing,
         "remediation_roadmap": remediation_roadmap,
+        # QS14: Intelligence enrichment
+        "intelligence": intelligence,
     }
