@@ -35,7 +35,7 @@
     }
     .gantt-grid {
       display: grid;
-      grid-template-columns: 90px 1fr;
+      grid-template-columns: 110px 1fr;
       gap: var(--space-2) var(--space-3);
       align-items: center;
     }
@@ -154,7 +154,7 @@
     }
     @media (max-width: 600px) {
       .gantt-grid {
-        grid-template-columns: 72px 1fr;
+        grid-template-columns: 80px 1fr;
       }
     }
   </style>
@@ -171,12 +171,13 @@
 
   <div class="gantt-grid" id="gantt-grid-{{ gantt.permit }}">
     {% for station in gantt.stations %}
-    <div class="gantt-label" title="{{ station.label }}">{{ station.name }}</div>
+    <div class="gantt-label" title="{{ station.label or station.name }}">{{ station.name }}</div>
     <div class="gantt-track">
       <div class="gantt-bar gantt-bar--{{ station.status if not station.get('is_current') else 'current' }}"
            data-start="{{ station.start_month }}"
            data-width="{{ station.width_pct }}"
-           style="left: {{ station.start_month / 6 * 100 }}%; width: {{ station.width_pct }}%;">
+           style="left: {{ station.start_month / 6 * 100 }}%; width: {{ station.width_pct }}%;"
+           title="{{ station.reviewer }}{% if station.dwell_days %} · {{ station.dwell_days }} days{% endif %}{% if station.get('is_current') %} · current station{% endif %}">
         <span class="gantt-bar-reviewer">{{ station.reviewer }}</span>
         {% if station.get('is_current') %}
         <span class="gantt-you-are-here">you are here</span>

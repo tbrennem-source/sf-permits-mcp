@@ -970,3 +970,89 @@ border: 1px solid rgba(245, 158, 11, 0.30); /* --dot-amber at 30% opacity */
 **Notes:** Compact variant of the triage-panel for use in narrower result contexts. Shares station-badge and triage-reviewer classes with the full panel. Rendered conditionally on `triage_signals` being non-empty.
 
 ---
+
+### Story Scroll Section + Headline
+**Sprint:** QS13
+**File:** `web/templates/landing.html`
+**Usage:** Landing page — 5 full-width narrative sections replacing the former 3/2 showcase grid. Each section wraps one showcase card with a narrative headline above it.
+**Status:** NEW
+**HTML:**
+```html
+<section class="story-section reveal">
+  <div class="section-inner">
+    <p class="story-headline">A small scope change can double your timeline</p>
+    {% if showcase and showcase.get("whatif") %}{% include "components/showcase_whatif.html" %}{% endif %}
+  </div>
+</section>
+```
+**CSS:**
+```css
+.story-section {
+  padding: 80px 24px;
+  position: relative;
+  z-index: 1;
+}
+.story-section .section-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.story-headline {
+  font-family: var(--sans);
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  font-weight: 300;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+/* Divider between sections */
+.story-section + .story-section {
+  border-top: 1px solid var(--glass-border);
+}
+/* Mobile */
+@media (max-width: 768px) { .story-section { padding: 40px 24px; } }
+@media (max-width: 480px) { .story-section { padding: 24px 16px; } }
+```
+**Notes:** Replaces the cramped 3/2 grid with a narrative scroll — each card gets full-width, full breathing room. Narrative headlines set emotional context before the data card. Order: Gantt (shock) → What-If (curiosity) → Stuck (fear) → Cost (urgency) → Risk (caution) → Network (relief) → CTA.
+
+### Story CTA Section
+**Sprint:** QS13
+**File:** `web/templates/landing.html`
+**Usage:** Landing page — final story-scroll section before MCP demo. Centers a "Join the beta →" CTA button.
+**Status:** NEW
+**HTML:**
+```html
+<section class="story-section story-cta-section reveal">
+  <div class="section-inner" style="text-align: center;">
+    <p class="story-headline" style="margin-bottom: 32px;">Ready to see what's happening with your permit?</p>
+    <a href="/join-beta" class="story-cta">Join the beta →</a>
+  </div>
+</section>
+```
+**CSS:**
+```css
+.story-cta-section {
+  text-align: center;
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+.story-cta {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid rgba(94, 234, 212, 0.25);
+  border-radius: 8px;
+  padding: 14px 32px;
+  transition: background 0.2s, border-color 0.2s;
+  letter-spacing: 0.02em;
+}
+.story-cta:hover {
+  background: var(--accent-glow);
+  border-color: rgba(94, 234, 212, 0.5);
+}
+```
+**Notes:** Larger ghost-style CTA button. Uses token colors (--accent, --accent-glow). Placed between the last story card and the MCP demo to capture conversion intent.
+
+---

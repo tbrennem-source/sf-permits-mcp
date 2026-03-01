@@ -467,13 +467,8 @@
   .state-toggle button:hover { background: var(--obsidian-light); }
   .state-toggle button.active { background: var(--accent-glow); color: var(--accent); }
 
-  /* ═══ SHOWCASE SECTION ═══ */
+  /* ═══ SHOWCASE SECTION (legacy — kept for any residual refs) ═══ */
   .showcase-section { padding-top: 80px; padding-bottom: 80px; }
-  .showcase-section h2 {
-    font-family: var(--sans); font-size: clamp(20px, 2.4vw, 28px); font-weight: 300;
-    text-align: center; color: var(--text-primary);
-    margin-bottom: 48px;
-  }
 
   /* Full-width Gantt section */
   .showcase-gantt-section {
@@ -490,6 +485,53 @@
     width: 100%;
     max-width: none;
   }
+
+  /* ═══ STORY SCROLL ═══ */
+  .story-section {
+    padding: 80px 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .story-section .section-inner {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .story-headline {
+    font-family: var(--sans);
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    font-weight: 300;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.4;
+  }
+  .story-cta-section {
+    text-align: center;
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+  .story-cta {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid rgba(94, 234, 212, 0.25);
+    border-radius: 8px;
+    padding: 14px 32px;
+    transition: background 0.2s, border-color 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .story-cta:hover {
+    background: var(--accent-glow);
+    border-color: rgba(94, 234, 212, 0.5);
+  }
+
+  /* Dividers between story sections */
+  .story-section + .story-section {
+    border-top: 1px solid var(--glass-border);
+  }
+
   .intelligence-layer-label {
     font-family: var(--mono);
     font-size: 11px;
@@ -514,11 +556,9 @@
     }
   }
 
-  /* 5-card grid below Gantt */
+  /* showcase-grid — replaced by story scroll; kept for .showcase-card styles */
   .showcase-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-lg, 24px);
+    display: block;
   }
   .showcase-card {
     background: var(--obsidian-mid);
@@ -791,14 +831,18 @@
   }
 
   @media (max-width: 768px) {
-    .showcase-grid { grid-template-columns: repeat(2, 1fr); }
+    .showcase-grid { display: block; }
     .showcase-section { padding-top: 60px; padding-bottom: 60px; }
     .showcase-gantt-section { padding-top: 60px; }
+    .story-section { padding: 40px 24px; }
+    .story-headline { font-size: 1.1rem; }
     .demo-body { padding: 20px 16px; }
     .demo-row { flex-direction: column; align-items: flex-start; gap: 4px; }
   }
   @media (max-width: 480px) {
-    .showcase-grid { grid-template-columns: 1fr; }
+    .showcase-grid { display: block; }
+    .story-section { padding: 24px 16px; }
+    .story-headline { font-size: 1rem; }
   }
 
   /* Credibility line */
@@ -930,22 +974,52 @@
 <section class="showcase-gantt-section" id="intelligence">
   <div class="section-inner">
     <div class="intelligence-layer-label reveal">Routing Intelligence</div>
-    <div class="showcase-gantt-fullwidth reveal reveal-delay-1">
+    <p class="story-headline reveal reveal-delay-1">This is what a permit goes through — 10 agencies, 242 days</p>
+    <div class="showcase-gantt-fullwidth reveal reveal-delay-2">
       {% if showcase and showcase.get("station_timeline") %}{% include "components/showcase_gantt.html" %}{% endif %}
     </div>
   </div>
 </section>
 
-<section class="showcase-section">
+<section class="story-section reveal">
   <div class="section-inner">
-    <h2 class="reveal">See what permit intelligence looks like</h2>
-    <div class="showcase-grid" id="showcase-grid">
-      {% if showcase and showcase.get("stuck_permit") %}{% include "components/showcase_stuck.html" %}{% endif %}
-      {% if showcase and showcase.get("whatif") %}{% include "components/showcase_whatif.html" %}{% endif %}
-      {% if showcase and showcase.get("revision_risk") %}{% include "components/showcase_risk.html" %}{% endif %}
-      {% if showcase and showcase.get("entity_network") %}{% include "components/showcase_entity.html" %}{% endif %}
-      {% if showcase and showcase.get("cost_of_delay") %}{% include "components/showcase_delay.html" %}{% endif %}
-    </div>
+    <p class="story-headline">A small scope change can double your timeline</p>
+    {% if showcase and showcase.get("whatif") %}{% include "components/showcase_whatif.html" %}{% endif %}
+  </div>
+</section>
+
+<section class="story-section reveal">
+  <div class="section-inner">
+    <p class="story-headline">This permit has been stuck for 432 days. Is yours next?</p>
+    {% if showcase and showcase.get("stuck_permit") %}{% include "components/showcase_stuck.html" %}{% endif %}
+  </div>
+</section>
+
+<section class="story-section reveal">
+  <div class="section-inner">
+    <p class="story-headline">Every day stuck costs real money</p>
+    {% if showcase and showcase.get("cost_of_delay") %}{% include "components/showcase_delay.html" %}{% endif %}
+  </div>
+</section>
+
+<section class="story-section reveal">
+  <div class="section-inner">
+    <p class="story-headline">1 in 4 permits gets sent back for revisions</p>
+    {% if showcase and showcase.get("revision_risk") %}{% include "components/showcase_risk.html" %}{% endif %}
+  </div>
+</section>
+
+<section class="story-section reveal">
+  <div class="section-inner">
+    <p class="story-headline">Find someone who's navigated this before</p>
+    {% if showcase and showcase.get("entity_network") %}{% include "components/showcase_entity.html" %}{% endif %}
+  </div>
+</section>
+
+<section class="story-section story-cta-section reveal">
+  <div class="section-inner" style="text-align: center;">
+    <p class="story-headline" style="margin-bottom: 32px;">Ready to see what's happening with your permit?</p>
+    <a href="/join-beta" class="story-cta">Join the beta →</a>
   </div>
 </section>
 
