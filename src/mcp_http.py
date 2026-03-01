@@ -50,8 +50,21 @@ from src.tools.permit_lookup import permit_lookup
 from src.tools.search_addenda import search_addenda
 from src.tools.list_feedback import list_feedback
 
+# Phase 5.5 / 6 tools (severity, health, operational intelligence)
+from src.tools.permit_severity import permit_severity
+from src.tools.property_health import property_health
+
 # Phase 7 tools (project intelligence)
 from src.tools.project_intel import run_query, read_source, search_source, schema_info, list_tests
+
+# Phase 8 tools (similar projects)
+from src.tools.similar_projects import similar_projects
+
+# Phase 9 tools (station prediction, stuck permits, simulation, delay cost)
+from src.tools.predict_next_stations import predict_next_stations
+from src.tools.stuck_permit import diagnose_stuck_permit
+from src.tools.what_if_simulator import simulate_what_if
+from src.tools.cost_of_delay import calculate_delay_cost
 
 # ── Create MCP server with HTTP transport config and OAuth 2.1 ────
 port = int(os.environ.get("PORT", 8001))
@@ -109,12 +122,25 @@ mcp.tool()(permit_lookup)
 mcp.tool()(search_addenda)
 mcp.tool()(list_feedback)
 
+# Phase 5.5 / 6 tools (severity, health, operational intelligence)
+mcp.tool()(permit_severity)
+mcp.tool()(property_health)
+
 # Phase 7 tools (project intelligence)
 mcp.tool()(run_query)
 mcp.tool()(read_source)
 mcp.tool()(search_source)
 mcp.tool()(schema_info)
 mcp.tool()(list_tests)
+
+# Phase 8 tools (similar projects)
+mcp.tool()(similar_projects)
+
+# Phase 9 tools (station prediction, stuck permits, simulation, delay cost)
+mcp.tool()(predict_next_stations)
+mcp.tool()(diagnose_stuck_permit)
+mcp.tool()(simulate_what_if)
+mcp.tool()(calculate_delay_cost)
 
 
 # ── Rate limiting middleware ───────────────────────────────────────

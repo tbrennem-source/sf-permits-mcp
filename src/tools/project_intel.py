@@ -41,6 +41,56 @@ _FORBIDDEN_SQL = re.compile(
 # Max lines to return from read_source
 _MAX_READ_LINES = 500
 
+# ── Security: Table allowlist / denylist ─────────────────────────────
+
+_ALLOWED_TABLES = {
+    "permits", "contacts", "entities", "relationships", "inspections",
+    "timeline_stats", "station_velocity_v2", "complaints", "violations",
+    "addenda_routing", "addenda", "businesses", "boiler_permits",
+    "fire_permits", "planning_records", "tax_rolls", "street_use_permits",
+    "development_pipeline", "affordable_housing", "housing_production",
+    "dwelling_completions", "ref_zoning_routing", "ref_permit_forms",
+    "ref_agency_triggers", "permit_issuance_metrics", "permit_review_metrics",
+    "planning_review_metrics", "cron_log", "ingest_log",
+    "severity_cache", "request_metrics", "parcel_summary",
+}
+
+_BLOCKED_TABLES = {
+    "users", "auth_tokens", "feedback", "watch_items", "activity_log",
+    "points_ledger", "permit_changes", "regulatory_watch",
+    "plan_analysis_sessions", "plan_analysis_images", "plan_analysis_jobs",
+    "beta_requests", "mcp_oauth_clients", "mcp_oauth_codes", "mcp_oauth_tokens",
+    "voice_calibrations", "project_notes", "analysis_sessions", "page_cache",
+}
+
+
+def _check_table_allowlist(sql: str) -> str | None:
+    """Return error message if SQL references blocked tables, else None."""
+    sql_lower = sql.lower()
+    # Extract all identifiers after FROM, JOIN, UPDATE, INSERT INTO, DELETE FROM
+    pattern = r'\b(?:from|join|update|into)\s+([a-z_][a-z0-9_]*)'
+    tables = re.findall(pattern, sql_lower)
+    for table in tables:
+        if table.startswith("pg_") or table.startswith("information_schema"):
+            return f"Access denied: system table '{table}' is not queryable."
+        if table in _BLOCKED_TABLES:
+            return f"Access denied: table '{table}' is not accessible via this tool."
+    return None
+
+
+# ── Security: Path denylist ──────────────────────────────────────────
+
+def _check_path_allowed(path: str) -> str | None:
+    """Return error message if path is denied, else None."""
+    # Normalize
+    clean = path.strip().lstrip("/")
+    denied_patterns = ["CLAUDE.md", "sprint-prompts/", ".claude/", ".env"]
+    for pattern in denied_patterns:
+        if clean == pattern or clean.startswith(pattern) or ("/" + pattern) in clean:
+            return f"Access denied: '{path}' is not readable via this tool."
+    return None
+
+
 # ── Helpers ──────────────────────────────────────────────────────────
 
 
@@ -135,6 +185,11 @@ async def run_query(sql: str, limit: int = 100) -> str:
     if match:
         return f"**Error:** Write operation `{match.group()}` is not allowed. Read-only queries only."
 
+    # Check table allowlist — block access to sensitive tables
+    block_reason = _check_table_allowlist(clean_sql)
+    if block_reason:
+        return f"**Error:** {block_reason}"
+
     conn = get_connection()
     try:
         # Set statement timeout (Postgres only)
@@ -196,6 +251,11 @@ async def read_source(path: str, line_start: int = None, line_end: int = None) -
     Returns:
         File contents with line numbers, or error message.
     """
+    # Check path denylist — block access to sensitive files
+    deny = _check_path_allowed(path)
+    if deny:
+        return f"**Error:** {deny}"
+
     # Reject absolute paths
     if path.startswith("/") or path.startswith("\\"):
         return "**Error:** Absolute paths not allowed. Use relative paths from repo root."
