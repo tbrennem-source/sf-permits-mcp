@@ -2942,3 +2942,53 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Edge cases seen in code:** Tool count mismatch if new tools added to server.py but not mcp_http.py
 **CC confidence:** high
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Stuck permit badge appears in search results
+**Source:** web/templates/search_results.html + web/helpers.py (QS14 T1-A/T1-C)
+**User:** expediter
+**Starting state:** User searches for a property address; one permit has been at the same review station for 45 days (3x the median)
+**Goal:** Identify stuck permits without navigating to each permit individually
+**Expected outcome:** A "STUCK at [station] — 45d (3.0x baseline)" badge appears on the relevant permit card with severity-appropriate color (amber for high, red for critical)
+**Edge cases seen in code:** Badge does not render when stuck_diagnosis is None (not stuck or block/lot unavailable); lower 1.5x ratio shows is_stuck=False (no badge)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Violation and complaint counts in search results
+**Source:** web/templates/search_results.html + web/helpers.py (QS14 T1-A/T1-C)
+**User:** expediter
+**Starting state:** User searches for a property with open building violations and complaints on record
+**Goal:** Surface code enforcement context alongside permit status in one view
+**Expected outcome:** Permit card shows "⚠ 2 active violations" and "📋 1 open complaint" inline; does not show when counts are 0
+**Edge cases seen in code:** Gracefully handles missing block/lot (defaults to 0), DB errors (try/except → 0)
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Intelligence API returns structured stuck diagnosis
+**Source:** web/routes_api.py + web/intelligence_helpers.py (QS14 T1-B/T1-D)
+**User:** expediter
+**Starting state:** User has a permit number for a known stuck permit
+**Goal:** Get actionable diagnosis via API (HTMX fragment or JSON)
+**Expected outcome:** GET /api/intelligence/stuck/[permit_number] returns severity, days at station vs baseline, and ranked intervention steps; JSON on Accept: application/json, HTML fragment otherwise
+**Edge cases seen in code:** Returns empty fragment div (not 500) when permit not found or diagnosis unavailable; rate-limited at 30 req/min
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Delay cost API returns scenario breakdown
+**Source:** web/routes_api.py + web/intelligence_helpers.py (QS14 T1-B/T1-D)
+**User:** homeowner
+**Starting state:** User has a renovation permit type and knows their monthly carrying cost
+**Goal:** Understand the financial risk of permit delays in three scenarios
+**Expected outcome:** GET /api/intelligence/delay?permit_type=alterations&monthly_cost=5000&neighborhood=Mission returns daily/weekly/monthly costs plus best-case/likely/worst-case scenario table
+**Edge cases seen in code:** Handles $21.2K-formatted numbers from markdown; returns empty fragment when calculation fails
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: Similar projects API returns comparable completed permits
+**Source:** web/routes_api.py + web/intelligence_helpers.py (QS14 T1-B/T1-D)
+**User:** expediter
+**Starting state:** User is planning an alteration project in the Mission for ~$100K
+**Goal:** Find comparable permits that completed successfully to benchmark timeline
+**Expected outcome:** GET /api/intelligence/similar?permit_type=alterations&neighborhood=Mission&cost=100000 returns up to 5 completed permits with description, neighborhood, duration, routing path, and cost
+**Edge cases seen in code:** Falls back to markdown parsing if return_structured data is unavailable; returns [] on failure (not error)
+**CC confidence:** medium
+**Status:** PENDING REVIEW
