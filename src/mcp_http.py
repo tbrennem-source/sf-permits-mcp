@@ -199,6 +199,52 @@ def _log_access_to_db(ip: str, method: str, path: str, user_agent: str,
     finally:
         conn.close()
 
+
+# ── Real-time Telegram alerts for suspicious MCP activity ─────────
+_TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+_TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+_alerted_ips: set = set()  # Don't spam — one alert per IP per restart
+
+
+def _send_telegram_alert(message: str):
+    """Fire-and-forget Telegram notification. Never blocks, never raises."""
+    if not _TELEGRAM_BOT_TOKEN or not _TELEGRAM_CHAT_ID:
+        return
+    try:
+        import urllib.request
+        import urllib.parse
+        url = (
+            f"https://api.telegram.org/bot{_TELEGRAM_BOT_TOKEN}/sendMessage?"
+            f"chat_id={_TELEGRAM_CHAT_ID}&parse_mode=Markdown&"
+            f"text={urllib.parse.quote(message)}"
+        )
+        urllib.request.urlopen(url, timeout=5)
+    except Exception:
+        pass  # Never let alerting block a request
+
+
+def _check_and_alert(ip: str, user_agent: str, rate_limited: bool = False):
+    """Real-time alerting: new IPs and rate limit hits."""
+    if rate_limited:
+        _send_telegram_alert(
+            f"🚨 *MCP Rate Limited*\n"
+            f"IP: `{ip}`\n"
+            f"UA: {user_agent[:60]}\n"
+            f"Requests: {_request_log['by_ip'].get(ip, '?')}"
+        )
+        return
+
+    # Alert on first request from a new IP
+    if ip not in _alerted_ips:
+        _alerted_ips.add(ip)
+        total_ips = len(_request_log["by_ip"])
+        _send_telegram_alert(
+            f"🔵 *New MCP client*\n"
+            f"IP: `{ip}`\n"
+            f"UA: {user_agent[:60]}\n"
+            f"Total unique IPs: {total_ips}"
+        )
+
 # Paths that bypass rate limiting (health + OAuth endpoints)
 _RATE_LIMIT_SKIP_PATHS = frozenset([
     "/",
@@ -244,11 +290,15 @@ class RateLimitMiddleware:
             ip, method, path, user_agent, _request_log["total"],
         )
 
-        # Persist to DB (non-blocking — failure doesn't block the request)
+        # Persist to DB + alert (non-blocking — failure doesn't block the request)
         try:
             _log_access_to_db(ip, method, path, user_agent)
         except Exception:
-            pass  # Never let logging failure block a request
+            pass
+        try:
+            _check_and_alert(ip, user_agent)
+        except Exception:
+            pass
 
         # Extract bearer token or fall back to IP
         auth_header = headers.get(b"authorization", b"").decode()
@@ -274,6 +324,7 @@ class RateLimitMiddleware:
         if not allowed:
             try:
                 _log_access_to_db(ip, method, path, user_agent, rate_limited=True)
+                _check_and_alert(ip, user_agent, rate_limited=True)
             except Exception:
                 pass
             logger.warning("RATE LIMITED: ip=%s key=%s path=%s", ip, rate_key, path)
