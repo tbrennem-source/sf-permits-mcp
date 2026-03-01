@@ -126,6 +126,11 @@ def _inject_gate():
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
 IS_STAGING = ENVIRONMENT == "staging"
 
+# ---------------------------------------------------------------------------
+# Honeypot mode — redirect all non-exempt paths to /join-beta capture page
+# ---------------------------------------------------------------------------
+HONEYPOT_MODE = os.environ.get("HONEYPOT_MODE", "0") == "1"
+
 
 # === QS3-D: POSTHOG CONTEXT ===
 @app.context_processor
@@ -156,6 +161,12 @@ def inject_tier_gate():
         "tier_required": getattr(g, "tier_required", None),
         "tier_current": getattr(g, "tier_current", None),
     }
+
+
+@app.context_processor
+def inject_honeypot_mode():
+    """Make honeypot_mode available in all templates."""
+    return {"honeypot_mode": HONEYPOT_MODE}
 
 
 # ---------------------------------------------------------------------------
@@ -409,6 +420,43 @@ def _run_startup_migrations():
             )
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_cron_log_job_status ON cron_log (job_type, status)")
+
+        # ── Beta requests (organic signups waiting for approval) ──────
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS beta_requests (
+                id          SERIAL PRIMARY KEY,
+                email       TEXT NOT NULL UNIQUE,
+                name        TEXT,
+                reason      TEXT,
+                role        TEXT,
+                interest_address TEXT,
+                referrer    TEXT,
+                ip          TEXT,
+                honeypot_filled BOOLEAN NOT NULL DEFAULT FALSE,
+                status      TEXT NOT NULL DEFAULT 'pending',
+                admin_note  TEXT,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                reviewed_at TIMESTAMPTZ,
+                approved_at TIMESTAMPTZ
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_beta_requests_email ON beta_requests (email)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_beta_requests_status ON beta_requests (status)"
+        )
+        # QS13: honeypot capture columns (idempotent — safe if already present)
+        for _qs13_col in [
+            "ALTER TABLE beta_requests ADD COLUMN IF NOT EXISTS role TEXT",
+            "ALTER TABLE beta_requests ADD COLUMN IF NOT EXISTS interest_address TEXT",
+            "ALTER TABLE beta_requests ADD COLUMN IF NOT EXISTS referrer TEXT",
+        ]:
+            try:
+                cur.execute(_qs13_col)
+            except Exception as _e:
+                if "already exists" not in str(_e).lower():
+                    logger.warning("QS13 beta_requests migration: %s", _e)
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS plan_analysis_sessions (
@@ -986,6 +1034,39 @@ def _security_filters():
                 message="Too many requests. Please wait a minute.",
                 message_type="error",
             ), 429
+
+
+@app.before_request
+def _honeypot_redirect():
+    """When HONEYPOT_MODE=1, redirect most paths to /join-beta capture page.
+
+    Exemptions: /, /join-beta, /static/, /health, /demo/guided, /api/stats,
+    /cron/, /sitemap.xml, /robots.txt, /.well-known/, /admin/
+    """
+    if not HONEYPOT_MODE:
+        return
+    path = request.path
+
+    # Allowed exact paths
+    allowed_exact = {'/', '/demo/guided'}
+    if path in allowed_exact:
+        return
+
+    # Allowed prefixes
+    allowed_prefixes = [
+        '/static/', '/health', '/join-beta', '/api/stats',
+        '/cron/', '/sitemap.xml', '/robots.txt', '/.well-known/', '/admin/',
+    ]
+    for prefix in allowed_prefixes:
+        if path.startswith(prefix):
+            return
+
+    # Redirect to /join-beta, preserving ref from first path segment
+    ref = path.lstrip('/').split('/')[0] or 'site'
+    params = dict(request.args)
+    params['ref'] = ref
+    qs = '&'.join(f'{k}={v}' for k, v in params.items())
+    return redirect(f'/join-beta?{qs}' if qs else '/join-beta')
 
 
 def _is_cron_worker():

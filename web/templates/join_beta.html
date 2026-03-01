@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Join the Waitlist — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        body {
+            font-family: var(--sans);
+            background: var(--bg-deep, #0a0a0f);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-6, 1.5rem);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .join-beta-wrap {
+            width: 100%;
+            max-width: 480px;
+            opacity: 0;
+            animation: fadeUp 1.2s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .wordmark {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 2.5rem;
+            transition: color 0.3s;
+        }
+        .wordmark:hover { color: var(--accent); }
+
+        .join-card {
+            background: var(--bg-surface, rgba(255,255,255,0.04));
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            border-radius: 12px;
+            padding: 2.5rem;
+        }
+
+        .join-heading {
+            font-family: var(--mono);
+            font-size: 1.6rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin: 0 0 0.75rem;
+            text-align: center;
+        }
+
+        .join-sub {
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0 0 2rem;
+            text-align: center;
+        }
+
+        .error-banner {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            border-radius: 6px;
+            padding: 0.7rem 1rem;
+            margin-bottom: 1rem;
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            color: #f87171;
+        }
+
+        .field {
+            margin-bottom: 1rem;
+        }
+
+        .field-label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 0.4rem;
+        }
+
+        .field-input,
+        .field-select {
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            border-radius: 6px;
+            padding: 0.65rem 0.85rem;
+            font-family: var(--mono);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .field-select {
+            font-family: var(--sans);
+        }
+        .field-input::placeholder { color: var(--text-tertiary); }
+        .field-input:focus,
+        .field-select:focus {
+            border-color: var(--accent-ring, rgba(94,234,212,0.3));
+            box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.08);
+        }
+
+        /* Honeypot — must be invisible to real users */
+        .honeypot-field {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            opacity: 0;
+            pointer-events: none;
+            tab-size: -1;
+        }
+
+        .submit-btn {
+            font-family: var(--mono);
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+            margin-top: 0.5rem;
+        }
+        .submit-btn:hover {
+            border-color: rgba(255,255,255,0.12);
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.07);
+        }
+
+        .join-note {
+            margin-top: 1.5rem;
+            font-family: var(--sans);
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+            text-align: center;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .join-beta-wrap { opacity: 1; animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="join-beta-wrap">
+    <a href="/" class="wordmark">sfpermits.ai</a>
+
+    <div class="join-card">
+        <h1 class="join-heading">Launching soon</h1>
+        <p class="join-sub">
+            San Francisco's first AI permit intelligence platform.
+            Leave your email and we'll let you know when access opens.
+        </p>
+
+        {% if error %}
+        <div class="error-banner">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/join-beta">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="ref" value="{{ ref }}">
+            <input type="hidden" name="q" value="{{ q }}">
+
+            <!-- Honeypot spam trap — must stay invisible to real users -->
+            <div class="honeypot-field" aria-hidden="true">
+                <label for="jb_website">Website (leave blank)</label>
+                <input type="text" id="jb_website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="jb_email">Email <span style="color: var(--signal-red, #f87171);">*</span></label>
+                <input class="field-input" type="email" id="jb_email" name="email"
+                       required placeholder="you@example.com" autocomplete="email">
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="jb_name">Name (optional)</label>
+                <input class="field-input" type="text" id="jb_name" name="name"
+                       placeholder="Your name" autocomplete="name">
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="jb_role">I am a...</label>
+                <select class="field-select" id="jb_role" name="role">
+                    <option value="">Select your role…</option>
+                    <option value="homeowner">Homeowner</option>
+                    <option value="contractor">Contractor</option>
+                    <option value="architect">Architect</option>
+                    <option value="expediter">Permit Expediter</option>
+                    <option value="investor">Real Estate Investor</option>
+                    <option value="curious">Just Curious</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="jb_address">Address you care about (optional)</label>
+                <input class="field-input" type="text" id="jb_address" name="interest_address"
+                       placeholder="e.g. 123 Mission St, SF">
+            </div>
+
+            <button type="submit" class="submit-btn">Notify me when it launches →</button>
+        </form>
+    </div>
+
+    <p class="join-note">No spam. Unsubscribe anytime.</p>
+</div>
+
+</body>
+</html>

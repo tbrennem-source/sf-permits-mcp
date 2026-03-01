@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>You're on the list — sfpermits.ai</title>
+    {% include "fragments/head_obsidian.html" %}
+    <style nonce="{{ csp_nonce }}">
+        body {
+            font-family: var(--sans);
+            background: var(--bg-deep, #0a0a0f);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-6, 1.5rem);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .thanks-wrap {
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeUp 1.0s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .wordmark {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 2.5rem;
+            transition: color 0.3s;
+        }
+        .wordmark:hover { color: var(--accent); }
+
+        .thanks-card {
+            background: var(--bg-surface, rgba(255,255,255,0.04));
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.06));
+            border-radius: 12px;
+            padding: 2.5rem;
+        }
+
+        .check-mark {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+            color: var(--accent);
+            font-family: var(--mono);
+        }
+
+        .thanks-heading {
+            font-family: var(--mono);
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin: 0 0 0.75rem;
+        }
+
+        .thanks-body {
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0 0 1rem;
+        }
+
+        .thanks-note {
+            font-family: var(--sans);
+            font-size: 0.82rem;
+            color: var(--text-tertiary);
+            margin: 0 0 1.5rem;
+        }
+
+        .back-link {
+            font-family: var(--mono);
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 1px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .back-link:hover {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .thanks-wrap { opacity: 1; animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="thanks-wrap">
+    <a href="/" class="wordmark">sfpermits.ai</a>
+
+    <div class="thanks-card">
+        <span class="check-mark">✓</span>
+        <h1 class="thanks-heading">You're on the list!</h1>
+
+        <p class="thanks-body">
+            {% if queue_position > 1 %}
+            You've joined {{ queue_position }} others waiting for access to SF's most
+            comprehensive permit intelligence platform.
+            {% else %}
+            You're among the first to request access to SF's most comprehensive
+            permit intelligence platform.
+            {% endif %}
+        </p>
+
+        <p class="thanks-note">
+            We'll email you when your access is ready.
+        </p>
+
+        <a href="/" class="back-link">Back to home →</a>
+    </div>
+</div>
+
+</body>
+</html>
