@@ -2882,3 +2882,63 @@ _Appended: QS9 hotfix session (2026-02-28) — 4 scenarios_
 **Expected outcome:** After 3.6s, the scroll cue arrow fades in and is visible at 60% opacity — noticeable without dominating the hero section
 **CC confidence:** low
 **Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: new-visitor-honeypot-mobile-signup
+**Source:** QS13 T4 — honeypot mode + beta capture
+**User:** homeowner
+**Starting state:** Site in HONEYPOT_MODE=1, user on mobile at 375px
+**Goal:** Sign up for beta access
+**Expected outcome:** User can complete signup form, see queue position number, form fields are touch-accessible (min 44px), honeypot field must be empty for submission to succeed
+**Edge cases seen in code:** honeypot field named "website" silently accepts bots but does not write to DB; rate limit after 3 attempts per IP per hour
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: oauth-end-to-end-from-claude-ai
+**Source:** QS13 T4 — MCP OAuth integration
+**User:** architect
+**Starting state:** claude.ai with custom MCP connector configured, visiting MCP server URL
+**Goal:** Connect to sfpermits MCP server via OAuth
+**Expected outcome:** Discovery endpoint returns valid metadata with issuer/token_endpoint/authorization_endpoint, dynamic client registration succeeds, authorization code flow works, MCP tools accessible with issued token
+**Edge cases seen in code:** expired tokens return 401; revoked tokens immediately invalidated; missing client_id returns 400
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: rate-limited-demo-user-upgrade-prompt
+**Source:** QS13 T4 — MCP rate limiting
+**User:** homeowner
+**Starting state:** Demo MCP user, 10 calls made in the current hour
+**Goal:** Make one more MCP tool call
+**Expected outcome:** 429 response with helpful upgrade message explaining professional tier options, Retry-After header present, rate limit headers visible in all prior successful responses
+**Edge cases seen in code:** Rate limit is 10 calls/hour for demo scope; counter resets on the hour boundary, not a sliding window
+**CC confidence:** medium
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: docs-page-tool-discovery
+**Source:** QS13 T4 — API documentation page
+**User:** architect
+**Starting state:** Unauthenticated user, wants to understand available MCP tools
+**Goal:** Find all available MCP tools and their capabilities without logging in
+**Expected outcome:** /docs page lists all 34 tools with descriptions, accessible without login, includes MCP server URL and connection instructions
+**Edge cases seen in code:** Tool count should be at least 30; page should reference search_permits, property_lookup, and run_query specifically
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: admin-views-beta-funnel-analytics
+**Source:** QS13 T4 — beta funnel admin dashboard
+**User:** admin
+**Starting state:** Users have submitted beta signups via /beta-request or /join-beta
+**Goal:** Review beta signup queue and export to CSV for outreach
+**Expected outcome:** /admin/beta-funnel shows count of pending signups with role breakdown, export returns valid CSV with email/name/reason/timestamp columns, unauthenticated users see 403
+**Edge cases seen in code:** Requires active admin session (not just any logged-in user); export content-type must be text/csv; honeypot-triggered submissions do not appear in queue
+**CC confidence:** high
+**Status:** PENDING REVIEW
+
+## SUGGESTED SCENARIO: run-query-write-operation-rejected
+**Source:** QS13 T4 — run_query security tests
+**User:** admin
+**Starting state:** MCP session with run_query tool access
+**Goal:** Accidentally attempt an INSERT or DELETE query
+**Expected outcome:** Tool returns clear error "Only SELECT and WITH (CTE) queries are allowed" — no DB mutation occurs, error does not expose table structure
+**Edge cases seen in code:** Comments containing write keywords (INSERT inside /* */) are stripped before keyword check; DROP/ALTER/TRUNCATE/GRANT/REVOKE all blocked
+**CC confidence:** high
+**Status:** PENDING REVIEW
